@@ -54,20 +54,18 @@ bool FPCGExTopologyPathSurfaceElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bSkipCompletion = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any dataset to generate splines."));
 		}
@@ -106,9 +104,7 @@ namespace PCGExTopologyPathSurface
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
-		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendTriangulatedPolygon3D(
-			GetInternalMesh(),
-			Settings->Topology.PrimitiveOptions, FTransform::Identity, ActivePositions);
+		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendTriangulatedPolygon3D(GetInternalMesh(), Settings->Topology.PrimitiveOptions, FTransform::Identity, ActivePositions);
 
 		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(PointDataFacade);
@@ -119,42 +115,41 @@ namespace PCGExTopologyPathSurface
 		Transform.SetScale3D(FVector::OneVector);
 		Transform.SetRotation(FQuat::Identity);
 
-		InternalMesh->EditMesh(
-			[&](FDynamicMesh3& InMesh)
+		InternalMesh->EditMesh([&](FDynamicMesh3& InMesh)
+		{
+			const int32 VtxCount = InMesh.MaxVertexID();
+			const TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+			const TConstPCGValueRange<FVector4> InColors = PointDataFacade->GetIn()->GetConstColorValueRange();
+
+			InMesh.EnableAttributes();
+			InMesh.Attributes()->EnablePrimaryColors();
+			InMesh.Attributes()->EnableMaterialID();
+
+			UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
+			UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
+
+			TArray<int32> ElemIDs;
+			ElemIDs.SetNum(VtxCount);
+
+			for (int i = 0; i < VtxCount; i++)
 			{
-				const int32 VtxCount = InMesh.MaxVertexID();
-				const TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
-				const TConstPCGValueRange<FVector4> InColors = PointDataFacade->GetIn()->GetConstColorValueRange();
+				InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
+				ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[i]));
+			}
 
-				InMesh.EnableAttributes();
-				InMesh.Attributes()->EnablePrimaryColors();
-				InMesh.Attributes()->EnableMaterialID();
+			TArray<int32> TriangleIDs;
+			TriangleIDs.Reserve(InMesh.TriangleCount());
+			for (int32 TriangleID : InMesh.TriangleIndicesItr())
+			{
+				TriangleIDs.Add(TriangleID);
 
-				UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
-				UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
+				const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+				MaterialID->SetValue(TriangleID, 0);
+				Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+			}
 
-				TArray<int32> ElemIDs;
-				ElemIDs.SetNum(VtxCount);
-
-				for (int i = 0; i < VtxCount; i++)
-				{
-					InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
-					ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[i]));
-				}
-
-				TArray<int32> TriangleIDs;
-				TriangleIDs.Reserve(InMesh.TriangleCount());
-				for (int32 TriangleID : InMesh.TriangleIndicesItr())
-				{
-					TriangleIDs.Add(TriangleID);
-
-					const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-					MaterialID->SetValue(TriangleID, 0);
-					Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
-				}
-
-				UVDetails.Write(TriangleIDs, InMesh);
-			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
+			UVDetails.Write(TriangleIDs, InMesh);
+		}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 
 		Settings->Topology.PostProcessMesh(GetInternalMesh());

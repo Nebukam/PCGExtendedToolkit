@@ -122,10 +122,7 @@ namespace PCGExData
 
 	void FMutablePoint::SetLocalCenter(const FVector& InValue)
 	{
-		PCGPointHelpers::SetLocalCenter(
-			InValue,
-			Data->GetBoundsMinValueRange(false)[Index],
-			Data->GetBoundsMaxValueRange(false)[Index]);
+		PCGPointHelpers::SetLocalCenter(InValue, Data->GetBoundsMinValueRange(false)[Index], Data->GetBoundsMaxValueRange(false)[Index]);
 	}
 
 	void FMutablePoint::SetExtents(const FVector& InValue, const bool bKeepLocalCenter)
@@ -198,21 +195,13 @@ namespace PCGExData
 	{
 	}
 
-	FProxyPoint::FProxyPoint(const FMutablePoint& InPoint):
-		Transform(InPoint.GetTransform()),
-		BoundsMin(InPoint.GetBoundsMin()),
-		BoundsMax(InPoint.GetBoundsMax()),
-		Steepness(InPoint.GetSteepness()),
-		Color(InPoint.GetColor())
+	FProxyPoint::FProxyPoint(const FMutablePoint& InPoint)
+		: Transform(InPoint.GetTransform()), BoundsMin(InPoint.GetBoundsMin()), BoundsMax(InPoint.GetBoundsMax()), Steepness(InPoint.GetSteepness()), Color(InPoint.GetColor())
 	{
 	}
 
 	FProxyPoint::FProxyPoint(const FConstPoint& InPoint)
-		: Transform(InPoint.GetTransform()),
-		  BoundsMin(InPoint.GetBoundsMin()),
-		  BoundsMax(InPoint.GetBoundsMax()),
-		  Steepness(InPoint.GetSteepness()),
-		  Color(InPoint.GetColor())
+		: Transform(InPoint.GetTransform()), BoundsMin(InPoint.GetBoundsMin()), BoundsMax(InPoint.GetBoundsMax()), Steepness(InPoint.GetSteepness()), Color(InPoint.GetColor())
 	{
 	}
 

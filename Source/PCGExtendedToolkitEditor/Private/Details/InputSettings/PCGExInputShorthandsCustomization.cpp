@@ -31,15 +31,7 @@ void FPCGExInputShorthandCustomization::CustomizeHeader(
 
 	HeaderRow.NameContent()
 		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
-			[
-				PCGExEnumCustomization::CreateRadioGroup(InputHandle, TEXT("EPCGExInputValueType"))
-			]
-			+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
-			[
-				PropertyHandle->CreatePropertyNameWidget()
-			]
+			PropertyHandle->CreatePropertyNameWidget()
 		]
 		.ValueContent()
 		.MinDesiredWidth(400)
@@ -74,6 +66,10 @@ void FPCGExInputShorthandCustomization::CustomizeHeader(
 				[
 					CreateAttributeWidget(AttributeHandle)
 				]
+			]
+			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
+			[
+				PCGExEnumCustomization::CreateRadioGroup(InputHandle, TEXT("EPCGExInputValueType"))
 			]
 		];
 }

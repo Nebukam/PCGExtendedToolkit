@@ -59,12 +59,10 @@ bool FPCGExFusePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = Settings->Mode != EPCGExFusedPointOutput::MostCentral;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = Settings->Mode != EPCGExFusedPointOutput::MostCentral;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to fuse."));
 		}
@@ -93,9 +91,7 @@ namespace PCGExFusePoints
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
-			Settings->PointPointIntersectionDetails.FuseDetails,
-			PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
+		UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
 
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
@@ -103,9 +99,7 @@ namespace PCGExFusePoints
 
 		// Register fetch-able buffers for chunked reads
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		PCGExDataBlending::GetFilteredIdentities(
-			PointDataFacade->GetIn()->Metadata, SourceAttributes,
-			&Settings->BlendingDetails, &Context->CarryOverDetails);
+		PCGExDataBlending::GetFilteredIdentities(PointDataFacade->GetIn()->Metadata, SourceAttributes, &Settings->BlendingDetails, &Context->CarryOverDetails);
 
 		PointDataFacade->CreateReadables(SourceAttributes);
 
@@ -156,6 +150,8 @@ namespace PCGExFusePoints
 
 		bool bUpdateCenter = Settings->BlendingDetails.PropertiesOverrides.bOverridePosition && Settings->BlendingDetails.PropertiesOverrides.PositionBlending == EPCGExDataBlendingType::None;
 
+		PCGEX_SHARED_CONTEXT_VOID(Context->GetOrCreateHandle())
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
@@ -180,27 +176,25 @@ namespace PCGExFusePoints
 			TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping(NumUnionNodes);
 			const PCGPointOctree::FPointOctree& Octree = PointDataFacade->GetIn()->GetPointOctree();
 			const TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
-			ParallelFor(
-				NumUnionNodes, [&](int32 Index)
+			ParallelFor(NumUnionNodes, [&](int32 Index)
+			{
+				const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
+				double BestDist = MAX_dbl;
+				int32 BestIndex = -1;
+
+				Octree.FindNearbyElements(Center, [&](const PCGPointOctree::FPointRef& PointRef)
 				{
-					const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
-					double BestDist = MAX_dbl;
-					int32 BestIndex = -1;
-
-					Octree.FindNearbyElements(
-						Center, [&](const PCGPointOctree::FPointRef& PointRef)
-						{
-							const double Dist = FVector::DistSquared(Center, OutTransforms[PointRef.Index].GetLocation());
-							if (Dist < BestDist)
-							{
-								BestDist = Dist;
-								BestIndex = PointRef.Index;
-							}
-						});
-
-					if (BestIndex == -1) { BestIndex = UnionGraph->Nodes[Index]->Point.Index; }
-					IdxMapping[Index] = BestIndex;
+					const double Dist = FVector::DistSquared(Center, OutTransforms[PointRef.Index].GetLocation());
+					if (Dist < BestDist)
+					{
+						BestDist = Dist;
+						BestIndex = PointRef.Index;
+					}
 				});
+
+				if (BestIndex == -1) { BestIndex = UnionGraph->Nodes[Index]->Point.Index; }
+				IdxMapping[Index] = BestIndex;
+			});
 
 			PointDataFacade->Source->ConsumeIdxMapping(PointDataFacade->GetAllocations());
 

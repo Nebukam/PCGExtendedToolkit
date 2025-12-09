@@ -7,9 +7,7 @@
 #include "PCGExMT.h"
 
 
-void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
-	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
+void FPCGExSubPointsBlendInterpolate::BlendSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
 	EPCGExBlendOver SafeBlendOver = TypedFactory->BlendOver;
 	if (TypedFactory->BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }

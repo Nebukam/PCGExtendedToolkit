@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExClusterCentrality.h"
 
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "PCGParamData.h"
@@ -18,6 +19,18 @@
 
 PCGEX_INITIALIZE_ELEMENT(ClusterCentrality)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ClusterCentrality)
+
+#if WITH_EDITOR
+void UPCGExClusterCentralitySettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 73, 0)
+	{
+		RandomDownsampling.ApplyDeprecation();
+	}
+	
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
 
 bool UPCGExClusterCentralitySettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
@@ -50,9 +63,7 @@ bool FPCGExClusterCentralityElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
 	{
-		if (!GetInputFactories(
-			Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories,
-			PCGExFactories::ClusterNodeFilters))
+		if (!GetInputFactories(Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters))
 		{
 			return false;
 		}
@@ -69,18 +80,16 @@ bool FPCGExClusterCentralityElement::AdvanceWork(FPCGExContext* InContext, const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->SetWantsHeuristics(true);
+			NewBatch->bSkipCompletion = true;
+			NewBatch->bRequiresWriteStep = true;
+			if (Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
 			{
-				NewBatch->SetWantsHeuristics(true);
-				NewBatch->bSkipCompletion = true;
-				NewBatch->bRequiresWriteStep = true;
-				if (Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
-				{
-					NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
-				}
-			}))
+				NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
+			}
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -136,13 +145,9 @@ namespace PCGExClusterCentrality
 			const PCGExCluster::FNode& Start = *Cluster->GetEdgeStart(Edge);
 			const PCGExCluster::FNode& End = *Cluster->GetEdgeStart(Edge);
 
-			DirectedEdgeScores[Index] = HeuristicsHandler->GetEdgeScore(
-				Start, End, Edge,
-				*Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
+			DirectedEdgeScores[Index] = HeuristicsHandler->GetEdgeScore(Start, End, Edge, *Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
 
-			DirectedEdgeScores[NumEdges + Index] = HeuristicsHandler->GetEdgeScore(
-				End, Start, Edge,
-				*Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
+			DirectedEdgeScores[NumEdges + Index] = HeuristicsHandler->GetEdgeScore(End, Start, Edge, *Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
 		}
 	}
 
@@ -246,11 +251,7 @@ namespace PCGExClusterCentrality
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(
-		const int32 Index,
-		TArray<double>& LocalBetweenness, TArray<double>& Score,
-		TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred,
-		TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue)
+	void FProcessor::ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue)
 	{
 		for (int i = 0; i < NumNodes; i++)
 		{
@@ -311,12 +312,11 @@ namespace PCGExClusterCentrality
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		ScopedBetweenness->ForEach(
-			[&](TArray<double>& ScopedArray)
-			{
-				for (int i = 0; i < NumNodes; i++) { Betweenness[i] += ScopedArray[i]; }
-				ScopedArray.Empty();
-			});
+		ScopedBetweenness->ForEach([&](TArray<double>& ScopedArray)
+		{
+			for (int i = 0; i < NumNodes; i++) { Betweenness[i] += ScopedArray[i]; }
+			ScopedArray.Empty();
+		});
 
 		ScopedBetweenness.Reset();
 

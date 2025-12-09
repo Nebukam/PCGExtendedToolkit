@@ -81,24 +81,17 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 
 	switch (TypedFilterFactory->Config.MeanMethod)
 	{
-	default:
-	case EPCGExMeanMethod::Average:
-		ReferenceValue = SumValue / NumPoints;
+	default: case EPCGExMeanMethod::Average: ReferenceValue = SumValue / NumPoints;
 		break;
-	case EPCGExMeanMethod::Median:
-		ReferenceValue = PCGExMean::GetMedian(Values);
+	case EPCGExMeanMethod::Median: ReferenceValue = PCGExMean::GetMedian(Values);
 		break;
-	case EPCGExMeanMethod::Fixed:
-		ReferenceValue = TypedFilterFactory->Config.MeanValue;
+	case EPCGExMeanMethod::Fixed: ReferenceValue = TypedFilterFactory->Config.MeanValue;
 		break;
-	case EPCGExMeanMethod::ModeMin:
-		ReferenceValue = PCGExMean::GetMode(Values, false, TypedFilterFactory->Config.ModeTolerance);
+	case EPCGExMeanMethod::ModeMin: ReferenceValue = PCGExMean::GetMode(Values, false, TypedFilterFactory->Config.ModeTolerance);
 		break;
-	case EPCGExMeanMethod::ModeMax:
-		ReferenceValue = PCGExMean::GetMode(Values, true, TypedFilterFactory->Config.ModeTolerance);
+	case EPCGExMeanMethod::ModeMax: ReferenceValue = PCGExMean::GetMode(Values, true, TypedFilterFactory->Config.ModeTolerance);
 		break;
-	case EPCGExMeanMethod::Central:
-		ReferenceValue = DataMin + (DataMax - DataMin) * 0.5;
+	case EPCGExMeanMethod::Central: ReferenceValue = DataMin + (DataMax - DataMin) * 0.5;
 		break;
 	}
 
@@ -129,23 +122,17 @@ FString UPCGExMeanFilterProviderSettings::GetDisplayName() const
 
 	switch (Config.MeanMethod)
 	{
-	case EPCGExMeanMethod::Average:
-		DisplayName += "' Average";
+	case EPCGExMeanMethod::Average: DisplayName += "' Average";
 		break;
-	case EPCGExMeanMethod::Median:
-		DisplayName += "' Median";
+	case EPCGExMeanMethod::Median: DisplayName += "' Median";
 		break;
-	case EPCGExMeanMethod::ModeMin:
-		DisplayName += "' Mode (min)";
+	case EPCGExMeanMethod::ModeMin: DisplayName += "' Mode (min)";
 		break;
-	case EPCGExMeanMethod::ModeMax:
-		DisplayName += "' Mode (max)";
+	case EPCGExMeanMethod::ModeMax: DisplayName += "' Mode (max)";
 		break;
-	case EPCGExMeanMethod::Central:
-		DisplayName += "' Central";
+	case EPCGExMeanMethod::Central: DisplayName += "' Central";
 		break;
-	case EPCGExMeanMethod::Fixed:
-		DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Config.MeanValue) / 1000.0));
+	case EPCGExMeanMethod::Fixed: DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Config.MeanValue) / 1000.0));
 		break;
 	default: ;
 	}

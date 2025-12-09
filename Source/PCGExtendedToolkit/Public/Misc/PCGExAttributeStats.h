@@ -273,11 +273,7 @@ namespace PCGExAttributeStats
 
 		virtual ~IAttributeStats() = default;
 
-		virtual void Process(
-			const TSharedRef<PCGExData::FFacade> InDataFacade,
-			FPCGExAttributeStatsContext* Context,
-			const UPCGExAttributeStatsSettings* Settings,
-			const TArray<int8>& Filter)
+		virtual void Process(const TSharedRef<PCGExData::FFacade> InDataFacade, FPCGExAttributeStatsContext* Context, const UPCGExAttributeStatsSettings* Settings, const TArray<int8>& Filter)
 		{
 		}
 	};
@@ -306,11 +302,7 @@ namespace PCGExAttributeStats
 		{
 		}
 
-		virtual void Process(
-			const TSharedRef<PCGExData::FFacade> InDataFacade,
-			FPCGExAttributeStatsContext* Context,
-			const UPCGExAttributeStatsSettings* Settings,
-			const TArray<int8>& Filter) override
+		virtual void Process(const TSharedRef<PCGExData::FFacade> InDataFacade, FPCGExAttributeStatsContext* Context, const UPCGExAttributeStatsSettings* Settings, const TArray<int8>& Filter) override
 		{
 			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Identifier.Name];
 
@@ -503,8 +495,8 @@ namespace PCGExAttributeStats
 		TArray<UPCGParamData*> PerAttributeStats;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

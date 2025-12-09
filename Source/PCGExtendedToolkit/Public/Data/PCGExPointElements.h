@@ -70,7 +70,6 @@ namespace PCGExData
 		virtual FVector GetLocalSize() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalSize, FVector::OneVector)
 		virtual FVector GetScaledLocalSize() const PCGEX_NOT_IMPLEMENTED_RET(GetScaledLocalSize, FVector::OneVector)
 		virtual int32 GetSeed() const PCGEX_NOT_IMPLEMENTED_RET(GetSeed, 0)
-
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FWeightedPoint : FPoint
@@ -107,7 +106,7 @@ FORCEINLINE virtual FVector GetLocalSize() const override { return Data->GetLoca
 FORCEINLINE virtual FVector GetScaledLocalSize() const override { return Data->GetScaledLocalSize(Index); }\
 FORCEINLINE virtual int32 GetSeed() const override { return Data->GetSeed(Index); }
 
-	
+
 	// A beefed-up version of FPoint that implement FPoint getters
 	// and comes with setters helpers
 	// Should be used when the point it references actually exists, otherwise getter will return bad data
@@ -201,7 +200,7 @@ FORCEINLINE virtual int32 GetSeed() const override { return Data->GetSeed(Index)
 		FORCEINLINE virtual FVector4 GetColor() const override { return Color; }
 		FORCEINLINE virtual FVector GetLocalSize() const override { return PCGPointHelpers::GetLocalSize(BoundsMin, BoundsMax); }\
 		FORCEINLINE virtual FVector GetScaledLocalSize() const override { return PCGPointHelpers::GetScaledLocalSize(Transform, BoundsMin, BoundsMax); }
-		
+
 		// Metadata entry stays unimplemented
 		//FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMetadataEntry(Index); }
 

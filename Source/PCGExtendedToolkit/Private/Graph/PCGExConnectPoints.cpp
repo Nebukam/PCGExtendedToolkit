@@ -45,19 +45,13 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectPoints)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryData>(
-		Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories,
-		{PCGExFactories::EType::Probe}))
+	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryData>(Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories, {PCGExFactories::EType::Probe}))
 	{
 		return false;
 	}
 
-	GetInputFactories(
-		Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
-		PCGExFactories::PointFilters, false);
-	GetInputFactories(
-		Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
-		PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories, PCGExFactories::PointFilters, false);
 
 	Context->CWCoincidenceTolerance = FVector(1 / Settings->CoincidenceTolerance);
 
@@ -73,20 +67,18 @@ bool FPCGExConnectPointsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters. Make sure inputs have at least 2 points."));
 		}
@@ -188,25 +180,23 @@ namespace PCGExConnectPoints
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
 
-		PrepTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnPreparationComplete();
-			};
+		PrepTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnPreparationComplete();
+		};
 
-		PrepTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->PointDataFacade->Fetch(Scope);
+		PrepTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->PointDataFacade->Fetch(Scope);
 
-				PCGEX_SCOPE_LOOP(i)
-				{
-					This->CanGenerate[i] = This->GeneratorsFilter ? This->GeneratorsFilter->Test(i) : true;
-					This->AcceptConnections[i] = This->ConnectableFilter ? This->ConnectableFilter->Test(i) : true;
-				}
-			};
+			PCGEX_SCOPE_LOOP(i)
+			{
+				This->CanGenerate[i] = This->GeneratorsFilter ? This->GeneratorsFilter->Test(i) : true;
+				This->AcceptConnections[i] = This->ConnectableFilter ? This->ConnectableFilter->Test(i) : true;
+			}
+		};
 
 		PrepTask->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
@@ -295,11 +285,7 @@ namespace PCGExConnectPoints
 
 			const FVector Position = WorkingTransforms[OtherPointIndex].GetLocation();
 			const FVector Dir = (Origin - Position).GetSafeNormal();
-			const int32 EmplaceIndex = Candidates.Emplace(
-				OtherPointIndex,
-				Dir,
-				FVector::DistSquared(Position, Origin),
-				bPreventCoincidence ? PCGEx::GH3(Dir, CWCoincidenceTolerance) : 0);
+			const int32 EmplaceIndex = Candidates.Emplace(OtherPointIndex, Dir, FVector::DistSquared(Position, Origin), bPreventCoincidence ? PCGEx::GH3(Dir, CWCoincidenceTolerance) : 0);
 
 			if (NumChainedOps > 0)
 			{
@@ -334,9 +320,7 @@ namespace PCGExConnectPoints
 				BestCandidates.SetNum(NumChainedOps);
 				for (int i = 0; i < NumChainedOps; i++)
 				{
-					ChainedOperations[i]->PrepareBestCandidate(
-						Index, CandidateTransform, BestCandidates[i],
-						ChainedOpsContainers[i].Get());
+					ChainedOperations[i]->PrepareBestCandidate(Index, CandidateTransform, BestCandidates[i], ChainedOpsContainers[i].Get());
 				}
 			}
 
@@ -354,27 +338,18 @@ namespace PCGExConnectPoints
 
 				for (int i = 0; i < NumChainedOps; i++)
 				{
-					ChainedOperations[i]->ProcessBestCandidate(
-						Index, CandidateTransform, BestCandidates[i],
-						Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges,
-						ChainedOpsContainers[i].Get());
+					ChainedOperations[i]->ProcessBestCandidate(Index, CandidateTransform, BestCandidates[i], Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges, ChainedOpsContainers[i].Get());
 				}
 
 				for (int i = 0; i < NumSharedOps; i++)
 				{
-					SharedOperations[i]->ProcessCandidates(
-						Index, CandidateTransform,
-						Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges,
-						SharedOpsContainers[i].Get());
+					SharedOperations[i]->ProcessCandidates(Index, CandidateTransform, Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges, SharedOpsContainers[i].Get());
 				}
 			}
 
 			for (int i = 0; i < NumDirectOps; i++)
 			{
-				DirectOperations[i]->ProcessNode(
-					Index, CandidateTransform,
-					LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges,
-					AcceptConnections, DirectOpsContainers[i].Get());
+				DirectOperations[i]->ProcessNode(Index, CandidateTransform, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges, AcceptConnections, DirectOpsContainers[i].Get());
 			}
 		}
 	}

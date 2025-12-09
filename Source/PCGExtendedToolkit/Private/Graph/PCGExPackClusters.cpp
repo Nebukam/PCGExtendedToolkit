@@ -47,11 +47,9 @@ bool FPCGExPackClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -106,26 +104,24 @@ namespace PCGExPackClusters
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, CopyVtxAttributes)
 
-		CopyVtxAttributes->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE]
-			(const int32 Index, const PCGExMT::FScope& Scope)
+		CopyVtxAttributes->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+
+			const PCGEx::FAttributeIdentity& Identity = This->VtxAttributes->Identities[Index];
+
+			PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
-				PCGEX_ASYNC_THIS
+				using T = decltype(DummyValue);
+				TArray<T> RawValues;
 
-				const PCGEx::FAttributeIdentity& Identity = This->VtxAttributes->Identities[Index];
+				TSharedPtr<PCGExData::TBuffer<T>> InValues = This->VtxDataFacade->GetReadable<T>(Identity.Identifier);
+				TSharedPtr<PCGExData::TBuffer<T>> OutValues = This->PackedIOFacade->GetWritable<T>(InValues->GetTypedInAttribute(), PCGExData::EBufferInit::New);
 
-				PCGEx::ExecuteWithRightType(
-					Identity.UnderlyingType, [&](auto DummyValue)
-					{
-						using T = decltype(DummyValue);
-						TArray<T> RawValues;
-
-						TSharedPtr<PCGExData::TBuffer<T>> InValues = This->VtxDataFacade->GetReadable<T>(Identity.Identifier);
-						TSharedPtr<PCGExData::TBuffer<T>> OutValues = This->PackedIOFacade->GetWritable<T>(InValues->GetTypedInAttribute(), PCGExData::EBufferInit::New);
-
-						const TArray<int32>& VtxSelection = This->VtxPointSelection;
-						for (int i = 0; i < VtxSelection.Num(); i++) { OutValues->SetValue(This->VtxStartIndex + i, InValues->Read(VtxSelection[i])); }
-					});
-			};
+				const TArray<int32>& VtxSelection = This->VtxPointSelection;
+				for (int i = 0; i < VtxSelection.Num(); i++) { OutValues->SetValue(This->VtxStartIndex + i, InValues->Read(VtxSelection[i])); }
+			});
+		};
 
 		CopyVtxAttributes->StartIterations(VtxAttributes->Identities.Num(), 1, false);
 

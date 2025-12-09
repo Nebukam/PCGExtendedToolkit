@@ -275,10 +275,7 @@ namespace PCGExGraph
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FPointEdgeProxy>>> ScopedEdges;
 		TArray<TSharedPtr<FPointEdgeProxy>> Edges;
 
-		FPointEdgeIntersections(
-			const TSharedPtr<FGraph>& InGraph,
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const FPCGExPointEdgeIntersectionDetails* InDetails);
+		FPointEdgeIntersections(const TSharedPtr<FGraph>& InGraph, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FPCGExPointEdgeIntersectionDetails* InDetails);
 
 		void Init(const TArray<PCGExMT::FScope>& Loops);
 		void InsertEdges();
@@ -287,13 +284,9 @@ namespace PCGExGraph
 		~FPointEdgeIntersections() = default;
 	};
 
-	void FindCollinearNodes(
-		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
-		const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
+	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
 
-	void FindCollinearNodes_NoSelfIntersections(
-		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
-		const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
+	void FindCollinearNodes_NoSelfIntersections(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
 
 #pragma endregion
 
@@ -319,7 +312,10 @@ namespace PCGExGraph
 
 		FEECrossing() = default;
 
-		FORCEINLINE double GetTime(const int32 EdgeIndex) const { return EdgeIndex == Split.A ? Split.TimeA : Split.TimeB; }
+		FORCEINLINE double GetTime(const int32 EdgeIndex) const
+		{
+			return EdgeIndex == Split.A ? Split.TimeA : Split.TimeB;
+		}
 
 		bool operator==(const FEECrossing& Other) const { return Index == Other.Index; }
 	};
@@ -342,11 +338,7 @@ namespace PCGExGraph
 		TArray<FEECrossing> UniqueCrossings;
 		TArray<TSharedPtr<FEdgeEdgeProxy>> Edges;
 
-		FEdgeEdgeIntersections(
-			const TSharedPtr<FGraph>& InGraph,
-			const TSharedPtr<FUnionGraph>& InUnionGraph,
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
+		FEdgeEdgeIntersections(const TSharedPtr<FGraph>& InGraph, const TSharedPtr<FUnionGraph>& InUnionGraph, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
 		void Init(const TArray<PCGExMT::FScope>& Loops);
 		void Collapse(const int32 InReserve);
@@ -359,13 +351,9 @@ namespace PCGExGraph
 		~FEdgeEdgeIntersections() = default;
 	};
 
-	void FindOverlappingEdges(
-		const TSharedPtr<FEdgeEdgeIntersections>& InIntersections,
-		const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
+	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
 
-	void FindOverlappingEdges_NoSelfIntersections(
-		const TSharedPtr<FEdgeEdgeIntersections>& InIntersections,
-		const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
+	void FindOverlappingEdges_NoSelfIntersections(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
 
 #pragma endregion
 }

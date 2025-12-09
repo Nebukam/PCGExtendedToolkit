@@ -39,9 +39,7 @@ bool FPCGExWriteVtxPropertiesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories(
-		InContext, PCGExVtxProperty::SourcePropertyLabel, Context->ExtraFactories,
-		{PCGExFactories::EType::VtxProperty}, false);
+	PCGExFactories::GetInputFactories(InContext, PCGExVtxProperty::SourcePropertyLabel, Context->ExtraFactories, {PCGExFactories::EType::VtxProperty}, false);
 
 	return true;
 }
@@ -54,12 +52,10 @@ bool FPCGExWriteVtxPropertiesElement::AdvanceWork(FPCGExContext* InContext, cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -97,14 +93,11 @@ namespace PCGExWriteVtxProperties
 		switch (Settings->NormalAxis)
 		{
 		case EPCGExMinimalAxis::None:
-		case EPCGExMinimalAxis::X:
-			NormalAxis = EAxis::Type::X;
+		case EPCGExMinimalAxis::X: NormalAxis = EAxis::Type::X;
 			break;
-		case EPCGExMinimalAxis::Y:
-			NormalAxis = EAxis::Type::Y;
+		case EPCGExMinimalAxis::Y: NormalAxis = EAxis::Type::Y;
 			break;
-		case EPCGExMinimalAxis::Z:
-			NormalAxis = EAxis::Type::Z;
+		case EPCGExMinimalAxis::Z: NormalAxis = EAxis::Type::Z;
 			break;
 		}
 
@@ -140,11 +133,7 @@ namespace PCGExWriteVtxProperties
 			Adjacency.Reset();
 			GetAdjacencyData(Cluster.Get(), Node, Adjacency);
 
-			const PCGExGeo::FBestFitPlane BestFitPlane =
-				bWantsOOB ? Settings->bIncludeVtxInOOB ?
-					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) :
-					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) :
-					PCGExGeo::FBestFitPlane();
+			const PCGExGeo::FBestFitPlane BestFitPlane = bWantsOOB ? Settings->bIncludeVtxInOOB ? PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) : PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) : PCGExGeo::FBestFitPlane();
 
 			const FTransform BFPT = BestFitPlane.GetTransform();
 
@@ -194,10 +183,7 @@ namespace PCGExWriteVtxProperties
 
 		if (Settings->bMutateVtxToOOB)
 		{
-			VtxDataFacade->GetOut()->AllocateProperties(
-				EPCGPointNativeProperties::Transform |
-				EPCGPointNativeProperties::BoundsMax |
-				EPCGPointNativeProperties::BoundsMin);
+			VtxDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::BoundsMax | EPCGPointNativeProperties::BoundsMin);
 		}
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();

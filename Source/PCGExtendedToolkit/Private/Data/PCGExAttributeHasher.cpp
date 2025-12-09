@@ -56,8 +56,14 @@ namespace PCGEx
 			{
 				if (Config.bSortInputValues)
 				{
-					if (Config.Sorting == EPCGExSortDirection::Ascending) { OutHash = A < B ? HashCombineFast(A, B) : HashCombineFast(B, A); }
-					else { OutHash = A < B ? HashCombineFast(B, A) : HashCombineFast(A, B); }
+					if (Config.Sorting == EPCGExSortDirection::Ascending)
+					{
+						OutHash = A < B ? HashCombineFast(A, B) : HashCombineFast(B, A);
+					}
+					else
+					{
+						OutHash = A < B ? HashCombineFast(B, A) : HashCombineFast(A, B);
+					}
 				}
 				else { OutHash = HashCombineFast(A, B); }
 			}
@@ -71,12 +77,10 @@ namespace PCGEx
 		switch (Config.Scope)
 		{
 		case EPCGExDataHashScope::All:
-		case EPCGExDataHashScope::Uniques:
-			return true;
+		case EPCGExDataHashScope::Uniques: return true;
 		case EPCGExDataHashScope::FirstAndLast:
 		case EPCGExDataHashScope::First:
-		case EPCGExDataHashScope::Last:
-			return false;
+		case EPCGExDataHashScope::Last: return false;
 		}
 
 		return false;
@@ -87,26 +91,23 @@ namespace PCGEx
 		CompleteCallback = InCallback;
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CompileHash)
-		CompileHash->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnCompilationComplete();
-			};
+		CompileHash->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnCompilationComplete();
+		};
 
-		CompileHash->OnPrepareSubLoopsCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
-			{
-				PCGEX_ASYNC_THIS
-				This->ScopedHashes = MakeShared<PCGExMT::TScopedArray<PCGExValueHash>>(Loops, 0);
-			};
+		CompileHash->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+		{
+			PCGEX_ASYNC_THIS
+			This->ScopedHashes = MakeShared<PCGExMT::TScopedArray<PCGExValueHash>>(Loops, 0);
+		};
 
-		CompileHash->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->CompileScope(Scope);
-			};
+		CompileHash->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->CompileScope(Scope);
+		};
 
 		CompileHash->StartSubLoops(NumValues, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}

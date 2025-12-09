@@ -23,8 +23,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSelfPruningSettings, SecondaryExpansion, double, 
 
 bool UPCGExSelfPruningSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if ((Mode != EPCGExSelfPruningMode::Prune || bRandomize)
-		&& InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return false; }
+	if ((Mode != EPCGExSelfPruningMode::Prune || bRandomize) && InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return false; }
 
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
@@ -64,11 +63,9 @@ bool FPCGExSelfPruningElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -120,6 +117,8 @@ namespace PCGExSelfPruning
 		{
 			TSharedPtr<PCGExSorting::FPointSorter> Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
+
+			PCGEX_SHARED_CONTEXT(Context->GetOrCreateHandle())
 			if (Sorter->Init(Context)) { Order.Sort([&](const int32 A, const int32 B) { return Sorter->Sort(A, B); }); }
 
 			if (Settings->bRandomize)
@@ -159,15 +158,11 @@ namespace PCGExSelfPruning
 
 		switch (Settings->SecondaryMode)
 		{
-		case EPCGExSelfPruningExpandOrder::Before:
-			PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).ExpandBy(SecondaryExpansion->Read(Index)).TransformBy(Transforms[Index]); }
+		case EPCGExSelfPruningExpandOrder::Before: PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).ExpandBy(SecondaryExpansion->Read(Index)).TransformBy(Transforms[Index]); }
 			break;
-		case EPCGExSelfPruningExpandOrder::After:
-			PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]).ExpandBy(SecondaryExpansion->Read(Index)); }
+		case EPCGExSelfPruningExpandOrder::After: PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]).ExpandBy(SecondaryExpansion->Read(Index)); }
 			break;
-		default:
-		case EPCGExSelfPruningExpandOrder::None:
-			PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]); }
+		default: case EPCGExSelfPruningExpandOrder::None: PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]); }
 			break;
 		}
 	}
@@ -215,27 +210,26 @@ namespace PCGExSelfPruning
 					Box = BoxA.TransformBy(Transform);
 				}
 
-				Octree.FindElementsWithBoundsTest(
-					Box, [&](const PCGPointOctree::FPointRef& Other)
+				Octree.FindElementsWithBoundsTest(Box, [&](const PCGPointOctree::FPointRef& Other)
+				{
+					const int32 OtherIndex = Other.Index;
+
+					// Ignore self
+					if (OtherIndex == Index || !PointFilterCache[OtherIndex]) { return; }
+					if (Box.Intersect(BoxSecondary[Other.Index]))
 					{
-						const int32 OtherIndex = Other.Index;
-
-						// Ignore self
-						if (OtherIndex == Index || !PointFilterCache[OtherIndex]) { return; }
-						if (Box.Intersect(BoxSecondary[Other.Index]))
+						if (Settings->bPreciseTest)
 						{
-							if (Settings->bPreciseTest)
-							{
-								FBox BoxB = InData->GetLocalBounds(OtherIndex);
-								if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
-								else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
+							FBox BoxB = InData->GetLocalBounds(OtherIndex);
+							if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
+							else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
 
-								if (!PCGExGeo::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return; }
-							}
-
-							Candidate.Overlaps++;
+							if (!PCGExGeo::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return; }
 						}
-					});
+
+						Candidate.Overlaps++;
+					}
+				});
 			}
 		}
 		else
@@ -270,36 +264,33 @@ namespace PCGExSelfPruning
 					Box = BoxA.TransformBy(Transform);
 				}
 
-				Octree.FindFirstElementWithBoundsTest(
-					Box, [&](const PCGPointOctree::FPointRef& Other)
+				Octree.FindFirstElementWithBoundsTest(Box, [&](const PCGPointOctree::FPointRef& Other)
+				{
+					const int32 OtherIndex = Other.Index;
+
+					// Ignore self
+					if (OtherIndex == Index || !PointFilterCache[OtherIndex] || !Mask[OtherIndex]) { return true; }
+
+					// Ignore lower priorities, those will be pruned by this candidate when their turn comes
+					if (Priority[OtherIndex] < CurrentPriority) { return true; }
+
+					if (Box.Intersect(BoxSecondary[OtherIndex]))
 					{
-						const int32 OtherIndex = Other.Index;
-
-						// Ignore self
-						if (OtherIndex == Index
-							|| !PointFilterCache[OtherIndex]
-							|| !Mask[OtherIndex]) { return true; }
-
-						// Ignore lower priorities, those will be pruned by this candidate when their turn comes
-						if (Priority[OtherIndex] < CurrentPriority) { return true; }
-
-						if (Box.Intersect(BoxSecondary[OtherIndex]))
+						if (Settings->bPreciseTest)
 						{
-							if (Settings->bPreciseTest)
-							{
-								FBox BoxB = InData->GetLocalBounds(OtherIndex);
-								if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
-								else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
+							FBox BoxB = InData->GetLocalBounds(OtherIndex);
+							if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
+							else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
 
-								if (!PCGExGeo::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return true; }
-							}
-
-							Mask[Index] = false;
-							return false;
+							if (!PCGExGeo::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return true; }
 						}
 
-						return true;
-					});
+						Mask[Index] = false;
+						return false;
+					}
+
+					return true;
+				});
 			}
 		}
 	}

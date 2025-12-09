@@ -100,9 +100,7 @@ class UPCGExBooleanCompareFilterProviderSettings : public UPCGExFilterProviderSe
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		BoolCompareFilterFactory, "Filter : Bool Compare", "(bool) A == (bool) B",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BoolCompareFilterFactory, "Filter : Bool Compare", "(bool) A == (bool) B", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

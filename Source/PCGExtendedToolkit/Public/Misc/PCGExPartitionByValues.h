@@ -148,8 +148,8 @@ namespace PCGExPartitionByValuesBase
 		TArray<TSharedPtr<PCGExPartition::FKPartition>> Partitions;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -23,8 +23,8 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigDirection() :
-		FPCGExProbeConfigBase()
+	FPCGExProbeConfigDirection()
+		: FPCGExProbeConfigBase()
 	{
 	}
 
@@ -121,9 +121,7 @@ class UPCGExProbeDirectionProviderSettings : public UPCGExProbeFactoryProviderSe
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeDirection, "Probe : Direction", "Probe in a given direction.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeDirection, "Probe : Direction", "Probe in a given direction.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

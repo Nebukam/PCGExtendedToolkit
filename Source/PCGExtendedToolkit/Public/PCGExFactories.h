@@ -84,11 +84,9 @@ namespace PCGExFactories
 		return !OutFactories.IsEmpty();
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterConsumableAttributesWithData_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, FPCGExContext* InContext, const UPCGData* InData);
+	PCGEXTENDEDTOOLKIT_API void RegisterConsumableAttributesWithData_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, FPCGExContext* InContext, const UPCGData* InData);
 
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterConsumableAttributesWithFacade_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade);
+	PCGEXTENDEDTOOLKIT_API void RegisterConsumableAttributesWithFacade_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade);
 
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithData(const TArray<TObjectPtr<const T_DEF>>& InFactories, FPCGExContext* InContext, const UPCGData* InData)

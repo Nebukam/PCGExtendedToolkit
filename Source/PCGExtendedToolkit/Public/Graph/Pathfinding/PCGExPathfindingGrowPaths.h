@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMathMean.h"
+#include "PCGExMT.h"
 #include "PCGExPathfinding.h"
 
 #include "Data/PCGExDataForward.h"
@@ -68,11 +69,7 @@ namespace PCGExPathfindingGrowPaths
 
 		TArray<int32> Path;
 
-		FGrowth(
-			const TSharedPtr<FProcessor>& InProcessor,
-			const int32 InMaxIterations,
-			const int32 InLastGrowthIndex,
-			const FVector& InGrowthDirection);
+		FGrowth(const TSharedPtr<FProcessor>& InProcessor, const int32 InMaxIterations, const int32 InLastGrowthIndex, const FVector& InGrowthDirection);
 
 		int32 FindNextGrowthNodeIndex();
 		bool Grow(); // return false if too far or couldn't connect for [reasons]
@@ -84,10 +81,7 @@ namespace PCGExPathfindingGrowPaths
 
 	protected:
 		void Init();
-		double GetGrowthScore(
-			const PCGExCluster::FNode& From,
-			const PCGExCluster::FNode& To,
-			const PCGExGraph::FEdge& Edge) const;
+		double GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge) const;
 	};
 }
 
@@ -289,8 +283,8 @@ namespace PCGExPathfindingGrowPaths
 		TArray<TSharedPtr<FGrowth>> Growths;
 		TArray<TSharedPtr<FGrowth>> QueuedGrowths;
 
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -304,9 +298,8 @@ namespace PCGExPathfindingGrowPaths
 	public:
 		PCGEX_ASYNC_TASK_NAME(FGrowTask)
 
-		FGrowTask(const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			Processor(InProcessor)
+		FGrowTask(const TSharedPtr<FProcessor>& InProcessor)
+			: FTask(), Processor(InProcessor)
 		{
 		}
 

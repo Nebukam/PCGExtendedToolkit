@@ -362,15 +362,14 @@ namespace PCGEx
 
 		if (ProcessingInfos.bIsDataDomain)
 		{
-			PCGEx::ExecuteWithRightType(
-				ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
-				{
-					using T_REAL = decltype(DummyValue);
-					DataValue = MakeShared<PCGExData::TDataValue<T_REAL>>(PCGExDataHelpers::ReadDataValue(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute)));
+			PCGEx::ExecuteWithRightType(ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
+			{
+				using T_REAL = decltype(DummyValue);
+				DataValue = MakeShared<PCGExData::TDataValue<T_REAL>>(PCGExDataHelpers::ReadDataValue(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute)));
 
-					const FSubSelection& S = ProcessingInfos.SubSelection;
-					TypedDataValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGEx::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
-				});
+				const FSubSelection& S = ProcessingInfos.SubSelection;
+				TypedDataValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGEx::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
+			});
 		}
 		else
 		{
@@ -532,9 +531,7 @@ namespace PCGEx
 
 		// TODO : Revise this work with a custom has function and output an array of unique values instead
 
-		if constexpr (
-			std::is_same_v<T, FRotator> ||
-			std::is_same_v<T, FTransform>)
+		if constexpr (std::is_same_v<T, FRotator> || std::is_same_v<T, FTransform>)
 		{
 			UE_LOG(LogTemp, Error, TEXT("Unique value type is unsupported at the moment."))
 		}
@@ -608,14 +605,13 @@ namespace PCGEx
 		if (!Attribute) { return nullptr; }
 
 		TSharedPtr<IAttributeBroadcaster> Broadcaster = nullptr;
-		ExecuteWithRightType(
-			Attribute->GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				TSharedPtr<TAttributeBroadcaster<T>> TypedBroadcaster = MakeShared<TAttributeBroadcaster<T>>();
-				if (!(bSingleFetch ? TypedBroadcaster->PrepareForSingleFetch(InIdentifier, InPointIO->GetIn()) : TypedBroadcaster->Prepare(InIdentifier, InPointIO))) { return; }
-				Broadcaster = TypedBroadcaster;
-			});
+		ExecuteWithRightType(Attribute->GetTypeId(), [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			TSharedPtr<TAttributeBroadcaster<T>> TypedBroadcaster = MakeShared<TAttributeBroadcaster<T>>();
+			if (!(bSingleFetch ? TypedBroadcaster->PrepareForSingleFetch(InIdentifier, InPointIO->GetIn()) : TypedBroadcaster->Prepare(InIdentifier, InPointIO))) { return; }
+			Broadcaster = TypedBroadcaster;
+		});
 
 		return Broadcaster;
 	}
@@ -627,14 +623,13 @@ namespace PCGEx
 		if (!TryGetType(InSelector, InData, Type)) { return nullptr; }
 
 		TSharedPtr<IAttributeBroadcaster> Broadcaster = nullptr;
-		ExecuteWithRightType(
-			Type, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				TSharedPtr<TAttributeBroadcaster<T>> TypedBroadcaster = MakeShared<TAttributeBroadcaster<T>>();
-				if (!(bSingleFetch ? TypedBroadcaster->PrepareForSingleFetch(InSelector, InData) : TypedBroadcaster->Prepare(InSelector, InPointIO))) { return; }
-				Broadcaster = TypedBroadcaster;
-			});
+		ExecuteWithRightType(Type, [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			TSharedPtr<TAttributeBroadcaster<T>> TypedBroadcaster = MakeShared<TAttributeBroadcaster<T>>();
+			if (!(bSingleFetch ? TypedBroadcaster->PrepareForSingleFetch(InSelector, InData) : TypedBroadcaster->Prepare(InSelector, InPointIO))) { return; }
+			Broadcaster = TypedBroadcaster;
+		});
 
 		return Broadcaster;
 	}

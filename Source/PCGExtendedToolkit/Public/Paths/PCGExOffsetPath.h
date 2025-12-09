@@ -185,8 +185,8 @@ namespace PCGExOffsetPath
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

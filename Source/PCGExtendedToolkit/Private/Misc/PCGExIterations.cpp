@@ -33,21 +33,15 @@ TArray<FPCGPinProperties> UPCGExIterationsSettings::OutputPinProperties() const
 
 	switch (Type)
 	{
-	default:
-	case EPCGExIterationDataType::Any:
-		Pin.AllowedTypes = FPCGDataTypeInfo::AsId();
+	default: case EPCGExIterationDataType::Any: Pin.AllowedTypes = FPCGDataTypeInfo::AsId();
 		break;
-	case EPCGExIterationDataType::Params:
-		Pin.AllowedTypes = FPCGDataTypeInfoParam::AsId();
+	case EPCGExIterationDataType::Params: Pin.AllowedTypes = FPCGDataTypeInfoParam::AsId();
 		break;
-	case EPCGExIterationDataType::Points:
-		Pin.AllowedTypes = FPCGDataTypeInfoPoint::AsId();
+	case EPCGExIterationDataType::Points: Pin.AllowedTypes = FPCGDataTypeInfoPoint::AsId();
 		break;
-	case EPCGExIterationDataType::Spline:
-		Pin.AllowedTypes = FPCGDataTypeInfoSpline::AsId();
+	case EPCGExIterationDataType::Spline: Pin.AllowedTypes = FPCGDataTypeInfoSpline::AsId();
 		break;
-	case EPCGExIterationDataType::Texture:
-		Pin.AllowedTypes = FPCGDataTypeInfoBaseTexture2D::AsId();
+	case EPCGExIterationDataType::Texture: Pin.AllowedTypes = FPCGDataTypeInfoBaseTexture2D::AsId();
 		break;
 	}
 	return PinProperties;
@@ -95,18 +89,13 @@ bool FPCGExIterationsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		switch (Settings->Type)
 		{
-		default:
-		case EPCGExIterationDataType::Params:
-			Data = Context->ManagedObjects->New<UPCGParamData>();
+		default: case EPCGExIterationDataType::Params: Data = Context->ManagedObjects->New<UPCGParamData>();
 			break;
-		case EPCGExIterationDataType::Points:
-			Data = Context->ManagedObjects->New<UPCGPointArrayData>();
+		case EPCGExIterationDataType::Points: Data = Context->ManagedObjects->New<UPCGPointArrayData>();
 			break;
-		case EPCGExIterationDataType::Spline:
-			Data = Context->ManagedObjects->New<UPCGSplineData>();
+		case EPCGExIterationDataType::Spline: Data = Context->ManagedObjects->New<UPCGSplineData>();
 			break;
-		case EPCGExIterationDataType::Texture:
-			Data = Context->ManagedObjects->New<UPCGTextureData>();
+		case EPCGExIterationDataType::Texture: Data = Context->ManagedObjects->New<UPCGTextureData>();
 			break;
 		}
 

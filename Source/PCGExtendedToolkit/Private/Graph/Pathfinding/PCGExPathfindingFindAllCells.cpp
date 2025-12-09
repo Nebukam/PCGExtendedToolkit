@@ -84,13 +84,11 @@ bool FPCGExFindAllCellsElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+			NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -118,7 +116,10 @@ namespace PCGExFindAllCells
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), ProjectionDetails); }
+		if (Context->HolesFacade)
+		{
+			Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), ProjectionDetails);
+		}
 
 		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->Reserve(Cluster->Edges->Num());
@@ -155,11 +156,7 @@ namespace PCGExFindAllCells
 		CellsContainer.Shrink();
 	}
 
-	bool FProcessor::FindCell(
-		const PCGExCluster::FNode& Node,
-		const PCGExGraph::FEdge& Edge,
-		TArray<TSharedPtr<PCGExTopology::FCell>>& Scope,
-		const bool bSkipBinary)
+	bool FProcessor::FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, TArray<TSharedPtr<PCGExTopology::FCell>>& Scope, const bool bSkipBinary)
 	{
 		if (Node.IsBinary() && bSkipBinary)
 		{
@@ -180,9 +177,7 @@ namespace PCGExFindAllCells
 		return true;
 	}
 
-	void FProcessor::ProcessCell(
-		const TSharedPtr<PCGExTopology::FCell>& InCell,
-		const TSharedPtr<PCGExData::FPointIO>& PathIO)
+	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO)
 	{
 		if (!PathIO) { return; }
 
@@ -233,14 +228,14 @@ namespace PCGExFindAllCells
 			CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
-		if (CellsConstraints->WrapperCell
-			&& ValidCells.IsEmpty()
-			&& Settings->Constraints.bKeepWrapperIfSolePath)
+		if (CellsConstraints->WrapperCell && ValidCells.IsEmpty() && Settings->Constraints.bKeepWrapperIfSolePath)
 		{
 			// Process wrapper cell, it's the only valid one and we want it.
 			ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 			return;
 		}
+
+		if (ValidCells.IsEmpty()) { return; }
 
 		StartParallelLoopForRange(ValidCells.Num());
 	}

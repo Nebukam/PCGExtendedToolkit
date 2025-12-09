@@ -28,10 +28,7 @@ namespace PCGExBlend
 			if ((AString.Len() + BString.Len()) > 1023) { return A; }
 			return FName(AString + BString);
 		}
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return Max(A, B);
 		}
@@ -70,11 +67,7 @@ namespace PCGExBlend
 		{
 			return FTransform(ModSimple(A.GetRotation(), Modulo), ModSimple(A.GetLocation(), Modulo), ModSimple(A.GetScale3D(), Modulo));
 		}
-		else if constexpr (std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, bool> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return A;
 		}
@@ -123,12 +116,7 @@ namespace PCGExBlend
 		{
 			return FTransform(ModComplex(A.GetRotation(), B.GetRotation()), ModComplex(A.GetLocation(), B.GetLocation()), ModComplex(A.GetScale3D(), B.GetScale3D()));
 		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, bool> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return A;
 		}
@@ -155,21 +143,13 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return FTransform(
-				FQuat::Slerp(A.GetRotation(), B.GetRotation(), W),
-				FMath::Lerp(A.GetLocation(), B.GetLocation(), W),
-				FMath::Lerp(A.GetScale3D(), B.GetScale3D(), W));
+			return FTransform(FQuat::Slerp(A.GetRotation(), B.GetRotation(), W), FMath::Lerp(A.GetLocation(), B.GetLocation(), W), FMath::Lerp(A.GetScale3D(), B.GetScale3D(), W));
 		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName>)
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName>)
 		{
 			return Add(A, B);
 		}
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return Max(A, B);
 		}
@@ -194,12 +174,7 @@ namespace PCGExBlend
 		{
 			return FTransform(Sub(A.GetRotation(), B.GetRotation(), W), Sub(A.GetLocation(), B.GetLocation(), W), Sub(A.GetScale3D(), B.GetScale3D(), W));
 		}
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return Min(A, B);
 		}
@@ -224,12 +199,7 @@ namespace PCGExBlend
 		{
 			return FTransform(WeightedSub(A.GetRotation(), B.GetRotation(), W).GetNormalized(), WeightedSub(A.GetLocation(), B.GetLocation(), W), WeightedSub(A.GetScale3D(), B.GetScale3D(), W));
 		}
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return Min(A, B);
 		}
@@ -270,11 +240,7 @@ namespace PCGExBlend
 		{
 			return FTransform(UnsignedMin(A.GetRotation(), B.GetRotation()), UnsignedMin(A.GetLocation(), B.GetLocation()), UnsignedMin(A.GetScale3D(), B.GetScale3D()));
 		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return Min(B, A);
 		}
@@ -315,11 +281,7 @@ namespace PCGExBlend
 		{
 			return FTransform(UnsignedMax(A.GetRotation(), B.GetRotation()), UnsignedMax(A.GetLocation(), B.GetLocation()), UnsignedMax(A.GetScale3D(), B.GetScale3D()));
 		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return Max(B, A);
 		}
@@ -360,11 +322,7 @@ namespace PCGExBlend
 		{
 			return FTransform(AbsoluteMin(A.GetRotation(), B.GetRotation()), AbsoluteMin(A.GetLocation(), B.GetLocation()), AbsoluteMin(A.GetScale3D(), B.GetScale3D()));
 		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return Min(B, A);
 		}
@@ -430,12 +388,7 @@ namespace PCGExBlend
 		{
 			return FTransform(Div(A.GetRotation(), Divider).GetNormalized(), Div(A.GetLocation(), Divider), Div(A.GetScale3D(), Divider));
 		}
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return A;
 		}
@@ -452,13 +405,7 @@ namespace PCGExBlend
 		{
 			return !A || !B ? false : true;
 		}
-		else if constexpr (
-			std::is_same_v<T, float> ||
-			std::is_same_v<T, double> ||
-			std::is_same_v<T, int32> ||
-			std::is_same_v<T, int64> ||
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector>)
+		else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector>)
 		{
 			return A * B;
 		}
@@ -525,10 +472,7 @@ namespace PCGExBlend
 		{
 			return FString::Printf(TEXT("%d"), NaiveHash(GetTypeHash(A), GetTypeHash(B)));
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return T(NaiveHash(A.ToString(), B.ToString()));
 		}
@@ -577,10 +521,7 @@ namespace PCGExBlend
 		{
 			return FString::Printf(TEXT("%d"), NaiveUnsignedHash(GetTypeHash(A), GetTypeHash(B)));
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return T(NaiveUnsignedHash(A.ToString(), B.ToString()));
 		}

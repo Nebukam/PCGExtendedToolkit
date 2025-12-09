@@ -66,9 +66,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceBoundsLabel);
@@ -79,13 +77,12 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Context->TargetsHandler->ForEachPreloader(
-		[&](PCGExData::FFacadePreloader& Preloader)
-		{
-			TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
-			Cloud->Idx = Context->Clouds.Add(Cloud);
-			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-		});
+	Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+	{
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
+		Cloud->Idx = Context->Clouds.Add(Cloud);
+		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+	});
 
 	return true;
 }
@@ -110,34 +107,32 @@ bool FPCGExBoundsPathIntersectionElement::AdvanceWork(FPCGExContext* InContext, 
 			PCGEX_ON_INVALILD_INPUTS_C(SharedContext.Get(), FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 			const bool bWritesAny = Settings->OutputSettings.WillWriteAny();
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-				{
-					if (Entry->GetNum() < 2)
-					{
-						if (!Settings->bOmitInvalidPathsOutputs)
-						{
-							if (bWritesAny)
-							{
-								Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
-								Settings->OutputSettings.Mark(Entry.ToSharedRef());
-							}
-							else
-							{
-								Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-							}
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			                                         {
+				                                         if (Entry->GetNum() < 2)
+				                                         {
+					                                         if (!Settings->bOmitInvalidPathsOutputs)
+					                                         {
+						                                         if (bWritesAny)
+						                                         {
+							                                         Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
+							                                         Settings->OutputSettings.Mark(Entry.ToSharedRef());
+						                                         }
+						                                         else
+						                                         {
+							                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+						                                         }
 
-							Settings->AddTags(Entry, false);
-						}
+						                                         Settings->AddTags(Entry, false);
+					                                         }
 
-						bHasInvalidInputs = true;
-						return false;
-					}
-					return true;
-				},
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-				}))
+					                                         bHasInvalidInputs = true;
+					                                         return false;
+				                                         }
+				                                         return true;
+			                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			                                         {
+			                                         }))
 			{
 				Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 			}
@@ -174,10 +169,9 @@ namespace PCGExBoundsPathIntersection
 		SubBlending->bClosedLoop = bClosedLoop;
 
 		IgnoreList.Add(PointDataFacade->GetIn());
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
-			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 			return false;
 		}
 
@@ -212,17 +206,13 @@ namespace PCGExBoundsPathIntersection
 
 			TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->Source->GetIn()->GetConstTransformValueRange();
 
-			const TSharedPtr<PCGExGeo::FIntersections> LocalIntersections =
-				MakeShared<PCGExGeo::FIntersections>(
-					InTransforms[Index].GetLocation(),
-					InTransforms[NextIndex].GetLocation());
+			const TSharedPtr<PCGExGeo::FIntersections> LocalIntersections = MakeShared<PCGExGeo::FIntersections>(InTransforms[Index].GetLocation(), InTransforms[NextIndex].GetLocation());
 
 			// For each cloud...
-			Context->TargetsHandler->ForEachTarget(
-				[&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 InTargetIndex)
-				{
-					Context->Clouds[InTargetIndex]->FindIntersections(LocalIntersections.Get());
-				}, &IgnoreList);
+			Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 InTargetIndex)
+			{
+				Context->Clouds[InTargetIndex]->FindIntersections(LocalIntersections.Get());
+			}, &IgnoreList);
 
 			if (!LocalIntersections->IsEmpty())
 			{

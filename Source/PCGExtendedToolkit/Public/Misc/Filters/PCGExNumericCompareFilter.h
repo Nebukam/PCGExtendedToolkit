@@ -104,9 +104,7 @@ class UPCGExNumericCompareFilterProviderSettings : public UPCGExFilterProviderSe
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NumericCompareFilterFactory, "Filter : Compare (Numeric)", "Creates a filter definition that compares two numeric attribute values.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NumericCompareFilterFactory, "Filter : Compare (Numeric)", "Creates a filter definition that compares two numeric attribute values.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

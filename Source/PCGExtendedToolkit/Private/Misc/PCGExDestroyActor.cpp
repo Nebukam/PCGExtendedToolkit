@@ -18,8 +18,7 @@
 #define LOCTEXT_NAMESPACE "PCGExDestroyActorElement"
 #define PCGEX_NAMESPACE DestroyActor
 
-UPCGExDestroyActorSettings::UPCGExDestroyActorSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExDestroyActorSettings::UPCGExDestroyActorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
@@ -51,11 +50,9 @@ bool FPCGExDestroyActorElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points."));
 		}
@@ -93,39 +90,37 @@ namespace PCGExDestroyActor
 		MainThreadToken = AsyncManager->TryCreateToken(FName("DestroyActors"));
 		if (!MainThreadToken.IsValid()) { return false; }
 
-		Context->GetMutableComponent()->ForEachManagedResource(
-			[&](UPCGManagedResource* InResource)
+		Context->GetMutableComponent()->ForEachManagedResource([&](UPCGManagedResource* InResource)
+		{
+			UPCGManagedActors* ManagedActors = Cast<UPCGManagedActors>(InResource);
+
+			if (!ManagedActors) { return; }
+
+			TArray<TSoftObjectPtr<AActor>> GeneratedActors = ManagedActors->GetConstGeneratedActors();
+
+			if (!ManagedActors || GeneratedActors.IsEmpty()) { return; }
+
+			for (const TSoftObjectPtr<AActor>& Actor : GeneratedActors)
 			{
-				UPCGManagedActors* ManagedActors = Cast<UPCGManagedActors>(InResource);
-
-				if (!ManagedActors) { return; }
-
-				TArray<TSoftObjectPtr<AActor>> GeneratedActors = ManagedActors->GetConstGeneratedActors();
-
-				if (!ManagedActors || GeneratedActors.IsEmpty()) { return; }
-
-				for (const TSoftObjectPtr<AActor>& Actor : GeneratedActors)
+				if (UniqueActorReferences.Contains(Actor->GetPathName()))
 				{
-					if (UniqueActorReferences.Contains(Actor->GetPathName()))
-					{
-						ManagedActors->Release(false, ActorsToDelete);
-						return;
-					}
+					ManagedActors->Release(false, ActorsToDelete);
+					return;
 				}
-			});
+			}
+		});
 
 		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
+		PCGExSubsystem->RegisterBeginTickAction([PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			for (const TSoftObjectPtr<AActor>& ActorRef : This->ActorsToDelete)
 			{
-				PCGEX_ASYNC_THIS
-				for (const TSoftObjectPtr<AActor>& ActorRef : This->ActorsToDelete)
-				{
-					if (ActorRef.IsValid()) { ActorRef->Destroy(); }
-				}
+				if (ActorRef.IsValid()) { ActorRef->Destroy(); }
+			}
 
-				PCGEX_ASYNC_RELEASE_TOKEN(This->MainThreadToken)
-			});
+			PCGEX_ASYNC_RELEASE_TOKEN(This->MainThreadToken)
+		});
 
 		return true;
 	}

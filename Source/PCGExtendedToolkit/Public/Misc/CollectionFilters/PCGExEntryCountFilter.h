@@ -90,9 +90,7 @@ class UPCGExEntryCountFilterProviderSettings : public UPCGExFilterCollectionProv
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		EntryCountFilterFactory, "Data Filter : Entry Count", "Does a numeric comparison against the number of entries",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(EntryCountFilterFactory, "Data Filter : Entry Count", "Does a numeric comparison against the number of entries", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

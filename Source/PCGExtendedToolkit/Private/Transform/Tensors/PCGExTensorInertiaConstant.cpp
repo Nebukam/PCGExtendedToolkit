@@ -23,34 +23,18 @@ PCGExTensor::FTensorSample FPCGExTensorInertiaConstant::Sample(const int32 InSee
 
 	if (Config.bSetInertiaOnce)
 	{
-		Samples.Emplace_GetRef(
-			PCGExMath::GetDirection(PrimaryDataFacade->GetIn()->GetTransform(InSeedIndex).GetRotation() * Offset, Config.Axis),
-			Config.Potency,
-			Config.Weight);
+		Samples.Emplace_GetRef(PCGExMath::GetDirection(PrimaryDataFacade->GetIn()->GetTransform(InSeedIndex).GetRotation() * Offset, Config.Axis), Config.Potency, Config.Weight);
 	}
 	else
 	{
-		Samples.Emplace_GetRef(
-			PCGExMath::GetDirection(InProbe.GetRotation() * Offset, Config.Axis),
-			Config.Potency,
-			Config.Weight);
+		Samples.Emplace_GetRef(PCGExMath::GetDirection(InProbe.GetRotation() * Offset, Config.Axis), Config.Potency, Config.Weight);
 	}
 
 
 	return Samples.Flatten(Config.TensorWeight);
 }
 
-PCGEX_TENSOR_BOILERPLATE(
-	InertiaConstant, {
-	NewFactory->Config.Axis = Axis;
-	NewFactory->Config.Offset = Offset;
-	NewFactory->Config.Potency = Potency;
-	NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant;
-	NewFactory->Config.Weight = 1;
-	NewFactory->Config.TensorWeight = TensorWeight;
-	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
-	NewFactory->Config.bSetInertiaOnce = bSetInertiaOnce;
-	}, {})
+PCGEX_TENSOR_BOILERPLATE(InertiaConstant, { NewFactory->Config.Axis = Axis; NewFactory->Config.Offset = Offset; NewFactory->Config.Potency = Potency; NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant; NewFactory->Config.Weight = 1; NewFactory->Config.TensorWeight = TensorWeight; NewFactory->Config.WeightInput = EPCGExInputValueType::Constant; NewFactory->Config.bSetInertiaOnce = bSetInertiaOnce; }, {})
 
 PCGExFactories::EPreparationResult UPCGExTensorInertiaConstantFactory::InitInternalData(FPCGExContext* InContext)
 {

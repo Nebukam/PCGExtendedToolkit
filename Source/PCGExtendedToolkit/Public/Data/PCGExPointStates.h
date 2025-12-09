@@ -100,8 +100,8 @@ namespace PCGExPointStates
 		FPCGExStateConfigBase BaseConfig;
 		const UPCGExPointStateFactoryData* StateFactory = nullptr;
 
-		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryData>& InFactory):
-			IFilter(InFactory), StateFactory(InFactory)
+		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryData>& InFactory)
+			: IFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
@@ -142,7 +142,7 @@ public:
 #if WITH_EDITOR
 	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 	PCGEX_NODE_INFOS(PointStateDefinition, "Abstract Point State Definition", "Base class for state factory management.")
-	virtual FLinearColor GetNodeTitleColor() const override{ return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;

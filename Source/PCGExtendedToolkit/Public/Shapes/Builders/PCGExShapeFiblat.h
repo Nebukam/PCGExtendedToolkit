@@ -27,8 +27,8 @@ struct FPCGExShapeFiblatConfig : public FPCGExShapeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExShapeFiblatConfig() :
-		FPCGExShapeConfigBase()
+	FPCGExShapeFiblatConfig()
+		: FPCGExShapeConfigBase()
 	{
 	}
 

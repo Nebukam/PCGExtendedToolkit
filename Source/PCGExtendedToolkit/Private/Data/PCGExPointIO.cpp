@@ -9,6 +9,7 @@
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExMT.h"
+#include "PCGExSettings.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGPointData.h"
@@ -17,18 +18,18 @@ namespace PCGExData
 {
 #pragma region FPointIO
 
-	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle):
-		ContextHandle(InContextHandle), In(nullptr)
+	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle)
+		: ContextHandle(InContextHandle), In(nullptr)
 	{
 	}
 
-	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData):
-		ContextHandle(InContextHandle), In(InData)
+	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData)
+		: ContextHandle(InContextHandle), In(InData)
 	{
 	}
 
-	FPointIO::FPointIO(const TSharedRef<FPointIO>& InPointIO):
-		ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
+	FPointIO::FPointIO(const TSharedRef<FPointIO>& InPointIO)
+		: ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
 	{
 		RootIO = InPointIO;
 
@@ -44,10 +45,7 @@ namespace PCGExData
 		return SharedContext.Get();
 	}
 
-	void FPointIO::SetInfos(
-		const int32 InIndex,
-		const FName InOutputPin,
-		const TSet<FString>* InTags)
+	void FPointIO::SetInfos(const int32 InIndex, const FName InOutputPin, const TSet<FString>* InTags)
 	{
 		IOIndex = InIndex;
 		OutputPin = InOutputPin;
@@ -70,9 +68,7 @@ namespace PCGExData
 			return true;
 		}
 
-		if (LastInit == EIOInit::Duplicate
-			&& InitOut == EIOInit::New
-			&& Out && Out != In)
+		if (LastInit == EIOInit::Duplicate && InitOut == EIOInit::New && Out && Out != In)
 		{
 			LastInit = EIOInit::New;
 			Out->SetNumPoints(0); // lol
@@ -642,9 +638,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
 	FPointIOCollection::~FPointIOCollection() = default;
 
-	void FPointIOCollection::Initialize(
-		TArray<FPCGTaggedData>& Sources,
-		const EIOInit InitOut)
+	void FPointIOCollection::Initialize(TArray<FPCGTaggedData>& Sources, const EIOInit InitOut)
 	{
 		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
 
@@ -678,10 +672,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		UniqueData.Empty();
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(
-		const UPCGBasePointData* In,
-		const EIOInit InitOut,
-		const TSet<FString>* Tags)
+	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut, const TSet<FString>* Tags)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(ContextHandle, In));
@@ -773,38 +764,38 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		Sort();
 
 		int32 NumStaged = 0;
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context); } }
+
 		return NumStaged;
 	}
 
 	int32 FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsMinMax);
+
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
-
 		FPCGExContext* Context = SharedContext.Get();
-
-		if (!Context) { return 0; }
 
 		Sort();
 
 		int32 NumStaged = 0;
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
 		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context, MinPointCount, MaxPointCount); } }
+
 		return NumStaged;
 	}
 
 	int32 FPointIOCollection::StageAnyOutputs()
 	{
-		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsAny);
 
+		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
 		Sort();
 
 		int32 NumStaged = 0;
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (int i = 0; i < Pairs.Num(); i++) { NumStaged += Pairs[i]->StageAnyOutput(Context); }
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageAnyOutput(Context); } }
+
 		return NumStaged;
 	}
 

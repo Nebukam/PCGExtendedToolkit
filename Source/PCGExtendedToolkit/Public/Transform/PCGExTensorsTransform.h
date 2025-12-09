@@ -167,8 +167,8 @@ namespace PCGExTensorsTransform
 		PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -6,6 +6,7 @@
 #include "PCGComponent.h"
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/PCGExecuteBlueprint.h"
@@ -48,14 +49,7 @@ bool UPCGExCustomActorDataPacker::Init##_NAME(const FName& InAttributeName, cons
 TSharedPtr<PCGExData::TBuffer<_TYPE>> Buffer = WriteBuffers->GetBuffer<_TYPE>(InAttributeName, InValue);\
 return Buffer ? true : false;}
 
-void UPCGExCustomActorDataPacker::AddComponent(
-	AActor* InActor,
-	TSubclassOf<UActorComponent> ComponentClass,
-	EAttachmentRule InLocationRule,
-	EAttachmentRule InRotationRule,
-	EAttachmentRule InScaleRule,
-	bool InWeldSimulatedBodies,
-	UActorComponent*& OutComponent)
+void UPCGExCustomActorDataPacker::AddComponent(AActor* InActor, TSubclassOf<UActorComponent> ComponentClass, EAttachmentRule InLocationRule, EAttachmentRule InRotationRule, EAttachmentRule InScaleRule, bool InWeldSimulatedBodies, UActorComponent*& OutComponent)
 {
 	if (!IsInGameThread())
 	{
@@ -76,9 +70,7 @@ void UPCGExCustomActorDataPacker::AddComponent(
 	}
 
 	const EObjectFlags InObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-	OutComponent = Context->ManagedObjects->New<UActorComponent>(
-		InActor, ComponentClass,
-		UniqueNameGenerator->Get(TEXT("PCGComponent_") + ComponentClass->GetName()), InObjectFlags);
+	OutComponent = Context->ManagedObjects->New<UActorComponent>(InActor, ComponentClass, UniqueNameGenerator->Get(TEXT("PCGComponent_") + ComponentClass->GetName()), InObjectFlags);
 
 	if (!OutComponent)
 	{
@@ -87,12 +79,7 @@ void UPCGExCustomActorDataPacker::AddComponent(
 	}
 
 	{
-		FComponentInfos NewInfos = FComponentInfos(
-			OutComponent,
-			InLocationRule,
-			InRotationRule,
-			InScaleRule,
-			InWeldSimulatedBodies);
+		FComponentInfos NewInfos = FComponentInfos(OutComponent, InLocationRule, InRotationRule, InScaleRule, InWeldSimulatedBodies);
 
 		Context->AttachManagedComponent(InActor, NewInfos.Component, NewInfos.AttachmentTransformRules);
 	}
@@ -200,8 +187,7 @@ void UPCGExCustomActorDataPacker::ResolveObjectPath(const FName& InAttributeName
 #undef PCGEX_FOREACH_PACKER
 
 
-UPCGExPackActorDataSettings::UPCGExPackActorDataSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExPackActorDataSettings::UPCGExPackActorDataSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
@@ -222,7 +208,10 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() con
 
 PCGEX_INITIALIZE_ELEMENT(PackActorData)
 
-PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainDataInitializationPolicy() const
+{
+	return PCGExData::EIOInit::Duplicate;
+}
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PackActorData)
 
@@ -261,13 +250,11 @@ bool FPCGExPackActorDataElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->PrimaryInstancedFactory = Context->Packer;
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->PrimaryInstancedFactory = Context->Packer;
+			NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points."));
 		}
@@ -355,7 +342,7 @@ namespace PCGExPackActorData
 		{
 			if (!Settings->bQuietUninitializedPackerWarning)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some data could not be initialized. Make sure to override the packer 'Initialize' so it returns true. If that's intended, you can mute this warning in the node settings."));
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT( "Some data could not be initialized. Make sure to override the packer 'Initialize' so it returns true. If that's intended, you can mute this warning in the node settings." ));
 			}
 
 			return false;
@@ -367,33 +354,16 @@ namespace PCGExPackActorData
 		}
 		else
 		{
-			LoadToken = AsyncManager->TryCreateToken(FName("Asset Loading"));
-			if (!LoadToken.IsValid()) { return false; }
-
-			AsyncTask(
-				ENamedThreads::GameThread, [PCGEX_ASYNC_THIS_CAPTURE]()
-				{
-					PCGEX_ASYNC_THIS
-
-					if (!This->LoadToken.IsValid()) { return; }
-
-					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						This->Packer->RequiredAssetsPaths.Array(), [AsyncThis]()
-						{
-							PCGEX_ASYNC_NESTED_THIS
-
-							if (!NestedThis->LoadToken.IsValid()) { return; }
-
-							NestedThis->StartProcessing();
-							PCGEX_ASYNC_RELEASE_TOKEN(NestedThis->LoadToken)
-						});
-
-					if (!This->LoadHandle || !This->LoadHandle->IsActive())
-					{
-						This->StartProcessing();
-						PCGEX_ASYNC_RELEASE_TOKEN(This->LoadToken)
-					}
-				});
+			PCGExHelpers::Load(AsyncManager, [PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
+			                   {
+				                   PCGEX_ASYNC_THIS_RET({})
+				                   return This->Packer->RequiredAssetsPaths.Array();
+			                   }, [PCGEX_ASYNC_THIS_CAPTURE](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
+			                   {
+				                   PCGEX_ASYNC_THIS
+				                   This->LoadHandle = StreamableHandle;
+				                   This->StartProcessing();
+			                   });
 		}
 
 		return true;
@@ -406,20 +376,19 @@ namespace PCGExPackActorData
 		{
 			GetPoints(PointDataFacade->GetOutFullScope(), PointsForProcessing);
 
-			MainThreadLoop = MakeShared<PCGExMT::FScopeLoopOnMainThread>(PointDataFacade->GetNum());
-			MainThreadLoop->OnIterationCallback =
-				[&](const int32 Index, const PCGExMT::FScope& Scope)
+			MainThreadLoop = MakeShared<PCGExMT::FTimeSlicedMainThreadLoop>(PointDataFacade->GetNum());
+			MainThreadLoop->OnIterationCallback = [&](const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				AActor* ActorRef = Packer->InputActors[Index];
+				if (!ActorRef)
 				{
-					AActor* ActorRef = Packer->InputActors[Index];
-					if (!ActorRef)
-					{
-						PointMask[Index] = 0;
-						return;
-					}
+					PointMask[Index] = 0;
+					return;
+				}
 
-					FPCGPoint& Point = PointsForProcessing[Index];
-					Packer->ProcessEntry(ActorRef, Point, Index, Point);
-				};
+				FPCGPoint& Point = PointsForProcessing[Index];
+				Packer->ProcessEntry(ActorRef, Point, Index, Point);
+			};
 
 			PCGEX_ASYNC_HANDLE_CHKD_VOID(AsyncManager, MainThreadLoop)
 		}

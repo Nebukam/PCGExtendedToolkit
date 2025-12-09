@@ -53,30 +53,6 @@ enum class EPCGExPointNativeProperties : uint8
 ENUM_CLASS_FLAGS(EPCGExPointNativeProperties)
 using EPCGExNativePointPropertiesBitmask = TEnumAsByte<EPCGExPointNativeProperties>;
 
-UCLASS(Hidden)
-class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject
-{
-	GENERATED_BODY()
-
-	bool bIsOnce = false;
-	TFunction<void(UActorComponent* InComponent)> CallbackFn;
-
-public:
-	UFUNCTION()
-	void Callback(UActorComponent* InComponent);
-
-	virtual void BeginDestroy() override;
-
-	template <typename T>
-	void Bind(T& Delegate, TFunction<void(UActorComponent* InComponent)>&& InCallback, const bool bOnce = false)
-	{
-		check(!CallbackFn)
-		bIsOnce = bOnce;
-		CallbackFn = InCallback;
-		Delegate.AddDynamic(this, &UPCGExComponentCallback::Callback);
-	}
-};
-
 UINTERFACE()
 class PCGEXTENDEDTOOLKIT_API UPCGExManagedObjectInterface : public UInterface
 {
@@ -108,72 +84,31 @@ public:
 
 namespace PCGExHelpers
 {
-	PCGEXTENDEDTOOLKIT_API
-	FText GetClassDisplayName(const UClass* InClass);
+	PCGEXTENDEDTOOLKIT_API FText GetClassDisplayName(const UClass* InClass);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool HasDataOnPin(FPCGContext* InContext, FName Pin);
+	PCGEXTENDEDTOOLKIT_API bool HasDataOnPin(FPCGContext* InContext, FName Pin);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName);
+	PCGEXTENDEDTOOLKIT_API bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsDataDomainAttribute(const FName& InName);
+	PCGEXTENDEDTOOLKIT_API bool IsDataDomainAttribute(const FName& InName);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsDataDomainAttribute(const FString& InName);
+	PCGEXTENDEDTOOLKIT_API bool IsDataDomainAttribute(const FString& InName);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsDataDomainAttribute(const FPCGAttributePropertyInputSelector& InputSelector);
+	PCGEXTENDEDTOOLKIT_API bool IsDataDomainAttribute(const FPCGAttributePropertyInputSelector& InputSelector);
 
-	PCGEXTENDEDTOOLKIT_API
-	void InitEmptyNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+	PCGEXTENDEDTOOLKIT_API void InitEmptyNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
 
-	PCGEXTENDEDTOOLKIT_API
-	void LoadBlocking_AnyThread(const FSoftObjectPath& Path);
+	PCGEXTENDEDTOOLKIT_API void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType);
 
-	template <typename T>
-	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
-	{
-		// If the requested object is valid and loaded, early exit
-		TObjectPtr<T> LoadedObject = SoftObjectPtr.Get();
-		if (LoadedObject) { return LoadedObject; }
+	PCGEXTENDEDTOOLKIT_API bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr);
 
-		// If not, make sure it's a valid path, and if not fallback to the fallback path
-		FSoftObjectPath ToBeLoaded = SoftObjectPtr.ToSoftObjectPath().IsValid() ? SoftObjectPtr.ToSoftObjectPath() : FallbackPath;
+	PCGEXTENDEDTOOLKIT_API TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString);
 
-		// Make sure we have a valid path at all
-		if (!ToBeLoaded.IsValid()) { return nullptr; }
+	PCGEXTENDEDTOOLKIT_API void AppendUniqueEntriesFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FString>& OutStrings);
 
-		// Check if the fallback path is loaded, early exit
-		LoadedObject = TSoftObjectPtr<T>(ToBeLoaded).Get();
-		if (LoadedObject) { return LoadedObject; }
+	PCGEXTENDEDTOOLKIT_API void AppendUniqueSelectorsFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FPCGAttributePropertyInputSelector>& OutSelectors);
 
-		LoadBlocking_AnyThread(ToBeLoaded);
-
-		return TSoftObjectPtr<T>(ToBeLoaded).Get();
-	}
-
-	PCGEXTENDEDTOOLKIT_API
-	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
-
-	PCGEXTENDEDTOOLKIT_API
-	void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType);
-
-	PCGEXTENDEDTOOLKIT_API
-	bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr);
-
-	PCGEXTENDEDTOOLKIT_API
-	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString);
-
-	PCGEXTENDEDTOOLKIT_API
-	void AppendUniqueEntriesFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FString>& OutStrings);
-
-	PCGEXTENDEDTOOLKIT_API
-	void AppendUniqueSelectorsFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FPCGAttributePropertyInputSelector>& OutSelectors);
-
-	PCGEXTENDEDTOOLKIT_API
-	TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext);
+	PCGEXTENDEDTOOLKIT_API TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext);
 }
 
 /** Holds function prototypes used to match against actor function signatures. */
@@ -196,23 +131,17 @@ namespace PCGEx
 {
 	const FName InvalidName = "INVALID_DATA";
 
-	PCGEXTENDEDTOOLKIT_API
-	EPCGPointNativeProperties GetPointNativeProperties(uint8 Flags);
+	PCGEXTENDEDTOOLKIT_API EPCGPointNativeProperties GetPointNativeProperties(uint8 Flags);
 
-	PCGEXTENDEDTOOLKIT_API
-	FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized = true);
+	PCGEXTENDEDTOOLKIT_API FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized = true);
 
-	PCGEXTENDEDTOOLKIT_API
-	FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized = true);
+	PCGEXTENDEDTOOLKIT_API FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized = true);
 
-	PCGEXTENDEDTOOLKIT_API
-	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData);
+	PCGEXTENDEDTOOLKIT_API FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData);
 
-	PCGEXTENDEDTOOLKIT_API
-	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName);
+	PCGEXTENDEDTOOLKIT_API FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName);
 
-	PCGEXTENDEDTOOLKIT_API
-	FPCGAttributePropertyInputSelector GetSelectorFromIdentifier(const FPCGAttributeIdentifier& InIdentifier);
+	PCGEXTENDEDTOOLKIT_API FPCGAttributePropertyInputSelector GetSelectorFromIdentifier(const FPCGAttributeIdentifier& InIdentifier);
 
 	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
 	{
@@ -439,22 +368,16 @@ namespace PCGEx
 		case EPCGMetadataTypes::Float:
 		case EPCGMetadataTypes::Double:
 		case EPCGMetadataTypes::Integer32:
-		case EPCGMetadataTypes::Integer64:
-			return 1;
-		case EPCGMetadataTypes::Vector2:
-			return 2;
+		case EPCGMetadataTypes::Integer64: return 1;
+		case EPCGMetadataTypes::Vector2: return 2;
 		case EPCGMetadataTypes::Vector:
-		case EPCGMetadataTypes::Rotator:
-			return 3;
+		case EPCGMetadataTypes::Rotator: return 3;
 		case EPCGMetadataTypes::Vector4:
-		case EPCGMetadataTypes::Quaternion:
-			return 4;
-		default:
-		case EPCGMetadataTypes::Transform:
+		case EPCGMetadataTypes::Quaternion: return 4;
+		default: case EPCGMetadataTypes::Transform:
 		case EPCGMetadataTypes::String:
 		case EPCGMetadataTypes::Name:
-		case EPCGMetadataTypes::Unknown:
-			return -1;
+		case EPCGMetadataTypes::Unknown: return -1;
 		}
 	}
 
@@ -462,29 +385,21 @@ namespace PCGEx
 	{
 		switch (InType)
 		{
-		default:
-			return 0;
+		default: return 0;
 		case EPCGMetadataTypes::Boolean:
 		case EPCGMetadataTypes::Float:
 		case EPCGMetadataTypes::Double:
 		case EPCGMetadataTypes::Integer32:
-		case EPCGMetadataTypes::Integer64:
-			return 1;
-		case EPCGMetadataTypes::Vector2:
-			return 2;
+		case EPCGMetadataTypes::Integer64: return 1;
+		case EPCGMetadataTypes::Vector2: return 2;
 		case EPCGMetadataTypes::Vector:
-		case EPCGMetadataTypes::Rotator:
-			return 3;
+		case EPCGMetadataTypes::Rotator: return 3;
 		case EPCGMetadataTypes::Vector4:
-		case EPCGMetadataTypes::Quaternion:
-			return 4;
-		case EPCGMetadataTypes::Transform:
-			return 5;
+		case EPCGMetadataTypes::Quaternion: return 4;
+		case EPCGMetadataTypes::Transform: return 5;
 		case EPCGMetadataTypes::String:
-		case EPCGMetadataTypes::Name:
-			return 6;
-		case EPCGMetadataTypes::Unknown:
-			return -1;
+		case EPCGMetadataTypes::Name: return 6;
+		case EPCGMetadataTypes::Unknown: return -1;
 		}
 	}
 
@@ -514,8 +429,7 @@ namespace PCGEx
 		switch (Property)
 		{
 		case EPCGPointProperties::Density:
-		case EPCGPointProperties::Steepness:
-			return EPCGMetadataTypes::Float;
+		case EPCGPointProperties::Steepness: return EPCGMetadataTypes::Float;
 		case EPCGPointProperties::BoundsMin:
 		case EPCGPointProperties::BoundsMax:
 		case EPCGPointProperties::Extents:
@@ -523,18 +437,12 @@ namespace PCGEx
 		case EPCGPointProperties::Scale:
 		case EPCGPointProperties::LocalCenter:
 		case EPCGPointProperties::LocalSize:
-		case EPCGPointProperties::ScaledLocalSize:
-			return EPCGMetadataTypes::Vector;
-		case EPCGPointProperties::Color:
-			return EPCGMetadataTypes::Vector4;
-		case EPCGPointProperties::Rotation:
-			return EPCGMetadataTypes::Quaternion;
-		case EPCGPointProperties::Transform:
-			return EPCGMetadataTypes::Transform;
-		case EPCGPointProperties::Seed:
-			return EPCGMetadataTypes::Integer32;
-		default:
-			return EPCGMetadataTypes::Unknown;
+		case EPCGPointProperties::ScaledLocalSize: return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Color: return EPCGMetadataTypes::Vector4;
+		case EPCGPointProperties::Rotation: return EPCGMetadataTypes::Quaternion;
+		case EPCGPointProperties::Transform: return EPCGMetadataTypes::Transform;
+		case EPCGPointProperties::Seed: return EPCGMetadataTypes::Integer32;
+		default: return EPCGMetadataTypes::Unknown;
 		}
 	}
 
@@ -542,34 +450,21 @@ namespace PCGEx
 	{
 		switch (Property)
 		{
-		case EPCGPointProperties::Density:
-			return EPCGPointNativeProperties::Density;
-		case EPCGPointProperties::BoundsMin:
-			return EPCGPointNativeProperties::BoundsMin;
-		case EPCGPointProperties::BoundsMax:
-			return EPCGPointNativeProperties::BoundsMax;
-		case EPCGPointProperties::Color:
-			return EPCGPointNativeProperties::Color;
-		case EPCGPointProperties::Position:
-			return EPCGPointNativeProperties::Transform;
-		case EPCGPointProperties::Rotation:
-			return EPCGPointNativeProperties::Transform;
-		case EPCGPointProperties::Scale:
-			return EPCGPointNativeProperties::Transform;
-		case EPCGPointProperties::Transform:
-			return EPCGPointNativeProperties::Transform;
-		case EPCGPointProperties::Steepness:
-			return EPCGPointNativeProperties::Steepness;
-		case EPCGPointProperties::Seed:
-			return EPCGPointNativeProperties::Seed;
+		case EPCGPointProperties::Density: return EPCGPointNativeProperties::Density;
+		case EPCGPointProperties::BoundsMin: return EPCGPointNativeProperties::BoundsMin;
+		case EPCGPointProperties::BoundsMax: return EPCGPointNativeProperties::BoundsMax;
+		case EPCGPointProperties::Color: return EPCGPointNativeProperties::Color;
+		case EPCGPointProperties::Position: return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Rotation: return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Scale: return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Transform: return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Steepness: return EPCGPointNativeProperties::Steepness;
+		case EPCGPointProperties::Seed: return EPCGPointNativeProperties::Seed;
 		case EPCGPointProperties::Extents:
 		case EPCGPointProperties::LocalCenter:
-		case EPCGPointProperties::LocalSize:
-			return EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax;
-		case EPCGPointProperties::ScaledLocalSize:
-			return EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax | EPCGPointNativeProperties::Transform;
-		default:
-			return EPCGPointNativeProperties::None;
+		case EPCGPointProperties::LocalSize: return EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax;
+		case EPCGPointProperties::ScaledLocalSize: return EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax | EPCGPointNativeProperties::Transform;
+		default: return EPCGPointNativeProperties::None;
 		}
 	}
 
@@ -577,10 +472,8 @@ namespace PCGEx
 	{
 		switch (Property)
 		{
-		case EPCGExtraProperties::Index:
-			return EPCGMetadataTypes::Integer32;
-		default:
-			return EPCGMetadataTypes::Unknown;
+		case EPCGExtraProperties::Index: return EPCGMetadataTypes::Integer32;
+		default: return EPCGMetadataTypes::Unknown;
 		}
 	}
 
@@ -652,11 +545,9 @@ namespace PCGEx
 		const TArray<int32>& GetWriteIndices() const { return WriteIndices; }
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+	PCGEXTENDEDTOOLKIT_API int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints);
+	PCGEXTENDEDTOOLKIT_API bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints);
 
 #pragma region Array
 
@@ -765,8 +656,7 @@ extern template void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRange, co
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
-	PCGEXTENDEDTOOLKIT_API
-	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
+	PCGEXTENDEDTOOLKIT_API void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
 
 	template <typename T>
 	static void ShiftArrayToSmallest(TArray<T>& InArray)
@@ -847,6 +737,5 @@ extern template void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRange, co
 
 #pragma endregion
 
-	PCGEXTENDEDTOOLKIT_API
-	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
+	PCGEXTENDEDTOOLKIT_API FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
 }

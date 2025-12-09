@@ -22,7 +22,6 @@ namespace PCGExMT
 namespace PCGEx
 {
 	class FWorkHandle;
-	class FIntTracker;
 }
 
 class UPCGSettings;
@@ -47,27 +46,23 @@ namespace PCGExPointsMT
 	PCGEX_CTX_STATE(MTState_PointsCompletingWork)
 	PCGEX_CTX_STATE(MTState_PointsWriting)
 
-#define PCGEX_ASYNC_TRACKER_COMP if (const TSharedPtr<PCGEx::FIntTracker> PinnedTracker = WeakTracker.Pin(); PinnedTracker){ PinnedTracker->IncrementCompleted(); }
-
-#define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY, _TRACKER)\
+#define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY, _JIT)\
 	PCGEX_CHECK_WORK_HANDLE_VOID\
-	TSharedPtr<PCGEx::FIntTracker> Tracker = _TRACKER; \
-	TWeakPtr<PCGEx::FIntTracker> WeakTracker = Tracker; \
-	if (Tracker){ Tracker->IncrementPending(Processors.Num()); } \
 	if (_INLINE_CONDITION)  { \
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Inlined) \
-		_ID##Inlined->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakTracker](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS const TSharedRef<IProcessor>& Processor = This->Processors[Index]; _BODY PCGEX_ASYNC_TRACKER_COMP }; \
-		_ID##Inlined->StartIterations( Processors.Num(), 1, true);\
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID) \
+		_ID->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS const TSharedRef<IProcessor>& Processor = This->Processors[Index]; _BODY }; \
+		_JIT\
+		_ID->StartIterations( Processors.Num(), 1, true);\
 	} else {\
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##NonTrivial)\
-		_ID##NonTrivial->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakTracker](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS \
-		const TSharedRef<IProcessor>& Processor = This->Processors[Index]; _BODY PCGEX_ASYNC_TRACKER_COMP }; \
-		_ID##NonTrivial->StartIterations(Processors.Num(), 1, false);\
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID)\
+		_ID->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS \
+		const TSharedRef<IProcessor>& Processor = This->Processors[Index]; _BODY }; \
+		_JIT\
+		_ID->StartIterations(Processors.Num(), 1, false);\
 	}
 
 #define PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
 	PCGEX_CHECK_WORK_HANDLE_VOID\
-	if (IsTrivial()){ _PREPARE({PCGExMT::FScope(0, _NUM, 0)}); _PROCESS(PCGExMT::FScope(0, _NUM, 0)); _COMPLETE(); return; } \
 	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
 	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopFor##_NAME) \
 	ParallelLoopFor##_NAME->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]() { PCGEX_ASYNC_THIS This->_COMPLETE(); }; \
@@ -77,8 +72,8 @@ namespace PCGExPointsMT
 
 #define PCGEX_ASYNC_POINT_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetPointsBatchChunkSize)
 
-#define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_ID, _INLINE_CONDITION, _BODY) PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY }, nullptr)
-	
+#define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_ID, _INLINE_CONDITION, _BODY, _JIT) PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY }, _JIT)
+
 	class IBatch;
 
 	class PCGEXTENDEDTOOLKIT_API IProcessor : public TSharedFromThis<IProcessor>
@@ -174,8 +169,8 @@ namespace PCGExPointsMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		explicit TProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			IProcessor(InPointDataFacade)
+		explicit TProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: IProcessor(InPointDataFacade)
 		{
 		}
 
@@ -197,7 +192,6 @@ namespace PCGExPointsMT
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FilterFactories = nullptr;
-		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
 
 		virtual TSharedPtr<IProcessor> NewProcessorInstance(const TSharedRef<PCGExData::FFacade>& InPointDataFacade) const;
 
@@ -272,8 +266,8 @@ namespace PCGExPointsMT
 		}
 
 	public:
-		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
-			IBatch(InContext, InPointsCollection)
+		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+			: IBatch(InContext, InPointsCollection)
 		{
 		}
 
@@ -282,6 +276,5 @@ namespace PCGExPointsMT
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch);
+	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch);
 }

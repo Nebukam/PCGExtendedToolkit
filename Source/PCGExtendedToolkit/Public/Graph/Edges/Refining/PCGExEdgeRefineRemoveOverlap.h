@@ -46,9 +46,7 @@ public:
 
 			const PCGExGraph::FEdge& OtherEdge = *Cluster->GetEdge(Item.Index);
 
-			if (Edge.Index == OtherEdge.Index ||
-				Edge.Start == OtherEdge.Start || Edge.Start == OtherEdge.End ||
-				Edge.End == OtherEdge.End || Edge.End == OtherEdge.Start) { return true; }
+			if (Edge.Index == OtherEdge.Index || Edge.Start == OtherEdge.Start || Edge.Start == OtherEdge.End || Edge.End == OtherEdge.End || Edge.End == OtherEdge.Start) { return true; }
 
 
 			if (bUseMinAngle || bUseMaxAngle)
@@ -66,8 +64,7 @@ public:
 			const FVector A2 = Cluster->GetStartPos(OtherEdge);
 			const FVector B2 = Cluster->GetEndPos(OtherEdge);
 
-			if (A == A1 || A == B1 || A == A2 || A == B2 ||
-				B == A2 || B == B2 || B == A1 || B == B1) { return true; }
+			if (A == A1 || A == B1 || A == A2 || A == B2 || B == A2 || B == B2 || B == A1 || B == B1) { return true; }
 
 			// Overlap!
 			if (Keep == EPCGExEdgeOverlapPick::Longest)
@@ -90,9 +87,7 @@ public:
 			return true;
 		};
 
-		(void)Cluster->GetEdgeOctree()->FindFirstElementWithBoundsTest(
-			(Cluster->BoundedEdges->GetData() + Edge.Index)->Bounds.GetBox(),
-			ProcessOverlap);
+		(void)Cluster->GetEdgeOctree()->FindFirstElementWithBoundsTest((Cluster->BoundedEdges->GetData() + Edge.Index)->Bounds.GetBox(), ProcessOverlap);
 	}
 
 	//virtual void Process() override;
@@ -163,15 +158,5 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MaxAngle = 90;
 
-	PCGEX_CREATE_REFINE_OPERATION(
-		EdgeRemoveOverlap, {
-		Operation->Keep = Keep;
-		Operation->Tolerance = Tolerance;
-
-		Operation->bUseMinAngle = bUseMinAngle;
-		Operation->MinAngle = MinAngle;
-
-		Operation->bUseMaxAngle = bUseMaxAngle;
-		Operation->MaxAngle = MaxAngle;
-		})
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRemoveOverlap, { Operation->Keep = Keep; Operation->Tolerance = Tolerance; Operation->bUseMinAngle = bUseMinAngle; Operation->MinAngle = MinAngle; Operation->bUseMaxAngle = bUseMaxAngle; Operation->MaxAngle = MaxAngle; })
 };

@@ -94,11 +94,7 @@ namespace PCGExClusterStates
 		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.Mutate(InFlags); }
 	}
 
-	FStateManager::FStateManager(
-		const TSharedPtr<TArray<int64>>& InFlags,
-		const TSharedRef<PCGExCluster::FCluster>& InCluster,
-		const TSharedRef<PCGExData::FFacade>& InPointDataCache,
-		const TSharedRef<PCGExData::FFacade>& InEdgeDataCache)
+	FStateManager::FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataCache, const TSharedRef<PCGExData::FFacade>& InEdgeDataCache)
 		: FManager(InCluster, InPointDataCache, InEdgeDataCache)
 	{
 		FlagsCache = InFlags;

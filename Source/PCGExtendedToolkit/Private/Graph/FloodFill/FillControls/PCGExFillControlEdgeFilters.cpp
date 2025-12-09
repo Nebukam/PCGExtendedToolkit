@@ -67,9 +67,7 @@ UPCGExFactoryData* UPCGExFillControlsEdgeFiltersProviderSettings::CreateFactory(
 	PCGEX_FORWARD_FILLCONTROL_FACTORY
 	Super::CreateFactory(InContext, NewFactory);
 
-	if (!GetInputFactories(
-		InContext, PCGExPointFilter::SourceEdgeFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterEdgeFilters))
+	if (!GetInputFactories(InContext, PCGExPointFilter::SourceEdgeFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterEdgeFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

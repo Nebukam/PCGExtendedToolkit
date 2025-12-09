@@ -21,8 +21,8 @@ struct FPCGExMatchTagToAttrConfig : public FPCGExMatchRuleConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExMatchTagToAttrConfig() :
-		FPCGExMatchRuleConfigBase()
+	FPCGExMatchTagToAttrConfig()
+		: FPCGExMatchRuleConfigBase()
 	{
 	}
 
@@ -109,9 +109,7 @@ class UPCGExCreateMatchTagToAttrSettings : public UPCGExMatchRuleFactoryProvider
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MatchTagToAttr, "Match : Tags × Attributes", "Compares attribute value on targets against tags on inputs",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchTagToAttr, "Match : Tags × Attributes", "Compares attribute value on targets against tags on inputs", FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

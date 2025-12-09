@@ -15,8 +15,7 @@
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExBlendPathSettings, Lerp, double, LerpInput, LerpAttribute, LerpConstant)
 
-UPCGExBlendPathSettings::UPCGExBlendPathSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExBlendPathSettings::UPCGExBlendPathSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
@@ -41,9 +40,7 @@ bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendPath)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}))
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}))
 	{
 		return false;
 	}
@@ -63,15 +60,13 @@ bool FPCGExBlendPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				PCGEX_SKIP_INVALID_PATH_ENTRY
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to blend."));
 		}
@@ -139,8 +134,7 @@ namespace PCGExBlendPath
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if ((Index == 0 && !Settings->bBlendFirstPoint) ||
-				(Index == MaxIndex && !Settings->bBlendLastPoint))
+			if ((Index == 0 && !Settings->bBlendFirstPoint) || (Index == MaxIndex && !Settings->bBlendLastPoint))
 			{
 				continue;
 			}

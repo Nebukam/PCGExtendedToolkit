@@ -128,8 +128,8 @@ namespace PCGExResamplePath
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

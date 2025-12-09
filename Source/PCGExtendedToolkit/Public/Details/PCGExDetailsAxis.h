@@ -100,23 +100,16 @@ namespace PCGEx
 		Z = Axes[AxisOrders[Index][2]];
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	void GetAxesOrder(EPCGExMakeRotAxis Order, int32& A, int32& B, int32& C);
+	PCGEXTENDEDTOOLKIT_API void GetAxesOrder(EPCGExMakeRotAxis Order, int32& A, int32& B, int32& C);
 
 	FORCEINLINE void GetAxesOrder(EPCGExMakeRotAxis Order, int32 (&OutArray)[3])
 	{
 		GetAxesOrder(Order, OutArray[0], OutArray[1], OutArray[2]);
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& X, const FVector& Y, const FVector& Z);
+	PCGEXTENDEDTOOLKIT_API FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& X, const FVector& Y, const FVector& Z);
 
-	PCGEXTENDEDTOOLKIT_API
-	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B);
+	PCGEXTENDEDTOOLKIT_API FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B);
 
-	PCGEXTENDEDTOOLKIT_API
-	void FindOrderMatch(
-		const FQuat& Quat,
-		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,
-		int32& X, int32& Y, int32& Z, const bool bPermute = true);
+	PCGEXTENDEDTOOLKIT_API void FindOrderMatch(const FQuat& Quat, const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis, int32& X, int32& Y, int32& Z, const bool bPermute = true);
 }

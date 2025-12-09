@@ -232,17 +232,11 @@ UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExCon
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingConfig = SamplingConfig;
 
-	GetInputFactories(
-		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories,
-		PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
-	GetInputFactories(
-		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories,
-		PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
-	GetInputFactories(
-		InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories,
-		PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
 	return Super::CreateFactory(InContext, SamplerFactory);
 }

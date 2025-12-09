@@ -131,8 +131,8 @@ namespace PCGExUberFilterCollections
 		TSharedPtr<PCGExData::FPointIO> Inside;
 		TSharedPtr<PCGExData::FPointIO> Outside;
 
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

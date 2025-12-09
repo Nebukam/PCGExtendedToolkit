@@ -143,8 +143,8 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API IFilter : public TSharedFromThis<IFilter>
 	{
 	public:
-		explicit IFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
-			Factory(InFactory)
+		explicit IFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
+			: Factory(InFactory)
 		{
 		}
 
@@ -184,8 +184,8 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API ISimpleFilter : public IFilter
 	{
 	public:
-		explicit ISimpleFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
-			IFilter(InFactory)
+		explicit ISimpleFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
+			: IFilter(InFactory)
 		{
 		}
 
@@ -199,8 +199,8 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API ICollectionFilter : public IFilter
 	{
 	public:
-		explicit ICollectionFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
-			IFilter(InFactory)
+		explicit ICollectionFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
+			: IFilter(InFactory)
 		{
 		}
 
@@ -264,11 +264,9 @@ namespace PCGExPointFilter
 		virtual void InitCache();
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader);
+	PCGEXTENDEDTOOLKIT_API void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader);
 
-	PCGEXTENDEDTOOLKIT_API
-	void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
+	PCGEXTENDEDTOOLKIT_API void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
 }
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter (Data)"))

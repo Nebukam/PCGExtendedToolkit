@@ -15,7 +15,7 @@
 
 namespace PCGExMT
 {
-	class FScopeLoopOnMainThread;
+	class FTimeSlicedMainThreadLoop;
 }
 
 struct FPCGObjectPropertyOverrideDescription;
@@ -228,7 +228,7 @@ namespace PCGExPathSplineMeshSimple
 		TSharedPtr<TArray<PCGExValueHash>> MeshKeys;
 		TSharedPtr<TArray<PCGExValueHash>> MaterialKeys;
 
-		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
+		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		TArray<TObjectPtr<UStaticMesh>> Meshes;
 		TArray<TObjectPtr<UMaterialInterface>> Materials;
@@ -238,8 +238,8 @@ namespace PCGExPathSplineMeshSimple
 		EObjectFlags ObjectFlags = RF_NoFlags;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

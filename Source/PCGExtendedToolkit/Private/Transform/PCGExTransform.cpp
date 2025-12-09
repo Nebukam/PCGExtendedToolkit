@@ -37,9 +37,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExSocketFitDetails, SocketName, FName, SocketNameIn
 
 bool FPCGExSocketFitDetails::Init(const TSharedPtr<PCGExData::FFacade>& InFacade)
 {
-	if (!bEnabled ||
-		(SocketNameInput == EPCGExInputValueType::Constant && SocketName.IsNone()) ||
-		(SocketNameInput == EPCGExInputValueType::Attribute && SocketNameAttribute.IsNone()))
+	if (!bEnabled || (SocketNameInput == EPCGExInputValueType::Constant && SocketName.IsNone()) || (SocketNameInput == EPCGExInputValueType::Attribute && SocketNameAttribute.IsNone()))
 	{
 		bMutate = false;
 		return true;
@@ -115,16 +113,12 @@ FVector FPCGExUVW::GetUVW(const int32 PointIndex, const EPCGExMinimalAxis Axis, 
 		switch (Axis)
 		{
 		default: ;
-		case EPCGExMinimalAxis::None:
+		case EPCGExMinimalAxis::None: break;
+		case EPCGExMinimalAxis::X: Value.X *= -1;
 			break;
-		case EPCGExMinimalAxis::X:
-			Value.X *= -1;
+		case EPCGExMinimalAxis::Y: Value.Y *= -1;
 			break;
-		case EPCGExMinimalAxis::Y:
-			Value.Y *= -1;
-			break;
-		case EPCGExMinimalAxis::Z:
-			Value.Z *= -1;
+		case EPCGExMinimalAxis::Z: Value.Z *= -1;
 			break;
 		}
 	}
@@ -299,15 +293,10 @@ namespace PCGExTransform
 	{
 		switch (Source)
 		{
-		case EPCGExPointBoundsSource::ScaledBounds:
-			return GetBounds<EPCGExPointBoundsSource::ScaledBounds>(InPointData);
-		case EPCGExPointBoundsSource::DensityBounds:
-			return GetBounds<EPCGExPointBoundsSource::DensityBounds>(InPointData);
-		case EPCGExPointBoundsSource::Bounds:
-			return GetBounds<EPCGExPointBoundsSource::Bounds>(InPointData);
-		default:
-		case EPCGExPointBoundsSource::Center:
-			return GetBounds<EPCGExPointBoundsSource::Center>(InPointData);
+		case EPCGExPointBoundsSource::ScaledBounds: return GetBounds<EPCGExPointBoundsSource::ScaledBounds>(InPointData);
+		case EPCGExPointBoundsSource::DensityBounds: return GetBounds<EPCGExPointBoundsSource::DensityBounds>(InPointData);
+		case EPCGExPointBoundsSource::Bounds: return GetBounds<EPCGExPointBoundsSource::Bounds>(InPointData);
+		default: case EPCGExPointBoundsSource::Center: return GetBounds<EPCGExPointBoundsSource::Center>(InPointData);
 		}
 	}
 
@@ -335,16 +324,12 @@ namespace PCGExTransform
 			switch (Axis)
 			{
 			default: ;
-			case EPCGExMinimalAxis::None:
+			case EPCGExMinimalAxis::None: break;
+			case EPCGExMinimalAxis::X: Value.X *= -1;
 				break;
-			case EPCGExMinimalAxis::X:
-				Value.X *= -1;
+			case EPCGExMinimalAxis::Y: Value.Y *= -1;
 				break;
-			case EPCGExMinimalAxis::Y:
-				Value.Y *= -1;
-				break;
-			case EPCGExMinimalAxis::Z:
-				Value.Z *= -1;
+			case EPCGExMinimalAxis::Z: Value.Z *= -1;
 				break;
 			}
 		}

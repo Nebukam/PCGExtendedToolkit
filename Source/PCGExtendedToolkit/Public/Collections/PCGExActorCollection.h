@@ -50,11 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 
 	bool SameAs(const FPCGExActorCollectionEntry& Other) const
 	{
-		return
-			SubCollection == Other.SubCollection &&
-			Weight == Other.Weight &&
-			Category == Other.Category &&
-			Actor == Other.Actor;
+		return SubCollection == Other.SubCollection && Weight == Other.Weight && Category == Other.Category && Actor == Other.Actor;
 	}
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;

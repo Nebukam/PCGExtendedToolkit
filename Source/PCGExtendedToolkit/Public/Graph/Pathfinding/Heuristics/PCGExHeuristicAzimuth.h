@@ -14,8 +14,8 @@ struct FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigAzimuth() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicConfigAzimuth()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -26,18 +26,9 @@ struct FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
 class FPCGExHeuristicAzimuth : public FPCGExHeuristicOperation
 {
 public:
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 };
 
 ////
@@ -63,9 +54,7 @@ class UPCGExHeuristicsAzimuthProviderSettings : public UPCGExHeuristicsFactoryPr
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsAzimuth, "Heuristics : Azimuth", "Heuristics based on direction toward final goal (north star).",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsAzimuth, "Heuristics : Azimuth", "Heuristics based on direction toward final goal (north star).", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

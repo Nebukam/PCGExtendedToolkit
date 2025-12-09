@@ -127,56 +127,40 @@ TSharedPtr<PCGExClusterMT::IBatch> FPCGExEdgesProcessorContext::CreateEdgeBatchI
 
 bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync)
 {
-	//FWriteScopeLock WriteScopeLock(ClusterProcessingLock); // Just in case
-
 	if (!bBatchProcessingEnabled) { return true; }
 
-	if (bClusterBatchInlined)
+	if (bDaisyChainClusterBatches)
 	{
 		if (!CurrentBatch)
 		{
-			if (CurrentBatchIndex == -1)
-			{
-				// First batch
-				AdvanceBatch(NextStateId, bIsNextStateAsync);
-				return false;
-			}
-
-			return true;
+			// Initialize first batch or end work
+			if (CurrentBatchIndex == -1) { AdvanceBatch(NextStateId, bIsNextStateAsync); }
+			else { return true; }
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
 		{
-			if (!CurrentBatch->bSkipCompletion)
-			{
-				SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
-				CurrentBatch->CompleteWork();
-			}
-			else
-			{
-				SetState(PCGExClusterMT::MTState_ClusterCompletingWork);
-			}
+			SetState(PCGExClusterMT::MTState_ClusterCompletingWork);
+			if (!CurrentBatch->bSkipCompletion) { CurrentBatch->CompleteWork(); }
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterCompletingWork)
 		{
 			AdvanceBatch(NextStateId, bIsNextStateAsync);
 		}
+
+		// TODO : We dont support writing step when daisy chaining...?
 	}
 	else
 	{
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
 		{
 			ClusterProcessing_InitialProcessingDone();
-
+			SetState(PCGExClusterMT::MTState_ClusterCompletingWork);
 			if (!bSkipClusterBatchCompletionStep)
 			{
-				SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
-				CompleteBatches(Batches);
-			}
-			else
-			{
-				SetState(PCGExClusterMT::MTState_ClusterCompletingWork);
+				PCGExMT::FSchedulingScope AsyncScope(AsyncManager);
+				for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->CompleteWork(); }
 			}
 		}
 
@@ -186,15 +170,16 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExCommon::ContextStat
 
 			if (bDoClusterBatchWritingStep)
 			{
-				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
-				WriteBatches(Batches);
-				return false;
+				SetState(PCGExClusterMT::MTState_ClusterWriting);
+				PCGExMT::FSchedulingScope AsyncScope(AsyncManager);
+				for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->Write(); }
 			}
-
-			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGExCommon::State_Done) { Done(); }
-			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-			else { SetState(NextStateId); }
+			else
+			{
+				bBatchProcessingEnabled = false;
+				if (NextStateId == PCGExCommon::State_Done) { Done(); }
+				SetState(NextStateId);
+			}
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterWriting)
@@ -203,21 +188,19 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExCommon::ContextStat
 
 			bBatchProcessingEnabled = false;
 			if (NextStateId == PCGExCommon::State_Done) { Done(); }
-			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-			else { SetState(NextStateId); }
+			SetState(NextStateId);
 		}
 	}
 
-	return false;
+	return !IsWaitingForTasks();
 }
 
 bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId)
 {
 	PCGEX_ON_STATE_INTERNAL(PCGExGraph::State_ReadyToCompile)
 	{
-		SetAsyncState(PCGExGraph::State_Compiling);
+		SetState(PCGExGraph::State_Compiling);
 		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->CompileGraphBuilder(bOutputToContext); }
-		return false;
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExGraph::State_Compiling)
@@ -226,20 +209,17 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 		SetState(NextStateId);
 	}
 
-	return true;
+	return !IsWaitingForTasks();
 }
 
-bool FPCGExEdgesProcessorContext::StartProcessingClusters(FBatchProcessingValidateEntries&& ValidateEntries, FBatchProcessingInitEdgeBatch&& InitBatch, const bool bInlined)
+bool FPCGExEdgesProcessorContext::StartProcessingClusters(FBatchProcessingValidateEntries&& ValidateEntries, FBatchProcessingInitEdgeBatch&& InitBatch, const bool bDaisyChain)
 {
-	ResumeExecution();
-
 	Batches.Empty();
 
-	bClusterBatchInlined = bInlined;
+	bDaisyChainClusterBatches = bDaisyChain;
 	CurrentBatchIndex = -1;
 
 	bBatchProcessingEnabled = false;
-	bClusterWantsHeuristics = true;
 	bSkipClusterBatchCompletionStep = false;
 	bDoClusterBatchWritingStep = false;
 
@@ -268,10 +248,8 @@ bool FPCGExEdgesProcessorContext::StartProcessingClusters(FBatchProcessingValida
 		if (NewBatch->bRequiresWriteStep) { bDoClusterBatchWritingStep = true; }
 		if (NewBatch->bSkipCompletion) { bSkipClusterBatchCompletionStep = true; }
 		if (NewBatch->RequiresGraphBuilder()) { NewBatch->GraphBuilderDetails = GraphBuilderDetails; }
-
 		if (NewBatch->WantsHeuristics())
 		{
-			bClusterWantsHeuristics = true;
 			if (!bHasValidHeuristics)
 			{
 				PCGEX_LOG_MISSING_INPUT(this, FTEXT("Missing Heuristics."))
@@ -281,15 +259,23 @@ bool FPCGExEdgesProcessorContext::StartProcessingClusters(FBatchProcessingValida
 		}
 
 		NewBatch->EdgesDataFacades = &EdgesDataFacades;
-
 		Batches.Add(NewBatch);
-		if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch, bScopedIndexLookupBuild); }
 	}
 
 	if (Batches.IsEmpty()) { return false; }
 
 	bBatchProcessingEnabled = true;
-	if (!bClusterBatchInlined) { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
+
+	if (!bDaisyChainClusterBatches)
+	{
+		SetState(PCGExClusterMT::MTState_ClusterProcessing);
+		PCGExMT::FSchedulingScope AsyncScope(GetAsyncManager());
+		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches)
+		{
+			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), Batch, bScopedIndexLookupBuild);
+		}
+	}
+
 	return true;
 }
 
@@ -317,14 +303,13 @@ void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGExCommon::ContextState N
 		CurrentBatch = nullptr;
 		bBatchProcessingEnabled = false;
 		if (NextStateId == PCGExCommon::State_Done) { Done(); }
-		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-		else { SetState(NextStateId); }
+		SetState(NextStateId);
 	}
 	else
 	{
 		CurrentBatch = Batches[CurrentBatchIndex];
+		SetState(PCGExClusterMT::MTState_ClusterProcessing);
 		ScheduleBatch(GetAsyncManager(), CurrentBatch, bScopedIndexLookupBuild);
-		SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing);
 	}
 }
 
@@ -364,9 +349,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	Context->bQuietMissingClusterPairElement = Settings->bQuietMissingClusterPairElement;
 
-	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(
-		Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories,
-		{PCGExFactories::EType::Heuristics}, false);
+	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories, {PCGExFactories::EType::Heuristics}, false);
 
 	Context->ClusterDataLibrary = MakeShared<PCGExClusterUtils::FClusterDataLibrary>(true);
 
@@ -376,7 +359,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	Context->MainEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainEdges->OutputPin = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
-	Context->MainEdges->Initialize(Sources, Settings->GetEdgeOutputInitMode());
+	Context->MainEdges->Initialize(Sources);
 
 	if (!Context->ClusterDataLibrary->Build(Context->MainPoints, Context->MainEdges))
 	{
@@ -396,6 +379,18 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 
 	return true;
+}
+
+void FPCGExEdgesProcessorElement::InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+{
+	FPCGExPointsProcessorElement::InitializeData(InContext, InSettings);
+	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+
+	PCGExData::EIOInit InitMode = Settings->GetEdgeOutputInitMode();
+	if (InitMode != PCGExData::EIOInit::NoInit)
+	{
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainEdges->Pairs) { IO->InitializeOutput(InitMode); }
+	}
 }
 
 void FPCGExEdgesProcessorElement::OnContextInitialized(FPCGExContext* InContext) const

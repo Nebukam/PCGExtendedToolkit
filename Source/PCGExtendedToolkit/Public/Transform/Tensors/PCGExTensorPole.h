@@ -16,8 +16,8 @@ struct FPCGExTensorPoleConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorPoleConfig() :
-		FPCGExTensorConfigBase()
+	FPCGExTensorPoleConfig()
+		: FPCGExTensorConfigBase()
 	{
 	}
 };

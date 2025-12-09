@@ -18,9 +18,7 @@
 #undef PCGEX_NAMESPACE
 
 FPCGExSortRuleConfig::FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
-	: FPCGExInputConfig(Other),
-	  Tolerance(Other.Tolerance),
-	  bInvertRule(Other.bInvertRule)
+	: FPCGExInputConfig(Other), Tolerance(Other.Tolerance), bInvertRule(Other.bInvertRule)
 {
 }
 
@@ -295,9 +293,7 @@ namespace PCGExSorting
 	{
 		TArray<FPCGExSortRuleConfig> OutRules;
 		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-		if (!PCGExFactories::GetInputFactories(
-			InContext, InLabel, Factories,
-			{PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
+		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
 
 		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
 

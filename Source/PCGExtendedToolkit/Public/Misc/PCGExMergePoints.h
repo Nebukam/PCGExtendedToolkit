@@ -93,8 +93,8 @@ namespace PCGExMergePoints
 		TSharedPtr<TSet<FName>> ConvertedTags;
 		TArray<FName> ConvertedTagsList;
 
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

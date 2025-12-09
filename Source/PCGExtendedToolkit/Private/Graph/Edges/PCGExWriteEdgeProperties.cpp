@@ -46,9 +46,7 @@ bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bEndpointsBlending && Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-			{PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	return true;
@@ -62,12 +60,10 @@ bool FPCGExWriteEdgePropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				if (Settings->bWriteHeuristics) { NewBatch->SetWantsHeuristics(true); }
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->SetWantsHeuristics(Settings->bWriteHeuristics);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -205,20 +201,11 @@ namespace PCGExWriteEdgeProperties
 			{
 				switch (Settings->HeuristicsMode)
 				{
-				case EPCGExHeuristicsWriteMode::EndpointsOrder:
-					PCGEX_OUTPUT_VALUE(Heuristics, EdgeIndex, HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode));
+				case EPCGExHeuristicsWriteMode::EndpointsOrder: PCGEX_OUTPUT_VALUE(Heuristics, EdgeIndex, HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode));
 					break;
-				case EPCGExHeuristicsWriteMode::Smallest:
-					PCGEX_OUTPUT_VALUE(
-						Heuristics, EdgeIndex, FMath::Min(
-							HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
-							HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
+				case EPCGExHeuristicsWriteMode::Smallest: PCGEX_OUTPUT_VALUE(Heuristics, EdgeIndex, FMath::Min( HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode), HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
 					break;
-				case EPCGExHeuristicsWriteMode::Highest:
-					PCGEX_OUTPUT_VALUE(
-						Heuristics, EdgeIndex, FMath::Max(
-							HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
-							HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
+				case EPCGExHeuristicsWriteMode::Highest: PCGEX_OUTPUT_VALUE(Heuristics, EdgeIndex, FMath::Max( HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode), HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
 					break;
 				default: ;
 				}
@@ -254,15 +241,11 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 
 				switch (Settings->SolidificationAxis)
 				{
-				default:
-				case EPCGExMinimalAxis::X:
-					EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
+				default: case EPCGExMinimalAxis::X: EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
 					break;
-				case EPCGExMinimalAxis::Y:
-					EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
+				case EPCGExMinimalAxis::Y: EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
 					break;
-				case EPCGExMinimalAxis::Z:
-					EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
+				case EPCGExMinimalAxis::Z: EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
 					break;
 				}
 

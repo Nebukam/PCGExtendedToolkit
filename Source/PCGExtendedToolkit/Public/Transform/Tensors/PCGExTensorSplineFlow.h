@@ -18,8 +18,8 @@ struct FPCGExTensorSplineFlowConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorSplineFlowConfig() :
-		FPCGExTensorConfigBase(false)
+	FPCGExTensorSplineFlowConfig()
+		: FPCGExTensorConfigBase(false)
 	{
 	}
 

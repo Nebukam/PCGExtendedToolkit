@@ -134,10 +134,7 @@ struct FPCGExSampleOverlapStatsContext final : FPCGExPointsProcessorContext
 	mutable FRWLock OverlapLock;
 	TMap<uint64, TSharedPtr<PCGExSampleOverlapStats::FOverlap>> OverlapMap;
 
-	TSharedPtr<PCGExSampleOverlapStats::FOverlap> RegisterOverlap(
-		PCGExSampleOverlapStats::FProcessor* InA,
-		PCGExSampleOverlapStats::FProcessor* InB,
-		const FBox& InIntersection);
+	TSharedPtr<PCGExSampleOverlapStats::FOverlap> RegisterOverlap(PCGExSampleOverlapStats::FProcessor* InA, PCGExSampleOverlapStats::FProcessor* InB, const FBox& InIntersection);
 
 	virtual void BatchProcessing_WorkComplete() override;
 
@@ -146,7 +143,7 @@ struct FPCGExSampleOverlapStatsContext final : FPCGExPointsProcessorContext
 	double SharedOverlapSubCountMax = 0;
 	double SharedOverlapCountMax = 0;
 
-protected:	
+protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
@@ -272,14 +269,14 @@ namespace PCGExSampleOverlapStats
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
-		
+
 		void ResolveOverlap(const int32 Index);
 		void WriteSingleData(const int32 Index);
-		
+
 		virtual void CompleteWork() override;
-		void ProcessRange(const PCGExMT::FScope& Scope) override;
-		void OnRangeProcessingComplete() override;
-		
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+
 		virtual void Write() override;
 	};
 }

@@ -30,16 +30,15 @@ public:
 		const FVector Center = FMath::Lerp(From, To, 0.5);
 		const double SqrDist = FVector::DistSquared(Center, From);
 
-		Cluster->NodeOctree->FindFirstElementWithBoundsTest(
-			FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist))), [&](const PCGExOctree::FItem& Item)
+		Cluster->NodeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist))), [&](const PCGExOctree::FItem& Item)
+		{
+			if (FVector::DistSquared(Center, Cluster->GetPos(Item.Index)) < SqrDist)
 			{
-				if (FVector::DistSquared(Center, Cluster->GetPos(Item.Index)) < SqrDist)
-				{
-					FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
-					return false;
-				}
-				return true;
-			});
+				FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
+				return false;
+			}
+			return true;
+		});
 	}
 
 	int8 ExchangeValue = 0;

@@ -73,15 +73,10 @@ namespace PCGExMeshCollection
 	{
 		switch (PickMode)
 		{
-		default:
-		case EPCGExIndexPickMode::Ascending:
-			return GetPickAscending(Index);
-		case EPCGExIndexPickMode::Descending:
-			return GetPickDescending(Index);
-		case EPCGExIndexPickMode::WeightAscending:
-			return GetPickWeightAscending(Index);
-		case EPCGExIndexPickMode::WeightDescending:
-			return GetPickWeightDescending(Index);
+		default: case EPCGExIndexPickMode::Ascending: return GetPickAscending(Index);
+		case EPCGExIndexPickMode::Descending: return GetPickDescending(Index);
+		case EPCGExIndexPickMode::WeightAscending: return GetPickWeightAscending(Index);
+		case EPCGExIndexPickMode::WeightDescending: return GetPickWeightDescending(Index);
 		}
 	}
 
@@ -129,14 +124,10 @@ void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) c
 
 	switch (MaterialVariants)
 	{
-	default:
-	case EPCGExMaterialVariantsMode::None:
+	default: case EPCGExMaterialVariantsMode::None: break;
+	case EPCGExMaterialVariantsMode::Single: for (const FPCGExMaterialOverrideSingleEntry& Entry : MaterialOverrideVariants) { OutPaths.Add(Entry.Material.ToSoftObjectPath()); }
 		break;
-	case EPCGExMaterialVariantsMode::Single:
-		for (const FPCGExMaterialOverrideSingleEntry& Entry : MaterialOverrideVariants) { OutPaths.Add(Entry.Material.ToSoftObjectPath()); }
-		break;
-	case EPCGExMaterialVariantsMode::Multi:
-		for (const FPCGExMaterialOverrideCollection& Entry : MaterialOverrideVariantsList) { Entry.GetAssetPaths(OutPaths); }
+	case EPCGExMaterialVariantsMode::Multi: for (const FPCGExMaterialOverrideCollection& Entry : MaterialOverrideVariantsList) { Entry.GetAssetPaths(OutPaths); }
 		break;
 	}
 
@@ -281,14 +272,10 @@ void FPCGExMeshCollectionEntry::BuildMicroCache()
 
 	switch (MaterialVariants)
 	{
-	default:
-	case EPCGExMaterialVariantsMode::None:
+	default: case EPCGExMaterialVariantsMode::None: break;
+	case EPCGExMaterialVariantsMode::Single: NewCache->ProcessMaterialOverrides(MaterialOverrideVariants, SlotIndex);
 		break;
-	case EPCGExMaterialVariantsMode::Single:
-		NewCache->ProcessMaterialOverrides(MaterialOverrideVariants, SlotIndex);
-		break;
-	case EPCGExMaterialVariantsMode::Multi:
-		NewCache->ProcessMaterialOverrides(MaterialOverrideVariantsList);
+	case EPCGExMaterialVariantsMode::Multi: NewCache->ProcessMaterialOverrides(MaterialOverrideVariantsList);
 		break;
 	}
 
@@ -337,25 +324,16 @@ void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 
 void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(const UPCGExMeshCollection* ParentCollection, FPCGSoftISMComponentDescriptor& TargetDescriptor) const
 {
-	if (ParentCollection &&
-		(DescriptorSource == EPCGExEntryVariationMode::Global || ParentCollection->GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule))
+	if (ParentCollection && (DescriptorSource == EPCGExEntryVariationMode::Global || ParentCollection->GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule))
 	{
-		PCGExHelpers::CopyStructProperties(
-			&ParentCollection->GlobalISMDescriptor,
-			&TargetDescriptor,
-			FSoftISMComponentDescriptor::StaticStruct(),
-			FPCGSoftISMComponentDescriptor::StaticStruct());
+		PCGExHelpers::CopyStructProperties(&ParentCollection->GlobalISMDescriptor, &TargetDescriptor, FSoftISMComponentDescriptor::StaticStruct(), FPCGSoftISMComponentDescriptor::StaticStruct());
 
 		TargetDescriptor.StaticMesh = StaticMesh;
 		TargetDescriptor.ComponentTags.Append(ParentCollection->CollectionTags.Array());
 	}
 	else
 	{
-		PCGExHelpers::CopyStructProperties(
-			&ISMDescriptor,
-			&TargetDescriptor,
-			FSoftISMComponentDescriptor::StaticStruct(),
-			FPCGSoftISMComponentDescriptor::StaticStruct());
+		PCGExHelpers::CopyStructProperties(&ISMDescriptor, &TargetDescriptor, FSoftISMComponentDescriptor::StaticStruct(), FPCGSoftISMComponentDescriptor::StaticStruct());
 	}
 
 	TargetDescriptor.ComponentTags.Append(Tags.Array());

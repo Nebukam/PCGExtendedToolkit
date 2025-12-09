@@ -47,8 +47,7 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 
 	switch (Config.ValueType)
 	{
-	case EPCGExComparisonDataType::Numeric:
-		NumGetters.Reserve(TargetsRef.Num());
+	case EPCGExComparisonDataType::Numeric: NumGetters.Reserve(TargetsRef.Num());
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
 			TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
@@ -62,8 +61,7 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 			NumGetters.Add(Getter);
 		}
 		break;
-	case EPCGExComparisonDataType::String:
-		StrGetters.Reserve(TargetsRef.Num());
+	case EPCGExComparisonDataType::String: StrGetters.Reserve(TargetsRef.Num());
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
 			TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();

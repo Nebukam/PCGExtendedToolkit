@@ -90,11 +90,7 @@ bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FEdge& Edge) const
 bool FIsoEdgeDirectionFilter::TestDot(const int32 PtIndex, const FVector& EdgeDir) const
 {
 	const FVector RefDir = OperandDirection->Read(PtIndex).GetSafeNormal() * DirectionMultiplier;
-	return DotComparison.Test(
-		FVector::DotProduct(
-			TypedFilterFactory->Config.bTransformDirection ? InTransforms[PtIndex].TransformVectorNoScale(RefDir) : RefDir,
-			EdgeDir),
-		PtIndex);
+	return DotComparison.Test(FVector::DotProduct(TypedFilterFactory->Config.bTransformDirection ? InTransforms[PtIndex].TransformVectorNoScale(RefDir) : RefDir, EdgeDir), PtIndex);
 }
 
 bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeDir) const

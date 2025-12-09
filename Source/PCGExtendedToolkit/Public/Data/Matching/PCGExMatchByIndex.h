@@ -28,8 +28,8 @@ struct FPCGExMatchByIndexConfig : public FPCGExMatchRuleConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExMatchByIndexConfig() :
-		FPCGExMatchRuleConfigBase()
+	FPCGExMatchByIndexConfig()
+		: FPCGExMatchRuleConfigBase()
 	{
 		IndexAttribute.Update(TEXT("$Index"));
 	}
@@ -88,9 +88,7 @@ class UPCGExCreateMatchByIndexSettings : public UPCGExMatchRuleFactoryProviderSe
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MatchByIndex, "Match : By Index", "Match by index",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchByIndex, "Match : By Index", "Match by index", FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

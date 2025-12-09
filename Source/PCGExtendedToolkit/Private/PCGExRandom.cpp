@@ -61,8 +61,6 @@ namespace PCGExRandom
 
 	int ComputeSpatialSeed(const FVector& Origin, const FVector& Offset)
 	{
-		return PCGHelpers::ComputeSeed(
-			PCGHelpers::ComputeSeedFromPosition(Origin),
-			PCGHelpers::ComputeSeedFromPosition(Offset));
+		return PCGHelpers::ComputeSeed(PCGHelpers::ComputeSeedFromPosition(Origin), PCGHelpers::ComputeSeedFromPosition(Offset));
 	}
 }

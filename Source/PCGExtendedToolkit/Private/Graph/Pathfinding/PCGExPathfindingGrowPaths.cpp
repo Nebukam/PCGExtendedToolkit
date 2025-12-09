@@ -30,14 +30,8 @@ void UPCGExPathfindingGrowPathsSettings::PostEditChangeProperty(FPropertyChanged
 
 namespace PCGExPathfindingGrowPaths
 {
-	FGrowth::FGrowth(const TSharedPtr<FProcessor>& InProcessor,
-	                 const int32 InMaxIterations,
-	                 const int32 InLastGrowthIndex,
-	                 const FVector& InGrowthDirection):
-		Processor(InProcessor),
-		MaxIterations(InMaxIterations),
-		LastGrowthIndex(InLastGrowthIndex),
-		GrowthDirection(InGrowthDirection)
+	FGrowth::FGrowth(const TSharedPtr<FProcessor>& InProcessor, const int32 InMaxIterations, const int32 InLastGrowthIndex, const FVector& InGrowthDirection)
+		: Processor(InProcessor), MaxIterations(InMaxIterations), LastGrowthIndex(InLastGrowthIndex), GrowthDirection(InGrowthDirection)
 	{
 		SoftMaxIterations = InMaxIterations;
 		Path.Reserve(MaxIterations);
@@ -256,12 +250,10 @@ bool FPCGExPathfindingGrowPathsElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->SetWantsHeuristics(true);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->SetWantsHeuristics(true);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -324,8 +316,7 @@ namespace PCGExPathfindingGrowPaths
 			if (NodeIndex == -1) { continue; }
 
 			const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
-			if (!Settings->SeedPicking.WithinDistance(Cluster->GetPos(Node), SeedPosition) ||
-				Node.IsEmpty()) { continue; }
+			if (!Settings->SeedPicking.WithinDistance(Cluster->GetPos(Node), SeedPosition) || Node.IsEmpty()) { continue; }
 
 			double StartNumIterations;
 			double StartGrowthNumBranches;
@@ -335,56 +326,44 @@ namespace PCGExPathfindingGrowPaths
 			switch (Settings->SeedNumBranches)
 			{
 			default: ;
-			case EPCGExGrowthValueSource::Constant:
-				StartGrowthNumBranches = Settings->NumBranchesConstant;
+			case EPCGExGrowthValueSource::Constant: StartGrowthNumBranches = Settings->NumBranchesConstant;
 				break;
-			case EPCGExGrowthValueSource::SeedAttribute:
-				StartGrowthNumBranches = Context->NumBranches->Read(i);
+			case EPCGExGrowthValueSource::SeedAttribute: StartGrowthNumBranches = Context->NumBranches->Read(i);
 				break;
-			case EPCGExGrowthValueSource::VtxAttribute:
-				StartGrowthNumBranches = NumBranches->Read(Node.PointIndex);
+			case EPCGExGrowthValueSource::VtxAttribute: StartGrowthNumBranches = NumBranches->Read(Node.PointIndex);
 				break;
 			}
 
 			switch (Settings->NumIterations)
 			{
 			default: ;
-			case EPCGExGrowthValueSource::Constant:
-				StartNumIterations = Settings->NumIterationsConstant;
+			case EPCGExGrowthValueSource::Constant: StartNumIterations = Settings->NumIterationsConstant;
 				break;
-			case EPCGExGrowthValueSource::SeedAttribute:
-				StartNumIterations = Context->NumIterations->Read(i);
+			case EPCGExGrowthValueSource::SeedAttribute: StartNumIterations = Context->NumIterations->Read(i);
 				break;
-			case EPCGExGrowthValueSource::VtxAttribute:
-				StartNumIterations = NumIterations->Read(Node.PointIndex);
+			case EPCGExGrowthValueSource::VtxAttribute: StartNumIterations = NumIterations->Read(Node.PointIndex);
 				break;
 			}
 
 			switch (Settings->GrowthMaxDistance)
 			{
 			default: ;
-			case EPCGExGrowthValueSource::Constant:
-				StartGrowthMaxDistance = Settings->GrowthMaxDistanceConstant;
+			case EPCGExGrowthValueSource::Constant: StartGrowthMaxDistance = Settings->GrowthMaxDistanceConstant;
 				break;
-			case EPCGExGrowthValueSource::SeedAttribute:
-				StartGrowthMaxDistance = Context->GrowthMaxDistance->Read(i);
+			case EPCGExGrowthValueSource::SeedAttribute: StartGrowthMaxDistance = Context->GrowthMaxDistance->Read(i);
 				break;
-			case EPCGExGrowthValueSource::VtxAttribute:
-				StartGrowthMaxDistance = GrowthMaxDistance->Read(Node.PointIndex);
+			case EPCGExGrowthValueSource::VtxAttribute: StartGrowthMaxDistance = GrowthMaxDistance->Read(Node.PointIndex);
 				break;
 			}
 
 			switch (Settings->GrowthDirection)
 			{
 			default: ;
-			case EPCGExGrowthValueSource::Constant:
-				StartGrowthDirection = Settings->GrowthDirectionConstant;
+			case EPCGExGrowthValueSource::Constant: StartGrowthDirection = Settings->GrowthDirectionConstant;
 				break;
-			case EPCGExGrowthValueSource::SeedAttribute:
-				StartGrowthDirection = Context->GrowthDirection->Read(i);
+			case EPCGExGrowthValueSource::SeedAttribute: StartGrowthDirection = Context->GrowthDirection->Read(i);
 				break;
-			case EPCGExGrowthValueSource::VtxAttribute:
-				StartGrowthDirection = GrowthDirection->Read(Node.PointIndex);
+			case EPCGExGrowthValueSource::VtxAttribute: StartGrowthDirection = GrowthDirection->Read(Node.PointIndex);
 				break;
 			}
 

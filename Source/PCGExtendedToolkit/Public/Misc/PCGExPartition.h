@@ -21,17 +21,7 @@ struct FPCGExPartitonRuleConfig : public FPCGExInputConfig
 	}
 
 	FPCGExPartitonRuleConfig(const FPCGExPartitonRuleConfig& Other)
-		: FPCGExInputConfig(Other),
-		  bEnabled(Other.bEnabled),
-		  FilterSize(Other.FilterSize),
-		  Upscale(Other.Upscale),
-		  Offset(Other.Offset),
-		  bWriteKey(Other.bWriteKey),
-		  KeyAttributeName(Other.KeyAttributeName),
-		  bUsePartitionIndexAsKey(Other.bUsePartitionIndexAsKey),
-		  bWriteTag(Other.bWriteTag),
-		  TagPrefixName(Other.TagPrefixName),
-		  bTagUsePartitionIndexAsKey(Other.bTagUsePartitionIndexAsKey)
+		: FPCGExInputConfig(Other), bEnabled(Other.bEnabled), FilterSize(Other.FilterSize), Upscale(Other.Upscale), Offset(Other.Offset), bWriteKey(Other.bWriteKey), KeyAttributeName(Other.KeyAttributeName), bUsePartitionIndexAsKey(Other.bUsePartitionIndexAsKey), bWriteTag(Other.bWriteTag), TagPrefixName(Other.TagPrefixName), bTagUsePartitionIndexAsKey(Other.bTagUsePartitionIndexAsKey)
 	{
 	}
 
@@ -90,11 +80,7 @@ namespace PCGExPartition
 	struct FRule final : PCGEx::TAttributeBroadcaster<double>
 	{
 		explicit FRule(FPCGExPartitonRuleConfig& InRule)
-			: TAttributeBroadcaster<double>(),
-			  RuleConfig(&InRule),
-			  FilterSize(InRule.FilterSize),
-			  Upscale(InRule.Upscale),
-			  Offset(InRule.Offset)
+			: TAttributeBroadcaster<double>(), RuleConfig(&InRule), FilterSize(InRule.FilterSize), Upscale(InRule.Upscale), Offset(InRule.Offset)
 		{
 		}
 

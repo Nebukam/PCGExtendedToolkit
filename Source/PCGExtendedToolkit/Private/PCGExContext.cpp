@@ -9,6 +9,7 @@
 #include "PCGExInstancedFactory.h"
 #include "Details/PCGExMacros.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGManagedResource.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"
@@ -41,6 +42,8 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
 
+	check(WorkHandle.IsValid())
+
 	int32 Index = -1;
 	if (!IsInGameThread())
 	{
@@ -66,7 +69,10 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 			{
 				for (const FName ConsumableName : ConsumableAttributesSet)
 				{
-					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName))
+					{
+						continue;
+					}
 					Metadata->DeleteAttribute(ConsumableName);
 				}
 			}
@@ -81,6 +87,8 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
+
+	if (IsWorkCancelled()) { return; }
 
 	if (!IsInGameThread())
 	{
@@ -110,7 +118,10 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 			{
 				for (const FName ConsumableName : ConsumableAttributesSet)
 				{
-					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName))
+					{
+						continue;
+					}
 					Metadata->DeleteAttribute(ConsumableName);
 				}
 			}
@@ -122,6 +133,8 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 
 FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)
 {
+	check(WorkHandle.IsValid())
+
 	int32 Index = -1;
 	if (!IsInGameThread())
 	{
@@ -161,21 +174,25 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
 		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
-		PCGExMT::SetWorkPriority(WorkPriority, AsyncManager->WorkPriority);
+		AsyncManager->OnEndCallback = [CtxHandle = GetOrCreateHandle()](const bool bWasCancelled)
+		{
+			if (bWasCancelled) { return; }
+
+			PCGEX_SHARED_CONTEXT_VOID(CtxHandle);
+
+			FPCGExContext* Ctx = SharedContext.Get();
+
+			if (Ctx && Ctx->ElementHandle) { Ctx->OnAsyncWorkEnd(bWasCancelled); }
+			else { UE_LOG(LogTemp, Error, TEXT("OnEnd but no context or element handle!")) }
+		};
 	}
 
 	return AsyncManager;
 }
 
-void FPCGExContext::PauseContext()
-{
-	bIsPaused = true;
-}
+void FPCGExContext::PauseContext() { bIsPaused = true; }
 
-void FPCGExContext::UnpauseContext()
-{
-	bIsPaused = false;
-}
+void FPCGExContext::UnpauseContext() { bIsPaused = false; }
 
 FPCGExContext::FPCGExContext()
 {
@@ -186,8 +203,8 @@ FPCGExContext::FPCGExContext()
 
 FPCGExContext::~FPCGExContext()
 {
-	WorkHandle.Reset();
-	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
+	//WorkHandle.Reset();
+	//ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
@@ -213,20 +230,18 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 			FSharedContext<FPCGExContext> SharedContext(GetOrCreateHandle());
 			if (!SharedContext.Get()) { return; }
 
-			FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady(
-				[SharedContext, FunctionNames]()
+			FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([SharedContext, FunctionNames]()
+			{
+				const FPCGExContext* Ctx = SharedContext.Get();
+				for (TArray<AActor*> NotifyActorsArray = Ctx->NotifyActors.Array(); AActor* TargetActor : NotifyActorsArray)
 				{
-					const FPCGExContext* Ctx = SharedContext.Get();
-					for (TArray<AActor*> NotifyActorsArray = Ctx->NotifyActors.Array();
-					     AActor* TargetActor : NotifyActorsArray)
+					if (!IsValid(TargetActor)) { continue; }
+					for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Ctx))
 					{
-						if (!IsValid(TargetActor)) { continue; }
-						for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Ctx))
-						{
-							TargetActor->ProcessEvent(Function, nullptr);
-						}
+						TargetActor->ProcessEvent(Function, nullptr);
 					}
-				}, TStatId(), nullptr, ENamedThreads::GameThread);
+				}
+			}, TStatId(), nullptr, ENamedThreads::GameThread);
 
 			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
 		}
@@ -252,28 +267,25 @@ void FPCGExContext::AddNotifyActor(AActor* InActor)
 
 void FPCGExContext::SetAsyncState(const PCGExCommon::ContextState WaitState)
 {
-	bWaitingForAsyncCompletion = true;
+	// TODO : SetAsyncState is moot now
 	SetState(WaitState);
 }
 
-bool FPCGExContext::ShouldWaitForAsync()
+bool FPCGExContext::IsWaitingForTasks()
 {
-	if (!AsyncManager)
-	{
-		if (bWaitingForAsyncCompletion) { ResumeExecution(); }
-		return false;
-	}
-
-	return bWaitingForAsyncCompletion;
+	if (AsyncManager) { return AsyncManager->IsWaitingForTasks(); }
+	return false;
 }
 
 void FPCGExContext::ReadyForExecution()
 {
+	UnpauseContext();
 	SetState(PCGExCommon::State_InitialExecution);
 }
 
 void FPCGExContext::SetState(const PCGExCommon::ContextState StateId)
 {
+	PCGExCommon::ContextState OldState = CurrentState.load(std::memory_order_acquire);
 	CurrentState.store(StateId, std::memory_order_release);
 }
 
@@ -296,31 +308,73 @@ bool FPCGExContext::TryComplete(const bool bForce)
 	return true;
 }
 
-void FPCGExContext::ResumeExecution()
+void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
-	if (AsyncManager) { AsyncManager->Reset(); }
-	UnpauseContext();
-	bWaitingForAsyncCompletion = false;
+	if (bWasCancelled) { return; }
+
+	// Signal that completion needs processing
+	PendingCompletions.store(true, std::memory_order_release);
+
+	// Try to become the processor
+	bool bExpected = false;
+	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
+	{
+		// Someone else is processing - they'll see our pending flag
+		return;
+	}
+
+	// We're the processor - handle all pending completions
+	do
+	{
+		if (IsWorkCancelled()) { return; }
+
+		// Clear pending BEFORE processing
+		// If new work completes during processing, the flag gets set again
+		PendingCompletions.store(false, std::memory_order_release);
+
+		const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
+		switch (CurrentPhase)
+		{
+		case EPCGExecutionPhase::PrepareData: ElementHandle->AdvancePreparation(this, Settings);
+			break;
+		case EPCGExecutionPhase::Execute: ElementHandle->AdvanceWork(this, Settings);
+			break;
+		default: break;
+		}
+	}
+	while (PendingCompletions.load(std::memory_order_acquire));
+
+	// Release guard
+	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
+
+	// CRITICAL: Check for late arrivals between our last check and releasing the guard
+	// Race: Thread B sets pending=true, fails CAS, returns. We release guard. pending is orphaned!
+	if (PendingCompletions.load(std::memory_order_acquire))
+	{
+		// Try to re-enter - will attempt CAS again
+		OnAsyncWorkEnd(false);
+	}
 }
 
 void FPCGExContext::OnComplete()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
 
+	//UE_LOG(LogTemp, Warning, TEXT(">> OnComplete @%s"), *GetInputSettings<UPCGExSettings>()->GetName());
+
+	if (ElementHandle) { ElementHandle->CompleteWork(this); }
+
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
 	ManagedObjects->Remove(OutputData.TaggedData);
+	ManagedObjects->Flush();
+	UnpauseContext();
+
+	PCGEX_TERMINATE_ASYNC
 }
 
 #pragma endregion
 
 #pragma region Async resource management
-
-void FPCGExContext::CancelAssetLoading()
-{
-	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
-	LoadHandle.Reset();
-	if (RequiredAssets) { RequiredAssets->Empty(); }
-}
 
 TSet<FSoftObjectPath>& FPCGExContext::GetRequiredAssets()
 {
@@ -340,87 +394,25 @@ void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 	RequiredAssets->Add(Dependency);
 }
 
-void FPCGExContext::LoadAssets()
+bool FPCGExContext::LoadAssets()
 {
-	if (bAssetLoadRequested) { return; }
-	bAssetLoadRequested = true;
+	if (!RequiredAssets || RequiredAssets->IsEmpty()) { return false; }
 
-	SetAsyncState(PCGExCommon::State_LoadingAssetDependencies);
+	SetState(PCGExCommon::State_LoadingAssetDependencies);
 
-	if (!RequiredAssets || RequiredAssets->IsEmpty())
-	{
-		bAssetLoadError = true; // No asset to load, yet we required it?
-		return;
-	}
+	PCGExHelpers::Load(GetAsyncManager(), [CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
+	                   {
+		                   PCGEX_SHARED_CONTEXT_RET(CtxHandle, {})
+		                   return SharedContext.Get()->RequiredAssets->Array();
+	                   }, [CtxHandle = GetOrCreateHandle()](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
+	                   {
+		                   PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+		                   SharedContext.Get()->AssetsHandle = StreamableHandle;
+		                   if (!bSuccess) { SharedContext.Get()->CancelExecution("Error loading assets."); }
+	                   });
 
-	if (!bForceSynchronousAssetLoad)
-	{
-		PauseContext();
 
-		// Dispatch the async load request to the game thread
-		TWeakPtr<FPCGContextHandle> CtxHandle = GetOrCreateHandle();
-
-		if (IsInGameThread())
-		{
-			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-				RequiredAssets->Array(), [CtxHandle]()
-				{
-					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-					SharedContext.Get()->UnpauseContext();
-				});
-
-			if (!LoadHandle || !LoadHandle->IsActive())
-			{
-				UnpauseContext();
-
-				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
-				{
-					bAssetLoadError = true;
-					CancelExecution("Error loading assets.");
-				}
-				else
-				{
-					// Resources were already loaded
-				}
-			}
-		}
-		else
-		{
-			AsyncTask(
-				ENamedThreads::GameThread, [CtxHandle]()
-				{
-					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-
-					FPCGExContext* This = SharedContext.Get();
-
-					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						This->RequiredAssets->Array(), [CtxHandle]()
-						{
-							PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-							SharedContext.Get()->UnpauseContext();
-						});
-
-					if (!This->LoadHandle || !This->LoadHandle->IsActive())
-					{
-						This->UnpauseContext();
-
-						if (!This->LoadHandle || !This->LoadHandle->HasLoadCompleted())
-						{
-							This->bAssetLoadError = true;
-							This->CancelExecution("Error loading assets.");
-						}
-						else
-						{
-							// Resources were already loaded
-						}
-					}
-				});
-		}
-	}
-	else
-	{
-		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets->Array());
-	}
+	return true;
 }
 
 UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
@@ -444,7 +436,10 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UA
 	ManagedComponent->GeneratedComponent = InComponent;
 	SrcComp->AddToManagedResources(ManagedComponent);
 
-	if (IPCGExManagedComponentInterface* Managed = Cast<IPCGExManagedComponentInterface>(InComponent)) { Managed->SetManagedComponent(ManagedComponent); }
+	if (IPCGExManagedComponentInterface* Managed = Cast<IPCGExManagedComponentInterface>(InComponent))
+	{
+		Managed->SetManagedComponent(ManagedComponent);
+	}
 
 	InParent->Modify(!bIsPreviewMode);
 
@@ -504,37 +499,20 @@ bool FPCGExContext::CanExecute() const
 	return !InputData.bCancelExecution && !IsWorkCancelled() && !IsWorkCompleted();
 }
 
-bool FPCGExContext::IsAsyncWorkComplete()
-{
-	// Context must be unpaused for this to be called
-	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
-
-	// TODO : We want the async manager to notify that work can resume
-	// not the other way around
-	// so we need a pointer to the IPCGElement :x
-
-	if (!AsyncManager->IsWaitingForRunningTasks())
-	{
-		ResumeExecution();
-		return true;
-	}
-
-	return false;
-}
-
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
 	bool bExpected = false;
 	if (bWorkCancelled.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
-		if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
+		if (!bQuietCancellationError && !InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 
 		PCGEX_TERMINATE_ASYNC
+
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
-		
-		CancelAssetLoading();
-		ResumeExecution();
+		ManagedObjects->Flush();
+
+		UnpauseContext();
 	}
 
 	return true;

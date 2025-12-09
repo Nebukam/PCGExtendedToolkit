@@ -61,20 +61,18 @@ bool FPCGExTopologyPointSurfaceElement::AdvanceWork(FPCGExContext* InContext, co
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 3)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 3)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
 
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
@@ -135,10 +133,7 @@ namespace PCGExTopologyPointSurface
 		FGeometryScriptConstrainedDelaunayTriangulationOptions TriangulationOptions{};
 		TriangulationOptions.bRemoveDuplicateVertices = true;
 
-		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendDelaunayTriangulation2D(
-			InternalMesh, Settings->Topology.PrimitiveOptions, FTransform::Identity,
-			VertexPositions, ConstrainedEdges, TriangulationOptions, PositionsToVertexIDs,
-			bHasBadVertices, nullptr);
+		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendDelaunayTriangulation2D(InternalMesh, Settings->Topology.PrimitiveOptions, FTransform::Identity, VertexPositions, ConstrainedEdges, TriangulationOptions, PositionsToVertexIDs, bHasBadVertices, nullptr);
 
 		if (PositionsToVertexIDs.IsEmpty()) { return false; }
 
@@ -153,66 +148,63 @@ namespace PCGExTopologyPointSurface
 			TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTopologyPointSurface::EditMesh)
 
 			int8 bHasInvalidVertices = false;
-			
-			InternalMesh->EditMesh(
-				[&](FDynamicMesh3& InMesh)
+
+			InternalMesh->EditMesh([&](FDynamicMesh3& InMesh)
+			{
+				FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
+
+				const int32 VtxCount = InMesh.MaxVertexID();
+				const TConstPCGValueRange<FVector4> InColors = PointDataFacade->GetIn()->GetConstColorValueRange();
+
+				InMesh.EnableAttributes();
+				InMesh.Attributes()->EnablePrimaryColors();
+				InMesh.Attributes()->EnableMaterialID();
+
+				UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
+				UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
+
+				TArray<int32> ElemIDs;
+				ElemIDs.SetNum(VtxCount);
+
+				for (int32 i = 0; i < VtxCount; i++) { ElemIDs[i] = Colors->AppendElement(DefaultVertexColor); }
+
+				ParallelFor(VtxCount, [&](int32 i)
 				{
-					FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
+					const int32 VtxID = PositionsToVertexIDs[i];
 
-					const int32 VtxCount = InMesh.MaxVertexID();
-					const TConstPCGValueRange<FVector4> InColors = PointDataFacade->GetIn()->GetConstColorValueRange();
-
-					InMesh.EnableAttributes();
-					InMesh.Attributes()->EnablePrimaryColors();
-					InMesh.Attributes()->EnableMaterialID();
-
-					UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
-					UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
-
-					TArray<int32> ElemIDs;
-					ElemIDs.SetNum(VtxCount);
-
-					for (int32 i = 0; i < VtxCount; i++) { ElemIDs[i] = Colors->AppendElement(DefaultVertexColor); }
-
-					ParallelFor(
-						VtxCount, [&](int32 i)
-						{
-							const int32 VtxID = PositionsToVertexIDs[i];
-							
-							if (VtxID == -1)
-							{
-								FPlatformAtomics::InterlockedExchange(&bHasInvalidVertices, 1);
-								return;
-							}
-							
-							InMesh.SetVertex(VtxID, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
-							Colors->SetElement(ElemIDs[i], FVector4f(InColors[i]));
-						});
-
-					TArray<int32> TriangleIDs;
-					TriangleIDs.Reserve(InMesh.TriangleCount());
-					for (int32 TriangleID : InMesh.TriangleIndicesItr())
+					if (VtxID == -1)
 					{
-						TriangleIDs.Add(TriangleID);
-
-						const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-						MaterialID->SetValue(TriangleID, 0);
-						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+						FPlatformAtomics::InterlockedExchange(&bHasInvalidVertices, 1);
+						return;
 					}
 
-					UVDetails.Write(TriangleIDs, PositionsToVertexIDs, InMesh);
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
+					InMesh.SetVertex(VtxID, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
+					Colors->SetElement(ElemIDs[i], FVector4f(InColors[i]));
+				});
+
+				TArray<int32> TriangleIDs;
+				TriangleIDs.Reserve(InMesh.TriangleCount());
+				for (int32 TriangleID : InMesh.TriangleIndicesItr())
+				{
+					TriangleIDs.Add(TriangleID);
+
+					const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+					MaterialID->SetValue(TriangleID, 0);
+					Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+				}
+
+				UVDetails.Write(TriangleIDs, PositionsToVertexIDs, InMesh);
+			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 		}
 
 		if (bHasBadVertices && !Settings->bQuietBadVerticesWarning)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs have bad vertices : some points will be skipped (most likely collocated points)"));
 		}
-		
+
 		if (Settings->bAttemptRepair)
 		{
-			UGeometryScriptLibrary_MeshRepairFunctions::RepairMeshDegenerateGeometry(
-				InternalMesh, Settings->RepairDegenerate);
+			UGeometryScriptLibrary_MeshRepairFunctions::RepairMeshDegenerateGeometry(InternalMesh, Settings->RepairDegenerate);
 		}
 
 		Settings->Topology.PostProcessMesh(InternalMesh);

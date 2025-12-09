@@ -163,10 +163,7 @@ namespace PCGExGeo
 		const double RC = S_SQ(C);
 		const double RD = S_SQ(D);
 
-		const FVector Center = FVector(
-			S_E(C_Y, C_Z, A, B, C, D, RA, RB, RC, RD, UVW),
-			S_E(C_Z, C_X, A, B, C, D, RA, RB, RC, RD, UVW),
-			S_E(C_X, C_Y, A, B, C, D, RA, RB, RC, RD, UVW));
+		const FVector Center = FVector(S_E(C_Y, C_Z, A, B, C, D, RA, RB, RC, RD, UVW), S_E(C_Z, C_X, A, B, C, D, RA, RB, RC, RD, UVW), S_E(C_X, C_Y, A, B, C, D, RA, RB, RC, RD, UVW));
 
 		const double radius = FMath::Sqrt(S_SQ(FVector(A - Center)));
 
@@ -176,12 +173,7 @@ namespace PCGExGeo
 
 	bool FindSphereFrom4Points(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FSphere& OutSphere)
 	{
-		return FindSphereFrom4Points(
-			Positions[Vtx[0]],
-			Positions[Vtx[1]],
-			Positions[Vtx[2]],
-			Positions[Vtx[3]],
-			OutSphere);
+		return FindSphereFrom4Points(Positions[Vtx[0]], Positions[Vtx[1]], Positions[Vtx[2]], Positions[Vtx[3]], OutSphere);
 	}
 
 	void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
@@ -283,8 +275,7 @@ namespace PCGExGeo
 	bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C)
 	{
 		const FVector& D = FVector::CrossProduct(B - A, P - A);
-		return (FVector::DotProduct(D, FVector::CrossProduct(C - B, P - B)) >= 0) &&
-			(FVector::DotProduct(D, FVector::CrossProduct(A - C, P - C)) >= 0);
+		return (FVector::DotProduct(D, FVector::CrossProduct(C - B, P - B)) >= 0) && (FVector::DotProduct(D, FVector::CrossProduct(A - C, P - C)) >= 0);
 	}
 
 	FApex::FApex(const FVector& Start, const FVector& End, const FVector& InApex)
@@ -316,9 +307,7 @@ namespace PCGExGeo
 		const FVector Up = PCGExMath::GetNormal(A, B, C);
 		bool bIntersect = true;
 
-		Center = PCGExMath::SafeLinePlaneIntersection(
-			C, C + PCGExMath::GetNormal(B, C, C + Up),
-			A, (A - B).GetSafeNormal(), bIntersect);
+		Center = PCGExMath::SafeLinePlaneIntersection(C, C + PCGExMath::GetNormal(B, C, C + Up), A, (A - B).GetSafeNormal(), bIntersect);
 
 		if (!bIntersect) { Center = FMath::Lerp(A, C, 0.5); } // Parallel lines, place center right in the middle
 
@@ -347,10 +336,7 @@ namespace PCGExGeo
 		{
 			FVector OutA = FVector::ZeroVector;
 			FVector OutB = FVector::ZeroVector;
-			FMath::SegmentDistToSegment(
-				B1 + N1 * -MaxLength, B1 + N1 * MaxLength,
-				B2 + N2 * -MaxLength, B2 + N2 * MaxLength,
-				OutA, OutB);
+			FMath::SegmentDistToSegment(B1 + N1 * -MaxLength, B1 + N1 * MaxLength, B2 + N2 * -MaxLength, B2 + N2 * MaxLength, OutA, OutB);
 			Center = FMath::Lerp(OutA, OutB, 0.5);
 		}
 
@@ -382,13 +368,12 @@ namespace PCGExGeo
 
 		Centroid = FVector::ZeroVector;
 
-		Box.Solve(
-			InTransforms.Num(), [&](int32 i)
-			{
-				const FVector P = InTransforms[i].GetLocation();
-				Centroid += P;
-				return P;
-			});
+		Box.Solve(InTransforms.Num(), [&](int32 i)
+		{
+			const FVector P = InTransforms[i].GetLocation();
+			Centroid += P;
+			return P;
+		});
 
 		Centroid /= InTransforms.Num();
 
@@ -408,13 +393,12 @@ namespace PCGExGeo
 
 		Centroid = FVector::ZeroVector;
 
-		Box.Solve(
-			InIndices.Num(), [&](int32 i)
-			{
-				const FVector P = InTransforms[InIndices[i]].GetLocation();
-				Centroid += P;
-				return P;
-			});
+		Box.Solve(InIndices.Num(), [&](int32 i)
+		{
+			const FVector P = InTransforms[InIndices[i]].GetLocation();
+			Centroid += P;
+			return P;
+		});
 
 		Centroid /= InTransforms.Num();
 
@@ -434,13 +418,12 @@ namespace PCGExGeo
 
 		Centroid = FVector::ZeroVector;
 
-		Box.Solve(
-			InPositions.Num(), [&](int32 i)
-			{
-				const FVector P = InPositions[i];
-				Centroid += P;
-				return P;
-			});
+		Box.Solve(InPositions.Num(), [&](int32 i)
+		{
+			const FVector P = InPositions[i];
+			Centroid += P;
+			return P;
+		});
 
 		Centroid /= InPositions.Num();
 
@@ -460,13 +443,12 @@ namespace PCGExGeo
 
 		Centroid = FVector::ZeroVector;
 
-		Box.Solve(
-			InPositions.Num(), [&](int32 i)
-			{
-				const FVector P = FVector(InPositions[i], 0);
-				Centroid += P;
-				return P;
-			});
+		Box.Solve(InPositions.Num(), [&](int32 i)
+		{
+			const FVector P = FVector(InPositions[i], 0);
+			Centroid += P;
+			return P;
+		});
 
 		Centroid /= InPositions.Num();
 
@@ -486,13 +468,12 @@ namespace PCGExGeo
 
 		Centroid = FVector::ZeroVector;
 
-		Box.Solve(
-			NumElements, [&](int32 i)
-			{
-				const FVector P = GetPointFunc(i);
-				Centroid += P;
-				return P;
-			});
+		Box.Solve(NumElements, [&](int32 i)
+		{
+			const FVector P = GetPointFunc(i);
+			Centroid += P;
+			return P;
+		});
 
 		Centroid /= NumElements;
 
@@ -512,13 +493,12 @@ namespace PCGExGeo
 
 		Centroid = FVector::ZeroVector;
 
-		Box.Solve(
-			NumElements + 1, [&](int32 i)
-			{
-				const FVector P = i == NumElements ? Extra : GetPointFunc(i);
-				Centroid += P;
-				return P;
-			});
+		Box.Solve(NumElements + 1, [&](int32 i)
+		{
+			const FVector P = i == NumElements ? Extra : GetPointFunc(i);
+			Centroid += P;
+			return P;
+		});
 
 		Centroid /= NumElements;
 

@@ -38,20 +38,18 @@ bool FPCGExLloydRelax2DElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() <= 3)
-				{
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() <= 3)
+			                                         {
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			Context->CancelExecution(TEXT("Could not find any points to relax."));
 		}
@@ -66,18 +64,11 @@ bool FPCGExLloydRelax2DElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 namespace PCGExLloydRelax2D
 {
-	
 	class FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FLloydRelaxTask(const int32 InTaskIndex,
-						const TSharedPtr<FProcessor>& InProcessor,
-						const FPCGExInfluenceDetails* InInfluenceSettings,
-						const int32 InNumIterations) :
-			FPCGExIndexedTask(InTaskIndex),
-			Processor(InProcessor),
-			InfluenceSettings(InInfluenceSettings),
-			NumIterations(InNumIterations)
+		FLloydRelaxTask(const int32 InTaskIndex, const TSharedPtr<FProcessor>& InProcessor, const FPCGExInfluenceDetails* InInfluenceSettings, const int32 InNumIterations)
+			: FPCGExIndexedTask(InTaskIndex), Processor(InProcessor), InfluenceSettings(InInfluenceSettings), NumIterations(InNumIterations)
 		{
 		}
 
@@ -132,7 +123,7 @@ namespace PCGExLloydRelax2D
 			}
 		}
 	};
-	
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax2D::Process);
@@ -171,10 +162,7 @@ namespace PCGExLloydRelax2D
 			TargetPosition.X = ActivePositions[Index].X;
 			TargetPosition.Y = ActivePositions[Index].Y;
 
-			Transform.SetLocation(
-				InfluenceDetails.bProgressiveInfluence ?
-					TargetPosition :
-					FMath::Lerp(Transform.GetLocation(), TargetPosition, InfluenceDetails.GetInfluence(Index)));
+			Transform.SetLocation(InfluenceDetails.bProgressiveInfluence ? TargetPosition : FMath::Lerp(Transform.GetLocation(), TargetPosition, InfluenceDetails.GetInfluence(Index)));
 		}
 	}
 
@@ -182,7 +170,6 @@ namespace PCGExLloydRelax2D
 	{
 		StartParallelLoopForPoints();
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -39,9 +39,7 @@ bool FPCGExSampleTextureElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleTexture)
 
-	if (!PCGExFactories::GetInputFactories(
-		InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories,
-		{PCGExFactories::EType::TexParam}))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}))
 	{
 		return false;
 	}
@@ -80,12 +78,10 @@ bool FPCGExSampleTextureElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to sample."));
 		}
@@ -129,20 +125,19 @@ namespace PCGExSampleTexture
 		{
 			if (Factory->Config.OutputType == EPCGExTexSampleAttributeType::Invalid) { continue; }
 
-			PCGEx::ExecuteWithRightType(
-				Factory->Config.MetadataType, [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(Factory->Config.MetadataType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+
+				TSharedPtr<TSampler<T>> Sampler = MakeShared<TSampler<T>>(Factory->Config, Context->TextureMap, PointDataFacade);
+				if (!Sampler->IsValid())
 				{
-					using T = decltype(DummyValue);
+					PCGEX_LOG_INVALID_ATTR_C(Context, ID, Factory->Config.TextureIDAttributeName)
+					return;
+				}
 
-					TSharedPtr<TSampler<T>> Sampler = MakeShared<TSampler<T>>(Factory->Config, Context->TextureMap, PointDataFacade);
-					if (!Sampler->IsValid())
-					{
-						PCGEX_LOG_INVALID_ATTR_C(Context, ID, Factory->Config.TextureIDAttributeName)
-						return;
-					}
-
-					Samplers.Add(Sampler.ToSharedRef());
-				});
+				Samplers.Add(Sampler.ToSharedRef());
+			});
 		}
 
 		StartParallelLoopForPoints();

@@ -18,20 +18,15 @@ namespace PCGExBitmask
 		switch (Op)
 		{
 		default: ;
-		case EPCGExBitOp::Set:
-			Flags = Mask;
+		case EPCGExBitOp::Set: Flags = Mask;
 			break;
-		case EPCGExBitOp::AND:
-			Flags &= Mask;
+		case EPCGExBitOp::AND: Flags &= Mask;
 			break;
-		case EPCGExBitOp::OR:
-			Flags |= Mask;
+		case EPCGExBitOp::OR: Flags |= Mask;
 			break;
-		case EPCGExBitOp::NOT:
-			Flags &= ~Mask;
+		case EPCGExBitOp::NOT: Flags &= ~Mask;
 			break;
-		case EPCGExBitOp::XOR:
-			Flags ^= Mask;
+		case EPCGExBitOp::XOR: Flags ^= Mask;
 			break;
 		}
 	}

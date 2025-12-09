@@ -106,8 +106,7 @@ namespace PCGExStaging
 
 	void IPickUnpacker::UnpackPin(FPCGContext* InContext, const FName InPinLabel)
 	{
-		for (TArray<FPCGTaggedData> Params = InContext->InputData.GetParamsByPin(InPinLabel);
-		     const FPCGTaggedData& InTaggedData : Params)
+		for (TArray<FPCGTaggedData> Params = InContext->InputData.GetParamsByPin(InPinLabel); const FPCGTaggedData& InTaggedData : Params)
 		{
 			const UPCGParamData* ParamData = Cast<UPCGParamData>(InTaggedData.Data);
 
@@ -327,12 +326,10 @@ namespace PCGExStaging
 
 		switch (Distribution)
 		{
-		case EPCGExDistribution::WeightedRandom:
-			WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
+		case EPCGExDistribution::WeightedRandom: WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
 			break;
 
-		case EPCGExDistribution::Random:
-			WorkingCollection->GetEntryRandom(OutEntry, Seed, OutHost);
+		case EPCGExDistribution::Random: WorkingCollection->GetEntryRandom(OutEntry, Seed, OutHost);
 			break;
 
 		case EPCGExDistribution::Index:
@@ -394,12 +391,10 @@ namespace PCGExStaging
 
 		switch (Distribution)
 		{
-		case EPCGExDistribution::WeightedRandom:
-			WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+		case EPCGExDistribution::WeightedRandom: WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
 			break;
 
-		case EPCGExDistribution::Random:
-			WorkingCollection->GetEntryRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+		case EPCGExDistribution::Random: WorkingCollection->GetEntryRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
 			break;
 
 		case EPCGExDistribution::Index:
@@ -466,34 +461,26 @@ namespace PCGExStaging
 				double PickedIndex = IndexGetter->Read(PointIndex);
 				if (Details.IndexSettings.bRemapIndexToCollectionSize)
 				{
-					PickedIndex = PCGExMath::TruncateDbl(
-						MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
-						Details.IndexSettings.TruncateRemap);
+					PickedIndex = PCGExMath::TruncateDbl(MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex), Details.IndexSettings.TruncateRemap);
 				}
 
 				const int32 SanitizedIndex = PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety);
 				switch (Details.IndexSettings.PickMode)
 				{
-				case EPCGExIndexPickMode::Ascending:
-					OutIndex = InMicroCache->GetPickAscending(SanitizedIndex);
+				case EPCGExIndexPickMode::Ascending: OutIndex = InMicroCache->GetPickAscending(SanitizedIndex);
 					break;
-				case EPCGExIndexPickMode::Descending:
-					OutIndex = InMicroCache->GetPickDescending(SanitizedIndex);
+				case EPCGExIndexPickMode::Descending: OutIndex = InMicroCache->GetPickDescending(SanitizedIndex);
 					break;
-				case EPCGExIndexPickMode::WeightAscending:
-					OutIndex = InMicroCache->GetPickWeightAscending(SanitizedIndex);
+				case EPCGExIndexPickMode::WeightAscending: OutIndex = InMicroCache->GetPickWeightAscending(SanitizedIndex);
 					break;
-				case EPCGExIndexPickMode::WeightDescending:
-					OutIndex = InMicroCache->GetPickWeightDescending(SanitizedIndex);
+				case EPCGExIndexPickMode::WeightDescending: OutIndex = InMicroCache->GetPickWeightDescending(SanitizedIndex);
 					break;
 				}
 			}
 			break;
-		case EPCGExDistribution::Random:
-			OutIndex = InMicroCache->GetPickRandom(Seed);
+		case EPCGExDistribution::Random: OutIndex = InMicroCache->GetPickRandom(Seed);
 			break;
-		case EPCGExDistribution::WeightedRandom:
-			OutIndex = InMicroCache->GetPickRandomWeighted(Seed);
+		case EPCGExDistribution::WeightedRandom: OutIndex = InMicroCache->GetPickRandomWeighted(Seed);
 			break;
 		}
 	}
@@ -597,10 +584,7 @@ namespace PCGExStaging
 		Mapping[Index] = Idx;
 	}
 
-	void FSocketHelper::Compile(
-		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		const TSharedPtr<PCGExData::FPointIOCollection>& InCollection)
+	void FSocketHelper::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile);
 
@@ -623,11 +607,7 @@ namespace PCGExStaging
 		SocketFacade = MakeShared<PCGExData::FFacade>(SocketIO.ToSharedRef());
 
 		UPCGBasePointData* OutPoints = SocketIO->GetOut();
-		PCGEx::SetNumPointsAllocated(
-			OutPoints, NumOutPoints,
-			EPCGPointNativeProperties::MetadataEntry |
-			EPCGPointNativeProperties::Transform |
-			EPCGPointNativeProperties::Seed);
+		PCGEx::SetNumPointsAllocated(OutPoints, NumOutPoints, EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed);
 
 #define PCGEX_OUTPUT_INIT_LOCAL(_NAME, _TYPE, _DEFAULT_VALUE) if(Details->bWrite##_NAME){ _NAME##Writer = SocketFacade->GetWritable<_TYPE>(Details->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
 		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_INIT_LOCAL)
@@ -664,25 +644,23 @@ namespace PCGExStaging
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CreateSocketPoints)
-		CreateSocketPoints->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, WeakManager = TWeakPtr<PCGExMT::FTaskManager>(AsyncManager)]()
+		CreateSocketPoints->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakManager = TWeakPtr<PCGExMT::FTaskManager>(AsyncManager)]()
+		{
+			PCGEX_ASYNC_THIS
+			if (This->SocketNameWriter || This->SocketTagWriter || This->CategoryWriter || This->AssetPathWriter)
 			{
-				PCGEX_ASYNC_THIS
-				if (This->SocketNameWriter || This->SocketTagWriter || This->CategoryWriter || This->AssetPathWriter)
+				if (TSharedPtr<PCGExMT::FTaskManager> PinnedManager = WeakManager.Pin())
 				{
-					if (TSharedPtr<PCGExMT::FTaskManager> PinnedManager = WeakManager.Pin())
-					{
-						This->SocketFacade->WriteFastest(PinnedManager);
-					}
+					This->SocketFacade->WriteFastest(PinnedManager);
 				}
-			};
+			}
+		};
 
-		CreateSocketPoints->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->CompileRange(Scope);
-			};
+		CreateSocketPoints->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->CompileRange(Scope);
+		};
 
 		CreateSocketPoints->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() * 4);
 	}
@@ -701,9 +679,7 @@ namespace PCGExStaging
 
 		for (int i = 0; i < SocketInfos.Sockets.Num(); i++)
 		{
-			if (const FPCGExSocket& Socket = SocketInfos.Sockets[i];
-				Details->SocketNameFilters.Test(Socket.SocketName.ToString()) &&
-				Details->SocketTagFilters.Test(Socket.Tag))
+			if (const FPCGExSocket& Socket = SocketInfos.Sockets[i]; Details->SocketNameFilters.Test(Socket.SocketName.ToString()) && Details->SocketTagFilters.Test(Socket.Tag))
 			{
 				ValidSockets.Add(Socket);
 			}
@@ -777,9 +753,7 @@ namespace PCGExStaging
 		return true;
 	}
 
-	bool FCollectionSource::Init(
-		const TMap<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& InMap,
-		const TSharedPtr<TArray<PCGExValueHash>>& InKeys)
+	bool FCollectionSource::Init(const TMap<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& InMap, const TSharedPtr<TArray<PCGExValueHash>>& InKeys)
 	{
 		Keys = InKeys;
 		if (!Keys) { return false; }
@@ -812,10 +786,7 @@ namespace PCGExStaging
 	}
 
 
-	bool FCollectionSource::TryGetHelpers(
-		const int32 Index,
-		TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper,
-		TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>*& OutMicroHelper)
+	bool FCollectionSource::TryGetHelpers(const int32 Index, TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper, TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>*& OutMicroHelper)
 	{
 		if (SingleSource)
 		{

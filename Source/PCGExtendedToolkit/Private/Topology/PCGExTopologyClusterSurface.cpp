@@ -31,12 +31,10 @@ bool FPCGExTopologyClusterSurfaceElement::AdvanceWork(FPCGExContext* InContext, 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -91,11 +89,7 @@ namespace PCGExTopologyClusterSurface
 		}
 	}
 
-	bool FProcessor::FindCell(
-		const PCGExCluster::FNode& Node,
-		const PCGExGraph::FEdge& Edge,
-		const int32 LoopIdx,
-		const bool bSkipBinary)
+	bool FProcessor::FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const int32 LoopIdx, const bool bSkipBinary)
 	{
 		if (Node.IsBinary() && bSkipBinary)
 		{
@@ -144,17 +138,12 @@ namespace PCGExTopologyClusterSurface
 
 		for (const TSharedRef<TArray<FGeometryScriptSimplePolygon>>& SubTriangulation : SubTriangulations)
 		{
-			UGeometryScriptLibrary_PolygonListFunctions::AppendPolygonList(
-				ClusterPolygonList,
-				UGeometryScriptLibrary_PolygonListFunctions::CreatePolygonListFromSimplePolygons(*SubTriangulation));
+			UGeometryScriptLibrary_PolygonListFunctions::AppendPolygonList(ClusterPolygonList, UGeometryScriptLibrary_PolygonListFunctions::CreatePolygonListFromSimplePolygons(*SubTriangulation));
 		}
 
 		bool bTriangulationError = false;
 
-		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendPolygonListTriangulation(
-			GetInternalMesh(),
-			Settings->Topology.PrimitiveOptions, FTransform::Identity, ClusterPolygonList, Settings->Topology.TriangulationOptions,
-			bTriangulationError);
+		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendPolygonListTriangulation(GetInternalMesh(), Settings->Topology.PrimitiveOptions, FTransform::Identity, ClusterPolygonList, Settings->Topology.TriangulationOptions, bTriangulationError);
 
 		if (bTriangulationError && !Settings->Topology.bQuietTriangulationError)
 		{

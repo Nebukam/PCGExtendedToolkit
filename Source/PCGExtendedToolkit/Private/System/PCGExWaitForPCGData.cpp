@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGGraph.h"
 #include "PCGSubsystem.h"
 #include "PCGExSubSystem.h"
@@ -21,8 +22,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWaitForPCGDataElement"
 #define PCGEX_NAMESPACE WaitForPCGData
 
-UPCGExWaitForPCGDataSettings::UPCGExWaitForPCGDataSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExWaitForPCGDataSettings::UPCGExWaitForPCGDataSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
@@ -32,9 +32,7 @@ void UPCGExWaitForPCGDataSettings::PostEditChangeProperty(FPropertyChangedEvent&
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	const FName PropertyName = (PropertyChangedEvent.Property != nullptr)
-		                           ? PropertyChangedEvent.Property->GetFName()
-		                           : NAME_None;
+	const FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExWaitForPCGDataSettings, TemplateGraph))
 	{
@@ -173,11 +171,9 @@ bool FPCGExWaitForPCGDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points."));
 		}
@@ -193,8 +189,8 @@ namespace PCGExWaitForPCGData
 	class FStageComponentDataTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		explicit FStageComponentDataTask(const int32 InTaskIndex, const TWeakPtr<FProcessor>& InProcessor):
-			FPCGExIndexedTask(InTaskIndex), Processor(InProcessor)
+		explicit FStageComponentDataTask(const int32 InTaskIndex, const TWeakPtr<FProcessor>& InProcessor)
+			: FPCGExIndexedTask(InTaskIndex), Processor(InProcessor)
 		{
 		}
 
@@ -205,7 +201,7 @@ namespace PCGExWaitForPCGData
 			if (const TSharedPtr<FProcessor> P = Processor.Pin()) { P->StageComponentData(TaskIndex); }
 		}
 	};
-	
+
 	FProcessor::~FProcessor()
 	{
 	}
@@ -222,24 +218,21 @@ namespace PCGExWaitForPCGData
 		if (Settings->bDedupeData) { TargetAttributesToDataTags.bAddIndexTag = false; }
 		if (!TargetAttributesToDataTags.Init(Context, PointDataFacade)) { return false; }
 
-		InspectionTracker = MakeShared<PCGEx::FIntTracker>(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnInspectionComplete();
-			});
+		InspectionTracker = MakeShared<PCGEx::FIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnInspectionComplete();
+		});
 
-		WatcherTracker = MakeShared<PCGEx::FIntTracker>(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->WatchToken = This->AsyncManager->TryCreateToken(FName("Watch"));
-			},
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				PCGEX_ASYNC_RELEASE_TOKEN(This->WatchToken);
-			});
+		WatcherTracker = MakeShared<PCGEx::FIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
+		                                                {
+			                                                PCGEX_ASYNC_THIS
+			                                                This->WatchToken = This->AsyncManager->TryCreateToken(FName("Watch"));
+		                                                }, [PCGEX_ASYNC_THIS_CAPTURE]()
+		                                                {
+			                                                PCGEX_ASYNC_THIS
+			                                                PCGEX_ASYNC_RELEASE_TOKEN(This->WatchToken);
+		                                                });
 
 		PCGEX_MAKE_SHARED(ActorReferences, PCGEx::TAttributeBroadcaster<FSoftObjectPath>)
 
@@ -330,17 +323,14 @@ namespace PCGExWaitForPCGData
 			if (Context->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
 			{
 				PCGEX_SUBSYSTEM
-				PCGExSubsystem->RegisterBeginTickAction(
-					[PCGEX_ASYNC_THIS_CAPTURE]()
-					{
-						PCGEX_ASYNC_THIS
-						This->GatherActors();
-					});
+				PCGExSubsystem->RegisterBeginTickAction([PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+					This->GatherActors();
+				});
 
 				return;
 			}
-
-			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 
 			if (!Settings->bQuietTimeoutError)
 			{
@@ -351,11 +341,13 @@ namespace PCGExWaitForPCGData
 					PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::FromString(Rel));
 				}
 			}
+
+			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 		}
 		else
 		{
-			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 			StartComponentSearch();
+			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 		}
 	}
 
@@ -387,19 +379,16 @@ namespace PCGExWaitForPCGData
 		StartTime = Context->GetWorld()->GetTimeSeconds();
 
 		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->GatherComponents();
-			});
+		PCGExSubsystem->RegisterBeginTickAction([PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->GatherComponents();
+		});
 	}
 
 	void FProcessor::StopComponentSearch(bool bTimeout)
 	{
 		if (!SearchComponentsToken.IsValid()) { return; }
-
-		PCGEX_ASYNC_RELEASE_TOKEN(SearchComponentsToken)
 
 		if (bTimeout && !Settings->bQuietTimeoutError)
 		{
@@ -409,6 +398,8 @@ namespace PCGExWaitForPCGData
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::FromString(Rel));
 			}
 		}
+
+		PCGEX_ASYNC_RELEASE_TOKEN(SearchComponentsToken)
 	}
 
 	void FProcessor::InspectGatheredComponents()
@@ -427,15 +418,11 @@ namespace PCGExWaitForPCGData
 		PCGEX_ASYNC_THIS_DECL
 		for (int i = 0; i < QueuedActors.Num(); i++)
 		{
-			UE::Tasks::Launch(
-					TEXT("ComponentInspection"),
-					[AsyncThis, Index = i]()
-					{
-						PCGEX_ASYNC_THIS
-						This->Inspect(Index);
-					},
-					UE::Tasks::ETaskPriority::BackgroundLow
-				);
+			UE::Tasks::Launch(TEXT("ComponentInspection"), [AsyncThis, Index = i]()
+			{
+				PCGEX_ASYNC_THIS
+				This->Inspect(Index);
+			}, UE::Tasks::ETaskPriority::BackgroundLow);
 		}
 	}
 
@@ -454,10 +441,7 @@ namespace PCGExWaitForPCGData
 		{
 			const UPCGComponent* Candidate = FoundComponents[i];
 			const UPCGGraph* CandidateGraph = Candidate->GetGraph();
-			if (!CandidateGraph || !Candidate->bActivated ||
-				(Self && Candidate == Self) ||
-				(Settings->bMustMatchTemplate && CandidateGraph != TemplateGraph.Get()) ||
-				(bHasTag && !Candidate->ComponentHasTag(Settings->MustHaveTag)))
+			if (!CandidateGraph || !Candidate->bActivated || (Self && Candidate == Self) || (Settings->bMustMatchTemplate && CandidateGraph != TemplateGraph.Get()) || (bHasTag && !Candidate->ComponentHasTag(Settings->MustHaveTag)))
 			{
 				FoundComponents.RemoveAt(i);
 				i--;
@@ -466,8 +450,7 @@ namespace PCGExWaitForPCGData
 
 			if (Settings->bDoMatchGenerationTrigger)
 			{
-				if ((!Settings->bInvertGenerationTrigger && Candidate->GenerationTrigger != Settings->MatchGenerationTrigger) ||
-					(Settings->bInvertGenerationTrigger && Candidate->GenerationTrigger == Settings->MatchGenerationTrigger))
+				if ((!Settings->bInvertGenerationTrigger && Candidate->GenerationTrigger != Settings->MatchGenerationTrigger) || (Settings->bInvertGenerationTrigger && Candidate->GenerationTrigger == Settings->MatchGenerationTrigger))
 				{
 					FoundComponents.RemoveAt(i);
 					i--;
@@ -520,14 +503,9 @@ namespace PCGExWaitForPCGData
 
 		// Inspection is complete
 		// Trim actor list
-		for (int i = 0; i < QueuedActors.Num(); i++)
-		{
-			if (!QueuedActors[i])
-			{
-				QueuedActors.RemoveAt(i);
-				i--;
-			}
-		}
+		int32 WriteIndex = 0;
+		for (int i = 0; i < QueuedActors.Num(); i++) { if (AActor* QueuedActor = QueuedActors[i]) { QueuedActors[WriteIndex++] = QueuedActor; } }
+		QueuedActors.SetNum(WriteIndex);
 
 		// If some actors are still enqueued, we failed to find a valid component.
 		if (!QueuedActors.IsEmpty())
@@ -535,12 +513,11 @@ namespace PCGExWaitForPCGData
 			if (Context->GetWorld()->GetTimeSeconds() - StartTime < Settings->WaitForComponentTimeout)
 			{
 				PCGEX_SUBSYSTEM
-				PCGExSubsystem->RegisterBeginTickAction(
-					[PCGEX_ASYNC_THIS_CAPTURE]()
-					{
-						PCGEX_ASYNC_THIS
-						This->GatherComponents();
-					});
+				PCGExSubsystem->RegisterBeginTickAction([PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+					This->GatherComponents();
+				});
 			}
 			else
 			{
@@ -582,34 +559,31 @@ namespace PCGExWaitForPCGData
 		PCGEX_ASYNC_THIS_DECL
 
 		// Switch to the game thread to subscribe
-		AsyncTask(
-			ENamedThreads::GameThread, [AsyncThis, TargetComponent, Idx = Index]()
+		AsyncTask(ENamedThreads::GameThread, [AsyncThis, TargetComponent, Idx = Index]()
+		{
+			PCGEX_ASYNC_THIS
+
+			if (!TargetComponent->IsGenerating())
 			{
-				PCGEX_ASYNC_THIS
+				This->ScheduleComponentDataStaging(Idx);
+				return;
+			}
 
-				if (!TargetComponent->IsGenerating())
-				{
-					This->ScheduleComponentDataStaging(Idx);
-					return;
-				}
-
-				// Make sure to not wait on cancelled generation
-				TargetComponent->OnPCGGraphCancelledDelegate.AddLambda(
-					[AsyncThis, Idx](UPCGComponent* InComponent)
-					{
-						PCGEX_ASYNC_NESTED_THIS
-						NestedThis->ValidComponents[Idx] = nullptr;
-						NestedThis->WatcherTracker->IncrementCompleted();
-					});
-
-				// Wait for generated callback
-				TargetComponent->OnPCGGraphGeneratedDelegate.AddLambda(
-					[AsyncThis, Idx](UPCGComponent* InComponent)
-					{
-						PCGEX_ASYNC_NESTED_THIS
-						NestedThis->ScheduleComponentDataStaging(Idx);
-					});
+			// Make sure to not wait on cancelled generation
+			TargetComponent->OnPCGGraphCancelledDelegate.AddLambda([AsyncThis, Idx](UPCGComponent* InComponent)
+			{
+				PCGEX_ASYNC_NESTED_THIS
+				NestedThis->ValidComponents[Idx] = nullptr;
+				NestedThis->WatcherTracker->IncrementCompleted();
 			});
+
+			// Wait for generated callback
+			TargetComponent->OnPCGGraphGeneratedDelegate.AddLambda([AsyncThis, Idx](UPCGComponent* InComponent)
+			{
+				PCGEX_ASYNC_NESTED_THIS
+				NestedThis->ScheduleComponentDataStaging(Idx);
+			});
+		});
 	}
 
 	void FProcessor::ProcessComponent(int32 Index)
@@ -620,14 +594,11 @@ namespace PCGExWaitForPCGData
 
 		switch (InComponent->GenerationTrigger)
 		{
-		case EPCGComponentGenerationTrigger::GenerateOnLoad:
-			if (Settings->GenerateOnLoadAction == EPCGExGenerationTriggerAction::Ignore) { return; }
+		case EPCGComponentGenerationTrigger::GenerateOnLoad: if (Settings->GenerateOnLoadAction == EPCGExGenerationTriggerAction::Ignore) { return; }
 			break;
-		case EPCGComponentGenerationTrigger::GenerateOnDemand:
-			if (Settings->GenerateOnDemandAction == EPCGExGenerationTriggerAction::Ignore) { return; }
+		case EPCGComponentGenerationTrigger::GenerateOnDemand: if (Settings->GenerateOnDemandAction == EPCGExGenerationTriggerAction::Ignore) { return; }
 			break;
-		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
-			if (Settings->GenerateAtRuntime == EPCGExRuntimeGenerationTriggerAction::Ignore) { return; }
+		case EPCGComponentGenerationTrigger::GenerateAtRuntime: if (Settings->GenerateAtRuntime == EPCGExRuntimeGenerationTriggerAction::Ignore) { return; }
 			break;
 		}
 
@@ -646,42 +617,28 @@ namespace PCGExWaitForPCGData
 
 		switch (InComponent->GenerationTrigger)
 		{
-		case EPCGComponentGenerationTrigger::GenerateOnLoad:
-			switch (Settings->GenerateOnLoadAction)
+		case EPCGComponentGenerationTrigger::GenerateOnLoad: switch (Settings->GenerateOnLoadAction)
 			{
-			default:
-			case EPCGExGenerationTriggerAction::AsIs:
-				break;
-			case EPCGExGenerationTriggerAction::ForceGenerate:
-				bForce = true;
-			case EPCGExGenerationTriggerAction::Generate:
-				InComponent->Generate(bForce);
+			default: case EPCGExGenerationTriggerAction::AsIs: break;
+			case EPCGExGenerationTriggerAction::ForceGenerate: bForce = true;
+			case EPCGExGenerationTriggerAction::Generate: InComponent->Generate(bForce);
 				bWatchComponent = true;
 				break;
 			}
 			break;
-		case EPCGComponentGenerationTrigger::GenerateOnDemand:
-			switch (Settings->GenerateOnDemandAction)
+		case EPCGComponentGenerationTrigger::GenerateOnDemand: switch (Settings->GenerateOnDemandAction)
 			{
-			default:
-			case EPCGExGenerationTriggerAction::AsIs:
-				break;
-			case EPCGExGenerationTriggerAction::ForceGenerate:
-				bForce = true;
-			case EPCGExGenerationTriggerAction::Generate:
-				InComponent->Generate(bForce);
+			default: case EPCGExGenerationTriggerAction::AsIs: break;
+			case EPCGExGenerationTriggerAction::ForceGenerate: bForce = true;
+			case EPCGExGenerationTriggerAction::Generate: InComponent->Generate(bForce);
 				bWatchComponent = true;
 				break;
 			}
 			break;
-		case EPCGComponentGenerationTrigger::GenerateAtRuntime:
-			switch (Settings->GenerateAtRuntime)
+		case EPCGComponentGenerationTrigger::GenerateAtRuntime: switch (Settings->GenerateAtRuntime)
 			{
-			default:
-			case EPCGExRuntimeGenerationTriggerAction::AsIs:
-				break;
-			case EPCGExRuntimeGenerationTriggerAction::RefreshFirst:
-				if (UPCGSubsystem* PCGSubsystem = UPCGSubsystem::GetSubsystemForCurrentWorld())
+			default: case EPCGExRuntimeGenerationTriggerAction::AsIs: break;
+			case EPCGExRuntimeGenerationTriggerAction::RefreshFirst: if (UPCGSubsystem* PCGSubsystem = UPCGSubsystem::GetSubsystemForCurrentWorld())
 				{
 					PCGSubsystem->RefreshRuntimeGenComponent(InComponent, EPCGChangeType::GenerationGrid);
 					bWatchComponent = true;

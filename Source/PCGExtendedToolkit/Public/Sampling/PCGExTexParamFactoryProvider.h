@@ -146,9 +146,7 @@ protected:
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		TexParamAttribute, "Texture Param", "A simple texture parameter definition.",
-		FName(Config.TextureIDAttributeName.ToString() +" / "+Config.SampleAttributeName.ToString()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(TexParamAttribute, "Texture Param", "A simple texture parameter definition.", FName(Config.TextureIDAttributeName.ToString() +" / "+Config.SampleAttributeName.ToString()))
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTexParam; }
 #endif
 	//~End UPCGSettings
@@ -174,8 +172,8 @@ namespace PCGExTexture
 		{
 		}
 
-		explicit FReference(const FSoftObjectPath& InTexturePath, const int32 InTextureIndex = -1):
-			TexturePath(InTexturePath), TextureIndex(InTextureIndex)
+		explicit FReference(const FSoftObjectPath& InTexturePath, const int32 InTextureIndex = -1)
+			: TexturePath(InTexturePath), TextureIndex(InTextureIndex)
 		{
 		}
 

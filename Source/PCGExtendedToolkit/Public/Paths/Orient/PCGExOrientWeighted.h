@@ -13,9 +13,7 @@ class FPCGExOrientWeighted : public FPCGExOrientOperation
 public:
 	bool bInverseWeight = false;
 
-	virtual FTransform ComputeOrientation(
-		const PCGExData::FConstPoint& Point,
-		const double DirectionMultiplier) const override
+	virtual FTransform ComputeOrientation(const PCGExData::FConstPoint& Point, const double DirectionMultiplier) const override
 	{
 		FTransform OutT = Point.GetTransform();
 
@@ -28,11 +26,7 @@ public:
 
 		const double Weight = (AB + BC) / FMath::Min(AB, BC);
 
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				Factory->OrientAxis,
-				FMath::Lerp(Path->DirToPrevPoint(Point.Index), Path->DirToNextPoint(Point.Index), bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier,
-				PCGExMath::GetDirection(Factory->UpAxis)));
+		OutT.SetRotation(PCGExMath::MakeDirection(Factory->OrientAxis, FMath::Lerp(Path->DirToPrevPoint(Point.Index), Path->DirToNextPoint(Point.Index), bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
 
 		return OutT;
 	}

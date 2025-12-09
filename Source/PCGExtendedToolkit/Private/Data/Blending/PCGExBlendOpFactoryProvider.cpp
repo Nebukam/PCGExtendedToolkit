@@ -25,11 +25,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExAttributeBlendWeight, Weight, double, WeightInput
 
 void FPCGExAttributeBlendConfig::Init()
 {
-	bRequiresWeight =
-		BlendMode == EPCGExABBlendingType::Lerp ||
-		BlendMode == EPCGExABBlendingType::Weight ||
-		BlendMode == EPCGExABBlendingType::WeightedSubtract ||
-		BlendMode == EPCGExABBlendingType::WeightedAdd;
+	bRequiresWeight = BlendMode == EPCGExABBlendingType::Lerp || BlendMode == EPCGExABBlendingType::Weight || BlendMode == EPCGExABBlendingType::WeightedSubtract || BlendMode == EPCGExABBlendingType::WeightedAdd;
 
 	Weighting.Init();
 }
@@ -46,15 +42,12 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 	switch (Config.OutputMode)
 	{
-	case EPCGExBlendOpOutputMode::SameAsA:
-		Config.OutputTo = Config.OperandA;
+	case EPCGExBlendOpOutputMode::SameAsA: Config.OutputTo = Config.OperandA;
 		break;
-	case EPCGExBlendOpOutputMode::SameAsB:
-		Config.OutputTo = Config.OperandB;
+	case EPCGExBlendOpOutputMode::SameAsB: Config.OutputTo = Config.OperandB;
 		break;
 	case EPCGExBlendOpOutputMode::New:
-	case EPCGExBlendOpOutputMode::Transient:
-		if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
+	case EPCGExBlendOpOutputMode::Transient: if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
 		break;
 	}
 
@@ -106,9 +99,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 		{
 			RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
 
-			if ((Config.OutputType == EPCGExOperandAuthority::A && RealTypeC != A.RealType) ||
-				(Config.OutputType == EPCGExOperandAuthority::B && RealTypeC != B.RealType) ||
-				(Config.OutputType == EPCGExOperandAuthority::Custom && RealTypeC != Config.CustomType))
+			if ((Config.OutputType == EPCGExOperandAuthority::A && RealTypeC != A.RealType) || (Config.OutputType == EPCGExOperandAuthority::B && RealTypeC != B.RealType) || (Config.OutputType == EPCGExOperandAuthority::Custom && RealTypeC != Config.CustomType))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("An output attribute existing type will differ from its desired type."));
 			}
@@ -289,9 +280,7 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 
 bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
 {
-	return
-		PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) ||
-		PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
+	return PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) || PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
 }
 
 PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
@@ -368,19 +357,13 @@ void UPCGExBlendOpFactoryProviderSettings::ApplyDeprecationBeforeUpdatePins(UPCG
 
 void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Config.bRequiresWeight =
-		Config.BlendMode == EPCGExABBlendingType::Lerp ||
-		Config.BlendMode == EPCGExABBlendingType::Weight ||
-		Config.BlendMode == EPCGExABBlendingType::WeightedSubtract ||
-		Config.BlendMode == EPCGExABBlendingType::WeightedAdd;
+	Config.bRequiresWeight = Config.BlendMode == EPCGExABBlendingType::Lerp || Config.BlendMode == EPCGExABBlendingType::Weight || Config.BlendMode == EPCGExABBlendingType::WeightedSubtract || Config.BlendMode == EPCGExABBlendingType::WeightedAdd;
 
 	FName Prop = PropertyChangedEvent.GetMemberPropertyName();
-	if (Prop == GET_MEMBER_NAME_CHECKED(FPCGExAttributeBlendConfig, OperandASource)
-		&& Config.OperandASource == EPCGExOperandSource::Constant)
+	if (Prop == GET_MEMBER_NAME_CHECKED(FPCGExAttributeBlendConfig, OperandASource) && Config.OperandASource == EPCGExOperandSource::Constant)
 	{
 	}
-	else if (Prop == GET_MEMBER_NAME_CHECKED(FPCGExAttributeBlendConfig, OperandBSource)
-		&& Config.OperandBSource == EPCGExOperandSource::Constant)
+	else if (Prop == GET_MEMBER_NAME_CHECKED(FPCGExAttributeBlendConfig, OperandBSource) && Config.OperandBSource == EPCGExOperandSource::Constant)
 	{
 	}
 
@@ -404,7 +387,7 @@ bool UPCGExBlendOpFactoryProviderSettings::IsPinDefaultValueActivated(FName PinL
 EPCGMetadataTypes UPCGExBlendOpFactoryProviderSettings::GetPinDefaultValueType(FName PinLabel) const
 {
 	if (DefaultValues.FindProperty(PinLabel)) { return DefaultValues.GetCurrentPropertyType(PinLabel); }
-	else { return GetPinInitialDefaultValueType(PinLabel); }
+	return GetPinInitialDefaultValueType(PinLabel);
 }
 
 bool UPCGExBlendOpFactoryProviderSettings::IsPinDefaultValueMetadataTypeValid(FName PinLabel, EPCGMetadataTypes DataType) const
@@ -473,7 +456,7 @@ FString UPCGExBlendOpFactoryProviderSettings::GetPinDefaultValueAsString(FName P
 	if (ensure(IsPinDefaultValueActivated(PinLabel)))
 	{
 		if (DefaultValues.FindProperty(PinLabel)) { return DefaultValues.GetPropertyValueAsString(PinLabel); }
-		else { return GetPinInitialDefaultValueString(PinLabel); }
+		return GetPinInitialDefaultValueString(PinLabel);
 	}
 
 	return FString();
@@ -555,18 +538,14 @@ FString UPCGExBlendOpFactoryProviderSettings::GetDisplayName() const
 
 		switch (Config.OutputMode)
 		{
-		case EPCGExBlendOpOutputMode::SameAsA:
-			break;
-		case EPCGExBlendOpOutputMode::SameAsB:
-			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" ⇌ %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
+		case EPCGExBlendOpOutputMode::SameAsA: break;
+		case EPCGExBlendOpOutputMode::SameAsB: if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" ⇌ %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
 			else { Str += FString::Printf(TEXT(" → %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
 			break;
-		case EPCGExBlendOpOutputMode::New:
-			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
+		case EPCGExBlendOpOutputMode::New: if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
 			else { Str += FString::Printf(TEXT(" → %s"), *PCGEx::GetSelectorDisplayName(Config.OutputTo)); }
 			break;
-		case EPCGExBlendOpOutputMode::Transient:
-			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
+		case EPCGExBlendOpOutputMode::Transient: if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
 			Str += FString::Printf(TEXT(" ⇢ %s"), *PCGEx::GetSelectorDisplayName(Config.OutputTo));
 			break;
 		}

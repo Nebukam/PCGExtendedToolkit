@@ -127,7 +127,6 @@ protected:
 	/** Name of the attribute on the AttributeSet that contains the asset depth, if any. Otherwise -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Nesting Depth", EditCondition="bWriteNestingDepth"))
 	FName NestingDepthAttributeName = FName("NestingDepth");
-
 };
 
 class FPCGExAssetCollectionToSetElement final : public IPCGExElement
@@ -140,11 +139,5 @@ protected:
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
-	static void ProcessEntry(
-		const FPCGExAssetCollectionEntry* InEntry,
-		TArray<const FPCGExAssetCollectionEntry*>& OutEntries,
-		const bool bOmitInvalidAndEmpty,
-		const bool bNoDuplicates,
-		const EPCGExSubCollectionToSet SubHandling,
-		TSet<uint64>& GUIDS);
+	static void ProcessEntry(const FPCGExAssetCollectionEntry* InEntry, TArray<const FPCGExAssetCollectionEntry*>& OutEntries, const bool bOmitInvalidAndEmpty, const bool bNoDuplicates, const EPCGExSubCollectionToSet SubHandling, TSet<uint64>& GUIDS);
 };

@@ -24,11 +24,7 @@ bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 
 bool UPCGExDotFilterFactory::DomainCheck()
 {
-	return
-		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
-		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) &&
-		Config.DotComparisonDetails.GetOnlyUseDataDomain() &&
-		!Config.bTransformOperandA && !Config.bTransformOperandB;
+	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) && Config.DotComparisonDetails.GetOnlyUseDataDomain() && !Config.bTransformOperandA && !Config.bTransformOperandB;
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExDotFilterFactory::CreateFilter() const
@@ -74,7 +70,10 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB(PCGEX_QUIET_HANDLING);
 	if (!OperandB->Init(PointDataFacade)) { return false; }
-	if (!OperandB->IsConstant()) { OperandBMultiplier = TypedFilterFactory->Config.bInvertOperandB ? -1 : 1; }
+	if (!OperandB->IsConstant())
+	{
+		OperandBMultiplier = TypedFilterFactory->Config.bInvertOperandB ? -1 : 1;
+	}
 
 	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 
@@ -84,11 +83,7 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 bool PCGExPointFilter::FDotFilter::Test(const int32 PointIndex) const
 {
 	const FVector B = OperandB->Read(PointIndex).GetSafeNormal() * OperandBMultiplier;
-	return DotComparison.Test(
-		FVector::DotProduct(
-			TypedFilterFactory->Config.bTransformOperandA ? InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex) * OperandAMultiplier) : OperandA->Read(PointIndex) * OperandAMultiplier,
-			TypedFilterFactory->Config.bTransformOperandB ? InTransforms[PointIndex].TransformVectorNoScale(B) : B),
-		PointIndex);
+	return DotComparison.Test(FVector::DotProduct(TypedFilterFactory->Config.bTransformOperandA ? InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex) * OperandAMultiplier) : OperandA->Read(PointIndex) * OperandAMultiplier, TypedFilterFactory->Config.bTransformOperandB ? InTransforms[PointIndex].TransformVectorNoScale(B) : B), PointIndex);
 }
 
 bool PCGExPointFilter::FDotFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
@@ -98,9 +93,7 @@ bool PCGExPointFilter::FDotFilter::Test(const TSharedPtr<PCGExData::FPointIO>& I
 	FVector A = FVector::ZeroVector;
 	FVector B = FVector::ZeroVector;
 
-	if (!PCGExDataHelpers::TryGetSettingDataValue(
-		IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB,
-		TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 	B = B.GetSafeNormal();
 
 	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }

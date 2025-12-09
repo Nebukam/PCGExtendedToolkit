@@ -26,10 +26,8 @@ bool FPCGExRefreshSeedElement::Boot(FPCGExContext* InContext) const
 class FPCGExRefreshSeedTask final : public PCGExMT::FPCGExIndexedTask
 {
 public:
-	explicit FPCGExRefreshSeedTask(const int32 InPointIndex,
-	                               const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-		: FPCGExIndexedTask(InPointIndex),
-		  PointIO(InPointIO)
+	explicit FPCGExRefreshSeedTask(const int32 InPointIndex, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+		: FPCGExIndexedTask(InPointIndex), PointIO(InPointIO)
 	{
 	}
 

@@ -7,8 +7,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 
-UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }

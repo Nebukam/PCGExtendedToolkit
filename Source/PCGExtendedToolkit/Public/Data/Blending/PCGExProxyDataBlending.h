@@ -161,9 +161,7 @@ namespace PCGExDataBlending
 
 		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const = 0;
 
-		virtual bool InitFromParam(
-			FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
-			const TSharedPtr<PCGExData::FFacade> InSourceFacade, PCGExData::EIOSide InSide, bool bWantsDirectAccess = false) = 0;
+		virtual bool InitFromParam(FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade, const TSharedPtr<PCGExData::FFacade> InSourceFacade, PCGExData::EIOSide InSide, bool bWantsDirectAccess = false) = 0;
 
 		template <typename T>
 		void Set(const int32 TargetIndex, const T Value) const;
@@ -191,26 +189,19 @@ extern template void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, cons
 
 		virtual ~IProxyDataBlender() override = default;
 
-		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1) override
-		PCGEX_NOT_IMPLEMENTED(Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1))
+		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1) override PCGEX_NOT_IMPLEMENTED(Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1))
 
-		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override
-		PCGEX_NOT_IMPLEMENTED_RET(BeginMultiBlend(const int32 TargetIndex), PCGEx::FOpStats{})
+		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override PCGEX_NOT_IMPLEMENTED_RET(BeginMultiBlend(const int32 TargetIndex), PCGEx::FOpStats{})
 
-		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override
-		PCGEX_NOT_IMPLEMENTED(MultiBlend(const int32 SourceIndex, const int32 TargetIndex, FBlendTracker& Tracker))
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override PCGEX_NOT_IMPLEMENTED(MultiBlend(const int32 SourceIndex, const int32 TargetIndex, FBlendTracker& Tracker))
 
-		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override
-		PCGEX_NOT_IMPLEMENTED(EndMultiBlend(const int32 TargetIndex, FBlendTracker& Tracker))
+		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override PCGEX_NOT_IMPLEMENTED(EndMultiBlend(const int32 TargetIndex, FBlendTracker& Tracker))
 
-		virtual void Div(const int32 TargetIndex, const double Divider) override
-		PCGEX_NOT_IMPLEMENTED(Div(const int32 TargetIndex, const double Divider))
+		virtual void Div(const int32 TargetIndex, const double Divider) override PCGEX_NOT_IMPLEMENTED(Div(const int32 TargetIndex, const double Divider))
 
 		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const override;
 
-		virtual bool InitFromParam(
-			FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
-			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess = false) override;
+		virtual bool InitFromParam(FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade, const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess = false) override;
 
 	protected:
 #define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_NAME(const int32 TargetIndex, const _TYPE Value) const override;
@@ -273,20 +264,7 @@ extern template TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxyBlender(const EP
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FProxyDataBlender> CreateProxyBlender(
-		FPCGExContext* InContext,
-		const EPCGExABBlendingType BlendMode,
-		const PCGExData::FProxyDescriptor& A,
-		const PCGExData::FProxyDescriptor& B,
-		const PCGExData::FProxyDescriptor& C,
-		const bool bResetValueForMultiBlend = true);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(FPCGExContext* InContext, const EPCGExABBlendingType BlendMode, const PCGExData::FProxyDescriptor& A, const PCGExData::FProxyDescriptor& B, const PCGExData::FProxyDescriptor& C, const bool bResetValueForMultiBlend = true);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FProxyDataBlender> CreateProxyBlender(
-		FPCGExContext* InContext,
-		const EPCGExABBlendingType BlendMode,
-		const PCGExData::FProxyDescriptor& A,
-		const PCGExData::FProxyDescriptor& C,
-		const bool bResetValueForMultiBlend = true);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(FPCGExContext* InContext, const EPCGExABBlendingType BlendMode, const PCGExData::FProxyDescriptor& A, const PCGExData::FProxyDescriptor& C, const bool bResetValueForMultiBlend = true);
 }

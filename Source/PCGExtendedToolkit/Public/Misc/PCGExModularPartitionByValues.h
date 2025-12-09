@@ -44,9 +44,7 @@ protected:
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PartitionRuleFactory, "Partition Rule", "Creates an single partition rule to be used with the Partition by Values node.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(PartitionRuleFactory, "Partition Rule", "Creates an single partition rule to be used with the Partition by Values node.", FName(GetDisplayName()))
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorPartitionRule; }
 #endif
 	//~End UPCGSettings

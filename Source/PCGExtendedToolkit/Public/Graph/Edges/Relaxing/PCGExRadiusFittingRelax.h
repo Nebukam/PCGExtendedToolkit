@@ -75,9 +75,7 @@ public:
 
 			if (Overlap <= 0 || Distance <= KINDA_SMALL_NUMBER) { continue; }
 
-			AddDelta(
-				OtherNode->Index, Node.Index,
-				(RepulsionConstant * (Overlap / FMath::Square(Distance)) * (Delta / Distance)));
+			AddDelta(OtherNode->Index, Node.Index, (RepulsionConstant * (Overlap / FMath::Square(Distance)) * (Delta / Distance)));
 		}
 	}
 

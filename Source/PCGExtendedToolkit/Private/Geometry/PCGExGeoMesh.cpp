@@ -11,6 +11,7 @@
 #include "PCGExContext.h"
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
 #include "StaticMeshResources.h"
 #include "Engine/StaticMesh.h"
@@ -224,8 +225,8 @@ namespace PCGExGeo
 	{
 	}
 
-	FGeoStaticMesh::FGeoStaticMesh(const FString& InSoftStaticMesh):
-		FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(InSoftStaticMesh)))
+	FGeoStaticMesh::FGeoStaticMesh(const FString& InSoftStaticMesh)
+		: FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(InSoftStaticMesh)))
 	{
 	}
 
@@ -319,8 +320,7 @@ namespace PCGExGeo
 			Edges.Add(Edge, &bIsAlreadySet);
 			if (bIsAlreadySet)
 			{
-				if (int32 OtherTri = -1;
-					EdgeMap.RemoveAndCopyValue(Edge, OtherTri))
+				if (int32 OtherTri = -1; EdgeMap.RemoveAndCopyValue(Edge, OtherTri))
 				{
 					PushAdjacency(OtherTri, Tri);
 					PushAdjacency(Tri, OtherTri);

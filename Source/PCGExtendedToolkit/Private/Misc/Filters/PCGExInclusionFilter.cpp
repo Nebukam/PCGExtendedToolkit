@@ -66,9 +66,7 @@ namespace PCGExPointFilter
 	bool FInclusionFilter::Test(const PCGExData::FProxyPoint& Point) const
 	{
 		int32 InclusionsCount = 0;
-		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(
-			Point.GetLocation(), InclusionsCount,
-			TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest);
+		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(Point.GetLocation(), InclusionsCount, TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest);
 
 		PCGEX_CHECK_MAX
 		PCGEX_CHECK_MIN
@@ -82,9 +80,7 @@ namespace PCGExPointFilter
 		if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
 
 		int32 InclusionsCount = 0;
-		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(
-			InTransforms[PointIndex].GetLocation(), InclusionsCount,
-			TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest, PointDataFacade->Source->GetIn());
+		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(InTransforms[PointIndex].GetLocation(), InclusionsCount, TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest, PointDataFacade->Source->GetIn());
 
 		PCGEX_CHECK_MAX
 		PCGEX_CHECK_MIN
@@ -99,9 +95,7 @@ namespace PCGExPointFilter
 		IO->GetDataAsProxyPoint(ProxyPoint);
 
 		int32 InclusionsCount = 0;
-		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(
-			ProxyPoint.GetLocation(), InclusionsCount,
-			TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest, IO->GetInOut());
+		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(ProxyPoint.GetLocation(), InclusionsCount, TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest, IO->GetInOut());
 
 		PCGEX_CHECK_MAX
 		PCGEX_CHECK_MIN

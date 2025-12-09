@@ -276,7 +276,6 @@ class FPCGExTupleElement final : public IPCGExElement
 protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(false)
 };
 
 #undef PCGEX_TUPLEVALUEWRAP_CTR

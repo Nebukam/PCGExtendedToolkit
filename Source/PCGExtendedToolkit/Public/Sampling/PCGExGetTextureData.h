@@ -166,8 +166,8 @@ namespace PCGExGetTextureData
 		TArray<TSharedPtr<TSet<PCGExTexture::FReference>>> ScopedTextureReferences;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

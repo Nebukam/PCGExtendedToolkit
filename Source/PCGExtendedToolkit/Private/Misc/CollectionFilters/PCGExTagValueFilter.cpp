@@ -17,8 +17,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 {
 	bool bResult = false;
 
-	if (TArray<TSharedPtr<PCGExData::IDataValue>> TagValues;
-		PCGExCompare::GetMatchingValueTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TagValues))
+	if (TArray<TSharedPtr<PCGExData::IDataValue>> TagValues; PCGExCompare::GetMatchingValueTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TagValues))
 	{
 		bool bAtLeastOneMatch = false;
 		bResult = true;

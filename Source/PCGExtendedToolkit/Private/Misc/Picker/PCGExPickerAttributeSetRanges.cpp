@@ -31,9 +31,7 @@ FString UPCGExPickerAttributeSetRangesSettings::GetDisplayName() const
 }
 #endif
 
-bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(
-	FPCGExContext* InContext, const FName InPinLabel,
-	const FPCGExPickerAttributeSetRangesConfig& InConfig, TArray<FPCGExPickerConstantRangeConfig>& OutRanges)
+bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(FPCGExContext* InContext, const FName InPinLabel, const FPCGExPickerAttributeSetRangesConfig& InConfig, TArray<FPCGExPickerConstantRangeConfig>& OutRanges)
 {
 	TArray<TSharedPtr<PCGExData::FFacade>> Facades;
 	if (!TryGetFacades(InContext, InPinLabel, Facades, false, true))

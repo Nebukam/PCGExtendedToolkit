@@ -11,11 +11,7 @@ bool FPCGExSubPointsOperation::PrepareForData(FPCGExContext* InContext, const TS
 	return true;
 }
 
-void FPCGExSubPointsOperation::ProcessSubPoints(
-	const PCGExData::FConstPoint& From,
-	const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope,
-	const PCGExPaths::FPathMetrics& Metrics) const
+void FPCGExSubPointsOperation::ProcessSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
 }
 

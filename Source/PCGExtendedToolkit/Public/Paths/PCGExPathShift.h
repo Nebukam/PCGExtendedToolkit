@@ -142,8 +142,8 @@ namespace PCGExShiftPath
 		TArray<TSharedPtr<PCGExData::IBuffer>> Buffers;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

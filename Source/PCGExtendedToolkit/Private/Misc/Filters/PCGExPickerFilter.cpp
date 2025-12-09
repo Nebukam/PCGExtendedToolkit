@@ -16,9 +16,7 @@ bool UPCGExPickerFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	return PCGExFactories::GetInputFactories(
-		InContext, PCGExPicker::SourcePickersLabel, PickerFactories,
-		{PCGExFactories::EType::IndexPicker});
+	return PCGExFactories::GetInputFactories(InContext, PCGExPicker::SourcePickersLabel, PickerFactories, {PCGExFactories::EType::IndexPicker});
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExPickerFilterFactory::CreateFilter() const

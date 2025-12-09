@@ -59,8 +59,8 @@ namespace PCGExClusterStates
 
 		const UPCGExClusterStateFactoryData* StateFactory = nullptr;
 
-		explicit FState(const UPCGExClusterStateFactoryData* InFactory):
-			IFilter(InFactory), StateFactory(InFactory)
+		explicit FState(const UPCGExClusterStateFactoryData* InFactory)
+			: IFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
@@ -87,11 +87,7 @@ namespace PCGExClusterStates
 		TSharedPtr<TArray<int64>> FlagsCache;
 
 	public:
-		explicit FStateManager(
-			const TSharedPtr<TArray<int64>>& InFlags,
-			const TSharedRef<PCGExCluster::FCluster>& InCluster,
-			const TSharedRef<PCGExData::FFacade>& InPointDataCache,
-			const TSharedRef<PCGExData::FFacade>& InEdgeDataCache);
+		explicit FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataCache, const TSharedRef<PCGExData::FFacade>& InEdgeDataCache);
 
 		virtual bool Test(const int32 Index) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) override;
@@ -115,9 +111,7 @@ public:
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ClusterNodeFlag, "State : Cluster", "A single, filter-driven vtx state.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ClusterNodeFlag, "State : Cluster", "A single, filter-driven vtx state.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 	//~End UPCGSettings

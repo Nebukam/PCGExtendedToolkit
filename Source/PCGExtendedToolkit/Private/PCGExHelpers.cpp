@@ -13,7 +13,6 @@
 #include "Details/PCGExMacros.h"
 #include "PCGModule.h"
 #include "Data/PCGSpatialData.h"
-#include "Engine/AssetManager.h"
 #include "Async/Async.h"
 #include "Data/PCGPointArrayData.h"
 #include "Async/ParallelFor.h"
@@ -338,12 +337,11 @@ namespace PCGEx
 		{
 			InObject->ClearInternalFlags(EInternalObjectFlags::Async);
 
-			ForEachObjectWithOuter(
-				InObject, [&](UObject* SubObject)
-				{
-					if (ManagedObjects.Contains(SubObject)) { return; }
-					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
-				}, true);
+			ForEachObjectWithOuter(InObject, [&](UObject* SubObject)
+			{
+				if (ManagedObjects.Contains(SubObject)) { return; }
+				SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
+			}, true);
 		}
 	}
 
@@ -479,27 +477,6 @@ template PCGEXTENDEDTOOLKIT_API void ReorderValueRange<_TYPE>(TPCGValueRange<_TY
 	}
 }
 
-void UPCGExComponentCallback::Callback(UActorComponent* InComponent)
-{
-	if (!CallbackFn) { return; }
-	if (bIsOnce)
-	{
-		auto Callback = MoveTemp(CallbackFn);
-		CallbackFn = nullptr;
-		Callback(InComponent);
-	}
-	else
-	{
-		CallbackFn(InComponent);
-	}
-}
-
-void UPCGExComponentCallback::BeginDestroy()
-{
-	CallbackFn = nullptr;
-	UObject::BeginDestroy();
-}
-
 namespace PCGExHelpers
 {
 	FText GetClassDisplayName(const UClass* InClass)
@@ -538,8 +515,7 @@ namespace PCGExHelpers
 
 	bool IsDataDomainAttribute(const FPCGAttributePropertyInputSelector& InputSelector)
 	{
-		return InputSelector.GetDomainName() == PCGDataConstants::DataDomainName ||
-			IsDataDomainAttribute(InputSelector.GetName());
+		return InputSelector.GetDomainName() == PCGDataConstants::DataDomainName || IsDataDomainAttribute(InputSelector.GetName());
 	}
 
 	void InitEmptyNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties)
@@ -551,63 +527,6 @@ namespace PCGExHelpers
 
 		ToPoints->CopyUnallocatedPropertiesFrom(FromPoints);
 		ToPoints->AllocateProperties(FromPoints->GetAllocatedProperties());
-	}
-
-	void LoadBlocking_AnyThread(const FSoftObjectPath& Path)
-	{
-		if (IsInGameThread())
-		{
-			// We're in the game thread, request synchronous load
-			UAssetManager::GetStreamableManager().RequestSyncLoad(Path);
-		}
-		else
-		{
-			// We're not in the game thread, we need to dispatch loading to the main thread
-			// and wait in the current one
-			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(
-				ENamedThreads::GameThread, [BlockingEvent, Path]()
-				{
-					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						Path, [BlockingEvent]() { BlockingEvent->Trigger(); });
-
-					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-				});
-
-			BlockingEvent->Wait();
-			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
-		}
-	}
-
-	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)
-	{
-		if (IsInGameThread())
-		{
-			UAssetManager::GetStreamableManager().RequestSyncLoad(Paths->Array());
-		}
-		else
-		{
-			TWeakPtr<TSet<FSoftObjectPath>> WeakPaths = Paths;
-			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(
-				ENamedThreads::GameThread, [BlockingEvent, WeakPaths]()
-				{
-					const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
-					if (!ToBeLoaded)
-					{
-						BlockingEvent->Trigger();
-						return;
-					}
-
-					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						ToBeLoaded->Array(), [BlockingEvent]() { BlockingEvent->Trigger(); });
-
-					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-				});
-
-			BlockingEvent->Wait();
-			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
-		}
 	}
 
 	void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType)

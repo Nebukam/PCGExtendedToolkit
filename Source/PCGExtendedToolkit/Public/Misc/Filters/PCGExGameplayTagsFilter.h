@@ -109,9 +109,7 @@ class UPCGExGameplayTagsFilterProviderSettings : public UPCGExFilterProviderSett
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		GameplayTagsFilterFactory, "Filter : GameplayTags", "Creates a filter definition that checks gameplay tags of an actor reference.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(GameplayTagsFilterFactory, "Filter : GameplayTags", "Creates a filter definition that checks gameplay tags of an actor reference.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

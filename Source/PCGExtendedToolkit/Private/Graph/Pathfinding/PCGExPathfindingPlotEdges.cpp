@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfindingPlotEdges.h"
 
 
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
@@ -43,8 +44,7 @@ void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChanged
 
 bool UPCGExPathfindingPlotEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->IsOutputPin()
-		&& (InPin->Properties.Label == PCGExMatching::OutputUnmatchedVtxLabel || InPin->Properties.Label == PCGExMatching::OutputUnmatchedEdgesLabel))
+	if (InPin->IsOutputPin() && (InPin->Properties.Label == PCGExMatching::OutputUnmatchedVtxLabel || InPin->Properties.Label == PCGExMatching::OutputUnmatchedEdgesLabel))
 	{
 		return DataMatching.WantsUnmatchedSplit();
 	}
@@ -69,10 +69,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 	return PinProperties;
 }
 
-void FPCGExPathfindingPlotEdgesContext::BuildPath(
-	const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query,
-	const TSharedPtr<PCGExData::FPointIO>& PathIO,
-	const TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler>& ClusterForwardHandler) const
+void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler>& ClusterForwardHandler) const
 {
 	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
 
@@ -208,18 +205,16 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	Context->PlotsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
-	Context->PlotsHandler->Init(
-		Context, PCGExGraph::SourcePlotsLabel,
-		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	Context->PlotsHandler->Init(Context, PCGExGraph::SourcePlotsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	{
+		if (IO->GetNum() < 2)
 		{
-			if (IO->GetNum() < 2)
-			{
-				if (!Settings->bQuietInvalidPlotWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
-				return FBox(NoInit);
-			}
+			if (!Settings->bQuietInvalidPlotWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
+			return FBox(NoInit);
+		}
 
-			return IO->GetIn()->GetBounds();
-		});
+		return IO->GetIn()->GetBounds();
+	});
 
 	Context->NumMaxPlots = Context->PlotsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxPlots)
@@ -228,15 +223,12 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Context->PlotsHandler->ForEachTarget(
-		[&](const TSharedRef<PCGExData::FFacade>& Target, const int32)
-		{
-			Context->PlotsForwardHandlers.Add(Target->Idx, Settings->PlotForwarding.TryGetHandler(Target, false));
-		});
+	Context->PlotsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32)
+	{
+		Context->PlotsForwardHandlers.Add(Target->Idx, Settings->PlotForwarding.TryGetHandler(Target, false));
+	});
 
-	if (Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated ||
-		Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Any ||
-		Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Both)
+	if (Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated || Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Any || Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Both)
 	{
 		Context->bMatchForVtx = true;
 		Context->bMatchForEdges = true;
@@ -253,8 +245,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		Context->MainDataMatcher->SetDetails(&Settings->DataMatching);
 		if (!Context->MainDataMatcher->Init(Context, Context->PlotsHandler->GetFacades(), true)) { return false; }
 
-		if (Settings->DataMatching.Mode != EPCGExMapMatchMode::Disabled &&
-			Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
+		if (Settings->DataMatching.Mode != EPCGExMapMatchMode::Disabled && Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
 		{
 			Context->EdgeDataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 			if (!Context->EdgeDataMatcher->Init(Context, Context->MainDataMatcher, PCGExMatching::SourceMatchRulesEdgesLabel, true)) { return false; }
@@ -276,12 +267,10 @@ bool FPCGExPathfindingPlotEdgesElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->SetWantsHeuristics(true);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->SetWantsHeuristics(true);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -324,22 +313,16 @@ namespace PCGExPathfindingPlotEdges
 
 		if (ValidPlots.IsEmpty()) { return false; }
 
-		ClusterDataForwardHandler = MakeShared<PCGExClusterUtils::FClusterDataForwardHandler>(
-				Cluster,
-				StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->VtxDataForwardHandler,
-				Context->EdgesDataForwarding.TryGetHandler(EdgeDataFacade, false)
-			);
+		ClusterDataForwardHandler = MakeShared<PCGExClusterUtils::FClusterDataForwardHandler>(Cluster, StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->VtxDataForwardHandler, Context->EdgesDataForwarding.TryGetHandler(EdgeDataFacade, false));
 
 		if (Settings->bUseOctreeSearch)
 		{
-			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx ||
-				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx)
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx || Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx)
 			{
 				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Vtx);
 			}
 
-			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
-				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge || Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
 			{
 				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
 			}
@@ -404,9 +387,7 @@ namespace PCGExPathfindingPlotEdges
 
 		VtxDataForwardHandler = Context->VtxDataForwarding.TryGetHandler(VtxDataFacade, false);
 
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-			Context->bMatchForVtx
-			&& !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); Context->bMatchForVtx && !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source, MatchingScope, IgnoreList))
 		{
 			bUnmatched = true;
 		}

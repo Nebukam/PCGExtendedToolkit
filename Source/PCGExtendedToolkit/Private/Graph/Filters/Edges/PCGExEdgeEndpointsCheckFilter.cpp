@@ -90,23 +90,17 @@ namespace PCGExEdgeEndpointsCheck
 		bool bPass = true;
 		switch (TypedFilterFactory->Config.Mode)
 		{
-		case EPCGExEdgeEndpointsCheckMode::None:
-			bPass = StartResult != Expected && EndResult != Expected;
+		case EPCGExEdgeEndpointsCheckMode::None: bPass = StartResult != Expected && EndResult != Expected;
 			break;
-		case EPCGExEdgeEndpointsCheckMode::Both:
-			bPass = StartResult == Expected && EndResult == Expected;
+		case EPCGExEdgeEndpointsCheckMode::Both: bPass = StartResult == Expected && EndResult == Expected;
 			break;
-		case EPCGExEdgeEndpointsCheckMode::Any:
-			bPass = StartResult == Expected || EndResult == Expected;
+		case EPCGExEdgeEndpointsCheckMode::Any: bPass = StartResult == Expected || EndResult == Expected;
 			break;
-		case EPCGExEdgeEndpointsCheckMode::Start:
-			bPass = StartResult == Expected;
+		case EPCGExEdgeEndpointsCheckMode::Start: bPass = StartResult == Expected;
 			break;
-		case EPCGExEdgeEndpointsCheckMode::End:
-			bPass = EndResult == Expected;
+		case EPCGExEdgeEndpointsCheckMode::End: bPass = EndResult == Expected;
 			break;
-		case EPCGExEdgeEndpointsCheckMode::SeeSaw:
-			bPass = StartResult != EndResult;
+		case EPCGExEdgeEndpointsCheckMode::SeeSaw: bPass = StartResult != EndResult;
 			break;
 		}
 
@@ -135,9 +129,7 @@ UPCGExFactoryData* UPCGExEdgeEndpointsCheckFilterProviderSettings::CreateFactory
 
 	Super::CreateFactory(InContext, NewFactory);
 
-	if (!GetInputFactories(
-		InContext, PCGExPointFilter::SourceVtxFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterNodeFilters))
+	if (!GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

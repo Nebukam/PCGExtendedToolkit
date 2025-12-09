@@ -17,8 +17,8 @@ struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigKeepDirection() :
-		FPCGExFillControlConfigBase()
+	FPCGExFillControlConfigKeepDirection()
+		: FPCGExFillControlConfigBase()
 	{
 		bSupportSteps = false;
 	}
@@ -85,9 +85,7 @@ class UPCGExFillControlsKeepDirectionProviderSettings : public UPCGExFillControl
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsKeepDirection, "Fill Control : Keep Direction", "Stop fill after a certain number of vtx have been captured.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsKeepDirection, "Fill Control : Keep Direction", "Stop fill after a certain number of vtx have been captured.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

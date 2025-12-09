@@ -69,19 +69,17 @@ bool FPCGExCreateSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any dataset to generate splines."));
 		}
@@ -174,31 +172,19 @@ namespace PCGExCreateSpline
 
 			switch (PointTypeProxy)
 			{
-			case EPCGExSplinePointType::Linear:
-				PointType = ESplinePointType::Linear;
+			case EPCGExSplinePointType::Linear: PointType = ESplinePointType::Linear;
 				break;
-			case EPCGExSplinePointType::Curve:
-				PointType = ESplinePointType::Curve;
+			case EPCGExSplinePointType::Curve: PointType = ESplinePointType::Curve;
 				break;
-			case EPCGExSplinePointType::Constant:
-				PointType = ESplinePointType::Constant;
+			case EPCGExSplinePointType::Constant: PointType = ESplinePointType::Constant;
 				break;
-			case EPCGExSplinePointType::CurveClamped:
-				PointType = ESplinePointType::CurveClamped;
+			case EPCGExSplinePointType::CurveClamped: PointType = ESplinePointType::CurveClamped;
 				break;
-			case EPCGExSplinePointType::CurveCustomTangent:
-				PointType = ESplinePointType::CurveCustomTangent;
+			case EPCGExSplinePointType::CurveCustomTangent: PointType = ESplinePointType::CurveCustomTangent;
 				break;
 			}
 
-			SplinePoints[Index] = FSplinePoint(
-				static_cast<float>(Index),
-				TR.GetLocation() - PositionOffset,
-				OutArrive,
-				OutLeave,
-				TR.GetRotation().Rotator(),
-				TR.GetScale3D(),
-				PointType);
+			SplinePoints[Index] = FSplinePoint(static_cast<float>(Index), TR.GetLocation() - PositionOffset, OutArrive, OutLeave, TR.GetRotation().Rotator(), TR.GetScale3D(), PointType);
 
 			const int64 PointMetadataEntry = InMetadataEntries[Index];
 			SplineEntryKeys[Index] = PointMetadataEntry;

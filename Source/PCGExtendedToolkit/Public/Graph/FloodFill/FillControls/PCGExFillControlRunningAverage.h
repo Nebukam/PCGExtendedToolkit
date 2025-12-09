@@ -16,8 +16,8 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigRunningAverage() :
-		FPCGExFillControlConfigBase()
+	FPCGExFillControlConfigRunningAverage()
+		: FPCGExFillControlConfigBase()
 	{
 		bSupportSteps = false;
 		WindowSizeAttribute.Update("WindowSize");
@@ -100,9 +100,7 @@ class UPCGExFillControlsRunningAverageProviderSettings : public UPCGExFillContro
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsRunningAverage, "Fill Control : Running Average", "Ignore candidates which attribute value isn't within the given tolerance of a running average.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsRunningAverage, "Fill Control : Running Average", "Ignore candidates which attribute value isn't within the given tolerance of a running average.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

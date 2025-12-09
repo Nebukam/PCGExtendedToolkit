@@ -51,13 +51,11 @@ namespace PCGExClusterFilter
 	bool IVtxFilter::Test(const int32 Index) const { return IFilter::Test(*Cluster->GetNode(Index)); }
 	bool IVtxFilter::Test(const PCGExCluster::FNode& Node) const { return IFilter::Test(Node); }
 
-	bool IVtxFilter::Test(const PCGExGraph::FEdge& Edge) const
-	PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
+	bool IVtxFilter::Test(const PCGExGraph::FEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
 
 	bool IEdgeFilter::Test(const int32 Index) const { return IFilter::Test(*Cluster->GetEdge(Index)); }
 
-	bool IEdgeFilter::Test(const PCGExCluster::FNode& Node) const
-	PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
+	bool IEdgeFilter::Test(const PCGExCluster::FNode& Node) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
 
 	bool IEdgeFilter::Test(const PCGExGraph::FEdge& Edge) const { return IFilter::Test(Edge); }
 

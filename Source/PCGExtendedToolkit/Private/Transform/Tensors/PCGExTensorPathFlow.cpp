@@ -31,23 +31,13 @@ PCGExTensor::FTensorSample FPCGExTensorPathFlow::Sample(const int32 InSeedIndex,
 		PCGExTensor::FEffectorMetrics Metrics;
 		if (!ComputeFactor(InPosition, *Spline.Get(), Config.Radius, T, Metrics)) { continue; }
 
-		Samples.Emplace_GetRef(
-			FRotationMatrix::MakeFromX(PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection)).ToQuat().RotateVector(Metrics.Guide),
-			Metrics.Potency, Metrics.Weight);
+		Samples.Emplace_GetRef(FRotationMatrix::MakeFromX(PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection)).ToQuat().RotateVector(Metrics.Guide), Metrics.Potency, Metrics.Weight);
 	}
 
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
-PCGEX_TENSOR_BOILERPLATE(
-	PathFlow, {
-	NewFactory->Config.Potency *= NewFactory->Config.PotencyScale;
-	NewFactory->bBuildFromPaths = GetBuildFromPoints();
-	NewFactory->PointType = NewFactory->Config.PointType;
-	NewFactory->bSmoothLinear = NewFactory->Config.bSmoothLinear;
-	}, {
-	NewOperation->Splines = &ManagedSplines;
-	})
+PCGEX_TENSOR_BOILERPLATE(PathFlow, { NewFactory->Config.Potency *= NewFactory->Config.PotencyScale; NewFactory->bBuildFromPaths = GetBuildFromPoints(); NewFactory->PointType = NewFactory->Config.PointType; NewFactory->bSmoothLinear = NewFactory->Config.bSmoothLinear; }, { NewOperation->Splines = &ManagedSplines; })
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

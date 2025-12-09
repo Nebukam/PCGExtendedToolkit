@@ -56,14 +56,10 @@ extern template void SetDataValue<_TYPE>(UPCGData* InData, FPCGAttributeIdentifi
 	{
 		switch (InType)
 		{
-		case EPCGExNumericOutput::Double:
-			return EPCGMetadataTypes::Double;
-		case EPCGExNumericOutput::Float:
-			return EPCGMetadataTypes::Float;
-		case EPCGExNumericOutput::Int32:
-			return EPCGMetadataTypes::Integer32;
-		case EPCGExNumericOutput::Int64:
-			return EPCGMetadataTypes::Integer64;
+		case EPCGExNumericOutput::Double: return EPCGMetadataTypes::Double;
+		case EPCGExNumericOutput::Float: return EPCGMetadataTypes::Float;
+		case EPCGExNumericOutput::Int32: return EPCGMetadataTypes::Integer32;
+		case EPCGExNumericOutput::Int64: return EPCGMetadataTypes::Integer64;
 		}
 
 		return EPCGMetadataTypes::Unknown;

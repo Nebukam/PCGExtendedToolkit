@@ -134,8 +134,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 protected:
 	int32 CurrentPointIOIndex = -1;
 
-	virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const
-	PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
+	virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGExElement
@@ -144,4 +143,5 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PointsProcessor)
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
