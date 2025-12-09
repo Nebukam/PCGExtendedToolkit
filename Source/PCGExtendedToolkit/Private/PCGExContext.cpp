@@ -205,8 +205,8 @@ FPCGExContext::FPCGExContext()
 
 FPCGExContext::~FPCGExContext()
 {
-	WorkHandle.Reset();
-	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
+	//WorkHandle.Reset();
+	//ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
@@ -378,6 +378,7 @@ void FPCGExContext::OnComplete()
 
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
 	ManagedObjects->Remove(OutputData.TaggedData);
+	ManagedObjects->Flush();
 	UnpauseContext();
 
 	PCGEX_TERMINATE_ASYNC
@@ -525,7 +526,8 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
-
+		ManagedObjects->Flush();
+		
 		UnpauseContext();
 	}
 

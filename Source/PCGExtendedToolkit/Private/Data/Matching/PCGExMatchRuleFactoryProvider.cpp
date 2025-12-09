@@ -224,7 +224,11 @@ namespace PCGExMatching
 
 	bool FDataMatcher::HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward) const
 	{
-		if (!Details->bSplitUnmatched) { return false; }
+		if (!Details->bSplitUnmatched)
+		{
+			if (!Details->bQuietUnmatchedTargetWarning) { PCGE_LOG_C(Warning, GraphAndLog, InFacade->GetContext(), FTEXT("An input has no matching target.")); }
+			return false;
+		}
 		if (bForward) { if (!InFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward)) { return true; } }
 		InFacade->Source->OutputPin = OutputUnmatchedLabel;
 		return true;

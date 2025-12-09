@@ -308,7 +308,10 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 				This->OnSubloadComplete();
 			};
 		}
-		for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { Preloader->StartLoading(AsyncManager, InParentHandle); }
+		{
+			PCGExMT::FSchedulingScope AsyncScope(AsyncManager);
+			for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { Preloader->StartLoading(AsyncManager, InParentHandle); }
+		}
 	}
 
 	void FMultiFacadePreloader::OnSubloadComplete()

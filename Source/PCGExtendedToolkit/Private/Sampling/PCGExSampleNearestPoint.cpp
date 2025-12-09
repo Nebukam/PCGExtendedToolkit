@@ -215,7 +215,7 @@ bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, cons
 		};
 
 		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
-		return false;
+		if (Context->IsWaitingForTasks()) { return false; }
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
