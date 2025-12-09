@@ -96,7 +96,7 @@ namespace PCGExBestMatchAxis
 
 			if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 			{
-				if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+				(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 				return false;
 			}
 		}

@@ -329,6 +329,7 @@ namespace PCGExSampling
 	bool FTargetsHandler::HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward) const
 	{
 		if (DataMatcher) { return DataMatcher->HandleUnmatchedOutput(InFacade, bForward); }
+		if (bForward) { return InFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 		return false;
 	}
 

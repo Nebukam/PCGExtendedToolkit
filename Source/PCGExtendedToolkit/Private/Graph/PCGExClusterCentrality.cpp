@@ -20,6 +20,18 @@
 PCGEX_INITIALIZE_ELEMENT(ClusterCentrality)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ClusterCentrality)
 
+#if WITH_EDITOR
+void UPCGExClusterCentralitySettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 73, 0)
+	{
+		RandomDownsampling.ApplyDeprecation();
+	}
+	
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 bool UPCGExClusterCentralitySettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExGraph::SourceVtxFiltersLabel) { return DownsamplingMode == EPCGExCentralityDownsampling::Filters; }

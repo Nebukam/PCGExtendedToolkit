@@ -39,6 +39,8 @@ class UPCGExClusterCentralitySettings : public UPCGExEdgesProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_NODE_INFOS(ClusterCentrality, "Cluster : Centrality", "Compute betweenness centrality. Processing time increases exponentially with the number of vtx.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
 #endif

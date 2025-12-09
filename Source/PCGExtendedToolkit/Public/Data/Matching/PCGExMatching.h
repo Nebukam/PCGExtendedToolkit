@@ -80,6 +80,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bSplitUnmatched = true;
 
+	/** If enabled, outputs data that got no valid matches. 
+	 * Not all nodes support this options. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" ├─ Output Unmatched", EditCondition="!bSplitUnmatched", EditConditionHides))
+	bool bOutputUnmatched = true;
+
+	/** If enabled, will throw a warning when there is no valid target matches.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Quiet Unmatched Warning", EditCondition="!bSplitUnmatched", EditConditionHides))
+	bool bQuietUnmatchedTargetWarning = true;
+
 	/** Whether to limit the number of matches or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
 	bool bLimitMatches = false;
@@ -95,10 +104,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	/** Constant Limit value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && LimitInput == EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
 	int32 Limit = 1;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
-	bool bQuietUnmatchedTargetWarning = true;
 
 	bool WantsUnmatchedSplit() const { return Mode != EPCGExMapMatchMode::Disabled && bSplitUnmatched; }
 };

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "PCGExDetailsInputShorthands.h"
 #include "PCGExMathMean.h"
 #include "PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
@@ -63,48 +64,72 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRandomRatioDetails
 
 	explicit FPCGExRandomRatioDetails(double DefaultAmount)
 	{
-		Amount = DefaultAmount;
+		Amount_DEPRECATED = DefaultAmount;
 	}
 
 	/** Type of seed input */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Seed", meta=(PCG_Overridable))
-	EPCGExInputValueType SeedInput = EPCGExInputValueType::Constant;
-
-	/** Fetch the seed value from a @Data attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Seed", meta = (PCG_Overridable, DisplayName="Seed (Attr)", EditCondition="SeedInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector LocalSeed;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Seed", meta=(PCG_Overridable, DisplayName="Seed", EditCondition="SeedInput == EPCGExInputValueType::Constant", EditConditionHides))
-	int32 SeedValue = 42;
-
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExInputShorthandSelectorInteger32 BaseSeed = FPCGExInputShorthandSelectorInteger32(FName("@Data.Seed"), 42);
+		
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExMeanMeasure Units = EPCGExMeanMeasure::Relative;
+	
+	/** Amount (relative) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Relative)", EditCondition="Units == EPCGExMeanMeasure::Relative", EditConditionHides))
+	FPCGExInputShorthandSelectorDouble01 RelativeAmount = FPCGExInputShorthandSelectorDouble01(FName("@Data.Amount"), 0.5, false);
+	
+	/** Amount (fixed) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Fixed)", EditCondition="Units == EPCGExMeanMeasure::Discrete", EditConditionHides))
+	FPCGExInputShorthandSelectorInteger32Abs DiscreteAmount = FPCGExInputShorthandSelectorInteger32Abs(FName("@Data.Amount"), 42, false);
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bDoClampMin = false;
+	
+	/** Min Amount (fixed) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoClampMin"))
+	FPCGExInputShorthandSelectorInteger32Abs ClampMin = FPCGExInputShorthandSelectorInteger32Abs(FName("@Data.ClampMin"), 1, false);
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bDoClampMax = false;
+	
+	/** Max Amount (fixed) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoClampMax"))
+	FPCGExInputShorthandSelectorInteger32Abs ClampMax = FPCGExInputShorthandSelectorInteger32Abs(FName("@Data.ClampMax"), 500, false);
+	
+#pragma region DEPRECATED
+	
+	UPROPERTY()
+	EPCGExInputValueType SeedInput_DEPRECATED = EPCGExInputValueType::Constant;
 
-	/** Type of amount input */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInputValueType AmountInput = EPCGExInputValueType::Constant;
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector LocalSeed_DEPRECATED;
 
-	/** Fetch the amount value from a @Data attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Amount (Attr)", EditCondition="AmountInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector LocalAmount;
+	UPROPERTY()
+	int32 SeedValue_DEPRECATED = 42;
 
-	/** Ratio relative to maximum number of items. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount", EditCondition="AmountInput == EPCGExInputValueType::Constant && Units == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
-	double Amount = 0.5;
+	UPROPERTY()
+	EPCGExInputValueType AmountInput_DEPRECATED = EPCGExInputValueType::Constant;
 
-	/** Fixed number of items. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Fixed Amount", EditCondition="AmountInput == EPCGExInputValueType::Constant && Units == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=1))
-	int32 FixedAmount = 1;
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector LocalAmount_DEPRECATED;
 
-	PCGEX_SETTING_DATA_VALUE_DECL(Seed, int32)
-	PCGEX_SETTING_DATA_VALUE_DECL(Amount, double)
-	PCGEX_SETTING_DATA_VALUE_DECL(FixedAmount, int32)
+	UPROPERTY()
+	double Amount_DEPRECATED = 0.5;
 
+	UPROPERTY()
+	int32 FixedAmount_DEPRECATED = 1;
+
+#pragma endregion
+	
 	int32 GetNumPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems) const;
 
 	void GetPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, TSet<int32>& OutPicks) const;
 	void GetPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, TArray<int32>& OutPicks) const;
+	
+#if WITH_EDITOR
+	void ApplyDeprecation();
+#endif
 };
