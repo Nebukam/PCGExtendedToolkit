@@ -156,8 +156,11 @@ namespace PCGExFusePoints
 
 		bool bUpdateCenter = Settings->BlendingDetails.PropertiesOverrides.bOverridePosition && Settings->BlendingDetails.PropertiesOverrides.PositionBlending == EPCGExDataBlendingType::None;
 
+		PCGEX_SHARED_CONTEXT_VOID(Context->GetOrCreateHandle())
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
+			
 			const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
 
 			if (bUpdateCenter) { Transforms[Index].SetLocation(Center); }
@@ -177,6 +180,7 @@ namespace PCGExFusePoints
 
 		if (Settings->Mode == EPCGExFusedPointOutput::MostCentral)
 		{
+						
 			TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping(NumUnionNodes);
 			const PCGPointOctree::FPointOctree& Octree = PointDataFacade->GetIn()->GetPointOctree();
 			const TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();

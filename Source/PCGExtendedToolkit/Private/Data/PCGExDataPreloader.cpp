@@ -194,7 +194,7 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 
 	void FFacadePreloader::StartLoading(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const TSharedPtr<PCGExMT::IAsyncMultiHandle>& InParentHandle)
+		const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle)
 	{
 		WeakHandle = AsyncManager->GetContext()->GetOrCreateHandle();
 
@@ -297,7 +297,7 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 		return true;
 	}
 
-	void FMultiFacadePreloader::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncMultiHandle>& InParentHandle)
+	void FMultiFacadePreloader::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle)
 	{
 		WeakHandle = AsyncManager->GetContext()->GetOrCreateHandle();
 		for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders)

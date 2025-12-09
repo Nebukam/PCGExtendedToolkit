@@ -78,7 +78,7 @@ namespace PCGExMT
 		Ended = 2,
 	};
 
-	class IAsyncMultiHandle;
+	class IAsyncHandleGroup;
 	class FAsyncToken;
 	class FTask;
 	class FTaskGroup;
@@ -87,7 +87,7 @@ namespace PCGExMT
 	// Base async handle with state management
 	class PCGEXTENDEDTOOLKIT_API IAsyncHandle : public TSharedFromThis<IAsyncHandle>
 	{
-		friend class IAsyncMultiHandle;
+		friend class IAsyncHandleGroup;
 		friend class FAsyncToken;
 		friend class FTask;
 		friend class FTaskGroup;
@@ -95,8 +95,7 @@ namespace PCGExMT
 
 	protected:
 		int8 bExpected = false;
-		TWeakPtr<FTaskManager> Root;
-		TWeakPtr<IAsyncMultiHandle> ParentHandle;
+		TWeakPtr<IAsyncHandleGroup> Group;
 
 		std::atomic<bool> bResetting{false};
 		std::atomic<bool> bCancelled{false};
@@ -112,8 +111,8 @@ namespace PCGExMT
 		bool IsCancelled() const { return bCancelled.load(std::memory_order_acquire); }
 		EAsyncHandleState GetState() const { return State.load(std::memory_order_acquire); }
 
-		virtual bool SetRoot(const TSharedPtr<FTaskManager>& InRoot, int32 InHandleIdx = -1);
-		void SetParent(const TSharedPtr<IAsyncMultiHandle>& InParent);
+		virtual FTaskManager* GetManager() const;
+		bool SetGroup(const TSharedPtr<IAsyncHandleGroup>& InGroup);
 
 		virtual bool Start();
 		virtual void Cancel();
@@ -132,7 +131,7 @@ namespace PCGExMT
 	};
 
 	// Multi-handle manages multiple child tasks
-	class PCGEXTENDEDTOOLKIT_API IAsyncMultiHandle : public IAsyncHandle
+	class PCGEXTENDEDTOOLKIT_API IAsyncHandleGroup : public IAsyncHandle
 	{
 		friend class FTaskManager;
 
@@ -140,7 +139,7 @@ namespace PCGExMT
 		FName GroupName = NAME_None;
 
 		// Per-handle registry for memory management
-		
+
 		mutable FRWLock RegistryLock;
 		TArray<TWeakPtr<IAsyncHandle>> Registry;
 
@@ -158,9 +157,9 @@ namespace PCGExMT
 		// RAII guard that blocks CheckCompletion during registration
 		struct FRegistrationGuard
 		{
-			TSharedPtr<IAsyncMultiHandle> Parent;
+			TSharedPtr<IAsyncHandleGroup> Parent;
 
-			explicit FRegistrationGuard(const TSharedPtr<IAsyncMultiHandle>& InParent)
+			explicit FRegistrationGuard(const TSharedPtr<IAsyncHandleGroup>& InParent)
 				: Parent(InParent)
 			{
 				Parent->PendingRegistrations.fetch_add(1, std::memory_order_acquire);
@@ -176,8 +175,8 @@ namespace PCGExMT
 		virtual FString DEBUG_HandleId() const override { return GroupName.ToString(); }
 		FCompletionCallback OnCompleteCallback;
 
-		explicit IAsyncMultiHandle(const FName InName);
-		virtual ~IAsyncMultiHandle() override;
+		explicit IAsyncHandleGroup(const FName InName);
+		virtual ~IAsyncHandleGroup() override;
 
 		virtual bool IsAvailable() const;
 
@@ -203,26 +202,26 @@ namespace PCGExMT
 
 		void StartHandlesBatchImpl(const TArray<TSharedPtr<FTask>>& InHandles);
 
-		void AssertEmptyThread(const int32 NumIterations) const;
+		void AssertEmptyThread() const;
 	};
 
 	// Token for async work tracking
 	class PCGEXTENDEDTOOLKIT_API FAsyncToken final : public TSharedFromThis<FAsyncToken>
 	{
 		std::atomic<bool> bReleased{false};
-		TWeakPtr<IAsyncMultiHandle> Handle;
+		TWeakPtr<IAsyncHandleGroup> Group;
 
 	public:
-		FAsyncToken(const TWeakPtr<IAsyncMultiHandle>& InHandle);
+		FAsyncToken(const TWeakPtr<IAsyncHandleGroup>& InHandle);
 		~FAsyncToken();
 		void Release();
 	};
 
 	// Task manager - root of task hierarchy
-	class PCGEXTENDEDTOOLKIT_API FTaskManager : public IAsyncMultiHandle
+	class PCGEXTENDEDTOOLKIT_API FTaskManager : public IAsyncHandleGroup
 	{
 		friend class IAsyncHandle;
-		friend class IAsyncMultiHandle;
+		friend class IAsyncHandleGroup;
 		friend class FTask;
 		friend class FTaskGroup;
 
@@ -242,6 +241,7 @@ namespace PCGExMT
 		explicit FTaskManager(FPCGExContext* InContext);
 		virtual ~FTaskManager() override;
 
+		virtual FTaskManager* GetManager() const override;
 		virtual bool IsAvailable() const override;
 		bool IsWaitingForTasks() const;
 
@@ -254,9 +254,9 @@ namespace PCGExMT
 		virtual void Cancel() override;
 
 		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName,
-		                                          const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
+		                                          const TSharedPtr<IAsyncHandleGroup>& InParentHandle = nullptr);
 		bool TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle,
-		                       const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
+		                       const TSharedPtr<IAsyncHandleGroup>& InParentHandle = nullptr);
 
 		void Reset();
 
@@ -271,7 +271,7 @@ namespace PCGExMT
 	};
 
 	// Task group for batched operations
-	class PCGEXTENDEDTOOLKIT_API FTaskGroup final : public IAsyncMultiHandle
+	class PCGEXTENDEDTOOLKIT_API FTaskGroup final : public IAsyncHandleGroup
 	{
 		friend class FTaskManager;
 		friend class FSimpleCallbackTask;
@@ -293,7 +293,13 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void StartRanges(const int32 MaxItems, const int32 ChunkSize, const bool bPrepareOnly, Args&&... InArgs)
 		{
-			if (!IsAvailable() || MaxItems <= 0) { return; }
+			if (!IsAvailable()) { return; }
+
+			if (!MaxItems)
+			{
+				AssertEmptyThread();
+				return;
+			}
 
 			TArray<FScope> Loops;
 			const int32 NumLoops = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
@@ -333,7 +339,7 @@ namespace PCGExMT
 	};
 
 	PCGEXTENDEDTOOLKIT_API
-	void ExecuteOnMainThread(const TSharedPtr<IAsyncMultiHandle>& ParentHandle, FExecuteCallback&& Callback);
+	void ExecuteOnMainThread(const TSharedPtr<IAsyncHandleGroup>& ParentHandle, FExecuteCallback&& Callback);
 
 	// Base task class
 	class PCGEXTENDEDTOOLKIT_API FTask : public IAsyncHandle

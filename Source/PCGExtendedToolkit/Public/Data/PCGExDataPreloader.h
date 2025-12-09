@@ -9,7 +9,7 @@
 
 namespace PCGExMT
 {
-	class IAsyncMultiHandle;
+	class IAsyncHandleGroup;
 	class FTaskManager;
 }
 
@@ -86,7 +86,7 @@ namespace PCGExData
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;
 
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncMultiHandle>& InParentHandle = nullptr);
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr);
 
 		bool IsLoaded() const { return bLoaded; }
 
@@ -122,7 +122,7 @@ extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext,
 		CompletionCallback OnCompleteCallback;
 
 		bool Validate(FPCGExContext* InContext);
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncMultiHandle>& InParentHandle = nullptr);
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr);
 
 	protected:
 		void OnSubloadComplete();

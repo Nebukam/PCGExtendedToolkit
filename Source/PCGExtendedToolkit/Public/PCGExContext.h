@@ -40,12 +40,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 	friend class IPCGExElement;
 
 protected:
-	enum class EExecutionPolicy : int8
-	{
-		Normal,
-		NoPause
-	};
-
 	mutable FRWLock AsyncLock;
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
@@ -57,7 +51,6 @@ protected:
 public:
 	TWeakPtr<PCGEx::FWorkHandle> GetWorkHandle() { return WorkHandle; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
-	EExecutionPolicy ExecutionPolicy = EExecutionPolicy::Normal;
 
 	// TODO : bool toggle for hoarder execution 
 

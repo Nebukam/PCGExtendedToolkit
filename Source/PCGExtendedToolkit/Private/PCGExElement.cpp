@@ -86,17 +86,6 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 	const UPCGExSettings* Settings = Context->GetInputSettings<UPCGExSettings>();
 	check(Settings);
 
-	switch (Settings->ExecutionPolicy == EPCGExExecutionPolicy::Default ? GetDefault<UPCGExGlobalSettings>()->GetDefaultExecutionPolicy() : Settings->ExecutionPolicy)
-	{
-	case EPCGExExecutionPolicy::Default:
-	case EPCGExExecutionPolicy::Normal:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::Normal;
-		break;
-	case EPCGExExecutionPolicy::NoPause:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::NoPause;
-		break;
-	}
-
 	Context->bFlattenOutput = Settings->bFlattenOutput;
 	Context->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
 	Context->bPropagateAbortedExecution = Settings->bPropagateAbortedExecution;
@@ -160,6 +149,8 @@ void IPCGExElement::AbortInternal(FPCGContext* Context) const
 	IPCGElement::AbortInternal(Context);
 
 	if (!Context) { return; }
+	
+	//UE_LOG(LogTemp, Warning, TEXT(">> ABORTING @%s"), *Context->GetInputSettings<UPCGExSettings>()->GetName());
 
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	PCGExContext->CancelExecution();

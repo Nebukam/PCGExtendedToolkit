@@ -18,7 +18,7 @@ namespace PCGExMT
 {
 	struct FScope;
 	class FTaskManager;
-	class IAsyncMultiHandle;
+	class IAsyncHandleGroup;
 }
 
 struct FPCGExCarryOverDetails;
@@ -223,7 +223,7 @@ namespace PCGExGraph
 		int32 GetFirstInIOIndex();
 
 		void Compile(
-			const TWeakPtr<PCGExMT::IAsyncMultiHandle>& InParentHandle,
+			const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle,
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 			const TSharedPtr<FGraphBuilder>& InBuilder);
 

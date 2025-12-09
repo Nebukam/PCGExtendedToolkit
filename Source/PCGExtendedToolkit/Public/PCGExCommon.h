@@ -68,14 +68,6 @@ enum class EPCGExSplineMeshAxis : uint8
 	Z       = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
 };
 
-UENUM()
-enum class EPCGExExecutionPolicy : uint8
-{
-	Default = 0 UMETA(DisplayName = "Default", ToolTip="..."),
-	Normal  = 1 UMETA(DisplayName = "Normal", ToolTip="..."),
-	NoPause = 2 UMETA(DisplayName = "No Pause", ToolTip="..."),
-};
-
 namespace PCGEx
 {
 	constexpr int NumSupportedTypes = 16;

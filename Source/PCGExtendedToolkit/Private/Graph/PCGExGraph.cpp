@@ -258,7 +258,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 	}
 
 	void FSubGraph::Compile(
-		const TWeakPtr<PCGExMT::IAsyncMultiHandle>& InParentHandle,
+		const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle,
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const TSharedPtr<FGraphBuilder>& InBuilder)
 	{

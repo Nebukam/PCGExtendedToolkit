@@ -519,7 +519,6 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 	bool bExpected = false;
 	if (bWorkCancelled.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
-		//UE_LOG(LogTemp, Warning, TEXT(">> CANCELLED @%s"), *GetInputSettings<UPCGExSettings>()->GetName());
 		if (!bQuietCancellationError && !InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 
 		PCGEX_TERMINATE_ASYNC

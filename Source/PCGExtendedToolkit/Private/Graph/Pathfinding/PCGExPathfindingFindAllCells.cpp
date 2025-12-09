@@ -242,6 +242,8 @@ namespace PCGExFindAllCells
 			return;
 		}
 
+		if (ValidCells.IsEmpty()) { return; }
+
 		StartParallelLoopForRange(ValidCells.Num());
 	}
 

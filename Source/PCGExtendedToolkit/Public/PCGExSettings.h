@@ -36,10 +36,6 @@ public:
 	/** If enabled, will pre-allocate all data on a single thread to avoid contention. Not all nodes support this. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState BulkInitData = EPCGExOptionState::Default;
-
-	/** Execution policy for this node.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable), AdvancedDisplay)
-	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
 	
 	/** Cache the results of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))

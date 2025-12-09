@@ -79,10 +79,6 @@ public:
 	/** Value applied by default to node bulk init data when `Default` is selected. */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bBulkInitData = false;
-
-	UPROPERTY(EditAnywhere, config, Category = "Performance|Async")
-	EPCGExExecutionPolicy DefaultExecutionPolicy = EPCGExExecutionPolicy::Default;
-	EPCGExExecutionPolicy GetDefaultExecutionPolicy() const;
 	
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
 	bool bUseDelaunator = true;
