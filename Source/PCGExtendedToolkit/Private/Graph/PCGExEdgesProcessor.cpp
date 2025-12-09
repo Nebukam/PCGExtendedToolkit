@@ -159,6 +159,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExCommon::ContextStat
 			SetState(PCGExClusterMT::MTState_ClusterCompletingWork);
 			if (!bSkipClusterBatchCompletionStep)
 			{
+				PCGExMT::FSchedulingScope AsyncScope(AsyncManager);
 				for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->CompleteWork(); }
 			}
 		}
@@ -170,6 +171,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExCommon::ContextStat
 			if (bDoClusterBatchWritingStep)
 			{
 				SetState(PCGExClusterMT::MTState_ClusterWriting);
+				PCGExMT::FSchedulingScope AsyncScope(AsyncManager);
 				for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->Write(); }
 			}
 			else
