@@ -209,11 +209,8 @@ namespace PCGExMT
 
 	void IAsyncHandleGroup::ClearRegistry(const bool bCancel)
 	{
-		TArray<TSharedPtr<FAsyncToken>> LocalTokens;
-
 		{
 			FWriteScopeLock WriteLock(TokenLock);
-			LocalTokens = MoveTemp(Tokens); // Move tokens so they're cancelled outside lock
 			Tokens.Empty();
 		}
 
@@ -477,6 +474,11 @@ namespace PCGExMT
 			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
 
 			{
+				FWriteScopeLock WriteLock(TokenLock);
+				Tokens.Empty();
+			}
+			
+			{
 				FWriteScopeLock WriteLock(RegistryLock);
 				Registry.Empty();
 			}
@@ -484,11 +486,6 @@ namespace PCGExMT
 			{
 				FWriteScopeLock WriteLock(GroupsLock);
 				Groups.Empty();
-			}
-
-			{
-				FWriteScopeLock WriteLock(TokenLock);
-				Tokens.Empty();
 			}
 
 			// Reset counters
@@ -617,7 +614,12 @@ namespace PCGExMT
 		if (bCancel)
 		{
 			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
-
+			
+			{
+				FWriteScopeLock WriteLock(TokenLock);
+				Tokens.Empty();
+			}
+			
 			{
 				FWriteScopeLock WriteLock(RegistryLock);
 
@@ -625,14 +627,6 @@ namespace PCGExMT
 				for (const TWeakPtr<IAsyncHandle>& Weak : Registry) { if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); } }
 
 				Registry.Empty();
-			}
-
-			TArray<TSharedPtr<FAsyncToken>> LocalTokens;
-
-			{
-				FWriteScopeLock WriteLock(TokenLock);
-				LocalTokens = MoveTemp(Tokens); // Move tokens so they're cancelled outside lock
-				Tokens.Empty();
 			}
 
 			{

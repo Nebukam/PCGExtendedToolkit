@@ -302,14 +302,15 @@ namespace PCGEx
 
 	void FManagedObjects::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
 	{
-		FReadScopeLock ReadScopeLock(ManagedObjectLock);
-		for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
+		//This is causing a deadlock
+		//FReadScopeLock ReadScopeLock(ManagedObjectLock);
+		//for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
 	}
 
 	void FManagedObjects::Destroy(UObject* InObject)
 	{
 		// ♫ Let it go ♫
-
+		
 		/*
 		check(InObject)
 
@@ -319,9 +320,9 @@ namespace PCGEx
 			FReadScopeLock ReadScopeLock(ManagedObjectLock);
 			if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
 		}
-
-		Remove(InObject);
 		*/
+		
+		Remove(InObject);
 	}
 
 	void FManagedObjects::RecursivelyClearAsyncFlag_Unsafe(UObject* InObject) const

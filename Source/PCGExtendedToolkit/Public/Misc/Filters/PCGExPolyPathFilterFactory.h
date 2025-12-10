@@ -107,11 +107,14 @@ namespace PCGExPathInclusion
 		All,
 		Skip
 	};
-
+	
 #if PCGEX_ENGINE_VERSION > 506
 	PCGEXTENDEDTOOLKIT_API FPCGDataTypeIdentifier GetInclusionIdentifier();
 #endif
 
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareInclusionPin(TArray<FPCGPinProperties>& PinProperties);
+	
 #if WITH_EDITOR
 	static FString ToString(const EPCGExSplineCheckType Check)
 	{

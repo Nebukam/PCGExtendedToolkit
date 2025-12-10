@@ -194,6 +194,15 @@ FPCGDataTypeIdentifier PCGExPathInclusion::GetInclusionIdentifier()
 
 namespace PCGExPathInclusion
 {
+	void DeclareInclusionPin(TArray<FPCGPinProperties>& PinProperties)
+	{
+#if PCGEX_ENGINE_VERSION < 507
+		PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, TEXT("Path, splines, polygons, ... will be used for testing"), Required)
+#else
+		PCGEX_PIN_FACTORIES(PCGEx::SourceTargetsLabel, TEXT("Path, splines, polygons, ... will be used for testing"), Required, PCGExPathInclusion::GetInclusionIdentifier())
+#endif
+	}
+
 	FHandler::FHandler(const UPCGExPolyPathFilterFactory* InFactory)
 	{
 		Datas = InFactory->Datas;

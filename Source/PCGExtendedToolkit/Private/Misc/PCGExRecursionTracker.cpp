@@ -45,6 +45,20 @@ void UPCGExRecursionTrackerSettings::ApplyPreconfiguredSettings(const FPCGPreCon
 	}
 }
 
+#if PCGEX_ENGINE_VERSION < 507
+EPCGDataType UPCGExRecursionTrackerSettings::GetCurrentPinTypes(const UPCGPin* InPin) const
+{
+	if (!InPin->IsOutputPin()
+		|| InPin->Properties.Label == PCGPinConstants::DefaultInputLabel
+		|| InPin->Properties.Label == PCGExRecursionTracker::OutputContinueLabel
+		|| InPin->Properties.Label == PCGExRecursionTracker::OutputStopLabel)
+	{
+		return Super::GetCurrentPinTypes(InPin);
+	}
+
+	return EPCGDataType::Param;
+}
+#else
 FPCGDataTypeIdentifier UPCGExRecursionTrackerSettings::GetCurrentPinTypesID(const UPCGPin* InPin) const
 {
 	if (!InPin->IsOutputPin() || InPin->Properties.Label == PCGPinConstants::DefaultInputLabel || InPin->Properties.Label == PCGExRecursionTracker::OutputContinueLabel || InPin->Properties.Label == PCGExRecursionTracker::OutputStopLabel)
@@ -59,6 +73,8 @@ FPCGDataTypeIdentifier UPCGExRecursionTrackerSettings::GetCurrentPinTypesID(cons
 
 	return Id;
 }
+#endif
+
 
 TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::InputPinProperties() const
 {

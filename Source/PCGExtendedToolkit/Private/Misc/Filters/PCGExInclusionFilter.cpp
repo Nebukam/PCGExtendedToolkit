@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
+#include "PCGExVersion.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExInclusionFilterDefinition"
@@ -111,7 +112,7 @@ namespace PCGExPointFilter
 TArray<FPCGPinProperties> UPCGExInclusionFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGEx::SourceTargetsLabel, TEXT("Path, splines, polygons, ... will be used for testing"), Required, PCGExPathInclusion::GetInclusionIdentifier())
+	PCGExPathInclusion::DeclareInclusionPin(PinProperties);	
 	return PinProperties;
 }
 

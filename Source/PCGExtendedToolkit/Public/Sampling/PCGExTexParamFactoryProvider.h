@@ -5,7 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "PCGExVersion.h"
+#if PCGEX_ENGINE_VERSION < 507
+#include "MaterialTypes.h"
+#else
 #include "Materials/MaterialParameters.h"
+#endif
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 
