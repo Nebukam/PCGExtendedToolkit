@@ -200,7 +200,7 @@ bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const TArray<PCGExD
 
 bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const FPCGExAxisDeformDetails& Parent, const TSharedRef<PCGExData::FFacade>& InDataFacade, const int32 InTargetIndex, const bool bSupportPoint)
 {
-	if (Parent.FirstAlphaInput == EPCGExSampleSource::Target)
+	if (Parent.FirstAlphaInput == EPCGExSampleSource::Target && InTargetIndex != -1)
 	{
 		FirstValueGetter = Parent.TargetsFirstValueGetter[InTargetIndex];
 	}
@@ -224,7 +224,7 @@ bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const FPCGExAxisDef
 		}
 	}
 
-	if (Parent.SecondAlphaInput == EPCGExSampleSource::Target)
+	if (Parent.SecondAlphaInput == EPCGExSampleSource::Target && InTargetIndex != -1)
 	{
 		SecondValueGetter = Parent.TargetsSecondValueGetter[InTargetIndex];
 	}
