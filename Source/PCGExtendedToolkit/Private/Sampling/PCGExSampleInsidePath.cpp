@@ -65,6 +65,18 @@ PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetMainDataInitializationPoli
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleInsidePath)
 
+void FPCGExSampleInsidePathContext::RegisterAssetDependencies()
+{
+	PCGEX_SETTINGS_LOCAL(SampleInsidePath)
+
+	if (!Settings->bUseLocalCurve && Settings->WeightOverDistance.IsValid())
+	{
+		AddAssetDependency(Settings->WeightOverDistance.ToSoftObjectPath());
+	}
+
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+}
+
 bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -137,7 +149,6 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
 		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
 	}
 
@@ -200,7 +211,6 @@ namespace PCGExSampleInsidePath
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
-
 
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))

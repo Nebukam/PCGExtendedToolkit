@@ -44,14 +44,15 @@ bool FPCGExOffsetPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be affected."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         //NewBatch->SetPointsFilterData(&Context->FilterFactories);
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				PCGEX_SKIP_INVALID_PATH_ENTRY
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
+			}))
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to offset."));
 		}

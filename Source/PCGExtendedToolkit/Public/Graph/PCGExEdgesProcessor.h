@@ -116,7 +116,7 @@ protected:
 	TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> HeuristicsFactories;
 
 public:
-	bool ProcessClusters(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync = false);
+	bool ProcessClusters(const PCGExCommon::ContextState NextStateId);
 
 protected:
 	bool CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId);
@@ -143,7 +143,7 @@ protected:
 	virtual void ClusterProcessing_WritingDone();
 	virtual void ClusterProcessing_GraphCompilationDone();
 
-	void AdvanceBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync);
+	void AdvanceBatch(const PCGExCommon::ContextState NextStateId);
 
 	int32 CurrentEdgesIndex = -1;
 

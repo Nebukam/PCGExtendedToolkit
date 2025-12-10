@@ -760,6 +760,8 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
 
+		FWriteScopeLock WriteLock(PairsLock);
+		
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
@@ -774,7 +776,9 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 	int32 FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsMinMax);
-
+		
+		FWriteScopeLock WriteLock(PairsLock);
+		
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
@@ -789,7 +793,9 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 	int32 FPointIOCollection::StageAnyOutputs()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsAny);
-
+		
+		FWriteScopeLock WriteLock(PairsLock);
+		
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 

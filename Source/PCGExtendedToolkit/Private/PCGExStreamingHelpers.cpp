@@ -25,16 +25,12 @@ namespace PCGExHelpers
 		{
 			// We're not in the game thread, we need to dispatch loading to the main thread
 			// and wait in the current one
-			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(ENamedThreads::GameThread, [BlockingEvent, Path]()
+			const FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([Path]()
 			{
-				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(Path, [BlockingEvent]() { BlockingEvent->Trigger(); });
+				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestSyncLoad(Path);
+			}, TStatId(), nullptr, ENamedThreads::GameThread);
 
-				if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-			});
-
-			BlockingEvent->Wait();
-			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
+			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
 		}
 	}
 
@@ -47,23 +43,14 @@ namespace PCGExHelpers
 		else
 		{
 			TWeakPtr<TSet<FSoftObjectPath>> WeakPaths = Paths;
-			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(ENamedThreads::GameThread, [BlockingEvent, WeakPaths]()
+			const FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([WeakPaths]()
 			{
 				const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
-				if (!ToBeLoaded)
-				{
-					BlockingEvent->Trigger();
-					return;
-				}
+				if (!ToBeLoaded) { return; }
+				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestSyncLoad(ToBeLoaded->Array());
+			}, TStatId(), nullptr, ENamedThreads::GameThread);
 
-				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(ToBeLoaded->Array(), [BlockingEvent]() { BlockingEvent->Trigger(); });
-
-				if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-			});
-
-			BlockingEvent->Wait();
-			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
+			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
 		}
 	}
 

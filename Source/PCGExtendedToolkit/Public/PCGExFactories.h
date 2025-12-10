@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Misc/PCGExBranchOnDataAttribute.h"
 #include "UObject/Object.h"
 #include "PCGExFactories.generated.h"
 
@@ -34,7 +33,7 @@ struct FPCGDataTypeInfo
 {
 	GENERATED_BODY()
 
-	static EPCGDataType AsId() { return EPCGDataType::Param; }
+	static EPCGDataType AsId();
 	
 #if WITH_EDITOR
 	virtual bool Hidden() const { return false; }

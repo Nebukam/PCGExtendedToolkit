@@ -585,6 +585,7 @@ namespace PCGExSampling
 
 	void FTargetsHandler::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle) const
 	{
+		PCGEX_SCHEDULING_SCOPE(AsyncManager,);
 		TargetsPreloader->StartLoading(AsyncManager, InParentHandle);
 	}
 }

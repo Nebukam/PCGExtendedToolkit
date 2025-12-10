@@ -50,10 +50,11 @@ bool FPCGExMergePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-			NewBatch->bRequiresWriteStep = true;
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to merge."));
 		}
@@ -220,10 +221,10 @@ namespace PCGExMergePoints
 		StartMerge();
 	}
 
-	void FBatch::Write()
+	void FBatch::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
-
+		
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
 		Context->CompositeDataFacade->WriteFastest(AsyncManager);
 	}
@@ -240,13 +241,17 @@ namespace PCGExMergePoints
 		IgnoredAttributes.Append(*ConvertedTags.Get());
 		IgnoredAttributes.Append({PCGExGraph::Attr_PCGExEdgeIdx, PCGExGraph::Attr_PCGExVtxIdx, PCGExGraph::Tag_PCGExCluster, PCGExGraph::Tag_PCGExVtx, PCGExGraph::Tag_PCGExEdges,});
 
-		// Launch all merging tasks while we compute future attributes 
-		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails, &IgnoredAttributes);
+		{
+			PCGEX_SCHEDULING_SCOPE(AsyncManager);
 
-		// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
-		Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);
+			// Launch all merging tasks while we compute future attributes 
+			Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails, &IgnoredAttributes);
 
-		TBatch<FProcessor>::OnProcessingPreparationComplete(); //!
+			// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
+			Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);
+
+			TBatch<FProcessor>::OnProcessingPreparationComplete(); //!
+		}
 	}
 }
 
