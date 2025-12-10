@@ -72,16 +72,6 @@ TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes()
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
-	PCGEX_TERMINATE_ASYNC
-
-	for (UPCGExInstancedFactory* Op : ProcessorOperations)
-	{
-		if (InternalOperations.Contains(Op))
-		{
-			ManagedObjects->Destroy(Op);
-		}
-	}
-
 	if (MainBatch) { MainBatch->Cleanup(); }
 	MainBatch.Reset();
 }
@@ -102,7 +92,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 #pragma endregion
 
-bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync)
+bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::ContextState NextStateId)
 {
 	if (!bBatchProcessingEnabled) { return true; }
 
@@ -112,7 +102,12 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		BatchProcessing_InitialProcessingDone();
 
 		SetState(PCGExPointsMT::MTState_PointsCompletingWork);
-		if (!MainBatch->bSkipCompletion) { MainBatch->CompleteWork(); }
+		if (!MainBatch->bSkipCompletion)
+		{
+			PCGEX_SCHEDULING_SCOPE(GetAsyncManager(), false)
+			MainBatch->CompleteWork();
+			return false;
+		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsCompletingWork)
@@ -123,7 +118,9 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		if (MainBatch->bRequiresWriteStep)
 		{
 			SetState(PCGExPointsMT::MTState_PointsWriting);
+			PCGEX_SCHEDULING_SCOPE(GetAsyncManager(), false)
 			MainBatch->Write();
+			return false;
 		}
 		else
 		{

@@ -107,39 +107,39 @@ bool FPCGExBoundsPathIntersectionElement::AdvanceWork(FPCGExContext* InContext, 
 			PCGEX_ON_INVALILD_INPUTS_C(SharedContext.Get(), FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 			const bool bWritesAny = Settings->OutputSettings.WillWriteAny();
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			                                         {
-				                                         if (Entry->GetNum() < 2)
-				                                         {
-					                                         if (!Settings->bOmitInvalidPathsOutputs)
-					                                         {
-						                                         if (bWritesAny)
-						                                         {
-							                                         Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
-							                                         Settings->OutputSettings.Mark(Entry.ToSharedRef());
-						                                         }
-						                                         else
-						                                         {
-							                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-						                                         }
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+				{
+					if (Entry->GetNum() < 2)
+					{
+						if (!Settings->bOmitInvalidPathsOutputs)
+						{
+							if (bWritesAny)
+							{
+								Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
+								Settings->OutputSettings.Mark(Entry.ToSharedRef());
+							}
+							else
+							{
+								Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+							}
 
-						                                         Settings->AddTags(Entry, false);
-					                                         }
+							Settings->AddTags(Entry, false);
+						}
 
-					                                         bHasInvalidInputs = true;
-					                                         return false;
-				                                         }
-				                                         return true;
-			                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			                                         {
-			                                         }))
+						bHasInvalidInputs = true;
+						return false;
+					}
+					return true;
+				}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 			}
 		};
 
 		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
-		return false;
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)

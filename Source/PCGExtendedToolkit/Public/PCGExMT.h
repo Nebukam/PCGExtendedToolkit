@@ -7,6 +7,7 @@
 #include <atomic>
 
 #include "CoreMinimal.h"
+#include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "Misc/ScopeRWLock.h"
 #include "UObject/ObjectPtr.h"
@@ -26,7 +27,7 @@
 #define PCGEX_ASYNC_TASK_NAME(_NAME) virtual FString DEBUG_HandleId() const override { return TEXT(""#_NAME); }
 
 #define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr; if(!_NAME){ return; }
-#define PCGEX_ASYNC_SUBGROUP_CHKD_VOID(_MANAGER, _PARENT, _NAME) TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME), _PARENT) : nullptr; if(!_NAME){ return; }
+#define PCGEX_ASYNC_SUBGROUP_CHKD_RET(_MANAGER, _PARENT, _NAME, _RET) TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME), _PARENT) : nullptr; if(!_NAME){ return _RET; }
 #define PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(_MANAGER, _PARENT, _NAME) TSharedPtr<PCGExMT::FTaskGroup> _NAME = (_MANAGER && _PARENT) ? _MANAGER->TryCreateTaskGroup(FName(#_NAME), _PARENT) : nullptr; if(!_NAME){ return; }
 #define PCGEX_ASYNC_GROUP_CHKD_RET(_MANAGER, _NAME, _RET) TSharedPtr<PCGExMT::FTaskGroup> _NAME= _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr; if(!_NAME){ return _RET; }
 #define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) PCGEX_ASYNC_GROUP_CHKD_RET(_MANAGER, _NAME, false);
@@ -123,6 +124,8 @@ namespace PCGExMT
 		virtual void OnEnd(bool bWasCancelled);
 	};
 
+#define PCGEX_SCHEDULING_SCOPE(_MANAGER, ...) PCGExMT::FSchedulingScope SchedulingScope(_MANAGER); if(!SchedulingScope.Token.IsValid()) { return __VA_ARGS__; }
+	
 	struct FSchedulingScope
 	{
 		TWeakPtr<FAsyncToken> Token;

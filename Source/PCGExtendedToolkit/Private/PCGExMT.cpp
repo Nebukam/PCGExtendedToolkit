@@ -126,7 +126,7 @@ namespace PCGExMT
 
 	FSchedulingScope::FSchedulingScope(const TSharedPtr<FTaskManager>& InManager)
 	{
-		Token = InManager->TryCreateToken(FName("SchedulingScope"));
+		Token = InManager ? InManager->TryCreateToken(FName("SchedulingScope")) : nullptr;
 	}
 
 	FSchedulingScope::~FSchedulingScope()
@@ -481,7 +481,7 @@ namespace PCGExMT
 				TempTokens = MoveTemp(Tokens);
 				Tokens.Empty();
 			}
-			
+
 			{
 				FWriteScopeLock WriteLock(RegistryLock);
 				Registry.Empty();
@@ -618,14 +618,14 @@ namespace PCGExMT
 		if (bCancel)
 		{
 			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
-			
+
 			TArray<TSharedPtr<FAsyncToken>> TempTokens;
 			{
 				FWriteScopeLock WriteLock(TokenLock);
 				TempTokens = MoveTemp(Tokens);
 				Tokens.Empty();
 			}
-			
+
 			{
 				FWriteScopeLock WriteLock(RegistryLock);
 

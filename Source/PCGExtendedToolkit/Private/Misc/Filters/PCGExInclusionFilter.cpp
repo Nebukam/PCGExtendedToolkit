@@ -112,7 +112,7 @@ namespace PCGExPointFilter
 TArray<FPCGPinProperties> UPCGExInclusionFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGExPathInclusion::DeclareInclusionPin(PinProperties);	
+	PCGExPathInclusion::DeclareInclusionPin(PinProperties);
 	return PinProperties;
 }
 

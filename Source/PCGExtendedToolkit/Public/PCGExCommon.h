@@ -117,7 +117,9 @@ namespace PCGExCommon
 
 	const FString PCGExPrefix = TEXT("PCGEx/");
 
-#define PCGEX_CTX_STATE(_NAME) const PCGExCommon::ContextState _NAME = GetTypeHash(FName(#_NAME));
+	PCGEXTENDEDTOOLKIT_API uint64 SHash(const FString& S);
+		
+#define PCGEX_CTX_STATE(_NAME) const PCGExCommon::ContextState _NAME = PCGExCommon::SHash(FString(#_NAME));
 
 	PCGEX_CTX_STATE(State_Preparation)
 	PCGEX_CTX_STATE(State_LoadingAssetDependencies)

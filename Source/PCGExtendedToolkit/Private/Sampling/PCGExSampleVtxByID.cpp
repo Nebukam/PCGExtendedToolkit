@@ -133,7 +133,6 @@ bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		};
 
 		Context->TargetsPreloader->StartLoading(Context->GetAsyncManager());
-		return false;
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)

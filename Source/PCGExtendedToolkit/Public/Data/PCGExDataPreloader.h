@@ -9,6 +9,7 @@
 
 namespace PCGExMT
 {
+	class FAsyncToken;
 	class IAsyncHandleGroup;
 	class FTaskManager;
 }
@@ -52,7 +53,7 @@ namespace PCGExData
 	class PCGEXTENDEDTOOLKIT_API FFacadePreloader : public TSharedFromThis<FFacadePreloader>
 	{
 	protected:
-		TWeakPtr<FPCGContextHandle> WeakHandle;
+		TWeakPtr<FPCGContextHandle> ContextHandle;
 		TWeakPtr<FFacade> InternalDataFacadePtr;
 		bool bLoaded = false;
 
@@ -86,7 +87,7 @@ namespace PCGExData
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;
 
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr);
+		bool StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr);
 
 		bool IsLoaded() const { return bLoaded; }
 
@@ -102,10 +103,8 @@ extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext,
 
 	class PCGEXTENDEDTOOLKIT_API FMultiFacadePreloader : public TSharedFromThis<FMultiFacadePreloader>
 	{
-		FRWLock LoadingLock;
-
+		int32 NumCompleted = 0;
 		TArray<TSharedPtr<FFacadePreloader>> Preloaders;
-		TWeakPtr<FPCGContextHandle> WeakHandle;
 		bool bLoaded = false;
 
 	public:
@@ -118,8 +117,7 @@ extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext,
 		using FPreloaderItCallback = std::function<void(FFacadePreloader&)>;
 		void ForEach(FPreloaderItCallback&& It);
 
-		using CompletionCallback = std::function<void()>;
-		CompletionCallback OnCompleteCallback;
+		PCGExMT::FCompletionCallback OnCompleteCallback;
 
 		bool Validate(FPCGExContext* InContext);
 		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr);

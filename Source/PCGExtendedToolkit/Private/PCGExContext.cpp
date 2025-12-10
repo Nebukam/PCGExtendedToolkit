@@ -310,50 +310,29 @@ bool FPCGExContext::TryComplete(const bool bForce)
 
 void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
-	if (bWasCancelled) { return; }
+	PCGEX_SHARED_CONTEXT_VOID(GetOrCreateHandle());
 
-	// Signal that completion needs processing
-	PendingCompletions.store(true, std::memory_order_release);
+	if (bWasCancelled || IsWorkCancelled()) { return; }
 
 	// Try to become the processor
 	bool bExpected = false;
 	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
 		// Someone else is processing - they'll see our pending flag
-		return;
+		//UE_LOG(LogTemp, Error, TEXT("Double Call : %s"), *GetNameSafe(GetInputSettings<UPCGExSettings>()))
 	}
 
-	// We're the processor - handle all pending completions
-	do
+	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
+	switch (CurrentPhase)
 	{
-		if (IsWorkCancelled()) { return; }
-
-		// Clear pending BEFORE processing
-		// If new work completes during processing, the flag gets set again
-		PendingCompletions.store(false, std::memory_order_release);
-
-		const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
-		switch (CurrentPhase)
-		{
-		case EPCGExecutionPhase::PrepareData: ElementHandle->AdvancePreparation(this, Settings);
-			break;
-		case EPCGExecutionPhase::Execute: ElementHandle->AdvanceWork(this, Settings);
-			break;
-		default: break;
-		}
+	case EPCGExecutionPhase::PrepareData: ElementHandle->AdvancePreparation(this, Settings);
+		break;
+	case EPCGExecutionPhase::Execute: ElementHandle->AdvanceWork(this, Settings);
+		break;
+	default: break;
 	}
-	while (PendingCompletions.load(std::memory_order_acquire));
 
-	// Release guard
 	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
-
-	// CRITICAL: Check for late arrivals between our last check and releasing the guard
-	// Race: Thread B sets pending=true, fails CAS, returns. We release guard. pending is orphaned!
-	if (PendingCompletions.load(std::memory_order_acquire))
-	{
-		// Try to re-enter - will attempt CAS again
-		OnAsyncWorkEnd(false);
-	}
 }
 
 void FPCGExContext::OnComplete()
@@ -365,7 +344,8 @@ void FPCGExContext::OnComplete()
 	if (ElementHandle) { ElementHandle->CompleteWork(this); }
 
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	ManagedObjects->Remove(OutputData.TaggedData);
+	TArray<FPCGTaggedData> TaggedDataCopy = OutputData.TaggedData;
+	ManagedObjects->Remove(TaggedDataCopy);
 	UnpauseContext();
 
 	PCGEX_TERMINATE_ASYNC
@@ -503,6 +483,8 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 	bool bExpected = false;
 	if (bWorkCancelled.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
+		FSharedContext<FPCGExContext> SharedContext(GetOrCreateHandle());
+
 		if (!bQuietCancellationError && !InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 
 		PCGEX_TERMINATE_ASYNC

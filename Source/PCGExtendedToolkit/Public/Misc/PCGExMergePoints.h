@@ -117,7 +117,7 @@ namespace PCGExMergePoints
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
 		virtual bool PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor) override;
 		virtual void OnProcessingPreparationComplete() override;
-		virtual void Write() override;
+		virtual void CompleteWork() override;
 
 	protected:
 		void StartMerge();

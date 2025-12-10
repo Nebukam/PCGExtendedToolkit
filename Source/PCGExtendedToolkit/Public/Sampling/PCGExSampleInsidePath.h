@@ -56,7 +56,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-
+	
 public:
 	/** If enabled, allows you to filter out which targets get sampled by which data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -227,6 +227,8 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
+	
+	virtual void RegisterAssetDependencies() override;
 };
 
 class FPCGExSampleInsidePathElement final : public FPCGExPointsProcessorElement

@@ -106,9 +106,8 @@ public:
 	bool TryComplete(const bool bForce = false);
 
 protected:
-	std::atomic<PCGExCommon::ContextState> CurrentState;
+	std::atomic<PCGExCommon::ContextState> CurrentState{0};
 	std::atomic<bool> bProcessingAsyncWorkEnd{false};
-	std::atomic<int32> PendingCompletions{0};
 	std::atomic<bool> bWorkCompleted{false};
 	std::atomic<bool> bWorkCancelled{false};
 

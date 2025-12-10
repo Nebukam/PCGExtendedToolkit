@@ -12,12 +12,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
-#define PCGEX_NO_PAUSE(_STATE)\
-FPCGAsync::AsyncProcessingOneToOneRangeEx( &InContext->AsyncState, 1, [](){},\
-			[CtxHandle = InContext->GetOrCreateHandle(), Settings = InSettings](int32 StartReadIndex, int32 StartWriteIndex, int32 Count){\
-				FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);\
-				FPCGExContext* Ctx = SharedContext.Get(); PCGEX_ASYNC_WAIT_CHKD_ADV(Ctx->CanExecute() && !Ctx->IsState(_STATE)) return 1;}, false);
-
 bool IPCGExElement::PrepareDataInternal(FPCGContext* Context) const
 {
 	check(Context);
@@ -26,15 +20,6 @@ bool IPCGExElement::PrepareDataInternal(FPCGContext* Context) const
 
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
-
-	/*
-	if (!IsInGameThread() && InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::NoPause)
-	{
-		if (AdvancePreparation(InContext, InSettings)) { return true; }
-		PCGEX_NO_PAUSE(PCGExCommon::State_InitialExecution)
-		return true;
-	}
-	*/
 
 	return AdvancePreparation(InContext, InSettings);
 }
@@ -171,29 +156,12 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 
 	FPCGExContext* InContext = static_cast<FPCGExContext*>(Context);
 
+	PCGEX_EXECUTION_CHECK_C(InContext)
+	
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
 
 	if (InContext->IsInitialExecution()) { InitializeData(InContext, InSettings); }
-
-	/*
-	if (!IsInGameThread() && InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::NoPause)
-	{
-		if (AdvanceWork(InContext, InSettings)) { return true; }
-		FPCGAsync::AsyncProcessingOneToOneRangeEx(
-			&InContext->AsyncState, 1, []()
-			{
-			}, [CtxHandle = InContext->GetOrCreateHandle(), Settings = InSettings](int32 StartReadIndex, int32 StartWriteIndex, int32 Count)
-			{
-				FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-				FPCGExContext* Ctx = SharedContext.Get();
-				PCGEX_ASYNC_WAIT_CHKD_ADV(Ctx->CanExecute())
-				return 1;
-			}, false);
-		return true;
-	}
-	*/
-
 	return AdvanceWork(InContext, InSettings);
 }
 
@@ -212,5 +180,4 @@ void IPCGExElement::CompleteWork(FPCGExContext* InContext) const
 	check(InSettings);
 }
 
-#undef PCGEX_NO_PAUSE
 #undef LOCTEXT_NAMESPACE

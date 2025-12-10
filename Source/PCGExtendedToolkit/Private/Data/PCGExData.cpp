@@ -1010,7 +1010,8 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 
 			{
 				FWriteScopeLock WriteScopeLock(BufferLock);
-
+				PCGEX_SCHEDULING_SCOPE(AsyncManager)
+				
 				for (int i = 0; i < Buffers.Num(); i++)
 				{
 					const TSharedPtr<IBuffer> Buffer = Buffers[i];
