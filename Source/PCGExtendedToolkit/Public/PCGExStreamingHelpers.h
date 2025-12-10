@@ -11,6 +11,7 @@
 #include "UObject/Object.h"
 #include "UObject/Interface.h"
 #include "UObject/UObjectGlobals.h"
+#include "UObject/SoftObjectPath.h"
 
 #include "Async/Async.h"
 
