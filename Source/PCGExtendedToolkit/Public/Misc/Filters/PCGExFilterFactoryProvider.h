@@ -9,6 +9,7 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointFilter.h"
+
 #include "PCGExFilterFactoryProvider.generated.h"
 
 ///
@@ -35,9 +36,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		AbstractFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AbstractFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilter); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 #endif
@@ -54,6 +53,7 @@ public:
 	/** Filter Priority.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
 	int32 Priority = 0;
+
 
 	/** How to handle failed attribute initialization. Usually, the reason is missing attributes, but can also be unsupported filter type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))

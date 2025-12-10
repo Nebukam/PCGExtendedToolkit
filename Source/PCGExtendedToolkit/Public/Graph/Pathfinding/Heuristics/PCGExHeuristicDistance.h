@@ -16,8 +16,8 @@ struct FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigShortestDistance() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicConfigShortestDistance()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -30,19 +30,10 @@ class FPCGExHeuristicDistance : public FPCGExHeuristicOperation
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const override;
 
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 protected:
 	double BoundsSize = 0;
@@ -71,9 +62,7 @@ class UPCGExHeuristicsShortestDistanceProviderSettings : public UPCGExHeuristics
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsDistance, "Heuristics : Shortest Distance", "Heuristics based on distance.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsDistance, "Heuristics : Shortest Distance", "Heuristics based on distance.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

@@ -21,9 +21,9 @@ void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 }
 #endif
 
-PCGExData::EIOInit UPCGExSortPointsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
-
 FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return MakeShared<FPCGExSortPointsBaseElement>(); }
+
+PCGExData::EIOInit UPCGExSortPointsBaseSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 bool UPCGExSortPointsBaseSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
@@ -54,12 +54,10 @@ bool FPCGExSortPointsBaseElement::AdvanceWork(FPCGExContext* InContext, const UP
 			return Context->CancelExecution(TEXT("No attributes to sort over."));
 		}
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bPrefetchData = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bPrefetchData = true;
+		}))
 		{
 			Context->CancelExecution(TEXT("Could not find any points to sort."));
 		}

@@ -32,9 +32,7 @@ namespace PCGExDataBlending
 
 		TArray<FBlendingParam> BlendingParams;
 
-		InBlendingDetails.GetBlendingParams(
-			SourceFacade->GetData(SourceSide)->Metadata, TargetFacade->GetOut()->Metadata,
-			BlendingParams, AttributeIdentifiers, !bBlendProperties, IgnoreAttributeSet);
+		InBlendingDetails.GetBlendingParams(SourceFacade->GetData(SourceSide)->Metadata, TargetFacade->GetOut()->Metadata, BlendingParams, AttributeIdentifiers, !bBlendProperties, IgnoreAttributeSet);
 
 		Blenders.Reserve(BlendingParams.Num());
 		for (const FBlendingParam& Param : BlendingParams)

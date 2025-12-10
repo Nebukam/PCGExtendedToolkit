@@ -10,14 +10,14 @@
 void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 {
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesLabel, EPCGDataType::Param);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesLabel, FPCGExDataTypeInfoMatchRule::AsId());
 		PCGEX_PIN_TOOLTIP("Matching rules to determine which target data can be paired with each input. If target only accept a single data, individual target points will be evaluated.")
 		Pin.PinStatus = InDetails.Mode != EPCGExMapMatchMode::Disabled ? EPCGPinStatus::Required : EPCGPinStatus::Advanced;
 	}
 
 	if (InDetails.Usage == EPCGExMatchingDetailsUsage::Cluster && InDetails.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesEdgesLabel, EPCGDataType::Param);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesEdgesLabel, FPCGExDataTypeInfoMatchRule::AsId());
 		PCGEX_PIN_TOOLTIP("Extra matching rules to determine which edges data can be paired with each input. If target only accept a single data, individual target points will be evaluated.")
 		Pin.PinStatus = InDetails.Mode != EPCGExMapMatchMode::Disabled ? EPCGPinStatus::Required : EPCGPinStatus::Advanced;
 	}

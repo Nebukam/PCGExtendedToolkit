@@ -129,9 +129,7 @@ class UPCGExDotFilterProviderSettings : public UPCGExFilterProviderSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		DotFilterFactory, "Filter : Dot", "Creates a filter definition that compares dot value of two vectors.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(DotFilterFactory, "Filter : Dot", "Creates a filter definition that compares dot value of two vectors.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

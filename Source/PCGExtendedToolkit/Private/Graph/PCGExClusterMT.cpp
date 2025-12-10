@@ -24,11 +24,8 @@ namespace PCGExClusterMT
 	public:
 		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
 
-		FStartClusterBatchProcessing(TSharedPtr<T> InTarget,
-		                             const bool bScoped)
-			: FTask(),
-			  Target(InTarget),
-			  bScopedIndexLookupBuild(bScoped)
+		FStartClusterBatchProcessing(TSharedPtr<T> InTarget, const bool bScoped)
+			: FTask(), Target(InTarget), bScopedIndexLookupBuild(bScoped)
 		{
 		}
 
@@ -45,9 +42,7 @@ namespace PCGExClusterMT
 
 	TSharedPtr<PCGExCluster::FCluster> IProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
-		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
-			false, false, false);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, false, false, false);
 	}
 
 	void IProcessor::ForwardCluster() const
@@ -183,11 +178,7 @@ namespace PCGExClusterMT
 
 	void IProcessor::StartParallelLoopForNodes(const int32 PerLoopIterations)
 	{
-		PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
-			Nodes, NumNodes,
-			PrepareLoopScopesForNodes, ProcessNodes,
-			OnNodesProcessingComplete,
-			bForceSingleThreadedProcessNodes)
+		PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(Nodes, NumNodes, PrepareLoopScopesForNodes, ProcessNodes, OnNodesProcessingComplete, bForceSingleThreadedProcessNodes)
 	}
 
 	void IProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
@@ -204,11 +195,7 @@ namespace PCGExClusterMT
 
 	void IProcessor::StartParallelLoopForEdges(const int32 PerLoopIterations)
 	{
-		PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
-			Edges, NumEdges,
-			PrepareLoopScopesForEdges, ProcessEdges,
-			OnEdgesProcessingComplete,
-			bForceSingleThreadedProcessEdges)
+		PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(Edges, NumEdges, PrepareLoopScopesForEdges, ProcessEdges, OnEdgesProcessingComplete, bForceSingleThreadedProcessEdges)
 	}
 
 	void IProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
@@ -225,11 +212,7 @@ namespace PCGExClusterMT
 
 	void IProcessor::StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations)
 	{
-		PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(
-			Ranges, NumIterations,
-			PrepareLoopScopesForRanges, ProcessRange,
-			OnRangeProcessingComplete,
-			bForceSingleThreadedProcessRange)
+		PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(Ranges, NumIterations, PrepareLoopScopesForRanges, ProcessRange, OnRangeProcessingComplete, bForceSingleThreadedProcessRange)
 	}
 
 	void IProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
@@ -361,30 +344,28 @@ namespace PCGExClusterMT
 				// Prepare projection early, as we want all points projected from the batch				
 				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManagerPtr, ProjectTask)
 
-				ProjectTask->OnCompleteCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE]()
+				ProjectTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::Projection::Complete);
+					PCGEX_ASYNC_THIS
+					This->OnProcessingPreparationComplete();
+				};
+
+				ProjectTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				{
+					TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::Projection::Range);
+
+					PCGEX_ASYNC_THIS
+
+					const TConstPCGValueRange<FTransform> InVtxTransforms = This->VtxDataFacade->GetIn()->GetConstTransformValueRange();
+					const FPCGExGeo2DProjectionDetails& Projection = This->ProjectionDetails;
+					TArray<FVector2D>& Proj = *This->ProjectedVtxPositions.Get();
+
+					PCGEX_SCOPE_LOOP(i)
 					{
-						TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::Projection::Complete);
-						PCGEX_ASYNC_THIS
-						This->OnProcessingPreparationComplete();
-					};
-
-				ProjectTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-					{
-						TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::Projection::Range);
-
-						PCGEX_ASYNC_THIS
-
-						const TConstPCGValueRange<FTransform> InVtxTransforms = This->VtxDataFacade->GetIn()->GetConstTransformValueRange();
-						const FPCGExGeo2DProjectionDetails& Projection = This->ProjectionDetails;
-						TArray<FVector2D>& Proj = *This->ProjectedVtxPositions.Get();
-
-						PCGEX_SCOPE_LOOP(i)
-						{
-							Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
-						}
-					};
+						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+					}
+				};
 
 				ProjectTask->StartSubLoops(VtxDataFacade->GetNum(), 4096);
 			}
@@ -403,60 +384,58 @@ namespace PCGExClusterMT
 			RawLookupAttribute = PCGEx::TryGetConstAttribute<int64>(VtxDataFacade->GetIn(), PCGExGraph::Attr_PCGExVtxIdx);
 			if (!RawLookupAttribute) { return; } // FAIL
 
-			BuildEndpointLookupTask->OnCompleteCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE]()
+			BuildEndpointLookupTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::BuildLookupTable::Complete);
+
+				PCGEX_ASYNC_THIS
+
+				const int32 Num = This->VtxDataFacade->GetNum();
+				This->EndpointsLookup.Reserve(Num);
+				for (int i = 0; i < Num; i++) { This->EndpointsLookup.Add(This->ReverseLookup[i], i); }
+				This->ReverseLookup.Empty();
+
+				if (This->RequiresGraphBuilder())
 				{
-					TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::BuildLookupTable::Complete);
+					This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails);
+					This->GraphBuilder->SourceEdgeFacades = This->EdgesDataFacades;
+				}
 
-					PCGEX_ASYNC_THIS
+				This->OnProcessingPreparationComplete();
+			};
 
-					const int32 Num = This->VtxDataFacade->GetNum();
-					This->EndpointsLookup.Reserve(Num);
-					for (int i = 0; i < Num; i++) { This->EndpointsLookup.Add(This->ReverseLookup[i], i); }
-					This->ReverseLookup.Empty();
+			BuildEndpointLookupTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::BuildLookupTable::Range);
 
-					if (This->RequiresGraphBuilder())
-					{
-						This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails);
-						This->GraphBuilder->SourceEdgeFacades = This->EdgesDataFacades;
-					}
+				PCGEX_ASYNC_THIS
 
-					This->OnProcessingPreparationComplete();
-				};
+				const TConstPCGValueRange<int64> MetadataEntries = This->VtxDataFacade->GetIn()->GetConstMetadataEntryValueRange();
 
-			BuildEndpointLookupTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				PCGEX_SCOPE_LOOP(i)
 				{
-					TRACE_CPUPROFILER_EVENT_SCOPE(IBatch::BuildLookupTable::Range);
+					uint32 A;
+					uint32 B;
+					PCGEx::H64(This->RawLookupAttribute->GetValueFromItemKey(MetadataEntries[i]), A, B);
 
-					PCGEX_ASYNC_THIS
+					This->ReverseLookup[i] = A;
+					This->ExpectedAdjacency[i] = B;
+				}
 
-					const TConstPCGValueRange<int64> MetadataEntries = This->VtxDataFacade->GetIn()->GetConstMetadataEntryValueRange();
+				if (This->WantsProjection() && !This->WantsPerClusterProjection())
+				{
+					// Extra loop for projection when desired
+
+					const TConstPCGValueRange<FTransform> InVtxTransforms = This->VtxDataFacade->GetIn()->GetConstTransformValueRange();
+					const FPCGExGeo2DProjectionDetails& Projection = This->ProjectionDetails;
+					TArray<FVector2D>& Proj = *This->ProjectedVtxPositions.Get();
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						uint32 A;
-						uint32 B;
-						PCGEx::H64(This->RawLookupAttribute->GetValueFromItemKey(MetadataEntries[i]), A, B);
-
-						This->ReverseLookup[i] = A;
-						This->ExpectedAdjacency[i] = B;
+						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
 					}
-
-					if (This->WantsProjection() && !This->WantsPerClusterProjection())
-					{
-						// Extra loop for projection when desired
-
-						const TConstPCGValueRange<FTransform> InVtxTransforms = This->VtxDataFacade->GetIn()->GetConstTransformValueRange();
-						const FPCGExGeo2DProjectionDetails& Projection = This->ProjectionDetails;
-						TArray<FVector2D>& Proj = *This->ProjectedVtxPositions.Get();
-
-						PCGEX_SCOPE_LOOP(i)
-						{
-							Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
-						}
-					}
-				};
+				}
+			};
 
 			BuildEndpointLookupTask->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
@@ -550,14 +529,7 @@ namespace PCGExClusterMT
 	{
 		if (!bIsBatchValid) { return; }
 
-		InitializationTracker = MakeShared<PCGEx::FIntTracker>(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnInitialPostProcess();
-			});
-
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, {Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, { Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){ PCGEX_ASYNC_THIS This->OnInitialPostProcess(); };})
 	}
 
 	void IBatch::OnInitialPostProcess()
@@ -582,7 +554,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, {Processor->CompleteWork(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, {Processor->CompleteWork(); }, {})
 	}
 
 	void IBatch::Write()
@@ -592,7 +564,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); }, {})
 
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(AsyncManager); }
 	}
@@ -608,20 +580,19 @@ namespace PCGExClusterMT
 
 		if (bOutputToContext)
 		{
-			GraphBuilder->OnCompilationEndCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+			GraphBuilder->OnCompilationEndCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+			{
+				PCGEX_ASYNC_THIS
+
+				if (!bSuccess)
 				{
-					PCGEX_ASYNC_THIS
+					// TODO : Log error
+					return;
+				}
 
-					if (!bSuccess)
-					{
-						// TODO : Log error
-						return;
-					}
-
-					if (TSharedPtr<PCGExData::FPointIOCollection> OutCollection = This->GraphEdgeOutputCollection.Pin()) { InBuilder->MoveEdgesOutputs(OutCollection, This->VtxDataFacade->Source->IOIndex * 100000); }
-					else { InBuilder->StageEdgesOutputs(); }
-				};
+				if (TSharedPtr<PCGExData::FPointIOCollection> OutCollection = This->GraphEdgeOutputCollection.Pin()) { InBuilder->MoveEdgesOutputs(OutCollection, This->VtxDataFacade->Source->IOIndex * 100000); }
+				else { InBuilder->StageEdgesOutputs(); }
+			};
 		}
 
 		GraphBuilder->CompileAsync(AsyncManager, true, GetGraphMetadataDetails());
@@ -668,11 +639,6 @@ namespace PCGExClusterMT
 	void CompleteBatches(const TArrayView<TSharedPtr<IBatch>> Batches)
 	{
 		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->CompleteWork(); }
-	}
-
-	void WriteBatches(const TArrayView<TSharedPtr<IBatch>> Batches)
-	{
-		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->Write(); }
 	}
 
 #undef PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP

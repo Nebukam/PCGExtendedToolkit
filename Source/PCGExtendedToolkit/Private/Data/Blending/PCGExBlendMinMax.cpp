@@ -44,10 +44,7 @@ namespace PCGExBlend
 		{
 			return A > B ? B : A;
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return A.ToString() > B.ToString() ? B : A;
 		}
@@ -96,10 +93,7 @@ namespace PCGExBlend
 		{
 			return A < B ? B : A;
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return A.ToString() < B.ToString() ? B : A;
 		}

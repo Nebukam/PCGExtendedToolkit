@@ -82,9 +82,7 @@ class UPCGExCreateMatchRandomSettings : public UPCGExMatchRuleFactoryProviderSet
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MatchRandom, "Match : Random", "Randomly pass or fail match",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchRandom, "Match : Random", "Randomly pass or fail match", FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

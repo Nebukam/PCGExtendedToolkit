@@ -153,13 +153,12 @@ namespace PCGExData
 		using TBufferProxy<T_WORKING>::bWantsSubSelection;
 		using TBufferProxy<T_WORKING>::SubSelection;
 		using TBufferProxy<T_WORKING>::Data;
-		
+
 	public:
 		TPointPropertyProxy();
 
 		virtual T_WORKING Get(const int32 Index) const override;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override;
-
 	};
 
 #pragma region externalization TPointPropertyProxy

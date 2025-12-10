@@ -130,17 +130,16 @@ class UPCGExWriteGUIDSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		WriteGUID, "Write GUID", "Write a GUID on the point.",
-		Config.OutputAttributeName);
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(WriteGUID, "Write GUID", "Write a GUID on the point.", Config.OutputAttributeName);
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
 #endif
 
 protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** Config */
@@ -175,8 +174,8 @@ namespace PCGExWriteGUID
 		TSharedPtr<PCGExData::TBuffer<int32>> IntegerGUIDWriter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

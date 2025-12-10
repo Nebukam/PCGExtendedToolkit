@@ -91,13 +91,12 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 		PCGEX_FOREACH_STAT(PCGEX_STAT_FILTER, bool)
 #undef PCGEX_STAT_FILTER
 
-		Context->AttributesInfos->Filter(
-			[&Affixes](const FName& InName)
-			{
-				const FString StrName = InName.ToString();
-				for (const FString& Affix : Affixes) { if (StrName.StartsWith(Affix) || StrName.EndsWith(Affix)) { return false; } }
-				return true;
-			});
+		Context->AttributesInfos->Filter([&Affixes](const FName& InName)
+		{
+			const FString StrName = InName.ToString();
+			for (const FString& Affix : Affixes) { if (StrName.StartsWith(Affix) || StrName.EndsWith(Affix)) { return false; } }
+			return true;
+		});
 	}
 
 	if (Context->AttributesInfos->Identities.IsEmpty())
@@ -120,12 +119,11 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 
 		for (int i = 0; i < NumRows; i++) { Context->Rows.Add(NewParamData->Metadata->AddEntry()); }
 
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				PCGEX_FOREACH_STAT(PCGEX_STAT_DECL, T)
-			});
+		PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			PCGEX_FOREACH_STAT(PCGEX_STAT_DECL, T)
+		});
 	}
 #undef PCGEX_STAT_DECL
 
@@ -140,11 +138,9 @@ bool FPCGExAttributeStatsElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -197,25 +193,23 @@ namespace PCGExAttributeStats
 
 			if (Settings->bOutputPerUniqueValuesStats) { PerAttributeStatMap.Add(Identity.Identifier.Name, i); }
 
-			PCGEx::ExecuteWithRightType(
-				Identity.UnderlyingType, [&](auto DummyValue)
-				{
-					using T_REAL = decltype(DummyValue);
-					PCGEX_MAKE_SHARED(S, TAttributeStats<T_REAL>, Identity, Key)
-					Stats.Add(StaticCastSharedPtr<IAttributeStats>(S));
-				});
+			PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+			{
+				using T_REAL = decltype(DummyValue);
+				PCGEX_MAKE_SHARED(S, TAttributeStats<T_REAL>, Identity, Key)
+				Stats.Add(StaticCastSharedPtr<IAttributeStats>(S));
+			});
 		}
 
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterScope)
 
-		FilterScope->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->PointDataFacade->Fetch(Scope);
-				This->FilterScope(Scope);
-			};
+		FilterScope->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->PointDataFacade->Fetch(Scope);
+			This->FilterScope(Scope);
+		};
 
 		FilterScope->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
@@ -225,12 +219,11 @@ namespace PCGExAttributeStats
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, AttributeStatProcessing)
-		AttributeStatProcessing->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->Stats[Scope.Start]->Process(This->PointDataFacade, This->Context, This->Settings, This->PointFilterCache);
-			};
+		AttributeStatProcessing->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->Stats[Scope.Start]->Process(This->PointDataFacade, This->Context, This->Settings, This->PointFilterCache);
+		};
 
 		AttributeStatProcessing->StartSubLoops(Stats.Num(), 1);
 	}

@@ -41,7 +41,7 @@ bool FPCGExBestMatchAxisElement::Boot(FPCGExContext* InContext) const
 		Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 		if (!Context->NumMaxTargets)
 		{
-			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("No targets (empty datasets)"))
+			PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No targets (empty datasets)"))
 			return false;
 		}
 
@@ -60,12 +60,10 @@ bool FPCGExBestMatchAxisElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("No data."));
 		}
@@ -96,10 +94,9 @@ namespace PCGExBestMatchAxis
 		{
 			IgnoreList.Add(PointDataFacade->GetIn());
 
-			if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-				!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+			if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 			{
-				if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+				(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 				return false;
 			}
 		}

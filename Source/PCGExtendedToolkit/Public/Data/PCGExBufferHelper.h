@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExData.h"
 #include "UObject/Object.h"
-
 #include "PCGEx.h"
 #include "PCGExData.h"
 #include "PCGExtendedToolkit.h"
@@ -26,8 +26,8 @@ namespace PCGExData
 		mutable FRWLock BufferLock;
 
 	public:
-		explicit TBufferHelper(const TSharedRef<FFacade>& InDataFacade):
-			DataFacade(InDataFacade)
+		explicit TBufferHelper(const TSharedRef<FFacade>& InDataFacade)
+			: DataFacade(InDataFacade)
 		{
 		}
 

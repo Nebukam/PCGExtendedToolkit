@@ -47,29 +47,15 @@ namespace PCGExGraph
 
 		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
 
-		explicit FUnionProcessor(
-			FPCGExPointsProcessorContext* InContext,
-			TSharedRef<PCGExData::FFacade> InUnionDataFacade,
-			TSharedRef<FUnionGraph> InUnionGraph,
-			FPCGExPointPointIntersectionDetails PointPointIntersectionDetails,
-			FPCGExBlendingDetails InDefaultPointsBlending,
-			FPCGExBlendingDetails InDefaultEdgesBlending);
+		explicit FUnionProcessor(FPCGExPointsProcessorContext* InContext, TSharedRef<PCGExData::FFacade> InUnionDataFacade, TSharedRef<FUnionGraph> InUnionGraph, FPCGExPointPointIntersectionDetails PointPointIntersectionDetails, FPCGExBlendingDetails InDefaultPointsBlending, FPCGExBlendingDetails InDefaultEdgesBlending);
 
 		~FUnionProcessor();
 
-		void InitPointEdge(
-			const FPCGExPointEdgeIntersectionDetails& InDetails,
-			const bool bUseCustom = false,
-			const FPCGExBlendingDetails* InOverride = nullptr);
+		void InitPointEdge(const FPCGExPointEdgeIntersectionDetails& InDetails, const bool bUseCustom = false, const FPCGExBlendingDetails* InOverride = nullptr);
 
-		void InitEdgeEdge(
-			const FPCGExEdgeEdgeIntersectionDetails& InDetails,
-			const bool bUseCustom = false,
-			const FPCGExBlendingDetails* InOverride = nullptr);
+		void InitEdgeEdge(const FPCGExEdgeEdgeIntersectionDetails& InDetails, const bool bUseCustom = false, const FPCGExBlendingDetails* InOverride = nullptr);
 
-		bool StartExecution(
-			const TArray<TSharedRef<PCGExData::FFacade>>& InFacades,
-			const FPCGExGraphBuilderDetails& InBuilderDetails);
+		bool StartExecution(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const FPCGExGraphBuilderDetails& InBuilderDetails);
 
 		bool Execute();
 

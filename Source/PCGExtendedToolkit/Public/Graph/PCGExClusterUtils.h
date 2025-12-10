@@ -42,17 +42,7 @@ namespace PCGExClusterUtils
 		EdgeWrongPin     = 9,
 	};
 
-	static const TMap<EProblem, FProblem> EProblemLogs = {
-		{EProblem::DoubleMarking, FProblem{false, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety.")}},
-		{EProblem::VtxTagButNoMeta, FProblem{false, FTEXT("A Vtx-tagged input has no metadata and will be discarded.")}},
-		{EProblem::EdgeTagButNoMeta, FProblem{false, FTEXT("An Edges-tagged input has no edge metadata and will be discarded.")}},
-		{EProblem::NoTags, FProblem{false, FTEXT("An input data is neither tagged Vtx or Edges and will be ignored.")}},
-		{EProblem::VtxDupes, FProblem{true, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed.")}},
-		{EProblem::RoamingEdges, FProblem{true, FTEXT("Some input edges have no associated vtx.")}},
-		{EProblem::RoamingVtx, FProblem{true, FTEXT("Some input vtx have no associated edges.")}},
-		{EProblem::VtxWrongPin, FProblem{true, FTEXT("There are vtx in the edge pin. They will be ignored.")}},
-		{EProblem::EdgeWrongPin, FProblem{true, FTEXT("There are edges in the vtx pin. They will be ignored.")}}
-	};
+	static const TMap<EProblem, FProblem> EProblemLogs = {{EProblem::DoubleMarking, FProblem{false, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety.")}}, {EProblem::VtxTagButNoMeta, FProblem{false, FTEXT("A Vtx-tagged input has no metadata and will be discarded.")}}, {EProblem::EdgeTagButNoMeta, FProblem{false, FTEXT("An Edges-tagged input has no edge metadata and will be discarded.")}}, {EProblem::NoTags, FProblem{false, FTEXT("An input data is neither tagged Vtx or Edges and will be ignored.")}}, {EProblem::VtxDupes, FProblem{true, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed.")}}, {EProblem::RoamingEdges, FProblem{true, FTEXT("Some input edges have no associated vtx.")}}, {EProblem::RoamingVtx, FProblem{true, FTEXT("Some input vtx have no associated edges.")}}, {EProblem::VtxWrongPin, FProblem{true, FTEXT("There are vtx in the edge pin. They will be ignored.")}}, {EProblem::EdgeWrongPin, FProblem{true, FTEXT("There are edges in the vtx pin. They will be ignored.")}}};
 
 	class PCGEXTENDEDTOOLKIT_API FClusterDataLibrary : public TSharedFromThis<FClusterDataLibrary>
 	{
@@ -94,9 +84,6 @@ namespace PCGExClusterUtils
 		TSharedPtr<PCGExData::FDataForwardHandler> EdgeDataForwardHandler;
 
 	public:
-		FClusterDataForwardHandler(
-			const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-			const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler,
-			const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler);
+		FClusterDataForwardHandler(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler);
 	};
 }

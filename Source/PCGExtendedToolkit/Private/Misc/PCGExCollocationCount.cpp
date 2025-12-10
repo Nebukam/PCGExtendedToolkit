@@ -11,9 +11,10 @@
 #define LOCTEXT_NAMESPACE "PCGExCollocationCountElement"
 #define PCGEX_NAMESPACE CollocationCount
 
+PCGEX_INITIALIZE_ELEMENT(CollocationCount)
+
 PCGExData::EIOInit UPCGExCollocationCountSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
-PCGEX_INITIALIZE_ELEMENT(CollocationCount)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(CollocationCount)
 
 bool FPCGExCollocationCountElement::Boot(FPCGExContext* InContext) const
@@ -36,11 +37,9 @@ bool FPCGExCollocationCountElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -96,29 +95,25 @@ namespace PCGExCollocationCount
 			if (LinearOccurencesWriter)
 			{
 				LinearOccurencesWriter->SetValue(Index, 0);
-				Octree->FindElementsWithBoundsTest(
-					FBoxCenterAndExtent(Center, FVector(Tolerance)),
-					[&](const PCGPointOctree::FPointRef& PointRef)
-					{
-						if (PointRef.Index == Index) { return; }
-						if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
+				Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Center, FVector(Tolerance)), [&](const PCGPointOctree::FPointRef& PointRef)
+				{
+					if (PointRef.Index == Index) { return; }
+					if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
 
-						CollocationWriter->SetValue(Index, 1);
+					CollocationWriter->SetValue(Index, 1);
 
-						if (PointRef.Index < Index) { LinearOccurencesWriter->SetValue(Index, 1); }
-					});
+					if (PointRef.Index < Index) { LinearOccurencesWriter->SetValue(Index, 1); }
+				});
 			}
 			else
 			{
-				Octree->FindElementsWithBoundsTest(
-					FBoxCenterAndExtent(Center, FVector(Tolerance)),
-					[&](const PCGPointOctree::FPointRef& PointRef)
-					{
-						if (PointRef.Index == Index) { return; }
-						if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
+				Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Center, FVector(Tolerance)), [&](const PCGPointOctree::FPointRef& PointRef)
+				{
+					if (PointRef.Index == Index) { return; }
+					if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
 
-						CollocationWriter->SetValue(Index, 1);
-					});
+					CollocationWriter->SetValue(Index, 1);
+				});
 			}
 		}
 	}

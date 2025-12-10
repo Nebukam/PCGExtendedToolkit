@@ -30,9 +30,7 @@ class UPCGExOrientSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PathOrient, "Path : Orient", "Orient paths points",
-		(Orientation ? FName(Orientation.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(PathOrient, "Path : Orient", "Orient paths points", (Orientation ? FName(Orientation.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 #endif
 
 #if WITH_EDITORONLY_DATA
@@ -116,8 +114,8 @@ namespace PCGExOrient
 		int32 LastIndex = 0;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -5,7 +5,6 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlEdgeFilters.h"
 
 
-#include "PCGExLabels.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
@@ -68,9 +67,7 @@ UPCGExFactoryData* UPCGExFillControlsEdgeFiltersProviderSettings::CreateFactory(
 	PCGEX_FORWARD_FILLCONTROL_FACTORY
 	Super::CreateFactory(InContext, NewFactory);
 
-	if (!GetInputFactories(
-		InContext, PCGExPointFilter::SourceEdgeFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterEdgeFilters))
+	if (!GetInputFactories(InContext, PCGExPointFilter::SourceEdgeFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterEdgeFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

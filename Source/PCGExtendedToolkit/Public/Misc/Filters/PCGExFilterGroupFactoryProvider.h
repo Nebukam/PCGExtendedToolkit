@@ -8,7 +8,6 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
 #include "Data/PCGExFilterGroup.h"
 
 #include "PCGExFilterGroupFactoryProvider.generated.h"
@@ -26,9 +25,7 @@ protected:
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FilterGroup, "Filter Group", "Creates an Filter Group.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FilterGroup, "Filter Group", "Creates an Filter Group.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
@@ -42,7 +39,7 @@ protected:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabel; }
+	virtual FName GetMainOutputPin() const override;
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
@@ -53,7 +50,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
 	int32 Priority = 0;
 
-	/** Group mode.*/
+	/** Filter Mode.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExFilterGroupMode Mode = EPCGExFilterGroupMode::AND;
 

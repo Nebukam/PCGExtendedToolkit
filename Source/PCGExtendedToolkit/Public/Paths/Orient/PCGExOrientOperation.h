@@ -4,10 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "Data/PCGExPointElements.h"
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
-
 #include "PCGExOrientOperation.generated.h"
 
 class UPCGExOrientInstancedFactory;
@@ -24,9 +22,7 @@ public:
 		return true;
 	}
 
-	virtual FTransform ComputeOrientation(
-		const PCGExData::FConstPoint& Point,
-		const double DirectionMultiplier) const
+	virtual FTransform ComputeOrientation(const PCGExData::FConstPoint& Point, const double DirectionMultiplier) const
 	{
 		return Point.GetTransform();
 	}
@@ -54,6 +50,5 @@ public:
 		}
 	}
 
-	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const
-	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 };

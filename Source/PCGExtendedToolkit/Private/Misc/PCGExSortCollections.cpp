@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExSortCollections.h"
-
 #include "PCGModule.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortCollectionsElement"

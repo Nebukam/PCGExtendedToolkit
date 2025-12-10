@@ -5,7 +5,6 @@
 
 #include <queue>
 #include <vector>
-
 #include "Containers/Array.h"
 #include "HAL/Platform.h"
 #include "Math/NumericLimits.h"

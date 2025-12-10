@@ -31,8 +31,8 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigIndex() :
-		FPCGExProbeConfigBase(false)
+	FPCGExProbeConfigIndex()
+		: FPCGExProbeConfigBase(false)
 	{
 	}
 
@@ -103,9 +103,7 @@ class UPCGExProbeIndexProviderSettings : public UPCGExProbeFactoryProviderSettin
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeIndex, "Probe : Index", "Connects to a specific index, ignoring search radius.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeIndex, "Probe : Index", "Connects to a specific index, ignoring search radius.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

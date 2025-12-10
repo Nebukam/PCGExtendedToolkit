@@ -120,10 +120,8 @@ class FPCGExPlotNavmeshTask final : public PCGExMT::FTask
 public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExPlotNavmeshTask)
 
-	explicit FPCGExPlotNavmeshTask(
-		const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
-		FTask(),
-		PointIO(InPointIO)
+	explicit FPCGExPlotNavmeshTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+		: FTask(), PointIO(InPointIO)
 	{
 	}
 

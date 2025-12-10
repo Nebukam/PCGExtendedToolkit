@@ -11,6 +11,7 @@
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExAssetLoader.h"
 #include "Collections/PCGExMeshCollection.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -188,12 +189,10 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 		else
 		{
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-					NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
+			}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to process."));
 			}
@@ -213,12 +212,10 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 			Pair.Value->LoadCache();
 		}
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -284,9 +281,7 @@ namespace PCGExAssetStaging
 
 		if (Settings->CollectionSource == EPCGExCollectionSource::Attribute)
 		{
-			if (!Source->Init(
-				Context->CollectionsLoader->AssetsMap,
-				Context->CollectionsLoader->GetKeys(PointDataFacade->Source->IOIndex)))
+			if (!Source->Init(Context->CollectionsLoader->AssetsMap, Context->CollectionsLoader->GetKeys(PointDataFacade->Source->IOIndex)))
 			{
 				return false;
 			}
@@ -407,9 +402,7 @@ namespace PCGExAssetStaging
 			const FPCGExAssetCollectionEntry* Entry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
 
-			const int32 Seed = PCGExRandom::GetSeed(
-				Seeds[Index], Helper->Details.SeedComponents,
-				Helper->Details.LocalSeed, Settings, Component);
+			const int32 Seed = PCGExRandom::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
 			Helper->GetEntry(Entry, Index, Seed, EntryHost);
 
@@ -426,8 +419,7 @@ namespace PCGExAssetStaging
 			const FPCGExAssetStagingData& Staging = Entry->Staging;
 			const FPCGExFittingVariations& EntryVariations = Entry->GetVariations(EntryHost);
 
-			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get();
-				MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get(); MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
 				const PCGExMeshCollection::FMicroCache* EntryMicroCache = static_cast<const PCGExMeshCollection::FMicroCache*>(MicroCache);
 				MicroHelper->GetPick(EntryMicroCache, Index, Seed, SecondaryIndex);

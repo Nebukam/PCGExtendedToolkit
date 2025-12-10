@@ -23,61 +23,47 @@ bool PCGExPointFilter::FDataBoundsFilter::Test(const TSharedPtr<PCGExData::FPoin
 
 	switch (TypedFilterFactory->Config.OperandA)
 	{
-	case EPCGExDataBoundsAspect::Extents:
-		AV = Bounds.GetExtent();
+	case EPCGExDataBoundsAspect::Extents: AV = Bounds.GetExtent();
 		break;
-	case EPCGExDataBoundsAspect::Min:
-		AV = Bounds.Min;
+	case EPCGExDataBoundsAspect::Min: AV = Bounds.Min;
 		break;
-	case EPCGExDataBoundsAspect::Max:
-		AV = Bounds.Max;
+	case EPCGExDataBoundsAspect::Max: AV = Bounds.Max;
 		break;
-	case EPCGExDataBoundsAspect::Size:
-		AV = Bounds.GetSize();
+	case EPCGExDataBoundsAspect::Size: AV = Bounds.GetSize();
 		break;
-	case EPCGExDataBoundsAspect::Volume:
-		AV = Bounds.GetSize();
+	case EPCGExDataBoundsAspect::Volume: AV = Bounds.GetSize();
 		A = AV.X * AV.Y * AV.Z;
 		break;
-	case EPCGExDataBoundsAspect::AspectRatio:
-		AV = Bounds.GetSize();
+	case EPCGExDataBoundsAspect::AspectRatio: AV = Bounds.GetSize();
 		switch (TypedFilterFactory->Config.Ratio)
 		{
-		case EPCGExDataBoundsRatio::XY:
-			MinRatio = AV.X;
+		case EPCGExDataBoundsRatio::XY: MinRatio = AV.X;
 			MaxRatio = AV.Y;
 			break;
-		case EPCGExDataBoundsRatio::XZ:
-			MinRatio = AV.X;
+		case EPCGExDataBoundsRatio::XZ: MinRatio = AV.X;
 			MaxRatio = AV.Z;
 			break;
-		case EPCGExDataBoundsRatio::YZ:
-			MinRatio = AV.Y;
+		case EPCGExDataBoundsRatio::YZ: MinRatio = AV.Y;
 			MaxRatio = AV.Z;
 			break;
-		case EPCGExDataBoundsRatio::YX:
-			MinRatio = AV.Y;
+		case EPCGExDataBoundsRatio::YX: MinRatio = AV.Y;
 			MaxRatio = AV.X;
 			break;
-		case EPCGExDataBoundsRatio::ZX:
-			MinRatio = AV.Z;
+		case EPCGExDataBoundsRatio::ZX: MinRatio = AV.Z;
 			MaxRatio = AV.X;
 			break;
-		case EPCGExDataBoundsRatio::ZY:
-			MinRatio = AV.Z;
+		case EPCGExDataBoundsRatio::ZY: MinRatio = AV.Z;
 			MaxRatio = AV.Y;
 			break;
 		}
 		break;
-	case EPCGExDataBoundsAspect::SortedRatio:
-		AV = Bounds.GetSize();
+	case EPCGExDataBoundsAspect::SortedRatio: AV = Bounds.GetSize();
 		MinRatio = FMath::Min3(AV.X, AV.Y, AV.Z);
 		MaxRatio = FMath::Max3(AV.X, AV.Y, AV.Z);
 		break;
 	}
 
-	if (TypedFilterFactory->Config.OperandA == EPCGExDataBoundsAspect::AspectRatio
-		|| TypedFilterFactory->Config.OperandA == EPCGExDataBoundsAspect::SortedRatio)
+	if (TypedFilterFactory->Config.OperandA == EPCGExDataBoundsAspect::AspectRatio || TypedFilterFactory->Config.OperandA == EPCGExDataBoundsAspect::SortedRatio)
 	{
 		A = MaxRatio / MinRatio;
 	}
@@ -85,20 +71,15 @@ bool PCGExPointFilter::FDataBoundsFilter::Test(const TSharedPtr<PCGExData::FPoin
 	{
 		switch (TypedFilterFactory->Config.SubOperand)
 		{
-		case EPCGExDataBoundsComponent::Length:
-			A = AV.Length();
+		case EPCGExDataBoundsComponent::Length: A = AV.Length();
 			break;
-		case EPCGExDataBoundsComponent::LengthSquared:
-			A = AV.SquaredLength();
+		case EPCGExDataBoundsComponent::LengthSquared: A = AV.SquaredLength();
 			break;
-		case EPCGExDataBoundsComponent::X:
-			A = AV.X;
+		case EPCGExDataBoundsComponent::X: A = AV.X;
 			break;
-		case EPCGExDataBoundsComponent::Y:
-			A = AV.Y;
+		case EPCGExDataBoundsComponent::Y: A = AV.Y;
 			break;
-		case EPCGExDataBoundsComponent::Z:
-			A = AV.Z;
+		case EPCGExDataBoundsComponent::Z: A = AV.Z;
 			break;
 		}
 	}
@@ -119,26 +100,19 @@ FString UPCGExDataBoundsFilterProviderSettings::GetDisplayName() const
 
 	switch (Config.OperandA)
 	{
-	case EPCGExDataBoundsAspect::Extents:
-		DisplayName += TEXT("Extents");
+	case EPCGExDataBoundsAspect::Extents: DisplayName += TEXT("Extents");
 		break;
-	case EPCGExDataBoundsAspect::Min:
-		DisplayName += TEXT("Min");
+	case EPCGExDataBoundsAspect::Min: DisplayName += TEXT("Min");
 		break;
-	case EPCGExDataBoundsAspect::Max:
-		DisplayName += TEXT("Max");
+	case EPCGExDataBoundsAspect::Max: DisplayName += TEXT("Max");
 		break;
-	case EPCGExDataBoundsAspect::Size:
-		DisplayName += TEXT("Size");
+	case EPCGExDataBoundsAspect::Size: DisplayName += TEXT("Size");
 		break;
-	case EPCGExDataBoundsAspect::Volume:
-		DisplayName += TEXT("Volume");
+	case EPCGExDataBoundsAspect::Volume: DisplayName += TEXT("Volume");
 		break;
-	case EPCGExDataBoundsAspect::AspectRatio:
-		DisplayName += TEXT("Ratio");
+	case EPCGExDataBoundsAspect::AspectRatio: DisplayName += TEXT("Ratio");
 		break;
-	case EPCGExDataBoundsAspect::SortedRatio:
-		DisplayName += TEXT("Ratio");
+	case EPCGExDataBoundsAspect::SortedRatio: DisplayName += TEXT("Ratio");
 		break;
 	}
 
@@ -146,20 +120,15 @@ FString UPCGExDataBoundsFilterProviderSettings::GetDisplayName() const
 	{
 		switch (Config.SubOperand)
 		{
-		case EPCGExDataBoundsComponent::Length:
-			DisplayName += TEXT(".Len");
+		case EPCGExDataBoundsComponent::Length: DisplayName += TEXT(".Len");
 			break;
-		case EPCGExDataBoundsComponent::LengthSquared:
-			DisplayName += TEXT(".LenSq");
+		case EPCGExDataBoundsComponent::LengthSquared: DisplayName += TEXT(".LenSq");
 			break;
-		case EPCGExDataBoundsComponent::X:
-			DisplayName += TEXT(".X");
+		case EPCGExDataBoundsComponent::X: DisplayName += TEXT(".X");
 			break;
-		case EPCGExDataBoundsComponent::Y:
-			DisplayName += TEXT(".Y");
+		case EPCGExDataBoundsComponent::Y: DisplayName += TEXT(".Y");
 			break;
-		case EPCGExDataBoundsComponent::Z:
-			DisplayName += TEXT(".Z");
+		case EPCGExDataBoundsComponent::Z: DisplayName += TEXT(".Z");
 			break;
 		}
 	}

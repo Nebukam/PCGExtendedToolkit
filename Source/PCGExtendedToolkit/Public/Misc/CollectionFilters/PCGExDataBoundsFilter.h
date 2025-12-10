@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
+
 #include "UObject/Object.h"
 
-#include "PCGExCompare.h"
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExFilterGroup.h"
@@ -118,7 +119,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/data-bounds"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/tag-value"))
 class UPCGExDataBoundsFilterProviderSettings : public UPCGExFilterCollectionProviderSettings
 {
 	GENERATED_BODY()
@@ -126,9 +127,7 @@ class UPCGExDataBoundsFilterProviderSettings : public UPCGExFilterCollectionProv
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		DataBoundsFilterFactory, "Data Filter : Bounds", "Test an aspect of the collection' bounds",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(DataBoundsFilterFactory, "Data Filter : Bounds", "Test an aspect of the collection' bounds", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

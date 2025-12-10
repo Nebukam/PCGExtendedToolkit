@@ -224,17 +224,7 @@ namespace PCGEx
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, int32> ||
-			std::is_same_v<T, int64> ||
-			std::is_same_v<T, float> ||
-			std::is_same_v<T, double> ||
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector> ||
-			std::is_same_v<T, FVector4> ||
-			std::is_same_v<T, FQuat> ||
-			std::is_same_v<T, FRotator>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double> || std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4> || std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
 		{
 			return ConvertFromVector<T>(Value.GetLocation());
 		}
@@ -398,10 +388,8 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		switch (Component)
 		{
 		case ETransformPart::Position:
-		case ETransformPart::Scale:
-			return EPCGMetadataTypes::Vector;
-		case ETransformPart::Rotation:
-			return EPCGMetadataTypes::Quaternion;
+		case ETransformPart::Scale: return EPCGMetadataTypes::Vector;
+		case ETransformPart::Rotation: return EPCGMetadataTypes::Quaternion;
 		}
 
 		return Fallback;
@@ -482,23 +470,18 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 	{
 		switch (Field)
 		{
-		case ESingleField::X:
-			FieldIndex = 0;
+		case ESingleField::X: FieldIndex = 0;
 			break;
-		case ESingleField::Y:
-			FieldIndex = 1;
+		case ESingleField::Y: FieldIndex = 1;
 			break;
-		case ESingleField::Z:
-			FieldIndex = 2;
+		case ESingleField::Z: FieldIndex = 2;
 			break;
-		case ESingleField::W:
-			FieldIndex = 3;
+		case ESingleField::W: FieldIndex = 3;
 			break;
 		case ESingleField::Length:
 		case ESingleField::SquaredLength:
 		case ESingleField::Volume:
-		case ESingleField::Sum:
-			FieldIndex = 0;
+		case ESingleField::Sum: FieldIndex = 0;
 			break;
 		}
 	}
@@ -542,11 +525,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 
 #pragma region Convert from Integer32
 
-		else if constexpr (
-			std::is_same_v<T_VALUE, int32> ||
-			std::is_same_v<T_VALUE, int64> ||
-			std::is_same_v<T_VALUE, float> ||
-			std::is_same_v<T_VALUE, double>)
+		else if constexpr (std::is_same_v<T_VALUE, int32> || std::is_same_v<T_VALUE, int64> || std::is_same_v<T_VALUE, float> || std::is_same_v<T_VALUE, double>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
@@ -591,41 +570,28 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.X > 0;
+				default: case ESingleField::X: return Value.X > 0;
 				case ESingleField::Y:
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Value.Y > 0;
+				case ESingleField::W: return Value.Y > 0;
 				case ESingleField::Length:
-				case ESingleField::SquaredLength:
-					return Value.SquaredLength() > 0;
-				case ESingleField::Volume:
-					return (Value.X * Value.Y) > 0;
-				case ESingleField::Sum:
-					return (Value.X * Value.Y) > 0;
+				case ESingleField::SquaredLength: return Value.SquaredLength() > 0;
+				case ESingleField::Volume: return (Value.X * Value.Y) > 0;
+				case ESingleField::Sum: return (Value.X * Value.Y) > 0;
 				}
 			}
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.X;
+				default: case ESingleField::X: return Value.X;
 				case ESingleField::Y:
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Value.Y;
-				case ESingleField::Length:
-					return Value.Length();
-				case ESingleField::SquaredLength:
-					return Value.SquaredLength();
-				case ESingleField::Volume:
-					return Value.X * Value.Y;
-				case ESingleField::Sum:
-					return Value.X + Value.Y;
+				case ESingleField::W: return Value.Y;
+				case ESingleField::Length: return Value.Length();
+				case ESingleField::SquaredLength: return Value.SquaredLength();
+				case ESingleField::Volume: return Value.X * Value.Y;
+				case ESingleField::Sum: return Value.X + Value.Y;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return Value; }
@@ -652,43 +618,28 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.X > 0;
-				case ESingleField::Y:
-					return Value.Y > 0;
+				default: case ESingleField::X: return Value.X > 0;
+				case ESingleField::Y: return Value.Y > 0;
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Value.Z > 0;
+				case ESingleField::W: return Value.Z > 0;
 				case ESingleField::Length:
-				case ESingleField::SquaredLength:
-					return Value.SquaredLength() > 0;
-				case ESingleField::Volume:
-					return (Value.X * Value.Y * Value.Z) > 0;
-				case ESingleField::Sum:
-					return (Value.X + Value.Y + Value.Z) > 0;
+				case ESingleField::SquaredLength: return Value.SquaredLength() > 0;
+				case ESingleField::Volume: return (Value.X * Value.Y * Value.Z) > 0;
+				case ESingleField::Sum: return (Value.X + Value.Y + Value.Z) > 0;
 				}
 			}
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.X;
-				case ESingleField::Y:
-					return Value.Y;
+				default: case ESingleField::X: return Value.X;
+				case ESingleField::Y: return Value.Y;
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Value.Z;
-				case ESingleField::Length:
-					return Value.Length();
-				case ESingleField::SquaredLength:
-					return Value.SquaredLength();
-				case ESingleField::Volume:
-					return Value.X * Value.Y * Value.Z;
-				case ESingleField::Sum:
-					return Value.X + Value.Y + Value.Z;
+				case ESingleField::W: return Value.Z;
+				case ESingleField::Length: return Value.Length();
+				case ESingleField::SquaredLength: return Value.SquaredLength();
+				case ESingleField::Volume: return Value.X * Value.Y * Value.Z;
+				case ESingleField::Sum: return Value.X + Value.Y + Value.Z;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
@@ -715,45 +666,28 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.X > 0;
-				case ESingleField::Y:
-					return Value.Y > 0;
-				case ESingleField::Z:
-					return Value.Z > 0;
-				case ESingleField::W:
-					return Value.W > 0;
+				default: case ESingleField::X: return Value.X > 0;
+				case ESingleField::Y: return Value.Y > 0;
+				case ESingleField::Z: return Value.Z > 0;
+				case ESingleField::W: return Value.W > 0;
 				case ESingleField::Length:
-				case ESingleField::SquaredLength:
-					return FVector(Value).SquaredLength() > 0;
-				case ESingleField::Volume:
-					return (Value.X * Value.Y * Value.Z * Value.W) > 0;
-				case ESingleField::Sum:
-					return (Value.X + Value.Y + Value.Z + Value.W) > 0;
+				case ESingleField::SquaredLength: return FVector(Value).SquaredLength() > 0;
+				case ESingleField::Volume: return (Value.X * Value.Y * Value.Z * Value.W) > 0;
+				case ESingleField::Sum: return (Value.X + Value.Y + Value.Z + Value.W) > 0;
 				}
 			}
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.X;
-				case ESingleField::Y:
-					return Value.Y;
-				case ESingleField::Z:
-					return Value.Z;
-				case ESingleField::W:
-					return Value.W;
-				case ESingleField::Length:
-					return FVector(Value).Length();
-				case ESingleField::SquaredLength:
-					return FVector(Value).SquaredLength();
-				case ESingleField::Volume:
-					return Value.X * Value.Y * Value.Z * Value.W;
-				case ESingleField::Sum:
-					return Value.X + Value.Y + Value.Z + Value.W;
+				default: case ESingleField::X: return Value.X;
+				case ESingleField::Y: return Value.Y;
+				case ESingleField::Z: return Value.Z;
+				case ESingleField::W: return Value.W;
+				case ESingleField::Length: return FVector(Value).Length();
+				case ESingleField::SquaredLength: return FVector(Value).SquaredLength();
+				case ESingleField::Volume: return Value.X * Value.Y * Value.Z * Value.W;
+				case ESingleField::Sum: return Value.X + Value.Y + Value.Z + Value.W;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
@@ -781,19 +715,14 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Dir.X > 0;
-				case ESingleField::Y:
-					return Dir.Y > 0;
+				default: case ESingleField::X: return Dir.X > 0;
+				case ESingleField::Y: return Dir.Y > 0;
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Dir.Z > 0;
+				case ESingleField::W: return Dir.Z > 0;
 				case ESingleField::Length:
 				case ESingleField::SquaredLength:
 				case ESingleField::Volume:
-				case ESingleField::Sum:
-					return Dir.SquaredLength() > 0;
+				case ESingleField::Sum: return Dir.SquaredLength() > 0;
 				}
 			}
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
@@ -801,21 +730,14 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Dir.X;
-				case ESingleField::Y:
-					return Dir.Y;
+				default: case ESingleField::X: return Dir.X;
+				case ESingleField::Y: return Dir.Y;
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Dir.Z;
-				case ESingleField::Length:
-					return Dir.Length();
+				case ESingleField::W: return Dir.Z;
+				case ESingleField::Length: return Dir.Length();
 				case ESingleField::SquaredLength:
-				case ESingleField::Volume:
-					return Dir.SquaredLength();
-				case ESingleField::Sum:
-					return Dir.X + Dir.Y + Dir.Z;
+				case ESingleField::Volume: return Dir.SquaredLength();
+				case ESingleField::Sum: return Dir.X + Dir.Y + Dir.Z;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>)
@@ -846,40 +768,28 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.Pitch > 0;
-				case ESingleField::Y:
-					return Value.Yaw > 0;
+				default: case ESingleField::X: return Value.Pitch > 0;
+				case ESingleField::Y: return Value.Yaw > 0;
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Value.Roll > 0;
+				case ESingleField::W: return Value.Roll > 0;
 				case ESingleField::Length:
 				case ESingleField::SquaredLength:
 				case ESingleField::Volume:
-				case ESingleField::Sum:
-					return Value.Euler().SquaredLength() > 0;
+				case ESingleField::Sum: return Value.Euler().SquaredLength() > 0;
 				}
 			}
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default:
-				case ESingleField::X:
-					return Value.Pitch > 0;
-				case ESingleField::Y:
-					return Value.Yaw > 0;
+				default: case ESingleField::X: return Value.Pitch > 0;
+				case ESingleField::Y: return Value.Yaw > 0;
 				case ESingleField::Z:
-				case ESingleField::W:
-					return Value.Roll > 0;
-				case ESingleField::Length:
-					return Value.Euler().Length();
+				case ESingleField::W: return Value.Roll > 0;
+				case ESingleField::Length: return Value.Euler().Length();
 				case ESingleField::SquaredLength:
-				case ESingleField::Volume:
-					return Value.Euler().SquaredLength();
-				case ESingleField::Sum:
-					return Value.Pitch + Value.Yaw + Value.Roll;
+				case ESingleField::Volume: return Value.Euler().SquaredLength();
+				case ESingleField::Sum: return Value.Pitch + Value.Yaw + Value.Roll;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return Get<FQuat, FVector2D>(Value.Quaternion()); }
@@ -902,22 +812,11 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-			else if constexpr (
-				std::is_same_v<T, bool> ||
-				std::is_same_v<T, int32> ||
-				std::is_same_v<T, int64> ||
-				std::is_same_v<T, float> ||
-				std::is_same_v<T, double> ||
-				std::is_same_v<T, FVector2D> ||
-				std::is_same_v<T, FVector> ||
-				std::is_same_v<T, FVector4> ||
-				std::is_same_v<T, FQuat> ||
-				std::is_same_v<T, FRotator>)
+			else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double> || std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4> || std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
 			{
 				switch (Component)
 				{
-				default:
-				case ETransformPart::Position: return Get<FVector, T>(Value.GetLocation());
+				default: case ETransformPart::Position: return Get<FVector, T>(Value.GetLocation());
 				case ETransformPart::Rotation: return Get<FQuat, T>(Value.GetRotation());
 				case ETransformPart::Scale: return Get<FVector, T>(Value.GetScale3D());
 				}
@@ -1001,27 +900,15 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 	{
 		// Unary target type -- can't account for component/field
 		if constexpr (std::is_same_v<T_VALUE, T>) { Target = Value; }
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, int32> ||
-			std::is_same_v<T, int64> ||
-			std::is_same_v<T, float> ||
-			std::is_same_v<T, double>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 		{
 			if constexpr (std::is_same_v<T_VALUE, PCGExValueHash>) { Target = GetTypeHash(Value); }
 			else if constexpr (std::is_same_v<T_VALUE, bool>) { Target = Value ? 1 : 0; }
-			else if constexpr (
-				std::is_same_v<T_VALUE, int32> ||
-				std::is_same_v<T_VALUE, int64> ||
-				std::is_same_v<T_VALUE, float> ||
-				std::is_same_v<T_VALUE, double>)
+			else if constexpr (std::is_same_v<T_VALUE, int32> || std::is_same_v<T_VALUE, int64> || std::is_same_v<T_VALUE, float> || std::is_same_v<T_VALUE, double>)
 			{
 				Target = static_cast<T>(Value);
 			}
-			else if constexpr (
-				std::is_same_v<T_VALUE, FVector2D> ||
-				std::is_same_v<T_VALUE, FVector> ||
-				std::is_same_v<T_VALUE, FVector4>)
+			else if constexpr (std::is_same_v<T_VALUE, FVector2D> || std::is_same_v<T_VALUE, FVector> || std::is_same_v<T_VALUE, FVector4>)
 			{
 				Target = static_cast<T>(Value[0]);
 			}
@@ -1041,29 +928,17 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			}
 		}
 		// NAry target type -- can set components by index
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector> ||
-			std::is_same_v<T, FVector4> ||
-			std::is_same_v<T, FRotator> ||
-			std::is_same_v<T, FQuat>)
+		else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4> || std::is_same_v<T, FRotator> || std::is_same_v<T, FQuat>)
 		{
 			double V = 1;
 
 			if constexpr (std::is_same_v<T_VALUE, PCGExValueHash>) { V = GetTypeHash(Value); }
 			else if constexpr (std::is_same_v<T_VALUE, bool>) { V = Value ? 1 : 0; }
-			else if constexpr (
-				std::is_same_v<T_VALUE, int32> ||
-				std::is_same_v<T_VALUE, int64> ||
-				std::is_same_v<T_VALUE, float> ||
-				std::is_same_v<T_VALUE, double>)
+			else if constexpr (std::is_same_v<T_VALUE, int32> || std::is_same_v<T_VALUE, int64> || std::is_same_v<T_VALUE, float> || std::is_same_v<T_VALUE, double>)
 			{
 				V = static_cast<double>(Value);
 			}
-			else if constexpr (
-				std::is_same_v<T_VALUE, FVector2D> ||
-				std::is_same_v<T_VALUE, FVector> ||
-				std::is_same_v<T_VALUE, FVector4>)
+			else if constexpr (std::is_same_v<T_VALUE, FVector2D> || std::is_same_v<T_VALUE, FVector> || std::is_same_v<T_VALUE, FVector4>)
 			{
 				V = static_cast<double>(Value[0]);
 			}
@@ -1085,62 +960,45 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				// UNSUPPORTED
 			}
 
-			if constexpr (
-				std::is_same_v<T, FVector2D> ||
-				std::is_same_v<T, FVector> ||
-				std::is_same_v<T, FVector4>)
+			if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>)
 			{
 				switch (Field)
 				{
-				case ESingleField::X:
-					Target[0] = V;
+				case ESingleField::X: Target[0] = V;
 					break;
-				case ESingleField::Y:
-					Target[1] = V;
+				case ESingleField::Y: Target[1] = V;
 					break;
-				case ESingleField::Z:
-					if constexpr (!std::is_same_v<T, FVector2D>) { Target[2] = V; }
+				case ESingleField::Z: if constexpr (!std::is_same_v<T, FVector2D>) { Target[2] = V; }
 					break;
-				case ESingleField::W:
-					if constexpr (std::is_same_v<T, FVector4>) { Target[3] = V; }
+				case ESingleField::W: if constexpr (std::is_same_v<T, FVector4>) { Target[3] = V; }
 					break;
-				case ESingleField::Length:
-					if constexpr (std::is_same_v<T, FVector4>) { Target = FVector4(FVector(Target.X, Target.Y, Target.Z).GetSafeNormal() * V, Target.W); }
+				case ESingleField::Length: if constexpr (std::is_same_v<T, FVector4>) { Target = FVector4(FVector(Target.X, Target.Y, Target.Z).GetSafeNormal() * V, Target.W); }
 					else { Target = Target.GetSafeNormal() * V; }
 					break;
-				case ESingleField::SquaredLength:
-					if constexpr (std::is_same_v<T, FVector4>) { Target = FVector4(FVector(Target.X, Target.Y, Target.Z).GetSafeNormal() * FMath::Sqrt(V), Target.W); }
+				case ESingleField::SquaredLength: if constexpr (std::is_same_v<T, FVector4>) { Target = FVector4(FVector(Target.X, Target.Y, Target.Z).GetSafeNormal() * FMath::Sqrt(V), Target.W); }
 					else { Target = Target.GetSafeNormal() * FMath::Sqrt(V); }
 					break;
 				case ESingleField::Volume:
-				case ESingleField::Sum:
-					return;
+				case ESingleField::Sum: return;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FRotator>)
 			{
 				switch (Field)
 				{
-				case ESingleField::X:
-					Target.Pitch = V;
+				case ESingleField::X: Target.Pitch = V;
 					break;
-				case ESingleField::Y:
-					Target.Yaw = V;
+				case ESingleField::Y: Target.Yaw = V;
 					break;
-				case ESingleField::Z:
-					Target.Roll = V;
+				case ESingleField::Z: Target.Roll = V;
 					break;
-				case ESingleField::W:
-					return;
-				case ESingleField::Length:
-					Target = Target.GetNormalized() * V;
+				case ESingleField::W: return;
+				case ESingleField::Length: Target = Target.GetNormalized() * V;
 					break;
-				case ESingleField::SquaredLength:
-					Target = Target.GetNormalized() * FMath::Sqrt(V);
+				case ESingleField::SquaredLength: Target = Target.GetNormalized() * FMath::Sqrt(V);
 					break;
 				case ESingleField::Volume:
-				case ESingleField::Sum:
-					return;
+				case ESingleField::Sum: return;
 				}
 			}
 			else if constexpr (std::is_same_v<T, FQuat>)
@@ -1256,10 +1114,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B TValueBuffer<_TYPE_A>::Get(const FSubSel
 		return OutType != EPCGMetadataTypes::Unknown;
 	}
 
-	bool TryGetTypeAndSource(
-		const FPCGAttributePropertyInputSelector& InputSelector,
-		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide)
+	bool TryGetTypeAndSource(const FPCGAttributePropertyInputSelector& InputSelector, const TSharedPtr<PCGExData::FFacade>& InDataFacade, EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide)
 	{
 		OutType = EPCGMetadataTypes::Unknown;
 		if (InOutSide == PCGExData::EIOSide::In)

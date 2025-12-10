@@ -13,9 +13,7 @@ bool FPCGExVtxPropertySpecialEdges::PrepareForCluster(FPCGExContext* InContext, 
 {
 	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
-	if (!Config.ShortestEdge.Validate(InContext) ||
-		!Config.LongestEdge.Validate(InContext) ||
-		!Config.AverageEdge.Validate(InContext))
+	if (!Config.ShortestEdge.Validate(InContext) || !Config.LongestEdge.Validate(InContext) || !Config.AverageEdge.Validate(InContext))
 	{
 		bIsValidOperation = false;
 		return false;

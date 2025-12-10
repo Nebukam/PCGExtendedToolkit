@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExModuloCompareFilter.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -17,10 +18,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExModuloCompareFilterConfig, OperandC, double, Comp
 
 bool UPCGExModuloCompareFilterFactory::DomainCheck()
 {
-	return
-		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
-		(Config.OperandBSource == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) &&
-		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandC));
+	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.OperandBSource == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandC));
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExModuloCompareFilterFactory::CreateFilter() const
@@ -85,12 +83,8 @@ bool PCGExPointFilter::FModuloComparisonFilter::Test(const TSharedPtr<PCGExData:
 	double C = 0;
 
 	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
-	if (!PCGExDataHelpers::TryGetSettingDataValue(
-		IO, TypedFilterFactory->Config.OperandBSource, TypedFilterFactory->Config.OperandB,
-		TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
-	if (!PCGExDataHelpers::TryGetSettingDataValue(
-		IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandC,
-		TypedFilterFactory->Config.OperandCConstant, C, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.OperandBSource, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandC, TypedFilterFactory->Config.OperandCConstant, C, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);

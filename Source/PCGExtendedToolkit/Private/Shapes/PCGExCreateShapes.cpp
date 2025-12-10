@@ -16,6 +16,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateShapesElement"
 #define PCGEX_NAMESPACE CreateShapes
 
+
 PCGEX_INITIALIZE_ELEMENT(CreateShapes)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(CreateShapes)
 
@@ -38,12 +39,10 @@ bool FPCGExCreateShapesElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				//NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			//NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
@@ -70,13 +69,8 @@ namespace PCGExCreateShapes
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildShape)
 
-		FBuildShape(const TSharedPtr<FPCGExShapeBuilderOperation>& InOperation,
-		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
-		            const TSharedPtr<PCGExShapes::FShape>& InShape) :
-			FTask(),
-			ShapeDataFacade(InShapeDataFacade),
-			Operation(InOperation),
-			Shape(InShape)
+		FBuildShape(const TSharedPtr<FPCGExShapeBuilderOperation>& InOperation, const TSharedRef<PCGExData::FFacade>& InShapeDataFacade, const TSharedPtr<PCGExShapes::FShape>& InShape)
+			: FTask(), ShapeDataFacade(InShapeDataFacade), Operation(InOperation), Shape(InShape)
 		{
 		}
 
@@ -135,14 +129,11 @@ namespace PCGExCreateShapes
 	{
 		switch (Settings->OutputMode)
 		{
-		case EPCGExShapeOutputMode::PerDataset:
-			OutputPerDataSet();
+		case EPCGExShapeOutputMode::PerDataset: OutputPerDataSet();
 			break;
-		case EPCGExShapeOutputMode::PerSeed:
-			OutputPerSeed();
+		case EPCGExShapeOutputMode::PerSeed: OutputPerSeed();
 			break;
-		case EPCGExShapeOutputMode::PerShape:
-			OutputPerShape();
+		case EPCGExShapeOutputMode::PerShape: OutputPerShape();
 			break;
 		}
 	}
@@ -289,11 +280,7 @@ namespace PCGExCreateShapes
 		}
 	}
 
-	void BuildShape(
-		FPCGExCreateShapesContext* Context,
-		const TSharedRef<PCGExData::FFacade>& ShapeDataFacade,
-		const TSharedPtr<FPCGExShapeBuilderOperation>& Operation,
-		const TSharedPtr<PCGExShapes::FShape>& Shape)
+	void BuildShape(FPCGExCreateShapesContext* Context, const TSharedRef<PCGExData::FFacade>& ShapeDataFacade, const TSharedPtr<FPCGExShapeBuilderOperation>& Operation, const TSharedPtr<PCGExShapes::FShape>& Shape)
 	{
 		PCGEX_SETTINGS(CreateShapes);
 
@@ -319,9 +306,7 @@ namespace PCGExCreateShapes
 			if (Settings->OutputMode == EPCGExShapeOutputMode::PerShape && !Settings->bForceOutputToElement)
 			{
 				Identifier.MetadataDomain = EPCGMetadataDomainFlag::Data;
-				const TSharedPtr<PCGExData::TBuffer<int32>> ShapeIdBuffer = ShapeDataFacade->GetWritable<int32>(
-					Identifier,
-					Operation->BaseConfig.ShapeId, true, PCGExData::EBufferInit::New);
+				const TSharedPtr<PCGExData::TBuffer<int32>> ShapeIdBuffer = ShapeDataFacade->GetWritable<int32>(Identifier, Operation->BaseConfig.ShapeId, true, PCGExData::EBufferInit::New);
 			}
 			else
 			{

@@ -5,24 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTangentsInstancedFactory.h"
-#include "Geometry/PCGExGeo.h"
 #include "PCGExTangentsAuto.generated.h"
 
 class FPCGExTangentsAuto : public FPCGExTangentsOperation
 {
 public:
-	virtual void ProcessPoint(
-		const UPCGBasePointData* InPointData,
-		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const override
+	virtual void ProcessPoint(const UPCGBasePointData* InPointData, const int32 Index, const int32 NextIndex, const int32 PrevIndex, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
-		const PCGExGeo::FApex Apex = PCGExGeo::FApex(
-			InTransforms[PrevIndex].GetLocation(),
-			InTransforms[NextIndex].GetLocation(),
-			InTransforms[Index].GetLocation());
+		const PCGExGeo::FApex Apex = PCGExGeo::FApex(InTransforms[PrevIndex].GetLocation(), InTransforms[NextIndex].GetLocation(), InTransforms[Index].GetLocation());
 
 		OutArrive = Apex.TowardStart * ArriveScale;
 		OutLeave = Apex.TowardEnd * -1 * LeaveScale;

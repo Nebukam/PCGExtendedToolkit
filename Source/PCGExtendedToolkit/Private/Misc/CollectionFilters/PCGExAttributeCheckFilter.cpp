@@ -40,17 +40,13 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 
 			switch (TypedFilterFactory->Config.Match)
 			{
-			case EPCGExStringMatchMode::Equals:
-				if (Identity.Identifier.Name == Identifier.Name) { bMatches = true; }
+			case EPCGExStringMatchMode::Equals: if (Identity.Identifier.Name == Identifier.Name) { bMatches = true; }
 				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Str.Contains(IdentifierStr)) { bMatches = true; }
+			case EPCGExStringMatchMode::Contains: if (Str.Contains(IdentifierStr)) { bMatches = true; }
 				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Str.StartsWith(IdentifierStr)) { bMatches = true; }
+			case EPCGExStringMatchMode::StartsWith: if (Str.StartsWith(IdentifierStr)) { bMatches = true; }
 				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Str.EndsWith(IdentifierStr)) { bMatches = true; }
+			case EPCGExStringMatchMode::EndsWith: if (Str.EndsWith(IdentifierStr)) { bMatches = true; }
 				break;
 			}
 
@@ -77,17 +73,13 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 
 			switch (TypedFilterFactory->Config.Match)
 			{
-			case EPCGExStringMatchMode::Equals:
-				if (Str == IdentifierStr) { bMatches = true; }
+			case EPCGExStringMatchMode::Equals: if (Str == IdentifierStr) { bMatches = true; }
 				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Str.Contains(IdentifierStr)) { bMatches = true; }
+			case EPCGExStringMatchMode::Contains: if (Str.Contains(IdentifierStr)) { bMatches = true; }
 				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Str.StartsWith(IdentifierStr)) { bMatches = true; }
+			case EPCGExStringMatchMode::StartsWith: if (Str.StartsWith(IdentifierStr)) { bMatches = true; }
 				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Str.EndsWith(IdentifierStr)) { bMatches = true; }
+			case EPCGExStringMatchMode::EndsWith: if (Str.EndsWith(IdentifierStr)) { bMatches = true; }
 				break;
 			}
 

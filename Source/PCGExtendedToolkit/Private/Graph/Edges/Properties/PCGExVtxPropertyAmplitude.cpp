@@ -155,7 +155,10 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 		}
 	}
 
-	if (AmpRangeBuffer) { AmpRangeBuffer->SetValue(Node.PointIndex, Config.bAbsoluteRange ? PCGExMath::Abs(AmplitudeRange) : AmplitudeRange); }
+	if (AmpRangeBuffer)
+	{
+		AmpRangeBuffer->SetValue(Node.PointIndex, Config.bAbsoluteRange ? PCGExMath::Abs(AmplitudeRange) : AmplitudeRange);
+	}
 	if (AmpRangeLengthBuffer) { AmpRangeLengthBuffer->SetValue(Node.PointIndex, AmplitudeRange.Length()); }
 
 	if (MinAmpLengthBuffer) { MinAmpLengthBuffer->SetValue(Node.PointIndex, MinAmplitude.Length()); }

@@ -7,7 +7,6 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Misc/Pickers/PCGExPickerConstantRange.h"
 
@@ -130,9 +129,7 @@ protected:
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		RangeCompareFilterFactory, "Filter : Within Range", "Creates a filter definition check if a value is within a given range.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RangeCompareFilterFactory, "Filter : Within Range", "Creates a filter definition check if a value is within a given range.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

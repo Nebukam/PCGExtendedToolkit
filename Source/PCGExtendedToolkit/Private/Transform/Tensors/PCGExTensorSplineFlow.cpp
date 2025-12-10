@@ -27,9 +27,7 @@ PCGExTensor::FTensorSample FPCGExTensorSplineFlow::Sample(const int32 InSeedInde
 
 		if (!ComputeFactor(InPosition, Spline, Config.Radius, T, Metrics)) { continue; }
 
-		Samples.Emplace_GetRef(
-			FRotationMatrix::MakeFromX(PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection)).ToQuat().RotateVector(Metrics.Guide),
-			Metrics.Potency, Metrics.Weight);
+		Samples.Emplace_GetRef(FRotationMatrix::MakeFromX(PCGExMath::GetDirection(T.GetRotation(), Config.SplineDirection)).ToQuat().RotateVector(Metrics.Guide), Metrics.Potency, Metrics.Weight);
 	}
 
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
@@ -41,12 +39,7 @@ PCGExFactories::EPreparationResult UPCGExTensorSplineFlowFactory::Prepare(FPCGEx
 	return Super::Prepare(InContext, AsyncManager);
 }
 
-PCGEX_TENSOR_BOILERPLATE(
-	SplineFlow, {
-	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
-	}, {
-	NewOperation->Splines = &Splines;
-	})
+PCGEX_TENSOR_BOILERPLATE(SplineFlow, { NewFactory->Config.Potency *=NewFactory->Config.PotencyScale; }, { NewOperation->Splines = &Splines; })
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

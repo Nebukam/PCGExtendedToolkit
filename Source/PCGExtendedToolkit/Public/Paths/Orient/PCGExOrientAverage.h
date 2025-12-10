@@ -4,28 +4,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "Math/MathFwd.h"
-
-#include "PCGExOrientOperation.h"
 #include "Data/PCGExPointElements.h"
-
+#include "PCGExOrientOperation.h"
 #include "PCGExOrientAverage.generated.h"
 
 class FPCGExOrientAverage : public FPCGExOrientOperation
 {
 public:
-	virtual FTransform ComputeOrientation(
-		const PCGExData::FConstPoint& Point,
-		const double DirectionMultiplier) const override
+	virtual FTransform ComputeOrientation(const PCGExData::FConstPoint& Point, const double DirectionMultiplier) const override
 	{
 		const FVector A = Path->DirToNextPoint(Point.Index);
 		const FVector B = Path->DirToPrevPoint(Point.Index) * -1;
 		FTransform OutT = Point.GetTransform();
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				Factory->OrientAxis, FMath::Lerp(A, B, 0.5).GetSafeNormal() * DirectionMultiplier,
-				PCGExMath::GetDirection(Factory->UpAxis)));
+		OutT.SetRotation(PCGExMath::MakeDirection(Factory->OrientAxis, FMath::Lerp(A, B, 0.5).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
 	}
 };

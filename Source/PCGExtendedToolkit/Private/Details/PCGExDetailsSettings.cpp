@@ -54,7 +54,6 @@ namespace PCGExDetails
 		Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax, this->bQuiet);
 		if (!Buffer) { return false; }
 
-
 		return true;
 	}
 

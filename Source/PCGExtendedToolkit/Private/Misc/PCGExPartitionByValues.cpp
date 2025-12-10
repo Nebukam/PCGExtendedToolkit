@@ -174,11 +174,9 @@ bool FPCGExPartitionByValuesBaseElement::AdvanceWork(FPCGExContext* InContext, c
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any partitions."));
 		}
@@ -269,17 +267,12 @@ namespace PCGExPartitionByValuesBase
 
 				if (Rule->RuleConfig->bWriteKey)
 				{
-					PCGExData::WriteMark<int64>(
-						PartitionIO,
-						Rule->RuleConfig->KeyAttributeName,
-						Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+					PCGExData::WriteMark<int64>(PartitionIO, Rule->RuleConfig->KeyAttributeName, Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
 				}
 
 				if (Rule->RuleConfig->bWriteTag)
 				{
-					PartitionIO->Tags->Set<int64>(
-						Rule->RuleConfig->TagPrefixName.ToString(),
-						Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+					PartitionIO->Tags->Set<int64>(Rule->RuleConfig->TagPrefixName.ToString(), Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
 				}
 
 				Partition = Partition->Parent.Pin();

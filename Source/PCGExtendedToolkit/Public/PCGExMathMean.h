@@ -57,6 +57,5 @@ namespace PCGExMean
 		return Median;
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	double GetMode(const TArray<double>& Values, const bool bHighest, const uint32 Tolerance = 5);
+	PCGEXTENDEDTOOLKIT_API double GetMode(const TArray<double>& Values, const bool bHighest, const uint32 Tolerance = 5);
 }

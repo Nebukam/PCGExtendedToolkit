@@ -89,8 +89,8 @@ namespace PCGExCreateShapes
 		TArray<TSharedPtr<PCGExData::FFacade>> PerSeedFacades;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
@@ -111,10 +111,5 @@ namespace PCGExCreateShapes
 		void OutputPerShape();
 	};
 
-	static void BuildShape(
-		FPCGExCreateShapesContext* Context,
-		const TSharedRef<PCGExData::FFacade>& ShapeDataFacade,
-		const TSharedPtr<FPCGExShapeBuilderOperation>& Operation,
-		const TSharedPtr<PCGExShapes::FShape>& Shape);
-	
+	static void BuildShape(FPCGExCreateShapesContext* Context, const TSharedRef<PCGExData::FFacade>& ShapeDataFacade, const TSharedPtr<FPCGExShapeBuilderOperation>& Operation, const TSharedPtr<PCGExShapes::FShape>& Shape);
 }

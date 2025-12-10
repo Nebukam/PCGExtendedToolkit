@@ -27,17 +27,16 @@ class UPCGExCollocationCountSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CollocationCount, "Collocation Count", "Write the number of time a point shares its location with another.",
-		CollicationNumAttributeName);
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(CollocationCount, "Collocation Count", "Write the number of time a point shares its location with another.", CollicationNumAttributeName);
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
 #endif
 
 protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** The name of the attribute to write collocation to.*/
@@ -86,8 +85,8 @@ namespace PCGExCollocationCount
 		const PCGPointOctree::FPointOctree* Octree = nullptr;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

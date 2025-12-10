@@ -3,6 +3,7 @@
 
 #include "Debug/PCGExFlushDebug.h"
 
+#include "PCGGraph.h"
 #include "PCGPin.h"
 #include "PCGGraph.h"
 #include "DrawDebugHelpers.h"
@@ -32,30 +33,22 @@ FPCGElementPtr UPCGExDebugSettings::CreateElement() const { return MakeShared<FP
 
 bool FPCGExDebugElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
-	PCGEX_CONTEXT_AND_SETTINGS(Debug)
+	PCGEX_SETTINGS_C(InContext, Debug)
 
 #if WITH_EDITOR
 
-	if (!Settings->bPCGExDebug)
+	if (Settings->bPCGExDebug)
 	{
-		DisabledPassThroughData(Context);
-		return true;
+		FlushPersistentDebugLines(InContext->GetWorld());
+		FlushDebugStrings(InContext->GetWorld());
 	}
-
-	if (Context->bWait)
-	{
-		Context->bWait = false;
-		return false;
-	}
-
-	FlushPersistentDebugLines(Context->GetWorld());
-	FlushDebugStrings(Context->GetWorld());
 
 #endif
 
-	DisabledPassThroughData(Context);
+	DisabledPassThroughData(InContext);
 
-	return true;
+	InContext->Done();
+	return InContext->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

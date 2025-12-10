@@ -12,6 +12,11 @@
 #include "UObject/Object.h"
 #include "PCGExProbeOperation.generated.h"
 
+namespace PCGExMT
+{
+	class FScopedContainer;
+}
+
 namespace PCGExData
 {
 	class FPointIO;

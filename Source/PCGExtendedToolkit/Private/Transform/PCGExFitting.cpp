@@ -22,10 +22,7 @@ void FPCGExScaleToFitDetails::Process(const PCGExData::FPoint& InPoint, const FB
 	const double YFactor = TargetSizeScaled.Y / CandidateSize.Y;
 	const double ZFactor = TargetSizeScaled.Z / CandidateSize.Z;
 
-	const FVector FitMinMax = FVector(
-		FMath::Min3(XFactor, YFactor, ZFactor),
-		FMath::Max3(XFactor, YFactor, ZFactor),
-		(XFactor + YFactor + ZFactor) / 3);
+	const FVector FitMinMax = FVector(FMath::Min3(XFactor, YFactor, ZFactor), FMath::Max3(XFactor, YFactor, ZFactor), (XFactor + YFactor + ZFactor) / 3);
 
 	OutBounds.Min = InBounds.Min;
 	OutBounds.Max = InBounds.Max;
@@ -45,31 +42,21 @@ void FPCGExScaleToFitDetails::Process(const PCGExData::FPoint& InPoint, const FB
 	}
 }
 
-void FPCGExScaleToFitDetails::ScaleToFitAxis(
-	const EPCGExScaleToFit Fit, const int32 Axis,
-	const FVector& TargetScale, const FVector& TargetSize,
-	const FVector& CandidateSize, const FVector& MinMaxFit,
-	FVector& OutScale)
+void FPCGExScaleToFitDetails::ScaleToFitAxis(const EPCGExScaleToFit Fit, const int32 Axis, const FVector& TargetScale, const FVector& TargetSize, const FVector& CandidateSize, const FVector& MinMaxFit, FVector& OutScale)
 {
 	const double Scale = TargetScale[Axis];
 	double FinalScale = Scale;
 
 	switch (Fit)
 	{
-	default:
-	case EPCGExScaleToFit::None:
+	default: case EPCGExScaleToFit::None: break;
+	case EPCGExScaleToFit::Fill: FinalScale = ((TargetSize[Axis] * Scale) / CandidateSize[Axis]);
 		break;
-	case EPCGExScaleToFit::Fill:
-		FinalScale = ((TargetSize[Axis] * Scale) / CandidateSize[Axis]);
+	case EPCGExScaleToFit::Min: FinalScale = MinMaxFit[0];
 		break;
-	case EPCGExScaleToFit::Min:
-		FinalScale = MinMaxFit[0];
+	case EPCGExScaleToFit::Max: FinalScale = MinMaxFit[1];
 		break;
-	case EPCGExScaleToFit::Max:
-		FinalScale = MinMaxFit[1];
-		break;
-	case EPCGExScaleToFit::Avg:
-		FinalScale = MinMaxFit[2];
+	case EPCGExScaleToFit::Avg: FinalScale = MinMaxFit[2];
 		break;
 	}
 
@@ -110,20 +97,14 @@ bool FPCGExSingleJustifyDetails::Init(FPCGExContext* InContext, const TSharedRef
 	{
 		switch (From)
 		{
-		default:
-		case EPCGExJustifyFrom::Min:
-			To = EPCGExJustifyTo::Min;
+		default: case EPCGExJustifyFrom::Min: To = EPCGExJustifyTo::Min;
 			break;
-		case EPCGExJustifyFrom::Center:
-			To = EPCGExJustifyTo::Center;
+		case EPCGExJustifyFrom::Center: To = EPCGExJustifyTo::Center;
 			break;
-		case EPCGExJustifyFrom::Max:
-			To = EPCGExJustifyTo::Max;
+		case EPCGExJustifyFrom::Max: To = EPCGExJustifyTo::Max;
 			break;
-		case EPCGExJustifyFrom::Custom:
-			break;
-		case EPCGExJustifyFrom::Pivot:
-			To = EPCGExJustifyTo::Pivot;
+		case EPCGExJustifyFrom::Custom: break;
+		case EPCGExJustifyFrom::Pivot: To = EPCGExJustifyTo::Pivot;
 			break;
 		}
 	}
@@ -165,45 +146,33 @@ void FPCGExSingleJustifyDetails::JustifyAxis(const int32 Axis, const int32 Index
 
 	switch (From)
 	{
-	default:
-	case EPCGExJustifyFrom::Min:
-		Start = OutCenter[Axis] - HalfOutSize;
+	default: case EPCGExJustifyFrom::Min: Start = OutCenter[Axis] - HalfOutSize;
 		break;
-	case EPCGExJustifyFrom::Center:
-		Start = OutCenter[Axis];
+	case EPCGExJustifyFrom::Center: Start = OutCenter[Axis];
 		break;
-	case EPCGExJustifyFrom::Max:
-		Start = OutCenter[Axis] + HalfOutSize;
+	case EPCGExJustifyFrom::Max: Start = OutCenter[Axis] + HalfOutSize;
 		break;
-	case EPCGExJustifyFrom::Custom:
-		Start = OutCenter[Axis] - HalfOutSize + (OutSize[Axis] * FromValue);
+	case EPCGExJustifyFrom::Custom: Start = OutCenter[Axis] - HalfOutSize + (OutSize[Axis] * FromValue);
 		break;
-	case EPCGExJustifyFrom::Pivot:
-		Start = 0;
+	case EPCGExJustifyFrom::Pivot: Start = 0;
 		break;
 	}
 
 	switch (To)
 	{
-	default:
-	case EPCGExJustifyTo::Min:
-		End = InCenter[Axis] - HalfInSize;
+	default: case EPCGExJustifyTo::Min: End = InCenter[Axis] - HalfInSize;
 		break;
-	case EPCGExJustifyTo::Center:
-		End = InCenter[Axis];
+	case EPCGExJustifyTo::Center: End = InCenter[Axis];
 		break;
-	case EPCGExJustifyTo::Max:
-		End = InCenter[Axis] + HalfInSize;
+	case EPCGExJustifyTo::Max: End = InCenter[Axis] + HalfInSize;
 		break;
-	case EPCGExJustifyTo::Custom:
-		End = InCenter[Axis] - HalfInSize + (InSize[Axis] * ToValue);
+	case EPCGExJustifyTo::Custom: End = InCenter[Axis] - HalfInSize + (InSize[Axis] * ToValue);
 		break;
 	case EPCGExJustifyTo::Same:
 		// == Custom but using From values
 		End = InCenter[Axis] - HalfInSize * (InSize[Axis] * FromValue);
 		break;
-	case EPCGExJustifyTo::Pivot:
-		End = 0;
+	case EPCGExJustifyTo::Pivot: End = 0;
 		break;
 	}
 
@@ -284,10 +253,7 @@ void FPCGExFittingVariations::ApplyOffset(const FRandomStream& RandomStream, FTr
 	const FVector BaseLocation = OutTransform.GetLocation();
 	const FQuat BaseRotation = OutTransform.GetRotation();
 
-	FVector RandomOffset = FVector(
-		RandomStream.FRandRange(OffsetMin.X, OffsetMax.X),
-		RandomStream.FRandRange(OffsetMin.Y, OffsetMax.Y),
-		RandomStream.FRandRange(OffsetMin.Z, OffsetMax.Z));
+	FVector RandomOffset = FVector(RandomStream.FRandRange(OffsetMin.X, OffsetMax.X), RandomStream.FRandRange(OffsetMin.Y, OffsetMax.Y), RandomStream.FRandRange(OffsetMin.Z, OffsetMax.Z));
 
 	if (SnapPosition == EPCGExVariationSnapping::SnapOffset)
 	{
@@ -312,10 +278,7 @@ void FPCGExFittingVariations::ApplyRotation(const FRandomStream& RandomStream, F
 {
 	const FQuat BaseRotation = OutTransform.GetRotation();
 
-	FRotator RandRot = FRotator(
-		RandomStream.FRandRange(RotationMin.Pitch, RotationMax.Pitch),
-		RandomStream.FRandRange(RotationMin.Yaw, RotationMax.Yaw),
-		RandomStream.FRandRange(RotationMin.Roll, RotationMax.Roll));
+	FRotator RandRot = FRotator(RandomStream.FRandRange(RotationMin.Pitch, RotationMax.Pitch), RandomStream.FRandRange(RotationMin.Yaw, RotationMax.Yaw), RandomStream.FRandRange(RotationMin.Roll, RotationMax.Roll));
 
 	if (SnapRotation == EPCGExVariationSnapping::SnapOffset)
 	{
@@ -356,10 +319,7 @@ void FPCGExFittingVariations::ApplyScale(const FRandomStream& RandomStream, FTra
 	}
 	else
 	{
-		RandomScale = FVector(
-			RandomStream.FRandRange(ScaleMin.X, ScaleMax.X),
-			RandomStream.FRandRange(ScaleMin.Y, ScaleMax.Y),
-			RandomStream.FRandRange(ScaleMin.Z, ScaleMax.Z));
+		RandomScale = FVector(RandomStream.FRandRange(ScaleMin.X, ScaleMax.X), RandomStream.FRandRange(ScaleMin.Y, ScaleMax.Y), RandomStream.FRandRange(ScaleMin.Z, ScaleMax.Z));
 	}
 
 	if (SnapScale == EPCGExVariationSnapping::SnapOffset)
@@ -414,10 +374,7 @@ void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTra
 	FVector OutTranslation = FVector::ZeroVector;
 
 	ScaleToFit.Process(TargetPoint, InOutBounds, OutScale, InOutBounds);
-	Justification.Process(
-		TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint),
-		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
-		OutTranslation);
+	Justification.Process(TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint), FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale), OutTranslation);
 
 	OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
 	OutTransform.SetScale3D(OutScale);
@@ -432,10 +389,7 @@ void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex,
 	FVector OutTranslation = FVector::ZeroVector;
 
 	ScaleToFit.Process(TargetPoint, InOutBounds.TransformBy(InLocalXForm), OutScale, InOutBounds);
-	Justification.Process(
-		TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint),
-		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
-		OutTranslation);
+	Justification.Process(TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint), FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale), OutTranslation);
 
 	//OutTransform = OutTransform * InLocalXForm.Inverse(); 
 	OutTransform.SetScale3D(OutScale);

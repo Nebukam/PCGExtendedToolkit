@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
 #include "PCGExFactories.h"
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"
@@ -125,8 +126,8 @@ namespace PCGExBreakClustersToPaths
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -147,8 +148,8 @@ namespace PCGExBreakClustersToPaths
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 			DefaultVtxFilterValue = false;
 		}

@@ -55,31 +55,23 @@ void FPCGExTextureParamConfig::Init()
 
 	switch (OutputType)
 	{
-	default:
-	case EPCGExTexSampleAttributeType::Invalid:
-		OutChannels.Empty();
+	default: case EPCGExTexSampleAttributeType::Invalid: OutChannels.Empty();
 		break;
-	case EPCGExTexSampleAttributeType::Vector4:
-		MetadataType = EPCGMetadataTypes::Vector4;
+	case EPCGExTexSampleAttributeType::Vector4: MetadataType = EPCGMetadataTypes::Vector4;
 		break;
-	case EPCGExTexSampleAttributeType::Float:
-		MetadataType = EPCGMetadataTypes::Float;
+	case EPCGExTexSampleAttributeType::Float: MetadataType = EPCGMetadataTypes::Float;
 		if (OutChannels.Num() > 1) { OutChannels.SetNum(1); }
 		break;
-	case EPCGExTexSampleAttributeType::Double:
-		MetadataType = EPCGMetadataTypes::Double;
+	case EPCGExTexSampleAttributeType::Double: MetadataType = EPCGMetadataTypes::Double;
 		if (OutChannels.Num() > 1) { OutChannels.SetNum(1); }
 		break;
-	case EPCGExTexSampleAttributeType::Integer:
-		MetadataType = EPCGMetadataTypes::Integer32;
+	case EPCGExTexSampleAttributeType::Integer: MetadataType = EPCGMetadataTypes::Integer32;
 		if (OutChannels.Num() > 1) { OutChannels.SetNum(1); }
 		break;
-	case EPCGExTexSampleAttributeType::Vector:
-		MetadataType = EPCGMetadataTypes::Vector;
+	case EPCGExTexSampleAttributeType::Vector: MetadataType = EPCGMetadataTypes::Vector;
 		if (OutChannels.Num() > 3) { OutChannels.SetNum(3); }
 		break;
-	case EPCGExTexSampleAttributeType::Vector2:
-		MetadataType = EPCGMetadataTypes::Vector2;
+	case EPCGExTexSampleAttributeType::Vector2: MetadataType = EPCGMetadataTypes::Vector2;
 		if (OutChannels.Num() > 2) { OutChannels.SetNum(2); }
 		break;
 	}
@@ -106,9 +98,7 @@ namespace PCGExTexture
 
 	bool FLookup::BuildFrom(FPCGExContext* InContext, const FName InPin)
 	{
-		if (!PCGExFactories::GetInputFactories(
-			InContext, InPin, Factories,
-			{PCGExFactories::EType::TexParam}))
+		if (!PCGExFactories::GetInputFactories(InContext, InPin, Factories, {PCGExFactories::EType::TexParam}))
 		{
 			return false;
 		}

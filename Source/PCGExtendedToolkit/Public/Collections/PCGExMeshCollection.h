@@ -165,11 +165,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	bool SameAs(const FPCGExMeshCollectionEntry& Other) const
 	{
-		return
-			SubCollection == Other.SubCollection &&
-			Weight == Other.Weight &&
-			Category == Other.Category &&
-			StaticMesh == Other.StaticMesh;
+		return SubCollection == Other.SubCollection && Weight == Other.Weight && Category == Other.Category && StaticMesh == Other.StaticMesh;
 	}
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;

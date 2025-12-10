@@ -4,7 +4,6 @@
 #include "Data/PCGExPointStates.h"
 
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
 #include "PCGParamData.h"
 #include "Graph/PCGExCluster.h"
 
@@ -90,11 +89,9 @@ namespace PCGExPointStates
 	}
 }
 
-
 bool UPCGExStateFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->IsOutputPin()
-		&& (InPin->Properties.Label == PCGExPointStates::OutputOnPassBitmaskLabel || InPin->Properties.Label == PCGExPointStates::OutputOnFailBitmaskLabel))
+	if (InPin->IsOutputPin() && (InPin->Properties.Label == PCGExPointStates::OutputOnPassBitmaskLabel || InPin->Properties.Label == PCGExPointStates::OutputOnFailBitmaskLabel))
 	{
 		return bOutputBitmasks;
 	}
@@ -129,10 +126,7 @@ UPCGExFactoryData* UPCGExStateFactoryProviderSettings::CreateFactory(FPCGExConte
 
 	NewFactory->Priority = Priority;
 
-	if (const bool bRequiresFilters = NewFactory->GetRequiresFilters();
-		!GetInputFactories(
-			InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
-			PCGExFactories::ClusterNodeFilters, bRequiresFilters) && bRequiresFilters)
+	if (const bool bRequiresFilters = NewFactory->GetRequiresFilters(); !GetInputFactories(InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters, bRequiresFilters) && bRequiresFilters)
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

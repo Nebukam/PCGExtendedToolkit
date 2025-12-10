@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSearchOperation.h"
+
+
 #include "UObject/Object.h"
 #include "PCGExSearchAStar.generated.h"
 
@@ -13,11 +15,7 @@ class FPCGExHeuristicOperation;
 class FPCGExSearchOperationAStar : public FPCGExSearchOperation
 {
 public:
-	virtual bool ResolveQuery(
-		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-		const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
-		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
-		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
+	virtual bool ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
 
 	virtual TSharedPtr<PCGExPathfinding::FSearchAllocations> NewAllocations() const override;
 };

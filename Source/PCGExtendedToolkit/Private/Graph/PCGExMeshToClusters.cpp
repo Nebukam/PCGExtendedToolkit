@@ -27,18 +27,8 @@ namespace PCGExGraphTask
 	class FCopyGraphToPoint final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FCopyGraphToPoint(const int32 InTaskIndex,
-		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                  const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
-		                  const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection,
-		                  const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection,
-		                  FPCGExTransformDetails* InTransformDetails) :
-			FPCGExIndexedTask(InTaskIndex),
-			PointIO(InPointIO),
-			GraphBuilder(InGraphBuilder),
-			VtxCollection(InVtxCollection),
-			EdgeCollection(InEdgeCollection),
-			TransformDetails(InTransformDetails)
+		FCopyGraphToPoint(const int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder, const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection, const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection, FPCGExTransformDetails* InTransformDetails)
+			: FPCGExIndexedTask(InTaskIndex), PointIO(InPointIO), GraphBuilder(InGraphBuilder), VtxCollection(InVtxCollection), EdgeCollection(InEdgeCollection), TransformDetails(InTransformDetails)
 		{
 		}
 
@@ -88,11 +78,8 @@ namespace PCGExMeshToCluster
 	class FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FExtractMeshAndBuildGraph(
-			const int32 InTaskIndex,
-			const TSharedPtr<PCGExGeo::FGeoStaticMesh>& InMesh) :
-			FPCGExIndexedTask(InTaskIndex),
-			Mesh(InMesh)
+		FExtractMeshAndBuildGraph(const int32 InTaskIndex, const TSharedPtr<PCGExGeo::FGeoStaticMesh>& InMesh)
+			: FPCGExIndexedTask(InTaskIndex), Mesh(InMesh)
 		{
 		}
 
@@ -106,19 +93,15 @@ namespace PCGExMeshToCluster
 			switch (Mesh->DesiredTriangulationType)
 			{
 			default: ;
-			case EPCGExTriangulationType::Raw:
-				Mesh->ExtractMeshSynchronous();
+			case EPCGExTriangulationType::Raw: Mesh->ExtractMeshSynchronous();
 				break;
-			case EPCGExTriangulationType::Dual:
-				Mesh->TriangulateMeshSynchronous();
+			case EPCGExTriangulationType::Dual: Mesh->TriangulateMeshSynchronous();
 				Mesh->MakeDual();
 				break;
-			case EPCGExTriangulationType::Hollow:
-				Mesh->TriangulateMeshSynchronous();
+			case EPCGExTriangulationType::Hollow: Mesh->TriangulateMeshSynchronous();
 				Mesh->MakeHollowDual();
 				break;
-			case EPCGExTriangulationType::Boundaries:
-				Mesh->TriangulateMeshSynchronous();
+			case EPCGExTriangulationType::Boundaries: Mesh->TriangulateMeshSynchronous();
 				if (Mesh->HullIndices.IsEmpty() || Mesh->HullEdges.IsEmpty()) { return; }
 				break;
 			}
@@ -154,8 +137,7 @@ namespace PCGExMeshToCluster
 					bWantsColor = true;
 				}
 
-				if (const int32 NumTexCoords = Mesh->RawData.NumTexCoords;
-					!ImportDetails.UVChannelIndex.IsEmpty() && NumTexCoords >= 0)
+				if (const int32 NumTexCoords = Mesh->RawData.NumTexCoords; !ImportDetails.UVChannelIndex.IsEmpty() && NumTexCoords >= 0)
 				{
 					UVChannels.Reserve(ImportDetails.UVChannelIndex.Num());
 					UVChannelsWriters.Reserve(ImportDetails.UVChannelIndex.Num());
@@ -293,9 +275,7 @@ namespace PCGExMeshToCluster
 								{
 									const FIntVector3& Triangle = Mesh->Triangles[-(Mesh->RawIndices[i] + 1)];
 
-									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Triangle.X))
-										+ FVector4(ColorBuffer.VertexColor(Triangle.Y))
-										+ FVector4(ColorBuffer.VertexColor(Triangle.Z))) / 3;
+									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Triangle.X)) + FVector4(ColorBuffer.VertexColor(Triangle.Y)) + FVector4(ColorBuffer.VertexColor(Triangle.Z))) / 3;
 								}
 							}
 							else
@@ -305,9 +285,7 @@ namespace PCGExMeshToCluster
 								{
 									const FIntVector3& Triangle = Mesh->Triangles[-(Mesh->RawIndices[i] + 1)];
 
-									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Triangle.X))
-										+ FVector4(ColorBuffer.VertexColor(Triangle.Y))
-										+ FVector4(ColorBuffer.VertexColor(Triangle.Z))) / 3;
+									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Triangle.X)) + FVector4(ColorBuffer.VertexColor(Triangle.Y)) + FVector4(ColorBuffer.VertexColor(Triangle.Z))) / 3;
 
 									for (int u = 0; u < NumUVChannels; u++)
 									{
@@ -357,9 +335,7 @@ namespace PCGExMeshToCluster
 								else
 								{
 									const FIntVector3& Triangle = Mesh->Triangles[-(RawIndex + 1)];
-									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.X]))
-										+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Y]))
-										+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Z]))) / 3;
+									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.X])) + FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Y])) + FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Z]))) / 3;
 
 									for (int u = 0; u < NumUVChannels; u++)
 									{
@@ -392,9 +368,7 @@ namespace PCGExMeshToCluster
 								else
 								{
 									const FIntVector3& Triangle = Mesh->Triangles[-(RawIndex + 1)];
-									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.X]))
-										+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Y]))
-										+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Z]))) / 3;
+									OutColors[i] = (FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.X])) + FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Y])) + FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Z]))) / 3;
 								}
 							}
 						}
@@ -445,15 +419,14 @@ namespace PCGExMeshToCluster
 
 
 			TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
-			GraphBuilder->OnCompilationEndCallback =
-				[WeakHandle](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
-				{
-					if (!bSuccess) { return; }
-					PCGEX_SHARED_TCONTEXT_VOID(MeshToClusters, WeakHandle)
+			GraphBuilder->OnCompilationEndCallback = [WeakHandle](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+			{
+				if (!bSuccess) { return; }
+				PCGEX_SHARED_TCONTEXT_VOID(MeshToClusters, WeakHandle)
 
-					SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->NodeDataFacade->Source);
-					SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->EdgesIO->Pairs);
-				};
+				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->NodeDataFacade->Source);
+				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->EdgesIO->Pairs);
+			};
 
 			GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);
 		}

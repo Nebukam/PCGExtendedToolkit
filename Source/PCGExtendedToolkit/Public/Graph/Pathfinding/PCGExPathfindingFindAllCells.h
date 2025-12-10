@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
 
-#include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Topology/PCGExTopology.h"
 
@@ -113,8 +112,8 @@ namespace PCGExFindAllCells
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
 
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

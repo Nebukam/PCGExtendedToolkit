@@ -8,7 +8,6 @@
 #include "Details/PCGExDetailsIntersection.h"
 #include "Geometry/PCGExGeo.h"
 
-
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWritePathProperties.generated.h"
 
@@ -57,6 +56,12 @@ namespace PCGExPaths
 	class FPathEdgeBinormal;
 	class FPathEdgeLength;
 	class FPath;
+}
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
 }
 
 /**
@@ -436,8 +441,8 @@ namespace PCGExWritePathProperties
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -125,7 +125,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	/** Operand A Source. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExOperandSource OperandASource = EPCGExOperandSource::Attribute;
-	
+
 	/** Operand A. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
@@ -141,7 +141,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	/** Operand B Source. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Inline", EditCondition="bUseOperandB", HideEditConditionToggle))
 	EPCGExOperandSource OperandBSource = EPCGExOperandSource::Attribute;
-	
+
 	/** Choose where to output the result of the A/B blend */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBlendOpOutputMode OutputMode = EPCGExBlendOpOutputMode::SameAsA;
@@ -165,7 +165,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	/** Weight settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	FPCGExAttributeBlendWeight Weighting;
-	
+
 	void Init();
 };
 
@@ -281,12 +281,10 @@ protected:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual EPCGMetadataTypes GetPinInitialDefaultValueType(FName PinLabel) const override;
 	//~End IPCGSettingsDefaultValueProvider interface
-	
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		BlendOp, "BlendOp", "Creates a single Blend Operation node, to be used with the Attribute Blender.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BlendOp, "BlendOp", "Creates a single Blend Operation node, to be used with the Attribute Blender.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorBlendOp; }
 	//PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 
@@ -294,9 +292,7 @@ protected:
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 
-	
-	
-protected:
+
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoBlendOp)
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -315,7 +311,7 @@ public:
 	/** Config. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeBlendConfig Config;
-	
+
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif

@@ -39,6 +39,8 @@ class UPCGExClusterCentralitySettings : public UPCGExEdgesProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_NODE_INFOS(ClusterCentrality, "Cluster : Centrality", "Compute betweenness centrality. Processing time increases exponentially with the number of vtx.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
 #endif
@@ -72,7 +74,7 @@ public:
 
 	/** If enabled, only compute centrality on a subset of the nodes to get a rough approximation. This is useful for large clusters, or if you want to tradeoff precision for speed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Ratio", EditCondition="DownsamplingMode == EPCGExCentralityDownsampling::Ratio", EditConditionHides))
-	FPCGExRandomRatioDetails RandomDownsampling = FPCGExRandomRatioDetails(0.1);
+	FPCGExRandomRatioDetails RandomDownsampling;
 };
 
 struct FPCGExClusterCentralityContext final : FPCGExEdgesProcessorContext
@@ -115,8 +117,8 @@ namespace PCGExClusterCentrality
 		TSharedPtr<PCGExMT::TScopedArray<double>> ScopedBetweenness;
 
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -136,11 +138,7 @@ namespace PCGExClusterCentrality
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		void ProcessSingleNode(
-			const int32 Index,
-			TArray<double>& LocalBetweenness, TArray<double>& Score,
-			TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred,
-			TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue);
+		void ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue);
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

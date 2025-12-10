@@ -43,11 +43,12 @@ public:
 #endif
 
 protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** Controls the order in which points will be sorted, when using sorting rules. */
@@ -214,8 +215,8 @@ namespace PCGExBinPacking
 		TArray<int32> ProcessingOrder;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			bForceSingleThreadedProcessPoints = true;
 		}

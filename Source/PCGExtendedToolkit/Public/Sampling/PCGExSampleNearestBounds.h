@@ -30,6 +30,11 @@ MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
 
+namespace PCGExGeo
+{
+	class FPointBoxCloud;
+}
+
 class UPCGExBlendOpFactory;
 
 namespace PCGExMT
@@ -97,6 +102,7 @@ public:
 	/** Sort direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, DisplayName=" └─ Sort direction", EditCondition="SampleMethod == EPCGExBoundsSampleMethod::BestCandidate", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+
 
 	/** Source bounds.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))

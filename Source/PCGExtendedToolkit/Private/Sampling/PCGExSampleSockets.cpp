@@ -8,6 +8,7 @@
 #include "PCGExMT.h"
 #include "AssetStaging/PCGExSocketStaging.h"
 #include "AssetStaging/PCGExStaging.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
@@ -103,11 +104,9 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}

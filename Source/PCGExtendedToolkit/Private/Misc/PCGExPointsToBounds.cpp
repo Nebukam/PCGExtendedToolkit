@@ -25,17 +25,16 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 
 			const FPCGMetadataAttributeBase* Source = InBoundsData->Metadata->GetConstAttribute(AttributeIdentifier);
 
-			PCGEx::ExecuteWithRightType(
-				Source->GetTypeId(), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
+			PCGEx::ExecuteWithRightType(Source->GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
 
-					FPCGAttributeIdentifier DataIdentifier = FPCGAttributeIdentifier(AttributeIdentifier.Name, PCGMetadataDomainID::Data);
-					const T Value = TypedSource->GetValueFromItemKey(PCGFirstEntryKey);
-					FPCGMetadataAttribute<T>* Target = OutData->Metadata->FindOrCreateAttribute(DataIdentifier, Value);
-					Target->SetDefaultValue(Value);
-				});
+				FPCGAttributeIdentifier DataIdentifier = FPCGAttributeIdentifier(AttributeIdentifier.Name, PCGMetadataDomainID::Data);
+				const T Value = TypedSource->GetValueFromItemKey(PCGFirstEntryKey);
+				FPCGMetadataAttribute<T>* Target = OutData->Metadata->FindOrCreateAttribute(DataIdentifier, Value);
+				Target->SetDefaultValue(Value);
+			});
 		}
 	}
 
@@ -67,17 +66,16 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 
 			const FPCGMetadataAttributeBase* Source = OutData->Metadata->GetConstAttribute(AttributeIdentifier);
 
-			PCGEx::ExecuteWithRightType(
-				Source->GetTypeId(), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
+			PCGEx::ExecuteWithRightType(Source->GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
 
-					FPCGAttributeIdentifier DataIdentifier = FPCGAttributeIdentifier(AttributeIdentifier.Name, PCGMetadataDomainID::Data);
-					const T Value = TypedSource->GetValueFromItemKey(PCGFirstEntryKey);
-					FPCGMetadataAttribute<T>* Target = OutData->Metadata->FindOrCreateAttribute(DataIdentifier, Value);
-					Target->SetDefaultValue(Value);
-				});
+				FPCGAttributeIdentifier DataIdentifier = FPCGAttributeIdentifier(AttributeIdentifier.Name, PCGMetadataDomainID::Data);
+				const T Value = TypedSource->GetValueFromItemKey(PCGFirstEntryKey);
+				FPCGMetadataAttribute<T>* Target = OutData->Metadata->FindOrCreateAttribute(DataIdentifier, Value);
+				Target->SetDefaultValue(Value);
+			});
 		}
 	}
 
@@ -98,13 +96,14 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 	}
 }
 
+PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
+
 PCGExData::EIOInit UPCGExPointsToBoundsSettings::GetMainDataInitializationPolicy() const
 {
 	if (OutputMode == EPCGExPointsToBoundsOutputMode::Collapse) { return PCGExData::EIOInit::New; }
 	return PCGExData::EIOInit::Duplicate;
 }
 
-PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PointsToBounds)
 
 bool FPCGExPointsToBoundsElement::Boot(FPCGExContext* InContext) const
@@ -126,12 +125,10 @@ bool FPCGExPointsToBoundsElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				//NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			//NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points."));
 		}
@@ -182,20 +179,16 @@ namespace PCGExPointsToBounds
 		switch (Settings->BoundsSource)
 		{
 		default: ;
-		case EPCGExPointBoundsSource::DensityBounds:
-			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += InPointData->GetDensityBounds(i).GetBox().TransformBy(InvTransform); } }
+		case EPCGExPointBoundsSource::DensityBounds: if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += InPointData->GetDensityBounds(i).GetBox().TransformBy(InvTransform); } }
 			else { for (int i = 0; i < NumPoints; i++) { Bounds += InPointData->GetDensityBounds(i).GetBox(); } }
 			break;
-		case EPCGExPointBoundsSource::ScaledBounds:
-			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InvTransform.TransformPosition(InTransforms[i].GetLocation()), InPointData->GetScaledExtents(i)).GetBox(); } }
+		case EPCGExPointBoundsSource::ScaledBounds: if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InvTransform.TransformPosition(InTransforms[i].GetLocation()), InPointData->GetScaledExtents(i)).GetBox(); } }
 			else { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InTransforms[i].GetLocation(), InPointData->GetScaledExtents(i)).GetBox(); } }
 			break;
-		case EPCGExPointBoundsSource::Bounds:
-			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InvTransform.TransformPosition(InTransforms[i].GetLocation()), InPointData->GetExtents(i)).GetBox(); } }
+		case EPCGExPointBoundsSource::Bounds: if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InvTransform.TransformPosition(InTransforms[i].GetLocation()), InPointData->GetExtents(i)).GetBox(); } }
 			else { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InTransforms[i].GetLocation(), InPointData->GetExtents(i)).GetBox(); } }
 			break;
-		case EPCGExPointBoundsSource::Center:
-			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += InvTransform.TransformPosition(InTransforms[i].GetLocation()); } }
+		case EPCGExPointBoundsSource::Center: if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += InvTransform.TransformPosition(InTransforms[i].GetLocation()); } }
 			else { for (int i = 0; i < NumPoints; i++) { Bounds += InTransforms[i].GetLocation(); } }
 			break;
 		}

@@ -36,8 +36,7 @@ namespace PCGExDataBlending
 #define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) else if constexpr (std::is_same_v<T, _TYPE>){ Set##_NAME(TargetIndex, Value); }
 		if constexpr (false)
 		{
-		}
-		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
+		} PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	}
 
@@ -115,9 +114,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
 	void TProxyDataBlender<T_WORKING, BLEND_MODE, bResetValueForMultiBlend>::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight)
 	{
-		BOOKMARK_BLENDMODE
-
-		check(A)
+		BOOKMARK_BLENDMODE check(A)
 		if constexpr (BLEND_MODE != EPCGExABBlendingType::CopySource) { check(B) }
 		check(C)
 
@@ -160,27 +157,13 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 
 		PCGEx::FOpStats Tracker{};
 
-		if constexpr (
-			BLEND_MODE == EPCGExABBlendingType::Min ||
-			BLEND_MODE == EPCGExABBlendingType::Max ||
-			BLEND_MODE == EPCGExABBlendingType::UnsignedMin ||
-			BLEND_MODE == EPCGExABBlendingType::UnsignedMax ||
-			BLEND_MODE == EPCGExABBlendingType::AbsoluteMin ||
-			BLEND_MODE == EPCGExABBlendingType::AbsoluteMax ||
-			BLEND_MODE == EPCGExABBlendingType::Hash ||
-			BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
+		if constexpr (BLEND_MODE == EPCGExABBlendingType::Min || BLEND_MODE == EPCGExABBlendingType::Max || BLEND_MODE == EPCGExABBlendingType::UnsignedMin || BLEND_MODE == EPCGExABBlendingType::UnsignedMax || BLEND_MODE == EPCGExABBlendingType::AbsoluteMin || BLEND_MODE == EPCGExABBlendingType::AbsoluteMax || BLEND_MODE == EPCGExABBlendingType::Hash || BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
 		{
 			// These modes require the first operation to be a copy of the value
 			// before the can be properly blended
 			Tracker.Count = -1;
 		}
-		else if constexpr (
-			BLEND_MODE == EPCGExABBlendingType::Average ||
-			BLEND_MODE == EPCGExABBlendingType::Add ||
-			BLEND_MODE == EPCGExABBlendingType::Subtract ||
-			BLEND_MODE == EPCGExABBlendingType::Weight ||
-			BLEND_MODE == EPCGExABBlendingType::WeightedAdd ||
-			BLEND_MODE == EPCGExABBlendingType::WeightedSubtract)
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average || BLEND_MODE == EPCGExABBlendingType::Add || BLEND_MODE == EPCGExABBlendingType::Subtract || BLEND_MODE == EPCGExABBlendingType::Weight || BLEND_MODE == EPCGExABBlendingType::WeightedAdd || BLEND_MODE == EPCGExABBlendingType::WeightedSubtract)
 		{
 			// Some BlendModes can leverage this
 			if constexpr (bResetValueForMultiBlend)
@@ -342,47 +325,46 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxy
 			return nullptr;
 		}
 
-		PCGEx::ExecuteWithRightType(
-			A.WorkingType, [&](auto DummyValue)
+		PCGEx::ExecuteWithRightType(A.WorkingType, [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+
+			TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
+
+			if (!TypedBlender) { return; }
+
+			// Create output first so we may read from it
+			TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
+			TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
+			TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
+
+			if (!TypedBlender->A)
 			{
-				using T = decltype(DummyValue);
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
+				return;
+			}
 
-				TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
+			if (!TypedBlender->B)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand B."));
+				return;
+			}
 
-				if (!TypedBlender) { return; }
+			if (!TypedBlender->C)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
+				return;
+			}
 
-				// Create output first so we may read from it
-				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
-				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
-				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
+			// Ensure C is readable for MultiBlend, as those will use GetCurrent
+			if (!TypedBlender->C->EnsureReadable())
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
+				return;
+			}
 
-				if (!TypedBlender->A)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
-					return;
-				}
-
-				if (!TypedBlender->B)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand B."));
-					return;
-				}
-
-				if (!TypedBlender->C)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
-					return;
-				}
-
-				// Ensure C is readable for MultiBlend, as those will use GetCurrent
-				if (!TypedBlender->C->EnsureReadable())
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
-					return;
-				}
-
-				OutBlender = TypedBlender;
-			});
+			OutBlender = TypedBlender;
+		});
 
 
 		return OutBlender;
@@ -398,41 +380,40 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxy
 			return nullptr;
 		}
 
-		PCGEx::ExecuteWithRightType(
-			A.WorkingType, [&](auto DummyValue)
+		PCGEx::ExecuteWithRightType(A.WorkingType, [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+
+			TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
+
+			if (!TypedBlender) { return; }
+
+			// Create output first so we may read from it
+			TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
+			TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
+			TypedBlender->B = nullptr;
+
+			if (!TypedBlender->A)
 			{
-				using T = decltype(DummyValue);
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
+				return;
+			}
 
-				TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
+			if (!TypedBlender->C)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
+				return;
+			}
 
-				if (!TypedBlender) { return; }
+			// Ensure C is readable for MultiBlend, as those will use GetCurrent
+			if (!TypedBlender->C->EnsureReadable())
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
+				return;
+			}
 
-				// Create output first so we may read from it
-				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
-				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
-				TypedBlender->B = nullptr;
-
-				if (!TypedBlender->A)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
-					return;
-				}
-
-				if (!TypedBlender->C)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
-					return;
-				}
-
-				// Ensure C is readable for MultiBlend, as those will use GetCurrent
-				if (!TypedBlender->C->EnsureReadable())
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
-					return;
-				}
-
-				OutBlender = TypedBlender;
-			});
+			OutBlender = TypedBlender;
+		});
 
 
 		return OutBlender;

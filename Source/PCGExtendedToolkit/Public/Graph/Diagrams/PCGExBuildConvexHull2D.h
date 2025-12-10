@@ -7,8 +7,8 @@
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsGraph.h"
-#include "Geometry/PCGExGeo.h"
 
+#include "Geometry/PCGExGeo.h"
 #include "PCGExBuildConvexHull2D.generated.h"
 
 namespace PCGExGraph
@@ -89,8 +89,8 @@ namespace PCGExBuildConvexHull2D
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

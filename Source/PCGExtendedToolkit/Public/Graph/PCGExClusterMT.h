@@ -20,7 +20,7 @@ namespace PCGExMT
 	class FTaskManager;
 }
 
-template<typename T>
+template <typename T>
 class FPCGMetadataAttribute;
 
 class UPCGSettings;
@@ -35,7 +35,6 @@ namespace PCGExGraph
 namespace PCGEx
 {
 	class FWorkHandle;
-	class FIntTracker;
 }
 
 namespace PCGExCluster
@@ -195,8 +194,8 @@ namespace PCGExClusterMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			IProcessor(InVtxDataFacade, InEdgeDataFacade)
+		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: IProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -214,8 +213,6 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
-		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
-
 		mutable FRWLock BatchLock;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
@@ -340,18 +337,11 @@ namespace PCGExClusterMT
 		}
 
 	public:
-		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			IBatch(InContext, InVtx, InEdges)
+		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: IBatch(InContext, InVtx, InEdges)
 		{
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
-
-	PCGEXTENDEDTOOLKIT_API
-	void CompleteBatches(const TArrayView<TSharedPtr<IBatch>> Batches);
-
-	PCGEXTENDEDTOOLKIT_API
-	void WriteBatches(const TArrayView<TSharedPtr<IBatch>> Batches);
+	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
 }

@@ -73,7 +73,10 @@ namespace PCGExData
 		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData);
 		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO);
 
-		EPCGPointNativeProperties GetAllocations() const { return In ? In->GetAllocatedProperties() : EPCGPointNativeProperties::None; }
+		EPCGPointNativeProperties GetAllocations() const
+		{
+			return In ? In->GetAllocatedProperties() : EPCGPointNativeProperties::None;
+		}
 
 		TWeakPtr<FPCGContextHandle> GetContextHandle() const { return ContextHandle; }
 		FPCGExContext* GetContext() const;
@@ -96,10 +99,7 @@ namespace PCGExData
 				return true;
 			}
 
-			if (LastInit == EIOInit::Duplicate
-				&& InitOut == EIOInit::New
-				&& IsValid(Out)
-				&& Out != In)
+			if (LastInit == EIOInit::Duplicate && InitOut == EIOInit::New && IsValid(Out) && Out != In)
 			{
 				LastInit = EIOInit::New;
 				Out->SetNumPoints(0); // lol
@@ -126,8 +126,9 @@ namespace PCGExData
 			if (InitOut == EIOInit::New)
 			{
 				T* TypedOut = SharedContext.Get()->ManagedObjects->New<T>();
-				Out = Cast<UPCGBasePointData>(TypedOut);
+				if (!TypedOut) { return false; }
 
+				Out = Cast<UPCGBasePointData>(TypedOut);
 				check(Out)
 
 				if (IsValid(In))
@@ -149,11 +150,15 @@ namespace PCGExData
 				if (const T* TypedIn = Cast<T>(In))
 				{
 					T* TypedOut = SharedContext.Get()->ManagedObjects->DuplicateData<T>(TypedIn);
+					if (!TypedOut) { return false; }
+					
 					Out = Cast<UPCGBasePointData>(TypedOut);
 				}
 				else
 				{
 					T* TypedOut = SharedContext.Get()->ManagedObjects->New<T>();
+					if (!TypedOut) { return false; }
+					
 					Out = Cast<UPCGBasePointData>(TypedOut);
 
 					FPCGInitializeFromDataParams InitializeFromDataParams(In);
@@ -168,20 +173,47 @@ namespace PCGExData
 
 		~FPointIO();
 
-		bool IsDataValid(const EIOSide InSource) const { return InSource == EIOSide::In ? IsValid(In) : IsValid(Out); }
+		bool IsDataValid(const EIOSide InSource) const
+		{
+			return InSource == EIOSide::In ? IsValid(In) : IsValid(Out);
+		}
 
-		FORCEINLINE const UPCGBasePointData* GetData(const EIOSide InSide) const { return InSide == EIOSide::In ? In : Out; }
-		FORCEINLINE UPCGBasePointData* GetMutableData(const EIOSide InSide) const { return const_cast<UPCGBasePointData*>(InSide == EIOSide::In ? In : Out); }
+		FORCEINLINE const UPCGBasePointData* GetData(const EIOSide InSide) const
+		{
+			return InSide == EIOSide::In ? In : Out;
+		}
+
+		FORCEINLINE UPCGBasePointData* GetMutableData(const EIOSide InSide) const
+		{
+			return const_cast<UPCGBasePointData*>(InSide == EIOSide::In ? In : Out);
+		}
+
 		FORCEINLINE const UPCGBasePointData* GetIn() const { return In; }
 		FORCEINLINE UPCGBasePointData* GetOut() const { return Out; }
-		FORCEINLINE const UPCGBasePointData* GetOutIn() const { return Out ? Out : In; }
-		FORCEINLINE const UPCGBasePointData* GetInOut() const { return In ? In : Out; }
+		FORCEINLINE const UPCGBasePointData* GetOutIn() const
+		{
+			return Out ? Out : In;
+		}
+
+		FORCEINLINE const UPCGBasePointData* GetInOut() const
+		{
+			return In ? In : Out;
+		}
+
 		const UPCGBasePointData* GetOutIn(EIOSide& OutSide) const;
 		const UPCGBasePointData* GetInOut(EIOSide& OutSide) const;
 		bool GetSource(const UPCGData* InData, EIOSide& OutSide) const;
 
-		int32 GetNum() const { return In ? In->GetNumPoints() : Out ? Out->GetNumPoints() : -1; }
-		int32 GetNum(const EIOSide Source) const { return Source == EIOSide::In ? In->GetNumPoints() : Out->GetNumPoints(); }
+		int32 GetNum() const
+		{
+			return In ? In->GetNumPoints() : Out ? Out->GetNumPoints() : -1;
+		}
+
+		int32 GetNum(const EIOSide Source) const
+		{
+			return Source == EIOSide::In ? In->GetNumPoints() : Out->GetNumPoints();
+		}
+
 		FTaggedData GetTaggedData(const EIOSide Source = EIOSide::In);
 
 		TSharedPtr<IPCGAttributeAccessorKeys> GetInKeys();
@@ -288,10 +320,7 @@ namespace PCGExData
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }
 
-			FPCGAttributeIdentifier SanitizedIdentifier =
-				Identifier.MetadataDomain.IsDefault() ?
-					PCGEx::GetAttributeIdentifier(Identifier.Name, Out) :
-					Identifier;
+			FPCGAttributeIdentifier SanitizedIdentifier = Identifier.MetadataDomain.IsDefault() ? PCGEx::GetAttributeIdentifier(Identifier.Name, Out) : Identifier;
 
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
@@ -307,10 +336,7 @@ namespace PCGExData
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }
 
-			FPCGAttributeIdentifier SanitizedIdentifier =
-				Identifier.MetadataDomain.IsDefault() ?
-					PCGEx::GetAttributeIdentifier(Identifier.Name, Out) :
-					Identifier;
+			FPCGAttributeIdentifier SanitizedIdentifier = Identifier.MetadataDomain.IsDefault() ? PCGEx::GetAttributeIdentifier(Identifier.Name, Out) : Identifier;
 
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
@@ -387,9 +413,7 @@ namespace PCGExData
 		 * @param Sources 
 		 * @param InitOut 
 		 */
-		void Initialize(
-			TArray<FPCGTaggedData>& Sources,
-			EIOInit InitOut = EIOInit::NoInit);
+		void Initialize(TArray<FPCGTaggedData>& Sources, EIOInit InitOut = EIOInit::NoInit);
 
 		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::NoInit, const TSet<FString>* Tags = nullptr);
 		TSharedPtr<FPointIO> Emplace_GetRef(EIOInit InitOut = EIOInit::New);
@@ -505,19 +529,14 @@ namespace PCGExData
 	{
 		int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide = EIOSide::In);
 
-		PCGEXTENDEDTOOLKIT_API
-		const UPCGBasePointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source);
+		PCGEXTENDEDTOOLKIT_API const UPCGBasePointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source);
 
-		PCGEXTENDEDTOOLKIT_API
-		UPCGBasePointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source);
+		PCGEXTENDEDTOOLKIT_API UPCGBasePointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source);
 
-		PCGEXTENDEDTOOLKIT_API
-		const UPCGBasePointData* ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source);
+		PCGEXTENDEDTOOLKIT_API const UPCGBasePointData* ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source);
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints);
+	PCGEXTENDEDTOOLKIT_API void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bRequired);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bRequired);
 }

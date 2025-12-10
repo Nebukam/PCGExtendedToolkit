@@ -45,11 +45,9 @@ bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -59,8 +57,7 @@ bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 	{
-		if (const int32 Idx = IO->IOIndex;
-			Context->ValidHash[Idx] && Settings->bOutputToAttribute)
+		if (const int32 Idx = IO->IOIndex; Context->ValidHash[Idx] && Settings->bOutputToAttribute)
 		{
 			UPCGData* OutputCopy = Context->ManagedObjects->DuplicateData<UPCGData>(IO->InitializationData);
 			PCGExDataHelpers::SetDataValue<int32>(OutputCopy, Settings->OutputName, Context->Hashes[Idx]);

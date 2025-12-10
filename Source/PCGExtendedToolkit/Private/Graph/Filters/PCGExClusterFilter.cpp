@@ -11,7 +11,12 @@
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterCluster, UPCGExClusterFilterFactoryData)
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterVtx, UPCGExNodeFilterFactoryData)
+
+FName UPCGExVtxFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelNode; }
+
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterEdge, UPCGExEdgeFilterFactoryData)
+
+FName UPCGExEdgeFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelEdge; }
 
 namespace PCGExClusterFilter
 {
@@ -46,13 +51,11 @@ namespace PCGExClusterFilter
 	bool IVtxFilter::Test(const int32 Index) const { return IFilter::Test(*Cluster->GetNode(Index)); }
 	bool IVtxFilter::Test(const PCGExCluster::FNode& Node) const { return IFilter::Test(Node); }
 
-	bool IVtxFilter::Test(const PCGExGraph::FEdge& Edge) const
-	PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
+	bool IVtxFilter::Test(const PCGExGraph::FEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
 
 	bool IEdgeFilter::Test(const int32 Index) const { return IFilter::Test(*Cluster->GetEdge(Index)); }
 
-	bool IEdgeFilter::Test(const PCGExCluster::FNode& Node) const
-	PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
+	bool IEdgeFilter::Test(const PCGExCluster::FNode& Node) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
 
 	bool IEdgeFilter::Test(const PCGExGraph::FEdge& Edge) const { return IFilter::Test(Edge); }
 
@@ -78,7 +81,3 @@ namespace PCGExClusterFilter
 		Results.Init(false, NumResults);
 	}
 }
-
-FName UPCGExVtxFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelNode; }
-
-FName UPCGExEdgeFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelEdge; }

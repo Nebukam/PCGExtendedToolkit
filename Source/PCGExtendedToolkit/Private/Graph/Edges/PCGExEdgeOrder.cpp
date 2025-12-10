@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExEdgeOrder.h"
 
 #include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Graph/PCGExCluster.h"
 
@@ -33,11 +34,9 @@ bool FPCGExEdgeOrderElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}

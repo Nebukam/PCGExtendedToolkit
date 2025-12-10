@@ -28,8 +28,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMax, double, Ran
 PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
 PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPointSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
-UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
@@ -92,9 +91,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-			{PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
@@ -115,12 +112,11 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 
-	Context->TargetsHandler->ForEachPreloader(
-		[&](PCGExData::FFacadePreloader& Preloader)
-		{
-			if (Settings->WeightMode != EPCGExSampleWeightMode::Distance) { Preloader.Register<double>(Context, Settings->WeightAttribute); }
-			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-		});
+	Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+	{
+		if (Settings->WeightMode != EPCGExSampleWeightMode::Distance) { Preloader.Register<double>(Context, Settings->WeightAttribute); }
+		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+	});
 
 	return true;
 }
@@ -158,41 +154,40 @@ bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, cons
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
-			const bool bError = Context->TargetsHandler->ForEachTarget(
-				[&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
+			const bool bError = Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
+			{
+				// Prep weights
+				if (Settings->WeightMode != EPCGExSampleWeightMode::Distance)
 				{
-					// Prep weights
-					if (Settings->WeightMode != EPCGExSampleWeightMode::Distance)
+					TSharedPtr<PCGExData::TBuffer<double>> Weight = Target->GetBroadcaster<double>(Settings->WeightAttribute);
+					if (!Weight)
 					{
-						TSharedPtr<PCGExData::TBuffer<double>> Weight = Target->GetBroadcaster<double>(Settings->WeightAttribute);
-						if (!Weight)
-						{
-							PCGEX_LOG_INVALID_SELECTOR_C(Context, Target Weight, Settings->WeightAttribute)
-							bBreak = true;
-							return;
-						}
-
-						Context->TargetWeights.Add(Weight);
+						PCGEX_LOG_INVALID_SELECTOR_C(Context, Target Weight, Settings->WeightAttribute)
+						bBreak = true;
+						return;
 					}
 
-					// Prep look up getters
-					if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
-					{
-						// TODO : Preload if relevant
-						TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-						if (!LookAtUpGetter->Init(Target, false))
-						{
-							bBreak = true;
-							return;
-						}
+					Context->TargetWeights.Add(Weight);
+				}
 
-						Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
+				// Prep look up getters
+				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
+				{
+					// TODO : Preload if relevant
+					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
+					if (!LookAtUpGetter->Init(Target, false))
+					{
+						bBreak = true;
+						return;
 					}
-				});
+
+					Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
+				}
+			});
 
 			if (bError)
 			{
-				Context->CancelExecution(TEXT(""));
+				Context->CancelExecution();
 				return;
 			}
 
@@ -204,18 +199,16 @@ bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, cons
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
 			}
 		};
 
 		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
-		return false;
+		if (Context->IsWaitingForTasks()) { return false; }
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
@@ -263,10 +256,9 @@ namespace PCGExSampleNearestPoint
 
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
-			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 			return false;
 		}
 
@@ -294,9 +286,7 @@ namespace PCGExSampleNearestPoint
 		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
 		{
 			TSet<FName> MissingAttributes;
-			PCGExDataBlending::AssembleBlendingDetails(
-				Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes,
-				Context->TargetsHandler->GetFacades(), BlendingDetails, MissingAttributes);
+			PCGExDataBlending::AssembleBlendingDetails(Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes, Context->TargetsHandler->GetFacades(), BlendingDetails, MissingAttributes);
 
 			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&BlendingDetails, nullptr, Context->TargetsHandler->GetDistances());
 			UnionBlender->AddSources(Context->TargetsHandler->GetFacades());
@@ -404,9 +394,7 @@ namespace PCGExSampleNearestPoint
 				{
 					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(static_cast<PCGExData::FElement>(Target), SinglePick); }
 				}
-				else if (
-					(bSampleClosest && Det > DistSquared) ||
-					(bSampleFarthest && Det < DistSquared))
+				else if ((bSampleClosest && Det > DistSquared) || (bSampleFarthest && Det < DistSquared))
 				{
 					bReplaceWithCurrent = true;
 				}

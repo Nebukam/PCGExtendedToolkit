@@ -37,14 +37,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState BulkInitData = EPCGExOptionState::Default;
 
-	/** Async work priority for this node.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable), AdvancedDisplay)
-	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
-	
-	/** Execution policy for this node.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable), AdvancedDisplay)
-	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
-
 	/** Cache the results of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState CacheData = EPCGExOptionState::Default;

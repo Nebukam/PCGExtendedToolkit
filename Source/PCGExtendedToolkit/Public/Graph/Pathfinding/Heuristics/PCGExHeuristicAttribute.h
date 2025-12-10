@@ -24,8 +24,8 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicAttributeConfig() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicAttributeConfig()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -66,13 +66,7 @@ class FPCGExHeuristicAttribute : public FPCGExHeuristicOperation
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 	EPCGExClusterElement Source = EPCGExClusterElement::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
@@ -111,9 +105,7 @@ class UPCGExCreateHeuristicAttributeSettings : public UPCGExHeuristicsFactoryPro
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsAttribute, "Heuristics : Attribute", "Read a vtx or edge attribute as an heuristic value.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsAttribute, "Heuristics : Attribute", "Read a vtx or edge attribute as an heuristic value.", FName(GetDisplayName()))
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorHeuristicsAttribute; }
 
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;

@@ -7,7 +7,6 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExChain.h"
@@ -41,9 +40,7 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 
 	Context->EdgeCarryOverDetails.Init();
 
-	GetInputFactories(
-		Context, PCGExGraph::SourceEdgeFiltersLabel,
-		Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(Context, PCGExGraph::SourceEdgeFiltersLabel, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
 	return true;
 }
@@ -56,11 +53,9 @@ bool FPCGExSimplifyClustersElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -222,10 +217,7 @@ namespace PCGExSimplifyClusters
 
 				LastPosition = CurrentPosition;
 
-				GraphBuilder->Graph->InsertEdge(
-					Cluster->GetNodePointIndex(LastIndex),
-					Cluster->GetNodePointIndex(Lk),
-					OutEdge, IOIndex);
+				GraphBuilder->Graph->InsertEdge(Cluster->GetNodePointIndex(LastIndex), Cluster->GetNodePointIndex(Lk), OutEdge, IOIndex);
 
 				PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
 				EdgeMetadata.UnionSize = UnionCount;
@@ -241,10 +233,7 @@ namespace PCGExSimplifyClusters
 			{
 				UnionCount++;
 
-				GraphBuilder->Graph->InsertEdge(
-					Cluster->GetNodePointIndex(LastIndex),
-					Cluster->GetNodePointIndex(Link.Node),
-					OutEdge, IOIndex);
+				GraphBuilder->Graph->InsertEdge(Cluster->GetNodePointIndex(LastIndex), Cluster->GetNodePointIndex(Link.Node), OutEdge, IOIndex);
 
 				MergedEdges.Add(Link.Edge);
 

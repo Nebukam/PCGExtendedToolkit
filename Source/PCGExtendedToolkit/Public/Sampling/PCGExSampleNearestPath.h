@@ -477,8 +477,8 @@ namespace PCGExSampleNearestPath
 		PCGEX_FOREACH_FIELD_NEARESTPATH(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

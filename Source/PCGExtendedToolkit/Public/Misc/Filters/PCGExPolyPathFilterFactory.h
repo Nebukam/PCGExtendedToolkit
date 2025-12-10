@@ -107,19 +107,20 @@ namespace PCGExPathInclusion
 		All,
 		Skip
 	};
-
+	
 #if PCGEX_ENGINE_VERSION > 506
-	PCGEXTENDEDTOOLKIT_API
-	FPCGDataTypeIdentifier GetInclusionIdentifier();
+	PCGEXTENDEDTOOLKIT_API FPCGDataTypeIdentifier GetInclusionIdentifier();
 #endif
+
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareInclusionPin(TArray<FPCGPinProperties>& PinProperties);
 	
 #if WITH_EDITOR
 	static FString ToString(const EPCGExSplineCheckType Check)
 	{
 		switch (Check)
 		{
-		default:
-		case EPCGExSplineCheckType::IsInside: return TEXT("Is Inside");
+		default: case EPCGExSplineCheckType::IsInside: return TEXT("Is Inside");
 		case EPCGExSplineCheckType::IsInsideOrOn: return TEXT("Is Inside or On");
 		case EPCGExSplineCheckType::IsInsideAndOn: return TEXT("Is Outside and On");
 		case EPCGExSplineCheckType::IsOutside: return TEXT("Is Outside");
@@ -161,10 +162,10 @@ namespace PCGExPathInclusion
 			bool bPass = (InFlags & BadFlags) == 0; // None of the bad flags
 			if (bPass && FlagScope != Skip)
 			{
-				bPass =
-					FlagScope == Any ?
-						EnumHasAnyFlags(InFlags, GoodFlags) : // Any of the good flags
-						EnumHasAllFlags(InFlags, GoodFlags);  // All of the good flags
+				bPass = FlagScope == Any
+					        ? EnumHasAnyFlags(InFlags, GoodFlags)
+					        :                                    // Any of the good flags
+					        EnumHasAllFlags(InFlags, GoodFlags); // All of the good flags
 			}
 			return bPass;
 		}

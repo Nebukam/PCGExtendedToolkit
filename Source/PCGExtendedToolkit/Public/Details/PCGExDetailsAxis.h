@@ -31,12 +31,12 @@ enum class EPCGExAxis : uint8
 UENUM(BlueprintType)
 enum class EPCGExAxisOrder : uint8
 {
-	XYZ = 0 UMETA(DisplayName = "X > Y > Z", ToolTip="X > Y > Z", ActionIcon="AxisOrder_XYZ"),
-	YZX = 1 UMETA(DisplayName = "Y > Z > X", ToolTip="Y > Z > X", ActionIcon="AxisOrder_YZX"),
-	ZXY = 2 UMETA(DisplayName = "Z > X > Y", ToolTip="Z > X > Y", ActionIcon="AxisOrder_ZXY"),
-	YXZ = 3 UMETA(DisplayName = "Y > X > Z", ToolTip="Y > X > Z", ActionIcon="AxisOrder_YXZ"),
-	ZYX = 4 UMETA(DisplayName = "Z > Y > X", ToolTip="Z > Y > X", ActionIcon="AxisOrder_ZYX"),
-	XZY = 5 UMETA(DisplayName = "X > Z > Y", ToolTip="X > Z > Y", ActionIcon="AxisOrder_XZY")
+	XYZ = 0 UMETA(DisplayName = "X > Y > Z", ToolTip="(0) X > Y > Z", ActionIcon="AxisOrder_XYZ"),
+	YZX = 1 UMETA(DisplayName = "Y > Z > X", ToolTip="(1) Y > Z > X", ActionIcon="AxisOrder_YZX"),
+	ZXY = 2 UMETA(DisplayName = "Z > X > Y", ToolTip="(2) Z > X > Y", ActionIcon="AxisOrder_ZXY"),
+	YXZ = 3 UMETA(DisplayName = "Y > X > Z", ToolTip="(3) Y > X > Z", ActionIcon="AxisOrder_YXZ"),
+	ZYX = 4 UMETA(DisplayName = "Z > Y > X", ToolTip="(4) Z > Y > X", ActionIcon="AxisOrder_ZYX"),
+	XZY = 5 UMETA(DisplayName = "X > Z > Y", ToolTip="(5) X > Z > Y", ActionIcon="AxisOrder_XZY")
 };
 
 UENUM()
@@ -53,15 +53,15 @@ enum class EPCGExAxisAlign : uint8
 UENUM(BlueprintType)
 enum class EPCGExMakeRotAxis : uint8
 {
-	X  = 0 UMETA(DisplayName = "X", ToolTip="Main direction used for X (Forward)", ActionIcon="RotOrder_X"),
-	XY = 1 UMETA(DisplayName = "X > Y", ToolTip="Main direction used for X (Forward), second axis for Y (Right)", ActionIcon="RotOrder_XY"),
-	XZ = 2 UMETA(DisplayName = "X > Z", ToolTip="Main direction used for X (Forward), second axis for Z (Up)", ActionIcon="RotOrder_XZ"),
-	Y  = 3 UMETA(DisplayName = "Y", ToolTip="Main direction used for Y (Right)", ActionIcon="RotOrder_Y"),
-	YX = 4 UMETA(DisplayName = "Y > X", ToolTip="Main direction used for Y (Right), second axis for X (Forward)", ActionIcon="RotOrder_YX"),
-	YZ = 5 UMETA(DisplayName = "Y > Z", ToolTip="Main direction used for Y (Right), second axis for Z (Up)", ActionIcon="RotOrder_YZ"),
-	Z  = 6 UMETA(DisplayName = "Z", ToolTip="Main direction used for Z (Up)", ActionIcon="RotOrder_Z"),
-	ZX = 7 UMETA(DisplayName = "Z > X", ToolTip="Main direction used for Z (Up), second axis for X (Forward)", ActionIcon="RotOrder_ZX"),
-	ZY = 8 UMETA(DisplayName = "Z > Y", ToolTip="Main direction used for Z (Up), second axis for Y (Right)", ActionIcon="RotOrder_ZY")
+	X  = 0 UMETA(DisplayName = "X", ToolTip="(0) Main direction used for X (Forward)", ActionIcon="RotOrder_X"),
+	XY = 1 UMETA(DisplayName = "X > Y", ToolTip="(1) Main direction used for X (Forward), second axis for Y (Right)", ActionIcon="RotOrder_XY"),
+	XZ = 2 UMETA(DisplayName = "X > Z", ToolTip="(2) Main direction used for X (Forward), second axis for Z (Up)", ActionIcon="RotOrder_XZ"),
+	Y  = 3 UMETA(DisplayName = "Y", ToolTip="(3) Main direction used for Y (Right)", ActionIcon="RotOrder_Y"),
+	YX = 4 UMETA(DisplayName = "Y > X", ToolTip="(4) Main direction used for Y (Right), second axis for X (Forward)", ActionIcon="RotOrder_YX"),
+	YZ = 5 UMETA(DisplayName = "Y > Z", ToolTip="(5) Main direction used for Y (Right), second axis for Z (Up)", ActionIcon="RotOrder_YZ"),
+	Z  = 6 UMETA(DisplayName = "Z", ToolTip="(6) Main direction used for Z (Up)", ActionIcon="RotOrder_Z"),
+	ZX = 7 UMETA(DisplayName = "Z > X", ToolTip="(7) Main direction used for Z (Up), second axis for X (Forward)", ActionIcon="RotOrder_ZX"),
+	ZY = 8 UMETA(DisplayName = "Z > Y", ToolTip="(8) Main direction used for Z (Up), second axis for Y (Right)", ActionIcon="RotOrder_ZY")
 };
 
 namespace PCGEx
@@ -100,23 +100,16 @@ namespace PCGEx
 		Z = Axes[AxisOrders[Index][2]];
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	void GetAxesOrder(EPCGExMakeRotAxis Order, int32& A, int32& B, int32& C);
+	PCGEXTENDEDTOOLKIT_API void GetAxesOrder(EPCGExMakeRotAxis Order, int32& A, int32& B, int32& C);
 
 	FORCEINLINE void GetAxesOrder(EPCGExMakeRotAxis Order, int32 (&OutArray)[3])
 	{
 		GetAxesOrder(Order, OutArray[0], OutArray[1], OutArray[2]);
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& X, const FVector& Y, const FVector& Z);
+	PCGEXTENDEDTOOLKIT_API FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& X, const FVector& Y, const FVector& Z);
 
-	PCGEXTENDEDTOOLKIT_API
-	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B);
+	PCGEXTENDEDTOOLKIT_API FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B);
 
-	PCGEXTENDEDTOOLKIT_API
-	void FindOrderMatch(
-		const FQuat& Quat,
-		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,
-		int32& X, int32& Y, int32& Z, const bool bPermute = true);
+	PCGEXTENDEDTOOLKIT_API void FindOrderMatch(const FQuat& Quat, const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis, int32& X, int32& Y, int32& Z, const bool bPermute = true);
 }

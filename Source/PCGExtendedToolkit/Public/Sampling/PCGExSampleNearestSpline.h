@@ -66,8 +66,8 @@ namespace PCGExPolyPath
 		{
 		}
 
-		FSample(const FTransform& InTransform, const double InDistance, const double InTime):
-			Transform(InTransform), Distance(InDistance), Time(InTime)
+		FSample(const FTransform& InTransform, const double InDistance, const double InTime)
+			: Transform(InTransform), Distance(InDistance), Time(InTime)
 		{
 		}
 
@@ -524,8 +524,8 @@ namespace PCGExSampleNearestSpline
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

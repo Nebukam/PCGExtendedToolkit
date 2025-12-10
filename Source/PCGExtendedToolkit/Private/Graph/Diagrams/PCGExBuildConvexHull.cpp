@@ -10,7 +10,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
-#include "Graph/PCGExCluster.h"
+#include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull
@@ -22,9 +22,10 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
+PCGEX_INITIALIZE_ELEMENT(BuildConvexHull)
+
 PCGExData::EIOInit UPCGExBuildConvexHullSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
-PCGEX_INITIALIZE_ELEMENT(BuildConvexHull)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildConvexHull)
 
 FName UPCGExBuildConvexHullSettings::GetMainOutputPin() const { return PCGExGraph::OutputVerticesLabel; }
@@ -48,20 +49,18 @@ bool FPCGExBuildConvexHullElement::AdvanceWork(FPCGExContext* InContext, const U
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 4)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 4)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}

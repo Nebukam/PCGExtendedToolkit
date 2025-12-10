@@ -15,8 +15,8 @@ struct FPCGExFillControlConfigVtxFilters : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigVtxFilters() :
-		FPCGExFillControlConfigBase()
+	FPCGExFillControlConfigVtxFilters()
+		: FPCGExFillControlConfigBase()
 	{
 		bSupportSource = false;
 	}
@@ -67,9 +67,7 @@ class UPCGExFillControlsVtxFiltersProviderSettings : public UPCGExFillControlsFa
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsVtxFilters, "Fill Control : Vtx Filters", "Filter that check Vtxs.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsVtxFilters, "Fill Control : Vtx Filters", "Filter that check Vtxs.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

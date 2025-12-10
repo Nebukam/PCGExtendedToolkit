@@ -21,8 +21,8 @@ struct FPCGExProbeConfigTensor : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigTensor() :
-		FPCGExProbeConfigBase()
+	FPCGExProbeConfigTensor()
+		: FPCGExProbeConfigBase()
 	{
 	}
 
@@ -110,9 +110,7 @@ class UPCGExProbeTensorProviderSettings : public UPCGExProbeFactoryProviderSetti
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeTensor, "Probe : Tensor", "Sample a tensor at point location and probe in that direction.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeTensor, "Probe : Tensor", "Sample a tensor at point location and probe in that direction.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

@@ -10,15 +10,13 @@
 namespace PCGExData
 {
 	struct FPoint;
+	struct FPoint;
 }
 
 namespace PCGExDetails
 {
 	template <EPCGExDistance Mode, typename PointType>
-	static FVector GetSpatializedCenter(
-		const PointType& FromPoint,
-		const FVector& FromCenter,
-		const FVector& ToCenter)
+	static FVector GetSpatializedCenter(const PointType& FromPoint, const FVector& FromCenter, const FVector& ToCenter)
 	{
 		if constexpr (Mode == EPCGExDistance::None)
 		{
@@ -120,14 +118,9 @@ namespace PCGExDetails
 	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::BoxBounds>;
 	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::None>;
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FDistances> MakeDistances(
-		const EPCGExDistance Source = EPCGExDistance::Center,
-		const EPCGExDistance Target = EPCGExDistance::Center,
-		const bool bOverlapIsZero = false);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FDistances> MakeDistances(const EPCGExDistance Source = EPCGExDistance::Center, const EPCGExDistance Target = EPCGExDistance::Center, const bool bOverlapIsZero = false);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FDistances> MakeNoneDistances();
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FDistances> MakeNoneDistances();
 
 #pragma endregion
 }

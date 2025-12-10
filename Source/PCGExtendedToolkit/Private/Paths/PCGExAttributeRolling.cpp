@@ -3,7 +3,6 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
-#include "PCGExLabels.h"
 #include "PCGExMT.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -12,8 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
 
-UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
@@ -59,40 +57,30 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->RangeControl == EPCGExRollingRangeControl::StartStop)
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
-			Context, PCGExPointFilter::SourceStartConditionLabel, Context->StartFilterFactories,
-			PCGExFactories::PointFilters))
+		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(Context, PCGExPointFilter::SourceStartConditionLabel, Context->StartFilterFactories, PCGExFactories::PointFilters))
 		{
 			return false;
 		}
 
-		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
-			Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
-			PCGExFactories::PointFilters))
+		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters))
 		{
 			return false;
 		}
 	}
 	else
 	{
-		PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
-			Context, PCGExPointFilter::SourceToggleConditionLabel, Context->StartFilterFactories,
-			PCGExFactories::PointFilters, false);
+		PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(Context, PCGExPointFilter::SourceToggleConditionLabel, Context->StartFilterFactories, PCGExFactories::PointFilters, false);
 	}
 
 	if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
-			Context, PCGExPointFilter::SourcePinConditionLabel, Context->PinFilterFactories,
-			PCGExFactories::PointFilters))
+		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(Context, PCGExPointFilter::SourcePinConditionLabel, Context->PinFilterFactories, PCGExFactories::PointFilters))
 		{
 			return false;
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	return true;
 }
@@ -110,17 +98,15 @@ bool FPCGExAttributeRollingElement::AdvanceWork(FPCGExContext* InContext, const 
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				PCGEX_SKIP_INVALID_PATH_ENTRY
-				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bPrefetchData = !Context->BlendingFactories.IsEmpty();
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
+			                                         Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bPrefetchData = !Context->BlendingFactories.IsEmpty();
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to roll over."));
 		}

@@ -12,7 +12,6 @@
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGTextureData.h"
 
-
 #include "PCGExGetTextureData.generated.h"
 
 namespace PCGExMT
@@ -167,8 +166,8 @@ namespace PCGExGetTextureData
 		TArray<TSharedPtr<TSet<PCGExTexture::FReference>>> ScopedTextureReferences;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

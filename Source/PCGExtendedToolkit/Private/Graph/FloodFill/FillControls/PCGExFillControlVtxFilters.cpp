@@ -6,7 +6,6 @@
 
 
 #include "PCGExHelpers.h"
-#include "PCGExLabels.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
@@ -91,9 +90,7 @@ UPCGExFactoryData* UPCGExFillControlsVtxFiltersProviderSettings::CreateFactory(F
 	PCGEX_FORWARD_FILLCONTROL_FACTORY
 	Super::CreateFactory(InContext, NewFactory);
 
-	if (!GetInputFactories(
-		InContext, PCGExPointFilter::SourceVtxFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterNodeFilters))
+	if (!GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

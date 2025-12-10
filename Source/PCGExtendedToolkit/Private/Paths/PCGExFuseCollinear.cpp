@@ -41,20 +41,18 @@ bool FPCGExFuseCollinearElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					if (!Settings->bOmitInvalidPathsFromOutput) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         if (!Settings->bOmitInvalidPathsFromOutput) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to fuse."));
 		}
@@ -124,8 +122,7 @@ namespace PCGExFuseCollinear
 
 			// Use last position to avoid removing smooth arcs
 			const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Index));
-			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
-				(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) || (Settings->bInvertThreshold && Dot < Context->DotThreshold))
 			{
 				// Collinear with previous, keep moving
 				continue;
@@ -152,8 +149,7 @@ namespace PCGExFuseCollinear
 
 			// Use last position to avoid removing smooth arcs
 			const double Dot = FVector::DotProduct(WrapDir, ForwardDir);
-			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
-				(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) || (Settings->bInvertThreshold && Dot < Context->DotThreshold))
 			{
 				// Collinear with previous, keep moving
 				ReadIndices.RemoveAt(0);

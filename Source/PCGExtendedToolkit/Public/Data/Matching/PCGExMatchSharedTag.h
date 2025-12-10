@@ -21,8 +21,8 @@ struct FPCGExMatchSharedTagConfig : public FPCGExMatchRuleConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExMatchSharedTagConfig() :
-		FPCGExMatchRuleConfigBase()
+	FPCGExMatchSharedTagConfig()
+		: FPCGExMatchRuleConfigBase()
 	{
 	}
 
@@ -85,9 +85,7 @@ class UPCGExCreateMatchSharedTagSettings : public UPCGExMatchRuleFactoryProvider
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MatchSharedTag, "Match : Shared Tag", "Match data that share common tags",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchSharedTag, "Match : Shared Tag", "Match data that share common tags", FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

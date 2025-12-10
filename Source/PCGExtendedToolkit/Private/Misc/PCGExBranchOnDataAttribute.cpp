@@ -126,37 +126,35 @@ bool FPCGExBranchOnDataAttributeElement::AdvanceWork(FPCGExContext* InContext, c
 			}
 			else
 			{
-				PCGEx::ExecuteWithRightType(
-					Attr->GetTypeId(), [&](auto ValueType)
+				PCGEx::ExecuteWithRightType(Attr->GetTypeId(), [&](auto ValueType)
+				{
+					using T_ATTR = decltype(ValueType);
+					const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Attr);
+
+					T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+
+					const double AsNumeric = PCGEx::Convert<T_ATTR, double>(Value);
+					const FString AsString = PCGEx::Convert<T_ATTR, FString>(Value);
+
+
+					for (int i = 0; i < NumBranches; ++i)
 					{
-						using T_ATTR = decltype(ValueType);
-						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Attr);
+						const FPCGExBranchOnDataPin& Pin = Settings->InternalBranches[i];
 
-						T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+						if (Pin.Check == EPCGExComparisonDataType::Numeric) { bDistributed = PCGExCompare::Compare(Pin.NumericCompare, static_cast<double>(Pin.NumericValue), AsNumeric, Pin.Tolerance); }
+						else { bDistributed = PCGExCompare::Compare(Pin.StringCompare, Pin.StringValue, AsString); }
 
-						const double AsNumeric = PCGEx::Convert<T_ATTR, double>(Value);
-						const FString AsString = PCGEx::Convert<T_ATTR, FString>(Value);
-
-						for (int i = 0; i < NumBranches; ++i)
+						if (bDistributed)
 						{
-							const FPCGExBranchOnDataPin& Pin = Settings->InternalBranches[i];
-
-							if (Pin.Check == EPCGExComparisonDataType::Numeric) { bDistributed = PCGExCompare::Compare(Pin.NumericCompare, static_cast<double>(Pin.NumericValue), AsNumeric, Pin.Tolerance); }
-							else { bDistributed = PCGExCompare::Compare(Pin.StringCompare, Pin.StringValue, AsString); }
-
-							if (bDistributed)
-							{
-								OutputPin = Pin.Label;
-								Context->Dispatch[i]++;
-								break;
-							}
+							OutputPin = Pin.Label;
+							Context->Dispatch[i]++;
+							break;
 						}
-					});
+					}
+				});
 			}
 
-			Context->StageOutput(
-				const_cast<UPCGData*>(TaggedData.Data.Get()), OutputPin,
-				TaggedData.Tags, false, false, false);
+			Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), OutputPin, TaggedData.Tags, false, false, false);
 		}
 	}
 

@@ -56,9 +56,8 @@ namespace PCGExCluster
 
 #pragma region FCluster
 
-	FCluster::FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
-	                   const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup):
-		NodeIndexLookup(InNodeIndexLookup), VtxIO(InVtxIO), EdgesIO(InEdgesIO)
+	FCluster::FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup)
+		: NodeIndexLookup(InNodeIndexLookup), VtxIO(InVtxIO), EdgesIO(InEdgesIO)
 	{
 		Nodes = MakeShared<TArray<FNode>>();
 		Edges = MakeShared<TArray<FEdge>>();
@@ -67,12 +66,8 @@ namespace PCGExCluster
 		VtxPoints = InVtxIO->GetIn();
 	}
 
-	FCluster::FCluster(const TSharedRef<FCluster>& OtherCluster,
-	                   const TSharedPtr<PCGExData::FPointIO>& InVtxIO,
-	                   const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
-	                   const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup,
-	                   const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup):
-		NodeIndexLookup(InNodeIndexLookup), VtxIO(InVtxIO), EdgesIO(InEdgesIO)
+	FCluster::FCluster(const TSharedRef<FCluster>& OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup, const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup)
+		: NodeIndexLookup(InNodeIndexLookup), VtxIO(InVtxIO), EdgesIO(InEdgesIO)
 	{
 		NodeIndexLookup = InNodeIndexLookup;
 		VtxPoints = InVtxIO->GetIn();
@@ -180,9 +175,7 @@ namespace PCGExCluster
 	{
 	}
 
-	bool FCluster::BuildFrom(
-		const TMap<uint32, int32>& InEndpointsLookup,
-		const TArray<int32>* InExpectedAdjacency)
+	bool FCluster::BuildFrom(const TMap<uint32, int32>& InEndpointsLookup, const TArray<int32>* InExpectedAdjacency)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
@@ -278,8 +271,7 @@ namespace PCGExCluster
 		TSparseArray<int32> TempLookup;
 		TempLookup.Reserve(SubGraph->Nodes.Num());
 
-		for (const TArray<FEdge>& SubgraphEdges = *Edges.Get();
-		     const FEdge& E : SubgraphEdges)
+		for (const TArray<FEdge>& SubgraphEdges = *Edges.Get(); const FEdge& E : SubgraphEdges)
 		{
 			const int32 StartNode = GetOrCreateNode_Unsafe(TempLookup, E.Start);
 			const int32 EndNode = GetOrCreateNode_Unsafe(TempLookup, E.End);
@@ -324,10 +316,7 @@ namespace PCGExCluster
 
 	double FCluster::EdgeDistToEdge(const FEdge* A, const FEdge* B, FVector& OutP1, FVector& OutP2) const
 	{
-		FMath::SegmentDistToSegment(
-			GetStartPos(A), GetEndPos(A),
-			GetStartPos(B), GetEndPos(B),
-			OutP1, OutP2);
+		FMath::SegmentDistToSegment(GetStartPos(A), GetEndPos(A), GetStartPos(B), GetEndPos(B), OutP1, OutP2);
 
 		return FVector::Dist(OutP1, OutP2);
 	}
@@ -339,10 +328,7 @@ namespace PCGExCluster
 
 	double FCluster::EdgeDistToEdgeSquared(const FEdge* A, const FEdge* B, FVector& OutP1, FVector& OutP2) const
 	{
-		FMath::SegmentDistToSegment(
-			GetStartPos(A), GetEndPos(A),
-			GetStartPos(B), GetEndPos(B),
-			OutP1, OutP2);
+		FMath::SegmentDistToSegment(GetStartPos(A), GetEndPos(A), GetStartPos(B), GetEndPos(B), OutP1, OutP2);
 
 		return FVector::DistSquared(OutP1, OutP2);
 	}
@@ -461,12 +447,10 @@ namespace PCGExCluster
 	{
 		switch (Mode)
 		{
-		case EPCGExClusterClosestSearchMode::Vtx:
-			if (NodeOctree && !bForceRebuild) { return; }
+		case EPCGExClusterClosestSearchMode::Vtx: if (NodeOctree && !bForceRebuild) { return; }
 			RebuildNodeOctree();
 			break;
-		case EPCGExClusterClosestSearchMode::Edge:
-			if (EdgeOctree && !bForceRebuild) { return; }
+		case EPCGExClusterClosestSearchMode::Edge: if (EdgeOctree && !bForceRebuild) { return; }
 			RebuildEdgeOctree();
 			break;
 		default: ;
@@ -489,10 +473,8 @@ namespace PCGExCluster
 		switch (Mode)
 		{
 		default: ;
-		case EPCGExClusterClosestSearchMode::Vtx:
-			return FindClosestNode(Position, MinNeighbors);
-		case EPCGExClusterClosestSearchMode::Edge:
-			return FindClosestNodeFromEdge(Position, MinNeighbors);
+		case EPCGExClusterClosestSearchMode::Vtx: return FindClosestNode(Position, MinNeighbors);
+		case EPCGExClusterClosestSearchMode::Edge: return FindClosestNodeFromEdge(Position, MinNeighbors);
 		}
 	}
 
@@ -550,8 +532,7 @@ namespace PCGExCluster
 				{
 					if (MinNeighbors > 0)
 					{
-						if (GetEdgeStart(Item.Index)->Links.Num() < MinNeighbors &&
-							GetEdgeEnd(Item.Index)->Links.Num() < MinNeighbors)
+						if (GetEdgeStart(Item.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Item.Index)->Links.Num() < MinNeighbors)
 						{
 							return;
 						}
@@ -572,8 +553,7 @@ namespace PCGExCluster
 				{
 					if (MinNeighbors > 0)
 					{
-						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors &&
-							GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
+						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
 						{
 							continue;
 						}
@@ -593,8 +573,7 @@ namespace PCGExCluster
 				{
 					if (MinNeighbors > 0)
 					{
-						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors &&
-							GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
+						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
 						{
 							continue;
 						}
@@ -662,8 +641,7 @@ namespace PCGExCluster
 			auto ProcessCandidate = [&](const PCGExOctree::FItem& Item)
 			{
 				if (NodesRef[Item.Index].Num() < MinNeighborCount) { return; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.Index));
-					Dist < LastDist)
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.Index)); Dist < LastDist)
 				{
 					LastDist = Dist;
 					Result = Item.Index;
@@ -677,8 +655,7 @@ namespace PCGExCluster
 			for (const FLink Lk : Node.Links)
 			{
 				if (NodesRef[Lk.Node].Num() < MinNeighborCount) { continue; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Lk));
-					Dist < LastDist)
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Lk)); Dist < LastDist)
 				{
 					LastDist = Dist;
 					Result = Lk.Node;
@@ -703,8 +680,7 @@ namespace PCGExCluster
 			{
 				if (NodesRef[Item.Index].Num() < MinNeighborCount) { return; }
 				if (Exclusion.Contains(Item.Index)) { return; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.Index));
-					Dist < LastDist)
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.Index)); Dist < LastDist)
 				{
 					LastDist = Dist;
 					Result = Item.Index;
@@ -719,8 +695,7 @@ namespace PCGExCluster
 			{
 				if (NodesRef[Lk.Node].Num() < MinNeighborCount) { continue; }
 				if (Exclusion.Contains(Lk.Node)) { continue; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Lk));
-					Dist < LastDist)
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Lk)); Dist < LastDist)
 				{
 					LastDist = Dist;
 					Result = Lk.Node;
@@ -826,10 +801,7 @@ namespace PCGExCluster
 
 	FVector FCluster::GetClosestPointOnEdge(const FEdge& InEdge, const FVector& Position) const
 	{
-		return FMath::ClosestPointOnSegment(
-			Position,
-			VtxTransforms[InEdge.Start].GetLocation(),
-			VtxTransforms[InEdge.End].GetLocation());
+		return FMath::ClosestPointOnSegment(Position, VtxTransforms[InEdge.Start].GetLocation(), VtxTransforms[InEdge.End].GetLocation());
 	}
 
 	FVector FCluster::GetClosestPointOnEdge(const int32 EdgeIndex, const FVector& Position) const
@@ -839,10 +811,7 @@ namespace PCGExCluster
 
 	double FCluster::GetPointDistToEdgeSquared(const FEdge& InEdge, const FVector& Position) const
 	{
-		return FMath::PointDistToSegmentSquared(
-			Position,
-			VtxTransforms[InEdge.Start].GetLocation(),
-			VtxTransforms[InEdge.End].GetLocation());
+		return FMath::PointDistToSegmentSquared(Position, VtxTransforms[InEdge.Start].GetLocation(), VtxTransforms[InEdge.End].GetLocation());
 	}
 
 	double FCluster::GetPointDistToEdgeSquared(const int32 EdgeIndex, const FVector& Position) const
@@ -885,8 +854,7 @@ namespace PCGExCluster
 		for (const FLink Lk : Node.Links)
 		{
 			if (NodesRef[Lk.Node].Num() < MinNeighborCount) { continue; }
-			if (const double Dot = FVector::DotProduct(Direction, GetDir(NodeIndex, Lk.Node));
-				Dot > LastDot)
+			if (const double Dot = FVector::DotProduct(Direction, GetDir(NodeIndex, Lk.Node)); Dot > LastDot)
 			{
 				LastDot = Dot;
 				Result = Lk.Node;
@@ -924,15 +892,14 @@ namespace PCGExCluster
 		BoundedEdges = MakeShared<TArray<FBoundedEdge>>();
 		PCGEx::InitArray(BoundedEdges, Edges->Num());
 
-		ExpandEdgesTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
+		ExpandEdgesTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
 
-				TArray<FBoundedEdge>& ExpandedEdgesRef = (*This->BoundedEdges);
-				const FCluster* Cluster = This.Get();
-				PCGEX_SCOPE_LOOP(i) { ExpandedEdgesRef[i] = FBoundedEdge(Cluster, i); }
-			};
+			TArray<FBoundedEdge>& ExpandedEdgesRef = (*This->BoundedEdges);
+			const FCluster* Cluster = This.Get();
+			PCGEX_SCOPE_LOOP(i) { ExpandedEdgesRef[i] = FBoundedEdge(Cluster, i); }
+		};
 
 		ExpandEdgesTask->StartSubLoops(Edges->Num(), 256);
 	}
@@ -986,13 +953,8 @@ namespace PCGExCluster
 		}
 	}
 
-	FBoundedEdge::FBoundedEdge(const FCluster* Cluster, const int32 InEdgeIndex):
-		Index(InEdgeIndex),
-		Bounds(
-			FBoxSphereBounds(
-				FSphere(
-					FMath::Lerp(Cluster->GetStartPos(InEdgeIndex), Cluster->GetEndPos(InEdgeIndex), 0.5),
-					Cluster->GetDist(InEdgeIndex) * 0.5)))
+	FBoundedEdge::FBoundedEdge(const FCluster* Cluster, const int32 InEdgeIndex)
+		: Index(InEdgeIndex), Bounds(FBoxSphereBounds(FSphere(FMath::Lerp(Cluster->GetStartPos(InEdgeIndex), Cluster->GetEndPos(InEdgeIndex), 0.5), Cluster->GetDist(InEdgeIndex) * 0.5)))
 	{
 	}
 

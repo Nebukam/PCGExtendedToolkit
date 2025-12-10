@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
+
 #include "PCGExPointsProcessor.h"
 #include "PCGExStaging.h"
+#include "Data/PCGExPointFilter.h"
 
 #include "PCGExSocketStaging.generated.h"
 
@@ -76,8 +76,8 @@ namespace PCGExSocketStaging
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashGetter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

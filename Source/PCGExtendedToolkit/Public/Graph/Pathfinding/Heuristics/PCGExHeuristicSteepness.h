@@ -15,8 +15,8 @@ struct FPCGExHeuristicConfigSteepness : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigSteepness() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicConfigSteepness()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -47,18 +47,9 @@ class FPCGExHeuristicSteepness : public FPCGExHeuristicOperation
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 protected:
 	bool bAccumulate = false;
@@ -91,9 +82,7 @@ class UPCGExHeuristicsSteepnessProviderSettings : public UPCGExHeuristicsFactory
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsSteepness, "Heuristics : Steepness", "Heuristics based on steepness.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsSteepness, "Heuristics : Steepness", "Heuristics based on steepness.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

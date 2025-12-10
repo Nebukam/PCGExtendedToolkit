@@ -8,7 +8,6 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-
 #include "PCGExBlendAttributes.generated.h"
 
 class UPCGExBlendOpFactory;
@@ -34,10 +33,11 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
 protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** Whther to write the index as a normalized output value. */
@@ -71,8 +71,8 @@ namespace PCGExBlendAttributes
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

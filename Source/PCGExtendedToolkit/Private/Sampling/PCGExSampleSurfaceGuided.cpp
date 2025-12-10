@@ -52,9 +52,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->bExtractTextureParams = true;
 
-		if (!PCGExFactories::GetInputFactories(
-			InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories,
-			{PCGExFactories::EType::TexParam}))
+		if (!PCGExFactories::GetInputFactories(InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}))
 		{
 			return false;
 		}
@@ -69,9 +67,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, false, true);
 		if (!Context->ActorReferenceDataFacade) { return false; }
 
-		if (!PCGExSampling::GetIncludedActors(
-			Context, Context->ActorReferenceDataFacade.ToSharedRef(),
-			Settings->ActorReference, Context->IncludedActors))
+		if (!PCGExSampling::GetIncludedActors(Context, Context->ActorReferenceDataFacade.ToSharedRef(), Settings->ActorReference, Context->IncludedActors))
 		{
 			return false;
 		}
@@ -101,12 +97,10 @@ bool FPCGExSampleSurfaceGuidedElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to sample."));
 		}
@@ -205,8 +199,7 @@ namespace PCGExSampleSurfaceGuided
 		}
 	}
 
-	void FProcessor::ProcessTraceResult(const PCGExMT::FScope& Scope, const FHitResult& HitResult, const int32 Index,
-	                                    const FVector& Origin, const FVector& Direction, PCGExData::FMutablePoint& MutablePoint)
+	void FProcessor::ProcessTraceResult(const PCGExMT::FScope& Scope, const FHitResult& HitResult, const int32 Index, const FVector& Origin, const FVector& Direction, PCGExData::FMutablePoint& MutablePoint)
 	{
 		const FVector Impact = HitResult.ImpactPoint;
 
@@ -274,15 +267,13 @@ namespace PCGExSampleSurfaceGuided
 
 			if (ScopedMeshes)
 			{
-				const UStaticMeshComponent* StaticMeshComponent =
-					Cast<UStaticMeshComponent>(HitComponent);
+				const UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(HitComponent);
 
 				if (StaticMeshComponent)
 				{
 					HitLocation[Index] = Impact;
 					FaceIndex[Index] = HitResult.FaceIndex;
-					ScopedMeshes->Get_Ref(Scope)[Index - Scope.Start] =
-						StaticMeshComponent->GetStaticMesh();
+					ScopedMeshes->Get_Ref(Scope)[Index - Scope.Start] = StaticMeshComponent->GetStaticMesh();
 				}
 			}
 		}
@@ -364,71 +355,55 @@ namespace PCGExSampleSurfaceGuided
 
 			switch (Context->CollisionSettings.CollisionType)
 			{
-			case EPCGExCollisionFilterType::Channel:
-				if (Context->bUseInclude)
+			case EPCGExCollisionFilterType::Channel: if (Context->bUseInclude)
 				{
-					if (World->LineTraceMultiByChannel(
-						HitResults, Origin, End,
-						Context->CollisionSettings.CollisionChannel, CollisionParams))
+					if (World->LineTraceMultiByChannel(HitResults, Origin, End, Context->CollisionSettings.CollisionChannel, CollisionParams))
 					{
 						ProcessMultipleTraceResult();
 					}
 				}
 				else
 				{
-					if (World->LineTraceSingleByChannel(
-						HitResult, Origin, End,
-						Context->CollisionSettings.CollisionChannel, CollisionParams))
+					if (World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionSettings.CollisionChannel, CollisionParams))
 					{
 						ProcessTraceResult(Scope, HitResult, Index, Origin, Direction, MutablePoint);
 						bSuccess = true;
 					}
 				}
 				break;
-			case EPCGExCollisionFilterType::ObjectType:
-				if (Context->bUseInclude)
+			case EPCGExCollisionFilterType::ObjectType: if (Context->bUseInclude)
 				{
-					if (World->LineTraceMultiByObjectType(
-						HitResults, Origin, End,
-						FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
+					if (World->LineTraceMultiByObjectType(HitResults, Origin, End, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
 					{
 						ProcessMultipleTraceResult();
 					}
 				}
 				else
 				{
-					if (World->LineTraceSingleByObjectType(
-						HitResult, Origin, End,
-						FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
+					if (World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
 					{
 						ProcessTraceResult(Scope, HitResult, Index, Origin, Direction, MutablePoint);
 						bSuccess = true;
 					}
 				}
 				break;
-			case EPCGExCollisionFilterType::Profile:
-				if (Context->bUseInclude)
+			case EPCGExCollisionFilterType::Profile: if (Context->bUseInclude)
 				{
-					if (World->LineTraceMultiByProfile(
-						HitResults, Origin, End,
-						Context->CollisionSettings.CollisionProfileName, CollisionParams))
+					if (World->LineTraceMultiByProfile(HitResults, Origin, End, Context->CollisionSettings.CollisionProfileName, CollisionParams))
 					{
 						ProcessMultipleTraceResult();
 					}
 				}
 				else
 				{
-					if (World->LineTraceSingleByProfile(
-						HitResult, Origin, End,
-						Context->CollisionSettings.CollisionProfileName, CollisionParams))
+					if (World->LineTraceSingleByProfile(HitResult, Origin, End, Context->CollisionSettings.CollisionProfileName, CollisionParams))
 					{
 						ProcessTraceResult(Scope, HitResult, Index, Origin, Direction, MutablePoint);
 						bSuccess = true;
 					}
 				}
 				break;
-			default:
-				break;
+			default: break;
 			}
 
 			if (!bSuccess) { SamplingFailed(); }
@@ -448,16 +423,9 @@ namespace PCGExSampleSurfaceGuided
 		const int32 Index1 = Data.Indices[FIndex * 3 + 1];
 		const int32 Index2 = Data.Indices[FIndex * 3 + 2];
 
-		const FVector BaryCoords = FMath::ComputeBaryCentric2D(
-			HitLocation[Index],
-			FVector(Data.Positions->VertexPosition(Index0)),
-			FVector(Data.Positions->VertexPosition(Index1)),
-			FVector(Data.Positions->VertexPosition(Index2)));
+		const FVector BaryCoords = FMath::ComputeBaryCentric2D(HitLocation[Index], FVector(Data.Positions->VertexPosition(Index0)), FVector(Data.Positions->VertexPosition(Index1)), FVector(Data.Positions->VertexPosition(Index2)));
 
-		FLinearColor LinearColor =
-			FLinearColor(Data.Colors->VertexColor(Index0)) * BaryCoords.X +
-			FLinearColor(Data.Colors->VertexColor(Index1)) * BaryCoords.Y +
-			FLinearColor(Data.Colors->VertexColor(Index2)) * BaryCoords.Z;
+		FLinearColor LinearColor = FLinearColor(Data.Colors->VertexColor(Index0)) * BaryCoords.X + FLinearColor(Data.Colors->VertexColor(Index1)) * BaryCoords.Y + FLinearColor(Data.Colors->VertexColor(Index2)) * BaryCoords.Z;
 
 		OutColor = LinearColor;
 	}
@@ -472,30 +440,29 @@ namespace PCGExSampleSurfaceGuided
 			MeshData.Reserve(100);
 
 			int32 j = 0;
-			ScopedMeshes->ForEach(
-				[&](const TArray<const UStaticMesh*>& Meshes)
+			ScopedMeshes->ForEach([&](const TArray<const UStaticMesh*>& Meshes)
+			{
+				const int32 Count = Meshes.Num();
+				for (int32 i = 0; i < Count; i++)
 				{
-					const int32 Count = Meshes.Num();
-					for (int32 i = 0; i < Count; i++)
+					const UStaticMesh* Mesh = Meshes[i];
+					if (!Mesh)
 					{
-						const UStaticMesh* Mesh = Meshes[i];
-						if (!Mesh)
-						{
-							j++;
-							continue;
-						}
-
-						int32& IndexRef = StaticMeshIndexMap.FindOrAdd(Mesh, -1);
-						if (IndexRef == -1)
-						{
-							PCGExGeo::FMeshData Data(Mesh);
-							if (Data.bIsValid) { IndexRef = MeshData.Add(Data); }
-						}
-
-						MeshIndex[j] = IndexRef;
 						j++;
+						continue;
 					}
-				});
+
+					int32& IndexRef = StaticMeshIndexMap.FindOrAdd(Mesh, -1);
+					if (IndexRef == -1)
+					{
+						PCGExGeo::FMeshData Data(Mesh);
+						if (Data.bIsValid) { IndexRef = MeshData.Add(Data); }
+					}
+
+					MeshIndex[j] = IndexRef;
+					j++;
+				}
+			});
 
 			ScopedMeshes.Reset();
 			StaticMeshIndexMap.Empty();

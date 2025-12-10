@@ -5,15 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactories.h"
-
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
 #include "PCGExMathMean.h"
+
 #include "PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExSettingsMacros.h"
-#include "Geometry/PCGExGeo.h"
 
 #include "PCGExSelfPruning.generated.h"
 
@@ -173,8 +172,8 @@ namespace PCGExSelfPruning
 		int32 LastCandidatesCount = 0;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

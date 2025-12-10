@@ -8,9 +8,7 @@
 #include "PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExMathMean.h"
-
 #include "PCGExPointsProcessor.h"
-
 
 #include "PCGExUberFilterCollections.generated.h"
 
@@ -133,8 +131,8 @@ namespace PCGExUberFilterCollections
 		TSharedPtr<PCGExData::FPointIO> Inside;
 		TSharedPtr<PCGExData::FPointIO> Outside;
 
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

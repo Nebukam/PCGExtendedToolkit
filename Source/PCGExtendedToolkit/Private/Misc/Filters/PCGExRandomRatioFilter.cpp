@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExRandomRatioFilter.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -22,6 +23,18 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExRandomRatioFilterFactory::CreateFilt
 	PCGEX_MAKE_SHARED(Filter, PCGExPointFilter::FRandomRatioFilter, this)
 	return Filter;
 }
+
+#if WITH_EDITOR
+void UPCGExRandomRatioFilterProviderSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 73, 0)
+	{
+		Config.Random.ApplyDeprecation();
+	}
+	
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
 
 const TSet<int32>& PCGExPointFilter::FRandomRatioFilter::GetCollectionPicks(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection)
 {

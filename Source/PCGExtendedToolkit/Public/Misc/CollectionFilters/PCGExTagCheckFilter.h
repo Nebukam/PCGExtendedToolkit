@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
+
 #include "UObject/Object.h"
 
-#include "PCGExCompare.h"
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExFilterGroup.h"
@@ -89,9 +90,7 @@ class UPCGExTagCheckFilterProviderSettings : public UPCGExFilterCollectionProvid
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		TagCheckFilterFactory, "Data Filter : Tag Check", "Simple tag check on the input collection.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(TagCheckFilterFactory, "Data Filter : Tag Check", "Simple tag check on the input collection.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

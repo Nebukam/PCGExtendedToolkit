@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExTimeFilter.h"
 
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -84,22 +85,20 @@ namespace PCGExPointFilter
 		{
 			double BestDist = MAX_dbl;
 
-			TypedFilterFactory->Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(WorldPosition, FVector::OneVector),
-				[&](const PCGExOctree::FItem& Item)
+			TypedFilterFactory->Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](const PCGExOctree::FItem& Item)
+			{
+				float LocalAlpha = 0;
+				const TSharedPtr<PCGExPaths::FPolyPath> Path = (*(TypedFilterFactory->PolyPaths.GetData() + Item.Index));
+				const FTransform Closest = Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
+
+				const double D = FVector::DistSquared(Closest.GetLocation(), WorldPosition);
+
+				if (D < BestDist)
 				{
-					float LocalAlpha = 0;
-					const TSharedPtr<PCGExPaths::FPolyPath> Path = (*(TypedFilterFactory->PolyPaths.GetData() + Item.Index));
-					const FTransform Closest = Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
-
-					const double D = FVector::DistSquared(Closest.GetLocation(), WorldPosition);
-
-					if (D < BestDist)
-					{
-						Alpha = LocalAlpha;
-						BestDist = D;
-					}
-				});
+					Alpha = LocalAlpha;
+					BestDist = D;
+				}
+			});
 		}
 		else
 		{
@@ -110,14 +109,11 @@ namespace PCGExPointFilter
 
 				switch (TypedFilterFactory->Config.TimeConsolidation)
 				{
-				case EPCGExSplineTimeConsolidation::Min:
-					Alpha = FMath::Min(LocalAlpha, Alpha);
+				case EPCGExSplineTimeConsolidation::Min: Alpha = FMath::Min(LocalAlpha, Alpha);
 					break;
-				case EPCGExSplineTimeConsolidation::Max:
-					Alpha = FMath::Max(LocalAlpha, Alpha);
+				case EPCGExSplineTimeConsolidation::Max: Alpha = FMath::Max(LocalAlpha, Alpha);
 					break;
-				case EPCGExSplineTimeConsolidation::Average:
-					Alpha += LocalAlpha;
+				case EPCGExSplineTimeConsolidation::Average: Alpha += LocalAlpha;
 					break;
 				}
 			}
@@ -142,22 +138,20 @@ namespace PCGExPointFilter
 		{
 			double BestDist = MAX_dbl;
 
-			TypedFilterFactory->Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(WorldPosition, FVector::OneVector),
-				[&](const PCGExOctree::FItem& Item)
+			TypedFilterFactory->Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](const PCGExOctree::FItem& Item)
+			{
+				float LocalAlpha = 0;
+				const TSharedPtr<PCGExPaths::FPolyPath> Path = (*(TypedFilterFactory->PolyPaths.GetData() + Item.Index));
+				const FTransform Closest = Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
+
+				const double D = FVector::DistSquared(Closest.GetLocation(), WorldPosition);
+
+				if (D < BestDist)
 				{
-					float LocalAlpha = 0;
-					const TSharedPtr<PCGExPaths::FPolyPath> Path = (*(TypedFilterFactory->PolyPaths.GetData() + Item.Index));
-					const FTransform Closest = Path->GetClosestTransform(WorldPosition, LocalAlpha, false);
-
-					const double D = FVector::DistSquared(Closest.GetLocation(), WorldPosition);
-
-					if (D < BestDist)
-					{
-						Alpha = LocalAlpha;
-						BestDist = D;
-					}
-				});
+					Alpha = LocalAlpha;
+					BestDist = D;
+				}
+			});
 		}
 		else
 		{
@@ -168,14 +162,11 @@ namespace PCGExPointFilter
 
 				switch (TypedFilterFactory->Config.TimeConsolidation)
 				{
-				case EPCGExSplineTimeConsolidation::Min:
-					Alpha = FMath::Min(LocalAlpha, Alpha);
+				case EPCGExSplineTimeConsolidation::Min: Alpha = FMath::Min(LocalAlpha, Alpha);
 					break;
-				case EPCGExSplineTimeConsolidation::Max:
-					Alpha = FMath::Max(LocalAlpha, Alpha);
+				case EPCGExSplineTimeConsolidation::Max: Alpha = FMath::Max(LocalAlpha, Alpha);
 					break;
-				case EPCGExSplineTimeConsolidation::Average:
-					Alpha += LocalAlpha;
+				case EPCGExSplineTimeConsolidation::Average: Alpha += LocalAlpha;
 					break;
 				}
 			}
@@ -200,7 +191,7 @@ namespace PCGExPointFilter
 TArray<FPCGPinProperties> UPCGExTimeFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, TEXT("Paths/Splines/Polygons that will be used for testing"), Required)
+	PCGExPathInclusion::DeclareInclusionPin(PinProperties);
 	return PinProperties;
 }
 

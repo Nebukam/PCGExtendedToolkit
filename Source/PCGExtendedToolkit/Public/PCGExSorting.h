@@ -91,18 +91,15 @@ namespace PCGExSorting
 {
 	const FName SourceSortingRules = TEXT("SortRules");
 
-	PCGEXTENDEDTOOLKIT_API
-	void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus);
+	PCGEXTENDEDTOOLKIT_API void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus);
 
 	class PCGEXTENDEDTOOLKIT_API FRuleHandler : public TSharedFromThis<FRuleHandler>
 	{
 	public:
 		FRuleHandler() = default;
 
-		explicit FRuleHandler(const FPCGExSortRuleConfig& Config):
-			Selector(Config.Selector),
-			Tolerance(Config.Tolerance),
-			bInvertRule(Config.bInvertRule)
+		explicit FRuleHandler(const FPCGExSortRuleConfig& Config)
+			: Selector(Config.Selector), Tolerance(Config.Tolerance), bInvertRule(Config.bInvertRule)
 		{
 		}
 
@@ -140,8 +137,7 @@ namespace PCGExSorting
 		bool SortData(const int32 A, const int32 B);
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
+	PCGEXTENDEDTOOLKIT_API TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
 }
 
 #undef PCGEX_UNSUPPORTED_STRING_TYPES

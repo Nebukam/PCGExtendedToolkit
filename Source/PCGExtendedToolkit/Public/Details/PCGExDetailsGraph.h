@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExDetailsAxis.h"
-
 #include "PCGExDetailsGraph.generated.h"
 
 

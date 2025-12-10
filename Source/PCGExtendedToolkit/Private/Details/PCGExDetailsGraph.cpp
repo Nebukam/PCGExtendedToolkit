@@ -25,21 +25,15 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEd
 
 	switch (RadiusType)
 	{
-	case EPCGExBasicEdgeRadius::Average:
-		Rad = (StartRadius + EndRadius) * 0.5 * RadiusScale;
+	case EPCGExBasicEdgeRadius::Average: Rad = (StartRadius + EndRadius) * 0.5 * RadiusScale;
 		break;
-	case EPCGExBasicEdgeRadius::Lerp:
-		Rad = FMath::Lerp(StartRadius, EndRadius, InLerp) * RadiusScale;
+	case EPCGExBasicEdgeRadius::Lerp: Rad = FMath::Lerp(StartRadius, EndRadius, InLerp) * RadiusScale;
 		break;
-	case EPCGExBasicEdgeRadius::Min:
-		Rad = FMath::Min(StartRadius, EndRadius) * RadiusScale;
+	case EPCGExBasicEdgeRadius::Min: Rad = FMath::Min(StartRadius, EndRadius) * RadiusScale;
 		break;
-	case EPCGExBasicEdgeRadius::Max:
-		Rad = FMath::Max(StartRadius, EndRadius) * RadiusScale;
+	case EPCGExBasicEdgeRadius::Max: Rad = FMath::Max(StartRadius, EndRadius) * RadiusScale;
 		break;
-	default:
-	case EPCGExBasicEdgeRadius::Fixed:
-		Rad = RadiusConstant;
+	default: case EPCGExBasicEdgeRadius::Fixed: Rad = RadiusConstant;
 		break;
 	}
 
@@ -64,15 +58,11 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEd
 
 	switch (SolidificationAxis)
 	{
-	default:
-	case EPCGExMinimalAxis::X:
-		EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
+	default: case EPCGExMinimalAxis::X: EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
 		break;
-	case EPCGExMinimalAxis::Y:
-		EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
+	case EPCGExMinimalAxis::Y: EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
 		break;
-	case EPCGExMinimalAxis::Z:
-		EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
+	case EPCGExMinimalAxis::Z: EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
 		break;
 	}
 

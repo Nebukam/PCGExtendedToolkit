@@ -20,26 +20,6 @@ class IPCGAttributeAccessorKeys;
 using PCGExValueHash = uint32;
 
 UENUM()
-enum class EPCGExAsyncPriority : uint8
-{
-	Default          = 0 UMETA(DisplayName = "Default", ToolTip="..."),
-	Normal           = 1 UMETA(DisplayName = "Normal", ToolTip="..."),
-	High             = 2 UMETA(DisplayName = "High", ToolTip="..."),
-	BackgroundHigh   = 3 UMETA(DisplayName = "BackgroundHigh", ToolTip="..."),
-	BackgroundNormal = 4 UMETA(DisplayName = "BackgroundNormal", ToolTip="..."),
-	BackgroundLow    = 5 UMETA(DisplayName = "BackgroundLow", ToolTip="..."),
-};
-
-UENUM()
-enum class EPCGExExecutionPolicy : uint8
-{
-	Default   = 0 UMETA(DisplayName = "Default", ToolTip="..."),
-	Normal    = 1 UMETA(DisplayName = "Normal", ToolTip="..."),
-	AsyncEx   = 2 UMETA(DisplayName = "AsyncEx", ToolTip="..."),
-	AsyncTask = 3 UMETA(DisplayName = "AsyncTask", ToolTip="..."),
-};
-
-UENUM()
 enum class EPCGExInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Use a constant, user-defined value.", ActionIcon="Constant"),
@@ -88,6 +68,10 @@ enum class EPCGExSplineMeshAxis : uint8
 	Z       = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
 };
 
+namespace PCGEx
+{
+	constexpr int NumSupportedTypes = 16;
+}
 
 namespace PCGExData
 {
@@ -97,10 +81,14 @@ namespace PCGExData
 
 	enum class EIOInit : uint8
 	{
-		NoInit,    // No Output
-		New,       // Create Empty Output Object
-		Duplicate, // Duplicate Input Object
-		Forward,   //Forward Input Object
+		// No Output
+		NoInit,
+		// Create Empty Output Object
+		New,
+		// Duplicate Input Object
+		Duplicate,
+		//Forward Input Object
+		Forward,
 	};
 
 	enum class EIOSide : uint8
@@ -148,14 +136,15 @@ namespace PCGExCommon
 	PCGEX_CTX_STATE(State_Writing)
 
 	PCGEX_CTX_STATE(State_UnionWriting)
-
 }
 
 namespace PCGExMT
-{	
+{
+	using FExecuteCallback = std::function<void()>;
 	using FCompletionCallback = std::function<void()>;
+	using FEndCallback = std::function<void(const bool)>;
 	using FSimpleCallback = std::function<void()>;
-	
+
 	struct FScope
 	{
 		int32 Start = -1;
@@ -185,5 +174,4 @@ namespace PCGExMT
 		template <typename T>
 		FORCEINLINE TArrayView<const T> GetView(const TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
 	};
-
 }

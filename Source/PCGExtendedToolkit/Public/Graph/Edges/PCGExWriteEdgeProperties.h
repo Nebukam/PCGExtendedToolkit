@@ -112,7 +112,7 @@ public:
 	bool bWriteEdgePosition = false;
 
 	/** Position position lerp between start & end points*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bWriteEdgePosition", ClampMin=0, ClampMax=1))
 	double EdgePositionLerp = 0.5;
 
 	/** Align the edge point to the edge direction over the selected axis. */
@@ -227,9 +227,6 @@ namespace PCGExWriteEdgeProperties
 	{
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
-		double StartWeight = 0;
-		double EndWeight = 1;
-
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
@@ -265,8 +262,8 @@ namespace PCGExWriteEdgeProperties
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
 		}

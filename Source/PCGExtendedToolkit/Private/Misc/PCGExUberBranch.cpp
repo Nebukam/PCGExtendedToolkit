@@ -36,10 +36,12 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required)
+
 	for (int i = 0; i < NumBranches; i++)
 	{
 		PCGEX_PIN_FILTERS(InputLabels[i], "Collection filters. Only support Data Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal)
 	}
+
 	return PinProperties;
 }
 
@@ -81,18 +83,16 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 	{
 		bool bInitialized = false;
 
-		if (TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories;
-			GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters))
+		if (TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories; GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters))
 		{
 			for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->Facades)
 			{
 				// Attempt to initialize with all data until hopefully one works
 				PCGEX_MAKE_SHARED(Manager, PCGExPointFilter::FManager, Facade.ToSharedRef())
 				Manager->bWillBeUsedWithCollections = true;
-
-				if (Manager->Init(Context, Factories))
+				bInitialized = Manager->Init(Context, Factories);
+				if (bInitialized)
 				{
-					bInitialized = true;
 					Context->Managers.Add(Manager);
 					break;
 				}
@@ -120,34 +120,33 @@ bool FPCGExUberBranchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			TWeakPtr<FPCGContextHandle> Handle = Context->GetOrCreateHandle();
 
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-			PCGEX_ASYNC_GROUP_CHKD_CUSTOM(Context->GetAsyncManager(), BranchTask, true)
+			PCGEX_ASYNC_GROUP_CHKD_RET(Context->GetAsyncManager(), BranchTask, true)
 
-			BranchTask->OnSubLoopStartCallback =
-				[Handle, Settings](const PCGExMT::FScope& Scope)
+			BranchTask->OnSubLoopStartCallback = [Handle, Settings](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_SHARED_TCONTEXT_VOID(UberBranch, Handle)
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					PCGEX_SHARED_TCONTEXT_VOID(UberBranch, Handle)
-					PCGEX_SCOPE_LOOP(Index)
+					const TSharedPtr<PCGExData::FFacade>& Facade = SharedContext.Get()->Facades[Index];
+
+					bool bDistributed = false;
+					for (int i = 0; i < Settings->NumBranches; i++)
 					{
-						const TSharedPtr<PCGExData::FFacade>& Facade = SharedContext.Get()->Facades[Index];
-
-						bool bDistributed = false;
-						for (int i = 0; i < Settings->NumBranches; i++)
+						const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
+						if (!Manager) { continue; }
+						Manager->bWillBeUsedWithCollections = true;
+						if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
 						{
-							const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
-							if (!Manager) { continue; }
-							Manager->bWillBeUsedWithCollections = true;
-							if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
-							{
-								bDistributed = true;
-								Facade->Source->OutputPin = Settings->OutputLabels[i];
-								FPlatformAtomics::InterlockedIncrement(&SharedContext.Get()->Dispatch[i]);
-								break;
-							}
+							Facade->Source->OutputPin = Settings->OutputLabels[i];
+							FPlatformAtomics::InterlockedIncrement(&SharedContext.Get()->Dispatch[i]);
+							bDistributed = true;
+							break;
 						}
-
-						if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
 					}
-				};
+
+					if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
+				}
+			};
 
 			BranchTask->StartSubLoops(Context->Facades.Num(), Settings->AsyncChunkSize);
 			return false;
@@ -171,9 +170,9 @@ bool FPCGExUberBranchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 				if (!Manager) { continue; }
 				if (Manager->Test(Facade->Source, Context->MainPoints))
 				{
-					bDistributed = true;
 					Facade->Source->OutputPin = Settings->OutputLabels[i];
 					Context->Dispatch[i]++;
+					bDistributed = true;
 					break;
 				}
 			}

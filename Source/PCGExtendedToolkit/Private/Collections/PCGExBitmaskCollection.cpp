@@ -1,7 +1,6 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Collections/PCGExBitmaskCollection.h"
 
 #include "PCGExContext.h"
@@ -44,7 +43,6 @@ bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, PCGEx
 		}
 		return false;
 	}
-
 	OutCachedBitmask = Bitmasks[*Index];
 	return true;
 }

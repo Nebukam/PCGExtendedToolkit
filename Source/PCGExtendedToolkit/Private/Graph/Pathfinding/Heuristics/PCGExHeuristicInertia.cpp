@@ -3,26 +3,16 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicInertia.h"
 
-#include "PCGExH.h"
 #include "PCGExMath.h"
 #include "Graph/PCGExCluster.h"
 
 
-double FPCGExHeuristicInertia::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicInertia::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	return GetScoreInternal(GlobalInertiaScore);
 }
 
-double FPCGExHeuristicInertia::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal,
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicInertia::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	if (TravelStack)
 	{
@@ -46,9 +36,7 @@ double FPCGExHeuristicInertia::GetEdgeScore(
 
 			if (!bIgnoreIfNotEnoughSamples || Sampled == MaxSamples)
 			{
-				const double Dot = FVector::DotProduct(
-					(Avg / Sampled).GetSafeNormal(),
-					Cluster->GetDir(From.Index, To.Index));
+				const double Dot = FVector::DotProduct((Avg / Sampled).GetSafeNormal(), Cluster->GetDir(From.Index, To.Index));
 
 				return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 1, 0)) * ReferenceWeight;
 			}
@@ -81,8 +69,6 @@ UPCGExFactoryData* UPCGExHeuristicsInertiaProviderSettings::CreateFactory(FPCGEx
 #if WITH_EDITOR
 FString UPCGExHeuristicsInertiaProviderSettings::GetDisplayName() const
 {
-	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX"))
-		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
+	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX")) + TEXT(" @ ") + FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

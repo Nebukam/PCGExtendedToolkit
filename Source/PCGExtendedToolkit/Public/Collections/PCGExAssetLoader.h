@@ -41,8 +41,8 @@ namespace PCGEx
 		TArray<FName> AttributeNames;
 		TSet<FSoftObjectPath> UniquePaths;
 
+		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
 		TSharedPtr<FStreamableHandle> LoadHandle;
-		TWeakPtr<PCGExMT::FAsyncToken> AsyncToken;
 		int8 bEnded = 0;
 
 		FPCGExContext* Context = nullptr;
@@ -65,10 +65,10 @@ namespace PCGEx
 		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 		TSharedPtr<TArray<PCGExValueHash>> GetKeys(const int32 IOIndex);
 
-		virtual bool Load();
+		virtual bool Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 
 		virtual void End(const bool bBuildMap = false);
-		
+
 		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
 		{
 		}
@@ -83,10 +83,7 @@ namespace PCGEx
 	public:
 		TMap<PCGExValueHash, TObjectPtr<T>> AssetsMap;
 
-		TAssetLoader(
-			FPCGExContext* InContext,
-			const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection,
-			const TArray<FName>& InAttributeNames)
+		TAssetLoader(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection, const TArray<FName>& InAttributeNames)
 			: IAssetLoader(InContext, InIOCollection, InAttributeNames)
 		{
 		}

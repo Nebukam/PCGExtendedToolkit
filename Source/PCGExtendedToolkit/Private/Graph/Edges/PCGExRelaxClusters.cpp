@@ -5,6 +5,7 @@
 
 #include "PCGExMT.h"
 #include "PCGParamData.h"
+#include "Data/PCGExData.h"
 #include "Data/Blending/PCGExBlendLerp.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Data/PCGExPointFilter.h"
@@ -36,9 +37,7 @@ bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_VALIDATE_NAME)
 	PCGEX_OPERATION_BIND(Relaxing, UPCGExRelaxClusterOperation, PCGExRelaxClusters::SourceOverridesRelaxing)
 
-	GetInputFactories(
-		Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories,
-		PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
 	return true;
 }
@@ -53,14 +52,12 @@ bool FPCGExRelaxClustersElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-				NewBatch->AllocateVtxProperties = EPCGPointNativeProperties::Transform;
-				NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = true;
+			NewBatch->AllocateVtxProperties = EPCGPointNativeProperties::Transform;
+			NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -81,9 +78,7 @@ namespace PCGExRelaxClusters
 
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
-		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup,
-			true, false, false);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
@@ -129,19 +124,17 @@ namespace PCGExRelaxClusters
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, VtxTesting)
 
-			VtxTesting->OnCompleteCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE]()
-				{
-					PCGEX_ASYNC_THIS
-					This->StartNextStep();
-				};
+			VtxTesting->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->StartNextStep();
+			};
 
-			VtxTesting->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-				{
-					PCGEX_ASYNC_THIS
-					This->FilterVtxScope(Scope);
-				};
+			VtxTesting->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				This->FilterVtxScope(Scope);
+			};
 
 			VtxTesting->StartSubLoops(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
@@ -174,27 +167,23 @@ namespace PCGExRelaxClusters
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, IterationGroup)
 
-		IterationGroup->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->StartNextStep();
-			};
+		IterationGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->StartNextStep();
+		};
 
-		IterationGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->RelaxScope(Scope);
-			};
+		IterationGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->RelaxScope(Scope);
+		};
 
 		switch (StepSource)
 		{
-		case EPCGExClusterElement::Vtx:
-			IterationGroup->StartSubLoops(NumNodes, 32);
+		case EPCGExClusterElement::Vtx: IterationGroup->StartSubLoops(NumNodes, 32);
 			break;
-		case EPCGExClusterElement::Edge:
-			IterationGroup->StartSubLoops(NumEdges, 32);
+		case EPCGExClusterElement::Edge: IterationGroup->StartSubLoops(NumEdges, 32);
 			break;
 		}
 	}
@@ -220,13 +209,11 @@ namespace PCGExRelaxClusters
 
 		switch (StepSource)
 		{
-		case EPCGExClusterElement::Vtx:
-			PCGEX_RELAX_STEP_NODE(1)
+		case EPCGExClusterElement::Vtx: PCGEX_RELAX_STEP_NODE(1)
 			PCGEX_RELAX_STEP_NODE(2)
 			PCGEX_RELAX_STEP_NODE(3)
 			break;
-		case EPCGExClusterElement::Edge:
-			PCGEX_RELAX_STEP_EDGE(1)
+		case EPCGExClusterElement::Edge: PCGEX_RELAX_STEP_EDGE(1)
 			PCGEX_RELAX_STEP_EDGE(2)
 			PCGEX_RELAX_STEP_EDGE(3)
 			break;
@@ -257,10 +244,7 @@ namespace PCGExRelaxClusters
 
 			if (!InfluenceDetails.bProgressiveInfluence)
 			{
-				OutTransforms[Node.PointIndex] = PCGExBlend::Lerp(
-					OutTransforms[Node.PointIndex],
-					WBufferRef[Node.Index],
-					InfluenceDetails.GetInfluence(Node.PointIndex));
+				OutTransforms[Node.PointIndex] = PCGExBlend::Lerp(OutTransforms[Node.PointIndex], WBufferRef[Node.Index], InfluenceDetails.GetInfluence(Node.PointIndex));
 			}
 			else
 			{

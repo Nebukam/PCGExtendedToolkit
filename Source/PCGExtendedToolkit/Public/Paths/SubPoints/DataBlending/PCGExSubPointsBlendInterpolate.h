@@ -19,9 +19,7 @@ public:
 	const UPCGExSubPointsBlendInterpolate* TypedFactory = nullptr;
 	double Lerp = 0.5;
 
-	virtual void BlendSubPoints(
-		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const override;
+	virtual void BlendSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const override;
 };
 
 /**

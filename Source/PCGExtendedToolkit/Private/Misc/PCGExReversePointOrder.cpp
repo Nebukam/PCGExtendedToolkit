@@ -6,6 +6,7 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -13,8 +14,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
-
-PCGExData::EIOInit UPCGExReversePointOrderSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 bool FPCGExSwapAttributePairDetails::Validate(const FPCGContext* InContext) const
 {
@@ -31,6 +30,9 @@ TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() 
 }
 
 PCGEX_INITIALIZE_ELEMENT(ReversePointOrder)
+
+PCGExData::EIOInit UPCGExReversePointOrderSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(ReversePointOrder)
 
 bool FPCGExReversePointOrderElement::Boot(FPCGExContext* InContext) const
@@ -55,12 +57,10 @@ bool FPCGExReversePointOrderElement::AdvanceWork(FPCGExContext* InContext, const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bPrefetchData = Settings->Method != EPCGExPointReverseMethod::None || !Settings->SwapAttributesValues.IsEmpty();
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bPrefetchData = Settings->Method != EPCGExPointReverseMethod::None || !Settings->SwapAttributesValues.IsEmpty();
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -135,8 +135,6 @@ namespace PCGExReversePointOrder
 			}
 		}
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
 		if (Settings->Method == EPCGExPointReverseMethod::Winding)
 		{
 			FPCGExGeo2DProjectionDetails Proj = Settings->ProjectionDetails;
@@ -151,6 +149,8 @@ namespace PCGExReversePointOrder
 			if (!bReversed) { return true; }
 		}
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
 #define PCGEX_NATIVE_REVERSE(_NAME, _TYPE, ...) PCGEx::Reverse(PointDataFacade->GetOut()->Get##_NAME##ValueRange());
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_REVERSE)
 #undef PCGEX_NATIVE_REVERSE
@@ -159,28 +159,25 @@ namespace PCGExReversePointOrder
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
 
-		FetchWritersTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->StartParallelLoopForPoints();
-			};
+		FetchWritersTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->StartParallelLoopForPoints();
+		};
 
-		FetchWritersTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
-				PCGEX_ASYNC_THIS
-				FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[Scope.Start];
+		FetchWritersTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
+			PCGEX_ASYNC_THIS
+			FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[Scope.Start];
 
-				PCGEx::ExecuteWithRightType(
-					WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
-					{
-						using T_REAL = decltype(DummyValue);
-						WorkingPair.FirstWriter = This->PointDataFacade->GetWritable<T_REAL>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
-						WorkingPair.SecondWriter = This->PointDataFacade->GetWritable<T_REAL>(WorkingPair.SecondAttributeName, PCGExData::EBufferInit::Inherit);
-					});
-			};
+			PCGEx::ExecuteWithRightType(WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
+			{
+				using T_REAL = decltype(DummyValue);
+				WorkingPair.FirstWriter = This->PointDataFacade->GetWritable<T_REAL>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
+				WorkingPair.SecondWriter = This->PointDataFacade->GetWritable<T_REAL>(WorkingPair.SecondAttributeName, PCGExData::EBufferInit::Inherit);
+			});
+		};
 
 		FetchWritersTask->StartSubLoops(SwapPairs.Num(), 1);
 
@@ -193,32 +190,31 @@ namespace PCGExReversePointOrder
 
 		for (const FPCGExSwapAttributePairDetails& WorkingPair : SwapPairs)
 		{
-			PCGEx::ExecuteWithRightType(
-				WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
-				{
-					using T_REAL = decltype(DummyValue);
-					TSharedPtr<PCGExData::TBuffer<T_REAL>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<T_REAL>>(WorkingPair.FirstWriter);
-					TSharedPtr<PCGExData::TBuffer<T_REAL>> SecondWriter = StaticCastSharedPtr<PCGExData::TBuffer<T_REAL>>(WorkingPair.SecondWriter);
+			PCGEx::ExecuteWithRightType(WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
+			{
+				using T_REAL = decltype(DummyValue);
+				TSharedPtr<PCGExData::TBuffer<T_REAL>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<T_REAL>>(WorkingPair.FirstWriter);
+				TSharedPtr<PCGExData::TBuffer<T_REAL>> SecondWriter = StaticCastSharedPtr<PCGExData::TBuffer<T_REAL>>(WorkingPair.SecondWriter);
 
-					if (WorkingPair.bMultiplyByMinusOne)
+				if (WorkingPair.bMultiplyByMinusOne)
+				{
+					PCGEX_SCOPE_LOOP(Index)
 					{
-						PCGEX_SCOPE_LOOP(Index)
-						{
-							const T_REAL FirstValue = FirstWriter->GetValue(Index);
-							FirstWriter->SetValue(Index, PCGExMath::DblMult(SecondWriter->GetValue(Index), -1));
-							SecondWriter->SetValue(Index, PCGExMath::DblMult(FirstValue, -1));
-						}
+						const T_REAL FirstValue = FirstWriter->GetValue(Index);
+						FirstWriter->SetValue(Index, PCGExMath::DblMult(SecondWriter->GetValue(Index), -1));
+						SecondWriter->SetValue(Index, PCGExMath::DblMult(FirstValue, -1));
 					}
-					else
+				}
+				else
+				{
+					PCGEX_SCOPE_LOOP(Index)
 					{
-						PCGEX_SCOPE_LOOP(Index)
-						{
-							const T_REAL FirstValue = FirstWriter->GetValue(Index);
-							FirstWriter->SetValue(Index, SecondWriter->GetValue(Index));
-							SecondWriter->SetValue(Index, FirstValue);
-						}
+						const T_REAL FirstValue = FirstWriter->GetValue(Index);
+						FirstWriter->SetValue(Index, SecondWriter->GetValue(Index));
+						SecondWriter->SetValue(Index, FirstValue);
 					}
-				});
+				}
+			});
 		}
 	}
 

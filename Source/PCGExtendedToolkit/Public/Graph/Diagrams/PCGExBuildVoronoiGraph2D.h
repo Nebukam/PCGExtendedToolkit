@@ -8,17 +8,13 @@
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsGraph.h"
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoVoronoi.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
 
 namespace PCGExGraph
 {
 	class FGraphBuilder;
-}
-
-namespace PCGExGeo
-{
-	class TVoronoi2;
 }
 
 namespace PCGExData
@@ -200,8 +196,8 @@ namespace PCGExBuildVoronoiGraph2D
 		FPCGExVoronoiSitesOutputDetails SitesOutputDetails;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

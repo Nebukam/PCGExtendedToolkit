@@ -14,6 +14,11 @@
 
 #include "PCGExPointsToBounds.generated.h"
 
+namespace PCGExGeo
+{
+	struct FBestFitPlane;
+}
+
 UENUM()
 enum class EPCGExPointsToBoundsOutputMode : uint8
 {
@@ -108,9 +113,10 @@ public:
 #endif
 
 protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** Output Object Oriented Bounds. Note that this only accounts for positions and will ignore point bounds. **/
@@ -181,8 +187,8 @@ namespace PCGExPointsToBounds
 		FBox Bounds;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

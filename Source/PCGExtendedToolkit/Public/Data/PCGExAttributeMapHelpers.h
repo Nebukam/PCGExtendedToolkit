@@ -7,11 +7,9 @@
 #include <type_traits>
 
 #include "CoreMinimal.h"
-#include "PCGContext.h"
+#include "PCGExContext.h"
 #include "PCGExAttributeHelpers.h"
 #include "Metadata/PCGMetadataCommon.h"
-#include "PCGExBroadcast.h"
-#include "PCGExContext.h"
 #include "PCGExHelpers.h"
 
 #include "Details/PCGExMacros.h"
@@ -25,11 +23,7 @@ class FPCGMetadataAttributeBase;
 namespace PCGEx
 {
 	template <typename T_KEY, typename T_VALUE>
-	static int32 BuildMap(
-		const UPCGMetadata* Metadata,
-		const FPCGMetadataAttributeBase* KeyAttr,
-		const FPCGMetadataAttributeBase* ValueAttr,
-		TMap<T_KEY, T_VALUE>& OutMap)
+	static int32 BuildMap(const UPCGMetadata* Metadata, const FPCGMetadataAttributeBase* KeyAttr, const FPCGMetadataAttributeBase* ValueAttr, TMap<T_KEY, T_VALUE>& OutMap)
 	{
 		if (!Metadata || !KeyAttr || !ValueAttr) { return 0; }
 

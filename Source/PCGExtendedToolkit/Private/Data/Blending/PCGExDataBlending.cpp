@@ -14,7 +14,7 @@ namespace PCGExDataBlending
 {
 	void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface)
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceBlendingLabel, EPCGDataType::Param);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceBlendingLabel, FPCGExDataTypeInfoBlendOp::AsId());
 		PCGEX_PIN_TOOLTIP("Blending configurations, used by Individual (non-monolithic) blending interface.")
 		Pin.PinStatus = Interface == EPCGExBlendingInterface::Monolithic ? EPCGPinStatus::Advanced : InStatus;
 	}
@@ -127,12 +127,9 @@ bool FPCGExBlendingDetails::CanBlend(const FName AttributeName) const
 	switch (BlendingFilter)
 	{
 	default: ;
-	case EPCGExAttributeFilter::All:
-		return true;
-	case EPCGExAttributeFilter::Exclude:
-		return !FilteredAttributes.Contains(AttributeName);
-	case EPCGExAttributeFilter::Include:
-		return FilteredAttributes.Contains(AttributeName);
+	case EPCGExAttributeFilter::All: return true;
+	case EPCGExAttributeFilter::Exclude: return !FilteredAttributes.Contains(AttributeName);
+	case EPCGExAttributeFilter::Include: return FilteredAttributes.Contains(AttributeName);
 	}
 }
 
@@ -158,8 +155,7 @@ bool FPCGExBlendingDetails::GetBlendingParam(const FPCGAttributeIdentifier& InId
 
 	// TODO : Update with information regarding whether this is a new attribute or not
 
-	if (OutParam.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute &&
-		PCGEx::IsPCGExAttribute(InIdentifer.Name))
+	if (OutParam.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute && PCGEx::IsPCGExAttribute(InIdentifer.Name))
 	{
 		// Don't blend PCGEx stuff
 		OutParam.SetBlending(EPCGExDataBlendingType::Copy);
@@ -188,12 +184,7 @@ void FPCGExBlendingDetails::GetPointPropertyBlendingParams(TArray<PCGExDataBlend
 #undef PCGEX_SET_POINTPROPERTY
 }
 
-void FPCGExBlendingDetails::GetBlendingParams(
-	const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
-	TArray<PCGExDataBlending::FBlendingParam>& OutParams,
-	TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers,
-	const bool bSkipProperties,
-	const TSet<FName>* IgnoreAttributeSet) const
+void FPCGExBlendingDetails::GetBlendingParams(const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata, TArray<PCGExDataBlending::FBlendingParam>& OutParams, TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers, const bool bSkipProperties, const TSet<FName>* IgnoreAttributeSet) const
 {
 	if (!bSkipProperties) { GetPointPropertyBlendingParams(OutParams); }
 
@@ -273,9 +264,9 @@ void FPCGExBlendingDetails::GetBlendingParams(
 				EPCGExDataBlendingType DesiredBlending = DefaultBlending;
 
 #define PCGEX_GET_GLOBAL_BLENDMODE(_TYPE, _NAME, ...)\
-				if (Identity.UnderlyingType == EPCGMetadataTypes::Boolean){\
-					if (GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode != EPCGExDataBlendingTypeDefault::Default){\
-						DesiredBlending = static_cast<EPCGExDataBlendingType>(GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode);}}
+if (Identity.UnderlyingType == EPCGMetadataTypes::Boolean){\
+if (GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode != EPCGExDataBlendingTypeDefault::Default){\
+DesiredBlending = static_cast<EPCGExDataBlendingType>(GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode);}}
 
 				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_GET_GLOBAL_BLENDMODE)
 
@@ -293,10 +284,7 @@ void FPCGExBlendingDetails::GetBlendingParams(
 	}
 }
 
-void FPCGExBlendingDetails::RegisterBuffersDependencies(
-	FPCGExContext* InContext,
-	PCGExData::FFacadePreloader& FacadePreloader, const
-	TSet<FName>* IgnoredAttributes) const
+void FPCGExBlendingDetails::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TSet<FName>* IgnoredAttributes) const
 {
 	TSharedPtr<PCGExData::FFacade> InDataFacade = FacadePreloader.GetDataFacade();
 	if (!InDataFacade) { return; }
@@ -309,12 +297,7 @@ void FPCGExBlendingDetails::RegisterBuffersDependencies(
 
 namespace PCGExDataBlending
 {
-	void AssembleBlendingDetails(
-		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
-		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
-		const TSharedRef<PCGExData::FPointIO>& SourceIO,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes)
+	void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes)
 	{
 		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 
@@ -335,12 +318,7 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void AssembleBlendingDetails(
-		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
-		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
-		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes)
+	void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes)
 	{
 		OutDetails = FPCGExBlendingDetails(PropertiesBlending);
 		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
@@ -364,12 +342,7 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void AssembleBlendingDetails(
-		const EPCGExDataBlendingType& DefaultBlending,
-		const TArray<FName>& Attributes,
-		const TSharedRef<PCGExData::FPointIO>& SourceIO,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes)
+	void AssembleBlendingDetails(const EPCGExDataBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes)
 	{
 		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
@@ -386,12 +359,7 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void AssembleBlendingDetails(
-		const EPCGExDataBlendingType& DefaultBlending,
-		const TArray<FName>& Attributes,
-		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes)
+	void AssembleBlendingDetails(const EPCGExDataBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes)
 	{
 		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
 		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
@@ -411,12 +379,7 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void GetFilteredIdentities(
-		const UPCGMetadata* InMetadata,
-		TArray<PCGEx::FAttributeIdentity>& OutIdentities,
-		const FPCGExBlendingDetails* InBlendingDetails,
-		const FPCGExCarryOverDetails* InCarryOverDetails,
-		const TSet<FName>* IgnoreAttributeSet)
+	void GetFilteredIdentities(const UPCGMetadata* InMetadata, TArray<PCGEx::FAttributeIdentity>& OutIdentities, const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* IgnoreAttributeSet)
 	{
 		PCGEx::FAttributeIdentity::Get(InMetadata, OutIdentities, IgnoreAttributeSet);
 		if (InCarryOverDetails) { InCarryOverDetails->Prune(OutIdentities); }

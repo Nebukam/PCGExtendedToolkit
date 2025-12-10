@@ -10,8 +10,8 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExOperation.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "PCGExOperation.h"
 #include "Details/PCGExDetailsCluster.h"
 
 

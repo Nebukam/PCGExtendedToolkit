@@ -41,6 +41,7 @@ public:
 	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
+
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
 

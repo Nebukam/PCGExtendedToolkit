@@ -120,9 +120,7 @@ protected:
 
 namespace PCGEx
 {
-	PCGEXTENDEDTOOLKIT_API
-	void TagsToData(UPCGData* Data, const TSharedPtr<PCGExData::FTags>& Tags, const EPCGExTagsToDataAction Action);
+	PCGEXTENDEDTOOLKIT_API void TagsToData(UPCGData* Data, const TSharedPtr<PCGExData::FTags>& Tags, const EPCGExTagsToDataAction Action);
 
-	PCGEXTENDEDTOOLKIT_API
-	void TagsToData(const TSharedPtr<PCGExData::FPointIO>& Data, const EPCGExTagsToDataAction Action);
+	PCGEXTENDEDTOOLKIT_API void TagsToData(const TSharedPtr<PCGExData::FPointIO>& Data, const EPCGExTagsToDataAction Action);
 }

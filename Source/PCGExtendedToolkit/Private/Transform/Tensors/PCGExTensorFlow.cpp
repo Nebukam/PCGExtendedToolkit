@@ -4,6 +4,7 @@
 #include "Transform/Tensors/PCGExTensorFlow.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorFlow"
@@ -27,9 +28,7 @@ PCGExTensor::FTensorSample FPCGExTensorFlow::Sample(const int32 InSeedIndex, con
 		PCGExTensor::FEffectorMetrics Metrics;
 		if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
 
-		Samples.Emplace_GetRef(
-			Effectors->ReadTransform(InEffector.Index).GetRotation().RotateVector(Metrics.Guide),
-			Metrics.Potency, Metrics.Weight);
+		Samples.Emplace_GetRef(Effectors->ReadTransform(InEffector.Index).GetRotation().RotateVector(Metrics.Guide), Metrics.Potency, Metrics.Weight);
 	};
 
 	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

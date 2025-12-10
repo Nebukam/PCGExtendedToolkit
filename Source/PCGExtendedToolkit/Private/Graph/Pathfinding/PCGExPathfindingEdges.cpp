@@ -3,6 +3,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingEdges.h"
 
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
@@ -80,16 +81,12 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 
 	if (Settings->bAddSeedToPath)
 	{
-		Query->Seed.Point.Data->CopyPropertiesTo(
-			PathPoints, Query->Seed.Point.Index, 0, 1,
-			AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
+		Query->Seed.Point.Data->CopyPropertiesTo(PathPoints, Query->Seed.Point.Index, 0, 1, AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
 	}
 
 	if (Settings->bAddGoalToPath)
 	{
-		Query->Goal.Point.Data->CopyPropertiesTo(
-			PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1,
-			AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
+		Query->Goal.Point.Data->CopyPropertiesTo(PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1, AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
 	}
 
 	PCGExGraph::CleanupClusterData(PathIO);
@@ -160,12 +157,10 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->GoalPicker->PrepareForData(Context, Context->SeedsDataFacade, Context->GoalsDataFacade)) { return false; }
 
-	PCGExPathfinding::ProcessGoals(
-		Context->SeedsDataFacade, Context->GoalPicker,
-		[&](const int32 SeedIndex, const int32 GoalIndex)
-		{
-			Context->SeedGoalPairs.Add(PCGEx::H64(SeedIndex, GoalIndex));
-		});
+	PCGExPathfinding::ProcessGoals(Context->SeedsDataFacade, Context->GoalPicker, [&](const int32 SeedIndex, const int32 GoalIndex)
+	{
+		Context->SeedGoalPairs.Add(PCGEx::H64(SeedIndex, GoalIndex));
+	});
 
 	if (Context->SeedGoalPairs.IsEmpty())
 	{
@@ -184,12 +179,10 @@ bool FPCGExPathfindingEdgesElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->SetWantsHeuristics(true);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->SetWantsHeuristics(true);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -217,14 +210,12 @@ namespace PCGExPathfindingEdges
 
 		if (Settings->bUseOctreeSearch)
 		{
-			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx ||
-				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx)
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx || Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx)
 			{
 				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Vtx);
 			}
 
-			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
-				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge || Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
 			{
 				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
 			}
@@ -252,11 +243,7 @@ namespace PCGExPathfindingEdges
 		Context->OutputPaths->IncreaseReserve(NumQueries);
 		for (int i = 0; i < NumQueries; i++)
 		{
-			TSharedPtr<PCGExPathfinding::FPathQuery> Query = MakeShared<PCGExPathfinding::FPathQuery>(
-				Cluster.ToSharedRef(),
-				Context->SeedsDataFacade->Source->GetInPoint(PCGEx::H64A(Context->SeedGoalPairs[i])),
-				Context->GoalsDataFacade->Source->GetInPoint(PCGEx::H64B(Context->SeedGoalPairs[i])),
-				i);
+			TSharedPtr<PCGExPathfinding::FPathQuery> Query = MakeShared<PCGExPathfinding::FPathQuery>(Cluster.ToSharedRef(), Context->SeedsDataFacade->Source->GetInPoint(PCGEx::H64A(Context->SeedGoalPairs[i])), Context->GoalsDataFacade->Source->GetInPoint(PCGEx::H64B(Context->SeedGoalPairs[i])), i);
 
 			Queries[i] = Query;
 			QueriesIO[i] = Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(ReferenceIO, PCGExData::EIOInit::New);

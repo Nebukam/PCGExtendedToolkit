@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicDistance.h"
-
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)
@@ -14,8 +13,8 @@ struct FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigLeastNodes() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicConfigLeastNodes()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -26,18 +25,9 @@ struct FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 class FPCGExHeuristicNodeCount : public FPCGExHeuristicDistance
 {
 public:
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const override;
 };
 
 ////
@@ -63,9 +53,7 @@ class UPCGExHeuristicsLeastNodesProviderSettings : public UPCGExHeuristicsFactor
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsLeastNodes, "Heuristics : Least Nodes", "Heuristics based on node count.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsLeastNodes, "Heuristics : Least Nodes", "Heuristics based on node count.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

@@ -14,8 +14,7 @@ namespace PCGExMath
 		case EPCGExTruncateMode::Round: return FMath::RoundToInt(Value);
 		case EPCGExTruncateMode::Ceil: return FMath::CeilToDouble(Value);
 		case EPCGExTruncateMode::Floor: return FMath::FloorToDouble(Value);
-		default:
-		case EPCGExTruncateMode::None: return Value;
+		default: case EPCGExTruncateMode::None: return Value;
 		}
 	}
 
@@ -123,8 +122,7 @@ namespace PCGExMath
 	{
 		switch (Dir)
 		{
-		default:
-		case EPCGExAxis::Forward: return GetDirection<EPCGExAxis::Forward>(Quat);
+		default: case EPCGExAxis::Forward: return GetDirection<EPCGExAxis::Forward>(Quat);
 		case EPCGExAxis::Backward: return GetDirection<EPCGExAxis::Backward>(Quat);
 		case EPCGExAxis::Right: return GetDirection<EPCGExAxis::Right>(Quat);
 		case EPCGExAxis::Left: return GetDirection<EPCGExAxis::Left>(Quat);
@@ -137,19 +135,12 @@ namespace PCGExMath
 	{
 		switch (Dir)
 		{
-		default:
-		case EPCGExAxis::Forward:
-			return PCGEX_AXIS_X;
-		case EPCGExAxis::Backward:
-			return PCGEX_AXIS_X_N;
-		case EPCGExAxis::Right:
-			return PCGEX_AXIS_Y;
-		case EPCGExAxis::Left:
-			return PCGEX_AXIS_Y_N;
-		case EPCGExAxis::Up:
-			return PCGEX_AXIS_Z;
-		case EPCGExAxis::Down:
-			return PCGEX_AXIS_Z_N;
+		default: case EPCGExAxis::Forward: return PCGEX_AXIS_X;
+		case EPCGExAxis::Backward: return PCGEX_AXIS_X_N;
+		case EPCGExAxis::Right: return PCGEX_AXIS_Y;
+		case EPCGExAxis::Left: return PCGEX_AXIS_Y_N;
+		case EPCGExAxis::Up: return PCGEX_AXIS_Z;
+		case EPCGExAxis::Down: return PCGEX_AXIS_Z_N;
 		}
 	}
 
@@ -157,19 +148,12 @@ namespace PCGExMath
 	{
 		switch (Order)
 		{
-		default:
-		case EPCGExAxisOrder::XYZ:
-			return FTransform(FMatrix(PCGEX_AXIS_X, PCGEX_AXIS_Y, PCGEX_AXIS_Z, FVector::Zero()));
-		case EPCGExAxisOrder::YZX:
-			return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_Z, PCGEX_AXIS_X, FVector::Zero()));
-		case EPCGExAxisOrder::ZXY:
-			return FTransform(FMatrix(PCGEX_AXIS_Z, PCGEX_AXIS_X, PCGEX_AXIS_Y, FVector::Zero()));
-		case EPCGExAxisOrder::YXZ:
-			return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_X, PCGEX_AXIS_Z, FVector::Zero()));
-		case EPCGExAxisOrder::ZYX:
-			return FTransform(FMatrix(PCGEX_AXIS_Z, PCGEX_AXIS_Y, PCGEX_AXIS_X, FVector::Zero()));
-		case EPCGExAxisOrder::XZY:
-			return FTransform(FMatrix(PCGEX_AXIS_X, PCGEX_AXIS_Z, PCGEX_AXIS_Y, FVector::Zero()));
+		default: case EPCGExAxisOrder::XYZ: return FTransform(FMatrix(PCGEX_AXIS_X, PCGEX_AXIS_Y, PCGEX_AXIS_Z, FVector::Zero()));
+		case EPCGExAxisOrder::YZX: return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_Z, PCGEX_AXIS_X, FVector::Zero()));
+		case EPCGExAxisOrder::ZXY: return FTransform(FMatrix(PCGEX_AXIS_Z, PCGEX_AXIS_X, PCGEX_AXIS_Y, FVector::Zero()));
+		case EPCGExAxisOrder::YXZ: return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_X, PCGEX_AXIS_Z, FVector::Zero()));
+		case EPCGExAxisOrder::ZYX: return FTransform(FMatrix(PCGEX_AXIS_Z, PCGEX_AXIS_Y, PCGEX_AXIS_X, FVector::Zero()));
+		case EPCGExAxisOrder::XZY: return FTransform(FMatrix(PCGEX_AXIS_X, PCGEX_AXIS_Z, PCGEX_AXIS_Y, FVector::Zero()));
 		}
 	}
 
@@ -197,19 +181,12 @@ namespace PCGExMath
 	{
 		switch (Dir)
 		{
-		default:
-		case EPCGExAxis::Forward:
-			return FRotationMatrix::MakeFromX(InForward * -1).ToQuat();
-		case EPCGExAxis::Backward:
-			return FRotationMatrix::MakeFromX(InForward).ToQuat();
-		case EPCGExAxis::Right:
-			return FRotationMatrix::MakeFromY(InForward * -1).ToQuat();
-		case EPCGExAxis::Left:
-			return FRotationMatrix::MakeFromY(InForward).ToQuat();
-		case EPCGExAxis::Up:
-			return FRotationMatrix::MakeFromZ(InForward * -1).ToQuat();
-		case EPCGExAxis::Down:
-			return FRotationMatrix::MakeFromZ(InForward).ToQuat();
+		default: case EPCGExAxis::Forward: return FRotationMatrix::MakeFromX(InForward * -1).ToQuat();
+		case EPCGExAxis::Backward: return FRotationMatrix::MakeFromX(InForward).ToQuat();
+		case EPCGExAxis::Right: return FRotationMatrix::MakeFromY(InForward * -1).ToQuat();
+		case EPCGExAxis::Left: return FRotationMatrix::MakeFromY(InForward).ToQuat();
+		case EPCGExAxis::Up: return FRotationMatrix::MakeFromZ(InForward * -1).ToQuat();
+		case EPCGExAxis::Down: return FRotationMatrix::MakeFromZ(InForward).ToQuat();
 		}
 	}
 
@@ -217,19 +194,12 @@ namespace PCGExMath
 	{
 		switch (Dir)
 		{
-		default:
-		case EPCGExAxis::Forward:
-			return FRotationMatrix::MakeFromXZ(InForward * -1, InUp).ToQuat();
-		case EPCGExAxis::Backward:
-			return FRotationMatrix::MakeFromXZ(InForward, InUp).ToQuat();
-		case EPCGExAxis::Right:
-			return FRotationMatrix::MakeFromYZ(InForward * -1, InUp).ToQuat();
-		case EPCGExAxis::Left:
-			return FRotationMatrix::MakeFromYZ(InForward, InUp).ToQuat();
-		case EPCGExAxis::Up:
-			return FRotationMatrix::MakeFromZY(InForward * -1, InUp).ToQuat();
-		case EPCGExAxis::Down:
-			return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
+		default: case EPCGExAxis::Forward: return FRotationMatrix::MakeFromXZ(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Backward: return FRotationMatrix::MakeFromXZ(InForward, InUp).ToQuat();
+		case EPCGExAxis::Right: return FRotationMatrix::MakeFromYZ(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Left: return FRotationMatrix::MakeFromYZ(InForward, InUp).ToQuat();
+		case EPCGExAxis::Up: return FRotationMatrix::MakeFromZY(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Down: return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
 		}
 	}
 
@@ -247,18 +217,12 @@ namespace PCGExMath
 	{
 		switch (AlignAxis)
 		{
-		case EPCGExAxisAlign::Forward:
-			return FTransform(FRotationMatrix::MakeFromXZ(LookAt * -1, LookUp));
-		case EPCGExAxisAlign::Backward:
-			return FTransform(FRotationMatrix::MakeFromXZ(LookAt, LookUp));
-		case EPCGExAxisAlign::Right:
-			return FTransform(FRotationMatrix::MakeFromYZ(LookAt * -1, LookUp));
-		case EPCGExAxisAlign::Left:
-			return FTransform(FRotationMatrix::MakeFromYZ(LookAt, LookUp));
-		case EPCGExAxisAlign::Up:
-			return FTransform(FRotationMatrix::MakeFromZY(LookAt * -1, LookUp));
-		case EPCGExAxisAlign::Down:
-			return FTransform(FRotationMatrix::MakeFromZY(LookAt, LookUp));
+		case EPCGExAxisAlign::Forward: return FTransform(FRotationMatrix::MakeFromXZ(LookAt * -1, LookUp));
+		case EPCGExAxisAlign::Backward: return FTransform(FRotationMatrix::MakeFromXZ(LookAt, LookUp));
+		case EPCGExAxisAlign::Right: return FTransform(FRotationMatrix::MakeFromYZ(LookAt * -1, LookUp));
+		case EPCGExAxisAlign::Left: return FTransform(FRotationMatrix::MakeFromYZ(LookAt, LookUp));
+		case EPCGExAxisAlign::Up: return FTransform(FRotationMatrix::MakeFromZY(LookAt * -1, LookUp));
+		case EPCGExAxisAlign::Down: return FTransform(FRotationMatrix::MakeFromZY(LookAt, LookUp));
 		default: return FTransform::Identity;
 		}
 	}
@@ -320,10 +284,7 @@ namespace PCGExMath
 		const FRotator RA = A.Rotation();
 		const FRotator RB = B.Rotation();
 
-		return
-			FMath::Abs(FRotator::NormalizeAxis(RA.Yaw - RB.Yaw)) <= Limits.Yaw &&
-			FMath::Abs(FRotator::NormalizeAxis(RA.Pitch - RB.Pitch)) <= Limits.Pitch &&
-			FMath::Abs(FRotator::NormalizeAxis(RA.Roll - RB.Roll)) <= Limits.Roll;
+		return FMath::Abs(FRotator::NormalizeAxis(RA.Yaw - RB.Yaw)) <= Limits.Yaw && FMath::Abs(FRotator::NormalizeAxis(RA.Pitch - RB.Pitch)) <= Limits.Pitch && FMath::Abs(FRotator::NormalizeAxis(RA.Roll - RB.Roll)) <= Limits.Roll;
 	}
 
 	double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians)

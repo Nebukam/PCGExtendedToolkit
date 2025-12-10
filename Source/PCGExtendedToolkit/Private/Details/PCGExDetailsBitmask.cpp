@@ -13,18 +13,12 @@ namespace PCGExBitmask
 	{
 		switch (Comparison)
 		{
-		case EPCGExBitflagComparison::MatchPartial:
-			return " Any ";
-		case EPCGExBitflagComparison::MatchFull:
-			return " All ";
-		case EPCGExBitflagComparison::MatchStrict:
-			return " Exactly ";
-		case EPCGExBitflagComparison::NoMatchPartial:
-			return " Not Any ";
-		case EPCGExBitflagComparison::NoMatchFull:
-			return " Not All ";
-		default:
-			return " ?? ";
+		case EPCGExBitflagComparison::MatchPartial: return " Any ";
+		case EPCGExBitflagComparison::MatchFull: return " All ";
+		case EPCGExBitflagComparison::MatchStrict: return " Exactly ";
+		case EPCGExBitflagComparison::NoMatchPartial: return " Not Any ";
+		case EPCGExBitflagComparison::NoMatchFull: return " Not All ";
+		default: return " ?? ";
 		}
 	}
 
@@ -32,16 +26,11 @@ namespace PCGExBitmask
 	{
 		switch (Method)
 		{
-		case EPCGExBitflagComparison::MatchPartial:
-			return ((Flags & Mask) != 0);
-		case EPCGExBitflagComparison::MatchFull:
-			return ((Flags & Mask) == Mask);
-		case EPCGExBitflagComparison::MatchStrict:
-			return (Flags == Mask);
-		case EPCGExBitflagComparison::NoMatchPartial:
-			return ((Flags & Mask) == 0);
-		case EPCGExBitflagComparison::NoMatchFull:
-			return ((Flags & Mask) != Mask);
+		case EPCGExBitflagComparison::MatchPartial: return ((Flags & Mask) != 0);
+		case EPCGExBitflagComparison::MatchFull: return ((Flags & Mask) == Mask);
+		case EPCGExBitflagComparison::MatchStrict: return (Flags == Mask);
+		case EPCGExBitflagComparison::NoMatchPartial: return ((Flags & Mask) == 0);
+		case EPCGExBitflagComparison::NoMatchFull: return ((Flags & Mask) != Mask);
 		default: return false;
 		}
 	}
@@ -62,27 +51,21 @@ void FPCGExClampedBitOp::Mutate(int64& Flags) const
 	const int64 BitMask = static_cast<int64>(1) << BitIndex;
 	switch (Op)
 	{
-	case EPCGExBitOp::Set:
-		if (bValue) { Flags |= BitMask; }
+	case EPCGExBitOp::Set: if (bValue) { Flags |= BitMask; }
 		else { Flags &= ~BitMask; }
 		break;
-	case EPCGExBitOp::AND:
-		if (!bValue) { Flags &= ~BitMask; } // AND false -> clear bit 
+	case EPCGExBitOp::AND: if (!bValue) { Flags &= ~BitMask; } // AND false -> clear bit 
 		// AND true -> leave bit as is, nothing to do
 		break;
-	case EPCGExBitOp::OR:
-		if (bValue) { Flags |= BitMask; } // OR true -> set bit 
+	case EPCGExBitOp::OR: if (bValue) { Flags |= BitMask; } // OR true -> set bit 
 		// OR false -> leave bit as is, nothing to do
 		break;
-	case EPCGExBitOp::NOT:
-		if (bValue) { Flags ^= BitMask; } // flip the bit
+	case EPCGExBitOp::NOT: if (bValue) { Flags ^= BitMask; } // flip the bit
 		break;
-	case EPCGExBitOp::XOR:
-		if (bValue) { Flags ^= BitMask; } // XOR with true flips the bit
+	case EPCGExBitOp::XOR: if (bValue) { Flags ^= BitMask; } // XOR with true flips the bit
 		// XOR false -> do nothing
 		break;
-	default:
-		break;
+	default: break;
 	}
 }
 
@@ -115,8 +98,7 @@ FPCGExSimpleBitmask FPCGExBitmaskRef::GetSimpleBitmask() const
 
 bool FPCGExBitmaskRef::TryGetAdjacencyInfos(FVector& OutDirection, FPCGExSimpleBitmask& OutSimpleBitmask) const
 {
-	if (PCGExBitmask::FCachedRef Cache = PCGExBitmask::FCachedRef{};
-		Source && Source->LoadCache()->TryGetBitmask(Identifier, Cache))
+	if (PCGExBitmask::FCachedRef Cache = PCGExBitmask::FCachedRef{}; Source && Source->LoadCache()->TryGetBitmask(Identifier, Cache))
 	{
 		OutSimpleBitmask = FPCGExSimpleBitmask();
 		OutSimpleBitmask.Bitmask = Cache.Bitmask;

@@ -19,9 +19,7 @@ class UPCGExAttributeHashSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		AttributeHash, "Attribute Hash", "Generates a hash from the input data, based on a attribute or property.",
-		FName(FString::Printf(TEXT("Hash : %s"), *HashConfig.SourceAttribute.GetName().ToString())));
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AttributeHash, "Attribute Hash", "Generates a hash from the input data, based on a attribute or property.", FName(FString::Printf(TEXT("Hash : %s"), *HashConfig.SourceAttribute.GetName().ToString())));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
 #endif
@@ -77,8 +75,8 @@ namespace PCGExAttributeHash
 		TSharedPtr<PCGEx::FAttributeHasher> Hasher;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

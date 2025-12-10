@@ -21,6 +21,8 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+
 public:
 	/** Controls the order in which points will be ordered. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -52,10 +54,6 @@ public:
 #endif
 	//~End UObject interface
 
-protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-
-public:
 	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExSortRuleConfig> Rules = {FPCGExSortRuleConfig{}};
@@ -89,8 +87,8 @@ namespace PCGExSortPoints
 		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

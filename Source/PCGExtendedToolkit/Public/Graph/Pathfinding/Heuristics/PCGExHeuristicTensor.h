@@ -7,6 +7,7 @@
 #include "PCGExHeuristicDistance.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
+
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 #include "PCGExHeuristicTensor.generated.h"
@@ -16,8 +17,8 @@ struct FPCGExHeuristicConfigTensor : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigTensor() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicConfigTensor()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -40,19 +41,10 @@ class FPCGExHeuristicTensor : public FPCGExHeuristicOperation
 public:
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster) override;
 
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const override;
 
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 protected:
 	TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
@@ -90,9 +82,7 @@ class UPCGExHeuristicsTensorProviderSettings : public UPCGExHeuristicsFactoryPro
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsTensor, "Heuristics : Tensor", "Heuristics based on tensors.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsTensor, "Heuristics : Tensor", "Heuristics based on tensors.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

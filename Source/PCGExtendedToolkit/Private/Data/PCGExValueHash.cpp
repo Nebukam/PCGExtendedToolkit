@@ -16,9 +16,7 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return HashCombineFast(
-				HashCombineFast(GetTypeHash(Value.GetRotation().Euler()), GetTypeHash(Value.GetLocation())),
-				GetTypeHash(Value.GetScale3D()));
+			return HashCombineFast(HashCombineFast(GetTypeHash(Value.GetRotation().Euler()), GetTypeHash(Value.GetLocation())), GetTypeHash(Value.GetScale3D()));
 		}
 		else
 		{

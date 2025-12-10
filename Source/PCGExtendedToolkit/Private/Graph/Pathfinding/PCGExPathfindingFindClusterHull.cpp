@@ -4,10 +4,10 @@
 #include "Graph/Pathfinding/PCGExPathfindingFindClusterHull.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindClusterHull"
 #define PCGEX_NAMESPACE FindClusterHull
@@ -54,13 +54,11 @@ bool FPCGExFindClusterHullElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				// NewBatch->bRequiresWriteStep = true;
-				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+			NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}

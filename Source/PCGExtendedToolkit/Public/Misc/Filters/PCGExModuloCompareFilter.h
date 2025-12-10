@@ -122,9 +122,7 @@ class UPCGExModuloCompareFilterProviderSettings : public UPCGExFilterProviderSet
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ModuloCompareFilterFactory, "Filter : Modulo Compare", "A % B != C",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ModuloCompareFilterFactory, "Filter : Modulo Compare", "A % B != C", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

@@ -4,13 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
 #include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDetailsFiltering.h"
-
 
 #include "PCGExUberFilter.generated.h"
 
@@ -163,8 +163,8 @@ namespace PCGExUberFilter
 		TSharedPtr<PCGExData::FPointIO> Inside;
 		TSharedPtr<PCGExData::FPointIO> Outside;
 
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -12,13 +12,7 @@ double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, 
 	return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 }
 
-double FPCGExHeuristicFeedback::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal,
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicFeedback::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	FReadScopeLock ReadScopeLock(FeedbackLock);
 
@@ -98,8 +92,6 @@ UPCGExFactoryData* UPCGExHeuristicFeedbackProviderSettings::CreateFactory(FPCGEx
 #if WITH_EDITOR
 FString UPCGExHeuristicFeedbackProviderSettings::GetDisplayName() const
 {
-	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX"))
-		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
+	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX")) + TEXT(" @ ") + FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

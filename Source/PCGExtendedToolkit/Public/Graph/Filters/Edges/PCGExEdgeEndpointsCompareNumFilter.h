@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
@@ -94,9 +95,7 @@ class UPCGExEdgeEndpointsCompareNumFilterProviderSettings : public UPCGExEdgeFil
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		EdgeEndpointsCompareNumFilterFactory, "Edge Filter : Endpoints Compare (Numeric)", "Compare the value of an attribute on each of the edge endpoint.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(EdgeEndpointsCompareNumFilterFactory, "Edge Filter : Endpoints Compare (Numeric)", "Compare the value of an attribute on each of the edge endpoint.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 	//~End UPCGSettings

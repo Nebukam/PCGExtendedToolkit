@@ -99,8 +99,8 @@ namespace PCGExFuseCollinear
 		FVector LastPosition = FVector::ZeroVector;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = false;
 		}

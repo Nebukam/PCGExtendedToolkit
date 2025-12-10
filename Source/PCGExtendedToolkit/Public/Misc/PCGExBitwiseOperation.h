@@ -4,11 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsBitmask.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExBitwiseOperation.generated.h"
 
@@ -26,9 +25,10 @@ public:
 #endif
 
 protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** Target attribute */
@@ -81,8 +81,8 @@ namespace PCGExBitwiseOperation
 		EPCGExBitOp Op = EPCGExBitOp::Set;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

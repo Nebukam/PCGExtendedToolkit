@@ -3,9 +3,9 @@
 
 #include "Transform/PCGExBoundsAxisToPoints.h"
 
-#include "PCGExHelpers.h"
 #include "PCGExMathBounds.h"
 #include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -32,12 +32,10 @@ bool FPCGExBoundsAxisToPointsElement::AdvanceWork(FPCGExContext* InContext, cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				//NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			//NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Missing data."));
 		}
@@ -129,14 +127,11 @@ namespace PCGExBoundsAxisToPoints
 
 			switch (Settings->Priority)
 			{
-			case EPCGExBoundAxisPriority::Shortest:
-				Idx = 0;
+			case EPCGExBoundAxisPriority::Shortest: Idx = 0;
 				break;
-			case EPCGExBoundAxisPriority::Median:
-				Idx = 1;
+			case EPCGExBoundAxisPriority::Median: Idx = 1;
 				break;
-			case EPCGExBoundAxisPriority::Longest:
-				Idx = 2;
+			case EPCGExBoundAxisPriority::Longest: Idx = 2;
 				break;
 			}
 
@@ -184,14 +179,11 @@ namespace PCGExBoundsAxisToPoints
 			switch (Axis)
 			{
 			case EPCGExMinimalAxis::None:
-			case EPCGExMinimalAxis::X:
-				UVW.U = Settings->U;
+			case EPCGExMinimalAxis::X: UVW.U = Settings->U;
 				break;
-			case EPCGExMinimalAxis::Y:
-				UVW.V = Settings->U;
+			case EPCGExMinimalAxis::Y: UVW.V = Settings->U;
 				break;
-			case EPCGExMinimalAxis::Z:
-				UVW.W = Settings->U;
+			case EPCGExMinimalAxis::Z: UVW.W = Settings->U;
 				break;
 			}
 

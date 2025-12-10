@@ -4,13 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
+
 #include "UObject/Object.h"
 
-#include "PCGExCompare.h"
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExFilterGroup.h"
+
+
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
+
+
 #include "PCGExTagValueFilter.generated.h"
 
 
@@ -109,9 +114,7 @@ class UPCGExTagValueFilterProviderSettings : public UPCGExFilterCollectionProvid
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		TagValueFilterFactory, "Data Filter : Tag Value", "Test the value of one or multiple tags",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(TagValueFilterFactory, "Data Filter : Tag Value", "Test the value of one or multiple tags", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

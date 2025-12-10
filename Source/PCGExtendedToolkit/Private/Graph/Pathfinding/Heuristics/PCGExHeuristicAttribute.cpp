@@ -85,13 +85,7 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 	}
 }
 
-double FPCGExHeuristicAttribute::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal,
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicAttribute::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return CachedScores[Source == EPCGExClusterElement::Edge ? Edge.PointIndex : To.Index];
 }
@@ -139,9 +133,7 @@ UPCGExFactoryData* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExC
 #if WITH_EDITOR
 FString UPCGExCreateHeuristicAttributeSettings::GetDisplayName() const
 {
-	return TEXT("HX : ") + PCGEx::GetSelectorDisplayName(Config.Attribute)
-		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
+	return TEXT("HX : ") + PCGEx::GetSelectorDisplayName(Config.Attribute) + TEXT(" @ ") + FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif
 

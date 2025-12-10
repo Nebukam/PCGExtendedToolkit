@@ -76,11 +76,9 @@ bool FPCGExFindPointOnBoundsClustersElement::AdvanceWork(FPCGExContext* InContex
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -91,11 +89,7 @@ bool FPCGExFindPointOnBoundsClustersElement::AdvanceWork(FPCGExContext* InContex
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{
 		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx ? Context->MainPoints : Context->MainEdges;
-		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
-			Context->MergedOut,
-			Context->IOMergeSources,
-			Context->BestIndices,
-			*Context->MergedAttributesInfos);
+		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(Context->MergedOut, Context->IOMergeSources, Context->BestIndices, *Context->MergedAttributesInfos);
 
 		(void)Context->MergedOut->StageOutput(Context);
 	}
@@ -120,8 +114,7 @@ namespace PCGExFindPointOnBoundsClusters
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		FBox Bounds = FBox(ForceInit);
-		FVector UVW = Settings->GetValueSettingUVW(
-			Context, Settings->ClusterElement == EPCGExClusterElement::Edge ? EdgeDataFacade->GetIn() : VtxDataFacade->GetIn())->Read(0);
+		FVector UVW = Settings->GetValueSettingUVW(Context, Settings->ClusterElement == EPCGExClusterElement::Edge ? EdgeDataFacade->GetIn() : VtxDataFacade->GetIn())->Read(0);
 
 		if (Settings->bBestFitBounds)
 		{
@@ -131,8 +124,10 @@ namespace PCGExFindPointOnBoundsClusters
 			IdxLookup->Dump(PtIndices);
 
 			PCGExGeo::FBestFitPlane BestFitPlane(InVtxTransforms, PtIndices);
-			Bounds = FBox(BestFitPlane.Centroid - BestFitPlane.Extents, BestFitPlane.Centroid + BestFitPlane.Extents);
-			UVW = BestFitPlane.GetTransform(Settings->AxisOrder).TransformVector(UVW);
+
+			FTransform T = BestFitPlane.GetTransform(Settings->AxisOrder);
+			UVW = T.TransformVector(UVW);
+			Bounds = FBox(BestFitPlane.Centroid - BestFitPlane.Extents, BestFitPlane.Centroid + BestFitPlane.Extents).TransformBy(T);
 		}
 		else
 		{

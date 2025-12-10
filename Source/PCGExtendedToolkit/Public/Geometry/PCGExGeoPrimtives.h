@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "PCGExH.h"
 
 namespace PCGExGeo
@@ -50,27 +49,17 @@ namespace PCGExGeo
 			uint32 A;
 			uint32 B;
 			PCGEx::H64(Edge, A, B);
-			return
-				(Vtx[0] == A && Vtx[1] == B) ||
-				(Vtx[1] == A && Vtx[2] == B) ||
-				(Vtx[0] == A && Vtx[2] == B);
+			return (Vtx[0] == A && Vtx[1] == B) || (Vtx[1] == A && Vtx[2] == B) || (Vtx[0] == A && Vtx[2] == B);
 		}
 
 		FORCEINLINE bool ContainsEdge(const int32 A, const int32 B) const
 		{
-			return
-				(Vtx[0] == A && Vtx[1] == B) ||
-				(Vtx[1] == A && Vtx[2] == B) ||
-				(Vtx[0] == A && Vtx[2] == B);
+			return (Vtx[0] == A && Vtx[1] == B) || (Vtx[1] == A && Vtx[2] == B) || (Vtx[0] == A && Vtx[2] == B);
 		}
 
 		FORCEINLINE void GetLongestEdge(const TArrayView<const FVector>& Positions, uint64& Edge) const
 		{
-			const double L[3] = {
-				FVector::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]),
-				FVector::DistSquared(Positions[Vtx[0]], Positions[Vtx[2]]),
-				FVector::DistSquared(Positions[Vtx[1]], Positions[Vtx[2]])
-			};
+			const double L[3] = {FVector::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]), FVector::DistSquared(Positions[Vtx[0]], Positions[Vtx[2]]), FVector::DistSquared(Positions[Vtx[1]], Positions[Vtx[2]])};
 
 			if (L[0] > L[1] && L[0] > L[2]) { Edge = PCGEx::H64U(L[0], L[1]); }
 			else if (L[1] > L[0] && L[1] > L[2]) { Edge = PCGEx::H64U(L[0], L[2]); }
@@ -79,11 +68,7 @@ namespace PCGExGeo
 
 		FORCEINLINE void GetLongestEdge(const TArrayView<const FVector2D>& Positions, uint64& Edge) const
 		{
-			const double L[3] = {
-				FVector2D::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]),
-				FVector2D::DistSquared(Positions[Vtx[0]], Positions[Vtx[2]]),
-				FVector2D::DistSquared(Positions[Vtx[1]], Positions[Vtx[2]])
-			};
+			const double L[3] = {FVector2D::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]), FVector2D::DistSquared(Positions[Vtx[0]], Positions[Vtx[2]]), FVector2D::DistSquared(Positions[Vtx[1]], Positions[Vtx[2]])};
 
 			if (L[0] > L[1] && L[0] > L[2]) { Edge = PCGEx::H64U(L[0], L[1]); }
 			else if (L[1] > L[0] && L[1] > L[2]) { Edge = PCGEx::H64U(L[0], L[2]); }
@@ -147,7 +132,8 @@ namespace PCGExGeo
 	{
 		FBox Bounds;
 
-		explicit FBoundedTriangle(const int32 A, const int32 B, const int32 C): FTriangle(A, B, C)
+		explicit FBoundedTriangle(const int32 A, const int32 B, const int32 C)
+			: FTriangle(A, B, C)
 		{
 		}
 

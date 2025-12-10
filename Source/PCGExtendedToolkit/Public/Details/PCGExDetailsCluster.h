@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExDetailsCluster.generated.h"
 
-
 UENUM()
 enum class EPCGExClusterClosestSearchMode : uint8
 {
@@ -30,8 +29,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionDetails
 	{
 	}
 
-	explicit FPCGExNodeSelectionDetails(const double InMaxDistance):
-		MaxDistance(InMaxDistance)
+	explicit FPCGExNodeSelectionDetails(const double InMaxDistance)
+		: MaxDistance(InMaxDistance)
 	{
 	}
 

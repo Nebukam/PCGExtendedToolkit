@@ -37,18 +37,15 @@ bool FPCGExAttributeDebugDraw::Bind(const TSharedRef<PCGExData::FPointIO>& Point
 	{
 	case EPCGExDebugExpression::Direction:
 	case EPCGExDebugExpression::Point:
-	case EPCGExDebugExpression::ConnectionToPosition:
-		VectorGetter = MakeShared<PCGEx::TAttributeBroadcaster<FVector>>();
+	case EPCGExDebugExpression::ConnectionToPosition: VectorGetter = MakeShared<PCGEx::TAttributeBroadcaster<FVector>>();
 		bValid = VectorGetter->Prepare(Config->Selector, PointIO);
 		if (bValid) { VectorGetter->Grab(); }
 		break;
-	case EPCGExDebugExpression::ConnectionToIndex:
-		IndexGetter = MakeShared<PCGEx::TAttributeBroadcaster<int32>>();
+	case EPCGExDebugExpression::ConnectionToIndex: IndexGetter = MakeShared<PCGEx::TAttributeBroadcaster<int32>>();
 		bValid = IndexGetter->Prepare(Config->Selector, PointIO);
 		if (bValid) { IndexGetter->Grab(); }
 		break;
-	case EPCGExDebugExpression::Boolean:
-		SingleGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
+	case EPCGExDebugExpression::Boolean: SingleGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
 		bValid = SingleGetter->Prepare(Config->Selector, PointIO);
 		if (bValid) { SingleGetter->Grab(); }
 		break;
@@ -117,20 +114,15 @@ void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, c
 {
 	switch (Config->ExpressedAs)
 	{
-	case EPCGExDebugExpression::Direction:
-		DrawDirection(World, Start, Point);
+	case EPCGExDebugExpression::Direction: DrawDirection(World, Start, Point);
 		break;
-	case EPCGExDebugExpression::ConnectionToIndex:
-		DrawConnection(World, Start, Point, GetIndexedPosition(Point, PointData));
+	case EPCGExDebugExpression::ConnectionToIndex: DrawConnection(World, Start, Point, GetIndexedPosition(Point, PointData));
 		break;
-	case EPCGExDebugExpression::ConnectionToPosition:
-		DrawConnection(World, Start, Point, GetVector(Point));
+	case EPCGExDebugExpression::ConnectionToPosition: DrawConnection(World, Start, Point, GetVector(Point));
 		break;
-	case EPCGExDebugExpression::Point:
-		DrawPoint(World, Start, Point);
+	case EPCGExDebugExpression::Point: DrawPoint(World, Start, Point);
 		break;
-	case EPCGExDebugExpression::Boolean:
-		DrawSingle(World, Start, Point);
+	case EPCGExDebugExpression::Boolean: DrawSingle(World, Start, Point);
 		break;
 	default: ;
 	}
@@ -167,8 +159,7 @@ void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& St
 #endif
 }
 
-UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 #if WITH_EDITOR
@@ -282,8 +273,7 @@ bool FPCGExDrawAttributesElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 #else
 
-	DisabledPassThroughData(Context);
-	return true;
+	DisabledPassThroughData(Context); return true;
 
 #endif
 }

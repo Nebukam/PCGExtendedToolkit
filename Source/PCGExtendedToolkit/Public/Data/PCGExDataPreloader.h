@@ -7,17 +7,17 @@
 #include "PCGExAttributeHelpers.h"
 #include "UObject/Object.h"
 
-#include "PCGExData.h"
+namespace PCGExMT
+{
+	class IAsyncHandleGroup;
+	class FTaskManager;
+}
 
 struct FPCGContextHandle;
 
-namespace PCGExMT
-{
-	class FAsyncMultiHandle;
-}
-
 namespace PCGExData
 {
+	class IBuffer;
 	PCGEX_CTX_STATE(State_PreloadingData)
 
 	enum class EBufferPreloadType : uint8
@@ -86,7 +86,7 @@ namespace PCGExData
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;
 
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr);
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr);
 
 		bool IsLoaded() const { return bLoaded; }
 
@@ -122,7 +122,7 @@ extern template void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext,
 		CompletionCallback OnCompleteCallback;
 
 		bool Validate(FPCGExContext* InContext);
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr);
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr);
 
 	protected:
 		void OnSubloadComplete();

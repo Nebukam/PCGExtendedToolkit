@@ -7,9 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-
-
 #include "Geometry/PCGExGeo.h"
+
 #include "PCGExFlatProjection.generated.h"
 
 namespace PCGExData
@@ -110,8 +109,8 @@ namespace PCGExFlatProjection
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformReader;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

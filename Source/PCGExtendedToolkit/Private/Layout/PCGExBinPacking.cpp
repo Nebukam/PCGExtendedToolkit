@@ -5,6 +5,7 @@
 
 
 #include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Layout/PCGExLayout.h"
@@ -19,8 +20,6 @@ bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<
 	OutRules.Append(PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
 	return !OutRules.IsEmpty();
 }
-
-PCGExData::EIOInit UPCGExBinPackingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExBinPackingSettings::InputPinProperties() const
 {
@@ -39,6 +38,9 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::OutputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BinPacking)
+
+PCGExData::EIOInit UPCGExBinPackingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BinPacking)
 
 bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
@@ -108,17 +110,15 @@ bool FPCGExBinPackingElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				return Context->ValidIOIndices.Contains(Entry->IOIndex);
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				TArray<FPCGExSortRuleConfig> OutRules;
-				Settings->GetSortingRules(Context, OutRules);
-				NewBatch->bPrefetchData = !OutRules.IsEmpty();
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         return Context->ValidIOIndices.Contains(Entry->IOIndex);
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         TArray<FPCGExSortRuleConfig> OutRules;
+			                                         Settings->GetSortingRules(Context, OutRules);
+			                                         NewBatch->bPrefetchData = !OutRules.IsEmpty();
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -268,7 +268,6 @@ namespace PCGExBinPacking
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
 		PointDataFacade->Source->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];

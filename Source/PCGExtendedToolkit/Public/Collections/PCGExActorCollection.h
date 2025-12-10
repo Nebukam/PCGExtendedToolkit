@@ -50,11 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 
 	bool SameAs(const FPCGExActorCollectionEntry& Other) const
 	{
-		return
-			SubCollection == Other.SubCollection &&
-			Weight == Other.Weight &&
-			Category == Other.Category &&
-			Actor == Other.Actor;
+		return SubCollection == Other.SubCollection && Weight == Other.Weight && Category == Other.Category && Actor == Other.Actor;
 	}
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
@@ -84,7 +80,7 @@ public:
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 #endif
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	TArray<FPCGExActorCollectionEntry> Entries;
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExActorCollection, FPCGExActorCollectionEntry)

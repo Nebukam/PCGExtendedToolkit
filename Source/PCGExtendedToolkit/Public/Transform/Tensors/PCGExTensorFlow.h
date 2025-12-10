@@ -18,8 +18,8 @@ struct FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorFlowConfig() :
-		FPCGExTensorConfigBase()
+	FPCGExTensorFlowConfig()
+		: FPCGExTensorConfigBase()
 	{
 		DirectionAttribute.Update(TEXT("$Rotation.Forward"));
 	}

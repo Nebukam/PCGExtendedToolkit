@@ -12,12 +12,7 @@ class UPCGExMeshSelectorStaged : public UPCGMeshSelectorBase
 	GENERATED_BODY()
 
 public:
-	virtual bool SelectMeshInstances(
-		FPCGStaticMeshSpawnerContext& Context,
-		const UPCGStaticMeshSpawnerSettings* Settings,
-		const UPCGBasePointData* InPointData,
-		TArray<FPCGMeshInstanceList>& OutMeshInstances,
-		UPCGBasePointData* OutPointData) const override;
+	virtual bool SelectMeshInstances(FPCGStaticMeshSpawnerContext& Context, const UPCGStaticMeshSpawnerSettings* Settings, const UPCGBasePointData* InPointData, TArray<FPCGMeshInstanceList>& OutMeshInstances, UPCGBasePointData* OutPointData) const override;
 
 	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bApplyMaterialOverrides = true;

@@ -118,15 +118,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	PCGEX_CREATE_REFINE_OPERATION(
-		EdgeRefineLineTrace, {
-		Operation->bTwoWayCheck = bTwoWayCheck;
-		Operation->bInvert = bInvert;
-		Operation->InitializedCollisionSettings = &InitializedCollisionSettings;
-		Operation->bScatter = bScatter;
-		Operation->ScatterSamples = FMath::Max(1, ScatterSamples);
-		Operation->ScatterRadius = ScatterRadius;
-		})
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRefineLineTrace, { Operation->bTwoWayCheck = bTwoWayCheck; Operation->bInvert = bInvert; Operation->InitializedCollisionSettings = &InitializedCollisionSettings; Operation->bScatter = bScatter; Operation->ScatterSamples = FMath::Max(1, ScatterSamples); Operation->ScatterRadius = ScatterRadius; })
 
 protected:
 	FPCGExCollisionDetails InitializedCollisionSettings;

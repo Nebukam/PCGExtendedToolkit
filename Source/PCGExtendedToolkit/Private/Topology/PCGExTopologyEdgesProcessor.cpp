@@ -18,6 +18,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Async/ParallelFor.h"
+#include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
@@ -52,8 +53,7 @@ void UPCGExTopologyEdgesProcessorSettings::ApplyDeprecationBeforeUpdatePins(UPCG
 	for (TObjectPtr<UPCGPin>& OutPin : OutputPins)
 	{
 		// If vtx/edge pins are connected, set Legacy output mode
-		if ((OutPin->Properties.Label == PCGExGraph::OutputVerticesLabel || OutPin->Properties.Label == PCGExGraph::OutputEdgesLabel) &&
-			OutPin->EdgeCount() > 0) { OutputMode = EPCGExTopologyOutputMode::Legacy; }
+		if ((OutPin->Properties.Label == PCGExGraph::OutputVerticesLabel || OutPin->Properties.Label == PCGExGraph::OutputEdgesLabel) && OutPin->EdgeCount() > 0) { OutputMode = EPCGExTopologyOutputMode::Legacy; }
 	}
 	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 }
@@ -85,9 +85,7 @@ bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	PCGExHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
 
-	GetInputFactories(
-		Context, PCGExTopology::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories,
-		PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(Context, PCGExTopology::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
 	Context->HashMaps.Init(nullptr, Context->MainPoints->Num());
 	return true;
@@ -108,9 +106,7 @@ namespace PCGExTopologyEdges
 	TSharedPtr<PCGExCluster::FCluster> IProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with nodes only, will be deleted.
-		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
-			true, false, false);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
 	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
@@ -198,16 +194,15 @@ namespace PCGExTopologyEdges
 		UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
 		// Needed otherwise triggers updates in a loop
-		Context->GetMutableComponent()->IgnoreChangeOriginDuringGenerationWithScope(
-			DynamicMeshComponent, [&]()
+		Context->GetMutableComponent()->IgnoreChangeOriginDuringGenerationWithScope(DynamicMeshComponent, [&]()
+		{
+			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
+			DynamicMeshComponent->SetDynamicMesh(InternalMesh);
+			if (UMaterialInterface* Material = Settings->Topology.Material.Get())
 			{
-				Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
-				DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-				if (UMaterialInterface* Material = Settings->Topology.Material.Get())
-				{
-					DynamicMeshComponent->SetMaterial(0, Material);
-				}
-			});
+				DynamicMeshComponent->SetMaterial(0, Material);
+			}
+		});
 
 		DynamicMeshComponent->ComponentTags.Reserve(DynamicMeshComponent->ComponentTags.Num() + Context->ComponentTags.Num());
 		for (const FString& ComponentTag : Context->ComponentTags) { DynamicMeshComponent->ComponentTags.Add(FName(ComponentTag)); }
@@ -241,57 +236,55 @@ namespace PCGExTopologyEdges
 		Transform.SetScale3D(FVector::OneVector);
 		Transform.SetRotation(FQuat::Identity);
 
-		InternalMesh->EditMesh(
-			[&](FDynamicMesh3& InMesh)
+		InternalMesh->EditMesh([&](FDynamicMesh3& InMesh)
+		{
+			const int32 VtxCount = InMesh.MaxVertexID();
+			const TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+			const TConstPCGValueRange<FVector4> InColors = VtxDataFacade->GetIn()->GetConstColorValueRange();
+			const TMap<uint64, int32>& HashMapRef = *ProjectedHashMap;
+
+			FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
+
+			InMesh.EnableAttributes();
+			InMesh.Attributes()->EnablePrimaryColors();
+			InMesh.Attributes()->EnableMaterialID();
+
+			UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
+			UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
+
+			TArray<int32> VtxIDs;
+			VtxIDs.Init(-1, VtxCount);
+
+			TArray<int32> ElemIDs;
+			ElemIDs.SetNum(VtxCount);
+
+			for (int32 i = 0; i < VtxCount; i++) { ElemIDs[i] = Colors->AppendElement(DefaultVertexColor); }
+
+			ParallelFor(VtxCount, [&](int32 i)
 			{
-				const int32 VtxCount = InMesh.MaxVertexID();
-				const TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
-				const TConstPCGValueRange<FVector4> InColors = VtxDataFacade->GetIn()->GetConstColorValueRange();
-				const TMap<uint64, int32>& HashMapRef = *ProjectedHashMap;
-
-				FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
-
-				InMesh.EnableAttributes();
-				InMesh.Attributes()->EnablePrimaryColors();
-				InMesh.Attributes()->EnableMaterialID();
-
-				UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
-				UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
-
-				TArray<int32> VtxIDs;
-				VtxIDs.Init(-1, VtxCount);
-
-				TArray<int32> ElemIDs;
-				ElemIDs.SetNum(VtxCount);
-
-				for (int32 i = 0; i < VtxCount; i++) { ElemIDs[i] = Colors->AppendElement(DefaultVertexColor); }
-
-				ParallelFor(
-					VtxCount, [&](int32 i)
-					{
-						const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
-						if (WP)
-						{
-							const int32 PointIndex = *WP;
-							VtxIDs[i] = PointIndex;
-							InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[PointIndex].GetLocation()));
-							Colors->SetElement(ElemIDs[i], FVector4f(InColors[PointIndex]));
-						}
-					});
-
-				TArray<int32> TriangleIDs;
-				TriangleIDs.Reserve(InMesh.TriangleCount());
-				for (int32 TriangleID : InMesh.TriangleIndicesItr())
+				const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
+				if (WP)
 				{
-					TriangleIDs.Add(TriangleID);
-					
-					const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-					MaterialID->SetValue(TriangleID, 0);
-					Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+					const int32 PointIndex = *WP;
+					VtxIDs[i] = PointIndex;
+					InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[PointIndex].GetLocation()));
+					Colors->SetElement(ElemIDs[i], FVector4f(InColors[PointIndex]));
 				}
+			});
 
-				UVDetails.Write(TriangleIDs, VtxIDs, InMesh);
-			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
+			TArray<int32> TriangleIDs;
+			TriangleIDs.Reserve(InMesh.TriangleCount());
+			for (int32 TriangleID : InMesh.TriangleIndicesItr())
+			{
+				TriangleIDs.Add(TriangleID);
+
+				const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+				MaterialID->SetValue(TriangleID, 0);
+				Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+			}
+
+			UVDetails.Write(TriangleIDs, VtxIDs, InMesh);
+		}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 		Settings->Topology.PostProcessMesh(GetInternalMesh());
 	}

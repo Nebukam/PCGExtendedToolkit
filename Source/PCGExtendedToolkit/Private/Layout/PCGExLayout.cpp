@@ -7,9 +7,7 @@ namespace PCGExLayout
 {
 	bool FSpace::CanFit(const FVector& InTestSize) const
 	{
-		return (InTestSize.X <= Size.X &&
-			InTestSize.Y <= Size.Y &&
-			InTestSize.Z <= Size.Z);
+		return (InTestSize.X <= Size.X && InTestSize.Y <= Size.Y && InTestSize.Z <= Size.Z);
 	}
 
 	void FSpace::Expand(FBox& InBox, const FVector& Expansion) const

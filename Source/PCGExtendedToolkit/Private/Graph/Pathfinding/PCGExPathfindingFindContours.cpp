@@ -5,6 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
@@ -82,14 +83,12 @@ bool FPCGExFindContoursElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				//NewBatch->bRequiresWriteStep = Settings->Artifacts.WriteAny();
-				NewBatch->bSkipCompletion = true;
-				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			//NewBatch->bRequiresWriteStep = Settings->Artifacts.WriteAny();
+			NewBatch->bSkipCompletion = true;
+			NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -162,8 +161,7 @@ namespace PCGExFindContours
 
 			if (Result != PCGExTopology::ECellResult::Success)
 			{
-				if (Result == PCGExTopology::ECellResult::WrapperCell ||
-					(CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
+				if (Result == PCGExTopology::ECellResult::WrapperCell || (CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
 				{
 					// Only track the seed closest to bound center as being associated with the wrapper.
 					// There may be edge cases where we don't want that to happen
@@ -207,10 +205,7 @@ namespace PCGExFindContours
 			CellsIOIndices.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
-		if (CellsConstraints->WrapperCell
-			&& ValidCells.IsEmpty()
-			&& WrapperSeed != -1
-			&& Settings->Constraints.bKeepWrapperIfSolePath)
+		if (CellsConstraints->WrapperCell && ValidCells.IsEmpty() && WrapperSeed != -1 && Settings->Constraints.bKeepWrapperIfSolePath)
 		{
 			// Process wrapper cell if it's the only valid cell and it's not omitted
 			ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
@@ -219,19 +214,18 @@ namespace PCGExFindContours
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessCellsTask)
 
-		ProcessCellsTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				TArray<TSharedPtr<PCGExTopology::FCell>>& ValidCells_Ref = This->ValidCells;
-				const TArray<TSharedPtr<PCGExData::FPointIO>>& CellsIOIndices_Ref = This->CellsIOIndices;
+		ProcessCellsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			TArray<TSharedPtr<PCGExTopology::FCell>>& ValidCells_Ref = This->ValidCells;
+			const TArray<TSharedPtr<PCGExData::FPointIO>>& CellsIOIndices_Ref = This->CellsIOIndices;
 
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOIndices_Ref[Index]) { This->ProcessCell(ValidCells_Ref[Index], IO); }
-					ValidCells_Ref[Index] = nullptr;
-				}
-			};
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOIndices_Ref[Index]) { This->ProcessCell(ValidCells_Ref[Index], IO); }
+				ValidCells_Ref[Index] = nullptr;
+			}
+		};
 
 		ProcessCellsTask->StartSubLoops(CellsIOIndices.Num(), 64);
 	}

@@ -24,8 +24,9 @@ UENUM(BlueprintType)
 enum class EPCGExEnumConstantOutputType : uint8
 {
 	EECOT_Attribute = 0 UMETA(DisplayName="Attribute Set"),
-	EECOT_String    = 1 UMETA(Hidden), // Unsure if this is needed since there's the option to output name and description
-	EECOT_Tag       = 2 UMETA(Hidden)  // Hidden for now since this might actually be better as a separate node (Tag With Enum or similar)
+	EECOT_String    = 1 UMETA(Hidden),
+	// Unsure if this is needed since there's the option to output name and description
+	EECOT_Tag = 2 UMETA(Hidden) // Hidden for now since this might actually be better as a separate node (Tag With Enum or similar)
 };
 
 // TODO (perhaps) - 'Selection' and 'Selection to Multiple Pins'
@@ -91,14 +92,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition="Source == EPCGExEnumConstantSourceType::Selector", EditConditionHides, ShowOnlyInnerProperties), Category="Settings")
 	FEnumSelector SelectedEnum;
 
-	UPROPERTY(
-		BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize,
-		meta=(
-			ReadOnlyKeys,
-			EditCondition="OutputMode == EPCGExEnumOutputMode::EEOM_Selection || OutputMode == EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins",
-			EditConditionHides
-		)
-	)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize, meta=( ReadOnlyKeys, EditCondition="OutputMode == EPCGExEnumOutputMode::EEOM_Selection || OutputMode == EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins", EditConditionHides ))
 	TMap<FName, bool> EnabledExportValues;
 
 	// Hidden for now
@@ -167,24 +161,13 @@ protected:
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	// Stage to separate pins for each value
-	static void StageEnumValuesSeparatePins(
-		FPCGExContext* InContext,
-		const UPCGExConstantEnumSettings* Settings,
-		const TArray<PCGExConstantEnumConstants::FMapping>& ValueData,
-		FPCGExBitmask& OutBitflags);
+	static void StageEnumValuesSeparatePins(FPCGExContext* InContext, const UPCGExConstantEnumSettings* Settings, const TArray<PCGExConstantEnumConstants::FMapping>& ValueData, FPCGExBitmask& OutBitflags);
 
 	// Stage all items to a single pin
-	static void StageEnumValuesSinglePin(
-		FPCGExContext* InContext,
-		const UPCGExConstantEnumSettings* Settings,
-		const TArray<PCGExConstantEnumConstants::FMapping>& ValueData,
-		FPCGExBitmask& OutBitflags);
+	static void StageEnumValuesSinglePin(FPCGExContext* InContext, const UPCGExConstantEnumSettings* Settings, const TArray<PCGExConstantEnumConstants::FMapping>& ValueData, FPCGExBitmask& OutBitflags);
 
 	// Stage bitflags
-	static void StageBitFlags(
-		FPCGExContext* InContext,
-		const UPCGExConstantEnumSettings* Settings,
-		FPCGExBitmask& OutBitflags);
+	static void StageBitFlags(FPCGExContext* InContext, const UPCGExConstantEnumSettings* Settings, FPCGExBitmask& OutBitflags);
 
 	virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
 };

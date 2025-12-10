@@ -1,4 +1,4 @@
-﻿// Copyright 2025 Timothé Lapetite and contributors
+// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Collections/PCGExAssetCollection.h"
@@ -25,15 +25,10 @@ namespace PCGExAssetCollection
 	{
 		switch (PickMode)
 		{
-		default:
-		case EPCGExIndexPickMode::Ascending:
-			return GetPickAscending(Index);
-		case EPCGExIndexPickMode::Descending:
-			return GetPickDescending(Index);
-		case EPCGExIndexPickMode::WeightAscending:
-			return GetPickWeightAscending(Index);
-		case EPCGExIndexPickMode::WeightDescending:
-			return GetPickWeightDescending(Index);
+		default: case EPCGExIndexPickMode::Ascending: return GetPickAscending(Index);
+		case EPCGExIndexPickMode::Descending: return GetPickDescending(Index);
+		case EPCGExIndexPickMode::WeightAscending: return GetPickWeightAscending(Index);
+		case EPCGExIndexPickMode::WeightDescending: return GetPickWeightDescending(Index);
 		}
 	}
 
@@ -433,15 +428,14 @@ bool UPCGExAssetCollection::HasCircularDependency(TSet<const UPCGExAssetCollecti
 
 	if (bCircularDependency) { return true; }
 
-	ForEachEntry(
-		[&](const FPCGExAssetCollectionEntry* InEntry)
+	ForEachEntry([&](const FPCGExAssetCollectionEntry* InEntry)
+	{
+		if (bCircularDependency) { return; }
+		if (UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid())
 		{
-			if (bCircularDependency) { return; }
-			if (UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid())
-			{
-				bCircularDependency = Other->HasCircularDependency(InReferences);
-			}
-		});
+			bCircularDependency = Other->HasCircularDependency(InReferences);
+		}
+	});
 
 	return bCircularDependency;
 }
@@ -450,17 +444,16 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 {
 	if (PropertyChangedEvent.Property) { Super::PostEditChangeProperty(PropertyChangedEvent); }
 
-	ForEachEntry(
-		[&](FPCGExAssetCollectionEntry* InEntry)
+	ForEachEntry([&](FPCGExAssetCollectionEntry* InEntry)
+	{
+		UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid();
+		if (Other && HasCircularDependency(Other))
 		{
-			UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid();
-			if (Other && HasCircularDependency(Other))
-			{
-				UE_LOG(LogTemp, Error, TEXT("Prevented circular dependency trying to nest \"%s\" inside \"%s\""), *GetNameSafe(Other), *GetNameSafe(this))
-				InEntry->ClearSubCollection();
-				(void)MarkPackageDirty();
-			}
-		});
+			UE_LOG(LogTemp, Error, TEXT("Prevented circular dependency trying to nest \"%s\" inside \"%s\""), *GetNameSafe(Other), *GetNameSafe(this))
+			InEntry->ClearSubCollection();
+			(void)MarkPackageDirty();
+		}
+	});
 
 	EDITOR_SetDirty();
 

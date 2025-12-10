@@ -34,12 +34,10 @@ bool FPCGExTransformPointsElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("No data."));
 		}
@@ -179,17 +177,7 @@ namespace PCGExTransformPoints
 			const bool bAbsoluteOffset = AbsoluteOffset->Read(Index);
 			const bool bUniformScale = UniformScale->Read(Index);
 
-			FPCGExFittingVariations Variations(
-					OffsetMinV, OffsetMaxV,
-					Settings->SnapPosition, OffsetSnapV,
-					bAbsoluteOffset,
-					RotMinV, RotMaxV,
-					Settings->SnapRotation, RotSnapV,
-					Settings->AbsoluteRotation,
-					ScaleMinV, ScaleMaxV,
-					Settings->SnapScale, ScaleSnapV,
-					bUniformScale
-				);
+			FPCGExFittingVariations Variations(OffsetMinV, OffsetMaxV, Settings->SnapPosition, OffsetSnapV, bAbsoluteOffset, RotMinV, RotMaxV, Settings->SnapRotation, RotSnapV, Settings->AbsoluteRotation, ScaleMinV, ScaleMaxV, Settings->SnapScale, ScaleSnapV, bUniformScale);
 
 			Variations.ApplyOffset(RandomSource, OutTransform);
 			Variations.ApplyRotation(RandomSource, OutTransform);
@@ -197,16 +185,12 @@ namespace PCGExTransformPoints
 
 			if (bApplyScaleToBounds)
 			{
-				PCGPointHelpers::ApplyScaleToBounds(
-					OutTransform,
-					OutBoundsMin[Index], OutBoundsMax[Index]);
+				PCGPointHelpers::ApplyScaleToBounds(OutTransform, OutBoundsMin[Index], OutBoundsMax[Index]);
 			}
 
 			if (bResetPointCenter)
 			{
-				PCGPointHelpers::ResetPointCenter(
-					PointCenter->Read(Index), OutTransform,
-					OutBoundsMin[Index], OutBoundsMax[Index]);
+				PCGPointHelpers::ResetPointCenter(PointCenter->Read(Index), OutTransform, OutBoundsMin[Index], OutBoundsMax[Index]);
 			}
 		}
 	}

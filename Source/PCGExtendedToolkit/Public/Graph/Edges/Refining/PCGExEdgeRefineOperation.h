@@ -90,8 +90,7 @@ public:
 	virtual bool WantsIndividualNodeProcessing() const { return false; }
 	virtual bool WantsIndividualEdgeProcessing() const { return false; }
 
-	virtual TSharedPtr<FPCGExEdgeRefineOperation> CreateOperation() const
-	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+	virtual TSharedPtr<FPCGExEdgeRefineOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 
 protected:
 	void PushSettings(const TSharedPtr<FPCGExEdgeRefineOperation>& Operation) const

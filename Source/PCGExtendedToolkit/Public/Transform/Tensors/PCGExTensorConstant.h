@@ -17,8 +17,8 @@ struct FPCGExTensorConstantConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorConstantConfig() :
-		FPCGExTensorConfigBase()
+	FPCGExTensorConstantConfig()
+		: FPCGExTensorConfigBase()
 	{
 	}
 

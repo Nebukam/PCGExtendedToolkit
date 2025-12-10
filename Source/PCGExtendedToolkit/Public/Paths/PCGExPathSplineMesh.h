@@ -8,19 +8,20 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExScopedContainers.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 #include "Tangents/PCGExTangentsInstancedFactory.h"
-#include "Transform/PCGExFitting.h"
 
 #include "PCGExPathSplineMesh.generated.h"
 
 namespace PCGExMT
 {
-	class FScopeLoopOnMainThread;
+	class FTimeSlicedMainThreadLoop;
+
+	template <typename T>
+	class TScopedSet;
 }
 
 /**
@@ -216,15 +217,15 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 
-		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
+		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 
 		AActor* TargetActor = nullptr;
 		EObjectFlags ObjectFlags = RF_NoFlags;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -9,8 +9,7 @@
 
 void FPCGExNameFiltersDetails::Init()
 {
-	for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
-	     const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
+	for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames); const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
 }
 
 bool FPCGExNameFiltersDetails::Test(const FString& Name) const
@@ -21,45 +20,34 @@ bool FPCGExNameFiltersDetails::Test(const FString& Name) const
 	switch (FilterMode)
 	{
 	default: ;
-	case EPCGExAttributeFilter::All:
-		return true;
-	case EPCGExAttributeFilter::Exclude:
-		for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
+	case EPCGExAttributeFilter::All: return true;
+	case EPCGExAttributeFilter::Exclude: for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
 		{
 			switch (Filter.Value)
 			{
-			case EPCGExStringMatchMode::Equals:
-				if (Filter.Key == Name) { return false; }
+			case EPCGExStringMatchMode::Equals: if (Filter.Key == Name) { return false; }
 				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Name.Contains(Filter.Key)) { return false; }
+			case EPCGExStringMatchMode::Contains: if (Name.Contains(Filter.Key)) { return false; }
 				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Name.StartsWith(Filter.Key)) { return false; }
+			case EPCGExStringMatchMode::StartsWith: if (Name.StartsWith(Filter.Key)) { return false; }
 				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Name.EndsWith(Filter.Key)) { return false; }
+			case EPCGExStringMatchMode::EndsWith: if (Name.EndsWith(Filter.Key)) { return false; }
 				break;
 			default: ;
 			}
 		}
 		return true;
-	case EPCGExAttributeFilter::Include:
-		for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
+	case EPCGExAttributeFilter::Include: for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
 		{
 			switch (Filter.Value)
 			{
-			case EPCGExStringMatchMode::Equals:
-				if (Filter.Key == Name) { return true; }
+			case EPCGExStringMatchMode::Equals: if (Filter.Key == Name) { return true; }
 				break;
-			case EPCGExStringMatchMode::Contains:
-				if (Name.Contains(Filter.Key)) { return true; }
+			case EPCGExStringMatchMode::Contains: if (Name.Contains(Filter.Key)) { return true; }
 				break;
-			case EPCGExStringMatchMode::StartsWith:
-				if (Name.StartsWith(Filter.Key)) { return true; }
+			case EPCGExStringMatchMode::StartsWith: if (Name.StartsWith(Filter.Key)) { return true; }
 				break;
-			case EPCGExStringMatchMode::EndsWith:
-				if (Name.EndsWith(Filter.Key)) { return true; }
+			case EPCGExStringMatchMode::EndsWith: if (Name.EndsWith(Filter.Key)) { return true; }
 				break;
 			default: ;
 			}

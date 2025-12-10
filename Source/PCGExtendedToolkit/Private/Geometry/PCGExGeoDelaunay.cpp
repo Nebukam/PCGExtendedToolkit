@@ -32,18 +32,12 @@ namespace PCGExGeo
 
 	bool FDelaunaySite2::ContainsEdge(const uint64 Edge) const
 	{
-		return
-			Edge == PCGEx::H64U(Vtx[0], Vtx[1]) ||
-			Edge == PCGEx::H64U(Vtx[0], Vtx[2]) ||
-			Edge == PCGEx::H64U(Vtx[1], Vtx[2]);
+		return Edge == PCGEx::H64U(Vtx[0], Vtx[1]) || Edge == PCGEx::H64U(Vtx[0], Vtx[2]) || Edge == PCGEx::H64U(Vtx[1], Vtx[2]);
 	}
 
 	uint64 FDelaunaySite2::GetSharedEdge(const FDelaunaySite2* Other) const
 	{
-		return
-			Other->ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[1])) ? PCGEx::H64U(Vtx[0], Vtx[1]) :
-				Other->ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[2])) ? PCGEx::H64U(Vtx[0], Vtx[2]) :
-				PCGEx::H64U(Vtx[1], Vtx[2]);
+		return Other->ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[1])) ? PCGEx::H64U(Vtx[0], Vtx[1]) : Other->ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[2])) ? PCGEx::H64U(Vtx[0], Vtx[2]) : PCGEx::H64U(Vtx[1], Vtx[2]);
 	}
 
 	void FDelaunaySite2::PushAdjacency(const int32 SiteId)
@@ -91,8 +85,7 @@ namespace PCGExGeo
 				DelaunayEdges.Add(Edge, &bIsAlreadySet);
 				if (bIsAlreadySet)
 				{
-					if (int32 Idx = -1;
-						EdgeMap.RemoveAndCopyValue(Edge, Idx))
+					if (int32 Idx = -1; EdgeMap.RemoveAndCopyValue(Edge, Idx))
 					{
 						FDelaunaySite2& OtherSite = Sites[Idx];
 						OtherSite.PushAdjacency(Site.Id);

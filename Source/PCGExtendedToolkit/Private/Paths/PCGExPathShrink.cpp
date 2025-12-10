@@ -24,8 +24,7 @@ bool FPCGExShrinkPathEndpointCountDetails::SanityCheck(const FPCGContext* Contex
 	return true;
 }
 
-UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
@@ -37,10 +36,7 @@ PCGExData::EIOInit UPCGExShrinkPathSettings::GetMainDataInitializationPolicy() c
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(ShrinkPath)
 
-void FPCGExShrinkPathContext::GetShrinkAmounts(
-	const TSharedRef<PCGExData::FPointIO>& PointIO,
-	double& Start, double& End,
-	EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
+void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
@@ -80,9 +76,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(
 	}
 }
 
-void FPCGExShrinkPathContext::GetShrinkAmounts(
-	const TSharedRef<PCGExData::FPointIO>& PointIO,
-	int32& Start, int32& End) const
+void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, int32& Start, int32& End) const
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
@@ -155,27 +149,25 @@ bool FPCGExShrinkPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (PCGExPaths::GetClosedLoop(Entry))
-				{
-					if (!Settings->bQuietClosedLoopWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are closed loop and cannot be shrinked. You must split them first.")); }
-					PCGEX_INIT_IO(Entry, PCGExData::EIOInit::Forward)
-					return false;
-				}
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (PCGExPaths::GetClosedLoop(Entry))
+			                                         {
+				                                         if (!Settings->bQuietClosedLoopWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are closed loop and cannot be shrinked. You must split them first.")); }
+				                                         PCGEX_INIT_IO(Entry, PCGExData::EIOInit::Forward)
+				                                         return false;
+			                                         }
 
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-			}))
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bSkipCompletion = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to shrink."));
 		}
@@ -253,9 +245,7 @@ namespace PCGExShrinkPath
 
 
 		// Clear "crossing" shrinks
-		const double Dot = StartIndex < NumPoints ? FVector::DotProduct(
-				                   (PointDataFacade->GetIn()->GetTransform(StartIndex).GetLocation() - PointDataFacade->GetIn()->GetTransform(EndIndex).GetLocation()),
-				                   (NewStart.Transform.GetLocation() - NewEnd.Transform.GetLocation())) : 1;
+		const double Dot = StartIndex < NumPoints ? FVector::DotProduct((PointDataFacade->GetIn()->GetTransform(StartIndex).GetLocation() - PointDataFacade->GetIn()->GetTransform(EndIndex).GetLocation()), (NewStart.Transform.GetLocation() - NewEnd.Transform.GetLocation())) : 1;
 
 		if (Remainder < 2 || StartIndex == EndIndex || Dot < 0)
 		{

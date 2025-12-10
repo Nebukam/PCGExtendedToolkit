@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExBooleanCompareFilter.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -16,9 +17,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExBooleanCompareFilterConfig, OperandB, bool, Compa
 
 bool UPCGExBooleanCompareFilterFactory::DomainCheck()
 {
-	return
-		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
-		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
+	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
@@ -75,9 +74,7 @@ bool PCGExPointFilter::FBooleanCompareFilter::Test(const TSharedPtr<PCGExData::F
 	bool B = false;
 
 	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
-	if (!PCGExDataHelpers::TryGetSettingDataValue(
-		IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB,
-		TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 }
@@ -90,7 +87,10 @@ FString UPCGExBooleanCompareFilterProviderSettings::GetDisplayName() const
 	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + (Config.Comparison == EPCGExEquality::Equal ? TEXT(" == ") : TEXT(" != "));
 
 	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
-	else { DisplayName += FString::Printf(TEXT("%s"), Config.OperandBConstant ? TEXT("true") : TEXT("false")); }
+	else
+	{
+		DisplayName += FString::Printf(TEXT("%s"), Config.OperandBConstant ? TEXT("true") : TEXT("false"));
+	}
 
 	return DisplayName;
 }

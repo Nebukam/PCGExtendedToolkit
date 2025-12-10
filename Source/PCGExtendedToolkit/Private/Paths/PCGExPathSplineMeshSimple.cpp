@@ -8,14 +8,15 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "Collections/PCGExAssetLoader.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "PCGExVersion.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Engine/StaticMesh.h"
-
 
 #include "Paths/PCGExPaths.h"
 
@@ -44,8 +45,7 @@ PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainDataInitialization
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSplineMeshSimple)
 
-UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
@@ -101,26 +101,20 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+
 		if (Context->StaticMesh)
 		{
 			if (Context->MaterialLoader)
 			{
-				Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-
 				if (!Context->MaterialLoader->Start(Context->GetAsyncManager()))
 				{
 					return Context->CancelExecution(TEXT("Failed to find any material to load."));
 				}
 			}
-			else
-			{
-				Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
-			}
 		}
 		else
 		{
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-
 			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
 			{
 				return Context->CancelExecution(TEXT("Failed to find any asset to load."));
@@ -133,9 +127,9 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 					return Context->CancelExecution(TEXT("Failed to find any material to load."));
 				}
 			}
-
-			return false;
 		}
+
+		if (Context->IsWaitingForTasks()) { return false; }
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
@@ -147,21 +141,19 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-					return false;
-				}
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                         return false;
+			                                         }
 
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
@@ -376,7 +368,7 @@ namespace PCGExPathSplineMeshSimple
 			return;
 		}
 
-		MainThreadLoop = MakeShared<PCGExMT::FScopeLoopOnMainThread>(FinalNumSegments);
+		MainThreadLoop = MakeShared<PCGExMT::FTimeSlicedMainThreadLoop>(FinalNumSegments);
 		MainThreadLoop->OnIterationCallback = [&](const int32 Index, const PCGExMT::FScope& Scope) { ProcessSegment(Index); };
 
 		PCGEX_ASYNC_HANDLE_CHKD_VOID(AsyncManager, MainThreadLoop)
@@ -387,10 +379,7 @@ namespace PCGExPathSplineMeshSimple
 		const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 		if (!Meshes[Index]) { return; }
 
-		USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(
-			TargetActor, MakeUniqueObjectName(
-				TargetActor, USplineMeshComponent::StaticClass(),
-				Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Meshes[Index].GetName())), ObjectFlags);
+		USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, USplineMeshComponent::StaticClass(), Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Meshes[Index].GetName())), ObjectFlags);
 
 		Segment.ApplySettings(SplineMeshComponent); // Init Component
 
@@ -419,9 +408,7 @@ namespace PCGExPathSplineMeshSimple
 
 		SplineMeshComponent->SetStaticMesh(Meshes[Index]); // Will trigger a force rebuild, so put this last
 
-		Context->AttachManagedComponent(
-			TargetActor, SplineMeshComponent,
-			FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+		Context->AttachManagedComponent(TargetActor, SplineMeshComponent, FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 
 		Context->AddNotifyActor(TargetActor);
 	}

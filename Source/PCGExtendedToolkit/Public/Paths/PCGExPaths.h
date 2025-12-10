@@ -246,35 +246,25 @@ namespace PCGExPaths
 	const FPCGAttributeIdentifier ClosedLoopIdentifier = FPCGAttributeIdentifier(FName("IsClosed"), PCGMetadataDomainID::Data);
 	const FPCGAttributeIdentifier HoleIdentifier = FPCGAttributeIdentifier(FName("IsHole"), PCGMetadataDomainID::Data);
 
-	PCGEXTENDEDTOOLKIT_API
-	void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
+	PCGEXTENDEDTOOLKIT_API void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
 
-	PCGEXTENDEDTOOLKIT_API
-	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
+	PCGEXTENDEDTOOLKIT_API void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
 
-	PCGEXTENDEDTOOLKIT_API
-	void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop);
+	PCGEXTENDEDTOOLKIT_API void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool GetClosedLoop(const UPCGData* InData);
+	PCGEXTENDEDTOOLKIT_API bool GetClosedLoop(const UPCGData* InData);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData);
+	PCGEXTENDEDTOOLKIT_API bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData);
 
-	PCGEXTENDEDTOOLKIT_API
-	void SetIsHole(UPCGData* InData, const bool bIsHole);
+	PCGEXTENDEDTOOLKIT_API void SetIsHole(UPCGData* InData, const bool bIsHole);
 
-	PCGEXTENDEDTOOLKIT_API
-	void SetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsHole);
+	PCGEXTENDEDTOOLKIT_API void SetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsHole);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool GetIsHole(const UPCGData* InData);
+	PCGEXTENDEDTOOLKIT_API bool GetIsHole(const UPCGData* InData);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool GetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData);
+	PCGEXTENDEDTOOLKIT_API bool GetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData);
 
-	PCGEXTENDEDTOOLKIT_API
-	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops);
+	PCGEXTENDEDTOOLKIT_API void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops);
 
 	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
 	{
@@ -450,12 +440,9 @@ namespace PCGExPaths
 		virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
 		virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
-		PCGExMath::FClosestPosition FindClosestIntersection(
-			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment) const;
+		PCGExMath::FClosestPosition FindClosestIntersection(const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment) const;
 
-		PCGExMath::FClosestPosition FindClosestIntersection(
-			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment,
-			PCGExMath::FClosestPosition& OutClosestPosition) const;
+		PCGExMath::FClosestPosition FindClosestIntersection(const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment, PCGExMath::FClosestPosition& OutClosestPosition) const;
 
 		void BuildEdgeOctree();
 		void BuildPartialEdgeOctree(const TArray<int8>& Filter);
@@ -505,29 +492,21 @@ namespace PCGExPaths
 		virtual void ExtraComputingDone();
 		virtual void ComputeAllEdgeExtra();
 
-		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp), FTransform::Identity);
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp), FTransform::Identity);
 
-		virtual FTransform GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale = false) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransformAndKey(const FVector& WorldPosition, float& OutAlpha), FTransform::Identity);
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale = false) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransformAndKey(const FVector& WorldPosition, float& OutAlpha), FTransform::Identity);
 
-		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, bool& bIsInside), FTransform::Identity);
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, bool& bIsInside), FTransform::Identity);
 
-		virtual FTransform GetClosestTransform(const FVector& WorldPosition, const bool bUseScale) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), FTransform::Identity);
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, const bool bUseScale) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), FTransform::Identity);
 
-		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false);
+		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false);
 
-		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition, bool& bIsInside) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false);
+		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition, bool& bIsInside) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false);
 
-		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const FVector& WorldPosition, float& OutLerp), - 1);
+		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const FVector& WorldPosition, float& OutLerp), - 1);
 
-		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const
-		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const double InTime, float& OutLerp), - 1);
+		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const double InTime, float& OutLerp), - 1);
 
 		void BuildProjection();
 		void BuildProjection(const FPCGExGeo2DProjectionDetails& InProjectionDetails);
@@ -662,36 +641,21 @@ namespace PCGExPaths
 
 #pragma endregion
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion);
 
-	PCGEXTENDEDTOOLKIT_API
-	double GetPathLength(const TSharedPtr<FPath>& InPath);
+	PCGEXTENDEDTOOLKIT_API double GetPathLength(const TSharedPtr<FPath>& InPath);
 
-	PCGEXTENDEDTOOLKIT_API
-	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
+	PCGEXTENDEDTOOLKIT_API FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
 
-	PCGEXTENDEDTOOLKIT_API
-	FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true);
+	PCGEXTENDEDTOOLKIT_API FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const TConstPCGValueRange<FTransform>& InTransforms, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, bool bSmoothLinear);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const TConstPCGValueRange<FTransform>& InTransforms, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, bool bSmoothLinear);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FPCGSplineStruct> MakeSplineCopy(const FPCGSplineStruct& Original);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FPCGSplineStruct> MakeSplineCopy(const FPCGSplineStruct& Original);
 
-	PCGEXTENDEDTOOLKIT_API
-	PCGExMath::FClosestPosition FindClosestIntersection(
-		const TArray<TSharedPtr<FPath>>& Paths,
-		const FPCGExPathIntersectionDetails& InDetails,
-		const PCGExMath::FSegment& InSegment, int32& OutPathIndex);
+	PCGEXTENDEDTOOLKIT_API PCGExMath::FClosestPosition FindClosestIntersection(const TArray<TSharedPtr<FPath>>& Paths, const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& InSegment, int32& OutPathIndex);
 
-	PCGEXTENDEDTOOLKIT_API
-	PCGExMath::FClosestPosition FindClosestIntersection(
-		const TArray<TSharedPtr<FPath>>& Paths,
-		const FPCGExPathIntersectionDetails& InDetails,
-		const PCGExMath::FSegment& InSegment, int32& OutPathIndex,
-		PCGExMath::FClosestPosition& OutClosestPosition);
+	PCGEXTENDEDTOOLKIT_API PCGExMath::FClosestPosition FindClosestIntersection(const TArray<TSharedPtr<FPath>>& Paths, const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& InSegment, int32& OutPathIndex, PCGExMath::FClosestPosition& OutClosestPosition);
 
 	class FPolyPath : public FPath
 	{
@@ -701,37 +665,20 @@ namespace PCGExPaths
 		const FPCGSplineStruct* Spline = nullptr;
 
 	public:
-		FPolyPath(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const FPCGExGeo2DProjectionDetails& InProjection,
-			const double Expansion = 0, const double ExpansionZ = -1,
-			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+		FPolyPath(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FPCGExGeo2DProjectionDetails& InProjection, const double Expansion = 0, const double ExpansionZ = -1, const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
-		FPolyPath(
-			const TSharedPtr<PCGExData::FFacade>& InPathFacade,
-			const FPCGExGeo2DProjectionDetails& InProjection,
-			const double Expansion = 0, const double ExpansionZ = -1,
-			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+		FPolyPath(const TSharedPtr<PCGExData::FFacade>& InPathFacade, const FPCGExGeo2DProjectionDetails& InProjection, const double Expansion = 0, const double ExpansionZ = -1, const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
-		FPolyPath(
-			const UPCGSplineData* SplineData,
-			const double Fidelity, const FPCGExGeo2DProjectionDetails& InProjection,
-			const double Expansion = 0, const double ExpansionZ = -1,
-			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+		FPolyPath(const UPCGSplineData* SplineData, const double Fidelity, const FPCGExGeo2DProjectionDetails& InProjection, const double Expansion = 0, const double ExpansionZ = -1, const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
 #if PCGEX_ENGINE_VERSION > 506
-		FPolyPath(
-			const UPCGPolygon2DData* PolygonData,
-			const FPCGExGeo2DProjectionDetails& InProjection,
-			const double Expansion = 0, const double ExpansionZ = -1,
-			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+		FPolyPath(const UPCGPolygon2DData* PolygonData, const FPCGExGeo2DProjectionDetails& InProjection, const double Expansion = 0, const double ExpansionZ = -1, const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 #endif
-		
+
 		FORCEINLINE const FPCGSplineStruct* GetSpline() const { return Spline; }
 
 	protected:
-		void InitFromTransforms(
-			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+		void InitFromTransforms(const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
 	public:
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const override;
@@ -765,16 +712,14 @@ namespace PCGExPaths
 
 		TArray<FCrossing> Crossings;
 
-		explicit FPathEdgeCrossings(const int32 InIndex):
-			Index(InIndex)
+		explicit FPathEdgeCrossings(const int32 InIndex)
+			: Index(InIndex)
 		{
 		}
 
 		FORCEINLINE bool IsEmpty() const { return Crossings.IsEmpty(); }
 
-		bool FindSplit(
-			const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
-			const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails);
+		bool FindSplit(const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength, const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails);
 
 		bool RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex);
 		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex);

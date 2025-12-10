@@ -91,8 +91,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 		// First, build the consolidated operand B
 		switch (Adjacency.Consolidation)
 		{
-		case EPCGExAdjacencyGatherMode::Average:
-			if (bCaptureFromNodes)
+		case EPCGExAdjacencyGatherMode::Average: if (bCaptureFromNodes)
 			{
 				PCGEX_SUB_TEST_FUNC
 				{
@@ -112,8 +111,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			}
 
 			break;
-		case EPCGExAdjacencyGatherMode::Min:
-			if (bCaptureFromNodes)
+		case EPCGExAdjacencyGatherMode::Min: if (bCaptureFromNodes)
 			{
 				PCGEX_SUB_TEST_FUNC
 				{
@@ -132,8 +130,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				};
 			}
 			break;
-		case EPCGExAdjacencyGatherMode::Max:
-			if (bCaptureFromNodes)
+		case EPCGExAdjacencyGatherMode::Max: if (bCaptureFromNodes)
 			{
 				PCGEX_SUB_TEST_FUNC
 				{
@@ -152,8 +149,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				};
 			}
 			break;
-		case EPCGExAdjacencyGatherMode::Sum:
-			if (bCaptureFromNodes)
+		case EPCGExAdjacencyGatherMode::Sum: if (bCaptureFromNodes)
 			{
 				PCGEX_SUB_TEST_FUNC
 				{
@@ -172,9 +168,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				};
 			}
 			break;
-		default:
-		case EPCGExAdjacencyGatherMode::Individual:
-			break;
+		default: case EPCGExAdjacencyGatherMode::Individual: break;
 		}
 	}
 
@@ -247,11 +241,9 @@ FString UPCGExNodeAdjacencyFilterProviderSettings::GetDisplayName() const
 
 	switch (Config.Adjacency.Mode)
 	{
-	case EPCGExAdjacencyTestMode::All:
-		DisplayName += TEXT("All");
+	case EPCGExAdjacencyTestMode::All: DisplayName += TEXT("All");
 		break;
-	case EPCGExAdjacencyTestMode::Some:
-		DisplayName += TEXT("Some");
+	case EPCGExAdjacencyTestMode::Some: DisplayName += TEXT("Some");
 		break;
 	default: ;
 	}

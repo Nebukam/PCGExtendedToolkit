@@ -40,6 +40,5 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingInstancedFactory : public UPCGExInst
 	GENERATED_BODY()
 
 public:
-	virtual TSharedPtr<FPCGExSmoothingOperation> CreateOperation() const
-	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+	virtual TSharedPtr<FPCGExSmoothingOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 };

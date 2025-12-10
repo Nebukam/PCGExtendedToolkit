@@ -10,7 +10,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/PCGExPointFilter.h"
+
 #include "Transform/PCGExTensorsTransform.h"
 #include "Transform/PCGExTransform.h"
 
@@ -394,8 +394,8 @@ namespace PCGExExtrudeTensors
 	class TExtrusion : public FExtrusion
 	{
 	public:
-		TExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations):
-			FExtrusion(InSeedIndex, InFacade, InMaxIterations)
+		TExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations)
+			: FExtrusion(InSeedIndex, InFacade, InMaxIterations)
 		{
 		}
 
@@ -437,9 +437,7 @@ namespace PCGExExtrudeTensors
 
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::ClosedLoop))
 			{
-				if (const FVector Tail = Origin.GetLocation();
-					FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance &&
-					FVector::DotProduct(ExtrusionDirection, (Tail - PreviousHeadLocation).GetSafeNormal()) > Context->ClosedLoopSearchDot)
+				if (const FVector Tail = Origin.GetLocation(); FVector::DistSquared(Metrics.Last, Tail) <= Context->ClosedLoopSquaredDistance && FVector::DotProduct(ExtrusionDirection, (Tail - PreviousHeadLocation).GetSafeNormal()) > Context->ClosedLoopSearchDot)
 				{
 					bIsClosedLoop = true;
 					return OnAdvanced(true);
@@ -525,9 +523,7 @@ namespace PCGExExtrudeTensors
 
 			const PCGExMath::FSegment Segment(ExtrudedPoints.Last().GetLocation(), InActiveTransform.GetLocation());
 
-			PCGExMath::FClosestPosition Intersection = FindClosestIntersection(
-				Context->ExternalPaths, Context->ExternalPathIntersections,
-				Segment, PathIndex);
+			PCGExMath::FClosestPosition Intersection = FindClosestIntersection(Context->ExternalPaths, Context->ExternalPathIntersections, Segment, PathIndex);
 
 			// Path intersection
 			if (Intersection)
@@ -553,9 +549,7 @@ namespace PCGExExtrudeTensors
 
 			PCGExMath::FClosestPosition Merge(Segment.Lerp(Settings->ProximitySegmentBalance));
 
-			Intersection = FindClosestIntersection(
-				*SolidPaths.Get(), Context->ExternalPathIntersections,
-				Segment, PathIndex, Merge);
+			Intersection = FindClosestIntersection(*SolidPaths.Get(), Context->ExternalPathIntersections, Segment, PathIndex, Merge);
 
 			if (Settings->SelfIntersectionPriority == EPCGExSelfIntersectionPriority::Crossing)
 			{
@@ -629,8 +623,8 @@ namespace PCGExExtrudeTensors
 		TSharedPtr<TArray<TSharedPtr<PCGExPaths::FPath>>> StaticPaths;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

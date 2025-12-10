@@ -10,35 +10,29 @@ namespace PCGEx
 		switch (Order)
 		{
 		case EPCGExMakeRotAxis::X:
-		case EPCGExMakeRotAxis::XY:
-			A = 0;
+		case EPCGExMakeRotAxis::XY: A = 0;
 			B = 1;
 			C = 2;
 			break;
-		case EPCGExMakeRotAxis::XZ:
-			A = 0;
+		case EPCGExMakeRotAxis::XZ: A = 0;
 			B = 2;
 			C = 1;
 			break;
 		case EPCGExMakeRotAxis::Y:
-		case EPCGExMakeRotAxis::YX:
-			A = 1;
+		case EPCGExMakeRotAxis::YX: A = 1;
 			B = 0;
 			C = 2;
 			break;
-		case EPCGExMakeRotAxis::YZ:
-			A = 1;
+		case EPCGExMakeRotAxis::YZ: A = 1;
 			B = 2;
 			C = 0;
 			break;
 		case EPCGExMakeRotAxis::Z:
-		case EPCGExMakeRotAxis::ZX:
-			A = 2;
+		case EPCGExMakeRotAxis::ZX: A = 2;
 			B = 0;
 			C = 1;
 			break;
-		case EPCGExMakeRotAxis::ZY:
-			A = 2;
+		case EPCGExMakeRotAxis::ZY: A = 2;
 			B = 1;
 			C = 0;
 			break;
@@ -49,8 +43,7 @@ namespace PCGEx
 	{
 		switch (Order)
 		{
-		default:
-		case EPCGExMakeRotAxis::X: return FRotationMatrix::MakeFromX(X).ToQuat();
+		default: case EPCGExMakeRotAxis::X: return FRotationMatrix::MakeFromX(X).ToQuat();
 		case EPCGExMakeRotAxis::XY: return FRotationMatrix::MakeFromXY(X, Y).ToQuat();
 		case EPCGExMakeRotAxis::XZ: return FRotationMatrix::MakeFromXZ(X, Z).ToQuat();
 		case EPCGExMakeRotAxis::Y: return FRotationMatrix::MakeFromY(Y).ToQuat();
@@ -66,8 +59,7 @@ namespace PCGEx
 	{
 		switch (Order)
 		{
-		default:
-		case EPCGExMakeRotAxis::X: return FRotationMatrix::MakeFromX(A).ToQuat();
+		default: case EPCGExMakeRotAxis::X: return FRotationMatrix::MakeFromX(A).ToQuat();
 		case EPCGExMakeRotAxis::XY: return FRotationMatrix::MakeFromXY(A, B).ToQuat();
 		case EPCGExMakeRotAxis::XZ: return FRotationMatrix::MakeFromXZ(A, B).ToQuat();
 		case EPCGExMakeRotAxis::Y: return FRotationMatrix::MakeFromY(A).ToQuat();
@@ -79,10 +71,7 @@ namespace PCGEx
 		}
 	}
 
-	void FindOrderMatch(
-		const FQuat& Quat,
-		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,
-		int32& X, int32& Y, int32& Z, const bool bPermute)
+	void FindOrderMatch(const FQuat& Quat, const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis, int32& X, int32& Y, int32& Z, const bool bPermute)
 	{
 		const FVector QA[3] = {Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ()};
 
@@ -113,12 +102,7 @@ namespace PCGEx
 		}
 
 		// guaranteed permutation with constant-time deterministic resolution
-		static const int32 Permutations[6][3] =
-		{
-			{0, 1, 2}, {0, 2, 1},
-			{1, 0, 2}, {1, 2, 0},
-			{2, 0, 1}, {2, 1, 0}
-		};
+		static const int32 Permutations[6][3] = {{0, 1, 2}, {0, 2, 1}, {1, 0, 2}, {1, 2, 0}, {2, 0, 1}, {2, 1, 0}};
 
 		int32 BestScore = -1;
 		const int32* BestPerm = Permutations[0];
@@ -126,10 +110,7 @@ namespace PCGEx
 		for (int p = 0; p < 6; ++p)
 		{
 			const int32* P = Permutations[p];
-			const double Score =
-				M[0][P[0]] +
-				M[1][P[1]] +
-				M[2][P[2]];
+			const double Score = M[0][P[0]] + M[1][P[1]] + M[2][P[2]];
 
 			if (Score > BestScore)
 			{
