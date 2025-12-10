@@ -107,6 +107,8 @@ namespace PCGExData
 			if (In)
 			{
 				UObject* GenericInstance = SharedContext.Get()->ManagedObjects->New<UObject>(GetTransientPackage(), In->GetClass());
+				if (!GenericInstance) { return false; }
+				
 				Out = Cast<UPCGBasePointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -132,7 +134,7 @@ namespace PCGExData
 			Out = SharedContext.Get()->ManagedObjects->DuplicateData<UPCGBasePointData>(In);
 		}
 
-		return true;
+		return Out != nullptr;
 	}
 
 	const UPCGBasePointData* FPointIO::GetOutIn(EIOSide& OutSide) const

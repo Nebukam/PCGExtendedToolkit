@@ -126,8 +126,9 @@ namespace PCGExData
 			if (InitOut == EIOInit::New)
 			{
 				T* TypedOut = SharedContext.Get()->ManagedObjects->New<T>();
-				Out = Cast<UPCGBasePointData>(TypedOut);
+				if (!TypedOut) { return false; }
 
+				Out = Cast<UPCGBasePointData>(TypedOut);
 				check(Out)
 
 				if (IsValid(In))
@@ -149,11 +150,15 @@ namespace PCGExData
 				if (const T* TypedIn = Cast<T>(In))
 				{
 					T* TypedOut = SharedContext.Get()->ManagedObjects->DuplicateData<T>(TypedIn);
+					if (!TypedOut) { return false; }
+					
 					Out = Cast<UPCGBasePointData>(TypedOut);
 				}
 				else
 				{
 					T* TypedOut = SharedContext.Get()->ManagedObjects->New<T>();
+					if (!TypedOut) { return false; }
+					
 					Out = Cast<UPCGBasePointData>(TypedOut);
 
 					FPCGInitializeFromDataParams InitializeFromDataParams(In);

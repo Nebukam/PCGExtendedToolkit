@@ -217,12 +217,13 @@ namespace PCGEx
 		mutable FRWLock DuplicatedObjectLock;
 
 	public:
+		TWeakPtr<FWorkHandle> WorkHandle;
 		TWeakPtr<FPCGContextHandle> WeakHandle;
 		TSet<TObjectPtr<UObject>> ManagedObjects;
 
 		bool IsFlushing() const { return bIsFlushing.load(std::memory_order_acquire); }
 
-		explicit FManagedObjects(FPCGContext* InContext);
+		explicit FManagedObjects(FPCGContext* InContext, const TWeakPtr<FWorkHandle>& InWorkHandle);
 
 		~FManagedObjects();
 
@@ -239,8 +240,10 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
-			check(WeakHandle.IsValid())
-			if (IsFlushing()) { UE_LOG(LogPCGEx, Error, TEXT("Attempting to create a managed object while flushing!")) }
+			if (!WorkHandle.IsValid()) { return nullptr; }
+			
+			FPCGContext::FSharedContext<FPCGContext> SharedContext(WeakHandle);
+			if (!SharedContext.Get()) { return nullptr; }
 
 			T* Object = nullptr;
 			if (!IsInGameThread())
@@ -263,10 +266,10 @@ namespace PCGEx
 		template <class T>
 		T* DuplicateData(const UPCGData* InData)
 		{
-			check(WeakHandle.IsValid())
-			check(!IsFlushing())
-
+			if (!WorkHandle.IsValid()) { return nullptr; }
+			
 			FPCGContext::FSharedContext<FPCGContext> SharedContext(WeakHandle);
+			if (!SharedContext.Get()) { return nullptr; }
 
 			T* Object = nullptr;
 
