@@ -209,8 +209,10 @@ namespace PCGExMT
 
 	void IAsyncHandleGroup::ClearRegistry(const bool bCancel)
 	{
+		TArray<TSharedPtr<FAsyncToken>> TempTokens;
 		{
 			FWriteScopeLock WriteLock(TokenLock);
+			TempTokens = MoveTemp(Tokens);
 			Tokens.Empty();
 		}
 
@@ -473,8 +475,10 @@ namespace PCGExMT
 		{
 			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
 
+			TArray<TSharedPtr<FAsyncToken>> TempTokens;
 			{
 				FWriteScopeLock WriteLock(TokenLock);
+				TempTokens = MoveTemp(Tokens);
 				Tokens.Empty();
 			}
 			
@@ -615,8 +619,10 @@ namespace PCGExMT
 		{
 			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
 			
+			TArray<TSharedPtr<FAsyncToken>> TempTokens;
 			{
 				FWriteScopeLock WriteLock(TokenLock);
+				TempTokens = MoveTemp(Tokens);
 				Tokens.Empty();
 			}
 			
