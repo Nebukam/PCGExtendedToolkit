@@ -56,5 +56,5 @@ namespace PCGExHelpers
 
 	PCGEXTENDEDTOOLKIT_API void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
 
-	PCGEXTENDEDTOOLKIT_API void Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd);
+	PCGEXTENDEDTOOLKIT_API void Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd);
 }

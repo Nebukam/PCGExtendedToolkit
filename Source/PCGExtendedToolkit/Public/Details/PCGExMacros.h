@@ -193,7 +193,7 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_VALIDATE_NAME_CONSUMABLE_C(_CTX, _NAME) if (!PCGEx::IsWritableAttributeName(_NAME)){	PCGE_LOG_C(Error, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	} _CTX->AddConsumableAttributeName(_NAME);
 #define PCGEX_SOFT_VALIDATE_NAME(_BOOL, _NAME, _CTX) if(_BOOL){if (!PCGEx::IsWritableAttributeName(_NAME)){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
-#define PCGEX_TERMINATE_ASYNC WorkHandle.Reset(); if (AsyncManager) { AsyncManager->Cancel(); }
+#define PCGEX_TERMINATE_ASYNC WorkHandle.Reset(); if (TaskManager) { TaskManager->Cancel(); }
 
 #define PCGEX_CHECK_WORK_HANDLE_VOID if(!WorkHandle.IsValid()){return;}
 #define PCGEX_CHECK_WORK_HANDLE_OR_VOID(_OR) if(!WorkHandle.IsValid() || _OR){return;}

@@ -38,7 +38,7 @@ namespace PCGExGraphTask
 
 		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
 			const TSharedPtr<PCGExGraph::FGraph> ParentGraph = SubGraph->WeakParentGraph.Pin();
@@ -64,10 +64,10 @@ namespace PCGExGraphTask
 		const bool bWriteNodeFacade = false;
 		const PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
-			Builder->Compile(AsyncManager, bWriteNodeFacade, MetadataDetails);
+			Builder->Compile(TaskManager, bWriteNodeFacade, MetadataDetails);
 		}
 	};
 }
@@ -237,7 +237,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 		// Look into the cost of this
 
-		//if (AsyncManager) { NewCluster->ExpandEdges(AsyncManager); }
+		//if (TaskManager) { NewCluster->ExpandEdges(TaskManager); }
 		//else { NewCluster->GetExpandedEdges(true); }
 	}
 
@@ -247,7 +247,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		return -1;
 	}
 
-	void FSubGraph::Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FGraphBuilder>& InBuilder)
+	void FSubGraph::Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FGraphBuilder>& InBuilder)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
@@ -256,7 +256,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		const TArray<FEdge>& ParentGraphEdges = ParentGraph->Edges;
 
 		WeakBuilder = InBuilder;
-		WeakAsyncManager = AsyncManager;
+		WeakTaskManager = TaskManager;
 
 		const int32 NumEdges = Edges.Num();
 		PCGEx::RadixSort(Edges);
@@ -343,7 +343,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, Distances);
 			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
-			if (!UnionBlender->Init(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
+			if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
 			{
 				// TODO : Log error
 				return;
@@ -354,7 +354,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			if (!PCGEx::IsWritableAttributeName(InBuilder->OutputDetails->EdgeLengthName))
 			{
-				PCGE_LOG_C(Error, GraphAndLog, AsyncManager->GetContext(), FTEXT("Invalid user-defined attribute name for Edge Length."));
+				PCGE_LOG_C(Error, GraphAndLog, TaskManager->GetContext(), FTEXT("Invalid user-defined attribute name for Edge Length."));
 			}
 			else
 			{
@@ -383,7 +383,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		EdgesDataFacade->GetOut()->AllocateProperties(AllocateProperties);
 
-		PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(AsyncManager, InParentHandle.Pin(), CompileSubGraph)
+		PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(TaskManager, InParentHandle.Pin(), CompileSubGraph)
 
 		CompileSubGraph->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -470,9 +470,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	{
 		UnionBlender.Reset();
 
-		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager = WeakAsyncManager.Pin();
+		const TSharedPtr<PCGExMT::FTaskManager>& TaskManager = WeakTaskManager.Pin();
 		const TSharedPtr<FGraph> ParentGraph = WeakParentGraph.Pin();
-		if (!AsyncManager || !AsyncManager->IsAvailable() || !ParentGraph) { return; }
+		if (!TaskManager || !TaskManager->IsAvailable() || !ParentGraph) { return; }
 
 		PCGEX_SHARED_THIS_DECL
 
@@ -485,7 +485,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 
 		if (OnSubGraphPostProcess) { OnSubGraphPostProcess(ThisPtr.ToSharedRef()); }
-		EdgesDataFacade->WriteFastest(AsyncManager);
+		EdgesDataFacade->WriteFastest(TaskManager);
 	}
 
 #undef PCGEX_FOREACH_EDGE_METADATA
@@ -834,14 +834,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		EdgesIO->OutputPin = OutputEdgesLabel;
 	}
 
-	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
+	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
 	{
-		AsyncManager = InAsyncManager;
+		TaskManager = InTaskManager;
 		PCGEX_SHARED_THIS_DECL
 		PCGEX_LAUNCH(PCGExGraphTask::FCompileGraph, ThisPtr, bWriteNodeFacade, MetadataDetails)
 	}
 
-	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
+	void FGraphBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
 	{
 		check(!bCompiling)
 
@@ -849,7 +849,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		// It means we need to fully allocate graph data even when ultimately we might prune out a lot of it
 
 		bCompiling = true;
-		AsyncManager = InAsyncManager;
+		TaskManager = InTaskManager;
 		MetadataDetailsPtr = MetadataDetails;
 		bWriteVtxDataFacadeWithCompile = bWriteNodeFacade;
 
@@ -1069,7 +1069,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		MarkClusterVtx(NodeDataFacade->Source, PairId);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BatchCompileSubGraphs)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BatchCompileSubGraphs)
 
 		BatchCompileSubGraphs->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -1081,7 +1081,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			PCGEX_ASYNC_THIS
 			const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
-			SubGraph->Compile(WeakGroup, This->AsyncManager, This);
+			SubGraph->Compile(WeakGroup, This->TaskManager, This);
 		};
 
 		BatchCompileSubGraphs->StartIterations(Graph->SubGraphs.Num(), 1, false);
@@ -1101,7 +1101,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				}
 				else
 				{
-					NodeDataFacade->WriteBuffers(AsyncManager, [PCGEX_ASYNC_THIS_CAPTURE]()
+					NodeDataFacade->WriteBuffers(TaskManager, [PCGEX_ASYNC_THIS_CAPTURE]()
 					{
 						PCGEX_ASYNC_THIS
 						This->OnCompilationEndCallback(This.ToSharedRef(), true);
@@ -1110,7 +1110,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 			else if (bCompiledSuccessfully)
 			{
-				NodeDataFacade->WriteFastest(AsyncManager);
+				NodeDataFacade->WriteFastest(TaskManager);
 			}
 		}
 		else if (OnCompilationEndCallback)

@@ -117,7 +117,7 @@ bool FPCGExPathCrossingsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 namespace PCGExPathCrossings
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);
 
@@ -126,7 +126,7 @@ namespace PCGExPathCrossings
 		// Must be set before process for filters
 		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
@@ -365,11 +365,11 @@ namespace PCGExPathCrossings
 		if (PointIO->GetIn()->GetNumPoints() != PointIO->GetOut()->GetNumPoints()) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->AddRaw(Settings->HasCrossingsTag); } }
 		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CollapseTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CollapseTask)
 		CollapseTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
-			This->PointDataFacade->WriteFastest(This->AsyncManager);
+			This->PointDataFacade->WriteFastest(This->TaskManager);
 		};
 
 		CollapseTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
@@ -496,7 +496,7 @@ namespace PCGExPathCrossings
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CrossBlendTask)
 		CrossBlendTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
 			PCGEX_ASYNC_THIS

@@ -114,7 +114,7 @@ bool FPCGExPathfindingNavmeshElement::AdvanceWork(FPCGExContext* InContext, cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			const int32 PathIndex = Context->PathQueries.Emplace(SeedIndex, Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).GetLocation(), GoalIndex, Context->GoalsDataFacade->Source->GetInPoint(GoalIndex).GetLocation());
@@ -140,9 +140,9 @@ FSampleNavmeshTask::FSampleNavmeshTask(const int32 InTaskIndex, const TSharedPtr
 {
 }
 
-void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	FPCGExPathfindingNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingNavmeshContext>();
+	FPCGExPathfindingNavmeshContext* Context = TaskManager->GetContext<FPCGExPathfindingNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingNavmesh)
 
 	PCGExNavmesh::FNavmeshQuery Query((*Queries)[TaskIndex]);
@@ -185,7 +185,7 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	Context->SeedForwardHandler->Forward(Seed.Index, PathDataFacade);
 	Context->GoalForwardHandler->Forward(Goal.Index, PathDataFacade);
 
-	PathDataFacade->WriteFastest(AsyncManager);
+	PathDataFacade->WriteFastest(TaskManager);
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -87,7 +87,7 @@ namespace PCGExGeo
 
 		TSharedPtr<FGeoStaticMesh> GSM;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			GSM->ExtractMeshSynchronous();
 		}
@@ -401,7 +401,7 @@ namespace PCGExGeo
 		bIsLoaded = true;
 	}
 
-	void FGeoStaticMesh::ExtractMeshAsync(PCGExMT::FTaskManager* AsyncManager)
+	void FGeoStaticMesh::ExtractMeshAsync(PCGExMT::FTaskManager* TaskManager)
 	{
 		if (bIsLoaded) { return; }
 		if (!bIsValid) { return; }

@@ -182,9 +182,9 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 		BufferConfigs[ConfigIndex].Read(InFacade);
 	}
 
-	bool FFacadePreloader::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle)
+	bool FFacadePreloader::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle)
 	{
-		ContextHandle = AsyncManager->GetContext()->GetOrCreateHandle();
+		ContextHandle = TaskManager->GetContext()->GetOrCreateHandle();
 
 		TSharedPtr<FFacade> SourceFacade = GetDataFacade();
 		if (!SourceFacade) { return false; }
@@ -195,14 +195,14 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 			return false;
 		}
 
-		if (!Validate(AsyncManager->GetContext()))
+		if (!Validate(TaskManager->GetContext()))
 		{
 			InternalDataFacadePtr.Reset();
 			OnLoadingEnd();
 			return false;
 		}
 
-		PCGEX_ASYNC_SUBGROUP_CHKD_RET(AsyncManager, InParentHandle, PrefetchAttributesTask, false)
+		PCGEX_ASYNC_SUBGROUP_CHKD_RET(TaskManager, InParentHandle, PrefetchAttributesTask, false)
 
 		PrefetchAttributesTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -284,7 +284,7 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 		return true;
 	}
 
-	void FMultiFacadePreloader::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle)
+	void FMultiFacadePreloader::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle)
 	{
 		for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders)
 		{
@@ -296,8 +296,8 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 			};
 		}
 		{
-			PCGEX_SCHEDULING_SCOPE(AsyncManager)
-			for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { Preloader->StartLoading(AsyncManager, InParentHandle); }
+			PCGEX_SCHEDULING_SCOPE(TaskManager)
+			for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { Preloader->StartLoading(TaskManager, InParentHandle); }
 		}
 	}
 

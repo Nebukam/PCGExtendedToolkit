@@ -80,11 +80,11 @@ namespace PCGExFindClusterHull
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindClusterHull::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const TArray<FVector2D>& Proj = *ProjectedVtxPositions.Get();
 
@@ -127,7 +127,7 @@ namespace PCGExFindClusterHull
 		PCGExPaths::SetClosedLoop(PathDataFacade->GetOut(), true);
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->WriteFastest(AsyncManager);
+		PathDataFacade->WriteFastest(TaskManager);
 	}
 }
 

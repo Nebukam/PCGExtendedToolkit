@@ -84,7 +84,7 @@ namespace PCGExTopologyPathSurface
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void Output() override;
 	};
 }

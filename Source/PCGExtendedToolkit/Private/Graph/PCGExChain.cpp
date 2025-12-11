@@ -206,7 +206,7 @@ namespace PCGExCluster
 		return OutNodes.Num();
 	}
 
-	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		Chains.Reserve(Cluster->Edges->Num());
 		int32 NumBinaries = 0;
@@ -257,10 +257,10 @@ namespace PCGExCluster
 				return false;
 			}
 		}
-		return DispatchTasks(AsyncManager);
+		return DispatchTasks(TaskManager);
 	}
 
-	bool FNodeChainBuilder::CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FNodeChainBuilder::CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		Chains.Reserve(Cluster->Edges->Num());
 
@@ -276,12 +276,12 @@ namespace PCGExCluster
 
 		Chains.Shrink();
 		if (Chains.IsEmpty()) { return false; }
-		return DispatchTasks(AsyncManager);
+		return DispatchTasks(TaskManager);
 	}
 
-	bool FNodeChainBuilder::DispatchTasks(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FNodeChainBuilder::DispatchTasks(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ChainSearchTask)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, ChainSearchTask)
 
 		ChainSearchTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{

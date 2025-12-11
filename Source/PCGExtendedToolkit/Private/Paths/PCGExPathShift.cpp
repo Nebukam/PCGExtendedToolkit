@@ -109,11 +109,11 @@ namespace PCGExShiftPath
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShiftPath::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -132,7 +132,7 @@ namespace PCGExShiftPath
 		{
 			if (Context->FilterFactories.IsEmpty()) { return false; }
 
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, FilterTask)
 
 			FilterTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -184,7 +184,7 @@ namespace PCGExShiftPath
 		{
 			Buffers.Init(nullptr, Context->ShiftedAttributes.Num());
 
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InitBuffers)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, InitBuffers)
 
 			InitBuffers->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 			{
@@ -256,12 +256,12 @@ namespace PCGExShiftPath
 
 			if (!Buffers.IsEmpty())
 			{
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitBuffers)
+				PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, InitBuffers)
 
 				InitBuffers->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 				{
 					PCGEX_ASYNC_THIS
-					This->PointDataFacade->WriteFastest(This->AsyncManager);
+					This->PointDataFacade->WriteFastest(This->TaskManager);
 				};
 
 				InitBuffers->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)

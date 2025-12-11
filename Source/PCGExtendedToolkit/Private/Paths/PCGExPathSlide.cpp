@@ -68,14 +68,14 @@ namespace PCGExPathSlide
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathSlide::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -158,7 +158,7 @@ namespace PCGExPathSlide
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		if (RestorePositionBuffer) { PointDataFacade->WriteFastest(AsyncManager); }
+		if (RestorePositionBuffer) { PointDataFacade->WriteFastest(TaskManager); }
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)

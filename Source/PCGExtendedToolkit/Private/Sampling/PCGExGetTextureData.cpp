@@ -119,10 +119,10 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 			Context->TextureReady.Init(false, Context->TextureReferencesList.Num());
 			Context->TextureDataList.Init(nullptr, Context->TextureReferencesList.Num());
 
-			Context->TextureProcessingToken = Context->GetAsyncManager()->TryCreateToken(FName("TextureProcessing"));
+			Context->TextureProcessingToken = Context->GetTaskManager()->TryCreateToken(FName("TextureProcessing"));
 			if (!Context->TextureProcessingToken.IsValid()) { return true; }
 
-			PCGExMT::ExecuteOnMainThread(Context->GetAsyncManager(), [CtxHandle = Context->GetOrCreateHandle()]()
+			PCGExMT::ExecuteOnMainThread(Context->GetTaskManager(), [CtxHandle = Context->GetOrCreateHandle()]()
 			{
 				PCGEX_SHARED_TCONTEXT_VOID(GetTextureData, CtxHandle)
 				SharedContext.Get()->AdvanceProcessing(0);
@@ -266,14 +266,14 @@ namespace PCGExGetTextureData
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExGetTextureData::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
 
@@ -396,7 +396,7 @@ namespace PCGExGetTextureData
 			Context->TextureReferences.Append(*Set.Get());
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::CompleteWork()

@@ -19,7 +19,7 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
 	TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return PCGExFactories::EPreparationResult::MissingData; }
@@ -49,8 +49,8 @@ PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Pre
 		PrepResult = bError ? PCGExFactories::EPreparationResult::Fail : PCGExFactories::EPreparationResult::Success;
 	};
 
-	TargetsHandler->StartLoading(AsyncManager);
-	return Super::Prepare(InContext, AsyncManager);
+	TargetsHandler->StartLoading(TaskManager);
+	return Super::Prepare(InContext, TaskManager);
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareNearestFilterFactory::CreateFilter() const

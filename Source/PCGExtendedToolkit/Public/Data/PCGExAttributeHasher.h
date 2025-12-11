@@ -80,7 +80,7 @@ namespace PCGEx
 		bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InFacade);
 
 		bool RequiresCompilation();
-		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FSimpleCallback&& InCallback);
+		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, PCGExMT::FSimpleCallback&& InCallback);
 
 		uint32 GetHash() const { return OutHash; }
 

@@ -32,9 +32,9 @@ namespace PCGExClusterMT
 		TSharedPtr<T> Target;
 		bool bScopedIndexLookupBuild = false;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			Target->PrepareProcessing(AsyncManager, bScopedIndexLookupBuild);
+			Target->PrepareProcessing(TaskManager, bScopedIndexLookupBuild);
 		}
 	};
 
@@ -95,10 +95,10 @@ namespace PCGExClusterMT
 		bWantsHeuristics = bRequired;
 	}
 
-	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		AsyncManager = InAsyncManager;
-		PCGEX_ASYNC_CHKD(AsyncManager)
+		TaskManager = InTaskManager;
+		PCGEX_ASYNC_CHKD(TaskManager)
 
 		PCGEX_CHECK_WORK_HANDLE(false)
 
@@ -173,7 +173,7 @@ namespace PCGExClusterMT
 		if (EdgeFilterFactories && !InitEdgesFilters(EdgeFilterFactories)) { return false; }
 
 		// Building cluster may have taken a while so let's make sure we're still legit
-		return AsyncManager->IsAvailable();
+		return TaskManager->IsAvailable();
 	}
 
 	void IProcessor::StartParallelLoopForNodes(const int32 PerLoopIterations)
@@ -312,11 +312,11 @@ namespace PCGExClusterMT
 		ProjectionDetails = InProjectionDetails;
 	}
 
-	void IBatch::PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
+	void IBatch::PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> TaskManagerPtr, const bool bScopedIndexLookupBuild)
 	{
 		PCGEX_CHECK_WORK_HANDLE_VOID
 
-		AsyncManager = AsyncManagerPtr;
+		TaskManager = TaskManagerPtr;
 		VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
 
 		const int32 NumVtx = VtxDataFacade->GetNum();
@@ -342,7 +342,7 @@ namespace PCGExClusterMT
 			if (WantsProjection() && !WantsPerClusterProjection())
 			{
 				// Prepare projection early, as we want all points projected from the batch				
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManagerPtr, ProjectTask)
+				PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManagerPtr, ProjectTask)
 
 				ProjectTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 				{
@@ -376,7 +376,7 @@ namespace PCGExClusterMT
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManagerPtr, BuildEndpointLookupTask)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManagerPtr, BuildEndpointLookupTask)
 
 			PCGEx::InitArray(ReverseLookup, NumVtx);
 			PCGEx::InitArray(ExpectedAdjacency, NumVtx);
@@ -469,14 +469,14 @@ namespace PCGExClusterMT
 			This->Process();
 		};
 
-		VtxFacadePreloader->StartLoading(AsyncManager);
+		VtxFacadePreloader->StartLoading(TaskManager);
 	}
 
 	void IBatch::Process()
 	{
 		bIsBatchValid = false;
 
-		PCGEX_ASYNC_CHKD_VOID(AsyncManager)
+		PCGEX_ASYNC_CHKD_VOID(TaskManager)
 
 		if (VtxDataFacade->GetNum() <= 1) { return; }
 		if (VtxFilterFactories)
@@ -529,7 +529,7 @@ namespace PCGExClusterMT
 	{
 		if (!bIsBatchValid) { return; }
 
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, { Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){ PCGEX_ASYNC_THIS This->OnInitialPostProcess(); };})
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->TaskManager); }, { Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){ PCGEX_ASYNC_THIS This->OnInitialPostProcess(); };})
 	}
 
 	void IBatch::OnInitialPostProcess()
@@ -566,7 +566,7 @@ namespace PCGExClusterMT
 		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); }, {})
 
-		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(AsyncManager); }
+		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(TaskManager); }
 	}
 
 	const PCGExGraph::FGraphMetadataDetails* IBatch::GetGraphMetadataDetails()
@@ -595,7 +595,7 @@ namespace PCGExClusterMT
 			};
 		}
 
-		GraphBuilder->CompileAsync(AsyncManager, true, GetGraphMetadataDetails());
+		GraphBuilder->CompileAsync(TaskManager, true, GetGraphMetadataDetails());
 	}
 
 	void IBatch::Output()
@@ -631,7 +631,7 @@ namespace PCGExClusterMT
 		}
 	}
 
-	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild)
+	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild)
 	{
 		PCGEX_LAUNCH(FStartClusterBatchProcessing<IBatch>, Batch, bScopedIndexLookupBuild)
 	}

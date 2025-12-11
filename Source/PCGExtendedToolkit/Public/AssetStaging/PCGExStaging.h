@@ -211,7 +211,7 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 		void Add(const int32 Index, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
 		void Add(const int32 Index, const TObjectPtr<UStaticMesh>& Mesh);
 
-		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection);
+		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection);
 
 	protected:
 		FSocketInfos& NewSocketInfos(const uint64 EntryHash, int32& OutIndex);

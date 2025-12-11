@@ -62,10 +62,10 @@ namespace PCGEx
 
 		void AddUniquePaths(const TSet<FSoftObjectPath>& InPaths);
 
-		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);
 		TSharedPtr<TArray<PCGExValueHash>> GetKeys(const int32 IOIndex);
 
-		virtual bool Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		virtual bool Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);
 
 		virtual void End(const bool bBuildMap = false);
 

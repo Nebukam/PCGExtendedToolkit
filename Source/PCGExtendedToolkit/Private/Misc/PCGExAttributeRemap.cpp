@@ -141,11 +141,11 @@ namespace PCGExAttributeRemap
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -223,7 +223,7 @@ namespace PCGExAttributeRemap
 			if (!Rule.RemapDetails.bUseInMax) { Rule.RemapDetails.InMax = MIN_dbl_neg; }
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, FetchTask)
 
 		FetchTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -359,7 +359,7 @@ namespace PCGExAttributeRemap
 
 	void FProcessor::OnPreparationComplete()
 	{
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, RemapTask)
 		RemapTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
 			PCGEX_ASYNC_THIS
@@ -371,7 +371,7 @@ namespace PCGExAttributeRemap
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

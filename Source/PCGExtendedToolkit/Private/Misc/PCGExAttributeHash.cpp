@@ -77,15 +77,15 @@ bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 namespace PCGExAttributeHash
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeHash::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->HashConfig);
 		if (!Hasher->Init(Context, PointDataFacade)) { return false; }
-		if (Hasher->RequiresCompilation()) { Hasher->Compile(AsyncManager, nullptr); }
+		if (Hasher->RequiresCompilation()) { Hasher->Compile(TaskManager, nullptr); }
 
 		return true;
 	}

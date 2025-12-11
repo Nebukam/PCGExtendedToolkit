@@ -651,7 +651,7 @@ namespace PCGExPackActorData
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void StartProcessing();
 
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;

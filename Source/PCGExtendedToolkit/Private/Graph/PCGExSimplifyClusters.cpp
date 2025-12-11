@@ -74,7 +74,7 @@ namespace PCGExSimplifyClusters
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::Process);
 
@@ -86,7 +86,7 @@ namespace PCGExSimplifyClusters
 		EdgeDataFacade->bSupportsScopedGet = true;
 		if (!Context->EdgeFilterFactories.IsEmpty()) { EdgeFilterFactories = &Context->EdgeFilterFactories; }
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (!Context->EdgeFilterFactories.IsEmpty()) { StartParallelLoopForEdges(); }
 		else { CompileChains(); }
@@ -134,7 +134,7 @@ namespace PCGExSimplifyClusters
 	{
 		ChainBuilder = MakeShared<PCGExCluster::FNodeChainBuilder>(Cluster.ToSharedRef());
 		ChainBuilder->Breakpoints = Breakpoints;
-		bIsProcessorValid = ChainBuilder->Compile(AsyncManager);
+		bIsProcessorValid = ChainBuilder->Compile(TaskManager);
 
 		EdgesUnion = GraphBuilder->Graph->EdgesUnion;
 	}

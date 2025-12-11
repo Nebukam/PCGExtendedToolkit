@@ -98,14 +98,14 @@ namespace PCGExConnectPoints
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectPoints::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
@@ -178,7 +178,7 @@ namespace PCGExConnectPoints
 			Octree = MakeUnique<PCGExOctree::FItemOctree>(bUseProjection ? ProjectionDetails.ProjectFlat(B.GetCenter()) : B.GetCenter(), B.GetExtent().Length());
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, PrepTask)
 
 		PrepTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -361,7 +361,7 @@ namespace PCGExConnectPoints
 		GraphBuilder->Graph->InsertEdges_Unsafe(UniqueEdges, -1);
 		ScopedEdges.Reset();
 
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 	}
 
 	void FProcessor::CompleteWork()
@@ -377,7 +377,7 @@ namespace PCGExConnectPoints
 			return;
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()

@@ -17,7 +17,7 @@ namespace PCGExGeoTasks
 	{
 	}
 
-	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
 		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();

@@ -100,13 +100,13 @@ namespace PCGExPathStitch
 		return true;
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathStitch::Process);
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 		const TConstPCGValueRange<FTransform> InTransform = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const FVector Extents = FVector::OneVector * 0.5;
@@ -209,7 +209,7 @@ namespace PCGExPathStitch
 			MergeScope.bReverse = i == 0 ? Current->EndStitch == nullptr : Current->StartStitch != Previous;
 		}
 
-		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
+		Merger->MergeAsync(TaskManager, &Context->CarryOverDetails);
 
 		PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), bClosedLoop);
 	}
@@ -219,7 +219,7 @@ namespace PCGExPathStitch
 		if (!PointDataFacade->Source->IsForwarding())
 		{
 			// TODO : Stitch-Merge points (average etc)
-			PointDataFacade->WriteFastest(AsyncManager);
+			PointDataFacade->WriteFastest(TaskManager);
 		}
 	}
 

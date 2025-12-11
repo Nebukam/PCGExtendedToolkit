@@ -32,13 +32,13 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 		StartOffset += Batch->VtxDataFacade->GetNum();
 	}
 
-	Merger->MergeAsync(GetAsyncManager(), &CarryOverDetails);
+	Merger->MergeAsync(GetTaskManager(), &CarryOverDetails);
 	PCGExGraph::SetClusterVtx(CompositeDataFacade->Source, OutVtxId); // After merge since it forwards IDs
 }
 
 void FPCGExMergeVerticesContext::ClusterProcessing_WorkComplete()
 {
-	CompositeDataFacade->WriteFastest(GetAsyncManager());
+	CompositeDataFacade->WriteFastest(GetTaskManager());
 }
 
 PCGEX_INITIALIZE_ELEMENT(MergeVertices)
@@ -97,11 +97,11 @@ namespace PCGExMergeVertices
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergeVertices::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		Cluster->WillModifyVtxIO();
 

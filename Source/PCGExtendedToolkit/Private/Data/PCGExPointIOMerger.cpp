@@ -27,7 +27,7 @@ namespace PCGExPointIOMerger
 		const FIdentityRef Identity;
 		const TSharedPtr<PCGExData::TBuffer<T>> OutBuffer;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			ScopeMerge<T>(Scope, Identity, PointIO, OutBuffer);
 		}
@@ -49,7 +49,7 @@ namespace PCGExPointIOMerger
 
 		TSharedPtr<FPCGExPointIOMerger> Merger;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCopyAttributeTask::ExecuteTask);
 
@@ -157,7 +157,7 @@ void FPCGExPointIOMerger::Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& 
 	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : InData) { Append(PointIO); }
 }
 
-void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes)
+void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointIOMerger::MergeAsync);
 
@@ -215,7 +215,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 			// Notify type/name mismatch if needed
 			if (UniqueIdentities[*ExpectedType].UnderlyingType != SourceIdentity.UnderlyingType)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Identifier.Name)));
+				PCGE_LOG_C(Warning, GraphAndLog, TaskManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Identifier.Name)));
 			}
 		});
 	}
@@ -230,7 +230,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	if (bHasAttributes) { OutPointData->SetMetadataEntry(PCGInvalidEntryKey); }
 
-	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CopyProperties)
+	PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CopyProperties)
 	CopyProperties->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](int32 Index, const PCGExMT::FScope& Scope)
 	{
 		PCGEX_ASYNC_THIS
@@ -239,10 +239,10 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	if (bHasAttributes)
 	{
-		CopyProperties->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
+		CopyProperties->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, TaskManager]()
 		{
 			PCGEX_ASYNC_THIS
-			AsyncManager->Launch(This->UniqueIdentities.Num(), [&](int32 i)
+			TaskManager->Launch(This->UniqueIdentities.Num(), [&](int32 i)
 			{
 				PCGEX_MAKE_SHARED(Task, PCGExPointIOMerger::FCopyAttributeTask, i, This);
 				return Task;

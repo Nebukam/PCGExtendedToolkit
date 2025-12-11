@@ -28,9 +28,9 @@ namespace PCGExPointsMT
 
 		TSharedPtr<T> Target;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			Target->Process(AsyncManager);
+			Target->Process(TaskManager);
 		}
 	};
 
@@ -67,20 +67,20 @@ namespace PCGExPointsMT
 		if (HasFilters()) { PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *FilterFactories, FacadePreloader); }
 	}
 
-	void IProcessor::PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
+	void IProcessor::PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
 	{
-		AsyncManager = InAsyncManager;
+		TaskManager = InTaskManager;
 
 		InternalFacadePreloader = MakeShared<PCGExData::FFacadePreloader>(PointDataFacade);
 		RegisterBuffersDependencies(*InternalFacadePreloader);
 
-		InternalFacadePreloader->StartLoading(AsyncManager, InPrefetchDataTaskGroup);
+		InternalFacadePreloader->StartLoading(TaskManager, InPrefetchDataTaskGroup);
 	}
 
-	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		AsyncManager = InAsyncManager;
-		PCGEX_ASYNC_CHKD(AsyncManager)
+		TaskManager = InTaskManager;
+		PCGEX_ASYNC_CHKD(TaskManager)
 
 #pragma region Primary filters
 
@@ -203,14 +203,14 @@ namespace PCGExPointsMT
 		return true;
 	}
 
-	void IBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	void IBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		if (PointsCollection.IsEmpty()) { return; }
 
 		CurrentState.store(PCGExCommon::State_Processing, std::memory_order_release);
 
-		AsyncManager = InAsyncManager;
-		PCGEX_ASYNC_CHKD_VOID(AsyncManager)
+		TaskManager = InTaskManager;
+		PCGEX_ASYNC_CHKD_VOID(TaskManager)
 
 		TSharedPtr<IBatch> SelfPtr = SharedThis(this);
 
@@ -252,7 +252,7 @@ namespace PCGExPointsMT
 
 		if (bPrefetchData)
 		{
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelAttributeRead)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ParallelAttributeRead)
 
 			ParallelAttributeRead->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -263,7 +263,7 @@ namespace PCGExPointsMT
 			ParallelAttributeRead->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, ParallelAttributeRead](const int32 Index, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				This->Processors[Index]->PrefetchData(This->AsyncManager, ParallelAttributeRead);
+				This->Processors[Index]->PrefetchData(This->TaskManager, ParallelAttributeRead);
 			};
 
 			ParallelAttributeRead->StartIterations(Processors.Num(), 1);
@@ -315,10 +315,10 @@ namespace PCGExPointsMT
 
 	void IBatch::OnProcessingPreparationComplete()
 	{
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, { Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){ PCGEX_ASYNC_THIS This->OnInitialPostProcess(); };})
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->TaskManager); }, { Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){ PCGEX_ASYNC_THIS This->OnInitialPostProcess(); };})
 	}
 
-	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch)
+	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch)
 	{
 		PCGEX_LAUNCH(FStartBatchProcessing<IBatch>, Batch)
 	}

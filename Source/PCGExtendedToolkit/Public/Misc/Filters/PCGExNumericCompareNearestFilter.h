@@ -76,7 +76,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 

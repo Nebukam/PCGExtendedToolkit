@@ -107,7 +107,7 @@ bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSe
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->SetAsyncState(PCGExPaths::State_BuildingPaths);
-		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), BuildPathsTask)
+		PCGEX_ASYNC_GROUP_CHKD(Context->GetTaskManager(), BuildPathsTask)
 
 		BuildPathsTask->OnSubLoopStartCallback = [Context](const PCGExMT::FScope& Scope)
 		{
@@ -156,11 +156,11 @@ namespace PCGExCutEdges
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCutEdges::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->bInvert)
 		{

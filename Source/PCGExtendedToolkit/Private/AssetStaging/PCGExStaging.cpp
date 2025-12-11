@@ -584,7 +584,7 @@ namespace PCGExStaging
 		Mapping[Index] = Idx;
 	}
 
-	void FSocketHelper::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection)
+	void FSocketHelper::Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile);
 
@@ -643,8 +643,8 @@ namespace PCGExStaging
 			}
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CreateSocketPoints)
-		CreateSocketPoints->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakManager = TWeakPtr<PCGExMT::FTaskManager>(AsyncManager)]()
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CreateSocketPoints)
+		CreateSocketPoints->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakManager = TWeakPtr<PCGExMT::FTaskManager>(TaskManager)]()
 		{
 			PCGEX_ASYNC_THIS
 			if (This->SocketNameWriter || This->SocketTagWriter || This->CategoryWriter || This->AssetPathWriter)

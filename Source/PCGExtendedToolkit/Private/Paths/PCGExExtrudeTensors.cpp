@@ -347,13 +347,13 @@ namespace PCGExExtrudeTensors
 		}
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExExtrudeTensors::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Sorter && !Sorter->Init(Context)) { Sorter.Reset(); }
 
@@ -731,9 +731,9 @@ namespace PCGExExtrudeTensors
 	{
 	}
 
-	void FBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	void FBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		AsyncManager = InAsyncManager;
+		TaskManager = InTaskManager;
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
@@ -756,7 +756,7 @@ namespace PCGExExtrudeTensors
 
 	void FBatch::OnPathsPrepared()
 	{
-		TBatch<FProcessor>::Process(AsyncManager);
+		TBatch<FProcessor>::Process(TaskManager);
 	}
 }
 

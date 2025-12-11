@@ -290,11 +290,11 @@ namespace PCGExPathfindingPlotEdges
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingPlotEdges::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Context->bMatchForEdges)
 		{
@@ -371,7 +371,7 @@ namespace PCGExPathfindingPlotEdges
 				This->Context->BuildPath(Plot, This->QueriesIO[Plot->QueryIndex]);
 				Plot->Cleanup();
 			};
-			Query->FindPaths(AsyncManager, SearchOperation, SearchAllocations, HeuristicsHandler);
+			Query->FindPaths(TaskManager, SearchOperation, SearchAllocations, HeuristicsHandler);
 		}
 	}
 

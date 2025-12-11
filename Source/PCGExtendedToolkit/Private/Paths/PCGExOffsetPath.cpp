@@ -67,14 +67,14 @@ bool FPCGExOffsetPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 namespace PCGExOffsetPath
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide) { PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet; }
 		else { PointDataFacade->bSupportsScopedGet = false; }
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
@@ -215,7 +215,7 @@ namespace PCGExOffsetPath
 				DirtyPath = MakeShared<PCGExPaths::FPath>(OutTransforms, Path->IsClosedLoop(), CrossingSettings.Tolerance * 2);
 				TSharedPtr<PCGExData::TBuffer<bool>> FlippedEdgeBuffer = PointDataFacade->GetWritable<bool>(Settings->FlippedAttributeName, false, true, PCGExData::EBufferInit::New);
 				for (int i = 0; i < DirtyPath->NumEdges; i++) { FlippedEdgeBuffer->SetValue(i, !(FVector::DotProduct(Path->Edges[i].Dir, DirtyPath->Edges[i].Dir) > 0)); }
-				PointDataFacade->WriteFastest(AsyncManager);
+				PointDataFacade->WriteFastest(TaskManager);
 			}
 			return;
 		}
@@ -237,7 +237,7 @@ namespace PCGExOffsetPath
 		DirtyPath->BuildEdgeOctree();
 
 		// Find all crossings
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FindCrossings)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, FindCrossings)
 
 		FindCrossings->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{

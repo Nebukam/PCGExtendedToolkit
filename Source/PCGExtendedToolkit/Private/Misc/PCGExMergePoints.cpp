@@ -69,11 +69,11 @@ bool FPCGExMergePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 namespace PCGExMergePoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->bTagToAttributes)
 		{
@@ -226,7 +226,7 @@ namespace PCGExMergePoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
 		
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
-		Context->CompositeDataFacade->WriteFastest(AsyncManager);
+		Context->CompositeDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FBatch::StartMerge()
@@ -242,10 +242,10 @@ namespace PCGExMergePoints
 		IgnoredAttributes.Append({PCGExGraph::Attr_PCGExEdgeIdx, PCGExGraph::Attr_PCGExVtxIdx, PCGExGraph::Tag_PCGExCluster, PCGExGraph::Tag_PCGExVtx, PCGExGraph::Tag_PCGExEdges,});
 
 		{
-			PCGEX_SCHEDULING_SCOPE(AsyncManager);
+			PCGEX_SCHEDULING_SCOPE(TaskManager);
 
 			// Launch all merging tasks while we compute future attributes 
-			Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails, &IgnoredAttributes);
+			Merger->MergeAsync(TaskManager, &Context->CarryOverDetails, &IgnoredAttributes);
 
 			// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
 			Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);

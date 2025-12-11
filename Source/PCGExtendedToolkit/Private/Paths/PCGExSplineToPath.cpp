@@ -34,9 +34,9 @@ namespace PCGExSplineToPath
 
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			FPCGExSplineToPathContext* Context = AsyncManager->GetContext<FPCGExSplineToPathContext>();
+			FPCGExSplineToPathContext* Context = TaskManager->GetContext<FPCGExSplineToPathContext>();
 			PCGEX_SETTINGS_C(Context, SplineToPath)
 
 			const UPCGSplineData* SplineData = Context->Targets[TaskIndex];
@@ -177,7 +177,7 @@ namespace PCGExSplineToPath
 
 			PCGEx::TagsToData(PointDataFacade->Source, Settings->TagsToData);
 
-			PointDataFacade->WriteFastest(AsyncManager);
+			PointDataFacade->WriteFastest(TaskManager);
 		}
 	};
 }
@@ -269,7 +269,7 @@ bool FPCGExSplineToPathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		for (int i = 0; i < Context->NumTargets; i++)
 		{
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EIOInit::New);

@@ -78,9 +78,9 @@ namespace PCGExCreateShapes
 		TSharedPtr<FPCGExShapeBuilderOperation> Operation;
 		TSharedPtr<PCGExShapes::FShape> Shape;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			FPCGExCreateShapesContext* Context = AsyncManager->GetContext<FPCGExCreateShapesContext>();
+			FPCGExCreateShapesContext* Context = TaskManager->GetContext<FPCGExCreateShapesContext>();
 			PCGEX_SETTINGS(CreateShapes);
 
 			BuildShape(Context, ShapeDataFacade, Operation, Shape);
@@ -91,13 +91,13 @@ namespace PCGExCreateShapes
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCreateShapes::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		Builders.Reserve(Context->BuilderFactories.Num());
 		for (const TObjectPtr<const UPCGExShapeBuilderFactoryData>& Factory : Context->BuilderFactories)
@@ -142,13 +142,13 @@ namespace PCGExCreateShapes
 	{
 		if (Settings->OutputMode == EPCGExShapeOutputMode::PerDataset)
 		{
-			PointDataFacade->WriteFastest(AsyncManager);
+			PointDataFacade->WriteFastest(TaskManager);
 		}
 		else
 		{
 			for (const TSharedPtr<PCGExData::FFacade>& Facade : PerSeedFacades)
 			{
-				Facade->WriteFastest(AsyncManager);
+				Facade->WriteFastest(TaskManager);
 			}
 		}
 	}
@@ -254,7 +254,7 @@ namespace PCGExCreateShapes
 		{
 			if (Builders[j]->Shapes.IsEmpty()) { continue; }
 
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BuildSeedShape)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BuildSeedShape)
 			BuildSeedShape->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, BuilderIndex = j](const int32 ShapeIndex, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
@@ -273,7 +273,7 @@ namespace PCGExCreateShapes
 				Shape->StartIndex = 0;
 				BuildShape(This->Context, IOFacade.ToSharedRef(), Builder, Shape);
 
-				IOFacade->WriteFastest(This->AsyncManager);
+				IOFacade->WriteFastest(This->TaskManager);
 			};
 
 			BuildSeedShape->StartIterations(NumSeeds, 1);

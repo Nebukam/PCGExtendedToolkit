@@ -125,11 +125,11 @@ namespace PCGExFindPointOnBounds
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindPointOnBounds::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		FBox Bounds = FBox(ForceInit);
 		FVector UVW = Settings->GetValueSettingUVW(Context, PointDataFacade->GetIn())->Read(0);

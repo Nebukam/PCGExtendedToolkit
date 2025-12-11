@@ -120,11 +120,11 @@ bool FPCGExConnectClustersElement::AdvanceWork(FPCGExContext* InContext, const U
 
 namespace PCGExConnectClusters
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectClusters::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		Cluster->GetNodeOctree();
 
@@ -155,7 +155,7 @@ namespace PCGExConnectClusters
 		// Start merging right away
 		Merger = MakeShared<FPCGExPointIOMerger>(CompoundedEdgesDataFacade.ToSharedRef());
 		Merger->Append(Edges);
-		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
+		Merger->MergeAsync(TaskManager, &Context->CarryOverDetails);
 
 		TBatch<FProcessor>::Process();
 	}
@@ -181,7 +181,7 @@ namespace PCGExConnectClusters
 
 		if (ValidClusters.IsEmpty()) { return; } // Skip work completion entirely
 
-		CompoundedEdgesDataFacade->WriteFastest(AsyncManager); // Write base attributes value while finding bridges
+		CompoundedEdgesDataFacade->WriteFastest(TaskManager); // Write base attributes value while finding bridges
 
 		const int32 NumBounds = ValidClusters.Num();
 		EPCGExBridgeClusterMethod SafeMethod = Settings->BridgeMethod;

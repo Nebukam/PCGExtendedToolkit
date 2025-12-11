@@ -90,11 +90,11 @@ namespace PCGExBuildVoronoiGraph
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoiGraph::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		// Build voronoi
 
@@ -220,7 +220,7 @@ namespace PCGExBuildVoronoiGraph
 		// Compile graph
 
 		GraphBuilder->bInheritNodeData = false; // We're creating new points from scratch, we don't want the inheritance.
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 
 		return true;
 	}
@@ -241,7 +241,7 @@ namespace PCGExBuildVoronoiGraph
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()

@@ -202,7 +202,7 @@ namespace PCGExShrinkPath
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 	protected:
 		bool MaskIndex(const int32 Index);

@@ -62,9 +62,9 @@ bool FPCGExPackClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 namespace PCGExPackClusters
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!TProcessor::Process(InAsyncManager)) { return false; }
+		if (!TProcessor::Process(InTaskManager)) { return false; }
 
 		// TODO : Refactor because we're actually partitioning indices, which is bad as we don't preserve the original data layout
 
@@ -102,7 +102,7 @@ namespace PCGExPackClusters
 		VtxAttributes = PCGEx::FAttributesInfos::Get(VtxDataFacade->GetIn()->Metadata);
 		if (VtxAttributes->Identities.IsEmpty()) { return true; }
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, CopyVtxAttributes)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, CopyVtxAttributes)
 
 		CopyVtxAttributes->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 		{
@@ -133,7 +133,7 @@ namespace PCGExPackClusters
 	void FProcessor::CompleteWork()
 	{
 		TProcessor<FPCGExPackClustersContext, UPCGExPackClustersSettings>::CompleteWork();
-		PackedIOFacade->WriteFastest(AsyncManager);
+		PackedIOFacade->WriteFastest(TaskManager);
 	}
 }
 

@@ -168,13 +168,13 @@ UPCGComponent* FPCGExContext::GetMutableComponent() const
 	return Cast<UPCGComponent>(ExecutionSource.Get());
 }
 
-TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
+TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetTaskManager()
 {
-	if (!AsyncManager)
+	if (!TaskManager)
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
-		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
-		AsyncManager->OnEndCallback = [CtxHandle = GetOrCreateHandle()](const bool bWasCancelled)
+		TaskManager = MakeShared<PCGExMT::FTaskManager>(this);
+		TaskManager->OnEndCallback = [CtxHandle = GetOrCreateHandle()](const bool bWasCancelled)
 		{
 			if (bWasCancelled) { return; }
 
@@ -187,7 +187,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 		};
 	}
 
-	return AsyncManager;
+	return TaskManager;
 }
 
 void FPCGExContext::PauseContext() { bIsPaused = true; }
@@ -273,7 +273,7 @@ void FPCGExContext::SetAsyncState(const PCGExCommon::ContextState WaitState)
 
 bool FPCGExContext::IsWaitingForTasks()
 {
-	if (AsyncManager) { return AsyncManager->IsWaitingForTasks(); }
+	if (TaskManager) { return TaskManager->IsWaitingForTasks(); }
 	return false;
 }
 
@@ -379,7 +379,7 @@ bool FPCGExContext::LoadAssets()
 
 	SetState(PCGExCommon::State_LoadingAssetDependencies);
 
-	PCGExHelpers::Load(GetAsyncManager(), [CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
+	PCGExHelpers::Load(GetTaskManager(), [CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
 	                   {
 		                   PCGEX_SHARED_CONTEXT_RET(CtxHandle, {})
 		                   return SharedContext.Get()->RequiredAssets->Array();

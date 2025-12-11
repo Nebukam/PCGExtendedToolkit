@@ -85,11 +85,11 @@ bool FPCGExBuildConvexHull2DElement::AdvanceWork(FPCGExContext* InContext, const
 
 namespace PCGExBuildConvexHull2D
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildConvexHull2D::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
@@ -152,7 +152,7 @@ namespace PCGExBuildConvexHull2D
 
 			ActivePositions.Empty();
 
-			GraphBuilder->CompileAsync(AsyncManager, true);
+			GraphBuilder->CompileAsync(TaskManager, true);
 		}
 		else
 		{

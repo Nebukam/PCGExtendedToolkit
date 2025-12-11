@@ -83,13 +83,13 @@ namespace PCGExWriteEdgeProperties
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteEdgeProperties::Process);
 
 		EdgeDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade))
 		{
@@ -271,7 +271,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 	void FProcessor::CompleteWork()
 	{
 		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
-		EdgeDataFacade->WriteFastest(AsyncManager);
+		EdgeDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Cleanup()

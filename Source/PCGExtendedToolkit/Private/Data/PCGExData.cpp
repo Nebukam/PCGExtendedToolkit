@@ -1000,9 +1000,9 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 		BufferMap.Empty();
 	}
 
-	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys)
+	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const bool bEnsureValidKeys)
 	{
-		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
+		if (!TaskManager || !TaskManager->IsAvailable() || !Source->GetOut()) { return; }
 
 		if (ValidateOutputsBeforeWriting())
 		{
@@ -1010,13 +1010,13 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 
 			{
 				FWriteScopeLock WriteScopeLock(BufferLock);
-				PCGEX_SCHEDULING_SCOPE(AsyncManager)
+				PCGEX_SCHEDULING_SCOPE(TaskManager)
 				
 				for (int i = 0; i < Buffers.Num(); i++)
 				{
 					const TSharedPtr<IBuffer> Buffer = Buffers[i];
 					if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
-					WriteBuffer(AsyncManager, Buffer, false);
+					WriteBuffer(TaskManager, Buffer, false);
 				}
 			}
 		}
@@ -1053,7 +1053,7 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 		return WritableCount;
 	}
 
-	void FFacade::WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FCompletionCallback&& Callback)
+	void FFacade::WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, PCGExMT::FCompletionCallback&& Callback)
 	{
 		if (!ValidateOutputsBeforeWriting())
 		{
@@ -1068,7 +1068,7 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteBuffersWithCallback);
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, WriteBuffersWithCallback);
 		WriteBuffersWithCallback->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, Callback]()
 		{
 			PCGEX_ASYNC_THIS
@@ -1113,12 +1113,12 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 		return WritableCount;
 	}
 
-	void FFacade::WriteFastest(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys)
+	void FFacade::WriteFastest(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const bool bEnsureValidKeys)
 	{
 		if (!Source->GetOut()) { return; }
 
 		if (Source->GetNum(EIOSide::Out) < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize) { WriteSynchronous(bEnsureValidKeys); }
-		else { Write(AsyncManager, bEnsureValidKeys); }
+		else { Write(TaskManager, bEnsureValidKeys); }
 	}
 
 	void FFacade::Fetch(const PCGExMT::FScope& Scope)
@@ -1269,14 +1269,14 @@ template PCGEXTENDEDTOOLKIT_API bool TryReadMark<_TYPE>(const TSharedRef<FPointI
 		bool bEnsureValidKeys = true;
 		TSharedPtr<IBuffer> Buffer;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			if (!Buffer) { return; }
 			Buffer->Write(bEnsureValidKeys);
 		}
 	};
 
-	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys)
+	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys)
 	{
 		if (InBuffer->GetUnderlyingDomain() == EDomainType::Data || InBuffer->bResetWithFirstValue)
 		{
@@ -1286,7 +1286,7 @@ template PCGEXTENDEDTOOLKIT_API bool TryReadMark<_TYPE>(const TSharedRef<FPointI
 		}
 		else
 		{
-			if (!AsyncManager || !AsyncManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
+			if (!TaskManager || !TaskManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
 			PCGEX_LAUNCH(FWriteBufferTask, InBuffer, InEnsureValidKeys)
 		}
 	}

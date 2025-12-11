@@ -71,11 +71,11 @@ namespace PCGExDestroyActor
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExDestroyActor::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
 		if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, PointDataFacade->Source))
@@ -87,7 +87,7 @@ namespace PCGExDestroyActor
 		TSet<FSoftObjectPath> UniqueActorReferences;
 		ActorReferences->GrabUniqueValues(UniqueActorReferences);
 
-		MainThreadToken = AsyncManager->TryCreateToken(FName("DestroyActors"));
+		MainThreadToken = TaskManager->TryCreateToken(FName("DestroyActors"));
 		if (!MainThreadToken.IsValid()) { return false; }
 
 		Context->GetMutableComponent()->ForEachManagedResource([&](UPCGManagedResource* InResource)

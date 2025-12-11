@@ -171,9 +171,9 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FNonFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FNonFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
@@ -202,7 +202,7 @@ namespace PCGExPathToClusters
 		GraphBuilder->Graph->InsertEdges(Edges);
 		Edges.Empty();
 
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 
 		return true;
 	}
@@ -217,7 +217,7 @@ namespace PCGExPathToClusters
 		}
 
 		GraphBuilder->StageEdgesOutputs();
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 #pragma endregion
@@ -228,9 +228,9 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
@@ -251,7 +251,7 @@ namespace PCGExPathToClusters
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InsertEdges)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, InsertEdges)
 
 			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{

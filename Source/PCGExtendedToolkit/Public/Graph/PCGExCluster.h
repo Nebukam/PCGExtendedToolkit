@@ -260,7 +260,7 @@ namespace PCGExCluster
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
 		TSharedPtr<TArray<FBoundedEdge>> GetBoundedEdges(const bool bBuild);
-		void ExpandEdges(PCGExMT::FTaskManager* AsyncManager);
+		void ExpandEdges(PCGExMT::FTaskManager* TaskManager);
 
 		template <typename T, class MakeFunc>
 		void GrabNeighbors(const int32 NodeIndex, TArray<T>& OutNeighbors, const MakeFunc&& Make) const

@@ -20,9 +20,9 @@ TSharedPtr<PCGExTensorOperation> UPCGExTensorFactoryData::CreateOperation(FPCGEx
 	return nullptr; // Create shape builder operation
 }
 
-PCGExFactories::EPreparationResult UPCGExTensorFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExTensorFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 	return InitInternalData(InContext);
 }

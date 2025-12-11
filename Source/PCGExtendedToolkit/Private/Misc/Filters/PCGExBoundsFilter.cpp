@@ -16,9 +16,9 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExBoundsFilterFactory::CreateFilter() 
 	return MakeShared<PCGExPointFilter::FBoundsFilter>(this);
 }
 
-PCGExFactories::EPreparationResult UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	if (!PCGExData::TryGetFacades(InContext, FName("Bounds"), BoundsDataFacades, false))

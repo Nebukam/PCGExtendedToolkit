@@ -117,11 +117,11 @@ namespace PCGExFindContours
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindContours::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 		Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); // We need edge octree anyway
@@ -212,7 +212,7 @@ namespace PCGExFindContours
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessCellsTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ProcessCellsTask)
 
 		ProcessCellsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
@@ -257,7 +257,7 @@ namespace PCGExFindContours
 		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->WriteFastest(AsyncManager);
+		PathDataFacade->WriteFastest(TaskManager);
 
 		if (Settings->bOutputFilteredSeeds)
 		{

@@ -63,7 +63,7 @@ namespace PCGExGraph
 
 		if (!TypedBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
 
-		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
+		PCGEX_ASYNC_GROUP_CHKD(Context->GetTaskManager(), ProcessNodesGroup)
 
 		ProcessNodesGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -132,7 +132,7 @@ namespace PCGExGraph
 		UnionGraph->GetUniqueEdges(UniqueEdges);
 		GraphBuilder->Graph->InsertEdges(UniqueEdges);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), WriteMetadataTask);
 		WriteMetadataTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
@@ -212,7 +212,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::FindPointEdgeIntersections);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindPointEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), FindPointEdgeGroup)
 
 		PointEdgeIntersections = MakeShared<FPointEdgeIntersections>(GraphBuilder->Graph, UnionDataFacade->Source, &PointEdgeIntersectionDetails);
 
@@ -288,7 +288,7 @@ namespace PCGExGraph
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), BlendPointEdgeGroup)
 
 		PointEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
@@ -329,7 +329,7 @@ namespace PCGExGraph
 	void FUnionProcessor::OnPointEdgeIntersectionsComplete()
 	{
 		PointEdgeIntersections.Reset();
-		if (MetadataBlender) { UnionDataFacade->WriteFastest(Context->GetAsyncManager()); }
+		if (MetadataBlender) { UnionDataFacade->WriteFastest(Context->GetTaskManager()); }
 	}
 
 #pragma endregion
@@ -340,7 +340,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::FindEdgeEdgeIntersections);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindEdgeEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), FindEdgeEdgeGroup)
 
 		EdgeEdgeIntersections = MakeShared<FEdgeEdgeIntersections>(GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &EdgeEdgeIntersectionDetails);
 
@@ -413,7 +413,7 @@ namespace PCGExGraph
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), BlendEdgeEdgeGroup)
 
 		EdgeEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
@@ -459,7 +459,7 @@ namespace PCGExGraph
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete()
 	{
 		if (EdgeEdgeIntersections) { EdgeEdgeIntersections.Reset(); }
-		UnionDataFacade->WriteFastest(Context->GetAsyncManager());
+		UnionDataFacade->WriteFastest(Context->GetTaskManager());
 	}
 
 #pragma endregion
@@ -480,6 +480,6 @@ namespace PCGExGraph
 
 		// Make sure we provide up-to-date transform range to sort over
 		GraphBuilder->NodePointsTransforms = GraphBuilder->NodeDataFacade->GetOut()->GetConstTransformValueRange();
-		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true, &GraphMetadataDetails);
+		GraphBuilder->CompileAsync(Context->GetTaskManager(), true, &GraphMetadataDetails);
 	}
 }

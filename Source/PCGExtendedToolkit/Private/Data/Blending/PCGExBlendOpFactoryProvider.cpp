@@ -283,9 +283,9 @@ bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
 	return PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) || PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
 }
 
-PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantA, true, false);

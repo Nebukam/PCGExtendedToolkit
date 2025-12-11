@@ -33,10 +33,10 @@ PCGExTensor::FTensorSample FPCGExTensorSplineFlow::Sample(const int32 InSeedInde
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
-PCGExFactories::EPreparationResult UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
 	SampleInputs = Config.SampleInputs;
-	return Super::Prepare(InContext, AsyncManager);
+	return Super::Prepare(InContext, TaskManager);
 }
 
 PCGEX_TENSOR_BOILERPLATE(SplineFlow, { NewFactory->Config.Potency *=NewFactory->Config.PotencyScale; }, { NewOperation->Splines = &Splines; })

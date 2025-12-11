@@ -634,7 +634,7 @@ namespace PCGExExtrudeTensors
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		void InitExtrusionFromSeed(const int32 InSeedIndex);
 		TSharedPtr<FExtrusion> InitExtrusionFromExtrusion(const TSharedRef<FExtrusion>& InExtrusion);
@@ -672,7 +672,7 @@ namespace PCGExExtrudeTensors
 	{
 	public:
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
-		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void OnPathsPrepared();
 	};
 }

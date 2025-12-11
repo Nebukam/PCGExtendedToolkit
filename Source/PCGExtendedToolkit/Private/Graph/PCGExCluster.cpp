@@ -883,11 +883,11 @@ namespace PCGExCluster
 		return BoundedEdges;
 	}
 
-	void FCluster::ExpandEdges(PCGExMT::FTaskManager* AsyncManager)
+	void FCluster::ExpandEdges(PCGExMT::FTaskManager* TaskManager)
 	{
 		if (BoundedEdges) { return; }
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ExpandEdgesTask);
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ExpandEdgesTask);
 
 		BoundedEdges = MakeShared<TArray<FBoundedEdge>>();
 		PCGEx::InitArray(BoundedEdges, Edges->Num());

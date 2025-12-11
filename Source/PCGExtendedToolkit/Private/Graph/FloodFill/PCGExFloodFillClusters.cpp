@@ -116,11 +116,11 @@ namespace PCGExClusterDiffusion
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExClusterDiffusion::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		FillControlsHandler = MakeShared<PCGExFloodFill::FFillControlsHandler>(Context, Cluster, VtxDataFacade, EdgeDataFacade, Context->SeedsDataFacade, Context->FillControlFactories);
 
@@ -129,7 +129,7 @@ namespace PCGExClusterDiffusion
 
 		Seeded.Init(0, Cluster->Nodes->Num());
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, DiffusionInitialization)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, DiffusionInitialization)
 		DiffusionInitialization->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
@@ -217,7 +217,7 @@ namespace PCGExClusterDiffusion
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, GrowDiffusions)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, GrowDiffusions)
 			GrowDiffusions->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
@@ -291,7 +291,7 @@ namespace PCGExClusterDiffusion
 		// Proceed to blending
 		// Note: There is an important probability of collision for nodes with influences > 1
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, DiffuseDiffusions)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, DiffuseDiffusions)
 
 		DiffuseDiffusions->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -351,7 +351,7 @@ namespace PCGExClusterDiffusion
 		if (Settings->PathOutput == EPCGExFloodFillPathOutput::Full)
 		{
 			// Output full path, rather straightforward
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, PathsTaskGroup)
 			PathsTaskGroup->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
@@ -363,7 +363,7 @@ namespace PCGExClusterDiffusion
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, PathsTaskGroup)
 		PathsTaskGroup->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, SortOver = Settings->PathPartitions, SortOrder = Settings->PartitionSorting](const int32 Index, const PCGExMT::FScope& Scope)
 		{
 			PCGEX_ASYNC_THIS
@@ -577,7 +577,7 @@ namespace PCGExClusterDiffusion
 
 		TBatch<FProcessor>::Write();
 		BlendOpsManager->Cleanup(Context);
-		VtxDataFacade->WriteFastest(AsyncManager);
+		VtxDataFacade->WriteFastest(TaskManager);
 	}
 }
 

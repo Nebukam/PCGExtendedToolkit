@@ -81,7 +81,7 @@ public:
 	FPCGExValueHashFilterConfig Config;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 
 	virtual bool DomainCheck() override;
 

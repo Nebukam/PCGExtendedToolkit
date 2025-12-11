@@ -114,7 +114,7 @@ namespace PCGExPathInsert
 
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void CompleteWork() override;
 	};
 }

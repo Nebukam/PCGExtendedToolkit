@@ -27,7 +27,7 @@ namespace PCGEx
 		TSharedPtr<IAssetLoader> Loader;
 		TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>> Broadcaster;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			FSoftObjectPath Min;
 			FSoftObjectPath Max;
@@ -84,7 +84,7 @@ namespace PCGEx
 		UniquePaths.Append(InPaths);
 	}
 
-	bool IAssetLoader::Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool IAssetLoader::Start(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		TArray<TSharedPtr<FDiscoverAssetsTask>> Tasks;
 
@@ -109,12 +109,12 @@ namespace PCGEx
 
 		if (Tasks.IsEmpty()) { return false; }
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, AssetDiscovery)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, AssetDiscovery)
 
-		AssetDiscovery->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
+		AssetDiscovery->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, TaskManager]()
 		{
 			PCGEX_ASYNC_THIS
-			This->Load(AsyncManager);
+			This->Load(TaskManager);
 		};
 
 		AssetDiscovery->StartTasksBatch(Tasks);
@@ -124,7 +124,7 @@ namespace PCGEx
 
 	TSharedPtr<TArray<PCGExValueHash>> IAssetLoader::GetKeys(const int32 IOIndex) { return Keys[IOIndex]; }
 
-	bool IAssetLoader::Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool IAssetLoader::Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		if (UniquePaths.IsEmpty())
 		{
@@ -132,10 +132,10 @@ namespace PCGEx
 			return false;
 		}
 
-		LoadToken = AsyncManager->TryCreateToken(FName("LoadToken"));
+		LoadToken = TaskManager->TryCreateToken(FName("LoadToken"));
 		PrepareLoading();
 
-		PCGExHelpers::Load(AsyncManager, [PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
+		PCGExHelpers::Load(TaskManager, [PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
 		                   {
 			                   PCGEX_ASYNC_THIS_RET({})
 			                   return This->UniquePaths.Array();

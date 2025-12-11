@@ -109,7 +109,7 @@ namespace PCGExTopologyEdges
 		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
-	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		FPCGExTopologyEdgesProcessorContext* Context = static_cast<FPCGExTopologyEdgesProcessorContext*>(ExecutionContext);
 		const UPCGExTopologyEdgesProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyEdgesProcessorSettings>();
@@ -119,7 +119,7 @@ namespace PCGExTopologyEdges
 
 		ProjectedHashMap = Context->HashMaps[VtxDataFacade->Source->IOIndex];
 
-		if (!PCGExClusterMT::IProcessor::Process(InAsyncManager)) { return false; }
+		if (!PCGExClusterMT::IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
 
