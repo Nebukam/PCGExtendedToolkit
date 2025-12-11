@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDetailsRelax.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRelaxClusters"
 #define PCGEX_NAMESPACE RelaxClusters
@@ -193,7 +194,9 @@ namespace PCGExRelaxClusters
 		const TArray<FTransform>& RBufferRef = (*RelaxOperation->ReadBuffer);
 		TArray<FTransform>& WBufferRef = (*RelaxOperation->WriteBuffer);
 
-#define PCGEX_RELAX_PROGRESS WBufferRef[i] = PCGExBlend::Lerp( RBufferRef[i], WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex));
+		const PCGExTypeOps::TTypeOpsImpl<FTransform>& TransformOps = PCGExTypeOps::TTypeOpsImpl<FTransform>::GetInstance();
+
+#define PCGEX_RELAX_PROGRESS TransformOps.BlendLerp(&RBufferRef[i], &WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex), &WBufferRef[i]);
 #define PCGEX_RELAX_FILTER if(!IsNodePassingFilters(Node)){ WBufferRef[i] = RBufferRef[i]; }else
 #define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){\
 		if(bLastStep){ \
@@ -238,13 +241,15 @@ namespace PCGExRelaxClusters
 
 		TArray<FTransform>& WBufferRef = (*RelaxOperation->WriteBuffer);
 
+		const PCGExTypeOps::TTypeOpsImpl<FTransform>& TransformOps = PCGExTypeOps::TTypeOpsImpl<FTransform>::GetInstance();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
 
 			if (!InfluenceDetails.bProgressiveInfluence)
 			{
-				OutTransforms[Node.PointIndex] = PCGExBlend::Lerp(OutTransforms[Node.PointIndex], WBufferRef[Node.Index], InfluenceDetails.GetInfluence(Node.PointIndex));
+				TransformOps.BlendLerp(&OutTransforms[Node.PointIndex], &WBufferRef[Node.Index], InfluenceDetails.GetInfluence(Node.PointIndex), &OutTransforms[Node.PointIndex]);
 			}
 			else
 			{
