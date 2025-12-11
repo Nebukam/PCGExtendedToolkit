@@ -5,6 +5,7 @@
 
 #include "PCGExBroadcast.h"
 #include "PCGExHelpers.h"
+#include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
 
 namespace PCGExData
@@ -19,8 +20,8 @@ namespace PCGExData
 	template <typename T>
 	T IDataValue::GetValue()
 	{
-		if (IsNumeric()) { return PCGEx::Convert<double, T>(AsDouble()); }
-		return PCGEx::Convert<FString, T>(AsString());
+		if (IsNumeric()) { return PCGExTypes::Convert<double, T>(AsDouble()); }
+		return PCGExTypes::Convert<FString, T>(AsString());
 	}
 
 #pragma region externalization

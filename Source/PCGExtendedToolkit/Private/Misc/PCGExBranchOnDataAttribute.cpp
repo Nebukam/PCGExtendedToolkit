@@ -5,6 +5,7 @@
 
 #include "PCGExBroadcast.h"
 #include "PCGExHelpers.h"
+#include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Metadata/PCGMetadata.h"
 
@@ -133,8 +134,8 @@ bool FPCGExBranchOnDataAttributeElement::AdvanceWork(FPCGExContext* InContext, c
 
 					T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 
-					const double AsNumeric = PCGEx::Convert<T_ATTR, double>(Value);
-					const FString AsString = PCGEx::Convert<T_ATTR, FString>(Value);
+					const double AsNumeric = PCGExTypes::Convert<T_ATTR, double>(Value);
+					const FString AsString = PCGExTypes::Convert<T_ATTR, FString>(Value);
 
 
 					for (int i = 0; i < NumBranches; ++i)

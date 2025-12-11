@@ -228,7 +228,6 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 	
-	virtual void RegisterAssetDependencies() override;
 };
 
 class FPCGExSampleInsidePathElement final : public FPCGExPointsProcessorElement

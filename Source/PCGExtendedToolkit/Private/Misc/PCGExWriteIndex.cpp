@@ -5,6 +5,7 @@
 
 #include "PCGExBroadcast.h"
 #include "PCGExMT.h"
+#include "PCGExTypes.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
@@ -12,6 +13,7 @@
 #include "Data/PCGPointData.h"
 #include "Data/PCGSplineData.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
@@ -211,7 +213,10 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 				using T = decltype(DummyValue);
 				for (int i = 0; i < Context->WorkingData.Num(); i++)
 				{
-					PCGExData::WriteMark<T>(const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), Context->CollectionIndexIdentifier, PCGEx::Convert<int32, T>(i));
+					PCGExData::WriteMark<T>(
+						const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()),
+						Context->CollectionIndexIdentifier,
+						PCGExTypeOps::FTypeOps<T>::template ConvertFrom<int32>(i));
 				}
 			});
 		}
@@ -221,10 +226,15 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			PCGEx::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
+				const PCGExTypeOps::TTypeOpsImpl<T>& TypeOpsImpl = PCGExTypeOps::TTypeOpsImpl<T>::GetInstance();
+
 				for (int i = 0; i < Context->WorkingData.Num(); i++)
 				{
 					double NumEntries = Settings->bNormalizeNumEntries ? Context->NumEntries[i] / Context->MaxNumEntries : Context->NumEntries[i];
-					PCGExData::WriteMark<T>(const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), Context->NumEntriesIdentifier, PCGEx::Convert<int32, T>(NumEntries));
+					PCGExData::WriteMark<T>(
+						const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), 
+						Context->NumEntriesIdentifier,
+						PCGExTypeOps::FTypeOps<T>::template ConvertFrom<double>(NumEntries));
 				}
 			});
 		}
@@ -263,7 +273,7 @@ namespace PCGExWriteIndex
 			PCGEx::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->CollectionIndexIdentifier, PCGEx::Convert<int32, T>(BatchIndex));
+				PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->CollectionIndexIdentifier, PCGExTypes::Convert<int32, T>(BatchIndex));
 			});
 		}
 
@@ -274,11 +284,11 @@ namespace PCGExWriteIndex
 				using T = decltype(DummyValue);
 				if (Settings->bNormalizeNumEntries)
 				{
-					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGEx::Convert<double, T>(static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries));
+					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGExTypes::Convert<double, T>(static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries));
 				}
 				else
 				{
-					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGEx::Convert<int32, T>(PointDataFacade->GetNum()));
+					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGExTypes::Convert<int32, T>(PointDataFacade->GetNum()));
 				}
 			});
 		}

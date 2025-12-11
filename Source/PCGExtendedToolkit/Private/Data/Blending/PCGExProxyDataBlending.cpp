@@ -3,6 +3,7 @@
 
 #include "Data/Blending/PCGExProxyDataBlending.h"
 
+#include "PCGExTypes.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
@@ -107,7 +108,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 
 #define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) \
 	template <typename T_WORKING>\
-	void IProxyDataBlender<T_WORKING>::Set##_NAME(const int32 TargetIndex, const _TYPE Value) const { C->Set(TargetIndex, PCGEx::Convert<_TYPE, T_WORKING>(Value)); };
+	void IProxyDataBlender<T_WORKING>::Set##_NAME(const int32 TargetIndex, const _TYPE Value) const { C->Set(TargetIndex, PCGExTypes::Convert<_TYPE, T_WORKING>(Value)); };
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 

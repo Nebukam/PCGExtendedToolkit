@@ -6,7 +6,7 @@
 #include "PCGExMath.h"
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
-#include "Data/Blending/PCGExBlendMinMax.h"
+#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExCluster.h"
 
@@ -111,7 +111,7 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 	TArray<double> Sizes;
 	Sizes.SetNum(NumAdjacency);
 	double MaxSize = 0;
-
+	
 	for (int i = 0; i < NumAdjacency; i++)
 	{
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
@@ -121,8 +121,8 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 		MaxSize = FMath::Max(MaxSize, (Sizes[i] = bUseSize ? A.Length : 1));
 
 		AverageDirection += A.Direction;
-		MinAmplitude = PCGExBlend::Min(MinAmplitude, DirAndSize);
-		MaxAmplitude = PCGExBlend::Max(MaxAmplitude, DirAndSize);
+		MinAmplitude = PCGExDataBlending::BlendFunctions::Min(DirAndSize, MinAmplitude, 1);
+		MaxAmplitude = PCGExDataBlending::BlendFunctions::Max(DirAndSize, MaxAmplitude, 1);
 	}
 
 	const FVector AmplitudeRange = MaxAmplitude - MinAmplitude;

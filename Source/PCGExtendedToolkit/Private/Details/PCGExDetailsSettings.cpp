@@ -7,10 +7,10 @@
 #include "PCGEx.h"
 #include "Details/PCGExMacros.h"
 #include "PCGExCommon.h"
+#include "PCGExTypes.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExValueHash.h"
 
 namespace PCGExDetails
 {
@@ -73,7 +73,7 @@ namespace PCGExDetails
 	bool TSettingValueConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax) { return true; }
 
 	template <typename T>
-	uint32 TSettingValueConstant<T>::ReadValueHash(const int32 Index) { return PCGExBlend::ValueHash(Constant); }
+	uint32 TSettingValueConstant<T>::ReadValueHash(const int32 Index) { return PCGExTypes::ComputeHash(Constant); }
 
 	template <typename T>
 	bool TSettingValueSelectorConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)

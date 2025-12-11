@@ -366,15 +366,6 @@ namespace PCGExAttributeStats
 				DefaultValue = Buffer->GetTypedInAttribute()->GetValueFromItemKey(PCGDefaultValueKey);
 				int32 NumValues = 0;
 
-				/*
-				auto ProcessBasics = [&](const T& InValue)
-				{
-					MinValue = PCGExBlend::Min(MinValue, InValue);
-					MaxValue = PCGExBlend::Max(MaxValue, InValue);
-					AverageValue = PCGExBlend::Add(AverageValue, InValue);
-				};
-				*/
-
 				for (int i = 0; i < NumPoints; i++)
 				{
 					if (!Filter[i]) { continue; }

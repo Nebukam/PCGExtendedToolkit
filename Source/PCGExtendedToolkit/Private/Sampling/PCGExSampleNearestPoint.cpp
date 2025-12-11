@@ -6,14 +6,15 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsSettings.h"
 
@@ -64,14 +65,6 @@ bool UPCGExSampleNearestPointSettings::IsPinUsedByNodeExecution(const UPCGPin* I
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
-void FPCGExSampleNearestPointContext::RegisterAssetDependencies()
-{
-	PCGEX_SETTINGS_LOCAL(SampleNearestPoint)
-
-	FPCGExPointsProcessorContext::RegisterAssetDependencies();
-	AddAssetDependency(Settings->WeightOverDistance.ToSoftObjectPath());
-}
-
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 
 PCGExData::EIOInit UPCGExSampleNearestPointSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
@@ -118,25 +111,18 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
 
-	return true;
-}
-
-void FPCGExSampleNearestPointElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPoint)
-
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
 
 	if (!Settings->bUseLocalCurve)
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+	
+	return true;
 }
 
 bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -345,7 +331,7 @@ namespace PCGExSampleNearestPoint
 
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-
+		
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
@@ -465,11 +451,11 @@ namespace PCGExSampleNearestPoint
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform,TargetTransform, W);
 
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					PCGExBlend::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
+					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp,Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
@@ -482,7 +468,7 @@ namespace PCGExSampleNearestPoint
 			if (SampleTracker.Weight != 0) // Dodge NaN
 			{
 				WeightedUp /= SampleTracker.Weight;
-				WeightedTransform = PCGExBlend::Div(WeightedTransform, SampleTracker.Weight);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform,WeightedTransform, SampleTracker.Weight);
 			}
 
 			WeightedUp.Normalize();

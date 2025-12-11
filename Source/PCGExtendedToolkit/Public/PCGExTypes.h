@@ -3,141 +3,10 @@
 
 #pragma once
 
-/**
- * PCGExTypeOps - Unified Type Operations System
- * 
- * This header provides the complete, refactored type operations system.
- * Include this single header to get access to:
- * 
- * - Type conversion (FConversionTable)
- * - Type-erased operations (ITypeOpsBase, FTypeOpsFactory)
- * - Blend operations (IBlendOperation, FBlendOperationFactory)
- * - Type-erased buffers (FTypeErasedBuffer, FBufferFactory)
- * 
- * === COMPILATION TIME SAVINGS ===
- * 
- * Before (old system):
- * - TProxyDataBlender<T, MODE, bool>: 616 instantiations (14 types × 22 modes × 2 bools)
- * - TAttributeBufferProxy<T_REAL, T_WORKING>: 196 instantiations (14 × 14 type pairs)
- * - ConvertFrom* templates: 196 if-constexpr chains parsed per use
- * - Total: ~5,000+ template instantiations
- * 
- * After (new system):
- * - TBlendOperationImpl<T>: 14 instantiations
- * - FTypeErasedBuffer: 1 class + 14 accessor functions
- * - ConversionTable: 196 function pointers (populated once at startup)
- * - Total: ~200 template instantiations
- * 
- * Expected build time reduction: 40-60% for full rebuilds, 70-80% for incremental
- * 
- * === MIGRATION GUIDE ===
- * 
- * 1. Replace TProxyDataBlender with IBlendOperation:
- * 
- *    // OLD:
- *    TProxyDataBlender<double, EPCGExABBlendingType::Lerp, true> Blender;
- *    Blender.Init(Context, ...);
- *    Blender.Blend(IdxA, IdxB, IdxC, Weight);
- *    
- *    // NEW:
- *    auto Blender = FBlendOperationFactory::Create(
- *        EPCGMetadataTypes::Double,
- *        EPCGExABBlendingType::Lerp,
- *        true);
- *    // Or use the pool for caching:
- *    auto Blender = FBlenderPool::GetGlobal().Get(...);
- *    
- *    alignas(16) uint8 A[64], B[64], C[64];
- *    // ... fill A, B ...
- *    Blender->Blend(A, B, Weight, C);
- * 
- * 2. Replace TAttributeBufferProxy with FTypeErasedBuffer:
- * 
- *    // OLD:
- *    TAttributeBufferProxy<int32, double> Proxy;
- *    double Value = Proxy.Get(Index);
- *    
- *    // NEW:
- *    auto Buffer = FBufferFactory::CreateFromAttribute(Attribute, EPCGMetadataTypes::Double);
- *    double Value = Buffer->Get<double>(Index);
- * 
- * 3. Replace direct type conversions:
- * 
- *    // OLD:
- *    double Result = PCGExBroadcast::ConvertFromInt32<double>(IntValue);
- *    
- *    // NEW (type-safe):
- *    double Result = PCGExTypeOps::Convert<int32, double>(IntValue);
- *    
- *    // NEW (runtime types):
- *    PCGExTypeOps::FConversionTableImpl::Convert(
- *        EPCGMetadataTypes::Integer32, &IntValue,
- *        EPCGMetadataTypes::Double, &Result);
- * 
- * 4. Use FTypeOps<T> for type-specific operations:
- * 
- *    // Direct use when type is known at compile time:
- *    double Sum = PCGExTypeOps::FTypeOps<double>::Add(A, B);
- *    double Interpolated = PCGExTypeOps::FTypeOps<double>::Lerp(A, B, Alpha);
- *    
- *    // Via type-erased interface when type is runtime:
- *    const auto* Ops = PCGExTypeOps::FTypeOpsFactory::Get(RuntimeType);
- *    Ops->Add(&A, &B, &Result);
- * 
- * === USAGE PATTERNS ===
- * 
- * Pattern 1: Known types at compile time
- * ----------------------------------------
- * When you know both the source and target types at compile time,
- * use the template wrappers for zero-overhead access:
- * 
- *    double Result = PCGExTypeOps::Convert<FVector, double>(VectorValue);
- *    double Hash = PCGExTypeOps::ComputeHash<double>(Value);
- * 
- * Pattern 2: Runtime type dispatch
- * ---------------------------------
- * When types are determined at runtime, use the factory and table:
- * 
- *    EPCGMetadataTypes SrcType = GetSourceType();
- *    EPCGMetadataTypes DstType = GetDestType();
- *    
- *    PCGExTypeOps::FConversionTableImpl::Convert(SrcType, &Src, DstType, &Dst);
- * 
- * Pattern 3: Batch processing with cached operations
- * ---------------------------------------------------
- * For processing many values, cache the operation once:
- * 
- *    auto Ops = PCGExTypeOps::FTypeOpsFactory::Get(WorkingType);
- *    auto Converter = PCGExTypeOps::FConversionTableImpl::GetConverter(RealType, WorkingType);
- *    
- *    for (int32 i = 0; i < Count; ++i)
- *    {
- *        Converter(&RawBuffer[i * RealSize], &WorkingBuffer[i * WorkingSize]);
- *        Ops->Add(&WorkingBuffer[i * WorkingSize], &Other, &Result);
- *    }
- * 
- * Pattern 4: Blending with accumulation
- * --------------------------------------
- * For multi-source blending operations:
- * 
- *    auto BlendOp = FBlendOperationFactory::Create(Type, Mode, bReset);
- *    
- *    alignas(16) uint8 Accumulator[sizeof(FTransform)];
- *    BlendOp->BeginMulti(Accumulator);
- *    
- *    for (const auto& Source : Sources)
- *    {
- *        BlendOp->Accumulate(&Source.Value, Accumulator, Source.Weight);
- *        TotalWeight += Source.Weight;
- *    }
- *    
- *    BlendOp->EndMulti(Accumulator, TotalWeight, Sources.Num());
- */
-
 #include "CoreMinimal.h"
 
 // Core type operations
-#include "Types/PCGExTypeOperations.h"
+#include "Types/PCGExTypeOps.h"
 
 // Type-specific implementations
 #include "Types/PCGExTypeOpsNumeric.h"
@@ -152,9 +21,9 @@
 #include "Data/BlendOperations/PCGExBlendOperations.h"
 
 // Type-erased buffers
-#include "PCGExTypeErasedBuffer.h"
+//#include "PCGExTypeErasedBuffer.h"
 
-namespace PCGExType
+namespace PCGExTypes
 {
 	/**
 	 * Convenience functions for common operations

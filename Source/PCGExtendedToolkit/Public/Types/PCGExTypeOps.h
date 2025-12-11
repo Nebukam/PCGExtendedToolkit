@@ -30,9 +30,7 @@ namespace PCGExTypeOps
 	template<typename T>
 	struct FTypeOps;
 
-	//////////////////////////////////////////////////////////////////////////
 	// Type Traits - Compile time type classification
-	//////////////////////////////////////////////////////////////////////////
 	
 	template<typename T>
 	struct TTypeTraits
@@ -231,9 +229,7 @@ namespace PCGExTypeOps
 		static constexpr int32 NumComponents = 1;
 	};
 
-	//////////////////////////////////////////////////////////////////////////
 	// Type-Erased Operation Interface
-	//////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Type-erased interface for all type operations.
@@ -294,9 +290,7 @@ namespace PCGExTypeOps
 		virtual void BlendWeight(const void* A, const void* B, double Weight, void* Out) const = 0;
 	};
 
-	//////////////////////////////////////////////////////////////////////////
 	// Type Operations Registry
-	//////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Global registry for type operations.
@@ -329,9 +323,7 @@ namespace PCGExTypeOps
 		static bool bInitialized;
 	};
 
-	//////////////////////////////////////////////////////////////////////////
 	// Conversion Function Pointer Types
-	//////////////////////////////////////////////////////////////////////////
 
 	// Function pointer type for conversion: void Convert(const void* Src, void* Dst)
 	using FConvertFn = void(*)(const void* Src, void* Dst);
@@ -359,9 +351,7 @@ namespace PCGExTypeOps
 		static bool bInitialized;
 	};
 
-	//////////////////////////////////////////////////////////////////////////
 	// Blend Function Pointer Types
-	//////////////////////////////////////////////////////////////////////////
 
 	// Standard blend: C = Blend(A, B)
 	using FBlendBinaryFn = void(*)(const void* A, const void* B, void* Out);
@@ -370,9 +360,7 @@ namespace PCGExTypeOps
 	// Scalar blend: C = Blend(A, Scalar)
 	using FBlendScalarFn = void(*)(const void* A, double Scalar, void* Out);
 
-	//////////////////////////////////////////////////////////////////////////
 	// Type-Safe Wrapper Templates
-	//////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Type-safe conversion wrapper that uses the type-erased system.
@@ -397,4 +385,4 @@ namespace PCGExTypeOps
 		return Ops->ComputeHash(&Value);
 	}
 
-} // namespace PCGExTypeOps
+}
