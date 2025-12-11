@@ -131,7 +131,7 @@ namespace PCGExAttributesToTags
 
 		void Tag(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void TagWithPickers(const FPCGExAttributeToTagDetails& InDetails);
 		virtual void Output() override;
 	};

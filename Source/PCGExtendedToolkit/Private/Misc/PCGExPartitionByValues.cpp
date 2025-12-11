@@ -191,9 +191,9 @@ bool FPCGExPartitionByValuesBaseElement::AdvanceWork(FPCGExContext* InContext, c
 
 namespace PCGExPartitionByValuesBase
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bSplitOutput ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::Duplicate)
 
@@ -349,7 +349,7 @@ namespace PCGExPartitionByValuesBase
 			for (int i = 0; i < KeySums.Num(); i++) { KeySumWriter->SetValue(i, KeySums[i]); }
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

@@ -99,7 +99,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	SeedForwardHandler->Forward(Query->Seed.Point.Index, PathDataFacade);
 	GoalForwardHandler->Forward(Query->Goal.Point.Index, PathDataFacade);
 
-	PathDataFacade->WriteFastest(GetAsyncManager());
+	PathDataFacade->WriteFastest(GetTaskManager());
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
@@ -202,11 +202,11 @@ namespace PCGExPathfindingEdges
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingEdges::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->bUseOctreeSearch)
 		{

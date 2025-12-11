@@ -196,7 +196,7 @@ namespace PCGExWaitForPCGData
 
 		const TWeakPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			if (const TSharedPtr<FProcessor> P = Processor.Pin()) { P->StageComponentData(TaskIndex); }
 		}
@@ -206,11 +206,11 @@ namespace PCGExWaitForPCGData
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		TemplateGraph = Context->GraphInstances[PointDataFacade->Source->IOIndex];
 
@@ -227,7 +227,7 @@ namespace PCGExWaitForPCGData
 		WatcherTracker = MakeShared<PCGEx::FIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
 		                                                {
 			                                                PCGEX_ASYNC_THIS
-			                                                This->WatchToken = This->AsyncManager->TryCreateToken(FName("Watch"));
+			                                                This->WatchToken = This->TaskManager->TryCreateToken(FName("Watch"));
 		                                                }, [PCGEX_ASYNC_THIS_CAPTURE]()
 		                                                {
 			                                                PCGEX_ASYNC_THIS
@@ -268,7 +268,7 @@ namespace PCGExWaitForPCGData
 		if (Settings->bWaitForMissingActors)
 		{
 			StartTime = Context->GetWorld()->GetTimeSeconds();
-			SearchActorsToken = AsyncManager->TryCreateToken(FName("SearchActors"));
+			SearchActorsToken = TaskManager->TryCreateToken(FName("SearchActors"));
 			if (!SearchActorsToken.IsValid()) { return false; }
 			GatherActors();
 		}
@@ -303,7 +303,7 @@ namespace PCGExWaitForPCGData
 	void FProcessor::GatherActors()
 	{
 		if (!SearchActorsToken.IsValid()) { return; }
-		if (!AsyncManager->IsAvailable())
+		if (!TaskManager->IsAvailable())
 		{
 			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 			return;
@@ -354,7 +354,7 @@ namespace PCGExWaitForPCGData
 	void FProcessor::GatherComponents()
 	{
 		if (!SearchComponentsToken.IsValid()) { return; }
-		if (!AsyncManager->IsAvailable())
+		if (!TaskManager->IsAvailable())
 		{
 			StopComponentSearch();
 			return;
@@ -373,7 +373,7 @@ namespace PCGExWaitForPCGData
 
 	void FProcessor::StartComponentSearch()
 	{
-		SearchComponentsToken = AsyncManager->TryCreateToken(FName("SearchComponents"));
+		SearchComponentsToken = TaskManager->TryCreateToken(FName("SearchComponents"));
 		if (!SearchComponentsToken.IsValid()) { return; }
 
 		StartTime = Context->GetWorld()->GetTimeSeconds();
@@ -405,7 +405,7 @@ namespace PCGExWaitForPCGData
 	void FProcessor::InspectGatheredComponents()
 	{
 		if (!SearchComponentsToken.IsValid()) { return; }
-		if (!AsyncManager->IsAvailable())
+		if (!TaskManager->IsAvailable())
 		{
 			StopComponentSearch();
 			return;

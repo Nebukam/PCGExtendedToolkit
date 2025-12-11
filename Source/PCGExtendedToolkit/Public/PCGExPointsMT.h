@@ -49,12 +49,12 @@ namespace PCGExPointsMT
 #define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY, _JIT)\
 	PCGEX_CHECK_WORK_HANDLE_VOID\
 	if (_INLINE_CONDITION)  { \
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID) \
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, _ID) \
 		_ID->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS const TSharedRef<IProcessor>& Processor = This->Processors[Index]; _BODY }; \
 		_JIT\
 		_ID->StartIterations( Processors.Num(), 1, true);\
 	} else {\
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID)\
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, _ID)\
 		_ID->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS \
 		const TSharedRef<IProcessor>& Processor = This->Processors[Index]; _BODY }; \
 		_JIT\
@@ -64,7 +64,7 @@ namespace PCGExPointsMT
 #define PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
 	PCGEX_CHECK_WORK_HANDLE_VOID\
 	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
-	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopFor##_NAME) \
+	PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ParallelLoopFor##_NAME) \
 	ParallelLoopFor##_NAME->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]() { PCGEX_ASYNC_THIS This->_COMPLETE(); }; \
 	ParallelLoopFor##_NAME->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops) { PCGEX_ASYNC_THIS This->_PREPARE(Loops); }; \
 	ParallelLoopFor##_NAME->OnSubLoopStartCallback =[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS This->_PROCESS(Scope); }; \
@@ -81,7 +81,7 @@ namespace PCGExPointsMT
 		friend class IBatch;
 
 	protected:
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 		FPCGExContext* ExecutionContext = nullptr;
 		UPCGSettings* ExecutionSettings = nullptr;
 
@@ -97,7 +97,7 @@ namespace PCGExPointsMT
 
 	public:
 		TWeakPtr<IBatch> ParentBatch;
-		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
+		TSharedPtr<PCGExMT::FTaskManager> GetTaskManager() { return TaskManager; }
 
 		bool bIsProcessorValid = false;
 		int32 BatchIndex = -1;
@@ -127,9 +127,9 @@ namespace PCGExPointsMT
 
 		virtual void RegisterConsumableAttributesWithFacade() const;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader);
-		void PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup);
+		void PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup);
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager);
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager);
 
 
 #pragma region Parallel loop for points
@@ -190,7 +190,7 @@ namespace PCGExPointsMT
 	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FilterFactories = nullptr;
 
 		virtual TSharedPtr<IProcessor> NewProcessorInstance(const TSharedRef<PCGExData::FFacade>& InPointDataFacade) const;
@@ -239,7 +239,7 @@ namespace PCGExPointsMT
 		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories) { FilterFactories = InFilterFactories; }
 
 		virtual bool PrepareProcessing();
-		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager);
+		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager);
 
 	protected:
 		virtual void OnInitialPostProcess();
@@ -276,5 +276,5 @@ namespace PCGExPointsMT
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch);
+	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch);
 }

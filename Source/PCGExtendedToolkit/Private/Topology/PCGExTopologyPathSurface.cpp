@@ -80,11 +80,11 @@ bool FPCGExTopologyPathSurfaceElement::AdvanceWork(FPCGExContext* InContext, con
 
 namespace PCGExTopologyPathSurface
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		PointDataFacade->bSupportsScopedGet = false; //Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 

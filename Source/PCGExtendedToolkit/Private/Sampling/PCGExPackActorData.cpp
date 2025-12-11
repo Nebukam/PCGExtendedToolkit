@@ -282,11 +282,11 @@ namespace PCGExPackActorData
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPackActorData::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
@@ -354,7 +354,7 @@ namespace PCGExPackActorData
 		}
 		else
 		{
-			PCGExHelpers::Load(AsyncManager, [PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
+			PCGExHelpers::Load(TaskManager, [PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
 			                   {
 				                   PCGEX_ASYNC_THIS_RET({})
 				                   return This->Packer->RequiredAssetsPaths.Array();
@@ -390,7 +390,7 @@ namespace PCGExPackActorData
 				Packer->ProcessEntry(ActorRef, Point, Index, Point);
 			};
 
-			PCGEX_ASYNC_HANDLE_CHKD_VOID(AsyncManager, MainThreadLoop)
+			PCGEX_ASYNC_HANDLE_CHKD_VOID(TaskManager, MainThreadLoop)
 		}
 		else
 		{
@@ -438,7 +438,7 @@ namespace PCGExPackActorData
 			Attributes.Add(Buffer->OutAttribute);
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Write()

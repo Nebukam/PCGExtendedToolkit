@@ -126,5 +126,5 @@ public:
 	}
 
 	TSharedPtr<PCGExData::FPointIO> PointIO;
-	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 };

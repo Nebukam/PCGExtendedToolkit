@@ -204,9 +204,9 @@ namespace PCGExPathfinding
 		}
 	}
 
-	void FPlotQuery::FindPaths(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler)
+	void FPlotQuery::FindPaths(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler)
 	{
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PlotTasks)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, PlotTasks)
 
 		LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 

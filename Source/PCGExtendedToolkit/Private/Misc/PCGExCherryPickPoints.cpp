@@ -66,11 +66,11 @@ bool FPCGExCherryPickPointsElement::AdvanceWork(FPCGExContext* InContext, const 
 
 namespace PCGExCherryPickPoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCherryPickPoints::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PointDataFacade->Source->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
 

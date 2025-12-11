@@ -174,13 +174,13 @@ namespace PCGExFilterVtx
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFilterVtx::Process);
 
 		bAllowEdgesDataFacadeScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (!VtxFiltersManager)
 		{
@@ -425,7 +425,7 @@ namespace PCGExFilterVtx
 
 	void FBatch::Write()
 	{
-		VtxDataFacade->WriteFastest(AsyncManager);
+		VtxDataFacade->WriteFastest(TaskManager);
 	}
 }
 

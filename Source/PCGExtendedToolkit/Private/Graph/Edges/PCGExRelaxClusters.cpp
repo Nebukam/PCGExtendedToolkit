@@ -81,11 +81,11 @@ namespace PCGExRelaxClusters
 		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRelaxClusters::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, VtxDataFacade)) { return false; }
@@ -122,7 +122,7 @@ namespace PCGExRelaxClusters
 
 		if (VtxFiltersManager)
 		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, VtxTesting)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, VtxTesting)
 
 			VtxTesting->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -165,7 +165,7 @@ namespace PCGExRelaxClusters
 
 		StepSource = RelaxOperation->PrepareNextStep(CurrentStep);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, IterationGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, IterationGroup)
 
 		IterationGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -304,7 +304,7 @@ namespace PCGExRelaxClusters
 	void FBatch::Write()
 	{
 		TBatch<FProcessor>::Write();
-		VtxDataFacade->WriteFastest(AsyncManager);
+		VtxDataFacade->WriteFastest(TaskManager);
 	}
 }
 

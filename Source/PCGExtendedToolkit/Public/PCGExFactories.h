@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "PCGCommon.h"
 #include "PCGExFactories.generated.h"
 
 ///

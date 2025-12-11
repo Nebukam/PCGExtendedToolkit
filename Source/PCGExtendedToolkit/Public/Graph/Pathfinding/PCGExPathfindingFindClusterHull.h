@@ -106,7 +106,7 @@ namespace PCGExFindClusterHull
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell);
 	};
 }

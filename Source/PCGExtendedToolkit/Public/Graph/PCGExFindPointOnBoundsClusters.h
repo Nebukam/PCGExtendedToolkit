@@ -131,7 +131,7 @@ namespace PCGExFindPointOnBoundsClusters
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void UpdateCandidate(const FVector& InPosition, const int32 InIndex);
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;

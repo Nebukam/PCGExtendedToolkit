@@ -86,11 +86,11 @@ namespace PCGEx
 		return false;
 	}
 
-	void FAttributeHasher::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FSimpleCallback&& InCallback)
+	void FAttributeHasher::Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, PCGExMT::FSimpleCallback&& InCallback)
 	{
 		CompleteCallback = InCallback;
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CompileHash)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CompileHash)
 		CompileHash->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS

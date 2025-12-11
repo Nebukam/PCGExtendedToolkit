@@ -83,11 +83,11 @@ bool FPCGExSelfPruningElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 namespace PCGExSelfPruning
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSelfPruning::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->PrimaryMode != EPCGExSelfPruningExpandOrder::None)
 		{
@@ -353,7 +353,7 @@ namespace PCGExSelfPruning
 	{
 		if (Settings->Mode == EPCGExSelfPruningMode::WriteResult)
 		{
-			PointDataFacade->WriteFastest(AsyncManager);
+			PointDataFacade->WriteFastest(TaskManager);
 			return;
 		}
 

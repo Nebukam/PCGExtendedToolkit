@@ -49,7 +49,7 @@
 #define PCGEX_ASYNC_CHKD_VOID(_MANAGER) if (!_MANAGER->IsAvailable()) { return; }
 #define PCGEX_ASYNC_CHKD(_MANAGER) if (!_MANAGER->IsAvailable()) { return false; }
 
-#define PCGEX_LAUNCH(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); AsyncManager->Launch(Task);
+#define PCGEX_LAUNCH(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); TaskManager->Launch(Task);
 #define PCGEX_LAUNCH_INTERNAL(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); Launch(Task);
 
 #define PCGEX_SCOPE_LOOP(_VAR) for(int _VAR = Scope.Start; _VAR < Scope.End; _VAR++)
@@ -346,7 +346,7 @@ namespace PCGExMT
 
 	public:
 		FTask() = default;
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) = 0;
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& TaskManager) = 0;
 
 	protected:
 		void Launch(const TSharedPtr<FTask>& InTask, const bool bIsExpected = false) const;
@@ -378,7 +378,7 @@ namespace PCGExMT
 		{
 		}
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& TaskManager) override;
 	};
 
 	class FScopeIterationTask : public FTask
@@ -389,7 +389,7 @@ namespace PCGExMT
 		FScope Scope = FScope{};
 		int32 NumIterations = -1;
 
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& TaskManager) override;
 	};
 
 	// Main thread execution

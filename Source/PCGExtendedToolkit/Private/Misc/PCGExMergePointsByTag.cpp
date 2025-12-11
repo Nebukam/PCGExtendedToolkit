@@ -16,7 +16,7 @@ namespace PCPGExMergePointsByTag
 	{
 	}
 
-	void FMergeList::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
+	void FMergeList::Merge(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const FPCGExCarryOverDetails* InCarryOverDetails)
 	{
 		if (IOs.IsEmpty()) { return; }
 
@@ -27,12 +27,12 @@ namespace PCPGExMergePointsByTag
 
 		Merger = MakeShared<FPCGExPointIOMerger>(CompositeDataFacade.ToSharedRef());
 		Merger->Append(IOs);
-		Merger->MergeAsync(AsyncManager, InCarryOverDetails);
+		Merger->MergeAsync(TaskManager, InCarryOverDetails);
 	}
 
-	void FMergeList::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const
+	void FMergeList::Write(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) const
 	{
-		CompositeDataFacade->WriteFastest(AsyncManager);
+		CompositeDataFacade->WriteFastest(TaskManager);
 	}
 
 	FTagBucket::FTagBucket(const FString& InTag)
@@ -282,14 +282,14 @@ bool FPCGExMergePointsByTagElement::AdvanceWork(FPCGExContext* InContext, const 
 		}
 
 		{
-			TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+			TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 			Context->SetState(PCPGExMergePointsByTag::State_MergingData);
-			PCGEX_ASYNC_GROUP_CHKD_RET(AsyncManager, MergeAsync, true)
+			PCGEX_ASYNC_GROUP_CHKD_RET(TaskManager, MergeAsync, true)
 
-			if (Context->FallbackMergeList) { Context->FallbackMergeList->Merge(AsyncManager, &Context->CarryOverDetails); }
+			if (Context->FallbackMergeList) { Context->FallbackMergeList->Merge(TaskManager, &Context->CarryOverDetails); }
 			for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists)
 			{
-				MergeAsync->AddSimpleCallback([List, AsyncManager, Det = Context->CarryOverDetails] { List->Merge(AsyncManager, &Det); });
+				MergeAsync->AddSimpleCallback([List, TaskManager, Det = Context->CarryOverDetails] { List->Merge(TaskManager, &Det); });
 			}
 
 			MergeAsync->StartSimpleCallbacks();
@@ -300,9 +300,9 @@ bool FPCGExMergePointsByTagElement::AdvanceWork(FPCGExContext* InContext, const 
 	{
 		Context->SetState(PCGExCommon::State_Writing);
 
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
-		PCGEX_SCHEDULING_SCOPE(AsyncManager, true)
-		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(AsyncManager); }
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
+		PCGEX_SCHEDULING_SCOPE(TaskManager, true)
+		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(TaskManager); }
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_Writing)

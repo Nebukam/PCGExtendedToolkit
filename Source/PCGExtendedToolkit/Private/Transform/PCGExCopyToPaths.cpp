@@ -160,13 +160,13 @@ bool FPCGExCopyToPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 namespace PCGExCopyToPaths
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCopyToPaths::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		AxisTransform = PCGExMath::GetIdentity(Settings->AxisOrder);
 
@@ -335,7 +335,7 @@ namespace PCGExCopyToPaths
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BuildSplines)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BuildSplines)
 
 		BuildSplines->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{

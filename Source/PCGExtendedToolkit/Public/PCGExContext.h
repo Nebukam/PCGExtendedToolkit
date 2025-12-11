@@ -80,7 +80,7 @@ public:
 
 #pragma region State
 
-	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
+	TSharedPtr<PCGExMT::FTaskManager> GetTaskManager();
 
 	void PauseContext();
 	void UnpauseContext();
@@ -98,7 +98,7 @@ public:
 
 	bool IsWorkCancelled() const
 	{
-		return bWorkCancelled.load(std::memory_order_acquire) || (AsyncManager && AsyncManager->IsCancelled()) || !WorkHandle.IsValid();
+		return bWorkCancelled.load(std::memory_order_acquire) || (TaskManager && TaskManager->IsCancelled()) || !WorkHandle.IsValid();
 	}
 
 	void Done();
@@ -111,7 +111,7 @@ protected:
 	std::atomic<bool> bWorkCompleted{false};
 	std::atomic<bool> bWorkCancelled{false};
 
-	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+	TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 
 	void OnAsyncWorkEnd(const bool bWasCancelled);
 	virtual void OnComplete();

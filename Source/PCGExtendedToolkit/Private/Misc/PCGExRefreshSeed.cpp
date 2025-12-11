@@ -33,7 +33,7 @@ public:
 
 	const TSharedPtr<PCGExData::FPointIO> PointIO;
 
-	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 	{
 		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
 
@@ -54,7 +54,7 @@ bool FPCGExRefreshSeedElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		while (Context->AdvancePointsIO(false))
 		{
 			PCGEX_LAUNCH(FPCGExRefreshSeedTask, Settings->Base + Context->CurrentIO->IOIndex, Context->CurrentIO)

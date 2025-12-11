@@ -81,11 +81,11 @@ bool FPCGExCopyToPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 namespace PCGExCopyToPoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCopyToPoints::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		MatchScope = PCGExMatching::FMatchingScope(Context->InitialMainPointsNum);
 

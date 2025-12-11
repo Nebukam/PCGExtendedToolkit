@@ -40,7 +40,7 @@ namespace PCGExGraphTask
 
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			if (!GraphBuilder || !GraphBuilder->bCompiledSuccessfully) { return; }
 
@@ -85,9 +85,9 @@ namespace PCGExMeshToCluster
 
 		TSharedPtr<PCGExGeo::FGeoStaticMesh> Mesh;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			FPCGExMeshToClustersContext* Context = AsyncManager->GetContext<FPCGExMeshToClustersContext>();
+			FPCGExMeshToClustersContext* Context = TaskManager->GetContext<FPCGExMeshToClustersContext>();
 			PCGEX_SETTINGS(MeshToClusters)
 
 			switch (Mesh->DesiredTriangulationType)
@@ -428,7 +428,7 @@ namespace PCGExMeshToCluster
 				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->EdgesIO->Pairs);
 			};
 
-			GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);
+			GraphBuilder->CompileAsync(Context->GetTaskManager(), true);
 		}
 	};
 }
@@ -608,7 +608,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		Context->GraphBuilders.SetNum(GSMNums);
 		for (int i = 0; i < GSMNums; i++) { Context->GraphBuilders[i] = nullptr; }
 
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); i++)
 		{
 			PCGEX_LAUNCH(PCGExMeshToCluster::FExtractMeshAndBuildGraph, i, Context->StaticMeshMap->GSMs[i])
@@ -622,7 +622,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 
 		const int32 NumTargets = Context->CurrentIO->GetIn()->GetNumPoints();
 		for (int i = 0; i < NumTargets; i++)

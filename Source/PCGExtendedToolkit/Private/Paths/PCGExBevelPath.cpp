@@ -343,14 +343,14 @@ namespace PCGExBevelPath
 
 	double FProcessor::Len(const int32 Index) const { return PathLength->Get(Index); }
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
@@ -415,7 +415,7 @@ namespace PCGExBevelPath
 
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, Preparation)
 
 		Preparation->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -652,11 +652,11 @@ namespace PCGExBevelPath
 			SubdivisionWriter = PointDataFacade->GetWritable<bool>(Settings->SubdivisionFlagName, false, true, PCGExData::EBufferInit::New);
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, WriteFlagsTask)
 		WriteFlagsTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
-			This->PointDataFacade->WriteFastest(This->AsyncManager);
+			This->PointDataFacade->WriteFastest(This->TaskManager);
 		};
 
 		WriteFlagsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)

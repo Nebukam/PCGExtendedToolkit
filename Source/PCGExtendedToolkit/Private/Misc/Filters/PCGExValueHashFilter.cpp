@@ -17,9 +17,9 @@ bool UPCGExValueHashFilterFactory::WantsPreparation(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	PCGExData::TryGetFacades(InContext, FName("Sets"), SetSources, false, true);
@@ -33,7 +33,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 	PCGEx::InitArray(Hashes, SetSources.Num());
 
 	TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
-	PCGEX_ASYNC_GROUP_CHKD_RET(AsyncManager, GrabUniqueValues, PCGExFactories::EPreparationResult::Fail)
+	PCGEX_ASYNC_GROUP_CHKD_RET(TaskManager, GrabUniqueValues, PCGExFactories::EPreparationResult::Fail)
 
 	GrabUniqueValues->OnCompleteCallback = [CtxHandle, this]()
 	{

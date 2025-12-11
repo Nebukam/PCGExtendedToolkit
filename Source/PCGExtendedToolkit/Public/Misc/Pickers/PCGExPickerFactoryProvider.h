@@ -53,7 +53,7 @@ public:
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const;
 
 	FPCGExPickerConfigBase BaseConfig;
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 
 protected:
 	virtual bool RequiresInputs() const;

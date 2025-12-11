@@ -206,7 +206,7 @@ namespace PCGExRefineEdges
 
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			auto RestoreEdge = [&](const int32 EdgeIndex)
 			{
@@ -273,13 +273,13 @@ namespace PCGExRefineEdges
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRefineEdges::Process);
 
 		EdgeFilterFactories = &Context->EdgeFilterFactories; // So filters can be initialized
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		Sanitization = Settings->Sanitization;
 
@@ -323,7 +323,7 @@ namespace PCGExRefineEdges
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, EdgeScopeLoop)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, EdgeScopeLoop)
 
 			EdgeScopeLoop->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -380,7 +380,7 @@ namespace PCGExRefineEdges
 	{
 		if (!Settings->bRestoreEdgesThatConnectToValidNodes) { return; }
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InvalidateNodes)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, InvalidateNodes)
 
 		InvalidateNodes->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
@@ -395,7 +395,7 @@ namespace PCGExRefineEdges
 		InvalidateNodes->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
-			PCGEX_ASYNC_GROUP_CHKD_VOID(This->AsyncManager, RestoreEdges)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(This->TaskManager, RestoreEdges)
 			RestoreEdges->OnSubLoopStartCallback = [AsyncThis](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_NESTED_THIS
@@ -418,7 +418,7 @@ namespace PCGExRefineEdges
 
 	void FProcessor::Sanitize()
 	{
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SanitizeTaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, SanitizeTaskGroup)
 
 		Cluster->GetBoundedEdges(true); //Oof
 
@@ -510,7 +510,7 @@ namespace PCGExRefineEdges
 			}
 
 
-			EdgeDataFacade->WriteFastest(AsyncManager);
+			EdgeDataFacade->WriteFastest(TaskManager);
 		}
 		else if (Settings->Mode == EPCGExRefineEdgesOutput::Points)
 		{
@@ -588,7 +588,7 @@ namespace PCGExRefineEdges
 
 	void FBatch::Write()
 	{
-		VtxDataFacade->WriteFastest(AsyncManager);
+		VtxDataFacade->WriteFastest(TaskManager);
 	}
 }
 

@@ -62,13 +62,13 @@ namespace PCGExEdgeOrder
 		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, false, true, true);
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExEdgeOrder::Process);
 
 		EdgeDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade))
 		{
@@ -109,7 +109,7 @@ namespace PCGExEdgeOrder
 
 	void FProcessor::CompleteWork()
 	{
-		EdgeDataFacade->WriteFastest(AsyncManager);
+		EdgeDataFacade->WriteFastest(TaskManager);
 		ForwardCluster();
 	}
 

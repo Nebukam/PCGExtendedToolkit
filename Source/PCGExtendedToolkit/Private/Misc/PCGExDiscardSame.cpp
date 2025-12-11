@@ -66,11 +66,11 @@ bool FPCGExDiscardSameElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 namespace PCGExDiscardSame
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
@@ -80,7 +80,7 @@ namespace PCGExDiscardSame
 		{
 			Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->AttributeHashConfig);
 			if (!Hasher->Init(Context, PointDataFacade)) { return false; }
-			if (Hasher->RequiresCompilation()) { Hasher->Compile(AsyncManager, nullptr); }
+			if (Hasher->RequiresCompilation()) { Hasher->Compile(TaskManager, nullptr); }
 		}
 
 		TSet<uint64> PositionHashes;

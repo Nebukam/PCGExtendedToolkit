@@ -42,8 +42,8 @@ namespace PCPGExMergePointsByTag
 		FMergeList();
 		~FMergeList() = default;
 
-		void Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
-		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const;
+		void Merge(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const FPCGExCarryOverDetails* InCarryOverDetails);
+		void Write(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) const;
 	};
 
 	class FTagBucket

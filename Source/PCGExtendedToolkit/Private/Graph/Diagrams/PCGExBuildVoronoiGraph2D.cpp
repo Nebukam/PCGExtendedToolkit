@@ -161,11 +161,11 @@ namespace PCGExBuildVoronoiGraph2D
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoiGraph2D::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
@@ -393,11 +393,11 @@ namespace PCGExBuildVoronoiGraph2D
 		Voronoi.Reset();
 
 		GraphBuilder->bInheritNodeData = false;
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 
 		if (Settings->bOutputSites)
 		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, OutputSites)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, OutputSites)
 
 			OutputSites->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
@@ -440,7 +440,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 		if (SiteDataFacade)
 		{
-			SiteDataFacade->WriteFastest(AsyncManager);
+			SiteDataFacade->WriteFastest(TaskManager);
 			if (Settings->bPruneOpenSites)
 			{
 				const int32 Iterations = SiteDataFacade->GetOut()->GetNumPoints();
@@ -459,7 +459,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()

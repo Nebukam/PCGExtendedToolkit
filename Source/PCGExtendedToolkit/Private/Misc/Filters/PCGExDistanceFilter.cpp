@@ -40,14 +40,14 @@ bool UPCGExDistanceFilterFactory::RegisterConsumableAttributesWithData(FPCGExCon
 	return true;
 }
 
-PCGExFactories::EPreparationResult UPCGExDistanceFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExDistanceFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
 	TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return PCGExFactories::EPreparationResult::MissingData; }
 
 	TargetsHandler->SetDistances(Config.DistanceDetails);
 
-	return Super::Prepare(InContext, AsyncManager);
+	return Super::Prepare(InContext, TaskManager);
 }
 
 void UPCGExDistanceFilterFactory::BeginDestroy()

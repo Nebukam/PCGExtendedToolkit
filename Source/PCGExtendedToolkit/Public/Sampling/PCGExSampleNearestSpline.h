@@ -531,7 +531,7 @@ namespace PCGExSampleNearestSpline
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		void SamplingFailed(const int32 Index, double InDepth = 0);
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;

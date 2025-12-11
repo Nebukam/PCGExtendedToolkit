@@ -54,11 +54,11 @@ namespace PCGExHelpers
 		}
 	}
 
-	void Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd)
+	void Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd)
 	{
-		check(AsyncManager);
+		check(TaskManager);
 
-		PCGExMT::ExecuteOnMainThread(AsyncManager, [GetPathsFunc, OnLoadEnd]()
+		PCGExMT::ExecuteOnMainThread(TaskManager, [GetPathsFunc, OnLoadEnd]()
 		{
 			TArray<FSoftObjectPath> Paths = GetPathsFunc();
 

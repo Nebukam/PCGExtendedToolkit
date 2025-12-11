@@ -352,7 +352,7 @@ namespace PCGExSampleSurfaceGuided
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 
 		void ProcessTraceResult(const PCGExMT::FScope& Scope, const FHitResult& HitResult, const int32 Index, const FVector& Origin, const FVector& Direction, PCGExData::FMutablePoint& MutablePoint);

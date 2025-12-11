@@ -131,9 +131,9 @@ namespace PCGExPickClosestClusters
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 
 		Cluster->RebuildOctree(Settings->SearchMode);
@@ -147,7 +147,7 @@ namespace PCGExPickClosestClusters
 		const int32 NumTargets = Context->TargetDataFacade->Source->GetNum();
 		PCGEx::InitArray(Distances, NumTargets);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessTargets)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ProcessTargets)
 
 		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Edge)
 		{

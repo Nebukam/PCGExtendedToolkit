@@ -122,11 +122,11 @@ namespace PCGExFuseClusters
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		VtxIOIndex = VtxDataFacade->Source->IOIndex;
 		EdgesIOIndex = EdgeDataFacade->Source->IOIndex;
@@ -160,7 +160,7 @@ namespace PCGExFuseClusters
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InsertEdges)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, InsertEdges)
 
 			InsertEdges->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 			{

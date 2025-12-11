@@ -182,7 +182,7 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		{
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 
-			if (!Context->CollectionsLoader->Start(Context->GetAsyncManager()))
+			if (!Context->CollectionsLoader->Start(Context->GetTaskManager()))
 			{
 				return Context->CancelExecution(TEXT("Failed to find any collections to load."));
 			}
@@ -248,14 +248,14 @@ bool FPCGExAssetStagingElement::CanExecuteOnlyOnMainThread(FPCGContext* Context)
 
 namespace PCGExAssetStaging
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAssetStaging::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -483,7 +483,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::CompleteWork()
 	{
-		if (SocketHelper) { SocketHelper->Compile(AsyncManager, PointDataFacade, Context->SocketsCollection); }
+		if (SocketHelper) { SocketHelper->Compile(TaskManager, PointDataFacade, Context->SocketsCollection); }
 
 		if (Context->bPickMaterials)
 		{
@@ -507,7 +507,7 @@ namespace PCGExAssetStaging
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
@@ -543,7 +543,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Write()

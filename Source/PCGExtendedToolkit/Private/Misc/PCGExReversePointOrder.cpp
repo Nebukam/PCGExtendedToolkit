@@ -108,7 +108,7 @@ namespace PCGExReversePointOrder
 		}
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
 
@@ -117,7 +117,7 @@ namespace PCGExReversePointOrder
 			if (!bReversed) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 		};
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Sorter)
 		{
@@ -157,7 +157,7 @@ namespace PCGExReversePointOrder
 
 		if (SwapPairs.IsEmpty()) { return true; } // Swap pairs are built during data prefetch
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, FetchWritersTask)
 
 		FetchWritersTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -222,7 +222,7 @@ namespace PCGExReversePointOrder
 	{
 		if (bReversed)
 		{
-			if (!SwapPairs.IsEmpty()) { PointDataFacade->WriteFastest(AsyncManager); }
+			if (!SwapPairs.IsEmpty()) { PointDataFacade->WriteFastest(TaskManager); }
 			if (Settings->bTagIfReversed) { PointDataFacade->Source->Tags->AddRaw(Settings->IsReversedTag); }
 		}
 		else

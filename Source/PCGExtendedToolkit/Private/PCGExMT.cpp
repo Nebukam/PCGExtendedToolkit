@@ -760,7 +760,7 @@ namespace PCGExMT
 	}
 
 	// Task implementations
-	void FSimpleCallbackTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	void FSimpleCallbackTask::ExecuteTask(const TSharedPtr<FTaskManager>& TaskManager)
 	{
 		if (const TSharedPtr<IAsyncHandleGroup> Parent = Group.Pin())
 		{
@@ -768,7 +768,7 @@ namespace PCGExMT
 		}
 	}
 
-	void FScopeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	void FScopeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& TaskManager)
 	{
 		const TSharedPtr<IAsyncHandleGroup> Parent = Group.Pin();
 		if (!Parent) { return; }

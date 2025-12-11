@@ -218,10 +218,10 @@ namespace PCGExGraph
 		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();
 
-		void Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FGraphBuilder>& InBuilder);
+		void Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FGraphBuilder>& InBuilder);
 
 	protected:
-		TWeakPtr<PCGExMT::FTaskManager> WeakAsyncManager;
+		TWeakPtr<PCGExMT::FTaskManager> WeakTaskManager;
 		TWeakPtr<FGraphBuilder> WeakBuilder;
 
 		const FGraphMetadataDetails* MetadataDetails = nullptr;
@@ -355,7 +355,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder : public TSharedFromThis<FGraphBuilder>
 	{
 	protected:
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 		const FGraphMetadataDetails* MetadataDetailsPtr = nullptr;
 		bool bWriteVtxDataFacadeWithCompile = false;
 		bool bCompiling = false;
@@ -398,8 +398,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }
 
-		void CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
-		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
+		void CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
+		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
 
 	protected:
 		void OnCompilationEnd();

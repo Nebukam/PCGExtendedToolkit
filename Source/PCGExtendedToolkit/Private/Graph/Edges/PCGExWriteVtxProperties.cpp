@@ -75,11 +75,11 @@ namespace PCGExWriteVtxProperties
 		Operations.Empty();
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteVtxProperties::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		for (const UPCGExVtxPropertyFactoryData* Factory : Context->ExtraFactories)
 		{
@@ -204,7 +204,7 @@ namespace PCGExWriteVtxProperties
 
 	void FBatch::Write()
 	{
-		VtxDataFacade->WriteFastest(AsyncManager);
+		VtxDataFacade->WriteFastest(TaskManager);
 		TBatch<FProcessor>::Write();
 	}
 }

@@ -86,14 +86,14 @@ bool FPCGExSocketStagingElement::CanExecuteOnlyOnMainThread(FPCGContext* Context
 
 namespace PCGExSocketStaging
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSocketStaging::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
@@ -128,7 +128,7 @@ namespace PCGExSocketStaging
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		SocketHelper->Compile(AsyncManager, PointDataFacade, Context->SocketsCollection);
+		SocketHelper->Compile(TaskManager, PointDataFacade, Context->SocketsCollection);
 	}
 }
 

@@ -169,7 +169,7 @@ namespace PCGExPathfindingGrowPaths
 		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(SeedPointIndex), PathIO);
 		Context->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
 
-		PathDataFacade->WriteFastest(Processor->AsyncManager);
+		PathDataFacade->WriteFastest(Processor->TaskManager);
 	}
 
 	void FGrowth::Init()
@@ -269,11 +269,11 @@ bool FPCGExPathfindingGrowPathsElement::AdvanceWork(FPCGExContext* InContext, co
 
 namespace PCGExPathfindingGrowPaths
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingGrowPaths::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		// Prepare getters
 
@@ -429,7 +429,7 @@ namespace PCGExPathfindingGrowPaths
 		}
 	}
 
-	void FGrowTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	void FGrowTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		Processor->Grow();
 	}

@@ -107,7 +107,7 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 		{
 			if (Context->MaterialLoader)
 			{
-				if (!Context->MaterialLoader->Start(Context->GetAsyncManager()))
+				if (!Context->MaterialLoader->Start(Context->GetTaskManager()))
 				{
 					return Context->CancelExecution(TEXT("Failed to find any material to load."));
 				}
@@ -115,14 +115,14 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 		}
 		else
 		{
-			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
+			if (!Context->StaticMeshLoader->Start(Context->GetTaskManager()))
 			{
 				return Context->CancelExecution(TEXT("Failed to find any asset to load."));
 			}
 
 			if (Context->MaterialLoader)
 			{
-				if (!Context->MaterialLoader->Start(Context->GetAsyncManager()))
+				if (!Context->MaterialLoader->Start(Context->GetTaskManager()))
 				{
 					return Context->CancelExecution(TEXT("Failed to find any material to load."));
 				}
@@ -169,12 +169,12 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 
 namespace PCGExPathSplineMeshSimple
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -371,7 +371,7 @@ namespace PCGExPathSplineMeshSimple
 		MainThreadLoop = MakeShared<PCGExMT::FTimeSlicedMainThreadLoop>(FinalNumSegments);
 		MainThreadLoop->OnIterationCallback = [&](const int32 Index, const PCGExMT::FScope& Scope) { ProcessSegment(Index); };
 
-		PCGEX_ASYNC_HANDLE_CHKD_VOID(AsyncManager, MainThreadLoop)
+		PCGEX_ASYNC_HANDLE_CHKD_VOID(TaskManager, MainThreadLoop)
 	}
 
 	void FProcessor::ProcessSegment(const int32 Index)
@@ -415,7 +415,7 @@ namespace PCGExPathSplineMeshSimple
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

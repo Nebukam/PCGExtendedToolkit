@@ -288,7 +288,7 @@ namespace PCGExPathfindingGrowPaths
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void CompleteWork() override;
 		void Grow();
 	};
@@ -304,6 +304,6 @@ namespace PCGExPathfindingGrowPaths
 		}
 
 		TSharedPtr<FProcessor> Processor;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 	};
 }

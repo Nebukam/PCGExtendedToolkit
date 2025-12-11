@@ -26,9 +26,9 @@ bool UPCGExPolyPathFilterFactory::WantsPreparation(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	TempTargets = InContext->InputData.GetInputsByPin(GetInputLabel());
@@ -50,7 +50,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 	InitConfig_Internal();
 
-	PCGEX_ASYNC_GROUP_CHKD_RET(AsyncManager, CreatePolyPaths, PCGExFactories::EPreparationResult::Fail)
+	PCGEX_ASYNC_GROUP_CHKD_RET(TaskManager, CreatePolyPaths, PCGExFactories::EPreparationResult::Fail)
 
 	CreatePolyPaths->OnCompleteCallback = [CtxHandle, this]()
 	{

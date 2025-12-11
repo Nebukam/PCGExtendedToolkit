@@ -148,7 +148,7 @@ namespace PCGExGeo
 		void ExtractMeshSynchronous();
 		void TriangulateMeshSynchronous();
 
-		void ExtractMeshAsync(PCGExMT::FTaskManager* AsyncManager);
+		void ExtractMeshAsync(PCGExMT::FTaskManager* TaskManager);
 
 		~FGeoStaticMesh() = default;
 	};

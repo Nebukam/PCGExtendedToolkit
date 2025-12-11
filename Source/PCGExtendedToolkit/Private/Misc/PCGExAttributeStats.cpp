@@ -168,12 +168,12 @@ namespace PCGExAttributeStats
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeStats::Process);
 
 		// Must be set before process for filters
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->OutputToPoints == EPCGExStatsOutputToPoints::None ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate)
 
@@ -202,7 +202,7 @@ namespace PCGExAttributeStats
 		}
 
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterScope)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, FilterScope)
 
 		FilterScope->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
@@ -218,7 +218,7 @@ namespace PCGExAttributeStats
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, AttributeStatProcessing)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, AttributeStatProcessing)
 		AttributeStatProcessing->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
 			PCGEX_ASYNC_THIS

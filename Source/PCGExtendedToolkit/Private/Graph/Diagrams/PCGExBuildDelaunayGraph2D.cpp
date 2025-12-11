@@ -102,11 +102,11 @@ namespace PCGExBuildDelaunayGraph2D
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
 
-			FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
+			FPCGExBuildDelaunayGraph2DContext* Context = TaskManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 			PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
 			const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
@@ -150,7 +150,7 @@ namespace PCGExBuildDelaunayGraph2D
 					TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 					for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 				}
-				WriteBuffer(AsyncManager, HullBuffer);
+				WriteBuffer(TaskManager, HullBuffer);
 			}
 		}
 	};
@@ -168,11 +168,11 @@ namespace PCGExBuildDelaunayGraph2D
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunayUrquhartSites2D::ExecuteTask);
 
-			FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
+			FPCGExBuildDelaunayGraph2DContext* Context = TaskManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 			PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
 			TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
@@ -277,16 +277,16 @@ namespace PCGExBuildDelaunayGraph2D
 					TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 					for (int i = 0; i < Hull.Num(); i++) { OutValues[i] = Hull[i]; }
 				}
-				WriteBuffer(AsyncManager, HullBuffer);
+				WriteBuffer(TaskManager, HullBuffer);
 			}
 		}
 	};
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunayGraph2D::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
@@ -335,7 +335,7 @@ namespace PCGExBuildDelaunayGraph2D
 		}
 
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 
 		if (!Settings->bMarkHull && !Settings->bOutputSites) { Delaunay.Reset(); }
 
@@ -370,7 +370,7 @@ namespace PCGExBuildDelaunayGraph2D
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()

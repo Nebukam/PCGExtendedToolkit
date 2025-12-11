@@ -76,11 +76,11 @@ bool FPCGExBreakClustersToPathsElement::AdvanceWork(FPCGExContext* InContext, co
 
 namespace PCGExBreakClustersToPaths
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBreakClustersToPaths::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade)) { return false; }
 
@@ -88,7 +88,7 @@ namespace PCGExBreakClustersToPaths
 		{
 			if (VtxFiltersManager)
 			{
-				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterBreakpoints)
+				PCGEX_ASYNC_GROUP_CHKD(TaskManager, FilterBreakpoints)
 
 				FilterBreakpoints->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 				{
@@ -130,11 +130,11 @@ namespace PCGExBreakClustersToPaths
 		ChainBuilder->Breakpoints = VtxFilterCache;
 		if (Settings->LeavesHandling == EPCGExBreakClusterLeavesHandling::Only)
 		{
-			bIsProcessorValid = ChainBuilder->CompileLeavesOnly(AsyncManager);
+			bIsProcessorValid = ChainBuilder->CompileLeavesOnly(TaskManager);
 		}
 		else
 		{
-			bIsProcessorValid = ChainBuilder->Compile(AsyncManager);
+			bIsProcessorValid = ChainBuilder->Compile(TaskManager);
 		}
 
 		return bIsProcessorValid;

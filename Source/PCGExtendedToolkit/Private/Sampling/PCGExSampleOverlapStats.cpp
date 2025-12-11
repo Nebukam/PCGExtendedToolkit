@@ -116,11 +116,11 @@ namespace PCGExSampleOverlapStats
 		Overlaps.Add(Overlap.ToSharedRef());
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -341,12 +341,12 @@ namespace PCGExSampleOverlapStats
 
 	void FProcessor::Write()
 	{
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, SearchTask)
 
 		SearchTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
-			This->PointDataFacade->WriteFastest(This->AsyncManager);
+			This->PointDataFacade->WriteFastest(This->TaskManager);
 			if (This->Settings->bTagIfHasAnyOverlap && This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasAnyOverlapTag); }
 			if (This->Settings->bTagIfHasNoOverlap && !This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasNoOverlapTag); }
 		};

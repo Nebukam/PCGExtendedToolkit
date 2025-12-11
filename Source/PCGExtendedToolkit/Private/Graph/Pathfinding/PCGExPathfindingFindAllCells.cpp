@@ -110,11 +110,11 @@ namespace PCGExFindAllCells
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindAllCells::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Context->HolesFacade)
 		{
@@ -199,7 +199,7 @@ namespace PCGExFindAllCells
 		InCell->PostProcessPoints(PathIO->GetOut());
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->WriteFastest(AsyncManager);
+		PathDataFacade->WriteFastest(TaskManager);
 
 		// TODO : Create cell centroids here
 	}
