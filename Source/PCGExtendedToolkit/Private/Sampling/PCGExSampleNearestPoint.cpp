@@ -121,7 +121,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
-	
+
 	return true;
 }
 
@@ -331,7 +331,7 @@ namespace PCGExSampleNearestPoint
 
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-		
+
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
@@ -451,11 +451,11 @@ namespace PCGExSampleNearestPoint
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform,TargetTransform, W);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::Lerp(WeightedTransform, TargetTransform, W);
 
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp,Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
+					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
@@ -468,7 +468,7 @@ namespace PCGExSampleNearestPoint
 			if (SampleTracker.Weight != 0) // Dodge NaN
 			{
 				WeightedUp /= SampleTracker.Weight;
-				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform,WeightedTransform, SampleTracker.Weight);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::Div(WeightedTransform, WeightedTransform, SampleTracker.Weight);
 			}
 
 			WeightedUp.Normalize();

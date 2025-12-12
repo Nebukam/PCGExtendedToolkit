@@ -130,7 +130,8 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
-			const bool bError = Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
+			const bool bError = Context->TargetsHandler->ForEachTarget(
+				[&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
 			{
 				// Prep look up getters
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
@@ -161,7 +162,8 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, 
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 			{
@@ -423,7 +425,7 @@ namespace PCGExSampleNearestBounds
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform,TargetTransform, W);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::Lerp(WeightedTransform,TargetTransform, W);
 				
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{

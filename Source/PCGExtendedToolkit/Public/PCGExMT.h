@@ -337,7 +337,14 @@ namespace PCGExMT
 		void TriggerSimpleCallback(int32 Index);
 	};
 
-	PCGEXTENDEDTOOLKIT_API void ExecuteOnMainThread(const TSharedPtr<IAsyncHandleGroup>& ParentHandle, FExecuteCallback&& Callback);
+	PCGEXTENDEDTOOLKIT_API 
+	void ExecuteOnMainThread(const TSharedPtr<IAsyncHandleGroup>& ParentHandle, FExecuteCallback&& Callback);
+	
+	PCGEXTENDEDTOOLKIT_API 
+	void ExecuteOnMainThread(FExecuteCallback&& Callback);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void ExecuteOnMainThreadAndWait(FExecuteCallback&& Callback);
 
 	// Base task class
 	class PCGEXTENDEDTOOLKIT_API FTask : public IAsyncHandle

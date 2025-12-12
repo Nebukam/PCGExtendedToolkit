@@ -557,9 +557,7 @@ namespace PCGExWaitForPCGData
 		}
 
 		PCGEX_ASYNC_THIS_DECL
-
-		// Switch to the game thread to subscribe
-		AsyncTask(ENamedThreads::GameThread, [AsyncThis, TargetComponent, Idx = Index]()
+		PCGExMT::ExecuteOnMainThread([AsyncThis, TargetComponent, Idx = Index]()
 		{
 			PCGEX_ASYNC_THIS
 

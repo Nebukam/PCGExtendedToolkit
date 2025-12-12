@@ -177,7 +177,7 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 10; // 3 pos + 4 rot + 3 scale
+		static constexpr int32 NumComponents = 9; // 3 pos + 3 rot + 3 scale
 	};
 
 	// String types
