@@ -9,6 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
+#include "Async/ParallelFor.h"
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilter, UPCGExFilterFactoryData)
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterPoint, UPCGExPointFilterFactoryData)
@@ -175,150 +176,163 @@ namespace PCGExPointFilter
 
 	bool FManager::Test(const int32 Index)
 	{
-		for (const TSharedPtr<IFilter>& Handler : ManagedFilters) { if (!Handler->Test(Index)) { return false; } }
+		for (const IFilter* Filter : Stack) { if (!Filter->Test(Index)) { return false; } }
 		return true;
 	}
 
 	bool FManager::Test(const PCGExData::FProxyPoint& Point)
 	{
-		for (const TSharedPtr<IFilter>& Handler : ManagedFilters) { if (!Handler->Test(Point)) { return false; } }
+		for (const IFilter* Filter : Stack) { if (!Filter->Test(Point)) { return false; } }
 		return true;
 	}
 
 	bool FManager::Test(const PCGExCluster::FNode& Node)
 	{
-		for (const TSharedPtr<IFilter>& Handler : ManagedFilters) { if (!Handler->Test(Node)) { return false; } }
+		for (const IFilter* Filter : Stack) { if (!Filter->Test(Node)) { return false; } }
 		return true;
 	}
 
 	bool FManager::Test(const PCGExGraph::FEdge& Edge)
 	{
-		for (const TSharedPtr<IFilter>& Handler : ManagedFilters) { if (!Handler->Test(Edge)) { return false; } }
+		for (const IFilter* Filter : Stack) { if (!Filter->Test(Edge)) { return false; } }
 		return true;
 	}
 
 	bool FManager::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection)
 	{
-		for (const TSharedPtr<IFilter>& Handler : ManagedFilters) { if (!Handler->Test(IO, ParentCollection)) { return false; } }
+		for (const IFilter* Filter : Stack) { if (!Filter->Test(IO, ParentCollection)) { return false; } }
 		return true;
 	}
 
-	int32 FManager::Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults)
+#define PCGEX_TEST_STACK(_ITEM, _INDEX) bool bResult = true; for (const IFilter* Filter : Stack){if (!Filter->Test(_ITEM)){ bResult = false; break; }} OutResults[_INDEX] = bResult;
+
+	int32 FManager::Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults, const bool bParallel)
 	{
-		bool bResult = true;
 		int32 NumPass = 0;
-		PCGEX_SCOPE_LOOP(Index)
+
+		if (bParallel)
 		{
-			bResult = true;
-			for (const TSharedPtr<IFilter>& Handler : ManagedFilters)
+			ParallelFor(Scope.Count, [&](const int32 i)
 			{
-				if (!Handler->Test(Index))
-				{
-					bResult = false;
-					break;
-				}
+				const int32 Index = Scope.Start + i;
+				PCGEX_TEST_STACK(Index, Index)
+				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
+			});
+		}
+		else
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				PCGEX_TEST_STACK(Index, Index)
+				NumPass += bResult;
 			}
-			OutResults[Index] = bResult;
-			NumPass += bResult;
 		}
 
 		return NumPass;
 	}
 
-	int32 FManager::Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults)
+	int32 FManager::Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults, const bool bParallel)
 	{
-		bool bResult = true;
 		int32 NumPass = 0;
-		PCGEX_SCOPE_LOOP(Index)
+
+		if (bParallel)
 		{
-			bResult = true;
-			for (const TSharedPtr<IFilter>& Handler : ManagedFilters)
+			ParallelFor(Scope.Count, [&](const int32 i)
 			{
-				if (!Handler->Test(Index))
-				{
-					bResult = false;
-					break;
-				}
+				const int32 Index = Scope.Start + i;
+				PCGEX_TEST_STACK(Index, Index)
+				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
+			});
+		}
+		else
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				PCGEX_TEST_STACK(Index, Index)
+				NumPass += bResult;
 			}
-			OutResults[Index] = bResult;
-			NumPass += bResult;
 		}
 
 		return NumPass;
 	}
 
-	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults)
+	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults, const bool bParallel)
 	{
-		check(Items.Num() == OutResults.Num());
+		const int32 NumItems = Items.Num();
+		check(NumItems == OutResults.Num());
 
-		bool bResult = true;
 		int32 NumPass = 0;
 
-		for (int i = 0; i < Items.Num(); i++)
+		if (bParallel)
 		{
-			bResult = true;
-			const PCGExCluster::FNode& Node = Items[i];
-			for (const TSharedPtr<IFilter>& Handler : ManagedFilters)
+			ParallelFor(NumItems, [&](const int32 i)
 			{
-				if (!Handler->Test(Node))
-				{
-					bResult = false;
-					break;
-				}
+				const PCGExCluster::FNode& Node = Items[i];
+				PCGEX_TEST_STACK(Node, Node.PointIndex)
+				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
+			});
+		}
+		else
+		{
+			for (int i = 0; i < NumItems; i++)
+			{
+				const PCGExCluster::FNode& Node = Items[i];
+				PCGEX_TEST_STACK(Node, Node.PointIndex)
+				NumPass += bResult;
 			}
-			OutResults[i] = bResult;
-			NumPass += bResult;
 		}
 
 		return NumPass;
 	}
 
-	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResults)
+	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResultsPtr, const bool bParallel)
 	{
-		bool bResult = true;
 		int32 NumPass = 0;
-		TArray<int8>& OutResultsRef = *OutResults.Get();
+		TArray<int8>& OutResults = *OutResultsPtr.Get();
 
-		for (int i = 0; i < Items.Num(); i++)
+		if (bParallel)
 		{
-			bResult = true;
-			const PCGExCluster::FNode& Node = Items[i];
-			for (const TSharedPtr<IFilter>& Handler : ManagedFilters)
+			ParallelFor(Items.Num(), [&](const int32 i)
 			{
-				if (!Handler->Test(Node))
-				{
-					bResult = false;
-					break;
-				}
+				const PCGExCluster::FNode& Node = Items[i];
+				PCGEX_TEST_STACK(Node, Node.PointIndex)
+				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
+			});
+		}
+		else
+		{
+			for (const PCGExCluster::FNode& Node : Items)
+			{
+				PCGEX_TEST_STACK(Node, Node.PointIndex)
+				NumPass += bResult;
 			}
-
-			OutResultsRef[Node.PointIndex] = bResult;
-			NumPass += bResult;
 		}
 
 		return NumPass;
 	}
 
-	int32 FManager::Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults)
+	int32 FManager::Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults, const bool bParallel)
 	{
-		check(Items.Num() == OutResults.Num());
-		bool bResult = true;
+		const int32 NumItems = Items.Num();
+		check(NumItems == OutResults.Num());
 		int32 NumPass = 0;
-
-		for (int i = 0; i < Items.Num(); i++)
+		if (bParallel)
 		{
-			bResult = true;
-			const PCGExGraph::FEdge& Edge = Items[i];
-			for (const TSharedPtr<IFilter>& Handler : ManagedFilters)
+			ParallelFor(NumItems, [&](const int32 i)
 			{
-				if (!Handler->Test(Edge))
-				{
-					bResult = false;
-					break;
-				}
+				const PCGExGraph::FEdge& Edge = Items[i];
+				PCGEX_TEST_STACK(Edge, i)
+				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
+			});
+		}
+		else
+		{
+			for (int i = 0; i < NumItems; i++)
+			{
+				const PCGExCluster::FEdge& Edge = Items[i];
+				PCGEX_TEST_STACK(Edge, i)
+				NumPass += bResult;
 			}
-			OutResults[i] = bResult;
-			NumPass += bResult;
 		}
 
 		return NumPass;
@@ -349,11 +363,13 @@ namespace PCGExPointFilter
 		ManagedFilters.Sort([](const TSharedPtr<IFilter>& A, const TSharedPtr<IFilter>& B) { return A->Factory->Priority < B->Factory->Priority; });
 
 		// Update index & post-init
+		Stack.Reserve(ManagedFilters.Num());
 		for (int i = 0; i < ManagedFilters.Num(); i++)
 		{
 			TSharedPtr<IFilter> Filter = ManagedFilters[i];
 			Filter->FilterIndex = i;
 			PostInitFilter(InContext, Filter);
+			Stack.Add(Filter.Get());
 		}
 
 		if (bCacheResults) { InitCache(); }

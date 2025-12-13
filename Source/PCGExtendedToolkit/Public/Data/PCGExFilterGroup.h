@@ -103,6 +103,7 @@ namespace PCGExFilterGroup
 	protected:
 		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
 		TArray<TSharedPtr<PCGExPointFilter::IFilter>> ManagedFilters;
+		TArray<const PCGExPointFilter::IFilter*> Stack;
 
 		virtual bool InitManaged(FPCGExContext* InContext);
 		bool InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter, const bool bQuiet = false) const;

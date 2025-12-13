@@ -1010,6 +1010,13 @@ namespace PCGExPaths
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
 
+	void FPolyPath::GetEdgeElements(const int32 EdgeIndex, PCGExData::FElement& OutEdge, PCGExData::FElement& OutEdgeStart, PCGExData::FElement& OutEdgeEnd) const
+	{
+		OutEdge = PCGExData::FElement(EdgeIndex, Idx);
+		OutEdgeStart = PCGExData::FElement(Edges[EdgeIndex].Start, Idx);
+		OutEdgeEnd = PCGExData::FElement(Edges[EdgeIndex].End, Idx);
+	}
+
 	FCrossing::FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
 		: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
 	{

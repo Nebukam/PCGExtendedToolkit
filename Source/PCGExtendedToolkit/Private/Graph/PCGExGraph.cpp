@@ -264,8 +264,27 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		FlattenedEdges.SetNumUninitialized(NumEdges);
 
 		const UPCGBasePointData* InEdgeData = EdgesDataFacade->GetIn();
+		EPCGPointNativeProperties AllocateProperties = InEdgeData ? InEdgeData->GetAllocatedProperties() : EPCGPointNativeProperties::MetadataEntry;
+
+		if (InBuilder->OutputDetails->bWriteEdgePosition)
+		{
+			AllocateProperties |= EPCGPointNativeProperties::Transform;
+		}
+
+		if (InBuilder->OutputDetails->BasicEdgeSolidification.SolidificationAxis != EPCGExMinimalAxis::None)
+		{
+			AllocateProperties |= EPCGPointNativeProperties::Transform;
+			AllocateProperties |= EPCGPointNativeProperties::BoundsMin;
+			AllocateProperties |= EPCGPointNativeProperties::BoundsMax;
+		}
+
+		if (ParentGraph->bRefreshEdgeSeed || InBuilder->OutputDetails->bRefreshEdgeSeed)
+		{
+			AllocateProperties |= EPCGPointNativeProperties::Seed;
+		}
+		
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
-		(void)PCGEx::SetNumPointsAllocated(OutEdgeData, NumEdges, InEdgeData ? InEdgeData->GetAllocatedProperties() : EPCGPointNativeProperties::MetadataEntry);
+		(void)PCGEx::SetNumPointsAllocated(OutEdgeData, NumEdges, AllocateProperties);
 
 		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange(false);
 
@@ -361,27 +380,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				EdgeLength = EdgesDataFacade->GetWritable<double>(InBuilder->OutputDetails->EdgeLengthName, 0, true, PCGExData::EBufferInit::New);
 			}
 		}
-
-		EPCGPointNativeProperties AllocateProperties = EPCGPointNativeProperties::None;
-
-		if (InBuilder->OutputDetails->bWriteEdgePosition)
-		{
-			AllocateProperties |= EPCGPointNativeProperties::Transform;
-		}
-
-		if (InBuilder->OutputDetails->BasicEdgeSolidification.SolidificationAxis != EPCGExMinimalAxis::None)
-		{
-			AllocateProperties |= EPCGPointNativeProperties::Transform;
-			AllocateProperties |= EPCGPointNativeProperties::BoundsMin;
-			AllocateProperties |= EPCGPointNativeProperties::BoundsMax;
-		}
-
-		if (ParentGraph->bRefreshEdgeSeed || InBuilder->OutputDetails->bRefreshEdgeSeed)
-		{
-			AllocateProperties |= EPCGPointNativeProperties::Seed;
-		}
-
-		EdgesDataFacade->GetOut()->AllocateProperties(AllocateProperties);
 
 		PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(TaskManager, InParentHandle.Pin(), CompileSubGraph)
 

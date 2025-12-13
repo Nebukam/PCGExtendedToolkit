@@ -63,12 +63,13 @@ namespace PCGExPointsMT
 
 #define PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
 	PCGEX_CHECK_WORK_HANDLE_VOID\
+	if (IsTrivial()){ PCGExMT::FScope TrivialScope = PCGExMT::FScope(0, _NUM, 0); _PREPARE({TrivialScope}); _PROCESS(TrivialScope); _COMPLETE(); }else{\
 	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
 	PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ParallelLoopFor##_NAME) \
 	ParallelLoopFor##_NAME->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]() { PCGEX_ASYNC_THIS This->_COMPLETE(); }; \
 	ParallelLoopFor##_NAME->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops) { PCGEX_ASYNC_THIS This->_PREPARE(Loops); }; \
 	ParallelLoopFor##_NAME->OnSubLoopStartCallback =[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope) { PCGEX_ASYNC_THIS This->_PROCESS(Scope); }; \
-    ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);
+    ParallelLoopFor##_NAME->StartSubLoops(_NUM, PLI, _INLINE);}
 
 #define PCGEX_ASYNC_POINT_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetPointsBatchChunkSize)
 
@@ -157,7 +158,7 @@ namespace PCGExPointsMT
 
 	protected:
 		virtual bool InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
-		virtual int32 FilterScope(const PCGExMT::FScope& Scope);
+		virtual int32 FilterScope(const PCGExMT::FScope& Scope, const bool bParallel = false);
 		virtual int32 FilterAll();
 	};
 

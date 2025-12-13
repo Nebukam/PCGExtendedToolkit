@@ -256,10 +256,10 @@ namespace PCGExClusterMT
 		return VtxFiltersManager->Init(ExecutionContext, *InFilterFactories);
 	}
 
-	void IProcessor::FilterVtxScope(const PCGExMT::FScope& Scope)
+	void IProcessor::FilterVtxScope(const PCGExMT::FScope& Scope, const bool bParallel)
 	{
 		// Note : Don't forget to prefetch VtxDataFacade buffers
-		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), VtxFilterCache); }
+		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), VtxFilterCache, bParallel); }
 	}
 
 	bool IProcessor::IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); }
@@ -276,14 +276,14 @@ namespace PCGExClusterMT
 		return EdgesFiltersManager->Init(ExecutionContext, *InFilterFactories);
 	}
 
-	void IProcessor::FilterEdgeScope(const PCGExMT::FScope& Scope)
+	void IProcessor::FilterEdgeScope(const PCGExMT::FScope& Scope, const bool bParallel)
 	{
 		// Note : Don't forget to EdgeDataFacade->FetchScope first
 
 		if (EdgesFiltersManager)
 		{
 			TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges.Get();
-			EdgesFiltersManager->Test(Scope.GetView(EdgesRef), Scope.GetView(EdgeFilterCache));
+			EdgesFiltersManager->Test(Scope.GetView(EdgesRef), Scope.GetView(EdgeFilterCache), bParallel);
 		}
 	}
 

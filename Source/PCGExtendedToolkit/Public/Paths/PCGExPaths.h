@@ -35,6 +35,7 @@ class UPCGSplineData;
 
 namespace PCGExData
 {
+	struct FElement;
 	class FFacadePreloader;
 
 	template <typename T>
@@ -691,6 +692,8 @@ namespace PCGExPaths
 
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const override;
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override;
+		
+		void GetEdgeElements(const int32 EdgeIndex, PCGExData::FElement& OutEdge, PCGExData::FElement& OutEdgeStart, PCGExData::FElement& OutEdgeEnd) const;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
