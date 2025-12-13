@@ -101,8 +101,6 @@ struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExCutEdgesElement;
 
-	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
-
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
 	bool bWantsVtxProcessing = false;

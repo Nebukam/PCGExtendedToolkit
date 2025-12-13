@@ -126,7 +126,7 @@ namespace PCGExGeo
 	}
 
 	FMeshLookup::FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance)
-		: Vertices(InVertices), RawIndices(InRawIndices), HashTolerance(InHashTolerance)
+		: Vertices(InVertices), RawIndices(InRawIndices), HashTolerance(PCGEx::SafeTolerance(InHashTolerance))
 	{
 		Data.Reserve(Size);
 		Vertices->Reserve(Size);

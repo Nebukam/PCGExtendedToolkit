@@ -53,7 +53,7 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 	GetInputFactories(Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories, PCGExFactories::PointFilters, false);
 	GetInputFactories(Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories, PCGExFactories::PointFilters, false);
 
-	Context->CWCoincidenceTolerance = FVector(1 / Settings->CoincidenceTolerance);
+	Context->CWCoincidenceTolerance = FVector(Settings->CoincidenceTolerance);
 
 	return true;
 }
@@ -109,7 +109,7 @@ namespace PCGExConnectPoints
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
-		CWCoincidenceTolerance = Context->CWCoincidenceTolerance;
+		CWCoincidenceTolerance = PCGEx::SafeTolerance(Context->CWCoincidenceTolerance);
 		bPreventCoincidence = Settings->bPreventCoincidence;
 
 		if (Settings->bProjectPoints)

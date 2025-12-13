@@ -148,7 +148,6 @@ struct FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
 
 	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
-	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExBlendingDetails CrossingBlending;
 
 protected:

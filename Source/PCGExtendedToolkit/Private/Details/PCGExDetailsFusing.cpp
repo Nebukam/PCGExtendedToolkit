@@ -81,43 +81,40 @@ FPCGExSourceFuseDetails::FPCGExSourceFuseDetails(const bool InSupportLocalTolera
 }
 
 FPCGExFuseDetails::FPCGExFuseDetails()
-	: FPCGExSourceFuseDetails(false)
+	: FPCGExSourceFuseDetails(false), Distances(GetDistances())
 {
 }
 
 FPCGExFuseDetails::FPCGExFuseDetails(const bool InSupportLocalTolerance)
-	: FPCGExSourceFuseDetails(InSupportLocalTolerance)
+	: FPCGExSourceFuseDetails(InSupportLocalTolerance), Distances(GetDistances())
 {
 }
 
 FPCGExFuseDetails::FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance)
-	: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance)
+	: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance), Distances(GetDistances())
 {
 }
 
 FPCGExFuseDetails::FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance InSourceMethod)
-	: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance, InSourceMethod)
+	: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance, InSourceMethod), Distances(GetDistances())
 {
 }
 
 FPCGExFuseDetails::FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance InSourceMethod, const EPCGExDistance InTargetMethod)
-	: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance, InSourceMethod), TargetDistance(InTargetMethod)
+	: FPCGExSourceFuseDetails(InSupportLocalTolerance, InTolerance, InSourceMethod), TargetDistance(InTargetMethod), Distances(GetDistances())
 {
 }
 
 bool FPCGExFuseDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {
 	if (!FPCGExFuseDetailsBase::Init(InContext, InDataFacade)) { return false; }
-
-	DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);
-
+	Distances = GetDistances();
 	return true;
 }
 
 uint64 FPCGExFuseDetails::GetGridKey(const FVector& Location, const int32 PointIndex) const
 {
-	const FVector Raw = ToleranceGetter->Read(PointIndex);
-	return PCGEx::GH3(Location + VoxelGridOffset, FVector(1 / Raw.X, 1 / Raw.Y, 1 / Raw.Z));
+	return PCGEx::GH3(Location + VoxelGridOffset, PCGEx::SafeTolerance(ToleranceGetter->Read(PointIndex)));
 }
 
 FBox FPCGExFuseDetails::GetOctreeBox(const FVector& Location, const int32 PointIndex) const
@@ -129,8 +126,8 @@ FBox FPCGExFuseDetails::GetOctreeBox(const FVector& Location, const int32 PointI
 void FPCGExFuseDetails::GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 {
 	const FVector TargetLocation = TargetPoint.GetTransform().GetLocation();
-	OutSource = DistanceDetails->GetSourceCenter(SourcePoint, SourcePoint.GetTransform().GetLocation(), TargetLocation);
-	OutTarget = DistanceDetails->GetTargetCenter(TargetPoint, TargetLocation, OutSource);
+	OutSource = Distances->GetSourceCenter(SourcePoint, SourcePoint.GetTransform().GetLocation(), TargetLocation);
+	OutTarget = Distances->GetTargetCenter(TargetPoint, TargetLocation, OutSource);
 }
 
 bool FPCGExFuseDetails::IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
@@ -147,4 +144,9 @@ bool FPCGExFuseDetails::IsWithinToleranceComponentWise(const PCGExData::FConstPo
 	FVector B;
 	GetCenters(SourcePoint, TargetPoint, A, B);
 	return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, SourcePoint.Index);
+}
+
+const PCGExDetails::FDistances* FPCGExFuseDetails::GetDistances() const
+{
+	return PCGExDetails::GetDistances(SourceDistance, TargetDistance);
 }

@@ -19,7 +19,7 @@ bool FPCGExProbeClosest::PrepareForPoints(FPCGExContext* InContext, const TShare
 	MaxConnections = Config.GetValueSettingMaxConnections();
 	if (!MaxConnections->Init(PrimaryDataFacade)) { return false; }
 
-	CWCoincidenceTolerance = FVector(1 / Config.CoincidencePreventionTolerance);
+	CWCoincidenceTolerance = FVector(PCGEx::SafeScalarTolerance(Config.CoincidencePreventionTolerance));
 
 	return true;
 }

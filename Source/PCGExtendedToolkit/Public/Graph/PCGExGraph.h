@@ -227,7 +227,6 @@ namespace PCGExGraph
 		const FGraphMetadataDetails* MetadataDetails = nullptr;
 
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
-		TSharedPtr<PCGExDetails::FDistances> Distances;
 
 		// Edge metadata
 #define PCGEX_FOREACH_EDGE_METADATA(MACRO)\

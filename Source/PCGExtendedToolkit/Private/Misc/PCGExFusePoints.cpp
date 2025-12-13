@@ -41,8 +41,7 @@ bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
-	Context->Distances = PCGExDetails::MakeDistances(Settings->PointPointIntersectionDetails.FuseDetails.SourceDistance, Settings->PointPointIntersectionDetails.FuseDetails.TargetDistance);
-
+	Context->Distances = Settings->PointPointIntersectionDetails.FuseDetails.GetDistances();
 	if (!Settings->PointPointIntersectionDetails.SanityCheck(Context)) { return false; }
 
 	PCGEX_FWD(CarryOverDetails)
@@ -201,7 +200,8 @@ namespace PCGExFusePoints
 			return;
 		}
 
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
+		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(
+			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender = TypedBlender;
 
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;

@@ -42,8 +42,8 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 		break;
 	}
 
-	AdjustedGridHashCollision = FVector(1 / GridHashCollision.X, 1 / GridHashCollision.Y, 1 / GridHashCollision.Z);
-	AdjustedPositionHashCollision = FVector(1 / PositionHashCollision.X, 1 / PositionHashCollision.Y, 1 / PositionHashCollision.Z);
+	AdjustedGridHashCollision = PCGEx::SafeTolerance(GridHashCollision);
+	AdjustedPositionHashCollision = PCGEx::SafeTolerance(PositionHashCollision);
 
 	bUseIndex = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Index)) != 0;
 	bUseSeed = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Seed)) != 0;
@@ -72,7 +72,10 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 void FPCGExGUIDDetails::GetGUID(const int32 Index, const PCGExData::FConstPoint& InPoint, FGuid& OutGUID) const
 {
 	const uint32 SeededBase = bUseSeed ? InPoint.Data->GetSeed(InPoint.Index) : 0;
-	OutGUID = FGuid(GridHash, bUseIndex ? Index : -1, UniqueKeyReader->IsConstant() ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase, bUsePosition ? PCGEx::GH3(InPoint.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
+	OutGUID = FGuid(
+		GridHash, bUseIndex ? Index : -1,
+		UniqueKeyReader->IsConstant() ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase,
+		bUsePosition ? PCGEx::GH3(InPoint.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)

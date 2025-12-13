@@ -8,6 +8,7 @@
 #include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExFuseCollinear.generated.h"
 
@@ -56,11 +57,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ClampMin=0.001, EditCondition="bFuseCollocated"))
 	double FuseDistance = 0.001;
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bDoBlend = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bDoBlend = false;
 
-	//UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties, EditCondition="bDoBlend"))
-	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	/** Defines how fused point properties and attributes are merged together into the first point of a collinear chain. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bDoBlend", EditConditionHides))
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
 
 	/** Distance used to consider point to be overlapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -94,8 +96,6 @@ namespace PCGExFuseCollinear
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFuseCollinearContext, UPCGExFuseCollinearSettings>
 	{
 		TSharedPtr<PCGExPaths::FPath> Path;
-
-		TArray<int32> ReadIndices;
 		FVector LastPosition = FVector::ZeroVector;
 
 	public:
@@ -108,7 +108,6 @@ namespace PCGExFuseCollinear
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		virtual void CompleteWork() override;
+		void Blend(TArray<int32>& ReadIndices);
 	};
 }

@@ -134,7 +134,7 @@ namespace PCGExDataBlending
 		TSharedPtr<PCGExData::FFacade> CurrentTargetData;
 		TSharedPtr<PCGEx::FIndexLookup> IOLookup;
 		TArray<const UPCGBasePointData*> SourcesData;
-		TSharedPtr<PCGExDetails::FDistances> Distances;
+		const PCGExDetails::FDistances* Distances = nullptr;
 	};
 
 	/**

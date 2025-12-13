@@ -59,7 +59,7 @@ public:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> MaxConnections;
 
 protected:
-	FVector CWCoincidenceTolerance = FVector::ZeroVector;
+	FVector CWCoincidenceTolerance = FVector::OneVector;
 };
 
 ////

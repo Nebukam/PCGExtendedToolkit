@@ -65,7 +65,12 @@ namespace PCGExData
 
 		bool IsEmpty() const { return Elements.IsEmpty(); }
 
-		virtual int32 ComputeWeights(const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const;
+		virtual int32 ComputeWeights(
+			const TArray<const UPCGBasePointData*>& Sources,
+			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
+			const FPoint& Target,
+			const PCGExDetails::FDistances* InDistanceDetails,
+			TArray<FWeightedPoint>& OutWeightedPoints) const;
 
 		virtual void Reset()
 		{

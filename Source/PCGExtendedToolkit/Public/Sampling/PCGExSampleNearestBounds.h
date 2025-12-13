@@ -299,7 +299,6 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 	friend class FPCGExSampleNearestBoundsElement;
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
-	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;

@@ -356,11 +356,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_DECL)
 #undef PCGEX_EDGE_METADATA_DECL
 
-		Distances = PCGExDetails::MakeNoneDistances();
-
 		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 		{
-			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, Distances);
+			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExDetails::GetNoneDistances());
 			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
 			if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
 			{

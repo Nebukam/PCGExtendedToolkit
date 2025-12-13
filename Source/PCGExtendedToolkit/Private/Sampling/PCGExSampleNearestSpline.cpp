@@ -77,8 +77,6 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 
-	Context->DistanceDetails = PCGExDetails::MakeDistances(Settings->DistanceSettings, Settings->DistanceSettings);
-
 	if (!Targets.IsEmpty())
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
@@ -212,8 +210,6 @@ namespace PCGExSampleNearestSpline
 
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
-
-		DistanceDetails = Context->DistanceDetails;
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
 		if (Settings->SampleInputs != EPCGExSplineSamplingIncludeMode::All)
@@ -303,6 +299,8 @@ namespace PCGExSampleNearestSpline
 
 		TArray<PCGExPolyPath::FSample> Samples;
 		Samples.Reserve(Context->NumTargets);
+
+		const PCGExDetails::FDistances* DistanceDetails = PCGExDetails::GetDistances(Settings->DistanceSettings, Settings->DistanceSettings);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -505,7 +503,7 @@ namespace PCGExSampleNearestSpline
 			FVector WeightedUp = LookAtUpGetter ? LookAtUpGetter->Read(Index).GetSafeNormal() : SafeUpVector;
 			FTransform WeightedTransform = FTransform::Identity; //InTransforms[Index];
 			WeightedTransform.SetScale3D(FVector::ZeroVector);
-			
+
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 			FVector WeightedTangent = FVector::ZeroVector;

@@ -217,8 +217,6 @@ namespace PCGExSampleInsidePath
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
-		DistanceDetails = PCGExDetails::MakeDistances();
-
 		if (Settings->ProcessInputs != EPCGExPathSamplingIncludeMode::All)
 		{
 			bOnlyIncrementInsideNumIfClosed = Settings->bOnlyIncrementInsideNumIfClosed;
@@ -230,7 +228,7 @@ namespace PCGExSampleInsidePath
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, DistanceDetails);
+			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
