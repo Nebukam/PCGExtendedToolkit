@@ -88,21 +88,8 @@ namespace PCGExBreakClustersToPaths
 		{
 			if (VtxFiltersManager)
 			{
-				PCGEX_ASYNC_GROUP_CHKD(TaskManager, FilterBreakpoints)
-
-				FilterBreakpoints->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
-				{
-					PCGEX_ASYNC_THIS
-					This->BuildChains();
-				};
-
-				FilterBreakpoints->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-				{
-					PCGEX_ASYNC_THIS
-					This->FilterVtxScope(Scope);
-				};
-
-				FilterBreakpoints->StartSubLoops(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize());
+				FilterVtxScope(PCGExMT::FScope(0, NumNodes), true);
+				return BuildChains();
 			}
 			else
 			{
@@ -218,7 +205,7 @@ namespace PCGExBreakClustersToPaths
 			if (bDoReverse) { Algo::Reverse(IdxMapping); }
 
 			PCGExPaths::SetClosedLoop(PathIO->GetOut(), Chain->bIsClosedLoop);
-			
+
 			PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 100000 + Cluster->GetNodePointIndex(FMath::Min(Chain->Links.Last().Node, Chain->Links[0].Node));
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 

@@ -384,8 +384,8 @@ namespace PCGExSampleNearestPoint
 		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
 
 		TSet<const UPCGData*> IgnoreList;
-		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
-		double MaxDistance = 0;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxSampledDistanceScoped;
+		double MaxSampledDistance = 0;
 
 		int8 bAnySuccess = 0;
 

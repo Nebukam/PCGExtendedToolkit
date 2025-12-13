@@ -508,8 +508,8 @@ namespace PCGExSampleNearestSpline
 
 		int8 bAnySuccess = 0;
 
-		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
-		double MaxDistance = 0;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxSampledDistanceScoped;
+		double MaxSampledDistance = 0;
 
 		bool bSingleSample = false;
 		bool bClosestSample = false;

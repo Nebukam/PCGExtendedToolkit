@@ -316,7 +316,7 @@ namespace PCGExSampleNearestPoint
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 		TProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>::PrepareLoopScopesForPoints(Loops);
-		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
+		MaxSampledDistanceScoped = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
@@ -344,13 +344,16 @@ namespace PCGExSampleNearestPoint
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
 		Union->IOSet.Reserve(Context->TargetsHandler->Num());
 
+		const bool bProcessFilteredOutAsFails = Settings->bProcessFilteredOutAsFails;
+		const double DefaultDet = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			Union->Reset();
 
 			if (!PointFilterCache[Index])
 			{
-				if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(Index); }
+				if (bProcessFilteredOutAsFails) { SamplingFailed(Index); }
 				continue;
 			}
 
@@ -358,14 +361,13 @@ namespace PCGExSampleNearestPoint
 			double RangeMax = FMath::Square(RangeMaxGetter->Read(Index));
 
 			if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
-
-			if (RangeMax == 0) { Union->Elements.Reserve(Context->NumMaxTargets); }
+			if (!RangeMax) { Union->Elements.Reserve(Context->NumMaxTargets); }
 
 			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
 			const FVector Origin = InTransforms[Index].GetLocation();
 
 			PCGExData::FElement SinglePick(-1, -1);
-			double Det = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
+			double Det = DefaultDet;
 
 			auto SampleSingleTarget = [&](const PCGExData::FConstPoint& Target)
 			{
@@ -498,7 +500,7 @@ namespace PCGExSampleNearestPoint
 			PCGEX_OUTPUT_VALUE(NumSamples, Index, SampleTracker.Count)
 			PCGEX_OUTPUT_VALUE(SampledIndex, Index, SinglePick.Index)
 
-			MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
+			MaxSampledDistanceScoped->Set(Scope, FMath::Max(MaxSampledDistanceScoped->Get(Scope), WeightedDistance));
 			bLocalAnySuccess = true;
 		}
 
@@ -509,24 +511,29 @@ namespace PCGExSampleNearestPoint
 	{
 		if (Settings->bOutputNormalizedDistance && DistanceWriter)
 		{
-			MaxDistance = MaxDistanceValue->Max();
+			MaxSampledDistance = MaxSampledDistanceScoped->Max();
 
 			const int32 NumPoints = PointDataFacade->GetNum();
 
 			if (Settings->bOutputOneMinusDistance)
 			{
+				const double InvMaxDist = 1.0 / MaxSampledDistance;
+				const double Scale = Settings->DistanceScale;
+
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const double D = DistanceWriter->GetValue(i);
-					DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+					DistanceWriter->SetValue(i, (1.0 - D * InvMaxDist) * Scale);
 				}
 			}
 			else
 			{
+				const double Scale = (1.0 / MaxSampledDistance) * Settings->DistanceScale;
+
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const double D = DistanceWriter->GetValue(i);
-					DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
+					DistanceWriter->SetValue(i, D * Scale);
 				}
 			}
 		}

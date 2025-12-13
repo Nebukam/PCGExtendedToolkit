@@ -351,8 +351,8 @@ namespace PCGExSampleNearestBounds
 		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
 		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
 
-		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
-		double MaxDistance = 0;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxSampledDistanceScoped;
+		double MaxSampledDistance = 0;
 
 		int8 bAnySuccess = 0;
 

@@ -170,15 +170,15 @@ namespace PCGExPointsMT
 		return PrimaryFilters->Init(ExecutionContext, *InFilterFactories);
 	}
 
-	int32 IProcessor::FilterScope(const PCGExMT::FScope& Scope)
+	int32 IProcessor::FilterScope(const PCGExMT::FScope& Scope, const bool bParallel)
 	{
-		if (PrimaryFilters) { return PrimaryFilters->Test(Scope, PointFilterCache); }
+		if (PrimaryFilters) { return PrimaryFilters->Test(Scope, PointFilterCache, bParallel); }
 		return DefaultPointFilterValue ? Scope.Count : 0;
 	}
 
 	int32 IProcessor::FilterAll()
 	{
-		return FilterScope(PCGExMT::FScope(0, PointDataFacade->GetNum()));
+		return FilterScope(PCGExMT::FScope(0, PointDataFacade->GetNum()), true);
 	}
 
 	TSharedPtr<IProcessor> IBatch::NewProcessorInstance(const TSharedRef<PCGExData::FFacade>& InPointDataFacade) const

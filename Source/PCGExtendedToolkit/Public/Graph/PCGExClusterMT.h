@@ -176,14 +176,14 @@ namespace PCGExClusterMT
 	protected:
 		TSharedPtr<PCGExClusterFilter::FManager> VtxFiltersManager;
 		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
-		virtual void FilterVtxScope(const PCGExMT::FScope& Scope);
+		virtual void FilterVtxScope(const PCGExMT::FScope& Scope, const bool bParallel = false);
 
 		bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const;
 
 		bool DefaultEdgeFilterValue = true;
 		TSharedPtr<PCGExClusterFilter::FManager> EdgesFiltersManager;
 		virtual bool InitEdgesFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
-		virtual void FilterEdgeScope(const PCGExMT::FScope& Scope);
+		virtual void FilterEdgeScope(const PCGExMT::FScope& Scope, const bool bParallel = false);
 	};
 
 	template <typename TContext, typename TSettings>

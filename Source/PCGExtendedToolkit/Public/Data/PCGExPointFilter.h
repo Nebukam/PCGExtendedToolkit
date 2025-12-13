@@ -239,12 +239,12 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExGraph::FEdge& Edge);
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection);
 
-		virtual int32 Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults);
-		virtual int32 Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults);
+		virtual int32 Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults, const bool bParallel = false);
+		virtual int32 Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults, const bool bParallel = false);
 
-		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults);
-		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResults);
-		virtual int32 Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults);
+		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
+		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResultsPtr, const bool bParallel = false);
+		virtual int32 Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
 
 		virtual ~FManager()
 		{
@@ -256,6 +256,7 @@ namespace PCGExPointFilter
 	protected:
 		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
 		TArray<TSharedPtr<IFilter>> ManagedFilters;
+		TArray<const IFilter*> Stack;
 
 		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& Filter);
 		virtual bool PostInit(FPCGExContext* InContext);

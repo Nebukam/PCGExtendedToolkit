@@ -305,7 +305,7 @@ namespace PCGExSampleNearestPath
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 		TProcessor<FPCGExSampleNearestPathContext, UPCGExSampleNearestPathSettings>::PrepareLoopScopesForPoints(Loops);
-		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
+		MaxSampledDistanceScoped = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
 	void FProcessor::SamplingFailed(const int32 Index)
@@ -435,29 +435,26 @@ namespace PCGExSampleNearestPath
 
 			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::FPolyPath>& InPath)
 			{
-				const PCGExData::FElement EdgeElement(EdgeIndex, InPath->Idx);
-				const PCGExData::FElement A(InPath->Edges[EdgeIndex].Start, InPath->Idx);
-				const PCGExData::FElement B(InPath->Edges[EdgeIndex].End, InPath->Idx);
-
+				PCGExData::FElement EdgeElement;
+				PCGExData::FElement A;
+				PCGExData::FElement B;
+				InPath->GetEdgeElements(EdgeIndex, EdgeElement, A, B);
+				
 				const bool bClosedLoop = InPath->IsClosedLoop();
 				const bool bIsInside = InPath->IsInsideProjection(Transform.GetLocation());
 
 				if (Settings->bOnlySampleWhenInside && !bIsInside) { return; }
 
-				int32 NumInsideIncrement = 0;
-				if (bIsInside) { if (!bOnlyIncrementInsideNumIfClosed || bClosedLoop) { NumInsideIncrement = 1; } }
-
-				const FVector PosA = InPath->GetPos(A.Index);
-				const FVector PosB = InPath->GetPos(B.Index);
-
-				const FVector SampleLocation = FMath::Lerp(PosA, PosB, Lerp);
-
+				const int32 NumInsideIncrement = bIsInside && (!bOnlyIncrementInsideNumIfClosed || bClosedLoop);
+				const FVector SampleLocation = FMath::Lerp(InPath->GetPos(A.Index), InPath->GetPos(B.Index), Lerp);
 				const FVector ModifiedOrigin = Context->TargetsHandler->GetSourceCenter(Point, Origin, SampleLocation);
 				const double DistSquared = FVector::DistSquared(ModifiedOrigin, SampleLocation);
 
-				if (RangeMax > 0 && (DistSquared < RangeMin || DistSquared > RangeMax))
+				if (RangeMax > 0
+					&& (DistSquared < RangeMin || DistSquared > RangeMax)
+					&& (!Settings->bAlwaysSampleWhenInside || !bIsInside))
 				{
-					if (!Settings->bAlwaysSampleWhenInside || !bIsInside) { return; }
+					return;
 				}
 
 				const double Time = (static_cast<double>(EdgeIndex) + Lerp) / static_cast<double>(InPath->NumEdges);
@@ -607,7 +604,7 @@ namespace PCGExSampleNearestPath
 			PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
 			PCGEX_OUTPUT_VALUE(ClosedLoop, Index, bSampledClosedLoop)
 
-			MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
+			MaxSampledDistanceScoped->Set(Scope, FMath::Max(MaxSampledDistanceScoped->Get(Scope), WeightedDistance));
 			bAnySuccessLocal = true;
 		}
 
@@ -618,24 +615,29 @@ namespace PCGExSampleNearestPath
 	{
 		if (Settings->bOutputNormalizedDistance && DistanceWriter)
 		{
-			MaxDistance = MaxDistanceValue->Max();
+			MaxSampledDistance = MaxSampledDistanceScoped->Max();
 
 			const int32 NumPoints = PointDataFacade->GetNum();
 
 			if (Settings->bOutputOneMinusDistance)
 			{
+				const double InvMaxDist = 1.0 / MaxSampledDistance;
+				const double Scale = Settings->DistanceScale;
+
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const double D = DistanceWriter->GetValue(i);
-					DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+					DistanceWriter->SetValue(i, (1.0 - D * InvMaxDist) * Scale);
 				}
 			}
 			else
 			{
+				const double Scale = (1.0 / MaxSampledDistance) * Settings->DistanceScale;
+
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const double D = DistanceWriter->GetValue(i);
-					DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
+					DistanceWriter->SetValue(i, D * Scale);
 				}
 			}
 		}
