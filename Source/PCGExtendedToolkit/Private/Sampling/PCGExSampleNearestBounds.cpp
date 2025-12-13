@@ -307,7 +307,7 @@ namespace PCGExSampleNearestBounds
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		Union->IOSet.Reserve(Context->TargetsHandler->Num());
+		Union->Reserve(Context->TargetsHandler->Num());
 		Union->WeightRange = -2; // Don't remap
 
 		PCGExGeo::FSample CloudSample;

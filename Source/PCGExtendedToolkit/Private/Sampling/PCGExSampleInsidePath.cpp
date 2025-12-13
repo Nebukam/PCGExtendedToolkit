@@ -276,15 +276,12 @@ namespace PCGExSampleInsidePath
 		DataBlender->InitTrackers(Trackers);
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		Union->IOSet.Reserve(Context->TargetsHandler->Num());
-
+		Union->Reserve(Context->TargetsHandler->Num(), RangeMax ? 8 : Context->NumMaxTargets);
 		Union->Reset();
-
+		
 		int32 NumInside = 0;
 		const double RangeMinSquared = FMath::Square(RangeMin);
 		const double RangeMaxSquared = FMath::Square(RangeMax);
-
-		if (RangeMax == 0) { Union->Elements.Reserve(Context->NumMaxTargets); }
 
 		PCGExData::FElement SinglePick(-1, -1);
 		double WeightedDistance = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;

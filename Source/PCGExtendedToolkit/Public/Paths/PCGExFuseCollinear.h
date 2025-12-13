@@ -9,6 +9,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Details/PCGExDetailsIntersection.h"
 
 #include "PCGExFuseCollinear.generated.h"
 
@@ -61,11 +62,14 @@ public:
 	bool bDoBlend = false;
 
 	/** Defines how fused point properties and attributes are merged together into the first point of a collinear chain. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bDoBlend", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoBlend"))
 	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
 
-	/** Distance used to consider point to be overlapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExUnionMetadataDetails UnionDetails;
+
+	/** Distance used to consider point to be overlapping. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	bool bOmitInvalidPathsFromOutput = true;
 };
 
@@ -98,6 +102,9 @@ namespace PCGExFuseCollinear
 		TSharedPtr<PCGExPaths::FPath> Path;
 		FVector LastPosition = FVector::ZeroVector;
 
+		TSharedPtr<PCGExData::TBuffer<bool>> IsUnionWriter;
+		TSharedPtr<PCGExData::TBuffer<int32>> UnionSizeWriter;
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)
@@ -108,6 +115,6 @@ namespace PCGExFuseCollinear
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		void Blend(TArray<int32>& ReadIndices);
+		void Finalize(TArray<int32>& ReadIndices);
 	};
 }

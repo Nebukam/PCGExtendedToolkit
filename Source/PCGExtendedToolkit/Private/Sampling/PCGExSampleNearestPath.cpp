@@ -349,7 +349,7 @@ namespace PCGExSampleNearestPath
 		DataBlender->InitTrackers(Trackers);
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		Union->IOSet.Reserve(Context->TargetsHandler->Num());
+		Union->Reserve(Context->TargetsHandler->Num());
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
