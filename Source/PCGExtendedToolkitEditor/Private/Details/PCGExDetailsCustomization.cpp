@@ -22,6 +22,7 @@
 #include "Details/Collections/PCGExAssetGrammarCustomization.h"
 #include "Details/Enums/PCGExGridEnumCustomization.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
+#include "Details/InputSettings/PCGExApplySamplingCustomization.h"
 #include "Details/InputSettings/PCGExClampDetailsCustomization.h"
 #include "Details/InputSettings/PCGExCompareShorthandsCustomization.h"
 #include "Details/InputSettings/PCGExInputShorthandsCustomization.h"
@@ -210,6 +211,7 @@ namespace PCGExDetailsCustomization
 		PCGEX_REGISTER_CUSTO("PCGExClampDetails", FPCGExClampDetailsCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExBitmaskRef", FPCGExBitmaskRefCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExBitmaskCollectionEntry", FPCGExBitmaskEntryCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExApplySamplingDetails", FPCGExApplySamplingCustomization)
 
 		PCGEX_REGISTER_CUSTO("PCGExCompareSelectorDouble", FPCGExCompareShorthandCustomization)
 

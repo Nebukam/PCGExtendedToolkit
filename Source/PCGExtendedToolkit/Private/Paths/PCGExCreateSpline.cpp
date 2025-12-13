@@ -69,17 +69,18 @@ bool FPCGExCreateSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any dataset to generate splines."));
 		}
@@ -87,8 +88,19 @@ bool FPCGExCreateSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	Context->MainBatch->Output();
-	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+	if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)
+	{
+		PCGExMT::ExecuteOnMainThreadAndWait([&]()
+		{
+			Context->MainBatch->Output();
+			Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+		});
+	}
+	else
+	{
+		Context->MainBatch->Output();
+		Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+	}
 
 	return Context->TryComplete();
 }

@@ -5,6 +5,7 @@
 
 #include "PCGExBroadcast.h"
 #include "PCGExHelpers.h"
+#include "PCGExTypes.h"
 #include "Data/PCGExPointIO.h"
 
 namespace PCGExDataHelpers
@@ -36,7 +37,7 @@ namespace PCGExDataHelpers
 		PCGEx::ExecuteWithRightType(Attribute->GetTypeId(), [&](auto DummyValue)
 		{
 			using T_VALUE = decltype(DummyValue);
-			Value = PCGEx::Convert<T_VALUE, T>(ReadDataValue<T_VALUE>(static_cast<const FPCGMetadataAttribute<T_VALUE>*>(Attribute)));
+			Value = PCGExTypes::Convert<T_VALUE, T>(ReadDataValue<T_VALUE>(static_cast<const FPCGMetadataAttribute<T_VALUE>*>(Attribute)));
 		});
 		return Value;
 	}
@@ -101,7 +102,7 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(UPCGData* InData, FPCGA
 				const T_VALUE Value = ReadDataValue(TypedSource);
 
 				if (SubSelection.bIsValid) { OutValue = SubSelection.Get<T_VALUE, T>(Value); }
-				else { OutValue = PCGEx::Convert<T_VALUE, T>(Value); }
+				else { OutValue = PCGExTypes::Convert<T_VALUE, T>(Value); }
 
 				bSuccess = true;
 			});

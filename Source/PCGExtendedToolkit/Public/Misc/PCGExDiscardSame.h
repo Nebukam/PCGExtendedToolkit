@@ -20,6 +20,14 @@ enum class EPCGExDiscardSameMode : uint8
 	All  = 2 UMETA(DisplayName = "All", ToolTip="Discard all collections that have found duplicates (does not keep any)"),
 };
 
+UENUM()
+enum class EPCGExDiscardAttributeHashMode : uint8
+{
+	None = 0 UMETA(DisplayName = "None", ToolTip="Do not use attributes to check sameness"),
+	Single = 1 UMETA(DisplayName = "Single", ToolTip="Use a single, overridable attribute."),
+	List  = 2 UMETA(DisplayName = "List", ToolTip="Use a list of attributes. Arrays are not overridable"),
+};
+
 namespace PCGExDiscardSame
 {
 	class FProcessor;
@@ -33,6 +41,8 @@ class UPCGExDiscardSameSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_NODE_INFOS(DiscardSame, "Discard Same", "Discard entire datasets based on a selection of parameters");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
@@ -79,12 +89,27 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestPositions", ClampMin = 0))
 	double TestPositionTolerance = 0.1;
 
+#pragma region DEPRECATED
+	
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bTestAttributeHash = false;
+	UPROPERTY()
+	bool bTestAttributeHash_DEPRECATED = false;
+	
+#pragma endregion
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExDiscardAttributeHashMode TestAttributesHash = EPCGExDiscardAttributeHashMode::None;
+	
+	/** Build a hash from a single attribute and test it against the others. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestAttributesHash == EPCGExDiscardAttributeHashMode::List", EditConditionHides))
+	TArray<FPCGExAttributeHashConfig> AttributeHashConfigs;
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Append Overridable", EditCondition="TestAttributesHash == EPCGExDiscardAttributeHashMode::List", EditConditionHides))
+	bool bIncludeSingleAttribute = false;
 
 	/** Build a hash from a single attribute and test it against the others. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestAttributeHash"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestAttributesHash == EPCGExDiscardAttributeHashMode::Single || (TestAttributesHash == EPCGExDiscardAttributeHashMode::List && bIncludeSingleAttribute)", EditConditionHides))
 	FPCGExAttributeHashConfig AttributeHashConfig;
 
 private:
@@ -114,7 +139,7 @@ namespace PCGExDiscardSame
 	{
 		friend struct FPCGExDiscardSameContext;
 
-		TSharedPtr<PCGEx::FAttributeHasher> Hasher;
+		TArray<TSharedPtr<PCGEx::FAttributeHasher>> Hashers;
 
 	public:
 		double HashPointsCount = 0;
@@ -126,6 +151,8 @@ namespace PCGExDiscardSame
 		{
 		}
 
+		bool CompareHashers(const TArray<TSharedPtr<PCGEx::FAttributeHasher>>& InHashers);
+		
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void CompleteWork() override;
 	};

@@ -5,13 +5,14 @@
 
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -53,14 +54,6 @@ bool UPCGExSampleNearestBoundsSettings::IsPinUsedByNodeExecution(const UPCGPin* 
 	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExBoundsSampleMethod::BestCandidate; }
 	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
-}
-
-void FPCGExSampleNearestBoundsContext::RegisterAssetDependencies()
-{
-	PCGEX_SETTINGS_LOCAL(SampleNearestBounds)
-
-	FPCGExPointsProcessorContext::RegisterAssetDependencies();
-	AddAssetDependency(Settings->WeightRemap.ToSoftObjectPath());
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestBounds)
@@ -108,24 +101,18 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
 
-
-	return true;
-}
-
-void FPCGExSampleNearestBoundsElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
-
 	Context->RuntimeWeightCurve = Settings->LocalWeightRemap;
+
 	if (!Settings->bUseLocalCurve)
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightRemap.Get();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightRemap);
 	}
+
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+
+	return true;
 }
 
 bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -143,22 +130,23 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
-			const bool bError = Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
-			{
-				// Prep look up getters
-				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
+			const bool bError = Context->TargetsHandler->ForEachTarget(
+				[&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
 				{
-					// TODO : Preload if relevant
-					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-					if (!LookAtUpGetter->Init(Target, false))
+					// Prep look up getters
+					if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 					{
-						bBreak = true;
-						return;
-					}
+						// TODO : Preload if relevant
+						TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
+						if (!LookAtUpGetter->Init(Target, false))
+						{
+							bBreak = true;
+							return;
+						}
 
-					Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
-				}
-			});
+						Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
+					}
+				});
 
 			if (bError)
 			{
@@ -174,9 +162,10 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			                                         [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			                                         {
+			                                         }))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
 			}
@@ -317,7 +306,7 @@ namespace PCGExSampleNearestBounds
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
-		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
 		Union->IOSet.Reserve(Context->TargetsHandler->Num());
@@ -353,7 +342,7 @@ namespace PCGExSampleNearestBounds
 			double Det = DefaultDet;
 
 			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
-			const FVector Origin = Transforms[Index].GetLocation();
+			const FVector Origin = InTransforms[Index].GetLocation();
 
 			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 
@@ -431,15 +420,16 @@ namespace PCGExSampleNearestBounds
 				if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 				SampleTracker.Count++;
-				SampleTracker.Weight += W;
+				SampleTracker.TotalWeight += W;
 
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::Lerp(WeightedTransform, TargetTransform, W);
+
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					PCGExBlend::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
+					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
@@ -449,10 +439,14 @@ namespace PCGExSampleNearestBounds
 			// Blend using updated weighted points
 			DataBlender->Blend(Index, OutWeightedPoints, Trackers);
 
-			if (SampleTracker.Weight != 0) // Dodge NaN
+			if (SampleTracker.TotalWeight != 0) // Dodge NaN
 			{
-				WeightedUp /= SampleTracker.Weight;
-				WeightedTransform = PCGExBlend::Div(WeightedTransform, SampleTracker.Weight);
+				WeightedUp = PCGExTypeOps::FTypeOps<FVector>::NormalizeWeight(WeightedUp, SampleTracker.TotalWeight);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, SampleTracker.TotalWeight);
+			}
+			else
+			{
+				WeightedTransform = InTransforms[Index];
 			}
 
 			WeightedUp.Normalize();

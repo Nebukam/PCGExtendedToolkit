@@ -163,12 +163,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Snapping != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandSelectorDouble Snap = FPCGExInputShorthandSelectorDouble(FName("Step"), 10, false);
 
-	void Init()
-	{
-		if (!bUseLocalCurve) { LocalScoreCurve.ExternalCurve = RemapCurve.Get(); }
-		RemapCurveObj = LocalScoreCurve.GetRichCurveConst();
-	}
-
+	void Init();
+	
 	double GetRemappedValue(const double Value, const double Step) const;
 };
 

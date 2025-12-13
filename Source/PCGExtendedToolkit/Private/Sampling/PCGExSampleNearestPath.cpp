@@ -7,10 +7,10 @@
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
@@ -130,12 +130,11 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
 
-	if (!Settings->bUseLocalCurve && Settings->WeightOverDistance.IsValid())
+	if (!Settings->bUseLocalCurve)
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
@@ -533,13 +532,15 @@ namespace PCGExSampleNearestPath
 				WeightedTransform = FTransform::Identity;
 				WeightedTransform.SetScale3D(FVector::ZeroVector);
 			}
+			else
+			{
+				WeightedTransform = InTransforms[Index];
+			}
 
 			const double NumSampled = Union->Num() * 0.5;
 			WeightedDistance /= NumSampled; // We have two points per samples
 			WeightedTime /= NumSampled;
 			WeightedSegmentTime /= NumSampled;
-
-			double TotalWeight = 0;
 
 			// Post-process weighted points and compute local data
 			PCGEx::FOpStats SampleTracker{};
@@ -551,35 +552,32 @@ namespace PCGExSampleNearestPath
 				//if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 				SampleTracker.Count++;
-				SampleTracker.Weight += W;
+				SampleTracker.TotalWeight += W;
 
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
 
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					PCGExBlend::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
+					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
 				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * W;
-
-				TotalWeight += W;
 			}
 
 			// Blend using updated weighted points
 			DataBlender->Blend(Index, OutWeightedPoints, Trackers);
 
-			if (TotalWeight != 0) // Dodge NaN
+			if (SampleTracker.TotalWeight != 0) // Dodge NaN
 			{
-				//WeightedUp /= TotalWeight;
-				//WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
+				WeightedUp = PCGExTypeOps::FTypeOps<FVector>::NormalizeWeight(WeightedUp, SampleTracker.TotalWeight);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, SampleTracker.TotalWeight);
 			}
 			else
 			{
-				WeightedUp = WeightedUp.GetSafeNormal();
 				WeightedTransform = InTransforms[Index];
 			}
 

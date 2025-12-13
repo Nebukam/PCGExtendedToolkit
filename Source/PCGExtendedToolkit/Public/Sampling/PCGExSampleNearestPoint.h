@@ -123,33 +123,33 @@ public:
 
 #pragma endregion
 
+	/** Distance method to be used for source & target points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute", EditConditionHides))
+	FPCGExDistanceDetails DistanceDetails;
+
 	/** Which mode to use to compute weights. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExSampleWeightMode WeightMode = EPCGExSampleWeightMode::Distance;
 
 	/** Weight attribute to read on targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Distance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Distance", EditConditionHides))
 	FPCGAttributePropertyInputSelector WeightAttribute;
 
-	/** Distance method to be used for source & target points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute", EditConditionHides))
-	FPCGExDistanceDetails DistanceDetails;
-
 	/** Weight method used for blending */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
 	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute", EditConditionHides))
 	bool bUseLocalCurve = false;
 
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_NotOverridable, DisplayName="Weight Over Distance", EditCondition = "WeightMode != EPCGExSampleWeightMode::Attribute && bUseLocalCurve", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, DisplayName="Weight Over Distance", EditCondition = "WeightMode != EPCGExSampleWeightMode::Attribute && bUseLocalCurve", EditConditionHides))
 	FRuntimeFloatCurve LocalWeightOverDistance;
 
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute && !bUseLocalCurve", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute && !bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
@@ -348,8 +348,6 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
 
-	virtual void RegisterAssetDependencies() override;
-
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -360,7 +358,6 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestPoint)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;

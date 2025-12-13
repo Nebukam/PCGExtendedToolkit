@@ -9,15 +9,14 @@
 #include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
-#include "PCGExBroadcast.h"
 #include "Data/PCGExDataHelpers.h"
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
+#include "PCGExTypes.h"
 #include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataValue.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendMinMax.h"
 
 bool PCGEx::FAttributeIdentity::InDataDomain() const
 {
@@ -368,7 +367,7 @@ namespace PCGEx
 				DataValue = MakeShared<PCGExData::TDataValue<T_REAL>>(PCGExDataHelpers::ReadDataValue(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute)));
 
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				TypedDataValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGEx::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
+				TypedDataValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGExTypes::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
 			});
 		}
 		else
@@ -488,7 +487,7 @@ namespace PCGEx
 		PCGEx::InitArray(Dump, NumPoints);
 
 		PCGExMath::TypeMinMax(OutMin, OutMax);
-
+		
 		if (!ProcessingInfos.bIsValid)
 		{
 			for (int i = 0; i < NumPoints; i++) { Dump[i] = T{}; }
@@ -513,12 +512,12 @@ namespace PCGEx
 				// TODO : Log error
 			}
 			else if (bCaptureMinMax)
-			{
+			{				
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const T& V = Dump[i];
-					OutMin = PCGExBlend::Min(OutMin, V);
-					OutMax = PCGExBlend::Max(OutMax, V);
+					OutMin = PCGExDataBlending::BlendFunctions::Min(V, OutMin, 1);
+					OutMax = PCGExDataBlending::BlendFunctions::Max(V, OutMax, 1);
 				}
 			}
 		}

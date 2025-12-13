@@ -4,6 +4,7 @@
 #include "Collections/PCGExAssetLoader.h"
 
 #include "PCGExContext.h"
+#include "PCGExTypes.h"
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
 #include "PCGExSubSystem.h"
@@ -50,7 +51,7 @@ namespace PCGEx
 				const FSoftObjectPath& Path = ValueDump[i];
 				if (!Path.IsAsset()) { continue; }
 
-				Keys[i] = PCGExBlend::ValueHash(Path);
+				Keys[i] = PCGExTypes::ComputeHash(Path);
 				UniqueValidPaths.Add(Path);
 			}
 

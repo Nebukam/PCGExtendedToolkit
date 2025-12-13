@@ -98,6 +98,6 @@ namespace PCGEx
 	struct PCGEXTENDEDTOOLKIT_API FOpStats
 	{
 		int32 Count = 0;
-		double Weight = 0;
+		double TotalWeight = 0;
 	};
 }

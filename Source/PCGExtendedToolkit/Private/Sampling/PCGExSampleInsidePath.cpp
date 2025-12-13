@@ -7,10 +7,10 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -64,18 +64,6 @@ PCGEX_INITIALIZE_ELEMENT(SampleInsidePath)
 PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleInsidePath)
-
-void FPCGExSampleInsidePathContext::RegisterAssetDependencies()
-{
-	PCGEX_SETTINGS_LOCAL(SampleInsidePath)
-
-	if (!Settings->bUseLocalCurve && Settings->WeightOverDistance.IsValid())
-	{
-		AddAssetDependency(Settings->WeightOverDistance.ToSoftObjectPath());
-	}
-
-	FPCGExPointsProcessorContext::RegisterAssetDependencies();
-}
 
 bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 {
@@ -145,11 +133,11 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
 
-	if (!Settings->bUseLocalCurve && Settings->WeightOverDistance.IsValid())
+	if (!Settings->bUseLocalCurve)
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
@@ -408,12 +396,11 @@ namespace PCGExSampleInsidePath
 			//if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 			SampleTracker.Count++;
-			SampleTracker.Weight += W;
+			SampleTracker.TotalWeight += W;
 
 			const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 
-			WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
-
+			WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
 			TotalWeight += W;
 		}
 
@@ -422,7 +409,7 @@ namespace PCGExSampleInsidePath
 
 		if (TotalWeight != 0) // Dodge NaN
 		{
-			WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
+			WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, TotalWeight);
 		}
 		else
 		{

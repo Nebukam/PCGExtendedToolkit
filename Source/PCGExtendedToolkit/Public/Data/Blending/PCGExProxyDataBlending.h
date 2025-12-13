@@ -7,6 +7,8 @@
 #include "Data/PCGExData.h"
 
 #include "PCGExDataBlending.h"
+#include "Types/PCGExTypeOps.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExDetails
 {
@@ -180,6 +182,9 @@ extern template void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, cons
 	template <typename T_WORKING>
 	class IProxyDataBlender : public FProxyDataBlender
 	{
+	protected:
+		const PCGExTypeOps::TTypeOpsImpl<T_WORKING>& TypeOpsImpl;
+		
 	public:
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> A;
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> B;
@@ -223,6 +228,7 @@ extern template class IProxyDataBlender<_TYPE>;
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend = true>
 	class TProxyDataBlender : public IProxyDataBlender<T_WORKING>
 	{
+		using IProxyDataBlender<T_WORKING>::TypeOpsImpl;
 		using IProxyDataBlender<T_WORKING>::A;
 		using IProxyDataBlender<T_WORKING>::B;
 		using IProxyDataBlender<T_WORKING>::C;
