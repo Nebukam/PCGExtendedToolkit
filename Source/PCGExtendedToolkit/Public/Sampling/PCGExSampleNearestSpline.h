@@ -455,8 +455,6 @@ struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestSplineElement;
 
-	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
-
 	FPCGExApplySamplingDetails ApplySampling;
 
 	TArray<const UPCGSplineData*> Targets;
@@ -494,8 +492,6 @@ namespace PCGExSampleNearestSpline
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
 	{
-		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
-
 		TArray<int8> SamplingMask;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;

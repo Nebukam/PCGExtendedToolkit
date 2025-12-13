@@ -80,7 +80,6 @@ struct FPCGExPathInsertContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> CanCutFilterFactories;
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> CanBeCutFilterFactories;
 
-	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExBlendingDetails CrossingBlending;
 
 protected:

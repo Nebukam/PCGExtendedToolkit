@@ -51,9 +51,9 @@ namespace PCGExGraph
 		UnionGraph->Collapse();
 		Context->SetAsyncState(State_ProcessingUnion);
 
-		Distances = PCGExDetails::MakeDistances(PointPointIntersectionDetails.FuseDetails.SourceDistance, PointPointIntersectionDetails.FuseDetails.TargetDistance);
+		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(
+			&DefaultPointsBlendingDetails, VtxCarryOverDetails, PointPointIntersectionDetails.FuseDetails.GetDistances());
 
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
 		UnionBlender = TypedBlender;
 
 		TypedBlender->AddSources(InFacades, &ProtectedClusterAttributes);

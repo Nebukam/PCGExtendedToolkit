@@ -184,7 +184,7 @@ bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSh
 
 FVector FPCGExVectorHashComparisonDetails::GetCWTolerance(const int32 PointIndex) const
 {
-	return FVector(1 / Tolerance->Read(PointIndex));
+	return FVector(PCGEx::SafeScalarTolerance(Tolerance->Read(PointIndex)));
 }
 
 void FPCGExVectorHashComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

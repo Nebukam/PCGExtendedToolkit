@@ -123,7 +123,7 @@ namespace PCGExDataBlending
 
 #pragma endregion
 
-	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
+	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const PCGExDetails::FDistances* InDistanceDetails)
 		: CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails), DistanceDetails(InDistanceDetails)
 	{
 		BlendingDetails->GetPointPropertyBlendingParams(PropertyParams);

@@ -30,8 +30,6 @@ bool FPCGExPathInsertElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathInsert)
 
-	Context->Distances = PCGExDetails::MakeDistances();
-
 	return true;
 }
 
@@ -47,20 +45,21 @@ bool FPCGExPathInsertElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		const bool bIsCanBeCutTagValid = PCGEx::IsValidStringTag(Context->CanBeCutTag);
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         //NewBatch->SetPointsFilterData(&Context->FilterFactories);
-			                                         //NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
+				//NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 		}

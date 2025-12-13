@@ -9,8 +9,8 @@
 
 namespace PCGExDataBlending
 {
-	FUnionOpsManager::FUnionOpsManager(const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* InBlendingFactories, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
-		: BlendingFactories(InBlendingFactories), DistanceDetails(InDistanceDetails)
+	FUnionOpsManager::FUnionOpsManager(const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* InBlendingFactories, const PCGExDetails::FDistances* InDistances)
+		: BlendingFactories(InBlendingFactories), Distances(InDistances)
 	{
 	}
 
@@ -66,7 +66,7 @@ namespace PCGExDataBlending
 	int32 FUnionOpsManager::ComputeWeights(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
 		const PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
-		return InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints);
+		return InUnionData->ComputeWeights(SourcesData, IOLookup, Target, Distances, OutWeightedPoints);
 	}
 
 	void FUnionOpsManager::Blend(const int32 WriteIndex, const TArray<PCGExData::FWeightedPoint>& InWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const

@@ -94,7 +94,7 @@ namespace PCGExGeo
 		uint32 InternalIdx = 0;
 		TArray<FVector>* Vertices = nullptr;
 		TArray<int32>* RawIndices = nullptr;
-		FVector HashTolerance = FVector(1 / 0.001);
+		FVector HashTolerance = FVector(0.001);
 
 	public:
 		TMap<uint64, int32> Data;
@@ -137,7 +137,7 @@ namespace PCGExGeo
 	{
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
-		FVector CWTolerance = FVector(1 / 0.001);
+		FVector CWTolerance = FVector(0.001);
 
 		FMeshData RawData;
 

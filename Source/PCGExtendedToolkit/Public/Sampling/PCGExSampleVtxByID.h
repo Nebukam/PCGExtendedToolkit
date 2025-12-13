@@ -119,7 +119,6 @@ struct FPCGExSampleVtxByIDContext final : FPCGExPointsProcessorContext
 	TMap<uint32, uint64> VtxLookup; // Vtx ID :: PointIndex << IOIndex
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
-	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	FPCGExApplySamplingDetails ApplySampling;
 

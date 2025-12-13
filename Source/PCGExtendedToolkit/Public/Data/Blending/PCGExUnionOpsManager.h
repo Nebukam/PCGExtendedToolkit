@@ -21,7 +21,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FUnionOpsManager final : public IUnionBlender
 	{
 	public:
-		FUnionOpsManager(const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* InBlendingFactories, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
+		FUnionOpsManager(const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* InBlendingFactories, const PCGExDetails::FDistances* InDistances);
 		virtual ~FUnionOpsManager() override;
 
 		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TArray<TSharedRef<PCGExData::FFacade>>& InSources);
@@ -38,7 +38,7 @@ namespace PCGExDataBlending
 	protected:
 		const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* BlendingFactories = nullptr;
 
-		const TSharedPtr<PCGExDetails::FDistances> DistanceDetails = nullptr;
+		const PCGExDetails::FDistances* Distances = nullptr;
 
 		TArray<TSharedPtr<FBlendOpsManager>> Blenders;
 		TSharedPtr<PCGEx::FIndexLookup> IOLookup;

@@ -97,13 +97,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 
 	uint32 GridHash = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable, ClampMin=0.000001))
 	FVector GridHashCollision = FVector(0.001);
-	FVector AdjustedGridHashCollision = FVector(1 / 0.001);
+	FVector AdjustedGridHashCollision = FVector(0.001);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable, ClampMin=0.000001))
 	FVector PositionHashCollision = FVector(0.001);
-	FVector AdjustedPositionHashCollision = FVector(1 / 0.001);
+	FVector AdjustedPositionHashCollision = FVector(0.001);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable))
 	FVector PositionHashOffset = FVector(0);

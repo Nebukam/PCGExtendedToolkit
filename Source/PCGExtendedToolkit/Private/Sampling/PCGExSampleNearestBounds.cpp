@@ -87,8 +87,6 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Context->DistanceDetails = PCGExDetails::MakeDistances();
-
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
 		Context->Sorter = MakeShared<PCGExSorting::FPointSorter>(PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
@@ -242,7 +240,7 @@ namespace PCGExSampleNearestBounds
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, Context->DistanceDetails);
+			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
@@ -251,7 +249,7 @@ namespace PCGExSampleNearestBounds
 			TSet<FName> MissingAttributes;
 			PCGExDataBlending::AssembleBlendingDetails(Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes, Context->TargetsHandler->GetFacades(), BlendingDetails, MissingAttributes);
 
-			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&BlendingDetails, nullptr, Context->DistanceDetails);
+			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&BlendingDetails, nullptr, PCGExDetails::GetDistances());
 			UnionBlender->AddSources(Context->TargetsHandler->GetFacades());
 			if (!UnionBlender->Init(Context, PointDataFacade)) { return false; }
 			DataBlender = UnionBlender;

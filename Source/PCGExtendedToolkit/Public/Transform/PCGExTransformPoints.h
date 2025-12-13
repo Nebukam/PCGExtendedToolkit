@@ -66,6 +66,10 @@ public:
 
 #pragma region Rotation
 
+	/** If enabled will first reset rotation to 0, then apply variation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
+	bool bResetRotation = false;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorRotator RotationMin = FPCGExInputShorthandSelectorRotator(FName("RotationMin"));
 
@@ -89,6 +93,10 @@ public:
 
 #pragma region Scale
 
+	/** If enabled will first reset scale to 1, then apply variation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
+	bool bResetScale = false;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorVector ScaleMin = FPCGExInputShorthandSelectorVector(FName("ScaleMin"), FVector::OneVector);
 

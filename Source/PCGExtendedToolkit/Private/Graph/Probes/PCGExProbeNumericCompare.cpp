@@ -28,7 +28,7 @@ bool FPCGExProbeNumericCompare::PrepareForPoints(FPCGExContext* InContext, const
 	}
 
 
-	CWCoincidenceTolerance = FVector(1 / Config.CoincidencePreventionTolerance);
+	CWCoincidenceTolerance = FVector(PCGEx::SafeScalarTolerance(Config.CoincidencePreventionTolerance));
 
 	return true;
 }

@@ -118,9 +118,9 @@ namespace PCGExDetails
 	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::BoxBounds>;
 	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::None>;
 
-	PCGEXTENDEDTOOLKIT_API TSharedPtr<FDistances> MakeDistances(const EPCGExDistance Source = EPCGExDistance::Center, const EPCGExDistance Target = EPCGExDistance::Center, const bool bOverlapIsZero = false);
+	PCGEXTENDEDTOOLKIT_API const FDistances* GetDistances(const EPCGExDistance Source = EPCGExDistance::Center, const EPCGExDistance Target = EPCGExDistance::Center, const bool bOverlapIsZero = false);
 
-	PCGEXTENDEDTOOLKIT_API TSharedPtr<FDistances> MakeNoneDistances();
+	PCGEXTENDEDTOOLKIT_API const FDistances* GetNoneDistances();
 
 #pragma endregion
 }
@@ -148,5 +148,5 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOverlapIsZero = true;
 
-	TSharedPtr<PCGExDetails::FDistances> MakeDistances() const;
+	const PCGExDetails::FDistances* MakeDistances() const;
 };

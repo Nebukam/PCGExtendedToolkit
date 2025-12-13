@@ -247,7 +247,6 @@ namespace PCGExSampleInsidePath
 		TSharedPtr<PCGExPaths::FPolyPath> Path;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 		double RangeMin = 0;
 		double RangeMax = 0;

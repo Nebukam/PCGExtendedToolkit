@@ -151,6 +151,9 @@ namespace PCGExTransformPoints
 
 		FRandomStream RandomSource;
 
+		const bool bResetScale = Settings->bResetScale;
+		const bool bResetRotation = Settings->bResetRotation;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index]) { continue; }
@@ -158,6 +161,8 @@ namespace PCGExTransformPoints
 			RandomSource.Initialize(Seeds[Index]);
 
 			FTransform& OutTransform = OutTransforms[Index];
+			if (bResetScale) { OutTransform.SetScale3D(FVector::OneVector); }
+			if (bResetRotation) { OutTransform.SetRotation(FQuat::Identity); }
 
 			const FVector OffsetScaleV = OffsetScale->Read(Index);
 			const FVector OffsetMinV = OffsetMin->Read(Index) * OffsetScaleV;

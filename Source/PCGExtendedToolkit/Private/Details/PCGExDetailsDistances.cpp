@@ -86,41 +86,55 @@ namespace PCGExDetails
 	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::None, EPCGExDistance::None>;
 
 
-	TSharedPtr<FDistances> MakeDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
+	const FDistances* GetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
 	{
+		// Static cache for each combination
+		static TMap<TTuple<EPCGExDistance, EPCGExDistance, bool>, TSharedPtr<FDistances>> Cache;
+
+		const TTuple<EPCGExDistance, EPCGExDistance, bool> Key(Source, Target, bOverlapIsZero);
+
+		// Check if already cached
+		if (const TSharedPtr<FDistances>* Found = Cache.Find(Key)) { return Found->Get(); }
+
+		// Create new instance based on parameters
+		TSharedPtr<FDistances> NewDistances;
+
 		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
 		{
-			return MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
+			NewDistances = MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
 		}
-		if (Source == EPCGExDistance::Center)
+		else if (Source == EPCGExDistance::Center)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::Center) { NewDistances = MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(bOverlapIsZero); }
+			else if (Target == EPCGExDistance::SphereBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
+			else if (Target == EPCGExDistance::BoxBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
 		}
 		else if (Source == EPCGExDistance::SphereBounds)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::Center) { NewDistances = MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
+			else if (Target == EPCGExDistance::SphereBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
+			else if (Target == EPCGExDistance::BoxBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
 		}
 		else if (Source == EPCGExDistance::BoxBounds)
 		{
-			if (Target == EPCGExDistance::Center) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::SphereBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			if (Target == EPCGExDistance::BoxBounds) { return MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
+			if (Target == EPCGExDistance::Center) { NewDistances = MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
+			else if (Target == EPCGExDistance::SphereBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
+			else if (Target == EPCGExDistance::BoxBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
 		}
 
-		return nullptr;
+		// Cache and return
+		if (NewDistances) { Cache.Add(Key, NewDistances); }
+
+		return NewDistances.Get();
 	}
 
-	TSharedPtr<FDistances> MakeNoneDistances()
+	const FDistances* GetNoneDistances()
 	{
-		return MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
+		return GetDistances(EPCGExDistance::None, EPCGExDistance::None);
 	}
 }
 
-TSharedPtr<PCGExDetails::FDistances> FPCGExDistanceDetails::MakeDistances() const
+const PCGExDetails::FDistances* FPCGExDistanceDetails::MakeDistances() const
 {
-	return PCGExDetails::MakeDistances(Source, Target);
+	return PCGExDetails::GetDistances(Source, Target);
 }
