@@ -12,6 +12,7 @@
 #include "Graph/PCGExGraph.h"
 #include "Paths/PCGExPaths.h"
 #include "Paths/PCGExPathShift.h"
+#include "Sampling/PCGExSampling.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
@@ -29,6 +30,8 @@ bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 	Context->DotThreshold = PCGExMath::DegreesToDot(Settings->Threshold);
 	Context->FuseDistSquared = FMath::Square(Settings->FuseDistance);
 
+	if (!Settings->UnionDetails.SanityCheck(Context)) { return false; }
+
 	return true;
 }
 
@@ -43,20 +46,19 @@ bool FPCGExFuseCollinearElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		// TODO : Skip completion
-
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         if (!Settings->bOmitInvalidPathsFromOutput) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					if (!Settings->bOmitInvalidPathsFromOutput) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			Context->CancelExecution(TEXT("Could not find any paths to fuse."));
 		}
@@ -79,7 +81,7 @@ namespace PCGExFuseCollinear
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseCollinear::Process);
 
-		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
@@ -149,7 +151,7 @@ namespace PCGExFuseCollinear
 			const double Dot = FVector::DotProduct(WrapDir, ForwardDir);
 			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) || (Settings->bInvertThreshold && Dot < Context->DotThreshold))
 			{
-				// Collinear with previous, keep moving
+				// Collinear with previous
 				ReadIndices.RemoveAt(0);
 			}
 		}
@@ -161,26 +163,131 @@ namespace PCGExFuseCollinear
 		PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), ReadIndices.Num(), PointDataFacade->GetAllocations());
 		PointDataFacade->Source->InheritPoints(ReadIndices, 0);
 
-		if (Settings->bDoBlend) { Blend(ReadIndices); }
+		Finalize(ReadIndices);
 
 		return true;
 	}
 
-	void FProcessor::Blend(TArray<int32>& ReadIndices)
+	void FProcessor::Finalize(TArray<int32>& ReadIndices)
 	{
-		const PCGExDetails::FDistances* NoneDistances = PCGExDetails::GetNoneDistances();
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> Blender = MakeShared<PCGExDataBlending::FUnionBlender>(
-			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), nullptr, NoneDistances);
+		TSharedPtr<PCGExDataBlending::FUnionBlender> DataBlender = nullptr;
+
+		if (Settings->UnionDetails.bWriteIsUnion)
+		{
+			IsUnionWriter = PointDataFacade->GetWritable<bool>(
+				Settings->UnionDetails.IsUnionAttributeName,
+				false, true, PCGExData::EBufferInit::New);
+		}
+
+		if (Settings->UnionDetails.bWriteUnionSize)
+		{
+			UnionSizeWriter = PointDataFacade->GetWritable<int32>(
+				Settings->UnionDetails.UnionSizeAttributeName,
+				1, true, PCGExData::EBufferInit::New);
+		}
+
+		if (!Settings->bDoBlend && !Settings->UnionDetails.WriteAny()) { return; }
+
+		const int32 NumInPoints = PointDataFacade->GetNum();
+		const int32 LastRead = ReadIndices.Num() - 1;
+
+		if (!Settings->bDoBlend)
+		{
+			for (int i = 0; i < LastRead; i++)
+			{
+				const int32 From = ReadIndices[i];
+				const int32 To = ReadIndices[i + 1];
+				const int32 Count = To - From;
+
+				if (Count <= 1) { continue; }
+
+				if (IsUnionWriter) { IsUnionWriter->SetValue(i, true); }
+				if (UnionSizeWriter) { UnionSizeWriter->SetValue(i, Count); }
+			}
+
+			// Last point
+			const int32 Count = (NumInPoints - ReadIndices.Last()) + ReadIndices[0];
+			if (Count > 1)
+			{
+				if (IsUnionWriter) { IsUnionWriter->SetValue(LastRead, true); }
+				if (UnionSizeWriter) { UnionSizeWriter->SetValue(LastRead, Count); }
+			}
+
+			PointDataFacade->WriteFastest(TaskManager);
+
+			return;
+		}
+
+
+		DataBlender = MakeShared<PCGExDataBlending::FUnionBlender>(
+			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails),
+			nullptr, PCGExDetails::GetNoneDistances());
 
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
 		UnionSources.Add(PointDataFacade);
 
-		Blender->AddSources(UnionSources, nullptr);
-		if (!Blender->Init(Context, PointDataFacade))
+		TSet<FName> ProtectedAttributes;
+		if (Settings->UnionDetails.bWriteIsUnion) { ProtectedAttributes.Add(Settings->UnionDetails.IsUnionAttributeName); }
+		if (Settings->UnionDetails.bWriteUnionSize) { ProtectedAttributes.Add(Settings->UnionDetails.UnionSizeAttributeName); }
+
+		DataBlender->AddSources(UnionSources, &ProtectedAttributes);
+
+		if (!DataBlender->Init(Context, PointDataFacade)) { return; }
+
+		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
+		DataBlender->InitTrackers(Trackers);
+
+		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+
+		const int32 IOIndex = PointDataFacade->Source->IOIndex;
+
+		for (int i = 0; i < LastRead; i++)
 		{
-			bIsProcessorValid = false;
-			return;
+			const int32 From = ReadIndices[i];
+			const int32 To = ReadIndices[i + 1];
+			const int32 Count = To - From;
+
+			if (Count <= 1) { continue; }
+
+			if (IsUnionWriter) { IsUnionWriter->SetValue(i, true); }
+			if (UnionSizeWriter) { UnionSizeWriter->SetValue(i, Count); }
+
+			Union->Reset();
+			Union->Reserve(1, Count);
+
+			for (int j = 0; j < Count; j++)
+			{
+				Union->AddWeighted_Unsafe(PCGExData::FElement(From + j, IOIndex), 1);
+			}
+
+			DataBlender->ComputeWeights(i, Union, OutWeightedPoints);
+			DataBlender->Blend(i, OutWeightedPoints, Trackers);
 		}
+
+		{
+			const int32 From = ReadIndices.Last();
+			const int32 Count = (NumInPoints - From) + ReadIndices[0];
+
+			if (Count > 1)
+			{
+				if (IsUnionWriter) { IsUnionWriter->SetValue(LastRead, true); }
+				if (UnionSizeWriter) { UnionSizeWriter->SetValue(LastRead, Count); }
+
+				Union->Reset();
+				Union->Reserve(1, Count);
+
+				for (int j = 0; j < Count; j++)
+				{
+					Union->AddWeighted_Unsafe(PCGExData::FElement((From + j) % NumInPoints, IOIndex), 1);
+				}
+
+				DataBlender->ComputeWeights(LastRead, Union, OutWeightedPoints);
+				DataBlender->Blend(LastRead, OutWeightedPoints, Trackers);
+			}
+		}
+
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

@@ -72,11 +72,8 @@ namespace PCGExData
 			const PCGExDetails::FDistances* InDistanceDetails,
 			TArray<FWeightedPoint>& OutWeightedPoints) const;
 
-		virtual void Reset()
-		{
-			IOSet.Reset();
-			Elements.Reset();
-		}
+		virtual void Reserve(const int32 InSetReserve, const int32 InElementReserve);
+		virtual void Reset();				
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FUnionMetadata : public TSharedFromThis<FUnionMetadata>
