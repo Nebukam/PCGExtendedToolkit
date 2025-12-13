@@ -4,6 +4,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #include "PCGExHelpers.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
@@ -17,7 +18,13 @@ PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoBlendOp, UPCGExBlendOpFactory)
 
 void FPCGExAttributeBlendWeight::Init()
 {
-	if (!bUseLocalCurve) { LocalWeightCurve.ExternalCurve = WeightCurve.Get(); }
+	if (!bUseLocalCurve)
+	{
+		LocalWeightCurve.EditorCurveData.AddKey(0, 0);
+		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
+		LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(WeightCurve);
+	}
+	
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
 }
 

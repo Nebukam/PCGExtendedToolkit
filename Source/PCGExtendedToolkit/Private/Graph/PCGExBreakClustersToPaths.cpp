@@ -218,7 +218,8 @@ namespace PCGExBreakClustersToPaths
 			if (bDoReverse) { Algo::Reverse(IdxMapping); }
 
 			PCGExPaths::SetClosedLoop(PathIO->GetOut(), Chain->bIsClosedLoop);
-
+			
+			PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 100000 + Cluster->GetNodePointIndex(FMath::Min(Chain->Links.Last().Node, Chain->Links[0].Node));
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 
 #undef PCGX_IGNORE_CHAIN

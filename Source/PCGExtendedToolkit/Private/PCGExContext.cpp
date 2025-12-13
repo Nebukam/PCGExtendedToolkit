@@ -226,24 +226,7 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 		}
 		else
 		{
-			// Force execution on main thread
-			FSharedContext<FPCGExContext> SharedContext(GetOrCreateHandle());
-			if (!SharedContext.Get()) { return; }
-
-			FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([SharedContext, FunctionNames]()
-			{
-				const FPCGExContext* Ctx = SharedContext.Get();
-				for (TArray<AActor*> NotifyActorsArray = Ctx->NotifyActors.Array(); AActor* TargetActor : NotifyActorsArray)
-				{
-					if (!IsValid(TargetActor)) { continue; }
-					for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Ctx))
-					{
-						TargetActor->ProcessEvent(Function, nullptr);
-					}
-				}
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
-
-			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
+			PCGExMT::ExecuteOnMainThreadAndWait([&]() { ExecuteOnNotifyActors(FunctionNames); });
 		}
 	}
 }

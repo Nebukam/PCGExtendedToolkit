@@ -117,11 +117,7 @@ namespace PCGExCommon
 
 	const FString PCGExPrefix = TEXT("PCGEx/");
 
-	FORCEINLINE uint64 SHash(const FString& S)
-	{
-		const ANSICHAR* Ansi = TCHAR_TO_ANSI(*S);
-		return CityHash64(Ansi, S.Len());
-	}
+	FORCEINLINE uint64 SHash(const FString& S) { return CityHash64(TCHAR_TO_ANSI(*S), S.Len()); }
 
 #define PCGEX_CTX_STATE(_NAME) const PCGExCommon::ContextState _NAME = PCGExCommon::SHash(FString(#_NAME));
 

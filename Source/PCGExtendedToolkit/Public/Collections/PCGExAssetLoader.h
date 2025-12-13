@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExTypes.h"
 #include "Misc/ScopeRWLock.h"
 #include "UObject/SoftObjectPtr.h"
 #include "UObject/SoftObjectPath.h"
-#include "Data/PCGExValueHash.h"
 
 struct FPCGExContext;
 
@@ -111,7 +111,7 @@ namespace PCGEx
 				for (FSoftObjectPath Path : UniquePaths)
 				{
 					TSoftObjectPtr<T> SoftPtr = TSoftObjectPtr<T>(Path);
-					if (SoftPtr.Get()) { AssetsMap.Add(PCGExBlend::ValueHash(Path), SoftPtr.Get()); }
+					if (SoftPtr.Get()) { AssetsMap.Add(PCGExTypes::ComputeHash(Path), SoftPtr.Get()); }
 				}
 			}
 

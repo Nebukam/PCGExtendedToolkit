@@ -58,60 +58,6 @@ namespace PCGEx
 
 #pragma endregion
 
-	template <typename T>
-	T ConvertFromBoolean(const bool& Value);
-
-	template <typename T>
-	T ConvertFromInteger32(const int32& Value);
-
-	template <typename T>
-	T ConvertFromInteger64(const int64& Value);
-
-	template <typename T>
-	T ConvertFromFloat(const float& Value);
-
-	template <typename T>
-	T ConvertFromDouble(const double& Value);
-
-	template <typename T>
-	T ConvertFromVector2(const FVector2D& Value);
-
-	template <typename T>
-	T ConvertFromVector(const FVector& Value);
-
-	template <typename T>
-	T ConvertFromVector4(const FVector4& Value);
-
-	template <typename T>
-	T ConvertFromQuaternion(const FQuat& Value);
-
-	template <typename T>
-	T ConvertFromRotator(const FRotator& Value);
-
-	template <typename T>
-	T ConvertFromTransform(const FTransform& Value);
-
-	template <typename T>
-	T ConvertFromString(const FString& Value);
-
-	template <typename T>
-	T ConvertFromName(const FName& Value);
-
-	template <typename T>
-	T ConvertFromSoftClassPath(const FSoftClassPath& Value);
-
-	template <typename T>
-	T ConvertFromSoftObjectPath(const FSoftObjectPath& Value);
-
-	template <typename T_VALUE, typename T>
-	T Convert(const T_VALUE& Value);
-
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-extern template _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYPE_A& Value); \
-extern template _TYPE_B Convert<_TYPE_A, _TYPE_B>(const _TYPE_A& Value);
-	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
-#undef PCGEX_TPL
-
 	struct PCGEXTENDEDTOOLKIT_API FSubSelection
 	{
 		bool bIsValid = false;

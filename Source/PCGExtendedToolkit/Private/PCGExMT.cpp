@@ -744,13 +744,28 @@ namespace PCGExMT
 		}
 
 		TWeakPtr<FAsyncToken> TokenWeakPtr = ParentHandle->TryCreateToken(FName("ExecuteOnMainThread"));
-		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction([TokenWeakPtr, Callback]()
+		AsyncTask(ENamedThreads::GameThread, [TokenWeakPtr, Callback]()
 		{
 			if (!TokenWeakPtr.IsValid()) { return; }
 			Callback();
 			PCGEX_ASYNC_RELEASE_CAPTURED_TOKEN(TokenWeakPtr)
 		});
+	}
+
+	void ExecuteOnMainThread(FExecuteCallback&& Callback)
+	{
+		AsyncTask(ENamedThreads::GameThread, Callback);
+	}
+
+	void ExecuteOnMainThreadAndWait(FExecuteCallback&& Callback)
+	{
+		// We're not in the game thread, we need to dispatch loading to the main thread
+		// and wait in the current one
+		const FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady(
+			[Callback]() { Callback(); },
+			TStatId(), nullptr, ENamedThreads::GameThread);
+
+		FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
 	}
 
 	void FTask::Launch(const TSharedPtr<FTask>& InTask, const bool bIsExpected) const

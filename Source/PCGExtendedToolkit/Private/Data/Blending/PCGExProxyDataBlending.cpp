@@ -3,11 +3,11 @@
 
 #include "Data/Blending/PCGExProxyDataBlending.h"
 
+#include "PCGExTypes.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Data/PCGExUnionData.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Details/PCGExDetailsDistances.h"
 
 namespace PCGExDataBlending
@@ -47,6 +47,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 
 	template <typename T_WORKING>
 	IProxyDataBlender<T_WORKING>::IProxyDataBlender()
+		: TypeOpsImpl(PCGExTypeOps::TTypeOpsImpl<T_WORKING>::GetInstance())
 	{
 		UnderlyingType = PCGEx::GetMetadataType<T_WORKING>();
 	}
@@ -107,47 +108,116 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 
 #define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) \
 	template <typename T_WORKING>\
-	void IProxyDataBlender<T_WORKING>::Set##_NAME(const int32 TargetIndex, const _TYPE Value) const { C->Set(TargetIndex, PCGEx::Convert<_TYPE, T_WORKING>(Value)); };
+	void IProxyDataBlender<T_WORKING>::Set##_NAME(const int32 TargetIndex, const _TYPE Value) const { C->Set(TargetIndex, PCGExTypes::Convert<_TYPE, T_WORKING>(Value)); };
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
 	void TProxyDataBlender<T_WORKING, BLEND_MODE, bResetValueForMultiBlend>::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight)
 	{
+		T_WORKING VA = A->Get(SourceIndexA);
+		T_WORKING VB = VA;
+		
 		BOOKMARK_BLENDMODE check(A)
-		if constexpr (BLEND_MODE != EPCGExABBlendingType::CopySource) { check(B) }
+		if constexpr (BLEND_MODE != EPCGExABBlendingType::CopySource)
+		{
+			check(B)
+			VB = B->Get(SourceIndexB);
+		}
 		check(C)
 
-#define PCGEX_A A->Get(SourceIndexA)
-#define PCGEX_B B->Get(SourceIndexB)
+		T_WORKING Result = T_WORKING{};
 
 		if constexpr (BLEND_MODE == EPCGExABBlendingType::None)
 		{
 		}
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(TargetIndex, PCGExBlend::Div(PCGExBlend::Add(PCGEX_A,PCGEX_B), 2)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(TargetIndex, PCGExBlend::WeightedAdd(PCGEX_A, PCGEX_B, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min) { C->Set(TargetIndex, PCGExBlend::Min(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Max) { C->Set(TargetIndex, PCGExBlend::Max(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Add) { C->Set(TargetIndex, PCGExBlend::Add(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Subtract) { C->Set(TargetIndex, PCGExBlend::Sub(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Multiply) { C->Set(TargetIndex, PCGExBlend::Mult(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Divide) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_A, PCGEx::Convert<T_WORKING, double>(PCGEX_B))); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedAdd) { C->Set(TargetIndex, PCGExBlend::WeightedAdd(PCGEX_A,PCGEX_B, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedSubtract) { C->Set(TargetIndex, PCGExBlend::WeightedSub(PCGEX_A, PCGEX_B, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Lerp) { C->Set(TargetIndex, PCGExBlend::Lerp(PCGEX_A,PCGEX_B, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMin) { C->Set(TargetIndex, PCGExBlend::UnsignedMin(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax) { C->Set(TargetIndex, PCGExBlend::UnsignedMax(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin) { C->Set(TargetIndex, PCGExBlend::AbsoluteMin(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax) { C->Set(TargetIndex, PCGExBlend::AbsoluteMax(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(TargetIndex, PCGEX_B); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(TargetIndex, PCGEX_A); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash) { C->Set(TargetIndex, PCGExBlend::NaiveHash(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash) { C->Set(TargetIndex, PCGExBlend::NaiveUnsignedHash(PCGEX_A,PCGEX_B)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod) { C->Set(TargetIndex, PCGExBlend::ModSimple(PCGEX_A, PCGEx::Convert<T_WORKING, double>(PCGEX_B))); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW) { C->Set(TargetIndex, PCGExBlend::ModComplex(PCGEX_A,PCGEX_B)); }
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average)
+		{
+			TypeOpsImpl.BlendAdd(&VA, &VB, &Result);
+			TypeOpsImpl.BlendDiv(&Result, 2, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight)
+		{
+			TypeOpsImpl.BlendWeightedAdd(&VA, &VB, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min)
+		{
+			TypeOpsImpl.BlendMin(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Max)
+		{
+			TypeOpsImpl.BlendMax(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Add)
+		{
+			TypeOpsImpl.BlendAdd(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Subtract)
+		{
+			TypeOpsImpl.BlendSub(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Multiply)
+		{
+			TypeOpsImpl.BlendMult(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Divide)
+		{
+			TypeOpsImpl.BlendDiv(&VA, PCGExTypeOps::FTypeOps<T_WORKING>::template ConvertTo<double>(VB), &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedAdd)
+		{
+			TypeOpsImpl.BlendWeightedAdd(&VA, &VB, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedSubtract)
+		{
+			TypeOpsImpl.BlendWeightedSub(&VA, &VB, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Lerp)
+		{
+			TypeOpsImpl.BlendLerp(&VA, &VB, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMin)
+		{
+			TypeOpsImpl.BlendUnsignedMin(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax)
+		{
+			TypeOpsImpl.BlendUnsignedMax(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin)
+		{
+			TypeOpsImpl.BlendAbsoluteMin(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax)
+		{
+			TypeOpsImpl.BlendAbsoluteMax(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget)
+		{
+			TypeOpsImpl.BlendCopyB(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource)
+		{
+			TypeOpsImpl.BlendCopyA(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash)
+		{
+			TypeOpsImpl.BlendHash(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
+		{
+			TypeOpsImpl.BlendUnsignedHash(&VA, &VB, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod)
+		{
+			TypeOpsImpl.BlendModSimple(&VA, PCGExTypeOps::FTypeOps<T_WORKING>::template ConvertTo<double>(VB), &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW)
+		{
+			TypeOpsImpl.BlendModComplex(&VA, &VB, &Result);
+		}
 
-#undef PCGEX_A
-#undef PCGEX_B
+		C->Set(TargetIndex, Result);
 	}
 
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
@@ -157,13 +227,25 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 
 		PCGEx::FOpStats Tracker{};
 
-		if constexpr (BLEND_MODE == EPCGExABBlendingType::Min || BLEND_MODE == EPCGExABBlendingType::Max || BLEND_MODE == EPCGExABBlendingType::UnsignedMin || BLEND_MODE == EPCGExABBlendingType::UnsignedMax || BLEND_MODE == EPCGExABBlendingType::AbsoluteMin || BLEND_MODE == EPCGExABBlendingType::AbsoluteMax || BLEND_MODE == EPCGExABBlendingType::Hash || BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
+		if constexpr (BLEND_MODE == EPCGExABBlendingType::Min
+			|| BLEND_MODE == EPCGExABBlendingType::Max
+			|| BLEND_MODE == EPCGExABBlendingType::UnsignedMin
+			|| BLEND_MODE == EPCGExABBlendingType::UnsignedMax
+			|| BLEND_MODE == EPCGExABBlendingType::AbsoluteMin
+			|| BLEND_MODE == EPCGExABBlendingType::AbsoluteMax
+			|| BLEND_MODE == EPCGExABBlendingType::Hash
+			|| BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
 		{
 			// These modes require the first operation to be a copy of the value
 			// before the can be properly blended
 			Tracker.Count = -1;
 		}
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average || BLEND_MODE == EPCGExABBlendingType::Add || BLEND_MODE == EPCGExABBlendingType::Subtract || BLEND_MODE == EPCGExABBlendingType::Weight || BLEND_MODE == EPCGExABBlendingType::WeightedAdd || BLEND_MODE == EPCGExABBlendingType::WeightedSubtract)
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average
+			|| BLEND_MODE == EPCGExABBlendingType::Add
+			|| BLEND_MODE == EPCGExABBlendingType::Subtract
+			|| BLEND_MODE == EPCGExABBlendingType::Weight
+			|| BLEND_MODE == EPCGExABBlendingType::WeightedAdd
+			|| BLEND_MODE == EPCGExABBlendingType::WeightedSubtract)
 		{
 			// Some BlendModes can leverage this
 			if constexpr (bResetValueForMultiBlend)
@@ -174,7 +256,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 			{
 				// Otherwise, bump up original count so EndBlend can account for pre-existing value as "one blend step"
 				Tracker.Count = 1;
-				Tracker.Weight = 1;
+				Tracker.TotalWeight = 1;
 			}
 		}
 
@@ -190,47 +272,110 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		ON_SCOPE_EXIT
 		{
 			Tracker.Count++;
-			Tracker.Weight += Weight;
+			Tracker.TotalWeight += Weight;
 		};
 
-#define PCGEX_SRC A->Get(SourceIndex)
-#define PCGEX_TGT C->GetCurrent(TargetIndex) // We read from current value during multiblend
+		T_WORKING SRC = A->Get(SourceIndex);
 
 		if (Tracker.Count < 0)
 		{
 			Tracker.Count = 0;
-			C->Set(TargetIndex, PCGEX_SRC);
+			C->Set(TargetIndex, SRC);
 			return;
 		}
+
+		T_WORKING TGT = C->GetCurrent(TargetIndex);
+		T_WORKING Result = T_WORKING{};
 
 		if constexpr (BLEND_MODE == EPCGExABBlendingType::None)
 		{
 		}
-		if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(TargetIndex, PCGExBlend::Add(PCGEX_SRC,PCGEX_TGT)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(TargetIndex, PCGExBlend::WeightedAdd(PCGEX_TGT, PCGEX_SRC, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min) { C->Set(TargetIndex, PCGExBlend::Min(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Max) { C->Set(TargetIndex, PCGExBlend::Max(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Add) { C->Set(TargetIndex, PCGExBlend::Add(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Subtract) { C->Set(TargetIndex, PCGExBlend::Sub(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Multiply) { C->Set(TargetIndex, PCGExBlend::Mult(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Divide) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_TGT, PCGEx::Convert<T_WORKING, double>(PCGEX_SRC))); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedAdd) { C->Set(TargetIndex, PCGExBlend::WeightedAdd(PCGEX_TGT,PCGEX_SRC, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedSubtract) { C->Set(TargetIndex, PCGExBlend::WeightedSub(PCGEX_TGT, PCGEX_SRC, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Lerp) { C->Set(TargetIndex, PCGExBlend::Lerp(PCGEX_TGT,PCGEX_SRC, Weight)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMin) { C->Set(TargetIndex, PCGExBlend::UnsignedMin(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax) { C->Set(TargetIndex, PCGExBlend::UnsignedMax(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin) { C->Set(TargetIndex, PCGExBlend::AbsoluteMin(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax) { C->Set(TargetIndex, PCGExBlend::AbsoluteMax(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget) { C->Set(TargetIndex, PCGEX_TGT); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource) { C->Set(TargetIndex, PCGEX_SRC); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash) { C->Set(TargetIndex, PCGExBlend::NaiveHash(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash) { C->Set(TargetIndex, PCGExBlend::NaiveUnsignedHash(PCGEX_TGT,PCGEX_SRC)); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod) { C->Set(TargetIndex, PCGExBlend::ModSimple(PCGEX_TGT, PCGEx::Convert<T_WORKING, double>(PCGEX_SRC))); }
-		else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW) { C->Set(TargetIndex, PCGExBlend::ModComplex(PCGEX_TGT,PCGEX_SRC)); }
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Average)
+		{
+			TypeOpsImpl.BlendAdd(&SRC, &TGT, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight)
+		{
+			TypeOpsImpl.BlendWeightedAdd(&TGT, &SRC, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Min)
+		{
+			TypeOpsImpl.BlendMin(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Max)
+		{
+			TypeOpsImpl.BlendMax(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Add)
+		{
+			TypeOpsImpl.BlendAdd(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Subtract)
+		{
+			TypeOpsImpl.BlendSub(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Multiply)
+		{
+			TypeOpsImpl.BlendMult(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Divide)
+		{
+			TypeOpsImpl.BlendDiv(&TGT, PCGExTypeOps::FTypeOps<T_WORKING>::template ConvertTo<double>(SRC), &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedAdd)
+		{
+			TypeOpsImpl.BlendWeightedAdd(&TGT, &SRC, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::WeightedSubtract)
+		{
+			TypeOpsImpl.BlendWeightedSub(&TGT, &SRC, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Lerp)
+		{
+			TypeOpsImpl.BlendLerp(&TGT, &SRC, Weight, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMin)
+		{
+			TypeOpsImpl.BlendUnsignedMin(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedMax)
+		{
+			TypeOpsImpl.BlendUnsignedMax(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMin)
+		{
+			TypeOpsImpl.BlendAbsoluteMin(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::AbsoluteMax)
+		{
+			TypeOpsImpl.BlendAbsoluteMax(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopyTarget)
+		{
+			TypeOpsImpl.BlendCopyB(&SRC, &TGT, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::CopySource)
+		{
+			TypeOpsImpl.BlendCopyA(&SRC, &TGT, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Hash)
+		{
+			TypeOpsImpl.BlendHash(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
+		{
+			TypeOpsImpl.BlendUnsignedHash(&TGT, &SRC, &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Mod)
+		{
+			TypeOpsImpl.BlendModSimple(&TGT, PCGExTypeOps::FTypeOps<T_WORKING>::template ConvertTo<double>(SRC), &Result);
+		}
+		else if constexpr (BLEND_MODE == EPCGExABBlendingType::ModCW)
+		{
+			TypeOpsImpl.BlendModComplex(&TGT, &SRC, &Result);
+		}
 
-
-#undef PCGEX_SRC
-#undef PCGEX_TGT
+		C->Set(TargetIndex, Result);
 	}
 
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
@@ -239,24 +384,32 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		check(A)
 		check(C)
 
-#define PCGEX_C C->GetCurrent(TargetIndex)
-
 		if (!Tracker.Count) { return; } // Skip division by zero
 
 		// Some modes require a "finish" pass, like Average and Weight
-		if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_C, Tracker.Count)); }
+		if constexpr (BLEND_MODE == EPCGExABBlendingType::Average)
+		{
+			T_WORKING Result = C->GetCurrent(TargetIndex);
+			TypeOpsImpl.BlendDiv(&Result, Tracker.Count, &Result);
+			C->Set(TargetIndex, Result);
+		}
 		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight)
 		{
-			if (Tracker.Weight > 1) { C->Set(TargetIndex, PCGExBlend::Div(PCGEX_C, Tracker.Weight)); }
+			if (Tracker.TotalWeight > 1)
+			{
+				T_WORKING Result = C->GetCurrent(TargetIndex);
+				TypeOpsImpl.NormalizeWeight(&Result, Tracker.TotalWeight, &Result);
+				C->Set(TargetIndex, Result);
+			}
 		}
-
-#undef PCGEX_C
 	}
 
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
 	void TProxyDataBlender<T_WORKING, BLEND_MODE, bResetValueForMultiBlend>::Div(const int32 TargetIndex, const double Divider)
 	{
-		C->Set(TargetIndex, PCGExBlend::Div(C->Get(TargetIndex), Divider));
+		T_WORKING Result = C->Get(TargetIndex);
+		TypeOpsImpl.BlendDiv(&Result, Divider, &Result);
+		C->Set(TargetIndex, Result);
 	}
 
 #pragma region externalization FProxyDataBlender

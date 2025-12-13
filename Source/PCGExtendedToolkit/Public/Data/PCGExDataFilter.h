@@ -60,7 +60,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 	FString CommaSeparatedNames;
 
 	/** Unique filter mode applied to comma separated names */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode != EPCGExAttributeFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FilterMode != EPCGExAttributeFilter::All", EditConditionHides))
 	EPCGExStringMatchMode CommaSeparatedNameFilter = EPCGExStringMatchMode::Equals;
 
 	/** If enabled, PCGEx attributes & tags won't be affected.  Cluster-related nodes rely on these to work! */

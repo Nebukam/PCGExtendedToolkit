@@ -93,4 +93,5 @@ protected:
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;
 	virtual bool WantsBulkInitData() const;
+	
 };

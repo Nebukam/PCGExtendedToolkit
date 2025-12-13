@@ -3,6 +3,7 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
+#include "PCGExStreamingHelpers.h"
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"

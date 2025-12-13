@@ -7,11 +7,11 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExH.h"
 #include "PCGExHelpers.h"
+#include "PCGExTypes.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExValueHash.h"
 #include "Data/PCGPointData.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
@@ -90,10 +90,10 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	FPCGMetadataAttribute<T>* TBuffer<T>::GetTypedOutAttribute() const { return TypedOutAttribute; }
 
 	template <typename T>
-	PCGExValueHash TBuffer<T>::ReadValueHash(const int32 Index) { return PCGExBlend::ValueHash(Read(Index)); }
+	PCGExValueHash TBuffer<T>::ReadValueHash(const int32 Index) { return PCGExTypes::ComputeHash(Read(Index)); }
 
 	template <typename T>
-	PCGExValueHash TBuffer<T>::GetValueHash(const int32 Index) { return PCGExBlend::ValueHash(GetValue(Index)); }
+	PCGExValueHash TBuffer<T>::GetValueHash(const int32 Index) { return PCGExTypes::ComputeHash(GetValue(Index)); }
 
 	template <typename T>
 	void TBuffer<T>::DumpValues(TArray<T>& OutValues) const { for (int i = 0; i < OutValues.Num(); i++) { OutValues[i] = Read(i); } }
@@ -153,14 +153,14 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	PCGExValueHash TArrayBuffer<T>::ReadValueHash(const int32 Index)
 	{
 		if (bCacheValueHashes) { return InHashes[Index]; }
-		return PCGExBlend::ValueHash(Read(Index));
+		return PCGExTypes::ComputeHash(Read(Index));
 	}
 
 	template <typename T>
 	void TArrayBuffer<T>::ComputeValueHashes(const PCGExMT::FScope& Scope)
 	{
 		const TArray<T>& InValuesRef = *InValues.Get();
-		PCGEX_SCOPE_LOOP(Index) { InHashes[Index] = PCGExBlend::ValueHash(InValuesRef[Index]); }
+		PCGEX_SCOPE_LOOP(Index) { InHashes[Index] = PCGExTypes::ComputeHash(InValuesRef[Index]); }
 	}
 
 	template <typename T>
@@ -1011,7 +1011,7 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 			{
 				FWriteScopeLock WriteScopeLock(BufferLock);
 				PCGEX_SCHEDULING_SCOPE(TaskManager)
-				
+
 				for (int i = 0; i < Buffers.Num(); i++)
 				{
 					const TSharedPtr<IBuffer> Buffer = Buffers[i];

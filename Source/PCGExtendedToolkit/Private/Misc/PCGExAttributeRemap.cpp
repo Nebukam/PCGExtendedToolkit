@@ -6,6 +6,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
+#include "PCGExStreamingHelpers.h"
 #include "AssetStaging/PCGExAssetStaging.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -44,6 +45,12 @@ void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif
+
+void FPCGExRemapDetails::Init()
+{
+	if (!bUseLocalCurve) { LocalScoreCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(RemapCurve); }
+	RemapCurveObj = LocalScoreCurve.GetRichCurveConst();
+}
 
 double FPCGExRemapDetails::GetRemappedValue(const double Value, const double Step) const
 {

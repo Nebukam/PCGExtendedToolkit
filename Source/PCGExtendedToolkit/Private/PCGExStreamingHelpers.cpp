@@ -23,14 +23,7 @@ namespace PCGExHelpers
 		}
 		else
 		{
-			// We're not in the game thread, we need to dispatch loading to the main thread
-			// and wait in the current one
-			const FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([Path]()
-			{
-				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestSyncLoad(Path);
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
-
-			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
+			PCGExMT::ExecuteOnMainThreadAndWait([&]() { LoadBlocking_AnyThread(Path); });
 		}
 	}
 
@@ -42,15 +35,7 @@ namespace PCGExHelpers
 		}
 		else
 		{
-			TWeakPtr<TSet<FSoftObjectPath>> WeakPaths = Paths;
-			const FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([WeakPaths]()
-			{
-				const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
-				if (!ToBeLoaded) { return; }
-				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestSyncLoad(ToBeLoaded->Array());
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
-
-			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
+			PCGExMT::ExecuteOnMainThreadAndWait([&]() { LoadBlocking_AnyThread(Paths); });
 		}
 	}
 

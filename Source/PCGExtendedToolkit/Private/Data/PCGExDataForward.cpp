@@ -3,6 +3,7 @@
 
 #include "Data/PCGExDataForward.h"
 
+#include "PCGExTypes.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
@@ -82,7 +83,7 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, T
 				Prefix = TypedGetter->GetName().ToString();
 
 				T TypedValue = T{};
-				if (TypedGetter->TryFetchSingle(TagSource, TypedValue)) { Value = PCGEx::Convert<T, FString>(TypedValue); }
+				if (TypedGetter->TryFetchSingle(TagSource, TypedValue)) { Value = PCGExTypes::Convert<T, FString>(TypedValue); }
 			});
 
 			if (Value.IsEmpty()) { continue; }
