@@ -342,15 +342,12 @@ namespace PCGExSampleNearestPoint
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		Union->IOSet.Reserve(Context->TargetsHandler->Num());
-
+		
 		const bool bProcessFilteredOutAsFails = Settings->bProcessFilteredOutAsFails;
 		const double DefaultDet = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			Union->Reset();
-
 			if (!PointFilterCache[Index])
 			{
 				if (bProcessFilteredOutAsFails) { SamplingFailed(Index); }
@@ -361,8 +358,10 @@ namespace PCGExSampleNearestPoint
 			double RangeMax = FMath::Square(RangeMaxGetter->Read(Index));
 
 			if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
-			if (!RangeMax) { Union->Elements.Reserve(Context->NumMaxTargets); }
-
+			
+			Union->Reset();
+			Union->Reserve(Context->TargetsHandler->Num(), RangeMax || bSingleSample ? 8 : Context->NumMaxTargets);
+			
 			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
 			const FVector Origin = InTransforms[Index].GetLocation();
 

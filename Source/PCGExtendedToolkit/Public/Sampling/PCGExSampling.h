@@ -205,11 +205,8 @@ namespace PCGExSampling
 		double GetWeightAverage() const;
 		double GetSqrtWeightAverage() const;
 
-		virtual void Reset() override
-		{
-			IUnionData::Reset();
-			Weights.Reset();
-		}
+		virtual void Reserve(const int32 InSetReserve, const int32 InElementReserve = 8) override;
+		virtual void Reset() override;
 	};
 
 	class FTargetsHandler : public TSharedFromThis<FTargetsHandler>

@@ -255,6 +255,18 @@ namespace PCGExSampling
 		return Average / Weights.Num();
 	}
 
+	void FSampingUnionData::Reserve(const int32 InSetReserve, const int32 InElementReserve)
+	{
+		IUnionData::Reserve(InSetReserve, InElementReserve);
+		if (InElementReserve > 8 && Weights.Max() < InElementReserve) { Weights.Reserve(InElementReserve); }
+	}
+
+	void FSampingUnionData::Reset()
+	{
+		IUnionData::Reset();
+		Weights.Reset();
+	}
+
 
 	int32 FTargetsHandler::Init(FPCGExContext* InContext, const FName InPinLabel, FInitData&& InitFn)
 	{
