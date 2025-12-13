@@ -137,8 +137,8 @@ namespace PCGExClusterFilter
 	class PCGEXTENDEDTOOLKIT_API IFilter : public PCGExPointFilter::IFilter
 	{
 	public:
-		explicit IFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
-			PCGExPointFilter::IFilter(InFactory)
+		explicit IFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory)
+			: PCGExPointFilter::IFilter(InFactory)
 		{
 		}
 
@@ -156,8 +156,8 @@ namespace PCGExClusterFilter
 	class PCGEXTENDEDTOOLKIT_API IVtxFilter : public IFilter
 	{
 	public:
-		explicit IVtxFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
-			IFilter(InFactory)
+		explicit IVtxFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory)
+			: IFilter(InFactory)
 		{
 		}
 
@@ -170,8 +170,8 @@ namespace PCGExClusterFilter
 	class PCGEXTENDEDTOOLKIT_API IEdgeFilter : public IFilter
 	{
 	public:
-		explicit IEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
-			IFilter(InFactory)
+		explicit IEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory)
+			: IFilter(InFactory)
 		{
 		}
 

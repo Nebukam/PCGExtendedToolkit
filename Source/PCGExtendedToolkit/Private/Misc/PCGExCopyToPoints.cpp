@@ -64,11 +64,9 @@ bool FPCGExCopyToPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -83,11 +81,11 @@ bool FPCGExCopyToPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 namespace PCGExCopyToPoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCopyToPoints::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		MatchScope = PCGExMatching::FMatchingScope(Context->InitialMainPointsNum);
 

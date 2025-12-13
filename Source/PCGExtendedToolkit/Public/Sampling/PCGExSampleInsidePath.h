@@ -56,7 +56,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-
+	
 public:
 	/** If enabled, allows you to filter out which targets get sampled by which data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -227,6 +227,7 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
+	
 };
 
 class FPCGExSampleInsidePathElement final : public FPCGExPointsProcessorElement
@@ -266,14 +267,14 @@ namespace PCGExSampleInsidePath
 		FBox SampleBox = FBox(ForceInit);
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void ProcessPath();
 
 		void SamplingFailed(const int32 Index);

@@ -9,6 +9,8 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExDetailsInputShorthands.generated.h"
 
+struct FPCGExContext;
+
 namespace PCGExData
 {
 	class FPointIO;
@@ -35,6 +37,7 @@ FPCGExInputShorthandName##_NAME() = default; \
 explicit FPCGExInputShorthandName##_NAME(const FName DefaultName, PCGEX_ATTRIBUTE_TOGGLE_DECL) { Attribute = DefaultName; PCGEX_ATTRIBUTE_TOGGLE  } \
 FPCGExInputShorthandName##_NAME(const FName DefaultName, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){	Attribute = DefaultName; Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE } \
 bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet = false) const;\
+bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
 USTRUCT(BlueprintType)
@@ -236,6 +239,7 @@ explicit FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, PCGE
 FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){ Attribute.Update(DefaultSelection);	Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE } \
 FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){ Attribute.Update(DefaultSelection.ToString()); Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE  } \
 bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet = false) const;\
+bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
 USTRUCT(BlueprintType)

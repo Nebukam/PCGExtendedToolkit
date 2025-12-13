@@ -8,9 +8,7 @@
 #include "Sampling/PCGExGetTextureData.h"
 
 
-void FPCGExSubPointsBlendInheritEnd::BlendSubPoints(
-	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
+void FPCGExSubPointsBlendInheritEnd::BlendSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
 	TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
 

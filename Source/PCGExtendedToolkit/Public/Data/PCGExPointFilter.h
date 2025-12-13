@@ -143,8 +143,8 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API IFilter : public TSharedFromThis<IFilter>
 	{
 	public:
-		explicit IFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
-			Factory(InFactory)
+		explicit IFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
+			: Factory(InFactory)
 		{
 		}
 
@@ -184,8 +184,8 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API ISimpleFilter : public IFilter
 	{
 	public:
-		explicit ISimpleFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
-			IFilter(InFactory)
+		explicit ISimpleFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
+			: IFilter(InFactory)
 		{
 		}
 
@@ -199,8 +199,8 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API ICollectionFilter : public IFilter
 	{
 	public:
-		explicit ICollectionFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
-			IFilter(InFactory)
+		explicit ICollectionFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
+			: IFilter(InFactory)
 		{
 		}
 
@@ -239,12 +239,12 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExGraph::FEdge& Edge);
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection);
 
-		virtual int32 Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults);
-		virtual int32 Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults);
+		virtual int32 Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults, const bool bParallel = false);
+		virtual int32 Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults, const bool bParallel = false);
 
-		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults);
-		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResults);
-		virtual int32 Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults);
+		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
+		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResultsPtr, const bool bParallel = false);
+		virtual int32 Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
 
 		virtual ~FManager()
 		{
@@ -256,6 +256,7 @@ namespace PCGExPointFilter
 	protected:
 		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
 		TArray<TSharedPtr<IFilter>> ManagedFilters;
+		TArray<const IFilter*> Stack;
 
 		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& Filter);
 		virtual bool PostInit(FPCGExContext* InContext);
@@ -264,11 +265,9 @@ namespace PCGExPointFilter
 		virtual void InitCache();
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader);
+	PCGEXTENDEDTOOLKIT_API void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader);
 
-	PCGEXTENDEDTOOLKIT_API
-	void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
+	PCGEXTENDEDTOOLKIT_API void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
 }
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter (Data)"))

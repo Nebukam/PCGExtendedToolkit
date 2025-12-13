@@ -15,8 +15,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPathToClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-TArray<FPCGPinProperties>
-UPCGExPathToClustersSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExPathToClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
@@ -50,9 +49,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 		Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionVtxPoints.ToSharedRef());
 
-		Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
-			Settings->PointPointIntersectionDetails.FuseDetails,
-			Context->MainPoints->GetInBounds().ExpandBy(10));
+		Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, Context->MainPoints->GetInBounds().ExpandBy(10));
 
 		// TODO : Support local fuse distance, requires access to all input facades
 		if (!Context->UnionGraph->Init(Context)) { return false; }
@@ -60,30 +57,18 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
 
-		Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
-			Context,
-			Context->UnionDataFacade.ToSharedRef(),
-			Context->UnionGraph.ToSharedRef(),
-			Settings->PointPointIntersectionDetails,
-			Settings->DefaultPointsBlendingDetails,
-			Settings->DefaultEdgesBlendingDetails);
+		Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(Context, Context->UnionDataFacade.ToSharedRef(), Context->UnionGraph.ToSharedRef(), Settings->PointPointIntersectionDetails, Settings->DefaultPointsBlendingDetails, Settings->DefaultEdgesBlendingDetails);
 
 		Context->UnionProcessor->VtxCarryOverDetails = &Context->CarryOverDetails;
 
 		if (Settings->bFindPointEdgeIntersections)
 		{
-			Context->UnionProcessor->InitPointEdge(
-				Settings->PointEdgeIntersectionDetails,
-				Settings->bUseCustomPointEdgeBlending,
-				&Settings->CustomPointEdgeBlendingDetails);
+			Context->UnionProcessor->InitPointEdge(Settings->PointEdgeIntersectionDetails, Settings->bUseCustomPointEdgeBlending, &Settings->CustomPointEdgeBlendingDetails);
 		}
 
 		if (Settings->bFindEdgeEdgeIntersections)
 		{
-			Context->UnionProcessor->InitEdgeEdge(
-				Settings->EdgeEdgeIntersectionDetails,
-				Settings->bUseCustomPointEdgeBlending,
-				&Settings->CustomEdgeEdgeBlendingDetails);
+			Context->UnionProcessor->InitEdgeEdge(Settings->EdgeEdgeIntersectionDetails, Settings->bUseCustomPointEdgeBlending, &Settings->CustomEdgeEdgeBlendingDetails);
 		}
 	}
 
@@ -103,21 +88,19 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		if (Settings->bFusePaths)
 		{
 			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-				{
-					if (Entry->GetNum() < 2)
-					{
-						bHasInvalidInputs = true;
-						return false;
-					}
-					return true;
-				},
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-					NewBatch->bSkipCompletion = true;
-					NewBatch->bForceSingleThreadedProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			                                         {
+				                                         if (Entry->GetNum() < 2)
+				                                         {
+					                                         bHasInvalidInputs = true;
+					                                         return false;
+				                                         }
+				                                         return true;
+			                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			                                         {
+				                                         NewBatch->bSkipCompletion = true;
+				                                         NewBatch->bForceSingleThreadedProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+			                                         }))
 			{
 				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}
@@ -125,19 +108,17 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		else
 		{
 			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-				{
-					if (Entry->GetNum() < 2)
-					{
-						bHasInvalidInputs = true;
-						return false;
-					}
-					return true;
-				},
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			                                         {
+				                                         if (Entry->GetNum() < 2)
+				                                         {
+					                                         bHasInvalidInputs = true;
+					                                         return false;
+				                                         }
+				                                         return true;
+			                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			                                         {
+			                                         }))
 			{
 				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}
@@ -190,9 +171,9 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FNonFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FNonFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
@@ -221,7 +202,7 @@ namespace PCGExPathToClusters
 		GraphBuilder->Graph->InsertEdges(Edges);
 		Edges.Empty();
 
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 
 		return true;
 	}
@@ -236,7 +217,7 @@ namespace PCGExPathToClusters
 		}
 
 		GraphBuilder->StageEdgesOutputs();
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 #pragma endregion
@@ -247,9 +228,9 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
@@ -270,7 +251,7 @@ namespace PCGExPathToClusters
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InsertEdges)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, InsertEdges)
 
 			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{

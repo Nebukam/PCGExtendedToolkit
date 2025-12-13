@@ -83,14 +83,11 @@ FString UPCGExEdgeNeighborsCountFilterProviderSettings::GetDisplayName() const
 
 	switch (Config.Mode)
 	{
-	case EPCGExRefineEdgeThresholdMode::Sum:
-		DisplayName += "Sum";
+	case EPCGExRefineEdgeThresholdMode::Sum: DisplayName += "Sum";
 		break;
-	case EPCGExRefineEdgeThresholdMode::Any:
-		DisplayName += "Any";
+	case EPCGExRefineEdgeThresholdMode::Any: DisplayName += "Any";
 		break;
-	case EPCGExRefineEdgeThresholdMode::Both:
-		DisplayName += "Both";
+	case EPCGExRefineEdgeThresholdMode::Both: DisplayName += "Both";
 		break;
 	}
 

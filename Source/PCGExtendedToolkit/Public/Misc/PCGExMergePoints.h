@@ -93,8 +93,8 @@ namespace PCGExMergePoints
 		TSharedPtr<TSet<FName>> ConvertedTags;
 		TArray<FName> ConvertedTagsList;
 
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
@@ -102,7 +102,7 @@ namespace PCGExMergePoints
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 	};
@@ -117,7 +117,7 @@ namespace PCGExMergePoints
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
 		virtual bool PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor) override;
 		virtual void OnProcessingPreparationComplete() override;
-		virtual void Write() override;
+		virtual void CompleteWork() override;
 
 	protected:
 		void StartMerge();

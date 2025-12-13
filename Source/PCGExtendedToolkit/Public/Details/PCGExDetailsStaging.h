@@ -41,11 +41,10 @@ enum class EPCGExDistribution : uint8
 UENUM()
 enum class EPCGExWeightOutputMode : uint8
 {
-	NoOutput           = 0 UMETA(DisplayName = "No Output", ToolTip="Don't output weight as an attribute"),
-	Raw                = 1 UMETA(DisplayName = "Raw", ToolTip="Raw integer"),
-	Normalized         = 2 UMETA(DisplayName = "Normalized", ToolTip="Normalized weight value (Weight / WeightSum)"),
-	NormalizedInverted = 3 UMETA(DisplayName = "Normalized (Inverted)", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
-
+	NoOutput                    = 0 UMETA(DisplayName = "No Output", ToolTip="Don't output weight as an attribute"),
+	Raw                         = 1 UMETA(DisplayName = "Raw", ToolTip="Raw integer"),
+	Normalized                  = 2 UMETA(DisplayName = "Normalized", ToolTip="Normalized weight value (Weight / WeightSum)"),
+	NormalizedInverted          = 3 UMETA(DisplayName = "Normalized (Inverted)", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
 	NormalizedToDensity         = 4 UMETA(DisplayName = "Normalized to Density", ToolTip="Normalized weight value (Weight / WeightSum)"),
 	NormalizedInvertedToDensity = 5 UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
 };
@@ -82,24 +81,12 @@ namespace PCGExAssetCollection
 {
 	const FName SourceAssetCollection = TEXT("AttributeSet");
 
-	const TSet<EPCGMetadataTypes> SupportedPathTypes = {
-		EPCGMetadataTypes::SoftObjectPath,
-		EPCGMetadataTypes::String,
-		EPCGMetadataTypes::Name
-	};
+	const TSet<EPCGMetadataTypes> SupportedPathTypes = {EPCGMetadataTypes::SoftObjectPath, EPCGMetadataTypes::String, EPCGMetadataTypes::Name};
 
 
-	const TSet<EPCGMetadataTypes> SupportedWeightTypes = {
-		EPCGMetadataTypes::Float,
-		EPCGMetadataTypes::Double,
-		EPCGMetadataTypes::Integer32,
-		EPCGMetadataTypes::Integer64,
-	};
+	const TSet<EPCGMetadataTypes> SupportedWeightTypes = {EPCGMetadataTypes::Float, EPCGMetadataTypes::Double, EPCGMetadataTypes::Integer32, EPCGMetadataTypes::Integer64,};
 
-	const TSet<EPCGMetadataTypes> SupportedCategoryTypes = {
-		EPCGMetadataTypes::String,
-		EPCGMetadataTypes::Name
-	};
+	const TSet<EPCGMetadataTypes> SupportedCategoryTypes = {EPCGMetadataTypes::String, EPCGMetadataTypes::Name};
 }
 
 

@@ -21,8 +21,8 @@ struct FPCGExProbeConfigTensor : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigTensor() :
-		FPCGExProbeConfigBase()
+	FPCGExProbeConfigTensor()
+		: FPCGExProbeConfigBase()
 	{
 	}
 
@@ -99,7 +99,7 @@ public:
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/connect-points/probe-direction-1"))
@@ -110,9 +110,7 @@ class UPCGExProbeTensorProviderSettings : public UPCGExProbeFactoryProviderSetti
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeTensor, "Probe : Tensor", "Sample a tensor at point location and probe in that direction.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeTensor, "Probe : Tensor", "Sample a tensor at point location and probe in that direction.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

@@ -73,7 +73,7 @@ namespace PCGExTopologyPathSurface
 		TObjectPtr<UDynamicMesh> InternalMesh;
 		UPCGDynamicMeshData* InternalMeshData = nullptr;
 		FPCGExTopologyUVDetails UVDetails;
-		
+
 		int32 ConstrainedEdgesNum = 0;
 
 	public:
@@ -84,7 +84,7 @@ namespace PCGExTopologyPathSurface
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void Output() override;
 	};
 }

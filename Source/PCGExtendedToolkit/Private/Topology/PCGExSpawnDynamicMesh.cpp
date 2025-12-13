@@ -64,18 +64,17 @@ bool FPCGExSpawnDynamicMeshElement::AdvanceWork(FPCGExContext* InContext, const 
 
 		if (!DynamicMeshComponent) { continue; }
 
-		SourcePCGComponent->IgnoreChangeOriginDuringGenerationWithScope(
-			DynamicMeshComponent, [&]()
-			{
-				const UDynamicMesh* DynamicMesh = DynMeshData->GetDynamicMesh();
-				const TArray<TObjectPtr<UMaterialInterface>>& Materials = DynMeshData->GetMaterials();
+		SourcePCGComponent->IgnoreChangeOriginDuringGenerationWithScope(DynamicMeshComponent, [&]()
+		{
+			const UDynamicMesh* DynamicMesh = DynMeshData->GetDynamicMesh();
+			const TArray<TObjectPtr<UMaterialInterface>>& Materials = DynMeshData->GetMaterials();
 
-				//DynMeshData->InitializeDynamicMeshComponentFromData(Component);
+			//DynMeshData->InitializeDynamicMeshComponentFromData(Component);
 
-				for (int32 i = 0; i < Materials.Num(); ++i) { DynamicMeshComponent->SetMaterial(i, Materials[i]); }
-				Settings->TemplateDescriptor.InitComponent(DynamicMeshComponent);
-				DynamicMeshComponent->SetMesh(FDynamicMesh3(DynamicMesh->GetMeshRef()));
-			});
+			for (int32 i = 0; i < Materials.Num(); ++i) { DynamicMeshComponent->SetMaterial(i, Materials[i]); }
+			Settings->TemplateDescriptor.InitComponent(DynamicMeshComponent);
+			DynamicMeshComponent->SetMesh(FDynamicMesh3(DynamicMesh->GetMeshRef()));
+		});
 
 		if (!Settings->PropertyOverrideDescriptions.IsEmpty())
 		{

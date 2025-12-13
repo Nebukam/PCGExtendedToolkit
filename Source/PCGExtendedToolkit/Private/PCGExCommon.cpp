@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataTag.h"
 
-
 namespace PCGExData
 {
 	FTaggedData::FTaggedData(const UPCGData* InData, const TSharedPtr<FTags>& InTags, const TSharedPtr<IPCGAttributeAccessorKeys>& InKeys)

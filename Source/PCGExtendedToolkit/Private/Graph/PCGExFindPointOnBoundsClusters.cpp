@@ -76,11 +76,9 @@ bool FPCGExFindPointOnBoundsClustersElement::AdvanceWork(FPCGExContext* InContex
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -91,11 +89,7 @@ bool FPCGExFindPointOnBoundsClustersElement::AdvanceWork(FPCGExContext* InContex
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{
 		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx ? Context->MainPoints : Context->MainEdges;
-		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
-			Context->MergedOut,
-			Context->IOMergeSources,
-			Context->BestIndices,
-			*Context->MergedAttributesInfos);
+		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(Context->MergedOut, Context->IOMergeSources, Context->BestIndices, *Context->MergedAttributesInfos);
 
 		(void)Context->MergedOut->StageOutput(Context);
 	}
@@ -115,13 +109,12 @@ namespace PCGExFindPointOnBoundsClusters
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		FBox Bounds = FBox(ForceInit);
-		FVector UVW = Settings->GetValueSettingUVW(
-			Context, Settings->ClusterElement == EPCGExClusterElement::Edge ? EdgeDataFacade->GetIn() : VtxDataFacade->GetIn())->Read(0);
+		FVector UVW = Settings->GetValueSettingUVW(Context, Settings->ClusterElement == EPCGExClusterElement::Edge ? EdgeDataFacade->GetIn() : VtxDataFacade->GetIn())->Read(0);
 
 		if (Settings->bBestFitBounds)
 		{

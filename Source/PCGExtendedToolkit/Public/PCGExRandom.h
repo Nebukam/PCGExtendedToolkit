@@ -28,15 +28,11 @@ namespace PCGExRandom
 		return (Seed & 0x00FFFFFF) / static_cast<double>(0x01000000);
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	int32 GetSeed(const int32 BaseSeed, const uint8 Flags, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	PCGEXTENDEDTOOLKIT_API int32 GetSeed(const int32 BaseSeed, const uint8 Flags, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
 
-	PCGEXTENDEDTOOLKIT_API
-	int32 GetSeed(const int32 BaseSeed, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	PCGEXTENDEDTOOLKIT_API int32 GetSeed(const int32 BaseSeed, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
 
-	PCGEXTENDEDTOOLKIT_API
-	FRandomStream GetRandomStreamFromPoint(const int32 BaseSeed, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
+	PCGEXTENDEDTOOLKIT_API FRandomStream GetRandomStreamFromPoint(const int32 BaseSeed, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
 
-	PCGEXTENDEDTOOLKIT_API
-	int ComputeSpatialSeed(const FVector& Origin, const FVector& Offset = FVector::ZeroVector);
+	PCGEXTENDEDTOOLKIT_API int ComputeSpatialSeed(const FVector& Origin, const FVector& Offset = FVector::ZeroVector);
 }

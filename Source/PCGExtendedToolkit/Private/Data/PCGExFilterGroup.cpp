@@ -141,11 +141,13 @@ namespace PCGExFilterGroup
 		ManagedFilters.Sort([](const TSharedPtr<PCGExPointFilter::IFilter>& A, const TSharedPtr<PCGExPointFilter::IFilter>& B) { return A->Factory->Priority < B->Factory->Priority; });
 
 		// Update index & post-init
+		Stack.Reserve(ManagedFilters.Num());
 		for (int i = 0; i < ManagedFilters.Num(); i++)
 		{
 			TSharedPtr<PCGExPointFilter::IFilter> Filter = ManagedFilters[i];
 			Filter->FilterIndex = i;
 			PostInitManagedFilter(InContext, Filter);
+			Stack.Add(Filter.Get());
 		}
 
 		return true;
@@ -158,61 +160,61 @@ namespace PCGExFilterGroup
 
 	bool FFilterGroupAND::Test(const int32 Index) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (!Filter->Test(Index)) { return bInvert; } }
 		return !bInvert;
 	}
 
 	bool FFilterGroupAND::Test(const PCGExCluster::FNode& Node) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (!Filter->Test(Node)) { return bInvert; } }
 		return !bInvert;
 	}
 
 	bool FFilterGroupAND::Test(const PCGExGraph::FEdge& Edge) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (!Filter->Test(Edge)) { return bInvert; } }
 		return !bInvert;
 	}
 
 	bool FFilterGroupAND::Test(const PCGExData::FProxyPoint& Point) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Point)) { return bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (!Filter->Test(Point)) { return bInvert; } }
 		return !bInvert;
 	}
 
 	bool FFilterGroupAND::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(IO, ParentCollection)) { return bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (!Filter->Test(IO, ParentCollection)) { return bInvert; } }
 		return !bInvert;
 	}
 
 	bool FFilterGroupOR::Test(const int32 Index) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (Filter->Test(Index)) { return !bInvert; } }
 		return bInvert;
 	}
 
 	bool FFilterGroupOR::Test(const PCGExCluster::FNode& Node) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (Filter->Test(Node)) { return !bInvert; } }
 		return bInvert;
 	}
 
 	bool FFilterGroupOR::Test(const PCGExGraph::FEdge& Edge) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (Filter->Test(Edge)) { return !bInvert; } }
 		return bInvert;
 	}
 
 	bool FFilterGroupOR::Test(const PCGExData::FProxyPoint& Point) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Point)) { return !bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (Filter->Test(Point)) { return !bInvert; } }
 		return bInvert;
 	}
 
 	bool FFilterGroupOR::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 	{
-		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(IO, ParentCollection)) { return !bInvert; } }
+		for (const PCGExPointFilter::IFilter* Filter : Stack) { if (Filter->Test(IO, ParentCollection)) { return !bInvert; } }
 		return bInvert;
 	}
 }

@@ -50,16 +50,15 @@ public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExUnpackClusterTask)
 
 	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-		: FTask(),
-		  PointIO(InPointIO)
+		: FTask(), PointIO(InPointIO)
 	{
 	}
 
 	TSharedPtr<PCGExData::FPointIO> PointIO;
 
-	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 	{
-		const FPCGExUnpackClustersContext* Context = AsyncManager->GetContext<FPCGExUnpackClustersContext>();
+		const FPCGExUnpackClustersContext* Context = TaskManager->GetContext<FPCGExUnpackClustersContext>();
 		PCGEX_SETTINGS(UnpackClusters)
 
 		FPCGAttributeIdentifier EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount, PointIO->GetIn());
@@ -126,7 +125,7 @@ bool FPCGExUnpackClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		while (Context->AdvancePointsIO(false)) { PCGEX_LAUNCH(FPCGExUnpackClusterTask, Context->CurrentIO) }
 		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 	}

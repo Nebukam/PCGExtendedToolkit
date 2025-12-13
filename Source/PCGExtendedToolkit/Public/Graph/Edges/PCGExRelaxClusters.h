@@ -29,9 +29,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		RelaxClusters, "Cluster : Relax", "Relax point positions using edges connecting them.",
-		(Relaxing ? FName(Relaxing.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RelaxClusters, "Cluster : Relax", "Relax point positions using edges connecting them.", (Relaxing ? FName(Relaxing.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 #endif
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
@@ -138,7 +136,7 @@ namespace PCGExRelaxClusters
 		virtual ~FProcessor() override;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void StartNextStep();
 		void RelaxScope(const PCGExMT::FScope& Scope) const;
 		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;

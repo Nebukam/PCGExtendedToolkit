@@ -108,18 +108,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExScaleToFitDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitZ = EPCGExScaleToFit::None;
 
-	void Process(
-		const PCGExData::FPoint& InPoint,
-		const FBox& InBounds,
-		FVector& OutScale,
-		FBox& OutBounds) const;
+	void Process(const PCGExData::FPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const;
 
 private:
-	static void ScaleToFitAxis(
-		const EPCGExScaleToFit Fit, const int32 Axis,
-		const FVector& TargetScale, const FVector& TargetSize,
-		const FVector& CandidateSize, const FVector& MinMaxFit,
-		FVector& OutScale);
+	static void ScaleToFitAxis(const EPCGExScaleToFit Fit, const int32 Axis, const FVector& TargetScale, const FVector& TargetSize, const FVector& CandidateSize, const FVector& MinMaxFit, FVector& OutScale);
 };
 
 USTRUCT(BlueprintType)
@@ -169,14 +161,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleJustifyDetails
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
-	void JustifyAxis(
-		const int32 Axis,
-		const int32 Index,
-		const FVector& InCenter,
-		const FVector& InSize,
-		const FVector& OutCenter,
-		const FVector& OutSize,
-		FVector& OutTranslation) const;
+	void JustifyAxis(const int32 Axis, const int32 Index, const FVector& InCenter, const FVector& InSize, const FVector& OutCenter, const FVector& OutSize, FVector& OutTranslation) const;
 };
 
 USTRUCT(BlueprintType)
@@ -224,11 +209,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExJustificationDetails
 
 	TSharedPtr<PCGExData::TBuffer<FVector>> SharedToGetter;
 
-	void Process(
-		const int32 Index,
-		const FBox& InBounds,
-		const FBox& OutBounds,
-		FVector& OutTranslation) const;
+	void Process(const int32 Index, const FBox& InBounds, const FBox& OutBounds, FVector& OutTranslation) const;
 
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
@@ -318,9 +299,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 
 	void Init(const int InSeed);
 
-	void Apply(
-		const FRandomStream& RandomStream, FTransform& OutTransform,
-		const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const;
+	void Apply(const FRandomStream& RandomStream, FTransform& OutTransform, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const;
 };
 
 

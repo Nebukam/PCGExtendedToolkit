@@ -40,11 +40,9 @@ bool FPCGExPartitionVerticesElement::AdvanceWork(FPCGExContext* InContext, const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -72,11 +70,11 @@ namespace PCGExPartitionVertices
 		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, true, true);
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPartitionVertices::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		UPCGBasePointData* MutablePoints = PointPartitionIO->GetOut();

@@ -174,11 +174,7 @@ namespace PCGExSampling
 
 	double GetAngle(const EPCGExAngleRange Mode, const FVector& A, const FVector& B);
 
-	bool GetIncludedActors(
-		const FPCGContext* InContext,
-		const TSharedRef<PCGExData::FFacade>& InFacade,
-		const FName ActorReferenceName,
-		TMap<AActor*, int32>& OutActorSet);
+	bool GetIncludedActors(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InFacade, const FName ActorReferenceName, TMap<AActor*, int32>& OutActorSet);
 
 	class PCGEXTENDEDTOOLKIT_API FSampingUnionData : public PCGExData::IUnionData
 	{
@@ -191,12 +187,7 @@ namespace PCGExSampling
 		double WeightRange = -1;
 
 		// Gather data into arrays and return the required iteration count
-		virtual int32 ComputeWeights(
-			const TArray<const UPCGBasePointData*>& Sources,
-			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-			const PCGExData::FPoint& Target,
-			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
+		virtual int32 ComputeWeights(const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const PCGExData::FPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
 
 		FORCEINLINE void AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight)
 		{
@@ -276,6 +267,6 @@ namespace PCGExSampling
 		double GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const;
 		FVector GetSourceCenter(const PCGExData::FPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const;
 
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr) const;
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle = nullptr) const;
 	};
 }

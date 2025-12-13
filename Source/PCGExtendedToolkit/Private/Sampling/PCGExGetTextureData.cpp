@@ -8,6 +8,7 @@
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -68,9 +69,7 @@ bool FPCGExGetTextureDataElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SourceType == EPCGExGetTexturePathType::MaterialPath)
 	{
-		if (!PCGExFactories::GetInputFactories(
-			InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories,
-			{PCGExFactories::EType::TexParam}))
+		if (!PCGExFactories::GetInputFactories(InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}))
 		{
 			return false;
 		}
@@ -94,11 +93,9 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to sample."));
 		}
@@ -108,12 +105,8 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	PCGEX_ON_STATE(PCGExCommon::State_AsyncPreparation)
 	{
-		if (Context->TextureReferences.IsEmpty())
-		{
-			// Nothing to load, skip
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-		}
-		else
+		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+		if (!Context->TextureReferences.IsEmpty())
 		{
 			// Start loading textures...
 			TSharedPtr<TSet<FSoftObjectPath>> Paths = MakeShared<TSet<FSoftObjectPath>>();
@@ -126,10 +119,14 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 			Context->TextureReady.Init(false, Context->TextureReferencesList.Num());
 			Context->TextureDataList.Init(nullptr, Context->TextureReferencesList.Num());
 
-			Context->TextureProcessingToken = Context->GetAsyncManager()->TryCreateToken(FName("TextureProcessing"));
+			Context->TextureProcessingToken = Context->GetTaskManager()->TryCreateToken(FName("TextureProcessing"));
 			if (!Context->TextureProcessingToken.IsValid()) { return true; }
 
-			Context->AdvanceProcessing(0);
+			PCGExMT::ExecuteOnMainThread(Context->GetTaskManager(), [CtxHandle = Context->GetOrCreateHandle()]()
+			{
+				PCGEX_SHARED_TCONTEXT_VOID(GetTextureData, CtxHandle)
+				SharedContext.Get()->AdvanceProcessing(0);
+			});
 		}
 	}
 
@@ -158,15 +155,14 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 	auto MoveToNextTask = [&]()
 	{
 		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction(
-			[CtxHandle = GetOrCreateHandle(), Idx = Index + 1]()
+		PCGExSubsystem->RegisterBeginTickAction([CtxHandle = GetOrCreateHandle(), Idx = Index + 1]()
+		{
+			const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
+			if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
 			{
-				const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
-				if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
-				{
-					Ctx->AdvanceProcessing(Idx);
-				}
-			});
+				Ctx->AdvanceProcessing(Idx);
+			}
+		});
 	};
 
 	auto ApplySettings = [&](UPCGBaseTextureData* InTex)
@@ -231,15 +227,14 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 	if (!TextureReady[Index])
 	{
 		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction(
-			[CtxHandle = GetOrCreateHandle(), Idx = Index]()
+		PCGExSubsystem->RegisterBeginTickAction([CtxHandle = GetOrCreateHandle(), Idx = Index]()
+		{
+			const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
+			if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
 			{
-				const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
-				if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
-				{
-					Ctx->AdvanceProcessing(Idx);
-				}
-			});
+				Ctx->AdvanceProcessing(Idx);
+			}
+		});
 
 		return;
 	}
@@ -271,14 +266,14 @@ namespace PCGExGetTextureData
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExGetTextureData::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
 
@@ -389,10 +384,7 @@ namespace PCGExGetTextureData
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			TexParamLookup->ExtractParamsAndReferences(
-				Index,
-				TSoftObjectPtr<UMaterialInterface>(PathGetter->Read(Index)).Get(),
-				*ScopedTextureReferences[Scope.LoopIndex].Get());
+			TexParamLookup->ExtractParamsAndReferences(Index, TSoftObjectPtr<UMaterialInterface>(PathGetter->Read(Index)).Get(), *ScopedTextureReferences[Scope.LoopIndex].Get());
 		}
 	}
 
@@ -404,7 +396,7 @@ namespace PCGExGetTextureData
 			Context->TextureReferences.Append(*Set.Get());
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::CompleteWork()

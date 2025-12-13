@@ -188,8 +188,7 @@ MACRO(SocketTag, FName, NAME_None) \
 MACRO(Category, FName, NAME_None) \
 MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 
-	PCGEXTENDEDTOOLKIT_API
-	uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
+	PCGEXTENDEDTOOLKIT_API uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
 
 	class PCGEXTENDEDTOOLKIT_API FSocketHelper : public TSharedFromThis<FSocketHelper>
 	{
@@ -212,10 +211,7 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 		void Add(const int32 Index, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
 		void Add(const int32 Index, const TObjectPtr<UStaticMesh>& Mesh);
 
-		void Compile(
-			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-			const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-			const TSharedPtr<PCGExData::FPointIOCollection>& InCollection);
+		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection);
 
 	protected:
 		FSocketInfos& NewSocketInfos(const uint64 EntryHash, int32& OutIndex);
@@ -246,9 +242,6 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 		bool Init(UPCGExAssetCollection* InCollection);
 		bool Init(const TMap<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& InMap, const TSharedPtr<TArray<PCGExValueHash>>& InKeys);
 
-		bool TryGetHelpers(
-			const int32 Index,
-			TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper,
-			TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>*& OutMicroHelper);
+		bool TryGetHelpers(const int32 Index, TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper, TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>*& OutMicroHelper);
 	};
 }

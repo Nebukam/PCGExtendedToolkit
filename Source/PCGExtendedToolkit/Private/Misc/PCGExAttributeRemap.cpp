@@ -6,6 +6,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
+#include "PCGExStreamingHelpers.h"
 #include "AssetStaging/PCGExAssetStaging.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -45,28 +46,26 @@ void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 }
 #endif
 
+void FPCGExRemapDetails::Init()
+{
+	if (!bUseLocalCurve) { LocalScoreCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(RemapCurve); }
+	RemapCurveObj = LocalScoreCurve.GetRichCurveConst();
+}
+
 double FPCGExRemapDetails::GetRemappedValue(const double Value, const double Step) const
 {
 	switch (Snapping)
 	{
-	default:
-	case EPCGExVariationSnapping::None:
-		return PCGExMath::TruncateDbl(
-			RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
-			TruncateOutput) * PostTruncateScale + Offset;
+	default: case EPCGExVariationSnapping::None: return PCGExMath::TruncateDbl(RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale, TruncateOutput) * PostTruncateScale + Offset;
 	case EPCGExVariationSnapping::SnapOffset:
 		{
-			double V = PCGExMath::TruncateDbl(
-				RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
-				TruncateOutput) * PostTruncateScale;
+			double V = PCGExMath::TruncateDbl(RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale, TruncateOutput) * PostTruncateScale;
 			PCGExMath::Snap(V, Step);
 			return V + Offset;
 		}
 	case EPCGExVariationSnapping::SnapResult:
 		{
-			double V = PCGExMath::TruncateDbl(
-				RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
-				TruncateOutput) * PostTruncateScale + Offset;
+			double V = PCGExMath::TruncateDbl(RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale, TruncateOutput) * PostTruncateScale + Offset;
 			PCGExMath::Snap(V, Step);
 			return V;
 		}
@@ -123,11 +122,9 @@ bool FPCGExAttributeRemapElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to remap."));
 		}
@@ -151,11 +148,11 @@ namespace PCGExAttributeRemap
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -179,9 +176,7 @@ namespace PCGExAttributeRemap
 		{
 			// This might be expected if the destination does not exist
 
-			if (Dimensions == 1 &&
-				Settings->Attributes.WantsRemappedOutput() &&
-				!OutputDescriptor.SubSelection.bIsValid)
+			if (Dimensions == 1 && Settings->Attributes.WantsRemappedOutput() && !OutputDescriptor.SubSelection.bIsValid)
 			{
 				// We're remapping a component to a single value with no subselection
 				OutputDescriptor.RealType = InputDescriptor.WorkingType;
@@ -192,8 +187,7 @@ namespace PCGExAttributeRemap
 				OutputDescriptor.RealType = InputDescriptor.RealType;
 			}
 
-			if (Settings->bAutoCastIntegerToDouble &&
-				(OutputDescriptor.RealType == EPCGMetadataTypes::Integer32 || OutputDescriptor.RealType == EPCGMetadataTypes::Integer64))
+			if (Settings->bAutoCastIntegerToDouble && (OutputDescriptor.RealType == EPCGMetadataTypes::Integer32 || OutputDescriptor.RealType == EPCGMetadataTypes::Integer64))
 			{
 				OutputDescriptor.RealType = EPCGMetadataTypes::Double;
 			}
@@ -236,89 +230,86 @@ namespace PCGExAttributeRemap
 			if (!Rule.RemapDetails.bUseInMax) { Rule.RemapDetails.InMax = MIN_dbl_neg; }
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, FetchTask)
 
-		FetchTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
+		FetchTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+
+			// Fix min/max range
+			for (FPCGExComponentRemapRule& Rule : This->Rules)
 			{
-				PCGEX_ASYNC_THIS
-
-				// Fix min/max range
-				for (FPCGExComponentRemapRule& Rule : This->Rules)
+				if (!Rule.RemapDetails.bUseInMin)
 				{
-					if (!Rule.RemapDetails.bUseInMin)
-					{
-						Rule.RemapDetails.InMin = Rule.MinCache->Min();
-					}
-
-					if (!Rule.RemapDetails.bUseInMax)
-					{
-						Rule.RemapDetails.InMax = Rule.MaxCache->Max();
-					}
-
-					if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange && Rule.RemapDetails.InMin > 0) { Rule.RemapDetails.InMin = 0; }
+					Rule.RemapDetails.InMin = Rule.MinCache->Min();
 				}
 
-				This->OnPreparationComplete();
-			};
-
-		FetchTask->OnPrepareSubLoopsCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
-			{
-				PCGEX_ASYNC_THIS
-				for (FPCGExComponentRemapRule& Rule : This->Rules)
+				if (!Rule.RemapDetails.bUseInMax)
 				{
-					Rule.MinCache = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, MAX_dbl);
-					Rule.MaxCache = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, MIN_dbl_neg);
-					Rule.SnapCache = Rule.RemapDetails.Snap.GetValueSetting();
+					Rule.RemapDetails.InMax = Rule.MaxCache->Max();
 				}
-			};
 
-		FetchTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange && Rule.RemapDetails.InMin > 0) { Rule.RemapDetails.InMin = 0; }
+			}
+
+			This->OnPreparationComplete();
+		};
+
+		FetchTask->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+		{
+			PCGEX_ASYNC_THIS
+			for (FPCGExComponentRemapRule& Rule : This->Rules)
 			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
-				PCGEX_ASYNC_THIS
+				Rule.MinCache = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, MAX_dbl);
+				Rule.MaxCache = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, MIN_dbl_neg);
+				Rule.SnapCache = Rule.RemapDetails.Snap.GetValueSetting();
+			}
+		};
 
-				This->PointDataFacade->Fetch(Scope);
+		FetchTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
+			PCGEX_ASYNC_THIS
 
-				// Find min/max & clamp values
+			This->PointDataFacade->Fetch(Scope);
 
-				for (int d = 0; d < This->Dimensions; d++)
+			// Find min/max & clamp values
+
+			for (int d = 0; d < This->Dimensions; d++)
+			{
+				FPCGExComponentRemapRule& Rule = This->Rules[d];
+
+				TSharedPtr<PCGExData::TBufferProxy<double>> InProxy = This->InputProxies[d];
+				TSharedPtr<PCGExData::TBufferProxy<double>> OutProxy = This->OutputProxies[d];
+
+				double Min = MAX_dbl;
+				double Max = MIN_dbl_neg;
+
+				if (Rule.RemapDetails.bUseAbsoluteRange)
 				{
-					FPCGExComponentRemapRule& Rule = This->Rules[d];
-
-					TSharedPtr<PCGExData::TBufferProxy<double>> InProxy = This->InputProxies[d];
-					TSharedPtr<PCGExData::TBufferProxy<double>> OutProxy = This->OutputProxies[d];
-
-					double Min = MAX_dbl;
-					double Max = MIN_dbl_neg;
-
-					if (Rule.RemapDetails.bUseAbsoluteRange)
+					PCGEX_SCOPE_LOOP(i)
 					{
-						PCGEX_SCOPE_LOOP(i)
-						{
-							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
-							Min = FMath::Min(Min, FMath::Abs(V));
-							Max = FMath::Max(Max, FMath::Abs(V));
-							OutProxy->Set(i, V);
-						}
+						double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
+						Min = FMath::Min(Min, FMath::Abs(V));
+						Max = FMath::Max(Max, FMath::Abs(V));
+						OutProxy->Set(i, V);
 					}
-					else
-					{
-						PCGEX_SCOPE_LOOP(i)
-						{
-							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
-							Min = FMath::Min(Min, V);
-							Max = FMath::Max(Max, V);
-							OutProxy->Set(i, V);
-						}
-					}
-
-					Rule.MinCache->Set(Scope, Min);
-					Rule.MaxCache->Set(Scope, Max);
 				}
-			};
+				else
+				{
+					PCGEX_SCOPE_LOOP(i)
+					{
+						double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
+						Min = FMath::Min(Min, V);
+						Max = FMath::Max(Max, V);
+						OutProxy->Set(i, V);
+					}
+				}
+
+				Rule.MinCache->Set(Scope, Min);
+				Rule.MaxCache->Set(Scope, Max);
+			}
+		};
 
 		FetchTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
@@ -342,19 +333,14 @@ namespace PCGExAttributeRemap
 					PCGEX_SCOPE_LOOP(i)
 					{
 						double V = InProxy->Get(i);
-						OutProxy->Set(
-							i, Rule.OutputClampDetails.GetClampedValue(
-								Rule.RemapDetails.GetRemappedValue(FMath::Abs(V), Rule.SnapCache->Read(i)) * PCGExMath::SignPlus(V)));
+						OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(FMath::Abs(V), Rule.SnapCache->Read(i)) * PCGExMath::SignPlus(V)));
 					}
 				}
 				else
 				{
 					PCGEX_SCOPE_LOOP(i)
 					{
-						OutProxy->Set(
-							i, Rule.OutputClampDetails.GetClampedValue(
-								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(InProxy->Get(i)), Rule.SnapCache->Read(i))));
+						OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(FMath::Abs(InProxy->Get(i)), Rule.SnapCache->Read(i))));
 					}
 				}
 			}
@@ -364,20 +350,14 @@ namespace PCGExAttributeRemap
 				{
 					PCGEX_SCOPE_LOOP(i)
 					{
-						OutProxy->Set(
-							i, Rule.OutputClampDetails.GetClampedValue(
-								Rule.RemapDetails.GetRemappedValue(
-									InProxy->Get(i), Rule.SnapCache->Read(i))));
+						OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(InProxy->Get(i), Rule.SnapCache->Read(i))));
 					}
 				}
 				else
 				{
 					PCGEX_SCOPE_LOOP(i)
 					{
-						OutProxy->Set(
-							i, Rule.OutputClampDetails.GetClampedValue(
-								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(InProxy->Get(i)), Rule.SnapCache->Read(i))));
+						OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(FMath::Abs(InProxy->Get(i)), Rule.SnapCache->Read(i))));
 					}
 				}
 			}
@@ -386,20 +366,19 @@ namespace PCGExAttributeRemap
 
 	void FProcessor::OnPreparationComplete()
 	{
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
-		RemapTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->RemapRange(Scope);
-			};
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, RemapTask)
+		RemapTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->RemapRange(Scope);
+		};
 
 		RemapTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

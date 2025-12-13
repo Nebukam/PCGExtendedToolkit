@@ -17,8 +17,8 @@ struct FPCGExProbeConfigAnisotropic : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigAnisotropic() :
-		FPCGExProbeConfigBase()
+	FPCGExProbeConfigAnisotropic()
+		: FPCGExProbeConfigBase()
 	{
 	}
 
@@ -86,9 +86,7 @@ class UPCGExProbeAnisotropicProviderSettings : public UPCGExProbeFactoryProvider
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeAnisotropic, "Probe : Anisotropic", "Probe in 16 directions over the X/Y axis. It's recommended to use internal projection to get the best results",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeAnisotropic, "Probe : Anisotropic", "Probe in 16 directions over the X/Y axis. It's recommended to use internal projection to get the best results", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

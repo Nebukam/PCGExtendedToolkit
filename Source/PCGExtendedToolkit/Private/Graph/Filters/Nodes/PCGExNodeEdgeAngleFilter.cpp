@@ -45,11 +45,7 @@ bool FNodeEdgeAngleFilter::Test(const PCGExCluster::FNode& Node) const
 	if (Node.IsLeaf()) { return bLeavesFallback; }
 	if (Node.IsComplex()) { return bNonBinaryFallback; }
 
-	const bool bPass = DotComparison.Test(
-		FVector::DotProduct(
-			Cluster->GetDir(Node.Index, Node.Links[0].Node),
-			Cluster->GetDir(Node.Index, Node.Links[1].Node)),
-		Node.PointIndex);
+	const bool bPass = DotComparison.Test(FVector::DotProduct(Cluster->GetDir(Node.Index, Node.Links[0].Node), Cluster->GetDir(Node.Index, Node.Links[1].Node)), Node.PointIndex);
 
 	return bPass ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 }

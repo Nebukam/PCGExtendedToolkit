@@ -83,8 +83,7 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 	{
 		bool bInitialized = false;
 
-		if (TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories;
-			GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters))
+		if (TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories; GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters))
 		{
 			for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->Facades)
 			{
@@ -121,34 +120,33 @@ bool FPCGExUberBranchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			TWeakPtr<FPCGContextHandle> Handle = Context->GetOrCreateHandle();
 
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-			PCGEX_ASYNC_GROUP_CHKD_CUSTOM(Context->GetAsyncManager(), BranchTask, true)
+			PCGEX_ASYNC_GROUP_CHKD_RET(Context->GetTaskManager(), BranchTask, true)
 
-			BranchTask->OnSubLoopStartCallback =
-				[Handle, Settings](const PCGExMT::FScope& Scope)
+			BranchTask->OnSubLoopStartCallback = [Handle, Settings](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_SHARED_TCONTEXT_VOID(UberBranch, Handle)
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					PCGEX_SHARED_TCONTEXT_VOID(UberBranch, Handle)
-					PCGEX_SCOPE_LOOP(Index)
+					const TSharedPtr<PCGExData::FFacade>& Facade = SharedContext.Get()->Facades[Index];
+
+					bool bDistributed = false;
+					for (int i = 0; i < Settings->NumBranches; i++)
 					{
-						const TSharedPtr<PCGExData::FFacade>& Facade = SharedContext.Get()->Facades[Index];
-
-						bool bDistributed = false;
-						for (int i = 0; i < Settings->NumBranches; i++)
+						const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
+						if (!Manager) { continue; }
+						Manager->bWillBeUsedWithCollections = true;
+						if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
 						{
-							const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
-							if (!Manager) { continue; }
-							Manager->bWillBeUsedWithCollections = true;
-							if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
-							{
-								Facade->Source->OutputPin = Settings->OutputLabels[i];
-								FPlatformAtomics::InterlockedIncrement(&SharedContext.Get()->Dispatch[i]);
-								bDistributed = true;
-								break;
-							}
+							Facade->Source->OutputPin = Settings->OutputLabels[i];
+							FPlatformAtomics::InterlockedIncrement(&SharedContext.Get()->Dispatch[i]);
+							bDistributed = true;
+							break;
 						}
-
-						if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
 					}
-				};
+
+					if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
+				}
+			};
 
 			BranchTask->StartSubLoops(Context->Facades.Num(), Settings->AsyncChunkSize);
 			return false;

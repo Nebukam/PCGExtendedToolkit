@@ -65,9 +65,5 @@ extern template TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(const _TY
 
 #pragma endregion
 
-	bool GetPerFieldProxyBuffers(
-		FPCGExContext* InContext,
-		const FProxyDescriptor& InBaseDescriptor,
-		const int32 NumDesiredFields,
-		TArray<TSharedPtr<IBufferProxy>>& OutProxies);
+	bool GetPerFieldProxyBuffers(FPCGExContext* InContext, const FProxyDescriptor& InBaseDescriptor, const int32 NumDesiredFields, TArray<TSharedPtr<IBufferProxy>>& OutProxies);
 }

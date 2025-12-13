@@ -11,11 +11,7 @@ void FPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 	Cluster = InCluster;
 }
 
-bool FPCGExSearchOperation::ResolveQuery(
-	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
-	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
-	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
+bool FPCGExSearchOperation::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	return false;
 }

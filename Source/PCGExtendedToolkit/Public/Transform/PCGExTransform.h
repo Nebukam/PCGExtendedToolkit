@@ -295,11 +295,9 @@ namespace PCGExTransform
 		}
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	FBox GetBounds(const TArrayView<FVector> InPositions);
+	PCGEXTENDEDTOOLKIT_API FBox GetBounds(const TArrayView<FVector> InPositions);
 
-	PCGEXTENDEDTOOLKIT_API
-	FBox GetBounds(const TConstPCGValueRange<FTransform>& InTransforms);
+	PCGEXTENDEDTOOLKIT_API FBox GetBounds(const TConstPCGValueRange<FTransform>& InTransforms);
 
 	template <EPCGExPointBoundsSource Source>
 	static FBox GetBounds(const UPCGBasePointData* InPointData)
@@ -326,8 +324,7 @@ namespace PCGExTransform
 		return Bounds;
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	FBox GetBounds(const UPCGBasePointData* InPointData, const EPCGExPointBoundsSource Source);
+	PCGEXTENDEDTOOLKIT_API FBox GetBounds(const UPCGBasePointData* InPointData, const EPCGExPointBoundsSource Source);
 
 	struct FPCGExConstantUVW
 	{

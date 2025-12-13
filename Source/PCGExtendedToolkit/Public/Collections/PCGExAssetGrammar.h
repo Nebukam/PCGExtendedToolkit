@@ -54,7 +54,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetGrammarDetails
 
 	FPCGExAssetGrammarDetails() = default;
 
-	FPCGExAssetGrammarDetails(const FName InSymbol): Symbol(InSymbol)
+	FPCGExAssetGrammarDetails(const FName InSymbol)
+		: Symbol(InSymbol)
 	{
 	}
 

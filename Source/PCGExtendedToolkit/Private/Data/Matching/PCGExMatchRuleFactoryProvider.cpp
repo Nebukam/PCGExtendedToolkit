@@ -224,9 +224,16 @@ namespace PCGExMatching
 
 	bool FDataMatcher::HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward) const
 	{
-		if (!Details->bSplitUnmatched) { return false; }
-		if (bForward) { if (!InFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward)) { return true; } }
-		InFacade->Source->OutputPin = OutputUnmatchedLabel;
+		if (!Details->bSplitUnmatched)
+		{
+			if (!Details->bQuietUnmatchedTargetWarning) { PCGE_LOG_C(Warning, GraphAndLog, InFacade->GetContext(), FTEXT("An input has no matching target.")); }
+		}
+		else
+		{
+			InFacade->Source->OutputPin = OutputUnmatchedLabel;
+		}
+
+		if (bForward && Details->bOutputUnmatched) { InFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 		return true;
 	}
 
@@ -280,9 +287,7 @@ namespace PCGExMatching
 		}
 
 		TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>> Factories;
-		if (!PCGExFactories::GetInputFactories(
-			InContext, InFactoriesLabel, Factories,
-			{PCGExFactories::EType::MatchRule}))
+		if (!PCGExFactories::GetInputFactories(InContext, InFactoriesLabel, Factories, {PCGExFactories::EType::MatchRule}))
 		{
 			MatchMode = EPCGExMapMatchMode::Disabled;
 			return false;

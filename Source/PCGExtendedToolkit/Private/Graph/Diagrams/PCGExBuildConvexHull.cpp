@@ -49,20 +49,18 @@ bool FPCGExBuildConvexHullElement::AdvanceWork(FPCGExContext* InContext, const U
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 4)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 4)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
@@ -78,11 +76,11 @@ bool FPCGExBuildConvexHullElement::AdvanceWork(FPCGExContext* InContext, const U
 
 namespace PCGExBuildConvexHull
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildConvexHull::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		// Build delaunay
 
@@ -137,7 +135,7 @@ namespace PCGExBuildConvexHull
 
 	void FProcessor::CompleteWork()
 	{
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 	}
 
 	void FProcessor::Write()
@@ -149,7 +147,7 @@ namespace PCGExBuildConvexHull
 			return;
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()

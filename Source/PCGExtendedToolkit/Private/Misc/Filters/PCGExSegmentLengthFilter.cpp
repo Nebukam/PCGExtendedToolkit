@@ -84,12 +84,7 @@ bool PCGExPointFilter::FSegmentLengthFilter::Test(const int32 PointIndex) const
 	}
 	else
 	{
-		bResult = PCGExCompare::Compare(
-			TypedFilterFactory->Config.Comparison,
-			TypedFilterFactory->Config.bCompareAgainstSquaredDistance ?
-				FVector::DistSquared(InTransforms[TargetIndex].GetLocation(), InTransforms[PointIndex].GetLocation()) :
-				FVector::Dist(InTransforms[TargetIndex].GetLocation(), InTransforms[PointIndex].GetLocation()),
-			Threshold->Read(PointIndex), TypedFilterFactory->Config.Tolerance);
+		bResult = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, TypedFilterFactory->Config.bCompareAgainstSquaredDistance ? FVector::DistSquared(InTransforms[TargetIndex].GetLocation(), InTransforms[PointIndex].GetLocation()) : FVector::Dist(InTransforms[TargetIndex].GetLocation(), InTransforms[PointIndex].GetLocation()), Threshold->Read(PointIndex), TypedFilterFactory->Config.Tolerance);
 	}
 
 	return TypedFilterFactory->Config.bInvert ? !bResult : bResult;

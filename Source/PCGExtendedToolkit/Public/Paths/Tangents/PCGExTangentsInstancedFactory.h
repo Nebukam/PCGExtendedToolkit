@@ -35,10 +35,7 @@ public:
 		return true;
 	}
 
-	virtual void ProcessFirstPoint(
-		const UPCGBasePointData* InPointData,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const
+	virtual void ProcessFirstPoint(const UPCGBasePointData* InPointData, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
@@ -49,10 +46,7 @@ public:
 		OutLeave = Dir * LeaveScale;
 	}
 
-	virtual void ProcessLastPoint(
-		const UPCGBasePointData* InPointData,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const
+	virtual void ProcessLastPoint(const UPCGBasePointData* InPointData, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 		const int32 LastIndex = InPointData->GetNumPoints() - 1;
@@ -64,11 +58,7 @@ public:
 		OutLeave = Dir * LeaveScale;
 	}
 
-	virtual void ProcessPoint(
-		const UPCGBasePointData* InPointData,
-		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const
+	virtual void ProcessPoint(const UPCGBasePointData* InPointData, const int32 Index, const int32 NextIndex, const int32 PrevIndex, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const
 	{
 	}
 };
@@ -93,8 +83,7 @@ public:
 		}
 	}
 
-	virtual TSharedPtr<FPCGExTangentsOperation> CreateOperation() const
-	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+	virtual TSharedPtr<FPCGExTangentsOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 };
 
 USTRUCT(BlueprintType)

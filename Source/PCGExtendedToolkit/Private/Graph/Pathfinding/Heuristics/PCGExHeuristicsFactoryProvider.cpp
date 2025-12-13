@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
 #include "PCGExHelpers.h"
+#include "PCGExStreamingHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
@@ -16,7 +17,7 @@ void FPCGExHeuristicConfigBase::Init()
 	if (!bUseLocalCurve)
 	{
 		PCGExHelpers::LoadBlocking_AnyThread(ScoreCurve);
-		LocalScoreCurve.ExternalCurve = ScoreCurve.Get();
+		LocalScoreCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(ScoreCurve);
 	}
 	ScoreCurveObj = LocalScoreCurve.GetRichCurveConst();
 }

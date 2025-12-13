@@ -18,8 +18,8 @@ struct FPCGExTensorSplinePoleConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorSplinePoleConfig() :
-		FPCGExTensorConfigBase(false)
+	FPCGExTensorSplinePoleConfig()
+		: FPCGExTensorConfigBase(false)
 	{
 	}
 
@@ -55,7 +55,7 @@ class UPCGExTensorSplinePoleFactory : public UPCGExTensorSplineFactoryData
 public:
 	FPCGExTensorSplinePoleConfig Config;
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-spline-pole"))

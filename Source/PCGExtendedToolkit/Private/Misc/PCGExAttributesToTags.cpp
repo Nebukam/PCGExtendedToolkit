@@ -29,9 +29,7 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() c
 		PCGEX_PIN_ANY(FName("Tags Source"), "Source collection(s) to read the tags from.", Required)
 	}
 
-	if (Selection == EPCGExCollectionEntrySelection::Picker ||
-		Selection == EPCGExCollectionEntrySelection::PickerFirst ||
-		Selection == EPCGExCollectionEntrySelection::PickerLast)
+	if (Selection == EPCGExCollectionEntrySelection::Picker || Selection == EPCGExCollectionEntrySelection::PickerFirst || Selection == EPCGExCollectionEntrySelection::PickerLast)
 	{
 		PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
 	}
@@ -118,13 +116,9 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 		if (!Details.Init(Context, SourceFacade)) { return false; }
 	}
 
-	if (Settings->Selection == EPCGExCollectionEntrySelection::Picker ||
-		Settings->Selection == EPCGExCollectionEntrySelection::PickerFirst ||
-		Settings->Selection == EPCGExCollectionEntrySelection::PickerLast)
+	if (Settings->Selection == EPCGExCollectionEntrySelection::Picker || Settings->Selection == EPCGExCollectionEntrySelection::PickerFirst || Settings->Selection == EPCGExCollectionEntrySelection::PickerLast)
 	{
-		if (!PCGExFactories::GetInputFactories(
-			Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories,
-			{PCGExFactories::EType::IndexPicker}))
+		if (!PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}))
 		{
 			return false;
 		}
@@ -141,11 +135,9 @@ bool FPCGExAttributesToTagsElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -178,16 +170,13 @@ namespace PCGExAttributesToTags
 		}
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributesToTags::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		PCGEX_INIT_IO(
-			PointDataFacade->Source, Settings->Action == EPCGExAttributeToTagsAction::Attribute ? PCGExData::EIOInit::NoInit
-			: Settings->Action == EPCGExAttributeToTagsAction::Data ? PCGExData::EIOInit::Duplicate
-			: PCGExData::EIOInit::Forward)
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Action == EPCGExAttributeToTagsAction::Attribute ? PCGExData::EIOInit::NoInit : Settings->Action == EPCGExAttributeToTagsAction::Data ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
 
 		FRandomStream RandomSource(BatchIndex);
 
@@ -214,19 +203,15 @@ namespace PCGExAttributesToTags
 
 			switch (Settings->Selection)
 			{
-			case EPCGExCollectionEntrySelection::FirstIndex:
-				Tag(Details, 0);
+			case EPCGExCollectionEntrySelection::FirstIndex: Tag(Details, 0);
 				break;
-			case EPCGExCollectionEntrySelection::LastIndex:
-				Tag(Details, PointDataFacade->GetNum() - 1);
+			case EPCGExCollectionEntrySelection::LastIndex: Tag(Details, PointDataFacade->GetNum() - 1);
 				break;
-			case EPCGExCollectionEntrySelection::RandomIndex:
-				Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
+			case EPCGExCollectionEntrySelection::RandomIndex: Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
 				break;
 			case EPCGExCollectionEntrySelection::Picker:
 			case EPCGExCollectionEntrySelection::PickerFirst:
-			case EPCGExCollectionEntrySelection::PickerLast:
-				TagWithPickers(Details);
+			case EPCGExCollectionEntrySelection::PickerLast: TagWithPickers(Details);
 				break;
 			}
 		}
@@ -236,19 +221,15 @@ namespace PCGExAttributesToTags
 
 			switch (Settings->Selection)
 			{
-			case EPCGExCollectionEntrySelection::FirstIndex:
-				Tag(Details, 0);
+			case EPCGExCollectionEntrySelection::FirstIndex: Tag(Details, 0);
 				break;
-			case EPCGExCollectionEntrySelection::LastIndex:
-				Tag(Details, PointDataFacade->GetNum() - 1);
+			case EPCGExCollectionEntrySelection::LastIndex: Tag(Details, PointDataFacade->GetNum() - 1);
 				break;
-			case EPCGExCollectionEntrySelection::RandomIndex:
-				Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
+			case EPCGExCollectionEntrySelection::RandomIndex: Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
 				break;
 			case EPCGExCollectionEntrySelection::Picker:
 			case EPCGExCollectionEntrySelection::PickerFirst:
-			case EPCGExCollectionEntrySelection::PickerLast:
-				TagWithPickers(Details);
+			case EPCGExCollectionEntrySelection::PickerLast: TagWithPickers(Details);
 				break;
 			}
 		}

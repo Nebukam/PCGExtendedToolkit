@@ -149,9 +149,7 @@ class UPCGExTimeFilterProviderSettings : public UPCGExFilterProviderSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		TimeFilterFactory, "Filter : Time", "Creates a filter definition that checks points position against a path/spline/polygon2D closest alpha.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(TimeFilterFactory, "Filter : Time", "Creates a filter definition that checks points position against a path/spline/polygon2D closest alpha.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 
 protected:

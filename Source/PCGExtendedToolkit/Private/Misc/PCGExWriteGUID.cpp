@@ -20,36 +20,25 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 {
 	switch (Format)
 	{
-	default:
-	case EPCGExGUIDFormat::Digits:
-		GUIDFormat = EGuidFormats::Digits;
+	default: case EPCGExGUIDFormat::Digits: GUIDFormat = EGuidFormats::Digits;
 		break;
-	case EPCGExGUIDFormat::DigitsLower:
-		GUIDFormat = EGuidFormats::DigitsLower;
+	case EPCGExGUIDFormat::DigitsLower: GUIDFormat = EGuidFormats::DigitsLower;
 		break;
-	case EPCGExGUIDFormat::DigitsWithHyphens:
-		GUIDFormat = EGuidFormats::DigitsWithHyphens;
+	case EPCGExGUIDFormat::DigitsWithHyphens: GUIDFormat = EGuidFormats::DigitsWithHyphens;
 		break;
-	case EPCGExGUIDFormat::DigitsWithHyphensLower:
-		GUIDFormat = EGuidFormats::DigitsWithHyphensLower;
+	case EPCGExGUIDFormat::DigitsWithHyphensLower: GUIDFormat = EGuidFormats::DigitsWithHyphensLower;
 		break;
-	case EPCGExGUIDFormat::DigitsWithHyphensInBraces:
-		GUIDFormat = EGuidFormats::DigitsWithHyphensInBraces;
+	case EPCGExGUIDFormat::DigitsWithHyphensInBraces: GUIDFormat = EGuidFormats::DigitsWithHyphensInBraces;
 		break;
-	case EPCGExGUIDFormat::DigitsWithHyphensInParentheses:
-		GUIDFormat = EGuidFormats::DigitsWithHyphensInParentheses;
+	case EPCGExGUIDFormat::DigitsWithHyphensInParentheses: GUIDFormat = EGuidFormats::DigitsWithHyphensInParentheses;
 		break;
-	case EPCGExGUIDFormat::HexValuesInBraces:
-		GUIDFormat = EGuidFormats::HexValuesInBraces;
+	case EPCGExGUIDFormat::HexValuesInBraces: GUIDFormat = EGuidFormats::HexValuesInBraces;
 		break;
-	case EPCGExGUIDFormat::UniqueObjectGuid:
-		GUIDFormat = EGuidFormats::UniqueObjectGuid;
+	case EPCGExGUIDFormat::UniqueObjectGuid: GUIDFormat = EGuidFormats::UniqueObjectGuid;
 		break;
-	case EPCGExGUIDFormat::Short:
-		GUIDFormat = EGuidFormats::Short;
+	case EPCGExGUIDFormat::Short: GUIDFormat = EGuidFormats::Short;
 		break;
-	case EPCGExGUIDFormat::Base36Encoded:
-		GUIDFormat = EGuidFormats::Base36Encoded;
+	case EPCGExGUIDFormat::Base36Encoded: GUIDFormat = EGuidFormats::Base36Encoded;
 		break;
 	}
 
@@ -83,11 +72,7 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 void FPCGExGUIDDetails::GetGUID(const int32 Index, const PCGExData::FConstPoint& InPoint, FGuid& OutGUID) const
 {
 	const uint32 SeededBase = bUseSeed ? InPoint.Data->GetSeed(InPoint.Index) : 0;
-	OutGUID = FGuid(
-		GridHash,
-		bUseIndex ? Index : -1,
-		UniqueKeyReader->IsConstant() ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase,
-		bUsePosition ? PCGEx::GH3(InPoint.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
+	OutGUID = FGuid(GridHash, bUseIndex ? Index : -1, UniqueKeyReader->IsConstant() ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase, bUsePosition ? PCGEx::GH3(InPoint.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)
@@ -115,11 +100,9 @@ bool FPCGExWriteGUIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -134,13 +117,13 @@ bool FPCGExWriteGUIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 namespace PCGExWriteGUID
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteGUID::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -180,7 +163,7 @@ namespace PCGExWriteGUID
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

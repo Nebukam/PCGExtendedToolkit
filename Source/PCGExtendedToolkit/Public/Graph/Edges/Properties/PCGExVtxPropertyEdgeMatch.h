@@ -69,11 +69,7 @@ public:
 
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FilterFactories = nullptr;
 
-	virtual bool PrepareForCluster(
-		FPCGExContext* InContext,
-		TSharedPtr<PCGExCluster::FCluster> InCluster,
-		const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
-		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
+	virtual bool PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP) override;
 
 protected:
@@ -99,9 +95,7 @@ class UPCGExVtxPropertyEdgeMatchSettings : public UPCGExVtxPropertyProviderSetti
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		VtxEdgeMatch, "Vtx : Edge Match", "Find the edge that matches the closest provided direction.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(VtxEdgeMatch, "Vtx : Edge Match", "Find the edge that matches the closest provided direction.", FName(GetDisplayName()))
 #endif
 
 protected:

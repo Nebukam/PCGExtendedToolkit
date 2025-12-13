@@ -11,19 +11,8 @@
 
 namespace PCGExGraph
 {
-	FUnionProcessor::FUnionProcessor(
-		FPCGExPointsProcessorContext* InContext,
-		TSharedRef<PCGExData::FFacade> InUnionDataFacade,
-		TSharedRef<FUnionGraph> InUnionGraph,
-		FPCGExPointPointIntersectionDetails InPointPointIntersectionSettings,
-		FPCGExBlendingDetails InDefaultPointsBlending,
-		FPCGExBlendingDetails InDefaultEdgesBlending)
-		: Context(InContext),
-		  UnionDataFacade(InUnionDataFacade),
-		  UnionGraph(InUnionGraph),
-		  PointPointIntersectionDetails(InPointPointIntersectionSettings),
-		  DefaultPointsBlendingDetails(InDefaultPointsBlending),
-		  DefaultEdgesBlendingDetails(InDefaultEdgesBlending)
+	FUnionProcessor::FUnionProcessor(FPCGExPointsProcessorContext* InContext, TSharedRef<PCGExData::FFacade> InUnionDataFacade, TSharedRef<FUnionGraph> InUnionGraph, FPCGExPointPointIntersectionDetails InPointPointIntersectionSettings, FPCGExBlendingDetails InDefaultPointsBlending, FPCGExBlendingDetails InDefaultEdgesBlending)
+		: Context(InContext), UnionDataFacade(InUnionDataFacade), UnionGraph(InUnionGraph), PointPointIntersectionDetails(InPointPointIntersectionSettings), DefaultPointsBlendingDetails(InDefaultPointsBlending), DefaultEdgesBlendingDetails(InDefaultEdgesBlending)
 	{
 	}
 
@@ -31,10 +20,7 @@ namespace PCGExGraph
 	{
 	}
 
-	void FUnionProcessor::InitPointEdge(
-		const FPCGExPointEdgeIntersectionDetails& InDetails,
-		const bool bUseCustom,
-		const FPCGExBlendingDetails* InOverride)
+	void FUnionProcessor::InitPointEdge(const FPCGExPointEdgeIntersectionDetails& InDetails, const bool bUseCustom, const FPCGExBlendingDetails* InOverride)
 	{
 		bDoPointEdge = true;
 		PointEdgeIntersectionDetails = InDetails;
@@ -42,10 +28,7 @@ namespace PCGExGraph
 		if (InOverride) { CustomPointEdgeBlendingDetails = *InOverride; }
 	}
 
-	void FUnionProcessor::InitEdgeEdge(
-		const FPCGExEdgeEdgeIntersectionDetails& InDetails,
-		const bool bUseCustom,
-		const FPCGExBlendingDetails* InOverride)
+	void FUnionProcessor::InitEdgeEdge(const FPCGExEdgeEdgeIntersectionDetails& InDetails, const bool bUseCustom, const FPCGExBlendingDetails* InOverride)
 	{
 		bDoEdgeEdge = true;
 		EdgeEdgeIntersectionDetails = InDetails;
@@ -54,9 +37,7 @@ namespace PCGExGraph
 		if (InOverride) { CustomEdgeEdgeBlendingDetails = *InOverride; }
 	}
 
-	bool FUnionProcessor::StartExecution(
-		const TArray<TSharedRef<PCGExData::FFacade>>& InFacades,
-		const FPCGExGraphBuilderDetails& InBuilderDetails)
+	bool FUnionProcessor::StartExecution(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const FPCGExGraphBuilderDetails& InBuilderDetails)
 	{
 		BuilderDetails = InBuilderDetails;
 
@@ -82,46 +63,44 @@ namespace PCGExGraph
 
 		if (!TypedBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
 
-		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
+		PCGEX_ASYNC_GROUP_CHKD(Context->GetTaskManager(), ProcessNodesGroup)
 
-		ProcessNodesGroup->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
+		ProcessNodesGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->UnionBlender.Reset();
+			This->OnNodesProcessingComplete();
+		};
+
+		ProcessNodesGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+
+			const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = This->UnionGraph->NodesUnion;
+			const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->Context->MainPoints;
+			const TSharedPtr<PCGExDataBlending::IUnionBlender> Blender = This->UnionBlender;
+
+			TArray<PCGExData::FWeightedPoint> WeightedPoints;
+			TArray<PCGEx::FOpStats> Trackers;
+			Blender->InitTrackers(Trackers);
+
+			UPCGBasePointData* OutPoints = This->UnionDataFacade->GetOut();
+			TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
+
+			PCGEX_SCOPE_LOOP(Index)
 			{
-				PCGEX_ASYNC_THIS
-				This->UnionBlender.Reset();
-				This->OnNodesProcessingComplete();
-			};
+				TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[Index];
 
-		ProcessNodesGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
+				//const PCGMetadataEntryKey Key = OutPoints[i].MetadataEntry;
+				//OutPoints[Index] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
 
-				const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = This->UnionGraph->NodesUnion;
-				const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->Context->MainPoints;
-				const TSharedPtr<PCGExDataBlending::IUnionBlender> Blender = This->UnionBlender;
+				//FPCGPoint& Point = OutPoints[Index];
+				//Point.MetadataEntry = Key; // Restore key
 
-				TArray<PCGExData::FWeightedPoint> WeightedPoints;
-				TArray<PCGEx::FOpStats> Trackers;
-				Blender->InitTrackers(Trackers);
-
-				UPCGBasePointData* OutPoints = This->UnionDataFacade->GetOut();
-				TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
-
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[Index];
-
-					//const PCGMetadataEntryKey Key = OutPoints[i].MetadataEntry;
-					//OutPoints[Index] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
-
-					//FPCGPoint& Point = OutPoints[Index];
-					//Point.MetadataEntry = Key; // Restore key
-
-					OutTransforms[Index].SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
-					Blender->MergeSingle(Index, WeightedPoints, Trackers);
-				}
-			};
+				OutTransforms[Index].SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
+				Blender->MergeSingle(Index, WeightedPoints, Trackers);
+			}
+		};
 
 		ProcessNodesGroup->StartSubLoops(NumUnionNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2, false);
 
@@ -153,30 +132,27 @@ namespace PCGExGraph
 		UnionGraph->GetUniqueEdges(UniqueEdges);
 		GraphBuilder->Graph->InsertEdges(UniqueEdges);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
-		WriteMetadataTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->UnionDataFacade->Flush();
-				This->InternalStartExecution();
-			};
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), WriteMetadataTask);
+		WriteMetadataTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->UnionDataFacade->Flush();
+			This->InternalStartExecution();
+		};
 
 		UnionDataFacade->WriteBuffersAsCallbacks(WriteMetadataTask);
 
-		WriteMetadataTask->AddSimpleCallback(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->UnionGraph->WriteNodeMetadata(This->GraphBuilder->Graph);
-			});
+		WriteMetadataTask->AddSimpleCallback([PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->UnionGraph->WriteNodeMetadata(This->GraphBuilder->Graph);
+		});
 
-		WriteMetadataTask->AddSimpleCallback(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->UnionGraph->WriteEdgeMetadata(This->GraphBuilder->Graph);
-			});
+		WriteMetadataTask->AddSimpleCallback([PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->UnionGraph->WriteEdgeMetadata(This->GraphBuilder->Graph);
+		});
 
 		WriteMetadataTask->StartSimpleCallbacks();
 	}
@@ -236,43 +212,39 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::FindPointEdgeIntersections);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindPointEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), FindPointEdgeGroup)
 
-		PointEdgeIntersections = MakeShared<FPointEdgeIntersections>(
-			GraphBuilder->Graph, UnionDataFacade->Source, &PointEdgeIntersectionDetails);
+		PointEdgeIntersections = MakeShared<FPointEdgeIntersections>(GraphBuilder->Graph, UnionDataFacade->Source, &PointEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
 		// Init point octree
 		(void)PointEdgeIntersections->PointIO->GetOutIn()->GetPointOctree();
 
-		FindPointEdgeGroup->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnPointEdgeIntersectionsFound();
-			};
+		FindPointEdgeGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnPointEdgeIntersectionsFound();
+		};
 
-		FindPointEdgeGroup->OnPrepareSubLoopsCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
-			{
-				PCGEX_ASYNC_THIS
-				This->PointEdgeIntersections->Init(Loops);
-			};
+		FindPointEdgeGroup->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+		{
+			PCGEX_ASYNC_THIS
+			This->PointEdgeIntersections->Init(Loops);
+		};
 
-		FindPointEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FindPointEdgeIntersections::ScopeLoop)
+		FindPointEdgeGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FindPointEdgeIntersections::ScopeLoop)
 
-				PCGEX_ASYNC_THIS
-				TSharedPtr<FPointEdgeProxy> EdgeProxy = MakeShared<FPointEdgeProxy>();
-				TSharedPtr<FPointEdgeIntersections> PEI = This->PointEdgeIntersections;
+			PCGEX_ASYNC_THIS
+			TSharedPtr<FPointEdgeProxy> EdgeProxy = MakeShared<FPointEdgeProxy>();
+			TSharedPtr<FPointEdgeIntersections> PEI = This->PointEdgeIntersections;
 
-				TArray<TSharedPtr<FPointEdgeProxy>>& ScopedEdges = PEI->ScopedEdges->Get_Ref(Scope);
+			TArray<TSharedPtr<FPointEdgeProxy>>& ScopedEdges = PEI->ScopedEdges->Get_Ref(Scope);
 
-				int32& PENum_Ref = This->PENum;
-				TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
+			int32& PENum_Ref = This->PENum;
+			TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
 
 #define PCGEX_FOUND_PE \
 				ScopedEdges.Add(EdgeProxy); \
@@ -281,26 +253,26 @@ namespace PCGExGraph
 				EdgeProxy->CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; }); \
 				EdgeProxy = MakeShared<FPointEdgeProxy>();
 
-				if (PEI->Details->bEnableSelfIntersection)
+			if (PEI->Details->bEnableSelfIntersection)
+			{
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					PCGEX_SCOPE_LOOP(Index)
-					{
-						if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
-						FindCollinearNodes(PEI, EdgeProxy);
-						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
-					}
+					if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
+					FindCollinearNodes(PEI, EdgeProxy);
+					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
 				}
-				else
+			}
+			else
+			{
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					PCGEX_SCOPE_LOOP(Index)
-					{
-						if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
-						FindCollinearNodes_NoSelfIntersections(PEI, EdgeProxy);
-						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
-					}
+					if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
+					FindCollinearNodes_NoSelfIntersections(PEI, EdgeProxy);
+					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
 				}
+			}
 #undef PCGEX_FOUND_PE
-			};
+		};
 
 		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
@@ -310,14 +282,13 @@ namespace PCGExGraph
 	{
 		if (PointEdgeIntersections) { PointEdgeIntersections->InsertEdges(); }
 
-		if (!PointEdgeIntersections
-			|| PointEdgeIntersections->Edges.IsEmpty())
+		if (!PointEdgeIntersections || PointEdgeIntersections->Edges.IsEmpty())
 		{
 			OnPointEdgeIntersectionsComplete();
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), BlendPointEdgeGroup)
 
 		PointEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
@@ -333,26 +304,24 @@ namespace PCGExGraph
 			return;
 		}
 
-		BlendPointEdgeGroup->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
+		BlendPointEdgeGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnPointEdgeIntersectionsComplete();
+		};
+
+		BlendPointEdgeGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+
+			if (!This->MetadataBlender) { return; }
+			const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
+
+			PCGEX_SCOPE_LOOP(Index)
 			{
-				PCGEX_ASYNC_THIS
-				This->OnPointEdgeIntersectionsComplete();
-			};
-
-		BlendPointEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-
-				if (!This->MetadataBlender) { return; }
-				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
-
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					// TODO
-				}
-			};
+				// TODO
+			}
+		};
 
 		BlendPointEdgeGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
@@ -360,7 +329,7 @@ namespace PCGExGraph
 	void FUnionProcessor::OnPointEdgeIntersectionsComplete()
 	{
 		PointEdgeIntersections.Reset();
-		if (MetadataBlender) { UnionDataFacade->WriteFastest(Context->GetAsyncManager()); }
+		if (MetadataBlender) { UnionDataFacade->WriteFastest(Context->GetTaskManager()); }
 	}
 
 #pragma endregion
@@ -371,10 +340,9 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::FindEdgeEdgeIntersections);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), FindEdgeEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), FindEdgeEdgeGroup)
 
-		EdgeEdgeIntersections = MakeShared<FEdgeEdgeIntersections>(
-			GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &EdgeEdgeIntersectionDetails);
+		EdgeEdgeIntersections = MakeShared<FEdgeEdgeIntersections>(GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &EdgeEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
 
@@ -384,20 +352,18 @@ namespace PCGExGraph
 			This->OnEdgeEdgeIntersectionsFound();
 		};
 
-		FindEdgeEdgeGroup->OnPrepareSubLoopsCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
-			{
-				PCGEX_ASYNC_THIS
-				This->EdgeEdgeIntersections->Init(Loops);
-			};
+		FindEdgeEdgeGroup->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+		{
+			PCGEX_ASYNC_THIS
+			This->EdgeEdgeIntersections->Init(Loops);
+		};
 
-		FindEdgeEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
+		FindEdgeEdgeGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
 
-				int32& EENum_Ref = This->EENum;
-				TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
+			int32& EENum_Ref = This->EENum;
+			TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
 
 #define PCGEX_FOUND_EE \
 				ScopedEdges.Add(EdgeProxy); \
@@ -406,32 +372,32 @@ namespace PCGExGraph
 				EdgeProxy = MakeShared<FEdgeEdgeProxy>();
 
 
-				const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
-				TArray<TSharedPtr<FEdgeEdgeProxy>>& ScopedEdges = EEI->ScopedEdges->Get_Ref(Scope);
+			const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
+			TArray<TSharedPtr<FEdgeEdgeProxy>>& ScopedEdges = EEI->ScopedEdges->Get_Ref(Scope);
 
-				TSharedPtr<FEdgeEdgeProxy> EdgeProxy = MakeShared<FEdgeEdgeProxy>();
+			TSharedPtr<FEdgeEdgeProxy> EdgeProxy = MakeShared<FEdgeEdgeProxy>();
 
-				if (EEI->Details->bEnableSelfIntersection)
+			if (EEI->Details->bEnableSelfIntersection)
+			{
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					PCGEX_SCOPE_LOOP(Index)
-					{
-						if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
-						FindOverlappingEdges(EEI, EdgeProxy);
-						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
-					}
+					if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
+					FindOverlappingEdges(EEI, EdgeProxy);
+					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
 				}
-				else
+			}
+			else
+			{
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					PCGEX_SCOPE_LOOP(Index)
-					{
-						if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
-						FindOverlappingEdges_NoSelfIntersections(EEI, EdgeProxy);
-						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
-					}
+					if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
+					FindOverlappingEdges_NoSelfIntersections(EEI, EdgeProxy);
+					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
 				}
+			}
 
 #undef PCGEX_FOUND_EE
-			};
+		};
 
 
 		FindEdgeEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
@@ -441,14 +407,13 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::OnEdgeEdgeIntersectionsFound);
 
-		if (!EdgeEdgeIntersections
-			|| !EdgeEdgeIntersections->InsertNodes(EENum / 2))
+		if (!EdgeEdgeIntersections || !EdgeEdgeIntersections->InsertNodes(EENum / 2))
 		{
 			OnEdgeEdgeIntersectionsComplete();
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), BlendEdgeEdgeGroup)
 
 		EdgeEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
@@ -475,19 +440,18 @@ namespace PCGExGraph
 			PCGEX_ASYNC_THIS
 		};
 
-		BlendEdgeEdgeGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
+		BlendEdgeEdgeGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
 
-				if (!This->MetadataBlender) { return; }
-				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
+			if (!This->MetadataBlender) { return; }
+			const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				TArray<PCGEx::FOpStats> Trackers;
-				Blender->InitTrackers(Trackers);
+			TArray<PCGEx::FOpStats> Trackers;
+			Blender->InitTrackers(Trackers);
 
-				PCGEX_SCOPE_LOOP(Index) { This->EdgeEdgeIntersections->BlendIntersection(Index, Blender, Trackers); }
-			};
+			PCGEX_SCOPE_LOOP(Index) { This->EdgeEdgeIntersections->BlendIntersection(Index, Blender, Trackers); }
+		};
 
 		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->UniqueCrossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
@@ -495,7 +459,7 @@ namespace PCGExGraph
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete()
 	{
 		if (EdgeEdgeIntersections) { EdgeEdgeIntersections.Reset(); }
-		UnionDataFacade->WriteFastest(Context->GetAsyncManager());
+		UnionDataFacade->WriteFastest(Context->GetTaskManager());
 	}
 
 #pragma endregion
@@ -507,16 +471,15 @@ namespace PCGExGraph
 		bCompilingFinalGraph = true;
 
 		Context->SetAsyncState(State_WritingClusters);
-		GraphBuilder->OnCompilationEndCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
-			{
-				PCGEX_ASYNC_THIS
-				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit); }
-				else { This->GraphBuilder->StageEdgesOutputs(); }
-			};
+		GraphBuilder->OnCompilationEndCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
+		{
+			PCGEX_ASYNC_THIS
+			if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit); }
+			else { This->GraphBuilder->StageEdgesOutputs(); }
+		};
 
 		// Make sure we provide up-to-date transform range to sort over
 		GraphBuilder->NodePointsTransforms = GraphBuilder->NodeDataFacade->GetOut()->GetConstTransformValueRange();
-		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true, &GraphMetadataDetails);
+		GraphBuilder->CompileAsync(Context->GetTaskManager(), true, &GraphMetadataDetails);
 	}
 }

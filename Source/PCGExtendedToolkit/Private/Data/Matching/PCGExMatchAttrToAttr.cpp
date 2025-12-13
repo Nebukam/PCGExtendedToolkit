@@ -29,8 +29,7 @@ bool FPCGExMatchAttrToAttr::PrepareForTargets(FPCGExContext* InContext, const TS
 
 	switch (Config.Check)
 	{
-	case EPCGExComparisonDataType::Numeric:
-		NumGetters.Reserve(TargetsRef.Num());
+	case EPCGExComparisonDataType::Numeric: NumGetters.Reserve(TargetsRef.Num());
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
 			TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
@@ -44,8 +43,7 @@ bool FPCGExMatchAttrToAttr::PrepareForTargets(FPCGExContext* InContext, const TS
 			NumGetters.Add(Getter);
 		}
 		break;
-	case EPCGExComparisonDataType::String:
-		StrGetters.Reserve(TargetsRef.Num());
+	case EPCGExComparisonDataType::String: StrGetters.Reserve(TargetsRef.Num());
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
 			TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
@@ -73,18 +71,14 @@ bool FPCGExMatchAttrToAttr::Test(const PCGExData::FConstPoint& InTargetElement, 
 
 		if (!PCGExDataHelpers::TryReadDataValue<double>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return false; }
 
-		return Config.bSwapOperands ?
-			       PCGExCompare::Compare(Config.NumericComparison, TargetValue, CandidateValue, Config.Tolerance) :
-			       PCGExCompare::Compare(Config.NumericComparison, CandidateValue, TargetValue, Config.Tolerance);
+		return Config.bSwapOperands ? PCGExCompare::Compare(Config.NumericComparison, TargetValue, CandidateValue, Config.Tolerance) : PCGExCompare::Compare(Config.NumericComparison, CandidateValue, TargetValue, Config.Tolerance);
 	}
 	const FString TargetValue = StrGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
 	FString CandidateValue = TEXT("");
 
 	if (!PCGExDataHelpers::TryReadDataValue<FString>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return false; }
 
-	return Config.bSwapOperands ?
-		       PCGExCompare::Compare(Config.StringComparison, TargetValue, CandidateValue) :
-		       PCGExCompare::Compare(Config.StringComparison, CandidateValue, TargetValue);
+	return Config.bSwapOperands ? PCGExCompare::Compare(Config.StringComparison, TargetValue, CandidateValue) : PCGExCompare::Compare(Config.StringComparison, CandidateValue, TargetValue);
 }
 
 bool UPCGExMatchAttrToAttrFactory::WantsPoints()
@@ -99,13 +93,9 @@ FString UPCGExCreateMatchAttrToAttrSettings::GetDisplayName() const
 {
 	if (Config.Check == EPCGExComparisonDataType::Numeric)
 	{
-		return Config.bSwapOperands ?
-			       Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.NumericComparison) + Config.CandidateAttributeName.ToString() :
-			       Config.CandidateAttributeName.ToString() + PCGExCompare::ToString(Config.NumericComparison) + Config.TargetAttributeName.ToString();
+		return Config.bSwapOperands ? Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.NumericComparison) + Config.CandidateAttributeName.ToString() : Config.CandidateAttributeName.ToString() + PCGExCompare::ToString(Config.NumericComparison) + Config.TargetAttributeName.ToString();
 	}
-	return Config.bSwapOperands ?
-		       Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.CandidateAttributeName.ToString() :
-		       Config.CandidateAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.TargetAttributeName.ToString();
+	return Config.bSwapOperands ? Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.CandidateAttributeName.ToString() : Config.CandidateAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.TargetAttributeName.ToString();
 }
 #endif
 

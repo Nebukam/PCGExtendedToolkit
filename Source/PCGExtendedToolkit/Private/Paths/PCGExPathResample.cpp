@@ -58,19 +58,17 @@ bool FPCGExResamplePathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}
@@ -85,14 +83,14 @@ bool FPCGExResamplePathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 namespace PCGExResamplePath
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExResamplePath::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = false; //Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
@@ -289,7 +287,7 @@ namespace PCGExResamplePath
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

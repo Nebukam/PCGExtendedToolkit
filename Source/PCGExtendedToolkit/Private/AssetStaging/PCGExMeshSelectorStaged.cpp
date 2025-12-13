@@ -20,21 +20,11 @@
 namespace PCGExMeshSelectorStaged
 {
 	// Returns variation based on mesh, material overrides and reverse culling
-	FPCGMeshInstanceList& GetInstanceList(
-		TArray<FPCGMeshInstanceList>& InstanceLists,
-		const FPCGSoftISMComponentDescriptor& TemplateDescriptor,
-		TSoftObjectPtr<UStaticMesh> Mesh,
-		const TArray<TSoftObjectPtr<UMaterialInterface>>& MaterialOverrides,
-		bool bReverseCulling,
-		const UPCGBasePointData* InPointData,
-		const int AttributePartitionIndex = INDEX_NONE)
+	FPCGMeshInstanceList& GetInstanceList(TArray<FPCGMeshInstanceList>& InstanceLists, const FPCGSoftISMComponentDescriptor& TemplateDescriptor, TSoftObjectPtr<UStaticMesh> Mesh, const TArray<TSoftObjectPtr<UMaterialInterface>>& MaterialOverrides, bool bReverseCulling, const UPCGBasePointData* InPointData, const int AttributePartitionIndex = INDEX_NONE)
 	{
 		for (FPCGMeshInstanceList& InstanceList : InstanceLists)
 		{
-			if (InstanceList.Descriptor.StaticMesh == Mesh &&
-				InstanceList.Descriptor.bReverseCulling == bReverseCulling &&
-				InstanceList.Descriptor.OverrideMaterials == MaterialOverrides &&
-				InstanceList.AttributePartitionIndex == AttributePartitionIndex)
+			if (InstanceList.Descriptor.StaticMesh == Mesh && InstanceList.Descriptor.bReverseCulling == bReverseCulling && InstanceList.Descriptor.OverrideMaterials == MaterialOverrides && InstanceList.AttributePartitionIndex == AttributePartitionIndex)
 			{
 				return InstanceList;
 			}
@@ -92,8 +82,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 	}
 
 	// 1- Build collection map from override attribute set		
-	TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap =
-		MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
+	TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap = MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
 
 	CollectionMap->UnpackPin(&Context, PCGPinConstants::DefaultParamsLabel);
 

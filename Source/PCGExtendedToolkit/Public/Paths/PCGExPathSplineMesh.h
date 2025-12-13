@@ -18,7 +18,7 @@
 
 namespace PCGExMT
 {
-	class FScopeLoopOnMainThread;
+	class FTimeSlicedMainThreadLoop;
 
 	template <typename T>
 	class TScopedSet;
@@ -217,19 +217,19 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 
-		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
+		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 
 		AActor* TargetActor = nullptr;
 		EObjectFlags ObjectFlags = RF_NoFlags;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;

@@ -85,7 +85,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) { return PCGExFactories::EPreparationResult::Success; }
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) { return PCGExFactories::EPreparationResult::Success; }
 
 	virtual void AddDataDependency(const UPCGData* InData);
 	virtual void BeginDestroy() override;
@@ -117,7 +117,7 @@ public:
 #if WITH_EDITOR
 	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.", FName(GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override{ return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
 #endif
 
 	virtual int32 GetDefaultPriority() const { return 0; }

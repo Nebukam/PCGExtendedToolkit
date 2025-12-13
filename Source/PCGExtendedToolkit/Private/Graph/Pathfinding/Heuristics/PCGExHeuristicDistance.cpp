@@ -13,21 +13,12 @@ void FPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExClus
 	BoundsSize = InCluster->Bounds.GetSize().Length();
 }
 
-double FPCGExHeuristicDistance::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicDistance::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	return GetScoreInternal(Cluster->GetDist(From, Goal) / BoundsSize);
 }
 
-double FPCGExHeuristicDistance::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal,
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicDistance::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return GetScoreInternal((*Cluster->EdgeLengths)[Edge.Index]);
 }
@@ -51,8 +42,6 @@ UPCGExFactoryData* UPCGExHeuristicsShortestDistanceProviderSettings::CreateFacto
 #if WITH_EDITOR
 FString UPCGExHeuristicsShortestDistanceProviderSettings::GetDisplayName() const
 {
-	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX"))
-		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
+	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX")) + TEXT(" @ ") + FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

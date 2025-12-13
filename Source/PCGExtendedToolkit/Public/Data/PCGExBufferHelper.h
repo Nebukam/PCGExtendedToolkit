@@ -26,8 +26,8 @@ namespace PCGExData
 		mutable FRWLock BufferLock;
 
 	public:
-		explicit TBufferHelper(const TSharedRef<FFacade>& InDataFacade):
-			DataFacade(InDataFacade)
+		explicit TBufferHelper(const TSharedRef<FFacade>& InDataFacade)
+			: DataFacade(InDataFacade)
 		{
 		}
 

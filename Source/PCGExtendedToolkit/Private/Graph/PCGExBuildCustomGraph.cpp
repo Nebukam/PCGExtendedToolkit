@@ -145,20 +145,17 @@ namespace PCGExBuildCustomGraph
 	public:
 		PCGEX_ASYNC_TASK_NAME(FBuildGraph)
 
-		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		            UPCGExCustomGraphSettings* InGraphSettings) :
-			FTask(),
-			PointIO(InPointIO),
-			GraphSettings(InGraphSettings)
+		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO, UPCGExCustomGraphSettings* InGraphSettings)
+			: FTask(), PointIO(InPointIO), GraphSettings(InGraphSettings)
 		{
 		}
 
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		UPCGExCustomGraphSettings* GraphSettings = nullptr;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			FPCGExBuildCustomGraphContext* Context = AsyncManager->GetContext<FPCGExBuildCustomGraphContext>();
+			FPCGExBuildCustomGraphContext* Context = TaskManager->GetContext<FPCGExBuildCustomGraphContext>();
 			PCGEX_SETTINGS(BuildCustomGraph)
 
 			UPCGExCustomGraphBuilder* Builder = Context->Builder;
@@ -249,38 +246,36 @@ namespace PCGExBuildCustomGraph
 				return;
 			}
 
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitNodesGroup)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, InitNodesGroup)
 
 			TWeakPtr<PCGExData::FPointIO> WeakIO = PointIO;
 			TWeakPtr<PCGExGraph::FGraphBuilder> WeakGraphBuilder = GraphBuilder;
 
-			InitNodesGroup->OnCompleteCallback =
-				[WeakGraphBuilder, AsyncManager]()
-				{
-					const TSharedPtr<PCGExGraph::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
-					if (!GBuilder) { return; }
+			InitNodesGroup->OnCompleteCallback = [WeakGraphBuilder, TaskManager]()
+			{
+				const TSharedPtr<PCGExGraph::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
+				if (!GBuilder) { return; }
 
-					GBuilder->CompileAsync(AsyncManager, true);
-				};
+				GBuilder->CompileAsync(TaskManager, true);
+			};
 
 			UPCGExCustomGraphSettings* CustomGraphSettings = GraphSettings;
-			InitNodesGroup->OnSubLoopStartCallback =
-				[WeakIO, CustomGraphSettings](const PCGExMT::FScope& Scope)
+			InitNodesGroup->OnSubLoopStartCallback = [WeakIO, CustomGraphSettings](const PCGExMT::FScope& Scope)
+			{
+				const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
+				if (!IO) { return; }
+
+				TArray<FPCGPoint> MutablePoints;
+				GetPoints(IO->GetOutScope(Scope), MutablePoints);
+
+				PCGEX_SCOPE_LOOP(i)
 				{
-					const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
-					if (!IO) { return; }
+					FPCGPoint& Point = MutablePoints[i];
+					CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
+				}
 
-					TArray<FPCGPoint> MutablePoints;
-					GetPoints(IO->GetOutScope(Scope), MutablePoints);
-
-					PCGEX_SCOPE_LOOP(i)
-					{
-						FPCGPoint& Point = MutablePoints[i];
-						CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
-					}
-
-					IO->SetPoints(Scope.Start, MutablePoints);
-				};
+				IO->SetPoints(Scope.Start, MutablePoints);
+			};
 
 			PointIO->GetOutKeys(true); // Generate out keys		
 			InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
@@ -406,7 +401,7 @@ bool FPCGExBuildCustomGraphElement::AdvanceWork(FPCGExContext* InContext, const 
 			NodeIO->IOIndex = GraphSettings->SettingsIndex;
 
 			{
-				const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+				const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 				PCGEX_LAUNCH(PCGExBuildCustomGraph::FBuildGraph, NodeIO, GraphSettings)
 			}
 		}

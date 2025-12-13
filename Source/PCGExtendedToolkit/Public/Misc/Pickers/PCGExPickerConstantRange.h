@@ -15,8 +15,8 @@ struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExPickerConstantRangeConfig() :
-		FPCGExPickerConfigBase()
+	FPCGExPickerConstantRangeConfig()
+		: FPCGExPickerConfigBase()
 	{
 	}
 
@@ -63,9 +63,7 @@ class UPCGExPickerConstantRangeSettings : public UPCGExPickerFactoryProviderSett
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PickerConstantRange, "Picker : Range", "A Picker that selects a range of values.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(PickerConstantRange, "Picker : Range", "A Picker that selects a range of values.", FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

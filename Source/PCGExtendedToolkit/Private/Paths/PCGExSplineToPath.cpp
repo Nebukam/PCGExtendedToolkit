@@ -26,19 +26,17 @@ namespace PCGExSplineToPath
 	class FWriteTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FWriteTask(const int32 InTaskIndex,
-		           const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
-			: FPCGExIndexedTask(InTaskIndex),
-			  PointDataFacade(InPointDataFacade)
+		FWriteTask(const int32 InTaskIndex, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
+			: FPCGExIndexedTask(InTaskIndex), PointDataFacade(InPointDataFacade)
 
 		{
 		}
 
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			FPCGExSplineToPathContext* Context = AsyncManager->GetContext<FPCGExSplineToPathContext>();
+			FPCGExSplineToPathContext* Context = TaskManager->GetContext<FPCGExSplineToPathContext>();
 			PCGEX_SETTINGS_C(Context, SplineToPath)
 
 			const UPCGSplineData* SplineData = Context->Targets[TaskIndex];
@@ -51,9 +49,7 @@ namespace PCGExSplineToPath
 
 			UPCGBasePointData* MutablePoints = PointDataFacade->Source->GetOut();
 			const int32 LastIndex = Spline.bClosedLoop ? NumSegments - 1 : NumSegments;
-			PCGEx::SetNumPointsAllocated(
-				MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1,
-				EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed);
+			PCGEx::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1, EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed);
 
 			PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL)
 
@@ -98,10 +94,8 @@ namespace PCGExSplineToPath
 				case CIM_Constant: return 2;
 				case CIM_CurveUser: return 4;
 				case CIM_CurveAutoClamped: return 3;
-				default:
-				case CIM_Unknown:
-				case CIM_CurveBreak:
-					return -1;
+				default: case CIM_Unknown:
+				case CIM_CurveBreak: return -1;
 				}
 			};
 
@@ -150,41 +144,40 @@ namespace PCGExSplineToPath
 
 				for (PCGEx::FAttributeIdentity Identity : SourceAttributes)
 				{
-					PCGEx::ExecuteWithRightType(
-						Identity.UnderlyingType, [&](auto DummyValue)
+					PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						const FPCGMetadataAttribute<T>* SourceAttr = SplineData->Metadata->GetConstTypedAttribute<T>(Identity.Identifier);
+
+						if (!SourceAttr) { return; }
+
+						TSharedPtr<PCGExData::TBuffer<T>> OutBuffer = PointDataFacade->GetWritable<T>(SourceAttr, PCGExData::EBufferInit::New);
+
+						if (Identity.InDataDomain())
 						{
-							using T = decltype(DummyValue);
-							const FPCGMetadataAttribute<T>* SourceAttr = SplineData->Metadata->GetConstTypedAttribute<T>(Identity.Identifier);
+							OutBuffer->SetValue(0, PCGExDataHelpers::ReadDataValue(SourceAttr));
+							return;
+						}
 
-							if (!SourceAttr) { return; }
+						TSharedPtr<PCGExData::TArrayBuffer<T>> OutArrayBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer);
+						TArrayView<T> InRange = MakeArrayView(OutArrayBuffer->GetOutValues()->GetData(), OutArrayBuffer->GetOutValues()->Num());
 
-							TSharedPtr<PCGExData::TBuffer<T>> OutBuffer = PointDataFacade->GetWritable<T>(SourceAttr, PCGExData::EBufferInit::New);
-
-							if (Identity.InDataDomain())
-							{
-								OutBuffer->SetValue(0, PCGExDataHelpers::ReadDataValue(SourceAttr));
-								return;
-							}
-
-							TSharedPtr<PCGExData::TArrayBuffer<T>> OutArrayBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer);
-							TArrayView<T> InRange = MakeArrayView(OutArrayBuffer->GetOutValues()->GetData(), OutArrayBuffer->GetOutValues()->Num());
-
-							if (Keys)
-							{
-								TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(SourceAttr, SplineData->Metadata);
-								InAccessor->GetRange(InRange, 0, *Keys.Get());
-							}
-							else
-							{
-								//PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Attribute {0} could not be copied."), FText::FromName(Identity.Identifier.Name)));
-							}
-						});
+						if (Keys)
+						{
+							TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(SourceAttr, SplineData->Metadata);
+							InAccessor->GetRange(InRange, 0, *Keys.Get());
+						}
+						else
+						{
+							//PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Attribute {0} could not be copied."), FText::FromName(Identity.Identifier.Name)));
+						}
+					});
 				}
 			}
 
 			PCGEx::TagsToData(PointDataFacade->Source, Settings->TagsToData);
 
-			PointDataFacade->WriteFastest(AsyncManager);
+			PointDataFacade->WriteFastest(TaskManager);
 		}
 	};
 }
@@ -232,20 +225,16 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 
 			switch (Settings->SampleInputs)
 			{
-			default:
-			case EPCGExSplineSamplingIncludeMode::All:
-				Context->Targets.Add(SplineData);
+			default: case EPCGExSplineSamplingIncludeMode::All: Context->Targets.Add(SplineData);
 				AddTags(TaggedData.Tags);
 				break;
-			case EPCGExSplineSamplingIncludeMode::ClosedLoopOnly:
-				if (SplineData->SplineStruct.bClosedLoop)
+			case EPCGExSplineSamplingIncludeMode::ClosedLoopOnly: if (SplineData->SplineStruct.bClosedLoop)
 				{
 					Context->Targets.Add(SplineData);
 					AddTags(TaggedData.Tags);
 				}
 				break;
-			case EPCGExSplineSamplingIncludeMode::OpenSplineOnly:
-				if (!SplineData->SplineStruct.bClosedLoop)
+			case EPCGExSplineSamplingIncludeMode::OpenSplineOnly: if (!SplineData->SplineStruct.bClosedLoop)
 				{
 					Context->Targets.Add(SplineData);
 					AddTags(TaggedData.Tags);
@@ -280,7 +269,7 @@ bool FPCGExSplineToPathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		for (int i = 0; i < Context->NumTargets; i++)
 		{
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EIOInit::New);

@@ -51,20 +51,18 @@ bool FPCGExBreakClustersToPathsElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			if (Settings->Winding != EPCGExWindingMutation::Unchanged) { NewBatch->SetProjectionDetails(Settings->ProjectionDetails); }
+			if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 			{
-				if (Settings->Winding != EPCGExWindingMutation::Unchanged) { NewBatch->SetProjectionDetails(Settings->ProjectionDetails); }
-				if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
-				{
-					NewBatch->VtxFilterFactories = &Context->FilterFactories;
-				}
-				else
-				{
-					NewBatch->bSkipCompletion = true;
-				}
-			}))
+				NewBatch->VtxFilterFactories = &Context->FilterFactories;
+			}
+			else
+			{
+				NewBatch->bSkipCompletion = true;
+			}
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -78,11 +76,11 @@ bool FPCGExBreakClustersToPathsElement::AdvanceWork(FPCGExContext* InContext, co
 
 namespace PCGExBreakClustersToPaths
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBreakClustersToPaths::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade)) { return false; }
 
@@ -90,23 +88,8 @@ namespace PCGExBreakClustersToPaths
 		{
 			if (VtxFiltersManager)
 			{
-				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterBreakpoints)
-
-				FilterBreakpoints->OnCompleteCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE]()
-					{
-						PCGEX_ASYNC_THIS
-						This->BuildChains();
-					};
-
-				FilterBreakpoints->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-					{
-						PCGEX_ASYNC_THIS
-						This->FilterVtxScope(Scope);
-					};
-
-				FilterBreakpoints->StartSubLoops(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize());
+				FilterVtxScope(PCGExMT::FScope(0, NumNodes), true);
+				return BuildChains();
 			}
 			else
 			{
@@ -134,11 +117,11 @@ namespace PCGExBreakClustersToPaths
 		ChainBuilder->Breakpoints = VtxFilterCache;
 		if (Settings->LeavesHandling == EPCGExBreakClusterLeavesHandling::Only)
 		{
-			bIsProcessorValid = ChainBuilder->CompileLeavesOnly(AsyncManager);
+			bIsProcessorValid = ChainBuilder->CompileLeavesOnly(TaskManager);
 		}
 		else
 		{
-			bIsProcessorValid = ChainBuilder->Compile(AsyncManager);
+			bIsProcessorValid = ChainBuilder->Compile(TaskManager);
 		}
 
 		return bIsProcessorValid;
@@ -223,6 +206,7 @@ namespace PCGExBreakClustersToPaths
 
 			PCGExPaths::SetClosedLoop(PathIO->GetOut(), Chain->bIsClosedLoop);
 
+			PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 100000 + Cluster->GetNodePointIndex(FMath::Min(Chain->Links.Last().Node, Chain->Links[0].Node));
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 
 #undef PCGX_IGNORE_CHAIN

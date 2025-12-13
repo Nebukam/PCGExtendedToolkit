@@ -9,6 +9,12 @@
 
 #include "PCGContext.h"
 #include "PCGExCommon.h"
+#include "PCGExMT.h"
+
+namespace PCGExMT
+{
+	class FAsyncToken;
+}
 
 class UPCGExInstancedFactory;
 class UPCGComponent;
@@ -34,29 +40,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 	friend class IPCGExElement;
 
 protected:
-	
-	enum class EExecutionPolicy : int8
-	{
-		Normal,
-		AsyncEx,
-		AsyncTask
-	};
-	
 	mutable FRWLock AsyncLock;
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
 	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
+	TSharedPtr<FStreamableHandle> AssetsHandle;
 	const IPCGExElement* ElementHandle = nullptr;
 
 public:
 	TWeakPtr<PCGEx::FWorkHandle> GetWorkHandle() { return WorkHandle; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
-	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
-	EExecutionPolicy ExecutionPolicy = EExecutionPolicy::Normal;
 
 	// TODO : bool toggle for hoarder execution 
-	
+
 	bool bScopedAttributeGet = false;
 	bool bPropagateAbortedExecution = false;
 
@@ -83,7 +80,7 @@ public:
 
 #pragma region State
 
-	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
+	TSharedPtr<PCGExMT::FTaskManager> GetTaskManager();
 
 	void PauseContext();
 	void UnpauseContext();
@@ -91,29 +88,32 @@ public:
 	void SetState(const PCGExCommon::ContextState StateId);
 	void SetAsyncState(const PCGExCommon::ContextState WaitState);
 
-	virtual bool ShouldWaitForAsync();
+	virtual bool IsWaitingForTasks();
 	void ReadyForExecution();
 
 	bool IsState(const PCGExCommon::ContextState StateId) const { return CurrentState.load(std::memory_order_acquire) == StateId; }
 	bool IsInitialExecution() const { return IsState(PCGExCommon::State_InitialExecution); }
 	bool IsDone() const { return IsState(PCGExCommon::State_Done); }
 	bool IsWorkCompleted() const { return bWorkCompleted.load(std::memory_order_acquire); }
-	bool IsWorkCancelled() const { return bWorkCancelled.load(std::memory_order_acquire); }
+
+	bool IsWorkCancelled() const
+	{
+		return bWorkCancelled.load(std::memory_order_acquire) || (TaskManager && TaskManager->IsCancelled()) || !WorkHandle.IsValid();
+	}
+
 	void Done();
 
 	bool TryComplete(const bool bForce = false);
 
-	virtual void ResumeExecution();
-
 protected:
-	std::atomic<PCGExCommon::ContextState> CurrentState;
+	std::atomic<PCGExCommon::ContextState> CurrentState{0};
+	std::atomic<bool> bProcessingAsyncWorkEnd{false};
 	std::atomic<bool> bWorkCompleted{false};
 	std::atomic<bool> bWorkCancelled{false};
 
-	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+	TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 
-	bool bWaitingForAsyncCompletion = false;
-
+	void OnAsyncWorkEnd(const bool bWasCancelled);
 	virtual void OnComplete();
 
 #pragma endregion
@@ -121,23 +121,18 @@ protected:
 #pragma region Async resource management
 
 public:
-	void CancelAssetLoading();
-
 	TSet<FSoftObjectPath>& GetRequiredAssets();
 	bool HasAssetRequirements() const { return RequiredAssets && !RequiredAssets->IsEmpty(); }
 
 	virtual void RegisterAssetDependencies();
 	void AddAssetDependency(const FSoftObjectPath& Dependency);
-	void LoadAssets();
+	bool LoadAssets();
 
 protected:
-	bool bForceSynchronousAssetLoad = false;
-	bool bAssetLoadRequested = false;
-	bool bAssetLoadError = false;
 	TSharedPtr<TSet<FSoftObjectPath>> RequiredAssets;
 
 	/** Handle holder for any loaded resources */
-	TSharedPtr<FStreamableHandle> LoadHandle;
+	TSharedPtr<FStreamableHandle> AssetDependenciesHandle;
 
 #pragma endregion
 
@@ -166,15 +161,13 @@ public:
 	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false);
 
 	bool CanExecute() const;
-	virtual bool IsAsyncWorkComplete();
-
 	bool bQuietInvalidInputWarning = false;
 
 	bool bQuietMissingAttributeError = false;
 	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;
 
-	virtual bool CancelExecution(const FString& InReason);
+	virtual bool CancelExecution(const FString& InReason = FString());
 
 protected:
 	mutable FRWLock NotifyActorsLock;

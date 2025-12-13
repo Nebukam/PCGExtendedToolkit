@@ -13,6 +13,17 @@
 #define LOCTEXT_NAMESPACE "PCGExDiscardSameElement"
 #define PCGEX_NAMESPACE DiscardSame
 
+#if WITH_EDITOR
+void UPCGExDiscardSameSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 72, 0)
+	{
+		if (bTestAttributeHash_DEPRECATED) { TestAttributesHash = EPCGExDiscardAttributeHashMode::Single; }
+	}
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExDiscardSameSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -40,11 +51,9 @@ bool FPCGExDiscardSameElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any input to check."));
 		}
@@ -68,21 +77,38 @@ bool FPCGExDiscardSameElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 namespace PCGExDiscardSame
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::CompareHashers(const TArray<TSharedPtr<PCGEx::FAttributeHasher>>& InHashers)
+	{
+		if (Hashers.Num() != InHashers.Num()) { return false; }
+		for (int i = 0; i < Hashers.Num(); i++) { if (Hashers[i]->GetHash() != InHashers[i]->GetHash()) { return false; } }
+		return true;
+	}
+
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
 		// 1 - Build comparison points
 
-		if (Settings->bTestAttributeHash)
+		if (Settings->TestAttributesHash != EPCGExDiscardAttributeHashMode::None)
 		{
-			Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->AttributeHashConfig);
-			if (!Hasher->Init(Context, PointDataFacade)) { return false; }
-			if (Hasher->RequiresCompilation()) { Hasher->Compile(AsyncManager, nullptr); }
+			TArray<FPCGExAttributeHashConfig> AttribtueHashConfigs;
+			AttribtueHashConfigs.Reserve(Settings->AttributeHashConfigs.Num() + 1);
+			if (Settings->TestAttributesHash == EPCGExDiscardAttributeHashMode::Single || Settings->bIncludeSingleAttribute) { AttribtueHashConfigs.Add(Settings->AttributeHashConfig); }
+			if (Settings->TestAttributesHash == EPCGExDiscardAttributeHashMode::List) { AttribtueHashConfigs.Append(Settings->AttributeHashConfigs); }
+
+			Hashers.Reserve(AttribtueHashConfigs.Num());
+			for (const FPCGExAttributeHashConfig& HashConfig : AttribtueHashConfigs)
+			{
+				TSharedPtr<PCGEx::FAttributeHasher> Hasher = MakeShared<PCGEx::FAttributeHasher>(HashConfig);
+				if (!Hasher->Init(Context, PointDataFacade)) { continue; }
+				if (Hasher->RequiresCompilation()) { Hasher->Compile(TaskManager, nullptr); }
+				Hashers.Add(Hasher);
+			}
 		}
 
 		TSet<uint64> PositionHashes;
@@ -119,9 +145,7 @@ namespace PCGExDiscardSame
 		if (Settings->bTestBounds)
 		{
 			const FVector BoundsCWTolerance = FVector(1 / Settings->TestBoundsTolerance);
-			HashBounds = HashCombineFast(
-				PCGEx::GH3(Bounds.Min, BoundsCWTolerance),
-				PCGEx::GH3(Bounds.Max, BoundsCWTolerance));
+			HashBounds = HashCombineFast(PCGEx::GH3(Bounds.Min, BoundsCWTolerance), PCGEx::GH3(Bounds.Max, BoundsCWTolerance));
 		}
 		else
 		{
@@ -152,7 +176,7 @@ namespace PCGExDiscardSame
 				if (Settings->bTestBounds && P->HashBounds != HashBounds) { continue; }
 				if (Settings->bTestPositions && P->HashPositions != HashPositions) { continue; }
 				if (Settings->bTestPointCount && !FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) { continue; }
-				if (Settings->bTestAttributeHash && P->Hasher->GetHash() != Hasher->GetHash()) { continue; }
+				if (!P->CompareHashers(Hashers)) { continue; }
 
 				SameAs.Add(P);
 			}
@@ -164,10 +188,10 @@ namespace PCGExDiscardSame
 				const TSharedRef<FProcessor> P = Batch->GetProcessorRef<FProcessor>(Pi);
 				if (P == ThisPtr) { continue; }
 
-				if ((Settings->bTestBounds && P->HashBounds == HashBounds) ||
-					(Settings->bTestPositions && P->HashPositions == HashPositions) ||
-					(Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) ||
-					(Settings->bTestAttributeHash && P->Hasher->GetHash() != Hasher->GetHash()))
+				if ((Settings->bTestBounds && P->HashBounds == HashBounds) 
+					|| (Settings->bTestPositions && P->HashPositions == HashPositions)
+					|| (Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) 
+					|| (Settings->TestAttributesHash != EPCGExDiscardAttributeHashMode::None && P->CompareHashers(Hashers)))
 				{
 					SameAs.Add(P);
 				}

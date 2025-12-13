@@ -282,14 +282,14 @@ namespace PCGExPathSolidify
 		TSharedPtr<PCGExData::TBuffer<FVector>> NormalGetter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		EPCGExAxisOrder GetOrder(const int32 Index) const;
 		EPCGExMakeRotAxis GetConstruction(const EPCGExAxisOrder Order, const int32 Index) const;

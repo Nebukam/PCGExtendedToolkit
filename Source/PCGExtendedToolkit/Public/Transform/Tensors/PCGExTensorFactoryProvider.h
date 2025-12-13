@@ -55,7 +55,7 @@ public:
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	FPCGExTensorConfigBase BaseConfig;
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 
 protected:
 	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext);
@@ -74,7 +74,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Tensor, "Tensor Definition", "Creates a single tensor field definition.")
-	virtual FLinearColor GetNodeTitleColor() const override{ return GetDefault<UPCGExGlobalSettings>()->ColorTensor; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTensor; }
 #endif
 
 protected:

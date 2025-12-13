@@ -54,7 +54,7 @@ bool FPCGExGetGUIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSet
 			Facade->bSupportsScopedGet = true;
 
 			if (!FacadeRef->Source->GetIn()->GetConstDensityValueRange().IsValidIndex(TargetIndex)) { return Context->CancelExecution(TEXT("Selected index is invalid.")); }
-			if (!Config.Init(Context, FacadeRef)) { return Context->CancelExecution(TEXT("")); }
+			if (!Config.Init(Context, FacadeRef)) { return Context->CancelExecution(); }
 
 			PCGExMT::FScope FetchScope = PCGExMT::FScope(TargetIndex, 1);
 			Facade->Fetch(FetchScope);

@@ -16,8 +16,8 @@ struct FPCGExPickerAttributeSetRangesConfig : public FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExPickerAttributeSetRangesConfig() :
-		FPCGExPickerConfigBase()
+	FPCGExPickerAttributeSetRangesConfig()
+		: FPCGExPickerConfigBase()
 	{
 	}
 
@@ -36,9 +36,7 @@ public:
 	FPCGExPickerAttributeSetRangesConfig Config;
 	TArray<FPCGExPickerConstantRangeConfig> Ranges;
 
-	static bool GetUniqueRanges(
-		FPCGExContext* InContext, FName InPinLabel,
-		const FPCGExPickerAttributeSetRangesConfig& InConfig, TArray<FPCGExPickerConstantRangeConfig>& OutRanges);
+	static bool GetUniqueRanges(FPCGExContext* InContext, FName InPinLabel, const FPCGExPickerAttributeSetRangesConfig& InConfig, TArray<FPCGExPickerConstantRangeConfig>& OutRanges);
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;

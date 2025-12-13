@@ -98,8 +98,7 @@ namespace PCGExMath
 		bool FindIntersection(const FSegment& S, const double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const uint8 Strictness) const;
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	double TruncateDbl(const double Value, const EPCGExTruncateMode Mode);
+	PCGEXTENDEDTOOLKIT_API double TruncateDbl(const double Value, const EPCGExTruncateMode Mode);
 
 #pragma region basics
 
@@ -130,8 +129,7 @@ namespace PCGExMath
 		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	double ConvertStringToDouble(const FString& StringToConvert);
+	PCGEXTENDEDTOOLKIT_API double ConvertStringToDouble(const FString& StringToConvert);
 
 	// Remap function
 	FORCEINLINE static double Remap(const double InBase, const double InMin, const double InMax, const double OutMin = 0, const double OutMax = 1)
@@ -160,34 +158,19 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
-			return FVector2D(
-				Tile(Value.X, Min.X, Max.X),
-				Tile(Value.Y, Min.Y, Max.Y));
+			return FVector2D(Tile(Value.X, Min.X, Max.X), Tile(Value.Y, Min.Y, Max.Y));
 		}
 		else if constexpr (std::is_same_v<T, FVector>)
 		{
-			return FVector(
-				Tile(Value.X, Min.X, Max.X),
-				Tile(Value.Y, Min.Y, Max.Y),
-				Tile(Value.Z, Min.Z, Max.Z));
+			return FVector(Tile(Value.X, Min.X, Max.X), Tile(Value.Y, Min.Y, Max.Y), Tile(Value.Z, Min.Z, Max.Z));
 		}
 		else if constexpr (std::is_same_v<T, FVector4>)
 		{
-			return FVector4(
-				Tile(Value.X, Min.X, Max.X),
-				Tile(Value.Y, Min.Y, Max.Y),
-				Tile(Value.Z, Min.Z, Max.Z),
-				Tile(Value.W, Min.W, Max.W));
+			return FVector4(Tile(Value.X, Min.X, Max.X), Tile(Value.Y, Min.Y, Max.Y), Tile(Value.Z, Min.Z, Max.Z), Tile(Value.W, Min.W, Max.W));
 		}
 		else
 		{
-			static_assert(
-				std::is_unsigned_v<T> ||
-				std::is_integral_v<T> ||
-				std::is_floating_point_v<T> ||
-				std::is_same_v<T, FVector2D> ||
-				std::is_same_v<T, FVector> ||
-				std::is_same_v<T, FVector4>, "Can't tile type.");
+			static_assert(std::is_unsigned_v<T> || std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>, "Can't tile type.");
 			return T{};
 		}
 	}
@@ -301,17 +284,11 @@ namespace PCGExMath
 		for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Range; }
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	FVector SafeLinePlaneIntersection(
-		const FVector& Pt1, const FVector& Pt2,
-		const FVector& PlaneOrigin, const FVector& PlaneNormal,
-		bool& bIntersect);
+	PCGEXTENDEDTOOLKIT_API FVector SafeLinePlaneIntersection(const FVector& Pt1, const FVector& Pt2, const FVector& PlaneOrigin, const FVector& PlaneNormal, bool& bIntersect);
 
 
-	PCGEXTENDEDTOOLKIT_API
-	bool SphereOverlap(const FSphere& S1, const FSphere& S2, double& OutOverlap);
-	PCGEXTENDEDTOOLKIT_API
-	bool SphereOverlap(const FBoxSphereBounds& S1, const FBoxSphereBounds& S2, double& OutOverlap);
+	PCGEXTENDEDTOOLKIT_API bool SphereOverlap(const FSphere& S1, const FSphere& S2, double& OutOverlap);
+	PCGEXTENDEDTOOLKIT_API bool SphereOverlap(const FBoxSphereBounds& S1, const FBoxSphereBounds& S2, double& OutOverlap);
 
 
 #pragma endregion
@@ -349,11 +326,7 @@ namespace PCGExMath
 		{
 			return FTransform((A.Rotator() * M).Quaternion(), A.GetLocation() * M, A.GetScale3D() * M);
 		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
 		{
 			return A;
 		}
@@ -411,8 +384,7 @@ namespace PCGExMath
 	{
 		switch (Method)
 		{
-		default:
-		case EPCGExIndexSafety::Ignore: return SanitizeIndex<T, EPCGExIndexSafety::Ignore>(Index, MaxIndex);
+		default: case EPCGExIndexSafety::Ignore: return SanitizeIndex<T, EPCGExIndexSafety::Ignore>(Index, MaxIndex);
 		case EPCGExIndexSafety::Tile: return SanitizeIndex<T, EPCGExIndexSafety::Tile>(Index, MaxIndex);
 		case EPCGExIndexSafety::Clamp: return SanitizeIndex<T, EPCGExIndexSafety::Clamp>(Index, MaxIndex);
 		case EPCGExIndexSafety::Yoyo: return SanitizeIndex<T, EPCGExIndexSafety::Yoyo>(Index, MaxIndex);
@@ -430,49 +402,32 @@ namespace PCGExMath
 		else { return Quat.GetForwardVector(); }
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir);
-	PCGEXTENDEDTOOLKIT_API
-	FVector GetDirection(const EPCGExAxis Dir);
-	PCGEXTENDEDTOOLKIT_API
-	FTransform GetIdentity(const EPCGExAxisOrder Order);
+	PCGEXTENDEDTOOLKIT_API FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir);
+	PCGEXTENDEDTOOLKIT_API FVector GetDirection(const EPCGExAxis Dir);
+	PCGEXTENDEDTOOLKIT_API FTransform GetIdentity(const EPCGExAxisOrder Order);
 
-	PCGEXTENDEDTOOLKIT_API
-	void Swizzle(FVector& Vector, const EPCGExAxisOrder Order);
+	PCGEXTENDEDTOOLKIT_API void Swizzle(FVector& Vector, const EPCGExAxisOrder Order);
 
-	PCGEXTENDEDTOOLKIT_API
-	void Swizzle(FVector& Vector, const int32 (&Order)[3]);
+	PCGEXTENDEDTOOLKIT_API void Swizzle(FVector& Vector, const int32 (&Order)[3]);
 
-	PCGEXTENDEDTOOLKIT_API
-	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward);
-	PCGEXTENDEDTOOLKIT_API
-	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward, const FVector& InUp);
+	PCGEXTENDEDTOOLKIT_API FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward);
+	PCGEXTENDEDTOOLKIT_API FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward, const FVector& InUp);
 
-	PCGEXTENDEDTOOLKIT_API
-	FVector GetNormal(const FVector& A, const FVector& B, const FVector& C);
-	PCGEXTENDEDTOOLKIT_API
-	FVector GetNormalUp(const FVector& A, const FVector& B, const FVector& Up);
+	PCGEXTENDEDTOOLKIT_API FVector GetNormal(const FVector& A, const FVector& B, const FVector& C);
+	PCGEXTENDEDTOOLKIT_API FVector GetNormalUp(const FVector& A, const FVector& B, const FVector& Up);
 
-	PCGEXTENDEDTOOLKIT_API
-	FTransform MakeLookAtTransform(const FVector& LookAt, const FVector& LookUp, const EPCGExAxisAlign AlignAxis);
+	PCGEXTENDEDTOOLKIT_API FTransform MakeLookAtTransform(const FVector& LookAt, const FVector& LookUp, const EPCGExAxisAlign AlignAxis);
 
-	PCGEXTENDEDTOOLKIT_API
-	double GetAngle(const FVector& A, const FVector& B);
+	PCGEXTENDEDTOOLKIT_API double GetAngle(const FVector& A, const FVector& B);
 
 	// Expects normalized vectors
-	PCGEXTENDEDTOOLKIT_API
-	double GetRadiansBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
-	PCGEXTENDEDTOOLKIT_API
-	double GetRadiansBetweenVectors(const FVector2D& A, const FVector2D& B);
-	PCGEXTENDEDTOOLKIT_API
-	double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
+	PCGEXTENDEDTOOLKIT_API double GetRadiansBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
+	PCGEXTENDEDTOOLKIT_API double GetRadiansBetweenVectors(const FVector2D& A, const FVector2D& B);
+	PCGEXTENDEDTOOLKIT_API double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector);
-	PCGEXTENDEDTOOLKIT_API
-	FBox ScaledBox(const FBox& InBox, const FVector& InScale);
-	PCGEXTENDEDTOOLKIT_API
-	bool IsDirectionWithinTolerance(const FVector& A, const FVector& B, const FRotator& Limits);
+	PCGEXTENDEDTOOLKIT_API void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector);
+	PCGEXTENDEDTOOLKIT_API FBox ScaledBox(const FBox& InBox, const FVector& InScale);
+	PCGEXTENDEDTOOLKIT_API bool IsDirectionWithinTolerance(const FVector& A, const FVector& B, const FRotator& Limits);
 
 	template <typename T>
 	FORCEINLINE static void TypeMinMax(T& Min, T& Max)
@@ -524,10 +479,8 @@ namespace PCGExMath
 		}
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians);
+	PCGEXTENDEDTOOLKIT_API double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians);
 
 	/** Distance from C to AB */
-	PCGEXTENDEDTOOLKIT_API
-	double GetPerpendicularDistance(const FVector& A, const FVector& B, const FVector& C);
+	PCGEXTENDEDTOOLKIT_API double GetPerpendicularDistance(const FVector& A, const FVector& B, const FVector& C);
 }

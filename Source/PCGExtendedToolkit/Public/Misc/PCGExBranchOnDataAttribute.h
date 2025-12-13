@@ -81,9 +81,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		BranchOnDataAttribute, "Branch on Data", "Branch on @Data domain attribute.",
-		BranchSource);
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BranchOnDataAttribute, "Branch on Data", "Branch on @Data domain attribute.", BranchSource);
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 #endif

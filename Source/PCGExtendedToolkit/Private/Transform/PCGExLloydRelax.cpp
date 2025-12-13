@@ -38,20 +38,18 @@ bool FPCGExLloydRelaxElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() <= 4)
-				{
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() <= 4)
+			                                         {
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to relax."));
 		}
@@ -69,14 +67,8 @@ namespace PCGExLloydRelax
 	class FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FLloydRelaxTask(const int32 InTaskIndex,
-		                const TSharedPtr<FProcessor>& InProcessor,
-		                const FPCGExInfluenceDetails* InInfluenceSettings,
-		                const int32 InNumIterations) :
-			FPCGExIndexedTask(InTaskIndex),
-			Processor(InProcessor),
-			InfluenceSettings(InInfluenceSettings),
-			NumIterations(InNumIterations)
+		FLloydRelaxTask(const int32 InTaskIndex, const TSharedPtr<FProcessor>& InProcessor, const FPCGExInfluenceDetails* InInfluenceSettings, const int32 InNumIterations)
+			: FPCGExIndexedTask(InTaskIndex), Processor(InProcessor), InfluenceSettings(InInfluenceSettings), NumIterations(InNumIterations)
 		{
 		}
 
@@ -84,7 +76,7 @@ namespace PCGExLloydRelax
 		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			NumIterations--;
 
@@ -129,11 +121,11 @@ namespace PCGExLloydRelax
 		}
 	};
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
@@ -159,10 +151,7 @@ namespace PCGExLloydRelax
 		{
 			FTransform Transform = OutTransforms[Index];
 
-			Transform.SetLocation(
-				InfluenceDetails.bProgressiveInfluence ?
-					ActivePositions[Index] :
-					FMath::Lerp(Transform.GetLocation(), ActivePositions[Index], InfluenceDetails.GetInfluence(Index)));
+			Transform.SetLocation(InfluenceDetails.bProgressiveInfluence ? ActivePositions[Index] : FMath::Lerp(Transform.GetLocation(), ActivePositions[Index], InfluenceDetails.GetInfluence(Index)));
 		}
 	}
 

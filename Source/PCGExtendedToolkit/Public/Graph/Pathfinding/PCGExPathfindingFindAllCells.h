@@ -112,14 +112,14 @@ namespace PCGExFindAllCells
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
 
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, TArray<TSharedPtr<PCGExTopology::FCell>>& Scope, const bool bSkipBinary = true);

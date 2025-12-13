@@ -73,9 +73,7 @@ class UPCGExFillControlsDepthProviderSettings : public UPCGExFillControlsFactory
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsDepth, "Fill Control : Depth", "Control fill based on diffusion depth.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsDepth, "Fill Control : Depth", "Control fill based on diffusion depth.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

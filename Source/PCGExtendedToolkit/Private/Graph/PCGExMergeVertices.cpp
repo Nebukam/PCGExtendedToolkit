@@ -32,13 +32,13 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 		StartOffset += Batch->VtxDataFacade->GetNum();
 	}
 
-	Merger->MergeAsync(GetAsyncManager(), &CarryOverDetails);
+	Merger->MergeAsync(GetTaskManager(), &CarryOverDetails);
 	PCGExGraph::SetClusterVtx(CompositeDataFacade->Source, OutVtxId); // After merge since it forwards IDs
 }
 
 void FPCGExMergeVerticesContext::ClusterProcessing_WorkComplete()
 {
-	CompositeDataFacade->WriteFastest(GetAsyncManager());
+	CompositeDataFacade->WriteFastest(GetTaskManager());
 }
 
 PCGEX_INITIALIZE_ELEMENT(MergeVertices)
@@ -68,12 +68,10 @@ bool FPCGExMergeVerticesElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -92,20 +90,18 @@ namespace PCGExMergeVertices
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
-			true, true, true);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, true, true);
 	}
 
 	FProcessor::~FProcessor()
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergeVertices::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		Cluster->WillModifyVtxIO();
 

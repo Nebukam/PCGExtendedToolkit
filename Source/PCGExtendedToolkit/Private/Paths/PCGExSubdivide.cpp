@@ -63,21 +63,19 @@ bool FPCGExSubdivideElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
@@ -92,14 +90,14 @@ bool FPCGExSubdivideElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 namespace PCGExSubdivide
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
@@ -157,10 +155,7 @@ namespace PCGExSubdivide
 			{
 				TSharedPtr<TArray<FVector>> Subs = MakeShared<TArray<FVector>>();
 				TArray<FVector>& SubPoints = *Subs.Get();
-				Sub.NumSubdivisions = ManhattanDetails.ComputeSubdivisions(
-					InTransforms[Sub.InStart].GetLocation(),
-					InTransforms[Sub.InEnd].GetLocation(),
-					Index, SubPoints, Sub.Dist);
+				Sub.NumSubdivisions = ManhattanDetails.ComputeSubdivisions(InTransforms[Sub.InStart].GetLocation(), InTransforms[Sub.InEnd].GetLocation(), Index, SubPoints, Sub.Dist);
 
 				if (Sub.NumSubdivisions > 0) { ManhattanPoints[Index] = Subs; }
 
@@ -327,7 +322,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

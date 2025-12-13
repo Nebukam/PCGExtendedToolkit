@@ -99,7 +99,7 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 
 	virtual void BeginDestroy() override;
 };
@@ -150,9 +150,7 @@ class UPCGExBoundsFilterProviderSettings : public UPCGExFilterProviderSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		BoundsFilterFactory, "Filter : Inclusion (Bounds)", "Creates a filter definition that compares dot value of two vectors.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BoundsFilterFactory, "Filter : Inclusion (Bounds)", "Creates a filter definition that compares dot value of two vectors.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 

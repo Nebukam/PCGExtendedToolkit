@@ -183,11 +183,7 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 			bNeedsProcessing = true;
 		}
 		// Check for structural values change
-		else if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values) &&
-			(ChangeType == EPropertyChangeType::ArrayAdd ||
-				ChangeType == EPropertyChangeType::ArrayRemove ||
-				ChangeType == EPropertyChangeType::ArrayClear ||
-				ChangeType == EPropertyChangeType::ArrayMove))
+		else if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values) && (ChangeType == EPropertyChangeType::ArrayAdd || ChangeType == EPropertyChangeType::ArrayRemove || ChangeType == EPropertyChangeType::ArrayClear || ChangeType == EPropertyChangeType::ArrayMove))
 		{
 			bNeedsProcessing = true;
 		}
@@ -252,15 +248,14 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 			else if (bReordered)
 			{
 				// Reorder the values
-				Body.Row.Sort(
-					[&](const TInstancedStruct<FPCGExTupleValueWrap>& A, const TInstancedStruct<FPCGExTupleValueWrap>& B)
-					{
-						const FPCGExTupleValueWrap* APtr = A.GetPtr<FPCGExTupleValueWrap>();
-						const FPCGExTupleValueWrap* BPtr = B.GetPtr<FPCGExTupleValueWrap>();
-						if (!APtr) { return false; }
-						if (!BPtr) { return true; }
-						return Order[APtr->HeaderId] < Order[BPtr->HeaderId];
-					});
+				Body.Row.Sort([&](const TInstancedStruct<FPCGExTupleValueWrap>& A, const TInstancedStruct<FPCGExTupleValueWrap>& B)
+				{
+					const FPCGExTupleValueWrap* APtr = A.GetPtr<FPCGExTupleValueWrap>();
+					const FPCGExTupleValueWrap* BPtr = B.GetPtr<FPCGExTupleValueWrap>();
+					if (!APtr) { return false; }
+					if (!BPtr) { return true; }
+					return Order[APtr->HeaderId] < Order[BPtr->HeaderId];
+				});
 			}
 		}
 	}

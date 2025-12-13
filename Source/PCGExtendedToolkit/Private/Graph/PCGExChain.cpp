@@ -45,9 +45,7 @@ namespace PCGExCluster
 
 		while (FromNode)
 		{
-			if (FromNode->IsLeaf() ||
-				FromNode->IsComplex() ||
-				(Breakpoints && (*Breakpoints)[FromNode->PointIndex]))
+			if (FromNode->IsLeaf() || FromNode->IsComplex() || (Breakpoints && (*Breakpoints)[FromNode->PointIndex]))
 			{
 				bIsClosedLoop = false;
 				break;
@@ -134,10 +132,7 @@ namespace PCGExCluster
 				return;
 			}
 
-			Graph->InsertEdge(
-				Cluster->GetNodePointIndex(Seed),
-				Cluster->GetNodePointIndex(Links.Last()),
-				OutEdge, IOIndex);
+			Graph->InsertEdge(Cluster->GetNodePointIndex(Seed), Cluster->GetNodePointIndex(Links.Last()), OutEdge, IOIndex);
 
 			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
 			EdgeMetadata.UnionSize = Links.Num();
@@ -211,7 +206,7 @@ namespace PCGExCluster
 		return OutNodes.Num();
 	}
 
-	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FNodeChainBuilder::Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		Chains.Reserve(Cluster->Edges->Num());
 		int32 NumBinaries = 0;
@@ -262,10 +257,10 @@ namespace PCGExCluster
 				return false;
 			}
 		}
-		return DispatchTasks(AsyncManager);
+		return DispatchTasks(TaskManager);
 	}
 
-	bool FNodeChainBuilder::CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FNodeChainBuilder::CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		Chains.Reserve(Cluster->Edges->Num());
 
@@ -281,27 +276,24 @@ namespace PCGExCluster
 
 		Chains.Shrink();
 		if (Chains.IsEmpty()) { return false; }
-		return DispatchTasks(AsyncManager);
+		return DispatchTasks(TaskManager);
 	}
 
-	bool FNodeChainBuilder::DispatchTasks(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FNodeChainBuilder::DispatchTasks(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ChainSearchTask)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, ChainSearchTask)
 
-		ChainSearchTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->Dedupe();
-			};
+		ChainSearchTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->Dedupe();
+		};
 
-		ChainSearchTask->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]
-			(const int32 Index, const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->Chains[Index]->BuildChain(This->Cluster, This->Breakpoints);
-			};
+		ChainSearchTask->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->Chains[Index]->BuildChain(This->Cluster, This->Breakpoints);
+		};
 
 		ChainSearchTask->StartIterations(Chains.Num(), 64, false);
 		return true;

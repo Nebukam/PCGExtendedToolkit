@@ -54,12 +54,10 @@ bool FPCGExSortPointsBaseElement::AdvanceWork(FPCGExContext* InContext, const UP
 			return Context->CancelExecution(TEXT("No attributes to sort over."));
 		}
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bPrefetchData = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bPrefetchData = true;
+		}))
 		{
 			Context->CancelExecution(TEXT("Could not find any points to sort."));
 		}
@@ -85,11 +83,11 @@ namespace PCGExSortPoints
 		Sorter->SortDirection = Settings->SortDirection;
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
 
-		if (!TProcessor::Process(InAsyncManager)) { return false; }
+		if (!TProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 

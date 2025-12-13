@@ -133,8 +133,8 @@ namespace PCGExSampleTexture
 		TSharedPtr<PCGExData::TBuffer<T>> Buffer;
 
 	public:
-		explicit TSampler(const FPCGExTextureParamConfig& InConfig, const TSharedPtr<PCGExTexture::FLookup>& InTextureMap, const TSharedRef<PCGExData::FFacade>& InDataFacade):
-			FSampler(InConfig, InTextureMap, InDataFacade)
+		explicit TSampler(const FPCGExTextureParamConfig& InConfig, const TSharedPtr<PCGExTexture::FLookup>& InTextureMap, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+			: FSampler(InConfig, InTextureMap, InDataFacade)
 		{
 			if (!IsValid()) { return; }
 			Buffer = InDataFacade->GetWritable<T>(InConfig.SampleAttributeName, T{}, true, PCGExData::EBufferInit::Inherit);
@@ -145,9 +145,7 @@ namespace PCGExSampleTexture
 			FVector4 SampledValue = FVector4::Zero();
 			float SampledDensity = 1;
 
-			if (const UPCGBaseTextureData* Tex = this->TextureMap->TryGetTextureData(this->IDGetter->FetchSingle(Point, TEXT("")));
-				!Tex ||
-				!Tex->SamplePointLocal(UV, SampledValue, SampledDensity))
+			if (const UPCGBaseTextureData* Tex = this->TextureMap->TryGetTextureData(this->IDGetter->FetchSingle(Point, TEXT(""))); !Tex || !Tex->SamplePointLocal(UV, SampledValue, SampledDensity))
 			{
 				return false;
 			}
@@ -156,18 +154,13 @@ namespace PCGExSampleTexture
 
 			T V = Buffer->GetValue(Point.Index);
 
-			if constexpr (
-				std::is_same_v<T, float> ||
-				std::is_same_v<T, double>)
+			if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				for (const int32 C : Config.OutChannels) { V = SampledValue[C]; }
 				Buffer->SetValue(Point.Index, V);
 				return true;
 			}
-			else if constexpr (
-				std::is_same_v<T, FVector2D> ||
-				std::is_same_v<T, FVector> ||
-				std::is_same_v<T, FVector4>)
+			else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>)
 			{
 				for (int i = 0; i < Config.OutChannels.Num(); i++) { V[i] = SampledValue[Config.OutChannels[i]]; }
 				Buffer->SetValue(Point.Index, V);
@@ -193,14 +186,14 @@ namespace PCGExSampleTexture
 		TArray<TSharedRef<FSampler>> Samplers;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;

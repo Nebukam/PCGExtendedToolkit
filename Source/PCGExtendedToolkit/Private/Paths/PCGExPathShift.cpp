@@ -12,8 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExShiftPathElement"
 #define PCGEX_NAMESPACE ShiftPath
 
-UPCGExShiftPathSettings::UPCGExShiftPathSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExShiftPathSettings::UPCGExShiftPathSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	bSupportClosedLoops = false;
@@ -87,12 +86,10 @@ bool FPCGExShiftPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bPrefetchData = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bPrefetchData = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to shift."));
 		}
@@ -112,11 +109,11 @@ namespace PCGExShiftPath
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShiftPath::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -125,9 +122,7 @@ namespace PCGExShiftPath
 
 		if (Settings->InputMode == EPCGExShiftPathMode::Relative)
 		{
-			PivotIndex = PCGExMath::TruncateDbl(
-				static_cast<double>(MaxIndex) * static_cast<double>(Settings->RelativeConstant),
-				Settings->Truncate);
+			PivotIndex = PCGExMath::TruncateDbl(static_cast<double>(MaxIndex) * static_cast<double>(Settings->RelativeConstant), Settings->Truncate);
 		}
 		else if (Settings->InputMode == EPCGExShiftPathMode::Discrete)
 		{
@@ -137,43 +132,41 @@ namespace PCGExShiftPath
 		{
 			if (Context->FilterFactories.IsEmpty()) { return false; }
 
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterTask)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, FilterTask)
 
-			FilterTask->OnCompleteCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE]()
+			FilterTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+
+				if (This->Settings->bReverseShift)
 				{
-					PCGEX_ASYNC_THIS
-
-					if (This->Settings->bReverseShift)
+					for (int i = This->MaxIndex; i >= 0; i--)
 					{
-						for (int i = This->MaxIndex; i >= 0; i--)
+						if (This->PointFilterCache[i])
 						{
-							if (This->PointFilterCache[i])
-							{
-								This->PivotIndex = i;
-								return;
-							}
+							This->PivotIndex = i;
+							return;
 						}
 					}
-					else
+				}
+				else
+				{
+					for (int i = 0; i <= This->MaxIndex; i++)
 					{
-						for (int i = 0; i <= This->MaxIndex; i++)
+						if (This->PointFilterCache[i])
 						{
-							if (This->PointFilterCache[i])
-							{
-								This->PivotIndex = i;
-								return;
-							}
+							This->PivotIndex = i;
+							return;
 						}
 					}
-				};
+				}
+			};
 
-			FilterTask->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-				{
-					PCGEX_ASYNC_THIS
-					This->ProcessPoints(Scope);
-				};
+			FilterTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				This->ProcessPoints(Scope);
+			};
 
 			FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			return true;
@@ -191,20 +184,18 @@ namespace PCGExShiftPath
 		{
 			Buffers.Init(nullptr, Context->ShiftedAttributes.Num());
 
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InitBuffers)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, InitBuffers)
 
-			InitBuffers->OnIterationCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
-				{
-					PCGEX_ASYNC_THIS
-					const FPCGMetadataAttributeBase* Attr = This->PointDataFacade->FindConstAttribute(This->GetContext()->ShiftedAttributes[Index]);
+			InitBuffers->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				const FPCGMetadataAttributeBase* Attr = This->PointDataFacade->FindConstAttribute(This->GetContext()->ShiftedAttributes[Index]);
 
-					if (!Attr) { return; }
+				if (!Attr) { return; }
 
-					TSharedPtr<PCGExData::IBuffer> Buffer = This->PointDataFacade->GetWritable(
-						static_cast<EPCGMetadataTypes>(Attr->GetTypeId()), Attr, PCGExData::EBufferInit::Inherit);
-					This->Buffers[Index] = Buffer;
-				};
+				TSharedPtr<PCGExData::IBuffer> Buffer = This->PointDataFacade->GetWritable(static_cast<EPCGMetadataTypes>(Attr->GetTypeId()), Attr, PCGExData::EBufferInit::Inherit);
+				This->Buffers[Index] = Buffer;
+			};
 
 			InitBuffers->StartIterations(Context->ShiftedAttributes.Num(), 1);
 		}
@@ -265,35 +256,32 @@ namespace PCGExShiftPath
 
 			if (!Buffers.IsEmpty())
 			{
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitBuffers)
+				PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, InitBuffers)
 
-				InitBuffers->OnCompleteCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE]()
+				InitBuffers->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+					This->PointDataFacade->WriteFastest(This->TaskManager);
+				};
+
+				InitBuffers->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					TSharedPtr<PCGExData::IBuffer> Buffer = This->Buffers[Index];
+
+					if (!Buffer || Buffer->GetUnderlyingDomain() != PCGExData::EDomainType::Elements) { return; }
+
+					PCGEx::ExecuteWithRightType(Buffer->GetType(), [&](auto DummyValue)
 					{
-						PCGEX_ASYNC_THIS
-						This->PointDataFacade->WriteFastest(This->AsyncManager);
-					};
+						using T = decltype(DummyValue);
+						TSharedPtr<PCGExData::TArrayBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(This->Buffers[Index]);
 
-				InitBuffers->OnIterationCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
-					{
-						PCGEX_ASYNC_THIS
-						TSharedPtr<PCGExData::IBuffer> Buffer = This->Buffers[Index];
+						if (!TypedBuffer) { return; }
 
-						if (!Buffer || Buffer->GetUnderlyingDomain() != PCGExData::EDomainType::Elements) { return; }
-
-						PCGEx::ExecuteWithRightType(
-							Buffer->GetType(), [&](auto DummyValue)
-							{
-								using T = decltype(DummyValue);
-								TSharedPtr<PCGExData::TArrayBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(This->Buffers[Index]);
-
-								if (!TypedBuffer) { return; }
-
-								TArray<T>& Values = *TypedBuffer->GetOutValues().Get();
-								PCGEx::ReorderArray(Values, This->Indices);
-							});
-					};
+						TArray<T>& Values = *TypedBuffer->GetOutValues().Get();
+						PCGEx::ReorderArray(Values, This->Indices);
+					});
+				};
 
 				InitBuffers->StartIterations(Buffers.Num(), 1);
 			}

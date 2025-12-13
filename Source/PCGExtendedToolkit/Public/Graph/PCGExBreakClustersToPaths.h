@@ -126,12 +126,12 @@ namespace PCGExBreakClustersToPaths
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		bool BuildChains();
 		virtual void CompleteWork() override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
@@ -148,8 +148,8 @@ namespace PCGExBreakClustersToPaths
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 			DefaultVtxFilterValue = false;
 		}

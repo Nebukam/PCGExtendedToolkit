@@ -301,7 +301,7 @@ namespace PCGExBevelPath
 
 		double Len(const int32 Index) const;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void PrepareSinglePoint(const int32 Index);
 
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;

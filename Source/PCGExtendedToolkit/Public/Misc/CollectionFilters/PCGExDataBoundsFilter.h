@@ -127,9 +127,7 @@ class UPCGExDataBoundsFilterProviderSettings : public UPCGExFilterCollectionProv
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		DataBoundsFilterFactory, "Data Filter : Bounds", "Test an aspect of the collection' bounds",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(DataBoundsFilterFactory, "Data Filter : Bounds", "Test an aspect of the collection' bounds", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

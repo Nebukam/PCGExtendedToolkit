@@ -95,7 +95,7 @@ bool FPCGExFindClustersDataElement::AdvanceWork(FPCGExContext* InContext, const 
 	{
 		Library->PrintLogs(Context, Settings->bSkipTrivialWarnings, Settings->bSkipImportantWarnings);
 		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Could not find any valid vtx/edge pairs."))
-		return Context->CancelExecution(TEXT(""));
+		return Context->CancelExecution();
 	}
 
 	if (Settings->SearchMode == EPCGExClusterDataSearchMode::All)

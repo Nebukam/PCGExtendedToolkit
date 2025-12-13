@@ -48,26 +48,24 @@ bool FPCGExPathStitchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs are either closed loop or have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2 || PCGExPaths::GetClosedLoop(Entry->GetIn()))
-				{
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-					bHasInvalidInputs = true;
-					return false;
-				}
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2 || PCGExPaths::GetClosedLoop(Entry->GetIn()))
+			                                         {
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
 
-				FPCGTaggedData& D = Context->Datas.Emplace_GetRef();
-				D.Data = Entry->GetIn();
-				Entry->Tags->DumpTo(D.Tags);
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
-				NewBatch->bRequiresWriteStep = true;
-			}))
+			                                         FPCGTaggedData& D = Context->Datas.Emplace_GetRef();
+			                                         D.Data = Entry->GetIn();
+			                                         Entry->Tags->DumpTo(D.Tags);
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         //NewBatch->SetPointsFilterData(&Context->FilterFactories);
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to work with."));
 		}
@@ -85,11 +83,7 @@ namespace PCGExPathStitch
 	bool FProcessor::IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor)
 	{
 		const TSharedPtr<FProcessor> Self = SharedThis(this);
-		return
-			StartStitch == InOtherProcessor ||
-			EndStitch == InOtherProcessor ||
-			InOtherProcessor->StartStitch == Self ||
-			InOtherProcessor->EndStitch == Self;
+		return StartStitch == InOtherProcessor || EndStitch == InOtherProcessor || InOtherProcessor->StartStitch == Self || InOtherProcessor->EndStitch == Self;
 	}
 
 	bool FProcessor::SetStartStitch(const TSharedPtr<FProcessor>& InStitch)
@@ -106,13 +100,13 @@ namespace PCGExPathStitch
 		return true;
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathStitch::Process);
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 		const TConstPCGValueRange<FTransform> InTransform = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const FVector Extents = FVector::OneVector * 0.5;
@@ -210,14 +204,12 @@ namespace PCGExPathStitch
 				}
 			}
 
-			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(
-				Current->PointDataFacade->Source,
-				static_cast<PCGExMT::FScope>(Current->PointDataFacade->GetInScope(ReadStart, ReadCount)));
+			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(Current->PointDataFacade->Source, static_cast<PCGExMT::FScope>(Current->PointDataFacade->GetInScope(ReadStart, ReadCount)));
 
 			MergeScope.bReverse = i == 0 ? Current->EndStitch == nullptr : Current->StartStitch != Previous;
 		}
 
-		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
+		Merger->MergeAsync(TaskManager, &Context->CarryOverDetails);
 
 		PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), bClosedLoop);
 	}
@@ -227,7 +219,7 @@ namespace PCGExPathStitch
 		if (!PointDataFacade->Source->IsForwarding())
 		{
 			// TODO : Stitch-Merge points (average etc)
-			PointDataFacade->WriteFastest(AsyncManager);
+			PointDataFacade->WriteFastest(TaskManager);
 		}
 	}
 
@@ -266,11 +258,10 @@ namespace PCGExPathStitch
 
 			if (Sorter->Init(Context, Context->Datas))
 			{
-				SortedProcessors.Sort(
-					[&](const TSharedPtr<FProcessor>& A, const TSharedPtr<FProcessor>& B)
-					{
-						return Sorter->SortData(A->BatchIndex, B->BatchIndex);
-					});
+				SortedProcessors.Sort([&](const TSharedPtr<FProcessor>& A, const TSharedPtr<FProcessor>& B)
+				{
+					return Sorter->SortData(A->BatchIndex, B->BatchIndex);
+				});
 			}
 			else
 			{
@@ -323,26 +314,24 @@ namespace PCGExPathStitch
 			{
 				const PCGExMath::FSegment& CurrentSegment = Current->EndSegment;
 
-				PathOctree->FindElementsWithBoundsTest(
-					Current->EndBounds, [&](const PCGExOctree::FItem& Item)
+				PathOctree->FindElementsWithBoundsTest(Current->EndBounds, [&](const PCGExOctree::FItem& Item)
+				{
+					const bool bIsOtherEnd = Item.Index > 0;
+					const int32 Index = FMath::Abs(Item.Index) - 1;
+
+					if (Settings->bOnlyMatchStartAndEnds && bIsOtherEnd) { return; }
+
+					const TSharedPtr<FProcessor> Other = GetProcessor<FProcessor>(Index);
+					const TSharedPtr<FProcessor> StitchPole = bIsOtherEnd ? Other->EndStitch : Other->StartStitch;
+
+					if (StitchPole || StitchPole == Current || Other->WorkIndex == Current->WorkIndex) { return; }
+
+					if (CanStitch(CurrentSegment, bIsOtherEnd ? Other->EndSegment : Other->StartSegment))
 					{
-						const bool bIsOtherEnd = Item.Index > 0;
-						const int32 Index = FMath::Abs(Item.Index) - 1;
-
-						if (Settings->bOnlyMatchStartAndEnds && bIsOtherEnd) { return; }
-
-						const TSharedPtr<FProcessor> Other = GetProcessor<FProcessor>(Index);
-						const TSharedPtr<FProcessor> StitchPole = bIsOtherEnd ? Other->EndStitch : Other->StartStitch;
-
-						if (StitchPole || StitchPole == Current ||
-							Other->WorkIndex == Current->WorkIndex) { return; }
-
-						if (CanStitch(CurrentSegment, bIsOtherEnd ? Other->EndSegment : Other->StartSegment))
-						{
-							BestCandidate = Other;
-							bIsBestCandidateEnd = bIsOtherEnd;
-						}
-					});
+						BestCandidate = Other;
+						bIsBestCandidateEnd = bIsOtherEnd;
+					}
+				});
 
 				bIsCurrentEnd = BestCandidate != nullptr;
 			}
@@ -352,26 +341,24 @@ namespace PCGExPathStitch
 				// Look for other paths that may be connecting with this segment' start
 
 				const PCGExMath::FSegment& CurrentSegment = Current->StartSegment;
-				PathOctree->FindElementsWithBoundsTest(
-					Current->StartBounds, [&](const PCGExOctree::FItem& Item)
+				PathOctree->FindElementsWithBoundsTest(Current->StartBounds, [&](const PCGExOctree::FItem& Item)
+				{
+					const bool bIsOtherStart = Item.Index < 0;
+					const int32 Index = FMath::Abs(Item.Index) - 1;
+
+					if (Settings->bOnlyMatchStartAndEnds && bIsOtherStart) { return; }
+
+					const TSharedPtr<FProcessor> Other = GetProcessor<FProcessor>(Index);
+					const TSharedPtr<FProcessor> StitchPole = bIsOtherStart ? Other->StartStitch : Other->EndStitch;
+
+					if (StitchPole || StitchPole == Current || Other->WorkIndex == Current->WorkIndex) { return; }
+
+					if (CanStitch(CurrentSegment, bIsOtherStart ? Other->StartSegment : Other->EndSegment))
 					{
-						const bool bIsOtherStart = Item.Index < 0;
-						const int32 Index = FMath::Abs(Item.Index) - 1;
-
-						if (Settings->bOnlyMatchStartAndEnds && bIsOtherStart) { return; }
-
-						const TSharedPtr<FProcessor> Other = GetProcessor<FProcessor>(Index);
-						const TSharedPtr<FProcessor> StitchPole = bIsOtherStart ? Other->StartStitch : Other->EndStitch;
-
-						if (StitchPole || StitchPole == Current ||
-							Other->WorkIndex == Current->WorkIndex) { return; }
-
-						if (CanStitch(CurrentSegment, bIsOtherStart ? Other->StartSegment : Other->EndSegment))
-						{
-							BestCandidate = Other;
-							bIsBestCandidateEnd = !bIsOtherStart;
-						}
-					});
+						BestCandidate = Other;
+						bIsBestCandidateEnd = !bIsOtherStart;
+					}
+				});
 			}
 
 			if (BestCandidate)

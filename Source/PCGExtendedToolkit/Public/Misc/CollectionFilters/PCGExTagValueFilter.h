@@ -114,9 +114,7 @@ class UPCGExTagValueFilterProviderSettings : public UPCGExFilterCollectionProvid
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		TagValueFilterFactory, "Data Filter : Tag Value", "Test the value of one or multiple tags",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(TagValueFilterFactory, "Data Filter : Tag Value", "Test the value of one or multiple tags", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

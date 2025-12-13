@@ -142,7 +142,7 @@ namespace PCGExPathToClusters
 
 		virtual ~FNonFusingProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void CompleteWork() override;
 	};
 
@@ -170,7 +170,7 @@ namespace PCGExPathToClusters
 
 		virtual ~FFusingProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void InsertEdges(const PCGExMT::FScope& Scope, bool bUnsafe);
 	};
 

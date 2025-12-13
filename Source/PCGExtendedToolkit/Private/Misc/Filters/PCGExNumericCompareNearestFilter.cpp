@@ -19,7 +19,7 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
 	TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return PCGExFactories::EPreparationResult::MissingData; }
@@ -31,28 +31,26 @@ PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Pre
 	OperandA->Reserve(TargetsHandler->Num());
 
 	TWeakPtr<FPCGContextHandle> WeakHandle = InContext->GetOrCreateHandle();
-	TargetsHandler->TargetsPreloader->OnCompleteCallback =
-		[this, WeakHandle]()
+	TargetsHandler->TargetsPreloader->OnCompleteCallback = [this, WeakHandle]()
+	{
+		PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
+		const bool bError = TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
 		{
-			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
-			const bool bError = TargetsHandler->ForEachTarget(
-				[&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
-				{
-					// Prep weights
-					TSharedPtr<PCGExData::TBuffer<double>> LocalOperandA = Target->GetBroadcaster<double>(Config.OperandA, true);
-					OperandA->Add(LocalOperandA);
-					if (!LocalOperandA)
-					{
-						bBreak = true;
-						PCGEX_LOG_INVALID_SELECTOR_C(SharedContext.Get(), Operand A, Config.OperandA)
-					}
-				});
+			// Prep weights
+			TSharedPtr<PCGExData::TBuffer<double>> LocalOperandA = Target->GetBroadcaster<double>(Config.OperandA, true);
+			OperandA->Add(LocalOperandA);
+			if (!LocalOperandA)
+			{
+				bBreak = true;
+				PCGEX_LOG_INVALID_SELECTOR_C(SharedContext.Get(), Operand A, Config.OperandA)
+			}
+		});
 
-			PrepResult = bError ? PCGExFactories::EPreparationResult::Fail : PCGExFactories::EPreparationResult::Success;
-		};
+		PrepResult = bError ? PCGExFactories::EPreparationResult::Fail : PCGExFactories::EPreparationResult::Success;
+	};
 
-	TargetsHandler->StartLoading(AsyncManager);
-	return Super::Prepare(InContext, AsyncManager);
+	TargetsHandler->StartLoading(TaskManager);
+	return Super::Prepare(InContext, TaskManager);
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareNearestFilterFactory::CreateFilter() const

@@ -43,15 +43,13 @@ bool FPCGExPathSlideElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				PCGEX_SKIP_INVALID_PATH_ENTRY
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}
@@ -70,14 +68,14 @@ namespace PCGExPathSlide
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathSlide::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -160,7 +158,7 @@ namespace PCGExPathSlide
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		if (RestorePositionBuffer) { PointDataFacade->WriteFastest(AsyncManager); }
+		if (RestorePositionBuffer) { PointDataFacade->WriteFastest(TaskManager); }
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)

@@ -49,8 +49,7 @@ bool FPCGExOffsetPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			{
 				PCGEX_SKIP_INVALID_PATH_ENTRY
 				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			}))
@@ -68,14 +67,14 @@ bool FPCGExOffsetPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 namespace PCGExOffsetPath
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide) { PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet; }
 		else { PointDataFacade->bSupportsScopedGet = false; }
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
@@ -124,14 +123,11 @@ namespace PCGExOffsetPath
 			{
 				switch (Settings->DirectionConstant)
 				{
-				case EPCGExPathNormalDirection::Normal:
-					OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
+				case EPCGExPathNormalDirection::Normal: OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
 					break;
-				case EPCGExPathNormalDirection::Binormal:
-					OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
+				case EPCGExPathNormalDirection::Binormal: OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
 					break;
-				case EPCGExPathNormalDirection::AverageNormal:
-					OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
+				case EPCGExPathNormalDirection::AverageNormal: OffsetDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
 					break;
 				}
 			}
@@ -219,7 +215,7 @@ namespace PCGExOffsetPath
 				DirtyPath = MakeShared<PCGExPaths::FPath>(OutTransforms, Path->IsClosedLoop(), CrossingSettings.Tolerance * 2);
 				TSharedPtr<PCGExData::TBuffer<bool>> FlippedEdgeBuffer = PointDataFacade->GetWritable<bool>(Settings->FlippedAttributeName, false, true, PCGExData::EBufferInit::New);
 				for (int i = 0; i < DirtyPath->NumEdges; i++) { FlippedEdgeBuffer->SetValue(i, !(FVector::DotProduct(Path->Edges[i].Dir, DirtyPath->Edges[i].Dir) > 0)); }
-				PointDataFacade->WriteFastest(AsyncManager);
+				PointDataFacade->WriteFastest(TaskManager);
 			}
 			return;
 		}
@@ -241,34 +237,32 @@ namespace PCGExOffsetPath
 		DirtyPath->BuildEdgeOctree();
 
 		// Find all crossings
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FindCrossings)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, FindCrossings)
 
-		FindCrossings->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		FindCrossings->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+
+			const TSharedPtr<PCGExPaths::FPath> P = This->DirtyPath;
+			const TSharedPtr<PCGExPaths::FPathEdgeLength> L = This->DirtyLength;
+
+			PCGEX_SCOPE_LOOP(i)
 			{
-				PCGEX_ASYNC_THIS
-
-				const TSharedPtr<PCGExPaths::FPath> P = This->DirtyPath;
-				const TSharedPtr<PCGExPaths::FPathEdgeLength> L = This->DirtyLength;
-
-				PCGEX_SCOPE_LOOP(i)
+				TSharedPtr<PCGExPaths::FPathEdgeCrossings> NewCrossing = MakeShared<PCGExPaths::FPathEdgeCrossings>(i);
+				const PCGExPaths::FPathEdge& E = P->Edges[i];
+				P->GetEdgeOctree()->FindElementsWithBoundsTest(E.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
 				{
-					TSharedPtr<PCGExPaths::FPathEdgeCrossings> NewCrossing = MakeShared<PCGExPaths::FPathEdgeCrossings>(i);
-					const PCGExPaths::FPathEdge& E = P->Edges[i];
-					P->GetEdgeOctree()->FindElementsWithBoundsTest(
-						E.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
-						{
-							if (E.ShareIndices(OtherEdge)) { return; }
-							NewCrossing->FindSplit(P, E, L, P, *OtherEdge, This->CrossingSettings);
-						});
+					if (E.ShareIndices(OtherEdge)) { return; }
+					NewCrossing->FindSplit(P, E, L, P, *OtherEdge, This->CrossingSettings);
+				});
 
-					if (!NewCrossing->IsEmpty())
-					{
-						NewCrossing->SortByHash();
-						This->EdgeCrossings[i] = NewCrossing;
-					}
+				if (!NewCrossing->IsEmpty())
+				{
+					NewCrossing->SortByHash();
+					This->EdgeCrossings[i] = NewCrossing;
 				}
-			};
+			}
+		};
 
 		FindCrossings->StartSubLoops(DirtyPath->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
@@ -279,14 +273,11 @@ namespace PCGExOffsetPath
 
 		switch (Settings->CleanupMode)
 		{
-		case EPCGExOffsetCleanupMode::CollapseFlipped:
-			(void)PointDataFacade->Source->Gather(CleanEdge);
+		case EPCGExOffsetCleanupMode::CollapseFlipped: (void)PointDataFacade->Source->Gather(CleanEdge);
 			break;
-		case EPCGExOffsetCleanupMode::SectionsFlipped:
-			CollapseSections(true);
+		case EPCGExOffsetCleanupMode::SectionsFlipped: CollapseSections(true);
 			break;
-		case EPCGExOffsetCleanupMode::Sections:
-			CollapseSections(false);
+		case EPCGExOffsetCleanupMode::Sections: CollapseSections(false);
 			break;
 		}
 	}

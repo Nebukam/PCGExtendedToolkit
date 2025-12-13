@@ -14,10 +14,7 @@ class FPCGExTangentsFromTransform : public FPCGExTangentsOperation
 public:
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 
-	virtual void ProcessFirstPoint(
-		const UPCGBasePointData* InPointData,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const override
+	virtual void ProcessFirstPoint(const UPCGBasePointData* InPointData, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
@@ -26,10 +23,7 @@ public:
 		OutLeave = Dir * LeaveScale;
 	}
 
-	virtual void ProcessLastPoint(
-		const UPCGBasePointData* InPointData,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const override
+	virtual void ProcessLastPoint(const UPCGBasePointData* InPointData, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 		const int32 LastIndex = InPointData->GetNumPoints() - 1;
@@ -39,11 +33,7 @@ public:
 		OutLeave = Dir * LeaveScale;
 	}
 
-	virtual void ProcessPoint(
-		const UPCGBasePointData* InPointData,
-		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const override
+	virtual void ProcessPoint(const UPCGBasePointData* InPointData, const int32 Index, const int32 NextIndex, const int32 PrevIndex, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 

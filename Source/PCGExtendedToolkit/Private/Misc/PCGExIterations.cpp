@@ -7,6 +7,7 @@
 #include "PCGExHelpers.h"
 #include "PCGGraph.h"
 #include "PCGParamData.h"
+#include "PCGExVersion.h"
 #include "PCGPin.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGPointArrayData.h"
@@ -31,25 +32,37 @@ TArray<FPCGPinProperties> UPCGExIterationsSettings::OutputPinProperties() const
 	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(FName("Iterations"));
 	Pin.SetRequiredPin();
 
+#if PCGEX_ENGINE_VERSION < 507
 	switch (Type)
 	{
 	default:
-	case EPCGExIterationDataType::Any:
-		Pin.AllowedTypes = FPCGDataTypeInfo::AsId();
+	case EPCGExIterationDataType::Any: Pin.AllowedTypes = EPCGDataType::Any;
 		break;
-	case EPCGExIterationDataType::Params:
-		Pin.AllowedTypes = FPCGDataTypeInfoParam::AsId();
+	case EPCGExIterationDataType::Params: Pin.AllowedTypes = EPCGDataType::Param;
 		break;
-	case EPCGExIterationDataType::Points:
-		Pin.AllowedTypes = FPCGDataTypeInfoPoint::AsId();
+	case EPCGExIterationDataType::Points: Pin.AllowedTypes = EPCGDataType::Point;
 		break;
-	case EPCGExIterationDataType::Spline:
-		Pin.AllowedTypes = FPCGDataTypeInfoSpline::AsId();
+	case EPCGExIterationDataType::Spline: Pin.AllowedTypes = EPCGDataType::Spline;
 		break;
-	case EPCGExIterationDataType::Texture:
-		Pin.AllowedTypes = FPCGDataTypeInfoBaseTexture2D::AsId();
+	case EPCGExIterationDataType::Texture: Pin.AllowedTypes = EPCGDataType::BaseTexture;
 		break;
 	}
+#else
+	switch (Type)
+	{
+	default: case EPCGExIterationDataType::Any: Pin.AllowedTypes = FPCGDataTypeInfo::AsId();
+		break;
+	case EPCGExIterationDataType::Params: Pin.AllowedTypes = FPCGDataTypeInfoParam::AsId();
+		break;
+	case EPCGExIterationDataType::Points: Pin.AllowedTypes = FPCGDataTypeInfoPoint::AsId();
+		break;
+	case EPCGExIterationDataType::Spline: Pin.AllowedTypes = FPCGDataTypeInfoSpline::AsId();
+		break;
+	case EPCGExIterationDataType::Texture: Pin.AllowedTypes = FPCGDataTypeInfoBaseTexture2D::AsId();
+		break;
+	}
+#endif
+
 	return PinProperties;
 }
 
@@ -95,18 +108,13 @@ bool FPCGExIterationsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		switch (Settings->Type)
 		{
-		default:
-		case EPCGExIterationDataType::Params:
-			Data = Context->ManagedObjects->New<UPCGParamData>();
+		default: case EPCGExIterationDataType::Params: Data = Context->ManagedObjects->New<UPCGParamData>();
 			break;
-		case EPCGExIterationDataType::Points:
-			Data = Context->ManagedObjects->New<UPCGPointArrayData>();
+		case EPCGExIterationDataType::Points: Data = Context->ManagedObjects->New<UPCGPointArrayData>();
 			break;
-		case EPCGExIterationDataType::Spline:
-			Data = Context->ManagedObjects->New<UPCGSplineData>();
+		case EPCGExIterationDataType::Spline: Data = Context->ManagedObjects->New<UPCGSplineData>();
 			break;
-		case EPCGExIterationDataType::Texture:
-			Data = Context->ManagedObjects->New<UPCGTextureData>();
+		case EPCGExIterationDataType::Texture: Data = Context->ManagedObjects->New<UPCGTextureData>();
 			break;
 		}
 

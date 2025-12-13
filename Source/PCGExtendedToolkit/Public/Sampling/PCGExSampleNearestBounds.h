@@ -108,23 +108,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
+	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
+	FPCGExApplySamplingDetails ApplySampling;
+	
 	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, DisplayPriority=-1))
 	bool bUseLocalCurve = false;
 
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_NotOverridable, DisplayName="Weight Remap", EditCondition = "bUseLocalCurve", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, DisplayName="Weight Remap", EditCondition = "bUseLocalCurve", EditConditionHides))
 	FRuntimeFloatCurve LocalWeightRemap;
 
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName="Weight Remap", EditCondition = "!bUseLocalCurve", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight Remap", EditCondition = "!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightRemap;
-
-	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
-	FPCGExApplySamplingDetails ApplySampling;
-
 
 	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
@@ -317,8 +316,6 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_DECL_TOGGLE)
 
-	virtual void RegisterAssetDependencies() override;
-
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -329,7 +326,6 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestBounds)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
@@ -355,8 +351,8 @@ namespace PCGExSampleNearestBounds
 		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
 		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
 
-		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
-		double MaxDistance = 0;
+		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxSampledDistanceScoped;
+		double MaxSampledDistance = 0;
 
 		int8 bAnySuccess = 0;
 
@@ -373,7 +369,7 @@ namespace PCGExSampleNearestBounds
 
 		void SamplingFailed(const int32 Index);
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 

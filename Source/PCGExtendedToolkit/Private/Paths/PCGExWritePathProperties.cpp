@@ -66,8 +66,7 @@ bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FOREACH_FIELD_PATH_POINT(PCGEX_OUTPUT_VALIDATE_NAME)
 	PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	if (Settings->PathAttributePackingMode == EPCGExAttributeSetPackingMode::Merged &&
-		Settings->WriteAnyPathData())
+	if (Settings->PathAttributePackingMode == EPCGExAttributeSetPackingMode::Merged && Settings->WriteAnyPathData())
 	{
 		Context->PathAttributeSet = Context->ManagedObjects->New<UPCGParamData>();
 		PCGEx::InitArray(Context->MergedAttributeSetKeys, Context->MainPoints->Num());
@@ -85,24 +84,22 @@ bool FPCGExWritePathPropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				if (Context->PathAttributeSet)
-				{
-					Context->MergedAttributeSetKeys[Entry->IOIndex] = Context->PathAttributeSet->Metadata->AddEntry();
-				}
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         if (Context->PathAttributeSet)
+			                                         {
+				                                         Context->MergedAttributeSetKeys[Entry->IOIndex] = Context->PathAttributeSet->Metadata->AddEntry();
+			                                         }
 
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}
@@ -125,14 +122,14 @@ bool FPCGExWritePathPropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 
 namespace PCGExWritePathProperties
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWritePathProperties::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->CanForwardData() ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate)
 
@@ -167,13 +164,7 @@ namespace PCGExWritePathProperties
 
 		for (int i = 0; i < NumPoints; i++)
 		{
-			Details[i] = {
-				i,
-				FVector::ZeroVector,
-				FVector::ZeroVector,
-				FVector::ZeroVector,
-				FVector::ZeroVector
-			};
+			Details[i] = {i, FVector::ZeroVector, FVector::ZeroVector, FVector::ZeroVector, FVector::ZeroVector};
 		}
 
 		StartParallelLoopForPoints();
@@ -273,9 +264,7 @@ namespace PCGExWritePathProperties
 			bool bIsOdd = false;
 			bool bInner = false;
 
-			if (PCGExPaths::FInclusionInfos Infos;
-				Context->InclusionHelper
-				&& Context->InclusionHelper->Find(Path->Idx, Infos))
+			if (PCGExPaths::FInclusionInfos Infos; Context->InclusionHelper && Context->InclusionHelper->Find(Path->Idx, Infos))
 			{
 				bIsOdd = Infos.bOdd;
 				bInner = Infos.Depth > 0;
@@ -287,9 +276,7 @@ namespace PCGExWritePathProperties
 			if (bInner) { if (Settings->bTagInner) { PointIO->Tags->AddRaw(Settings->InnerTag); } }
 			else { if (Settings->bTagOuter) { PointIO->Tags->AddRaw(Settings->OuterTag); } }
 
-			if (Settings->bWriteBoundingBoxCenter ||
-				Settings->bWriteBoundingBoxExtent ||
-				Settings->bWriteBoundingBoxOrientation)
+			if (Settings->bWriteBoundingBoxCenter || Settings->bWriteBoundingBoxExtent || Settings->bWriteBoundingBoxOrientation)
 			{
 				UE::Geometry::TMinVolumeBox3<double> Box;
 				if (Box.Solve(Path->NumPoints, [PathPtr = Path.Get()](int32 i) { return PathPtr->GetPos_Unsafe(i); }))
@@ -322,23 +309,19 @@ namespace PCGExWritePathProperties
 			if (Settings->bTagConvex && Path->bIsConvex) { PointIO->Tags->AddRaw(Settings->ConvexTag); }
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()
 	{
 		TProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>::Output();
-		if (PathAttributeSet
-			&& !Context->PathAttributeSet)
+		if (PathAttributeSet && !Context->PathAttributeSet)
 		{
 			FPCGTaggedData& StagedData = Context->StageOutput(PathAttributeSet, false, false);
 			StagedData.Pin = OutputPathProperties;
 		}
 
-		if (PCGExPaths::FInclusionInfos Infos;
-			Settings->bUseInclusionPins
-			&& Context->InclusionHelper
-			&& Context->InclusionHelper->Find(Path->Idx, Infos))
+		if (PCGExPaths::FInclusionInfos Infos; Settings->bUseInclusionPins && Context->InclusionHelper && Context->InclusionHelper->Find(Path->Idx, Infos))
 		{
 			if (!Infos.Depth)
 			{

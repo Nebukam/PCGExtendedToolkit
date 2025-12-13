@@ -160,10 +160,7 @@ struct FPCGExPathfindingPlotEdgesContext final : FPCGExEdgesProcessorContext
 
 	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
 
-	void BuildPath(
-		const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query,
-		const TSharedPtr<PCGExData::FPointIO>& PathIO,
-		const TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler>& ClusterForwardHandler = nullptr) const;
+	void BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler>& ClusterForwardHandler = nullptr) const;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -195,8 +192,8 @@ namespace PCGExPathfindingPlotEdges
 		TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler> ClusterDataForwardHandler;
 
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -204,7 +201,7 @@ namespace PCGExPathfindingPlotEdges
 
 		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void Cleanup() override;
 	};
@@ -219,8 +216,8 @@ namespace PCGExPathfindingPlotEdges
 		TSharedPtr<PCGExData::FDataForwardHandler> VtxDataForwardHandler;
 
 	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 		}
 

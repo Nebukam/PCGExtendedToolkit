@@ -45,9 +45,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionIO.ToSharedRef());
 
-	Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
-		Settings->PointPointIntersectionDetails.FuseDetails,
-		Context->MainPoints->GetInBounds().ExpandBy(10));
+	Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, Context->MainPoints->GetInBounds().ExpandBy(10));
 
 	// TODO : Support local fuse distance, requires access to all input facades
 	if (!Context->UnionGraph->Init(Context)) { return false; }
@@ -55,31 +53,19 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
-	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
-		Context,
-		Context->UnionDataFacade.ToSharedRef(),
-		Context->UnionGraph.ToSharedRef(),
-		Settings->PointPointIntersectionDetails,
-		Settings->DefaultPointsBlendingDetails,
-		Settings->DefaultEdgesBlendingDetails);
+	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(Context, Context->UnionDataFacade.ToSharedRef(), Context->UnionGraph.ToSharedRef(), Settings->PointPointIntersectionDetails, Settings->DefaultPointsBlendingDetails, Settings->DefaultEdgesBlendingDetails);
 
 	Context->UnionProcessor->VtxCarryOverDetails = &Context->VtxCarryOverDetails;
 	Context->UnionProcessor->EdgesCarryOverDetails = &Context->EdgesCarryOverDetails;
 
 	if (Settings->bFindPointEdgeIntersections)
 	{
-		Context->UnionProcessor->InitPointEdge(
-			Settings->PointEdgeIntersectionDetails,
-			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomPointEdgeBlendingDetails);
+		Context->UnionProcessor->InitPointEdge(Settings->PointEdgeIntersectionDetails, Settings->bUseCustomPointEdgeBlending, &Settings->CustomPointEdgeBlendingDetails);
 	}
 
 	if (Settings->bFindEdgeEdgeIntersections)
 	{
-		Context->UnionProcessor->InitEdgeEdge(
-			Settings->EdgeEdgeIntersectionDetails,
-			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomEdgeEdgeBlendingDetails);
+		Context->UnionProcessor->InitEdgeEdge(Settings->EdgeEdgeIntersectionDetails, Settings->bUseCustomPointEdgeBlending, &Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
 	return true;
@@ -95,13 +81,11 @@ bool FPCGExFuseClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	{
 		const bool bDoInline = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-				NewBatch->bForceSingleThreadedProcessing = bDoInline;
-			}, bDoInline))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+			NewBatch->bForceSingleThreadedProcessing = bDoInline;
+		}, bDoInline))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -138,11 +122,11 @@ namespace PCGExFuseClusters
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		VtxIOIndex = VtxDataFacade->Source->IOIndex;
 		EdgesIOIndex = EdgeDataFacade->Source->IOIndex;
@@ -176,7 +160,7 @@ namespace PCGExFuseClusters
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InsertEdges)
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, InsertEdges)
 
 			InsertEdges->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 			{
@@ -207,9 +191,7 @@ namespace PCGExFuseClusters
 				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
-					UnionGraph->InsertEdge_Unsafe(
-						VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End),
-						EdgeDataFacade->GetInPoint(Edge->PointIndex));
+					UnionGraph->InsertEdge_Unsafe(VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End), EdgeDataFacade->GetInPoint(Edge->PointIndex));
 				}
 			}
 			else
@@ -217,9 +199,7 @@ namespace PCGExFuseClusters
 				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
-					UnionGraph->InsertEdge(
-						VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End),
-						EdgeDataFacade->GetInPoint(Edge->PointIndex));
+					UnionGraph->InsertEdge(VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End), EdgeDataFacade->GetInPoint(Edge->PointIndex));
 				}
 			}
 		}
@@ -230,9 +210,7 @@ namespace PCGExFuseClusters
 				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
-					UnionGraph->InsertEdge_Unsafe(
-						VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End),
-						EdgeDataFacade->GetInPoint(Edge.PointIndex));
+					UnionGraph->InsertEdge_Unsafe(VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End), EdgeDataFacade->GetInPoint(Edge.PointIndex));
 				}
 			}
 			else
@@ -240,9 +218,7 @@ namespace PCGExFuseClusters
 				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
-					UnionGraph->InsertEdge(
-						VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End),
-						EdgeDataFacade->GetInPoint(Edge.PointIndex));
+					UnionGraph->InsertEdge(VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End), EdgeDataFacade->GetInPoint(Edge.PointIndex));
 				}
 			}
 		}

@@ -27,13 +27,19 @@ void FPCGExSimpleEdgeOutputSettings::Init(const TSharedRef<PCGExData::FFacade>& 
 
 void FPCGExSimpleEdgeOutputSettings::Set(const int32 EntryIndex, const double InLength, const FVector& InDir) const
 {
-	if (DirWriter) { DirWriter->SetValue(EntryIndex, bInvertDirection ? InDir * -1 : InDir); }
+	if (DirWriter)
+	{
+		DirWriter->SetValue(EntryIndex, bInvertDirection ? InDir * -1 : InDir);
+	}
 	if (LengthWriter) { LengthWriter->SetValue(EntryIndex, InLength); }
 }
 
 void FPCGExSimpleEdgeOutputSettings::Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const
 {
-	if (DirWriter) { DirWriter->SetValue(EntryIndex, bInvertDirection ? Data.Direction * -1 : Data.Direction); }
+	if (DirWriter)
+	{
+		DirWriter->SetValue(EntryIndex, bInvertDirection ? Data.Direction * -1 : Data.Direction);
+	}
 	if (LengthWriter) { LengthWriter->SetValue(EntryIndex, Data.Length); }
 }
 

@@ -5,9 +5,9 @@
 
 #include "PCGExBroadcast.h"
 #include "PCGExHelpers.h"
+#include "PCGExTypes.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/Blending//PCGExBlendModes.h"
 
 #define LOCTEXT_NAMESPACE "PCGExReduceDataAttributeElement"
 #define PCGEX_NAMESPACE ReduceDataAttribute
@@ -147,20 +147,18 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 				for (int i = 0; i < Context->Attributes.Num(); i++)
 				{
 					const FPCGMetadataAttributeBase* Att = Context->Attributes[i];
-					PCGEx::ExecuteWithRightType(
-						Att->GetTypeId(), [&](auto ValueType)
-						{
-							using T_ATTR = decltype(ValueType);
-							const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-							T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+					PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
+					{
+						using T_ATTR = decltype(ValueType);
+						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
+						T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 
-							PCGEx::ExecuteWithRightType(
-								Settings->OutputType, [&](auto DummyValue)
-								{
-									using T = decltype(DummyValue);
-									StringsToJoin.Add(PCGEx::Convert<T, FString>(PCGEx::Convert<T_ATTR, T>(Value)));
-								});
+						PCGEx::ExecuteWithRightType(Settings->OutputType, [&](auto DummyValue)
+						{
+							using T = decltype(DummyValue);
+							StringsToJoin.Add(PCGExTypes::Convert<T_ATTR, FString>(Value));
 						});
+					});
 				}
 			}
 			else
@@ -168,14 +166,13 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 				for (int i = 0; i < Context->Attributes.Num(); i++)
 				{
 					const FPCGMetadataAttributeBase* Att = Context->Attributes[i];
-					PCGEx::ExecuteWithRightType(
-						Att->GetTypeId(), [&](auto ValueType)
-						{
-							using T_ATTR = decltype(ValueType);
-							const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-							T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
-							StringsToJoin.Add(PCGEx::Convert<T_ATTR, FString>(Value));
-						});
+					PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
+					{
+						using T_ATTR = decltype(ValueType);
+						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
+						T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+						StringsToJoin.Add(PCGExTypes::Convert<T_ATTR, FString>(Value));
+					});
 				}
 			}
 
@@ -185,54 +182,46 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 		}
 		else
 		{
-			PCGEx::ExecuteWithRightType(
-				Context->OutputType, [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(Context->OutputType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				T ReducedValue = T{};
+
+				for (int i = 0; i < Context->Attributes.Num(); i++)
 				{
-					using T = decltype(DummyValue);
-					T ReducedValue = T{};
-					for (int i = 0; i < Context->Attributes.Num(); i++)
+					const FPCGMetadataAttributeBase* Att = Context->Attributes[i];
+					PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
 					{
-						const FPCGMetadataAttributeBase* Att = Context->Attributes[i];
-						PCGEx::ExecuteWithRightType(
-							Att->GetTypeId(), [&](auto ValueType)
+						using T_ATTR = decltype(ValueType);
+						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
+						T Value = PCGExTypes::Convert<T_ATTR, T>(PCGExDataHelpers::ReadDataValue(TypedAtt));
+
+						if (i == 0) { ReducedValue = Value; }
+						else
+						{
+							switch (Settings->Method)
 							{
-								using T_ATTR = decltype(ValueType);
-								const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-								T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+							case EPCGExReduceDataDomainMethod::Min: ReducedValue = PCGExDataBlending::BlendFunctions::Min(ReducedValue, Value, 1);
+								break;
+							case EPCGExReduceDataDomainMethod::Max: ReducedValue = PCGExDataBlending::BlendFunctions::Max(ReducedValue, Value, 1);
+								break;
+							case EPCGExReduceDataDomainMethod::Sum:
+							case EPCGExReduceDataDomainMethod::Average: ReducedValue = PCGExDataBlending::BlendFunctions::Add(ReducedValue, Value, 1);
+								break;
+							default: case EPCGExReduceDataDomainMethod::Join: break;
+							}
+						}
+					});
+				}
 
-								if (i == 0) { ReducedValue = PCGEx::Convert<T_ATTR, T>(Value); }
-								else
-								{
-									switch (Settings->Method)
-									{
-									case EPCGExReduceDataDomainMethod::Min:
-										ReducedValue = PCGExBlend::Min(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
-										break;
-									case EPCGExReduceDataDomainMethod::Max:
-										ReducedValue = PCGExBlend::Max(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
-										break;
-									case EPCGExReduceDataDomainMethod::Sum:
-										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
-										break;
-									case EPCGExReduceDataDomainMethod::Average:
-										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
-										break;
-									default:
-									case EPCGExReduceDataDomainMethod::Join:
-										break;
-									}
-								}
-							});
-					}
+				if (Settings->Method == EPCGExReduceDataDomainMethod::Average)
+				{
+					ReducedValue = PCGExDataBlending::BlendFunctions::Div(ReducedValue, ReducedValue, Context->Attributes.Num());
+				}
 
-					if (Settings->Method == EPCGExReduceDataDomainMethod::Average)
-					{
-						ReducedValue = PCGExBlend::Div(ReducedValue, Context->Attributes.Num());
-					}
-
-					FPCGMetadataAttribute<T>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, ReducedValue);
-					OutAtt->SetValue(OutMetadata->AddEntry(), ReducedValue);
-				});
+				FPCGMetadataAttribute<T>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, ReducedValue);
+				OutAtt->SetValue(OutMetadata->AddEntry(), ReducedValue);
+			});
 		}
 	}
 

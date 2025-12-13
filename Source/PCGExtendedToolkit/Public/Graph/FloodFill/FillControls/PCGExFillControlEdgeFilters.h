@@ -15,8 +15,8 @@ struct FPCGExFillControlConfigEdgeFilters : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigEdgeFilters() :
-		FPCGExFillControlConfigBase()
+	FPCGExFillControlConfigEdgeFilters()
+		: FPCGExFillControlConfigBase()
 	{
 		bSupportSource = false;
 	}
@@ -63,9 +63,7 @@ class UPCGExFillControlsEdgeFiltersProviderSettings : public UPCGExFillControlsF
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsEdgeFilters, "Fill Control : Edge Filters", "Filter edges along which the diffusion can occur.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsEdgeFilters, "Fill Control : Edge Filters", "Filter edges along which the diffusion can occur.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

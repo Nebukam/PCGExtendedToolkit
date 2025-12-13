@@ -38,12 +38,10 @@ bool FPCGExSanitizeClustersElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any clusters."));
 		}
@@ -63,11 +61,11 @@ namespace PCGExSanitizeClusters
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSanitizeClusters::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		TArray<PCGExGraph::FEdge> IndexedEdges;
 
@@ -83,7 +81,7 @@ namespace PCGExSanitizeClusters
 	void FBatch::OnInitialPostProcess()
 	{
 		TBatch<FProcessor>::OnInitialPostProcess();
-		GraphBuilder->Compile(AsyncManager, true);
+		GraphBuilder->Compile(TaskManager, true);
 	}
 
 	void FBatch::Output()

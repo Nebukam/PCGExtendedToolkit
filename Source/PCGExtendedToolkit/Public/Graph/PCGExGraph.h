@@ -18,7 +18,7 @@ namespace PCGExMT
 {
 	struct FScope;
 	class FTaskManager;
-	class FAsyncMultiHandle;
+	class IAsyncHandleGroup;
 }
 
 struct FPCGExCarryOverDetails;
@@ -91,11 +91,7 @@ namespace PCGExGraph
 
 #pragma region Graph Utils
 
-	bool BuildIndexedEdges(
-		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
-		const TMap<uint32, int32>& EndpointsLookup,
-		TArray<FEdge>& OutEdges,
-		const bool bStopOnError = false);
+	bool BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO, const TMap<uint32, int32>& EndpointsLookup, TArray<FEdge>& OutEdges, const bool bStopOnError = false);
 
 #pragma endregion
 
@@ -222,13 +218,10 @@ namespace PCGExGraph
 		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();
 
-		void Compile(
-			const TWeakPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle,
-			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-			const TSharedPtr<FGraphBuilder>& InBuilder);
+		void Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FGraphBuilder>& InBuilder);
 
 	protected:
-		TWeakPtr<PCGExMT::FTaskManager> WeakAsyncManager;
+		TWeakPtr<PCGExMT::FTaskManager> WeakTaskManager;
 		TWeakPtr<FGraphBuilder> WeakBuilder;
 
 		const FGraphMetadataDetails* MetadataDetails = nullptr;
@@ -316,9 +309,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			return NodeMetadata.FindOrAdd(NodeIndex, FGraphNodeMetadata(NodeIndex));
 		}
 
-		FORCEINLINE FGraphEdgeMetadata& AddNodeAndEdgeMetadata_Unsafe(
-			const int32 InNodeIndex, const int32 InEdgeIndex, const int32 RootIndex = -1,
-			const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
+		FORCEINLINE FGraphEdgeMetadata& AddNodeAndEdgeMetadata_Unsafe(const int32 InNodeIndex, const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
 		{
 			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
 			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
@@ -329,9 +320,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
 		}
 
-		FORCEINLINE FGraphEdgeMetadata& AddEdgeMetadata_Unsafe(
-			const int32 InEdgeIndex, const int32 RootIndex = -1,
-			const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
+		FORCEINLINE FGraphEdgeMetadata& AddEdgeMetadata_Unsafe(const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
 		{
 			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
 		}
@@ -366,7 +355,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder : public TSharedFromThis<FGraphBuilder>
 	{
 	protected:
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 		const FGraphMetadataDetails* MetadataDetailsPtr = nullptr;
 		bool bWriteVtxDataFacadeWithCompile = false;
 		bool bCompiling = false;
@@ -405,14 +394,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		// This will be set to true post-graph compilation, if compilation was a success
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(
-			const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
-			const FPCGExGraphBuilderDetails* InDetails);
+		FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails);
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }
 
-		void CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
-		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
+		void CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
+		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
 
 	protected:
 		void OnCompilationEnd();
@@ -424,25 +411,17 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		~FGraphBuilder() = default;
 	};
 
-	bool BuildEndpointsLookup(
-		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		TMap<uint32, int32>& OutIndices,
-		TArray<int32>& OutAdjacency);
+	bool BuildEndpointsLookup(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TMap<uint32, int32>& OutIndices, TArray<int32>& OutAdjacency);
 
 #pragma endregion
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsPointDataVtxReady(const UPCGMetadata* Metadata);
+	PCGEXTENDEDTOOLKIT_API bool IsPointDataVtxReady(const UPCGMetadata* Metadata);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsPointDataEdgeReady(const UPCGMetadata* Metadata);
+	PCGEXTENDEDTOOLKIT_API bool IsPointDataEdgeReady(const UPCGMetadata* Metadata);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+	PCGEXTENDEDTOOLKIT_API void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+	PCGEXTENDEDTOOLKIT_API void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+	PCGEXTENDEDTOOLKIT_API void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 }

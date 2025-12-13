@@ -35,17 +35,16 @@ public:
 			// Lune-based condition (Beta-Skeleton for 0 < Beta <= 1)
 			const double SqrDist = FMath::Square(Dist / Beta);
 
-			Cluster->NodeOctree->FindFirstElementWithBoundsTest(
-				FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGExOctree::FItem& Item)
+			Cluster->NodeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGExOctree::FItem& Item)
+			{
+				const FVector& OtherPoint = Cluster->GetPos(Item.Index);
+				if (FVector::DistSquared(OtherPoint, From) < SqrDist && FVector::DistSquared(OtherPoint, To) < SqrDist)
 				{
-					const FVector& OtherPoint = Cluster->GetPos(Item.Index);
-					if (FVector::DistSquared(OtherPoint, From) < SqrDist && FVector::DistSquared(OtherPoint, To) < SqrDist)
-					{
-						FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
-						return false;
-					}
-					return true;
-				});
+					FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
+					return false;
+				}
+				return true;
+			});
 		}
 		else
 		{
@@ -55,18 +54,16 @@ public:
 			const FVector C1 = Center + Normal;
 			const FVector C2 = Center - Normal;
 
-			Cluster->NodeOctree->FindFirstElementWithBoundsTest(
-				FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGExOctree::FItem& Item)
+			Cluster->NodeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGExOctree::FItem& Item)
+			{
+				const FVector& OtherPoint = Cluster->GetPos(Item.Index);
+				if (FVector::DistSquared(OtherPoint, C1) < SqrDist || FVector::DistSquared(OtherPoint, C2) < SqrDist)
 				{
-					const FVector& OtherPoint = Cluster->GetPos(Item.Index);
-					if (FVector::DistSquared(OtherPoint, C1) < SqrDist ||
-						FVector::DistSquared(OtherPoint, C2) < SqrDist)
-					{
-						FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
-						return false;
-					}
-					return true;
-				});
+					FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
+					return false;
+				}
+				return true;
+			});
 		}
 	}
 
@@ -108,9 +105,5 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	PCGEX_CREATE_REFINE_OPERATION(
-		EdgeRefineSkeleton, {
-		Operation->Beta = Beta;
-		Operation->bInvert = bInvert;
-		})
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRefineSkeleton, { Operation->Beta = Beta; Operation->bInvert = bInvert; })
 };

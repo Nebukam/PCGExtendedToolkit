@@ -90,13 +90,12 @@ void UPCGExInstancedFactory::ApplyOverrides()
 		FProperty* Property = ObjectClass->FindPropertyByName(PossibleOverride.Key);
 		if (!Property) { continue; }
 
-		PCGEx::ExecuteWithRightType(
-			PossibleOverride.Value->GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(PossibleOverride.Value);
-				PCGEx::TrySetFPropertyValue<T>(this, Property, TypedAttribute->GetValue(0));
-			});
+		PCGEx::ExecuteWithRightType(PossibleOverride.Value->GetTypeId(), [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(PossibleOverride.Value);
+			PCGEx::TrySetFPropertyValue<T>(this, Property, TypedAttribute->GetValue(0));
+		});
 	}
 }
 

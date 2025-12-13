@@ -153,8 +153,8 @@ namespace PCGExPathfindingEdges
 		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
 
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -163,7 +163,7 @@ namespace PCGExPathfindingEdges
 
 		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 	};
 }

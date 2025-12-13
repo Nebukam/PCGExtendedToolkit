@@ -75,9 +75,7 @@ class UPCGExFillControlsCountProviderSettings : public UPCGExFillControlsFactory
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsCount, "Fill Control : Count", "Stop fill after a certain number of vtx have been captured.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsCount, "Fill Control : Count", "Stop fill after a certain number of vtx have been captured.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

@@ -47,9 +47,7 @@ public:
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		RefineEdges, "Cluster : Refine", "Refine edges according to special rules.",
-		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RefineEdges, "Cluster : Refine", "Refine edges according to special rules.", (Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
 #endif
@@ -164,7 +162,7 @@ namespace PCGExRefineEdges
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 
 		void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope);

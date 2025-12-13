@@ -15,8 +15,8 @@ struct FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigFeedback() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicConfigFeedback()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -57,18 +57,9 @@ public:
 	bool bBleed = true;
 	bool bBinary = false;
 
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
 	void FeedbackPointScore(const PCGExCluster::FNode& Node);
 
@@ -100,9 +91,7 @@ class UPCGExHeuristicFeedbackProviderSettings : public UPCGExHeuristicsFactoryPr
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsFeedback, "Heuristics : Feedback", "Heuristics based on visited score feedback.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsFeedback, "Heuristics : Feedback", "Heuristics based on visited score feedback.", FName(GetDisplayName()))
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorHeuristicsFeedback; }
 #endif
 	//~End UPCGSettings

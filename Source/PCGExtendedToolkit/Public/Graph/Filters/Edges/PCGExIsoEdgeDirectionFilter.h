@@ -117,9 +117,7 @@ class UPCGExIsoEdgeDirectionFilterProviderSettings : public UPCGExEdgeFilterProv
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		IsoEdgeDirectionFilterFactory, "Edge Filter : Edge Direction", "Dot product comparison of the edge direction against a local attribute or constant.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(IsoEdgeDirectionFilterFactory, "Edge Filter : Edge Direction", "Dot product comparison of the edge direction against a local attribute or constant.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 

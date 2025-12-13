@@ -107,12 +107,7 @@ protected:
 
 namespace PCGExFindPointOnBounds
 {
-	PCGEXTENDEDTOOLKIT_API
-	void MergeBestCandidatesAttributes(
-		const TSharedPtr<PCGExData::FPointIO>& Target,
-		const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
-		const TArray<int32>& BestIndices,
-		const PCGEx::FAttributesInfos& InAttributesInfos);
+	PCGEXTENDEDTOOLKIT_API void MergeBestCandidatesAttributes(const TSharedPtr<PCGExData::FPointIO>& Target, const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections, const TArray<int32>& BestIndices, const PCGEx::FAttributesInfos& InAttributesInfos);
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFindPointOnBoundsContext, UPCGExFindPointOnBoundsSettings>
 	{
@@ -124,14 +119,14 @@ namespace PCGExFindPointOnBounds
 		int32 BestIndex = -1;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};

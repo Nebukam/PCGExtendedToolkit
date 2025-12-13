@@ -4,12 +4,13 @@
 #include "Sampling/PCGExSampleNearestPath.h"
 
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
@@ -23,8 +24,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPathSettings, RangeMax, double, Rang
 PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPathSettings, SampleAlpha, double, bSampleSpecificAlpha, SampleAlphaAttribute, SampleAlphaConstant)
 PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPathSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
-UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
@@ -73,45 +73,37 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
-	Context->NumMaxTargets = Context->TargetsHandler->Init(
-		Context, PCGExPaths::SourcePathsLabel,
-		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExPaths::SourcePathsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	{
+		if (IO->GetNum() < 2) { return FBox(NoInit); }
+
+		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+
+		switch (Settings->SampleInputs)
 		{
-			if (IO->GetNum() < 2) { return FBox(NoInit); }
+		default: case EPCGExPathSamplingIncludeMode::All: break;
+		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(NoInit); }
+			break;
+		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(NoInit); }
+			break;
+		}
 
-			const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+		// TODO : We could support per-point project here but ugh
+		TSharedPtr<PCGExPaths::FPolyPath> Path = MakeShared<PCGExPaths::FPolyPath>(IO, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
+		Path->OffsetProjection(Settings->InclusionOffset);
 
-			switch (Settings->SampleInputs)
-			{
-			default:
-			case EPCGExPathSamplingIncludeMode::All:
-				break;
-			case EPCGExPathSamplingIncludeMode::ClosedLoopOnly:
-				if (!bClosedLoop) { return FBox(NoInit); }
-				break;
-			case EPCGExPathSamplingIncludeMode::OpenLoopsOnly:
-				if (bClosedLoop) { return FBox(NoInit); }
-				break;
-			}
+		if (!Path->Bounds.IsValid) { return FBox(NoInit); }
 
-			// TODO : We could support per-point project here but ugh
-			TSharedPtr<PCGExPaths::FPolyPath> Path = MakeShared<PCGExPaths::FPolyPath>(IO, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
-			Path->OffsetProjection(Settings->InclusionOffset);
+		Path->IOIndex = IO->IOIndex;
+		Path->Idx = Idx;
 
-			if (!Path->Bounds.IsValid) { return FBox(NoInit); }
+		Context->Paths.Add(Path);
 
-			Path->IOIndex = IO->IOIndex;
-			Path->Idx = Idx;
-
-			Context->Paths.Add(Path);
-
-			return Path->Bounds;
-		});
+		return Path->Bounds;
+	});
 
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxTargets)
@@ -130,21 +122,19 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->BlendingFactories.IsEmpty())
 	{
-		Context->TargetsHandler->ForEachPreloader(
-			[&](PCGExData::FFacadePreloader& Preloader)
-			{
-				PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-			});
+		Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+		{
+			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+		});
 	}
 
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
 
-	if (!Settings->bUseLocalCurve && Settings->WeightOverDistance.IsValid())
+	if (!Settings->bUseLocalCurve)
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
@@ -167,23 +157,22 @@ bool FPCGExSampleNearestPathElement::AdvanceWork(FPCGExContext* InContext, const
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
-			const bool bError = Context->TargetsHandler->ForEachTarget(
-				[&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
+			const bool bError = Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
+			{
+				// Prep look up getters
+				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					// Prep look up getters
-					if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
+					// TODO : Preload if relevant
+					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
+					if (!LookAtUpGetter->Init(Target, false))
 					{
-						// TODO : Preload if relevant
-						TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-						if (!LookAtUpGetter->Init(Target, false))
-						{
-							bBreak = true;
-							return;
-						}
-
-						Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
+						bBreak = true;
+						return;
 					}
-				});
+
+					Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
+				}
+			});
 
 			if (bError)
 			{
@@ -199,18 +188,16 @@ bool FPCGExSampleNearestPathElement::AdvanceWork(FPCGExContext* InContext, const
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 			{
 				Context->CancelExecution(TEXT("Could not find any paths to split."));
 			}
 		};
 
-		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
-		return false;
+		Context->TargetsHandler->StartLoading(Context->GetTaskManager());
+		if (Context->IsWaitingForTasks()) { return false; }
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
@@ -226,20 +213,19 @@ namespace PCGExSampleNearestPath
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPath::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
-			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 			return false;
 		}
 
@@ -319,7 +305,7 @@ namespace PCGExSampleNearestPath
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 		TProcessor<FPCGExSampleNearestPathContext, UPCGExSampleNearestPathSettings>::PrepareLoopScopesForPoints(Loops);
-		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
+		MaxSampledDistanceScoped = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
 	void FProcessor::SamplingFailed(const int32 Index)
@@ -397,9 +383,7 @@ namespace PCGExSampleNearestPath
 			double WeightedTime = 0;
 			double WeightedSegmentTime = 0;
 
-			auto SampleSingle = [&](const PCGExData::FElement& EdgeElement, const double DistSquared,
-			                        const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp,
-			                        const int32 NumInsideIncrement, const bool bClosedLoop)
+			auto SampleSingle = [&](const PCGExData::FElement& EdgeElement, const double DistSquared, const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp, const int32 NumInsideIncrement, const bool bClosedLoop)
 			{
 				bool bReplaceWithCurrent = Union->IsEmpty();
 
@@ -407,9 +391,7 @@ namespace PCGExSampleNearestPath
 				{
 					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(EdgeElement, SinglePick); }
 				}
-				else if (
-					(bSampleClosest && WeightedDistance > DistSquared)
-					|| (bSampleFarthest && WeightedDistance < DistSquared))
+				else if ((bSampleClosest && WeightedDistance > DistSquared) || (bSampleFarthest && WeightedDistance < DistSquared))
 				{
 					bReplaceWithCurrent = true;
 				}
@@ -432,9 +414,7 @@ namespace PCGExSampleNearestPath
 				}
 			};
 
-			auto SampleMulti = [&](const PCGExData::FElement& EdgeElement, const double DistSquared,
-			                       const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp,
-			                       const int32 NumInsideIncrement, const bool bClosedLoop)
+			auto SampleMulti = [&](const PCGExData::FElement& EdgeElement, const double DistSquared, const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp, const int32 NumInsideIncrement, const bool bClosedLoop)
 			{
 				// TODO : Adjust dist based on edge lerp
 				WeightedDistance += FMath::Square(DistSquared);
@@ -455,29 +435,26 @@ namespace PCGExSampleNearestPath
 
 			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::FPolyPath>& InPath)
 			{
-				const PCGExData::FElement EdgeElement(EdgeIndex, InPath->Idx);
-				const PCGExData::FElement A(InPath->Edges[EdgeIndex].Start, InPath->Idx);
-				const PCGExData::FElement B(InPath->Edges[EdgeIndex].End, InPath->Idx);
-
+				PCGExData::FElement EdgeElement;
+				PCGExData::FElement A;
+				PCGExData::FElement B;
+				InPath->GetEdgeElements(EdgeIndex, EdgeElement, A, B);
+				
 				const bool bClosedLoop = InPath->IsClosedLoop();
 				const bool bIsInside = InPath->IsInsideProjection(Transform.GetLocation());
 
 				if (Settings->bOnlySampleWhenInside && !bIsInside) { return; }
 
-				int32 NumInsideIncrement = 0;
-				if (bIsInside) { if (!bOnlyIncrementInsideNumIfClosed || bClosedLoop) { NumInsideIncrement = 1; } }
-
-				const FVector PosA = InPath->GetPos(A.Index);
-				const FVector PosB = InPath->GetPos(B.Index);
-
-				const FVector SampleLocation = FMath::Lerp(PosA, PosB, Lerp);
-
+				const int32 NumInsideIncrement = bIsInside && (!bOnlyIncrementInsideNumIfClosed || bClosedLoop);
+				const FVector SampleLocation = FMath::Lerp(InPath->GetPos(A.Index), InPath->GetPos(B.Index), Lerp);
 				const FVector ModifiedOrigin = Context->TargetsHandler->GetSourceCenter(Point, Origin, SampleLocation);
 				const double DistSquared = FVector::DistSquared(ModifiedOrigin, SampleLocation);
 
-				if (RangeMax > 0 && (DistSquared < RangeMin || DistSquared > RangeMax))
+				if (RangeMax > 0
+					&& (DistSquared < RangeMin || DistSquared > RangeMax)
+					&& (!Settings->bAlwaysSampleWhenInside || !bIsInside))
 				{
-					if (!Settings->bAlwaysSampleWhenInside || !bIsInside) { return; }
+					return;
 				}
 
 				const double Time = (static_cast<double>(EdgeIndex) + Lerp) / static_cast<double>(InPath->NumEdges);
@@ -493,52 +470,44 @@ namespace PCGExSampleNearestPath
 			if (!Settings->bSampleSpecificAlpha)
 			{
 				// At closest alpha
-				Context->TargetsHandler->FindTargetsWithBoundsTest(
-					QueryBounds,
-					[&](const PCGExOctree::FItem& Target)
-					{
-						if (!Context->Paths.IsValidIndex(Target.Index)) { return; } // TODO : Look into why there's a discrepency between paths & targets
+				Context->TargetsHandler->FindTargetsWithBoundsTest(QueryBounds, [&](const PCGExOctree::FItem& Target)
+				{
+					if (!Context->Paths.IsValidIndex(Target.Index)) { return; } // TODO : Look into why there's a discrepency between paths & targets
 
-						const TSharedPtr<PCGExPaths::FPolyPath> Path = Context->Paths[Target.Index];
-						float Lerp = 0;
-						const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
-						SampleTarget(EdgeIndex, Lerp, Path);
-					}, &IgnoreList);
+					const TSharedPtr<PCGExPaths::FPolyPath> Path = Context->Paths[Target.Index];
+					float Lerp = 0;
+					const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
+					SampleTarget(EdgeIndex, Lerp, Path);
+				}, &IgnoreList);
 			}
 			else
 			{
 				// At specific alpha
 				const double InputKey = SampleAlphaGetter->Read(Index);
-				Context->TargetsHandler->FindTargetsWithBoundsTest(
-					QueryBounds,
-					[&](const PCGExOctree::FItem& Target)
+				Context->TargetsHandler->FindTargetsWithBoundsTest(QueryBounds, [&](const PCGExOctree::FItem& Target)
+				{
+					if (!Context->Paths.IsValidIndex(Target.Index)) { return; } // TODO : Look into why there's a discrepency between paths & targets
+
+					const TSharedPtr<PCGExPaths::FPolyPath>& Path = Context->Paths[Target.Index];
+					double Time = 0;
+
+					switch (Settings->SampleAlphaMode)
 					{
-						if (!Context->Paths.IsValidIndex(Target.Index)) { return; } // TODO : Look into why there's a discrepency between paths & targets
+					default: case EPCGExPathSampleAlphaMode::Alpha: Time = InputKey;
+						break;
+					case EPCGExPathSampleAlphaMode::Time: Time = InputKey / Path->NumEdges;
+						break;
+					case EPCGExPathSampleAlphaMode::Distance: Time = InputKey / Path->TotalLength;
+						break;
+					}
 
-						const TSharedPtr<PCGExPaths::FPolyPath>& Path = Context->Paths[Target.Index];
-						double Time = 0;
+					if (Settings->bWrapClosedLoopAlpha && Path->IsClosedLoop()) { Time = PCGExMath::Tile(Time, 0.0, 1.0); }
 
-						switch (Settings->SampleAlphaMode)
-						{
-						default:
-						case EPCGExPathSampleAlphaMode::Alpha:
-							Time = InputKey;
-							break;
-						case EPCGExPathSampleAlphaMode::Time:
-							Time = InputKey / Path->NumEdges;
-							break;
-						case EPCGExPathSampleAlphaMode::Distance:
-							Time = InputKey / Path->TotalLength;
-							break;
-						}
+					float Lerp = 0;
+					const int32 EdgeIndex = Path->GetClosestEdge(Time, Lerp);
 
-						if (Settings->bWrapClosedLoopAlpha && Path->IsClosedLoop()) { Time = PCGExMath::Tile(Time, 0.0, 1.0); }
-
-						float Lerp = 0;
-						const int32 EdgeIndex = Path->GetClosestEdge(Time, Lerp);
-
-						SampleTarget(EdgeIndex, Lerp, Path);
-					});
+					SampleTarget(EdgeIndex, Lerp, Path);
+				});
 			}
 
 			if (Union->IsEmpty())
@@ -560,13 +529,15 @@ namespace PCGExSampleNearestPath
 				WeightedTransform = FTransform::Identity;
 				WeightedTransform.SetScale3D(FVector::ZeroVector);
 			}
+			else
+			{
+				WeightedTransform = InTransforms[Index];
+			}
 
 			const double NumSampled = Union->Num() * 0.5;
 			WeightedDistance /= NumSampled; // We have two points per samples
 			WeightedTime /= NumSampled;
 			WeightedSegmentTime /= NumSampled;
-
-			double TotalWeight = 0;
 
 			// Post-process weighted points and compute local data
 			PCGEx::FOpStats SampleTracker{};
@@ -578,35 +549,32 @@ namespace PCGExSampleNearestPath
 				//if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 				SampleTracker.Count++;
-				SampleTracker.Weight += W;
+				SampleTracker.TotalWeight += W;
 
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
 
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					PCGExBlend::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
+					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
 				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * W;
-
-				TotalWeight += W;
 			}
 
 			// Blend using updated weighted points
 			DataBlender->Blend(Index, OutWeightedPoints, Trackers);
 
-			if (TotalWeight != 0) // Dodge NaN
+			if (SampleTracker.TotalWeight != 0) // Dodge NaN
 			{
-				//WeightedUp /= TotalWeight;
-				//WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
+				WeightedUp = PCGExTypeOps::FTypeOps<FVector>::NormalizeWeight(WeightedUp, SampleTracker.TotalWeight);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, SampleTracker.TotalWeight);
 			}
 			else
 			{
-				WeightedUp = WeightedUp.GetSafeNormal();
 				WeightedTransform = InTransforms[Index];
 			}
 
@@ -636,7 +604,7 @@ namespace PCGExSampleNearestPath
 			PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
 			PCGEX_OUTPUT_VALUE(ClosedLoop, Index, bSampledClosedLoop)
 
-			MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
+			MaxSampledDistanceScoped->Set(Scope, FMath::Max(MaxSampledDistanceScoped->Get(Scope), WeightedDistance));
 			bAnySuccessLocal = true;
 		}
 
@@ -647,30 +615,35 @@ namespace PCGExSampleNearestPath
 	{
 		if (Settings->bOutputNormalizedDistance && DistanceWriter)
 		{
-			MaxDistance = MaxDistanceValue->Max();
+			MaxSampledDistance = MaxSampledDistanceScoped->Max();
 
 			const int32 NumPoints = PointDataFacade->GetNum();
 
 			if (Settings->bOutputOneMinusDistance)
 			{
+				const double InvMaxDist = 1.0 / MaxSampledDistance;
+				const double Scale = Settings->DistanceScale;
+
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const double D = DistanceWriter->GetValue(i);
-					DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+					DistanceWriter->SetValue(i, (1.0 - D * InvMaxDist) * Scale);
 				}
 			}
 			else
 			{
+				const double Scale = (1.0 / MaxSampledDistance) * Settings->DistanceScale;
+
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const double D = DistanceWriter->GetValue(i);
-					DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
+					DistanceWriter->SetValue(i, D * Scale);
 				}
 			}
 		}
 
 		if (UnionBlendOpsManager) { UnionBlendOpsManager->Cleanup(Context); }
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }

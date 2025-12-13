@@ -3,6 +3,7 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleFilters.h"
 
+#include "PCGExStreamingHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExCluster.h"
 

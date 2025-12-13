@@ -3,6 +3,7 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
+#include "PCGExStreamingHelpers.h"
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
@@ -232,17 +233,11 @@ UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExCon
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingConfig = SamplingConfig;
 
-	GetInputFactories(
-		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories,
-		PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
-	GetInputFactories(
-		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories,
-		PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
-	GetInputFactories(
-		InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories,
-		PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
 	return Super::CreateFactory(InContext, SamplerFactory);
 }

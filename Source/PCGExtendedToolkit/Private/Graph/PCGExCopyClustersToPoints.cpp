@@ -57,8 +57,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 	Context->MainDataMatcher->SetDetails(&Settings->DataMatching);
 	if (!Context->MainDataMatcher->Init(Context, {Context->TargetsDataFacade}, true)) { return false; }
 
-	if (Settings->DataMatching.Mode != EPCGExMapMatchMode::Disabled &&
-		Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
+	if (Settings->DataMatching.Mode != EPCGExMapMatchMode::Disabled && Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
 	{
 		Context->EdgeDataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 		if (!Context->EdgeDataMatcher->Init(Context, Context->MainDataMatcher, PCGExMatching::SourceMatchRulesEdgesLabel, true)) { return false; }
@@ -81,11 +80,9 @@ bool FPCGExCopyClustersToPointsElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -105,9 +102,9 @@ namespace PCGExCopyClustersToPoints
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const int32 NumTargets = Context->TargetsDataFacade->GetNum();
 
@@ -141,18 +138,15 @@ namespace PCGExCopyClustersToPoints
 				break;
 			case EPCGExClusterComponentTagMatchMode::Both:
 			case EPCGExClusterComponentTagMatchMode::Edges:
-			case EPCGExClusterComponentTagMatchMode::Separated:
-				if (!Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope)) { continue; }
+			case EPCGExClusterComponentTagMatchMode::Separated: if (!Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope)) { continue; }
 				break;
-			case EPCGExClusterComponentTagMatchMode::Any:
-				if (bSameAnyChecks)
+			case EPCGExClusterComponentTagMatchMode::Any: if (bSameAnyChecks)
 				{
 					if (Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope)) { continue; }
 				}
 				else
 				{
-					if (Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, InfiniteScope) ||
-						Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope))
+					if (Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, InfiniteScope) || Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope))
 					{
 						continue;
 					}
@@ -214,10 +208,7 @@ namespace PCGExCopyClustersToPoints
 			UPCGExClusterEdgesData* EdgeDupeTypedData = Cast<UPCGExClusterEdgesData>(EdgeDupe->GetOut());
 			if (CachedCluster && EdgeDupeTypedData)
 			{
-				EdgeDupeTypedData->SetBoundCluster(
-					MakeShared<PCGExCluster::FCluster>(
-						CachedCluster.ToSharedRef(), VtxDupe, EdgeDupe, CachedCluster->NodeIndexLookup,
-						false, false, false));
+				EdgeDupeTypedData->SetBoundCluster(MakeShared<PCGExCluster::FCluster>(CachedCluster.ToSharedRef(), VtxDupe, EdgeDupe, CachedCluster->NodeIndexLookup, false, false, false));
 			}
 		}
 	}
@@ -248,8 +239,7 @@ namespace PCGExCopyClustersToPoints
 			{
 			case EPCGExClusterComponentTagMatchMode::Vtx:
 			case EPCGExClusterComponentTagMatchMode::Both:
-			case EPCGExClusterComponentTagMatchMode::Separated:
-				if (!Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, MatchScope)) { continue; }
+			case EPCGExClusterComponentTagMatchMode::Separated: if (!Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, MatchScope)) { continue; }
 				break;
 			case EPCGExClusterComponentTagMatchMode::Edges:
 			case EPCGExClusterComponentTagMatchMode::Any:

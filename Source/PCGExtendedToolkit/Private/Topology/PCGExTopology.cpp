@@ -20,20 +20,14 @@ void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InC
 {
 	switch (Location)
 	{
-	default:
-	case EPCGExCellSeedLocation::Original:
+	default: case EPCGExCellSeedLocation::Original: break;
+	case EPCGExCellSeedLocation::Centroid: OutSeedPoint.SetLocation(InCell->Data.Centroid);
 		break;
-	case EPCGExCellSeedLocation::Centroid:
-		OutSeedPoint.SetLocation(InCell->Data.Centroid);
+	case EPCGExCellSeedLocation::PathBoundsCenter: OutSeedPoint.SetLocation(InCell->Data.Bounds.GetCenter());
 		break;
-	case EPCGExCellSeedLocation::PathBoundsCenter:
-		OutSeedPoint.SetLocation(InCell->Data.Bounds.GetCenter());
+	case EPCGExCellSeedLocation::FirstNode: OutSeedPoint.SetLocation(CellPoints->GetTransform(0).GetLocation());
 		break;
-	case EPCGExCellSeedLocation::FirstNode:
-		OutSeedPoint.SetLocation(CellPoints->GetTransform(0).GetLocation());
-		break;
-	case EPCGExCellSeedLocation::LastNode:
-		OutSeedPoint.SetLocation(CellPoints->GetTransform(CellPoints->GetNumPoints() - 1).GetLocation());
+	case EPCGExCellSeedLocation::LastNode: OutSeedPoint.SetLocation(CellPoints->GetTransform(CellPoints->GetNumPoints() - 1).GetLocation());
 		break;
 	}
 
@@ -272,8 +266,7 @@ namespace PCGExTopology
 		const TArray<PCGExCluster::FNode>& Nodes = *InCluster->Nodes.Get();
 		for (const PCGExCluster::FNode& Node : Nodes)
 		{
-			if (const double Dist = FVector2D::DistSquared(InCluster->ProjectedCentroid, ProjectedPositions[Node.PointIndex]);
-				Dist > MaxDist)
+			if (const double Dist = FVector2D::DistSquared(InCluster->ProjectedCentroid, ProjectedPositions[Node.PointIndex]); Dist > MaxDist)
 			{
 				Link.Node = Node.Index;
 				MaxDist = Dist;
@@ -335,8 +328,7 @@ namespace PCGExTopology
 		// Determine which node we should start with to be right-handed
 		Link.Node = GetGuidedHalfEdge()->Index;
 
-		if (const TSharedPtr<FCell> Cell = MakeShared<FCell>(TempConstraints.ToSharedRef());
-			Cell->BuildFromCluster(Link, InCluster, ProjectedPositions) == ECellResult::Success)
+		if (const TSharedPtr<FCell> Cell = MakeShared<FCell>(TempConstraints.ToSharedRef()); Cell->BuildFromCluster(Link, InCluster, ProjectedPositions) == ECellResult::Success)
 		{
 			WrapperCell = Cell;
 			IsUniqueCellHash(WrapperCell);
@@ -355,10 +347,7 @@ namespace PCGExTopology
 		return CellHash;
 	}
 
-	ECellResult FCell::BuildFromCluster(
-		const PCGExGraph::FLink InSeedLink,
-		TSharedRef<PCGExCluster::FCluster> InCluster,
-		const TArray<FVector2D>& ProjectedPositions)
+	ECellResult FCell::BuildFromCluster(const PCGExGraph::FLink InSeedLink, TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector2D>& ProjectedPositions)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCell::BuildFromCluster);
 
@@ -468,11 +457,7 @@ namespace PCGExTopology
 
 			if (NumUniqueNodes > 2)
 			{
-				PCGExMath::CheckConvex(
-					InCluster->GetPos(Nodes.Last(2)),
-					InCluster->GetPos(Nodes.Last(1)),
-					InCluster->GetPos(Nodes.Last()),
-					Data.bIsConvex, Sign);
+				PCGExMath::CheckConvex(InCluster->GetPos(Nodes.Last(2)), InCluster->GetPos(Nodes.Last(1)), InCluster->GetPos(Nodes.Last()), Data.bIsConvex, Sign);
 
 				if (Constraints->bConvexOnly && !Data.bIsConvex) { return ECellResult::WrongAspect; }
 			}
@@ -523,9 +508,7 @@ namespace PCGExTopology
 		Data.Area *= 0.01; // QoL to avoid extra 000 in the detail panel.
 		if (Constraints->MinArea > Data.Area || Data.Area > Constraints->MaxArea) { return ECellResult::OutsideAreaLimit; }
 
-		if (Constraints->WrapperCell &&
-			Constraints->WrapperClassificationTolerance > 0 &&
-			FMath::IsNearlyEqual(Data.Area, Constraints->WrapperCell->Data.Area, Constraints->WrapperClassificationTolerance))
+		if (Constraints->WrapperCell && Constraints->WrapperClassificationTolerance > 0 && FMath::IsNearlyEqual(Data.Area, Constraints->WrapperCell->Data.Area, Constraints->WrapperClassificationTolerance))
 		{
 			return ECellResult::WrapperCell;
 		}
@@ -533,12 +516,7 @@ namespace PCGExTopology
 		return ECellResult::Success;
 	}
 
-	ECellResult FCell::BuildFromCluster(
-		const FVector& SeedPosition,
-		const TSharedRef<PCGExCluster::FCluster>& InCluster,
-		const TArray<FVector2D>& ProjectedPositions,
-		const FVector& UpVector,
-		const FPCGExNodeSelectionDetails* Picking)
+	ECellResult FCell::BuildFromCluster(const FVector& SeedPosition, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const FVector& UpVector, const FPCGExNodeSelectionDetails* Picking)
 	{
 		PCGExGraph::FLink Link = PCGExGraph::FLink(-1, -1);
 		Link.Node = InCluster->FindClosestNode(SeedPosition, Picking ? Picking->PickingMethod : EPCGExClusterClosestSearchMode::Edge, 2);
@@ -549,8 +527,7 @@ namespace PCGExTopology
 			return ECellResult::Unknown;
 		}
 
-		if (const FVector StartPosition = InCluster->GetPos(Link.Node);
-			Picking && !Picking->WithinDistance(StartPosition, SeedPosition))
+		if (const FVector StartPosition = InCluster->GetPos(Link.Node); Picking && !Picking->WithinDistance(StartPosition, SeedPosition))
 		{
 			// Fail. Not within radius.
 			return ECellResult::Unknown;
@@ -572,8 +549,7 @@ namespace PCGExTopology
 		return BuildFromCluster(Link, InCluster, ProjectedPositions);
 	}
 
-	ECellResult FCell::BuildFromPath(
-		const TArray<FVector2D>& ProjectedPositions)
+	ECellResult FCell::BuildFromPath(const TArray<FVector2D>& ProjectedPositions)
 	{
 		return ECellResult::Unknown;
 	}
@@ -586,8 +562,7 @@ namespace PCGExTopology
 
 bool FPCGExCellArtifactsDetails::WriteAny() const
 {
-	return bWriteCellHash || bWriteArea || bWriteCompactness ||
-		bWriteVtxId || bFlagTerminalPoint || bWriteNumRepeat;
+	return bWriteCellHash || bWriteArea || bWriteCompactness || bWriteVtxId || bFlagTerminalPoint || bWriteNumRepeat;
 }
 
 bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
@@ -604,10 +579,7 @@ bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
 	return true;
 }
 
-void FPCGExCellArtifactsDetails::Process(
-	const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-	const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-	const TSharedPtr<PCGExTopology::FCell>& InCell) const
+void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const
 {
 	auto FwdTags = [&](const TSet<FString>& SourceTags)
 	{

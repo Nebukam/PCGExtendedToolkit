@@ -53,8 +53,8 @@ namespace PCGExDetails
 		FName Name = NAME_None;
 
 	public:
-		explicit TSettingValueBuffer(const FName InName):
-			Name(InName)
+		explicit TSettingValueBuffer(const FName InName)
+			: Name(InName)
 		{
 		}
 
@@ -74,8 +74,8 @@ namespace PCGExDetails
 		FPCGAttributePropertyInputSelector Selector;
 
 	public:
-		explicit TSettingValueSelector(const FPCGAttributePropertyInputSelector& InSelector):
-			Selector(InSelector)
+		explicit TSettingValueSelector(const FPCGAttributePropertyInputSelector& InSelector)
+			: Selector(InSelector)
 		{
 		}
 
@@ -94,8 +94,8 @@ namespace PCGExDetails
 		T Constant = T{};
 
 	public:
-		explicit TSettingValueConstant(const T InConstant):
-			Constant(InConstant)
+		explicit TSettingValueConstant(const T InConstant)
+			: Constant(InConstant)
 		{
 		}
 
@@ -117,8 +117,8 @@ namespace PCGExDetails
 		FPCGAttributePropertyInputSelector Selector;
 
 	public:
-		explicit TSettingValueSelectorConstant(const FPCGAttributePropertyInputSelector& InSelector):
-			TSettingValueConstant<T>(T{}), Selector(InSelector)
+		explicit TSettingValueSelectorConstant(const FPCGAttributePropertyInputSelector& InSelector)
+			: TSettingValueConstant<T>(T{}), Selector(InSelector)
 		{
 		}
 
@@ -132,8 +132,8 @@ namespace PCGExDetails
 		FName Name = NAME_None;
 
 	public:
-		explicit TSettingValueBufferConstant(const FName InName):
-			TSettingValueConstant<T>(T{}), Name(InName)
+		explicit TSettingValueBufferConstant(const FName InName)
+			: TSettingValueConstant<T>(T{}), Name(InName)
 		{
 		}
 

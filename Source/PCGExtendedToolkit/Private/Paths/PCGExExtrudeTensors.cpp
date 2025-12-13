@@ -60,16 +60,12 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(MergeDetails)
 	Context->MergeDetails.Init();
 
-	if (!PCGExFactories::GetInputFactories(
-		InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories,
-		{PCGExFactories::EType::Tensor}))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}))
 	{
 		return false;
 	}
 
-	GetInputFactories(
-		Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
-		PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters, false);
 
 	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
 
@@ -95,12 +91,10 @@ bool FPCGExExtrudeTensorsElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		Context->AddConsumableAttributeName(Settings->IterationsAttribute);
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bPrefetchData = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bPrefetchData = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
@@ -127,10 +121,7 @@ namespace PCGExExtrudeTensors
 
 	PCGExMath::FSegment FExtrusion::GetHeadSegment() const
 	{
-		return PCGExMath::FSegment(
-			ExtrudedPoints.Last(1).GetLocation(),
-			ExtrudedPoints.Last().GetLocation(),
-			Context->ExternalPathIntersections.Tolerance);
+		return PCGExMath::FSegment(ExtrudedPoints.Last(1).GetLocation(), ExtrudedPoints.Last().GetLocation(), Context->ExternalPathIntersections.Tolerance);
 	}
 
 	void FExtrusion::SetHead(const FTransform& InHead)
@@ -356,13 +347,13 @@ namespace PCGExExtrudeTensors
 		}
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExExtrudeTensors::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Sorter && !Sorter->Init(Context)) { Sorter.Reset(); }
 
@@ -455,45 +446,39 @@ namespace PCGExExtrudeTensors
 	{
 		switch (Settings->SelfIntersectionMode)
 		{
-		case EPCGExSelfIntersectionMode::PathLength:
-			if (Sorter)
+		case EPCGExSelfIntersectionMode::PathLength: if (Sorter)
 			{
 				if (Settings->SortDirection == EPCGExSortDirection::Ascending)
 				{
-					ExtrusionQueue.Sort(
-						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-						{
-							if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
-							return EA->Metrics.Length > EB->Metrics.Length;
-						});
+					ExtrusionQueue.Sort([S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+					{
+						if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
+						return EA->Metrics.Length > EB->Metrics.Length;
+					});
 				}
 				else
 				{
-					ExtrusionQueue.Sort(
-						[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-						{
-							if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
-							return EA->Metrics.Length < EB->Metrics.Length;
-						});
+					ExtrusionQueue.Sort([S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+					{
+						if (EA->Metrics.Length == EB->Metrics.Length) { return S->Sort(EA->SeedIndex, EB->SeedIndex); }
+						return EA->Metrics.Length < EB->Metrics.Length;
+					});
 				}
 			}
 			else
 			{
-				ExtrusionQueue.Sort(
-					[](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-					{
-						return EA->Metrics.Length > EB->Metrics.Length;
-					});
+				ExtrusionQueue.Sort([](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+				{
+					return EA->Metrics.Length > EB->Metrics.Length;
+				});
 			}
 			break;
-		case EPCGExSelfIntersectionMode::SortingOnly:
-			if (Sorter)
+		case EPCGExSelfIntersectionMode::SortingOnly: if (Sorter)
 			{
-				ExtrusionQueue.Sort(
-					[S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
-					{
-						return S->Sort(EA->SeedIndex, EB->SeedIndex);
-					});
+				ExtrusionQueue.Sort([S = Sorter](const TSharedPtr<FExtrusion>& EA, const TSharedPtr<FExtrusion>& EB)
+				{
+					return S->Sort(EA->SeedIndex, EB->SeedIndex);
+				});
 			}
 			break;
 		}
@@ -521,8 +506,7 @@ namespace PCGExExtrudeTensors
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (TSharedPtr<FExtrusion> Extrusion = ExtrusionQueue[Index];
-				Extrusion && !Extrusion->Advance())
+			if (TSharedPtr<FExtrusion> Extrusion = ExtrusionQueue[Index]; Extrusion && !Extrusion->Advance())
 			{
 				Extrusion->Complete();
 				CompletedExtrusions->Get(Scope)->Add(Extrusion);
@@ -647,21 +631,20 @@ namespace PCGExExtrudeTensors
 		// Convert completed paths to static collision constraints
 		if (Settings->bDoSelfPathIntersections && CompletedExtrusions)
 		{
-			CompletedExtrusions->ForEach(
-				[&](TArray<TSharedPtr<FExtrusion>>& Completed)
+			CompletedExtrusions->ForEach([&](TArray<TSharedPtr<FExtrusion>>& Completed)
+			{
+				StaticPaths.Get()->Reserve(StaticPaths.Get()->Num() + Completed.Num());
+				for (const TSharedPtr<FExtrusion>& E : Completed)
 				{
-					StaticPaths.Get()->Reserve(StaticPaths.Get()->Num() + Completed.Num());
-					for (const TSharedPtr<FExtrusion>& E : Completed)
-					{
-						E->Cleanup();
+					E->Cleanup();
 
-						if (!E->bIsValidPath) { continue; }
+					if (!E->bIsValidPath) { continue; }
 
-						TSharedPtr<PCGExPaths::FPath> StaticPath = MakeShared<PCGExPaths::FPath>(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance);
-						StaticPath->BuildEdgeOctree();
-						StaticPaths.Get()->Add(StaticPath);
-					}
-				});
+					TSharedPtr<PCGExPaths::FPath> StaticPath = MakeShared<PCGExPaths::FPath>(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance);
+					StaticPath->BuildEdgeOctree();
+					StaticPaths.Get()->Add(StaticPath);
+				}
+			});
 
 			CompletedExtrusions.Reset();
 		}
@@ -714,8 +697,7 @@ namespace PCGExExtrudeTensors
 		PCGEX_3_FLAGS_CASE(Bounded, CollisionCheck, ClosedLoop)
 		PCGEX_3_FLAGS_CASE(Bounded, AllowsChildren, CollisionCheck)
 		PCGEX_4_FLAGS_CASE(Bounded, AllowsChildren, ClosedLoop, CollisionCheck)
-		default:
-			checkNoEntry(); // You missed flags dummy
+		default: checkNoEntry(); // You missed flags dummy
 			break;
 		}
 
@@ -749,9 +731,9 @@ namespace PCGExExtrudeTensors
 	{
 	}
 
-	void FBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	void FBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		AsyncManager = InAsyncManager;
+		TaskManager = InTaskManager;
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
@@ -774,7 +756,7 @@ namespace PCGExExtrudeTensors
 
 	void FBatch::OnPathsPrepared()
 	{
-		TBatch<FProcessor>::Process(AsyncManager);
+		TBatch<FProcessor>::Process(TaskManager);
 	}
 }
 

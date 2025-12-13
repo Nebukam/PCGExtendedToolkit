@@ -158,8 +158,7 @@ namespace PCGExDataBlending
 	const FName SourceBlendingLabel = TEXT("Blend Ops");
 	const FName OutputBlendingLabel = TEXT("Blend Op");
 
-	PCGEXTENDEDTOOLKIT_API
-	void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface = EPCGExBlendingInterface::Individual);
+	PCGEXTENDEDTOOLKIT_API void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface = EPCGExBlendingInterface::Individual);
 
 	struct FBlendingParam
 	{
@@ -332,58 +331,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 
 	// Create a list of attributes & property selector representing the data we want to blend
 	// Takes the reference list from source, 
-	void GetBlendingParams(
-		const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
-		TArray<PCGExDataBlending::FBlendingParam>& OutParams,
-		TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers,
-		const bool bSkipProperties = false,
-		const TSet<FName>* IgnoreAttributeSet = nullptr) const;
+	void GetBlendingParams(const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata, TArray<PCGExDataBlending::FBlendingParam>& OutParams, TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers, const bool bSkipProperties = false, const TSet<FName>* IgnoreAttributeSet = nullptr) const;
 
-	void RegisterBuffersDependencies(
-		FPCGExContext* InContext,
-		PCGExData::FFacadePreloader& FacadePreloader,
-		const TSet<FName>* IgnoredAttributes = nullptr) const;
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TSet<FName>* IgnoredAttributes = nullptr) const;
 };
 
 namespace PCGExDataBlending
 {
-	PCGEXTENDEDTOOLKIT_API
-	void AssembleBlendingDetails(
-		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
-		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
-		const TSharedRef<PCGExData::FPointIO>& SourceIO,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXTENDEDTOOLKIT_API
-	void AssembleBlendingDetails(
-		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
-		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
-		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXTENDEDTOOLKIT_API
-	void AssembleBlendingDetails(
-		const EPCGExDataBlendingType& DefaultBlending,
-		const TArray<FName>& Attributes,
-		const TSharedRef<PCGExData::FPointIO>& SourceIO,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const EPCGExDataBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXTENDEDTOOLKIT_API
-	void AssembleBlendingDetails(
-		const EPCGExDataBlendingType& DefaultBlending,
-		const TArray<FName>& Attributes,
-		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
-		FPCGExBlendingDetails& OutDetails,
-		TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const EPCGExDataBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXTENDEDTOOLKIT_API
-	void GetFilteredIdentities(
-		const UPCGMetadata* InMetadata,
-		TArray<PCGEx::FAttributeIdentity>& OutIdentities,
-		const FPCGExBlendingDetails* InBlendingDetails = nullptr,
-		const FPCGExCarryOverDetails* InCarryOverDetails = nullptr,
-		const TSet<FName>* IgnoreAttributeSet = nullptr);
+	PCGEXTENDEDTOOLKIT_API void GetFilteredIdentities(const UPCGMetadata* InMetadata, TArray<PCGEx::FAttributeIdentity>& OutIdentities, const FPCGExBlendingDetails* InBlendingDetails = nullptr, const FPCGExCarryOverDetails* InCarryOverDetails = nullptr, const TSet<FName>* IgnoreAttributeSet = nullptr);
 }

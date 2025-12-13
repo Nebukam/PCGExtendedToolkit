@@ -48,19 +48,10 @@ public:
 
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
 
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const;
 
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const;
 
 
 	double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const;

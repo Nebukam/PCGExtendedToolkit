@@ -82,7 +82,7 @@ bool FPCGExPathfindingPlotNavmeshElement::AdvanceWork(FPCGExContext* InContext, 
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		while (Context->AdvancePointsIO(false))
 		{
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
@@ -100,9 +100,9 @@ bool FPCGExPathfindingPlotNavmeshElement::AdvanceWork(FPCGExContext* InContext, 
 	return Context->TryComplete();
 }
 
-void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	FPCGExPathfindingPlotNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingPlotNavmeshContext>();
+	FPCGExPathfindingPlotNavmeshContext* Context = TaskManager->GetContext<FPCGExPathfindingPlotNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingPlotNavmesh)
 
 	const int32 NumPlots = PointIO->GetNum();
@@ -179,17 +179,14 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		PCGExData::FScope SubScope(PathIO->GetOut(), StartIndex, Query.Positions.Num());
 		if (SubScope.IsValid())
 		{
-			SubBlending->BlendSubPoints(
-				PointIO->GetInPoint(Query.SeedGoalPair.Seed),
-				PointIO->GetInPoint(Query.SeedGoalPair.Goal),
-				SubScope, Query.SeedGoalMetrics);
+			SubBlending->BlendSubPoints(PointIO->GetInPoint(Query.SeedGoalPair.Seed), PointIO->GetInPoint(Query.SeedGoalPair.Goal), SubScope, Query.SeedGoalMetrics);
 		}
 
 		// Pad index if we inserted plot points
 		if (i != LastPlotIndex && Settings->bAddPlotPointsToPath) { WriteIndex++; }
 	}
 
-	PathDataFacade->WriteFastest(AsyncManager);
+	PathDataFacade->WriteFastest(TaskManager);
 }
 
 #undef LOCTEXT_NAMESPACE

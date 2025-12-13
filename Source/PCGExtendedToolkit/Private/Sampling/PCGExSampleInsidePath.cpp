@@ -3,13 +3,14 @@
 
 #include "Sampling/PCGExSampleInsidePath.h"
 
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -22,8 +23,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, Range
 #define LOCTEXT_NAMESPACE "PCGExSampleInsidePathElement"
 #define PCGEX_NAMESPACE SampleInsidePath
 
-UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
@@ -91,32 +91,24 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
-	Context->NumMaxTargets = Context->TargetsHandler->Init(
-		Context, PCGEx::SourceTargetsLabel,
-		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	{
+		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+
+		switch (Settings->ProcessInputs)
 		{
-			const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+		default: case EPCGExPathSamplingIncludeMode::All: break;
+		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(NoInit); }
+			break;
+		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(NoInit); }
+			break;
+		}
 
-			switch (Settings->ProcessInputs)
-			{
-			default:
-			case EPCGExPathSamplingIncludeMode::All:
-				break;
-			case EPCGExPathSamplingIncludeMode::ClosedLoopOnly:
-				if (!bClosedLoop) { return FBox(NoInit); }
-				break;
-			case EPCGExPathSamplingIncludeMode::OpenLoopsOnly:
-				if (bClosedLoop) { return FBox(NoInit); }
-				break;
-			}
-
-			return IO->GetIn()->GetBounds();
-		});
+		return IO->GetIn()->GetBounds();
+	});
 
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxTargets)
@@ -133,21 +125,19 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->BlendingFactories.IsEmpty())
 	{
-		Context->TargetsHandler->ForEachPreloader(
-			[&](PCGExData::FFacadePreloader& Preloader)
-			{
-				PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-			});
+		Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+		{
+			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+		});
 	}
 
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
 
-	if (!Settings->bUseLocalCurve && Settings->WeightOverDistance.IsValid())
+	if (!Settings->bUseLocalCurve)
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
-		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
+		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
@@ -177,18 +167,16 @@ bool FPCGExSampleInsidePathElement::AdvanceWork(FPCGExContext* InContext, const 
 
 			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
 
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 			{
 				Context->CancelExecution(TEXT("Could not find any paths to split."));
 			}
 		};
 
-		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
-		return false;
+		Context->TargetsHandler->StartLoading(Context->GetTaskManager());
+		if (Context->IsWaitingForTasks()) { return false; }
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
@@ -204,20 +192,18 @@ namespace PCGExSampleInsidePath
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleInsidePath::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
-
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
-			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 			return false;
 		}
 
@@ -287,7 +273,7 @@ namespace PCGExSampleInsidePath
 
 		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
 		OutWeightedPoints.Reserve(256);
-		
+
 		TArray<PCGEx::FOpStats> Trackers;
 		DataBlender->InitTrackers(Trackers);
 
@@ -379,8 +365,7 @@ namespace PCGExSampleInsidePath
 			}
 		};
 
-		Context->TargetsHandler->FindElementsWithBoundsTest(
-			SampleBox, SampleTarget, &IgnoreList);
+		Context->TargetsHandler->FindElementsWithBoundsTest(SampleBox, SampleTarget, &IgnoreList);
 
 		if (Union->IsEmpty())
 		{
@@ -411,12 +396,11 @@ namespace PCGExSampleInsidePath
 			//if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 			SampleTracker.Count++;
-			SampleTracker.Weight += W;
+			SampleTracker.TotalWeight += W;
 
 			const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 
-			WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
-
+			WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
 			TotalWeight += W;
 		}
 
@@ -425,7 +409,7 @@ namespace PCGExSampleInsidePath
 
 		if (TotalWeight != 0) // Dodge NaN
 		{
-			WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
+			WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, TotalWeight);
 		}
 		else
 		{
@@ -461,7 +445,7 @@ namespace PCGExSampleInsidePath
 
 		if (UnionBlendOpsManager) { UnionBlendOpsManager->Cleanup(Context); }
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }

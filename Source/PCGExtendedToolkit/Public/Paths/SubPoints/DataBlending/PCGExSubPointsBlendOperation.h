@@ -25,22 +25,13 @@ class FPCGExSubPointsBlendOperation : public FPCGExSubPointsOperation
 public:
 	const UPCGExSubPointsBlendInstancedFactory* BlendFactory = nullptr;
 
-	virtual bool PrepareForData(
-		FPCGExContext* InContext,
-		const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet = nullptr) override;
+	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet = nullptr) override;
 
-	virtual bool PrepareForData(
-		FPCGExContext* InContext,
-		const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade,
-		const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet = nullptr);
+	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet = nullptr);
 
-	virtual void ProcessSubPoints(
-		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const override;
+	virtual void ProcessSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const override;
 
-	virtual void BlendSubPoints(
-		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const;
+	virtual void BlendSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const;
 
 	virtual void BlendSubPoints(PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const;
 
@@ -65,8 +56,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
-	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const
-	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() const { return EPCGExDataBlendingType::Lerp; }

@@ -17,11 +17,8 @@
 
 namespace PCGExFloodFill
 {
-	FDiffusion::FDiffusion(
-		const TSharedPtr<FFillControlsHandler>& InFillControlsHandler,
-		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		const PCGExCluster::FNode* InSeedNode):
-		FillControlsHandler(InFillControlsHandler), SeedNode(InSeedNode), Cluster(InCluster)
+	FDiffusion::FDiffusion(const TSharedPtr<FFillControlsHandler>& InFillControlsHandler, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExCluster::FNode* InSeedNode)
+		: FillControlsHandler(InFillControlsHandler), SeedNode(InSeedNode), Cluster(InCluster)
 	{
 		TravelStack = MakeShared<PCGEx::FHashLookupMap>(0, 0);
 	}
@@ -74,10 +71,7 @@ namespace PCGExFloodFill
 			FVector OtherPosition = Cluster->GetPos(OtherNode);
 			double Dist = FVector::Dist(FromPosition, OtherPosition);
 
-			const double LocalScore = HeuristicsHandler->GetEdgeScore(
-				FromNode, *OtherNode,
-				*Cluster->GetEdge(Lk), *SeedNode, RoamingGoal,
-				nullptr, TravelStack);
+			const double LocalScore = HeuristicsHandler->GetEdgeScore(FromNode, *OtherNode, *Cluster->GetEdge(Lk), *SeedNode, RoamingGoal, nullptr, TravelStack);
 
 			FCandidate Candidate = FCandidate{};
 			Candidate.CaptureIndex = From.CaptureIndex;
@@ -158,29 +152,22 @@ namespace PCGExFloodFill
 
 		switch (FillControlsHandler->Sorting)
 		{
-		case EPCGExFloodFillPrioritization::Heuristics:
-			Candidates.Sort(
-				[&](const FCandidate& A, const FCandidate& B)
-				{
-					if (A.Score == B.Score) { return A.Depth > B.Depth; }
-					return A.Score > B.Score;
-				});
+		case EPCGExFloodFillPrioritization::Heuristics: Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
+			{
+				if (A.Score == B.Score) { return A.Depth > B.Depth; }
+				return A.Score > B.Score;
+			});
 			break;
-		case EPCGExFloodFillPrioritization::Depth:
-			Candidates.Sort(
-				[&](const FCandidate& A, const FCandidate& B)
-				{
-					if (A.Depth == B.Depth) { return A.Score > B.Score; }
-					return A.Depth > B.Depth;
-				});
+		case EPCGExFloodFillPrioritization::Depth: Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
+			{
+				if (A.Depth == B.Depth) { return A.Score > B.Score; }
+				return A.Depth > B.Depth;
+			});
 			break;
 		}
 	}
 
-	void FDiffusion::Diffuse(
-		const TSharedPtr<PCGExData::FFacade>& InVtxFacade,
-		const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps,
-		TArray<int32>& OutIndices)
+	void FDiffusion::Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps, TArray<int32>& OutIndices)
 	{
 		OutIndices.SetNumUninitialized(Captured.Num());
 		const int32 SourceIndex = SeedNode->PointIndex;
@@ -200,15 +187,8 @@ namespace PCGExFloodFill
 		}
 	}
 
-	FFillControlsHandler::FFillControlsHandler(
-		FPCGExContext* InContext,
-		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		const TSharedPtr<PCGExData::FFacade>& InVtxDataCache,
-		const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache,
-		const TSharedPtr<PCGExData::FFacade>& InSeedsDataCache,
-		const TArray<TObjectPtr<const UPCGExFillControlsFactoryData>>& InFactories)
-		: ExecutionContext(InContext), Cluster(InCluster),
-		  VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache), SeedsDataFacade(InSeedsDataCache)
+	FFillControlsHandler::FFillControlsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TSharedPtr<PCGExData::FFacade>& InSeedsDataCache, const TArray<TObjectPtr<const UPCGExFillControlsFactoryData>>& InFactories)
+		: ExecutionContext(InContext), Cluster(InCluster), VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache), SeedsDataFacade(InSeedsDataCache)
 	{
 		bIsValidHandler = BuildFrom(InContext, InFactories);
 	}

@@ -142,8 +142,8 @@ namespace PCGExCreateSpline
 		TObjectPtr<UPCGSplineData> SplineData = nullptr;
 		TObjectPtr<AActor> SplineActor = nullptr;
 
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
@@ -151,7 +151,7 @@ namespace PCGExCreateSpline
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
 
@@ -165,8 +165,8 @@ namespace PCGExCreateSpline
 		EPCGCreateSplineMode Mode = EPCGCreateSplineMode::CreateDataOnly;
 
 	public:
-		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
-			TBatch(InContext, InPointsCollection)
+		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+			: TBatch(InContext, InPointsCollection)
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(CreateSpline)
 

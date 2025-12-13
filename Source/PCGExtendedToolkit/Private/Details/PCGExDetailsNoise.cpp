@@ -6,23 +6,42 @@
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "Details/PCGExDetailsSettings.h"
+#include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
 #include "Helpers/PCGHelpers.h"
-
-PCGEX_SETTING_DATA_VALUE_IMPL(FPCGExRandomRatioDetails, Seed, int32, SeedInput, LocalSeed, SeedValue)
-PCGEX_SETTING_DATA_VALUE_IMPL(FPCGExRandomRatioDetails, Amount, double, AmountInput, LocalAmount, Amount)
-PCGEX_SETTING_DATA_VALUE_IMPL(FPCGExRandomRatioDetails, FixedAmount, int32, AmountInput, LocalAmount, FixedAmount)
 
 int32 FPCGExRandomRatioDetails::GetNumPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems) const
 {
 	int32 NumPicks = 0;
 	if (Units == EPCGExMeanMeasure::Relative)
 	{
-		NumPicks = FMath::Clamp(FMath::RoundToInt(NumMaxItems * GetValueSettingAmount(InContext, InData)->Read(0)), 0, NumMaxItems);
+		double NumPicksDbl = 0;
+		RelativeAmount.TryReadDataValue(InContext, InData, NumPicksDbl);
+		NumPicks = FMath::Clamp(FMath::RoundToInt(NumMaxItems * NumPicksDbl), 0, NumMaxItems);
 	}
 	else
 	{
-		NumPicks = FMath::Clamp(GetValueSettingFixedAmount(InContext, InData)->Read(0), 0, NumMaxItems);
+		DiscreteAmount.TryReadDataValue(InContext, InData, NumPicks);
+		NumPicks = FMath::Clamp(NumPicks, 0, NumMaxItems);
 	}
+
+	int32 MinPicks = 0;
+	int32 MaxPicks = NumMaxItems;
+	
+	if (bDoClampMin)
+	{
+		ClampMin.TryReadDataValue(InContext, InData, MinPicks);
+		MinPicks = FMath::Clamp(MinPicks, 0, NumMaxItems);
+	}
+
+	if (bDoClampMax)
+	{
+		ClampMax.TryReadDataValue(InContext, InData, MaxPicks);
+		MaxPicks = FMath::Clamp(MaxPicks, 0, NumMaxItems);
+	}
+	
+	if (MaxPicks < MinPicks){ Swap(MinPicks, MaxPicks); }
+	NumPicks = FMath::Clamp(NumPicks, MinPicks, MaxPicks);
+
 	return NumPicks;
 }
 
@@ -39,10 +58,27 @@ void FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData
 
 	PCGEx::ArrayOfIndices(OutPicks, NumMaxItems);
 
-	FRandomStream Random = PCGHelpers::GetRandomStreamFromSeed(
-		PCGHelpers::ComputeSeed(GetValueSettingSeed(InContext, InData)->Read(0)),
-		InContext->GetInputSettings<UPCGSettings>(), InContext->ExecutionSource.Get());
+	int32 S = 0;
+	BaseSeed.TryReadDataValue(InContext, InData, S);
+	FRandomStream Random = PCGHelpers::GetRandomStreamFromSeed(PCGHelpers::ComputeSeed(S), InContext->GetInputSettings<UPCGSettings>(), InContext->ExecutionSource.Get());
 
 	for (int32 i = NumMaxItems - 1; i > 0; --i) { OutPicks.Swap(i, Random.RandRange(0, i)); }
 	OutPicks.SetNum(NumPicks);
 }
+
+#if WITH_EDITOR
+void FPCGExRandomRatioDetails::ApplyDeprecation()
+{
+	BaseSeed.Input = SeedInput_DEPRECATED;
+	BaseSeed.Constant = SeedValue_DEPRECATED;
+	BaseSeed.Attribute = LocalSeed_DEPRECATED;
+
+	RelativeAmount.Input = AmountInput_DEPRECATED;
+	RelativeAmount.Constant = Amount_DEPRECATED;
+	RelativeAmount.Attribute = LocalAmount_DEPRECATED;
+
+	DiscreteAmount.Input = AmountInput_DEPRECATED;
+	DiscreteAmount.Constant = FixedAmount_DEPRECATED;
+	DiscreteAmount.Attribute = LocalAmount_DEPRECATED;
+}
+#endif

@@ -45,7 +45,12 @@ protected:
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
-	FName GetSearchOutputPin() const { return SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges ? FName("Edges") : FName("Vtx"); }
+
+	FName GetSearchOutputPin() const
+	{
+		return SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges ? FName("Edges") : FName("Vtx");
+	}
+
 	//~End UPCGExPointsProcessorSettings
 
 	/** Search mode. */

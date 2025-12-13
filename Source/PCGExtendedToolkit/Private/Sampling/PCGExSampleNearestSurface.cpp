@@ -47,9 +47,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, false, true);
 		if (!Context->ActorReferenceDataFacade) { return false; }
 
-		if (!PCGExSampling::GetIncludedActors(
-			Context, Context->ActorReferenceDataFacade.ToSharedRef(),
-			Settings->ActorReference, Context->IncludedActors))
+		if (!PCGExSampling::GetIncludedActors(Context, Context->ActorReferenceDataFacade.ToSharedRef(), Settings->ActorReference, Context->IncludedActors))
 		{
 			return false;
 		}
@@ -86,12 +84,10 @@ bool FPCGExSampleNearestSurfaceElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to sample."));
 		}
@@ -110,7 +106,7 @@ namespace PCGExSampleNearestSurface
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestSurface::Process);
 
@@ -118,7 +114,7 @@ namespace PCGExSampleNearestSurface
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -306,8 +302,7 @@ namespace PCGExSampleNearestSurface
 				for (const UPrimitiveComponent* Primitive : Context->IncludedPrimitives)
 				{
 					if (!IsValid(Primitive)) { continue; }
-					if (TArray<FOverlapResult> TempOverlaps;
-						Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
+					if (TArray<FOverlapResult> TempOverlaps; Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
 					{
 						OutOverlaps.Append(TempOverlaps);
 					}
@@ -321,29 +316,25 @@ namespace PCGExSampleNearestSurface
 
 				switch (Context->CollisionSettings.CollisionType)
 				{
-				case EPCGExCollisionFilterType::Channel:
-					if (World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionChannel, CollisionShape, CollisionParams))
+				case EPCGExCollisionFilterType::Channel: if (World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionChannel, CollisionShape, CollisionParams))
 					{
 						ProcessOverlapResults();
 					}
 					else { SamplingFailed(Index, MaxDistance); }
 					break;
-				case EPCGExCollisionFilterType::ObjectType:
-					if (World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionShape, CollisionParams))
+				case EPCGExCollisionFilterType::ObjectType: if (World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionShape, CollisionParams))
 					{
 						ProcessOverlapResults();
 					}
 					else { SamplingFailed(Index, MaxDistance); }
 					break;
-				case EPCGExCollisionFilterType::Profile:
-					if (World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, CollisionShape, CollisionParams))
+				case EPCGExCollisionFilterType::Profile: if (World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, CollisionShape, CollisionParams))
 					{
 						ProcessOverlapResults();
 					}
 					else { SamplingFailed(Index, MaxDistance); }
 					break;
-				default:
-					SamplingFailed(Index, MaxDistance);
+				default: SamplingFailed(Index, MaxDistance);
 					break;
 				}
 			}
@@ -358,25 +349,30 @@ namespace PCGExSampleNearestSurface
 
 		if (Settings->bOutputOneMinusDistance)
 		{
+			const double InvMaxDist = 1.0 / MaxSampledDistance;
+			const double Scale = Settings->DistanceScale;
+
 			for (int i = 0; i < NumPoints; i++)
 			{
 				const double D = DistanceWriter->GetValue(i);
-				DistanceWriter->SetValue(i, (1 - (D / MaxSampledDistance)) * Settings->DistanceScale);
+				DistanceWriter->SetValue(i, (1.0 - D * InvMaxDist) * Scale);
 			}
 		}
 		else
 		{
+			const double Scale = (1.0 / MaxSampledDistance) * Settings->DistanceScale;
+
 			for (int i = 0; i < NumPoints; i++)
 			{
 				const double D = DistanceWriter->GetValue(i);
-				DistanceWriter->SetValue(i, (D / MaxSampledDistance) * Settings->DistanceScale);
+				DistanceWriter->SetValue(i, D * Scale);
 			}
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }

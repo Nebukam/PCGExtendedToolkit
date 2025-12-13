@@ -56,13 +56,10 @@ void FPCGExShapePolygonBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	const double Increment = TWO_PI / static_cast<double>(Polygon->NumVertices);
 	switch (Config.PolygonOrientation)
 	{
-	case EPCGExPolygonFittingMethod::VertexForward:
+	case EPCGExPolygonFittingMethod::VertexForward: break;
+	case EPCGExPolygonFittingMethod::EdgeForward: Polygon->Orientation = Increment * .5;
 		break;
-	case EPCGExPolygonFittingMethod::EdgeForward:
-		Polygon->Orientation = Increment * .5;
-		break;
-	case EPCGExPolygonFittingMethod::Custom:
-		Polygon->Orientation = Config.CustomPolygonOrientation;
+	case EPCGExPolygonFittingMethod::Custom: Polygon->Orientation = Config.CustomPolygonOrientation;
 		break;
 	}
 
@@ -87,8 +84,7 @@ void FPCGExShapePolygonBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	// Get the lowest of those two
 
 	// Scale up by 1 / (1 - min diff) so if min diff is 0, this will be 1, but if greater, it will expand to fit
-	if (const float MinScaleDiff = FMath::Min(MinXScaleDiff, MinYScaleDiff);
-		!FMath::IsNearlyZero(MinScaleDiff))
+	if (const float MinScaleDiff = FMath::Min(MinXScaleDiff, MinYScaleDiff); !FMath::IsNearlyZero(MinScaleDiff))
 	{
 		Polygon->ScaleAdjustment = 1.0; //1.0 / (1.0 - MinXScaleDiff);
 		Polygon->EdgeLength *= Polygon->ScaleAdjustment;
@@ -104,14 +100,11 @@ void FPCGExShapePolygonBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	{
 		switch (Config.SkeletonConnectionMode)
 		{
-		case EPCGExPolygonSkeletonConnectionType::Vertex:
-			Polygon->bConnectSkeletonToVertices = true;
+		case EPCGExPolygonSkeletonConnectionType::Vertex: Polygon->bConnectSkeletonToVertices = true;
 			break;
-		case EPCGExPolygonSkeletonConnectionType::Edge:
-			Polygon->bConnectSkeletonToEdges = true;
+		case EPCGExPolygonSkeletonConnectionType::Edge: Polygon->bConnectSkeletonToEdges = true;
 			break;
-		case EPCGExPolygonSkeletonConnectionType::Both:
-			Polygon->bConnectSkeletonToVertices = true;
+		case EPCGExPolygonSkeletonConnectionType::Both: Polygon->bConnectSkeletonToVertices = true;
 			Polygon->bConnectSkeletonToEdges = true;
 			break;
 		}

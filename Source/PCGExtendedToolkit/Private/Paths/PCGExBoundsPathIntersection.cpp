@@ -66,9 +66,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceBoundsLabel);
@@ -79,13 +77,12 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Context->TargetsHandler->ForEachPreloader(
-		[&](PCGExData::FFacadePreloader& Preloader)
-		{
-			TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
-			Cloud->Idx = Context->Clouds.Add(Cloud);
-			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-		});
+	Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+	{
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
+		Cloud->Idx = Context->Clouds.Add(Cloud);
+		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+	});
 
 	return true;
 }
@@ -134,8 +131,7 @@ bool FPCGExBoundsPathIntersectionElement::AdvanceWork(FPCGExContext* InContext, 
 						return false;
 					}
 					return true;
-				},
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 				}))
 			{
@@ -143,8 +139,7 @@ bool FPCGExBoundsPathIntersectionElement::AdvanceWork(FPCGExContext* InContext, 
 			}
 		};
 
-		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
-		return false;
+		Context->TargetsHandler->StartLoading(Context->GetTaskManager());
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
@@ -160,13 +155,13 @@ namespace PCGExBoundsPathIntersection
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsPathIntersection::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 
@@ -174,10 +169,9 @@ namespace PCGExBoundsPathIntersection
 		SubBlending->bClosedLoop = bClosedLoop;
 
 		IgnoreList.Add(PointDataFacade->GetIn());
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
-			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 			return false;
 		}
 
@@ -212,17 +206,13 @@ namespace PCGExBoundsPathIntersection
 
 			TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->Source->GetIn()->GetConstTransformValueRange();
 
-			const TSharedPtr<PCGExGeo::FIntersections> LocalIntersections =
-				MakeShared<PCGExGeo::FIntersections>(
-					InTransforms[Index].GetLocation(),
-					InTransforms[NextIndex].GetLocation());
+			const TSharedPtr<PCGExGeo::FIntersections> LocalIntersections = MakeShared<PCGExGeo::FIntersections>(InTransforms[Index].GetLocation(), InTransforms[NextIndex].GetLocation());
 
 			// For each cloud...
-			Context->TargetsHandler->ForEachTarget(
-				[&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 InTargetIndex)
-				{
-					Context->Clouds[InTargetIndex]->FindIntersections(LocalIntersections.Get());
-				}, &IgnoreList);
+			Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 InTargetIndex)
+			{
+				Context->Clouds[InTargetIndex]->FindIntersections(LocalIntersections.Get());
+			}, &IgnoreList);
 
 			if (!LocalIntersections->IsEmpty())
 			{
@@ -376,7 +366,7 @@ namespace PCGExBoundsPathIntersection
 	void FProcessor::CompleteWork()
 	{
 		TProcessor<FPCGExBoundsPathIntersectionContext, UPCGExBoundsPathIntersectionSettings>::CompleteWork();
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

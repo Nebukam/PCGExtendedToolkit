@@ -101,7 +101,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorBoolean UniformScale = FPCGExInputShorthandSelectorBoolean(FName("UniformScale"), false, false);
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	EPCGExVariationSnapping SnapScale = EPCGExVariationSnapping::None;
 
@@ -112,7 +112,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extras", meta=(PCG_Overridable))
 	bool bApplyScaleToBounds = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extras", meta=(PCG_Overridable))
 	bool bResetPointCenter = false;
 
@@ -161,7 +161,7 @@ namespace PCGExTransformPoints
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleScale;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleSnap;
 		TSharedPtr<PCGExDetails::TSettingValue<bool>> UniformScale;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> PointCenter;
 
 		bool bApplyScaleToBounds = false;
@@ -169,14 +169,14 @@ namespace PCGExTransformPoints
 		bool bAllocatedBounds = false;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 	};
 }

@@ -67,7 +67,9 @@ bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, co
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = FName("AttributeSet");
 		OutData.Data = OutputSet;
-		return true;
+
+		InContext->Done();
+		return InContext->TryComplete();
 	};
 
 	UPCGExAssetCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
@@ -132,13 +134,7 @@ bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, co
 	return OutputToPin();
 }
 
-void FPCGExAssetCollectionToSetElement::ProcessEntry(
-	const FPCGExAssetCollectionEntry* InEntry,
-	TArray<const FPCGExAssetCollectionEntry*>& OutEntries,
-	const bool bOmitInvalidAndEmpty,
-	const bool bNoDuplicates,
-	const EPCGExSubCollectionToSet SubHandling,
-	TSet<uint64>& GUIDS)
+void FPCGExAssetCollectionToSetElement::ProcessEntry(const FPCGExAssetCollectionEntry* InEntry, TArray<const FPCGExAssetCollectionEntry*>& OutEntries, const bool bOmitInvalidAndEmpty, const bool bNoDuplicates, const EPCGExSubCollectionToSet SubHandling, TSet<uint64>& GUIDS)
 {
 	if (bNoDuplicates) { if (OutEntries.Contains(InEntry)) { return; } }
 
@@ -183,24 +179,19 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(
 		switch (SubHandling)
 		{
 		default: ;
-		case EPCGExSubCollectionToSet::Expand:
-			for (int i = 0; i < SubCache->Main->Order.Num(); i++)
+		case EPCGExSubCollectionToSet::Expand: for (int i = 0; i < SubCache->Main->Order.Num(); i++)
 			{
 				SubCollection->GetEntryAt(NestedEntry, i, EntryHost);
 				ProcessEntry(NestedEntry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 			}
 			return;
-		case EPCGExSubCollectionToSet::PickRandom:
-			SubCollection->GetEntryRandom(NestedEntry, 0, EntryHost);
+		case EPCGExSubCollectionToSet::PickRandom: SubCollection->GetEntryRandom(NestedEntry, 0, EntryHost);
 			break;
-		case EPCGExSubCollectionToSet::PickRandomWeighted:
-			SubCollection->GetEntryWeightedRandom(NestedEntry, 0, EntryHost);
+		case EPCGExSubCollectionToSet::PickRandomWeighted: SubCollection->GetEntryWeightedRandom(NestedEntry, 0, EntryHost);
 			break;
-		case EPCGExSubCollectionToSet::PickFirstItem:
-			SubCollection->GetEntryAt(NestedEntry, 0, EntryHost);
+		case EPCGExSubCollectionToSet::PickFirstItem: SubCollection->GetEntryAt(NestedEntry, 0, EntryHost);
 			break;
-		case EPCGExSubCollectionToSet::PickLastItem:
-			SubCollection->GetEntryAt(NestedEntry, SubCache->Main->Indices.Num() - 1, EntryHost);
+		case EPCGExSubCollectionToSet::PickLastItem: SubCollection->GetEntryAt(NestedEntry, SubCache->Main->Indices.Num() - 1, EntryHost);
 			break;
 		}
 

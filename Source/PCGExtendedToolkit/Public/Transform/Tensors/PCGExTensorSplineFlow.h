@@ -18,8 +18,8 @@ struct FPCGExTensorSplineFlowConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorSplineFlowConfig() :
-		FPCGExTensorConfigBase(false)
+	FPCGExTensorSplineFlowConfig()
+		: FPCGExTensorConfigBase(false)
 	{
 	}
 
@@ -59,7 +59,7 @@ class UPCGExTensorSplineFlowFactory : public UPCGExTensorSplineFactoryData
 public:
 	FPCGExTensorSplineFlowConfig Config;
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-spline-flow"))

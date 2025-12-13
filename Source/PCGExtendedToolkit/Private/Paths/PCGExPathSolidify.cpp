@@ -97,15 +97,13 @@ bool FPCGExPathSolidifyElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				PCGEX_SKIP_INVALID_PATH_ENTRY
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}
@@ -124,14 +122,14 @@ namespace PCGExPathSolidify
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathSolidify::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -158,14 +156,11 @@ namespace PCGExPathSolidify
 		{
 			switch (Settings->Normal)
 			{
-			case EPCGExPathNormalDirection::Normal:
-				PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
+			case EPCGExPathNormalDirection::Normal: PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
 				break;
-			case EPCGExPathNormalDirection::Binormal:
-				PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
+			case EPCGExPathNormalDirection::Binormal: PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
 				break;
-			case EPCGExPathNormalDirection::AverageNormal:
-				PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
+			case EPCGExPathNormalDirection::AverageNormal: PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
 				break;
 			}
 		}
@@ -212,10 +207,7 @@ namespace PCGExPathSolidify
 			if (!SecondaryRadius->Init(PointDataFacade)) { return false; }
 		}
 
-		PointDataFacade->GetOut()->AllocateProperties(
-			EPCGPointNativeProperties::Transform |
-			EPCGPointNativeProperties::BoundsMin |
-			EPCGPointNativeProperties::BoundsMax);
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax);
 
 		SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
 		if (!SolidificationLerp->Init(PointDataFacade, false)) { return false; }
@@ -282,11 +274,7 @@ namespace PCGExPathSolidify
 			const FVector RealYAxis = FVector::CrossProduct(RealXAxis, Normal);
 			const FVector RealZAxis = FVector::CrossProduct(RealYAxis, RealXAxis);
 
-			const FVector Flip(
-					PrimaryFlip->Read(Index) ? -1.0f : 1.0f,
-					SecondaryFlip->Read(Index) ? -1.0f : 1.0f,
-					TertiaryFlip->Read(Index) ? -1.0f : 1.0f
-				);
+			const FVector Flip(PrimaryFlip->Read(Index) ? -1.0f : 1.0f, SecondaryFlip->Read(Index) ? -1.0f : 1.0f, TertiaryFlip->Read(Index) ? -1.0f : 1.0f);
 
 			FVector XAxis = RealXAxis * Flip.X;
 			FVector YAxis = RealYAxis * Flip.Y;

@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBroadcast.h"
-#include "Blending/PCGExBlendModes.h"
 #include "Metadata/PCGAttributePropertySelector.h"
+#include "Types/PCGExTypeOps.h"
 #include "UObject/Object.h"
 #include "Utils/PCGValueRange.h"
 
@@ -56,7 +56,7 @@ namespace PCGExData
 
 		~FProxyDescriptor() = default;
 		void UpdateSubSelection();
-		bool SetFieldIndex(const int32 InFieldIndex);
+		bool SetFieldIndex(const int32 InFieldIndex); 
 
 		bool Capture(FPCGExContext* InContext, const FString& Path, const EIOSide InSide = EIOSide::Out, const bool bRequired = true);
 		bool Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide = EIOSide::Out, const bool bRequired = true);
@@ -73,12 +73,18 @@ namespace PCGExData
 		bool bWantsSubSelection = false;
 		PCGEx::FSubSelection SubSelection;
 
+		PCGExTypeOps::ITypeOpsBase* RealOp = nullptr;
+		PCGExTypeOps::ITypeOpsBase* WorkingOp = nullptr;
+		
 	public:
 		UPCGBasePointData* Data = nullptr;
-		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
-		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
+		
+		const EPCGMetadataTypes RealType;
+		const EPCGMetadataTypes WorkingType;
+		const PCGExTypeOps::FConvertFn WorkingToReal;
+		const PCGExTypeOps::FConvertFn RealToWorking;
 
-		IBufferProxy() = default;
+		explicit IBufferProxy(EPCGMetadataTypes InRealType = EPCGMetadataTypes::Unknown, EPCGMetadataTypes InWorkingType =  EPCGMetadataTypes::Unknown);
 		virtual ~IBufferProxy() = default;
 
 		virtual bool Validate(const FProxyDescriptor& InDescriptor) const { return InDescriptor.RealType == RealType && InDescriptor.WorkingType == WorkingType; }
@@ -98,7 +104,7 @@ namespace PCGExData
 	class TBufferProxy : public IBufferProxy
 	{
 	public:
-		TBufferProxy();
+		explicit TBufferProxy(EPCGMetadataTypes InRealType = EPCGMetadataTypes::Unknown);
 
 		virtual T_WORKING Get(const int32 Index) const = 0;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const = 0;
@@ -123,9 +129,11 @@ namespace PCGExData
 	template <typename T_REAL, typename T_WORKING>
 	class TAttributeBufferProxy : public TBufferProxy<T_WORKING>
 	{
+		using TBufferProxy<T_WORKING>::WorkingToReal;
+		using TBufferProxy<T_WORKING>::RealToWorking;
 		using TBufferProxy<T_WORKING>::bWantsSubSelection;
 		using TBufferProxy<T_WORKING>::SubSelection;
-
+		
 	public:
 		TSharedPtr<TBuffer<T_REAL>> Buffer;
 
@@ -150,16 +158,17 @@ namespace PCGExData
 	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
 	class TPointPropertyProxy : public TBufferProxy<T_WORKING>
 	{
+		using TBufferProxy<T_WORKING>::WorkingToReal;
+		using TBufferProxy<T_WORKING>::RealToWorking;
 		using TBufferProxy<T_WORKING>::bWantsSubSelection;
 		using TBufferProxy<T_WORKING>::SubSelection;
 		using TBufferProxy<T_WORKING>::Data;
-		
+
 	public:
 		TPointPropertyProxy();
 
 		virtual T_WORKING Get(const int32 Index) const override;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override;
-
 	};
 
 #pragma region externalization TPointPropertyProxy
@@ -177,6 +186,8 @@ namespace PCGExData
 	template <typename T_REAL, typename T_WORKING, EPCGExtraProperties PROPERTY>
 	class TPointExtraPropertyProxy : public TBufferProxy<T_WORKING>
 	{
+		using TBufferProxy<T_WORKING>::WorkingToReal;
+		using TBufferProxy<T_WORKING>::RealToWorking;
 		using TBufferProxy<T_WORKING>::bWantsSubSelection;
 		using TBufferProxy<T_WORKING>::SubSelection;
 
@@ -245,6 +256,8 @@ namespace PCGExData
 		// A memory-friendly but super slow proxy version that works with Setter/Getter on the attribute
 		// TODO : Implement support for this to replace old "soft" metadata ops
 
+		using TBufferProxy<T_WORKING>::WorkingToReal;
+		using TBufferProxy<T_WORKING>::RealToWorking;
 		using TBufferProxy<T_WORKING>::bWantsSubSelection;
 		using TBufferProxy<T_WORKING>::SubSelection;
 		using TBufferProxy<T_WORKING>::Data;
@@ -274,6 +287,8 @@ namespace PCGExData
 		// A memory-friendly but super slow proxy version that works with Setter/Getter on the attribute
 		// TODO : Implement support for this to replace old "soft" metadata ops
 
+		using TBufferProxy<T_WORKING>::WorkingToReal;
+		using TBufferProxy<T_WORKING>::RealToWorking;
 		using TBufferProxy<T_WORKING>::bWantsSubSelection;
 		using TBufferProxy<T_WORKING>::SubSelection;
 		using TBufferProxy<T_WORKING>::Data;

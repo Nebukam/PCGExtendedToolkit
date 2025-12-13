@@ -40,9 +40,7 @@ bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BatchActions)
 
-	if (!PCGExFactories::GetInputFactories(
-		Context, PCGExActions::SourceActionsLabel, Context->ActionsFactories,
-		{PCGExFactories::EType::Action}))
+	if (!PCGExFactories::GetInputFactories(Context, PCGExActions::SourceActionsLabel, Context->ActionsFactories, {PCGExFactories::EType::Action}))
 	{
 		// No action factories, early exit.
 		Context->ActionsFactories.Empty();
@@ -85,11 +83,9 @@ bool FPCGExBatchActionsElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	{
 		if (!Context->ActionsFactories.IsEmpty())
 		{
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to process."));
 			}
@@ -114,7 +110,7 @@ namespace PCGExBatchActions
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBatchActions::Process);
 
@@ -122,18 +118,17 @@ namespace PCGExBatchActions
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		// Initialize writers with provided default value
 		for (FPCGMetadataAttributeBase* AttributeBase : Context->DefaultAttributes->Attributes)
 		{
-			PCGEx::ExecuteWithRightType(
-				AttributeBase->GetTypeId(), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-					PointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);
-				});
+			PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
+				PointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);
+			});
 		}
 
 		for (const UPCGExActionFactoryData* Factory : Context->ActionsFactories)
@@ -166,15 +161,13 @@ namespace PCGExBatchActions
 		{
 			for (const TSharedPtr<PCGExData::IBuffer>& DataCache : PointDataFacade->Buffers)
 			{
-				if (!DataCache->InAttribute ||
-					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||
-					PCGEx::IsPCGExAttribute(DataCache->Identifier.Name)) { continue; }
+				if (!DataCache->InAttribute || !Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) || PCGEx::IsPCGExAttribute(DataCache->Identifier.Name)) { continue; }
 
 				PointDataFacade->Source->DeleteAttribute(DataCache->InAttribute->Name);
 			}
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Cleanup()

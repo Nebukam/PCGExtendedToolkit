@@ -22,8 +22,8 @@ struct FPCGExMatchAttrToAttrConfig : public FPCGExMatchRuleConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExMatchAttrToAttrConfig() :
-		FPCGExMatchRuleConfigBase()
+	FPCGExMatchAttrToAttrConfig()
+		: FPCGExMatchRuleConfigBase()
 	{
 	}
 
@@ -99,9 +99,7 @@ class UPCGExCreateMatchAttrToAttrSettings : public UPCGExMatchRuleFactoryProvide
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MatchAttrToAttr, "Match : Attributes", "Compares attribute value on targets against inputs @Data domain value",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchAttrToAttr, "Match : Attributes", "Compares attribute value on targets against inputs @Data domain value", FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

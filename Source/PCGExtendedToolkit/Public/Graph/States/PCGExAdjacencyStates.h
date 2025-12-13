@@ -95,14 +95,12 @@ namespace PCGExAdjacencyStates
 
 		const UPCGExAdjacencyStateFactoryData* StateFactory = nullptr;
 
-		explicit FState(const UPCGExAdjacencyStateFactoryData* InFactory):
-			PCGExClusterStates::FState(InFactory), StateFactory(InFactory)
+		explicit FState(const UPCGExAdjacencyStateFactoryData* InFactory)
+			: PCGExClusterStates::FState(InFactory), StateFactory(InFactory)
 		{
 		}
 
-		virtual bool Init(
-			FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster,
-			const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 
 		virtual ~FState() override;
 
@@ -126,9 +124,7 @@ protected:
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ClusterNodeFlag, "State : Bitmask Adjacency", "A bulk-check for directional adjacency, using bitmask collections",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ClusterNodeFlag, "State : Bitmask Adjacency", "A bulk-check for directional adjacency, using bitmask collections", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

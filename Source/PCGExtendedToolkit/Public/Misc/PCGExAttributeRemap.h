@@ -40,11 +40,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampDetails
 	{
 	}
 
-	FPCGExClampDetails(const FPCGExClampDetails& Other):
-		bApplyClampMin(Other.bApplyClampMin),
-		ClampMinValue(Other.ClampMinValue),
-		bApplyClampMax(Other.bApplyClampMax),
-		ClampMaxValue(Other.ClampMaxValue)
+	FPCGExClampDetails(const FPCGExClampDetails& Other)
+		: bApplyClampMin(Other.bApplyClampMin), ClampMinValue(Other.ClampMinValue), bApplyClampMax(Other.bApplyClampMax), ClampMaxValue(Other.ClampMaxValue)
 	{
 	}
 
@@ -64,9 +61,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyClampMax"))
 	double ClampMaxValue = 0;
 
-	FORCEINLINE double GetClampMin(const double InValue) const { return InValue < ClampMinValue ? ClampMinValue : InValue; }
-	FORCEINLINE double GetClampMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue; }
-	FORCEINLINE double GetClampMinMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue < ClampMinValue ? ClampMinValue : InValue; }
+	FORCEINLINE double GetClampMin(const double InValue) const
+	{
+		return InValue < ClampMinValue ? ClampMinValue : InValue;
+	}
+
+	FORCEINLINE double GetClampMax(const double InValue) const
+	{
+		return InValue > ClampMaxValue ? ClampMaxValue : InValue;
+	}
+
+	FORCEINLINE double GetClampMinMax(const double InValue) const
+	{
+		return InValue > ClampMaxValue ? ClampMaxValue : InValue < ClampMinValue ? ClampMinValue : InValue;
+	}
 
 	FORCEINLINE double GetClampedValue(const double InValue) const
 	{
@@ -155,12 +163,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Snapping != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandSelectorDouble Snap = FPCGExInputShorthandSelectorDouble(FName("Step"), 10, false);
 
-	void Init()
-	{
-		if (!bUseLocalCurve) { LocalScoreCurve.ExternalCurve = RemapCurve.Get(); }
-		RemapCurveObj = LocalScoreCurve.GetRichCurveConst();
-	}
-
+	void Init();
+	
 	double GetRemappedValue(const double Value, const double Step) const;
 };
 
@@ -173,10 +177,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 	{
 	}
 
-	FPCGExComponentRemapRule(const FPCGExComponentRemapRule& Other):
-		InputClampDetails(Other.InputClampDetails),
-		RemapDetails(Other.RemapDetails),
-		OutputClampDetails(Other.OutputClampDetails)
+	FPCGExComponentRemapRule(const FPCGExComponentRemapRule& Other)
+		: InputClampDetails(Other.InputClampDetails), RemapDetails(Other.RemapDetails), OutputClampDetails(Other.OutputClampDetails)
 	{
 	}
 
@@ -311,14 +313,14 @@ namespace PCGExAttributeRemap
 		TArray<FPCGExComponentRemapRule> Rules;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		void RemapRange(const PCGExMT::FScope& Scope);
 

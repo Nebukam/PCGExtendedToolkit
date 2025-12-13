@@ -249,7 +249,7 @@ namespace PCGExWriteEdgeProperties
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;
@@ -262,8 +262,8 @@ namespace PCGExWriteEdgeProperties
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
 		}

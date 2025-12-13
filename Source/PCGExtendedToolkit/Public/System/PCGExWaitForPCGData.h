@@ -12,6 +12,11 @@
 
 #include "PCGExWaitForPCGData.generated.h"
 
+namespace PCGEx
+{
+	class FIntTracker;
+}
+
 namespace PCGExMT
 {
 	class FAsyncToken;
@@ -243,7 +248,7 @@ namespace PCGExWaitForPCGData
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		void GatherActors();
 

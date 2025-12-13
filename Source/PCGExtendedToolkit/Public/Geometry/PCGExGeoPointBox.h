@@ -125,9 +125,7 @@ namespace PCGExGeo
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
-					LocalBox.Min.SizeSquared() >= RadiusSquared ||
-					LocalBox.Max.SizeSquared() >= RadiusSquared)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) || LocalBox.Min.SizeSquared() >= RadiusSquared || LocalBox.Max.SizeSquared() >= RadiusSquared)
 				{
 					return false;
 				}
@@ -135,9 +133,7 @@ namespace PCGExGeo
 			}
 			else
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) ||
-					LocalBox.Min.SizeSquared() >= RadiusSquaredExpanded ||
-					LocalBox.Max.SizeSquared() >= RadiusSquaredExpanded)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) || LocalBox.Min.SizeSquared() >= RadiusSquaredExpanded || LocalBox.Max.SizeSquared() >= RadiusSquaredExpanded)
 				{
 					return false;
 				}
@@ -154,9 +150,7 @@ namespace PCGExGeo
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
-					LocalBox.Min.SizeSquared() > RadiusSquared ||
-					LocalBox.Max.SizeSquared() > RadiusSquared)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) || LocalBox.Min.SizeSquared() > RadiusSquared || LocalBox.Max.SizeSquared() > RadiusSquared)
 				{
 					return false;
 				}
@@ -164,9 +158,7 @@ namespace PCGExGeo
 			}
 			else
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) ||
-					LocalBox.Min.SizeSquared() > RadiusSquaredExpanded ||
-					LocalBox.Max.SizeSquared() > RadiusSquaredExpanded)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) || LocalBox.Min.SizeSquared() > RadiusSquaredExpanded || LocalBox.Max.SizeSquared() > RadiusSquaredExpanded)
 				{
 					return false;
 				}
@@ -182,8 +174,7 @@ namespace PCGExGeo
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox) || BoxExpanded.Intersect(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
-					(LocalBox.Min.SizeSquared() <= RadiusSquared && LocalBox.Max.SizeSquared() <= RadiusSquared))
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) || (LocalBox.Min.SizeSquared() <= RadiusSquared && LocalBox.Max.SizeSquared() <= RadiusSquared))
 				{
 					return true;
 				}
@@ -191,8 +182,7 @@ namespace PCGExGeo
 			}
 			else
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) ||
-					(LocalBox.Min.SizeSquared() <= RadiusSquaredExpanded && LocalBox.Max.SizeSquared() <= RadiusSquaredExpanded))
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) || (LocalBox.Min.SizeSquared() <= RadiusSquaredExpanded && LocalBox.Max.SizeSquared() <= RadiusSquaredExpanded))
 				{
 					return true;
 				}
@@ -218,9 +208,7 @@ namespace PCGExGeo
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInside(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
-					LocalBox.Min.SizeSquared() >= RadiusSquared ||
-					LocalBox.Max.SizeSquared() >= RadiusSquared)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) || LocalBox.Min.SizeSquared() >= RadiusSquared || LocalBox.Max.SizeSquared() >= RadiusSquared)
 				{
 					return false;
 				}
@@ -228,9 +216,7 @@ namespace PCGExGeo
 			}
 			else
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) ||
-					LocalBox.Min.SizeSquared() >= RadiusSquaredExpanded ||
-					LocalBox.Max.SizeSquared() >= RadiusSquaredExpanded)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) || LocalBox.Min.SizeSquared() >= RadiusSquaredExpanded || LocalBox.Max.SizeSquared() >= RadiusSquaredExpanded)
 				{
 					return false;
 				}
@@ -246,9 +232,7 @@ namespace PCGExGeo
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
-					LocalBox.Min.SizeSquared() > RadiusSquared ||
-					LocalBox.Max.SizeSquared() > RadiusSquared)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) || LocalBox.Min.SizeSquared() > RadiusSquared || LocalBox.Max.SizeSquared() > RadiusSquared)
 				{
 					return false;
 				}
@@ -256,9 +240,7 @@ namespace PCGExGeo
 			}
 			else
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) ||
-					LocalBox.Min.SizeSquared() > RadiusSquaredExpanded ||
-					LocalBox.Max.SizeSquared() > RadiusSquaredExpanded)
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) || LocalBox.Min.SizeSquared() > RadiusSquaredExpanded || LocalBox.Max.SizeSquared() > RadiusSquaredExpanded)
 				{
 					return false;
 				}
@@ -274,8 +256,7 @@ namespace PCGExGeo
 			else if constexpr (Mode == EPCGExBoxCheckMode::ExpandedBox) { return BoxExpanded.IsInsideOrOn(LocalBox) || BoxExpanded.Intersect(LocalBox); }
 			else if constexpr (Mode == EPCGExBoxCheckMode::Sphere)
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) ||
-					(LocalBox.Min.SizeSquared() <= RadiusSquared && LocalBox.Max.SizeSquared() <= RadiusSquared))
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquared, LocalBox) || (LocalBox.Min.SizeSquared() <= RadiusSquared && LocalBox.Max.SizeSquared() <= RadiusSquared))
 				{
 					return true;
 				}
@@ -283,8 +264,7 @@ namespace PCGExGeo
 			}
 			else
 			{
-				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) ||
-					(LocalBox.Min.SizeSquared() <= RadiusSquaredExpanded && LocalBox.Max.SizeSquared() <= RadiusSquaredExpanded))
+				if (FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox) || (LocalBox.Min.SizeSquared() <= RadiusSquaredExpanded && LocalBox.Max.SizeSquared() <= RadiusSquaredExpanded))
 				{
 					return true;
 				}
@@ -303,11 +283,7 @@ namespace PCGExGeo
 #pragma region Intersections
 
 		bool ProcessIntersections(FIntersections* InIntersections, const int32 Idx = -1) const;
-		bool SegmentIntersection(
-			const FVector& Start, const FVector& End,
-			FVector& OutIntersection1, FVector& OutIntersection2,
-			bool& bIsI2Valid, FVector& OutHitNormal1, FVector& OutHitNormal2,
-			bool& bInverseDir) const;
+		bool SegmentIntersection(const FVector& Start, const FVector& End, FVector& OutIntersection1, FVector& OutIntersection2, bool& bIsI2Valid, FVector& OutHitNormal1, FVector& OutHitNormal2, bool& bInverseDir) const;
 
 
 #pragma endregion
@@ -341,11 +317,10 @@ namespace PCGExGeo
 		{
 			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			bool bOverlapFound = false;
-			Octree->FindNearbyElements(
-				InPosition, [&](const FPointBox* NearbyBox)
-				{
-					if (!bOverlapFound && NearbyBox->IsInside<Mode>(InPosition)) { bOverlapFound = true; }
-				});
+			Octree->FindNearbyElements(InPosition, [&](const FPointBox* NearbyBox)
+			{
+				if (!bOverlapFound && NearbyBox->IsInside<Mode>(InPosition)) { bOverlapFound = true; }
+			});
 			return bOverlapFound;
 		}
 
@@ -353,11 +328,10 @@ namespace PCGExGeo
 		bool IsInside(const FVector& InPosition, TArray<TSharedPtr<FPointBox>>& OutOverlaps) const
 		{
 			if (!CloudBounds.IsInside(InPosition)) { return false; }
-			Octree->FindNearbyElements(
-				InPosition, [&](const FPointBox* NearbyBox)
-				{
-					if (NearbyBox->IsInside<Mode>(InPosition)) { OutOverlaps.Add(*(Boxes.GetData() + NearbyBox->Index)); }
-				});
+			Octree->FindNearbyElements(InPosition, [&](const FPointBox* NearbyBox)
+			{
+				if (NearbyBox->IsInside<Mode>(InPosition)) { OutOverlaps.Add(*(Boxes.GetData() + NearbyBox->Index)); }
+			});
 			return !OutOverlaps.IsEmpty();
 		}
 

@@ -41,14 +41,10 @@ bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To, FH
 
 	switch (CollisionType)
 	{
-	case EPCGExCollisionFilterType::Channel:
-		return World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams);
-	case EPCGExCollisionFilterType::ObjectType:
-		return World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
-	case EPCGExCollisionFilterType::Profile:
-		return World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams);
-	default:
-		return false;
+	case EPCGExCollisionFilterType::Channel: return World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType: return World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
+	case EPCGExCollisionFilterType::Profile: return World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams);
+	default: return false;
 	}
 }
 
@@ -60,14 +56,10 @@ bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To) co
 
 	switch (CollisionType)
 	{
-	case EPCGExCollisionFilterType::Channel:
-		return World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams);
-	case EPCGExCollisionFilterType::ObjectType:
-		return World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
-	case EPCGExCollisionFilterType::Profile:
-		return World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams);
-	default:
-		return false;
+	case EPCGExCollisionFilterType::Channel: return World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType: return World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
+	case EPCGExCollisionFilterType::Profile: return World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams);
+	default: return false;
 	}
 }
 
@@ -103,8 +95,7 @@ bool FPCGExCollisionDetails::StrongLinecast(const FVector& From, const FVector& 
 			}
 			return true;
 		}
-	default:
-		return false;
+	default: return false;
 	}
 }
 

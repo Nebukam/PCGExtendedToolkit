@@ -51,11 +51,11 @@ namespace PCGExCluster
 		{
 		}
 
-		bool Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
-		bool CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		bool Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);
+		bool CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);
 
 	protected:
-		bool DispatchTasks(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		bool DispatchTasks(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);
 		void Dedupe();
 	};
 }

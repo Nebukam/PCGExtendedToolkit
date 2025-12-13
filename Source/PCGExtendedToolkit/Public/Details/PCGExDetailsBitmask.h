@@ -51,50 +51,35 @@ enum class EPCGExBitflagComparison : uint8
 
 namespace PCGExBitmask
 {
-	PCGEXTENDEDTOOLKIT_API
-	FString ToString(const EPCGExBitflagComparison Comparison);
+	PCGEXTENDEDTOOLKIT_API FString ToString(const EPCGExBitflagComparison Comparison);
 
-	constexpr EPCGExBitOp OR_Ops[5] = {
-		EPCGExBitOp::OR,
-		EPCGExBitOp::Set,
-		EPCGExBitOp::AND,
-		EPCGExBitOp::NOT,
-		EPCGExBitOp::XOR,
-	};
+	constexpr EPCGExBitOp OR_Ops[5] = {EPCGExBitOp::OR, EPCGExBitOp::Set, EPCGExBitOp::AND, EPCGExBitOp::NOT, EPCGExBitOp::XOR,};
 
 	FORCEINLINE constexpr EPCGExBitOp GetBitOp(EPCGExBitOp_OR BitOp) { return OR_Ops[static_cast<uint8>(BitOp)]; }
 
-	PCGEXTENDEDTOOLKIT_API
-	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
+	PCGEXTENDEDTOOLKIT_API bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
 
 	FORCEINLINE static void Mutate(const EPCGExBitOp Operation, int64& Flags, const int64 Mask)
 	{
 		switch (Operation)
 		{
-		case EPCGExBitOp::Set:
-			Flags = Mask;
+		case EPCGExBitOp::Set: Flags = Mask;
 			break;
-		case EPCGExBitOp::AND:
-			Flags &= Mask;
+		case EPCGExBitOp::AND: Flags &= Mask;
 			break;
-		case EPCGExBitOp::OR:
-			Flags |= Mask;
+		case EPCGExBitOp::OR: Flags |= Mask;
 			break;
-		case EPCGExBitOp::NOT:
-			Flags &= ~Mask;
+		case EPCGExBitOp::NOT: Flags &= ~Mask;
 			break;
-		case EPCGExBitOp::XOR:
-			Flags ^= Mask;
+		case EPCGExBitOp::XOR: Flags ^= Mask;
 			break;
 		default: ;
 		}
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	void Mutate(const TArray<FPCGExBitmaskRef>& Compositions, int64& Flags);
+	PCGEXTENDEDTOOLKIT_API void Mutate(const TArray<FPCGExBitmaskRef>& Compositions, int64& Flags);
 
-	PCGEXTENDEDTOOLKIT_API
-	void Mutate(const TArray<FPCGExSimpleBitmask>& Compositions, int64& Flags);
+	PCGEXTENDEDTOOLKIT_API void Mutate(const TArray<FPCGExSimpleBitmask>& Compositions, int64& Flags);
 
 	struct PCGEXTENDEDTOOLKIT_API FCachedRef
 	{
@@ -117,7 +102,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampedBit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bValue;
 
-	FPCGExClampedBit() : BitIndex(0), bValue(false)
+	FPCGExClampedBit()
+		: BitIndex(0), bValue(false)
 	{
 	}
 

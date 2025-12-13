@@ -44,22 +44,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionSettings
 
 	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
-	void RegisterBuffersDependencies(
-		FPCGExContext* InContext,
-		PCGExData::FFacadePreloader& FacadePreloader,
-		const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr) const;
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr) const;
 
-	bool Init(
-		FPCGExContext* InContext,
-		const TSharedRef<PCGExData::FFacade>& InVtxDataFacade,
-		const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr,
-		const bool bQuiet = false);
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr, const bool bQuiet = false);
 
-	bool InitFromParent(
-		FPCGExContext* InContext,
-		const FPCGExEdgeDirectionSettings& ParentSettings,
-		const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade,
-		const bool bQuiet = false);
+	bool InitFromParent(FPCGExContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade, const bool bQuiet = false);
 
 	bool RequiresSortingRules() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort; }
 	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort; }

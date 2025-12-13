@@ -112,7 +112,7 @@ namespace PCGExTopologyEdges
 	class PCGEXTENDEDTOOLKIT_API IProcessor : public PCGExClusterMT::IProcessor
 	{
 		friend class IBatch;
-		
+
 	protected:
 		TSharedPtr<PCGExTopology::FHoles> Holes;
 		FPCGExTopologyUVDetails UVDetails;
@@ -142,7 +142,7 @@ namespace PCGExTopologyEdges
 		virtual void InitConstraints();
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void Output() override;
 		virtual void Cleanup() override;
 
@@ -206,8 +206,8 @@ namespace PCGExTopologyEdges
 		}
 
 	public:
-		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			IBatch(InContext, InVtx, InEdges)
+		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: IBatch(InContext, InVtx, InEdges)
 		{
 		}
 	};

@@ -39,6 +39,8 @@ class UPCGExClusterCentralitySettings : public UPCGExEdgesProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_NODE_INFOS(ClusterCentrality, "Cluster : Centrality", "Compute betweenness centrality. Processing time increases exponentially with the number of vtx.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
 #endif
@@ -115,14 +117,14 @@ namespace PCGExClusterCentrality
 		TSharedPtr<PCGExMT::TScopedArray<double>> ScopedBetweenness;
 
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void OnEdgesProcessingComplete() override;
@@ -136,11 +138,7 @@ namespace PCGExClusterCentrality
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		void ProcessSingleNode(
-			const int32 Index,
-			TArray<double>& LocalBetweenness, TArray<double>& Score,
-			TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred,
-			TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue);
+		void ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue);
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

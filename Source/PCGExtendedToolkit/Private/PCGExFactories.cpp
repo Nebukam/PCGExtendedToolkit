@@ -14,6 +14,13 @@
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider
 
+#if PCGEX_ENGINE_VERSION < 507
+EPCGDataType FPCGDataTypeInfo::AsId()
+{
+	return EPCGDataType::Param;
+}
+#endif
+
 namespace PCGExFactories
 {
 	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bRequired)

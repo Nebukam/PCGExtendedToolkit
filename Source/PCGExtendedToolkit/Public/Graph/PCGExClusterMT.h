@@ -35,7 +35,6 @@ namespace PCGExGraph
 namespace PCGEx
 {
 	class FWorkHandle;
-	class FIntTracker;
 }
 
 namespace PCGExCluster
@@ -74,7 +73,7 @@ namespace PCGExClusterMT
 		UPCGSettings* ExecutionSettings = nullptr;
 
 		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 
 		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* HeuristicsFactories = nullptr;
 		FPCGExEdgeDirectionSettings DirectionSettings;
@@ -108,7 +107,7 @@ namespace PCGExClusterMT
 		template <typename T>
 		T* GetParentBatch() { return static_cast<T*>(ParentBatch.Pin().Get()); }
 
-		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
+		TSharedPtr<PCGExMT::FTaskManager> GetTaskManager() { return TaskManager; }
 
 		bool bAllowEdgesDataFacadeScopedGet = false;
 
@@ -142,7 +141,7 @@ namespace PCGExClusterMT
 
 		void SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories);
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager);
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager);
 
 #pragma region Parallel loops
 
@@ -177,14 +176,14 @@ namespace PCGExClusterMT
 	protected:
 		TSharedPtr<PCGExClusterFilter::FManager> VtxFiltersManager;
 		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
-		virtual void FilterVtxScope(const PCGExMT::FScope& Scope);
+		virtual void FilterVtxScope(const PCGExMT::FScope& Scope, const bool bParallel = false);
 
 		bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const;
 
 		bool DefaultEdgeFilterValue = true;
 		TSharedPtr<PCGExClusterFilter::FManager> EdgesFiltersManager;
 		virtual bool InitEdgesFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
-		virtual void FilterEdgeScope(const PCGExMT::FScope& Scope);
+		virtual void FilterEdgeScope(const PCGExMT::FScope& Scope, const bool bParallel = false);
 	};
 
 	template <typename TContext, typename TSettings>
@@ -195,8 +194,8 @@ namespace PCGExClusterMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			IProcessor(InVtxDataFacade, InEdgeDataFacade)
+		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: IProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -214,12 +213,10 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
-		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
-
 		mutable FRWLock BatchLock;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 		TSharedPtr<PCGExData::FFacadePreloader> VtxFacadePreloader;
 
 		const FPCGMetadataAttribute<int64>* RawLookupAttribute = nullptr;
@@ -301,7 +298,7 @@ namespace PCGExClusterMT
 		bool WantsPerClusterProjection() const { return bWantsPerClusterProjection; }
 		virtual void SetProjectionDetails(const FPCGExGeo2DProjectionDetails& InProjectionDetails);
 
-		virtual void PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild);
+		virtual void PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> TaskManagerPtr, const bool bScopedIndexLookupBuild);
 		virtual bool PrepareSingle(const TSharedPtr<IProcessor>& InProcessor);
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader);
 		virtual void OnProcessingPreparationComplete();
@@ -340,18 +337,11 @@ namespace PCGExClusterMT
 		}
 
 	public:
-		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			IBatch(InContext, InVtx, InEdges)
+		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: IBatch(InContext, InVtx, InEdges)
 		{
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
-
-	PCGEXTENDEDTOOLKIT_API
-	void CompleteBatches(const TArrayView<TSharedPtr<IBatch>> Batches);
-
-	PCGEXTENDEDTOOLKIT_API
-	void WriteBatches(const TArrayView<TSharedPtr<IBatch>> Batches);
+	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
 }

@@ -78,8 +78,7 @@ bool FPCGExCreateSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 					return false;
 				}
 				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -89,8 +88,19 @@ bool FPCGExCreateSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	Context->MainBatch->Output();
-	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+	if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)
+	{
+		PCGExMT::ExecuteOnMainThreadAndWait([&]()
+		{
+			Context->MainBatch->Output();
+			Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+		});
+	}
+	else
+	{
+		Context->MainBatch->Output();
+		Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+	}
 
 	return Context->TryComplete();
 }
@@ -107,13 +117,13 @@ bool FPCGExCreateSplineElement::CanExecuteOnlyOnMainThread(FPCGContext* Context)
 
 namespace PCGExCreateSpline
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCreateSpline::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 
@@ -174,31 +184,19 @@ namespace PCGExCreateSpline
 
 			switch (PointTypeProxy)
 			{
-			case EPCGExSplinePointType::Linear:
-				PointType = ESplinePointType::Linear;
+			case EPCGExSplinePointType::Linear: PointType = ESplinePointType::Linear;
 				break;
-			case EPCGExSplinePointType::Curve:
-				PointType = ESplinePointType::Curve;
+			case EPCGExSplinePointType::Curve: PointType = ESplinePointType::Curve;
 				break;
-			case EPCGExSplinePointType::Constant:
-				PointType = ESplinePointType::Constant;
+			case EPCGExSplinePointType::Constant: PointType = ESplinePointType::Constant;
 				break;
-			case EPCGExSplinePointType::CurveClamped:
-				PointType = ESplinePointType::CurveClamped;
+			case EPCGExSplinePointType::CurveClamped: PointType = ESplinePointType::CurveClamped;
 				break;
-			case EPCGExSplinePointType::CurveCustomTangent:
-				PointType = ESplinePointType::CurveCustomTangent;
+			case EPCGExSplinePointType::CurveCustomTangent: PointType = ESplinePointType::CurveCustomTangent;
 				break;
 			}
 
-			SplinePoints[Index] = FSplinePoint(
-				static_cast<float>(Index),
-				TR.GetLocation() - PositionOffset,
-				OutArrive,
-				OutLeave,
-				TR.GetRotation().Rotator(),
-				TR.GetScale3D(),
-				PointType);
+			SplinePoints[Index] = FSplinePoint(static_cast<float>(Index), TR.GetLocation() - PositionOffset, OutArrive, OutLeave, TR.GetRotation().Rotator(), TR.GetScale3D(), PointType);
 
 			const int64 PointMetadataEntry = InMetadataEntries[Index];
 			SplineEntryKeys[Index] = PointMetadataEntry;

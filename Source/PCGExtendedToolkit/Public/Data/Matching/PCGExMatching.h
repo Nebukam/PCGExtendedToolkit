@@ -80,6 +80,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bSplitUnmatched = true;
 
+	/** If enabled, outputs data that got no valid matches. 
+	 * Not all nodes support this options. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" ├─ Output Unmatched", EditCondition="!bSplitUnmatched", EditConditionHides))
+	bool bOutputUnmatched = true;
+
+	/** If enabled, will throw a warning when there is no valid target matches.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Quiet Unmatched Warning", EditCondition="!bSplitUnmatched", EditConditionHides))
+	bool bQuietUnmatchedTargetWarning = true;
+
 	/** Whether to limit the number of matches or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
 	bool bLimitMatches = false;
@@ -108,9 +117,7 @@ namespace PCGExMatching
 	const FName OutputUnmatchedVtxLabel = TEXT("Unmatched Vtx");
 	const FName OutputUnmatchedEdgesLabel = TEXT("Unmatched Edges");
 
-	PCGEXTENDEDTOOLKIT_API
-	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	PCGEXTENDEDTOOLKIT_API void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
-	PCGEXTENDEDTOOLKIT_API
-	void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	PCGEXTENDEDTOOLKIT_API void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 }

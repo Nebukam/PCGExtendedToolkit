@@ -110,17 +110,15 @@ bool FPCGExBinPackingElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				return Context->ValidIOIndices.Contains(Entry->IOIndex);
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				TArray<FPCGExSortRuleConfig> OutRules;
-				Settings->GetSortingRules(Context, OutRules);
-				NewBatch->bPrefetchData = !OutRules.IsEmpty();
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         return Context->ValidIOIndices.Contains(Entry->IOIndex);
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         TArray<FPCGExSortRuleConfig> OutRules;
+			                                         Settings->GetSortingRules(Context, OutRules);
+			                                         NewBatch->bPrefetchData = !OutRules.IsEmpty();
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -261,13 +259,13 @@ namespace PCGExBinPacking
 		}
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBinPacking::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->Source->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);

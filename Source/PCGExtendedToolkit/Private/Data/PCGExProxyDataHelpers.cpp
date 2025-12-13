@@ -143,9 +143,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 					PCGEX_RETURN_OUT_PROXY
 				}
 
-				const PCGMetadataEntryKey Key = InDataFacade->GetIn()->IsEmpty() ?
-					                                PCGInvalidEntryKey :
-					                                InDataFacade->GetIn()->GetMetadataEntry(0);
+				const PCGMetadataEntryKey Key = InDataFacade->GetIn()->IsEmpty() ? PCGInvalidEntryKey : InDataFacade->GetIn()->GetMetadataEntry(0);
 
 				TypedProxy->SetConstant(Attribute->GetValueFromItemKey(Key));
 			}
@@ -237,8 +235,7 @@ OutProxy = TypedProxy;
 		{
 			// TODO : Support new extra properties here!
 
-			TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, EPCGExtraProperties::Index>> TypedProxy =
-				MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, EPCGExtraProperties::Index>>();
+			TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, EPCGExtraProperties::Index>> TypedProxy = MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, EPCGExtraProperties::Index>>();
 
 			//TypedProxy->Buffer = InDataFacade->GetBroadcaster<int32>(InDescriptor.Selector, true);
 			OutProxy = TypedProxy;
@@ -256,9 +253,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetProxyBuffer<_TYPE_A,
 
 #pragma endregion
 
-	TSharedPtr<IBufferProxy> GetProxyBuffer(
-		FPCGExContext* InContext,
-		const FProxyDescriptor& InDescriptor)
+	TSharedPtr<IBufferProxy> GetProxyBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor)
 	{
 		TSharedPtr<IBufferProxy> OutProxy = nullptr;
 		const TSharedPtr<FFacade> InDataFacade = InDescriptor.DataFacade.Pin();
@@ -336,18 +331,13 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<
 
 #pragma endregion
 
-	bool GetPerFieldProxyBuffers(
-		FPCGExContext* InContext,
-		const FProxyDescriptor& InBaseDescriptor,
-		const int32 NumDesiredFields,
-		TArray<TSharedPtr<IBufferProxy>>& OutProxies)
+	bool GetPerFieldProxyBuffers(FPCGExContext* InContext, const FProxyDescriptor& InBaseDescriptor, const int32 NumDesiredFields, TArray<TSharedPtr<IBufferProxy>>& OutProxies)
 	{
 		OutProxies.Reset(NumDesiredFields);
 
 		const int32 Dimensions = PCGEx::GetMetadataSize(InBaseDescriptor.RealType);
 
-		if (Dimensions == -1 &&
-			(!InBaseDescriptor.SubSelection.bIsValid || !InBaseDescriptor.SubSelection.bIsComponentSet))
+		if (Dimensions == -1 && (!InBaseDescriptor.SubSelection.bIsValid || !InBaseDescriptor.SubSelection.bIsComponentSet))
 		{
 			// There's no sub-selection yet we have a complex type
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Can't automatically break complex type into sub-components. Use a narrower selector or a supported type."));

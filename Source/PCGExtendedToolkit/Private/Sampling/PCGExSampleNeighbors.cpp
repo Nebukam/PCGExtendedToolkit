@@ -32,9 +32,7 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-	if (!PCGExFactories::GetInputFactories(
-		InContext, PCGExNeighborSample::SourceSamplersLabel, Context->SamplerFactories,
-		{PCGExFactories::EType::Sampler}))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExNeighborSample::SourceSamplersLabel, Context->SamplerFactories, {PCGExFactories::EType::Sampler}))
 	{
 		return false;
 	}
@@ -53,11 +51,9 @@ bool FPCGExSampleNeighborsElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -77,11 +73,11 @@ namespace PCGExSampleNeighbors
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNeighbors::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		for (const UPCGExNeighborSamplerFactoryData* OperationFactory : Context->SamplerFactories)
 		{
@@ -136,7 +132,7 @@ namespace PCGExSampleNeighbors
 	void FProcessor::Write()
 	{
 		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->CompleteOperation(); }
-		EdgeDataFacade->WriteFastest(AsyncManager);
+		EdgeDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Cleanup()

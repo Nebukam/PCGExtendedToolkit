@@ -122,8 +122,10 @@ bool FPCGExFactoryProviderElement::AdvanceWork(FPCGExContext* InContext, const U
 		if (Context->OutFactory->WantsPreparation(Context))
 		{
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-			Context->OutFactory->PrepResult = Context->OutFactory->Prepare(Context, Context->GetAsyncManager());
-			if (Context->OutFactory->PrepResult == PCGExFactories::EPreparationResult::Success) { return false; }
+			TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
+			PCGEX_SCHEDULING_SCOPE(TaskManager, true)
+			Context->OutFactory->PrepResult = Context->OutFactory->Prepare(Context, TaskManager);
+			return false;
 		}
 	}
 
@@ -133,8 +135,7 @@ bool FPCGExFactoryProviderElement::AdvanceWork(FPCGExContext* InContext, const U
 		{
 			if (Settings->ShouldCancel(Context, Context->OutFactory->PrepResult))
 			{
-				Context->CancelExecution(TEXT(""));
-				return true;
+				return Context->CancelExecution();
 			}
 		}
 	}

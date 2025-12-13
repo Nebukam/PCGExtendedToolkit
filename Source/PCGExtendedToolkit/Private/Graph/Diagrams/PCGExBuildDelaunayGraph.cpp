@@ -55,20 +55,18 @@ bool FPCGExBuildDelaunayGraphElement::AdvanceWork(FPCGExContext* InContext, cons
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 4)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 4)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
@@ -94,20 +92,17 @@ namespace PCGExBuildDelaunayGraph
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites)
 
-		FOutputDelaunaySites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                     const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
+		FOutputDelaunaySites(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FProcessor>& InProcessor)
+			: FTask(), PointIO(InPointIO), Processor(InProcessor)
 		{
 		}
 
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
+			FPCGExBuildDelaunayGraphContext* Context = TaskManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 			PCGEX_SETTINGS(BuildDelaunayGraph)
 
 			const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
@@ -153,7 +148,7 @@ namespace PCGExBuildDelaunayGraph
 					TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 					for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }
 				}
-				WriteBuffer(AsyncManager, HullBuffer);
+				WriteBuffer(TaskManager, HullBuffer);
 			}
 		}
 	};
@@ -163,20 +158,17 @@ namespace PCGExBuildDelaunayGraph
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites)
 
-		FOutputDelaunayUrquhartSites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                             const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
+		FOutputDelaunayUrquhartSites(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FProcessor>& InProcessor)
+			: FTask(), PointIO(InPointIO), Processor(InProcessor)
 		{
 		}
 
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FProcessor> Processor;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
-			FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
+			FPCGExBuildDelaunayGraphContext* Context = TaskManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 			PCGEX_SETTINGS(BuildDelaunayGraph)
 
 			const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
@@ -222,16 +214,16 @@ namespace PCGExBuildDelaunayGraph
 					TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 					for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }
 				}
-				WriteBuffer(AsyncManager, HullBuffer);
+				WriteBuffer(TaskManager, HullBuffer);
 			}
 		}
 	};
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunayGraph::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		// Build delaunay
 
@@ -272,7 +264,7 @@ namespace PCGExBuildDelaunayGraph
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 
 		if (!Settings->bMarkHull && !Settings->bOutputSites) { Delaunay.Reset(); }
 
@@ -304,7 +296,7 @@ namespace PCGExBuildDelaunayGraph
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()

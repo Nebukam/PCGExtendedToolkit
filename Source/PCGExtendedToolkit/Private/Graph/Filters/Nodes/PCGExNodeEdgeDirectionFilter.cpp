@@ -106,21 +106,16 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 		// First, build the consolidated operand B
 		switch (Adjacency.Consolidation)
 		{
-		default:
-		case EPCGExAdjacencyGatherMode::Average:
-			for (const double Dot : Dots) { A += Dot; }
+		default: case EPCGExAdjacencyGatherMode::Average: for (const double Dot : Dots) { A += Dot; }
 			A /= Node.Links.Num();
 			break;
-		case EPCGExAdjacencyGatherMode::Min:
-			A = MAX_dbl;
+		case EPCGExAdjacencyGatherMode::Min: A = MAX_dbl;
 			for (const double Dot : Dots) { A = FMath::Min(A, Dot); }
 			break;
-		case EPCGExAdjacencyGatherMode::Max:
-			A = MIN_dbl_neg;
+		case EPCGExAdjacencyGatherMode::Max: A = MIN_dbl_neg;
 			for (const double Dot : Dots) { A = FMath::Max(A, Dot); }
 			break;
-		case EPCGExAdjacencyGatherMode::Sum:
-			for (const double Dot : Dots) { A += Dot; }
+		case EPCGExAdjacencyGatherMode::Sum: for (const double Dot : Dots) { A += Dot; }
 			break;
 		}
 
@@ -207,11 +202,9 @@ FString UPCGExNodeEdgeDirectionFilterProviderSettings::GetDisplayName() const
 
 	switch (Config.Adjacency.Mode)
 	{
-	case EPCGExAdjacencyTestMode::All:
-		DisplayName += TEXT("All");
+	case EPCGExAdjacencyTestMode::All: DisplayName += TEXT("All");
 		break;
-	case EPCGExAdjacencyTestMode::Some:
-		DisplayName += TEXT("Some");
+	case EPCGExAdjacencyTestMode::Some: DisplayName += TEXT("Some");
 		break;
 	default: ;
 	}

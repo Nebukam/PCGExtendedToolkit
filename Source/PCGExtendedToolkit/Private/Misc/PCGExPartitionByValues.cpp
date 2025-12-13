@@ -174,11 +174,9 @@ bool FPCGExPartitionByValuesBaseElement::AdvanceWork(FPCGExContext* InContext, c
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any partitions."));
 		}
@@ -193,9 +191,9 @@ bool FPCGExPartitionByValuesBaseElement::AdvanceWork(FPCGExContext* InContext, c
 
 namespace PCGExPartitionByValuesBase
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bSplitOutput ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::Duplicate)
 
@@ -269,17 +267,12 @@ namespace PCGExPartitionByValuesBase
 
 				if (Rule->RuleConfig->bWriteKey)
 				{
-					PCGExData::WriteMark<int64>(
-						PartitionIO,
-						Rule->RuleConfig->KeyAttributeName,
-						Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+					PCGExData::WriteMark<int64>(PartitionIO, Rule->RuleConfig->KeyAttributeName, Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
 				}
 
 				if (Rule->RuleConfig->bWriteTag)
 				{
-					PartitionIO->Tags->Set<int64>(
-						Rule->RuleConfig->TagPrefixName.ToString(),
-						Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+					PartitionIO->Tags->Set<int64>(Rule->RuleConfig->TagPrefixName.ToString(), Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
 				}
 
 				Partition = Partition->Parent.Pin();
@@ -356,7 +349,7 @@ namespace PCGExPartitionByValuesBase
 			for (int i = 0; i < KeySums.Num(); i++) { KeySumWriter->SetValue(i, KeySums[i]); }
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

@@ -116,9 +116,7 @@ class UPCGExSegmentCrossFilterProviderSettings : public UPCGExFilterProviderSett
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		SegmentCrossFilterFactory, "Filter : Segment Cross", "Creates a filter definition that checks points SegmentCross against path-like data (paths, splines, polygons).",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(SegmentCrossFilterFactory, "Filter : Segment Cross", "Creates a filter definition that checks points SegmentCross against path-like data (paths, splines, polygons).", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 
 protected:

@@ -33,14 +33,13 @@ namespace PCGExGeo
 	void FIntersections::Sort()
 	{
 		// TODO : Cache distances 
-		Cuts.Sort(
-			[&](const FCut& A, const FCut& B)
-			{
-				const double DistToA = FVector::DistSquared(StartPosition, A.Position);
-				const double DistToB = FVector::DistSquared(StartPosition, B.Position);
-				if (DistToA == DistToB) { return A.Idx < B.Idx; }
-				return DistToA < DistToB;
-			});
+		Cuts.Sort([&](const FCut& A, const FCut& B)
+		{
+			const double DistToA = FVector::DistSquared(StartPosition, A.Position);
+			const double DistToB = FVector::DistSquared(StartPosition, B.Position);
+			if (DistToA == DistToB) { return A.Idx < B.Idx; }
+			return DistToA < DistToB;
+		});
 	}
 
 	void FIntersections::SortAndDedupe()
@@ -76,10 +75,8 @@ namespace PCGExGeo
 		Cuts.Emplace(Position, Normal, Index, Idx, Type);
 	}
 
-	FPointBox::FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion):
-		Matrix(InPoint.GetTransform().ToMatrixNoScale()),
-		InvMatrix(Matrix.Inverse()),
-		Index(InIndex)
+	FPointBox::FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion)
+		: Matrix(InPoint.GetTransform().ToMatrixNoScale()), InvMatrix(Matrix.Inverse()), Index(InIndex)
 	{
 		const FBox PointBox = PCGExMath::GetLocalBounds(InPoint, BoundsSource);
 		Extents = PointBox.GetExtent();
@@ -101,10 +98,7 @@ namespace PCGExGeo
 		OutSample.Distances = LocalPosition;
 		OutSample.BoxIndex = Index;
 		OutSample.UVW = (LocalPosition - LocalCenter) / Extents;
-		OutSample.Weight = 1 - ((
-			(FMath::Clamp(FMath::Abs(OutSample.UVW.X), 0, Extents.X) / Extents.X) +
-			(FMath::Clamp(FMath::Abs(OutSample.UVW.Y), 0, Extents.Y) / Extents.Y) +
-			(FMath::Clamp(FMath::Abs(OutSample.UVW.Z), 0, Extents.Z) / Extents.Z)) / 3);
+		OutSample.Weight = 1 - (((FMath::Clamp(FMath::Abs(OutSample.UVW.X), 0, Extents.X) / Extents.X) + (FMath::Clamp(FMath::Abs(OutSample.UVW.Y), 0, Extents.Y) / Extents.Y) + (FMath::Clamp(FMath::Abs(OutSample.UVW.Z), 0, Extents.Z) / Extents.Z)) / 3);
 	}
 
 	void FPointBox::Sample(const PCGExData::FConstPoint& Point, FSample& OutSample) const
@@ -120,10 +114,7 @@ namespace PCGExGeo
 		FVector OutHitNormal2 = FVector::ZeroVector;
 		bool bIsIntersection2Valid = false;
 		bool bInverseDir = false;
-		if (SegmentIntersection(
-			InIntersections->StartPosition, InIntersections->EndPosition,
-			OutIntersection1, OutIntersection2, bIsIntersection2Valid,
-			OutHitNormal1, OutHitNormal2, bInverseDir))
+		if (SegmentIntersection(InIntersections->StartPosition, InIntersections->EndPosition, OutIntersection1, OutIntersection2, bIsIntersection2Valid, OutHitNormal1, OutHitNormal2, bInverseDir))
 		{
 			if (bInverseDir)
 			{
@@ -287,12 +278,11 @@ namespace PCGExGeo
 	bool FPointBoxCloud::Sample(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource, TArray<FSample>& OutSample) const
 	{
 		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.GetTransform().GetLocation(), PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
-		Octree->FindElementsWithBoundsTest(
-			BCAE, [&](const FPointBox* NearbyBox)
-			{
-				FSample& Sample = OutSample.Emplace_GetRef();
-				NearbyBox->Sample(Point, Sample);
-			});
+		Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox)
+		{
+			FSample& Sample = OutSample.Emplace_GetRef();
+			NearbyBox->Sample(Point, Sample);
+		});
 
 		return !OutSample.IsEmpty();
 	}

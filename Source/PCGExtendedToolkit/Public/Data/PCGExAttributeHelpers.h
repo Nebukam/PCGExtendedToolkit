@@ -108,15 +108,9 @@ namespace PCGEx
 		static TSharedPtr<FAttributesInfos> Get(const TSharedPtr<PCGExData::FPointIOCollection>& InCollection, TSet<FName>& OutTypeMismatch, const TSet<FName>* IgnoredAttributes = nullptr);
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void GatherAttributes(
-		const TSharedPtr<FAttributesInfos>& OutInfos, const FPCGContext* InContext, const FName InputLabel,
-		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches);
+	PCGEXTENDEDTOOLKIT_API void GatherAttributes(const TSharedPtr<FAttributesInfos>& OutInfos, const FPCGContext* InContext, const FName InputLabel, const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FAttributesInfos> GatherAttributes(
-		const FPCGContext* InContext, const FName InputLabel,
-		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<FAttributesInfos> GatherAttributes(const FPCGContext* InContext, const FName InputLabel, const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches);
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeProcessingInfos
 	{
@@ -234,14 +228,11 @@ namespace PCGEx
 		virtual EPCGMetadataTypes GetMetadataType() const override;
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
 
 	template <typename T>
 	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);

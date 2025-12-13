@@ -86,7 +86,7 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		{
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 
-			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
+			if (!Context->StaticMeshLoader->Start(Context->GetTaskManager()))
 			{
 				return Context->CancelExecution(TEXT("Failed to find any asset to load."));
 			}
@@ -104,11 +104,9 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
@@ -123,12 +121,12 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 namespace PCGExSampleSockets
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->AssetType == EPCGExInputValueType::Attribute)
 		{
@@ -163,7 +161,7 @@ namespace PCGExSampleSockets
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		SocketHelper->Compile(AsyncManager, PointDataFacade, Context->SocketsCollection);
+		SocketHelper->Compile(TaskManager, PointDataFacade, Context->SocketsCollection);
 	}
 }
 

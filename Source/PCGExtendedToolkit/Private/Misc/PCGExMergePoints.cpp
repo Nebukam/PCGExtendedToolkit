@@ -54,7 +54,6 @@ bool FPCGExMergePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to merge."));
@@ -70,11 +69,11 @@ bool FPCGExMergePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 namespace PCGExMergePoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		if (Settings->bTagToAttributes)
 		{
@@ -97,22 +96,21 @@ namespace PCGExMergePoints
 			if (const TSharedPtr<PCGExData::IDataValue> TagValue = PointDataFacade->Source->Tags->GetValue(Tag))
 			{
 				bool bTryBroadcast = false;
-				PCGEx::ExecuteWithRightType(
-					TagValue->UnderlyingType, [&](auto DummyValue)
+				PCGEx::ExecuteWithRightType(TagValue->UnderlyingType, [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					const T Value = StaticCastSharedPtr<PCGExData::TDataValue<T>>(TagValue)->Value;
+					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
+
+					// Value type mismatch
+					if (!Buffer)
 					{
-						using T = decltype(DummyValue);
-						const T Value = StaticCastSharedPtr<PCGExData::TDataValue<T>>(TagValue)->Value;
-						TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
+						bTryBroadcast = true;
+						return;
+					}
 
-						// Value type mismatch
-						if (!Buffer)
-						{
-							bTryBroadcast = true;
-							return;
-						}
-
-						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
-					});
+					for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
+				});
 
 				if (!bTryBroadcast) { continue; }
 
@@ -120,29 +118,27 @@ namespace PCGExMergePoints
 				const TSharedPtr<PCGExData::IBuffer> UntypedBuffer = Context->CompositeDataFacade->FindReadableAttributeBuffer(AttributeName);
 				if (!UntypedBuffer) { continue; }
 
-				PCGEx::ExecuteWithRightType(
-					UntypedBuffer->GetType(), [&](auto DummyValue)
+				PCGEx::ExecuteWithRightType(UntypedBuffer->GetType(), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					T Value = T{};
+
+					PCGEx::ExecuteWithRightType(TagValue->UnderlyingType, [&](auto DummyValue2)
 					{
-						using T = decltype(DummyValue);
-						T Value = T{};
-
-						PCGEx::ExecuteWithRightType(
-							TagValue->UnderlyingType, [&](auto DummyValue2)
-							{
-								using T_REAL = decltype(DummyValue2);
-								Value = PCGEx::FSubSelection().Get<T_REAL, T>(StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value);
-							});
-
-						TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
-
-						if (!Buffer)
-						{
-							bTryBroadcast = false;
-							return;
-						}
-
-						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
+						using T_REAL = decltype(DummyValue2);
+						Value = PCGEx::FSubSelection().Get<T_REAL, T>(StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value);
 					});
+
+					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
+
+					if (!Buffer)
+					{
+						bTryBroadcast = false;
+						return;
+					}
+
+					for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
+				});
 
 				if (!bTryBroadcast)
 				{
@@ -167,12 +163,10 @@ namespace PCGExMergePoints
 
 		if (SimpleTags.IsEmpty()) { return; }
 
-		for (TArray<FName> SimpleTagNames = SimpleTags.Array();
-		     const FName TagName : SimpleTagNames)
+		for (TArray<FName> SimpleTagNames = SimpleTags.Array(); const FName TagName : SimpleTagNames)
 		{
 			// First validate that we're not overriding a tag with the same name that's not a bool
-			if (const FPCGMetadataAttributeBase* FlagAttribute = Context->CompositeDataFacade->Source->GetOut()->Metadata->GetConstAttribute(TagName);
-				FlagAttribute && FlagAttribute->GetTypeId() != static_cast<int16>(EPCGMetadataTypes::Boolean))
+			if (const FPCGMetadataAttributeBase* FlagAttribute = Context->CompositeDataFacade->Source->GetOut()->Metadata->GetConstAttribute(TagName); FlagAttribute && FlagAttribute->GetTypeId() != static_cast<int16>(EPCGMetadataTypes::Boolean))
 			{
 				if (!Settings->bQuietTagOverlapWarning)
 				{
@@ -227,12 +221,12 @@ namespace PCGExMergePoints
 		StartMerge();
 	}
 
-	void FBatch::Write()
+	void FBatch::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
-
+		
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
-		Context->CompositeDataFacade->WriteFastest(AsyncManager);
+		Context->CompositeDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FBatch::StartMerge()
@@ -245,22 +239,19 @@ namespace PCGExMergePoints
 
 		// Make sure we ignore attributes that should not be brought out
 		IgnoredAttributes.Append(*ConvertedTags.Get());
-		IgnoredAttributes.Append(
-			{
-				PCGExGraph::Attr_PCGExEdgeIdx,
-				PCGExGraph::Attr_PCGExVtxIdx,
-				PCGExGraph::Tag_PCGExCluster,
-				PCGExGraph::Tag_PCGExVtx,
-				PCGExGraph::Tag_PCGExEdges,
-			});
+		IgnoredAttributes.Append({PCGExGraph::Attr_PCGExEdgeIdx, PCGExGraph::Attr_PCGExVtxIdx, PCGExGraph::Tag_PCGExCluster, PCGExGraph::Tag_PCGExVtx, PCGExGraph::Tag_PCGExEdges,});
 
-		// Launch all merging tasks while we compute future attributes 
-		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails, &IgnoredAttributes);
+		{
+			PCGEX_SCHEDULING_SCOPE(TaskManager);
 
-		// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
-		Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);
+			// Launch all merging tasks while we compute future attributes 
+			Merger->MergeAsync(TaskManager, &Context->CarryOverDetails, &IgnoredAttributes);
 
-		TBatch<FProcessor>::OnProcessingPreparationComplete(); //!
+			// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
+			Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);
+
+			TBatch<FProcessor>::OnProcessingPreparationComplete(); //!
+		}
 	}
 }
 

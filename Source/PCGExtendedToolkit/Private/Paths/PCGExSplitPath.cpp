@@ -47,20 +47,18 @@ bool FPCGExSplitPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
-					else { bHasInvalidInputs = true; }
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
+				                                         else { bHasInvalidInputs = true; }
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to split."));
 		}
@@ -79,21 +77,21 @@ bool FPCGExSplitPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 namespace PCGExSplitPath
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD(TaskManager, TaskGroup)
 
 #define PCGEX_SPLIT_ACTION(_NAME)\
 		TaskGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope){\
@@ -102,46 +100,35 @@ namespace PCGExSplitPath
 					This->FilterScope(Scope);\
 					PCGEX_SCOPE_LOOP(i) { This->_NAME(i); } };
 
-		if (Settings->SplitAction == EPCGExPathSplitAction::Partition ||
-			Settings->SplitAction == EPCGExPathSplitAction::Switch)
+		if (Settings->SplitAction == EPCGExPathSplitAction::Partition || Settings->SplitAction == EPCGExPathSplitAction::Switch)
 		{
 			PointDataFacade->Fetch(PCGExMT::FScope(0, 1));
 			FilterScope(PCGExMT::FScope(0, 1));
 
 			switch (Settings->InitialBehavior)
 			{
-			default:
-			case EPCGExPathSplitInitialValue::Constant:
-				bLastResult = static_cast<int8>(Settings->bInitialValue);
+			default: case EPCGExPathSplitInitialValue::Constant: bLastResult = static_cast<int8>(Settings->bInitialValue);
 				break;
-			case EPCGExPathSplitInitialValue::ConstantPreserve:
-				bLastResult = static_cast<int8>(Settings->bInitialValue) == PointFilterCache[0] ? !bLastResult : bLastResult;
+			case EPCGExPathSplitInitialValue::ConstantPreserve: bLastResult = static_cast<int8>(Settings->bInitialValue) == PointFilterCache[0] ? !bLastResult : bLastResult;
 				break;
-			case EPCGExPathSplitInitialValue::FromPoint:
-				bLastResult = PointFilterCache[0];
+			case EPCGExPathSplitInitialValue::FromPoint: bLastResult = PointFilterCache[0];
 				break;
-			case EPCGExPathSplitInitialValue::FromPointPreserve:
-				bLastResult = !PointFilterCache[0];
+			case EPCGExPathSplitInitialValue::FromPointPreserve: bLastResult = !PointFilterCache[0];
 				break;
 			}
 		}
 
 		switch (Settings->SplitAction)
 		{
-		case EPCGExPathSplitAction::Split:
-			PCGEX_SPLIT_ACTION(DoActionSplit)
+		case EPCGExPathSplitAction::Split: PCGEX_SPLIT_ACTION(DoActionSplit)
 			break;
-		case EPCGExPathSplitAction::Remove:
-			PCGEX_SPLIT_ACTION(DoActionRemove)
+		case EPCGExPathSplitAction::Remove: PCGEX_SPLIT_ACTION(DoActionRemove)
 			break;
-		case EPCGExPathSplitAction::Disconnect:
-			PCGEX_SPLIT_ACTION(DoActionDisconnect)
+		case EPCGExPathSplitAction::Disconnect: PCGEX_SPLIT_ACTION(DoActionDisconnect)
 			break;
-		case EPCGExPathSplitAction::Partition:
-			PCGEX_SPLIT_ACTION(DoActionPartition)
+		case EPCGExPathSplitAction::Partition: PCGEX_SPLIT_ACTION(DoActionPartition)
 			break;
-		case EPCGExPathSplitAction::Switch:
-			PCGEX_SPLIT_ACTION(DoActionSwitch)
+		case EPCGExPathSplitAction::Switch: PCGEX_SPLIT_ACTION(DoActionSwitch)
 			break;
 		default: ;
 		}

@@ -72,16 +72,6 @@ TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes()
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
-	PCGEX_TERMINATE_ASYNC
-
-	for (UPCGExInstancedFactory* Op : ProcessorOperations)
-	{
-		if (InternalOperations.Contains(Op))
-		{
-			ManagedObjects->Destroy(Op);
-		}
-	}
-
 	if (MainBatch) { MainBatch->Cleanup(); }
 	MainBatch.Reset();
 }
@@ -102,7 +92,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 #pragma endregion
 
-bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync)
+bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::ContextState NextStateId)
 {
 	if (!bBatchProcessingEnabled) { return true; }
 
@@ -111,17 +101,11 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::InitialProcessingDone);
 		BatchProcessing_InitialProcessingDone();
 
-		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
+		SetState(PCGExPointsMT::MTState_PointsCompletingWork);
 		if (!MainBatch->bSkipCompletion)
 		{
-			//GetAsyncManager();
-			PCGEX_LAUNCH(
-				PCGExMT::FDeferredCallbackTask,
-				[WeakHandle = GetOrCreateHandle()]()
-				{
-				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
-				SharedContext.Get()->MainBatch->CompleteWork();
-				});
+			PCGEX_SCHEDULING_SCOPE(GetTaskManager(), false)
+			MainBatch->CompleteWork();
 			return false;
 		}
 	}
@@ -129,26 +113,22 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsCompletingWork)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WorkComplete);
-		BatchProcessing_WorkComplete();
+		if (!MainBatch->bSkipCompletion) { BatchProcessing_WorkComplete(); }
 
 		if (MainBatch->bRequiresWriteStep)
 		{
-			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
-			//GetAsyncManager();
-			PCGEX_LAUNCH(
-				PCGExMT::FDeferredCallbackTask,
-				[WeakHandle = GetOrCreateHandle()]()
-				{
-				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
-				SharedContext.Get()->MainBatch->Write();
-				});
+			SetState(PCGExPointsMT::MTState_PointsWriting);
+			PCGEX_SCHEDULING_SCOPE(GetTaskManager(), false)
+			MainBatch->Write();
 			return false;
 		}
-
-		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGExCommon::State_Done) { Done(); }
-		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-		else { SetState(NextStateId); }
+		else
+		{
+			bBatchProcessingEnabled = false;
+			if (NextStateId == PCGExCommon::State_Done) { Done(); }
+			SetState(NextStateId);
+			return true;
+		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsWriting)
@@ -158,11 +138,10 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 
 		bBatchProcessingEnabled = false;
 		if (NextStateId == PCGExCommon::State_Done) { Done(); }
-		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-		else { SetState(NextStateId); }
+		SetState(NextStateId);
 	}
 
-	return false;
+	return !IsWaitingForTasks();
 }
 
 bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingValidateEntry&& ValidateEntry, FBatchProcessingInitPointBatch&& InitBatch)
@@ -199,8 +178,8 @@ bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingVa
 
 	if (MainBatch->PrepareProcessing())
 	{
-		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
-		ScheduleBatch(GetAsyncManager(), MainBatch);
+		SetState(PCGExPointsMT::MTState_PointsProcessing);
+		ScheduleBatch(GetTaskManager(), MainBatch);
 	}
 	else
 	{
@@ -255,7 +234,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->GetMainAcceptMultipleData())
 	{
-		Context->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
+		Context->MainPoints->Initialize(Sources);
 	}
 	else
 	{
@@ -275,17 +254,27 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SupportsPointFilters())
 	{
-		if (const bool bRequiredFilters = Settings->RequiresPointFilters();
-			!GetInputFactories(
-				Context, Settings->GetPointFilterPin(), Context->FilterFactories,
-				Settings->GetPointFilterTypes(), bRequiredFilters)
-			&& bRequiredFilters)
+		if (const bool bRequiredFilters = Settings->RequiresPointFilters(); !GetInputFactories(Context, Settings->GetPointFilterPin(), Context->FilterFactories, Settings->GetPointFilterTypes(), bRequiredFilters) && bRequiredFilters)
 		{
 			return false;
 		}
 	}
 
 	return true;
+}
+
+void FPCGExPointsProcessorElement::InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+{
+	IPCGExElement::InitializeData(InContext, InSettings);
+
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+	PCGEX_SETTINGS(PointsProcessor)
+
+	PCGExData::EIOInit InitMode = Settings->GetMainOutputInitMode();
+	if (InitMode != PCGExData::EIOInit::NoInit)
+	{
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs) { IO->InitializeOutput(InitMode); }
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

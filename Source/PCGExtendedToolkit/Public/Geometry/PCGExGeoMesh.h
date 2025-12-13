@@ -67,8 +67,7 @@ namespace PCGExGeo
 {
 	const FName SourceUVImportRulesLabel = TEXT("UV Imports");
 
-	PCGEXTENDEDTOOLKIT_API
-	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	PCGEXTENDEDTOOLKIT_API void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
 	struct FMeshData
 	{
@@ -149,7 +148,7 @@ namespace PCGExGeo
 		void ExtractMeshSynchronous();
 		void TriangulateMeshSynchronous();
 
-		void ExtractMeshAsync(PCGExMT::FTaskManager* AsyncManager);
+		void ExtractMeshAsync(PCGExMT::FTaskManager* TaskManager);
 
 		~FGeoStaticMesh() = default;
 	};

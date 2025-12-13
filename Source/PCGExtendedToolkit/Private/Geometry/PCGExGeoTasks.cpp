@@ -12,19 +12,12 @@
 
 namespace PCGExGeoTasks
 {
-	FTransformPointIO::FTransformPointIO(const int32 InTaskIndex,
-						  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-						  const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
-						  FPCGExTransformDetails* InTransformDetails,
-						  bool bAllocate) :
-			FPCGExIndexedTask(InTaskIndex),
-			PointIO(InPointIO),
-			ToBeTransformedIO(InToBeTransformedIO),
-			TransformDetails(InTransformDetails)
+	FTransformPointIO::FTransformPointIO(const int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO, FPCGExTransformDetails* InTransformDetails, bool bAllocate)
+		: FPCGExIndexedTask(InTaskIndex), PointIO(InPointIO), ToBeTransformedIO(InToBeTransformedIO), TransformDetails(InTransformDetails)
 	{
 	}
-	
-	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+
+	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
 		UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
 		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
@@ -85,34 +78,31 @@ namespace PCGExGeoTasks
 			}
 			else if (TransformDetails->bInheritRotation)
 			{
-				ParallelFor(
-					NumPoints, [&](const int32 i)
-					{
-						FTransform& Transform = OutTransforms[i];
-						FVector OriginalScale = Transform.GetScale3D();
-						Transform *= TargetTransform;
-						Transform.SetScale3D(OriginalScale);
-					});
+				ParallelFor(NumPoints, [&](const int32 i)
+				{
+					FTransform& Transform = OutTransforms[i];
+					FVector OriginalScale = Transform.GetScale3D();
+					Transform *= TargetTransform;
+					Transform.SetScale3D(OriginalScale);
+				});
 			}
 			else if (TransformDetails->bInheritScale)
 			{
-				ParallelFor(
-					NumPoints, [&](const int32 i)
-					{
-						FTransform& Transform = OutTransforms[i];
-						FQuat OriginalRot = Transform.GetRotation();
-						Transform *= TargetTransform;
-						Transform.SetRotation(OriginalRot);
-					});
+				ParallelFor(NumPoints, [&](const int32 i)
+				{
+					FTransform& Transform = OutTransforms[i];
+					FQuat OriginalRot = Transform.GetRotation();
+					Transform *= TargetTransform;
+					Transform.SetRotation(OriginalRot);
+				});
 			}
 			else
 			{
-				ParallelFor(
-					NumPoints, [&](const int32 i)
-					{
-						FTransform& Transform = OutTransforms[i];
-						Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
-					});
+				ParallelFor(NumPoints, [&](const int32 i)
+				{
+					FTransform& Transform = OutTransforms[i];
+					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
+				});
 			}
 		}
 	}

@@ -23,8 +23,7 @@
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExSampleVtxByIDSettings, LookAtUp, FVector, LookAtUpInput, LookAtUpSource, LookAtUpConstant)
 
-UPCGExSampleVtxByIDSettings::UPCGExSampleVtxByIDSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExSampleVtxByIDSettings::UPCGExSampleVtxByIDSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
@@ -56,14 +55,11 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	FBox OctreeBounds = FBox(ForceInit);
 
-	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
-		Context, PCGExGraph::SourceVerticesLabel, PCGExData::EIOInit::NoInit, true);
+	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(Context, PCGExGraph::SourceVerticesLabel, PCGExData::EIOInit::NoInit, true);
 
 	if (Targets->IsEmpty())
 	{
@@ -83,12 +79,11 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 
 	Context->TargetsPreloader = MakeShared<PCGExData::FMultiFacadePreloader>(Context->TargetFacades);
 
-	Context->TargetsPreloader->ForEach(
-		[&](PCGExData::FFacadePreloader& Preloader)
-		{
-			Preloader.Register<int64>(Context, PCGExGraph::Attr_PCGExVtxIdx);
-			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-		});
+	Context->TargetsPreloader->ForEach([&](PCGExData::FFacadePreloader& Preloader)
+	{
+		Preloader.Register<int64>(Context, PCGExGraph::Attr_PCGExVtxIdx);
+		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+	});
 
 	return true;
 }
@@ -128,19 +123,16 @@ bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
+			}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
 			}
 		};
 
-		Context->TargetsPreloader->StartLoading(Context->GetAsyncManager());
-		return false;
+		Context->TargetsPreloader->StartLoading(Context->GetTaskManager());
 	}
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
@@ -167,13 +159,13 @@ namespace PCGExSampleVtxByID
 		const TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleVtxByID::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -290,7 +282,7 @@ namespace PCGExSampleVtxByID
 	void FProcessor::CompleteWork()
 	{
 		if (UnionBlendOpsManager) { UnionBlendOpsManager->Cleanup(Context); }
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }

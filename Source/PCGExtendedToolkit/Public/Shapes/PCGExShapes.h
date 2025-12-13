@@ -141,45 +141,33 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 		FQuat B = FQuat::Identity;
 		switch (SourceAxis)
 		{
-		case EPCGExAxisAlign::Forward:
-			A = FRotationMatrix::MakeFromX(FVector::ForwardVector).ToQuat().Inverse();
+		case EPCGExAxisAlign::Forward: A = FRotationMatrix::MakeFromX(FVector::ForwardVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxisAlign::Backward:
-			A = FRotationMatrix::MakeFromX(FVector::BackwardVector).ToQuat().Inverse();
+		case EPCGExAxisAlign::Backward: A = FRotationMatrix::MakeFromX(FVector::BackwardVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxisAlign::Right:
-			A = FRotationMatrix::MakeFromX(FVector::RightVector).ToQuat().Inverse();
+		case EPCGExAxisAlign::Right: A = FRotationMatrix::MakeFromX(FVector::RightVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxisAlign::Left:
-			A = FRotationMatrix::MakeFromX(FVector::LeftVector).ToQuat().Inverse();
+		case EPCGExAxisAlign::Left: A = FRotationMatrix::MakeFromX(FVector::LeftVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxisAlign::Up:
-			A = FRotationMatrix::MakeFromX(FVector::UpVector).ToQuat().Inverse();
+		case EPCGExAxisAlign::Up: A = FRotationMatrix::MakeFromX(FVector::UpVector).ToQuat().Inverse();
 			break;
-		case EPCGExAxisAlign::Down:
-			A = FRotationMatrix::MakeFromX(FVector::DownVector).ToQuat().Inverse();
+		case EPCGExAxisAlign::Down: A = FRotationMatrix::MakeFromX(FVector::DownVector).ToQuat().Inverse();
 			break;
 		}
 
 		switch (TargetAxis)
 		{
-		case EPCGExAxisAlign::Forward:
-			B = FRotationMatrix::MakeFromX(FVector::ForwardVector).ToQuat();
+		case EPCGExAxisAlign::Forward: B = FRotationMatrix::MakeFromX(FVector::ForwardVector).ToQuat();
 			break;
-		case EPCGExAxisAlign::Backward:
-			B = FRotationMatrix::MakeFromX(FVector::BackwardVector).ToQuat();
+		case EPCGExAxisAlign::Backward: B = FRotationMatrix::MakeFromX(FVector::BackwardVector).ToQuat();
 			break;
-		case EPCGExAxisAlign::Right:
-			B = FRotationMatrix::MakeFromX(FVector::RightVector).ToQuat();
+		case EPCGExAxisAlign::Right: B = FRotationMatrix::MakeFromX(FVector::RightVector).ToQuat();
 			break;
-		case EPCGExAxisAlign::Left:
-			B = FRotationMatrix::MakeFromX(FVector::LeftVector).ToQuat();
+		case EPCGExAxisAlign::Left: B = FRotationMatrix::MakeFromX(FVector::LeftVector).ToQuat();
 			break;
-		case EPCGExAxisAlign::Up:
-			B = FRotationMatrix::MakeFromX(FVector::UpVector).ToQuat();
+		case EPCGExAxisAlign::Up: B = FRotationMatrix::MakeFromX(FVector::UpVector).ToQuat();
 			break;
-		case EPCGExAxisAlign::Down:
-			B = FRotationMatrix::MakeFromX(FVector::DownVector).ToQuat();
+		case EPCGExAxisAlign::Down: B = FRotationMatrix::MakeFromX(FVector::DownVector).ToQuat();
 			break;
 		}
 

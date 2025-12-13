@@ -77,8 +77,7 @@ void UPCGExActorCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAss
 		// Ensure the asset is a Blueprint
 		if (SelectedAsset.AssetClassPath == UBlueprint::StaticClass()->GetClassPathName())
 		{
-			if (FString ClassPath;
-				SelectedAsset.GetTagValue(GeneratedClassTag, ClassPath))
+			if (FString ClassPath; SelectedAsset.GetTagValue(GeneratedClassTag, ClassPath))
 			{
 				Actor = TSoftClassPtr<AActor>(FSoftObjectPath(ClassPath));
 			}

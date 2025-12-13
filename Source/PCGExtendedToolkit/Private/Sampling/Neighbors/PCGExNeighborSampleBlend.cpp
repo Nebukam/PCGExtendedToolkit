@@ -3,6 +3,7 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleBlend.h"
 
+#include "PCGExStreamingHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExCluster.h"
 
@@ -101,9 +102,7 @@ UPCGExFactoryData* UPCGExNeighborSampleBlendSettings::CreateFactory(FPCGExContex
 {
 	UPCGExNeighborSamplerFactoryBlend* SamplerFactory = InContext->ManagedObjects->New<UPCGExNeighborSamplerFactoryBlend>();
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		InContext, PCGExDataBlending::SourceBlendingLabel, SamplerFactory->BlendingFactories,
-		{PCGExFactories::EType::Blending}))
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(InContext, PCGExDataBlending::SourceBlendingLabel, SamplerFactory->BlendingFactories, {PCGExFactories::EType::Blending}))
 	{
 		InContext->ManagedObjects->Destroy(SamplerFactory);
 		return nullptr;

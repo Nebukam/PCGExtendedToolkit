@@ -15,8 +15,8 @@ struct FPCGExPickerAttributeSetConfig : public FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExPickerAttributeSetConfig() :
-		FPCGExPickerConfigBase()
+	FPCGExPickerAttributeSetConfig()
+		: FPCGExPickerConfigBase()
 	{
 	}
 

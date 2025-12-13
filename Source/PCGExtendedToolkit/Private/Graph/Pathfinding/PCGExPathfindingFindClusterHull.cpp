@@ -54,13 +54,11 @@ bool FPCGExFindClusterHullElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				// NewBatch->bRequiresWriteStep = true;
-				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+			NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -82,11 +80,11 @@ namespace PCGExFindClusterHull
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindClusterHull::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const TArray<FVector2D>& Proj = *ProjectedVtxPositions.Get();
 
@@ -129,7 +127,7 @@ namespace PCGExFindClusterHull
 		PCGExPaths::SetClosedLoop(PathDataFacade->GetOut(), true);
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->WriteFastest(AsyncManager);
+		PathDataFacade->WriteFastest(TaskManager);
 	}
 }
 

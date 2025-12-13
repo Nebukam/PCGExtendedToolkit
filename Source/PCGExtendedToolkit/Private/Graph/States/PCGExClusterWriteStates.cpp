@@ -38,9 +38,7 @@ bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
 
-	return PCGExFactories::GetInputFactories(
-		Context, PCGExPointStates::SourceStatesLabel, Context->StateFactories,
-		{PCGExFactories::EType::ClusterState});
+	return PCGExFactories::GetInputFactories(Context, PCGExPointStates::SourceStatesLabel, Context->StateFactories, {PCGExFactories::EType::ClusterState});
 }
 
 bool FPCGExFlagNodesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -51,13 +49,11 @@ bool FPCGExFlagNodesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-				NewBatch->bWriteVtxDataFacade = true;
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = true;
+			NewBatch->bWriteVtxDataFacade = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -76,11 +72,11 @@ namespace PCGExFlagNodes
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindNodeState::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		Cluster->ComputeEdgeLengths();
 

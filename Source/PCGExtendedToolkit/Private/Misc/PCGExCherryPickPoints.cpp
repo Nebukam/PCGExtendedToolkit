@@ -37,9 +37,7 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CherryPickPoints)
 
-	return PCGExFactories::GetInputFactories(
-		Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories,
-		{PCGExFactories::EType::IndexPicker});
+	return PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker});
 }
 
 bool FPCGExCherryPickPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -50,12 +48,10 @@ bool FPCGExCherryPickPointsElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any data to cherry pick."));
 		}
@@ -70,11 +66,11 @@ bool FPCGExCherryPickPointsElement::AdvanceWork(FPCGExContext* InContext, const 
 
 namespace PCGExCherryPickPoints
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCherryPickPoints::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PointDataFacade->Source->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
 

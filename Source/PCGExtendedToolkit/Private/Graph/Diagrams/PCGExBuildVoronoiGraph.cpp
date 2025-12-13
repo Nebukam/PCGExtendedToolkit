@@ -56,22 +56,20 @@ bool FPCGExBuildVoronoiGraphElement::AdvanceWork(FPCGExContext* InContext, const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 4)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 4)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
 
-				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EIOInit::New);
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+			                                         Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EIOInit::New);
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
@@ -92,11 +90,11 @@ namespace PCGExBuildVoronoiGraph
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoiGraph::Process);
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		// Build voronoi
 
@@ -222,7 +220,7 @@ namespace PCGExBuildVoronoiGraph
 		// Compile graph
 
 		GraphBuilder->bInheritNodeData = false; // We're creating new points from scratch, we don't want the inheritance.
-		GraphBuilder->CompileAsync(AsyncManager, false);
+		GraphBuilder->CompileAsync(TaskManager, false);
 
 		return true;
 	}
@@ -243,7 +241,7 @@ namespace PCGExBuildVoronoiGraph
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Output()

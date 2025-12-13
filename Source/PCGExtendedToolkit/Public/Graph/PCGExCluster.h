@@ -114,17 +114,14 @@ namespace PCGExCluster
 		TSharedPtr<PCGExOctree::FItemOctree> NodeOctree;
 		TSharedPtr<PCGExOctree::FItemOctree> EdgeOctree;
 
-		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
-		         const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup);
-		FCluster(const TSharedRef<FCluster>& OtherCluster,
-		         const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
-		         const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup,
-		         bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
+		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup);
+		FCluster(const TSharedRef<FCluster>& OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup, bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
 
 		class TConstVtxLookup
 		{
 		public:
-			TConstVtxLookup(const TSharedPtr<FCluster>& InCluster) : NodesArray(*InCluster->Nodes.Get())
+			TConstVtxLookup(const TSharedPtr<FCluster>& InCluster)
+				: NodesArray(*InCluster->Nodes.Get())
 			{
 			}
 
@@ -140,7 +137,8 @@ namespace PCGExCluster
 		class TVtxLookup
 		{
 		public:
-			TVtxLookup(const TSharedPtr<FCluster>& InCluster) : NodesArray(*InCluster->Nodes.Get())
+			TVtxLookup(const TSharedPtr<FCluster>& InCluster)
+				: NodesArray(*InCluster->Nodes.Get())
 			{
 			}
 
@@ -161,9 +159,7 @@ namespace PCGExCluster
 
 		~FCluster();
 
-		bool BuildFrom(
-			const TMap<uint32, int32>& InEndpointsLookup,
-			const TArray<int32>* InExpectedAdjacency);
+		bool BuildFrom(const TMap<uint32, int32>& InEndpointsLookup, const TArray<int32>* InExpectedAdjacency);
 
 		void BuildFrom(const TSharedRef<PCGExGraph::FSubGraph>& SubGraph);
 
@@ -264,7 +260,7 @@ namespace PCGExCluster
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
 		TSharedPtr<TArray<FBoundedEdge>> GetBoundedEdges(const bool bBuild);
-		void ExpandEdges(PCGExMT::FTaskManager* AsyncManager);
+		void ExpandEdges(PCGExMT::FTaskManager* TaskManager);
 
 		template <typename T, class MakeFunc>
 		void GrabNeighbors(const int32 NodeIndex, TArray<T>& OutNeighbors, const MakeFunc&& Make) const

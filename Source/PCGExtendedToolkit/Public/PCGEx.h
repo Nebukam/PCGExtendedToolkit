@@ -74,42 +74,30 @@ namespace PCGEx
 	const FSoftObjectPath SteepnessWeightCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExSteepness_Default.FC_PCGExSteepness_Default"));
 
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsPCGExAttribute(const FString& InStr);
-	PCGEXTENDEDTOOLKIT_API
-	bool IsPCGExAttribute(const FName InName);
-	PCGEXTENDEDTOOLKIT_API
-	bool IsPCGExAttribute(const FText& InText);
+	PCGEXTENDEDTOOLKIT_API bool IsPCGExAttribute(const FString& InStr);
+	PCGEXTENDEDTOOLKIT_API bool IsPCGExAttribute(const FName InName);
+	PCGEXTENDEDTOOLKIT_API bool IsPCGExAttribute(const FText& InText);
 
 	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExCommon::PCGExPrefix), FText::FromString(Str0)).ToString()); }
 
 	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExCommon::PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsWritableAttributeName(const FName Name);
-	PCGEXTENDEDTOOLKIT_API
-	FString StringTagFromName(const FName Name);
-	PCGEXTENDEDTOOLKIT_API
-	bool IsValidStringTag(const FString& Tag);
+	PCGEXTENDEDTOOLKIT_API bool IsWritableAttributeName(const FName Name);
+	PCGEXTENDEDTOOLKIT_API FString StringTagFromName(const FName Name);
+	PCGEXTENDEDTOOLKIT_API bool IsValidStringTag(const FString& Tag);
 
-	PCGEXTENDEDTOOLKIT_API
-	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset = 0);
-	PCGEXTENDEDTOOLKIT_API
-	int32 ArrayOfIndices(TArray<int32>& OutArray, const TArrayView<const int8>& Mask, const int32 Offset, const bool bInvert = false);
-	PCGEXTENDEDTOOLKIT_API
-	int32 ArrayOfIndices(TArray<int32>& OutArray, const TBitArray<>& Mask, const int32 Offset, const bool bInvert = false);
+	PCGEXTENDEDTOOLKIT_API void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset = 0);
+	PCGEXTENDEDTOOLKIT_API int32 ArrayOfIndices(TArray<int32>& OutArray, const TArrayView<const int8>& Mask, const int32 Offset, const bool bInvert = false);
+	PCGEXTENDEDTOOLKIT_API int32 ArrayOfIndices(TArray<int32>& OutArray, const TBitArray<>& Mask, const int32 Offset, const bool bInvert = false);
 
-	PCGEXTENDEDTOOLKIT_API
-	FName GetCompoundName(const FName A, const FName B);
-	PCGEXTENDEDTOOLKIT_API
-	FName GetCompoundName(const FName A, const FName B, const FName C);
+	PCGEXTENDEDTOOLKIT_API FName GetCompoundName(const FName A, const FName B);
+	PCGEXTENDEDTOOLKIT_API FName GetCompoundName(const FName A, const FName B, const FName C);
 
-	PCGEXTENDEDTOOLKIT_API
-	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
+	PCGEXTENDEDTOOLKIT_API void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
 
 	struct PCGEXTENDEDTOOLKIT_API FOpStats
 	{
 		int32 Count = 0;
-		double Weight = 0;
+		double TotalWeight = 0;
 	};
 }

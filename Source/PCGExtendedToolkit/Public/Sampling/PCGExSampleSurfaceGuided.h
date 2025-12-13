@@ -345,18 +345,17 @@ namespace PCGExSampleSurfaceGuided
 		UWorld* World = nullptr;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 
-		void ProcessTraceResult(const PCGExMT::FScope& Scope, const FHitResult& HitResult, const int32 Index,
-		                        const FVector& Origin, const FVector& Direction, PCGExData::FMutablePoint& MutablePoint);
+		void ProcessTraceResult(const PCGExMT::FScope& Scope, const FHitResult& HitResult, const int32 Index, const FVector& Origin, const FVector& Direction, PCGExData::FMutablePoint& MutablePoint);
 
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 

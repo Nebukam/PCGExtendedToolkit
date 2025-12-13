@@ -64,11 +64,9 @@ namespace PCGExData
 
 	class FFacade;
 
-	PCGEXTENDEDTOOLKIT_API
-	uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type);
+	PCGEXTENDEDTOOLKIT_API uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type);
 
-	PCGEXTENDEDTOOLKIT_API
-	FPCGAttributeIdentifier GetBufferIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
+	PCGEXTENDEDTOOLKIT_API FPCGAttributeIdentifier GetBufferIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
 
 	class PCGEXTENDEDTOOLKIT_API IBuffer : public TSharedFromThis<IBuffer>
 	{
@@ -444,11 +442,11 @@ extern template class TSingleValueBuffer<_TYPE>;
 
 		void Flush();
 
-		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys = true);
+		void Write(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const bool bEnsureValidKeys = true);
 		FPlatformTypes::int32 WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup);
-		void WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FCompletionCallback&& Callback);
+		void WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, PCGExMT::FCompletionCallback&& Callback);
 		int32 WriteSynchronous(const bool bEnsureValidKeys = true);
-		void WriteFastest(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys = true);
+		void WriteFastest(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const bool bEnsureValidKeys = true);
 
 		void Fetch(const PCGExMT::FScope& Scope);
 
@@ -521,17 +519,14 @@ extern template bool TryReadMark<_TYPE>(const TSharedRef<FPointIO>& PointIO, con
 
 #undef PCGEX_TPL
 
-	PCGEXTENDEDTOOLKIT_API
-	void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id);
+	PCGEXTENDEDTOOLKIT_API void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id);
 
-	PCGEXTENDEDTOOLKIT_API
-	UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
+	PCGEXTENDEDTOOLKIT_API UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
 
 #pragma endregion
 
 	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, bool bTransactional, const bool bRequired);
 	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bRequired, const bool bIsTransactional = false);
 
-	PCGEXTENDEDTOOLKIT_API
-	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true);
+	PCGEXTENDEDTOOLKIT_API void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true);
 }

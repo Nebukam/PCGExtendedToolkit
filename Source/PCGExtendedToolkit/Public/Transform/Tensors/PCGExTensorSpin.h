@@ -19,8 +19,8 @@ struct FPCGExTensorSpinConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorSpinConfig() :
-		FPCGExTensorConfigBase()
+	FPCGExTensorSpinConfig()
+		: FPCGExTensorConfigBase()
 	{
 	}
 

@@ -18,7 +18,7 @@
 namespace PCGExMT
 {
 	class FAsyncToken;
-	class FScopeLoopOnMainThread;
+	class FTimeSlicedMainThreadLoop;
 }
 
 namespace PCGExPackActorData
@@ -39,19 +39,13 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 		UActorComponent* Component = nullptr;
 		FAttachmentTransformRules AttachmentTransformRules;
 
-		FComponentInfos():
-			AttachmentTransformRules(FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false))
+		FComponentInfos()
+			: AttachmentTransformRules(FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false))
 		{
 		}
 
-		FComponentInfos(
-			UActorComponent* InComponent,
-			EAttachmentRule InLocationRule,
-			EAttachmentRule InRotationRule,
-			EAttachmentRule InScaleRule,
-			bool InWeldSimulatedBodies):
-			Component(InComponent),
-			AttachmentTransformRules(FAttachmentTransformRules(InLocationRule, InRotationRule, InScaleRule, InWeldSimulatedBodies))
+		FComponentInfos(UActorComponent* InComponent, EAttachmentRule InLocationRule, EAttachmentRule InRotationRule, EAttachmentRule InScaleRule, bool InWeldSimulatedBodies)
+			: Component(InComponent), AttachmentTransformRules(FAttachmentTransformRules(InLocationRule, InRotationRule, InScaleRule, InWeldSimulatedBodies))
 		{
 		}
 	};
@@ -93,15 +87,7 @@ public:
 	 * @param OutComponent Created Component
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="ComponentClass", DynamicOutputParam="OutComponent"))
-	void AddComponent(
-		AActor* InActor,
-		UPARAM(meta = (AllowAbstract = "false"))
-		TSubclassOf<UActorComponent> ComponentClass,
-		EAttachmentRule InLocationRule,
-		EAttachmentRule InRotationRule,
-		EAttachmentRule InScaleRule,
-		bool InWeldSimulatedBodies,
-		UActorComponent*& OutComponent);
+	void AddComponent(AActor* InActor, UPARAM(meta = (AllowAbstract = "false")) TSubclassOf<UActorComponent> ComponentClass, EAttachmentRule InLocationRule, EAttachmentRule InRotationRule, EAttachmentRule InScaleRule, bool InWeldSimulatedBodies, UActorComponent*& OutComponent);
 
 
 	virtual void Cleanup() override
@@ -114,7 +100,7 @@ public:
 	TArray<TObjectPtr<AActor>> InputActors;
 
 	TSet<FSoftObjectPath> RequiredAssetsPaths;
-	TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
+	TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 
 	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>> WriteBuffers;
 	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>> ReadBuffers;
@@ -556,9 +542,7 @@ public:
 	 * @param OutIsValid 
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(DeterminesOutputType="ObjectClass", DynamicOutputParam="OutObject"))
-	void ResolveObjectPath(const FName& InAttributeName, const int32 InPointIndex,
-	                       UPARAM(meta = (AllowAbstract = "true"))
-	                       TSubclassOf<UObject> ObjectClass, UObject*& OutObject, bool& OutIsValid);
+	void ResolveObjectPath(const FName& InAttributeName, const int32 InPointIndex, UPARAM(meta = (AllowAbstract = "true")) TSubclassOf<UObject> ObjectClass, UObject*& OutObject, bool& OutIsValid);
 
 #pragma endregion
 };
@@ -573,10 +557,13 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PackActorData, "Pack Actor Data", "Use custom blueprint to read data from actor references.",
-		(Packer ? FName(Packer.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(PackActorData, "Pack Actor Data", "Use custom blueprint to read data from actor references.", (Packer ? FName(Packer.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
+
+	virtual FLinearColor GetNodeTitleColor() const override
+	{
+		return GetDefault<UPCGExGlobalSettings>()->ColorSampling;
+	}
+
 	virtual bool CanDynamicallyTrackKeys() const override { return bTrackActors; }
 #endif
 
@@ -653,8 +640,7 @@ namespace PCGExPackActorData
 		TArray<FPCGPoint> PointsForProcessing;
 		TArray<int8> PointMask;
 
-		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
-		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
+		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 		TSharedPtr<FStreamableHandle> LoadHandle;
 
 	public:
@@ -665,7 +651,7 @@ namespace PCGExPackActorData
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void StartProcessing();
 
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;

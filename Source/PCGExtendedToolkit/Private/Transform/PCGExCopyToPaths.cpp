@@ -135,19 +135,17 @@ bool FPCGExCopyToPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any dataset to generate splines."));
 		}
@@ -162,13 +160,13 @@ bool FPCGExCopyToPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 
 namespace PCGExCopyToPaths
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCopyToPaths::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		AxisTransform = PCGExMath::GetIdentity(Settings->AxisOrder);
 
@@ -305,21 +303,15 @@ namespace PCGExCopyToPaths
 				FQuat Q = Anchor.GetRotation();
 				if (Settings->FlattenAxis == EPCGExMinimalAxis::X)
 				{
-					Anchor = FTransform(
-						FRotationMatrix::MakeFromZY(Q.GetUpVector(), Q.GetRightVector()).ToQuat(),
-						Anchor.GetLocation(), Anchor.GetScale3D());
+					Anchor = FTransform(FRotationMatrix::MakeFromZY(Q.GetUpVector(), Q.GetRightVector()).ToQuat(), Anchor.GetLocation(), Anchor.GetScale3D());
 				}
 				else if (Settings->FlattenAxis == EPCGExMinimalAxis::Y)
 				{
-					Anchor = FTransform(
-						FRotationMatrix::MakeFromZX(Q.GetUpVector(), Q.GetForwardVector()).ToQuat(),
-						Anchor.GetLocation(), Anchor.GetScale3D());
+					Anchor = FTransform(FRotationMatrix::MakeFromZX(Q.GetUpVector(), Q.GetForwardVector()).ToQuat(), Anchor.GetLocation(), Anchor.GetScale3D());
 				}
 				else if (Settings->FlattenAxis == EPCGExMinimalAxis::Z)
 				{
-					Anchor = FTransform(
-						FRotationMatrix::MakeFromXY(Q.GetForwardVector(), Q.GetRightVector()).ToQuat(),
-						Anchor.GetLocation(), Anchor.GetScale3D());
+					Anchor = FTransform(FRotationMatrix::MakeFromXY(Q.GetForwardVector(), Q.GetRightVector()).ToQuat(), Anchor.GetLocation(), Anchor.GetScale3D());
 				}
 
 				if (Settings->bPreserveAspectRatio) { Anchor.SetScale3D(Anchor.GetScale3D() * CoverageRatio); }
@@ -343,21 +335,19 @@ namespace PCGExCopyToPaths
 			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BuildSplines)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BuildSplines)
 
-		BuildSplines->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnSplineBuildingComplete();
-			};
+		BuildSplines->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnSplineBuildingComplete();
+		};
 
-		BuildSplines->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->BuildSpline(Index);
-			};
+		BuildSplines->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->BuildSpline(Index);
+		};
 
 		BuildSplines->StartIterations(Context->DeformersFacades.Num(), 1);
 	}
@@ -421,31 +411,19 @@ namespace PCGExCopyToPaths
 
 			switch (PointTypeProxy)
 			{
-			case EPCGExSplinePointType::Linear:
-				PointType = ESplinePointType::Linear;
+			case EPCGExSplinePointType::Linear: PointType = ESplinePointType::Linear;
 				break;
-			case EPCGExSplinePointType::Curve:
-				PointType = ESplinePointType::Curve;
+			case EPCGExSplinePointType::Curve: PointType = ESplinePointType::Curve;
 				break;
-			case EPCGExSplinePointType::Constant:
-				PointType = ESplinePointType::Constant;
+			case EPCGExSplinePointType::Constant: PointType = ESplinePointType::Constant;
 				break;
-			case EPCGExSplinePointType::CurveClamped:
-				PointType = ESplinePointType::CurveClamped;
+			case EPCGExSplinePointType::CurveClamped: PointType = ESplinePointType::CurveClamped;
 				break;
-			case EPCGExSplinePointType::CurveCustomTangent:
-				PointType = ESplinePointType::CurveCustomTangent;
+			case EPCGExSplinePointType::CurveCustomTangent: PointType = ESplinePointType::CurveCustomTangent;
 				break;
 			}
 
-			SplinePoints.Emplace(
-				static_cast<float>(i),
-				TR.GetLocation(),
-				OutArrive,
-				OutLeave,
-				TR.GetRotation().Rotator(),
-				TR.GetScale3D(),
-				PointType);
+			SplinePoints.Emplace(static_cast<float>(i), TR.GetLocation(), OutArrive, OutLeave, TR.GetRotation().Rotator(), TR.GetScale3D(), PointType);
 		}
 
 		SplineStruct->Initialize(SplinePoints, bClosedLoop, FTransform::Identity);

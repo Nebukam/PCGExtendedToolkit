@@ -23,7 +23,7 @@
 /// 
 #define PCGEX_SAMPLER_CREATE_OPERATION\
 	NewOperation->SamplingConfig = SamplingConfig; \
-	if (SamplingConfig.bUseLocalCurve){	NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = SamplingConfig.WeightCurve.Get(); }\
+	if (SamplingConfig.bUseLocalCurve){	NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(SamplingConfig.WeightCurve); }\
 	NewOperation->WeightCurveObj = SamplingConfig.LocalWeightCurve.GetRichCurveConst();\
 	NewOperation->VtxFilterFactories.Append(VtxFilterFactories); \
 	NewOperation->EdgesFilterFactories.Append(EdgesFilterFactories); \

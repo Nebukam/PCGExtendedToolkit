@@ -15,9 +15,9 @@ void UPCGExPickerFactoryData::AddPicks(const int32 InNum, TSet<int32>& OutPicks)
 {
 }
 
-PCGExFactories::EPreparationResult UPCGExPickerFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExPickerFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 	return InitInternalData(InContext);
 }

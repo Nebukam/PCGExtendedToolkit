@@ -59,9 +59,7 @@ bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-			{PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	return true;
@@ -77,19 +75,17 @@ bool FPCGExSmoothElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSett
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to smooth."));
 		}
@@ -108,13 +104,13 @@ namespace PCGExSmooth
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSmooth::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -174,8 +170,7 @@ namespace PCGExSmooth
 
 			const double LocalSmoothing = FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute;
 
-			if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
-				(Settings->bPreserveStart && Index == 0))
+			if ((Settings->bPreserveEnd && Index == NumPoints - 1) || (Settings->bPreserveStart && Index == 0))
 			{
 				SmoothingOperation->SmoothSingle(Index, LocalSmoothing, 0, Trackers);
 				continue;
@@ -190,7 +185,7 @@ namespace PCGExSmooth
 		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
 
 		SmoothingOperation.Reset();
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 
 		BlendOpsManager.Reset();
 	}

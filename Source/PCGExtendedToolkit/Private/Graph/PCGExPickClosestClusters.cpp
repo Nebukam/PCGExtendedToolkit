@@ -108,11 +108,9 @@ bool FPCGExPickClosestClustersElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -133,9 +131,9 @@ namespace PCGExPickClosestClusters
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 
 		Cluster->RebuildOctree(Settings->SearchMode);
@@ -149,71 +147,63 @@ namespace PCGExPickClosestClusters
 		const int32 NumTargets = Context->TargetDataFacade->Source->GetNum();
 		PCGEx::InitArray(Distances, NumTargets);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessTargets)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ProcessTargets)
 
 		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Edge)
 		{
-			ProcessTargets->OnIterationCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+			ProcessTargets->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+
+				This->Distances[Index] = MAX_dbl;
+
+				const UPCGBasePointData* TargetsData = This->Context->TargetDataFacade->GetIn();
+				const FVector TargetLocation = TargetsData->GetTransform(Index).GetLocation();
+
+				bool bFound = false;
+				This->Cluster->GetEdgeOctree()->FindElementsWithBoundsTest(FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)), [&](const PCGExOctree::FItem& Item)
 				{
-					PCGEX_ASYNC_THIS
+					This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetClosestPointOnEdge(Item.Index, TargetLocation)));
+					bFound = true;
+				});
 
-					This->Distances[Index] = MAX_dbl;
-
-					const UPCGBasePointData* TargetsData = This->Context->TargetDataFacade->GetIn();
-					const FVector TargetLocation = TargetsData->GetTransform(Index).GetLocation();
-
-					bool bFound = false;
-					This->Cluster->GetEdgeOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)),
-						[&](const PCGExOctree::FItem& Item)
-						{
-							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetClosestPointOnEdge(Item.Index, TargetLocation)));
-							bFound = true;
-						});
-
-					if (!bFound && This->Settings->bExpandSearchOutsideTargetBounds)
+				if (!bFound && This->Settings->bExpandSearchOutsideTargetBounds)
+				{
+					This->Cluster->GetEdgeOctree()->FindNearbyElements(TargetLocation, [&](const PCGExOctree::FItem& Item)
 					{
-						This->Cluster->GetEdgeOctree()->FindNearbyElements(
-							TargetLocation, [&](const PCGExOctree::FItem& Item)
-							{
-								This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
-								bFound = true;
-							});
-					}
-				};
+						This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
+						bFound = true;
+					});
+				}
+			};
 		}
 		else
 		{
-			ProcessTargets->OnIterationCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+			ProcessTargets->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+
+				This->Distances[Index] = MAX_dbl;
+
+				const UPCGBasePointData* TargetsData = This->Context->TargetDataFacade->GetIn();
+				const FVector TargetLocation = TargetsData->GetTransform(Index).GetLocation();
+
+				bool bFound = false;
+				This->Cluster->NodeOctree->FindElementsWithBoundsTest(FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)), [&](const PCGExOctree::FItem& Item)
 				{
-					PCGEX_ASYNC_THIS
+					This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
+					bFound = true;
+				});
 
-					This->Distances[Index] = MAX_dbl;
-
-					const UPCGBasePointData* TargetsData = This->Context->TargetDataFacade->GetIn();
-					const FVector TargetLocation = TargetsData->GetTransform(Index).GetLocation();
-
-					bool bFound = false;
-					This->Cluster->NodeOctree->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)),
-						[&](const PCGExOctree::FItem& Item)
-						{
-							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
-							bFound = true;
-						});
-
-					if (!bFound && This->Settings->bExpandSearchOutsideTargetBounds)
+				if (!bFound && This->Settings->bExpandSearchOutsideTargetBounds)
+				{
+					This->Cluster->NodeOctree->FindNearbyElements(TargetLocation, [&](const PCGExOctree::FItem& Item)
 					{
-						This->Cluster->NodeOctree->FindNearbyElements(
-							TargetLocation, [&](const PCGExOctree::FItem& Item)
-							{
-								This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
-								bFound = true;
-							});
-					}
-				};
+						This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
+						bFound = true;
+					});
+				}
+			};
 		}
 
 		ProcessTargets->StartIterations(NumTargets, 256);

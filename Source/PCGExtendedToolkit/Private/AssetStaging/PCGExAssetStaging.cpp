@@ -182,19 +182,17 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		{
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 
-			if (!Context->CollectionsLoader->Start(Context->GetAsyncManager()))
+			if (!Context->CollectionsLoader->Start(Context->GetTaskManager()))
 			{
 				return Context->CancelExecution(TEXT("Failed to find any collections to load."));
 			}
 		}
 		else
 		{
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-					NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
+			}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to process."));
 			}
@@ -214,12 +212,10 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 			Pair.Value->LoadCache();
 		}
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -252,14 +248,14 @@ bool FPCGExAssetStagingElement::CanExecuteOnlyOnMainThread(FPCGContext* Context)
 
 namespace PCGExAssetStaging
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAssetStaging::Process);
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -285,9 +281,7 @@ namespace PCGExAssetStaging
 
 		if (Settings->CollectionSource == EPCGExCollectionSource::Attribute)
 		{
-			if (!Source->Init(
-				Context->CollectionsLoader->AssetsMap,
-				Context->CollectionsLoader->GetKeys(PointDataFacade->Source->IOIndex)))
+			if (!Source->Init(Context->CollectionsLoader->AssetsMap, Context->CollectionsLoader->GetKeys(PointDataFacade->Source->IOIndex)))
 			{
 				return false;
 			}
@@ -408,9 +402,7 @@ namespace PCGExAssetStaging
 			const FPCGExAssetCollectionEntry* Entry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
 
-			const int32 Seed = PCGExRandom::GetSeed(
-				Seeds[Index], Helper->Details.SeedComponents,
-				Helper->Details.LocalSeed, Settings, Component);
+			const int32 Seed = PCGExRandom::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
 			Helper->GetEntry(Entry, Index, Seed, EntryHost);
 
@@ -427,8 +419,7 @@ namespace PCGExAssetStaging
 			const FPCGExAssetStagingData& Staging = Entry->Staging;
 			const FPCGExFittingVariations& EntryVariations = Entry->GetVariations(EntryHost);
 
-			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get();
-				MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get(); MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
 				const PCGExMeshCollection::FMicroCache* EntryMicroCache = static_cast<const PCGExMeshCollection::FMicroCache*>(MicroCache);
 				MicroHelper->GetPick(EntryMicroCache, Index, Seed, SecondaryIndex);
@@ -492,7 +483,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::CompleteWork()
 	{
-		if (SocketHelper) { SocketHelper->Compile(AsyncManager, PointDataFacade, Context->SocketsCollection); }
+		if (SocketHelper) { SocketHelper->Compile(TaskManager, PointDataFacade, Context->SocketsCollection); }
 
 		if (Context->bPickMaterials)
 		{
@@ -516,7 +507,7 @@ namespace PCGExAssetStaging
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
 		}
 
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
@@ -552,7 +543,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		PointDataFacade->WriteFastest(AsyncManager);
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 
 	void FProcessor::Write()

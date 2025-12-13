@@ -12,35 +12,34 @@
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
-bool IPCGExElement::PrepareDataInternal(FPCGContext* InContext) const
+bool IPCGExElement::PrepareDataInternal(FPCGContext* Context) const
 {
-	FPCGExContext* Context = static_cast<FPCGExContext*>(InContext);
 	check(Context);
 
-	if (!Context->GetInputSettings<UPCGSettings>()->bEnabled)
-	{
-		Context->bWorkCancelled = true;
-		return true;
-	}
+	FPCGExContext* InContext = static_cast<FPCGExContext*>(Context);
+
+	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
+	check(InSettings);
+
+	return AdvancePreparation(InContext, InSettings);
+}
+
+bool IPCGExElement::AdvancePreparation(FPCGExContext* Context, const UPCGExSettings* InSettings) const
+{
+	if (!Context->GetInputSettings<UPCGSettings>()->bEnabled) { return Context->CancelExecution(FString()); }
 
 	PCGEX_EXECUTION_CHECK_C(Context)
 
 	if (Context->IsState(PCGExCommon::State_Preparation))
 	{
-		if (!Boot(Context))
-		{
-			return Context->CancelExecution(TEXT(""));
-		}
+		if (!Boot(Context)) { return Context->CancelExecution(FString()); }
 
 		// Have operations register their dependencies
 		for (UPCGExInstancedFactory* Op : Context->InternalOperations) { Op->RegisterAssetDependencies(Context); }
 
 		Context->RegisterAssetDependencies();
-		if (Context->HasAssetRequirements())
-		{
-			Context->LoadAssets();
-			return false;
-		}
+		if (Context->HasAssetRequirements() && Context->LoadAssets()) { return false; }
+
 		// Call it so if there's initialization in there it'll run as a mandatory step
 		PostLoadAssetsDependencies(Context);
 	}
@@ -62,7 +61,7 @@ bool IPCGExElement::PrepareDataInternal(FPCGContext* InContext) const
 	}
 
 	Context->ReadyForExecution();
-	return IPCGElement::PrepareDataInternal(Context);
+	return true;
 }
 
 FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InParams)
@@ -71,22 +70,6 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 
 	const UPCGExSettings* Settings = Context->GetInputSettings<UPCGExSettings>();
 	check(Settings);
-
-	Context->WorkPriority = Settings->WorkPriority;
-
-	switch (Settings->ExecutionPolicy == EPCGExExecutionPolicy::Default ? GetDefault<UPCGExGlobalSettings>()->GetDefaultExecutionPolicy() : Settings->ExecutionPolicy)
-	{
-	case EPCGExExecutionPolicy::Default:
-	case EPCGExExecutionPolicy::Normal:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::Normal;
-		break;
-	case EPCGExExecutionPolicy::AsyncEx:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::AsyncEx;
-		break;
-	case EPCGExExecutionPolicy::AsyncTask:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::AsyncTask;
-		break;
-	}
 
 	Context->bFlattenOutput = Settings->bFlattenOutput;
 	Context->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
@@ -101,8 +84,7 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 
 	if (Context->bCleanupConsumableAttributes)
 	{
-		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);
-		     const FString& Name : Names)
+		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName); const FString& Name : Names)
 		{
 			Context->AddProtectedAttributeName(FName(Name));
 		}
@@ -152,8 +134,10 @@ void IPCGExElement::AbortInternal(FPCGContext* Context) const
 
 	if (!Context) { return; }
 
+	//UE_LOG(LogTemp, Warning, TEXT(">> ABORTING @%s"), *Context->GetInputSettings<UPCGExSettings>()->GetName());
+
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
-	PCGExContext->CancelExecution(TEXT(""));
+	PCGExContext->CancelExecution();
 }
 
 bool IPCGExElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
@@ -172,57 +156,28 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 
 	FPCGExContext* InContext = static_cast<FPCGExContext*>(Context);
 
+	PCGEX_EXECUTION_CHECK_C(InContext)
+	
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
 
-	if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::Normal)
-	{
-		return AdvanceWork(InContext, InSettings);
-	}
+	if (InContext->IsInitialExecution()) { InitializeData(InContext, InSettings); }
+	return AdvanceWork(InContext, InSettings);
+}
 
-	TWeakPtr<FPCGContextHandle> CtxHandle = Context->GetOrCreateHandle();
-
-	if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::AsyncTask)
-	{
-		if (AdvanceWork(InContext, InSettings)) { return true; }
-
-		InContext->bIsPaused = true;
-		UE::Tasks::Launch(
-				TEXT("AdvanceWork"),
-				[CtxHandle, Settings = InSettings]()
-				{
-					FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-					FPCGExContext* Ctx = SharedContext.Get();
-					if (!Ctx) { return; }
-
-					PCGEX_ASYNC_WAIT_CHKD_ADV(!Ctx->ElementHandle->AdvanceWork(Ctx, Settings))
-				},
-				UE::Tasks::ETaskPriority::High
-			);
-
-		return false;
-	}
-	else if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::AsyncEx)
-	{
-		FPCGAsync::AsyncProcessingOneToOneRangeEx(
-			&Context->AsyncState,
-			1,
-			/*InitializeFunc=*/[](){},
-			[CtxHandle, Settings = InSettings](int32 StartReadIndex, int32 StartWriteIndex, int32 Count)
-			{
-				FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-				FPCGExContext* Ctx = SharedContext.Get();
-				PCGEX_ASYNC_WAIT_CHKD_ADV(!Ctx->ElementHandle->AdvanceWork(Ctx, Settings))
-				return 1;
-			}, false);
-	}
-
-	return true;
+void IPCGExElement::InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+{
 }
 
 bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	return true;
+}
+
+void IPCGExElement::CompleteWork(FPCGExContext* InContext) const
+{
+	const UPCGExSettings* InSettings = InContext->GetInputSettings<UPCGExSettings>();
+	check(InSettings);
 }
 
 #undef LOCTEXT_NAMESPACE

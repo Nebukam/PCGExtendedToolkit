@@ -18,21 +18,12 @@ void FPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluste
 	TensorsHandler->Init(Context, *TensorFactories, PrimaryDataFacade);
 }
 
-double FPCGExHeuristicTensor::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicTensor::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
 	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(Goal)));
 }
 
-double FPCGExHeuristicTensor::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal,
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicTensor::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(To)));
 }
@@ -58,14 +49,12 @@ TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryTensor::CreateOperat
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Tensor, {})
 
-PCGExFactories::EPreparationResult UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
-	if (!PCGExFactories::GetInputFactories(
-		InContext, PCGExTensor::SourceTensorsLabel, TensorFactories,
-		{PCGExFactories::EType::Tensor}))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}))
 	{
 		return PCGExFactories::EPreparationResult::Fail;
 	}
@@ -94,8 +83,6 @@ UPCGExFactoryData* UPCGExHeuristicsTensorProviderSettings::CreateFactory(FPCGExC
 #if WITH_EDITOR
 FString UPCGExHeuristicsTensorProviderSettings::GetDisplayName() const
 {
-	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX"))
-		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
+	return GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Heuristics"), TEXT("HX")) + TEXT(" @ ") + FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

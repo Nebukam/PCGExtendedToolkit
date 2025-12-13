@@ -47,22 +47,20 @@ bool FPCGExPathInsertElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		const bool bIsCanBeCutTagValid = PCGEx::IsValidStringTag(Context->CanBeCutTag);
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
-				//NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         //NewBatch->SetPointsFilterData(&Context->FilterFactories);
+			                                         //NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 		}
@@ -77,7 +75,7 @@ bool FPCGExPathInsertElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 namespace PCGExPathInsert
 {
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathInsert::Process);
 
@@ -86,7 +84,7 @@ namespace PCGExPathInsert
 		// Must be set before process for filters
 		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 

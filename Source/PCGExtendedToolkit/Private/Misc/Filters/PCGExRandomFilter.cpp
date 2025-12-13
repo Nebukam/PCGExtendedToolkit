@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExRandomFilter.h"
 
 #include "PCGExRandom.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
@@ -18,7 +19,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExRandomFilterConfig, Weight, double, bPerPointWeig
 
 bool UPCGExRandomFilterFactory::Init(FPCGExContext* InContext)
 {
-	if (!Config.bUseLocalCurve) { Config.LocalWeightCurve.ExternalCurve = Config.WeightCurve.Get(); }
+	if (!Config.bUseLocalCurve) { Config.LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Config.WeightCurve); }
 	return Super::Init(InContext);
 }
 

@@ -20,8 +20,8 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigClosest() :
-		FPCGExProbeConfigBase()
+	FPCGExProbeConfigClosest()
+		: FPCGExProbeConfigBase()
 	{
 	}
 
@@ -84,9 +84,7 @@ class UPCGExProbeClosestProviderSettings : public UPCGExProbeFactoryProviderSett
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeClosest, "Probe : Closests", "Probe in a given Closest.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeClosest, "Probe : Closests", "Probe in a given Closest.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

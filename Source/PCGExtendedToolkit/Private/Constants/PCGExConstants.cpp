@@ -21,11 +21,7 @@ FName UPCGExConstantsSettings::GetEnumName() const
 
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExConstantsSettings::GetPreconfiguredInfo() const
 {
-	const TSet ValuesToSkip = {
-		EPCGExConstantListID::MAX_BOOL,
-		EPCGExConstantListID::ADDITIONAL_VECTORS,
-		EPCGExConstantListID::ADDITIONAL_NUMERICS
-	};
+	const TSet ValuesToSkip = {EPCGExConstantListID::MAX_BOOL, EPCGExConstantListID::ADDITIONAL_VECTORS, EPCGExConstantListID::ADDITIONAL_NUMERICS};
 
 	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExConstantListID>(ValuesToSkip);
 }
@@ -43,20 +39,17 @@ void UPCGExConstantsSettings::ApplyPreconfiguredSettings(const FPCGPreConfigured
 
 			switch (GetOutputType(ConstantList))
 			{
-			case EPCGExConstantType::Number:
-				for (const auto Constant : GetNumericConstantList(ConstantList).Constants)
+			case EPCGExConstantType::Number: for (const auto Constant : GetNumericConstantList(ConstantList).Constants)
 				{
 					AttributeNameMap.Add(Constant.Name, Constant.Name);
 				}
 				break;
-			case EPCGExConstantType::Vector:
-				for (const auto Constant : GetVectorConstantList(ConstantList).Constants)
+			case EPCGExConstantType::Vector: for (const auto Constant : GetVectorConstantList(ConstantList).Constants)
 				{
 					AttributeNameMap.Add(Constant.Name, Constant.Name);
 				}
 				break;
-			case EPCGExConstantType::Bool:
-				for (const auto Constant : GetBooleanConstantList(ConstantList))
+			case EPCGExConstantType::Bool: for (const auto Constant : GetBooleanConstantList(ConstantList))
 				{
 					AttributeNameMap.Add(Constant.Name, Constant.Name);
 				}
@@ -119,8 +112,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 	// Boolean pins
 	if (OutputType == EPCGExConstantType::Bool)
 	{
-		for (auto List = GetBooleanConstantList(ConstantList);
-		     const auto Constant : List)
+		for (auto List = GetBooleanConstantList(ConstantList); const auto Constant : List)
 		{
 			PCGEX_PIN_PARAM(Constant.Name, "...", Normal)
 		}
@@ -129,8 +121,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 	// Vector pins
 	else if (OutputType == EPCGExConstantType::Vector)
 	{
-		for (auto List = GetVectorConstantList(ConstantList).Constants;
-		     const auto Constant : List)
+		for (auto List = GetVectorConstantList(ConstantList).Constants; const auto Constant : List)
 		{
 			PCGEX_PIN_PARAM(Constant.Name, "...", Normal)
 		}
@@ -138,8 +129,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 	// Numerics
 	else
 	{
-		for (auto List = GetNumericConstantList(ConstantList).Constants;
-		     const auto Constant : List)
+		for (auto List = GetNumericConstantList(ConstantList).Constants; const auto Constant : List)
 		{
 			PCGEX_PIN_PARAM(Constant.Name, "...", Normal)
 		}
@@ -172,12 +162,7 @@ bool FPCGExConstantsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 		for (const auto Constant : ToOutput)
 		{
-			StageConstant(
-					Context,
-					HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name,
-					Constant.Value,
-					Settings
-				);
+			StageConstant(Context, HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name, Constant.Value, Settings);
 		}
 	}
 	// Vector constant output
@@ -188,12 +173,7 @@ bool FPCGExConstantsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 		for (const auto Constant : ToOutput.Constants)
 		{
-			StageConstant(
-					Context,
-					HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name,
-					Constant.Value * Settings->CustomMultiplier * (Settings->NegateOutput ? -1.0 : 1.0),
-					Settings
-				);
+			StageConstant(Context, HasValidOutputNames ? *Settings->AttributeNameMap.Find(Constant.Name) : Constant.Name, Constant.Value * Settings->CustomMultiplier * (Settings->NegateOutput ? -1.0 : 1.0), Settings);
 		}
 	}
 	// Numeric constant output

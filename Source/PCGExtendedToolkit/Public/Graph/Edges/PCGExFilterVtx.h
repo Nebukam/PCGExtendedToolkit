@@ -64,11 +64,11 @@ public:
 	/** If enabled, invalidating a node invalidate connected edges. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bNodeInvalidateEdges = false;
-	
+
 	/** Invert the filter result */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
-	
+
 	/** Invert the edge filters result */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExVtxFilterOutput::Clusters", EditConditionHides))
 	bool bInvertEdgeFilters = false;
@@ -170,7 +170,7 @@ namespace PCGExFilterVtx
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 

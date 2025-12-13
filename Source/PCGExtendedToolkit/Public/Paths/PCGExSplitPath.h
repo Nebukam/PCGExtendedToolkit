@@ -156,7 +156,7 @@ namespace PCGExSplitPath
 		{
 		}
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 		void DoActionSplit(const int32 Index);
 		void DoActionRemove(const int32 Index);

@@ -120,8 +120,8 @@ namespace PCGExAttributesToTags
 		TArray<int32> PickedIndices;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
@@ -131,7 +131,7 @@ namespace PCGExAttributesToTags
 
 		void Tag(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const;
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void TagWithPickers(const FPCGExAttributeToTagDetails& InDetails);
 		virtual void Output() override;
 	};

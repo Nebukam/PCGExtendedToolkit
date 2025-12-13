@@ -178,7 +178,8 @@ namespace PCGExMT
 
 		virtual ~FScopedContainer() = default;
 
-		FScopedContainer(const FScope& InScope): Scope(InScope)
+		FScopedContainer(const FScope& InScope)
+			: Scope(InScope)
 		{
 		}
 

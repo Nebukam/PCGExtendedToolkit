@@ -57,10 +57,7 @@ bool FPCGExFuseDetailsBase::IsWithinTolerance(const FVector& Source, const FVect
 bool FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target, const int32 PointIndex) const
 {
 	const FVector CWTolerance = ToleranceGetter->Read(PointIndex);
-	return
-		FMath::IsWithin<double, double>(abs(Source.X - Target.X), 0, CWTolerance.X) &&
-		FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, CWTolerance.Y) &&
-		FMath::IsWithin<double, double>(abs(Source.Z - Target.Z), 0, CWTolerance.Z);
+	return FMath::IsWithin<double, double>(abs(Source.X - Target.X), 0, CWTolerance.X) && FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, CWTolerance.Y) && FMath::IsWithin<double, double>(abs(Source.Z - Target.Z), 0, CWTolerance.Z);
 }
 
 FPCGExSourceFuseDetails::FPCGExSourceFuseDetails()
