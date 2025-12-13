@@ -46,7 +46,6 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->IntersectionDetails.Init();
 
 	PCGEX_FWD(GraphBuilderDetails)
-	Context->DistanceDetails = PCGExDetails::MakeDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
 
 	if (Context->bWantsEdgesProcessing)
 	{
@@ -275,7 +274,8 @@ namespace PCGExCutEdges
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
 		const UPCGBasePointData* InVtxPointData = VtxDataFacade->GetIn();
-
+		const PCGExDetails::FDistances* Distances = PCGExDetails::GetDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
@@ -305,7 +305,7 @@ namespace PCGExCutEdges
 					const FVector B2 = Path->GetPos_Unsafe(PathEdge->End);
 
 					const FVector B1 = FMath::ClosestPointOnSegment(A1, A2, B2);
-					const FVector C1 = Context->DistanceDetails->GetSourceCenter(NodePoint, A1, B1);
+					const FVector C1 = Distances->GetSourceCenter(NodePoint, A1, B1);
 
 					if (FVector::DistSquared(B1, C1) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
 

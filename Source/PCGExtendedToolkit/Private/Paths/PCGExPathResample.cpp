@@ -58,17 +58,18 @@ bool FPCGExResamplePathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}
@@ -253,13 +254,17 @@ namespace PCGExResamplePath
 			PCGEX_SCOPE_LOOP(Index)
 			{
 				const FPointSample& Sample = Samples[Index];
+				
 				OutTransforms[Index].SetLocation(Sample.Location);
+				
 				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
 
+				const FVector Start = Path->GetPos(Sample.Start);
+				const double SampleBreadth = FVector::Dist(Start, Path->GetPos(Sample.End));
+				
 				//if (SourcesRange == 1)
 				//{
-				// TODO : Implement proper blending. Division by zero here when there are collocated points
-				constexpr double Weight = 0.5; //FVector::DistSquared(Path->GetPos(Sample.Start), Sample.Location) / FVector::DistSquared(Path->GetPos(Sample.Start), Path->GetPos(Sample.End));
+				const double Weight = SampleBreadth > 0 ? FVector::Dist(Start, Sample.Location) / SampleBreadth : 0.5;
 				MetadataBlender->Blend(Sample.Start, Sample.End, Index, Weight);
 				//}
 

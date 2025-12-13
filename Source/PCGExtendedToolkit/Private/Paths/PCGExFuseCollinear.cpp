@@ -7,7 +7,11 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Blending/PCGExUnionBlender.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Graph/PCGExGraph.h"
 #include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPathShift.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
@@ -81,21 +85,16 @@ namespace PCGExFuseCollinear
 
 		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
 
+
+		TArray<int32> ReadIndices;
 		ReadIndices.Reserve(Path->NumPoints);
 		LastPosition = Path->GetPos(0);
 
 		bForceSingleThreadedProcessPoints = true;
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
-		return true;
-	}
-
-	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FuseCollinear::ProcessPoints);
-
-		PointDataFacade->Fetch(Scope);
-		FilterScope(Scope);
+		//PointDataFacade->Fetch(Scope);
+		FilterAll();
 
 		// Preserve start & end
 		PointFilterCache[0] = true;
@@ -103,17 +102,19 @@ namespace PCGExFuseCollinear
 		// Only force-preserve last point if not closed loop
 		if (!Path->IsClosedLoop()) { PointFilterCache[Path->LastIndex] = true; }
 
-		PCGEX_SCOPE_LOOP(Index)
+		// Process path...
+
+		for (int i = 0; i < Path->NumPoints; i++)
 		{
-			if (PointFilterCache[Index])
+			if (PointFilterCache[i])
 			{
 				// Kept point, as per filters
-				ReadIndices.Add(Index);
-				LastPosition = Path->GetPos(Index);
+				ReadIndices.Add(i);
+				LastPosition = Path->GetPos(i);
 				continue;
 			}
 
-			const FVector CurrentPos = Path->GetPos(Index);
+			const FVector CurrentPos = Path->GetPos(i);
 			if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, CurrentPos) <= Context->FuseDistSquared)
 			{
 				// Collocated points
@@ -121,21 +122,18 @@ namespace PCGExFuseCollinear
 			}
 
 			// Use last position to avoid removing smooth arcs
-			const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Index));
+			const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(i));
 			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) || (Settings->bInvertThreshold && Dot < Context->DotThreshold))
 			{
 				// Collinear with previous, keep moving
 				continue;
 			}
 
-			ReadIndices.Add(Index);
-			LastPosition = Path->GetPos(Index);
+			ReadIndices.Add(i);
+			LastPosition = Path->GetPos(i);
 		}
-	}
 
-	void FProcessor::CompleteWork()
-	{
-		if (ReadIndices.Num() < 2) { return; }
+		if (ReadIndices.Num() < 2) { return false; }
 
 		if (Path->IsClosedLoop())
 		{
@@ -156,12 +154,33 @@ namespace PCGExFuseCollinear
 			}
 		}
 
-		if (ReadIndices.Num() < 2) { return; }
+		if (ReadIndices.Num() < 2) { return false; }
 
-		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), ReadIndices.Num(), PointDataFacade->GetAllocations());
 		PointDataFacade->Source->InheritPoints(ReadIndices, 0);
+
+		if (Settings->bDoBlend) { Blend(ReadIndices); }
+
+		return true;
+	}
+
+	void FProcessor::Blend(TArray<int32>& ReadIndices)
+	{
+		const PCGExDetails::FDistances* NoneDistances = PCGExDetails::GetNoneDistances();
+		const TSharedPtr<PCGExDataBlending::FUnionBlender> Blender = MakeShared<PCGExDataBlending::FUnionBlender>(
+			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), nullptr, NoneDistances);
+
+		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
+		UnionSources.Add(PointDataFacade);
+
+		Blender->AddSources(UnionSources, nullptr);
+		if (!Blender->Init(Context, PointDataFacade))
+		{
+			bIsProcessorValid = false;
+			return;
+		}
 	}
 }
 

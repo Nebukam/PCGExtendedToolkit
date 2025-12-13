@@ -58,7 +58,6 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 
 	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
 
-	Context->Distances = PCGExDetails::MakeDistances();
 	Context->CrossingBlending = Settings->CrossingBlending;
 
 	Context->CanCutTag = PCGEx::StringTagFromName(Settings->CanCutTag);
@@ -476,7 +475,7 @@ namespace PCGExPathCrossings
 			return;
 		}
 
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, Context->Distances);
+		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, PCGExDetails::GetDistances());
 		UnionBlender = TypedBlender;
 
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;

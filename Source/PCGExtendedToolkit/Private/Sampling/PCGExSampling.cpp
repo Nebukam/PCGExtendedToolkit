@@ -156,7 +156,12 @@ namespace PCGExSampling
 	}
 
 
-	int32 FSampingUnionData::ComputeWeights(const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const PCGExData::FPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
+	int32 FSampingUnionData::ComputeWeights(
+		const TArray<const UPCGBasePointData*>& Sources,
+		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
+		const PCGExData::FPoint& Target,
+		const PCGExDetails::FDistances* InDistanceDetails,
+		TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
 		OutWeightedPoints.Reset(NumElements);
@@ -311,7 +316,7 @@ namespace PCGExSampling
 
 	void FTargetsHandler::SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
 	{
-		Distances = PCGExDetails::MakeDistances(Source, Target, bOverlapIsZero);
+		Distances = PCGExDetails::GetDistances(Source, Target, bOverlapIsZero);
 	}
 
 	void FTargetsHandler::SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails)

@@ -93,17 +93,47 @@ namespace PCGEx
 		const int32 A = NH64A(Hash);
 		return A == Not ? NH64B(Hash) : A;
 	}
+	
+	template <typename T>
+	FORCEINLINE static T SafeScalarTolerance(const T& InValue)
+	{		
+		return FMath::Max(InValue, SMALL_NUMBER);
+	}
+	
+	FORCEINLINE static FVector SafeTolerance(const FVector& InVector)
+	{		
+		return FVector(
+			FMath::Max(InVector.X, SMALL_NUMBER),
+			FMath::Max(InVector.Y, SMALL_NUMBER),
+			FMath::Max(InVector.Z, SMALL_NUMBER)
+		);
+	}
+	
+#define PCGEX_FNV1A\
+	uint64 Hash = 14695981039346656037ULL;\
+	Hash = (Hash ^ X) * 1099511628211ULL;\
+	Hash = (Hash ^ Y) * 1099511628211ULL;\
+	Hash = (Hash ^ Z) * 1099511628211ULL;\
+	return Hash;
 
 	template <typename T>
 	FORCEINLINE static uint64 GH3(const T& Seed, const T& Tolerance)
 	{
-		return GetTypeHash(FInt64Vector(FMath::RoundToInt64(Seed[0] * Tolerance[0]), FMath::RoundToInt64(Seed[1] * Tolerance[1]), FMath::RoundToInt64(Seed[2] * Tolerance[2])));
+		const int64 X = FMath::FloorToInt64(Seed[0] / Tolerance[0]);
+		const int64 Y = FMath::FloorToInt64(Seed[1] / Tolerance[1]);
+		const int64 Z = FMath::FloorToInt64(Seed[2] / Tolerance[2]);
+    
+		PCGEX_FNV1A
 	}
 
 	template <typename S, typename T>
 	FORCEINLINE static uint64 GH3(const S& Seed, const T& Tolerance)
 	{
-		return GetTypeHash(FInt64Vector(FMath::RoundToInt64(Seed[0] * Tolerance[0]), FMath::RoundToInt64(Seed[1] * Tolerance[1]), FMath::RoundToInt64(Seed[2] * Tolerance[2])));
+		const int64 X = FMath::FloorToInt64(Seed[0] / Tolerance[0]);
+		const int64 Y = FMath::FloorToInt64(Seed[1] / Tolerance[1]);
+		const int64 Z = FMath::FloorToInt64(Seed[2] / Tolerance[2]);
+    
+		PCGEX_FNV1A
 	}
 
 	FORCEINLINE static uint64 UH3(const int32 A, const int32 B, const int32 C)
@@ -112,13 +142,22 @@ namespace PCGEx
 		if (X > Y) { Swap(X, Y); }
 		if (X > Z) { Swap(X, Z); }
 		if (Y > Z) { Swap(Y, Z); }
-		return GetTypeHash(FInt64Vector(X, Y, Z));
+	
+		PCGEX_FNV1A
 	}
+	
+#undef PCGEX_FNV1A
 
 	template <typename S, typename T>
 	FORCEINLINE static uint64 GH2(const S& Seed, const T& Tolerance)
 	{
-		return GetTypeHash(FInt64Vector(FMath::RoundToInt64(Seed[0] * Tolerance[0]), FMath::RoundToInt64(Seed[1] * Tolerance[1]), 0));
+		const int64 X = FMath::FloorToInt64(Seed[0] / Tolerance[0]);
+		const int64 Y = FMath::FloorToInt64(Seed[1] / Tolerance[1]);
+		
+		uint64 Hash = 14695981039346656037ULL;
+		Hash = (Hash ^ X) * 1099511628211ULL;
+		Hash = (Hash ^ Y) * 1099511628211ULL;
+		return Hash;
 	}
 
 	class FIndexLookup : public TSharedFromThis<FIndexLookup>

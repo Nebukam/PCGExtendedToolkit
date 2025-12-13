@@ -11,6 +11,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 
@@ -195,7 +196,7 @@ namespace PCGExSampleVtxByID
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, Context->DistanceDetails);
+			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetFacades)) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}

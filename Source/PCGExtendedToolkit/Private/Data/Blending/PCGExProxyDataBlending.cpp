@@ -21,7 +21,7 @@ namespace PCGExDataBlending
 		IOLookup = MakeShared<PCGEx::FIndexLookup>(MaxIndex + 1);
 		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { IOLookup->Set(Src->Source->IOIndex, SourcesData.Add(Src->GetIn())); }
 
-		Distances = PCGExDetails::MakeDistances();
+		Distances = PCGExDetails::GetDistances();
 	}
 
 	int32 FDummyUnionBlender::ComputeWeights(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const

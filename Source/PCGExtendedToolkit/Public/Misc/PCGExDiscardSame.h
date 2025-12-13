@@ -68,7 +68,7 @@ public:
 	bool bTestBounds = false;
 
 	/** Test collection bounds equality, within tolerance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestBounds", ClampMin = 0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestBounds", ClampMin = 0.000001))
 	double TestBoundsTolerance = 0.1;
 
 
@@ -86,7 +86,7 @@ public:
 	bool bTestPositions = true;
 
 	/** Test point positions equality, within tolerance. Note that it computes space occupation, and does not account for point count. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestPositions", ClampMin = 0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTestPositions", ClampMin = 0.000001))
 	double TestPositionTolerance = 0.1;
 
 #pragma region DEPRECATED

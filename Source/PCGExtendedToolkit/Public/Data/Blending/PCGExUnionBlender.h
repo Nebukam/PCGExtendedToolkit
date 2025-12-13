@@ -19,7 +19,7 @@ namespace PCGExDataBlending
 	public:
 		const FPCGExCarryOverDetails* CarryOverDetails = nullptr;
 
-		FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
+		FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const PCGExDetails::FDistances* InDistanceDetails);
 		virtual ~FUnionBlender() override;
 
 		class FMultiSourceBlender : public TSharedFromThis<FMultiSourceBlender>
@@ -70,7 +70,7 @@ namespace PCGExDataBlending
 
 		bool bPreserveAttributesDefaultValue = false;
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
-		const TSharedPtr<PCGExDetails::FDistances> DistanceDetails = nullptr;
+		const PCGExDetails::FDistances* DistanceDetails = nullptr;
 
 		TArray<FBlendingParam> PropertyParams;
 		TArray<TSharedPtr<FMultiSourceBlender>> Blenders;

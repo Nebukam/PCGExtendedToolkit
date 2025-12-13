@@ -71,7 +71,7 @@ public:
 	TSharedPtr<PCGExData::TBuffer<double>> ValuesBuffer;
 
 protected:
-	FVector CWCoincidenceTolerance = FVector::ZeroVector;
+	FVector CWCoincidenceTolerance = FVector::OneVector;
 };
 
 ////

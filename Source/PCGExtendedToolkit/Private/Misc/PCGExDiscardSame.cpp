@@ -112,7 +112,7 @@ namespace PCGExDiscardSame
 		}
 
 		TSet<uint64> PositionHashes;
-		const FVector PosCWTolerance = FVector(1 / Settings->TestPositionTolerance);
+		const FVector PosCWTolerance = FVector(PCGEx::SafeScalarTolerance(Settings->TestPositionTolerance));
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 		HashPointsCount = InPoints->GetNumPoints();
@@ -144,7 +144,7 @@ namespace PCGExDiscardSame
 
 		if (Settings->bTestBounds)
 		{
-			const FVector BoundsCWTolerance = FVector(1 / Settings->TestBoundsTolerance);
+			const FVector BoundsCWTolerance = FVector(PCGEx::SafeScalarTolerance(Settings->TestBoundsTolerance));
 			HashBounds = HashCombineFast(PCGEx::GH3(Bounds.Min, BoundsCWTolerance), PCGEx::GH3(Bounds.Max, BoundsCWTolerance));
 		}
 		else

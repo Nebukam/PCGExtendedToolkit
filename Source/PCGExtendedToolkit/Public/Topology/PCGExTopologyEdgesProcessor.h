@@ -117,7 +117,7 @@ namespace PCGExTopologyEdges
 		TSharedPtr<PCGExTopology::FHoles> Holes;
 		FPCGExTopologyUVDetails UVDetails;
 
-		const FVector2D CWTolerance = FVector2D(1 / 0.001);
+		const FVector2D CWTolerance = FVector2D(0.001);
 		bool bIsPreviewMode = false;
 
 		TSharedPtr<PCGExTopology::FCell> WrapperCell;
@@ -182,7 +182,7 @@ namespace PCGExTopologyEdges
 	class PCGEXTENDEDTOOLKIT_API IBatch : public PCGExClusterMT::IBatch
 	{
 	protected:
-		const FVector2D CWTolerance = FVector2D(1 / 0.001);
+		const FVector2D CWTolerance = FVector2D(0.001);
 		TSharedPtr<TMap<uint64, int32>> ProjectedHashMap;
 
 	public:
