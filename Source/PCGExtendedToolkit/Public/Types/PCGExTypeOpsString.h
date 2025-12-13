@@ -99,6 +99,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 	};
 
 	// Name Type Operations - FName
@@ -187,6 +189,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 	};
 
 	// Path Type Operations - FSoftObjectPath
@@ -264,6 +268,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 	};
 
 	// Path Type Operations - FSoftClassPath
@@ -341,6 +347,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 	};
 
 }

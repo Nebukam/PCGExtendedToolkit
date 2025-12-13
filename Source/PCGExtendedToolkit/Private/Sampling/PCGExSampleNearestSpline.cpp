@@ -152,7 +152,7 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
-	
+
 	return true;
 }
 
@@ -433,13 +433,17 @@ namespace PCGExSampleNearestSpline
 				{
 					const FPCGSplineStruct& Line = Context->Splines[TargetIndex];
 					const double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
-					ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, Context->SegmentCounts[TargetIndex], Line);
+					ProcessTarget(Line.GetTransformAtSplineInputKey
+					              (static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges),
+					              Time, Context->SegmentCounts[TargetIndex], Line);
 				};
 
 				// At closest alpha
 				if (Settings->bUseOctree)
 				{
-					Context->SplineOctree->FindElementsWithBoundsTest(FBox(Origin - FVector(BaseRangeMax), Origin + FVector(BaseRangeMax)), [&](const PCGExOctree::FItem& Item) { ProcessClosestAlpha(Item.Index); });
+					Context->SplineOctree->FindElementsWithBoundsTest(
+						FBox(Origin - FVector(BaseRangeMax), Origin + FVector(BaseRangeMax)),
+						[&](const PCGExOctree::FItem& Item) { ProcessClosestAlpha(Item.Index); });
 				}
 				else
 				{
@@ -499,7 +503,9 @@ namespace PCGExSampleNearestSpline
 			}
 
 			FVector WeightedUp = LookAtUpGetter ? LookAtUpGetter->Read(Index).GetSafeNormal() : SafeUpVector;
-			FTransform WeightedTransform = InTransforms[Index];
+			FTransform WeightedTransform = FTransform::Identity; //InTransforms[Index];
+			WeightedTransform.SetScale3D(FVector::ZeroVector);
+			
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 			FVector WeightedTangent = FVector::ZeroVector;
@@ -507,26 +513,20 @@ namespace PCGExSampleNearestSpline
 			double WeightedTime = 0;
 			double TotalWeight = 0;
 
-			if (!Settings->bWeightFromOriginalTransform)
-			{
-				WeightedTransform = FTransform::Identity;
-				WeightedTransform.SetScale3D(FVector::ZeroVector);
-			}
-
 			auto ProcessTargetInfos = [&](const PCGExPolyPath::FSample& TargetInfos)
 			{
 				const double Weight = TargetInfos.Weight;
 				const FQuat Quat = TargetInfos.Transform.GetRotation();
 
-				WeightedTransform = PCGExDataBlending::BlendFunctions::Lerp(WeightedTransform,TargetInfos.Transform, Weight);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetInfos.Transform, Weight);
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp,PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight);
+					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp, PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(Quat, Settings->SignAxis) * Weight;
 				WeightedAngleAxis += PCGExMath::GetDirection(Quat, Settings->AngleAxis) * Weight;
-				WeightedTangent = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTangent,TargetInfos.Tangent, Weight);
+				WeightedTangent = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTangent, TargetInfos.Tangent, Weight);
 
 				WeightedTime += TargetInfos.Time * Weight;
 				TotalWeight += Weight;
@@ -536,7 +536,8 @@ namespace PCGExSampleNearestSpline
 			};
 
 
-			if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+			if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget
+				|| Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
 				PCGExPolyPath::FSample& TargetInfos = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? Stats.Closest : Stats.Farthest;
 				TargetInfos.Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
@@ -549,8 +550,6 @@ namespace PCGExSampleNearestSpline
 					TargetInfos.Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 					ProcessTargetInfos(TargetInfos);
 				}
-				//Samples.Sort([](const PCGExPolyPath::FSample& A, const PCGExPolyPath::FSample& B) { return A.Weight > B.Weight; });
-				//for (PCGExPolyPath::FSample& TargetInfos : Samples) { ProcessTargetInfos(TargetInfos); }
 			}
 
 			// Compound never got updated, meaning we couldn't find target in range
@@ -562,17 +561,16 @@ namespace PCGExSampleNearestSpline
 
 			if (TotalWeight != 0) // Dodge NaN
 			{
-				//WeightedUp /= TotalWeight;
-				//WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
+				WeightedUp = PCGExTypeOps::FTypeOps<FVector>::NormalizeWeight(WeightedUp, TotalWeight);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, TotalWeight);
 			}
 			else
 			{
-				WeightedUp = WeightedUp.GetSafeNormal();
 				WeightedTransform = InTransforms[Index];
 			}
 
-			WeightedDistance /= NumSampled;
 			WeightedUp.Normalize();
+			WeightedDistance /= NumSampled;
 
 			const FVector CWDistance = Origin - WeightedTransform.GetLocation();
 			FVector LookAt = CWDistance.GetSafeNormal();

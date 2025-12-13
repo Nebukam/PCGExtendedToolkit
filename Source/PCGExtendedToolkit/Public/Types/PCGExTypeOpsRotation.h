@@ -14,7 +14,7 @@ namespace PCGExTypeOps
 {
 	// Rotation Type Operations - FQuat
 
-	template<>
+	template <>
 	struct FTypeOps<FQuat>
 	{
 		using Type = FQuat;
@@ -23,7 +23,7 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type GetDefault() { return FQuat::Identity; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return !Value.IsIdentity(); }
@@ -31,15 +31,15 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TTo, int64>) { return static_cast<int64>(Value.W); }
 			else if constexpr (std::is_same_v<TTo, float>) { return static_cast<float>(Value.W); }
 			else if constexpr (std::is_same_v<TTo, double>) { return Value.W; }
-			else if constexpr (std::is_same_v<TTo, FVector2D>) 
-			{ 
-				const FRotator R = Value.Rotator(); 
-				return FVector2D(R.Pitch, R.Yaw); 
+			else if constexpr (std::is_same_v<TTo, FVector2D>)
+			{
+				const FRotator R = Value.Rotator();
+				return FVector2D(R.Pitch, R.Yaw);
 			}
-			else if constexpr (std::is_same_v<TTo, FVector>) 
-			{ 
-				const FRotator R = Value.Rotator(); 
-				return FVector(R.Pitch, R.Yaw, R.Roll); 
+			else if constexpr (std::is_same_v<TTo, FVector>)
+			{
+				const FRotator R = Value.Rotator();
+				return FVector(R.Pitch, R.Yaw, R.Roll);
 			}
 			else if constexpr (std::is_same_v<TTo, FVector4>) { return FVector4(Value.X, Value.Y, Value.Z, Value.W); }
 			else if constexpr (std::is_same_v<TTo, FQuat>) { return Value; }
@@ -52,13 +52,13 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
-			if constexpr (std::is_same_v<TFrom, bool>) 
-			{ 
-				const double D = Value ? 180.0 : 0.0; 
-				return FRotator(D, D, D).Quaternion(); 
+			if constexpr (std::is_same_v<TFrom, bool>)
+			{
+				const double D = Value ? 180.0 : 0.0;
+				return FRotator(D, D, D).Quaternion();
 			}
 			else if constexpr (std::is_same_v<TFrom, int32>) { return FRotator(Value, Value, Value).Quaternion(); }
 			else if constexpr (std::is_same_v<TFrom, int64>) { return FRotator(Value, Value, Value).Quaternion(); }
@@ -70,8 +70,18 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TFrom, FQuat>) { return Value; }
 			else if constexpr (std::is_same_v<TFrom, FRotator>) { return Value.Quaternion(); }
 			else if constexpr (std::is_same_v<TFrom, FTransform>) { return Value.GetRotation(); }
-			else if constexpr (std::is_same_v<TFrom, FString>) { Type Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TFrom, FName>) { Type Result; Result.InitFromString(Value.ToString()); return Result; }
+			else if constexpr (std::is_same_v<TFrom, FString>)
+			{
+				Type Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TFrom, FName>)
+			{
+				Type Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
 			else if constexpr (std::is_same_v<TFrom, FSoftObjectPath>) { return Type::Identity; }
 			else if constexpr (std::is_same_v<TFrom, FSoftClassPath>) { return Type::Identity; }
 			else { return Type::Identity; }
@@ -81,9 +91,9 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type Add(const Type& A, const Type& B) { return (A * B).GetNormalized(); }
 		static FORCEINLINE Type Sub(const Type& A, const Type& B) { return (A * B.Inverse()).GetNormalized(); }
 		static FORCEINLINE Type Mult(const Type& A, const Type& B) { return (A * B).GetNormalized(); }
-		
-		static FORCEINLINE Type Div(const Type& A, double D) 
-		{ 
+
+		static FORCEINLINE Type Div(const Type& A, double D)
+		{
 			if (D == 0.0) return A;
 			// Convert to rotator, divide, convert back
 			FRotator R = A.Rotator();
@@ -92,41 +102,41 @@ namespace PCGExTypeOps
 			R.Roll /= D;
 			return R.Quaternion();
 		}
-		
+
 		static FORCEINLINE Type Lerp(const Type& A, const Type& B, double W) { return FQuat::Slerp(A, B, W); }
-		
+
 		// Min/Max don't make much sense for quaternions - use angle-based comparison
-		static FORCEINLINE Type Min(const Type& A, const Type& B) 
-		{ 
-			return A.GetAngle() <= B.GetAngle() ? A : B; 
+		static FORCEINLINE Type Min(const Type& A, const Type& B)
+		{
+			return A.GetAngle() <= B.GetAngle() ? A : B;
 		}
-		
-		static FORCEINLINE Type Max(const Type& A, const Type& B) 
-		{ 
-			return A.GetAngle() >= B.GetAngle() ? A : B; 
+
+		static FORCEINLINE Type Max(const Type& A, const Type& B)
+		{
+			return A.GetAngle() >= B.GetAngle() ? A : B;
 		}
-		
+
 		static FORCEINLINE Type Average(const Type& A, const Type& B) { return FQuat::Slerp(A, B, 0.5); }
 		static FORCEINLINE Type WeightedAdd(const Type& A, const Type& B, double W) { return FQuat::Slerp(A, A * B, W); }
 		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W) { return FQuat::Slerp(A, A * B.Inverse(), W); }
 		static FORCEINLINE Type CopyA(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type CopyB(const Type& A, const Type& B) { return B; }
-		
+
 		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B) { return Min(A, B); }
 		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) { return Max(A, B); }
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return Min(A, B); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return Max(A, B); }
-		
+
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			const uint32 H = HashCombine(GetTypeHash(A), GetTypeHash(B));
 			return FQuat(H, H, H, 1.0).GetNormalized();
 		}
-		
+
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B) { return NaiveHash(A, B); }
-		
-		static FORCEINLINE Type ModSimple(const Type& A, double M) 
-		{ 
+
+		static FORCEINLINE Type ModSimple(const Type& A, double M)
+		{
 			if (M == 0.0) return A;
 			FRotator R = A.Rotator();
 			R.Pitch = FMath::Fmod(R.Pitch, M);
@@ -134,7 +144,7 @@ namespace PCGExTypeOps
 			R.Roll = FMath::Fmod(R.Roll, M);
 			return R.Quaternion();
 		}
-		
+
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B)
 		{
 			const FRotator RA = A.Rotator();
@@ -145,16 +155,18 @@ namespace PCGExTypeOps
 			Result.Roll = RB.Roll != 0.0 ? FMath::Fmod(RA.Roll, RB.Roll) : RA.Roll;
 			return Result.Quaternion();
 		}
-		
-		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) 
-		{ 
-			return W != 0.0 ? Div(A * B, W) : A; 
+
+		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W)
+		{
+			return W != 0.0 ? Div(A * B, W) : A;
 		}
+
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A.GetNormalized(); }
 	};
 
 	// Rotation Type Operations - FRotator
 
-	template<>
+	template <>
 	struct FTypeOps<FRotator>
 	{
 		using Type = FRotator;
@@ -163,7 +175,7 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type GetDefault() { return FRotator::ZeroRotator; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value.Euler()); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return !Value.IsNearlyZero(); }
@@ -184,13 +196,13 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
-			if constexpr (std::is_same_v<TFrom, bool>) 
-			{ 
-				const double D = Value ? 180.0 : 0.0; 
-				return Type(D, D, D); 
+			if constexpr (std::is_same_v<TFrom, bool>)
+			{
+				const double D = Value ? 180.0 : 0.0;
+				return Type(D, D, D);
 			}
 			else if constexpr (std::is_same_v<TFrom, int32>) { return Type(Value, Value, Value); }
 			else if constexpr (std::is_same_v<TFrom, int64>) { return Type(Value, Value, Value); }
@@ -202,8 +214,18 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TFrom, FQuat>) { return Value.Rotator(); }
 			else if constexpr (std::is_same_v<TFrom, FRotator>) { return Value; }
 			else if constexpr (std::is_same_v<TFrom, FTransform>) { return Value.Rotator(); }
-			else if constexpr (std::is_same_v<TFrom, FString>) { Type Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TFrom, FName>) { Type Result; Result.InitFromString(Value.ToString()); return Result; }
+			else if constexpr (std::is_same_v<TFrom, FString>)
+			{
+				Type Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TFrom, FName>)
+			{
+				Type Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
 			else if constexpr (std::is_same_v<TFrom, FSoftObjectPath>) { return Type::ZeroRotator; }
 			else if constexpr (std::is_same_v<TFrom, FSoftClassPath>) { return Type::ZeroRotator; }
 			else { return Type::ZeroRotator; }
@@ -213,61 +235,63 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type Add(const Type& A, const Type& B) { return A + B; }
 		static FORCEINLINE Type Sub(const Type& A, const Type& B) { return A - B; }
 		static FORCEINLINE Type Mult(const Type& A, const Type& B) { return Type(A.Pitch * B.Pitch, A.Yaw * B.Yaw, A.Roll * B.Roll); }
-		static FORCEINLINE Type Div(const Type& A, double D) 
-		{ 
-			return D != 0.0 ? Type(A.Pitch / D, A.Yaw / D, A.Roll / D) : A; 
+
+		static FORCEINLINE Type Div(const Type& A, double D)
+		{
+			return D != 0.0 ? Type(A.Pitch / D, A.Yaw / D, A.Roll / D) : A;
 		}
-		static FORCEINLINE Type Lerp(const Type& A, const Type& B, double W) 
-		{ 
+
+		static FORCEINLINE Type Lerp(const Type& A, const Type& B, double W)
+		{
 			return Type(
 				FMath::Lerp(A.Pitch, B.Pitch, W),
 				FMath::Lerp(A.Yaw, B.Yaw, W),
 				FMath::Lerp(A.Roll, B.Roll, W));
 		}
-		
-		static FORCEINLINE Type Min(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type Min(const Type& A, const Type& B)
+		{
 			return Type(
 				FMath::Min(A.Pitch, B.Pitch),
 				FMath::Min(A.Yaw, B.Yaw),
-				FMath::Min(A.Roll, B.Roll)); 
+				FMath::Min(A.Roll, B.Roll));
 		}
-		
-		static FORCEINLINE Type Max(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type Max(const Type& A, const Type& B)
+		{
 			return Type(
 				FMath::Max(A.Pitch, B.Pitch),
 				FMath::Max(A.Yaw, B.Yaw),
-				FMath::Max(A.Roll, B.Roll)); 
+				FMath::Max(A.Roll, B.Roll));
 		}
-		
-		static FORCEINLINE Type Average(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type Average(const Type& A, const Type& B)
+		{
 			return Type(
 				(A.Pitch + B.Pitch) * 0.5,
 				(A.Yaw + B.Yaw) * 0.5,
 				(A.Roll + B.Roll) * 0.5);
 		}
-		
-		static FORCEINLINE Type WeightedAdd(const Type& A, const Type& B, double W) 
-		{ 
+
+		static FORCEINLINE Type WeightedAdd(const Type& A, const Type& B, double W)
+		{
 			return Type(
 				A.Pitch + B.Pitch * W,
 				A.Yaw + B.Yaw * W,
 				A.Roll + B.Roll * W);
 		}
-		
-		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W) 
-		{ 
+
+		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W)
+		{
 			return Type(
 				A.Pitch - B.Pitch * W,
 				A.Yaw - B.Yaw * W,
 				A.Roll - B.Roll * W);
 		}
-		
+
 		static FORCEINLINE Type CopyA(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type CopyB(const Type& A, const Type& B) { return B; }
-		
+
 		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B)
 		{
 			return Type(
@@ -275,7 +299,7 @@ namespace PCGExTypeOps
 				FMath::Abs(A.Yaw) <= FMath::Abs(B.Yaw) ? A.Yaw : B.Yaw,
 				FMath::Abs(A.Roll) <= FMath::Abs(B.Roll) ? A.Roll : B.Roll);
 		}
-		
+
 		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B)
 		{
 			return Type(
@@ -283,7 +307,7 @@ namespace PCGExTypeOps
 				FMath::Abs(A.Yaw) >= FMath::Abs(B.Yaw) ? A.Yaw : B.Yaw,
 				FMath::Abs(A.Roll) >= FMath::Abs(B.Roll) ? A.Roll : B.Roll);
 		}
-		
+
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B)
 		{
 			return Type(
@@ -291,7 +315,7 @@ namespace PCGExTypeOps
 				FMath::Min(FMath::Abs(A.Yaw), FMath::Abs(B.Yaw)),
 				FMath::Min(FMath::Abs(A.Roll), FMath::Abs(B.Roll)));
 		}
-		
+
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B)
 		{
 			return Type(
@@ -299,7 +323,7 @@ namespace PCGExTypeOps
 				FMath::Max(FMath::Abs(A.Yaw), FMath::Abs(B.Yaw)),
 				FMath::Max(FMath::Abs(A.Roll), FMath::Abs(B.Roll)));
 		}
-		
+
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			return Type(
@@ -307,7 +331,7 @@ namespace PCGExTypeOps
 				static_cast<double>(HashCombine(GetTypeHash(A.Yaw), GetTypeHash(B.Yaw))),
 				static_cast<double>(HashCombine(GetTypeHash(A.Roll), GetTypeHash(B.Roll))));
 		}
-		
+
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			return Type(
@@ -315,12 +339,12 @@ namespace PCGExTypeOps
 				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Yaw, B.Yaw)), GetTypeHash(FMath::Max(A.Yaw, B.Yaw)))),
 				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Roll, B.Roll)), GetTypeHash(FMath::Max(A.Roll, B.Roll)))));
 		}
-		
-		static FORCEINLINE Type ModSimple(const Type& A, double M) 
-		{ 
-			return M != 0.0 ? Type(FMath::Fmod(A.Pitch, M), FMath::Fmod(A.Yaw, M), FMath::Fmod(A.Roll, M)) : A; 
+
+		static FORCEINLINE Type ModSimple(const Type& A, double M)
+		{
+			return M != 0.0 ? Type(FMath::Fmod(A.Pitch, M), FMath::Fmod(A.Yaw, M), FMath::Fmod(A.Roll, M)) : A;
 		}
-		
+
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B)
 		{
 			return Type(
@@ -328,16 +352,18 @@ namespace PCGExTypeOps
 				B.Yaw != 0.0 ? FMath::Fmod(A.Yaw, B.Yaw) : A.Yaw,
 				B.Roll != 0.0 ? FMath::Fmod(A.Roll, B.Roll) : A.Roll);
 		}
-		
-		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) 
-		{ 
-			return W != 0.0 ? Div(Add(A, B), W) : A; 
+
+		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W)
+		{
+			return W != 0.0 ? Div(Add(A, B), W) : A;
 		}
+
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 	// Transform Type Operations - FTransform
 
-	template<>
+	template <>
 	struct FTypeOps<FTransform>
 	{
 		using Type = FTransform;
@@ -346,7 +372,7 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type GetDefault() { return FTransform::Identity; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return !Value.Equals(FTransform::Identity); }
@@ -354,12 +380,16 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TTo, int64>) { return 0; }
 			else if constexpr (std::is_same_v<TTo, float>) { return 0.0f; }
 			else if constexpr (std::is_same_v<TTo, double>) { return 0.0; }
-			else if constexpr (std::is_same_v<TTo, FVector2D>) { const FVector L = Value.GetLocation(); return FVector2D(L.X, L.Y); }
+			else if constexpr (std::is_same_v<TTo, FVector2D>)
+			{
+				const FVector L = Value.GetLocation();
+				return FVector2D(L.X, L.Y);
+			}
 			else if constexpr (std::is_same_v<TTo, FVector>) { return Value.GetLocation(); }
-			else if constexpr (std::is_same_v<TTo, FVector4>) 
-			{ 
-				const FVector L = Value.GetLocation(); 
-				return FVector4(L.X, L.Y, L.Z, 0.0); 
+			else if constexpr (std::is_same_v<TTo, FVector4>)
+			{
+				const FVector L = Value.GetLocation();
+				return FVector4(L.X, L.Y, L.Z, 0.0);
 			}
 			else if constexpr (std::is_same_v<TTo, FQuat>) { return Value.GetRotation(); }
 			else if constexpr (std::is_same_v<TTo, FRotator>) { return Value.Rotator(); }
@@ -371,7 +401,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Type::Identity; }
@@ -385,125 +415,133 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TFrom, FQuat>) { return Type(Value, FVector::ZeroVector, FVector::OneVector); }
 			else if constexpr (std::is_same_v<TFrom, FRotator>) { return Type(Value.Quaternion(), FVector::ZeroVector, FVector::OneVector); }
 			else if constexpr (std::is_same_v<TFrom, FTransform>) { return Value; }
-			else if constexpr (std::is_same_v<TFrom, FString>) { Type Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TFrom, FName>) { Type Result; Result.InitFromString(Value.ToString()); return Result; }
+			else if constexpr (std::is_same_v<TFrom, FString>)
+			{
+				Type Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TFrom, FName>)
+			{
+				Type Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
 			else if constexpr (std::is_same_v<TFrom, FSoftObjectPath>) { return Type::Identity; }
 			else if constexpr (std::is_same_v<TFrom, FSoftClassPath>) { return Type::Identity; }
 			else { return Type::Identity; }
 		}
 
 		// Blend operations for transforms
-		static FORCEINLINE Type Add(const Type& A, const Type& B) 
-		{ 
+		static FORCEINLINE Type Add(const Type& A, const Type& B)
+		{
 			return Type(
 				A.GetRotation() * B.GetRotation(),
 				A.GetLocation() + B.GetLocation(),
 				A.GetScale3D() + B.GetScale3D());
 		}
-		
-		static FORCEINLINE Type Sub(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type Sub(const Type& A, const Type& B)
+		{
 			return Type(
 				A.GetRotation() * B.GetRotation().Inverse(),
 				A.GetLocation() - B.GetLocation(),
 				A.GetScale3D() - B.GetScale3D());
 		}
-		
+
 		static FORCEINLINE Type Mult(const Type& A, const Type& B) { return A * B; }
-		
-		static FORCEINLINE Type Div(const Type& A, double D) 
-		{ 
+
+		static FORCEINLINE Type Div(const Type& A, double D)
+		{
 			if (D == 0.0) return A;
-			
+
 			// Divide rotation via rotator
 			FRotator R = A.Rotator();
 			R.Pitch /= D;
 			R.Yaw /= D;
 			R.Roll /= D;
-			
+
 			return Type(
 				R.Quaternion(),
 				A.GetLocation() / D,
 				A.GetScale3D() / D);
 		}
-		
-		static FORCEINLINE Type Lerp(const Type& A, const Type& B, double W) 
-		{ 
+
+		static FORCEINLINE Type Lerp(const Type& A, const Type& B, double W)
+		{
 			Type Result;
 			Result.Blend(A, B, W);
 			return Result;
 		}
-		
-		static FORCEINLINE Type Min(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type Min(const Type& A, const Type& B)
+		{
 			return Type(
 				FTypeOps<FQuat>::Min(A.GetRotation(), B.GetRotation()),
 				A.GetLocation().ComponentMin(B.GetLocation()),
 				A.GetScale3D().ComponentMin(B.GetScale3D()));
 		}
-		
-		static FORCEINLINE Type Max(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type Max(const Type& A, const Type& B)
+		{
 			return Type(
 				FTypeOps<FQuat>::Max(A.GetRotation(), B.GetRotation()),
 				A.GetLocation().ComponentMax(B.GetLocation()),
 				A.GetScale3D().ComponentMax(B.GetScale3D()));
 		}
-		
+
 		static FORCEINLINE Type Average(const Type& A, const Type& B) { return Lerp(A, B, 0.5); }
-		
-		static FORCEINLINE Type WeightedAdd(const Type& A, const Type& B, double W) 
-		{ 
-			Type Weighted;
-			Weighted.SetLocation(B.GetLocation() * W);
-			Weighted.SetScale3D(B.GetScale3D() * W);
-			Weighted.SetRotation(FQuat::Slerp(FQuat::Identity, B.GetRotation(), W));
-			return Add(A, Weighted);
+
+		static FORCEINLINE Type WeightedAdd(const Type& A, const Type& B, double W)
+		{
+			return Type(
+				FTypeOps<FQuat>::WeightedAdd(A.GetRotation(), B.GetRotation(), W),
+				FTypeOps<FVector>::WeightedAdd(A.GetLocation(), B.GetLocation(), W),
+				FTypeOps<FVector>::WeightedAdd(A.GetScale3D(), B.GetScale3D(), W));
 		}
-		
-		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W) 
-		{ 
-			Type Weighted;
-			Weighted.SetLocation(B.GetLocation() * W);
-			Weighted.SetScale3D(B.GetScale3D() * W);
-			Weighted.SetRotation(FQuat::Slerp(FQuat::Identity, B.GetRotation(), W));
-			return Sub(A, Weighted);
+
+		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W)
+		{
+			return Type(
+				FTypeOps<FQuat>::WeightedSub(A.GetRotation(), B.GetRotation(), W),
+				FTypeOps<FVector>::WeightedSub(A.GetLocation(), B.GetLocation(), W),
+				FTypeOps<FVector>::WeightedSub(A.GetScale3D(), B.GetScale3D(), W));
 		}
-		
+
 		static FORCEINLINE Type CopyA(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type CopyB(const Type& A, const Type& B) { return B; }
-		
+
 		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B) { return Min(A, B); }
 		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) { return Max(A, B); }
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return Min(A, B); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return Max(A, B); }
-		
+
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			const uint32 H = HashCombine(GetTypeHash(A), GetTypeHash(B));
 			return Type(FVector(H, H, H));
 		}
-		
+
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B) { return NaiveHash(A, B); }
-		
-		static FORCEINLINE Type ModSimple(const Type& A, double M) 
-		{ 
+
+		static FORCEINLINE Type ModSimple(const Type& A, double M)
+		{
 			if (M == 0.0) return A;
-			
+
 			FRotator R = A.Rotator();
 			R.Pitch = FMath::Fmod(R.Pitch, M);
 			R.Yaw = FMath::Fmod(R.Yaw, M);
 			R.Roll = FMath::Fmod(R.Roll, M);
-			
+
 			const FVector L = A.GetLocation();
 			const FVector S = A.GetScale3D();
-			
+
 			return Type(
 				R.Quaternion(),
 				FVector(FMath::Fmod(L.X, M), FMath::Fmod(L.Y, M), FMath::Fmod(L.Z, M)),
 				FVector(FMath::Fmod(S.X, M), FMath::Fmod(S.Y, M), FMath::Fmod(S.Z, M)));
 		}
-		
+
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B)
 		{
 			const FRotator RA = A.Rotator();
@@ -512,12 +550,12 @@ namespace PCGExTypeOps
 			const FVector LB = B.GetLocation();
 			const FVector SA = A.GetScale3D();
 			const FVector SB = B.GetScale3D();
-			
+
 			FRotator R;
 			R.Pitch = RB.Pitch != 0.0 ? FMath::Fmod(RA.Pitch, RB.Pitch) : RA.Pitch;
 			R.Yaw = RB.Yaw != 0.0 ? FMath::Fmod(RA.Yaw, RB.Yaw) : RA.Yaw;
 			R.Roll = RB.Roll != 0.0 ? FMath::Fmod(RA.Roll, RB.Roll) : RA.Roll;
-			
+
 			return Type(
 				R.Quaternion(),
 				FVector(
@@ -529,11 +567,19 @@ namespace PCGExTypeOps
 					SB.Y != 0.0 ? FMath::Fmod(SA.Y, SB.Y) : SA.Y,
 					SB.Z != 0.0 ? FMath::Fmod(SA.Z, SB.Z) : SA.Z));
 		}
-		
-		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) 
-		{ 
-			return W != 0.0 ? Div(Add(A, B), W) : A; 
+
+		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W)
+		{
+			return W != 0.0 ? Div(Add(A, B), W) : A;
+		}
+
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW)
+		{
+			const double InvWeight = TW != 0.0 ? 1.0 / TW : 1;
+			return Type(
+				A.GetRotation().GetNormalized(),
+				A.GetLocation() * InvWeight,
+				A.GetScale3D() * InvWeight);
 		}
 	};
-
 }

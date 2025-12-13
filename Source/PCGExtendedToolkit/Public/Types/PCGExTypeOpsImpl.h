@@ -428,6 +428,14 @@ namespace PCGExTypeOps
 				Weight);
 		}
 
+		virtual void NormalizeWeight(const void* A, double TotalWeight, void* Out) const override
+		{
+			// Weight accumulation: Out = A * (1 / TotalWeight)
+			*static_cast<T*>(Out) = TypeOps::NormalizeWeight(
+				*static_cast<const T*>(A),
+				TotalWeight);
+		}
+
 		//~ End ITypeOpsBase interface
 
 		//Static instance accessor

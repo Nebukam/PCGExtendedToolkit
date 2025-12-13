@@ -256,7 +256,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 			{
 				// Otherwise, bump up original count so EndBlend can account for pre-existing value as "one blend step"
 				Tracker.Count = 1;
-				Tracker.Weight = 1;
+				Tracker.TotalWeight = 1;
 			}
 		}
 
@@ -272,7 +272,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		ON_SCOPE_EXIT
 		{
 			Tracker.Count++;
-			Tracker.Weight += Weight;
+			Tracker.TotalWeight += Weight;
 		};
 
 		T_WORKING SRC = A->Get(SourceIndex);
@@ -395,10 +395,10 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		}
 		else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight)
 		{
-			if (Tracker.Weight > 1)
+			if (Tracker.TotalWeight > 1)
 			{
 				T_WORKING Result = C->GetCurrent(TargetIndex);
-				TypeOpsImpl.BlendDiv(&Result, Tracker.Weight, &Result);
+				TypeOpsImpl.NormalizeWeight(&Result, Tracker.TotalWeight, &Result);
 				C->Set(TargetIndex, Result);
 			}
 		}

@@ -134,6 +134,8 @@ namespace PCGExTypeOps
 		}
 		
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? (A + B) / W : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 	// Vector Type Operations - FVector
@@ -265,6 +267,8 @@ namespace PCGExTypeOps
 		}
 		
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? (A + B) / W : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 	// Vector Type Operations - FVector4
@@ -416,6 +420,8 @@ namespace PCGExTypeOps
 		}
 		
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? (A + B) / W : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 }

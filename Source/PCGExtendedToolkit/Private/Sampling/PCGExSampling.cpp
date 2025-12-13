@@ -210,7 +210,7 @@ namespace PCGExSampling
 			}
 		}
 
-		OutWeightedPoints.Sort([](const PCGExData::FWeightedPoint& A, const PCGExData::FWeightedPoint& B) { return A.Weight < B.Weight; });
+		//OutWeightedPoints.Sort([](const PCGExData::FWeightedPoint& A, const PCGExData::FWeightedPoint& B) { return A.Weight < B.Weight; });
 
 		if (Index == 0) { return 0; }
 		if (TotalWeight == 0)

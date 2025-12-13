@@ -339,7 +339,7 @@ namespace PCGExSampleNearestPoint
 		DataBlender->InitTrackers(Trackers);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
 		Union->IOSet.Reserve(Context->TargetsHandler->Num());
@@ -362,7 +362,7 @@ namespace PCGExSampleNearestPoint
 			if (RangeMax == 0) { Union->Elements.Reserve(Context->NumMaxTargets); }
 
 			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
-			const FVector Origin = Transforms[Index].GetLocation();
+			const FVector Origin = InTransforms[Index].GetLocation();
 
 			PCGExData::FElement SinglePick(-1, -1);
 			double Det = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
@@ -446,12 +446,12 @@ namespace PCGExSampleNearestPoint
 				if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 				SampleTracker.Count++;
-				SampleTracker.Weight += W;
+				SampleTracker.TotalWeight += W;
 
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExDataBlending::BlendFunctions::Lerp(WeightedTransform, TargetTransform, W);
+				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
 
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
@@ -465,10 +465,14 @@ namespace PCGExSampleNearestPoint
 			// Blend using updated weighted points
 			DataBlender->Blend(Index, OutWeightedPoints, Trackers);
 
-			if (SampleTracker.Weight != 0) // Dodge NaN
+			if (SampleTracker.TotalWeight != 0) // Dodge NaN
 			{
-				WeightedUp /= SampleTracker.Weight;
-				WeightedTransform = PCGExDataBlending::BlendFunctions::Div(WeightedTransform, WeightedTransform, SampleTracker.Weight);
+				WeightedUp = PCGExTypeOps::FTypeOps<FVector>::NormalizeWeight(WeightedUp, SampleTracker.TotalWeight);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, SampleTracker.TotalWeight);
+			}
+			else
+			{
+				WeightedTransform = InTransforms[Index];
 			}
 
 			WeightedUp.Normalize();

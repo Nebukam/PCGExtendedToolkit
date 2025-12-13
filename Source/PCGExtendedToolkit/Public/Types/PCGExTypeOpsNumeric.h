@@ -133,6 +133,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W > 0.5 ? B : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 	};
 
 	// Numeric Type Operations - int32
@@ -222,6 +224,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? static_cast<Type>(FMath::Fmod(static_cast<double>(A), M)) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0 ? A % B : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? static_cast<Type>((A + B) / W) : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 	// Numeric Type Operations - int64
@@ -311,6 +315,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? static_cast<Type>(FMath::Fmod(static_cast<double>(A), M)) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0 ? A % B : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? static_cast<Type>((A + B) / W) : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 	// Numeric Type Operations - float
@@ -400,6 +406,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? FMath::Fmod(A, static_cast<float>(M)) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0.0f ? FMath::Fmod(A, B) : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? static_cast<Type>((A + B) / W) : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 	// Numeric Type Operations - double
@@ -489,6 +497,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? FMath::Fmod(A, M) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0.0 ? FMath::Fmod(A, B) : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? (A + B) / W : A; }
+		
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 	};
 
 }

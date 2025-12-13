@@ -396,7 +396,7 @@ namespace PCGExSampleInsidePath
 			//if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 			SampleTracker.Count++;
-			SampleTracker.Weight += W;
+			SampleTracker.TotalWeight += W;
 
 			const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 
@@ -409,7 +409,7 @@ namespace PCGExSampleInsidePath
 
 		if (TotalWeight != 0) // Dodge NaN
 		{
-			WeightedTransform = PCGExDataBlending::BlendFunctions::Div(WeightedTransform, WeightedTransform, TotalWeight);
+			WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, TotalWeight);
 		}
 		else
 		{
