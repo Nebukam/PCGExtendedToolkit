@@ -7,7 +7,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExFloodFill.generated.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class FBlendOpsManager;
 }
@@ -143,7 +143,7 @@ namespace PCGExFloodFill
 		void Grow();
 		void PostGrow();
 
-		void Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps, TArray<int32>& OutIndices);
+		void Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TSharedPtr<PCGExBlending::FBlendOpsManager>& InBlendOps, TArray<int32>& OutIndices);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FFillControlsHandler : public TSharedFromThis<FFillControlsHandler>

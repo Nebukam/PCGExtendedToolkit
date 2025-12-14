@@ -6,7 +6,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExDataBlending.h"
+#include "PCGExBlending.h"
 #include "Data/PCGExProxyData.h"
 
 namespace PCGExDetails
@@ -22,7 +22,7 @@ namespace PCGExData
 	struct FProxyDescriptor;
 }
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class IBlendOperation;
 	//

@@ -44,7 +44,7 @@ namespace PCGExGraph
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 
-		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
+		TSharedPtr<PCGExBlending::IUnionBlender> UnionBlender;
 
 		explicit FUnionProcessor(FPCGExPointsProcessorContext* InContext, TSharedRef<PCGExData::FFacade> InUnionDataFacade, TSharedRef<FUnionGraph> InUnionGraph, FPCGExPointPointIntersectionDetails PointPointIntersectionDetails, FPCGExBlendingDetails InDefaultPointsBlending, FPCGExBlendingDetails InDefaultEdgesBlending);
 
@@ -80,7 +80,7 @@ namespace PCGExGraph
 		TSharedPtr<PCGExMT::TScopedPtr<FEdgeEdgeIntersections>> ScopedEdgeEdgeIntersections;
 		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
 
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExBlending::FMetadataBlender> MetadataBlender;
 
 		void FindPointEdgeIntersections();
 		void OnPointEdgeIntersectionsFound();

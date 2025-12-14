@@ -503,7 +503,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
+	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExBlending::FMetadataBlender* Blender) const
 	{
 		const TSharedPtr<FPointEdgeProxy>& PointEdgeProxy = Edges[Index];
 
@@ -753,7 +753,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const
+	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const TSharedRef<PCGExBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		const FEECrossing& Crossing = UniqueCrossings[Index];
 

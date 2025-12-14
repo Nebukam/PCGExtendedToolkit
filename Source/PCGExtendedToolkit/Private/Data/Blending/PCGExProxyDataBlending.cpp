@@ -11,7 +11,7 @@
 #include "Data/Blending/PCGExBlendOperations.h"
 #include "Details/PCGExDetailsDistances.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	// FDummyUnionBlender implementation
 
@@ -70,16 +70,12 @@ namespace PCGExDataBlending
 	{
 		PCGEx::FOpStats Tracker{};
 
-		if (!Operation || !C)
-		{
-			return Tracker;
-		}
+		if (!Operation || !C) { return Tracker; }
 
-		// If we need to read the current value for accumulation
-		if (!Operation->RequiresReset())
-		{
-			// Read current target value - handled in MultiBlend
-		}
+		FScopedTypedValue Current(UnderlyingType);
+		C->GetVoid(TargetIndex, Current.GetRaw());
+		Operation->BeginMulti(Current.GetRaw(), nullptr, Tracker);
+		C->SetVoid(TargetIndex, Current.GetRaw());
 
 		return Tracker;
 	}
@@ -89,43 +85,31 @@ namespace PCGExDataBlending
 		if (!Operation || !A || !C) { return; }
 
 		FScopedTypedValue Source(UnderlyingType);
-		FScopedTypedValue Current(UnderlyingType);
-		FScopedTypedValue Result(UnderlyingType);
 
 		// Read source value
 		A->GetVoid(SourceIndex, Source.GetRaw());
 
-		
-		// TODO : Move this to BeginMultiBlend
-		
-		// Read current accumulated value
-		if (Tracker.Count == 0)
+		if (Tracker.Count < 0)
 		{
-			// First accumulation
-			if (Operation->RequiresReset())
-			{
-				// Initialize accumulator
-				Operation->BeginMulti(Current.GetRaw(), nullptr);
-			}
-			else
-			{
-				// Use current target value
-				C->GetCurrentVoid(TargetIndex, Current.GetRaw());
-			}
+			Tracker.Count = 0;
+
+			// Copy source to current
+			C->SetVoid(TargetIndex, Source.GetRaw());
 		}
 		else
 		{
-			// Read what we wrote last time
+			FScopedTypedValue Current(UnderlyingType);
+
+			// Read current accumulated value
 			C->GetCurrentVoid(TargetIndex, Current.GetRaw());
+
+			// Accumulate
+			Operation->Accumulate(Source.GetRaw(), Current.GetRaw(), Weight);
+
+			// Write back
+			C->SetVoid(TargetIndex, Current.GetRaw());
 		}
 
-		// Accumulate
-		Operation->Accumulate(Source.GetRaw(), Current.GetRaw(), Weight);
-
-		// Write back
-		C->SetVoid(TargetIndex, Current.GetRaw());
-
-		// Update tracker
 		Tracker.Count++;
 		Tracker.TotalWeight += Weight;
 	}

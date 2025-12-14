@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 		PCGEX_PIN_FILTERS(PCGExPointFilter::SourcePinConditionLabel, "...", Required)
 	}
 
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 
 	return PinProperties;
 }
@@ -80,7 +80,7 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	return true;
 }
@@ -132,7 +132,7 @@ namespace PCGExAttributeRolling
 
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StartFilterFactories, FacadePreloader);
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StopFilterFactories, FacadePreloader);
-		PCGExDataBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
+		PCGExBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -173,7 +173,7 @@ namespace PCGExAttributeRolling
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
+			BlendOpsManager = MakeShared<PCGExBlending::FBlendOpsManager>();
 			BlendOpsManager->SetTargetFacade(PointDataFacade);
 			BlendOpsManager->SetSources(PointDataFacade, PCGExData::EIOSide::Out);
 			if (!BlendOpsManager->Init(Context, Context->BlendingFactories))

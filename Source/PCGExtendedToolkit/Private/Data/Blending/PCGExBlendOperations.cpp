@@ -3,16 +3,16 @@
 
 #include "Data/Blending/PCGExBlendOperations.h"
 
-namespace PCGExDataBlending
+#include "PCGEx.h"
+
+namespace PCGExBlending
 {
-	
 #pragma region FScopedTypedValue
-	
+
 	// FScopedTypedValue implementation
 
 	FScopedTypedValue::FScopedTypedValue(EPCGMetadataTypes InType)
-		: Type(InType)
-		  , bConstructed(false)
+		: Type(InType), bConstructed(false)
 	{
 		if (NeedsLifecycleManagement(Type))
 		{
@@ -157,8 +157,76 @@ namespace PCGExDataBlending
 		}
 	}
 
-#pragma endregion 
-	
+	IBlendOperation::IBlendOperation(const EPCGExABBlendingType InMode, const bool bInResetForMulti)
+		: Mode(InMode),
+		  bResetForMulti(bInResetForMulti),
+		  bInitWithSource(
+			  InMode == EPCGExABBlendingType::Min ||
+			  InMode == EPCGExABBlendingType::Max ||
+			  InMode == EPCGExABBlendingType::UnsignedMin ||
+			  InMode == EPCGExABBlendingType::UnsignedMax ||
+			  InMode == EPCGExABBlendingType::AbsoluteMin ||
+			  InMode == EPCGExABBlendingType::AbsoluteMax ||
+			  InMode == EPCGExABBlendingType::Hash ||
+			  InMode == EPCGExABBlendingType::Hash),
+		  bConsiderOriginalValue(
+			  InMode == EPCGExABBlendingType::Average ||
+			  InMode == EPCGExABBlendingType::Add ||
+			  InMode == EPCGExABBlendingType::Subtract ||
+			  InMode == EPCGExABBlendingType::Weight ||
+			  InMode == EPCGExABBlendingType::WeightedAdd ||
+			  InMode == EPCGExABBlendingType::WeightedSubtract)
+	{
+	}
+
+	void IBlendOperation::Blend(const void* A, const void* B, double Weight, void* Out) const
+	{
+		BlendFunc(A, B, Weight, Out);
+	}
+
+	void IBlendOperation::BeginMulti(void* Accumulator, const void* InitialValue, PCGEx::FOpStats& OutTracker) const
+	{
+		if (bInitWithSource)
+		{
+			// These modes require the first operation to be a copy of the first blended value
+			// before they can be properly blended -- this should be handled by the blend op?
+			OutTracker.Count = -1;
+		}
+		else if (bConsiderOriginalValue)
+		{
+			// Some BlendModes can leverage this
+			if (bResetForMulti)
+			{
+				InitDefault(Accumulator);
+			}
+			else
+			{
+				// Otherwise, bump up original count so EndBlend can account for pre-existing value as "one blend step"
+				OutTracker.Count = 1;
+				OutTracker.TotalWeight = 1;
+			}
+		}
+		/*
+		if (InitialValue)
+		{
+			// Copy initial value
+			CopyValue(InitialValue, Accumulator);
+		}
+		*/
+	}
+
+	void IBlendOperation::Accumulate(const void* Source, void* Accumulator, double Weight) const
+	{
+		BlendFunc(Accumulator, Source, Weight, Accumulator); 
+	}
+
+	void IBlendOperation::EndMulti(void* Accumulator, double TotalWeight, int32 Count) const
+	{
+		FinalizeFunc(Accumulator, TotalWeight, Count);
+	}
+
+#pragma endregion
+
 	// FBlendOperationFactory implementation
 
 	TSharedPtr<IBlendOperation> FBlendOperationFactory::Create(
@@ -248,7 +316,6 @@ namespace PCGExDataBlending
 	// Explicit instantiation of blend function getters
 #define INST_BLEND_FUNC_GETTER(TYPE) \
 	template FBlendFn BlendFunctions::GetBlendFunction<TYPE>(EPCGExABBlendingType); \
-	template FAccumulateFn BlendFunctions::GetAccumulateFunction<TYPE>(EPCGExABBlendingType); \
 	template FFinalizeFn BlendFunctions::GetFinalizeFunction<TYPE>(EPCGExABBlendingType);
 
 	INST_BLEND_FUNC_GETTER(bool)

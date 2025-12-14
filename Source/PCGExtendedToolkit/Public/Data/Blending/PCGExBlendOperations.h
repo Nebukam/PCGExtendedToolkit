@@ -4,11 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Types/PCGExTypeOps.h"
 #include "Types/PCGExTypeOpsImpl.h"
 
-namespace PCGExDataBlending
+namespace PCGEx
+{
+	struct FOpStats;
+}
+
+namespace PCGExBlending
 {
 	class IBlendOperation;
 
@@ -98,14 +103,8 @@ namespace PCGExDataBlending
 	// Standard blend: Out = Blend(A, B, Weight)
 	using FBlendFn = void (*)(const void* A, const void* B, double Weight, void* Out);
 
-	// Accumulate: Acc += Source * Weight
-	using FAccumulateFn = void (*)(const void* Source, void* Accumulator, double Weight);
-
 	// Finalize: Acc = Finalize(Acc, TotalWeight, Count)
 	using FFinalizeFn = void (*)(void* Accumulator, double TotalWeight, int32 Count);
-
-	// Initialize accumulator for multi-blend
-	using FInitAccumulatorFn = void (*)(void* Accumulator, EPCGExABBlendingType Mode, const void* InitialValue);
 
 	//
 	// IBlendOperation - Type-erased interface for blend operations
@@ -115,24 +114,34 @@ namespace PCGExDataBlending
 	//
 	class PCGEXTENDEDTOOLKIT_API IBlendOperation
 	{
+	protected:
+		EPCGExABBlendingType Mode;
+		const bool bResetForMulti;
+		const bool bInitWithSource;
+		const bool bConsiderOriginalValue;
+
+		FBlendFn BlendFunc = nullptr;
+		FFinalizeFn FinalizeFunc = nullptr;
+
 	public:
+		IBlendOperation(EPCGExABBlendingType InMode, bool bInResetForMulti);
 		virtual ~IBlendOperation() = default;
 
 		// Core blend: Out = Blend(A, B, Weight)
-		virtual void Blend(const void* A, const void* B, double Weight, void* Out) const = 0;
+		void Blend(const void* A, const void* B, double Weight, void* Out) const;
 
 		// Multi-blend operations for accumulation patterns
-		virtual void BeginMulti(void* Accumulator, const void* InitialValue) const = 0;
-		virtual void Accumulate(const void* Source, void* Accumulator, double Weight) const = 0;
-		virtual void EndMulti(void* Accumulator, double TotalWeight, int32 Count) const = 0;
+		void BeginMulti(void* Accumulator, const void* InitialValue, PCGEx::FOpStats& OutTracker) const;
+		void Accumulate(const void* Source, void* Accumulator, double Weight) const;
+		void EndMulti(void* Accumulator, double TotalWeight, int32 Count) const;
 
 		// Division helper (for external averaging)
 		virtual void Div(void* Value, double Divisor) const = 0;
 
 		// Properties
 		virtual EPCGMetadataTypes GetWorkingType() const = 0;
-		virtual EPCGExABBlendingType GetBlendMode() const = 0;
-		virtual bool RequiresReset() const = 0;
+		FORCEINLINE EPCGExABBlendingType GetBlendMode() const { return Mode; }
+		FORCEINLINE bool RequiresReset() const { return bResetForMulti; }
 
 		// Stack buffer helpers
 		virtual int32 GetValueSize() const = 0;
@@ -208,9 +217,9 @@ namespace PCGExDataBlending
 		}
 
 		template <typename T>
-		void Weight(const void* A, const void* B, double W, void* Out)
+		void Weight(const void* A, const void* B, double Weight, void* Out)
 		{
-			*static_cast<T*>(Out) = PCGExTypeOps::FTypeOps<T>::WeightedAdd(*static_cast<const T*>(A), *static_cast<const T*>(B), W);
+			*static_cast<T*>(Out) = PCGExTypeOps::FTypeOps<T>::WeightedAdd(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		template <typename T>
@@ -319,83 +328,9 @@ namespace PCGExDataBlending
 			case EPCGExABBlendingType::UnsignedHash: return &UnsignedHash<T>;
 			case EPCGExABBlendingType::Mod: return &ModSimple<T>;
 			case EPCGExABBlendingType::ModCW: return &ModComplex<T>;
+			case EPCGExABBlendingType::WeightNormalize: return &Weight<T>;
 			case EPCGExABBlendingType::None:
 			default: return &None<T>;
-			}
-		}
-
-		// Accumulate functions for multi-blend
-
-		template <typename T>
-		void AccumulateAdd(const void* Source, void* Accumulator, double /*Weight*/)
-		{
-			T& Acc = *static_cast<T*>(Accumulator);
-			Acc = PCGExTypeOps::FTypeOps<T>::Add(Acc, *static_cast<const T*>(Source));
-		}
-
-		template <typename T>
-		void AccumulateWeighted(const void* Source, void* Accumulator, double Weight)
-		{
-			T& Acc = *static_cast<T*>(Accumulator);
-			Acc = PCGExTypeOps::FTypeOps<T>::WeightedAdd(Acc, *static_cast<const T*>(Source), Weight);
-		}
-
-		template <typename T>
-		void AccumulateMin(const void* Source, void* Accumulator, double /*Weight*/)
-		{
-			T& Acc = *static_cast<T*>(Accumulator);
-			Acc = PCGExTypeOps::FTypeOps<T>::Min(Acc, *static_cast<const T*>(Source));
-		}
-
-		template <typename T>
-		void AccumulateMax(const void* Source, void* Accumulator, double /*Weight*/)
-		{
-			T& Acc = *static_cast<T*>(Accumulator);
-			Acc = PCGExTypeOps::FTypeOps<T>::Max(Acc, *static_cast<const T*>(Source));
-		}
-
-		template <typename T>
-		void AccumulateCopy(const void* Source, void* Accumulator, double /*Weight*/)
-		{
-			*static_cast<T*>(Accumulator) = *static_cast<const T*>(Source);
-		}
-
-		template <typename T>
-		void AccumulateHash(const void* Source, void* Accumulator, double /*Weight*/)
-		{
-			T& Acc = *static_cast<T*>(Accumulator);
-			Acc = PCGExTypeOps::FTypeOps<T>::NaiveHash(Acc, *static_cast<const T*>(Source));
-		}
-
-		// Get accumulate function by mode
-		template <typename T>
-		FAccumulateFn GetAccumulateFunction(const EPCGExABBlendingType Mode)
-		{
-			switch (Mode)
-			{
-			case EPCGExABBlendingType::Average:
-			case EPCGExABBlendingType::Add:
-			case EPCGExABBlendingType::Subtract: return &AccumulateAdd<T>;
-
-			case EPCGExABBlendingType::Weight:
-			case EPCGExABBlendingType::WeightedAdd:
-			case EPCGExABBlendingType::WeightedSubtract:
-			case EPCGExABBlendingType::Lerp: return &AccumulateWeighted<T>;
-
-			case EPCGExABBlendingType::Min:
-			case EPCGExABBlendingType::UnsignedMin:
-			case EPCGExABBlendingType::AbsoluteMin: return &AccumulateMin<T>;
-
-			case EPCGExABBlendingType::Max:
-			case EPCGExABBlendingType::UnsignedMax:
-			case EPCGExABBlendingType::AbsoluteMax: return &AccumulateMax<T>;
-
-			case EPCGExABBlendingType::Hash:
-			case EPCGExABBlendingType::UnsignedHash: return &AccumulateHash<T>;
-
-			case EPCGExABBlendingType::CopySource:
-			case EPCGExABBlendingType::CopyTarget:
-			default: return &AccumulateCopy<T>;
 			}
 		}
 
@@ -414,6 +349,16 @@ namespace PCGExDataBlending
 		template <typename T>
 		void FinalizeWeight(void* Accumulator, double TotalWeight, int32 /*Count*/)
 		{
+			if (TotalWeight > 1.0)
+			{
+				T& Acc = *static_cast<T*>(Accumulator);
+				Acc = PCGExTypeOps::FTypeOps<T>::NormalizeWeight(Acc, TotalWeight);
+			}
+		}
+
+		template <typename T>
+		void FinalizeWeightNormalize(void* Accumulator, double TotalWeight, int32 /*Count*/)
+		{
 			T& Acc = *static_cast<T*>(Accumulator);
 			Acc = PCGExTypeOps::FTypeOps<T>::NormalizeWeight(Acc, TotalWeight);
 		}
@@ -431,9 +376,8 @@ namespace PCGExDataBlending
 			switch (Mode)
 			{
 			case EPCGExABBlendingType::Average: return &FinalizeAverage<T>;
-
 			case EPCGExABBlendingType::Weight: return &FinalizeWeight<T>;
-
+			case EPCGExABBlendingType::WeightNormalize: return &FinalizeWeightNormalize<T>;
 			default: return &FinalizeNoop<T>;
 			}
 		}
@@ -460,107 +404,29 @@ namespace PCGExDataBlending
 	template <typename T>
 	class TBlendOperationImpl final : public IBlendOperation
 	{
-	private:
-		FBlendFn BlendFunc = nullptr;
-		FAccumulateFn AccumulateFunc = nullptr;
-		FFinalizeFn FinalizeFunc = nullptr;
-		EPCGExABBlendingType Mode;
-		bool bResetForMulti;
-
 	public:
 		TBlendOperationImpl(EPCGExABBlendingType InMode, bool bInResetForMulti)
-			: Mode(InMode), bResetForMulti(bInResetForMulti)
+			: IBlendOperation(InMode, bInResetForMulti)
 		{
 			BlendFunc = BlendFunctions::GetBlendFunction<T>(InMode);
-			AccumulateFunc = BlendFunctions::GetAccumulateFunction<T>(InMode);
 			FinalizeFunc = BlendFunctions::GetFinalizeFunction<T>(InMode);
 		}
 
 		//~ Begin IBlendOperation interface
-
-		virtual void Blend(const void* A, const void* B, double Weight, void* Out) const override
-		{
-			BlendFunc(A, B, Weight, Out);
-		}
-
-		virtual void BeginMulti(void* Accumulator, const void* InitialValue) const override
-		{
-			if (bResetForMulti)
-			{
-				// Initialize to default
-				InitDefault(Accumulator);
-			}
-			else if (InitialValue)
-			{
-				// Copy initial value
-				CopyValue(InitialValue, Accumulator);
-			}
-		}
-
-		virtual void Accumulate(const void* Source, void* Accumulator, double Weight) const override
-		{
-			AccumulateFunc(Source, Accumulator, Weight);
-		}
-
-		virtual void EndMulti(void* Accumulator, double TotalWeight, int32 Count) const override
-		{
-			FinalizeFunc(Accumulator, TotalWeight, Count);
-		}
 
 		virtual void Div(void* Value, double Divisor) const override
 		{
 			BlendFunctions::DivValue<T>(Value, Divisor);
 		}
 
-		virtual EPCGMetadataTypes GetWorkingType() const override
-		{
-			return PCGExTypeOps::TTypeToMetadata<T>::Type;
-		}
-
-		virtual EPCGExABBlendingType GetBlendMode() const override
-		{
-			return Mode;
-		}
-
-		virtual bool RequiresReset() const override
-		{
-			return bResetForMulti;
-		}
-
-		virtual int32 GetValueSize() const override
-		{
-			return sizeof(T);
-		}
-
-		virtual int32 GetValueAlignment() const override
-		{
-			return alignof(T);
-		}
-
-		virtual void InitDefault(void* Value) const override
-		{
-			new(Value) T();
-		}
-
-		virtual bool NeedsLifecycleManagement() const override
-		{
-			return !std::is_trivially_copyable_v<T>;
-		}
-
-		virtual void ConstructValue(void* Value) const override
-		{
-			new(Value) T();
-		}
-
-		virtual void DestroyValue(void* Value) const override
-		{
-			static_cast<T*>(Value)->~T();
-		}
-
-		virtual void CopyValue(const void* Src, void* Dst) const override
-		{
-			*static_cast<T*>(Dst) = *static_cast<const T*>(Src);
-		}
+		virtual EPCGMetadataTypes GetWorkingType() const override { return PCGExTypeOps::TTypeToMetadata<T>::Type; }
+		virtual int32 GetValueSize() const override { return sizeof(T); }
+		virtual int32 GetValueAlignment() const override { return alignof(T); }
+		virtual void InitDefault(void* Value) const override { new(Value) T(); }
+		virtual bool NeedsLifecycleManagement() const override { return !std::is_trivially_copyable_v<T>; }
+		virtual void ConstructValue(void* Value) const override { new(Value) T(); }
+		virtual void DestroyValue(void* Value) const override { static_cast<T*>(Value)->~T(); }
+		virtual void CopyValue(const void* Src, void* Dst) const override { *static_cast<T*>(Dst) = *static_cast<const T*>(Src); }
 
 		//~ End IBlendOperation interface
 	};

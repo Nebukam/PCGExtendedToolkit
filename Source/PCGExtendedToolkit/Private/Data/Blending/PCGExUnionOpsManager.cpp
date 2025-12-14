@@ -7,7 +7,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	FUnionOpsManager::FUnionOpsManager(const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* InBlendingFactories, const PCGExDetails::FDistances* InDistances)
 		: BlendingFactories(InBlendingFactories), Distances(InDistances)

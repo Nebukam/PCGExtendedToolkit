@@ -5,10 +5,10 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExProxyData.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	void FMetadataBlender::SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSide, const bool bUseAsSecondarySource)
 	{

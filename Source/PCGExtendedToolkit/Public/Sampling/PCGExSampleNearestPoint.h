@@ -14,7 +14,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSorting.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExSettingsMacros.h"
@@ -40,7 +40,7 @@ namespace PCGExMT
 	class TScopedNumericValue;
 }
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class IUnionBlender;
 	class FUnionOpsManager;
@@ -162,7 +162,7 @@ public:
 
 	/** Attributes to sample from the targets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="BlendingInterface == EPCGExBlendingInterface::Monolithic", EditConditionHides))
-	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
+	TMap<FName, EPCGExBlendingType> TargetAttributes;
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="BlendingInterface == EPCGExBlendingInterface::Monolithic", EditConditionHides))
@@ -170,7 +170,7 @@ public:
 
 	/** The constant to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties && BlendingInterface == EPCGExBlendingInterface::Monolithic", EditConditionHides))
-	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
+	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExBlendingType::None);
 
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
@@ -379,9 +379,9 @@ namespace PCGExSampleNearestPoint
 
 		FPCGExBlendingDetails BlendingDetails;
 
-		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
-		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
+		TSharedPtr<PCGExBlending::FUnionBlender> UnionBlender;
+		TSharedPtr<PCGExBlending::FUnionOpsManager> UnionBlendOpsManager;
+		TSharedPtr<PCGExBlending::IUnionBlender> DataBlender;
 
 		TSet<const UPCGData*> IgnoreList;
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxSampledDistanceScoped;

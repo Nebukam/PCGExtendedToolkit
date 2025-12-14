@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Graph/PCGExClusterMT.h"
@@ -20,7 +20,7 @@ MACRO(Heuristics, double, 0)
 
 class UPCGExBlendOpFactory;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class IBlender;
 	class FMetadataBlender;
@@ -92,7 +92,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(EditCondition="bEndpointsBlending && BlendingInterface == EPCGExBlendingInterface::Monolithic", EditConditionHides))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExBlendingType::Average);
 
 	/** Output Edge Heuristics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -227,9 +227,9 @@ namespace PCGExWriteEdgeProperties
 	{
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
-		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
+		TSharedPtr<PCGExBlending::FBlendOpsManager> BlendOpsManager;
+		TSharedPtr<PCGExBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExBlending::IBlender> DataBlender;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 

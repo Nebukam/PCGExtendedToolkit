@@ -13,7 +13,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 #pragma region FMultiSourceBlender
 

@@ -21,7 +21,7 @@ PCGExData::EIOInit UPCGExSubdivideEdgesSettings::GetEdgeOutputInitMode() const {
 TArray<FPCGPinProperties> UPCGExSubdivideEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
@@ -38,7 +38,7 @@ bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagSubEdge) { PCGEX_VALIDATE_NAME(Settings->SubEdgeFlagName) }
 	if (Settings->bWriteVtxAlpha) { PCGEX_VALIDATE_NAME(Settings->VtxAlphaAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
 
 	return true;
 }

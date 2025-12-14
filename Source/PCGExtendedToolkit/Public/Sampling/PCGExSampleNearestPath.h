@@ -35,7 +35,7 @@ MACRO(ClosedLoop, int32, false)
 
 class UPCGExBlendOpFactory;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class IUnionBlender;
 	class FUnionOpsManager;
@@ -467,8 +467,8 @@ namespace PCGExSampleNearestPath
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxSampledDistanceScoped;
 		double MaxSampledDistance = 0;
 
-		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
+		TSharedPtr<PCGExBlending::FUnionOpsManager> UnionBlendOpsManager;
+		TSharedPtr<PCGExBlending::IUnionBlender> DataBlender;
 
 		bool bSingleSample = false;
 		bool bClosestSample = false;

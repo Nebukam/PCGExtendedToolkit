@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
 
@@ -28,7 +28,7 @@ struct FPCGExPropertiesSamplerConfigBase
 
 	/** Properties blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPropertiesBlendingDetails Blending = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
+	FPCGExPropertiesBlendingDetails Blending = FPCGExPropertiesBlendingDetails(EPCGExBlendingType::None);
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

@@ -8,7 +8,7 @@
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
 #include "Data/Blending/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 
 #include "PCGExFuseClusters.generated.h"
 

@@ -10,7 +10,7 @@
 #include "Details/PCGExDetailsIntersection.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/Blending/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 
 
 #include "Graph/PCGExIntersections.h"
@@ -73,7 +73,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode == EPCGExFusedPointOutput::Blend", EditConditionHides))
-	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Average, EPCGExBlendingType::None);
 
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings", EditCondition="Mode == EPCGExFusedPointOutput::Blend", EditConditionHides))
@@ -107,7 +107,7 @@ namespace PCGExFusePoints
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
 	{
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
+		TSharedPtr<PCGExBlending::IUnionBlender> UnionBlender;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> IsUnionWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> UnionSizeWriter;

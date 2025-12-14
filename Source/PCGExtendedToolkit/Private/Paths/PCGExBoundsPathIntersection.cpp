@@ -34,8 +34,8 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperti
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "Intersection points (bounds)", Required)
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, EPCGExBlendingInterface::Individual);
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, EPCGExBlendingInterface::Individual);
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
@@ -64,9 +64,9 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	if (!Settings->OutputSettings.Validate(Context)) { return false; }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceBoundsLabel);
@@ -81,7 +81,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 	{
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
 		Cloud->Idx = Context->Clouds.Add(Cloud);
-		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
 
 	return true;

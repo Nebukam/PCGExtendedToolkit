@@ -167,7 +167,7 @@ namespace PCGExFloodFill
 		}
 	}
 
-	void FDiffusion::Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps, TArray<int32>& OutIndices)
+	void FDiffusion::Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TSharedPtr<PCGExBlending::FBlendOpsManager>& InBlendOps, TArray<int32>& OutIndices)
 	{
 		OutIndices.SetNumUninitialized(Captured.Num());
 		const int32 SourceIndex = SeedNode->PointIndex;

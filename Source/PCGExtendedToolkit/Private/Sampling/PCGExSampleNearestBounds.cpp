@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required)
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExBoundsSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
 
 	return PinProperties;
 }
@@ -51,7 +51,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::OutputPinProperties
 bool UPCGExSampleNearestBoundsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExBoundsSampleMethod::BestCandidate; }
-	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
+	if (InPin->Properties.Label == PCGExBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -74,7 +74,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
@@ -95,7 +95,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
 	{
 		Context->Clouds.Add(Preloader.GetDataFacade()->GetCloud(Settings->BoundsSource));
-		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
 
 	Context->RuntimeWeightCurve = Settings->LocalWeightRemap;
@@ -239,16 +239,16 @@ namespace PCGExSampleNearestBounds
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
+			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
 		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
 		{
 			TSet<FName> MissingAttributes;
-			PCGExDataBlending::AssembleBlendingDetails(Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes, Context->TargetsHandler->GetFacades(), BlendingDetails, MissingAttributes);
+			PCGExBlending::AssembleBlendingDetails(Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes, Context->TargetsHandler->GetFacades(), BlendingDetails, MissingAttributes);
 
-			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&BlendingDetails, nullptr, PCGExDetails::GetDistances());
+			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(&BlendingDetails, nullptr, PCGExDetails::GetDistances());
 			UnionBlender->AddSources(Context->TargetsHandler->GetFacades());
 			if (!UnionBlender->Init(Context, PointDataFacade)) { return false; }
 			DataBlender = UnionBlender;
@@ -256,7 +256,7 @@ namespace PCGExSampleNearestBounds
 
 		if (!DataBlender)
 		{
-			TSharedPtr<PCGExDataBlending::FDummyUnionBlender> DummyUnionBlender = MakeShared<PCGExDataBlending::FDummyUnionBlender>();
+			TSharedPtr<PCGExBlending::FDummyUnionBlender> DummyUnionBlender = MakeShared<PCGExBlending::FDummyUnionBlender>();
 			DummyUnionBlender->Init(PointDataFacade, Context->TargetsHandler->GetFacades());
 			DataBlender = DummyUnionBlender;
 		}
