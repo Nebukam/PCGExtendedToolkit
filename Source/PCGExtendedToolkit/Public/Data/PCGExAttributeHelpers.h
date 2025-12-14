@@ -8,10 +8,10 @@
 
 #include "CoreMinimal.h"
 #include "Metadata/PCGMetadataCommon.h"
-#include "PCGExBroadcast.h"
 
 #include "Details/PCGExMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
+#include "Types/PCGExBroadcast.h"
 
 class UPCGMetadata;
 struct FPCGContext;

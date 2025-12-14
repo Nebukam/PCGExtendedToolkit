@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
+#include "Types/PCGExBroadcast.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Types/PCGExTypeOps.h"
 #include "Types/PCGExTypeOpsImpl.h"
