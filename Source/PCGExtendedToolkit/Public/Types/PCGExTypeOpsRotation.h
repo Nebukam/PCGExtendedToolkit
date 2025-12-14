@@ -4,6 +4,7 @@
 #pragma once
 
 #include "PCGExTypeOps.h"
+#include "PCGExTypeOpsVector.h"
 
 /**
  * Rotation and Transform Type Operations

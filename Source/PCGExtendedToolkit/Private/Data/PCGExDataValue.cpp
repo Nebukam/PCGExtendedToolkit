@@ -7,6 +7,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {

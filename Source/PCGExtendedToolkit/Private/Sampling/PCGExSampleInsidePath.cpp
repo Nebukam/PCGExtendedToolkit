@@ -10,7 +10,6 @@
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -395,7 +394,7 @@ namespace PCGExSampleInsidePath
 
 			const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 
-			WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
+			WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::WeightedAdd(WeightedTransform, TargetTransform, W);
 			TotalWeight += W;
 		}
 

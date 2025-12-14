@@ -14,12 +14,6 @@
 #include "Types/PCGExTypeOpsRotation.h"
 #include "Types/PCGExTypeOpsString.h"
 
-// Type-erased wrappers and registry
-#include "Types/PCGExTypeOpsImpl.h"
-
-// Blend operations
-#include "Data/BlendOperations/PCGExBlendOperations.h"
-
 // Type-erased buffers
 //#include "PCGExTypeErasedBuffer.h"
 

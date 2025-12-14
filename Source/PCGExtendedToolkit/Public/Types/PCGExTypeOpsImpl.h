@@ -12,8 +12,11 @@
 
 namespace PCGExTypeOps
 {
+	
+#pragma region Type to Metadata
+	
 	// Type ID Mapping - Maps C++ types to EPCGMetadataTypes
-
+	
 	template <typename T>
 	struct TTypeToMetadata
 	{
@@ -125,7 +128,9 @@ namespace PCGExTypeOps
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftClassPath;
 		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
-
+	
+#pragma endregion 
+	
 	// TTypeOpsImpl - Concrete implementation of ITypeOpsBase for each type
 
 	/**

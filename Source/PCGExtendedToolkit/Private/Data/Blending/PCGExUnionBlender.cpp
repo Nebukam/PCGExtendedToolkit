@@ -33,7 +33,8 @@ namespace PCGExDataBlending
 
 		if (Param.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
-			if (Identity.UnderlyingType == EPCGMetadataTypes::Unknown)
+			const EPCGMetadataTypes WorkingType = Identity.UnderlyingType;
+			if (WorkingType == EPCGMetadataTypes::Unknown)
 			{
 				// Unknown attribute type
 				return false;
@@ -44,12 +45,12 @@ namespace PCGExDataBlending
 			if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Identifier); ExistingAttribute && ExistingAttribute->GetTypeId() == static_cast<int16>(Identity.UnderlyingType))
 			{
 				// This attribute exists on target already
-				InitializationBuffer = InTargetData->GetWritable(Identity.UnderlyingType, ExistingAttribute, PCGExData::EBufferInit::Inherit);
+				InitializationBuffer = InTargetData->GetWritable(WorkingType, ExistingAttribute, PCGExData::EBufferInit::Inherit);
 			}
 			else
 			{
 				// This attribute needs to be initialized
-				InitializationBuffer = InTargetData->GetWritable(Identity.UnderlyingType, DefaultValue, PCGExData::EBufferInit::New);
+				InitializationBuffer = InTargetData->GetWritable(WorkingType, DefaultValue, PCGExData::EBufferInit::New);
 			}
 
 			if (!InitializationBuffer)
@@ -59,58 +60,38 @@ namespace PCGExDataBlending
 			}
 
 			bool bError = false;
-			PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+
+			MainBlender = CreateProxyBlender(WorkingType, Param.Blending);
+
+			for (int i = 0; i < Sources.Num(); i++)
 			{
-				using T = decltype(DummyValue);
+				TSharedPtr<PCGExData::FFacade> Source = Sources[i];
+				if (!SupportedSources.Contains(i)) { continue; }
 
-				MainBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
+				TSharedPtr<FProxyDataBlender> SubBlender = CreateProxyBlender(WorkingType, Param.Blending);
+				SubBlenders[i] = SubBlender;
 
-				for (int i = 0; i < Sources.Num(); i++)
-				{
-					TSharedPtr<PCGExData::FFacade> Source = Sources[i];
-					if (!SupportedSources.Contains(i)) { continue; }
+				if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess)) { return false; }
+			}
 
-					TSharedPtr<FProxyDataBlender> SubBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
-					SubBlenders[i] = SubBlender;
-
-					if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess))
-					{
-						bError = true;
-						return;
-					}
-				}
-
-				bError = !MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
-			});
-
-			if (bError) { return false; }
+			if (!MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess)) { return false; }
 		}
 		else if (Param.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
 		{
-			bool bError = false;
-			PCGEx::ExecuteWithRightType(PCGEx::GetPropertyType(Param.Selector.GetPointProperty()), [&](auto DummyValue)
+			const EPCGMetadataTypes WorkingType = PCGEx::GetPropertyType(Param.Selector.GetPointProperty());
+
+			MainBlender = CreateProxyBlender(WorkingType, Param.Blending);
+
+			for (int i = 0; i < Sources.Num(); i++)
 			{
-				using T = decltype(DummyValue);
+				TSharedPtr<PCGExData::FFacade> Source = Sources[i];
+				TSharedPtr<FProxyDataBlender> SubBlender = CreateProxyBlender(WorkingType, Param.Blending);
+				SubBlenders[i] = SubBlender;
 
-				MainBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
+				if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess)) { return false; }
+			}
 
-				for (int i = 0; i < Sources.Num(); i++)
-				{
-					TSharedPtr<PCGExData::FFacade> Source = Sources[i];
-					TSharedPtr<FProxyDataBlender> SubBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
-					SubBlenders[i] = SubBlender;
-
-					if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess))
-					{
-						bError = true;
-						return;
-					}
-				}
-
-				bError = !MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
-			});
-
-			if (bError) { return false; }
+			if (!MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess)) { return false; }
 		}
 		else
 		{

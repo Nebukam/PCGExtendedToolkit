@@ -201,12 +201,12 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 						{
 							switch (Settings->Method)
 							{
-							case EPCGExReduceDataDomainMethod::Min: ReducedValue = PCGExDataBlending::BlendFunctions::Min(ReducedValue, Value, 1);
+							case EPCGExReduceDataDomainMethod::Min: ReducedValue = PCGExTypeOps::FTypeOps<T>::Min(ReducedValue, Value);
 								break;
-							case EPCGExReduceDataDomainMethod::Max: ReducedValue = PCGExDataBlending::BlendFunctions::Max(ReducedValue, Value, 1);
+							case EPCGExReduceDataDomainMethod::Max: ReducedValue = PCGExTypeOps::FTypeOps<T>::Max(ReducedValue, Value);
 								break;
 							case EPCGExReduceDataDomainMethod::Sum:
-							case EPCGExReduceDataDomainMethod::Average: ReducedValue = PCGExDataBlending::BlendFunctions::Add(ReducedValue, Value, 1);
+							case EPCGExReduceDataDomainMethod::Average: ReducedValue = PCGExTypeOps::FTypeOps<T>::Add(ReducedValue, Value);
 								break;
 							default: case EPCGExReduceDataDomainMethod::Join: break;
 							}
@@ -216,7 +216,7 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 
 				if (Settings->Method == EPCGExReduceDataDomainMethod::Average)
 				{
-					ReducedValue = PCGExDataBlending::BlendFunctions::Div(ReducedValue, ReducedValue, Context->Attributes.Num());
+					ReducedValue = PCGExTypeOps::FTypeOps<T>::Div(ReducedValue, Context->Attributes.Num());
 				}
 
 				FPCGMetadataAttribute<T>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, ReducedValue);

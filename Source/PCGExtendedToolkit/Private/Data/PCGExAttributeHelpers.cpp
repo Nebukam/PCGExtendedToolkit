@@ -17,6 +17,7 @@
 #include "PCGParamData.h"
 #include "Data/PCGExDataValue.h"
 #include "Data/PCGExPointIO.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 bool PCGEx::FAttributeIdentity::InDataDomain() const
 {
@@ -516,8 +517,8 @@ namespace PCGEx
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const T& V = Dump[i];
-					OutMin = PCGExDataBlending::BlendFunctions::Min(V, OutMin, 1);
-					OutMax = PCGExDataBlending::BlendFunctions::Max(V, OutMax, 1);
+					OutMin = PCGExTypeOps::FTypeOps<T>::Min(V, OutMin);
+					OutMax = PCGExTypeOps::FTypeOps<T>::Max(V, OutMax);
 				}
 			}
 		}

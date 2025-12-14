@@ -7,10 +7,10 @@
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Blending/PCGExBlendOperations.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
@@ -554,11 +554,11 @@ namespace PCGExSampleNearestPath
 				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
-				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::WeightedAdd(WeightedTransform, TargetTransform, W);
 
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
+					WeightedUp = PCGExTypeOps::FTypeOps<FVector>::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
