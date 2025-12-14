@@ -217,7 +217,7 @@ namespace PCGExBlending
 
 	void IBlendOperation::Accumulate(const void* Source, void* Accumulator, double Weight) const
 	{
-		BlendFunc(Accumulator, Source, Weight, Accumulator); 
+		AccumulateFunc(Accumulator, Source, Weight, Accumulator); 
 	}
 
 	void IBlendOperation::EndMulti(void* Accumulator, double TotalWeight, int32 Count) const

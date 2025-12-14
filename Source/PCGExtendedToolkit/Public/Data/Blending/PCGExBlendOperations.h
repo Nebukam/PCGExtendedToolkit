@@ -121,6 +121,7 @@ namespace PCGExBlending
 		const bool bConsiderOriginalValue;
 
 		FBlendFn BlendFunc = nullptr;
+		FBlendFn AccumulateFunc = nullptr;
 		FFinalizeFn FinalizeFunc = nullptr;
 
 	public:
@@ -334,6 +335,17 @@ namespace PCGExBlending
 			}
 		}
 
+		// Get accumulate blend function pointer by mode
+		template <typename T>
+		FBlendFn GetAccumulateFunction(const EPCGExABBlendingType Mode)
+		{
+			switch (Mode)
+			{
+			case EPCGExABBlendingType::Average: return &Add<T>; // Average does /2 internally, we don't want to accumulate that
+			default: return GetBlendFunction<T>(Mode);
+			}
+		}
+
 		// Finalize functions for multi-blend
 
 		template <typename T>
@@ -409,6 +421,7 @@ namespace PCGExBlending
 			: IBlendOperation(InMode, bInResetForMulti)
 		{
 			BlendFunc = BlendFunctions::GetBlendFunction<T>(InMode);
+			AccumulateFunc = BlendFunctions::GetAccumulateFunction<T>(InMode);
 			FinalizeFunc = BlendFunctions::GetFinalizeFunction<T>(InMode);
 		}
 
