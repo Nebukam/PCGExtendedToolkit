@@ -329,7 +329,11 @@ namespace PCGExBlending
 			case EPCGExABBlendingType::UnsignedHash: return &UnsignedHash<T>;
 			case EPCGExABBlendingType::Mod: return &ModSimple<T>;
 			case EPCGExABBlendingType::ModCW: return &ModComplex<T>;
-			case EPCGExABBlendingType::WeightNormalize: return &Weight<T>;
+			case EPCGExABBlendingType::WeightNormalize: return &Weight<T>; // TBD
+			case EPCGExABBlendingType::GeometricMean: return &Weight<T>;   // TBD
+			case EPCGExABBlendingType::HarmonicMean: return &Weight<T>;    // TBD
+			case EPCGExABBlendingType::RMS: return &Weight<T>;             // TBD
+			case EPCGExABBlendingType::Step: return &Weight<T>;            // TBD
 			case EPCGExABBlendingType::None:
 			default: return &None<T>;
 			}

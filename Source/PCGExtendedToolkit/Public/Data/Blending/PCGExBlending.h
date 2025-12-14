@@ -65,7 +65,7 @@ MACRO(WeightedSubtract) \
 MACRO(CopyOther) \
 MACRO(Hash) \
 MACRO(UnsignedHash) \
-MACRO(WeightNormalize) 
+MACRO(WeightNormalize)
 
 // This is a different blending list that makes more sense for AxB blending
 // and also includes extra modes that don't make sense in regular multi-source data blending
@@ -95,6 +95,10 @@ enum class EPCGExABBlendingType : uint8
 	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%"),
 	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%"),
 	WeightNormalize  = 22 UMETA(DisplayName = "Weight (Always Normalize)", ToolTip="(A + B) / Weight. Always normalize final values.", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Weight"),
+	GeometricMean    = 23 UMETA(Hidden, DisplayName = "Geometrical Mean", ToolTip="A * B .. Pow(Acc, 1/Count).", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Geometrical Mean"),
+	HarmonicMean     = 24 UMETA(Hidden, DisplayName = "Harmonic Mean", ToolTip="Acc + 1/B .. Count/Acc", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Harmonic Mean"),
+	RMS              = 25 UMETA(Hidden, DisplayName = "RMS (Signal Magnitude)", ToolTip="Acc + Src² .. Sqrt(Acc/Count)", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "RMS Signal Magnitude"),
+	Step             = 26 UMETA(Hidden, DisplayName = "Step", ToolTip="Step", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Step"),
 };
 
 #define PCGEX_FOREACH_AB_BLENDMODE(MACRO)\
@@ -120,7 +124,11 @@ MACRO(Hash) \
 MACRO(UnsignedHash) \
 MACRO(Mod) \
 MACRO(ModCW) \
-MACRO(WeightNormalize)
+MACRO(WeightNormalize) \
+MACRO(GeometricMean) \
+MACRO(HarmonicMean) \
+MACRO(RMS) \
+MACRO(Step)
 
 struct FPCGPinProperties;
 enum class EPCGPinStatus : uint8;
