@@ -4,7 +4,7 @@
 #include "Data/PCGExProxyData.h"
 
 #include "PCGExTypes.h"
-#include "details/PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
