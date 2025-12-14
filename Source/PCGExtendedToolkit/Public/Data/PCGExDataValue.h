@@ -66,6 +66,7 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 
 		virtual double AsDouble() override;
 		virtual FString AsString() override;
+		
 	};
 
 #pragma region externalization

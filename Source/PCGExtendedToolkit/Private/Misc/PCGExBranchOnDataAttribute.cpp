@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExBranchOnDataAttribute.h"
 
-#include "Types/PCGExBroadcast.h"
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"

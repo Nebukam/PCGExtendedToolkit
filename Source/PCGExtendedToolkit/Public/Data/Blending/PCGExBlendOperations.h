@@ -319,8 +319,8 @@ namespace PCGExBlending
 			case EPCGExABBlendingType::Weight: return &Weight<T>;
 			case EPCGExABBlendingType::WeightedAdd: return &WeightedAdd<T>;
 			case EPCGExABBlendingType::WeightedSubtract: return &WeightedSub<T>;
-			case EPCGExABBlendingType::CopyTarget: return &CopyB<T>;
-			case EPCGExABBlendingType::CopySource: return &CopyA<T>;
+			case EPCGExABBlendingType::CopyTarget: return &CopyA<T>;
+			case EPCGExABBlendingType::CopySource: return &CopyB<T>;
 			case EPCGExABBlendingType::UnsignedMin: return &UnsignedMin<T>;
 			case EPCGExABBlendingType::UnsignedMax: return &UnsignedMax<T>;
 			case EPCGExABBlendingType::AbsoluteMin: return &AbsoluteMin<T>;

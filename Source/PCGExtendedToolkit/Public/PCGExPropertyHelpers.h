@@ -2,8 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-#include "Types/PCGExBroadcast.h"
 #include "Metadata/PCGAttributePropertySelector.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {
@@ -35,12 +35,14 @@ MACRO(FStructProperty, FTransform)
 	template <typename T>
 	static bool TrySetFPropertyValue(void* InContainer, FProperty* InProperty, T InValue)
 	{
-		FSubSelection S = FSubSelection();
+		PCGExTypeOps::TTypeOpsImpl<T>& TypeOpsImpl = PCGExTypeOps::TTypeOpsImpl<T>::GetInstance();
+
 		if (InProperty->IsA<FObjectPropertyBase>())
 		{
 			// If input type is a soft object path, check if the target property is an object type
 			// and resolve the object path
-			const FSoftObjectPath Path = S.Get<T, FSoftObjectPath>(InValue);
+			FSoftObjectPath Path;
+			TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<FSoftObjectPath>::Type, &Path);
 
 			if (UObject* ResolvedObject = Path.TryLoad())
 			{
@@ -54,24 +56,42 @@ MACRO(FStructProperty, FTransform)
 			}
 		}
 
-#define PCGEX_TRY_SET_FPROPERTY(_PTYPE, _TYPE) if(InProperty->IsA<_PTYPE>()){ _PTYPE* P = CastField<_PTYPE>(InProperty); P->SetPropertyValue_InContainer(InContainer, S.Get<T, _TYPE>(InValue)); return true;}
+#define PCGEX_TRY_SET_FPROPERTY(_PTYPE, _TYPE)\
+	if(InProperty->IsA<_PTYPE>()){\
+		_PTYPE* P = CastField<_PTYPE>(InProperty);\
+		_TYPE V;\
+		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<_TYPE>::Type, &V);\
+		P->SetPropertyValue_InContainer(InContainer, V);\
+		return true;\
+		}
 		PCGEX_FOREACH_SUPPORTEDFPROPERTY(PCGEX_TRY_SET_FPROPERTY)
 #undef PCGEX_TRY_SET_FPROPERTY
 
 		if (FStructProperty* StructProperty = CastField<FStructProperty>(InProperty))
 		{
-#define PCGEX_TRY_SET_FSTRUCT(_PTYPE, _TYPE) if (StructProperty->Struct == TBaseStructure<_TYPE>::Get()){ void* StructContainer = StructProperty->ContainerPtrToValuePtr<void>(InContainer); *reinterpret_cast<_TYPE*>(StructContainer) = S.Get<T, _TYPE>(InValue); return true; }
-			PCGEX_FOREACH_SUPPORTEDFSTRUCT(PCGEX_TRY_SET_FSTRUCT)
-#undef PCGEX_TRY_SET_FSTRUCT
-
+			
 			if (StructProperty->Struct == TBaseStructure<FPCGAttributePropertyInputSelector>::Get())
 			{
 				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
-				NewSelector.Update(S.Get<T, FString>(InValue));
+				FString S;
+				TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<FString>::Type, &S);\
+				NewSelector.Update(S);
 				void* StructContainer = StructProperty->ContainerPtrToValuePtr<void>(InContainer);
 				*reinterpret_cast<FPCGAttributePropertyInputSelector*>(StructContainer) = NewSelector;
 				return true;
 			}
+			
+#define PCGEX_TRY_SET_FSTRUCT(_PTYPE, _TYPE) \
+	else if (StructProperty->Struct == TBaseStructure<_TYPE>::Get()){\
+		void* StructContainer = StructProperty->ContainerPtrToValuePtr<void>(InContainer);\
+		_TYPE V;\
+		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<_TYPE>::Type, &V);\
+		*reinterpret_cast<_TYPE*>(StructContainer) = V;\
+		return true;\
+		}
+			PCGEX_FOREACH_SUPPORTEDFSTRUCT(PCGEX_TRY_SET_FSTRUCT)
+#undef PCGEX_TRY_SET_FSTRUCT
+
 		}
 
 		return false;

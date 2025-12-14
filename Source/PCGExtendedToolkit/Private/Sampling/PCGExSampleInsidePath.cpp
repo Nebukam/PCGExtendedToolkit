@@ -100,9 +100,9 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		switch (Settings->ProcessInputs)
 		{
 		default: case EPCGExPathSamplingIncludeMode::All: break;
-		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(NoInit); }
+		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(ForceInit); }
 			break;
-		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(NoInit); }
+		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(ForceInit); }
 			break;
 		}
 

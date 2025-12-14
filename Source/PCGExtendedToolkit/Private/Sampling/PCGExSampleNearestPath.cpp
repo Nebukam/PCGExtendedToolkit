@@ -78,16 +78,16 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExPaths::SourcePathsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 	{
-		if (IO->GetNum() < 2) { return FBox(NoInit); }
+		if (IO->GetNum() < 2) { return FBox(ForceInit); }
 
 		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
 
 		switch (Settings->SampleInputs)
 		{
 		default: case EPCGExPathSamplingIncludeMode::All: break;
-		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(NoInit); }
+		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(ForceInit); }
 			break;
-		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(NoInit); }
+		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(ForceInit); }
 			break;
 		}
 
@@ -95,7 +95,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		TSharedPtr<PCGExPaths::FPolyPath> Path = MakeShared<PCGExPaths::FPolyPath>(IO, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
 		Path->OffsetProjection(Settings->InclusionOffset);
 
-		if (!Path->Bounds.IsValid) { return FBox(NoInit); }
+		if (!Path->Bounds.IsValid) { return FBox(ForceInit); }
 
 		Path->IOIndex = IO->IOIndex;
 		Path->Idx = Idx;

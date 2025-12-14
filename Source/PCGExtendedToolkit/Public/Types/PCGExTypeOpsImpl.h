@@ -12,11 +12,10 @@
 
 namespace PCGExTypeOps
 {
-	
 #pragma region Type to Metadata
-	
+
 	// Type ID Mapping - Maps C++ types to EPCGMetadataTypes
-	
+
 	template <typename T>
 	struct TTypeToMetadata
 	{
@@ -128,9 +127,9 @@ namespace PCGExTypeOps
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftClassPath;
 		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
-	
-#pragma endregion 
-	
+
+#pragma endregion
+
 	// TTypeOpsImpl - Concrete implementation of ITypeOpsBase for each type
 
 	/**
@@ -295,137 +294,94 @@ namespace PCGExTypeOps
 
 		virtual void BlendAdd(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Add(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Add(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendSub(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Sub(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Sub(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendMult(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Mult(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Mult(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendDiv(const void* A, double Divisor, void* Out) const override
 		{
 			// Div by scalar - use Weight with 1/Divisor for types that support it
-			if (Divisor != 0.0)
-			{
-				*static_cast<T*>(Out) = TypeOps::Div(*static_cast<const T*>(A), Divisor);
-			}
-			else
-			{
-				*static_cast<T*>(Out) = *static_cast<const T*>(A);
-			}
+			if (Divisor != 0.0) { *static_cast<T*>(Out) = TypeOps::Div(*static_cast<const T*>(A), Divisor); }
+			else { *static_cast<T*>(Out) = *static_cast<const T*>(A); }
 		}
 
 		virtual void BlendLerp(const void* A, const void* B, double Weight, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Lerp(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::Lerp(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void BlendMin(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Min(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Min(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendMax(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Max(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Max(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendAverage(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Average(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Average(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendWeightedAdd(const void* A, const void* B, double Weight, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::WeightedAdd(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::WeightedAdd(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void BlendWeightedSub(const void* A, const void* B, double Weight, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::WeightedSub(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::WeightedSub(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void BlendCopyA(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::CopyA(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::CopyA(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendCopyB(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::CopyB(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::CopyB(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendUnsignedMin(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::UnsignedMin(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::UnsignedMin(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendUnsignedMax(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::UnsignedMax(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::UnsignedMax(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendAbsoluteMin(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::AbsoluteMin(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::AbsoluteMin(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendAbsoluteMax(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::AbsoluteMax(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::AbsoluteMax(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendHash(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::NaiveHash(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::NaiveHash(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendUnsignedHash(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::UnsignedHash(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::UnsignedHash(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendModSimple(const void* A, double Modulo, void* Out) const override
@@ -435,26 +391,19 @@ namespace PCGExTypeOps
 
 		virtual void BlendModComplex(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::ModComplex(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::ModComplex(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendWeight(const void* A, const void* B, double Weight, void* Out) const override
 		{
 			// Weight accumulation: Out = A + (B * Weight)
-			*static_cast<T*>(Out) = TypeOps::WeightedAdd(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::WeightedAdd(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void NormalizeWeight(const void* A, double TotalWeight, void* Out) const override
 		{
 			// Weight accumulation: Out = A * (1 / TotalWeight)
-			*static_cast<T*>(Out) = TypeOps::NormalizeWeight(
-				*static_cast<const T*>(A),
-				TotalWeight);
+			*static_cast<T*>(Out) = TypeOps::NormalizeWeight(*static_cast<const T*>(A), TotalWeight);
 		}
 
 		//~ End ITypeOpsBase interface
