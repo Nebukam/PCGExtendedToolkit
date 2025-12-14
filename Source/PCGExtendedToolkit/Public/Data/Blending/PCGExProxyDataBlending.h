@@ -17,10 +17,8 @@ namespace PCGExDetails
 
 namespace PCGExData
 {
+	class IBufferProxy;
 	class IUnionData;
-
-	template <typename T>
-	class TBufferProxy;
 
 	struct FProxyDescriptor;
 }
@@ -186,9 +184,9 @@ extern template void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, cons
 		const PCGExTypeOps::TTypeOpsImpl<T_WORKING>& TypeOpsImpl;
 		
 	public:
-		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> A;
-		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> B;
-		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> C;
+		TSharedPtr<PCGExData::IBufferProxy> A;
+		TSharedPtr<PCGExData::IBufferProxy> B;
+		TSharedPtr<PCGExData::IBufferProxy> C;
 
 		IProxyDataBlender();
 

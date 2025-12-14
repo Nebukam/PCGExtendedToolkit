@@ -49,7 +49,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 	IProxyDataBlender<T_WORKING>::IProxyDataBlender()
 		: TypeOpsImpl(PCGExTypeOps::TTypeOpsImpl<T_WORKING>::GetInstance())
 	{
-		UnderlyingType = PCGEx::GetMetadataType<T_WORKING>();
+		UnderlyingType =  PCGExTypeOps::TTypeToMetadata<T_WORKING>::Type;
 	}
 
 	template <typename T_WORKING>
@@ -92,9 +92,9 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		Desc_C.bWantsDirect = bWantsDirectAccess;
 
 		// Create output first so we may read from it
-		C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, Desc_C));
-		A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, Desc_A));
-		B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, Desc_B));
+		C = GetProxyBuffer(InContext, Desc_C);
+		A = GetProxyBuffer(InContext, Desc_A);
+		B = GetProxyBuffer(InContext, Desc_B);
 
 		// Ensure C is readable for MultiBlend, as those will use GetCurrent
 		if (!C->EnsureReadable())
@@ -115,14 +115,14 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
 	void TProxyDataBlender<T_WORKING, BLEND_MODE, bResetValueForMultiBlend>::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight)
 	{
-		T_WORKING VA = A->Get(SourceIndexA);
+		T_WORKING VA = A->template Get<T_WORKING>(SourceIndexA);
 		T_WORKING VB = VA;
 		
 		BOOKMARK_BLENDMODE check(A)
 		if constexpr (BLEND_MODE != EPCGExABBlendingType::CopySource)
 		{
 			check(B)
-			VB = B->Get(SourceIndexB);
+			VB = B->template Get<T_WORKING>(SourceIndexB);
 		}
 		check(C)
 
@@ -275,7 +275,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 			Tracker.TotalWeight += Weight;
 		};
 
-		T_WORKING SRC = A->Get(SourceIndex);
+		T_WORKING SRC = A->template Get<T_WORKING>(SourceIndex);
 
 		if (Tracker.Count < 0)
 		{
@@ -284,7 +284,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 			return;
 		}
 
-		T_WORKING TGT = C->GetCurrent(TargetIndex);
+		T_WORKING TGT = C->template GetCurrent<T_WORKING>(TargetIndex);
 		T_WORKING Result = T_WORKING{};
 
 		if constexpr (BLEND_MODE == EPCGExABBlendingType::None)
@@ -389,7 +389,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		// Some modes require a "finish" pass, like Average and Weight
 		if constexpr (BLEND_MODE == EPCGExABBlendingType::Average)
 		{
-			T_WORKING Result = C->GetCurrent(TargetIndex);
+			T_WORKING Result = C->template GetCurrent<T_WORKING>(TargetIndex);
 			TypeOpsImpl.BlendDiv(&Result, Tracker.Count, &Result);
 			C->Set(TargetIndex, Result);
 		}
@@ -397,7 +397,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		{
 			if (Tracker.TotalWeight > 1)
 			{
-				T_WORKING Result = C->GetCurrent(TargetIndex);
+				T_WORKING Result = C->template GetCurrent<T_WORKING>(TargetIndex);
 				TypeOpsImpl.NormalizeWeight(&Result, Tracker.TotalWeight, &Result);
 				C->Set(TargetIndex, Result);
 			}
@@ -407,7 +407,7 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
 	void TProxyDataBlender<T_WORKING, BLEND_MODE, bResetValueForMultiBlend>::Div(const int32 TargetIndex, const double Divider)
 	{
-		T_WORKING Result = C->Get(TargetIndex);
+		T_WORKING Result = C->template Get<T_WORKING>(TargetIndex);
 		TypeOpsImpl.BlendDiv(&Result, Divider, &Result);
 		C->Set(TargetIndex, Result);
 	}
@@ -487,9 +487,9 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxy
 			if (!TypedBlender) { return; }
 
 			// Create output first so we may read from it
-			TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
-			TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
-			TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
+			TypedBlender->C = GetProxyBuffer(InContext, C);
+			TypedBlender->A = GetProxyBuffer(InContext, A);
+			TypedBlender->B = GetProxyBuffer(InContext, B);
 
 			if (!TypedBlender->A)
 			{
@@ -542,8 +542,8 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxy
 			if (!TypedBlender) { return; }
 
 			// Create output first so we may read from it
-			TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
-			TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
+			TypedBlender->C = GetProxyBuffer(InContext, C);
+			TypedBlender->A = GetProxyBuffer(InContext, A);
 			TypedBlender->B = nullptr;
 
 			if (!TypedBlender->A)

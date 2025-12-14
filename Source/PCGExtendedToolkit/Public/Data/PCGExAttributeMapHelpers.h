@@ -16,6 +16,7 @@
 #include "PCGParamData.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 class UPCGMetadata;
 class FPCGMetadataAttributeBase;
@@ -81,8 +82,8 @@ namespace PCGEx
 		TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(Pin);
 
 		if (Inputs.IsEmpty()) { return 0; }
-		int16 KeyType = static_cast<int16>(PCGEx::GetMetadataType<T_KEY>());
-		int16 ValueType = static_cast<int16>(PCGEx::GetMetadataType<T_VALUE>());
+		int16 KeyType = PCGExTypeOps::TTypeToMetadata<T_KEY>::TypeId;
+		int16 ValueType = PCGExTypeOps::TTypeToMetadata<T_VALUE>::TypeId;
 
 		int32 NumTotal = 0;
 

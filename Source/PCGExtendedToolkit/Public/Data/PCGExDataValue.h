@@ -18,7 +18,7 @@ namespace PCGExData
 	{
 	public:
 		virtual ~IDataValue() = default;
-		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 
 		IDataValue() = default;
 

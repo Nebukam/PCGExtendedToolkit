@@ -62,7 +62,7 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	bool IBuffer::IsA() const { return Type == PCGEx::GetMetadataType<T>(); }
+	bool IBuffer::IsA() const { return Type == PCGExTypeOps::TTypeToMetadata<T>::Type; }
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
 template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
@@ -80,7 +80,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		: IBuffer(InSource, InIdentifier)
 	{
 		Ops = &OpsImpl;
-		SetType(PCGEx::GetMetadataType<T>());
+		SetType(PCGExTypeOps::TTypeToMetadata<T>::Type);
 	}
 
 	template <typename T>
@@ -718,7 +718,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 	template <typename T>
 	TSharedPtr<TBuffer<T>> FFacade::FindBuffer_Unsafe(const FPCGAttributeIdentifier& InIdentifier)
 	{
-		const TSharedPtr<IBuffer>& Found = FindBuffer_Unsafe(BufferUID(InIdentifier, PCGEx::GetMetadataType<T>()));
+		const TSharedPtr<IBuffer>& Found = FindBuffer_Unsafe(BufferUID(InIdentifier, PCGExTypeOps::TTypeToMetadata<T>::Type));
 		if (!Found) { return nullptr; }
 		return StaticCastSharedPtr<TBuffer<T>>(Found);
 	}
@@ -726,7 +726,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 	template <typename T>
 	TSharedPtr<TBuffer<T>> FFacade::FindBuffer(const FPCGAttributeIdentifier& InIdentifier)
 	{
-		const TSharedPtr<IBuffer> Found = FindBuffer(BufferUID(InIdentifier, PCGEx::GetMetadataType<T>()));
+		const TSharedPtr<IBuffer> Found = FindBuffer(BufferUID(InIdentifier, PCGExTypeOps::TTypeToMetadata<T>::Type));
 		if (!Found) { return nullptr; }
 		return StaticCastSharedPtr<TBuffer<T>>(Found);
 	}

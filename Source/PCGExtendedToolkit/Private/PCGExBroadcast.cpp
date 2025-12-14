@@ -10,7 +10,6 @@
 
 namespace PCGEx
 {
-
 	bool GetComponentSelection(const TArray<FString>& Names, FInputSelectorComponentData& OutSelection)
 	{
 		if (Names.IsEmpty()) { return false; }
@@ -66,7 +65,6 @@ namespace PCGEx
 		FPCGAttributePropertyInputSelector ProxySelector = FPCGAttributePropertyInputSelector();
 		ProxySelector.Update(Path);
 		if (InData) { ProxySelector = ProxySelector.CopyAndFixLast(InData); }
-
 		Init(ProxySelector.GetExtraNames());
 	}
 
@@ -177,6 +175,53 @@ namespace PCGEx
 		}
 	}
 
+	//
+	// Type-erased GetVoid implementation
+	// Dispatches to templated Get<T_VALUE, T> based on runtime types
+	//
+	void FSubSelection::GetVoid(EPCGMetadataTypes SourceType, const void* Source,
+	                            EPCGMetadataTypes WorkingType, void* Target) const
+	{
+		// Use PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS to generate all combinations
+		// The macro provides (_TYPE_A, _NAME_A, _TYPE_B, _NAME_B)
+		// We want: Get<SourceType, WorkingType>(Source) -> Target
+		// So _TYPE_A = Working (output), _TYPE_B = Source (input)
+		
+#define PCGEX_DISPATCH_GET(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
+		if (SourceType == EPCGMetadataTypes::_NAME_B && WorkingType == EPCGMetadataTypes::_NAME_A) \
+		{ \
+			*static_cast<_TYPE_A*>(Target) = Get<_TYPE_B, _TYPE_A>(*static_cast<const _TYPE_B*>(Source)); \
+			return; \
+		}
+		PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_DISPATCH_GET)
+#undef PCGEX_DISPATCH_GET
+	}
+
+	//
+	// Type-erased SetVoid implementation
+	// Dispatches to templated Set<T, T_VALUE> based on runtime types
+	//
+	void FSubSelection::SetVoid(EPCGMetadataTypes TargetType, void* Target,
+	                            EPCGMetadataTypes SourceType, const void* Source) const
+	{
+		// Use PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS to generate all combinations
+		// The macro provides (_TYPE_A, _NAME_A, _TYPE_B, _NAME_B)
+		// We want: Set<TargetType, SourceType>(Target, Source)
+		// So _TYPE_A = Target, _TYPE_B = Source
+		
+#define PCGEX_DISPATCH_SET(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
+		if (TargetType == EPCGMetadataTypes::_NAME_A && SourceType == EPCGMetadataTypes::_NAME_B) \
+		{ \
+			Set<_TYPE_A, _TYPE_B>(*static_cast<_TYPE_A*>(Target), *static_cast<const _TYPE_B*>(Source)); \
+			return; \
+		}
+		PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_DISPATCH_SET)
+#undef PCGEX_DISPATCH_SET
+	}
+
+	//
+	// Original templated Get implementation
+	//
 	template <typename T_VALUE, typename T>
 	T FSubSelection::Get(const T_VALUE& Value) const
 	{
@@ -214,7 +259,7 @@ namespace PCGEx
 
 #pragma endregion
 
-#pragma region Convert from Integer32
+#pragma region Convert from numeric (int32, int64, float, double)
 
 		else if constexpr (std::is_same_v<T_VALUE, int32> || std::is_same_v<T_VALUE, int64> || std::is_same_v<T_VALUE, float> || std::is_same_v<T_VALUE, double>)
 		{
@@ -228,23 +273,9 @@ namespace PCGEx
 			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value, Value, Value, Value); }
 			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value, Value, Value).Quaternion(); }
 			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value, Value, Value); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>)
-			{
-				if constexpr (std::is_same_v<T_VALUE, int32>) { return FString::Printf(TEXT("%d"), Value); }
-				else if constexpr (std::is_same_v<T_VALUE, int64>) { return FString::Printf(TEXT("%lld"), Value); }
-				else if constexpr (std::is_same_v<T_VALUE, float>) { return FString::Printf(TEXT("%f"), Value); }
-				else if constexpr (std::is_same_v<T_VALUE, double>) { return FString::Printf(TEXT("%f"), Value); }
-				else { return T{}; }
-			}
-			else if constexpr (std::is_same_v<T, FName>)
-			{
-				if constexpr (std::is_same_v<T_VALUE, int32>) { return FName(FString::Printf(TEXT("%d"), Value)); }
-				else if constexpr (std::is_same_v<T_VALUE, int64>) { return FName(FString::Printf(TEXT("%lld"), Value)); }
-				else if constexpr (std::is_same_v<T_VALUE, float>) { return FName(FString::Printf(TEXT("%f"), Value)); }
-				else if constexpr (std::is_same_v<T_VALUE, double>) { return FName(FString::Printf(TEXT("%f"), Value)); }
-				else { return T{}; }
-			}
+			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(FRotator(Value, Value, Value), FVector(Value), FVector(Value)); }
+			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%f"), static_cast<double>(Value)); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(FString::Printf(TEXT("%f"), static_cast<double>(Value))); }
 			else { return T{}; }
 		}
 
@@ -257,32 +288,20 @@ namespace PCGEx
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default: case ESingleField::X: return Value.X > 0;
-				case ESingleField::Y:
-				case ESingleField::Z:
-				case ESingleField::W: return Value.Y > 0;
-				case ESingleField::Length:
-				case ESingleField::SquaredLength: return Value.SquaredLength() > 0;
-				case ESingleField::Volume: return (Value.X * Value.Y) > 0;
-				case ESingleField::Sum: return (Value.X * Value.Y) > 0;
-				}
-			}
+			else if constexpr (std::is_same_v<T, bool>) { return Value.X > 0 || Value.Y > 0; }
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default: case ESingleField::X: return Value.X;
-				case ESingleField::Y:
+				default:
+				case ESingleField::X: return static_cast<T>(Value.X);
+				case ESingleField::Y: return static_cast<T>(Value.Y);
 				case ESingleField::Z:
-				case ESingleField::W: return Value.Y;
-				case ESingleField::Length: return Value.Length();
-				case ESingleField::SquaredLength: return Value.SquaredLength();
-				case ESingleField::Volume: return Value.X * Value.Y;
-				case ESingleField::Sum: return Value.X + Value.Y;
+				case ESingleField::W: return static_cast<T>(0);
+				case ESingleField::Length: return static_cast<T>(Value.Length());
+				case ESingleField::SquaredLength: return static_cast<T>(Value.SquaredLength());
+				case ESingleField::Volume: return static_cast<T>(Value.X * Value.Y);
+				case ESingleField::Sum: return static_cast<T>(Value.X + Value.Y);
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return Value; }
@@ -290,9 +309,9 @@ namespace PCGEx
 			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, 0, 0); }
 			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, 0).Quaternion(); }
 			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value.X, Value.Y, 0); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
+			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(FRotator::ZeroRotator, FVector(Value.X, Value.Y, 0), FVector::OneVector); }
+			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
 			else { return T{}; }
 		}
 
@@ -305,42 +324,30 @@ namespace PCGEx
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default: case ESingleField::X: return Value.X > 0;
-				case ESingleField::Y: return Value.Y > 0;
-				case ESingleField::Z:
-				case ESingleField::W: return Value.Z > 0;
-				case ESingleField::Length:
-				case ESingleField::SquaredLength: return Value.SquaredLength() > 0;
-				case ESingleField::Volume: return (Value.X * Value.Y * Value.Z) > 0;
-				case ESingleField::Sum: return (Value.X + Value.Y + Value.Z) > 0;
-				}
-			}
+			else if constexpr (std::is_same_v<T, bool>) { return Value.X > 0 || Value.Y > 0 || Value.Z > 0; }
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default: case ESingleField::X: return Value.X;
-				case ESingleField::Y: return Value.Y;
-				case ESingleField::Z:
-				case ESingleField::W: return Value.Z;
-				case ESingleField::Length: return Value.Length();
-				case ESingleField::SquaredLength: return Value.SquaredLength();
-				case ESingleField::Volume: return Value.X * Value.Y * Value.Z;
-				case ESingleField::Sum: return Value.X + Value.Y + Value.Z;
+				default:
+				case ESingleField::X: return static_cast<T>(Value.X);
+				case ESingleField::Y: return static_cast<T>(Value.Y);
+				case ESingleField::Z: return static_cast<T>(Value.Z);
+				case ESingleField::W: return static_cast<T>(0);
+				case ESingleField::Length: return static_cast<T>(Value.Length());
+				case ESingleField::SquaredLength: return static_cast<T>(Value.SquaredLength());
+				case ESingleField::Volume: return static_cast<T>(Value.X * Value.Y * Value.Z);
+				case ESingleField::Sum: return static_cast<T>(Value.X + Value.Y + Value.Z);
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
 			else if constexpr (std::is_same_v<T, FVector>) { return Value; }
 			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, Value.Z, 0); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, Value.Z).Quaternion(); /* TODO : Handle axis selection */ }
+			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, Value.Z).Quaternion(); }
 			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value.X, Value.Y, Value.Z); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; /* TODO : Handle axis selection */ }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
+			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(FRotator::ZeroRotator, Value, FVector::OneVector); }
+			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
 			else { return T{}; }
 		}
 
@@ -353,42 +360,30 @@ namespace PCGEx
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default: case ESingleField::X: return Value.X > 0;
-				case ESingleField::Y: return Value.Y > 0;
-				case ESingleField::Z: return Value.Z > 0;
-				case ESingleField::W: return Value.W > 0;
-				case ESingleField::Length:
-				case ESingleField::SquaredLength: return FVector(Value).SquaredLength() > 0;
-				case ESingleField::Volume: return (Value.X * Value.Y * Value.Z * Value.W) > 0;
-				case ESingleField::Sum: return (Value.X + Value.Y + Value.Z + Value.W) > 0;
-				}
-			}
+			else if constexpr (std::is_same_v<T, bool>) { return Value.X > 0 || Value.Y > 0 || Value.Z > 0 || Value.W > 0; }
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default: case ESingleField::X: return Value.X;
-				case ESingleField::Y: return Value.Y;
-				case ESingleField::Z: return Value.Z;
-				case ESingleField::W: return Value.W;
-				case ESingleField::Length: return FVector(Value).Length();
-				case ESingleField::SquaredLength: return FVector(Value).SquaredLength();
-				case ESingleField::Volume: return Value.X * Value.Y * Value.Z * Value.W;
-				case ESingleField::Sum: return Value.X + Value.Y + Value.Z + Value.W;
+				default:
+				case ESingleField::X: return static_cast<T>(Value.X);
+				case ESingleField::Y: return static_cast<T>(Value.Y);
+				case ESingleField::Z: return static_cast<T>(Value.Z);
+				case ESingleField::W: return static_cast<T>(Value.W);
+				case ESingleField::Length: return static_cast<T>(FVector(Value.X, Value.Y, Value.Z).Length());
+				case ESingleField::SquaredLength: return static_cast<T>(FVector(Value.X, Value.Y, Value.Z).SquaredLength());
+				case ESingleField::Volume: return static_cast<T>(Value.X * Value.Y * Value.Z * Value.W);
+				case ESingleField::Sum: return static_cast<T>(Value.X + Value.Y + Value.Z + Value.W);
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
-			else if constexpr (std::is_same_v<T, FVector>) { return Value; }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, Value.Z, Value.W); }
-			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, Value.Z).Quaternion(); }
+			else if constexpr (std::is_same_v<T, FVector>) { return FVector(Value.X, Value.Y, Value.Z); }
+			else if constexpr (std::is_same_v<T, FVector4>) { return Value; }
+			else if constexpr (std::is_same_v<T, FQuat>) { return FQuat(Value.X, Value.Y, Value.Z, Value.W); }
 			else if constexpr (std::is_same_v<T, FRotator>) { return FRotator(Value.X, Value.Y, Value.Z); }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; /* TODO : Handle axis */ }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
+			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(FRotator(Value.X, Value.Y, Value.Z), FVector(Value.X, Value.Y, Value.Z), FVector::OneVector); }
+			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
 			else { return T{}; }
 		}
 
@@ -401,48 +396,49 @@ namespace PCGEx
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-			else if constexpr (std::is_same_v<T, bool>)
+			else if constexpr (std::is_same_v<T, bool>) { return !Value.IsIdentity(); }
+			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
+				const FRotator R = Value.Rotator();
 				switch (Field)
 				{
-				default: case ESingleField::X: return Dir.X > 0;
-				case ESingleField::Y: return Dir.Y > 0;
-				case ESingleField::Z:
-				case ESingleField::W: return Dir.Z > 0;
+				default:
+				case ESingleField::X: return static_cast<T>(R.Roll);
+				case ESingleField::Y: return static_cast<T>(R.Yaw);
+				case ESingleField::Z: return static_cast<T>(R.Pitch);
+				case ESingleField::W: return static_cast<T>(0);
 				case ESingleField::Length:
 				case ESingleField::SquaredLength:
 				case ESingleField::Volume:
-				case ESingleField::Sum: return Dir.SquaredLength() > 0;
-				}
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
-				switch (Field)
-				{
-				default: case ESingleField::X: return Dir.X;
-				case ESingleField::Y: return Dir.Y;
-				case ESingleField::Z:
-				case ESingleField::W: return Dir.Z;
-				case ESingleField::Length: return Dir.Length();
-				case ESingleField::SquaredLength:
-				case ESingleField::Volume: return Dir.SquaredLength();
-				case ESingleField::Sum: return Dir.X + Dir.Y + Dir.Z;
+				case ESingleField::Sum: return static_cast<T>(0);
 				}
 			}
 			else if constexpr (std::is_same_v<T, FVector2D>)
 			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
-				return FVector2D(Dir.X, Dir.Y);
+				if (bIsAxisSet) { return FVector2D(PCGExMath::GetDirection(Value, Axis)); }
+				const FRotator R = Value.Rotator();
+				return FVector2D(R.Roll, R.Pitch);
 			}
-			else if constexpr (std::is_same_v<T, FVector>) { return PCGExMath::GetDirection(Value, Axis); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(PCGExMath::GetDirection(Value, Axis), 0); }
+			else if constexpr (std::is_same_v<T, FVector>)
+			{
+				if (bIsAxisSet) { return PCGExMath::GetDirection(Value, Axis); }
+				const FRotator R = Value.Rotator();
+				return FVector(R.Roll, R.Pitch, R.Yaw);
+			}
+			else if constexpr (std::is_same_v<T, FVector4>)
+			{
+				if (bIsAxisSet)
+				{
+					const FVector Dir = PCGExMath::GetDirection(Value, Axis);
+					return FVector4(Dir.X, Dir.Y, Dir.Z, 0);
+				}
+				return FVector4(Value.X, Value.Y, Value.Z, Value.W);
+			}
 			else if constexpr (std::is_same_v<T, FQuat>) { return Value; }
 			else if constexpr (std::is_same_v<T, FRotator>) { return Value.Rotator(); }
 			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(Value, FVector::ZeroVector, FVector::OneVector); }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
+			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
 			else { return T{}; }
 		}
 
@@ -453,44 +449,48 @@ namespace PCGEx
 		else if constexpr (std::is_same_v<T_VALUE, FRotator>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(FVector(Value.Pitch, Value.Roll, Value.Yaw)); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-			else if constexpr (std::is_same_v<T, bool>)
-			{
-				switch (Field)
-				{
-				default: case ESingleField::X: return Value.Pitch > 0;
-				case ESingleField::Y: return Value.Yaw > 0;
-				case ESingleField::Z:
-				case ESingleField::W: return Value.Roll > 0;
-				case ESingleField::Length:
-				case ESingleField::SquaredLength:
-				case ESingleField::Volume:
-				case ESingleField::Sum: return Value.Euler().SquaredLength() > 0;
-				}
-			}
+			else if constexpr (std::is_same_v<T, bool>) { return !Value.IsZero(); }
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
 				switch (Field)
 				{
-				default: case ESingleField::X: return Value.Pitch > 0;
-				case ESingleField::Y: return Value.Yaw > 0;
-				case ESingleField::Z:
-				case ESingleField::W: return Value.Roll > 0;
-				case ESingleField::Length: return Value.Euler().Length();
+				default:
+				case ESingleField::X: return static_cast<T>(Value.Roll);
+				case ESingleField::Y: return static_cast<T>(Value.Yaw);
+				case ESingleField::Z: return static_cast<T>(Value.Pitch);
+				case ESingleField::W: return static_cast<T>(0);
+				case ESingleField::Length:
 				case ESingleField::SquaredLength:
-				case ESingleField::Volume: return Value.Euler().SquaredLength();
-				case ESingleField::Sum: return Value.Pitch + Value.Yaw + Value.Roll;
+				case ESingleField::Volume:
+				case ESingleField::Sum: return static_cast<T>(0);
 				}
 			}
-			else if constexpr (std::is_same_v<T, FVector2D>) { return Get<FQuat, FVector2D>(Value.Quaternion()); }
-			else if constexpr (std::is_same_v<T, FVector>) { return Get<FQuat, FVector>(Value.Quaternion()); }
-			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.Euler(), 0); /* TODO : Handle axis */ }
+			else if constexpr (std::is_same_v<T, FVector2D>)
+			{
+				if (bIsAxisSet) { return FVector2D(PCGExMath::GetDirection(Value.Quaternion(), Axis)); }
+				return FVector2D(Value.Roll, Value.Pitch);
+			}
+			else if constexpr (std::is_same_v<T, FVector>)
+			{
+				if (bIsAxisSet) { return PCGExMath::GetDirection(Value.Quaternion(), Axis); }
+				return FVector(Value.Roll, Value.Pitch, Value.Yaw);
+			}
+			else if constexpr (std::is_same_v<T, FVector4>)
+			{
+				if (bIsAxisSet)
+				{
+					const FVector Dir = PCGExMath::GetDirection(Value.Quaternion(), Axis);
+					return FVector4(Dir.X, Dir.Y, Dir.Z, 0);
+				}
+				return FVector4(Value.Roll, Value.Pitch, Value.Yaw, 0);
+			}
 			else if constexpr (std::is_same_v<T, FQuat>) { return Value.Quaternion(); }
 			else if constexpr (std::is_same_v<T, FRotator>) { return Value; }
-			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(Value.Quaternion(), FVector::ZeroVector, FVector::OneVector); }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
+			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(Value, FVector::ZeroVector, FVector::OneVector); }
+			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
 			else { return T{}; }
 		}
 
@@ -503,18 +503,36 @@ namespace PCGEx
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
-			else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double> || std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4> || std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
+			else if constexpr (std::is_same_v<T, bool>) { return true; }
+			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
 			{
-				switch (Component)
-				{
-				default: case ETransformPart::Position: return Get<FVector, T>(Value.GetLocation());
-				case ETransformPart::Rotation: return Get<FQuat, T>(Value.GetRotation());
-				case ETransformPart::Scale: return Get<FVector, T>(Value.GetScale3D());
-				}
+				if (Component == ETransformPart::Position) { return Get<FVector, T>(Value.GetLocation()); }
+				if (Component == ETransformPart::Scale) { return Get<FVector, T>(Value.GetScale3D()); }
+				return Get<FQuat, T>(Value.GetRotation());
 			}
+			else if constexpr (std::is_same_v<T, FVector2D>)
+			{
+				if (Component == ETransformPart::Position) { return Get<FVector, T>(Value.GetLocation()); }
+				if (Component == ETransformPart::Scale) { return Get<FVector, T>(Value.GetScale3D()); }
+				return Get<FQuat, T>(Value.GetRotation());
+			}
+			else if constexpr (std::is_same_v<T, FVector>)
+			{
+				if (Component == ETransformPart::Position) { return Value.GetLocation(); }
+				if (Component == ETransformPart::Scale) { return Value.GetScale3D(); }
+				return Get<FQuat, T>(Value.GetRotation());
+			}
+			else if constexpr (std::is_same_v<T, FVector4>)
+			{
+				if (Component == ETransformPart::Position) { return FVector4(Value.GetLocation(), 0); }
+				if (Component == ETransformPart::Scale) { return FVector4(Value.GetScale3D(), 0); }
+				return Get<FQuat, T>(Value.GetRotation());
+			}
+			else if constexpr (std::is_same_v<T, FQuat>) { return Value.GetRotation(); }
+			else if constexpr (std::is_same_v<T, FRotator>) { return Value.GetRotation().Rotator(); }
 			else if constexpr (std::is_same_v<T, FTransform>) { return Value; }
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
+			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
 			else { return T{}; }
 		}
 
@@ -527,10 +545,21 @@ namespace PCGEx
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
+			else if constexpr (std::is_same_v<T, bool>) { return Value.ToBool(); }
+			else if constexpr (std::is_same_v<T, int32>) { return FCString::Atoi(*Value); }
+			else if constexpr (std::is_same_v<T, int64>) { return FCString::Atoi64(*Value); }
+			else if constexpr (std::is_same_v<T, float>) { return FCString::Atof(*Value); }
+			else if constexpr (std::is_same_v<T, double>) { return FCString::Atod(*Value); }
+			else if constexpr (std::is_same_v<T, FVector2D>) { FVector2D V; V.InitFromString(Value); return V; }
+			else if constexpr (std::is_same_v<T, FVector>) { FVector V; V.InitFromString(Value); return V; }
+			else if constexpr (std::is_same_v<T, FVector4>) { FVector4 V; V.InitFromString(Value); return V; }
+			else if constexpr (std::is_same_v<T, FQuat>) { FQuat V; V.InitFromString(Value); return V; }
+			else if constexpr (std::is_same_v<T, FRotator>) { FRotator V; V.InitFromString(Value); return V; }
+			else if constexpr (std::is_same_v<T, FTransform>) { FTransform V; V.InitFromString(Value); return V; }
 			else if constexpr (std::is_same_v<T, FString>) { return Value; }
 			else if constexpr (std::is_same_v<T, FName>) { return FName(Value); }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value); }
 			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return FSoftObjectPath(Value); }
+			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value); }
 			else { return T{}; }
 		}
 
@@ -545,55 +574,69 @@ namespace PCGEx
 
 			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 			else if constexpr (std::is_same_v<T, FName>) { return Value; }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value.ToString()); }
 			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return FSoftObjectPath(Value.ToString()); }
-			else { return T{}; }
+			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value.ToString()); }
+			else { return Get<FString, T>(Value.ToString()); }
 		}
 
 #pragma endregion
 
-#pragma region Convert from FSoftClassPath
+#pragma region Convert from FSoftObjectPath / FSoftClassPath
 
-		else if constexpr (std::is_same_v<T_VALUE, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T_VALUE, FSoftObjectPath> || std::is_same_v<T_VALUE, FSoftClassPath>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
 			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return Value; }
 			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return FSoftObjectPath(Value.ToString()); }
-			else { return T{}; }
-		}
-
-#pragma endregion
-
-#pragma region Convert from FSoftObjectPath
-
-		else if constexpr (std::is_same_v<T_VALUE, FSoftObjectPath>)
-		{
-			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
-
-			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
 			else if constexpr (std::is_same_v<T, FSoftClassPath>) { return FSoftClassPath(Value.ToString()); }
-			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return Value; }
 			else { return T{}; }
 		}
 
 #pragma endregion
-		else { return T{}; }
+
+		else
+		{
+			return T{};
+		}
 	}
 
+	//
+	// Original templated Set implementation
+	//
 	template <typename T, typename T_VALUE>
 	void FSubSelection::Set(T& Target, const T_VALUE& Value) const
 	{
-		// Unary target type -- can't account for component/field
-		if constexpr (std::is_same_v<T_VALUE, T>) { Target = Value; }
-		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
+		// Scalar target type -- can only set from the first component of multi-component sources
+		if constexpr (std::is_same_v<T, bool>)
 		{
-			if constexpr (std::is_same_v<T_VALUE, PCGExValueHash>) { Target = GetTypeHash(Value); }
+			if constexpr (std::is_same_v<T_VALUE, PCGExValueHash>) { Target = Value > 0; }
+			else if constexpr (std::is_same_v<T_VALUE, bool>) { Target = Value; }
+			else if constexpr (std::is_same_v<T_VALUE, int32> || std::is_same_v<T_VALUE, int64> || std::is_same_v<T_VALUE, float> || std::is_same_v<T_VALUE, double>)
+			{
+				Target = static_cast<bool>(Value);
+			}
+			else if constexpr (std::is_same_v<T_VALUE, FVector2D> || std::is_same_v<T_VALUE, FVector> || std::is_same_v<T_VALUE, FVector4>)
+			{
+				Target = static_cast<bool>(Value[0]);
+			}
+			else if constexpr (std::is_same_v<T_VALUE, FQuat>)
+			{
+				Target = static_cast<bool>(Value.X);
+			}
+			else if constexpr (std::is_same_v<T_VALUE, FRotator>)
+			{
+				Target = static_cast<bool>(Value.Pitch);
+			}
+			else
+			{
+			}
+		}
+		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
+		{
+			if constexpr (std::is_same_v<T_VALUE, PCGExValueHash>) { Target = static_cast<T>(Value); }
 			else if constexpr (std::is_same_v<T_VALUE, bool>) { Target = Value ? 1 : 0; }
 			else if constexpr (std::is_same_v<T_VALUE, int32> || std::is_same_v<T_VALUE, int64> || std::is_same_v<T_VALUE, float> || std::is_same_v<T_VALUE, double>)
 			{
@@ -611,9 +654,6 @@ namespace PCGEx
 			{
 				Target = static_cast<T>(Value.Pitch);
 			}
-			//else if constexpr (std::is_same_v<T_VALUE, FTransform>){ return; // UNSUPPORTED }
-			//else if constexpr (std::is_same_v<T_VALUE, FString>){ return; // UNSUPPORTED }
-			//else if constexpr (std::is_same_v<T_VALUE, FName>){ return; // UNSUPPORTED }
 			else
 			{
 			}
@@ -635,20 +675,14 @@ namespace PCGEx
 			}
 			else if constexpr (std::is_same_v<T_VALUE, FQuat>)
 			{
-				// TODO : Support setting rotations from axis?
 				V = static_cast<double>(Value.X);
 			}
 			else if constexpr (std::is_same_v<T_VALUE, FRotator>)
 			{
-				// TODO : Support setting rotations from axis?
 				V = static_cast<double>(Value.Pitch);
 			}
-			//else if constexpr (std::is_same_v<T_VALUE, FTransform>){ return; // UNSUPPORTED }
-			//else if constexpr (std::is_same_v<T_VALUE, FString>){ return; // UNSUPPORTED }
-			//else if constexpr (std::is_same_v<T_VALUE, FName>){ return; // UNSUPPORTED }
 			else
 			{
-				// UNSUPPORTED
 			}
 
 			if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>)
@@ -728,7 +762,6 @@ namespace PCGEx
 			else if constexpr (std::is_same_v<T_VALUE, FName>) { Target = Value.ToString(); }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftClassPath>) { Target = Value.ToString(); }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftObjectPath>) { Target = Value.ToString(); }
-			//else { Target = TEXT("NOT_SUPPORTED"); }
 		}
 		else if constexpr (std::is_same_v<T, FName>)
 		{
@@ -736,7 +769,6 @@ namespace PCGEx
 			else if constexpr (std::is_same_v<T_VALUE, FName>) { Target = Value; }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftClassPath>) { Target = FName(Value.ToString()); }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftObjectPath>) { Target = FName(Value.ToString()); }
-			//else { Target = NAME_None; }
 		}
 		else if constexpr (std::is_same_v<T, FSoftClassPath>)
 		{
@@ -744,7 +776,6 @@ namespace PCGEx
 			else if constexpr (std::is_same_v<T_VALUE, FName>) { Target = FSoftClassPath(Value.ToString()); }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftClassPath>) { Target = Value; }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftObjectPath>) { Target = FSoftClassPath(Value.ToString()); }
-			//else { Target = FSoftClassPath(); }
 		}
 		else if constexpr (std::is_same_v<T, FSoftObjectPath>)
 		{
@@ -752,27 +783,33 @@ namespace PCGEx
 			else if constexpr (std::is_same_v<T_VALUE, FName>) { Target = FSoftObjectPath(Value.ToString()); }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftClassPath>) { Target = FSoftObjectPath(Value.ToString()); }
 			else if constexpr (std::is_same_v<T_VALUE, FSoftObjectPath>) { Target = Value; }
-			//else { Target = FSoftObjectPath; }
 		}
 	}
 
+	// Explicit template instantiations
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-template PCGEXTENDEDTOOLKIT_API _TYPE_A FSubSelection::Get<_TYPE_B, _TYPE_A>(const _TYPE_B& Value) const; \
-template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_A& Target, const _TYPE_B& Value) const;
+	template PCGEXTENDEDTOOLKIT_API _TYPE_A FSubSelection::Get<_TYPE_B, _TYPE_A>(const _TYPE_B& Value) const; \
+	template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_A& Target, const _TYPE_B& Value) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
 	template <typename T>
 	template <typename T_VALUE>
-	void TValueBuffer<T>::Set(const FSubSelection& SubSelection, const int32 Index, const T_VALUE& Value) { *(Values->GetData() + Index) = SubSelection.Get<T_VALUE, T>(Value); }
+	void TValueBuffer<T>::Set(const FSubSelection& SubSelection, const int32 Index, const T_VALUE& Value)
+	{
+		*(Values->GetData() + Index) = SubSelection.Get<T_VALUE, T>(Value);
+	}
 
 	template <typename T>
 	template <typename T_VALUE>
-	T_VALUE TValueBuffer<T>::Get(const FSubSelection& SubSelection, const int32 Index) const { return SubSelection.Get<T, T_VALUE>(*(Values->GetData() + Index)); }
+	T_VALUE TValueBuffer<T>::Get(const FSubSelection& SubSelection, const int32 Index) const
+	{
+		return SubSelection.Get<T, T_VALUE>(*(Values->GetData() + Index));
+	}
 
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-template PCGEXTENDEDTOOLKIT_API void TValueBuffer<_TYPE_A>::Set<_TYPE_B>(const FSubSelection& SubSelection, const int32 Index, const _TYPE_B& Value); \
-template PCGEXTENDEDTOOLKIT_API _TYPE_B TValueBuffer<_TYPE_A>::Get(const FSubSelection& SubSelection, const int32 Index) const;
+	template PCGEXTENDEDTOOLKIT_API void TValueBuffer<_TYPE_A>::Set<_TYPE_B>(const FSubSelection& SubSelection, const int32 Index, const _TYPE_B& Value); \
+	template PCGEXTENDEDTOOLKIT_API _TYPE_B TValueBuffer<_TYPE_A>::Get(const FSubSelection& SubSelection, const int32 Index) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 

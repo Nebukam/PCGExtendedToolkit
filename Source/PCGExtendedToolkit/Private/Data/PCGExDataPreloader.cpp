@@ -8,6 +8,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {
@@ -139,7 +140,7 @@ namespace PCGExData
 	template <typename T>
 	void FFacadePreloader::Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax)
 	{
-		EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
+		EPCGMetadataTypes Type = PCGExTypeOps::TTypeToMetadata<T>::Type;
 		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
 		{
 			if (ExistingConfig.Selector == InSelector && ExistingConfig.Identity.UnderlyingType == Type)
@@ -154,7 +155,7 @@ namespace PCGExData
 	template <typename T>
 	void FFacadePreloader::Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode)
 	{
-		EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
+		EPCGMetadataTypes Type = PCGExTypeOps::TTypeToMetadata<T>::Type;
 		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
 		{
 			if (ExistingConfig.Identity.Identifier.Name == InName && ExistingConfig.Identity.UnderlyingType == Type)

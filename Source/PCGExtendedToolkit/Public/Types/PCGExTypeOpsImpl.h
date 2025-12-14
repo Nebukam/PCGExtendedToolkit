@@ -18,96 +18,112 @@ namespace PCGExTypeOps
 	struct TTypeToMetadata
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<bool>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Boolean;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<int32>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer32;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<int64>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer64;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<float>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Float;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<double>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Double;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FVector2D>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector2;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FVector>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FVector4>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector4;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FQuat>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Quaternion;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FRotator>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Rotator;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FTransform>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Transform;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FString>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::String;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FName>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Name;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FSoftObjectPath>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftObjectPath;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	template <>
 	struct TTypeToMetadata<FSoftClassPath>
 	{
 		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftClassPath;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
 	};
 
 	// TTypeOpsImpl - Concrete implementation of ITypeOpsBase for each type

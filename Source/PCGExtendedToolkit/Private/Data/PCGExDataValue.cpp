@@ -38,7 +38,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE IDataValue::GetValue<_TYPE>();
 	TDataValue<T>::TDataValue(const T& InValue)
 		: IDataValue(), Value(InValue)
 	{
-		UnderlyingType = PCGEx::GetMetadataType<T>();
+		Type = PCGExTypeOps::TTypeToMetadata<T>::Type;
 	}
 
 	template <typename T>

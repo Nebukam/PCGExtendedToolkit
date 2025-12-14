@@ -24,7 +24,7 @@ void FPCGExAttributeBlendWeight::Init()
 		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
 		LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(WeightCurve);
 	}
-	
+
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
 }
 
@@ -287,7 +287,8 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 
 bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
 {
-	return PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) || PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
+	return InContext->InputData.GetInputCountByPin(PCGExDataBlending::SourceConstantA)
+		|| InContext->InputData.GetInputCountByPin(PCGExDataBlending::SourceConstantB);
 }
 
 PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
