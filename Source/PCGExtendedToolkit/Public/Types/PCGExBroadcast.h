@@ -4,6 +4,7 @@
 #pragma once
 
 #include "PCGEx.h"
+#include "PCGExTypeOpsImpl.h"
 #include "Details/PCGExMacros.h"
 #include "Details/PCGExDetailsAxis.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
@@ -20,6 +21,12 @@ namespace PCGExData
 
 namespace PCGEx
 {
+	// Forward declarations
+	class ISubSelectorOps;
+
+	/**
+	 * Single field selection identifiers
+	 */
 	enum class ESingleField : uint8
 	{
 		X             = 0,
@@ -32,6 +39,9 @@ namespace PCGEx
 		Sum           = 7,
 	};
 
+	/**
+	 * Transform component parts
+	 */
 	enum class ETransformPart : uint8
 	{
 		Position = 0,
@@ -98,25 +108,59 @@ namespace PCGEx
 
 #pragma endregion
 
+	/**
+	 * FSubSelection - Sub-selection configuration and type-erased operations
+	 * 
+	 * This struct stores the configuration for selecting sub-components of values
+	 * (like extracting .X from a vector, or Position from a Transform) and provides
+	 * type-erased methods for applying the selection.
+	 * 
+	 * The actual operations are delegated to ISubSelectorOps instances via
+	 * FSubSelectorRegistry, eliminating the need for template instantiations
+	 * at the call site.
+	 * 
+	 * Usage:
+	 *   FSubSelection Sub(Selector);  // Parse selection from attribute path
+	 *   
+	 *   // Type-erased get (recommended)
+	 *   double Result;
+	 *   EPCGMetadataTypes ResultType;
+	 *   Sub.GetVoid(SourceType, &SourceValue, &Result, ResultType);
+	 *   
+	 *   // Or for full extraction to working type
+	 *   alignas(16) uint8 Buffer[96];
+	 *   Sub.ApplyGet(SourceType, &SourceValue, Buffer, ResultType);
+	 */
 	struct PCGEXTENDEDTOOLKIT_API FSubSelection
 	{
+		// Configuration flags
 		bool bIsValid = false;
 		bool bIsAxisSet = false;
 		bool bIsFieldSet = false;
 		bool bIsComponentSet = false;
 
+		// Selection parameters
 		ETransformPart Component = ETransformPart::Position;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		ESingleField Field = ESingleField::X;
 		EPCGMetadataTypes PossibleSourceType = EPCGMetadataTypes::Unknown;
-		int32 FieldIndex = 0;
 
+		// Constructors
 		FSubSelection() = default;
 		explicit FSubSelection(const TArray<FString>& ExtraNames);
 		explicit FSubSelection(const FPCGAttributePropertyInputSelector& InSelector);
 		explicit FSubSelection(const FString& Path, const UPCGData* InData = nullptr);
 
+		/**
+		 * Get the resulting type when this sub-selection is applied
+		 * 
+		 * - Field selection → Double
+		 * - Axis selection → Vector  
+		 * - Component selection → Vector (Position/Scale) or Quaternion (Rotation)
+		 * - No selection → Fallback (original type)
+		 */
 		EPCGMetadataTypes GetSubType(EPCGMetadataTypes Fallback = EPCGMetadataTypes::Unknown) const;
+
 		void SetComponent(const ETransformPart InComponent);
 		bool SetFieldIndex(const int32 InFieldIndex);
 
@@ -124,73 +168,127 @@ namespace PCGEx
 		void Init(const TArray<FString>& ExtraNames);
 
 	public:
-		void Update();
 
 		//
-		// Type-erased interface
+		// Type-Erased Interface (Primary API)
 		//
-		
-		// Extract sub-selected value from Source (of SourceType) into Target (of WorkingType)
-		// WorkingType is determined by GetSubType(SourceType)
-		void GetVoid(EPCGMetadataTypes SourceType, const void* Source, 
-		             EPCGMetadataTypes WorkingType, void* Target) const;
+		// These methods delegate to ISubSelectorOps via FSubSelectorRegistry.
+		// No template instantiation required at call sites.
+		//
 
-		// Set sub-selected component in Target (of TargetType) from Source (of SourceType)
-		void SetVoid(EPCGMetadataTypes TargetType, void* Target,
-		             EPCGMetadataTypes SourceType, const void* Source) const;
+		/**
+		 * Apply sub-selection when reading a value (Get)
+		 * 
+		 * Extracts the selected sub-component from the source and writes it
+		 * to the output buffer. The output type depends on the selection:
+		 * - Field → Double
+		 * - Axis → Vector
+		 * - Component → Vector or Quaternion
+		 * - None → Same as source
+		 * 
+		 * @param SourceType Type of the source value
+		 * @param Source Pointer to source value
+		 * @param OutValue Pointer to output buffer (must be large enough for any type, recommend 96 bytes)
+		 * @param OutType Receives the type of the output value
+		 */
+		void ApplyGet(EPCGMetadataTypes SourceType, const void* Source, void* OutValue, EPCGMetadataTypes& OutType) const;
+
+		/**
+		 * Apply sub-selection when writing a value (Set)
+		 * 
+		 * Sets the selected sub-component of the target from the source value.
+		 * Handles conversion from source type to appropriate sub-component type.
+		 * 
+		 * @param TargetType Type of the target value
+		 * @param Target Pointer to target value (modified in place)
+		 * @param SourceType Type of the source value  
+		 * @param Source Pointer to source value
+		 */
+		void ApplySet(EPCGMetadataTypes TargetType, void* Target, EPCGMetadataTypes SourceType, const void* Source) const;
+
+		/**
+		 * Extract a field value to double
+		 * 
+		 * Convenience method for common case of extracting a scalar field.
+		 * Returns 0.0 if the type doesn't support field extraction.
+		 * 
+		 * @param SourceType Type of the source value
+		 * @param Source Pointer to source value
+		 * @return Extracted field value as double
+		 */
+		double ExtractFieldToDouble(EPCGMetadataTypes SourceType, const void* Source) const;
+
+		/**
+		 * Inject a double value into a field
+		 * 
+		 * Convenience method for setting a single scalar field.
+		 * No-op if the type doesn't support field injection.
+		 * 
+		 * @param TargetType Type of the target value
+		 * @param Target Pointer to target value (modified in place)
+		 * @param Value Double value to inject
+		 */
+		void InjectFieldFromDouble(EPCGMetadataTypes TargetType, void* Target, double Value) const;
 
 		//
-		// Templated interface (implemented via type-erased path for consistency)
+		// Legacy Type-Erased Interface (for compatibility)
 		//
-		template <typename T_VALUE, typename T>
-		T Get(const T_VALUE& Value) const;
+		// These match the existing GetVoid/SetVoid signatures but internally
+		// use the new system.
+		//
 
-		template <typename T, typename T_VALUE>
-		void Set(T& Target, const T_VALUE& Value) const;
+		/**
+		 * Type-erased Get with explicit working type
+		 * (Legacy compatibility wrapper)
+		 */
+		void GetVoid(EPCGMetadataTypes SourceType, const void* Source, EPCGMetadataTypes WorkingType, void* Target) const;
+
+		/**
+		 * Type-erased Set with explicit types
+		 * (Legacy compatibility wrapper)
+		 */
+		void SetVoid(EPCGMetadataTypes TargetType, void* Target, EPCGMetadataTypes SourceType, const void* Source) const;
+
+		//
+		// Templated Interface (for convenience, uses type-erased internally)
+		//
+		// These templates are thin wrappers that call the type-erased methods.
+		// They do NOT create 14×14 instantiations - they just provide type safety
+		// and call the void* versions.
+		//
+
+		template <typename TSource, typename TResult>
+		TResult Get(const TSource& Value) const;
+
+		template <typename TTarget, typename TSource>
+		void Set(TTarget& Target, const TSource& Value) const;
 	};
 
-#pragma region externalization FSubSelection Get/Set
+	//
+	// Template implementations - delegate to type-erased path
+	//
 
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-	extern template _TYPE_A FSubSelection::Get<_TYPE_B, _TYPE_A>(const _TYPE_B&) const; \
-	extern template void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_A& Target, const _TYPE_B& Value) const;
-	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
-#undef PCGEX_TPL
-
-#pragma endregion
-
-	class FValueBuffer : public TSharedFromThis<FValueBuffer>
+	template <typename TSource, typename TResult>
+	TResult FSubSelection::Get(const TSource& Value) const
 	{
-	public:
-		FValueBuffer() = default;
-	};
+		TResult Result{};
 
-	template <typename T>
-	class TValueBuffer : public FValueBuffer
+		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeToMetadata<TSource>::Type;
+		constexpr EPCGMetadataTypes ResultType = PCGExTypeOps::TTypeToMetadata<TResult>::Type;
+
+		GetVoid(SourceType, &Value, ResultType, &Result);
+
+		return Result;
+	}
+
+	template <typename TTarget, typename TSource>
+	void FSubSelection::Set(TTarget& Target, const TSource& Value) const
 	{
-	public:
-		TSharedPtr<TArray<T>> Values;
-		TValueBuffer() = default;
+		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeToMetadata<TTarget>::Type;
+		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeToMetadata<TSource>::Type;
 
-		template <typename T_VALUE>
-		void Set(const FSubSelection& SubSelection, const int32 Index, const T_VALUE& Value);
-
-		template <typename T_VALUE>
-		T_VALUE Get(const FSubSelection& SubSelection, const int32 Index) const;
-	};
-
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-	extern template void TValueBuffer<_TYPE_A>::Set<_TYPE_B>(const FSubSelection& SubSelection, const int32 Index, const _TYPE_B& Value); \
-	extern template _TYPE_B TValueBuffer<_TYPE_A>::Get(const FSubSelection& SubSelection, const int32 Index) const;
-	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
-#undef PCGEX_TPL
-
-	class FValueBufferMap : public TSharedFromThis<FValueBufferMap>
-	{
-	public:
-		TMap<FString, TSharedPtr<FValueBuffer>> BufferMap;
-		FValueBufferMap() = default;
-	};
+		SetVoid(TargetType, &Target, SourceType, &Value);
+	}
 
 	PCGEXTENDEDTOOLKIT_API bool TryGetType(const FPCGAttributePropertyInputSelector& InputSelector, const UPCGData* InData, EPCGMetadataTypes& OutType);
 	PCGEXTENDEDTOOLKIT_API bool TryGetTypeAndSource(const FPCGAttributePropertyInputSelector& InputSelector, const TSharedPtr<PCGExData::FFacade>& InDataFacade, EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide);
