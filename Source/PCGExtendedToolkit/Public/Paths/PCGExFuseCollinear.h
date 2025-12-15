@@ -8,7 +8,7 @@
 #include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExDetailsIntersection.h"
 
 #include "PCGExFuseCollinear.generated.h"
@@ -63,7 +63,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together into the first point of a collinear chain. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoBlend"))
-	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Average, EPCGExBlendingType::None);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExUnionMetadataDetails UnionDetails;

@@ -3,7 +3,7 @@
 
 #include "Data/PCGExDataHelpers.h"
 
-#include "PCGExBroadcast.h"
+#include "Types/PCGExBroadcast.h"
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExPointIO.h"

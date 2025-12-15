@@ -7,12 +7,12 @@
 #include "UObject/Object.h"
 #include "PCGExProxyDataBlending.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	struct FPropertiesBlender;
 }
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class PCGEXTENDEDTOOLKIT_API FUnionBlender final : public IUnionBlender
 	{

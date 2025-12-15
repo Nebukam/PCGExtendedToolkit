@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() cons
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FILTERS(PCGExPaths::SourceCanCutFilters, "Fiter which edges can 'cut' other edges. Leave empty so all edges are can cut other edges.", Normal)
 	PCGEX_PIN_FILTERS(PCGExPaths::SourceCanBeCutFilters, "Fiter which edges can be 'cut' by other edges. Leave empty so all edges are can cut other edges.", Normal)
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
@@ -52,7 +52,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bWriteCrossDirection) { PCGEX_VALIDATE_NAME(Settings->CrossDirectionAttributeName) }
 	if (Settings->bWriteIsPointCrossing) { PCGEX_VALIDATE_NAME(Settings->IsPointCrossingAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
 
 	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
 
@@ -66,7 +66,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bOrientCrossing)
 	{
 		Context->CrossingBlending.PropertiesOverrides.bOverrideRotation = true;
-		Context->CrossingBlending.PropertiesOverrides.RotationBlending = EPCGExDataBlendingType::None;
+		Context->CrossingBlending.PropertiesOverrides.RotationBlending = EPCGExBlendingType::None;
 	}
 
 	return true;
@@ -475,7 +475,7 @@ namespace PCGExPathCrossings
 			return;
 		}
 
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, PCGExDetails::GetDistances());
+		const TSharedPtr<PCGExBlending::FUnionBlender> TypedBlender = MakeShared<PCGExBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, PCGExDetails::GetDistances());
 		UnionBlender = TypedBlender;
 
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;

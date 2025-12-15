@@ -15,7 +15,7 @@
 TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Required);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Required);
 	return PinProperties;
 }
 
@@ -31,7 +31,7 @@ bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendAttributes)
 
-	return PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending});
+	return PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending});
 }
 
 bool FPCGExBlendAttributesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -69,7 +69,7 @@ namespace PCGExBlendAttributes
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
+		BlendOpsManager = MakeShared<PCGExBlending::FBlendOpsManager>();
 		BlendOpsManager->SetSources(PointDataFacade, PCGExData::EIOSide::Out);
 		BlendOpsManager->SetTargetFacade(PointDataFacade);
 

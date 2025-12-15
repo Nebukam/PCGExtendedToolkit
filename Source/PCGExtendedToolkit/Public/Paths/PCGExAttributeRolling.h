@@ -195,7 +195,7 @@ namespace PCGExAttributeRolling
 
 		PCGExPaths::FPathMetrics CurrentMetric;
 
-		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
+		TSharedPtr<PCGExBlending::FBlendOpsManager> BlendOpsManager;
 
 		PCGEX_FOREACH_FIELD_ATTRIBUTE_ROLL(PCGEX_OUTPUT_DECL)
 

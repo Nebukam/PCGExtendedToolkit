@@ -258,7 +258,7 @@ namespace PCGExSampling
 	void FSampingUnionData::Reserve(const int32 InSetReserve, const int32 InElementReserve)
 	{
 		IUnionData::Reserve(InSetReserve, InElementReserve);
-		if (InElementReserve > 8) { Weights.Reserve(InElementReserve); }
+		if (InElementReserve > 8 && Weights.Max() < InElementReserve) { Weights.Reserve(InElementReserve); }
 	}
 
 	void FSampingUnionData::Reset()

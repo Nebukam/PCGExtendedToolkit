@@ -24,7 +24,7 @@ MACRO(BoundIndex, int32, -1)
 struct FPCGExEdgeEdgeIntersectionDetails;
 struct FPCGExPointEdgeIntersectionDetails;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class FMetadataBlender;
 }
@@ -279,7 +279,7 @@ namespace PCGExGraph
 
 		void Init(const TArray<PCGExMT::FScope>& Loops);
 		void InsertEdges();
-		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
+		void BlendIntersection(const int32 Index, PCGExBlending::FMetadataBlender* Blender) const;
 
 		~FPointEdgeIntersections() = default;
 	};
@@ -346,7 +346,7 @@ namespace PCGExGraph
 		bool InsertNodes(const int32 InReserve);
 		void InsertEdges();
 
-		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const;
+		void BlendIntersection(const int32 Index, const TSharedRef<PCGExBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const;
 
 		~FEdgeEdgeIntersections() = default;
 	};

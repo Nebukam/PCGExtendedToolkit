@@ -10,13 +10,13 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 
 #include "PCGExSampleVtxByID.generated.h"
 
 class UPCGExBlendOpFactory;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class IUnionBlender;
 	class FUnionOpsManager;
@@ -151,8 +151,8 @@ namespace PCGExSampleVtxByID
 
 		FPCGExBlendingDetails BlendingDetails;
 
-		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
+		TSharedPtr<PCGExBlending::FUnionOpsManager> UnionBlendOpsManager;
+		TSharedPtr<PCGExBlending::IUnionBlender> DataBlender;
 
 		int8 bAnySuccess = 0;
 

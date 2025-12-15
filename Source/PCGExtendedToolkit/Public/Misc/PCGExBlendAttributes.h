@@ -12,7 +12,7 @@
 
 class UPCGExBlendOpFactory;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class FBlendOpsManager;
 }
@@ -68,7 +68,7 @@ namespace PCGExBlendAttributes
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBlendAttributesContext, UPCGExBlendAttributesSettings>
 	{
 		double NumPoints = 0;
-		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
+		TSharedPtr<PCGExBlending::FBlendOpsManager> BlendOpsManager;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

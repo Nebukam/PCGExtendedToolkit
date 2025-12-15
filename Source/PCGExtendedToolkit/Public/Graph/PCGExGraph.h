@@ -44,7 +44,7 @@ namespace PCGExData
 	class TBuffer;
 }
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class FUnionBlender;
 }
@@ -226,7 +226,7 @@ namespace PCGExGraph
 
 		const FGraphMetadataDetails* MetadataDetails = nullptr;
 
-		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
+		TSharedPtr<PCGExBlending::FUnionBlender> UnionBlender;
 
 		// Edge metadata
 #define PCGEX_FOREACH_EDGE_METADATA(MACRO)\

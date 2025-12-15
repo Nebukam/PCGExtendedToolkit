@@ -18,7 +18,7 @@ namespace PCGExData
 	{
 	public:
 		virtual ~IDataValue() = default;
-		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 
 		IDataValue() = default;
 
@@ -66,6 +66,7 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 
 		virtual double AsDouble() override;
 		virtual FString AsString() override;
+		
 	};
 
 #pragma region externalization

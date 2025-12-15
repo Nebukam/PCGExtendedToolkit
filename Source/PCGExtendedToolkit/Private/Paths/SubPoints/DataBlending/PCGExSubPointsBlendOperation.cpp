@@ -23,22 +23,22 @@ bool FPCGExSubPointsBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	if (bPreservePosition)
 	{
 		BlendingDetails.PropertiesOverrides.bOverridePosition = true;
-		BlendingDetails.PropertiesOverrides.PositionBlending = EPCGExDataBlendingType::None;
+		BlendingDetails.PropertiesOverrides.PositionBlending = EPCGExBlendingType::None;
 	}
 
 	if (bPreserveRotation)
 	{
 		BlendingDetails.PropertiesOverrides.bOverrideRotation = true;
-		BlendingDetails.PropertiesOverrides.RotationBlending = EPCGExDataBlendingType::None;
+		BlendingDetails.PropertiesOverrides.RotationBlending = EPCGExBlendingType::None;
 	}
 
 	if (bPreserveScale)
 	{
 		BlendingDetails.PropertiesOverrides.bOverrideScale = true;
-		BlendingDetails.PropertiesOverrides.ScaleBlending = EPCGExDataBlendingType::None;
+		BlendingDetails.PropertiesOverrides.ScaleBlending = EPCGExBlendingType::None;
 	}
 
-	MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+	MetadataBlender = MakeShared<PCGExBlending::FMetadataBlender>();
 
 	MetadataBlender->SetTargetData(InTargetFacade);
 	MetadataBlender->SetSourceData(InSourceFacade, InSourceSide, true);
@@ -63,7 +63,7 @@ void FPCGExSubPointsBlendOperation::BlendSubPoints(PCGExData::FScope& Scope, con
 UPCGExSubPointsBlendInstancedFactory::UPCGExSubPointsBlendInstancedFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (BlendingDetails.DefaultBlending == EPCGExDataBlendingType::Unset) { BlendingDetails.DefaultBlending = GetDefaultBlending(); }
+	if (BlendingDetails.DefaultBlending == EPCGExBlendingType::Unset) { BlendingDetails.DefaultBlending = GetDefaultBlending(); }
 }
 
 void UPCGExSubPointsBlendInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)

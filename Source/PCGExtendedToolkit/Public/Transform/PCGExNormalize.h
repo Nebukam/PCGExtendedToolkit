@@ -14,8 +14,7 @@
 
 namespace PCGExData
 {
-	template <typename T>
-	class TBufferProxy;
+	class IBufferProxy;
 }
 
 class FPCGExComputeIOBounds;
@@ -115,7 +114,7 @@ namespace PCGExNormalize
 		bool OneMinus[3] = {false, false, false};
 
 		TSharedPtr<PCGExDetails::TSettingValue<FTransform>> TransformBuffer;
-		TSharedPtr<PCGExData::TBufferProxy<FVector>> OutputBuffer;
+		TSharedPtr<PCGExData::IBufferProxy> OutputBuffer;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

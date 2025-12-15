@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExWriteIndex.h"
 
-#include "PCGExBroadcast.h"
 #include "PCGExMT.h"
 #include "PCGExTypes.h"
 #include "PCGParamData.h"

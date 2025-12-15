@@ -358,7 +358,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 		{
-			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExDetails::GetNoneDistances());
+			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExDetails::GetNoneDistances());
 			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
 			if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
 			{

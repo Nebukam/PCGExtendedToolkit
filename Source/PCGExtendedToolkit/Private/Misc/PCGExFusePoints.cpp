@@ -98,7 +98,7 @@ namespace PCGExFusePoints
 
 		// Register fetch-able buffers for chunked reads
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		PCGExDataBlending::GetFilteredIdentities(PointDataFacade->GetIn()->Metadata, SourceAttributes, &Settings->BlendingDetails, &Context->CarryOverDetails);
+		PCGExBlending::GetFilteredIdentities(PointDataFacade->GetIn()->Metadata, SourceAttributes, &Settings->BlendingDetails, &Context->CarryOverDetails);
 
 		PointDataFacade->CreateReadables(SourceAttributes);
 
@@ -147,7 +147,7 @@ namespace PCGExFusePoints
 		TArray<PCGEx::FOpStats> Trackers;
 		UnionBlender->InitTrackers(Trackers);
 
-		bool bUpdateCenter = Settings->BlendingDetails.PropertiesOverrides.bOverridePosition && Settings->BlendingDetails.PropertiesOverrides.PositionBlending == EPCGExDataBlendingType::None;
+		bool bUpdateCenter = Settings->BlendingDetails.PropertiesOverrides.bOverridePosition && Settings->BlendingDetails.PropertiesOverrides.PositionBlending == EPCGExBlendingType::None;
 
 		PCGEX_SHARED_CONTEXT_VOID(Context->GetOrCreateHandle())
 
@@ -200,7 +200,7 @@ namespace PCGExFusePoints
 			return;
 		}
 
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(
+		const TSharedPtr<PCGExBlending::FUnionBlender> TypedBlender = MakeShared<PCGExBlending::FUnionBlender>(
 			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender = TypedBlender;
 

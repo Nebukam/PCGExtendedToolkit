@@ -25,7 +25,7 @@ class FPCGExNeighborSampleBlend : public FPCGExNeighborSampleOperation
 {
 public:
 	const UPCGExNeighborSamplerFactoryBlend* Factory = nullptr;
-	TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
+	TSharedPtr<PCGExBlending::FBlendOpsManager> BlendOpsManager;
 
 	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade) override;
 

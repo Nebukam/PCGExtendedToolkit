@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 #include "PCGExSubPointsBlendOperation.generated.h"
 
@@ -15,7 +15,7 @@ NewOperation->BlendFactory = this;
 
 class UPCGExSubPointsBlendInstancedFactory;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class FMetadataBlender;
 }
@@ -37,7 +37,7 @@ public:
 
 protected:
 	FPCGExBlendingDetails BlendingDetails;
-	TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+	TSharedPtr<PCGExBlending::FMetadataBlender> MetadataBlender;
 };
 
 /**
@@ -52,12 +52,12 @@ public:
 	UPCGExSubPointsBlendInstancedFactory(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Unset, EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Unset, EPCGExBlendingType::None);
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 
 protected:
-	virtual EPCGExDataBlendingType GetDefaultBlending() const { return EPCGExDataBlendingType::Lerp; }
+	virtual EPCGExBlendingType GetDefaultBlending() const { return EPCGExBlendingType::Lerp; }
 };

@@ -8,7 +8,32 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/PCGMetadataCommon.h"
 
-#include "PCGExDataBlending.generated.h"
+#include "PCGExBlending.generated.h"
+
+UENUM(BlueprintType)
+enum class EPCGExBlendingType : uint8
+{
+	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
+	Average          = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
+	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
+	Min              = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
+	Max              = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
+	Copy             = 5 UMETA(DisplayName = "Copy (Target)", ToolTip = "Copy target data (second value)"),
+	Sum              = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
+	WeightedSum      = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Lerp             = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
+	Subtract         = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
+	UnsignedMin      = 10 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
+	UnsignedMax      = 11 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
+	AbsoluteMin      = 12 UMETA(DisplayName = "Absolute Min", ToolTip="Component-wise MIN of absolute value."),
+	AbsoluteMax      = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
+	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
+	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
+	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
+	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash."),
+	WeightNormalize  = 18 UMETA(DisplayName = "Weight (Normalize)", ToolTip="Weights based on distance to blend targets and force normalized."),
+	Unset            = 200 UMETA(Hidden),
+};
 
 #define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\
 MACRO(Density, float, float) \
@@ -39,7 +64,71 @@ MACRO(AbsoluteMax) \
 MACRO(WeightedSubtract) \
 MACRO(CopyOther) \
 MACRO(Hash) \
-MACRO(UnsignedHash)
+MACRO(UnsignedHash) \
+MACRO(WeightNormalize)
+
+// This is a different blending list that makes more sense for AxB blending
+// and also includes extra modes that don't make sense in regular multi-source data blending
+UENUM(BlueprintType)
+enum class EPCGExABBlendingType : uint8
+{
+	None             = 0 UMETA(Hidden, DisplayName = "None", ToolTip="No blending is applied, keep the original value.", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	Average          = 1 UMETA(DisplayName = "Average", ToolTip="(A + B) / 2", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Average"),
+	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="(A + B) / Weight. Values are normalize if weight > 1", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Weight"),
+	Multiply         = 3 UMETA(DisplayName = "Multiply", ToolTip="A * B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "*"),
+	Divide           = 4 UMETA(DisplayName = "Divide", ToolTip="A / B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Average"),
+	Min              = 5 UMETA(DisplayName = "Min", ToolTip="Min(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	Max              = 6 UMETA(DisplayName = "Max", ToolTip="Max(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	CopyTarget       = 7 UMETA(DisplayName = "Copy (Target)", ToolTip = "= B", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	CopySource       = 8 UMETA(DisplayName = "Copy (Source)", ToolTip="= A", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	Add              = 9 UMETA(DisplayName = "Add", ToolTip = "A + B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "+"),
+	Subtract         = 10 UMETA(DisplayName = "Subtract", ToolTip="A - B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "-"),
+	WeightedAdd      = 11 UMETA(DisplayName = "Weighted Add", ToolTip = "A + (B * Weight)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	WeightedSubtract = 12 UMETA(DisplayName = "Weighted Subtract", ToolTip="A - (B * Weight)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	Lerp             = 13 UMETA(DisplayName = "Lerp", ToolTip="Lerp(A, B, Weight)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	UnsignedMin      = 14 UMETA(DisplayName = "Unsigned Min", ToolTip="Min(A, B) * Sign", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	UnsignedMax      = 15 UMETA(DisplayName = "Unsigned Max", ToolTip="Max(A, B) * Sign", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	AbsoluteMin      = 16 UMETA(DisplayName = "Absolute Min", ToolTip="+Min(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	AbsoluteMax      = 17 UMETA(DisplayName = "Absolute Max", ToolTip="+Max(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	Hash             = 18 UMETA(DisplayName = "Hash", ToolTip="Hash(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%"),
+	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%"),
+	WeightNormalize  = 22 UMETA(DisplayName = "Weight (Always Normalize)", ToolTip="(A + B) / Weight. Always normalize final values.", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Weight"),
+	GeometricMean    = 23 UMETA(Hidden, DisplayName = "Geometrical Mean", ToolTip="A * B .. Pow(Acc, 1/Count).", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Geometrical Mean"),
+	HarmonicMean     = 24 UMETA(Hidden, DisplayName = "Harmonic Mean", ToolTip="Acc + 1/B .. Count/Acc", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Harmonic Mean"),
+	RMS              = 25 UMETA(Hidden, DisplayName = "RMS (Signal Magnitude)", ToolTip="Acc + Src² .. Sqrt(Acc/Count)", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "RMS Signal Magnitude"),
+	Step             = 26 UMETA(Hidden, DisplayName = "Step", ToolTip="Step", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Step"),
+};
+
+#define PCGEX_FOREACH_AB_BLENDMODE(MACRO)\
+MACRO(None) \
+MACRO(Average) \
+MACRO(Weight) \
+MACRO(Multiply) \
+MACRO(Divide) \
+MACRO(Min) \
+MACRO(Max) \
+MACRO(CopyTarget) \
+MACRO(CopySource) \
+MACRO(Add) \
+MACRO(Subtract) \
+MACRO(WeightedAdd) \
+MACRO(WeightedSubtract) \
+MACRO(Lerp) \
+MACRO(UnsignedMin) \
+MACRO(UnsignedMax) \
+MACRO(AbsoluteMin) \
+MACRO(AbsoluteMax) \
+MACRO(Hash) \
+MACRO(UnsignedHash) \
+MACRO(Mod) \
+MACRO(ModCW) \
+MACRO(WeightNormalize) \
+MACRO(GeometricMean) \
+MACRO(HarmonicMean) \
+MACRO(RMS) \
+MACRO(Step)
 
 struct FPCGPinProperties;
 enum class EPCGPinStatus : uint8;
@@ -72,91 +161,14 @@ enum class EPCGExBlendingInterface : uint8
 	Monolithic = 1 UMETA(DisplayName = "Monolithic", ToolTip="Blend attributes & properties using monolithic settings. Best if you want to grab everything, or only select things to leave out."),
 };
 
-#define BOOKMARK_BLENDMODE // Bookmark a location in code that need to be updated when adding new blendmodes
-
-UENUM(BlueprintType)
-enum class EPCGExDataBlendingType : uint8
-{
-	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
-	Average          = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
-	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
-	Min              = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
-	Max              = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy             = 5 UMETA(DisplayName = "Copy (Target)", ToolTip = "Copy target data (second value)"),
-	Sum              = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
-	WeightedSum      = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
-	Lerp             = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
-	Subtract         = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
-	UnsignedMin      = 10 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
-	UnsignedMax      = 11 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
-	AbsoluteMin      = 12 UMETA(DisplayName = "Absolute Min", ToolTip="Component-wise MIN of absolute value."),
-	AbsoluteMax      = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
-	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
-	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
-	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
-	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash."),
-	Unset            = 200 UMETA(Hidden),
-};
-
-// This is a different blending list that makes more sense for AxB blending
-// and also includes extra modes that don't make sense in regular multi-source data blending
-UENUM(BlueprintType)
-enum class EPCGExABBlendingType : uint8
-{
-	None             = 0 UMETA(Hidden, DisplayName = "None", ToolTip="No blending is applied, keep the original value.", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	Average          = 1 UMETA(DisplayName = "Average", ToolTip="(A + B) / 2", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Average"),
-	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="(A + B) / Weight", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Weight"),
-	Multiply         = 3 UMETA(DisplayName = "Multiply", ToolTip="A * B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "*"),
-	Divide           = 4 UMETA(DisplayName = "Divide", ToolTip="A / B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Average"),
-	Min              = 5 UMETA(DisplayName = "Min", ToolTip="Min(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	Max              = 6 UMETA(DisplayName = "Max", ToolTip="Max(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	CopyTarget       = 7 UMETA(DisplayName = "Copy (Target)", ToolTip = "= B", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	CopySource       = 8 UMETA(DisplayName = "Copy (Source)", ToolTip="= A", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	Add              = 9 UMETA(DisplayName = "Add", ToolTip = "A + B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "+"),
-	Subtract         = 10 UMETA(DisplayName = "Subtract", ToolTip="A - B", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "-"),
-	WeightedAdd      = 11 UMETA(DisplayName = "Weighted Add", ToolTip = "A + (B * Weight)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	WeightedSubtract = 12 UMETA(DisplayName = "Weighted Subtract", ToolTip="A - (B * Weight)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	Lerp             = 13 UMETA(DisplayName = "Lerp", ToolTip="Lerp(A, B, Weight)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	UnsignedMin      = 14 UMETA(DisplayName = "Unsigned Min", ToolTip="Min(A, B) * Sign", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	UnsignedMax      = 15 UMETA(DisplayName = "Unsigned Max", ToolTip="Max(A, B) * Sign", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	AbsoluteMin      = 16 UMETA(DisplayName = "Absolute Min", ToolTip="+Min(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	AbsoluteMax      = 17 UMETA(DisplayName = "Absolute Max", ToolTip="+Max(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	Hash             = 18 UMETA(DisplayName = "Hash", ToolTip="Hash(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%"),
-	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%")
-};
-
-#define PCGEX_FOREACH_PROXYBLENDMODE(MACRO)\
-MACRO(None) \
-MACRO(Average) \
-MACRO(Weight) \
-MACRO(Multiply) \
-MACRO(Divide) \
-MACRO(Min) \
-MACRO(Max) \
-MACRO(CopyTarget) \
-MACRO(CopySource) \
-MACRO(Add) \
-MACRO(Subtract) \
-MACRO(WeightedAdd) \
-MACRO(WeightedSubtract) \
-MACRO(Lerp) \
-MACRO(UnsignedMin) \
-MACRO(UnsignedMax) \
-MACRO(AbsoluteMin) \
-MACRO(AbsoluteMax) \
-MACRO(Hash) \
-MACRO(UnsignedHash) \
-MACRO(Mod) \
-MACRO(ModCW)
-
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	const FName SourceOverridesBlendingOps = TEXT("Overrides : Blending");
 
 	const FName SourceBlendingLabel = TEXT("Blend Ops");
 	const FName OutputBlendingLabel = TEXT("Blend Op");
+
+	PCGEXTENDEDTOOLKIT_API void ConvertBlending(const EPCGExBlendingType From, EPCGExABBlendingType& OutTo);
 
 	PCGEXTENDEDTOOLKIT_API void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface = EPCGExBlendingInterface::Individual);
 
@@ -173,7 +185,7 @@ namespace PCGExDataBlending
 		void Select(const FPCGAttributeIdentifier& InIdentifier);
 
 		// Conversion from old blendmode to extended list
-		void SetBlending(EPCGExDataBlendingType InBlending);
+		void SetBlending(EPCGExBlendingType InBlending);
 	};
 }
 
@@ -186,7 +198,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendToTargetDetails : public FPCGE
 
 	/** BlendMode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Source"))
-	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType Blending = EPCGExBlendingType::None;
 };
 
 USTRUCT(BlueprintType)
@@ -200,55 +212,55 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 	bool bOverrideDensity = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Density", EditCondition="bOverrideDensity"))
-	EPCGExDataBlendingType DensityBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType DensityBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideBoundsMin = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMin", EditCondition="bOverrideBoundsMin"))
-	EPCGExDataBlendingType BoundsMinBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType BoundsMinBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideBoundsMax = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMax", EditCondition="bOverrideBoundsMax"))
-	EPCGExDataBlendingType BoundsMaxBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType BoundsMaxBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideColor = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Color", EditCondition="bOverrideColor"))
-	EPCGExDataBlendingType ColorBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType ColorBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverridePosition = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Position", EditCondition="bOverridePosition"))
-	EPCGExDataBlendingType PositionBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType PositionBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideRotation = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Rotation", EditCondition="bOverrideRotation"))
-	EPCGExDataBlendingType RotationBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType RotationBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideScale = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Scale", EditCondition="bOverrideScale"))
-	EPCGExDataBlendingType ScaleBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType ScaleBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideSteepness = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Steepness", EditCondition="bOverrideSteepness"))
-	EPCGExDataBlendingType SteepnessBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType SteepnessBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideSeed = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Seed", EditCondition="bOverrideSeed"))
-	EPCGExDataBlendingType SeedBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType SeedBlending = EPCGExBlendingType::Average;
 
 #pragma endregion
 };
@@ -259,38 +271,38 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingDetails
 	GENERATED_BODY()
 
 	FPCGExPropertiesBlendingDetails() = default;
-	explicit FPCGExPropertiesBlendingDetails(const EPCGExDataBlendingType InDefaultBlending);
+	explicit FPCGExPropertiesBlendingDetails(const EPCGExBlendingType InDefaultBlending);
 
-	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType DefaultBlending = EPCGExBlendingType::Average;
 
 #pragma region Property overrides
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Density"))
-	EPCGExDataBlendingType DensityBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType DensityBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMin"))
-	EPCGExDataBlendingType BoundsMinBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType BoundsMinBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMax"))
-	EPCGExDataBlendingType BoundsMaxBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType BoundsMaxBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Color"))
-	EPCGExDataBlendingType ColorBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType ColorBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Position"))
-	EPCGExDataBlendingType PositionBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType PositionBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Rotation"))
-	EPCGExDataBlendingType RotationBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType RotationBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Scale"))
-	EPCGExDataBlendingType ScaleBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType ScaleBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Steepness"))
-	EPCGExDataBlendingType SteepnessBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType SteepnessBlending = EPCGExBlendingType::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Seed"))
-	EPCGExDataBlendingType SeedBlending = EPCGExDataBlendingType::None;
+	EPCGExBlendingType SeedBlending = EPCGExBlendingType::None;
 
 #pragma endregion
 };
@@ -302,8 +314,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 
 	FPCGExBlendingDetails() = default;
 
-	explicit FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending);
-	explicit FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending, const EPCGExDataBlendingType InPositionBlending);
+	explicit FPCGExBlendingDetails(const EPCGExBlendingType InDefaultBlending);
+	explicit FPCGExBlendingDetails(const EPCGExBlendingType InDefaultBlending, const EPCGExBlendingType InPositionBlending);
 	explicit FPCGExBlendingDetails(const FPCGExPropertiesBlendingDetails& InDetails);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -313,38 +325,38 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	TArray<FName> FilteredAttributes;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
+	EPCGExBlendingType DefaultBlending = EPCGExBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExPointPropertyBlendingOverrides PropertiesOverrides;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
+	TMap<FName, EPCGExBlendingType> AttributesOverrides;
 
 	FPCGExPropertiesBlendingDetails GetPropertiesBlendingDetails() const;
 
 	bool CanBlend(const FName AttributeName) const;
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const;
 
-	bool GetBlendingParam(const FPCGAttributeIdentifier& InIdentifer, PCGExDataBlending::FBlendingParam& OutParam) const;
-	void GetPointPropertyBlendingParams(TArray<PCGExDataBlending::FBlendingParam>& OutParams) const;
+	bool GetBlendingParam(const FPCGAttributeIdentifier& InIdentifer, PCGExBlending::FBlendingParam& OutParam) const;
+	void GetPointPropertyBlendingParams(TArray<PCGExBlending::FBlendingParam>& OutParams) const;
 
 	// Create a list of attributes & property selector representing the data we want to blend
 	// Takes the reference list from source, 
-	void GetBlendingParams(const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata, TArray<PCGExDataBlending::FBlendingParam>& OutParams, TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers, const bool bSkipProperties = false, const TSet<FName>* IgnoreAttributeSet = nullptr) const;
+	void GetBlendingParams(const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata, TArray<PCGExBlending::FBlendingParam>& OutParams, TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers, const bool bSkipProperties = false, const TSet<FName>* IgnoreAttributeSet = nullptr) const;
 
 	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TSet<FName>* IgnoredAttributes = nullptr) const;
 };
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
-	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExBlendingType>& PerAttributeBlending, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExBlendingType>& PerAttributeBlending, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const EPCGExDataBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const EPCGExBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const EPCGExDataBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXTENDEDTOOLKIT_API void AssembleBlendingDetails(const EPCGExBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
 	PCGEXTENDEDTOOLKIT_API void GetFilteredIdentities(const UPCGMetadata* InMetadata, TArray<PCGEx::FAttributeIdentity>& OutIdentities, const FPCGExBlendingDetails* InBlendingDetails = nullptr, const FPCGExCarryOverDetails* InCarryOverDetails = nullptr, const TSet<FName>* IgnoreAttributeSet = nullptr);
 }

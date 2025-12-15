@@ -4,6 +4,7 @@
 #pragma once
 
 #include "PCGExTypeOps.h"
+#include "Details/PCGExDetailsAxis.h"
 #include "UObject/SoftObjectPath.h"
 
 /**
@@ -15,16 +16,15 @@ namespace PCGExTypeOps
 {
 	// String Type Operations - FString
 
-	template<>
+	template <>
 	struct FTypeOps<FString>
 	{
 		using Type = FString;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::String;
 
 		static FORCEINLINE Type GetDefault() { return Type(); }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value.ToBool(); }
@@ -32,12 +32,42 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TTo, int64>) { return FCString::Atoi64(*Value); }
 			else if constexpr (std::is_same_v<TTo, float>) { return FCString::Atof(*Value); }
 			else if constexpr (std::is_same_v<TTo, double>) { return FCString::Atod(*Value); }
-			else if constexpr (std::is_same_v<TTo, FVector2D>) { FVector2D Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TTo, FVector>) { FVector Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TTo, FVector4>) { FVector4 Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TTo, FQuat>) { FQuat Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TTo, FRotator>) { FRotator Result; Result.InitFromString(Value); return Result; }
-			else if constexpr (std::is_same_v<TTo, FTransform>) { FTransform Result; Result.InitFromString(Value); return Result; }
+			else if constexpr (std::is_same_v<TTo, FVector2D>)
+			{
+				FVector2D Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FVector>)
+			{
+				FVector Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FVector4>)
+			{
+				FVector4 Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FQuat>)
+			{
+				FQuat Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FRotator>)
+			{
+				FRotator Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FTransform>)
+			{
+				FTransform Result;
+				Result.InitFromString(Value);
+				return Result;
+			}
 			else if constexpr (std::is_same_v<TTo, FString>) { return Value; }
 			else if constexpr (std::is_same_v<TTo, FName>) { return FName(*Value); }
 			else if constexpr (std::is_same_v<TTo, FSoftObjectPath>) { return FSoftObjectPath(Value); }
@@ -45,7 +75,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Value ? TEXT("true") : TEXT("false"); }
@@ -83,38 +113,43 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) { return Max(A, B); }
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return Min(A, B); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return Max(A, B); }
-		
+
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			return FString::Printf(TEXT("%u"), HashCombine(GetTypeHash(A), GetTypeHash(B)));
 		}
-		
+
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			const Type MinS = A < B ? A : B;
 			const Type MaxS = A >= B ? A : B;
 			return FString::Printf(TEXT("%u"), HashCombine(GetTypeHash(MinS), GetTypeHash(MaxS)));
 		}
-		
+
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
-		
+
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+		}
 	};
 
 	// Name Type Operations - FName
 
-	template<>
+	template <>
 	struct FTypeOps<FName>
 	{
 		using Type = FName;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::Name;
 
 		static FORCEINLINE Type GetDefault() { return NAME_None; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return !Value.IsNone(); }
@@ -122,12 +157,42 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TTo, int64>) { return FCString::Atoi64(*Value.ToString()); }
 			else if constexpr (std::is_same_v<TTo, float>) { return FCString::Atof(*Value.ToString()); }
 			else if constexpr (std::is_same_v<TTo, double>) { return FCString::Atod(*Value.ToString()); }
-			else if constexpr (std::is_same_v<TTo, FVector2D>) { FVector2D Result; Result.InitFromString(Value.ToString()); return Result; }
-			else if constexpr (std::is_same_v<TTo, FVector>) { FVector Result; Result.InitFromString(Value.ToString()); return Result; }
-			else if constexpr (std::is_same_v<TTo, FVector4>) { FVector4 Result; Result.InitFromString(Value.ToString()); return Result; }
-			else if constexpr (std::is_same_v<TTo, FQuat>) { FQuat Result; Result.InitFromString(Value.ToString()); return Result; }
-			else if constexpr (std::is_same_v<TTo, FRotator>) { FRotator Result; Result.InitFromString(Value.ToString()); return Result; }
-			else if constexpr (std::is_same_v<TTo, FTransform>) { FTransform Result; Result.InitFromString(Value.ToString()); return Result; }
+			else if constexpr (std::is_same_v<TTo, FVector2D>)
+			{
+				FVector2D Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FVector>)
+			{
+				FVector Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FVector4>)
+			{
+				FVector4 Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FQuat>)
+			{
+				FQuat Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FRotator>)
+			{
+				FRotator Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
+			else if constexpr (std::is_same_v<TTo, FTransform>)
+			{
+				FTransform Result;
+				Result.InitFromString(Value.ToString());
+				return Result;
+			}
 			else if constexpr (std::is_same_v<TTo, FString>) { return Value.ToString(); }
 			else if constexpr (std::is_same_v<TTo, FName>) { return Value; }
 			else if constexpr (std::is_same_v<TTo, FSoftObjectPath>) { return FSoftObjectPath(Value.ToString()); }
@@ -135,7 +200,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return FName(Value ? TEXT("true") : TEXT("false")); }
@@ -173,38 +238,43 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) { return Max(A, B); }
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return Min(A, B); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return Max(A, B); }
-		
+
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			return FName(*FString::Printf(TEXT("%u"), HashCombine(GetTypeHash(A), GetTypeHash(B))));
 		}
-		
+
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			const Type MinN = A.Compare(B) <= 0 ? A : B;
 			const Type MaxN = A.Compare(B) > 0 ? A : B;
 			return FName(*FString::Printf(TEXT("%u"), HashCombine(GetTypeHash(MinN), GetTypeHash(MaxN))));
 		}
-		
+
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
-		
+
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+		}
 	};
 
 	// Path Type Operations - FSoftObjectPath
 
-	template<>
+	template <>
 	struct FTypeOps<FSoftObjectPath>
 	{
 		using Type = FSoftObjectPath;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::SoftObjectPath;
 
 		static FORCEINLINE Type GetDefault() { return Type(); }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value.IsValid(); }
@@ -225,7 +295,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Type(); }
@@ -268,22 +338,27 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
-		
+
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+		}
 	};
 
 	// Path Type Operations - FSoftClassPath
 
-	template<>
+	template <>
 	struct FTypeOps<FSoftClassPath>
 	{
 		using Type = FSoftClassPath;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::SoftClassPath;
 
 		static FORCEINLINE Type GetDefault() { return Type(); }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value.IsValid(); }
@@ -304,7 +379,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Type(); }
@@ -347,8 +422,13 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W < 0.5 ? A : B; }
-		
-		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
-	};
 
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+		}
+	};
 }

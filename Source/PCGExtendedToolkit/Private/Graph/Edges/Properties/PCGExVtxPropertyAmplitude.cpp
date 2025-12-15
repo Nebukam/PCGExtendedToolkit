@@ -6,12 +6,13 @@
 #include "PCGExMath.h"
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
-#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExCluster.h"
 
 
 #include "Sampling/PCGExSampling.h"
+#include "Types/PCGExTypeOpsNumeric.h"
+#include "Types/PCGExTypeOpsVector.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyAmplitude"
@@ -121,8 +122,8 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 		MaxSize = FMath::Max(MaxSize, (Sizes[i] = bUseSize ? A.Length : 1));
 
 		AverageDirection += A.Direction;
-		MinAmplitude = PCGExDataBlending::BlendFunctions::Min(DirAndSize, MinAmplitude, 1);
-		MaxAmplitude = PCGExDataBlending::BlendFunctions::Max(DirAndSize, MaxAmplitude, 1);
+		MinAmplitude = PCGExTypeOps::FTypeOps<FVector>::Min(DirAndSize, MinAmplitude);
+		MaxAmplitude = PCGExTypeOps::FTypeOps<FVector>::Max(DirAndSize, MaxAmplitude);
 	}
 
 	const FVector AmplitudeRange = MaxAmplitude - MinAmplitude;

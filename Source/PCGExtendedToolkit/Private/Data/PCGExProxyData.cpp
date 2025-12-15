@@ -3,11 +3,13 @@
 
 #include "Data/PCGExProxyData.h"
 
+#include "PCGExHelpers.h"
 #include "PCGExTypes.h"
-#include "details/PCGExMacros.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExPointElements.h"
+#include "Data/PCGPointArrayData.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {
@@ -20,13 +22,9 @@ namespace PCGExData
 
 	bool FProxyDescriptor::SetFieldIndex(const int32 InFieldIndex)
 	{
-		if (SubSelection.SetFieldIndex(InFieldIndex))
-		{
-			WorkingType = EPCGMetadataTypes::Double;
-			return true;
-		}
-
-		return false;
+		if (!SubSelection.SetFieldIndex(InFieldIndex)) { return false; }
+		UpdateSubSelection();
+		return true;
 	}
 
 	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FString& Path, const EIOSide InSide, const bool bRequired)
@@ -128,458 +126,654 @@ namespace PCGExData
 
 #pragma endregion
 
-#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) _TYPE IBufferProxy::ReadAs##_NAME(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(ReadAs##_NAME, _TYPE{})
+#pragma region IBufferProxy
 
 	IBufferProxy::IBufferProxy(EPCGMetadataTypes InRealType, EPCGMetadataTypes InWorkingType)
-		: RealType(InRealType),
-		  WorkingType(InWorkingType),
-		  WorkingToReal(PCGExTypeOps::FConversionTable::GetConversionFn(WorkingType, RealType)),
-		  RealToWorking(PCGExTypeOps::FConversionTable::GetConversionFn(RealType, WorkingType))
+		: RealType(InRealType)
+		  , WorkingType(InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType)
+		  , WorkingToReal(PCGExTypeOps::FConversionTable::GetConversionFn(InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType, InRealType))
+		  , RealToWorking(PCGExTypeOps::FConversionTable::GetConversionFn(InRealType, InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType))
 	{
+		// Get type ops from registry
+		RealOps = PCGExTypeOps::FTypeOpsRegistry::Get(RealType);
+		WorkingOps = PCGExTypeOps::FTypeOpsRegistry::Get(WorkingType);
+
+		// Cache whether working type needs lifecycle management
+		bWorkingTypeNeedsLifecycle = TypeTraits::NeedsLifecycleManagement(WorkingType);
+	}
+
+	bool IBufferProxy::Validate(const FProxyDescriptor& InDescriptor) const
+	{
+		return RealType == InDescriptor.RealType && WorkingType == InDescriptor.WorkingType;
 	}
 
 	void IBufferProxy::SetSubSelection(const PCGEx::FSubSelection& InSubSelection)
 	{
-		SubSelection = InSubSelection;
-		bWantsSubSelection = SubSelection.bIsValid;
+		bWantsSubSelection = InSubSelection.bIsValid;
+		if (bWantsSubSelection) { CachedSubSelection.Initialize(InSubSelection, RealType, WorkingType); }
 	}
 
 	void IBufferProxy::InitForRole(EProxyRole InRole)
 	{
+		// Default: no-op. Override in property proxies.
 	}
 
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
-#undef PCGEX_CONVERTING_READ
+	// Converting read implementations - Now using FScopedTypedValue for safety
+#define PCGEX_CONVERTING_READ_IMPL(_TYPE, _NAME, ...) \
+	_TYPE IBufferProxy::ReadAs##_NAME(const int32 Index) const \
+	{ \
+		PCGExTypes::FScopedTypedValue WorkingValue(WorkingType); \
+		GetVoid(Index, WorkingValue.GetRaw()); \
+		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeTraits<_TYPE>::Type; \
+		if (TargetType == WorkingType) \
+		{ \
+			if constexpr (TypeTraits::TIsComplexType<_TYPE>) \
+			{ \
+				return WorkingValue.As<_TYPE>(); \
+			} \
+			else \
+			{ \
+				return *reinterpret_cast<const _TYPE*>(WorkingValue.GetRaw()); \
+			} \
+		} \
+		_TYPE Result{}; \
+		if (WorkingOps) { WorkingOps->ConvertTo(WorkingValue.GetRaw(), TargetType, &Result); } \
+		return Result; \
+	}
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ_IMPL)
+#undef PCGEX_CONVERTING_READ_IMPL
 
-	template <typename T_WORKING>
-	TBufferProxy<T_WORKING>::TBufferProxy(EPCGMetadataTypes InRealType)
-		: IBufferProxy(InRealType, PCGEx::GetMetadataType<T_WORKING>())
+#pragma endregion
+
+#pragma region TAttributeBufferProxy
+
+	template <typename T_REAL>
+	TAttributeBufferProxy<T_REAL>::TAttributeBufferProxy(EPCGMetadataTypes InWorkingType)
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
-#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) template <typename T_WORKING> _TYPE TBufferProxy<T_WORKING>::ReadAs##_NAME(const int32 Index) const { \
-if constexpr (std::is_same_v<_TYPE, T_WORKING>) { return Get(Index); } \
-else { return PCGExTypes::Convert<T_WORKING, _TYPE>(Get(Index)); }}
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
-
-	template <typename T_WORKING>
-	PCGExValueHash TBufferProxy<T_WORKING>::ReadValueHash(const int32 Index)
+	template <typename T_REAL>
+	void TAttributeBufferProxy<T_REAL>::GetVoid(const int32 Index, void* OutValue) const
 	{
-		return PCGExTypes::ComputeHash(Get(Index));
+		check(Buffer);
+		const T_REAL& RealValue = Buffer->Read(Index);
+
+		if (bWantsSubSelection)
+		{
+			// Use type-erased sub-selection extraction
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			// Use direct conversion function
+			if (RealToWorking)
+			{
+				RealToWorking(&RealValue, OutValue);
+			}
+		}
+		else
+		{
+			// Same type - direct copy
+			// For complex types, this needs proper assignment
+			if constexpr (TypeTraits::TIsComplexType<T_REAL>)
+			{
+				*static_cast<T_REAL*>(OutValue) = RealValue;
+			}
+			else
+			{
+				// POD - can use raw copy
+				*static_cast<T_REAL*>(OutValue) = RealValue;
+			}
+		}
 	}
-#undef PCGEX_CONVERTING_READ
 
-#pragma region externalization TBufferProxy
+	template <typename T_REAL>
+	void TAttributeBufferProxy<T_REAL>::SetVoid(const int32 Index, const void* Value) const
+	{
+		check(Buffer);
 
-#define PCGEX_TPL(_TYPE, _NAME, ...) template class PCGEXTENDEDTOOLKIT_API TBufferProxy<_TYPE>;
+		if (bWantsSubSelection)
+		{
+			// Read current value, apply sub-selection, write back
+			T_REAL RealValue = Buffer->GetValue(Index);
+			CachedSubSelection.ApplySet(&RealValue, Value);
+			Buffer->SetValue(Index, RealValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			// Use direct conversion function
+			T_REAL RealValue{};
+			if (WorkingToReal) { WorkingToReal(Value, &RealValue); }
+			Buffer->SetValue(Index, RealValue);
+		}
+		else
+		{
+			// Same type - direct set
+			Buffer->SetValue(Index, *static_cast<const T_REAL*>(Value));
+		}
+	}
+
+	template <typename T_REAL>
+	void TAttributeBufferProxy<T_REAL>::GetCurrentVoid(const int32 Index, void* OutValue) const
+	{
+		check(Buffer);
+		const T_REAL& RealValue = Buffer->GetValue(Index);
+
+		if (bWantsSubSelection)
+		{
+			// Use type-erased sub-selection extraction
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			if (RealToWorking)
+			{
+				RealToWorking(&RealValue, OutValue);
+			}
+		}
+		else
+		{
+			*static_cast<T_REAL*>(OutValue) = RealValue;
+		}
+	}
+
+	template <typename T_REAL>
+	TSharedPtr<IBuffer> TAttributeBufferProxy<T_REAL>::GetBuffer() const
+	{
+		return Buffer;
+	}
+
+	template <typename T_REAL>
+	bool TAttributeBufferProxy<T_REAL>::EnsureReadable() const
+	{
+		return Buffer && Buffer->EnsureReadable();
+	}
+
+	template <typename T_REAL>
+	PCGExValueHash TAttributeBufferProxy<T_REAL>::ReadValueHash(const int32 Index) const
+	{
+		check(Buffer);
+		return Buffer->ReadValueHash(Index);
+	}
+
+	// Explicit instantiations
+#define PCGEX_TPL(_TYPE, _NAME, ...) template class TAttributeBufferProxy<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
 
-	template <typename T_REAL, typename T_WORKING>
-	TAttributeBufferProxy<T_REAL, T_WORKING>::TAttributeBufferProxy()
-		: TBufferProxy<T_WORKING>(PCGEx::GetMetadataType<T_REAL>())
+#pragma region FPointPropertyProxy
+
+	FPointPropertyProxy::FPointPropertyProxy(EPCGPointProperties InProperty, EPCGMetadataTypes InWorkingType)
+		: IBufferProxy(PCGEx::GetPropertyType(InProperty), InWorkingType)
+		  , Property(InProperty)
+		  , PropertyRealType(PCGEx::GetPropertyType(InProperty))
 	{
 	}
 
-	template <typename T_REAL, typename T_WORKING>
-	T_WORKING TAttributeBufferProxy<T_REAL, T_WORKING>::Get(const int32 Index) const
+	void FPointPropertyProxy::GetPropertyValue(const int32 Index, void* OutValue) const
 	{
-		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
-		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->Read(Index); }
-			else
-			{
-				T_WORKING W;
-				RealToWorking(&Buffer->Read(Index), &W);
-				return W;
-			}
-		}
-		return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->Read(Index));
-	}
-
-	template <typename T_REAL, typename T_WORKING>
-	void TAttributeBufferProxy<T_REAL, T_WORKING>::Set(const int32 Index, const T_WORKING& Value) const
-	{
-		// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
-		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { Buffer->SetValue(Index, Value); }
-			else
-			{
-				T_REAL R;
-				WorkingToReal(&Value, &R);
-				Buffer->SetValue(Index, R);
-			}
-		}
-		else
-		{
-			T_REAL V = Buffer->GetValue(Index);
-			SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
-			Buffer->SetValue(Index, V);
-		}
-	}
-
-	template <typename T_REAL, typename T_WORKING>
-	T_WORKING TAttributeBufferProxy<T_REAL, T_WORKING>::GetCurrent(const int32 Index) const
-	{
-		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
-		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->GetValue(Index); }
-			else
-			{
-				T_WORKING W;
-				RealToWorking(&Buffer->GetValue(Index), &W);
-				return W;
-			}
-		}
-		return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetValue(Index));
-	}
-
-	template <typename T_REAL, typename T_WORKING>
-	TSharedPtr<IBuffer> TAttributeBufferProxy<T_REAL, T_WORKING>::GetBuffer() const { return Buffer; }
-
-	template <typename T_REAL, typename T_WORKING>
-	bool TAttributeBufferProxy<T_REAL, T_WORKING>::EnsureReadable() const { return Buffer->EnsureReadable(); }
-
-#pragma region externalization TAttributeBufferProxy
-
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) template class PCGEXTENDEDTOOLKIT_API TAttributeBufferProxy<_TYPE_A, _TYPE_B>;
-	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
-#undef PCGEX_TPL
-
-#pragma endregion
-
-#pragma region PointProperty macros
-
-
-#define PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
-if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ MACRO(GetDensity(), float) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ MACRO(GetBoundsMin(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ MACRO(GetBoundsMax(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ MACRO(GetExtents(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ MACRO(GetColor(), FVector4) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ MACRO(GetLocation(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ MACRO(GetRotation(), FQuat) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ MACRO(GetScale3D(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ MACRO(GetTransform(), FTransform) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ MACRO(GetSteepness(), float) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ MACRO(GetLocalCenter(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ MACRO(GetSeed(), int32) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ MACRO(GetLocalSize(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(), FVector) }
-
-#define PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(constexpr, _PROPERTY, MACRO)
-#define PCGEX_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, MACRO)
-
-#define PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
-if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ Point.SetDensity(MACRO(float)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ Point.SetBoundsMin(MACRO(FVector)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ Point.SetBoundsMax(MACRO(FVector)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ Point.SetExtents(MACRO(FVector)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ Point.SetColor(MACRO(FVector4)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ Point.SetLocation(MACRO(FVector)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ Point.SetRotation(MACRO(FQuat)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ Point.SetScale3D(MACRO(FVector)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ Point.SetTransform(MACRO(FTransform)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ Point.SetSteepness(MACRO(float)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ Point.SetLocalCenter(MACRO(FVector)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ Point.SetSeed(MACRO(int32)); }\
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ /* TODO */  } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ /* TODO */ }
-
-#define PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(_PROPERTY, BODY, MACRO) PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(constexpr, _PROPERTY, MACRO)
-#define PCGEX_IFELSE_SETPOINTPROPERTY(_PROPERTY, BODY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, MACRO)
-
-#pragma endregion
-
-	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
-	TPointPropertyProxy<T_REAL, T_WORKING, PROPERTY>::TPointPropertyProxy()
-		: TBufferProxy<T_WORKING>(PCGEx::GetMetadataType<T_REAL>())
-	{
-	}
-
-	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
-	T_WORKING TPointPropertyProxy<T_REAL, T_WORKING, PROPERTY>::Get(const int32 Index) const
-	{
+		check(Data);
 		const FConstPoint Point(Data, Index);
 
-#define PCGEX_GET_SUBPROPERTY(_ACCESSOR, _TYPE) \
-if (!bWantsSubSelection){ \
-if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Point._ACCESSOR; }\
-else{ const T_REAL R = Point._ACCESSOR; T_WORKING W; RealToWorking(&R, &W); return W; }\
-}else{ return SubSelection.template Get<T_REAL, T_WORKING>(Point._ACCESSOR); }
-
-		PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_SUBPROPERTY)
-#undef PCGEX_GET_SUBPROPERTY
-		else { return T_WORKING{}; }
+		switch (Property)
+		{
+		case EPCGPointProperties::Density: *static_cast<float*>(OutValue) = Point.GetDensity();
+			break;
+		case EPCGPointProperties::BoundsMin: *static_cast<FVector*>(OutValue) = Point.GetBoundsMin();
+			break;
+		case EPCGPointProperties::BoundsMax: *static_cast<FVector*>(OutValue) = Point.GetBoundsMax();
+			break;
+		case EPCGPointProperties::Extents: *static_cast<FVector*>(OutValue) = Point.GetExtents();
+			break;
+		case EPCGPointProperties::Color: *static_cast<FVector4*>(OutValue) = Point.GetColor();
+			break;
+		case EPCGPointProperties::Position: *static_cast<FVector*>(OutValue) = Point.GetLocation();
+			break;
+		case EPCGPointProperties::Rotation: *static_cast<FQuat*>(OutValue) = Point.GetRotation();
+			break;
+		case EPCGPointProperties::Scale: *static_cast<FVector*>(OutValue) = Point.GetScale3D();
+			break;
+		case EPCGPointProperties::Transform: *static_cast<FTransform*>(OutValue) = Point.GetTransform();
+			break;
+		case EPCGPointProperties::Steepness: *static_cast<float*>(OutValue) = Point.GetSteepness();
+			break;
+		case EPCGPointProperties::LocalCenter: *static_cast<FVector*>(OutValue) = Point.GetLocalCenter();
+			break;
+		case EPCGPointProperties::LocalSize: *static_cast<FVector*>(OutValue) = Point.GetLocalSize();
+			break;
+		case EPCGPointProperties::ScaledLocalSize: *static_cast<FVector*>(OutValue) = Point.GetScaledLocalSize();
+			break;
+		case EPCGPointProperties::Seed: *static_cast<int32*>(OutValue) = Point.GetSeed();
+			break;
+		default: break;
+		}
 	}
 
-	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
-	void TPointPropertyProxy<T_REAL, T_WORKING, PROPERTY>::Set(const int32 Index, const T_WORKING& Value) const
+	void FPointPropertyProxy::SetPropertyValue(const int32 Index, const void* Value) const
 	{
+		check(Data);
 		FMutablePoint Point(Data, Index);
 
-		if (!bWantsSubSelection)
+		switch (Property)
 		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>)
+		case EPCGPointProperties::Density: Point.SetDensity(*static_cast<const float*>(Value));
+			break;
+		case EPCGPointProperties::BoundsMin: Point.SetBoundsMin(*static_cast<const FVector*>(Value));
+			break;
+		case EPCGPointProperties::BoundsMax: Point.SetBoundsMax(*static_cast<const FVector*>(Value));
+			break;
+		case EPCGPointProperties::Extents: Point.SetExtents(*static_cast<const FVector*>(Value));
+			break;
+		case EPCGPointProperties::Color: Point.SetColor(*static_cast<const FVector4*>(Value));
+			break;
+		case EPCGPointProperties::Position: Point.SetLocation(*static_cast<const FVector*>(Value));
+			break;
+		case EPCGPointProperties::Rotation: Point.SetRotation(*static_cast<const FQuat*>(Value));
+			break;
+		case EPCGPointProperties::Scale: Point.SetScale3D(*static_cast<const FVector*>(Value));
+			break;
+		case EPCGPointProperties::Transform: Point.SetTransform(*static_cast<const FTransform*>(Value));
+			break;
+		case EPCGPointProperties::Steepness: Point.SetSteepness(*static_cast<const float*>(Value));
+			break;
+		case EPCGPointProperties::Seed: Point.SetSeed(*static_cast<const int32*>(Value));
+			break;
+		default: break;
+		}
+	}
+
+	void FPointPropertyProxy::GetVoid(const int32 Index, void* OutValue) const
+	{
+		if (bWantsSubSelection)
+		{
+			// Need temporary storage for the property value
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
+			GetPropertyValue(Index, PropValue.GetRaw());
+			CachedSubSelection.ApplyGet(PropValue.GetRaw(), OutValue);
+		}
+		else if (PropertyRealType != WorkingType)
+		{
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
+			GetPropertyValue(Index, PropValue.GetRaw());
+			if (RealToWorking)
 			{
-#define PCGEX_PROPERTY_VALUE(_TYPE) Value
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
-#undef PCGEX_PROPERTY_VALUE
-			}
-			else
-			{
-				T_REAL R;
-				WorkingToReal(&Value, &R);
-#define PCGEX_PROPERTY_VALUE(_TYPE) R
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
-#undef PCGEX_PROPERTY_VALUE
+				RealToWorking(PropValue.GetRaw(), OutValue);
 			}
 		}
 		else
 		{
-			T_REAL R = T_REAL{};
-#define PCGEX_GET_REAL(_ACCESSOR, _TYPE) R = Point._ACCESSOR;
-			PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_REAL)
-#undef PCGEX_GET_REAL
-
-			SubSelection.template Set<T_REAL, T_WORKING>(R, Value);
-
-#define PCGEX_PROPERTY_VALUE(_TYPE) R
-			PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
-#undef PCGEX_PROPERTY_VALUE
+			GetPropertyValue(Index, OutValue);
 		}
 	}
 
-#pragma region externalization TPointPropertyProxy
-
-#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY) template class PCGEXTENDEDTOOLKIT_API TPointPropertyProxy<_REALTYPE, _TYPE, _PROPERTY>;
-#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE, _NATIVETYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
-
-	PCGEX_FOREACH_POINTPROPERTY(PCGEX_TPL_LOOP)
-
-#undef PCGEX_TPL_LOOP
-#undef PCGEX_TPL
-
-#pragma endregion
-
-	template <typename T_REAL, typename T_WORKING, EPCGExtraProperties PROPERTY>
-	TPointExtraPropertyProxy<T_REAL, T_WORKING, PROPERTY>::TPointExtraPropertyProxy()
-		: TBufferProxy<T_WORKING>(PCGEx::GetMetadataType<T_REAL>())
+	void FPointPropertyProxy::SetVoid(const int32 Index, const void* Value) const
 	{
-	}
-
-	template <typename T_REAL, typename T_WORKING, EPCGExtraProperties PROPERTY>
-	T_WORKING TPointExtraPropertyProxy<T_REAL, T_WORKING, PROPERTY>::Get(const int32 Index) const
-	{
-		if constexpr (PROPERTY == EPCGExtraProperties::Index)
+		if (bWantsSubSelection)
 		{
-			T_WORKING W;
-			RealToWorking(&Index, &W);
-			return W;
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
+			GetPropertyValue(Index, PropValue.GetRaw());
+			CachedSubSelection.ApplySet(PropValue.GetRaw(), Value);
+			SetPropertyValue(Index, PropValue.GetRaw());
 		}
-		else { return T_WORKING{}; }
+		else if (PropertyRealType != WorkingType)
+		{
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
+			if (WorkingToReal)
+			{
+				WorkingToReal(Value, PropValue.GetRaw());
+			}
+			SetPropertyValue(Index, PropValue.GetRaw());
+		}
+		else
+		{
+			SetPropertyValue(Index, Value);
+		}
 	}
 
-#pragma region externalization TPointExtraPropertyProxy
+	void FPointPropertyProxy::InitForRole(EProxyRole InRole)
+	{
+		if (InRole == EProxyRole::Write && Data)
+		{
+			// Allocate property for writing
+			if (UPCGPointArrayData* PointData = Cast<UPCGPointArrayData>(Data))
+			{
+				PointData->AllocateProperties(PCGEx::GetPropertyNativeTypes(Property));
+			}
+		}
+	}
 
-#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY) template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE, _PROPERTY>;
-#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
-
-	PCGEX_FOREACH_EXTRAPROPERTY(PCGEX_TPL_LOOP)
-
-#undef PCGEX_TPL_LOOP
-#undef PCGEX_TPL
+	PCGExValueHash FPointPropertyProxy::ReadValueHash(const int32 Index) const
+	{
+		PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
+		GetPropertyValue(Index, PropValue.GetRaw());
+		return RealOps ? RealOps->ComputeHash(PropValue.GetRaw()) : 0;
+	}
 
 #pragma endregion
 
-	template <typename T_WORKING>
-	TConstantProxy<T_WORKING>::TConstantProxy()
-		: TBufferProxy<T_WORKING>(PCGEx::GetMetadataType<T_WORKING>())
+#pragma region FPointExtraPropertyProxy
+
+	FPointExtraPropertyProxy::FPointExtraPropertyProxy(EPCGExtraProperties InProperty, EPCGMetadataTypes InWorkingType)
+		: IBufferProxy(GetPropertyType(InProperty), InWorkingType)
+		  , Property(InProperty)
 	{
 	}
 
-	template <typename T_WORKING>
+	EPCGMetadataTypes FPointExtraPropertyProxy::GetPropertyType(EPCGExtraProperties InProperty)
+	{
+		switch (InProperty)
+		{
+		case EPCGExtraProperties::Index: return EPCGMetadataTypes::Integer32;
+		default: return EPCGMetadataTypes::Unknown;
+		}
+	}
+
+	void FPointExtraPropertyProxy::GetVoid(const int32 Index, void* OutValue) const
+	{
+		int32 Value = 0;
+		switch (Property)
+		{
+		case EPCGExtraProperties::Index: Value = Index;
+			break;
+		default: break;
+		}
+
+		if (WorkingType == EPCGMetadataTypes::Integer32)
+		{
+			*static_cast<int32*>(OutValue) = Value;
+		}
+		else
+		{
+			// Convert int32 to working type
+			const PCGExTypeOps::ITypeOpsBase* Int32Ops = PCGExTypeOps::FTypeOpsRegistry::Get(EPCGMetadataTypes::Integer32);
+			if (Int32Ops)
+			{
+				Int32Ops->ConvertTo(&Value, WorkingType, OutValue);
+			}
+		}
+	}
+
+	PCGExValueHash FPointExtraPropertyProxy::ReadValueHash(const int32 Index) const
+	{
+		int32 Value = 0;
+		switch (Property)
+		{
+		case EPCGExtraProperties::Index: Value = Index;
+			break;
+		default: break;
+		}
+		return PCGExTypes::ComputeHash(Value);
+	}
+
+#pragma endregion
+
+#pragma region TConstantProxy
+
+	template <typename T_CONST>
+	TConstantProxy<T_CONST>::TConstantProxy()
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_CONST>::Type, PCGExTypeOps::TTypeTraits<T_CONST>::Type)
+	{
+	}
+
+	template <typename T_CONST>
 	template <typename T>
-	void TConstantProxy<T_WORKING>::SetConstant(const T& InValue) { Constant = PCGExTypes::Convert<T, T_WORKING>(InValue); }
+	void TConstantProxy<T_CONST>::SetConstant(const T& InValue)
+	{
+		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeTraits<T>::Type;
+		constexpr EPCGMetadataTypes ConstType = PCGExTypeOps::TTypeTraits<T_CONST>::Type;
 
-#pragma region externalization TConstantProxy
+		if constexpr (std::is_same_v<T, T_CONST>)
+		{
+			Constant = InValue;
+		}
+		else
+		{
+			PCGExTypeOps::FConversionTable::Convert(SourceType, &InValue, ConstType, &Constant);
+		}
+	}
 
-#define PCGEX_TPL(_TYPE, _NAME, ...) template class PCGEXTENDEDTOOLKIT_API TConstantProxy<_TYPE>;
+	template <typename T_CONST>
+	void TConstantProxy<T_CONST>::GetVoid(const int32 Index, void* OutValue) const
+	{
+		if (bWantsSubSelection)
+		{
+			// Use type-erased sub-selection extraction
+			CachedSubSelection.ApplyGet(&Constant, OutValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			if (RealOps)
+			{
+				RealOps->ConvertTo(&Constant, WorkingType, OutValue);
+			}
+		}
+		else
+		{
+			*static_cast<T_CONST*>(OutValue) = Constant;
+		}
+	}
+
+	template <typename T_CONST>
+	bool TConstantProxy<T_CONST>::Validate(const FProxyDescriptor& InDescriptor) const
+	{
+		// Constants are more flexible with type matching
+		return true;
+	}
+
+	template <typename T_CONST>
+	PCGExValueHash TConstantProxy<T_CONST>::ReadValueHash(const int32 Index) const
+	{
+		return PCGExTypes::ComputeHash(Constant);
+	}
+
+	// Explicit instantiations
+#define PCGEX_TPL(_TYPE, _NAME, ...) template class TConstantProxy<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) template PCGEXTENDEDTOOLKIT_API void TConstantProxy<_TYPE_A>::SetConstant<_TYPE_B>(const _TYPE_B&);
+	// SetConstant cross-type instantiations
+#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
+	template void TConstantProxy<_TYPE_A>::SetConstant<_TYPE_B>(const _TYPE_B&);
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
 
-	template <typename T_REAL, typename T_WORKING>
-	TDirectAttributeProxy<T_REAL, T_WORKING>::TDirectAttributeProxy()
-		: TBufferProxy<T_WORKING>(PCGEx::GetMetadataType<T_REAL>())
+#pragma region TDirectAttributeProxy
+
+	template <typename T_REAL>
+	TDirectAttributeProxy<T_REAL>::TDirectAttributeProxy(EPCGMetadataTypes InWorkingType)
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
-	template <typename T_REAL, typename T_WORKING>
-	T_WORKING TDirectAttributeProxy<T_REAL, T_WORKING>::Get(const int32 Index) const
+	template <typename T_REAL>
+	void TDirectAttributeProxy<T_REAL>::GetVoid(const int32 Index, void* OutValue) const
 	{
-		const T_REAL R = InAttribute->GetValueFromItemKey(Data->GetMetadataEntry(Index));
+		check(InAttribute && Data);
 
-		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
+		const T_REAL& RealValue = InAttribute->GetValueFromItemKey(Data->GetMetadataEntry(Index));
+
+		if (bWantsSubSelection)
 		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return R; }
-			else
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			if (RealToWorking)
 			{
-				T_WORKING W;
-				RealToWorking(&R, &W);
-				return W;
+				RealToWorking(&RealValue, OutValue);
 			}
 		}
-		return SubSelection.template Get<T_REAL, T_WORKING>(R);
+		else
+		{
+			*static_cast<T_REAL*>(OutValue) = RealValue;
+		}
 	}
 
-	template <typename T_REAL, typename T_WORKING>
-	T_WORKING TDirectAttributeProxy<T_REAL, T_WORKING>::GetCurrent(const int32 Index) const
+	template <typename T_REAL>
+	void TDirectAttributeProxy<T_REAL>::GetCurrentVoid(const int32 Index, void* OutValue) const
 	{
-		const T_REAL R = OutAttribute->GetValueFromItemKey(Data->GetMetadataEntry(Index));
-		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
+		check(OutAttribute && Data);
+
+		const T_REAL& RealValue = OutAttribute->GetValueFromItemKey(Data->GetMetadataEntry(Index));
+
+		if (bWantsSubSelection)
 		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return R; }
-			else
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			if (RealToWorking)
 			{
-				T_WORKING W;
-				RealToWorking(&R, &W);
-				return W;
+				RealToWorking(&RealValue, OutValue);
 			}
 		}
-		return SubSelection.template Get<T_REAL, T_WORKING>(R);
+		else
+		{
+			*static_cast<T_REAL*>(OutValue) = RealValue;
+		}
 	}
 
-	template <typename T_REAL, typename T_WORKING>
-	void TDirectAttributeProxy<T_REAL, T_WORKING>::Set(const int32 Index, const T_WORKING& Value) const
+	template <typename T_REAL>
+	void TDirectAttributeProxy<T_REAL>::SetVoid(const int32 Index, const void* Value) const
 	{
+		check(OutAttribute && Data);
+
 		const int64 MetadataEntry = Data->GetMetadataEntry(Index);
-		// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
+
+		if (bWantsSubSelection)
 		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { OutAttribute->SetValue(MetadataEntry, Value); }
-			else
+			T_REAL RealValue = OutAttribute->GetValueFromItemKey(MetadataEntry);
+			CachedSubSelection.ApplySet(&RealValue, Value);
+			OutAttribute->SetValue(MetadataEntry, RealValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			T_REAL RealValue{};
+			if (WorkingToReal)
 			{
-				T_REAL R;
-				WorkingToReal(&Value, &R);
-				OutAttribute->SetValue(MetadataEntry, R);
+				WorkingToReal(Value, &RealValue);
 			}
+			OutAttribute->SetValue(MetadataEntry, RealValue);
 		}
 		else
 		{
-			T_REAL V = OutAttribute->GetValueFromItemKey(MetadataEntry);
-			SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
-			OutAttribute->SetValue(MetadataEntry, V);
+			OutAttribute->SetValue(MetadataEntry, *static_cast<const T_REAL*>(Value));
 		}
 	}
 
-#pragma region externalization TDirectAttributeProxy
+	template <typename T_REAL>
+	PCGExValueHash TDirectAttributeProxy<T_REAL>::ReadValueHash(const int32 Index) const
+	{
+		check(InAttribute && Data);
+		return PCGExTypes::ComputeHash(InAttribute->GetValueFromItemKey(Data->GetMetadataEntry(Index)));
+	}
 
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) template class PCGEXTENDEDTOOLKIT_API TDirectAttributeProxy<_TYPE_A, _TYPE_B>;
-	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+	// Explicit instantiations
+#define PCGEX_TPL(_TYPE, _NAME, ...) template class TDirectAttributeProxy<_TYPE>;
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
 
-	template <typename T_REAL, typename T_WORKING>
-	TDirectDataAttributeProxy<T_REAL, T_WORKING>::TDirectDataAttributeProxy()
-		: TBufferProxy<T_WORKING>(PCGEx::GetMetadataType<T_REAL>())
+#pragma region TDirectDataAttributeProxy
+
+	template <typename T_REAL>
+	TDirectDataAttributeProxy<T_REAL>::TDirectDataAttributeProxy(EPCGMetadataTypes InWorkingType)
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
-	template <typename T_REAL, typename T_WORKING>
-	T_WORKING TDirectDataAttributeProxy<T_REAL, T_WORKING>::Get(const int32 Index) const
+	template <typename T_REAL>
+	void TDirectDataAttributeProxy<T_REAL>::GetVoid(const int32 Index, void* OutValue) const
 	{
-		const T_REAL R = InAttribute->GetValueFromItemKey(PCGDefaultValueKey);
-		
-		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
+		check(InAttribute);
+
+		// Data-domain: always use default entry key
+		const T_REAL& RealValue = InAttribute->GetValueFromItemKey(PCGDefaultValueKey);
+
+		if (bWantsSubSelection)
 		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return R; }
-			else
-			{
-				T_WORKING W;
-				RealToWorking(&R, &W);
-				return W;
-			}
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
 		}
-		return SubSelection.template Get<T_REAL, T_WORKING>(R);
-	}
-
-	template <typename T_REAL, typename T_WORKING>
-	T_WORKING TDirectDataAttributeProxy<T_REAL, T_WORKING>::GetCurrent(const int32 Index) const
-	{
-		const T_REAL R = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
-		
-		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
+		else if (RealType != WorkingType)
 		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return R; }
-			else
+			if (RealToWorking)
 			{
-				T_WORKING W;
-				RealToWorking(&R, &W);
-				return W;
-			}
-		}
-		
-		return SubSelection.template Get<T_REAL, T_WORKING>(R);
-	}
-
-	template <typename T_REAL, typename T_WORKING>
-	void TDirectDataAttributeProxy<T_REAL, T_WORKING>::Set(const int32 Index, const T_WORKING& Value) const
-	{
-		// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
-		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
-		if (!bWantsSubSelection)
-		{
-			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { PCGExDataHelpers::SetDataValue(OutAttribute, Value); }
-			else
-			{
-				T_REAL R;
-				WorkingToReal(&Value, &R);
-				PCGExDataHelpers::SetDataValue(OutAttribute, R);
+				RealToWorking(&RealValue, OutValue);
 			}
 		}
 		else
 		{
-			T_REAL V = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
-			SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
-			PCGExDataHelpers::SetDataValue(OutAttribute, V);
+			*static_cast<T_REAL*>(OutValue) = RealValue;
 		}
 	}
 
-#pragma region externalization TDirectDataAttributeProxy
+	template <typename T_REAL>
+	void TDirectDataAttributeProxy<T_REAL>::GetCurrentVoid(const int32 Index, void* OutValue) const
+	{
+		check(OutAttribute);
 
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B>;
-	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+		const T_REAL& RealValue = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
+
+		if (bWantsSubSelection)
+		{
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			if (RealToWorking)
+			{
+				RealToWorking(&RealValue, OutValue);
+			}
+		}
+		else
+		{
+			*static_cast<T_REAL*>(OutValue) = RealValue;
+		}
+	}
+
+	template <typename T_REAL>
+	void TDirectDataAttributeProxy<T_REAL>::SetVoid(const int32 Index, const void* Value) const
+	{
+		check(OutAttribute);
+
+		if (bWantsSubSelection)
+		{
+			T_REAL RealValue = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
+			CachedSubSelection.ApplySet(&RealValue, Value);
+			OutAttribute->SetDefaultValue(RealValue);
+		}
+		else if (RealType != WorkingType)
+		{
+			T_REAL RealValue{};
+			if (WorkingToReal)
+			{
+				WorkingToReal(Value, &RealValue);
+			}
+			OutAttribute->SetDefaultValue(RealValue);
+		}
+		else
+		{
+			OutAttribute->SetDefaultValue(*static_cast<const T_REAL*>(Value));
+		}
+	}
+
+	template <typename T_REAL>
+	PCGExValueHash TDirectDataAttributeProxy<T_REAL>::ReadValueHash(const int32 Index) const
+	{
+		check(InAttribute);
+		return PCGExTypes::ComputeHash(InAttribute->GetValueFromItemKey(PCGDefaultValueKey));
+	}
+
+	// Explicit instantiations
+#define PCGEX_TPL(_TYPE, _NAME, ...) template class TDirectDataAttributeProxy<_TYPE>;
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-}
-
-#undef PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY
-#undef PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY
-#undef PCGEX_IFELSE_GETPOINTPROPERTY
-#undef PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY
-#undef PCGEX_IFELSE_SETPOINTPROPERTY
+} // namespace PCGExData

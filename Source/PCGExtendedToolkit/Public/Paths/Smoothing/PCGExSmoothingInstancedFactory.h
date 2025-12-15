@@ -27,7 +27,7 @@ public:
 
 protected:
 	TSharedPtr<PCGExData::FPointIO> Path;
-	TSharedPtr<PCGExDataBlending::IBlender> Blender;
+	TSharedPtr<PCGExBlending::IBlender> Blender;
 	bool bClosedLoop = false;
 };
 
