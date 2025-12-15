@@ -3,10 +3,11 @@
 
 #include "Data/PCGExDataValue.h"
 
-#include "PCGExBroadcast.h"
+#include "Types/PCGExBroadcast.h"
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {
@@ -38,7 +39,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE IDataValue::GetValue<_TYPE>();
 	TDataValue<T>::TDataValue(const T& InValue)
 		: IDataValue(), Value(InValue)
 	{
-		UnderlyingType = PCGEx::GetMetadataType<T>();
+		Type = PCGExTypeOps::TTypeTraits<T>::Type;
 	}
 
 	template <typename T>

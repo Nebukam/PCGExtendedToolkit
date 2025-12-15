@@ -304,8 +304,8 @@ namespace PCGExAttributeRemap
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 		int32 Dimensions = 0;
 
-		TArray<TSharedPtr<PCGExData::TBufferProxy<double>>> InputProxies;
-		TArray<TSharedPtr<PCGExData::TBufferProxy<double>>> OutputProxies;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> InputProxies;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> OutputProxies;
 
 		PCGExData::FProxyDescriptor InputDescriptor;
 		PCGExData::FProxyDescriptor OutputDescriptor;

@@ -8,9 +8,8 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -39,7 +38,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 
 	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The points to sample.", Required)
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
 	return PinProperties;
@@ -91,7 +90,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
@@ -101,9 +100,9 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		switch (Settings->ProcessInputs)
 		{
 		default: case EPCGExPathSamplingIncludeMode::All: break;
-		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(NoInit); }
+		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(ForceInit); }
 			break;
-		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(NoInit); }
+		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(ForceInit); }
 			break;
 		}
 
@@ -127,7 +126,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
 		{
-			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+			PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 		});
 	}
 
@@ -228,14 +227,14 @@ namespace PCGExSampleInsidePath
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
+			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
 
 		if (!DataBlender)
 		{
-			TSharedPtr<PCGExDataBlending::FDummyUnionBlender> DummyUnionBlender = MakeShared<PCGExDataBlending::FDummyUnionBlender>();
+			TSharedPtr<PCGExBlending::FDummyUnionBlender> DummyUnionBlender = MakeShared<PCGExBlending::FDummyUnionBlender>();
 			DummyUnionBlender->Init(PointDataFacade, Context->TargetsHandler->GetFacades());
 			DataBlender = DummyUnionBlender;
 		}
@@ -395,7 +394,7 @@ namespace PCGExSampleInsidePath
 
 			const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 
-			WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetTransform, W);
+			WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::WeightedAdd(WeightedTransform, TargetTransform, W);
 			TotalWeight += W;
 		}
 

@@ -24,14 +24,14 @@ namespace PCGEx
 		const EPCGExPointNativeProperties InFlags = static_cast<EPCGExPointNativeProperties>(Flags);
 		EPCGPointNativeProperties OutFlags = EPCGPointNativeProperties::None;
 
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Transform)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Transform); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Density)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Density); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMin)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMin); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMax)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMax); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Color)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Color); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Steepness)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Steepness); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Seed)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Seed); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::MetadataEntry)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::MetadataEntry); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Transform)) { OutFlags |= EPCGPointNativeProperties::Transform; }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Density)) { OutFlags |= EPCGPointNativeProperties::Density; }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMin)) { OutFlags |= EPCGPointNativeProperties::BoundsMin; }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMax)) { OutFlags |= EPCGPointNativeProperties::BoundsMax; }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Color)) { OutFlags |= EPCGPointNativeProperties::Color; }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Steepness)) { OutFlags |= EPCGPointNativeProperties::Steepness; }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Seed)) { OutFlags |= EPCGPointNativeProperties::Seed; }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::MetadataEntry)) { OutFlags |= EPCGPointNativeProperties::MetadataEntry; }
 
 		return OutFlags;
 	}
@@ -487,12 +487,6 @@ namespace PCGExHelpers
 #else
 		return FText::FromString(InClass->GetName());
 #endif
-	}
-
-	bool HasDataOnPin(FPCGContext* InContext, const FName Pin)
-	{
-		for (const FPCGTaggedData& TaggedData : InContext->InputData.TaggedData) { if (TaggedData.Pin == Pin) { return true; } }
-		return false;
 	}
 
 	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName)

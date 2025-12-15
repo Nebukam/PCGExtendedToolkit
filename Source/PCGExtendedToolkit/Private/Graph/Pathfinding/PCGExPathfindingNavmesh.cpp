@@ -21,7 +21,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties()
 	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seeds points for pathfinding.", Required)
 	PCGEX_PIN_POINT(PCGExGraph::SourceGoalsLabel, "Goals points for pathfinding.", Required)
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesGoalPicker)
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
@@ -64,7 +64,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingNavmesh)
 
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker, PCGExPathfinding::SourceOverridesGoalPicker)
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
 
 	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
 	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceGoalsLabel, false, true);

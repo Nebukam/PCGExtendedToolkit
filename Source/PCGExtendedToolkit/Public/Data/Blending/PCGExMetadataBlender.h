@@ -6,12 +6,12 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "PCGExDataBlending.h"
+#include "PCGExBlending.h"
 #include "PCGExProxyDataBlending.h"
 #include "PCGExScopedContainers.h"
 
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class PCGEXTENDEDTOOLKIT_API FMetadataBlender final : public IBlender
 	{

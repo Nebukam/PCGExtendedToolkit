@@ -254,8 +254,8 @@ namespace PCGExSampleInsidePath
 		double NumSampled = 0;
 		int8 bAnySuccess = 0;
 
-		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
+		TSharedPtr<PCGExBlending::FUnionOpsManager> UnionBlendOpsManager;
+		TSharedPtr<PCGExBlending::IUnionBlender> DataBlender;
 
 		bool bSingleSample = false;
 		bool bClosestSample = false;

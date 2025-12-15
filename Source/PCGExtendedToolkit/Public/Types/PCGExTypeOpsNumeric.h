@@ -4,6 +4,7 @@
 #pragma once
 
 #include "PCGExTypeOps.h"
+#include "Details/PCGExDetailsAxis.h"
 
 /**
  * Per-Type Operations Implementation
@@ -22,39 +23,53 @@ namespace PCGExTypeOps
 	// Forward Declarations for Cross-Type Conversion
 
 	// Forward declare all FTypeOps specializations so they can reference each other
-	template<> struct FTypeOps<bool>;
-	template<> struct FTypeOps<int32>;
-	template<> struct FTypeOps<int64>;
-	template<> struct FTypeOps<float>;
-	template<> struct FTypeOps<double>;
-	template<> struct FTypeOps<FVector2D>;
-	template<> struct FTypeOps<FVector>;
-	template<> struct FTypeOps<FVector4>;
-	template<> struct FTypeOps<FQuat>;
-	template<> struct FTypeOps<FRotator>;
-	template<> struct FTypeOps<FTransform>;
-	template<> struct FTypeOps<FString>;
-	template<> struct FTypeOps<FName>;
-	template<> struct FTypeOps<FSoftObjectPath>;
-	template<> struct FTypeOps<FSoftClassPath>;
+	template <>
+	struct FTypeOps<bool>;
+	template <>
+	struct FTypeOps<int32>;
+	template <>
+	struct FTypeOps<int64>;
+	template <>
+	struct FTypeOps<float>;
+	template <>
+	struct FTypeOps<double>;
+	template <>
+	struct FTypeOps<FVector2D>;
+	template <>
+	struct FTypeOps<FVector>;
+	template <>
+	struct FTypeOps<FVector4>;
+	template <>
+	struct FTypeOps<FQuat>;
+	template <>
+	struct FTypeOps<FRotator>;
+	template <>
+	struct FTypeOps<FTransform>;
+	template <>
+	struct FTypeOps<FString>;
+	template <>
+	struct FTypeOps<FName>;
+	template <>
+	struct FTypeOps<FSoftObjectPath>;
+	template <>
+	struct FTypeOps<FSoftClassPath>;
 
 	// Numeric Type Operations - bool
 
-	template<>
+	template <>
 	struct FTypeOps<bool>
 	{
 		using Type = bool;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::Boolean;
 
 		// Default value
 		static FORCEINLINE Type GetDefault() { return false; }
-		
+
 		// Hash
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
 		// Conversions TO other types
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value; }
@@ -64,10 +79,10 @@ namespace PCGExTypeOps
 			else if constexpr (std::is_same_v<TTo, double>) { return Value ? 1.0 : 0.0; }
 			else if constexpr (std::is_same_v<TTo, FVector2D>) { return FVector2D(Value ? 1.0 : 0.0); }
 			else if constexpr (std::is_same_v<TTo, FVector>) { return FVector(Value ? 1.0 : 0.0); }
-			else if constexpr (std::is_same_v<TTo, FVector4>) 
-			{ 
+			else if constexpr (std::is_same_v<TTo, FVector4>)
+			{
 				const double D = Value ? 1.0 : 0.0;
-				return FVector4(D, D, D, D); 
+				return FVector4(D, D, D, D);
 			}
 			else if constexpr (std::is_same_v<TTo, FQuat>)
 			{
@@ -89,7 +104,7 @@ namespace PCGExTypeOps
 
 		// Conversions FROM other types
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Value; }
@@ -133,22 +148,33 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W > 0.5 ? B : A; }
-		
+
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
+		{
+			return static_cast<double>(*static_cast<const Type*>(Value));
+		}
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+			*static_cast<Type*>(Target) = static_cast<Type>(Value);
+		}
+		
+		
 	};
 
 	// Numeric Type Operations - int32
 
-	template<>
+	template <>
 	struct FTypeOps<int32>
 	{
 		using Type = int32;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::Integer32;
-
+		
 		static FORCEINLINE Type GetDefault() { return 0; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value > 0; }
@@ -169,7 +195,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Value ? 1 : 0; }
@@ -203,43 +229,57 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W) { return A - static_cast<Type>(B * W); }
 		static FORCEINLINE Type CopyA(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type CopyB(const Type& A, const Type& B) { return B; }
-		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA <= AbsB ? A : B;
 		}
-		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA >= AbsB ? A : B;
 		}
+
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return FMath::Max(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return static_cast<Type>(HashCombine(GetTypeHash(A), GetTypeHash(B))); }
-		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
+		{
 			const Type MinV = FMath::Min(A, B), MaxV = FMath::Max(A, B);
 			return static_cast<Type>(HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV)));
 		}
+
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? static_cast<Type>(FMath::Fmod(static_cast<double>(A), M)) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0 ? A % B : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? static_cast<Type>((A + B) / W) : A; }
-		
+
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
+		{
+			return static_cast<double>(*static_cast<const Type*>(Value));
+		}
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+			*static_cast<Type*>(Target) = static_cast<Type>(Value);
+		}
 	};
 
 	// Numeric Type Operations - int64
 
-	template<>
+	template <>
 	struct FTypeOps<int64>
 	{
 		using Type = int64;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::Integer64;
 
 		static FORCEINLINE Type GetDefault() { return 0; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value > 0; }
@@ -260,7 +300,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Value ? 1 : 0; }
@@ -294,43 +334,57 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W) { return A - static_cast<Type>(B * W); }
 		static FORCEINLINE Type CopyA(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type CopyB(const Type& A, const Type& B) { return B; }
-		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA <= AbsB ? A : B;
 		}
-		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA >= AbsB ? A : B;
 		}
+
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return FMath::Max(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return static_cast<Type>(HashCombine(GetTypeHash(A), GetTypeHash(B))); }
-		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
+		{
 			const Type MinV = FMath::Min(A, B), MaxV = FMath::Max(A, B);
 			return static_cast<Type>(HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV)));
 		}
+
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? static_cast<Type>(FMath::Fmod(static_cast<double>(A), M)) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0 ? A % B : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? static_cast<Type>((A + B) / W) : A; }
-		
+
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
+		{
+			return static_cast<double>(*static_cast<const Type*>(Value));
+		}
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+			*static_cast<Type*>(Target) = static_cast<Type>(Value);
+		}
 	};
 
 	// Numeric Type Operations - float
 
-	template<>
+	template <>
 	struct FTypeOps<float>
 	{
 		using Type = float;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::Float;
 
 		static FORCEINLINE Type GetDefault() { return 0.0f; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value > 0.0f; }
@@ -351,7 +405,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Value ? 1.0f : 0.0f; }
@@ -385,43 +439,57 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W) { return A - static_cast<Type>(B * W); }
 		static FORCEINLINE Type CopyA(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type CopyB(const Type& A, const Type& B) { return B; }
-		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA <= AbsB ? A : B;
 		}
-		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA >= AbsB ? A : B;
 		}
+
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return FMath::Max(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return static_cast<Type>(HashCombine(GetTypeHash(A), GetTypeHash(B))); }
-		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
+		{
 			const Type MinV = FMath::Min(A, B), MaxV = FMath::Max(A, B);
 			return static_cast<Type>(HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV)));
 		}
+
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? FMath::Fmod(A, static_cast<float>(M)) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0.0f ? FMath::Fmod(A, B) : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? static_cast<Type>((A + B) / W) : A; }
-		
+
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
+		{
+			return static_cast<double>(*static_cast<const Type*>(Value));
+		}
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+			*static_cast<Type*>(Target) = static_cast<Type>(Value);
+		}
 	};
 
 	// Numeric Type Operations - double
 
-	template<>
+	template <>
 	struct FTypeOps<double>
 	{
 		using Type = double;
-		static constexpr EPCGMetadataTypes TypeId = EPCGMetadataTypes::Double;
 
 		static FORCEINLINE Type GetDefault() { return 0.0; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
-		template<typename TTo>
+		template <typename TTo>
 		static TTo ConvertTo(const Type& Value)
 		{
 			if constexpr (std::is_same_v<TTo, bool>) { return Value > 0.0; }
@@ -442,7 +510,7 @@ namespace PCGExTypeOps
 			else { return TTo{}; }
 		}
 
-		template<typename TFrom>
+		template <typename TFrom>
 		static Type ConvertFrom(const TFrom& Value)
 		{
 			if constexpr (std::is_same_v<TFrom, bool>) { return Value ? 1.0 : 0.0; }
@@ -476,29 +544,43 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type WeightedSub(const Type& A, const Type& B, double W) { return A - B * W; }
 		static FORCEINLINE Type CopyA(const Type& A, const Type& B) { return A; }
 		static FORCEINLINE Type CopyB(const Type& A, const Type& B) { return B; }
-		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMin(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA <= AbsB ? A : B;
 		}
-		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedMax(const Type& A, const Type& B)
+		{
 			const Type AbsA = FMath::Abs(A), AbsB = FMath::Abs(B);
 			return AbsA >= AbsB ? A : B;
 		}
+
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return FMath::Max(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return static_cast<Type>(HashCombine(GetTypeHash(A), GetTypeHash(B))); }
-		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B) 
-		{ 
+
+		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
+		{
 			const Type MinV = FMath::Min(A, B), MaxV = FMath::Max(A, B);
 			return static_cast<Type>(HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV)));
 		}
+
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? FMath::Fmod(A, M) : A; }
 		static FORCEINLINE Type ModComplex(const Type& A, const Type& B) { return B != 0.0 ? FMath::Fmod(A, B) : A; }
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? (A + B) / W : A; }
-		
-		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
-	};
 
+		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
+
+		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
+		{
+			return static_cast<double>(*static_cast<const Type*>(Value));
+		}
+
+		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
+		{
+			*static_cast<Type*>(Target) = static_cast<Type>(Value);
+		}
+	};
 }

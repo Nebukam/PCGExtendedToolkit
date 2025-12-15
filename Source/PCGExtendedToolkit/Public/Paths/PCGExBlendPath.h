@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 
 #include "PCGExBlendPath.generated.h"
 
 class UPCGExBlendOpFactory;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class FBlendOpsManager;
 }
@@ -68,7 +68,7 @@ public:
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Lerp, EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExBlendingType::Lerp, EPCGExBlendingType::None);
 
 	/** If enabled, will apply blending to othe first point. Can be useful with some blendmodes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -106,7 +106,7 @@ namespace PCGExBlendPath
 		PCGExPaths::FPathMetrics Metrics;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> LerpGetter;
-		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
+		TSharedPtr<PCGExBlending::FBlendOpsManager> BlendOpsManager;
 
 		int32 Start = -1;
 		int32 End = -1;

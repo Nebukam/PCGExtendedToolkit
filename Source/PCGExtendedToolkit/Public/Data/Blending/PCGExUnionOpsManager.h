@@ -11,12 +11,12 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExUnionData.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	struct FPropertiesBlender;
 }
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class PCGEXTENDEDTOOLKIT_API FUnionOpsManager final : public IUnionBlender
 	{

@@ -118,7 +118,7 @@ namespace PCGExNormalize
 		Descriptor.WorkingType = EPCGMetadataTypes::Vector;
 		if (Descriptor.RealType == EPCGMetadataTypes::Unknown) { Descriptor.RealType = EPCGMetadataTypes::Vector; }
 
-		OutputBuffer = StaticCastSharedPtr<PCGExData::TBufferProxy<FVector>>(PCGExData::GetProxyBuffer(Context, Descriptor));
+		OutputBuffer = PCGExData::GetProxyBuffer(Context, Descriptor);
 
 		if (!OutputBuffer.IsValid()) { return false; }
 

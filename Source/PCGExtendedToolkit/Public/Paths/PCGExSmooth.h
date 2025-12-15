@@ -7,7 +7,7 @@
 #include "PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExSmooth.generated.h"
@@ -16,7 +16,7 @@ class UPCGExBlendOpFactory;
 class UPCGExSmoothingInstancedFactory;
 class FPCGExSmoothingOperation;
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class IBlender;
 	class FBlendOpsManager;
@@ -103,7 +103,7 @@ public:
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BlendingInterface == EPCGExBlendingInterface::Monolithic", EditConditionHides))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExBlendingType::Average);
 };
 
 struct FPCGExSmoothContext final : FPCGExPathProcessorContext
@@ -138,9 +138,9 @@ namespace PCGExSmooth
 		TSharedPtr<PCGExDetails::TSettingValue<double>> Influence;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> Smoothing;
 
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
-		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
+		TSharedPtr<PCGExBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExBlending::FBlendOpsManager> BlendOpsManager;
+		TSharedPtr<PCGExBlending::IBlender> DataBlender;
 
 		TSharedPtr<FPCGExSmoothingOperation> SmoothingOperation;
 

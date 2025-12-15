@@ -27,5 +27,5 @@ public:
 	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
 
 protected:
-	virtual EPCGExDataBlendingType GetDefaultBlending() const override { return EPCGExDataBlendingType::Copy; }
+	virtual EPCGExBlendingType GetDefaultBlending() const override { return EPCGExBlendingType::Copy; }
 };

@@ -140,7 +140,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged into the final point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bBlendProperties"))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExBlendingType::Average, EPCGExBlendingType::None);
 
 	/** Which data to write. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -183,7 +183,7 @@ namespace PCGExPointsToBounds
 		TSharedPtr<PCGExData::FPointIO> OutputIO;
 		TSharedPtr<PCGExData::FFacade> OutputFacade;
 		TArray<FPCGAttributeIdentifier> BlendedAttributes;
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExBlending::FMetadataBlender> MetadataBlender;
 		FBox Bounds;
 
 	public:

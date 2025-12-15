@@ -6,12 +6,14 @@
 #include "ISettingsModule.h"
 #endif
 #include "PCGExGlobalSettings.h"
+#include "Types/PCGExSubSelectionOps.h"
+#include "Types/PCGExTypeOps.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 
 void FPCGExtendedToolkitModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module	
+	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 }
 
 void FPCGExtendedToolkitModule::ShutdownModule()

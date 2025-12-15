@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics. Used to drive flooding.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points.", Required)
 	PCGEX_PIN_FACTORIES(PCGExFloodFill::SourceFillControlsLabel, "Fill controls, used to constraint & limit flood fill", Normal, FPCGExDataTypeInfoFillControl::AsId())
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 
 	return PinProperties;
 }
@@ -61,7 +61,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	// Fill controls are optional, actually
 	PCGExFactories::GetInputFactories<UPCGExFillControlsFactoryData>(Context, PCGExFloodFill::SourceFillControlsLabel, Context->FillControlFactories, {PCGExFactories::EType::FillControls}, false);
@@ -520,7 +520,7 @@ namespace PCGExClusterDiffusion
 			PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_INIT)
 		}
 
-		PCGExDataBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
+		PCGExBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
 
 		for (const TObjectPtr<const UPCGExFillControlsFactoryData>& Factory : Context->FillControlFactories)
 		{
@@ -533,7 +533,7 @@ namespace PCGExClusterDiffusion
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 
-		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(VtxDataFacade);
+		BlendOpsManager = MakeShared<PCGExBlending::FBlendOpsManager>(VtxDataFacade);
 		if (!BlendOpsManager->Init(Context, Context->BlendingFactories))
 		{
 			bIsBatchValid = false;

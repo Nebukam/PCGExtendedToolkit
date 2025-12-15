@@ -23,7 +23,7 @@ namespace PCGExDetails
 	class TSettingValue;
 }
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	class FProxyDataBlender;
 
@@ -211,7 +211,7 @@ protected:
 	bool CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const;
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> Weight;
-	TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender;
+	TSharedPtr<PCGExBlending::FProxyDataBlender> Blender;
 };
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Blend Op"))
@@ -301,7 +301,7 @@ protected:
 public:
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
-	virtual FName GetMainOutputPin() const override { return PCGExDataBlending::OutputBlendingLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExBlending::OutputBlendingLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 	/** Filter Priority.*/

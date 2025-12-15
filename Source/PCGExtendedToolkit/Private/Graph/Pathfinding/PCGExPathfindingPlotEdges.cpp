@@ -205,16 +205,18 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	Context->PlotsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
-	Context->PlotsHandler->Init(Context, PCGExGraph::SourcePlotsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
-	{
-		if (IO->GetNum() < 2)
+	Context->PlotsHandler->Init(
+		Context, PCGExGraph::SourcePlotsLabel,
+		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 		{
-			if (!Settings->bQuietInvalidPlotWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
-			return FBox(NoInit);
-		}
+			if (IO->GetNum() < 2)
+			{
+				if (!Settings->bQuietInvalidPlotWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
+				return FBox(ForceInit);
+			}
 
-		return IO->GetIn()->GetBounds();
-	});
+			return IO->GetIn()->GetBounds();
+		});
 
 	Context->NumMaxPlots = Context->PlotsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxPlots)

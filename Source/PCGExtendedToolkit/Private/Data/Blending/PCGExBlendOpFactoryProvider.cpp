@@ -24,7 +24,7 @@ void FPCGExAttributeBlendWeight::Init()
 		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
 		LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(WeightCurve);
 	}
-	
+
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
 }
 
@@ -166,8 +166,8 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	C.RealType = RealTypeC;
 	C.WorkingType = WorkingTypeC;
 
-	if (bSkipSourceB) { Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, C, Config.bResetValueBeforeMultiSourceBlend); }
-	else { Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C, Config.bResetValueBeforeMultiSourceBlend); }
+	if (bSkipSourceB) { Blender = PCGExBlending::CreateProxyBlender(InContext, Config.BlendMode, A, C, Config.bResetValueBeforeMultiSourceBlend); }
+	else { Blender = PCGExBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C, Config.bResetValueBeforeMultiSourceBlend); }
 
 
 	if (!Blender) { return false; }
@@ -287,7 +287,8 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 
 bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
 {
-	return PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) || PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
+	return InContext->InputData.GetInputCountByPin(PCGExBlending::SourceConstantA)
+		|| InContext->InputData.GetInputCountByPin(PCGExBlending::SourceConstantB);
 }
 
 PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
@@ -295,8 +296,8 @@ PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* 
 	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
-	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantA, true, false);
-	if (Config.bUseOperandB) { ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantB, true, false); }
+	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExBlending::SourceConstantA, true, false);
+	if (Config.bUseOperandB) { ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExBlending::SourceConstantB, true, false); }
 
 	if (ConstantA)
 	{
@@ -358,8 +359,8 @@ void UPCGExBlendOpFactory::RegisterBuffersDependenciesForSourceB(FPCGExContext* 
 void UPCGExBlendOpFactoryProviderSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
 {
 	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
-	InOutNode->RenameInputPin(FName("Constant A"), PCGExDataBlending::SourceConstantA);
-	InOutNode->RenameInputPin(FName("Constant B"), PCGExDataBlending::SourceConstantB);
+	InOutNode->RenameInputPin(FName("Constant A"), PCGExBlending::SourceConstantA);
+	InOutNode->RenameInputPin(FName("Constant B"), PCGExBlending::SourceConstantB);
 }
 
 void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -382,7 +383,7 @@ void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChang
 
 bool UPCGExBlendOpFactoryProviderSettings::IsPinDefaultValueEnabled(FName PinLabel) const
 {
-	return PinLabel == PCGExDataBlending::SourceConstantA || PinLabel == PCGExDataBlending::SourceConstantB;
+	return PinLabel == PCGExBlending::SourceConstantA || PinLabel == PCGExBlending::SourceConstantB;
 }
 
 bool UPCGExBlendOpFactoryProviderSettings::IsPinDefaultValueActivated(FName PinLabel) const
@@ -483,8 +484,8 @@ void UPCGExBlendOpFactoryProviderSettings::ResetDefaultValue(FName PinLabel)
 
 bool UPCGExBlendOpFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExDataBlending::SourceConstantA && Config.OperandASource == EPCGExOperandSource::Constant) { return true; }
-	if (InPin->Properties.Label == PCGExDataBlending::SourceConstantB && Config.OperandBSource == EPCGExOperandSource::Constant) { return true; }
+	if (InPin->Properties.Label == PCGExBlending::SourceConstantA && Config.OperandASource == EPCGExOperandSource::Constant) { return true; }
+	if (InPin->Properties.Label == PCGExBlending::SourceConstantB && Config.OperandBSource == EPCGExOperandSource::Constant) { return true; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -517,11 +518,11 @@ void UPCGExBlendOpFactoryProviderSettings::ApplyPreconfiguredSettings(const FPCG
 TArray<FPCGPinProperties> UPCGExBlendOpFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
+	PCGEX_PIN_ANY_SINGLE(PCGExBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 
 	if (Config.bUseOperandB)
 	{
-		PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
+		PCGEX_PIN_ANY_SINGLE(PCGExBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 	}
 
 	return PinProperties;

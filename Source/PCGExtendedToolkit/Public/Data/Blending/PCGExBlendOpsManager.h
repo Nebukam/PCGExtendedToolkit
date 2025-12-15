@@ -9,7 +9,7 @@
 #include "PCGExBlendOpFactoryProvider.h"
 #include "PCGExScopedContainers.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
 	PCGEXTENDEDTOOLKIT_API void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& Factories);
 

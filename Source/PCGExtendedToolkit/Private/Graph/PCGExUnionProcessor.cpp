@@ -51,7 +51,7 @@ namespace PCGExGraph
 		UnionGraph->Collapse();
 		Context->SetAsyncState(State_ProcessingUnion);
 
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(
+		const TSharedPtr<PCGExBlending::FUnionBlender> TypedBlender = MakeShared<PCGExBlending::FUnionBlender>(
 			&DefaultPointsBlendingDetails, VtxCarryOverDetails, PointPointIntersectionDetails.FuseDetails.GetDistances());
 
 		UnionBlender = TypedBlender;
@@ -78,7 +78,7 @@ namespace PCGExGraph
 
 			const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = This->UnionGraph->NodesUnion;
 			const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->Context->MainPoints;
-			const TSharedPtr<PCGExDataBlending::IUnionBlender> Blender = This->UnionBlender;
+			const TSharedPtr<PCGExBlending::IUnionBlender> Blender = This->UnionBlender;
 
 			TArray<PCGExData::FWeightedPoint> WeightedPoints;
 			TArray<PCGEx::FOpStats> Trackers;
@@ -293,7 +293,7 @@ namespace PCGExGraph
 		PointEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
 
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+		MetadataBlender = MakeShared<PCGExBlending::FMetadataBlender>();
 		MetadataBlender->SetTargetData(UnionDataFacade);
 		MetadataBlender->SetSourceData(UnionDataFacade, PCGExData::EIOSide::Out);
 
@@ -315,7 +315,7 @@ namespace PCGExGraph
 			PCGEX_ASYNC_THIS
 
 			if (!This->MetadataBlender) { return; }
-			const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
+			const TSharedRef<PCGExBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
 			PCGEX_SCOPE_LOOP(Index)
 			{
@@ -418,7 +418,7 @@ namespace PCGExGraph
 		EdgeEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
 
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+		MetadataBlender = MakeShared<PCGExBlending::FMetadataBlender>();
 		MetadataBlender->SetTargetData(UnionDataFacade);
 		MetadataBlender->SetSourceData(UnionDataFacade, PCGExData::EIOSide::Out);
 
@@ -445,7 +445,7 @@ namespace PCGExGraph
 			PCGEX_ASYNC_THIS
 
 			if (!This->MetadataBlender) { return; }
-			const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
+			const TSharedRef<PCGExBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
 			TArray<PCGEx::FOpStats> Trackers;
 			Blender->InitTrackers(Trackers);

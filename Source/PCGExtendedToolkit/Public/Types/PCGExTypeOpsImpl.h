@@ -12,104 +12,6 @@
 
 namespace PCGExTypeOps
 {
-	// Type ID Mapping - Maps C++ types to EPCGMetadataTypes
-
-	template <typename T>
-	struct TTypeToMetadata
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
-	};
-
-	template <>
-	struct TTypeToMetadata<bool>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Boolean;
-	};
-
-	template <>
-	struct TTypeToMetadata<int32>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer32;
-	};
-
-	template <>
-	struct TTypeToMetadata<int64>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer64;
-	};
-
-	template <>
-	struct TTypeToMetadata<float>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Float;
-	};
-
-	template <>
-	struct TTypeToMetadata<double>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Double;
-	};
-
-	template <>
-	struct TTypeToMetadata<FVector2D>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector2;
-	};
-
-	template <>
-	struct TTypeToMetadata<FVector>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector;
-	};
-
-	template <>
-	struct TTypeToMetadata<FVector4>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector4;
-	};
-
-	template <>
-	struct TTypeToMetadata<FQuat>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Quaternion;
-	};
-
-	template <>
-	struct TTypeToMetadata<FRotator>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Rotator;
-	};
-
-	template <>
-	struct TTypeToMetadata<FTransform>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Transform;
-	};
-
-	template <>
-	struct TTypeToMetadata<FString>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::String;
-	};
-
-	template <>
-	struct TTypeToMetadata<FName>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Name;
-	};
-
-	template <>
-	struct TTypeToMetadata<FSoftObjectPath>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftObjectPath;
-	};
-
-	template <>
-	struct TTypeToMetadata<FSoftClassPath>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftClassPath;
-	};
-
 	// TTypeOpsImpl - Concrete implementation of ITypeOpsBase for each type
 
 	/**
@@ -131,10 +33,7 @@ namespace PCGExTypeOps
 
 		// Type Information
 
-		virtual EPCGMetadataTypes GetTypeId() const override
-		{
-			return TTypeToMetadata<T>::Type;
-		}
+		virtual EPCGMetadataTypes GetTypeId() const override { return Traits::Type; }
 
 		virtual FString GetTypeName() const override
 		{
@@ -142,49 +41,20 @@ namespace PCGExTypeOps
 			return FString();
 		}
 
-		virtual int32 GetTypeSize() const override
-		{
-			return sizeof(T);
-		}
-
-		virtual int32 GetTypeAlignment() const override
-		{
-			return alignof(T);
-		}
-
-		virtual bool SupportsLerp() const override
-		{
-			return Traits::bSupportsLerp;
-		}
-
-		virtual bool SupportsMinMax() const override
-		{
-			return Traits::bSupportsMinMax;
-		}
-
-		virtual bool SupportsArithmetic() const override
-		{
-			return Traits::bSupportsArithmetic;
-		}
+		virtual int32 GetTypeSize() const override { return sizeof(T); }
+		virtual int32 GetTypeAlignment() const override { return alignof(T); }
+		virtual bool SupportsLerp() const override { return Traits::bSupportsLerp; }
+		virtual bool SupportsMinMax() const override { return Traits::bSupportsMinMax; }
+		virtual bool SupportsArithmetic() const override { return Traits::bSupportsArithmetic; }
 
 		// Default Value Operations
 
-		virtual void SetDefault(void* OutValue) const override
-		{
-			new(OutValue) T();
-		}
-
-		virtual void Copy(const void* Src, void* Dst) const override
-		{
-			*static_cast<T*>(Dst) = *static_cast<const T*>(Src);
-		}
+		virtual void SetDefault(void* OutValue) const override { new(OutValue) T(); }
+		virtual void Copy(const void* Src, void* Dst) const override { *static_cast<T*>(Dst) = *static_cast<const T*>(Src); }
 
 		// Hash Operations
 
-		virtual PCGExValueHash ComputeHash(const void* Value) const override
-		{
-			return TypeOps::Hash(*static_cast<const T*>(Value));
-		}
+		virtual PCGExValueHash ComputeHash(const void* Value) const override { return TypeOps::Hash(*static_cast<const T*>(Value)); }
 
 		// Conversion Operations
 
@@ -274,137 +144,94 @@ namespace PCGExTypeOps
 
 		virtual void BlendAdd(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Add(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Add(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendSub(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Sub(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Sub(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendMult(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Mult(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Mult(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendDiv(const void* A, double Divisor, void* Out) const override
 		{
 			// Div by scalar - use Weight with 1/Divisor for types that support it
-			if (Divisor != 0.0)
-			{
-				*static_cast<T*>(Out) = TypeOps::Div(*static_cast<const T*>(A), Divisor);
-			}
-			else
-			{
-				*static_cast<T*>(Out) = *static_cast<const T*>(A);
-			}
+			if (Divisor != 0.0) { *static_cast<T*>(Out) = TypeOps::Div(*static_cast<const T*>(A), Divisor); }
+			else { *static_cast<T*>(Out) = *static_cast<const T*>(A); }
 		}
 
 		virtual void BlendLerp(const void* A, const void* B, double Weight, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Lerp(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::Lerp(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void BlendMin(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Min(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Min(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendMax(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Max(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Max(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendAverage(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::Average(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::Average(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendWeightedAdd(const void* A, const void* B, double Weight, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::WeightedAdd(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::WeightedAdd(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void BlendWeightedSub(const void* A, const void* B, double Weight, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::WeightedSub(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::WeightedSub(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void BlendCopyA(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::CopyA(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::CopyA(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendCopyB(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::CopyB(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::CopyB(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendUnsignedMin(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::UnsignedMin(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::UnsignedMin(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendUnsignedMax(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::UnsignedMax(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::UnsignedMax(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendAbsoluteMin(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::AbsoluteMin(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::AbsoluteMin(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendAbsoluteMax(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::AbsoluteMax(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::AbsoluteMax(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendHash(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::NaiveHash(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::NaiveHash(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendUnsignedHash(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::UnsignedHash(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::UnsignedHash(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendModSimple(const void* A, double Modulo, void* Out) const override
@@ -414,26 +241,19 @@ namespace PCGExTypeOps
 
 		virtual void BlendModComplex(const void* A, const void* B, void* Out) const override
 		{
-			*static_cast<T*>(Out) = TypeOps::ModComplex(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B));
+			*static_cast<T*>(Out) = TypeOps::ModComplex(*static_cast<const T*>(A), *static_cast<const T*>(B));
 		}
 
 		virtual void BlendWeight(const void* A, const void* B, double Weight, void* Out) const override
 		{
 			// Weight accumulation: Out = A + (B * Weight)
-			*static_cast<T*>(Out) = TypeOps::WeightedAdd(
-				*static_cast<const T*>(A),
-				*static_cast<const T*>(B),
-				Weight);
+			*static_cast<T*>(Out) = TypeOps::WeightedAdd(*static_cast<const T*>(A), *static_cast<const T*>(B), Weight);
 		}
 
 		virtual void NormalizeWeight(const void* A, double TotalWeight, void* Out) const override
 		{
 			// Weight accumulation: Out = A * (1 / TotalWeight)
-			*static_cast<T*>(Out) = TypeOps::NormalizeWeight(
-				*static_cast<const T*>(A),
-				TotalWeight);
+			*static_cast<T*>(Out) = TypeOps::NormalizeWeight(*static_cast<const T*>(A), TotalWeight);
 		}
 
 		//~ End ITypeOpsBase interface
@@ -455,20 +275,13 @@ namespace PCGExTypeOps
 		 * Generate a conversion function from TFrom to TTo
 		 */
 		template <typename TFrom, typename TTo>
-		void ConvertImpl(const void* From, void* To)
-		{
-			*static_cast<TTo*>(To) = FTypeOps<TFrom>::template ConvertTo<TTo>(
-				*static_cast<const TFrom*>(From));
-		}
+		void ConvertImpl(const void* From, void* To) { *static_cast<TTo*>(To) = FTypeOps<TFrom>::template ConvertTo<TTo>(*static_cast<const TFrom*>(From)); }
 
 		/**
 		 * Identity conversion (same type)
 		 */
 		template <typename T>
-		void ConvertIdentity(const void* From, void* To)
-		{
-			*static_cast<T*>(To) = *static_cast<const T*>(From);
-		}
+		void ConvertIdentity(const void* From, void* To) { *static_cast<T*>(To) = *static_cast<const T*>(From); }
 
 		/**
 		 * Get conversion function for a type pair
@@ -571,14 +384,5 @@ namespace PCGExTypeOps
 	// FTypeOpsRegistry Template Implementations
 
 	template <typename T>
-	const ITypeOpsBase* FTypeOpsRegistry::Get()
-	{
-		return &TTypeOpsImpl<T>::GetInstance();
-	}
-
-	template <typename T>
-	EPCGMetadataTypes FTypeOpsRegistry::GetTypeId()
-	{
-		return TTypeToMetadata<T>::Type;
-	}
+	const ITypeOpsBase* FTypeOpsRegistry::Get() { return &TTypeOpsImpl<T>::GetInstance(); }
 }
