@@ -271,7 +271,7 @@ namespace PCGExShiftPath
 
 					if (!Buffer || Buffer->GetUnderlyingDomain() != PCGExData::EDomainType::Elements) { return; }
 
-					PCGEx::ExecuteWithRightType(Buffer->GetType(), [&](auto DummyValue)
+					PCGEx::ExecuteWithRightType(Buffer->GetTypeId(), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
 						TSharedPtr<PCGExData::TArrayBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(This->Buffers[Index]);

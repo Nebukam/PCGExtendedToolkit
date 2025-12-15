@@ -7,6 +7,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExH.h"
 #include "PCGExHelpers.h"
+#include "PCGExtendedToolkit.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataHelpers.h"
@@ -62,7 +63,7 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	bool IBuffer::IsA() const { return Type == PCGExTypeOps::TTypeTraits<T>::Type; }
+	bool IBuffer::IsA() const { return Type == PCGExTypes::TTraits<T>::Type; }
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
 template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
@@ -79,8 +80,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	TBuffer<T>::TBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier)
 		: IBuffer(InSource, InIdentifier)
 	{
-		Ops = &OpsImpl;
-		SetType(PCGExTypeOps::TTypeTraits<T>::Type);
+		SetType(PCGExTypes::TTraits<T>::Type);
 	}
 
 	template <typename T>
@@ -88,6 +88,15 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 
 	template <typename T>
 	FPCGMetadataAttribute<T>* TBuffer<T>::GetTypedOutAttribute() const { return TypedOutAttribute; }
+
+	template <typename T>
+	void TBuffer<T>::ReadVoid(const int32 Index, void* OutValue) const { *static_cast<T*>(OutValue) = Read(Index); }
+
+	template <typename T>
+	void TBuffer<T>::SetVoid(const int32 Index, const void* Value) { SetValue(Index, *static_cast<const T*>(Value)); }
+
+	template <typename T>
+	void TBuffer<T>::GetVoid(const int32 Index, void* OutValue) { *static_cast<T*>(OutValue) = GetValue(Index); }
 
 	template <typename T>
 	PCGExValueHash TBuffer<T>::ReadValueHash(const int32 Index) { return PCGExTypes::ComputeHash(Read(Index)); }
@@ -641,9 +650,6 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		PCGExDataHelpers::SetDataValue(TypedOutAttribute, OutValue);
 	}
 
-	template <typename T>
-	const IBuffer::OpsTable TBuffer<T>::OpsImpl = {&TBuffer<T>::ReadRawImpl, &TBuffer<T>::GetValueRawImpl, &TBuffer<T>::SetValueRawImpl};
-
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
@@ -718,7 +724,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 	template <typename T>
 	TSharedPtr<TBuffer<T>> FFacade::FindBuffer_Unsafe(const FPCGAttributeIdentifier& InIdentifier)
 	{
-		const TSharedPtr<IBuffer>& Found = FindBuffer_Unsafe(BufferUID(InIdentifier, PCGExTypeOps::TTypeTraits<T>::Type));
+		const TSharedPtr<IBuffer>& Found = FindBuffer_Unsafe(BufferUID(InIdentifier, PCGExTypes::TTraits<T>::Type));
 		if (!Found) { return nullptr; }
 		return StaticCastSharedPtr<TBuffer<T>>(Found);
 	}
@@ -726,7 +732,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 	template <typename T>
 	TSharedPtr<TBuffer<T>> FFacade::FindBuffer(const FPCGAttributeIdentifier& InIdentifier)
 	{
-		const TSharedPtr<IBuffer> Found = FindBuffer(BufferUID(InIdentifier, PCGExTypeOps::TTypeTraits<T>::Type));
+		const TSharedPtr<IBuffer> Found = FindBuffer(BufferUID(InIdentifier, PCGExTypes::TTraits<T>::Type));
 		if (!Found) { return nullptr; }
 		return StaticCastSharedPtr<TBuffer<T>>(Found);
 	}

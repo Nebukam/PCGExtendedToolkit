@@ -5,7 +5,6 @@
 
 #include "PCGEx.h"
 #include "PCGExContext.h"
-#include "Details/PCGExDetailsSettings.h"
 #include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
 #include "Helpers/PCGHelpers.h"
 

@@ -8,7 +8,6 @@
 #include "PCGExSorting.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
 #include "Details/PCGExDetailsSettings.h"

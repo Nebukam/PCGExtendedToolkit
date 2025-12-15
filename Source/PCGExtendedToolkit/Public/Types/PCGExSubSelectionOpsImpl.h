@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSubSelectionOps.h"
-#include "Types/PCGExTypeOpsImpl.h"
+#include "Details/PCGExMacros.h"
 
 /**
  * PCGEx Sub-Selection Operations Implementation
@@ -70,7 +70,7 @@ namespace PCGEx
 	class TSubSelectorOpsImpl : public ISubSelectorOps
 	{
 	public:
-		using Traits = PCGExTypeOps::TTypeTraits<T>;
+		using Traits = PCGExTypes::TTraits<T>;
 		using SubSelectionTraits = TSubSelectionTraits<T>;
 
 		//~ Begin ISubSelectorOps interface
@@ -93,7 +93,7 @@ namespace PCGEx
 
 		virtual FVector ExtractAxis(const void* Value, EPCGExAxis Axis) const override
 		{
-			if constexpr (PCGExTypeOps::TTypeTraits<T>::bIsRotation) { return PCGExTypeOps::FTypeOps<T>::ExtractAxis(Value, Axis); }
+			if constexpr (PCGExTypes::TTraits<T>::bIsRotation) { return PCGExTypeOps::FTypeOps<T>::ExtractAxis(Value, Axis); }
 			else { return FVector::ForwardVector; }
 		}
 

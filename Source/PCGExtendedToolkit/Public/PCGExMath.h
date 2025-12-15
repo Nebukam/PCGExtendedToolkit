@@ -6,7 +6,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGEx.h"
 #include "Details/PCGExDetailsAxis.h"
 #include "PCGExMath.generated.h"
 
@@ -428,56 +427,6 @@ namespace PCGExMath
 	PCGEXTENDEDTOOLKIT_API void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector);
 	PCGEXTENDEDTOOLKIT_API FBox ScaledBox(const FBox& InBox, const FVector& InScale);
 	PCGEXTENDEDTOOLKIT_API bool IsDirectionWithinTolerance(const FVector& A, const FVector& B, const FRotator& Limits);
-
-	template <typename T>
-	FORCEINLINE static void TypeMinMax(T& Min, T& Max)
-	{
-		if constexpr (std::is_same_v<T, bool>)
-		{
-			Min = false;
-			Max = true;
-		}
-		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>)
-		{
-			Min = TNumericLimits<T>::Max();
-			Max = TNumericLimits<T>::Min();
-		}
-		else if constexpr (std::is_same_v<T, FVector2D>)
-		{
-			Min = FVector2D(MAX_dbl);
-			Max = FVector2D(MIN_dbl_neg);
-		}
-		else if constexpr (std::is_same_v<T, FVector>)
-		{
-			Min = FVector(MAX_dbl);
-			Max = FVector(MIN_dbl_neg);
-		}
-		else if constexpr (std::is_same_v<T, FVector4>)
-		{
-			Min = FVector4(MAX_dbl, MAX_dbl, MAX_dbl, MAX_dbl);
-			Max = FVector4(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg);
-		}
-		else if constexpr (std::is_same_v<T, FQuat>)
-		{
-			Min = FRotator(MAX_dbl, MAX_dbl, MAX_dbl).Quaternion();
-			Max = FRotator(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg).Quaternion();
-		}
-		else if constexpr (std::is_same_v<T, FRotator>)
-		{
-			Min = FRotator(MAX_dbl, MAX_dbl, MAX_dbl);
-			Max = FRotator(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg);
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			Min = FTransform(FRotator(MAX_dbl, MAX_dbl, MAX_dbl).Quaternion(), FVector(MAX_dbl), FVector(MAX_dbl));
-			Max = FTransform(FRotator(MIN_dbl_neg, MIN_dbl_neg, MIN_dbl_neg).Quaternion(), FVector(MIN_dbl_neg), FVector(MIN_dbl_neg));
-		}
-		else
-		{
-			Min = T{};
-			Max = T{};
-		}
-	}
 
 	PCGEXTENDEDTOOLKIT_API double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians);
 

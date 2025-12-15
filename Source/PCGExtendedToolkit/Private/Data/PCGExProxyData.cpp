@@ -5,12 +5,10 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
-#include "Details/PCGExMacros.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGPointArrayData.h"
-#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {
@@ -165,7 +163,7 @@ namespace PCGExData
 	{ \
 		PCGExTypes::FScopedTypedValue WorkingValue(WorkingType); \
 		GetVoid(Index, WorkingValue.GetRaw()); \
-		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeTraits<_TYPE>::Type; \
+		constexpr EPCGMetadataTypes TargetType = PCGExTypes::TTraits<_TYPE>::Type; \
 		if (TargetType == WorkingType) \
 		{ \
 			if constexpr (TypeTraits::TIsComplexType<_TYPE>) \
@@ -190,7 +188,7 @@ namespace PCGExData
 
 	template <typename T_REAL>
 	TAttributeBufferProxy<T_REAL>::TAttributeBufferProxy(EPCGMetadataTypes InWorkingType)
-		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
+		: IBufferProxy(PCGExTypes::TTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
@@ -489,7 +487,7 @@ namespace PCGExData
 		else
 		{
 			// Convert int32 to working type
-			const PCGExTypeOps::ITypeOpsBase* Int32Ops = PCGExTypeOps::FTypeOpsRegistry::Get(EPCGMetadataTypes::Integer32);
+			const PCGExTypeOps::ITypeOpsBase* Int32Ops = PCGExTypeOps::FTypeOpsRegistry::Get<int32>();
 			if (Int32Ops)
 			{
 				Int32Ops->ConvertTo(&Value, WorkingType, OutValue);
@@ -515,7 +513,7 @@ namespace PCGExData
 
 	template <typename T_CONST>
 	TConstantProxy<T_CONST>::TConstantProxy()
-		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_CONST>::Type, PCGExTypeOps::TTypeTraits<T_CONST>::Type)
+		: IBufferProxy(PCGExTypes::TTraits<T_CONST>::Type, PCGExTypes::TTraits<T_CONST>::Type)
 	{
 	}
 
@@ -523,8 +521,8 @@ namespace PCGExData
 	template <typename T>
 	void TConstantProxy<T_CONST>::SetConstant(const T& InValue)
 	{
-		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeTraits<T>::Type;
-		constexpr EPCGMetadataTypes ConstType = PCGExTypeOps::TTypeTraits<T_CONST>::Type;
+		constexpr EPCGMetadataTypes SourceType = PCGExTypes::TTraits<T>::Type;
+		constexpr EPCGMetadataTypes ConstType = PCGExTypes::TTraits<T_CONST>::Type;
 
 		if constexpr (std::is_same_v<T, T_CONST>)
 		{
@@ -587,7 +585,7 @@ namespace PCGExData
 
 	template <typename T_REAL>
 	TDirectAttributeProxy<T_REAL>::TDirectAttributeProxy(EPCGMetadataTypes InWorkingType)
-		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
+		: IBufferProxy(PCGExTypes::TTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
@@ -685,7 +683,7 @@ namespace PCGExData
 
 	template <typename T_REAL>
 	TDirectDataAttributeProxy<T_REAL>::TDirectDataAttributeProxy(EPCGMetadataTypes InWorkingType)
-		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
+		: IBufferProxy(PCGExTypes::TTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 

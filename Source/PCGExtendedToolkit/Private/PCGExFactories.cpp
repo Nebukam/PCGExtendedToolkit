@@ -7,7 +7,6 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Tasks/Task.h"
 

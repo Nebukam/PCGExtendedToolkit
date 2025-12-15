@@ -4,8 +4,6 @@
 #include "Geometry/PCGExGeoPointBox.h"
 
 #include "CoreMinimal.h"
-#include "PCGExH.h"
-#include "PCGExHelpers.h"
 #include "Data/PCGExPointIO.h"
 
 namespace PCGExGeo

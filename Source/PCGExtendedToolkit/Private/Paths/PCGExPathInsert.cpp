@@ -3,8 +3,8 @@
 
 #include "Paths/PCGExPathInsert.h"
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

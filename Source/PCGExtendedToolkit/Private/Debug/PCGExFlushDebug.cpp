@@ -5,7 +5,6 @@
 
 #include "PCGGraph.h"
 #include "PCGPin.h"
-#include "PCGGraph.h"
 #include "DrawDebugHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

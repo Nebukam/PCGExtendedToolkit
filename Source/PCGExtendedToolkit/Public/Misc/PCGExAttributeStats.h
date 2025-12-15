@@ -8,7 +8,6 @@
 #include "PCGExFactories.h"
 #include "PCGExLabels.h"
 
-#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -16,7 +15,7 @@
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Types/PCGExTypeOpsImpl.h"
+#include "Types/PCGExTypeTraits.h"
 
 #include "PCGExAttributeStats.generated.h"
 
@@ -281,6 +280,8 @@ namespace PCGExAttributeStats
 	template <typename T>
 	class TAttributeStats : public IAttributeStats
 	{
+		using Traits = PCGExTypes::TTraits<T>;
+
 	public:
 		T DefaultValue = T{};
 		T MinValue = T{};
@@ -309,6 +310,8 @@ namespace PCGExAttributeStats
 			FString StrName = Identity.Identifier.Name.ToString();
 			UPCGMetadata* PointsMetadata = nullptr;
 
+			const PCGExTypeOps::ITypeOpsBase* TypeOps = PCGExTypeOps::FTypeOpsRegistry::Get<T>();
+
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
 
 #define PCGEX_OUTPUT_STAT(_NAME, _TYPE, _VALUE) \
@@ -320,8 +323,8 @@ namespace PCGExAttributeStats
 		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }
 
 			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Identifier);
-			PCGExMath::TypeMinMax(MinValue, MaxValue);
-			PCGExMath::TypeMinMax(SetMinValue, SetMaxValue);
+			SetMinValue = MinValue = Traits::Max();
+			SetMinValue = MinValue = Traits::Min();
 
 #define PCGEX_NO_AVERAGE if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 
@@ -334,8 +337,6 @@ namespace PCGExAttributeStats
 
 			const FString Identifier = FString::Printf(TEXT("PCGEx/Identifier:%u"), InDataFacade->Source->GetIn()->GetUniqueID());
 			PCGEX_OUTPUT_STAT(Identifier, FString, Identifier)
-
-			PCGExTypeOps::TTypeOpsImpl<T>& TypeOpsImpl = PCGExTypeOps::TTypeOpsImpl<T>::GetInstance();
 
 			if constexpr (!PCGEx::IsValidForTMap<T>::value)
 			{
@@ -373,15 +374,15 @@ namespace PCGExAttributeStats
 
 					const T& Value = Buffer->Read(i);
 
-					TypeOpsImpl.BlendMin(&Value, &MinValue, &MinValue);
-					TypeOpsImpl.BlendMax(&Value, &MaxValue, &MaxValue);
+					TypeOps->BlendMin(&Value, &MinValue, &MinValue);
+					TypeOps->BlendMax(&Value, &MaxValue, &MaxValue);
 
 					PCGEX_NO_AVERAGE
 					{
 					}
 					else
 					{
-						TypeOpsImpl.BlendAdd(&Value, &AverageValue, &AverageValue);
+						TypeOps->BlendAdd(&Value, &AverageValue, &AverageValue);
 					}
 
 					int32& Count = ValuesCount.FindOrAdd(Value, 0);
@@ -396,8 +397,8 @@ namespace PCGExAttributeStats
 						int32& SetCount = SetValuesCount.FindOrAdd(Value, 0);
 						++SetCount;
 
-						TypeOpsImpl.BlendMin(&Value, &SetMinValue, &SetMinValue);
-						TypeOpsImpl.BlendMax(&Value, &SetMaxValue, &SetMaxValue);
+						TypeOps->BlendMin(&Value, &SetMinValue, &SetMinValue);
+						TypeOps->BlendMax(&Value, &SetMaxValue, &SetMaxValue);
 					}
 				}
 
@@ -461,7 +462,7 @@ namespace PCGExAttributeStats
 
 				////// OUTPUT		
 
-				TypeOpsImpl.BlendDiv(&AverageValue, static_cast<int32>(NumValues), &AverageValue);
+				TypeOps->BlendDiv(&AverageValue, static_cast<int32>(NumValues), &AverageValue);
 
 				PCGEX_OUTPUT_STAT(DefaultValue, T, DefaultValue)
 				PCGEX_OUTPUT_STAT(MinValue, T, MinValue)

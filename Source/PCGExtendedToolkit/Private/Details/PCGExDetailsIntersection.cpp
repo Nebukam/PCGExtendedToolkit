@@ -4,6 +4,7 @@
 #include "Details/PCGExDetailsIntersection.h"
 
 #include "PCGElement.h"
+#include "PCGEx.h"
 #include "PCGExContext.h"
 #include "Details/PCGExMacros.h"
 #include "PCGExMath.h"

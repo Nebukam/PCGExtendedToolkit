@@ -7,7 +7,6 @@
 #include "UObject/SoftObjectPath.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "PCGExCommon.h"
-#include "Details/PCGExDetailsAxis.h"
 
 /**
  * PCGEx Type Operations System
@@ -55,252 +54,6 @@ namespace PCGExTypeOps
 	template <typename T>
 	struct FTypeOps;
 
-	// Type Traits - Compile time type classification
-
-	template <typename T>
-	struct TTypeTraits
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = false;
-		static constexpr bool bSupportsMinMax = false;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
-	// Numeric types
-	template <>
-	struct TTypeTraits<bool>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Boolean;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = true;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = false;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
-	template <>
-	struct TTypeTraits<int32>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer32;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = true;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	template <>
-	struct TTypeTraits<int64>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer64;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = true;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	template <>
-	struct TTypeTraits<float>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Float;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = true;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	template <>
-	struct TTypeTraits<double>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Double;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = true;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	// Vector types
-	template <>
-	struct TTypeTraits<FVector2D>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector2;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = true;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	template <>
-	struct TTypeTraits<FVector>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = true;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	template <>
-	struct TTypeTraits<FVector4>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector4;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = true;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	// Rotation types
-	template <>
-	struct TTypeTraits<FQuat>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Quaternion;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = true;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = false;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
-	template <>
-	struct TTypeTraits<FRotator>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Rotator;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = true;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = true;
-		static constexpr bool bSupportsArithmetic = true;
-	};
-
-	template <>
-	struct TTypeTraits<FTransform>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Transform;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = false;
-		static constexpr bool bSupportsLerp = true;
-		static constexpr bool bSupportsMinMax = false;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
-	// String types
-	template <>
-	struct TTypeTraits<FString>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::String;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = true;
-		static constexpr bool bSupportsLerp = false;
-		static constexpr bool bSupportsMinMax = false;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
-	template <>
-	struct TTypeTraits<FName>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Name;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = true;
-		static constexpr bool bSupportsLerp = false;
-		static constexpr bool bSupportsMinMax = false;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
-	template <>
-	struct TTypeTraits<FSoftObjectPath>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftObjectPath;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = true;
-		static constexpr bool bSupportsLerp = false;
-		static constexpr bool bSupportsMinMax = false;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
-	template <>
-	struct TTypeTraits<FSoftClassPath>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftClassPath;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-		
-		static constexpr bool bIsNumeric = false;
-		static constexpr bool bIsVector = false;
-		static constexpr bool bIsRotation = false;
-		static constexpr bool bIsString = true;
-		static constexpr bool bSupportsLerp = false;
-		static constexpr bool bSupportsMinMax = false;
-		static constexpr bool bSupportsArithmetic = false;
-	};
-
 	// Type-Erased Operation Interface
 
 	/**
@@ -320,6 +73,7 @@ namespace PCGExTypeOps
 		virtual bool SupportsLerp() const = 0;
 		virtual bool SupportsMinMax() const = 0;
 		virtual bool SupportsArithmetic() const = 0;
+		virtual bool SameType(const ITypeOpsBase* Other) const { return GetTypeId() == Other->GetTypeId(); }
 
 		// Default value operations
 		virtual void SetDefault(void* OutValue) const = 0;
@@ -361,7 +115,6 @@ namespace PCGExTypeOps
 		// Weight/Average accumulation helpers
 		virtual void BlendWeight(const void* A, const void* B, double Weight, void* Out) const = 0;
 		virtual void NormalizeWeight(const void* A, double TotalWeight, void* Out) const = 0;
-
 	};
 
 	// Type Operations Registry

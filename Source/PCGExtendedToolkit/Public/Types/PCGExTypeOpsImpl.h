@@ -9,6 +9,7 @@
 #include "PCGExTypeOpsVector.h"
 #include "PCGExTypeOpsRotation.h"
 #include "PCGExTypeOpsString.h"
+#include "PCGExTypeTraits.h"
 
 namespace PCGExTypeOps
 {
@@ -27,7 +28,7 @@ namespace PCGExTypeOps
 	{
 	public:
 		using TypeOps = FTypeOps<T>;
-		using Traits = TTypeTraits<T>;
+		using Traits = PCGExTypes::TTraits<T>;
 
 		//~ Begin ITypeOpsBase interface
 

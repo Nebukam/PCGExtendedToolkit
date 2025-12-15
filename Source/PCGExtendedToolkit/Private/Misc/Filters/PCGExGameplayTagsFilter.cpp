@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExGameplayTagsFilter.h"
 
 #include "PCGExHelpers.h"
+#include "PCGExtendedToolkit.h"
 #include "GameFramework/Actor.h"
 #include "PropertyPathHelpers.h"
 #include "Data/PCGExData.h"

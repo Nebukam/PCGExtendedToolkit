@@ -15,10 +15,6 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 
-
-#include "Misc/PCGExSortPoints.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExSampleVtxByIDElement"
 #define PCGEX_NAMESPACE SampleVtxByID
 
