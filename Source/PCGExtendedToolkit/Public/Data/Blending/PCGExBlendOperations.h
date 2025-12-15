@@ -297,7 +297,7 @@ namespace PCGExBlending
 		void FinalizeWeightNormalize(void* Accumulator, double TotalWeight, int32 /*Count*/)
 		{
 			T& Acc = *static_cast<T*>(Accumulator);
-			Acc = PCGExTypeOps::FTypeOps<T>::NormalizeWeight(Acc, TotalWeight);
+			Acc = PCGExTypeOps::FTypeOps<T>::NormalizeWeight(Acc, FMath::Max(TotalWeight, 1));
 		}
 
 		template <typename T>

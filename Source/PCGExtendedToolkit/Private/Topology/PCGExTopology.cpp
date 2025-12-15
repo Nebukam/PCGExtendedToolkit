@@ -351,6 +351,11 @@ namespace PCGExTopology
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCell::BuildFromCluster);
 
+		ON_SCOPE_EXIT
+		{
+			Nodes.Shrink();
+		};
+		
 		bBuiltSuccessfully = false;
 		Data.Bounds = FBox(ForceInit);
 
@@ -369,13 +374,17 @@ namespace PCGExTopology
 		Data.Centroid = SeedRP;
 		Data.Bounds += SeedRP;
 
+		Nodes.Reserve(32);
 		Nodes.Add(From.Node);
 		if (InCluster->GetNode(From.Node)->IsLeaf() && Constraints->bDuplicateLeafPoints) { Nodes.Add(From.Node); }
 
 		int32 NumUniqueNodes = 1;
 
 		const int32 FailSafe = InCluster->Edges->Num() * 2;
+
 		TSet<uint64> SignedEdges;
+		SignedEdges.Reserve(32);
+
 		while (To.Node != -1)
 		{
 			if (SignedEdges.Num() > FailSafe) { return ECellResult::MalformedCluster; } // Let's hope this never happens
