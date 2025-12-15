@@ -13,7 +13,7 @@
 class UPCGPin;
 
 UENUM()
-enum class EPCGExDataBlendingTypeDefault : uint8
+enum class EPCGExBlendingTypeDefault : uint8
 {
 	Default          = 100 UMETA(DisplayName = "Default", ToolTip="Use the node' default"),
 	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
@@ -124,49 +124,49 @@ public:
 #pragma region Blendmodes
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Simple Types", meta=(DisplayName="Boolean"))
-	EPCGExDataBlendingTypeDefault DefaultBooleanBlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultBooleanBlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Simple Types", meta=(DisplayName="Float"))
-	EPCGExDataBlendingTypeDefault DefaultFloatBlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultFloatBlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Simple Types", meta=(DisplayName="Double"))
-	EPCGExDataBlendingTypeDefault DefaultDoubleBlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultDoubleBlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Simple Types", meta=(DisplayName="Integer32"))
-	EPCGExDataBlendingTypeDefault DefaultInteger32BlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultInteger32BlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Simple Types", meta=(DisplayName="Integer64"))
-	EPCGExDataBlendingTypeDefault DefaultInteger64BlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultInteger64BlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Vector Types", meta=(DisplayName="Vector2"))
-	EPCGExDataBlendingTypeDefault DefaultVector2BlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultVector2BlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Vector Types", meta=(DisplayName="Vector"))
-	EPCGExDataBlendingTypeDefault DefaultVectorBlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultVectorBlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Vector Types", meta=(DisplayName="Vector4"))
-	EPCGExDataBlendingTypeDefault DefaultVector4BlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultVector4BlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Complex Types", meta=(DisplayName="Quaternion"))
-	EPCGExDataBlendingTypeDefault DefaultQuaternionBlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultQuaternionBlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Complex Types", meta=(DisplayName="Transform"))
-	EPCGExDataBlendingTypeDefault DefaultTransformBlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultTransformBlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Complex Types", meta=(DisplayName="Rotator"))
-	EPCGExDataBlendingTypeDefault DefaultRotatorBlendMode = EPCGExDataBlendingTypeDefault::Default;
+	EPCGExBlendingTypeDefault DefaultRotatorBlendMode = EPCGExBlendingTypeDefault::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Text Types", meta=(DisplayName="String"))
-	EPCGExDataBlendingTypeDefault DefaultStringBlendMode = EPCGExDataBlendingTypeDefault::Copy;
+	EPCGExBlendingTypeDefault DefaultStringBlendMode = EPCGExBlendingTypeDefault::Copy;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Text Types", meta=(DisplayName="Name"))
-	EPCGExDataBlendingTypeDefault DefaultNameBlendMode = EPCGExDataBlendingTypeDefault::Copy;
+	EPCGExBlendingTypeDefault DefaultNameBlendMode = EPCGExBlendingTypeDefault::Copy;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Soft Paths Types", meta=(DisplayName="SoftObjectPath"))
-	EPCGExDataBlendingTypeDefault DefaultSoftObjectPathBlendMode = EPCGExDataBlendingTypeDefault::Copy;
+	EPCGExBlendingTypeDefault DefaultSoftObjectPathBlendMode = EPCGExBlendingTypeDefault::Copy;
 
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Soft Paths Types", meta=(DisplayName="SoftClassPath"))
-	EPCGExDataBlendingTypeDefault DefaultSoftClassPathBlendMode = EPCGExDataBlendingTypeDefault::Copy;
+	EPCGExBlendingTypeDefault DefaultSoftClassPathBlendMode = EPCGExBlendingTypeDefault::Copy;
 
 #pragma endregion
 

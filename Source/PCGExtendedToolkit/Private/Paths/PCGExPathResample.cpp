@@ -214,7 +214,7 @@ namespace PCGExResamplePath
 		if (Settings->Mode == EPCGExResampleMode::Sweep)
 		{
 			// Blender will take care of setting all the properties and stuff			
-			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender = MakeShared<PCGExBlending::FMetadataBlender>();
 			MetadataBlender->SetSourceData(PointDataFacade);
 			MetadataBlender->SetTargetData(PointDataFacade);
 			if (!MetadataBlender->Init(Context, Settings->BlendingSettings, nullptr, false, PCGExData::EIOSide::In))

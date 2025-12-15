@@ -170,7 +170,7 @@ namespace PCGExFuseCollinear
 
 	void FProcessor::Finalize(TArray<int32>& ReadIndices)
 	{
-		TSharedPtr<PCGExDataBlending::FUnionBlender> DataBlender = nullptr;
+		TSharedPtr<PCGExBlending::FUnionBlender> DataBlender = nullptr;
 
 		if (Settings->UnionDetails.bWriteIsUnion)
 		{
@@ -219,7 +219,7 @@ namespace PCGExFuseCollinear
 		}
 
 
-		DataBlender = MakeShared<PCGExDataBlending::FUnionBlender>(
+		DataBlender = MakeShared<PCGExBlending::FUnionBlender>(
 			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails),
 			nullptr, PCGExDetails::GetNoneDistances());
 

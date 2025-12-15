@@ -9,7 +9,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/BlendOperations/PCGExBlendOperations.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Types/PCGExTypeOpsImpl.h"
@@ -516,15 +515,15 @@ namespace PCGExSampleNearestSpline
 				const double Weight = TargetInfos.Weight;
 				const FQuat Quat = TargetInfos.Transform.GetRotation();
 
-				WeightedTransform = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTransform, TargetInfos.Transform, Weight);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::WeightedAdd(WeightedTransform, TargetInfos.Transform, Weight);
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					WeightedUp = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedUp, PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight);
+					WeightedUp = PCGExTypeOps::FTypeOps<FVector>::WeightedAdd(WeightedUp, PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight);
 				}
 
 				WeightedSignAxis += PCGExMath::GetDirection(Quat, Settings->SignAxis) * Weight;
 				WeightedAngleAxis += PCGExMath::GetDirection(Quat, Settings->AngleAxis) * Weight;
-				WeightedTangent = PCGExDataBlending::BlendFunctions::WeightedAdd(WeightedTangent, TargetInfos.Tangent, Weight);
+				WeightedTangent = PCGExTypeOps::FTypeOps<FVector>::WeightedAdd(WeightedTangent, TargetInfos.Tangent, Weight);
 
 				WeightedTime += TargetInfos.Time * Weight;
 				TotalWeight += Weight;

@@ -1,14 +1,83 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/BlendOperations/PCGExBlendOperations.h"
+#include "Data/Blending/PCGExBlendOperations.h"
 
-// Include the blend mode enum - adjust path as needed
-// #include "Data/Blending/PCGExDataBlending.h"
+#include "PCGEx.h"
 
-namespace PCGExDataBlending
+namespace PCGExBlending
 {
-	// === FBlendOperationFactory implementation ===
+
+	IBlendOperation::IBlendOperation(const EPCGExABBlendingType InMode, const bool bInResetForMulti)
+		: Mode(InMode),
+		  bResetForMulti(bInResetForMulti),
+		  bInitWithSource(
+			  InMode == EPCGExABBlendingType::Min ||
+			  InMode == EPCGExABBlendingType::Max ||
+			  InMode == EPCGExABBlendingType::UnsignedMin ||
+			  InMode == EPCGExABBlendingType::UnsignedMax ||
+			  InMode == EPCGExABBlendingType::AbsoluteMin ||
+			  InMode == EPCGExABBlendingType::AbsoluteMax ||
+			  InMode == EPCGExABBlendingType::Hash ||
+			  InMode == EPCGExABBlendingType::Hash),
+		  bConsiderOriginalValue(
+			  InMode == EPCGExABBlendingType::Average ||
+			  InMode == EPCGExABBlendingType::Add ||
+			  InMode == EPCGExABBlendingType::Subtract ||
+			  InMode == EPCGExABBlendingType::Weight ||
+			  InMode == EPCGExABBlendingType::WeightedAdd ||
+			  InMode == EPCGExABBlendingType::WeightedSubtract)
+	{
+	}
+
+	void IBlendOperation::Blend(const void* A, const void* B, double Weight, void* Out) const
+	{
+		BlendFunc(A, B, Weight, Out);
+	}
+
+	void IBlendOperation::BeginMulti(void* Accumulator, const void* InitialValue, PCGEx::FOpStats& OutTracker) const
+	{
+		if (bInitWithSource)
+		{
+			// These modes require the first operation to be a copy of the first blended value
+			// before they can be properly blended -- this should be handled by the blend op?
+			OutTracker.Count = -1;
+		}
+		else if (bConsiderOriginalValue)
+		{
+			// Some BlendModes can leverage this
+			if (bResetForMulti)
+			{
+				InitDefault(Accumulator);
+			}
+			else
+			{
+				// Otherwise, bump up original count so EndBlend can account for pre-existing value as "one blend step"
+				OutTracker.Count = 1;
+				OutTracker.TotalWeight = 1;
+			}
+		}
+		/*
+		if (InitialValue)
+		{
+			// Copy initial value
+			CopyValue(InitialValue, Accumulator);
+		}
+		*/
+	}
+
+	void IBlendOperation::Accumulate(const void* Source, void* Accumulator, double Weight) const
+	{
+		AccumulateFunc(Accumulator, Source, Weight, Accumulator); 
+	}
+
+	void IBlendOperation::EndMulti(void* Accumulator, double TotalWeight, int32 Count) const
+	{
+		FinalizeFunc(Accumulator, TotalWeight, Count);
+	}
+
+	
+	// FBlendOperationFactory implementation
 
 	TSharedPtr<IBlendOperation> FBlendOperationFactory::Create(
 		EPCGMetadataTypes WorkingType,
@@ -36,69 +105,7 @@ namespace PCGExDataBlending
 		}
 	}
 
-	// === FProxyBlender implementation ===
-
-	bool FProxyBlender::Init(
-		void* InBufferA, GetFn InGetA,
-		void* InBufferB, GetFn InGetB,
-		void* InBufferC, SetFn InSetC,
-		TSharedPtr<IBlendOperation> InOperation)
-	{
-		if (!InOperation.IsValid())
-		{
-			return false;
-		}
-
-		BufferA = InBufferA;
-		BufferB = InBufferB;
-		BufferC = InBufferC;
-		GetA = InGetA;
-		GetB = InGetB;
-		SetC = InSetC;
-		Operation = InOperation;
-
-		WorkingType = Operation->GetWorkingType();
-		ValueSize = Operation->GetValueSize();
-		ValueAlignment = Operation->GetValueAlignment();
-
-		return true;
-	}
-
-	void FProxyBlender::BlendMulti(
-		const TArray<int32>& SourceIndices,
-		const TArray<double>& Weights,
-		int32 TargetIdx) const
-	{
-		if (!Operation.IsValid() || SourceIndices.Num() == 0)
-		{
-			return;
-		}
-
-		// Stack buffer for accumulator
-		alignas(16) uint8 Accumulator[sizeof(FTransform)];
-		alignas(16) uint8 TempValue[sizeof(FTransform)];
-
-		// Initialize accumulator
-		Operation->BeginMulti(Accumulator);
-
-		// Accumulate all sources
-		double TotalWeight = 0.0;
-		const int32 NumSources = SourceIndices.Num();
-
-		for (int32 i = 0; i < NumSources; ++i)
-		{
-			const double Weight = (i < Weights.Num()) ? Weights[i] : 1.0;
-			GetA(BufferA, SourceIndices[i], TempValue);
-			Operation->Accumulate(TempValue, Accumulator, Weight);
-			TotalWeight += Weight;
-		}
-
-		// Finalize and store
-		Operation->EndMulti(Accumulator, TotalWeight, NumSources);
-		SetC(BufferC, TargetIdx, Accumulator);
-	}
-
-	// === FBlenderPool implementation ===
+	// FBlenderPool implementation
 
 	TSharedPtr<IBlendOperation> FBlenderPool::Get(
 		EPCGMetadataTypes WorkingType,
@@ -109,10 +116,7 @@ namespace PCGExDataBlending
 
 		{
 			FScopeLock Lock(&CacheLock);
-			if (TSharedPtr<IBlendOperation>* Found = Cache.Find(Key))
-			{
-				return *Found;
-			}
+			if (TSharedPtr<IBlendOperation>* Found = Cache.Find(Key)) { return *Found; }
 		}
 
 		// Create new operation outside lock
@@ -122,10 +126,7 @@ namespace PCGExDataBlending
 		{
 			FScopeLock Lock(&CacheLock);
 			// Check again in case another thread added it
-			if (TSharedPtr<IBlendOperation>* Found = Cache.Find(Key))
-			{
-				return *Found;
-			}
+			if (TSharedPtr<IBlendOperation>* Found = Cache.Find(Key)) { return *Found; }
 			Cache.Add(Key, NewOp);
 		}
 
@@ -144,8 +145,7 @@ namespace PCGExDataBlending
 		return Instance;
 	}
 
-	// === Explicit template instantiations ===
-	// Only 14 instantiations instead of 616!
+	// Explicit template instantiations
 
 	template class TBlendOperationImpl<bool>;
 	template class TBlendOperationImpl<int32>;
@@ -165,7 +165,8 @@ namespace PCGExDataBlending
 
 	// Explicit instantiation of blend function getters
 #define INST_BLEND_FUNC_GETTER(TYPE) \
-		template TBlendOperationImpl<TYPE>::BlendFn BlendFunctions::GetBlendFunction<TYPE>(EPCGExABBlendingType);
+	template FBlendFn BlendFunctions::GetBlendFunction<TYPE>(EPCGExABBlendingType); \
+	template FFinalizeFn BlendFunctions::GetFinalizeFunction<TYPE>(EPCGExABBlendingType);
 
 	INST_BLEND_FUNC_GETTER(bool)
 	INST_BLEND_FUNC_GETTER(int32)

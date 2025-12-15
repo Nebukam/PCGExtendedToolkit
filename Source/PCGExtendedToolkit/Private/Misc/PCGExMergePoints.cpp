@@ -3,11 +3,9 @@
 
 #include "Misc/PCGExMergePoints.h"
 
-
 #include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Graph/PCGExEdge.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsElement"
 #define PCGEX_NAMESPACE MergePoints
@@ -96,7 +94,7 @@ namespace PCGExMergePoints
 			if (const TSharedPtr<PCGExData::IDataValue> TagValue = PointDataFacade->Source->Tags->GetValue(Tag))
 			{
 				bool bTryBroadcast = false;
-				PCGEx::ExecuteWithRightType(TagValue->UnderlyingType, [&](auto DummyValue)
+				PCGEx::ExecuteWithRightType(TagValue->Type, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					const T Value = StaticCastSharedPtr<PCGExData::TDataValue<T>>(TagValue)->Value;
@@ -122,11 +120,12 @@ namespace PCGExMergePoints
 				{
 					using T = decltype(DummyValue);
 					T Value = T{};
-
-					PCGEx::ExecuteWithRightType(TagValue->UnderlyingType, [&](auto DummyValue2)
+					PCGEx::ExecuteWithRightType(TagValue->Type, [&](auto DummyValue2)
 					{
+						// TODO : Refactor this
 						using T_REAL = decltype(DummyValue2);
-						Value = PCGEx::FSubSelection().Get<T_REAL, T>(StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value);
+						PCGExTypeOps::TTypeOpsImpl<T>& TypeOpsImpl = PCGExTypeOps::TTypeOpsImpl<T>::GetInstance();
+						TypeOpsImpl.ConvertFrom(TagValue->Type, &StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value, &Value);
 					});
 
 					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
@@ -224,7 +223,7 @@ namespace PCGExMergePoints
 	void FBatch::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
-		
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
 		Context->CompositeDataFacade->WriteFastest(TaskManager);
 	}

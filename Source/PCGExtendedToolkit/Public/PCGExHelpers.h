@@ -86,8 +86,6 @@ namespace PCGExHelpers
 {
 	PCGEXTENDEDTOOLKIT_API FText GetClassDisplayName(const UClass* InClass);
 
-	PCGEXTENDEDTOOLKIT_API bool HasDataOnPin(FPCGContext* InContext, FName Pin);
-
 	PCGEXTENDEDTOOLKIT_API bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName);
 
 	PCGEXTENDEDTOOLKIT_API bool IsDataDomainAttribute(const FName& InName);
@@ -405,28 +403,7 @@ namespace PCGEx
 		case EPCGMetadataTypes::Unknown: return -1;
 		}
 	}
-
-	template <typename T>
-	constexpr static EPCGMetadataTypes GetMetadataType()
-	{
-		if constexpr (std::is_same_v<T, bool>) { return EPCGMetadataTypes::Boolean; }
-		else if constexpr (std::is_same_v<T, int32>) { return EPCGMetadataTypes::Integer32; }
-		else if constexpr (std::is_same_v<T, int64>) { return EPCGMetadataTypes::Integer64; }
-		else if constexpr (std::is_same_v<T, float>) { return EPCGMetadataTypes::Float; }
-		else if constexpr (std::is_same_v<T, double>) { return EPCGMetadataTypes::Double; }
-		else if constexpr (std::is_same_v<T, FVector2D>) { return EPCGMetadataTypes::Vector2; }
-		else if constexpr (std::is_same_v<T, FVector>) { return EPCGMetadataTypes::Vector; }
-		else if constexpr (std::is_same_v<T, FVector4>) { return EPCGMetadataTypes::Vector4; }
-		else if constexpr (std::is_same_v<T, FQuat>) { return EPCGMetadataTypes::Quaternion; }
-		else if constexpr (std::is_same_v<T, FRotator>) { return EPCGMetadataTypes::Rotator; }
-		else if constexpr (std::is_same_v<T, FTransform>) { return EPCGMetadataTypes::Transform; }
-		else if constexpr (std::is_same_v<T, FString>) { return EPCGMetadataTypes::String; }
-		else if constexpr (std::is_same_v<T, FName>) { return EPCGMetadataTypes::Name; }
-		else if constexpr (std::is_same_v<T, FSoftClassPath>) { return EPCGMetadataTypes::SoftClassPath; }
-		else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return EPCGMetadataTypes::SoftObjectPath; }
-		else { return EPCGMetadataTypes::Unknown; }
-	}
-
+	
 	constexpr static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
 	{
 		switch (Property)

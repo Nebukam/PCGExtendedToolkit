@@ -17,7 +17,7 @@ void FPCGExNeighborSampleBlend::PrepareForCluster(FPCGExContext* InContext, cons
 
 	bIsValidOperation = false;
 
-	BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
+	BlendOpsManager = MakeShared<PCGExBlending::FBlendOpsManager>();
 
 	BlendOpsManager->SetWeightFacade(VtxDataFacade);
 	BlendOpsManager->SetTargetFacade(VtxDataFacade);
@@ -87,14 +87,14 @@ void UPCGExNeighborSamplerFactoryBlend::RegisterVtxBuffersDependencies(FPCGExCon
 
 	if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx)
 	{
-		PCGExDataBlending::RegisterBuffersDependencies_Sources(InContext, FacadePreloader, BlendingFactories);
+		PCGExBlending::RegisterBuffersDependencies_Sources(InContext, FacadePreloader, BlendingFactories);
 	}
 }
 
 TArray<FPCGPinProperties> UPCGExNeighborSampleBlendSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Required);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Required);
 	return PinProperties;
 }
 
@@ -102,7 +102,7 @@ UPCGExFactoryData* UPCGExNeighborSampleBlendSettings::CreateFactory(FPCGExContex
 {
 	UPCGExNeighborSamplerFactoryBlend* SamplerFactory = InContext->ManagedObjects->New<UPCGExNeighborSamplerFactoryBlend>();
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(InContext, PCGExDataBlending::SourceBlendingLabel, SamplerFactory->BlendingFactories, {PCGExFactories::EType::Blending}))
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(InContext, PCGExBlending::SourceBlendingLabel, SamplerFactory->BlendingFactories, {PCGExFactories::EType::Blending}))
 	{
 		InContext->ManagedObjects->Destroy(SamplerFactory);
 		return nullptr;

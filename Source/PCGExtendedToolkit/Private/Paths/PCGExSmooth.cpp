@@ -22,14 +22,14 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSmoothSettings, SmoothingAmount, double, Smoothin
 TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExSmooth::SourceOverridesSmoothing)
 	return PinProperties;
 }
 
 bool UPCGExSmoothSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	if (InPin->Properties.Label == PCGExBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -59,7 +59,7 @@ bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	return true;
@@ -119,7 +119,7 @@ namespace PCGExSmooth
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
+			BlendOpsManager = MakeShared<PCGExBlending::FBlendOpsManager>(PointDataFacade);
 
 			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 
@@ -127,7 +127,7 @@ namespace PCGExSmooth
 		}
 		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
 		{
-			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender = MakeShared<PCGExBlending::FMetadataBlender>();
 			MetadataBlender->SetTargetData(PointDataFacade);
 			MetadataBlender->SetSourceData(PointDataFacade, PCGExData::EIOSide::In, true);
 
@@ -136,7 +136,7 @@ namespace PCGExSmooth
 			DataBlender = MetadataBlender;
 		}
 
-		if (!DataBlender) { DataBlender = MakeShared<PCGExDataBlending::FDummyBlender>(); }
+		if (!DataBlender) { DataBlender = MakeShared<PCGExBlending::FDummyBlender>(); }
 
 		Influence = Settings->GetValueSettingInfluence();
 		if (!Influence->Init(PointDataFacade)) { return false; }

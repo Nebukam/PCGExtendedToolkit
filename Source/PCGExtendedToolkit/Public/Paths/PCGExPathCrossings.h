@@ -9,7 +9,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
@@ -83,7 +83,7 @@ public:
 
 	/** If enabled, blend in properties & attributes from external sources. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
-	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExBlendingType::Average, EPCGExBlendingType::None);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAlpha = false;
@@ -187,7 +187,7 @@ namespace PCGExPathCrossings
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSet<int32> CrossIOIndices;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
+		TSharedPtr<PCGExBlending::IUnionBlender> UnionBlender;
 
 		FPCGExPathEdgeIntersectionDetails Details;
 

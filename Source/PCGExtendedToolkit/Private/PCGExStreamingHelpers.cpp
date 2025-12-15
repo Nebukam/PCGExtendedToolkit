@@ -43,7 +43,7 @@ namespace PCGExHelpers
 	{
 		check(TaskManager);
 
-		PCGExMT::ExecuteOnMainThread(TaskManager, [GetPathsFunc, OnLoadEnd]()
+		PCGExMT::ExecuteOnMainThread(TaskManager, [GetPathsFunc, OnLoadEnd, TaskManager]()
 		{
 			TArray<FSoftObjectPath> Paths = GetPathsFunc();
 
@@ -53,15 +53,20 @@ namespace PCGExHelpers
 				return;
 			}
 
-			const TSharedPtr<FStreamableHandle> LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(MoveTemp(Paths), [OnLoadEnd](TSharedPtr<FStreamableHandle> InHandle) // NOLINT(performance-unnecessary-value-param)
-			{
-				OnLoadEnd(true, InHandle);
-			});
+			TWeakPtr<PCGExMT::FAsyncToken> LoadToken = TaskManager->TryCreateToken(FName("LoadToken"));
+			const TSharedPtr<FStreamableHandle> LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+				MoveTemp(Paths),
+				[OnLoadEnd, LoadToken](TSharedPtr<FStreamableHandle> InHandle) // NOLINT(performance-unnecessary-value-param)
+				{
+					OnLoadEnd(true, InHandle);
+					PCGEX_ASYNC_RELEASE_CAPTURED_TOKEN(LoadToken)
+				});
 
 			if (!LoadHandle || !LoadHandle->IsActive())
 			{
 				if (!LoadHandle || !LoadHandle->HasLoadCompleted()) { OnLoadEnd(false, LoadHandle); }
 				else { OnLoadEnd(true, LoadHandle); }
+				PCGEX_ASYNC_RELEASE_TOKEN(LoadToken)
 			}
 		});
 	}

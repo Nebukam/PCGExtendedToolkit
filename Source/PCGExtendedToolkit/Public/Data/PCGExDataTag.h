@@ -9,6 +9,7 @@
 
 #include "Details/PCGExMacros.h"
 #include "PCGExHelpers.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 #define PCGEX_FOREACH_SUPPORTEDTAGTYPE(MACRO) \
 MACRO(Integer, int64) \
@@ -77,7 +78,7 @@ namespace PCGExData
 				TArray<T> ValuesForKey;
 				if (const TSharedPtr<IDataValue>* ValueTagPtr = ValueTags.Find(Key))
 				{
-					if ((*ValueTagPtr)->UnderlyingType == PCGEx::GetMetadataType<T>())
+					if ((*ValueTagPtr)->Type == PCGExTypeOps::TTypeTraits<T>::Type)
 					{
 						return StaticCastSharedPtr<TDataValue<T>>(*ValueTagPtr);
 					}
@@ -118,7 +119,7 @@ namespace PCGExData
 
 			if (const TSharedPtr<IDataValue>* ValueTagPtr = ValueTags.Find(Key))
 			{
-				if ((*ValueTagPtr)->UnderlyingType == PCGEx::GetMetadataType<T>())
+				if ((*ValueTagPtr)->Type == PCGExTypeOps::TTypeTraits<T>::Type)
 				{
 					return StaticCastSharedPtr<TDataValue<T>>(*ValueTagPtr);
 				}

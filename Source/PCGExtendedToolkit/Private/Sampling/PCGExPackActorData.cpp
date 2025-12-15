@@ -354,16 +354,18 @@ namespace PCGExPackActorData
 		}
 		else
 		{
-			PCGExHelpers::Load(TaskManager, [PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
-			                   {
-				                   PCGEX_ASYNC_THIS_RET({})
-				                   return This->Packer->RequiredAssetsPaths.Array();
-			                   }, [PCGEX_ASYNC_THIS_CAPTURE](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
-			                   {
-				                   PCGEX_ASYNC_THIS
-				                   This->LoadHandle = StreamableHandle;
-				                   This->StartProcessing();
-			                   });
+			PCGExHelpers::Load(
+				TaskManager,
+				[PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
+				{
+					PCGEX_ASYNC_THIS_RET({})
+					return This->Packer->RequiredAssetsPaths.Array();
+				}, [PCGEX_ASYNC_THIS_CAPTURE](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
+				{
+					PCGEX_ASYNC_THIS
+					This->LoadHandle = StreamableHandle;
+					This->StartProcessing();
+				});
 		}
 
 		return true;

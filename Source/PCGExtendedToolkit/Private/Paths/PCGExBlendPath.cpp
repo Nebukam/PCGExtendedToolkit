@@ -24,7 +24,7 @@ UPCGExBlendPathSettings::UPCGExBlendPathSettings(const FObjectInitializer& Objec
 TArray<FPCGPinProperties> UPCGExBlendPathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Required);
+	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Required);
 	return PinProperties;
 }
 
@@ -40,7 +40,7 @@ bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendPath)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}))
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}))
 	{
 		return false;
 	}
@@ -106,7 +106,7 @@ namespace PCGExBlendPath
 		Start = 0;
 		End = MaxIndex;
 
-		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
+		BlendOpsManager = MakeShared<PCGExBlending::FBlendOpsManager>(PointDataFacade);
 		BlendOpsManager->SetSources(PointDataFacade); // We want operands A & B to be the vtx here
 
 		if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }

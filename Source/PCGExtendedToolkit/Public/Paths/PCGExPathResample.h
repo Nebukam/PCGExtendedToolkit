@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExMath.h"
 #include "PCGExPathProcessor.h"
-#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Details/PCGExDetailsInputShorthands.h"
 
@@ -80,7 +80,7 @@ public:
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Lerp, EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExBlendingType::Lerp, EPCGExBlendingType::None);
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -122,7 +122,7 @@ namespace PCGExResamplePath
 		double SampleLength = 0;
 		TArray<FPointSample> Samples;
 
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExBlending::FMetadataBlender> MetadataBlender;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
