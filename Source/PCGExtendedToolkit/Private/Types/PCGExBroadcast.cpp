@@ -8,6 +8,7 @@
 #include "Types/PCGExSubSelectionOpsImpl.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGEx
 {
@@ -85,15 +86,15 @@ namespace PCGEx
 
 		switch (Component)
 		{
-		case ETransformPart::Position:
-		case ETransformPart::Scale: return EPCGMetadataTypes::Vector;
-		case ETransformPart::Rotation: return EPCGMetadataTypes::Quaternion;
+		case PCGExTypeOps::ETransformPart::Position:
+		case PCGExTypeOps::ETransformPart::Scale: return EPCGMetadataTypes::Vector;
+		case PCGExTypeOps::ETransformPart::Rotation: return EPCGMetadataTypes::Quaternion;
 		}
 
 		return Fallback;
 	}
 
-	void FSubSelection::SetComponent(const ETransformPart InComponent)
+	void FSubSelection::SetComponent(const PCGExTypeOps::ETransformPart InComponent)
 	{
 		bIsValid = true;
 		bIsComponentSet = true;
@@ -111,10 +112,10 @@ namespace PCGEx
 		bIsValid = true;
 		bIsFieldSet = true;
 
-		if (InFieldIndex == 0) { Field = ESingleField::X; }
-		else if (InFieldIndex == 1) { Field = ESingleField::Y; }
-		else if (InFieldIndex == 2) { Field = ESingleField::Z; }
-		else if (InFieldIndex == 3) { Field = ESingleField::W; }
+		if (InFieldIndex == 0) { Field = PCGExTypeOps::ESingleField::X; }
+		else if (InFieldIndex == 1) { Field = PCGExTypeOps::ESingleField::Y; }
+		else if (InFieldIndex == 2) { Field = PCGExTypeOps::ESingleField::Z; }
+		else if (InFieldIndex == 3) { Field = PCGExTypeOps::ESingleField::W; }
 
 		return true;
 	}
@@ -128,8 +129,8 @@ namespace PCGEx
 		}
 
 		FInputSelectorAxisData AxisIDMapping = FInputSelectorAxisData{EPCGExAxis::Forward, EPCGMetadataTypes::Unknown};
-		FInputSelectorComponentData ComponentIDMapping = {ETransformPart::Rotation, EPCGMetadataTypes::Quaternion};
-		FInputSelectorFieldData FieldIDMapping = {ESingleField::X, EPCGMetadataTypes::Unknown, 0};
+		FInputSelectorComponentData ComponentIDMapping = {PCGExTypeOps::ETransformPart::Rotation, EPCGMetadataTypes::Quaternion};
+		FInputSelectorFieldData FieldIDMapping = {PCGExTypeOps::ESingleField::X, EPCGMetadataTypes::Unknown, 0};
 
 		bIsAxisSet = GetAxisSelection(ExtraNames, AxisIDMapping);
 		Axis = AxisIDMapping.Get<0>();
@@ -151,6 +152,7 @@ namespace PCGEx
 
 		bIsFieldSet = GetFieldSelection(ExtraNames, FieldIDMapping);
 		Field = FieldIDMapping.Get<0>();
+		SetFieldIndex(FieldIDMapping.Get<2>());
 
 		if (bIsFieldSet)
 		{
@@ -205,10 +207,10 @@ namespace PCGEx
 	// Legacy Type-Erased Interface (GetVoid/SetVoid)
 	//
 	// These implement the original signature but use the new type-erased system internally.
+	// NOTE: For performance, prefer using FCachedSubSelection in IBufferProxy instead.
 	//
 
-	void FSubSelection::GetVoid(EPCGMetadataTypes SourceType, const void* Source,
-	                            EPCGMetadataTypes WorkingType, void* Target) const
+	void FSubSelection::GetVoid(EPCGMetadataTypes SourceType, const void* Source, EPCGMetadataTypes WorkingType, void* Target) const
 	{
 		if (!bIsValid)
 		{
@@ -226,22 +228,22 @@ namespace PCGEx
 		// Convert from intermediate to working type if needed
 		if (IntermediateType == WorkingType)
 		{
-			// Direct copy
-			const ISubSelectorOps* Ops = FSubSelectorRegistry::Get(IntermediateType);
-			if (Ops)
+			// Direct copy using type ops (handles strings, etc.)
+			const PCGExTypeOps::ITypeOpsBase* TypeOps = PCGExTypeOps::FTypeOpsRegistry::Get(IntermediateType);
+			if (TypeOps)
 			{
-				// Use type ops to copy properly (handles strings, etc.)
-				const PCGExTypeOps::ITypeOpsBase* TypeOps = PCGExTypeOps::FTypeOpsRegistry::Get(IntermediateType);
-				if (TypeOps)
-				{
-					TypeOps->Copy(IntermediateBuffer, Target);
-				}
+				TypeOps->Copy(IntermediateBuffer, Target);
 			}
 		}
-		else
+		else if (IntermediateType != EPCGMetadataTypes::Unknown)
 		{
 			// Need conversion
 			PCGExTypeOps::FConversionTable::Convert(IntermediateType, IntermediateBuffer, WorkingType, Target);
+		}
+		else
+		{
+			// ApplyGet didn't produce valid output, fallback to direct conversion
+			PCGExTypeOps::FConversionTable::Convert(SourceType, Source, WorkingType, Target);
 		}
 	}
 

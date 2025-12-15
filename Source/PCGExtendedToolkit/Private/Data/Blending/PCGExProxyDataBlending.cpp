@@ -40,9 +40,9 @@ namespace PCGExBlending
 		if (!Operation || !A || !C) { return; }
 
 		// Use FScopedTypedValue for safe working buffers
-		FScopedTypedValue ValA(UnderlyingType);
-		FScopedTypedValue ValB(UnderlyingType);
-		FScopedTypedValue ValC(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValA(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValB(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValC(UnderlyingType);
 
 		// Read A
 		A->GetVoid(SourceIndexA, ValA.GetRaw());
@@ -72,7 +72,7 @@ namespace PCGExBlending
 
 		if (!Operation || !C) { return Tracker; }
 
-		FScopedTypedValue Current(UnderlyingType);
+		PCGExTypes::FScopedTypedValue Current(UnderlyingType);
 		C->GetVoid(TargetIndex, Current.GetRaw());
 		Operation->BeginMulti(Current.GetRaw(), nullptr, Tracker);
 		C->SetVoid(TargetIndex, Current.GetRaw());
@@ -84,7 +84,7 @@ namespace PCGExBlending
 	{
 		if (!Operation || !A || !C) { return; }
 
-		FScopedTypedValue Source(UnderlyingType);
+		PCGExTypes::FScopedTypedValue Source(UnderlyingType);
 
 		// Read source value
 		A->GetVoid(SourceIndex, Source.GetRaw());
@@ -98,7 +98,7 @@ namespace PCGExBlending
 		}
 		else
 		{
-			FScopedTypedValue Current(UnderlyingType);
+			PCGExTypes::FScopedTypedValue Current(UnderlyingType);
 
 			// Read current accumulated value
 			C->GetCurrentVoid(TargetIndex, Current.GetRaw());
@@ -118,7 +118,7 @@ namespace PCGExBlending
 	{
 		if (!Operation || !C || Tracker.Count == 0) { return; }
 
-		FScopedTypedValue Current(UnderlyingType);
+		PCGExTypes::FScopedTypedValue Current(UnderlyingType);
 
 		// Read accumulated value
 		C->GetCurrentVoid(TargetIndex, Current.GetRaw());
@@ -134,7 +134,7 @@ namespace PCGExBlending
 	{
 		if (!Operation || !C || Divider == 0.0) { return; }
 
-		FScopedTypedValue Value(UnderlyingType);
+		PCGExTypes::FScopedTypedValue Value(UnderlyingType);
 
 		// Read current value
 		C->GetVoid(TargetIndex, Value.GetRaw());
@@ -191,7 +191,7 @@ namespace PCGExBlending
 
 		// Set type info
 		UnderlyingType = Desc_A.WorkingType;
-		bNeedsLifecycleManagement = FScopedTypedValue::NeedsLifecycleManagement(UnderlyingType);
+		bNeedsLifecycleManagement = PCGExTypes::FScopedTypedValue::NeedsLifecycleManagement(UnderlyingType);
 
 		// Create output first so we may read from it
 		C = PCGExData::GetProxyBuffer(InContext, Desc_C);

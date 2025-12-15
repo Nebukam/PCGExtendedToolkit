@@ -12,124 +12,6 @@
 
 namespace PCGExTypeOps
 {
-#pragma region Type to Metadata
-
-	// Type ID Mapping - Maps C++ types to EPCGMetadataTypes
-
-	template <typename T>
-	struct TTypeToMetadata
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<bool>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Boolean;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<int32>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer32;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<int64>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer64;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<float>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Float;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<double>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Double;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FVector2D>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector2;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FVector>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FVector4>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector4;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FQuat>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Quaternion;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FRotator>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Rotator;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FTransform>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Transform;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FString>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::String;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FName>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Name;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FSoftObjectPath>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftObjectPath;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-	template <>
-	struct TTypeToMetadata<FSoftClassPath>
-	{
-		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftClassPath;
-		static constexpr int16 TypeId = static_cast<int16>(Type);
-	};
-
-#pragma endregion
-
 	// TTypeOpsImpl - Concrete implementation of ITypeOpsBase for each type
 
 	/**
@@ -151,10 +33,7 @@ namespace PCGExTypeOps
 
 		// Type Information
 
-		virtual EPCGMetadataTypes GetTypeId() const override
-		{
-			return TTypeToMetadata<T>::Type;
-		}
+		virtual EPCGMetadataTypes GetTypeId() const override { return Traits::Type; }
 
 		virtual FString GetTypeName() const override
 		{
@@ -162,49 +41,20 @@ namespace PCGExTypeOps
 			return FString();
 		}
 
-		virtual int32 GetTypeSize() const override
-		{
-			return sizeof(T);
-		}
-
-		virtual int32 GetTypeAlignment() const override
-		{
-			return alignof(T);
-		}
-
-		virtual bool SupportsLerp() const override
-		{
-			return Traits::bSupportsLerp;
-		}
-
-		virtual bool SupportsMinMax() const override
-		{
-			return Traits::bSupportsMinMax;
-		}
-
-		virtual bool SupportsArithmetic() const override
-		{
-			return Traits::bSupportsArithmetic;
-		}
+		virtual int32 GetTypeSize() const override { return sizeof(T); }
+		virtual int32 GetTypeAlignment() const override { return alignof(T); }
+		virtual bool SupportsLerp() const override { return Traits::bSupportsLerp; }
+		virtual bool SupportsMinMax() const override { return Traits::bSupportsMinMax; }
+		virtual bool SupportsArithmetic() const override { return Traits::bSupportsArithmetic; }
 
 		// Default Value Operations
 
-		virtual void SetDefault(void* OutValue) const override
-		{
-			new(OutValue) T();
-		}
-
-		virtual void Copy(const void* Src, void* Dst) const override
-		{
-			*static_cast<T*>(Dst) = *static_cast<const T*>(Src);
-		}
+		virtual void SetDefault(void* OutValue) const override { new(OutValue) T(); }
+		virtual void Copy(const void* Src, void* Dst) const override { *static_cast<T*>(Dst) = *static_cast<const T*>(Src); }
 
 		// Hash Operations
 
-		virtual PCGExValueHash ComputeHash(const void* Value) const override
-		{
-			return TypeOps::Hash(*static_cast<const T*>(Value));
-		}
+		virtual PCGExValueHash ComputeHash(const void* Value) const override { return TypeOps::Hash(*static_cast<const T*>(Value)); }
 
 		// Conversion Operations
 
@@ -425,20 +275,13 @@ namespace PCGExTypeOps
 		 * Generate a conversion function from TFrom to TTo
 		 */
 		template <typename TFrom, typename TTo>
-		void ConvertImpl(const void* From, void* To)
-		{
-			*static_cast<TTo*>(To) = FTypeOps<TFrom>::template ConvertTo<TTo>(
-				*static_cast<const TFrom*>(From));
-		}
+		void ConvertImpl(const void* From, void* To) { *static_cast<TTo*>(To) = FTypeOps<TFrom>::template ConvertTo<TTo>(*static_cast<const TFrom*>(From)); }
 
 		/**
 		 * Identity conversion (same type)
 		 */
 		template <typename T>
-		void ConvertIdentity(const void* From, void* To)
-		{
-			*static_cast<T*>(To) = *static_cast<const T*>(From);
-		}
+		void ConvertIdentity(const void* From, void* To) { *static_cast<T*>(To) = *static_cast<const T*>(From); }
 
 		/**
 		 * Get conversion function for a type pair
@@ -541,14 +384,5 @@ namespace PCGExTypeOps
 	// FTypeOpsRegistry Template Implementations
 
 	template <typename T>
-	const ITypeOpsBase* FTypeOpsRegistry::Get()
-	{
-		return &TTypeOpsImpl<T>::GetInstance();
-	}
-
-	template <typename T>
-	EPCGMetadataTypes FTypeOpsRegistry::GetTypeId()
-	{
-		return TTypeToMetadata<T>::Type;
-	}
+	const ITypeOpsBase* FTypeOpsRegistry::Get() { return &TTypeOpsImpl<T>::GetInstance(); }
 }

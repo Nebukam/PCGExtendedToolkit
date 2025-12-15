@@ -6,7 +6,6 @@
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGPointArrayData.h"
@@ -14,175 +13,6 @@
 
 namespace PCGExData
 {
-#pragma region FScopedTypedValue
-
-	FScopedTypedValue::FScopedTypedValue(EPCGMetadataTypes InType)
-		: Type(InType)
-		, bConstructed(false)
-	{
-		ConstructForType();
-	}
-
-	FScopedTypedValue::~FScopedTypedValue()
-	{
-		DestructForType();
-	}
-
-	FScopedTypedValue::FScopedTypedValue(FScopedTypedValue&& Other) noexcept
-		: Type(Other.Type)
-		, bConstructed(Other.bConstructed)
-	{
-		if (bConstructed)
-		{
-			// Move the value - for complex types this does a proper move
-			if (TypeTraits::NeedsLifecycleManagement(Type))
-			{
-				switch (Type)
-				{
-				case EPCGMetadataTypes::String:
-					new(Storage) FString(MoveTemp(*reinterpret_cast<FString*>(Other.Storage)));
-					reinterpret_cast<FString*>(Other.Storage)->~FString();
-					break;
-				case EPCGMetadataTypes::Name:
-					new(Storage) FName(MoveTemp(*reinterpret_cast<FName*>(Other.Storage)));
-					reinterpret_cast<FName*>(Other.Storage)->~FName();
-					break;
-				case EPCGMetadataTypes::SoftObjectPath:
-					new(Storage) FSoftObjectPath(MoveTemp(*reinterpret_cast<FSoftObjectPath*>(Other.Storage)));
-					reinterpret_cast<FSoftObjectPath*>(Other.Storage)->~FSoftObjectPath();
-					break;
-				case EPCGMetadataTypes::SoftClassPath:
-					new(Storage) FSoftClassPath(MoveTemp(*reinterpret_cast<FSoftClassPath*>(Other.Storage)));
-					reinterpret_cast<FSoftClassPath*>(Other.Storage)->~FSoftClassPath();
-					break;
-				default:
-					break;
-				}
-			}
-			else
-			{
-				// POD types - simple memcpy
-				FMemory::Memcpy(Storage, Other.Storage, StorageSize);
-			}
-		}
-		Other.bConstructed = false;
-	}
-
-	FScopedTypedValue& FScopedTypedValue::operator=(FScopedTypedValue&& Other) noexcept
-	{
-		if (this != &Other)
-		{
-			DestructForType();
-			Type = Other.Type;
-			bConstructed = Other.bConstructed;
-
-			if (bConstructed)
-			{
-				if (TypeTraits::NeedsLifecycleManagement(Type))
-				{
-					switch (Type)
-					{
-					case EPCGMetadataTypes::String:
-						new(Storage) FString(MoveTemp(*reinterpret_cast<FString*>(Other.Storage)));
-						reinterpret_cast<FString*>(Other.Storage)->~FString();
-						break;
-					case EPCGMetadataTypes::Name:
-						new(Storage) FName(MoveTemp(*reinterpret_cast<FName*>(Other.Storage)));
-						reinterpret_cast<FName*>(Other.Storage)->~FName();
-						break;
-					case EPCGMetadataTypes::SoftObjectPath:
-						new(Storage) FSoftObjectPath(MoveTemp(*reinterpret_cast<FSoftObjectPath*>(Other.Storage)));
-						reinterpret_cast<FSoftObjectPath*>(Other.Storage)->~FSoftObjectPath();
-						break;
-					case EPCGMetadataTypes::SoftClassPath:
-						new(Storage) FSoftClassPath(MoveTemp(*reinterpret_cast<FSoftClassPath*>(Other.Storage)));
-						reinterpret_cast<FSoftClassPath*>(Other.Storage)->~FSoftClassPath();
-						break;
-					default:
-						break;
-					}
-				}
-				else
-				{
-					FMemory::Memcpy(Storage, Other.Storage, StorageSize);
-				}
-			}
-			Other.bConstructed = false;
-		}
-		return *this;
-	}
-
-	void FScopedTypedValue::Initialize(EPCGMetadataTypes InType)
-	{
-		DestructForType();
-		Type = InType;
-		ConstructForType();
-	}
-
-	void FScopedTypedValue::Destruct()
-	{
-		DestructForType();
-	}
-
-	void FScopedTypedValue::ConstructForType()
-	{
-		if (bConstructed) return;
-
-		// Only complex types need explicit construction
-		// POD types can work with uninitialized memory
-		if (TypeTraits::NeedsLifecycleManagement(Type))
-		{
-			switch (Type)
-			{
-			case EPCGMetadataTypes::String:
-				new(Storage) FString();
-				break;
-			case EPCGMetadataTypes::Name:
-				new(Storage) FName();
-				break;
-			case EPCGMetadataTypes::SoftObjectPath:
-				new(Storage) FSoftObjectPath();
-				break;
-			case EPCGMetadataTypes::SoftClassPath:
-				new(Storage) FSoftClassPath();
-				break;
-			default:
-				break;
-			}
-		}
-		bConstructed = true;
-	}
-
-	void FScopedTypedValue::DestructForType()
-	{
-		if (!bConstructed) return;
-
-		// Only complex types need explicit destruction
-		if (TypeTraits::NeedsLifecycleManagement(Type))
-		{
-			switch (Type)
-			{
-			case EPCGMetadataTypes::String:
-				reinterpret_cast<FString*>(Storage)->~FString();
-				break;
-			case EPCGMetadataTypes::Name:
-				reinterpret_cast<FName*>(Storage)->~FName();
-				break;
-			case EPCGMetadataTypes::SoftObjectPath:
-				reinterpret_cast<FSoftObjectPath*>(Storage)->~FSoftObjectPath();
-				break;
-			case EPCGMetadataTypes::SoftClassPath:
-				reinterpret_cast<FSoftClassPath*>(Storage)->~FSoftClassPath();
-				break;
-			default:
-				break;
-			}
-		}
-		bConstructed = false;
-	}
-
-#pragma endregion
-
 #pragma region FProxyDescriptor
 
 	void FProxyDescriptor::UpdateSubSelection()
@@ -300,9 +130,9 @@ namespace PCGExData
 
 	IBufferProxy::IBufferProxy(EPCGMetadataTypes InRealType, EPCGMetadataTypes InWorkingType)
 		: RealType(InRealType)
-		, WorkingType(InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType)
-		, WorkingToReal(PCGExTypeOps::FConversionTable::GetConversionFn(InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType, InRealType))
-		, RealToWorking(PCGExTypeOps::FConversionTable::GetConversionFn(InRealType, InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType))
+		  , WorkingType(InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType)
+		  , WorkingToReal(PCGExTypeOps::FConversionTable::GetConversionFn(InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType, InRealType))
+		  , RealToWorking(PCGExTypeOps::FConversionTable::GetConversionFn(InRealType, InWorkingType == EPCGMetadataTypes::Unknown ? InRealType : InWorkingType))
 	{
 		// Get type ops from registry
 		RealOps = PCGExTypeOps::FTypeOpsRegistry::Get(RealType);
@@ -319,8 +149,8 @@ namespace PCGExData
 
 	void IBufferProxy::SetSubSelection(const PCGEx::FSubSelection& InSubSelection)
 	{
-		SubSelection = InSubSelection;
-		bWantsSubSelection = SubSelection.bIsValid;
+		bWantsSubSelection = InSubSelection.bIsValid;
+		if (bWantsSubSelection) { CachedSubSelection.Initialize(InSubSelection, RealType, WorkingType); }
 	}
 
 	void IBufferProxy::InitForRole(EProxyRole InRole)
@@ -332,9 +162,9 @@ namespace PCGExData
 #define PCGEX_CONVERTING_READ_IMPL(_TYPE, _NAME, ...) \
 	_TYPE IBufferProxy::ReadAs##_NAME(const int32 Index) const \
 	{ \
-		FScopedTypedValue WorkingValue(WorkingType); \
+		PCGExTypes::FScopedTypedValue WorkingValue(WorkingType); \
 		GetVoid(Index, WorkingValue.GetRaw()); \
-		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeToMetadata<_TYPE>::Type; \
+		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeTraits<_TYPE>::Type; \
 		if (TargetType == WorkingType) \
 		{ \
 			if constexpr (TypeTraits::TIsComplexType<_TYPE>) \
@@ -359,7 +189,7 @@ namespace PCGExData
 
 	template <typename T_REAL>
 	TAttributeBufferProxy<T_REAL>::TAttributeBufferProxy(EPCGMetadataTypes InWorkingType)
-		: IBufferProxy(PCGExTypeOps::TTypeToMetadata<T_REAL>::Type, InWorkingType)
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
@@ -372,7 +202,7 @@ namespace PCGExData
 		if (bWantsSubSelection)
 		{
 			// Use type-erased sub-selection extraction
-			SubSelection.GetVoid(RealType, &RealValue, WorkingType, OutValue);
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
 		}
 		else if (RealType != WorkingType)
 		{
@@ -407,17 +237,14 @@ namespace PCGExData
 		{
 			// Read current value, apply sub-selection, write back
 			T_REAL RealValue = Buffer->GetValue(Index);
-			SubSelection.SetVoid(RealType, &RealValue, WorkingType, Value);
+			CachedSubSelection.ApplySet(&RealValue, Value);
 			Buffer->SetValue(Index, RealValue);
 		}
 		else if (RealType != WorkingType)
 		{
 			// Use direct conversion function
 			T_REAL RealValue{};
-			if (WorkingToReal)
-			{
-				WorkingToReal(Value, &RealValue);
-			}
+			if (WorkingToReal) { WorkingToReal(Value, &RealValue); }
 			Buffer->SetValue(Index, RealValue);
 		}
 		else
@@ -476,8 +303,8 @@ namespace PCGExData
 
 	FPointPropertyProxy::FPointPropertyProxy(EPCGPointProperties InProperty, EPCGMetadataTypes InWorkingType)
 		: IBufferProxy(PCGEx::GetPropertyType(InProperty), InWorkingType)
-		, Property(InProperty)
-		, PropertyRealType(PCGEx::GetPropertyType(InProperty))
+		  , Property(InProperty)
+		  , PropertyRealType(PCGEx::GetPropertyType(InProperty))
 	{
 	}
 
@@ -488,50 +315,35 @@ namespace PCGExData
 
 		switch (Property)
 		{
-		case EPCGPointProperties::Density:
-			*static_cast<float*>(OutValue) = Point.GetDensity();
+		case EPCGPointProperties::Density: *static_cast<float*>(OutValue) = Point.GetDensity();
 			break;
-		case EPCGPointProperties::BoundsMin:
-			*static_cast<FVector*>(OutValue) = Point.GetBoundsMin();
+		case EPCGPointProperties::BoundsMin: *static_cast<FVector*>(OutValue) = Point.GetBoundsMin();
 			break;
-		case EPCGPointProperties::BoundsMax:
-			*static_cast<FVector*>(OutValue) = Point.GetBoundsMax();
+		case EPCGPointProperties::BoundsMax: *static_cast<FVector*>(OutValue) = Point.GetBoundsMax();
 			break;
-		case EPCGPointProperties::Extents:
-			*static_cast<FVector*>(OutValue) = Point.GetExtents();
+		case EPCGPointProperties::Extents: *static_cast<FVector*>(OutValue) = Point.GetExtents();
 			break;
-		case EPCGPointProperties::Color:
-			*static_cast<FVector4*>(OutValue) = Point.GetColor();
+		case EPCGPointProperties::Color: *static_cast<FVector4*>(OutValue) = Point.GetColor();
 			break;
-		case EPCGPointProperties::Position:
-			*static_cast<FVector*>(OutValue) = Point.GetLocation();
+		case EPCGPointProperties::Position: *static_cast<FVector*>(OutValue) = Point.GetLocation();
 			break;
-		case EPCGPointProperties::Rotation:
-			*static_cast<FQuat*>(OutValue) = Point.GetRotation();
+		case EPCGPointProperties::Rotation: *static_cast<FQuat*>(OutValue) = Point.GetRotation();
 			break;
-		case EPCGPointProperties::Scale:
-			*static_cast<FVector*>(OutValue) = Point.GetScale3D();
+		case EPCGPointProperties::Scale: *static_cast<FVector*>(OutValue) = Point.GetScale3D();
 			break;
-		case EPCGPointProperties::Transform:
-			*static_cast<FTransform*>(OutValue) = Point.GetTransform();
+		case EPCGPointProperties::Transform: *static_cast<FTransform*>(OutValue) = Point.GetTransform();
 			break;
-		case EPCGPointProperties::Steepness:
-			*static_cast<float*>(OutValue) = Point.GetSteepness();
+		case EPCGPointProperties::Steepness: *static_cast<float*>(OutValue) = Point.GetSteepness();
 			break;
-		case EPCGPointProperties::LocalCenter:
-			*static_cast<FVector*>(OutValue) = Point.GetLocalCenter();
+		case EPCGPointProperties::LocalCenter: *static_cast<FVector*>(OutValue) = Point.GetLocalCenter();
 			break;
-		case EPCGPointProperties::LocalSize:
-			*static_cast<FVector*>(OutValue) = Point.GetLocalSize();
+		case EPCGPointProperties::LocalSize: *static_cast<FVector*>(OutValue) = Point.GetLocalSize();
 			break;
-		case EPCGPointProperties::ScaledLocalSize:
-			*static_cast<FVector*>(OutValue) = Point.GetScaledLocalSize();
+		case EPCGPointProperties::ScaledLocalSize: *static_cast<FVector*>(OutValue) = Point.GetScaledLocalSize();
 			break;
-		case EPCGPointProperties::Seed:
-			*static_cast<int32*>(OutValue) = Point.GetSeed();
+		case EPCGPointProperties::Seed: *static_cast<int32*>(OutValue) = Point.GetSeed();
 			break;
-		default:
-			break;
+		default: break;
 		}
 	}
 
@@ -542,41 +354,29 @@ namespace PCGExData
 
 		switch (Property)
 		{
-		case EPCGPointProperties::Density:
-			Point.SetDensity(*static_cast<const float*>(Value));
+		case EPCGPointProperties::Density: Point.SetDensity(*static_cast<const float*>(Value));
 			break;
-		case EPCGPointProperties::BoundsMin:
-			Point.SetBoundsMin(*static_cast<const FVector*>(Value));
+		case EPCGPointProperties::BoundsMin: Point.SetBoundsMin(*static_cast<const FVector*>(Value));
 			break;
-		case EPCGPointProperties::BoundsMax:
-			Point.SetBoundsMax(*static_cast<const FVector*>(Value));
+		case EPCGPointProperties::BoundsMax: Point.SetBoundsMax(*static_cast<const FVector*>(Value));
 			break;
-		case EPCGPointProperties::Extents:
-			Point.SetExtents(*static_cast<const FVector*>(Value));
+		case EPCGPointProperties::Extents: Point.SetExtents(*static_cast<const FVector*>(Value));
 			break;
-		case EPCGPointProperties::Color:
-			Point.SetColor(*static_cast<const FVector4*>(Value));
+		case EPCGPointProperties::Color: Point.SetColor(*static_cast<const FVector4*>(Value));
 			break;
-		case EPCGPointProperties::Position:
-			Point.SetLocation(*static_cast<const FVector*>(Value));
+		case EPCGPointProperties::Position: Point.SetLocation(*static_cast<const FVector*>(Value));
 			break;
-		case EPCGPointProperties::Rotation:
-			Point.SetRotation(*static_cast<const FQuat*>(Value));
+		case EPCGPointProperties::Rotation: Point.SetRotation(*static_cast<const FQuat*>(Value));
 			break;
-		case EPCGPointProperties::Scale:
-			Point.SetScale3D(*static_cast<const FVector*>(Value));
+		case EPCGPointProperties::Scale: Point.SetScale3D(*static_cast<const FVector*>(Value));
 			break;
-		case EPCGPointProperties::Transform:
-			Point.SetTransform(*static_cast<const FTransform*>(Value));
+		case EPCGPointProperties::Transform: Point.SetTransform(*static_cast<const FTransform*>(Value));
 			break;
-		case EPCGPointProperties::Steepness:
-			Point.SetSteepness(*static_cast<const float*>(Value));
+		case EPCGPointProperties::Steepness: Point.SetSteepness(*static_cast<const float*>(Value));
 			break;
-		case EPCGPointProperties::Seed:
-			Point.SetSeed(*static_cast<const int32*>(Value));
+		case EPCGPointProperties::Seed: Point.SetSeed(*static_cast<const int32*>(Value));
 			break;
-		default:
-			break;
+		default: break;
 		}
 	}
 
@@ -585,13 +385,13 @@ namespace PCGExData
 		if (bWantsSubSelection)
 		{
 			// Need temporary storage for the property value
-			FScopedTypedValue PropValue(PropertyRealType);
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
 			GetPropertyValue(Index, PropValue.GetRaw());
-			SubSelection.GetVoid(PropertyRealType, PropValue.GetRaw(), WorkingType, OutValue);
+			CachedSubSelection.ApplyGet(PropValue.GetRaw(), OutValue);
 		}
 		else if (PropertyRealType != WorkingType)
 		{
-			FScopedTypedValue PropValue(PropertyRealType);
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
 			GetPropertyValue(Index, PropValue.GetRaw());
 			if (RealToWorking)
 			{
@@ -608,14 +408,14 @@ namespace PCGExData
 	{
 		if (bWantsSubSelection)
 		{
-			FScopedTypedValue PropValue(PropertyRealType);
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
 			GetPropertyValue(Index, PropValue.GetRaw());
-			SubSelection.SetVoid(PropertyRealType, PropValue.GetRaw(), WorkingType, Value);
+			CachedSubSelection.ApplySet(PropValue.GetRaw(), Value);
 			SetPropertyValue(Index, PropValue.GetRaw());
 		}
 		else if (PropertyRealType != WorkingType)
 		{
-			FScopedTypedValue PropValue(PropertyRealType);
+			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
 			if (WorkingToReal)
 			{
 				WorkingToReal(Value, PropValue.GetRaw());
@@ -642,7 +442,7 @@ namespace PCGExData
 
 	PCGExValueHash FPointPropertyProxy::ReadValueHash(const int32 Index) const
 	{
-		FScopedTypedValue PropValue(PropertyRealType);
+		PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
 		GetPropertyValue(Index, PropValue.GetRaw());
 		return RealOps ? RealOps->ComputeHash(PropValue.GetRaw()) : 0;
 	}
@@ -653,7 +453,7 @@ namespace PCGExData
 
 	FPointExtraPropertyProxy::FPointExtraPropertyProxy(EPCGExtraProperties InProperty, EPCGMetadataTypes InWorkingType)
 		: IBufferProxy(GetPropertyType(InProperty), InWorkingType)
-		, Property(InProperty)
+		  , Property(InProperty)
 	{
 	}
 
@@ -661,10 +461,8 @@ namespace PCGExData
 	{
 		switch (InProperty)
 		{
-		case EPCGExtraProperties::Index:
-			return EPCGMetadataTypes::Integer32;
-		default:
-			return EPCGMetadataTypes::Unknown;
+		case EPCGExtraProperties::Index: return EPCGMetadataTypes::Integer32;
+		default: return EPCGMetadataTypes::Unknown;
 		}
 	}
 
@@ -673,11 +471,9 @@ namespace PCGExData
 		int32 Value = 0;
 		switch (Property)
 		{
-		case EPCGExtraProperties::Index:
-			Value = Index;
+		case EPCGExtraProperties::Index: Value = Index;
 			break;
-		default:
-			break;
+		default: break;
 		}
 
 		if (WorkingType == EPCGMetadataTypes::Integer32)
@@ -700,11 +496,9 @@ namespace PCGExData
 		int32 Value = 0;
 		switch (Property)
 		{
-		case EPCGExtraProperties::Index:
-			Value = Index;
+		case EPCGExtraProperties::Index: Value = Index;
 			break;
-		default:
-			break;
+		default: break;
 		}
 		return PCGExTypes::ComputeHash(Value);
 	}
@@ -715,7 +509,7 @@ namespace PCGExData
 
 	template <typename T_CONST>
 	TConstantProxy<T_CONST>::TConstantProxy()
-		: IBufferProxy(PCGExTypeOps::TTypeToMetadata<T_CONST>::Type, PCGExTypeOps::TTypeToMetadata<T_CONST>::Type)
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_CONST>::Type, PCGExTypeOps::TTypeTraits<T_CONST>::Type)
 	{
 	}
 
@@ -723,8 +517,8 @@ namespace PCGExData
 	template <typename T>
 	void TConstantProxy<T_CONST>::SetConstant(const T& InValue)
 	{
-		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeToMetadata<T>::Type;
-		constexpr EPCGMetadataTypes ConstType = PCGExTypeOps::TTypeToMetadata<T_CONST>::Type;
+		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeTraits<T>::Type;
+		constexpr EPCGMetadataTypes ConstType = PCGExTypeOps::TTypeTraits<T_CONST>::Type;
 
 		if constexpr (std::is_same_v<T, T_CONST>)
 		{
@@ -742,7 +536,7 @@ namespace PCGExData
 		if (bWantsSubSelection)
 		{
 			// Use type-erased sub-selection extraction
-			SubSelection.GetVoid(RealType, &Constant, WorkingType, OutValue);
+			CachedSubSelection.ApplyGet(&Constant, OutValue);
 		}
 		else if (RealType != WorkingType)
 		{
@@ -787,7 +581,7 @@ namespace PCGExData
 
 	template <typename T_REAL>
 	TDirectAttributeProxy<T_REAL>::TDirectAttributeProxy(EPCGMetadataTypes InWorkingType)
-		: IBufferProxy(PCGExTypeOps::TTypeToMetadata<T_REAL>::Type, InWorkingType)
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
@@ -800,7 +594,7 @@ namespace PCGExData
 
 		if (bWantsSubSelection)
 		{
-			SubSelection.GetVoid(RealType, &RealValue, WorkingType, OutValue);
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
 		}
 		else if (RealType != WorkingType)
 		{
@@ -824,7 +618,7 @@ namespace PCGExData
 
 		if (bWantsSubSelection)
 		{
-			SubSelection.GetVoid(RealType, &RealValue, WorkingType, OutValue);
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
 		}
 		else if (RealType != WorkingType)
 		{
@@ -849,7 +643,7 @@ namespace PCGExData
 		if (bWantsSubSelection)
 		{
 			T_REAL RealValue = OutAttribute->GetValueFromItemKey(MetadataEntry);
-			SubSelection.SetVoid(RealType, &RealValue, WorkingType, Value);
+			CachedSubSelection.ApplySet(&RealValue, Value);
 			OutAttribute->SetValue(MetadataEntry, RealValue);
 		}
 		else if (RealType != WorkingType)
@@ -885,7 +679,7 @@ namespace PCGExData
 
 	template <typename T_REAL>
 	TDirectDataAttributeProxy<T_REAL>::TDirectDataAttributeProxy(EPCGMetadataTypes InWorkingType)
-		: IBufferProxy(PCGExTypeOps::TTypeToMetadata<T_REAL>::Type, InWorkingType)
+		: IBufferProxy(PCGExTypeOps::TTypeTraits<T_REAL>::Type, InWorkingType)
 	{
 	}
 
@@ -899,7 +693,7 @@ namespace PCGExData
 
 		if (bWantsSubSelection)
 		{
-			SubSelection.GetVoid(RealType, &RealValue, WorkingType, OutValue);
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
 		}
 		else if (RealType != WorkingType)
 		{
@@ -923,7 +717,7 @@ namespace PCGExData
 
 		if (bWantsSubSelection)
 		{
-			SubSelection.GetVoid(RealType, &RealValue, WorkingType, OutValue);
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
 		}
 		else if (RealType != WorkingType)
 		{
@@ -946,7 +740,7 @@ namespace PCGExData
 		if (bWantsSubSelection)
 		{
 			T_REAL RealValue = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
-			SubSelection.SetVoid(RealType, &RealValue, WorkingType, Value);
+			CachedSubSelection.ApplySet(&RealValue, Value);
 			OutAttribute->SetDefaultValue(RealValue);
 		}
 		else if (RealType != WorkingType)
@@ -977,5 +771,4 @@ namespace PCGExData
 #undef PCGEX_TPL
 
 #pragma endregion
-
 } // namespace PCGExData

@@ -5,6 +5,7 @@
 
 #include "PCGEx.h"
 #include "PCGExTypeOpsImpl.h"
+#include "PCGExTypes.h"
 #include "Details/PCGExMacros.h"
 #include "Details/PCGExDetailsAxis.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
@@ -24,68 +25,45 @@ namespace PCGEx
 	// Forward declarations
 	class ISubSelectorOps;
 
-	/**
-	 * Single field selection identifiers
-	 */
-	enum class ESingleField : uint8
-	{
-		X             = 0,
-		Y             = 1,
-		Z             = 2,
-		W             = 3,
-		Length        = 4,
-		SquaredLength = 5,
-		Volume        = 6,
-		Sum           = 7,
-	};
-
-	/**
-	 * Transform component parts
-	 */
-	enum class ETransformPart : uint8
-	{
-		Position = 0,
-		Rotation = 1,
-		Scale    = 2,
-	};
+	
 
 #pragma region Field helpers
 
-	using FInputSelectorComponentData = TTuple<ETransformPart, EPCGMetadataTypes>;
+	using FInputSelectorComponentData = TTuple<PCGExTypeOps::ETransformPart, EPCGMetadataTypes>;
 	static const TMap<FString, FInputSelectorComponentData> STRMAP_TRANSFORM_FIELD = {
-		{TEXT("POSITION"), FInputSelectorComponentData{ETransformPart::Position, EPCGMetadataTypes::Vector}},
-		{TEXT("POS"), FInputSelectorComponentData{ETransformPart::Position, EPCGMetadataTypes::Vector}},
-		{TEXT("ROTATION"), FInputSelectorComponentData{ETransformPart::Rotation, EPCGMetadataTypes::Quaternion}},
-		{TEXT("ROT"), FInputSelectorComponentData{ETransformPart::Rotation, EPCGMetadataTypes::Quaternion}},
-		{TEXT("ORIENT"), FInputSelectorComponentData{ETransformPart::Rotation, EPCGMetadataTypes::Quaternion}},
-		{TEXT("SCALE"), FInputSelectorComponentData{ETransformPart::Scale, EPCGMetadataTypes::Vector}},
+		{TEXT("POSITION"), FInputSelectorComponentData{PCGExTypeOps::ETransformPart::Position, EPCGMetadataTypes::Vector}},
+		{TEXT("POS"), FInputSelectorComponentData{PCGExTypeOps::ETransformPart::Position, EPCGMetadataTypes::Vector}},
+		{TEXT("ROTATION"), FInputSelectorComponentData{PCGExTypeOps::ETransformPart::Rotation, EPCGMetadataTypes::Quaternion}},
+		{TEXT("ROT"), FInputSelectorComponentData{PCGExTypeOps::ETransformPart::Rotation, EPCGMetadataTypes::Quaternion}},
+		{TEXT("ORIENT"), FInputSelectorComponentData{PCGExTypeOps::ETransformPart::Rotation, EPCGMetadataTypes::Quaternion}},
+		{TEXT("SCALE"), FInputSelectorComponentData{PCGExTypeOps::ETransformPart::Scale, EPCGMetadataTypes::Vector}},
 	};
 
-	using FInputSelectorFieldData = TTuple<ESingleField, EPCGMetadataTypes, int32>;
+	using FInputSelectorFieldData = TTuple<PCGExTypeOps::ESingleField, EPCGMetadataTypes, int32>;
 	static const TMap<FString, FInputSelectorFieldData> STRMAP_SINGLE_FIELD = {
-		{TEXT("X"), FInputSelectorFieldData{ESingleField::X, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("R"), FInputSelectorFieldData{ESingleField::X, EPCGMetadataTypes::Quaternion, 0}},
-		{TEXT("ROLL"), FInputSelectorFieldData{ESingleField::X, EPCGMetadataTypes::Quaternion, 0}},
-		{TEXT("RX"), FInputSelectorFieldData{ESingleField::X, EPCGMetadataTypes::Quaternion, 0}},
-		{TEXT("Y"), FInputSelectorFieldData{ESingleField::Y, EPCGMetadataTypes::Vector, 1}},
-		{TEXT("G"), FInputSelectorFieldData{ESingleField::Y, EPCGMetadataTypes::Vector4, 1}},
-		{TEXT("YAW"), FInputSelectorFieldData{ESingleField::Y, EPCGMetadataTypes::Quaternion, 1}},
-		{TEXT("RY"), FInputSelectorFieldData{ESingleField::Y, EPCGMetadataTypes::Quaternion, 1}},
-		{TEXT("Z"), FInputSelectorFieldData{ESingleField::Z, EPCGMetadataTypes::Vector, 2}},
-		{TEXT("B"), FInputSelectorFieldData{ESingleField::Z, EPCGMetadataTypes::Vector4, 2}},
-		{TEXT("P"), FInputSelectorFieldData{ESingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
-		{TEXT("PITCH"), FInputSelectorFieldData{ESingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
-		{TEXT("RZ"), FInputSelectorFieldData{ESingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
-		{TEXT("W"), FInputSelectorFieldData{ESingleField::W, EPCGMetadataTypes::Vector4, 3}},
-		{TEXT("A"), FInputSelectorFieldData{ESingleField::W, EPCGMetadataTypes::Vector4, 3}},
-		{TEXT("L"), FInputSelectorFieldData{ESingleField::Length, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("LEN"), FInputSelectorFieldData{ESingleField::Length, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("LENGTH"), FInputSelectorFieldData{ESingleField::Length, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("SQUAREDLENGTH"), FInputSelectorFieldData{ESingleField::SquaredLength, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("LENSQR"), FInputSelectorFieldData{ESingleField::SquaredLength, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("VOL"), FInputSelectorFieldData{ESingleField::Volume, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("VOLUME"), FInputSelectorFieldData{ESingleField::Volume, EPCGMetadataTypes::Vector, 0}},
-		{TEXT("SUM"), FInputSelectorFieldData{ESingleField::Sum, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("X"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::X, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("R"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::X, EPCGMetadataTypes::Quaternion, 0}},
+		{TEXT("ROLL"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::X, EPCGMetadataTypes::Quaternion, 0}},
+		{TEXT("RX"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::X, EPCGMetadataTypes::Quaternion, 0}},
+		{TEXT("Y"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Y, EPCGMetadataTypes::Vector, 1}},
+		{TEXT("G"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Y, EPCGMetadataTypes::Vector4, 1}},
+		{TEXT("YAW"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Y, EPCGMetadataTypes::Quaternion, 1}},
+		{TEXT("RY"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Y, EPCGMetadataTypes::Quaternion, 1}},
+		{TEXT("Z"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Z, EPCGMetadataTypes::Vector, 2}},
+		{TEXT("B"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Z, EPCGMetadataTypes::Vector4, 2}},
+		{TEXT("P"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
+		{TEXT("PITCH"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
+		{TEXT("RZ"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Z, EPCGMetadataTypes::Quaternion, 2}},
+		{TEXT("W"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::W, EPCGMetadataTypes::Vector4, 3}},
+		{TEXT("A"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::W, EPCGMetadataTypes::Vector4, 3}},
+		{TEXT("L"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Length, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("LEN"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Length, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("LENGTH"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Length, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("SQUAREDLENGTH"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::SquaredLength, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("LENSQR"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::SquaredLength, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("VOL"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Volume, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("VOLUME"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Volume, EPCGMetadataTypes::Vector, 0}},
+		{TEXT("SUM"), FInputSelectorFieldData{PCGExTypeOps::ESingleField::Sum, EPCGMetadataTypes::Vector, 0}},
 	};
 
 	using FInputSelectorAxisData = TTuple<EPCGExAxis, EPCGMetadataTypes>;
@@ -140,9 +118,9 @@ namespace PCGEx
 		bool bIsComponentSet = false;
 
 		// Selection parameters
-		ETransformPart Component = ETransformPart::Position;
+		PCGExTypeOps::ETransformPart Component = PCGExTypeOps::ETransformPart::Position;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
-		ESingleField Field = ESingleField::X;
+		PCGExTypeOps::ESingleField Field = PCGExTypeOps::ESingleField::X;
 		EPCGMetadataTypes PossibleSourceType = EPCGMetadataTypes::Unknown;
 
 		// Constructors
@@ -161,7 +139,7 @@ namespace PCGEx
 		 */
 		EPCGMetadataTypes GetSubType(EPCGMetadataTypes Fallback = EPCGMetadataTypes::Unknown) const;
 
-		void SetComponent(const ETransformPart InComponent);
+		void SetComponent(const PCGExTypeOps::ETransformPart InComponent);
 		bool SetFieldIndex(const int32 InFieldIndex);
 
 	protected:
@@ -273,8 +251,8 @@ namespace PCGEx
 	{
 		TResult Result{};
 
-		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeToMetadata<TSource>::Type;
-		constexpr EPCGMetadataTypes ResultType = PCGExTypeOps::TTypeToMetadata<TResult>::Type;
+		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeTraits<TSource>::Type;
+		constexpr EPCGMetadataTypes ResultType = PCGExTypeOps::TTypeTraits<TResult>::Type;
 
 		GetVoid(SourceType, &Value, ResultType, &Result);
 
@@ -284,8 +262,8 @@ namespace PCGEx
 	template <typename TTarget, typename TSource>
 	void FSubSelection::Set(TTarget& Target, const TSource& Value) const
 	{
-		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeToMetadata<TTarget>::Type;
-		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeToMetadata<TSource>::Type;
+		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeTraits<TTarget>::Type;
+		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeTraits<TSource>::Type;
 
 		SetVoid(TargetType, &Target, SourceType, &Value);
 	}

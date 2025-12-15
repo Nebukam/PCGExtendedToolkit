@@ -43,7 +43,8 @@ namespace PCGEx
 
 	const ISubSelectorOps* FSubSelectorRegistry::Get(EPCGMetadataTypes Type)
 	{
-		if (!bInitialized) { Initialize(); }
+		check(bInitialized)
+		//if (!bInitialized) { Initialize(); }
 
 		const int32 Index = static_cast<int32>(Type);
 		if (Index >= 0 && Index < Ops.Num() && Ops[Index].IsValid()) { return Ops[Index].Get(); }

@@ -42,7 +42,7 @@ MACRO(FStructProperty, FTransform)
 			// If input type is a soft object path, check if the target property is an object type
 			// and resolve the object path
 			FSoftObjectPath Path;
-			TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<FSoftObjectPath>::Type, &Path);
+			TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<FSoftObjectPath>::Type, &Path);
 
 			if (UObject* ResolvedObject = Path.TryLoad())
 			{
@@ -60,7 +60,7 @@ MACRO(FStructProperty, FTransform)
 	if(InProperty->IsA<_PTYPE>()){\
 		_PTYPE* P = CastField<_PTYPE>(InProperty);\
 		_TYPE V;\
-		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<_TYPE>::Type, &V);\
+		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<_TYPE>::Type, &V);\
 		P->SetPropertyValue_InContainer(InContainer, V);\
 		return true;\
 		}
@@ -74,7 +74,7 @@ MACRO(FStructProperty, FTransform)
 			{
 				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
 				FString S;
-				TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<FString>::Type, &S);\
+				TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<FString>::Type, &S);\
 				NewSelector.Update(S);
 				void* StructContainer = StructProperty->ContainerPtrToValuePtr<void>(InContainer);
 				*reinterpret_cast<FPCGAttributePropertyInputSelector*>(StructContainer) = NewSelector;
@@ -85,7 +85,7 @@ MACRO(FStructProperty, FTransform)
 	else if (StructProperty->Struct == TBaseStructure<_TYPE>::Get()){\
 		void* StructContainer = StructProperty->ContainerPtrToValuePtr<void>(InContainer);\
 		_TYPE V;\
-		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeToMetadata<_TYPE>::Type, &V);\
+		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<_TYPE>::Type, &V);\
 		*reinterpret_cast<_TYPE*>(StructContainer) = V;\
 		return true;\
 		}

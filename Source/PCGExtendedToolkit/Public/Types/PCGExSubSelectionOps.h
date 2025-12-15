@@ -37,10 +37,10 @@ namespace PCGEx
 	 */
 
 	// Extract field to double: double = ExtractField(const void* Value, int32 FieldIndex)
-	using FExtractFieldFn = double (*)(const void* Value, ESingleField Field);
+	using FExtractFieldFn = double (*)(const void* Value, PCGExTypeOps::ESingleField Field);
 
 	// Inject field from double: void InjectField(void* Target, double Value, int32 FieldIndex)  
-	using FInjectFieldFn = void (*)(void* Target, double Value, ESingleField Field);
+	using FInjectFieldFn = void (*)(void* Target, double Value, PCGExTypeOps::ESingleField Field);
 
 	// Extract axis direction: FVector = ExtractAxis(const void* RotationValue, EPCGExAxis Axis)
 	using FExtractAxisFn = FVector (*)(const void* Value, EPCGExAxis Axis);
@@ -75,7 +75,7 @@ namespace PCGEx
 		 * @param Field Which field to extract (X, Y, Z, W, Length, etc.)
 		 * @return Extracted scalar as double
 		 */
-		virtual double ExtractField(const void* Value, ESingleField Field) const = 0;
+		virtual double ExtractField(const void* Value, PCGExTypeOps::ESingleField Field) const = 0;
 
 		/**
 		 * Inject a scalar value into a specific field
@@ -84,7 +84,7 @@ namespace PCGEx
 		 * @param Value Scalar value to inject
 		 * @param Field Which field to set
 		 */
-		virtual void InjectField(void* Target, double Value, ESingleField Field) const = 0;
+		virtual void InjectField(void* Target, double Value, PCGExTypeOps::ESingleField Field) const = 0;
 
 		/**
 		 * Extract an axis direction vector (for rotation types only)
@@ -103,7 +103,7 @@ namespace PCGEx
 		 * @param OutValue Pointer to output (FVector for Position/Scale, FQuat for Rotation)
 		 * @param OutType Receives the type of the extracted component
 		 */
-		virtual void ExtractComponent(const void* Transform, ETransformPart Part, void* OutValue, EPCGMetadataTypes& OutType) const = 0;
+		virtual void ExtractComponent(const void* Transform, PCGExTypeOps::ETransformPart Part, void* OutValue, EPCGMetadataTypes& OutType) const = 0;
 
 		/**
 		 * Inject a component into a transform (for FTransform only)
@@ -113,7 +113,7 @@ namespace PCGEx
 		 * @param Value Pointer to input value (FVector for Position/Scale, FQuat for Rotation)
 		 * @param ValueType Type of the input value
 		 */
-		virtual void InjectComponent(void* Transform, ETransformPart Part, const void* Value, EPCGMetadataTypes ValueType) const = 0;
+		virtual void InjectComponent(void* Transform, PCGExTypeOps::ETransformPart Part, const void* Value, EPCGMetadataTypes ValueType) const = 0;
 
 		/**
 		 * Convert this type to a "working" type suitable for the sub-selection
@@ -162,6 +162,18 @@ namespace PCGEx
 		static TArray<TUniquePtr<ISubSelectorOps>> Ops;
 		static bool bInitialized;
 	};
+	
+	// Module Initialization
+	struct FSubSelectionOpsModuleInit
+	{
+		FSubSelectionOpsModuleInit()
+		{
+			FSubSelectorRegistry::Initialize();
+		}
+	};
+
+	// Static instance triggers initialization at module load
+	static FSubSelectionOpsModuleInit GSubSelectionOpsModuleInit;
 
 	/**
 	 * Type traits for sub-selection capabilities

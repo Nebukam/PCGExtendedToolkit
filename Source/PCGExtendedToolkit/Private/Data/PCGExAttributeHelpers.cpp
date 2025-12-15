@@ -353,9 +353,8 @@ namespace PCGEx
 
 	template <typename T>
 	bool TAttributeBroadcaster<T>::ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
-
 	{
-		static_assert( PCGExTypeOps::TTypeToMetadata<T>::Type != EPCGMetadataTypes::Unknown, "T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values.");
+		static_assert(PCGExTypeOps::TTypeTraits<T>::Type != EPCGMetadataTypes::Unknown, "T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values.");
 
 		ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);
 		if (!ProcessingInfos.bIsValid) { return false; }
@@ -488,7 +487,7 @@ namespace PCGEx
 		PCGEx::InitArray(Dump, NumPoints);
 
 		PCGExMath::TypeMinMax(OutMin, OutMax);
-		
+
 		if (!ProcessingInfos.bIsValid)
 		{
 			for (int i = 0; i < NumPoints; i++) { Dump[i] = T{}; }
@@ -513,7 +512,7 @@ namespace PCGEx
 				// TODO : Log error
 			}
 			else if (bCaptureMinMax)
-			{				
+			{
 				for (int i = 0; i < NumPoints; i++)
 				{
 					const T& V = Dump[i];
@@ -591,7 +590,7 @@ namespace PCGEx
 	template <typename T>
 	EPCGMetadataTypes TAttributeBroadcaster<T>::GetMetadataType() const
 	{
-		return  PCGExTypeOps::TTypeToMetadata<T>::Type;
+		return PCGExTypeOps::TTypeTraits<T>::Type;
 	}
 
 	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)

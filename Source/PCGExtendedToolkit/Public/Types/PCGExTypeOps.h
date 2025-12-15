@@ -7,7 +7,7 @@
 #include "UObject/SoftObjectPath.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "PCGExCommon.h"
-#include "Details/PCGExMacros.h"
+#include "Details/PCGExDetailsAxis.h"
 
 /**
  * PCGEx Type Operations System
@@ -24,17 +24,45 @@
 
 namespace PCGExTypeOps
 {
+	/**
+	 * Single field selection identifiers
+	 */
+	enum class ESingleField : uint8
+	{
+		X             = 0,
+		Y             = 1,
+		Z             = 2,
+		W             = 3,
+		Length        = 4,
+		SquaredLength = 5,
+		Volume        = 6,
+		Sum           = 7,
+	};
+
+	/**
+	 * Transform component parts
+	 */
+	enum class ETransformPart : uint8
+	{
+		Position = 0,
+		Rotation = 1,
+		Scale    = 2,
+	};
+
 	// Forward declarations
 	class ITypeOpsBase;
-	
-	template<typename T>
+
+	template <typename T>
 	struct FTypeOps;
 
 	// Type Traits - Compile time type classification
-	
-	template<typename T>
+
+	template <typename T>
 	struct TTypeTraits
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -42,12 +70,15 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = false;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 1;
 	};
 
 	// Numeric types
-	template<> struct TTypeTraits<bool>
+	template <>
+	struct TTypeTraits<bool>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Boolean;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = true;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -55,11 +86,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = false;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 1;
 	};
 
-	template<> struct TTypeTraits<int32>
+	template <>
+	struct TTypeTraits<int32>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer32;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = true;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -67,11 +101,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 1;
 	};
 
-	template<> struct TTypeTraits<int64>
+	template <>
+	struct TTypeTraits<int64>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Integer64;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = true;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -79,11 +116,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 1;
 	};
 
-	template<> struct TTypeTraits<float>
+	template <>
+	struct TTypeTraits<float>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Float;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = true;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -91,11 +131,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 1;
 	};
 
-	template<> struct TTypeTraits<double>
+	template <>
+	struct TTypeTraits<double>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Double;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = true;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -103,12 +146,15 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 1;
 	};
 
 	// Vector types
-	template<> struct TTypeTraits<FVector2D>
+	template <>
+	struct TTypeTraits<FVector2D>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector2;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = true;
 		static constexpr bool bIsRotation = false;
@@ -116,11 +162,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 2;
 	};
 
-	template<> struct TTypeTraits<FVector>
+	template <>
+	struct TTypeTraits<FVector>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = true;
 		static constexpr bool bIsRotation = false;
@@ -128,11 +177,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 3;
 	};
 
-	template<> struct TTypeTraits<FVector4>
+	template <>
+	struct TTypeTraits<FVector4>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Vector4;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = true;
 		static constexpr bool bIsRotation = false;
@@ -140,12 +192,15 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 4;
 	};
 
 	// Rotation types
-	template<> struct TTypeTraits<FQuat>
+	template <>
+	struct TTypeTraits<FQuat>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Quaternion;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = true;
@@ -153,11 +208,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 4;
 	};
 
-	template<> struct TTypeTraits<FRotator>
+	template <>
+	struct TTypeTraits<FRotator>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Rotator;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = true;
@@ -165,11 +223,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = true;
 		static constexpr bool bSupportsArithmetic = true;
-		static constexpr int32 NumComponents = 3;
 	};
 
-	template<> struct TTypeTraits<FTransform>
+	template <>
+	struct TTypeTraits<FTransform>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Transform;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -177,12 +238,15 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = true;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 9; // 3 pos + 3 rot + 3 scale
 	};
 
 	// String types
-	template<> struct TTypeTraits<FString>
+	template <>
+	struct TTypeTraits<FString>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::String;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -190,11 +254,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = false;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 1;
 	};
 
-	template<> struct TTypeTraits<FName>
+	template <>
+	struct TTypeTraits<FName>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::Name;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -202,11 +269,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = false;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 1;
 	};
 
-	template<> struct TTypeTraits<FSoftObjectPath>
+	template <>
+	struct TTypeTraits<FSoftObjectPath>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftObjectPath;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -214,11 +284,14 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = false;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 1;
 	};
 
-	template<> struct TTypeTraits<FSoftClassPath>
+	template <>
+	struct TTypeTraits<FSoftClassPath>
 	{
+		static constexpr EPCGMetadataTypes Type = EPCGMetadataTypes::SoftClassPath;
+		static constexpr int16 TypeId = static_cast<int16>(Type);
+		
 		static constexpr bool bIsNumeric = false;
 		static constexpr bool bIsVector = false;
 		static constexpr bool bIsRotation = false;
@@ -226,7 +299,6 @@ namespace PCGExTypeOps
 		static constexpr bool bSupportsLerp = false;
 		static constexpr bool bSupportsMinMax = false;
 		static constexpr bool bSupportsArithmetic = false;
-		static constexpr int32 NumComponents = 1;
 	};
 
 	// Type-Erased Operation Interface
@@ -284,11 +356,12 @@ namespace PCGExTypeOps
 		virtual void BlendUnsignedHash(const void* A, const void* B, void* Out) const = 0;
 		virtual void BlendModSimple(const void* A, double Modulo, void* Out) const = 0;
 		virtual void BlendModComplex(const void* A, const void* B, void* Out) const = 0;
-		
-		
+
+
 		// Weight/Average accumulation helpers
 		virtual void BlendWeight(const void* A, const void* B, double Weight, void* Out) const = 0;
 		virtual void NormalizeWeight(const void* A, double TotalWeight, void* Out) const = 0;
+
 	};
 
 	// Type Operations Registry
@@ -306,11 +379,11 @@ namespace PCGExTypeOps
 		static const ITypeOpsBase* Get(EPCGMetadataTypes Type);
 
 		// Get ops with template type
-		template<typename T>
+		template <typename T>
 		static const ITypeOpsBase* Get();
 
 		// Type ID conversion
-		template<typename T>
+		template <typename T>
 		static EPCGMetadataTypes GetTypeId();
 
 		static EPCGMetadataTypes GetTypeIdFromIndex(int32 Index);
@@ -366,24 +439,21 @@ namespace PCGExTypeOps
 	/**
 	 * Type-safe conversion wrapper that uses the type-erased system.
 	 */
-	template<typename TFrom, typename TTo>
+	template <typename TFrom, typename TTo>
 	FORCEINLINE TTo Convert(const TFrom& Value)
 	{
 		TTo Result{};
-		FConversionTable::Convert(
-			FTypeOpsRegistry::GetTypeId<TFrom>(), &Value,
-			FTypeOpsRegistry::GetTypeId<TTo>(), &Result);
+		FConversionTable::Convert(TTypeTraits<TFrom>::Type, &Value, TTypeTraits<TTo>::Type, &Result);
 		return Result;
 	}
 
 	/**
 	 * Type-safe hash wrapper.
 	 */
-	template<typename T>
+	template <typename T>
 	FORCEINLINE PCGExValueHash ComputeHash(const T& Value)
 	{
 		const ITypeOpsBase* Ops = FTypeOpsRegistry::Get<T>();
 		return Ops->ComputeHash(&Value);
 	}
-
 }

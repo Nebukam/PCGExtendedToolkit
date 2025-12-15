@@ -82,8 +82,8 @@ namespace PCGEx
 		TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(Pin);
 
 		if (Inputs.IsEmpty()) { return 0; }
-		int16 KeyType = PCGExTypeOps::TTypeToMetadata<T_KEY>::TypeId;
-		int16 ValueType = PCGExTypeOps::TTypeToMetadata<T_VALUE>::TypeId;
+		int16 KeyType = PCGExTypeOps::TTypeTraits<T_KEY>::TypeId;
+		int16 ValueType = PCGExTypeOps::TTypeTraits<T_VALUE>::TypeId;
 
 		int32 NumTotal = 0;
 

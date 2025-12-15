@@ -78,7 +78,7 @@ namespace PCGExData
 				TArray<T> ValuesForKey;
 				if (const TSharedPtr<IDataValue>* ValueTagPtr = ValueTags.Find(Key))
 				{
-					if ((*ValueTagPtr)->Type == PCGExTypeOps::TTypeToMetadata<T>::Type)
+					if ((*ValueTagPtr)->Type == PCGExTypeOps::TTypeTraits<T>::Type)
 					{
 						return StaticCastSharedPtr<TDataValue<T>>(*ValueTagPtr);
 					}
@@ -119,7 +119,7 @@ namespace PCGExData
 
 			if (const TSharedPtr<IDataValue>* ValueTagPtr = ValueTags.Find(Key))
 			{
-				if ((*ValueTagPtr)->Type == PCGExTypeOps::TTypeToMetadata<T>::Type)
+				if ((*ValueTagPtr)->Type == PCGExTypeOps::TTypeTraits<T>::Type)
 				{
 					return StaticCastSharedPtr<TDataValue<T>>(*ValueTagPtr);
 				}
