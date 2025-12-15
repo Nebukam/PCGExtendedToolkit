@@ -260,7 +260,12 @@ namespace PCGExData
 		check(Buffer);
 		const T_REAL& RealValue = Buffer->GetValue(Index);
 
-		if (RealType != WorkingType)
+		if (bWantsSubSelection)
+		{
+			// Use type-erased sub-selection extraction
+			CachedSubSelection.ApplyGet(&RealValue, OutValue);
+		}
+		else if (RealType != WorkingType)
 		{
 			if (RealToWorking)
 			{
