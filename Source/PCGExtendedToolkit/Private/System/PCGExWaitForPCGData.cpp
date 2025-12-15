@@ -11,7 +11,6 @@
 #include "PCGGraph.h"
 #include "PCGSubsystem.h"
 #include "PCGExSubSystem.h"
-#include "Misc/PCGExSortPoints.h"
 #include "Tasks/Task.h"
 #include "Async/Async.h"
 #include "Data/PCGExData.h"

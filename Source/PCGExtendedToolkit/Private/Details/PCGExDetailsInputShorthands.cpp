@@ -6,7 +6,6 @@
 
 #include "PCGEx.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Details/PCGExMacros.h"
 #include "Details/PCGExDetailsSettings.h"
 
 #define PCGEX_FOREACH_INPUT_SHORTHAND(MACRO, ...) \

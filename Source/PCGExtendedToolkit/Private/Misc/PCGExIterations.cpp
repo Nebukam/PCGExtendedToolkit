@@ -9,7 +9,6 @@
 #include "PCGParamData.h"
 #include "PCGExVersion.h"
 #include "PCGPin.h"
-#include "Data/PCGBasePointData.h"
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGSplineData.h"
 #include "Data/PCGTextureData.h"

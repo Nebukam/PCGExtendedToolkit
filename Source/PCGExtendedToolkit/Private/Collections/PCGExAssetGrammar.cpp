@@ -7,7 +7,6 @@
 #include "UObject/Object.h"
 #include "UObject/Package.h"
 #include "Collections/PCGExAssetCollection.h"
-#include "Collections/PCGExMeshCollection.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 
 double FPCGExAssetGrammarDetails::GetSize(const FBox& InBounds, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const

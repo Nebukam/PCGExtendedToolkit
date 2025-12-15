@@ -4,7 +4,6 @@
 #include "Shapes/PCGExShapeProcessor.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExShapeProcessorElement"
 

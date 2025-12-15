@@ -94,7 +94,7 @@ namespace PCGExMergePoints
 			if (const TSharedPtr<PCGExData::IDataValue> TagValue = PointDataFacade->Source->Tags->GetValue(Tag))
 			{
 				bool bTryBroadcast = false;
-				PCGEx::ExecuteWithRightType(TagValue->Type, [&](auto DummyValue)
+				PCGEx::ExecuteWithRightType(TagValue->GetTypeId(), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					const T Value = StaticCastSharedPtr<PCGExData::TDataValue<T>>(TagValue)->Value;
@@ -116,33 +116,28 @@ namespace PCGExMergePoints
 				const TSharedPtr<PCGExData::IBuffer> UntypedBuffer = Context->CompositeDataFacade->FindReadableAttributeBuffer(AttributeName);
 				if (!UntypedBuffer) { continue; }
 
-				PCGEx::ExecuteWithRightType(UntypedBuffer->GetType(), [&](auto DummyValue)
+				const TSharedPtr<PCGExData::IBuffer> WritableBuffer = Context->CompositeDataFacade->GetWritable(UntypedBuffer->GetTypeId(), AttributeName, PCGExData::EBufferInit::New);
+				if (!WritableBuffer) { continue; }
+
+				const PCGExTypeOps::ITypeOpsBase* BufferOps = PCGExTypeOps::FTypeOpsRegistry::Get(UntypedBuffer->GetTypeId());
+				const PCGExTypeOps::ITypeOpsBase* TagOps = PCGExTypeOps::FTypeOpsRegistry::Get(TagValue->GetTypeId());
+
 				{
-					using T = decltype(DummyValue);
-					T Value = T{};
-					PCGEx::ExecuteWithRightType(TagValue->Type, [&](auto DummyValue2)
+					PCGExTypes::FScopedTypedValue Value(BufferOps->GetTypeId());
+					if (!BufferOps->SameType(TagOps))
 					{
-						// TODO : Refactor this
-						using T_REAL = decltype(DummyValue2);
-						PCGExTypeOps::TTypeOpsImpl<T>& TypeOpsImpl = PCGExTypeOps::TTypeOpsImpl<T>::GetInstance();
-						TypeOpsImpl.ConvertFrom(TagValue->Type, &StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value, &Value);
-					});
-
-					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
-
-					if (!Buffer)
+						PCGExTypes::FScopedTypedValue SourceValue(TagOps->GetTypeId());
+						TagValue->GetVoid(SourceValue.GetRaw());
+						BufferOps->ConvertFrom(TagOps->GetTypeId(), SourceValue.GetRaw(), Value.GetRaw());
+					}
+					else
 					{
-						bTryBroadcast = false;
-						return;
+						TagValue->GetVoid(Value.GetRaw());
 					}
 
-					for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
-				});
-
-				if (!bTryBroadcast)
-				{
+					for (int i = OutScope.Start; i < OutScope.End; i++) { WritableBuffer->SetVoid(i, Value.GetRaw()); }
 				}
-
+				
 				continue; // This is a value tag, not a simple tag, stop processing here.
 			}
 

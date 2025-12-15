@@ -3,6 +3,7 @@
 
 #include "Data/PCGExDataForward.h"
 
+#include "PCGEx.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"

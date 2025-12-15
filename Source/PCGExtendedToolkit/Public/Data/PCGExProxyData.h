@@ -5,13 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTypes.h"
+#include "Details/PCGExMacros.h"
 #include "Types/PCGExBroadcast.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Types/PCGExTypeOps.h"
-#include "Types/PCGExTypeOpsImpl.h"
 #include "UObject/Object.h"
 #include "Types/PCGExCachedSubSelection.h"
-#include "Utils/PCGValueRange.h"
 
 struct FPCGExContext;
 class UPCGBasePointData;
@@ -196,7 +195,7 @@ namespace PCGExData
 	template <typename T>
 	T IBufferProxy::Get(const int32 Index) const
 	{
-		constexpr EPCGMetadataTypes RequestedType = PCGExTypeOps::TTypeTraits<T>::Type;
+		constexpr EPCGMetadataTypes RequestedType = PCGExTypes::TTraits<T>::Type;
 
 		if constexpr (TypeTraits::TIsComplexType<T>)
 		{
@@ -248,7 +247,7 @@ namespace PCGExData
 	template <typename T>
 	void IBufferProxy::Set(const int32 Index, const T& Value) const
 	{
-		constexpr EPCGMetadataTypes ValueType = PCGExTypeOps::TTypeTraits<T>::Type;
+		constexpr EPCGMetadataTypes ValueType = PCGExTypes::TTraits<T>::Type;
 
 		if (ValueType == WorkingType)
 		{
@@ -269,7 +268,7 @@ namespace PCGExData
 	template <typename T>
 	T IBufferProxy::GetCurrent(const int32 Index) const
 	{
-		constexpr EPCGMetadataTypes RequestedType = PCGExTypeOps::TTypeTraits<T>::Type;
+		constexpr EPCGMetadataTypes RequestedType = PCGExTypes::TTraits<T>::Type;
 
 		// Always use scoped value for safety
 		PCGExTypes::FScopedTypedValue WorkingValue(WorkingType);

@@ -4,7 +4,6 @@
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExContext.h"
-#include "PCGExGlobalSettings.h"
 #include "Data/PCGExDataPreloader.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGPin.h"

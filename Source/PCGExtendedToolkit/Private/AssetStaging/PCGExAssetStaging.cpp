@@ -55,7 +55,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
-
+	
 	if (Settings->bOutputMaterialPicks)
 	{
 		PCGEX_VALIDATE_NAME(Settings->MaterialAttributePrefix)

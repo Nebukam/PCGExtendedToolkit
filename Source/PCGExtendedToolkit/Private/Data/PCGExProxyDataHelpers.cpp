@@ -7,7 +7,6 @@
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
-#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {

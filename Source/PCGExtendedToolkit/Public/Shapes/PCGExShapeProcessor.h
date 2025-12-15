@@ -8,8 +8,6 @@
 #include "PCGExShapes.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExShapeBuilderFactoryProvider.h"
-#include "Data/PCGExDataForward.h"
-
 #include "PCGExShapeProcessor.generated.h"
 
 class UPCGExPointFilterFactoryData;

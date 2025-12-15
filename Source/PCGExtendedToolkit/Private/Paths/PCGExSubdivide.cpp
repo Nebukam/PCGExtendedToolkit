@@ -6,6 +6,7 @@
 #include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "PCGParamData.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 

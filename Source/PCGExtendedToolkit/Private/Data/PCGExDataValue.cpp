@@ -7,7 +7,6 @@
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {
@@ -39,7 +38,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE IDataValue::GetValue<_TYPE>();
 	TDataValue<T>::TDataValue(const T& InValue)
 		: IDataValue(), Value(InValue)
 	{
-		Type = PCGExTypeOps::TTypeTraits<T>::Type;
+		Type = PCGExTypes::TTraits<T>::Type;
 	}
 
 	template <typename T>
@@ -120,6 +119,9 @@ template PCGEXTENDEDTOOLKIT_API _TYPE IDataValue::GetValue<_TYPE>();
 		CachedString.Emplace(V);
 		return V;
 	}
+
+	template <typename T>
+	void TDataValue<T>::GetVoid(void* OutValue) const{ *static_cast<T*>(OutValue) = Value; }
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 template class PCGEXTENDEDTOOLKIT_API TDataValue<_TYPE>;

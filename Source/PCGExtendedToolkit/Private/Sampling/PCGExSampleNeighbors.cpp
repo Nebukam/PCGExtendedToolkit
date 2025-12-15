@@ -7,7 +7,6 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
-#include "Sampling/Neighbors/PCGExNeighborSampleAttribute.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNeighbors"

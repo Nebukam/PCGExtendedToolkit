@@ -170,6 +170,8 @@ namespace PCGEx
 	class TAttributeBroadcaster : public IAttributeBroadcaster
 	{
 	protected:
+		using Traits = PCGExTypes::TTraits<T>;
+		
 		TSharedPtr<IPCGAttributeAccessorKeys> Keys;
 		TUniquePtr<const IPCGAttributeAccessor> InternalAccessor;
 

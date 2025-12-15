@@ -7,7 +7,6 @@
 #include "PCGExTypes.h"
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
-#include "PCGExSubSystem.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "Engine/AssetManager.h"

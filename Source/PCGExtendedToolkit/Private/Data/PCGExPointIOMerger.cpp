@@ -59,7 +59,10 @@ namespace PCGExPointIOMerger
 			{
 				using T = decltype(DummyValue);
 
-				TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier, Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
+				TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(
+					Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier,
+					Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{},
+					Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
 
 				for (int i = 0; i < Merger->IOSources.Num(); i++)
 				{

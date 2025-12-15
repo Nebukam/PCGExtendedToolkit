@@ -7,7 +7,6 @@
 #include "PCGExMathBounds.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Data/PCGExPointIO.h"
-#include "Helpers/PCGHelpers.h"
 
 void FPCGExScaleToFitDetails::Process(const PCGExData::FPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {

@@ -7,7 +7,6 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExMatching.h"
 #include "PCGExOperation.h"
-#include "PCGExPointsProcessor.h"
 
 #include "PCGExMatchRuleFactoryProvider.generated.h"
 
@@ -26,6 +25,7 @@ UPCGExFactoryData* UPCGExCreateMatch##_RULE##Settings::CreateFactory(FPCGExConte
 
 namespace PCGExData
 {
+	class FPointIO;
 	struct FConstPoint;
 }
 

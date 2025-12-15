@@ -12,9 +12,6 @@
 #include "Elements/PCGExecuteBlueprint.h"
 #include "Engine/AssetManager.h"
 
-#include "Misc/PCGExSortPoints.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExPackActorDataElement"
 #define PCGEX_NAMESPACE PackActorData
 

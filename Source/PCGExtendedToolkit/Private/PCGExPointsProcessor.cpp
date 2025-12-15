@@ -7,7 +7,6 @@
 #include "Styling/SlateStyle.h"
 #include "PCGPin.h"
 
-#include "PCGExInstancedFactory.h"
 #include "PCGExMT.h"
 #include "Helpers/PCGSettingsHelpers.h"
 #include "Misc/PCGExMergePoints.h"

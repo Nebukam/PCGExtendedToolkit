@@ -7,7 +7,6 @@
 #include "PCGExData.h"
 #include "UObject/Object.h"
 #include "PCGEx.h"
-#include "PCGExData.h"
 #include "PCGExtendedToolkit.h"
 
 namespace PCGExData

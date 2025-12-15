@@ -5,7 +5,6 @@
 #include "Details/PCGExDetailsCompareShorthands.h"
 
 #include "PCGEx.h"
-#include "PCGExContext.h"
 #include "PCGExHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExDetailsSettings.h"

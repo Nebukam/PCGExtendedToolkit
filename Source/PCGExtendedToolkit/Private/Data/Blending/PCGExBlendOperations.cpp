@@ -19,7 +19,7 @@ namespace PCGExBlending
 			  InMode == EPCGExABBlendingType::AbsoluteMin ||
 			  InMode == EPCGExABBlendingType::AbsoluteMax ||
 			  InMode == EPCGExABBlendingType::Hash ||
-			  InMode == EPCGExABBlendingType::Hash),
+			  InMode == EPCGExABBlendingType::UnsignedHash),
 		  bConsiderOriginalValue(
 			  InMode == EPCGExABBlendingType::Average ||
 			  InMode == EPCGExABBlendingType::Add ||

@@ -17,6 +17,7 @@
 #endif
 
 #include "PCGEx.h"
+#include "PCGExtendedToolkit.h"
 #include "Details/PCGExMacros.h"
 
 namespace PCGExAssetCollection

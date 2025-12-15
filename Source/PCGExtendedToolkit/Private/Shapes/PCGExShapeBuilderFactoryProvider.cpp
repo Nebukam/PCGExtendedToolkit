@@ -3,7 +3,6 @@
 
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 
-#include "PCGExGlobalSettings.h"
 #include "Shapes/PCGExShapeBuilderOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateShapeBuilder"

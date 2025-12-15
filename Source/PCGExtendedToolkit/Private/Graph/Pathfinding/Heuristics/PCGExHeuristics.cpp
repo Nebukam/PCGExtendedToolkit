@@ -5,7 +5,6 @@
 
 
 #include "Graph/PCGExCluster.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 

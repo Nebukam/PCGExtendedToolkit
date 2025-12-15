@@ -21,7 +21,6 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Details/PCGExDetailsDistances.h"
-#include "Geometry/PCGExGeo.h"
 
 
 namespace PCGExGraphTask

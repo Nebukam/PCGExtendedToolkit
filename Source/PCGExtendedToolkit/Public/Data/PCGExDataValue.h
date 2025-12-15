@@ -16,9 +16,12 @@ namespace PCGExData
 {
 	class PCGEXTENDEDTOOLKIT_API IDataValue : public TSharedFromThis<IDataValue>
 	{
+	protected:
+		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+		
 	public:
 		virtual ~IDataValue() = default;
-		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+		FORCEINLINE EPCGMetadataTypes GetTypeId() const { return Type; }
 
 		IDataValue() = default;
 
@@ -34,6 +37,8 @@ namespace PCGExData
 
 		template <typename T>
 		T GetValue();
+		
+		FORCEINLINE virtual void GetVoid(void* OutValue) const = 0;
 
 	protected:
 		TOptional<double> CachedDouble;
@@ -66,6 +71,8 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 
 		virtual double AsDouble() override;
 		virtual FString AsString() override;
+		
+		FORCEINLINE virtual void GetVoid(void* OutValue) const override;
 		
 	};
 

@@ -8,6 +8,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExSettings.h"
 #include "PCGExSubSystem.h"
+#include "PCGExtendedToolkit.h"
 #include "HAL/PlatformTime.h"
 
 #define PCGEX_TASK_LOG(...) //UE_LOG(__VA_ARGS__)

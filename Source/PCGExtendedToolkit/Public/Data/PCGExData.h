@@ -73,15 +73,6 @@ namespace PCGExData
 		friend class FFacade;
 
 	protected:
-		struct OpsTable
-		{
-			const void* (*ReadRaw)(const IBuffer* Self, int32 Index);
-			const void* (*GetValueRaw)(IBuffer* Self, int32 Index);
-			void (*SetValueRaw)(IBuffer* Self, int32 Index, const void* Value);
-		};
-
-		const OpsTable* Ops = nullptr; // Assigned by TBuffer<T>
-
 		mutable FRWLock BufferLock;
 
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
@@ -122,7 +113,7 @@ namespace PCGExData
 		IBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier);
 
 		FORCEINLINE uint64 GetUID() const { return UID; }
-		FORCEINLINE EPCGMetadataTypes GetType() const { return Type; }
+		FORCEINLINE EPCGMetadataTypes GetTypeId() const { return Type; }
 		FORCEINLINE EDomainType GetUnderlyingDomain() const { return UnderlyingDomain; }
 
 		template <typename T>
@@ -143,9 +134,9 @@ namespace PCGExData
 		virtual bool IsReadable() = 0;
 		virtual bool ReadsFromOutput() = 0;
 
-		FORCEINLINE const void* ReadRaw(const int32 Index) const { return Ops->ReadRaw(this, Index); }
-		FORCEINLINE const void* GetValueRaw(const int32 Index) { return Ops->GetValueRaw(this, Index); }
-		FORCEINLINE void SetValueRaw(const int32 Index, const void* Value) { Ops->SetValueRaw(this, Index, Value); }
+		virtual void ReadVoid(const int32 Index, void* OutValue) const = 0;
+		virtual void SetVoid(const int32 Index, const void* Value) = 0;
+		virtual void GetVoid(const int32 Index, void* OutValue) = 0;
 
 		virtual void Flush()
 		{
@@ -166,8 +157,6 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		friend class FFacade;
 
 	protected:
-		static const OpsTable OpsImpl;
-
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
 		FPCGMetadataAttribute<T>* TypedOutAttribute = nullptr;
 
@@ -179,6 +168,10 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		const FPCGMetadataAttribute<T>* GetTypedInAttribute() const;
 		FPCGMetadataAttribute<T>* GetTypedOutAttribute() const;
+
+		virtual void ReadVoid(const int32 Index, void* OutValue) const override;
+		virtual void SetVoid(const int32 Index, const void* Value) override;
+		virtual void GetVoid(const int32 Index, void* OutValue) override;
 
 		// Unsafe read from input
 		virtual const T& Read(const int32 Index) const = 0;

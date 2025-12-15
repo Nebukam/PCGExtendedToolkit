@@ -7,7 +7,6 @@
 #include "PCGExCommon.h"
 #include "PCGExDetailsInputShorthands.h"
 #include "PCGExMathMean.h"
-#include "PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExDetailsNoise.generated.h"
