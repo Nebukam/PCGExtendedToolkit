@@ -2,7 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Types/PCGExCachedSubSelection.h"
-#include "Types/PCGExTypeOpsImpl.h"
+
+#include "Details/PCGExMacros.h"
 
 namespace PCGEx
 {

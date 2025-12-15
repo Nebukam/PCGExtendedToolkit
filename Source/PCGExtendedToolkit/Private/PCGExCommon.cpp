@@ -4,6 +4,7 @@
 #include "PCGExCommon.h"
 
 #include "CoreMinimal.h"
+#include "PCGData.h"
 #include "Data/PCGExDataTag.h"
 
 namespace PCGExData

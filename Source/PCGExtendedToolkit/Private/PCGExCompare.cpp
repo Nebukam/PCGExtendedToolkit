@@ -5,6 +5,7 @@
 #include "PCGExCompare.h"
 
 #include "PCGExContext.h"
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"

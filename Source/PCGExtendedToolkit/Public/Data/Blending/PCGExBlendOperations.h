@@ -357,7 +357,7 @@ namespace PCGExBlending
 			BlendFunctions::DivValue<T>(Value, Divisor);
 		}
 
-		virtual EPCGMetadataTypes GetWorkingType() const override { return PCGExTypeOps::TTypeTraits<T>::Type; }
+		virtual EPCGMetadataTypes GetWorkingType() const override { return PCGExTypes::TTraits<T>::Type; }
 		virtual int32 GetValueSize() const override { return sizeof(T); }
 		virtual int32 GetValueAlignment() const override { return alignof(T); }
 		virtual void InitDefault(void* Value) const override { new(Value) T(); }

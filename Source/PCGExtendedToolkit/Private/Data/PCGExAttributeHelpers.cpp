@@ -3,6 +3,8 @@
 
 
 #include "Data/PCGExAttributeHelpers.h"
+
+#include "PCGEx.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
@@ -17,7 +19,7 @@
 #include "PCGParamData.h"
 #include "Data/PCGExDataValue.h"
 #include "Data/PCGExPointIO.h"
-#include "Types/PCGExTypeOpsImpl.h"
+#include "Types/PCGExTypeTraits.h"
 
 bool PCGEx::FAttributeIdentity::InDataDomain() const
 {
@@ -354,7 +356,7 @@ namespace PCGEx
 	template <typename T>
 	bool TAttributeBroadcaster<T>::ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 	{
-		static_assert(PCGExTypeOps::TTypeTraits<T>::Type != EPCGMetadataTypes::Unknown, "T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values.");
+		static_assert(Traits::Type != EPCGMetadataTypes::Unknown, "T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values.");
 
 		ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);
 		if (!ProcessingInfos.bIsValid) { return false; }
@@ -389,7 +391,8 @@ namespace PCGEx
 	bool TAttributeBroadcaster<T>::Prepare(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 	{
 		Keys = InPointIO->GetInKeys();
-		PCGExMath::TypeMinMax(Min, Max);
+		Min = Traits::Min();
+		Max = Traits::Max();
 		return ApplySelector(InSelector, InPointIO->GetIn());
 	}
 
@@ -416,7 +419,8 @@ namespace PCGEx
 
 		if (!Keys) { return false; }
 
-		PCGExMath::TypeMinMax(Min, Max);
+		Min = Traits::Min();
+		Max = Traits::Max();
 		return ApplySelector(InSelector, InData);
 	}
 
@@ -486,7 +490,8 @@ namespace PCGEx
 		const int32 NumPoints = Keys->GetNum();
 		PCGEx::InitArray(Dump, NumPoints);
 
-		PCGExMath::TypeMinMax(OutMin, OutMax);
+		OutMin = Traits::Max();
+		OutMax = Traits::Min();
 
 		if (!ProcessingInfos.bIsValid)
 		{
@@ -505,7 +510,7 @@ namespace PCGEx
 			}
 		}
 		else
-		{
+		{			
 			const bool bSuccess = InternalAccessor->GetRange<T>(Dump, 0, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
 			if (!bSuccess)
 			{
@@ -590,7 +595,7 @@ namespace PCGEx
 	template <typename T>
 	EPCGMetadataTypes TAttributeBroadcaster<T>::GetMetadataType() const
 	{
-		return PCGExTypeOps::TTypeTraits<T>::Type;
+		return Traits::Type;
 	}
 
 	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)

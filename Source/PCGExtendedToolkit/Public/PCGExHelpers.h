@@ -10,7 +10,6 @@
 #include "UObject/Interface.h"
 #include "UObject/UObjectGlobals.h"
 
-#include "PCGExtendedToolkit.h"
 #include "PCGContext.h"
 #include "Details/PCGExMacros.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"

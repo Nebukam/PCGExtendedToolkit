@@ -3,10 +3,8 @@
 
 #pragma once
 
-#include "PCGEx.h"
 #include "PCGExTypeOpsImpl.h"
 #include "PCGExTypes.h"
-#include "Details/PCGExMacros.h"
 #include "Details/PCGExDetailsAxis.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 
@@ -251,8 +249,8 @@ namespace PCGEx
 	{
 		TResult Result{};
 
-		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeTraits<TSource>::Type;
-		constexpr EPCGMetadataTypes ResultType = PCGExTypeOps::TTypeTraits<TResult>::Type;
+		constexpr EPCGMetadataTypes SourceType = PCGExTypes::TTraits<TSource>::Type;
+		constexpr EPCGMetadataTypes ResultType = PCGExTypes::TTraits<TResult>::Type;
 
 		GetVoid(SourceType, &Value, ResultType, &Result);
 
@@ -262,8 +260,8 @@ namespace PCGEx
 	template <typename TTarget, typename TSource>
 	void FSubSelection::Set(TTarget& Target, const TSource& Value) const
 	{
-		constexpr EPCGMetadataTypes TargetType = PCGExTypeOps::TTypeTraits<TTarget>::Type;
-		constexpr EPCGMetadataTypes SourceType = PCGExTypeOps::TTypeTraits<TSource>::Type;
+		constexpr EPCGMetadataTypes TargetType = PCGExTypes::TTraits<TTarget>::Type;
+		constexpr EPCGMetadataTypes SourceType = PCGExTypes::TTraits<TSource>::Type;
 
 		SetVoid(TargetType, &Target, SourceType, &Value);
 	}

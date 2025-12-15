@@ -3,7 +3,8 @@
 
 #pragma once
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Types/PCGExTypeOpsImpl.h"
+#include "Types/PCGExTypeOps.h"
+#include "Types/PCGExTypeTraits.h"
 
 namespace PCGExData
 {
@@ -35,14 +36,14 @@ MACRO(FStructProperty, FTransform)
 	template <typename T>
 	static bool TrySetFPropertyValue(void* InContainer, FProperty* InProperty, T InValue)
 	{
-		PCGExTypeOps::TTypeOpsImpl<T>& TypeOpsImpl = PCGExTypeOps::TTypeOpsImpl<T>::GetInstance();
+		const PCGExTypeOps::ITypeOpsBase* TypeOps = PCGExTypeOps::FTypeOpsRegistry::Get<T>();
 
 		if (InProperty->IsA<FObjectPropertyBase>())
 		{
 			// If input type is a soft object path, check if the target property is an object type
 			// and resolve the object path
 			FSoftObjectPath Path;
-			TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<FSoftObjectPath>::Type, &Path);
+			TypeOps->ConvertTo(&InValue, PCGExTypes::TTraits<FSoftObjectPath>::Type, &Path);
 
 			if (UObject* ResolvedObject = Path.TryLoad())
 			{
@@ -60,7 +61,7 @@ MACRO(FStructProperty, FTransform)
 	if(InProperty->IsA<_PTYPE>()){\
 		_PTYPE* P = CastField<_PTYPE>(InProperty);\
 		_TYPE V;\
-		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<_TYPE>::Type, &V);\
+		TypeOps->ConvertTo(&InValue, PCGExTypes::TTraits<_TYPE>::Type, &V);\
 		P->SetPropertyValue_InContainer(InContainer, V);\
 		return true;\
 		}
@@ -74,7 +75,7 @@ MACRO(FStructProperty, FTransform)
 			{
 				FPCGAttributePropertyInputSelector NewSelector = FPCGAttributePropertyInputSelector();
 				FString S;
-				TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<FString>::Type, &S);\
+				TypeOps->ConvertTo(&InValue, PCGExTypes::TTraits<FString>::Type, &S);\
 				NewSelector.Update(S);
 				void* StructContainer = StructProperty->ContainerPtrToValuePtr<void>(InContainer);
 				*reinterpret_cast<FPCGAttributePropertyInputSelector*>(StructContainer) = NewSelector;
@@ -85,7 +86,7 @@ MACRO(FStructProperty, FTransform)
 	else if (StructProperty->Struct == TBaseStructure<_TYPE>::Get()){\
 		void* StructContainer = StructProperty->ContainerPtrToValuePtr<void>(InContainer);\
 		_TYPE V;\
-		TypeOpsImpl.ConvertTo(&InValue, PCGExTypeOps::TTypeTraits<_TYPE>::Type, &V);\
+		TypeOps->ConvertTo(&InValue, PCGExTypes::TTraits<_TYPE>::Type, &V);\
 		*reinterpret_cast<_TYPE*>(StructContainer) = V;\
 		return true;\
 		}

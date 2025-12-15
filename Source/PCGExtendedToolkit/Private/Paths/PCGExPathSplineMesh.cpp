@@ -10,7 +10,6 @@
 #include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "PCGExScopedContainers.h"
-#include "PCGExSubSystem.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"

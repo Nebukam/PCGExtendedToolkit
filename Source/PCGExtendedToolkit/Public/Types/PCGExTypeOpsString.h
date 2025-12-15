@@ -4,7 +4,6 @@
 #pragma once
 
 #include "PCGExTypeOps.h"
-#include "Details/PCGExDetailsAxis.h"
 #include "UObject/SoftObjectPath.h"
 
 /**

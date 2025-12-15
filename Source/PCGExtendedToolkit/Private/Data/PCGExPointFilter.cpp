@@ -3,7 +3,6 @@
 
 #include "Data/PCGExPointFilter.h"
 
-#include "PCGExLabels.h"
 #include "PCGExMT.h"
 #include "PCGExSubSystem.h"
 #include "Data/PCGExData.h"

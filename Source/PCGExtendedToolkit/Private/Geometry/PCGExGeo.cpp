@@ -9,7 +9,6 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
-#include "Transform/PCGExFitting.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"

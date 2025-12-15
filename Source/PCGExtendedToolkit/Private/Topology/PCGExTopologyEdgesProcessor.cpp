@@ -10,7 +10,6 @@
 #include "Topology/PCGExDynamicMeshComponent.h"
 #include "Topology/PCGExTopology.h"
 #include "Data/PCGDynamicMeshData.h"
-#include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Transform/PCGExTransform.h"

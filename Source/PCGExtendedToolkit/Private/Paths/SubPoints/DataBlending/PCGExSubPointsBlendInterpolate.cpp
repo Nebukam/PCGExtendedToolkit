@@ -5,6 +5,8 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #include "PCGExMT.h"
+#include "Data/PCGExPointElements.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 void FPCGExSubPointsBlendInterpolate::BlendSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const

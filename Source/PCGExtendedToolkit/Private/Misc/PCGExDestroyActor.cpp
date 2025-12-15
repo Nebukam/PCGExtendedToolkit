@@ -11,10 +11,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 
-
-#include "Misc/PCGExSortPoints.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExDestroyActorElement"
 #define PCGEX_NAMESPACE DestroyActor
 

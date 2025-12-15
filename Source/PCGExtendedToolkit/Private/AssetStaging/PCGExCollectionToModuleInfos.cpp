@@ -7,7 +7,6 @@
 #include "PCGGraph.h"
 #include "PCGPin.h"
 #include "AssetStaging/PCGExStaging.h"
-#include "Collections/PCGExActorCollection.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 

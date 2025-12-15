@@ -4,7 +4,6 @@
 #include "Details/PCGExDetailsBitmask.h"
 
 #include "PCGExContext.h"
-#include "PCGExGlobalSettings.h"
 #include "Collections/PCGExBitmaskCollection.h"
 
 namespace PCGExBitmask

@@ -3,7 +3,6 @@
 
 #include "PCGExSortingRuleProvider.h"
 
-#include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"

@@ -16,8 +16,6 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExClusterUtils.h"
 
-
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Paths/PCGExPaths.h"

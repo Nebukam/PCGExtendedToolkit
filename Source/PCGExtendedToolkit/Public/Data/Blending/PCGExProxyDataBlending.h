@@ -9,6 +9,11 @@
 #include "PCGExBlending.h"
 #include "Data/PCGExProxyData.h"
 
+namespace PCGEx
+{
+	struct FOpStats;
+}
+
 namespace PCGExDetails
 {
 	class FDistances;
