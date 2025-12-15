@@ -5,6 +5,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExTypes.h"
+#include "Details/PCGExMacros.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExPointElements.h"
