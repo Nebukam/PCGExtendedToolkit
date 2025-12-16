@@ -176,6 +176,6 @@ namespace PCGExUberFilter
 
 		TSharedPtr<PCGExData::FPointIO> CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EIOInit InitMode) const;
 
-		virtual void CompleteWork() override;
+		void OnPointsProcessingComplete() override;
 	};
 }

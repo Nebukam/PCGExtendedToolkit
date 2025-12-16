@@ -81,7 +81,7 @@ bool PCGExGraph::BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO
 	const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
 	const int32 EdgeIOIndex = EdgeIO->IOIndex;
 
-	bool bValid = true;
+	int8 bValid = 1;
 	const int32 NumEdges = EdgeIO->GetNum();
 
 	PCGEx::InitArray(OutEdges, NumEdges);
@@ -109,8 +109,11 @@ bool PCGExGraph::BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO
 	}
 	else
 	{
-		for (int i = 0; i < NumEdges; i++)
-		{
+		PCGEX_PARALLEL_FOR_RET(
+			NumEdges,
+			true,
+			if (!bValid){return false;}
+
 			uint32 A;
 			uint32 B;
 			PCGEx::H64(Endpoints[i], A, B);
@@ -120,15 +123,15 @@ bool PCGExGraph::BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO
 
 			if ((!StartPointIndexPtr || !EndPointIndexPtr))
 			{
-				bValid = false;
-				break;
+			FPlatformAtomics::InterlockedExchange(&bValid, 1);
+			return false;
 			}
 
 			OutEdges[i] = FEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
-		}
+		)
 	}
 
-	return bValid;
+	return static_cast<bool>(bValid);
 }
 
 namespace PCGExGraph
@@ -230,8 +233,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 	void FSubGraph::BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster)
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing
-		for (FEdge& E : FlattenedEdges) { E.IOIndex = -1; }
-
+		PCGEX_PARALLEL_FOR(FlattenedEdges.Num(), FlattenedEdges[i].IOIndex = -1;)
 		InCluster->BuildFrom(SharedThis(this));
 
 		// Look into the cost of this
@@ -296,7 +298,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 			TArray<TTuple<int64, int64>> DelayedEntries;
 			DelayedEntries.SetNum(NumEdges);
-			
+
 			if (InEdgeData)
 			{
 				// We'll cherry pick existing edges
@@ -307,12 +309,12 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 				ReadEdgeIndices.SetNumUninitialized(NumEdges);
 				WriteEdgeIndices.SetNumUninitialized(NumEdges);
-				int32 WriteIndex = 0;
 
 				const TConstPCGValueRange<int64> InMetadataEntries = InEdgeData->GetConstMetadataEntryValueRange();
+				std::atomic<int32> WriteIndex(0);
 
-				for (int i = 0; i < NumEdges; i++)
-				{
+				PCGEX_PARALLEL_FOR(
+					NumEdges,
 					const FEdge& OE = ParentGraphEdges[Edges[i].Index];
 
 					// Hijack edge IOIndex to store original edge index in the flattened
@@ -323,15 +325,16 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 					if (InMetadataEntries.IsValidIndex(OriginalPointIndex))
 					{
-						// Grab existing metadata entry & cache read/write indices
-						ParentEntry = InMetadataEntries[OriginalPointIndex];
-						ReadEdgeIndices[WriteIndex] = OriginalPointIndex;
-						WriteEdgeIndices[WriteIndex++] = i;
+					// Grab existing metadata entry & cache read/write indices
+					ParentEntry = InMetadataEntries[OriginalPointIndex];
+					const int32 LocalWriteIndex = WriteIndex.fetch_add(1, std::memory_order_relaxed);
+					ReadEdgeIndices[LocalWriteIndex] = OriginalPointIndex;
+					WriteEdgeIndices[LocalWriteIndex] = i;
 					}
 
 					OutMetadataEntries[i] = Metadata->AddEntryPlaceholder();
 					DelayedEntries[i] = MakeTuple(OutMetadataEntries[i], ParentEntry);
-				}
+				)
 
 				ReadEdgeIndices.SetNum(WriteIndex);
 				WriteEdgeIndices.SetNum(WriteIndex);
@@ -342,14 +345,14 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CreatePoints);
 
-				for (int i = 0; i < NumEdges; i++)
-				{
+				PCGEX_PARALLEL_FOR(
+					NumEdges,
 					const FEdge& E = ParentGraphEdges[Edges[i].Index];
 					FlattenedEdges[i] = FEdge(i, ParentGraphNodes[E.Start].PointIndex, ParentGraphNodes[E.End].PointIndex, i, E.Index);
 
 					OutMetadataEntries[i] = Metadata->AddEntryPlaceholder();
 					DelayedEntries[i] = MakeTuple(OutMetadataEntries[i], PCGInvalidEntryKey);
-				}
+				)
 			}
 
 			Metadata->AddDelayedEntries(DelayedEntries);
@@ -917,12 +920,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				if (!bOutputIsSameAsInput)
 				{
 					// Build & remap new point count to node topology
-					for (int i = 0; i < NumValidNodes; i++)
-					{
+					PCGEX_PARALLEL_FOR(
+						NumValidNodes,
 						FNode& Node = Nodes[ValidNodes[i]];
 						ReadIndices[i] = Node.PointIndex; // { NewIndex : InheritedIndex }
 						Node.PointIndex = i;              // Update node point index
-					}
+					)
 
 					// Truncate output if need be
 					OutNodeData->SetNumPoints(NumValidNodes);
@@ -956,23 +959,23 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					TArray<PCGEx::FIndexKey> MortonHash;
 					MortonHash.SetNumUninitialized(N);
 
-					for (int32 i = 0; i < N; i++)
-					{
+					PCGEX_PARALLEL_FOR(
+						N,
 						const int32 Idx = ValidNodes[i];
 						const FVector P = NodePointsTransforms[Idx].GetLocation() * 1000;
 						MortonHash[i] = PCGEx::FIndexKey(Idx, (static_cast<uint64>(P.X) << 42) ^ (static_cast<uint64>(P.Y) << 21) ^ static_cast<uint64>(P.Z));
-					}
+					)
 
 					PCGEx::RadixSort(MortonHash);
 
-					for (int i = 0; i < NumValidNodes; i++)
-					{
+					PCGEX_PARALLEL_FOR(
+						NumValidNodes,
 						const int32 Idx = MortonHash[i].Index;
 						ValidNodes[i] = Idx;
 						FNode& Node = Nodes[Idx];
 						ReadIndices[i] = Node.PointIndex;
 						Node.PointIndex = i;
-					}
+					)
 				}
 
 				// There is no points to inherit from; meaning we need to reorder the existing data
@@ -1024,15 +1027,15 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_DECL)
 
-			for (const int32 NodeIndex : ValidNodes)
-			{
-				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadata_Unsafe(NodeIndex);
-
-				if (!NodeMeta) { continue; }
-
-				const int32 PointIndex = Nodes[NodeIndex].PointIndex;
+			PCGEX_PARALLEL_FOR(
+				NumValidNodes,
+				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadata_Unsafe(i);
+				if (NodeMeta)
+				{
+				const int32 PointIndex = Nodes[i].PointIndex;
 				PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_OUTPUT)
-			}
+				}
+			)
 
 #undef PCGEX_FOREACH_NODE_METADATA
 #undef PCGEX_NODE_METADATA_DECL

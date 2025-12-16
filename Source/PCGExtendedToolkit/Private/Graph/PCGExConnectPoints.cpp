@@ -67,18 +67,19 @@ bool FPCGExConnectPointsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         NewBatch->bRequiresWriteStep = true;
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters. Make sure inputs have at least 2 points."));
 		}
@@ -285,7 +286,7 @@ namespace PCGExConnectPoints
 
 			const FVector Position = WorkingTransforms[OtherPointIndex].GetLocation();
 			const FVector Dir = (Origin - Position).GetSafeNormal();
-			const int32 EmplaceIndex = Candidates.Emplace(OtherPointIndex, Dir, FVector::DistSquared(Position, Origin), bPreventCoincidence ? PCGEx::GH3(Dir, CWCoincidenceTolerance) : 0);
+			const int32 EmplaceIndex = Candidates.Emplace(OtherPointIndex, Dir, FVector::DistSquared(Position, Origin), bPreventCoincidence ? PCGEx::SH3(Dir, CWCoincidenceTolerance) : 0);
 
 			if (NumChainedOps > 0)
 			{

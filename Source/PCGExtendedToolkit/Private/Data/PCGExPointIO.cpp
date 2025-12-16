@@ -192,6 +192,45 @@ namespace PCGExData
 
 	FTaggedData FPointIO::GetTaggedData(const EIOSide Source) { return FTaggedData(GetData(Source), Tags, GetInKeys()); }
 
+	void FPointIO::InitializeMetadataEntries_Unsafe(const bool bConservative) const
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::InitializeMetadataEntries);
+
+		check(Out)
+
+		UPCGMetadata* Metadata = Out->Metadata;
+		TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange(true);
+
+		if (bConservative)
+		{
+			TArray<int64*> KeysNeedingInit;
+			KeysNeedingInit.Reserve(MetadataEntries.Num());
+			const int64 ItemKeyOffset = Metadata->GetItemKeyCountForParent();
+
+			for (int64& Key : MetadataEntries)
+			{
+				if (Key == PCGInvalidEntryKey || Key < ItemKeyOffset) { KeysNeedingInit.Add(&Key); }
+			}
+
+			if (KeysNeedingInit.Num() > 0) { Metadata->AddEntriesInPlace(KeysNeedingInit); }
+		}
+		else
+		{
+			const int32 NumEntries = MetadataEntries.Num();
+			TArray<TTuple<int64, int64>> DelayedEntries;
+			DelayedEntries.SetNum(NumEntries);
+
+			for (int i = 0; i < NumEntries; i++)
+			{
+				int64 OldKey = MetadataEntries[i];
+				MetadataEntries[i] = Metadata->AddEntryPlaceholder();
+				DelayedEntries[i] = MakeTuple(MetadataEntries[i], OldKey);
+			}
+
+			Metadata->AddDelayedEntries(DelayedEntries);
+		}
+	}
+
 	TSharedPtr<IPCGAttributeAccessorKeys> FPointIO::GetInKeys()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetInKeys);
@@ -226,27 +265,8 @@ namespace PCGExData
 			FWriteScopeLock WriteScopeLock(OutKeysLock);
 			if (OutKeys) { return OutKeys; }
 
-			if (bEnsureValidKeys)
-			{
-				UPCGMetadata* OutMetadata = Out->Metadata;
-				TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange(true);
-
-				TArray<int64*> KeysNeedingInit;
-				KeysNeedingInit.Reserve(MetadataEntries.Num());
-				const int64 ItemKeyOffset = OutMetadata->GetItemKeyCountForParent();
-
-				for (int64& Key : MetadataEntries)
-				{
-					if (Key == PCGInvalidEntryKey || Key < ItemKeyOffset) { KeysNeedingInit.Add(&Key); }
-				}
-
-				if (KeysNeedingInit.Num() > 0) { OutMetadata->AddEntriesInPlace(KeysNeedingInit); }
-				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, false);
-			}
-			else
-			{
-				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, false);
-			}
+			if (bEnsureValidKeys) { InitializeMetadataEntries_Unsafe(true); }
+			OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, false);
 		}
 
 		return OutKeys;

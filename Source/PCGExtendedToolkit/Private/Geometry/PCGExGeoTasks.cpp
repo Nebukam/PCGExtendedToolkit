@@ -37,73 +37,42 @@ namespace PCGExGeoTasks
 		PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
 		TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
 
-		const int32 NumPoints = OutTransforms.Num();
-		if (NumPoints < 4096)
+		const int Strategy = (TransformDetails->bInheritRotation ? 2 : 0)
+			+ (TransformDetails->bInheritScale ? 1 : 0);
+
+		switch (Strategy)
 		{
-			if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
-			{
-				for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
-			}
-			else if (TransformDetails->bInheritRotation)
-			{
-				for (FTransform& Transform : OutTransforms)
-				{
-					FVector OriginalScale = Transform.GetScale3D();
-					Transform *= TargetTransform;
-					Transform.SetScale3D(OriginalScale);
-				}
-			}
-			else if (TransformDetails->bInheritScale)
-			{
-				for (FTransform& Transform : OutTransforms)
-				{
-					FQuat OriginalRot = Transform.GetRotation();
-					Transform *= TargetTransform;
-					Transform.SetRotation(OriginalRot);
-				}
-			}
-			else
-			{
-				for (FTransform& Transform : OutTransforms)
-				{
-					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
-				}
-			}
-		}
-		else
-		{
-			if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
-			{
-				ParallelFor(NumPoints, [&](const int32 i) { OutTransforms[i] *= TargetTransform; });
-			}
-			else if (TransformDetails->bInheritRotation)
-			{
-				ParallelFor(NumPoints, [&](const int32 i)
-				{
-					FTransform& Transform = OutTransforms[i];
-					FVector OriginalScale = Transform.GetScale3D();
-					Transform *= TargetTransform;
-					Transform.SetScale3D(OriginalScale);
-				});
-			}
-			else if (TransformDetails->bInheritScale)
-			{
-				ParallelFor(NumPoints, [&](const int32 i)
-				{
-					FTransform& Transform = OutTransforms[i];
-					FQuat OriginalRot = Transform.GetRotation();
-					Transform *= TargetTransform;
-					Transform.SetRotation(OriginalRot);
-				});
-			}
-			else
-			{
-				ParallelFor(NumPoints, [&](const int32 i)
-				{
-					FTransform& Transform = OutTransforms[i];
-					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
-				});
-			}
+		case 3: // Inherit rotation + inherit scale
+			PCGEX_PARALLEL_FOR(
+				OutTransforms.Num(),
+				OutTransforms[i] *= TargetTransform;
+			)
+			break;
+		case 2: // Inherit rotation only
+			PCGEX_PARALLEL_FOR(
+				OutTransforms.Num(),
+				FTransform& Transform = OutTransforms[i];
+				FQuat OriginalRot = Transform.GetRotation();
+				Transform *= TargetTransform;
+				Transform.SetRotation(OriginalRot);
+			)
+			break;
+		case 1: // Inherit scale only
+			PCGEX_PARALLEL_FOR(
+				OutTransforms.Num(),
+				FTransform& Transform = OutTransforms[i];
+				FVector OriginalScale = Transform.GetScale3D();
+				Transform *= TargetTransform;
+				Transform.SetScale3D(OriginalScale);
+			)
+			break;
+		default:
+			PCGEX_PARALLEL_FOR(
+				OutTransforms.Num(),
+				FTransform& Transform = OutTransforms[i];
+				Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
+			)
+			break;
 		}
 	}
 }
