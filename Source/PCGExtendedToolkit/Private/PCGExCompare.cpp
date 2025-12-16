@@ -202,7 +202,7 @@ bool FPCGExVectorHashComparisonDetails::GetOnlyUseDataDomain() const
 bool FPCGExVectorHashComparisonDetails::Test(const FVector& A, const FVector& B, const int32 PointIndex) const
 {
 	const FVector CWTolerance = GetCWTolerance(PointIndex);
-	return PCGEx::GH3(A, CWTolerance) == PCGEx::GH3(B, CWTolerance);
+	return PCGEx::SH3(A, CWTolerance) == PCGEx::SH3(B, CWTolerance);
 }
 
 void FPCGExStaticDotComparisonDetails::Init()

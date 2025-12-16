@@ -8,6 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelax2DElement"
 #define PCGEX_NAMESPACE LloydRelax2D
@@ -38,18 +39,19 @@ bool FPCGExLloydRelax2DElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() <= 3)
-			                                         {
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() <= 3)
+				{
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			Context->CancelExecution(TEXT("Could not find any points to relax."));
 		}
@@ -109,10 +111,10 @@ namespace PCGExLloydRelax2D
 
 			if (InfluenceSettings->bProgressiveInfluence)
 			{
-				for (int i = 0; i < NumPoints; i++)
-				{
+				PCGEX_PARALLEL_FOR(
+					NumPoints,
 					Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i));
-				}
+				)
 			}
 
 			Delaunay.Reset();
@@ -148,27 +150,40 @@ namespace PCGExLloydRelax2D
 		return true;
 	}
 
-	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::CompleteWork()
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::LloydRelax2D::ProcessPoints);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::LloydRelax2D::CompleteWork);
 
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
-		PCGEX_SCOPE_LOOP(Index)
+		if (InfluenceDetails.bProgressiveInfluence)
 		{
-			FTransform& Transform = OutTransforms[Index];
+			PCGEX_PARALLEL_FOR(
+				OutTransforms.Num(),
 
-			FVector TargetPosition = Transform.GetLocation();
-			TargetPosition.X = ActivePositions[Index].X;
-			TargetPosition.Y = ActivePositions[Index].Y;
+				FTransform& Transform = OutTransforms[i];
 
-			Transform.SetLocation(InfluenceDetails.bProgressiveInfluence ? TargetPosition : FMath::Lerp(Transform.GetLocation(), TargetPosition, InfluenceDetails.GetInfluence(Index)));
+				FVector TargetPosition = Transform.GetLocation();
+				TargetPosition.X = ActivePositions[i].X;
+				TargetPosition.Y = ActivePositions[i].Y;
+
+				Transform.SetLocation(TargetPosition);
+			)
 		}
-	}
+		else
+		{
+			PCGEX_PARALLEL_FOR(
+				OutTransforms.Num(),
 
-	void FProcessor::CompleteWork()
-	{
-		StartParallelLoopForPoints();
+				FTransform& Transform = OutTransforms[i];
+
+				FVector TargetPosition = Transform.GetLocation();
+				TargetPosition.X = ActivePositions[i].X;
+				TargetPosition.Y = ActivePositions[i].Y;
+
+				Transform.SetLocation(FMath::Lerp(Transform.GetLocation(), TargetPosition, InfluenceDetails.GetInfluence(i)));
+			);
+		}
 	}
 }
 

@@ -55,7 +55,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
-	
+
 	if (Settings->bOutputMaterialPicks)
 	{
 		PCGEX_VALIDATE_NAME(Settings->MaterialAttributePrefix)
@@ -64,7 +64,8 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		Context->MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
+		PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection, Context);
+		Context->MainCollection = Settings->AssetCollection.Get();
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));

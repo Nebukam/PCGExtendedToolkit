@@ -56,7 +56,7 @@ void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTran
 
 		if (Config.bPreventCoincidence)
 		{
-			LocalCoincidence.Add(PCGEx::GH3(C.Direction, CWCoincidenceTolerance), &bIsAlreadyConnected);
+			LocalCoincidence.Add(PCGEx::SH3(C.Direction, CWCoincidenceTolerance), &bIsAlreadyConnected);
 			if (bIsAlreadyConnected) { continue; }
 		}
 

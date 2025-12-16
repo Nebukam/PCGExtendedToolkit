@@ -68,7 +68,8 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		Context->MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
+		PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection, Context);
+		Context->MainCollection = Settings->AssetCollection.Get();
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
@@ -391,7 +392,7 @@ namespace PCGExPathSplineMesh
 
 		PCGEX_MAKE_SHARED(MaterialPaths, TSet<FSoftObjectPath>)
 		ScopedMaterials->Collapse(*MaterialPaths.Get());
-		if (!MaterialPaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(MaterialPaths); } // TODO : Refactor this atrocity
+		if (!MaterialPaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(MaterialPaths, Context); } // TODO : Refactor this atrocity
 
 		//
 

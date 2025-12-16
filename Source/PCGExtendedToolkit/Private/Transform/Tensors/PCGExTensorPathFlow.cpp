@@ -9,11 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathFlow"
 #define PCGEX_NAMESPACE CreateTensorPathFlow
 
-void FPCGExTensorPathFlowConfig::Init()
-{
-	FPCGExTensorConfigBase::Init();
-}
-
 bool FPCGExTensorPathFlow::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	if (!PCGExTensorOperation::Init(InContext, InFactory)) { return false; }
@@ -37,7 +32,17 @@ PCGExTensor::FTensorSample FPCGExTensorPathFlow::Sample(const int32 InSeedIndex,
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
-PCGEX_TENSOR_BOILERPLATE(PathFlow, { NewFactory->Config.Potency *= NewFactory->Config.PotencyScale; NewFactory->bBuildFromPaths = GetBuildFromPoints(); NewFactory->PointType = NewFactory->Config.PointType; NewFactory->bSmoothLinear = NewFactory->Config.bSmoothLinear; }, { NewOperation->Splines = &ManagedSplines; })
+PCGEX_TENSOR_BOILERPLATE(
+	PathFlow,
+	{
+	NewFactory->Config.Potency *= NewFactory->Config.PotencyScale;
+	NewFactory->bBuildFromPaths = GetBuildFromPoints();
+	NewFactory->PointType = NewFactory->Config.PointType;
+	NewFactory->bSmoothLinear = NewFactory->Config.bSmoothLinear;
+	},
+	{
+	NewOperation->Splines = &ManagedSplines;
+	})
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

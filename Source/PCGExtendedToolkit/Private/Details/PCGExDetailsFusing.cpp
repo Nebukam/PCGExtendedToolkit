@@ -114,7 +114,7 @@ bool FPCGExFuseDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExDat
 
 uint64 FPCGExFuseDetails::GetGridKey(const FVector& Location, const int32 PointIndex) const
 {
-	return PCGEx::GH3(Location + VoxelGridOffset, PCGEx::SafeTolerance(ToleranceGetter->Read(PointIndex)));
+	return PCGEx::SH3(Location + VoxelGridOffset, PCGEx::SafeTolerance(ToleranceGetter->Read(PointIndex)));
 }
 
 FBox FPCGExFuseDetails::GetOctreeBox(const FVector& Location, const int32 PointIndex) const

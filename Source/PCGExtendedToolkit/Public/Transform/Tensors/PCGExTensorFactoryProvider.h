@@ -23,7 +23,7 @@ UPCGExFactoryData* UPCGExCreateTensor##_TENSOR##Settings::CreateFactory(FPCGExCo
 	NewFactory->Config = Config; \
 	Super::CreateFactory(InContext, NewFactory); /* Super factory to grab custom override settings before body */ \
 	_NEW_FACTORY \
-	NewFactory->Config.Init(); \
+	NewFactory->Config.Init(InContext); \
 	NewFactory->BaseConfig = NewFactory->Config; \
 	return NewFactory; }
 

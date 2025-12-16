@@ -1,0 +1,109 @@
+﻿#include "Sampling/PCGExCurveLookup.h"
+
+#include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
+#include "Engine/StreamableManager.h"
+
+PCGExFloatLUT FPCGExCurveLookupDetails::MakeFloatLookup(const FRuntimeFloatCurve& InCurve) const
+{
+	return PCGExSampling::FCurveFloatLookup::Make(InCurve, Mode, Samples);
+}
+
+PCGExFloatLUT FPCGExCurveLookupDetails::MakeLookup(
+	const bool InUseLocalCurve, FRuntimeFloatCurve RuntimeCurve,
+	const TSoftObjectPtr<UCurveFloat> InExternalCurve, const PCGExSampling::FInitCurveDataDefaults& InitFn) const
+{
+	PCGExFloatLUT NewLUT = MakeShared<PCGExSampling::FCurveFloatLookup>();
+	if (!InUseLocalCurve)
+	{
+		InitFn(RuntimeCurve.EditorCurveData);
+		NewLUT->ExternalCurveHandle = PCGExHelpers::LoadBlocking_AnyThread(InExternalCurve);
+		RuntimeCurve.ExternalCurve = InExternalCurve.Get();
+	}
+	NewLUT->Init(RuntimeCurve, Mode, Samples);
+	return NewLUT;
+}
+
+PCGExFloatLUT FPCGExCurveLookupDetails::MakeLookup(
+	const bool InUseLocalCurve, const FRuntimeFloatCurve& RuntimeCurve,
+	const TSoftObjectPtr<UCurveFloat> InExternalCurve) const
+{
+	return MakeLookup(
+		InUseLocalCurve, RuntimeCurve, InExternalCurve,
+		[](FRichCurve& CurveData)
+		{
+			//CurveData.AddKey(0, 0);
+			//CurveData.AddKey(1, 1);
+		});
+}
+
+PCGExFloatLUT FPCGExCurveLookupDetails::MakeFloatLookup(const PCGExSampling::FInitCurveDataDefaults& InitFn) const
+{
+	static_assert("NOT IMPLEMENTED YET");
+	return MakeLookup(bUseLocalCurve, LocalCurve, ExternalCurve, InitFn);
+}
+
+PCGExFloatLUT FPCGExCurveLookupDetails::MakeFloatLookup() const
+{
+	static_assert("NOT IMPLEMENTED YET");
+	return MakeLookup(
+		bUseLocalCurve, LocalCurve, ExternalCurve,
+		[](FRichCurve& CurveData)
+		{
+			CurveData.AddKey(0, 0);
+			CurveData.AddKey(1, 1);
+		});
+}
+
+namespace PCGExSampling
+{
+	FCurveFloatLookup::~FCurveFloatLookup()
+	{
+		PCGExHelpers::SafeReleaseHandle(ExternalCurveHandle);
+	}
+
+	void FCurveFloatLookup::Init(const FRuntimeFloatCurve& InCurve, const EPCGExCurveLUTMode InMode, const int32 InNumSamples)
+	{
+		Curve = InCurve;
+		CurvePtr = Curve.GetRichCurveConst();
+		Mode = InMode;
+		LUT.Reset();
+
+		if (!CurvePtr || CurvePtr->GetNumKeys() == 0)
+		{
+			TimeMin = 0.0f;
+			TimeMax = 1.0f;
+			TimeToNormalized = 1.0f;
+			LUTMaxIdx = 0.0f;
+			return;
+		}
+
+		// Get curve's natural time range
+		float TMin, TMax;
+		CurvePtr->GetTimeRange(TMin, TMax);
+
+		TimeMin = TMin;
+		TimeMax = TMax;
+
+		const float TimeDelta = TimeMax - TimeMin;
+		TimeToNormalized = FMath::IsNearlyZero(TimeDelta) ? 1.0f : 1.0f / TimeDelta;
+
+		if (Mode == EPCGExCurveLUTMode::Direct)
+		{
+			LUTMaxIdx = 0.0f;
+			return;
+		}
+
+		const int32 Count = FMath::Max(InNumSamples, 32);
+
+		// Allocate Count + 1 so Hi index is always safe without branch
+		LUT.SetNumUninitialized(Count + 1);
+		LUTMaxIdx = static_cast<float>(Count - 1);
+
+		for (int32 i = 0; i <= Count; i++)
+		{
+			const float T = TimeMin + (static_cast<float>(i) / static_cast<float>(Count)) * TimeDelta;
+			LUT[i] = CurvePtr->Eval(T);
+		}
+	}
+}

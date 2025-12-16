@@ -32,10 +32,12 @@ bool FPCGExBoundsAxisToPointsElement::AdvanceWork(FPCGExContext* InContext, cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-			//NewBatch->bRequiresWriteStep = true;
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Missing data."));
 		}
@@ -252,13 +254,11 @@ namespace PCGExBoundsAxisToPoints
 		}
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (!bGeneratePerPointData)
 		{
-			TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
-			UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
-			for (int64& Key : MetadataEntries) { Metadata->InitializeOnSet(Key); }
+			PointDataFacade->Source->InitializeMetadataEntries_Unsafe(false);
 		}
 	}
 }

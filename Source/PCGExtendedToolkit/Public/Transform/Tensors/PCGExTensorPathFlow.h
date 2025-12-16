@@ -43,7 +43,6 @@ struct FPCGExTensorPathFlowConfig : public FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis SplineDirection = EPCGExAxis::Forward;
 
-	virtual void Init() override;
 };
 
 /**

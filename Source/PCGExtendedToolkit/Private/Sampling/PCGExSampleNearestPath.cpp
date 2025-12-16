@@ -128,16 +128,13 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		});
 	}
 
-	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
-
-	if (!Settings->bUseLocalCurve)
-	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
-	}
-
-	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+	Context->WeightCurve = Settings->WeightCurveLookup.MakeLookup(
+		Settings->bUseLocalCurve, Settings->LocalWeightOverDistance, Settings->WeightOverDistance,
+		[](FRichCurve& CurveData)
+		{
+			CurveData.AddKey(0, 0);
+			CurveData.AddKey(1, 1);
+		});
 
 	return true;
 }
@@ -215,7 +212,7 @@ namespace PCGExSampleNearestPath
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPath::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPath::Process)
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
@@ -229,7 +226,10 @@ namespace PCGExSampleNearestPath
 			return false;
 		}
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(PCGEX_INIT_IO)
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		}
 
 		// Allocate edge native properties
 
@@ -259,6 +259,7 @@ namespace PCGExSampleNearestPath
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(InitBlendingFactories)
 			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, Context->TargetsHandler->GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
@@ -439,7 +440,7 @@ namespace PCGExSampleNearestPath
 				PCGExData::FElement A;
 				PCGExData::FElement B;
 				InPath->GetEdgeElements(EdgeIndex, EdgeElement, A, B);
-				
+
 				const bool bClosedLoop = InPath->IsClosedLoop();
 				const bool bIsInside = InPath->IsInsideProjection(Transform.GetLocation());
 

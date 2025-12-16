@@ -45,9 +45,12 @@ bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -85,7 +88,18 @@ namespace PCGExAttributeHash
 
 		Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->HashConfig);
 		if (!Hasher->Init(Context, PointDataFacade)) { return false; }
-		if (Hasher->RequiresCompilation()) { Hasher->Compile(TaskManager, nullptr); }
+		if (Hasher->RequiresCompilation())
+		{
+			Hasher->Compile(TaskManager, [PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->CompleteWork();
+			});
+		}
+		else
+		{
+			CompleteWork();
+		}
 
 		return true;
 	}

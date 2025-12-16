@@ -8,6 +8,8 @@
 bool PCGExTensorOperation::Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory)
 {
 	Factory = InFactory;
+	PotencyFalloffLUT = InFactory->BaseConfig.PotencyFalloffLUT;
+	WeightFalloffLUT = InFactory->BaseConfig.WeightFalloffLUT;
 	return true;
 }
 
