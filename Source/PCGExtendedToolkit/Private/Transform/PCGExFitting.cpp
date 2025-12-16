@@ -381,19 +381,51 @@ void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTra
 
 void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex, const FTransform& InLocalXForm, FTransform& OutTransform, FBox& InOutBounds) const
 {
-	check(TargetDataFacade);
-	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+    check(TargetDataFacade);
+    const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+    const FTransform& TargetTransform = TargetPoint.GetTransform();
 
-	FVector OutScale = OutTransform.GetScale3D();
-	FVector OutTranslation = FVector::ZeroVector;
+    const FVector LocalScale = InLocalXForm.GetScale3D();
+    const FQuat LocalRotation = InLocalXForm.GetRotation();
+    const FVector LocalTranslation = InLocalXForm.GetTranslation();
 
-	ScaleToFit.Process(TargetPoint, InOutBounds.TransformBy(InLocalXForm), OutScale, InOutBounds);
-	Justification.Process(TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint), FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale), OutTranslation);
+    FVector OutScale = TargetTransform.GetScale3D();
+    FVector OutTranslation = FVector::ZeroVector;
 
-	//OutTransform = OutTransform * InLocalXForm.Inverse(); 
-	OutTransform.SetScale3D(OutScale);
-	OutTransform.AddToTranslation(OutTranslation);
-	OutTransform.SetRotation(InLocalXForm.GetRotation() * OutTransform.GetRotation());
+    // FITTING: Use only-scaled bounds to compute correct per-axis scale factors
+    const FBox ScaledBounds(InOutBounds.Min * LocalScale, InOutBounds.Max * LocalScale);
+    ScaleToFit.Process(TargetPoint, ScaledBounds, OutScale, InOutBounds);
+    
+    // JUSTIFICATION: Compute where the rotated asset will actually be positioned
+    // Start with fitted bounds (scaled by both local scale and fitting scale)
+    FBox JustificationBounds(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale);
+    
+    // Apply local rotation to get final AABB (this expansion is correct for justification)
+    if (!LocalRotation.IsIdentity())
+    {
+        JustificationBounds = JustificationBounds.TransformBy(FTransform(LocalRotation));
+    }
+    
+    Justification.Process(
+        TargetIndex, 
+        PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint), 
+        JustificationBounds, 
+        OutTranslation);
+
+    // Update output bounds to reflect the final AABB
+    InOutBounds = JustificationBounds;
+
+    // Build final transform
+    OutTransform = TargetTransform;
+    OutTransform.AddToTranslation(TargetTransform.GetRotation().RotateVector(OutTranslation));
+    OutTransform.SetScale3D(OutScale);
+    OutTransform.SetRotation(TargetTransform.GetRotation() * LocalRotation);
+    
+    // Apply local offset in final rotated space
+    if (!LocalTranslation.IsNearlyZero())
+    {
+        OutTransform.AddToTranslation(OutTransform.GetRotation().RotateVector(LocalTranslation));
+    }
 }
 
 bool FPCGExFittingDetailsHandler::WillChangeBounds() const

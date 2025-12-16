@@ -142,7 +142,7 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = VtxTransforms[PointIndex].TransformVectorNoScale(RefDir); }
 
 	const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
-	const uint64 A = PCGEx::GH3(RefDir, CWTolerance);
+	const uint64 A = PCGEx::SH3(RefDir, CWTolerance);
 
 	TArray<uint64> Hashes;
 	Hashes.SetNumUninitialized(Node.Links.Num());
@@ -153,14 +153,14 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::GH3(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
+			Hashes[i] = PCGEx::SH3(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
 		}
 	}
 	else
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::GH3(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
+			Hashes[i] = PCGEx::SH3(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
 		}
 	}
 
