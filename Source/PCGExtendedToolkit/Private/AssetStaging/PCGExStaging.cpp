@@ -622,10 +622,10 @@ namespace PCGExStaging
 			Details->CarryOverDetails.Prune(Metadata);
 
 			TConstPCGValueRange<int64> ReadMetadataEntry = InputDataFacade->GetIn()->GetConstMetadataEntryValueRange();
-			TPCGValueRange<int64> OutMetadataEntry = SocketFacade->GetOut()->GetMetadataEntryValueRange();
+			TPCGValueRange<int64> OutMetadataEntries = SocketFacade->GetOut()->GetMetadataEntryValueRange();
 
-			TArray<TTuple<int64, int64>> PlaceholderKeys;
-			PlaceholderKeys.SetNum(OutMetadataEntry.Num());
+			TArray<TTuple<int64, int64>> DelayedEntries;
+			DelayedEntries.SetNum(OutMetadataEntries.Num());
 			
 			int32 WriteIndex = 0;
 			for (int i = 0; i < NumPoints; i++)
@@ -640,13 +640,13 @@ namespace PCGExStaging
 
 				for (int j = 0; j < NumSockets; j++)
 				{
-					OutMetadataEntry[WriteIndex] = Metadata->AddEntryPlaceholder();
-					PlaceholderKeys[WriteIndex] = MakeTuple(OutMetadataEntry[WriteIndex], InMetadataKey);
+					OutMetadataEntries[WriteIndex] = Metadata->AddEntryPlaceholder();
+					DelayedEntries[WriteIndex] = MakeTuple(OutMetadataEntries[WriteIndex], InMetadataKey);
 					WriteIndex++;
 				}
 			}
 			
-			Metadata->AddDelayedEntries(PlaceholderKeys);
+			Metadata->AddDelayedEntries(DelayedEntries);
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CreateSocketPoints)

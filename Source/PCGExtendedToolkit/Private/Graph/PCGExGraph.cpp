@@ -263,7 +263,9 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		FlattenedEdges.SetNumUninitialized(NumEdges);
 
 		const UPCGBasePointData* InEdgeData = EdgesDataFacade->GetIn();
-		EPCGPointNativeProperties AllocateProperties = InEdgeData ? InEdgeData->GetAllocatedProperties() : EPCGPointNativeProperties::MetadataEntry;
+
+		EPCGPointNativeProperties AllocateProperties = InEdgeData ? InEdgeData->GetAllocatedProperties() : EPCGPointNativeProperties::None;
+		AllocateProperties |= EPCGPointNativeProperties::MetadataEntry;
 
 		if (InBuilder->OutputDetails->bWriteEdgePosition)
 		{
@@ -281,66 +283,76 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		{
 			AllocateProperties |= EPCGPointNativeProperties::Seed;
 		}
-		
+
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
 		(void)PCGEx::SetNumPointsAllocated(OutEdgeData, NumEdges, AllocateProperties);
+		EnumRemoveFlags(AllocateProperties, EPCGPointNativeProperties::MetadataEntry);
 
-		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange(false);
-
-		UPCGMetadata* Metadata = OutEdgeData->MutableMetadata();
-
-		if (InEdgeData)
 		{
-			// We'll cherry pick existing edges
-			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CherryPickInheritedEdges);
+			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::BuildEdgesEntries);
 
-			TArray<int32> ReadEdgeIndices;
-			TArray<int32> WriteEdgeIndices;
+			const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange(false);
+			UPCGMetadata* Metadata = OutEdgeData->MutableMetadata();
 
-			ReadEdgeIndices.SetNumUninitialized(NumEdges);
-			WriteEdgeIndices.SetNumUninitialized(NumEdges);
-			int32 WriteIndex = 0;
-
-			const TConstPCGValueRange<int64> InMetadataEntries = InEdgeData->GetConstMetadataEntryValueRange();
-
-			for (int i = 0; i < NumEdges; i++)
+			TArray<TTuple<int64, int64>> DelayedEntries;
+			DelayedEntries.SetNum(NumEdges);
+			
+			if (InEdgeData)
 			{
-				const FEdge& OE = ParentGraphEdges[Edges[i].Index];
+				// We'll cherry pick existing edges
+				TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CherryPickInheritedEdges);
 
-				// Hijack edge IOIndex to store original edge index in the flattened
-				FlattenedEdges[i] = FEdge(i, ParentGraphNodes[OE.Start].PointIndex, ParentGraphNodes[OE.End].PointIndex, i, OE.Index);
+				TArray<int32> ReadEdgeIndices;
+				TArray<int32> WriteEdgeIndices;
 
-				const int32 OriginalPointIndex = OE.PointIndex;
-				int64& EdgeMetadataEntry = OutMetadataEntries[i];
+				ReadEdgeIndices.SetNumUninitialized(NumEdges);
+				WriteEdgeIndices.SetNumUninitialized(NumEdges);
+				int32 WriteIndex = 0;
 
-				if (InMetadataEntries.IsValidIndex(OriginalPointIndex))
+				const TConstPCGValueRange<int64> InMetadataEntries = InEdgeData->GetConstMetadataEntryValueRange();
+
+				for (int i = 0; i < NumEdges; i++)
 				{
-					// Grab existing metadata entry & cache read/write indices
-					EdgeMetadataEntry = InMetadataEntries[OriginalPointIndex];
-					ReadEdgeIndices[WriteIndex] = OriginalPointIndex;
-					WriteEdgeIndices[WriteIndex++] = i;
+					const FEdge& OE = ParentGraphEdges[Edges[i].Index];
+
+					// Hijack edge IOIndex to store original edge index in the flattened
+					FlattenedEdges[i] = FEdge(i, ParentGraphNodes[OE.Start].PointIndex, ParentGraphNodes[OE.End].PointIndex, i, OE.Index);
+
+					const int32 OriginalPointIndex = OE.PointIndex;
+					int64 ParentEntry = PCGInvalidEntryKey;
+
+					if (InMetadataEntries.IsValidIndex(OriginalPointIndex))
+					{
+						// Grab existing metadata entry & cache read/write indices
+						ParentEntry = InMetadataEntries[OriginalPointIndex];
+						ReadEdgeIndices[WriteIndex] = OriginalPointIndex;
+						WriteEdgeIndices[WriteIndex++] = i;
+					}
+
+					OutMetadataEntries[i] = Metadata->AddEntryPlaceholder();
+					DelayedEntries[i] = MakeTuple(OutMetadataEntries[i], ParentEntry);
 				}
 
-				Metadata->InitializeOnSet(EdgeMetadataEntry);
+				ReadEdgeIndices.SetNum(WriteIndex);
+				WriteEdgeIndices.SetNum(WriteIndex);
+
+				EdgesDataFacade->Source->InheritProperties(ReadEdgeIndices, WriteEdgeIndices, AllocateProperties);
 			}
-
-			ReadEdgeIndices.SetNum(WriteIndex);
-			WriteEdgeIndices.SetNum(WriteIndex);
-
-			EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
-			EnumRemoveFlags(Allocate, EPCGPointNativeProperties::MetadataEntry);
-			EdgesDataFacade->Source->InheritProperties(ReadEdgeIndices, WriteEdgeIndices, Allocate);
-		}
-		else
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CreatePoints);
-
-			for (int i = 0; i < NumEdges; i++)
+			else
 			{
-				const FEdge& E = ParentGraphEdges[Edges[i].Index];
-				FlattenedEdges[i] = FEdge(i, ParentGraphNodes[E.Start].PointIndex, ParentGraphNodes[E.End].PointIndex, i, E.Index);
-				Metadata->InitializeOnSet(OutMetadataEntries[i]);
+				TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CreatePoints);
+
+				for (int i = 0; i < NumEdges; i++)
+				{
+					const FEdge& E = ParentGraphEdges[Edges[i].Index];
+					FlattenedEdges[i] = FEdge(i, ParentGraphNodes[E.Start].PointIndex, ParentGraphNodes[E.End].PointIndex, i, E.Index);
+
+					OutMetadataEntries[i] = Metadata->AddEntryPlaceholder();
+					DelayedEntries[i] = MakeTuple(OutMetadataEntries[i], PCGInvalidEntryKey);
+				}
 			}
+
+			Metadata->AddDelayedEntries(DelayedEntries);
 		}
 
 		MetadataDetails = InBuilder->GetMetadataDetails();

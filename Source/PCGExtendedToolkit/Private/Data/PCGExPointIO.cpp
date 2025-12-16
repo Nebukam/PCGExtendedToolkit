@@ -252,31 +252,6 @@ namespace PCGExData
 		return OutKeys;
 	}
 
-	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
-	{
-		const TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
-		InMap.Empty(MetadataEntries.Num());
-		for (int i = 0; i < MetadataEntries.Num(); i++)
-		{
-			int64& Key = MetadataEntries[i];
-			if (Key == PCGInvalidEntryKey) { Out->Metadata->InitializeOnSet(Key); }
-			InMap.Add(Key, i);
-		}
-	}
-
-	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
-	{
-		const TConstPCGValueRange<int64> MetadataEntries = In->GetConstMetadataEntryValueRange();
-		InMap.Empty(MetadataEntries.Num());
-		for (int i = 0; i < MetadataEntries.Num(); i++) { InMap.Add(MetadataEntries[i], i); }
-	}
-
-	void FPointIO::PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
-	{
-		if (Out) { PrintOutKeysMap(InMap); }
-		else { PrintInKeysMap(InMap); }
-	}
-
 	FScope FPointIO::GetInScope(const int32 Start, const int32 Count, const bool bInclusive) const
 	{
 		FScope Scope = bInclusive ? FScope(In, Start, Count) : FScope(In, Start + 1, Count - 1);
