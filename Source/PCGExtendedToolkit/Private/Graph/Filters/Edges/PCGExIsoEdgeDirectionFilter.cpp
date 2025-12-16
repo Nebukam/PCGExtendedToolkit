@@ -99,9 +99,7 @@ bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeD
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = InTransforms[PtIndex].TransformVectorNoScale(RefDir); }
 
 	RefDir.Normalize();
-
-	const FVector CWTolerance = HashComparison.GetCWTolerance(PtIndex);
-	return PCGEx::GH3(RefDir, CWTolerance) == PCGEx::GH3(EdgeDir, CWTolerance);
+	return HashComparison.Test(RefDir, EdgeDir, PtIndex);
 }
 
 FIsoEdgeDirectionFilter::~FIsoEdgeDirectionFilter()
