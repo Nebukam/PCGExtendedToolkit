@@ -212,8 +212,9 @@ namespace PCGExGeo
 	FGeoStaticMesh::FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh)
 	{
 		if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
+		if (!InSoftStaticMesh.Get()) { MeshHandle = PCGExHelpers::LoadBlocking_AnyThread(InSoftStaticMesh); }
 
-		StaticMesh = PCGExHelpers::LoadBlocking_AnyThread(InSoftStaticMesh);
+		StaticMesh = InSoftStaticMesh.Get();
 		if (!StaticMesh) { return; }
 
 		StaticMesh->GetRenderData();
@@ -409,7 +410,12 @@ namespace PCGExGeo
 		PCGEX_LAUNCH(FExtractStaticMeshTask, SharedThis(this))
 	}
 
-	int32 FGeoStaticMeshMap::Find(const FSoftObjectPath& InPath)
+	FGeoStaticMesh::~FGeoStaticMesh()
+	{
+		PCGExHelpers::SafeReleaseHandle(MeshHandle);
+	}
+
+	int32 FGeoStaticMeshMap::FindOrAdd(const FSoftObjectPath& InPath)
 	{
 		if (const int32* GSMPtr = Map.Find(InPath)) { return *GSMPtr; }
 

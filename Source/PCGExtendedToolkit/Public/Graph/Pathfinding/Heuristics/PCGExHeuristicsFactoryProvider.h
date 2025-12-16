@@ -12,16 +12,17 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsCluster.h"
+#include "Sampling/PCGExCurveLookup.h"
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
 #define PCGEX_HEURISTIC_FACTORY_BOILERPLATE \
 virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 
-#define PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(_TYPE, _REGISTER_ASSET_BODY) \
+#define PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(_TYPE, _REGISTER_ASSET_BODY)\
 void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* InContext) const{\
-	Super::RegisterAssetDependencies(InContext);\
-	InContext->AddAssetDependency(Config.ScoreCurve.ToSoftObjectPath()); _REGISTER_ASSET_BODY }
+	Super::RegisterAssetDependencies(InContext); }
+//	InContext->AddAssetDependency(Config.ScoreCurve.ToSoftObjectPath()); _REGISTER_ASSET_BODY }
 
 #define PCGEX_FORWARD_HEURISTIC_FACTORY \
 	NewFactory->WeightFactor = Config.WeightFactor; \
@@ -34,7 +35,7 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 	NewOperation->bInvert = Config.bInvert; \
 	NewOperation->UVWSeed = Config.UVWSeed; \
 	NewOperation->UVWGoal = Config.UVWGoal; \
-	NewOperation->ScoreCurve = Config.ScoreCurveObj; \
+	NewOperation->ScoreCurve = Config.ScoreLUT; \
 	NewOperation->bUseLocalWeightMultiplier = Config.bUseLocalWeightMultiplier; \
 	NewOperation->LocalWeightMultiplierSource = Config.LocalWeightMultiplierSource; \
 	NewOperation->WeightMultiplierAttribute = Config.WeightMultiplierAttribute;
@@ -87,7 +88,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Score Curve", EditCondition="!bRawSettings && !bUseLocalCurve", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
-	const FRichCurve* ScoreCurveObj = nullptr;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails ScoreCurveLookup;
+	
+	PCGExFloatLUT ScoreLUT = nullptr;
 
 	/** Use a local attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable))

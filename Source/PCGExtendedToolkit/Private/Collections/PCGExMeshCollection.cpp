@@ -300,7 +300,9 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 
 	Staging.Path = StaticMesh.ToSoftObjectPath();
 
-	const UStaticMesh* M = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
+	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
+	
+	const UStaticMesh* M = StaticMesh.Get();
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
 
 	if (M)
@@ -313,6 +315,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 	}
 
 	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
+	PCGExHelpers::SafeReleaseHandle(Handle);
 }
 
 void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)

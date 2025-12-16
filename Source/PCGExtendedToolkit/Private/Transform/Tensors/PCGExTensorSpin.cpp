@@ -80,7 +80,10 @@ PCGExTensor::FTensorSample FPCGExTensorSpin::Sample(const int32 InSeedIndex, con
 		if (!ComputeFactor(InPosition, InItem.Index, Metrics)) { return; }
 
 		const FTransform& Transform = Effectors->ReadTransform(InItem.Index);
-		Samples.Emplace_GetRef(FVector::CrossProduct((Transform.GetLocation() - InPosition).GetSafeNormal(), Transform.GetRotation().RotateVector(Metrics.Guide)).GetSafeNormal(), Effectors->ReadPotency(InItem.Index) * Config.PotencyFalloffCurveObj->Eval(Metrics.Factor), Effectors->ReadWeight(InItem.Index) * Config.WeightFalloffCurveObj->Eval(Metrics.Factor));
+		Samples.Emplace_GetRef(
+			FVector::CrossProduct((Transform.GetLocation() - InPosition).GetSafeNormal(), Transform.GetRotation().RotateVector(Metrics.Guide)).GetSafeNormal(),
+			Effectors->ReadPotency(InItem.Index) * PotencyFalloffLUT->Eval(Metrics.Factor),
+			Effectors->ReadWeight(InItem.Index) * WeightFalloffLUT->Eval(Metrics.Factor));
 	};
 
 	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

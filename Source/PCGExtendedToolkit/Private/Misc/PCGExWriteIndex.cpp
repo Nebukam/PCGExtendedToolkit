@@ -190,7 +190,7 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 		{
 			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
-				NewBatch->bSkipCompletion = !Settings->bOutputPointIndex;
+				NewBatch->bSkipCompletion = true;
 			}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to process."));
@@ -230,7 +230,7 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 				{
 					double NumEntries = Settings->bNormalizeNumEntries ? Context->NumEntries[i] / Context->MaxNumEntries : Context->NumEntries[i];
 					PCGExData::WriteMark<T>(
-						const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), 
+						const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()),
 						Context->NumEntriesIdentifier,
 						PCGExTypeOps::FTypeOps<T>::template ConvertFrom<double>(NumEntries));
 				}
@@ -296,40 +296,20 @@ namespace PCGExWriteIndex
 			if (Settings->bNormalizedEntryIndex)
 			{
 				DoubleWriter = PointDataFacade->GetWritable<double>(Context->EntryIndexIdentifier, -1, Settings->bAllowInterpolation, PCGExData::EBufferInit::Inherit);
+				if (Settings->bOneMinus) { PCGEX_PARALLEL_FOR(PointDataFacade->GetNum(), DoubleWriter->SetValue(i, 1 - (static_cast<double>(i) / MaxIndex));) }
+				else { PCGEX_PARALLEL_FOR(PointDataFacade->GetNum(), DoubleWriter->SetValue(i, static_cast<double>(i) / MaxIndex);) }
 			}
 			else
 			{
 				IntWriter = PointDataFacade->GetWritable<int32>(Context->EntryIndexIdentifier, -1, Settings->bAllowInterpolation, PCGExData::EBufferInit::Inherit);
+				if (Settings->bOneMinus) { PCGEX_PARALLEL_FOR(PointDataFacade->GetNum(), IntWriter->SetValue(i, MaxIndex - i);) }
+				else { PCGEX_PARALLEL_FOR(PointDataFacade->GetNum(), IntWriter->SetValue(i, i);) }
 			}
-
-			StartParallelLoopForPoints();
 		}
+
+		PointDataFacade->WriteFastest(TaskManager);
 
 		return true;
-	}
-
-	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::WriteIndex::ProcessPoints);
-
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			if (Settings->bOneMinus)
-			{
-				if (DoubleWriter) { DoubleWriter->SetValue(Index, 1 - (static_cast<double>(Index) / MaxIndex)); }
-				else if (IntWriter) { IntWriter->SetValue(Index, MaxIndex - Index); }
-			}
-			else
-			{
-				if (DoubleWriter) { DoubleWriter->SetValue(Index, static_cast<double>(Index) / MaxIndex); }
-				else if (IntWriter) { IntWriter->SetValue(Index, Index); }
-			}
-		}
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

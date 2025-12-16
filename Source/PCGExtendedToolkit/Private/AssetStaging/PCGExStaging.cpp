@@ -54,6 +54,11 @@ namespace PCGExStaging
 		}
 	}
 
+	IPickUnpacker::~IPickUnpacker()
+	{
+		PCGExHelpers::SafeReleaseHandle(CollectionsHandle);
+	}
+
 	bool IPickUnpacker::UnpackDataset(FPCGContext* InContext, const UPCGParamData* InAttributeSet)
 	{
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
@@ -77,11 +82,18 @@ namespace PCGExStaging
 			return false;
 		}
 
+		{
+			PCGEX_MAKE_SHARED(CollectionPaths, TSet<FSoftObjectPath>)
+			for (int i = 0; i < NumEntries; i++) { CollectionPaths->Add(CollectionPath->GetValueFromItemKey(i)); }
+			CollectionsHandle = PCGExHelpers::LoadBlocking_AnyThread(CollectionPaths);			
+		}
+		
 		for (int i = 0; i < NumEntries; i++)
 		{
 			int32 Idx = CollectionIdx->GetValueFromItemKey(i);
 
-			UPCGExAssetCollection* Collection = PCGExHelpers::LoadBlocking_AnyThread<UPCGExAssetCollection>(TSoftObjectPtr<UPCGExAssetCollection>(CollectionPath->GetValueFromItemKey(i)));
+			TSoftObjectPtr<UPCGExAssetCollection> CollectionSoftPtr(CollectionPath->GetValueFromItemKey(i));
+			UPCGExAssetCollection* Collection = CollectionSoftPtr.Get();
 
 			if (!Collection)
 			{
@@ -616,12 +628,14 @@ namespace PCGExStaging
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile::LoopPreparation);
 
-			const UPCGMetadata* ParentMetadata = InputDataFacade->GetIn()->ConstMetadata();
 			UPCGMetadata* Metadata = SocketFacade->GetOut()->MutableMetadata();
 			Details->CarryOverDetails.Prune(Metadata);
 
 			TConstPCGValueRange<int64> ReadMetadataEntry = InputDataFacade->GetIn()->GetConstMetadataEntryValueRange();
-			TPCGValueRange<int64> OutMetadataEntry = SocketFacade->GetOut()->GetMetadataEntryValueRange();
+			TPCGValueRange<int64> OutMetadataEntries = SocketFacade->GetOut()->GetMetadataEntryValueRange();
+
+			TArray<TTuple<int64, int64>> DelayedEntries;
+			DelayedEntries.SetNum(OutMetadataEntries.Num());
 
 			int32 WriteIndex = 0;
 			for (int i = 0; i < NumPoints; i++)
@@ -636,11 +650,13 @@ namespace PCGExStaging
 
 				for (int j = 0; j < NumSockets; j++)
 				{
-					OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
-					Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey, ParentMetadata);
+					OutMetadataEntries[WriteIndex] = Metadata->AddEntryPlaceholder();
+					DelayedEntries[WriteIndex] = MakeTuple(OutMetadataEntries[WriteIndex], InMetadataKey);
 					WriteIndex++;
 				}
 			}
+
+			Metadata->AddDelayedEntries(DelayedEntries);
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CreateSocketPoints)

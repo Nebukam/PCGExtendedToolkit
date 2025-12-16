@@ -18,21 +18,24 @@ PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoBlendOp, UPCGExBlendOpFactory)
 
 void FPCGExAttributeBlendWeight::Init()
 {
-	if (!bUseLocalCurve)
-	{
-		LocalWeightCurve.EditorCurveData.AddKey(0, 0);
-		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
-		LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(WeightCurve);
-	}
-
-	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
+	ScoreLUT = WeightCurveLookup.MakeLookup(
+		bUseLocalCurve, LocalWeightCurve, WeightCurve,
+		[](FRichCurve& CurveData)
+		{
+			CurveData.AddKey(0, 0);
+			CurveData.AddKey(1, 1);
+		});
 }
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExAttributeBlendWeight, Weight, double, WeightInput, WeightAttribute, Weight)
 
 void FPCGExAttributeBlendConfig::Init()
 {
-	bRequiresWeight = BlendMode == EPCGExABBlendingType::Lerp || BlendMode == EPCGExABBlendingType::Weight || BlendMode == EPCGExABBlendingType::WeightedSubtract || BlendMode == EPCGExABBlendingType::WeightedAdd;
+	bRequiresWeight =
+		BlendMode == EPCGExABBlendingType::Lerp
+		|| BlendMode == EPCGExABBlendingType::Weight
+		|| BlendMode == EPCGExABBlendingType::WeightedSubtract
+		|| BlendMode == EPCGExABBlendingType::WeightedAdd;
 
 	Weighting.Init();
 }
@@ -176,17 +179,17 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 void FPCGExBlendOperation::BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex)
 {
-	Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
+	Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreLUT->Eval(Weight->Read(SourceIndex)));
 }
 
 void FPCGExBlendOperation::Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight)
 {
-	Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
+	Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreLUT->Eval(InWeight));
 }
 
 void FPCGExBlendOperation::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight)
 {
-	Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
+	Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreLUT->Eval(InWeight));
 }
 
 PCGEx::FOpStats FPCGExBlendOperation::BeginMultiBlend(const int32 TargetIndex)
@@ -196,7 +199,7 @@ PCGEx::FOpStats FPCGExBlendOperation::BeginMultiBlend(const int32 TargetIndex)
 
 void FPCGExBlendOperation::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker)
 {
-	Blender->MultiBlend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight), Tracker);
+	Blender->MultiBlend(SourceIndex, TargetIndex, Config.Weighting.ScoreLUT->Eval(InWeight), Tracker);
 }
 
 void FPCGExBlendOperation::EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker)
@@ -279,7 +282,6 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 {
 	PCGEX_FACTORY_NEW_OPERATION(BlendOperation)
 	NewOperation->Config = Config;
-	NewOperation->Config.Init();
 	NewOperation->ConstantA = ConstantA;
 	NewOperation->ConstantB = ConstantB;
 	return NewOperation;
@@ -533,6 +535,7 @@ UPCGExFactoryData* UPCGExBlendOpFactoryProviderSettings::CreateFactory(FPCGExCon
 	UPCGExBlendOpFactory* NewFactory = InContext->ManagedObjects->New<UPCGExBlendOpFactory>();
 	NewFactory->Priority = Priority;
 	NewFactory->Config = Config;
+	NewFactory->Config.Init();
 
 	return Super::CreateFactory(InContext, NewFactory);
 }

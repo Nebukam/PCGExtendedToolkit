@@ -20,6 +20,10 @@ class UPCGExTensorFactoryData;
  */
 class PCGEXTENDEDTOOLKIT_API PCGExTensorOperation : public FPCGExOperation
 {
+protected:
+	PCGExFloatLUT PotencyFalloffLUT = nullptr;
+	PCGExFloatLUT WeightFalloffLUT = nullptr;
+	
 public:
 	TSharedPtr<PCGExTensor::FEffectorsArray> Effectors;
 	TObjectPtr<const UPCGExTensorFactoryData> Factory = nullptr;
@@ -46,8 +50,8 @@ public:
 		if constexpr (bFast) { OutMetrics.Guide = FVector::ForwardVector; }
 		else { OutMetrics.Guide = BaseConfig.LocalGuideCurve.GetValue(OutFactor); }
 
-		OutMetrics.Potency = Effectors->ReadPotency(InEffectorIndex) * BaseConfig.PotencyFalloffCurveObj->Eval(OutFactor);
-		OutMetrics.Weight = Effectors->ReadWeight(InEffectorIndex) * BaseConfig.WeightFalloffCurveObj->Eval(OutFactor);
+		OutMetrics.Potency = Effectors->ReadPotency(InEffectorIndex) * PotencyFalloffLUT->Eval(OutFactor);
+		OutMetrics.Weight = Effectors->ReadWeight(InEffectorIndex) * WeightFalloffLUT->Eval(OutFactor);
 
 		return true;
 	}
@@ -70,8 +74,8 @@ public:
 		if constexpr (bFast) { OutMetrics.Guide = FVector::ForwardVector; }
 		else { OutMetrics.Guide = BaseConfig.LocalGuideCurve.GetValue(OutFactor); }
 
-		OutMetrics.Potency = BaseConfig.Potency * BaseConfig.PotencyFalloffCurveObj->Eval(OutFactor);
-		OutMetrics.Weight = BaseConfig.Weight * BaseConfig.WeightFalloffCurveObj->Eval(OutFactor);
+		OutMetrics.Potency = BaseConfig.Potency * PotencyFalloffLUT->Eval(OutFactor);
+		OutMetrics.Weight = BaseConfig.Weight * WeightFalloffLUT->Eval(OutFactor);
 
 		return true;
 	}

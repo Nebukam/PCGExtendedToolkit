@@ -11,6 +11,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Sampling/PCGExCurveLookup.h"
 
 #include "PCGExRandomFilter.generated.h"
 
@@ -74,6 +75,10 @@ struct FPCGExRandomFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails WeightCurveLookup;
+	
+	PCGExFloatLUT WeightLUT = nullptr;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -131,7 +136,7 @@ namespace PCGExPointFilter
 		double ThresholdOffset = 0;
 		double ThresholdRange = 1;
 
-		const FRichCurve* WeightCurve = nullptr;
+		PCGExFloatLUT WeightCurve = nullptr;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;

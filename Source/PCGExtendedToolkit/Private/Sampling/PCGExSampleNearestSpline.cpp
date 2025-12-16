@@ -138,16 +138,13 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 
 	Context->bComputeTangents = Settings->bWriteArriveTangent || Settings->bWriteLeaveTangent;
 
-	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
-
-	if (!Settings->bUseLocalCurve)
-	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
-	}
-
-	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+	Context->WeightCurve = Settings->WeightCurveLookup.MakeLookup(
+		Settings->bUseLocalCurve, Settings->LocalWeightOverDistance, Settings->WeightOverDistance,
+		[](FRichCurve& CurveData)
+		{
+			CurveData.AddKey(0, 0);
+			CurveData.AddKey(1, 1);
+		});
 
 	return true;
 }
@@ -174,12 +171,6 @@ bool FPCGExSampleNearestSplineElement::AdvanceWork(FPCGExContext* InContext, con
 
 	return Context->TryComplete();
 }
-
-bool FPCGExSampleNearestSplineElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
-}
-
 
 namespace PCGExSampleNearestSpline
 {

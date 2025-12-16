@@ -19,93 +19,70 @@ namespace PCGExGeo
 {
 	bool IntersectOBB_OBB(const FBox& BoxA, const FTransform& TransformA, const FBox& BoxB, const FTransform& TransformB)
 	{
-		// Precompute scales once
-		const FVector ScaleA = TransformA.GetScale3D();
-		const FVector ScaleB = TransformB.GetScale3D();
+		// Extents with scale applied
+		const FVector ExtentA = BoxA.GetExtent() * TransformA.GetScale3D();
+		const FVector ExtentB = BoxB.GetExtent() * TransformB.GetScale3D();
 
-		// Apply scales directly to extents (avoid constructing new boxes)
-		const FVector ExtentA = BoxA.GetExtent() * ScaleA;
-		const FVector ExtentB = BoxB.GetExtent() * ScaleB;
+		const double EA0 = ExtentA.X, EA1 = ExtentA.Y, EA2 = ExtentA.Z;
+		const double EB0 = ExtentB.X, EB1 = ExtentB.Y, EB2 = ExtentB.Z;
 
-		// Strip scales from transforms
-		FTransform TA = TransformA;
-		FTransform TB = TransformB;
-		TA.SetScale3D(FVector::OneVector);
-		TB.SetScale3D(FVector::OneVector);
+		// Get rotation matrices directly (no scale)
+		const FMatrix MatA = TransformA.ToMatrixNoScale();
+		const FMatrix MatB = TransformB.ToMatrixNoScale();
 
-		// Transform B into A’s local space
-		const FTransform BInA = TB * TA.Inverse();
-		const FVector CenterB = BInA.GetLocation();
+		// World-space axes
+		const FVector AX = MatA.GetUnitAxis(EAxis::X);
+		const FVector AY = MatA.GetUnitAxis(EAxis::Y);
+		const FVector AZ = MatA.GetUnitAxis(EAxis::Z);
+		const FVector BX = MatB.GetUnitAxis(EAxis::X);
+		const FVector BY = MatB.GetUnitAxis(EAxis::Y);
+		const FVector BZ = MatB.GetUnitAxis(EAxis::Z);
 
-		// Rotation matrix R = Aᵀ * B
-		FVector B_X = BInA.GetUnitAxis(EAxis::X);
-		FVector B_Y = BInA.GetUnitAxis(EAxis::Y);
-		FVector B_Z = BInA.GetUnitAxis(EAxis::Z);
+		// Translation between origins
+		const FVector D = MatB.GetOrigin() - MatA.GetOrigin();
 
-		double R[3][3], AbsR[3][3];
-		for (int i = 0; i < 3; ++i)
-		{
-			const double BX = B_X[i];
-			const double BY = B_Y[i];
-			const double BZ = B_Z[i];
-			R[i][0] = BX;
-			R[i][1] = BY;
-			R[i][2] = BZ;
-			AbsR[i][0] = FMath::Abs(BX) + UE_SMALL_NUMBER;
-			AbsR[i][1] = FMath::Abs(BY) + UE_SMALL_NUMBER;
-			AbsR[i][2] = FMath::Abs(BZ) + UE_SMALL_NUMBER;
-		}
+		// Translation in A's local frame (dot products)
+		const double T0 = AX.X * D.X + AX.Y * D.Y + AX.Z * D.Z;
+		const double T1 = AY.X * D.X + AY.Y * D.Y + AY.Z * D.Z;
+		const double T2 = AZ.X * D.X + AZ.Y * D.Y + AZ.Z * D.Z;
 
-		const double CX = CenterB.X, CY = CenterB.Y, CZ = CenterB.Z;
-		double A, B, P;
+		// Rotation matrix R[i][j] = dot(A_i, B_j)
+		constexpr double Eps = UE_SMALL_NUMBER;
 
-		// A’s local axes
-		for (int i = 0; i < 3; ++i)
-		{
-			A = ExtentA[i];
-			B = ExtentB.X * AbsR[i][0] + ExtentB.Y * AbsR[i][1] + ExtentB.Z * AbsR[i][2];
-			if (FMath::Abs(CenterB[i]) > A + B)
-			{
-				return false;
-			}
-		}
+		const double R00 = AX.X * BX.X + AX.Y * BX.Y + AX.Z * BX.Z;
+		const double R01 = AX.X * BY.X + AX.Y * BY.Y + AX.Z * BY.Z;
+		const double R02 = AX.X * BZ.X + AX.Y * BZ.Y + AX.Z * BZ.Z;
+		const double R10 = AY.X * BX.X + AY.Y * BX.Y + AY.Z * BX.Z;
+		const double R11 = AY.X * BY.X + AY.Y * BY.Y + AY.Z * BY.Z;
+		const double R12 = AY.X * BZ.X + AY.Y * BZ.Y + AY.Z * BZ.Z;
+		const double R20 = AZ.X * BX.X + AZ.Y * BX.Y + AZ.Z * BX.Z;
+		const double R21 = AZ.X * BY.X + AZ.Y * BY.Y + AZ.Z * BY.Z;
+		const double R22 = AZ.X * BZ.X + AZ.Y * BZ.Y + AZ.Z * BZ.Z;
 
-		// B’s local axes
-		for (int i = 0; i < 3; ++i)
-		{
-			A = ExtentA.X * AbsR[0][i] + ExtentA.Y * AbsR[1][i] + ExtentA.Z * AbsR[2][i];
-			B = ExtentB[i];
-			P = FMath::Abs(CX * R[0][i] + CY * R[1][i] + CZ * R[2][i]);
-			if (P > A + B)
-			{
-				return false;
-			}
-		}
+		const double AR00 = FMath::Abs(R00) + Eps, AR01 = FMath::Abs(R01) + Eps, AR02 = FMath::Abs(R02) + Eps;
+		const double AR10 = FMath::Abs(R10) + Eps, AR11 = FMath::Abs(R11) + Eps, AR12 = FMath::Abs(R12) + Eps;
+		const double AR20 = FMath::Abs(R20) + Eps, AR21 = FMath::Abs(R21) + Eps, AR22 = FMath::Abs(R22) + Eps;
 
-		// Cross products (9 tests)
-		for (int i = 0; i < 3; ++i)
-		{
-			const int I1 = (i + 1) % 3;
-			const int I2 = (i + 2) % 3;
-			const double EA1 = ExtentA[I1];
-			const double EA2 = ExtentA[I2];
-			const double CA1 = CenterB[I1];
-			const double CA2 = CenterB[I2];
+		// A's local axes (3 tests)
+		if (FMath::Abs(T0) > EA0 + EB0 * AR00 + EB1 * AR01 + EB2 * AR02){return false;}
+		if (FMath::Abs(T1) > EA1 + EB0 * AR10 + EB1 * AR11 + EB2 * AR12){return false;}
+		if (FMath::Abs(T2) > EA2 + EB0 * AR20 + EB1 * AR21 + EB2 * AR22){return false;}
 
-			for (int j = 0; j < 3; ++j)
-			{
-				const int J1 = (j + 1) % 3;
-				const int J2 = (j + 2) % 3;
+		// B's local axes (3 tests)
+		if (FMath::Abs(T0 * R00 + T1 * R10 + T2 * R20) > EA0 * AR00 + EA1 * AR10 + EA2 * AR20 + EB0){ return false;}
+		if (FMath::Abs(T0 * R01 + T1 * R11 + T2 * R21) > EA0 * AR01 + EA1 * AR11 + EA2 * AR21 + EB1){ return false;}
+		if (FMath::Abs(T0 * R02 + T1 * R12 + T2 * R22) > EA0 * AR02 + EA1 * AR12 + EA2 * AR22 + EB2){ return false;}
 
-				A = EA1 * AbsR[I2][j] + EA2 * AbsR[I1][j];
-				B = ExtentB[J1] * AbsR[i][J2] + ExtentB[J2] * AbsR[i][J1];
-				P = FMath::Abs(CA2 * R[I1][j] - CA1 * R[I2][j]);
-				if (P > A + B)
-				{
-					return false;
-				}
-			}
-		}
+		// Cross product axes (9 tests)
+		if (FMath::Abs(T2 * R10 - T1 * R20) > EA1 * AR20 + EA2 * AR10 + EB1 * AR02 + EB2 * AR01){ return false;}
+		if (FMath::Abs(T2 * R11 - T1 * R21) > EA1 * AR21 + EA2 * AR11 + EB0 * AR02 + EB2 * AR00){ return false;}
+		if (FMath::Abs(T2 * R12 - T1 * R22) > EA1 * AR22 + EA2 * AR12 + EB0 * AR01 + EB1 * AR00){ return false;}
+		if (FMath::Abs(T0 * R20 - T2 * R00) > EA0 * AR20 + EA2 * AR00 + EB1 * AR12 + EB2 * AR11){ return false;}
+		if (FMath::Abs(T0 * R21 - T2 * R01) > EA0 * AR21 + EA2 * AR01 + EB0 * AR12 + EB2 * AR10){ return false;}
+		if (FMath::Abs(T0 * R22 - T2 * R02) > EA0 * AR22 + EA2 * AR02 + EB0 * AR11 + EB1 * AR10){ return false;}
+		if (FMath::Abs(T1 * R00 - T0 * R10) > EA0 * AR10 + EA1 * AR00 + EB1 * AR22 + EB2 * AR21){ return false;}
+		if (FMath::Abs(T1 * R01 - T0 * R11) > EA0 * AR11 + EA1 * AR01 + EB0 * AR22 + EB2 * AR20){ return false;}
+		if (FMath::Abs(T1 * R02 - T0 * R12) > EA0 * AR12 + EA1 * AR02 + EB0 * AR21 + EB1 * AR20){ return false;}
 
 		return true;
 	}
@@ -162,7 +139,10 @@ namespace PCGExGeo
 		const double RC = S_SQ(C);
 		const double RD = S_SQ(D);
 
-		const FVector Center = FVector(S_E(C_Y, C_Z, A, B, C, D, RA, RB, RC, RD, UVW), S_E(C_Z, C_X, A, B, C, D, RA, RB, RC, RD, UVW), S_E(C_X, C_Y, A, B, C, D, RA, RB, RC, RD, UVW));
+		const FVector Center = FVector(
+			S_E(C_Y, C_Z, A, B, C, D, RA, RB, RC, RD, UVW), 
+			S_E(C_Z, C_X, A, B, C, D, RA, RB, RC, RD, UVW), 
+			S_E(C_X, C_Y, A, B, C, D, RA, RB, RC, RD, UVW));
 
 		const double radius = FMath::Sqrt(S_SQ(FVector(A - Center)));
 
@@ -248,7 +228,7 @@ namespace PCGExGeo
 		const int32 NumPoints = InPointData->GetNumPoints();
 		const TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
 		PCGEx::InitArray(OutPositions, NumPoints);
-		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Transforms[i].GetLocation(); }
+		PCGEX_PARALLEL_FOR(NumPoints, OutPositions[i] = Transforms[i].GetLocation();)
 	}
 
 	FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C)
@@ -702,25 +682,15 @@ void FPCGExGeo2DProjectionDetails::ProjectFlat(const TSharedPtr<PCGExData::FFaca
 	const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
 	const int32 NumVectors = Transforms.Num();
 	PCGEx::InitArray(OutPositions, NumVectors);
-	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
-}
-
-template <typename T>
-void FPCGExGeo2DProjectionDetails::ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
-{
-	const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
-	const int32 NumVectors = Transforms.Num();
-	if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
-
-	PCGEX_SCOPE_LOOP(i) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
+	PCGEX_PARALLEL_FOR(
+		NumVectors,
+		OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i));
+	)
 }
 
 template PCGEXTENDEDTOOLKIT_API void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const;
 template PCGEXTENDEDTOOLKIT_API void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector>& OutPositions) const;
 template PCGEXTENDEDTOOLKIT_API void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector4>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector4>& OutPositions) const;
-template PCGEXTENDEDTOOLKIT_API void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions, const PCGExMT::FScope& Scope) const;
-template PCGEXTENDEDTOOLKIT_API void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector>& OutPositions, const PCGExMT::FScope& Scope) const;
-template PCGEXTENDEDTOOLKIT_API void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector4>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector4>& OutPositions, const PCGExMT::FScope& Scope) const;
 
 void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
 {
@@ -729,11 +699,17 @@ void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, T
 
 	if (NormalGetter)
 	{
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = PCGEX_READ_QUAT(i).UnrotateVector(InPositions[i]); }
+		PCGEX_PARALLEL_FOR(
+			NumVectors,
+			OutPositions[i] = PCGEX_READ_QUAT(i).UnrotateVector(InPositions[i]);
+		)
 	}
 	else
 	{
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.UnrotateVector(InPositions[i]); }
+		PCGEX_PARALLEL_FOR(
+			NumVectors,
+			OutPositions[i] = ProjectionQuat.UnrotateVector(InPositions[i]);
+		)
 	}
 }
 
@@ -741,36 +717,40 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 {
 	const int32 NumVectors = InPositions.Num();
 	PCGEx::InitArray(OutPositions, NumVectors);
-	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InPositions[i])); }
+	PCGEX_PARALLEL_FOR(
+		NumVectors,
+		OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InPositions[i]));
+	)
 }
 
 void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>& InTransforms, TArray<FVector2D>& OutPositions) const
 {
 	const int32 NumVectors = InTransforms.Num();
 	PCGEx::InitArray(OutPositions, NumVectors);
-	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InTransforms[i].GetLocation())); }
+	PCGEX_PARALLEL_FOR(
+		NumVectors,
+		OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InTransforms[i].GetLocation()));
+	)
 }
 
 void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const
 {
-	const int32 NumVectors = InPositions.Num();
-	int32 p = 0;
-	for (int i = 0; i < NumVectors; i++)
-	{
+	PCGEX_PARALLEL_FOR(
+		InPositions.Num(),
 		const FVector PP = ProjectionQuat.UnrotateVector(InPositions[i]);
-		OutPositions[p++] = PP.X;
-		OutPositions[p++] = PP.Y;
-	}
+		const int32 ii = i * 2;
+		OutPositions[ii] = PP.X;
+		OutPositions[ii+1] = PP.Y;
+	)
 }
 
 void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>& InTransforms, std::vector<double>& OutPositions) const
 {
-	const int32 NumVectors = InTransforms.Num();
-	int32 p = 0;
-	for (int i = 0; i < NumVectors; i++)
-	{
+	PCGEX_PARALLEL_FOR(
+		InTransforms.Num(),
 		const FVector PP = ProjectionQuat.UnrotateVector(InTransforms[i].GetLocation());
-		OutPositions[p++] = PP.X;
-		OutPositions[p++] = PP.Y;
-	}
+		const int32 ii = i * 2;
+		OutPositions[ii] = PP.X;
+		OutPositions[ii+1] = PP.Y;
+	)
 }

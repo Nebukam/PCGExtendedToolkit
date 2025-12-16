@@ -49,7 +49,7 @@ namespace PCGExGraph
 		}
 
 		UnionGraph->Collapse();
-		Context->SetAsyncState(State_ProcessingUnion);
+		Context->SetState(State_ProcessingUnion);
 
 		const TSharedPtr<PCGExBlending::FUnionBlender> TypedBlender = MakeShared<PCGExBlending::FUnionBlender>(
 			&DefaultPointsBlendingDetails, VtxCarryOverDetails, PointPointIntersectionDetails.FuseDetails.GetDistances());
@@ -216,7 +216,7 @@ namespace PCGExGraph
 
 		PointEdgeIntersections = MakeShared<FPointEdgeIntersections>(GraphBuilder->Graph, UnionDataFacade->Source, &PointEdgeIntersectionDetails);
 
-		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
+		Context->SetState(State_ProcessingPointEdgeIntersections);
 
 		// Init point octree
 		(void)PointEdgeIntersections->PointIO->GetOutIn()->GetPointOctree();
@@ -344,7 +344,7 @@ namespace PCGExGraph
 
 		EdgeEdgeIntersections = MakeShared<FEdgeEdgeIntersections>(GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &EdgeEdgeIntersectionDetails);
 
-		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
+		Context->SetState(State_ProcessingEdgeEdgeIntersections);
 
 		FindEdgeEdgeGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -470,7 +470,7 @@ namespace PCGExGraph
 
 		bCompilingFinalGraph = true;
 
-		Context->SetAsyncState(State_WritingClusters);
+		Context->SetState(State_WritingClusters);
 		GraphBuilder->OnCompilationEndCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
 		{
 			PCGEX_ASYNC_THIS

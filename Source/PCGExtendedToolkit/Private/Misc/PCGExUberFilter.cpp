@@ -109,9 +109,12 @@ bool FPCGExUberFilterElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			Context->Outside->Pairs.Init(nullptr, Context->NumPairs);
 		}
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to filter."));
 		}
@@ -242,7 +245,7 @@ namespace PCGExUberFilter
 		return NewPointIO;
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterProcessor::CompleteWork);
 

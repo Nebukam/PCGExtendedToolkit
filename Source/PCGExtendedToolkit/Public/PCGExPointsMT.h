@@ -63,7 +63,8 @@ namespace PCGExPointsMT
 
 #define PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
 	PCGEX_CHECK_WORK_HANDLE_VOID\
-	if (IsTrivial()){ PCGExMT::FScope TrivialScope = PCGExMT::FScope(0, _NUM, 0); _PREPARE({TrivialScope}); _PROCESS(TrivialScope); _COMPLETE(); }else{\
+	if (IsTrivial()){ TRACE_CPUPROFILER_EVENT_SCOPE(StartParallelLoopFor##_NAME##_Trivial) PCGExMT::FScope TrivialScope = PCGExMT::FScope(0, _NUM, 0); _PREPARE({TrivialScope}); _PROCESS(TrivialScope); _COMPLETE(); }else{\
+	TRACE_CPUPROFILER_EVENT_SCOPE(StartParallelLoopFor##_NAME)\
 	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
 	PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ParallelLoopFor##_NAME) \
 	ParallelLoopFor##_NAME->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]() { PCGEX_ASYNC_THIS This->_COMPLETE(); }; \

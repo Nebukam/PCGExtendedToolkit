@@ -56,7 +56,8 @@ bool FPCGExSampleSocketsElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		Context->StaticMesh = PCGExHelpers::LoadBlocking_AnyThread(Settings->StaticMesh);
+		PCGExHelpers::LoadBlocking_AnyThread(Settings->StaticMesh, Context);
+		Context->StaticMesh = Settings->StaticMesh.Get();
 		if (!Context->StaticMesh)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Static mesh could not be loaded."));
@@ -84,7 +85,7 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 		else
 		{
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 
 			if (!Context->StaticMeshLoader->Start(Context->GetTaskManager()))
 			{

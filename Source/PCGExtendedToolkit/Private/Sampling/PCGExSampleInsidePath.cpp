@@ -130,16 +130,13 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		});
 	}
 
-	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
-
-	if (!Settings->bUseLocalCurve)
-	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
-	}
-
-	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+	Context->WeightCurve = Settings->WeightCurveLookup.MakeLookup(
+		Settings->bUseLocalCurve, Settings->LocalWeightOverDistance, Settings->WeightOverDistance,
+		[](FRichCurve& CurveData)
+		{
+			CurveData.AddKey(0, 0);
+			CurveData.AddKey(1, 1);
+		});
 
 	return true;
 }
@@ -152,7 +149,7 @@ bool FPCGExSampleInsidePathElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
+		Context->SetState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()

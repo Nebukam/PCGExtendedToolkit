@@ -127,7 +127,7 @@ bool FPCGExUnpackClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		while (Context->AdvancePointsIO(false)) { PCGEX_LAUNCH(FPCGExUnpackClusterTask, Context->CurrentIO) }
-		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)

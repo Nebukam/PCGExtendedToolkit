@@ -14,12 +14,7 @@ PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoHeuristics, UPCGExHeuristicsFactoryData)
 
 void FPCGExHeuristicConfigBase::Init()
 {
-	if (!bUseLocalCurve)
-	{
-		PCGExHelpers::LoadBlocking_AnyThread(ScoreCurve);
-		LocalScoreCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(ScoreCurve);
-	}
-	ScoreCurveObj = LocalScoreCurve.GetRichCurveConst();
+	ScoreLUT = ScoreCurveLookup.MakeLookup(bUseLocalCurve, LocalScoreCurve, ScoreCurve);
 }
 
 bool UPCGExHeuristicsFactoryData::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

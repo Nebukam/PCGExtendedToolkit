@@ -64,7 +64,8 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		Context->MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
+		PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection, Context);
+		Context->MainCollection = Settings->AssetCollection.Get();
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
@@ -180,7 +181,7 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	{
 		if (Context->CollectionsLoader)
 		{
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 
 			if (!Context->CollectionsLoader->Start(Context->GetTaskManager()))
 			{
@@ -214,7 +215,7 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 		{
-			NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
+			NewBatch->bSkipCompletion = true;
 		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
@@ -238,12 +239,6 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	if (Context->SocketsCollection) { Context->SocketsCollection->StageOutputs(); }
 
 	return Context->TryComplete();
-}
-
-bool FPCGExAssetStagingElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	// Loading collection and/or creating one from attributes
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExAssetStaging
@@ -481,7 +476,7 @@ namespace PCGExAssetStaging
 		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (SocketHelper) { SocketHelper->Compile(TaskManager, PointDataFacade, Context->SocketsCollection); }
 
@@ -507,7 +502,7 @@ namespace PCGExAssetStaging
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
 		}
 
-		PointDataFacade->WriteFastest(TaskManager);
+		OnRangeProcessingComplete(); // for writing
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
@@ -543,13 +538,22 @@ namespace PCGExAssetStaging
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		PointDataFacade->WriteFastest(TaskManager);
+		PointDataFacade->WriteBuffers(
+			TaskManager,
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->Write();
+			});
 	}
 
 	void FProcessor::Write()
 	{
-		Source.Reset();
-		(void)PointDataFacade->Source->Gather(Mask);
+		if (Settings->bPruneEmptyPoints)
+		{
+			Source.Reset();
+			(void)PointDataFacade->Source->Gather(Mask);
+		}
 	}
 }
 

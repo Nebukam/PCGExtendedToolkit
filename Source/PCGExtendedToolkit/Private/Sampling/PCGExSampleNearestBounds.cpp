@@ -98,16 +98,13 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
 
-	Context->RuntimeWeightCurve = Settings->LocalWeightRemap;
-
-	if (!Settings->bUseLocalCurve)
-	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightRemap);
-	}
-
-	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+	Context->WeightCurve = Settings->WeightCurveLookup.MakeLookup(
+		Settings->bUseLocalCurve, Settings->LocalWeightRemap, Settings->WeightRemap,
+		[](FRichCurve& CurveData)
+		{
+			CurveData.AddKey(0, 0);
+			CurveData.AddKey(1, 1);
+		});
 
 	return true;
 }
@@ -120,7 +117,7 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
+		Context->SetState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
@@ -159,10 +156,11 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			                                         [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			                                         {
-			                                         }))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
 			}
@@ -177,11 +175,6 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
-}
-
-bool FPCGExSampleNearestBoundsElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExSampleNearestBounds

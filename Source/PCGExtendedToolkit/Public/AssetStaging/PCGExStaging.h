@@ -80,6 +80,7 @@ namespace PCGExStaging
 	{
 	protected:
 		TMap<uint32, UPCGExAssetCollection*> CollectionMap;
+		TSharedPtr<FStreamableHandle> CollectionsHandle;
 		int32 NumUniqueEntries = 0;
 		const UPCGBasePointData* PointData = nullptr;
 
@@ -88,6 +89,7 @@ namespace PCGExStaging
 		TMap<int64, int32> IndexedPartitions;
 
 		IPickUnpacker() = default;
+		~IPickUnpacker();
 
 		bool HasValidMapping() const { return !CollectionMap.IsEmpty(); }
 

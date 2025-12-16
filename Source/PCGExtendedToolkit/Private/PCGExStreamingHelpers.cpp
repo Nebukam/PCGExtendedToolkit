@@ -4,6 +4,7 @@
 #include "PCGExStreamingHelpers.h"
 
 #include "CoreMinimal.h"
+#include "PCGExContext.h"
 #include "PCGExMT.h"
 #include "UObject/Interface.h"
 #include "GameFramework/Actor.h"
@@ -14,29 +15,36 @@
 
 namespace PCGExHelpers
 {
-	void LoadBlocking_AnyThread(const FSoftObjectPath& Path)
+	TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const FSoftObjectPath& Path, FPCGExContext* InContext)
 	{
+		TSharedPtr<FStreamableHandle> Handle;
 		if (IsInGameThread())
 		{
 			// We're in the game thread, request synchronous load
-			UAssetManager::GetStreamableManager().RequestSyncLoad(Path);
+			Handle = UAssetManager::GetStreamableManager().RequestSyncLoad(Path);
+			if (InContext) { InContext->TrackAssetsHandle(Handle); }
 		}
 		else
 		{
-			PCGExMT::ExecuteOnMainThreadAndWait([&]() { LoadBlocking_AnyThread(Path); });
+			PCGExMT::ExecuteOnMainThreadAndWait([&]() { Handle = LoadBlocking_AnyThread(Path, InContext); });
 		}
+
+		return Handle;
 	}
 
-	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)
+	TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths, FPCGExContext* InContext)
 	{
+		TSharedPtr<FStreamableHandle> Handle;
 		if (IsInGameThread())
 		{
-			UAssetManager::GetStreamableManager().RequestSyncLoad(Paths->Array());
+			Handle = UAssetManager::GetStreamableManager().RequestSyncLoad(Paths->Array());
+			if (InContext) { InContext->TrackAssetsHandle(Handle); }
 		}
 		else
 		{
-			PCGExMT::ExecuteOnMainThreadAndWait([&]() { LoadBlocking_AnyThread(Paths); });
+			PCGExMT::ExecuteOnMainThreadAndWait([&]() { Handle = LoadBlocking_AnyThread(Paths, InContext); });
 		}
+		return Handle;
 	}
 
 	void Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd)
@@ -69,5 +77,47 @@ namespace PCGExHelpers
 				PCGEX_ASYNC_RELEASE_TOKEN(LoadToken)
 			}
 		});
+	}
+
+	void SafeReleaseHandle(TSharedPtr<FStreamableHandle>& InHandle)
+	{
+		if (!InHandle.IsValid()) { return; }
+
+		if (IsInGameThread())
+		{
+			InHandle->ReleaseHandle();
+			InHandle.Reset();
+		}
+		else
+		{
+			AsyncTask(ENamedThreads::GameThread, [Handle = MoveTemp(InHandle)]()
+			{
+				if (Handle.IsValid()) { Handle->ReleaseHandle(); }
+			});
+		}
+	}
+
+	void SafeReleaseHandles(TArray<TSharedPtr<FStreamableHandle>>& InHandles)
+	{
+		if (InHandles.IsEmpty()) { return; }
+
+		if (IsInGameThread())
+		{
+			for (TSharedPtr<FStreamableHandle>& Handle : InHandles)
+			{
+				if (Handle.IsValid()) { Handle->ReleaseHandle(); }
+			}
+			InHandles.Empty();
+		}
+		else
+		{
+			AsyncTask(ENamedThreads::GameThread, [Handles = MoveTemp(InHandles)]()
+			{
+				for (const TSharedPtr<FStreamableHandle>& Handle : Handles)
+				{
+					if (Handle.IsValid()) { Handle->ReleaseHandle(); }
+				}
+			});
+		}
 	}
 }

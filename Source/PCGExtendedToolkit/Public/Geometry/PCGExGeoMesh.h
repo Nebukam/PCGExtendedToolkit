@@ -11,6 +11,7 @@
 
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
 
+struct FStreamableHandle;
 struct FPCGExContext;
 
 namespace PCGExMT
@@ -150,7 +151,10 @@ namespace PCGExGeo
 
 		void ExtractMeshAsync(PCGExMT::FTaskManager* TaskManager);
 
-		~FGeoStaticMesh() = default;
+		~FGeoStaticMesh();
+		
+	protected:
+		TSharedPtr<FStreamableHandle> MeshHandle;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FGeoStaticMeshMap : public FGeoMesh
@@ -164,7 +168,7 @@ namespace PCGExGeo
 		FGeoStaticMeshMap() = default;
 		~FGeoStaticMeshMap() = default;
 
-		int32 Find(const FSoftObjectPath& InPath);
+		int32 FindOrAdd(const FSoftObjectPath& InPath);
 
 		TSharedPtr<FGeoStaticMesh> GetMesh(const int32 Index) { return GSMs[Index]; }
 	};

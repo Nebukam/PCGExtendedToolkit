@@ -59,20 +59,22 @@ bool FPCGExFlatProjectionElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some points are missing the required attributes."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Settings->bRestorePreviousProjection)
-			                                         {
-				                                         if (!Entry->GetIn()->Metadata->HasAttribute(Context->CachedTransformAttributeName))
-				                                         {
-					                                         bHasInvalidInputs = true;
-					                                         return false;
-				                                         }
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Settings->bRestorePreviousProjection)
+				{
+					if (!Entry->GetIn()->Metadata->HasAttribute(Context->CachedTransformAttributeName))
+					{
+						bHasInvalidInputs = true;
+						return false;
+					}
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -169,7 +171,7 @@ namespace PCGExFlatProjection
 		}
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (bInverseExistingProjection)
 		{

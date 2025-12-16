@@ -387,7 +387,7 @@ bool FPCGExBuildCustomGraphElement::AdvanceWork(FPCGExContext* InContext, const 
 			return true;
 		}
 
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		Context->SetState(PCGExGraph::State_WritingClusters);
 
 		TSet<UClass*> UniqueSettingsClasses;
 

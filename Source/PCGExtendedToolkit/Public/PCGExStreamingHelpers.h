@@ -17,6 +17,7 @@
 
 #include "Async/Async.h"
 
+struct FPCGExContext;
 struct FStreamableHandle;
 
 namespace PCGExMT
@@ -30,31 +31,24 @@ namespace PCGExHelpers
 	using FGetPaths = std::function<TArray<FSoftObjectPath>()>;
 	using FOnLoadEnd = std::function<void(const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)>;
 
-	PCGEXTENDEDTOOLKIT_API void LoadBlocking_AnyThread(const FSoftObjectPath& Path);
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const FSoftObjectPath& Path, FPCGExContext* InContext = nullptr);
 
 	template <typename T>
-	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
+	static TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, FPCGExContext* InContext = nullptr)
 	{
-		// If the requested object is valid and loaded, early exit
-		TObjectPtr<T> LoadedObject = SoftObjectPtr.Get();
-		if (LoadedObject) { return LoadedObject; }
-
-		// If not, make sure it's a valid path, and if not fallback to the fallback path
-		FSoftObjectPath ToBeLoaded = SoftObjectPtr.ToSoftObjectPath().IsValid() ? SoftObjectPtr.ToSoftObjectPath() : FallbackPath;
-
-		// Make sure we have a valid path at all
-		if (!ToBeLoaded.IsValid()) { return nullptr; }
-
-		// Check if the fallback path is loaded, early exit
-		LoadedObject = TSoftObjectPtr<T>(ToBeLoaded).Get();
-		if (LoadedObject) { return LoadedObject; }
-
-		LoadBlocking_AnyThread(ToBeLoaded);
-
-		return TSoftObjectPtr<T>(ToBeLoaded).Get();
+		return LoadBlocking_AnyThread(SoftObjectPtr.ToSoftObjectPath(), InContext);
 	}
 
-	PCGEXTENDEDTOOLKIT_API void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
+	PCGEXTENDEDTOOLKIT_API 
+	TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths, FPCGExContext* InContext = nullptr);
 
-	PCGEXTENDEDTOOLKIT_API void Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd);
+	PCGEXTENDEDTOOLKIT_API
+	void Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void SafeReleaseHandle(TSharedPtr<FStreamableHandle>& InHandle);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void SafeReleaseHandles(TArray<TSharedPtr<FStreamableHandle>>& InHandles);
 }

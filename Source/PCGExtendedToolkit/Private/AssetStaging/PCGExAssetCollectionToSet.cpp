@@ -72,8 +72,8 @@ bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, co
 		return InContext->TryComplete();
 	};
 
-	UPCGExAssetCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
-
+	PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection.ToSoftObjectPath(), InContext);
+	UPCGExAssetCollection* MainCollection = Settings->AssetCollection.Get();
 
 	if (!MainCollection)
 	{

@@ -15,6 +15,7 @@
 #include "Data/PCGExProxyData.h"
 #include "Details/PCGExDetailsAttributes.h"
 #include "Details/PCGExDetailsInputShorthands.h"
+#include "Sampling/PCGExCurveLookup.h"
 #include "Sampling/PCGExSampling.h"
 #include "Transform/PCGExFitting.h"
 
@@ -143,7 +144,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	UPROPERTY(EditAnywhere, Category = Settings, BlueprintReadWrite, meta =(PCG_Overridable, DisplayName="Remap Curve", EditCondition = "!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
-	const FRichCurve* RemapCurveObj = nullptr;
+	PCGExFloatLUT RemapLUT = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails RemapCurveLookup;
 
 	/** Whether and how to truncate output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -164,7 +168,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	FPCGExInputShorthandSelectorDouble Snap = FPCGExInputShorthandSelectorDouble(FName("Step"), 10, false);
 
 	void Init();
-	
+
 	double GetRemappedValue(const double Value, const double Step) const;
 };
 
@@ -293,8 +297,6 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
-
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
 namespace PCGExAttributeRemap
@@ -321,11 +323,8 @@ namespace PCGExAttributeRemap
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-
-		void RemapRange(const PCGExMT::FScope& Scope);
-
-		void OnPreparationComplete();
-
-		virtual void CompleteWork() override;
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
 	};
 }

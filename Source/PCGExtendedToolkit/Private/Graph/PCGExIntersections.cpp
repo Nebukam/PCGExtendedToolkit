@@ -694,8 +694,19 @@ namespace PCGExGraph
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
 		TPCGValueRange<int64> MetadataEntries = MutablePoints->GetMetadataEntryValueRange(false);
-		for (int i = StartIndex; i < NumPoints; i++) { Metadata->InitializeOnSet(MetadataEntries[i]); }
+		
+		TArray<TTuple<int64, int64>> DelayedEntries;
+		DelayedEntries.SetNum(NumPoints - StartIndex);
+		
+		int32 WriteIndex = 0;
+		for (int i = StartIndex; i < NumPoints; i++)
+		{
+			MetadataEntries[i] = Metadata->AddEntryPlaceholder();
+			DelayedEntries[WriteIndex++] = MakeTuple(MetadataEntries[i], PCGInvalidEntryKey);
+		}
 
+		Metadata->AddDelayedEntries(DelayedEntries);
+		
 		return true;
 	}
 

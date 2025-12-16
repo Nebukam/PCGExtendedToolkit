@@ -19,7 +19,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExRandomFilterConfig, Weight, double, bPerPointWeig
 
 bool UPCGExRandomFilterFactory::Init(FPCGExContext* InContext)
 {
-	if (!Config.bUseLocalCurve) { Config.LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Config.WeightCurve); }
+	Config.WeightLUT = Config.WeightCurveLookup.MakeLookup(Config.bUseLocalCurve, Config.LocalWeightCurve, Config.WeightCurve);
 	return Super::Init(InContext);
 }
 
@@ -60,7 +60,7 @@ bool UPCGExRandomFilterFactory::RegisterConsumableAttributesWithData(FPCGExConte
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExRandomFilterFactory::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(Filter, PCGExPointFilter::FRandomFilter, this)
-	Filter->WeightCurve = Config.LocalWeightCurve.GetRichCurveConst();
+	Filter->WeightCurve = Config.WeightLUT;
 	return Filter;
 }
 

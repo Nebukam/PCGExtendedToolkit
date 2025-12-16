@@ -55,6 +55,8 @@
 
 #define PCGEX_SCOPE_LOOP(_VAR) for(int _VAR = Scope.Start; _VAR < Scope.End; _VAR++)
 #define PCGEX_SUBSCOPE_LOOP(_VAR) for(int _VAR = SubScope.Start; _VAR < SubScope.End; _VAR++)
+#define PCGEX_PARALLEL_FOR(_NUM, ...) { const int32 ITERATIONS = _NUM; if(ITERATIONS < 512){ for(int i = 0; i < ITERATIONS; i++){ __VA_ARGS__ }}else{ ParallelFor(ITERATIONS, [&](const int32 i){ __VA_ARGS__ }); }}
+#define PCGEX_PARALLEL_FOR_RET(_NUM, _RET, ...) { const int32 ITERATIONS = _NUM; if(ITERATIONS < 512){ for(int i = 0; i < ITERATIONS; i++){ __VA_ARGS__ }}else{ ParallelFor(ITERATIONS, [&](const int32 i){ __VA_ARGS__ return _RET;}); }}
 
 #endif
 #pragma endregion
@@ -125,7 +127,7 @@ namespace PCGExMT
 	};
 
 #define PCGEX_SCHEDULING_SCOPE(_MANAGER, ...) PCGExMT::FSchedulingScope SchedulingScope(_MANAGER); if(!SchedulingScope.Token.IsValid()) { return __VA_ARGS__; }
-	
+
 	struct FSchedulingScope
 	{
 		TWeakPtr<FAsyncToken> Token;
@@ -337,12 +339,12 @@ namespace PCGExMT
 		void TriggerSimpleCallback(int32 Index);
 	};
 
-	PCGEXTENDEDTOOLKIT_API 
+	PCGEXTENDEDTOOLKIT_API
 	void ExecuteOnMainThread(const TSharedPtr<IAsyncHandleGroup>& ParentHandle, FExecuteCallback&& Callback);
-	
-	PCGEXTENDEDTOOLKIT_API 
+
+	PCGEXTENDEDTOOLKIT_API
 	void ExecuteOnMainThread(FExecuteCallback&& Callback);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void ExecuteOnMainThreadAndWait(FExecuteCallback&& Callback);
 
