@@ -81,8 +81,10 @@ namespace PCGExStaging
 		{
 			int32 Idx = CollectionIdx->GetValueFromItemKey(i);
 
-			UPCGExAssetCollection* Collection = PCGExHelpers::LoadBlocking_AnyThread<UPCGExAssetCollection>(TSoftObjectPtr<UPCGExAssetCollection>(CollectionPath->GetValueFromItemKey(i)));
-
+			TSoftObjectPtr<UPCGExAssetCollection> CollectionSoftPtr(CollectionPath->GetValueFromItemKey(i));
+			PCGExHelpers::LoadBlocking_AnyThread<UPCGExAssetCollection>(CollectionSoftPtr);
+			UPCGExAssetCollection* Collection = CollectionSoftPtr.Get();
+			
 			if (!Collection)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Some collections could not be loaded."));
@@ -616,13 +618,15 @@ namespace PCGExStaging
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile::LoopPreparation);
 
-			const UPCGMetadata* ParentMetadata = InputDataFacade->GetIn()->ConstMetadata();
 			UPCGMetadata* Metadata = SocketFacade->GetOut()->MutableMetadata();
 			Details->CarryOverDetails.Prune(Metadata);
 
 			TConstPCGValueRange<int64> ReadMetadataEntry = InputDataFacade->GetIn()->GetConstMetadataEntryValueRange();
 			TPCGValueRange<int64> OutMetadataEntry = SocketFacade->GetOut()->GetMetadataEntryValueRange();
 
+			TArray<TTuple<int64, int64>> PlaceholderKeys;
+			PlaceholderKeys.SetNum(OutMetadataEntry.Num());
+			
 			int32 WriteIndex = 0;
 			for (int i = 0; i < NumPoints; i++)
 			{
@@ -636,11 +640,13 @@ namespace PCGExStaging
 
 				for (int j = 0; j < NumSockets; j++)
 				{
-					OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
-					Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey, ParentMetadata);
+					OutMetadataEntry[WriteIndex] = Metadata->AddEntryPlaceholder();
+					PlaceholderKeys[WriteIndex] = MakeTuple(OutMetadataEntry[WriteIndex], InMetadataKey);
 					WriteIndex++;
 				}
 			}
+			
+			Metadata->AddDelayedEntries(PlaceholderKeys);
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, CreateSocketPoints)

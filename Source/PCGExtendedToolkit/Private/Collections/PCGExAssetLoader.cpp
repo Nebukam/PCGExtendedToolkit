@@ -72,8 +72,7 @@ namespace PCGEx
 
 	void IAssetLoader::Cancel()
 	{
-		if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
-		LoadHandle.Reset();
+		PCGExHelpers::SafeReleaseHandle(LoadHandle);
 		UniquePaths.Empty();
 		End();
 	}

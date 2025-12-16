@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCurveLookup.h"
 #include "PCGExFactories.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
@@ -152,6 +153,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute && !bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails WeightCurveLookup;
+	
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
@@ -343,8 +347,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 
 	FPCGExApplySamplingDetails ApplySampling;
 
-	FRuntimeFloatCurve RuntimeWeightCurve;
-	const FRichCurve* WeightCurve = nullptr;
+	PCGExFloatLUT WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
 

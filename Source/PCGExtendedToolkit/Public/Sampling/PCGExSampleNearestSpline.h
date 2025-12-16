@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCurveLookup.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
@@ -226,7 +227,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 	
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails WeightCurveLookup;
+	
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -467,8 +470,7 @@ struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
 
 	int64 NumTargets = 0;
 
-	FRuntimeFloatCurve RuntimeWeightCurve;
-	const FRichCurve* WeightCurve = nullptr;
+	PCGExFloatLUT WeightCurve = nullptr;
 	bool bComputeTangents = false;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)

@@ -16,6 +16,7 @@
 
 
 #include "Graph/Filters/PCGExClusterFilter.h"
+#include "Sampling/PCGExCurveLookup.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
@@ -23,8 +24,7 @@
 /// 
 #define PCGEX_SAMPLER_CREATE_OPERATION\
 	NewOperation->SamplingConfig = SamplingConfig; \
-	if (SamplingConfig.bUseLocalCurve){	NewOperation->SamplingConfig.LocalWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(SamplingConfig.WeightCurve); }\
-	NewOperation->WeightCurveObj = SamplingConfig.LocalWeightCurve.GetRichCurveConst();\
+	NewOperation->WeightLUT = SamplingConfig.WeightLUT;\
 	NewOperation->VtxFilterFactories.Append(VtxFilterFactories); \
 	NewOperation->EdgesFilterFactories.Append(EdgesFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
@@ -94,9 +94,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
+	PCGExFloatLUT WeightLUT = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails WeightCurveLookup;
+	
 	/** Which type of neighbor to sample */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExClusterElement NeighborSource = EPCGExClusterElement::Vtx;
+	
+	void Init();
 };
 
 
@@ -114,7 +121,7 @@ public:
 
 	FPCGExSamplingConfig SamplingConfig;
 
-	const FRichCurve* WeightCurveObj = nullptr;
+	PCGExFloatLUT WeightLUT = nullptr;
 
 	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade);
 	virtual bool IsOperationValid();

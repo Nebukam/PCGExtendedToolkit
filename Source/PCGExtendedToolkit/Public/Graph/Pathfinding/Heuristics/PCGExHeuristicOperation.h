@@ -10,6 +10,7 @@
 #include "PCGExOperation.h"
 #include "Details/PCGExDetailsCluster.h"
 #include "Metadata/PCGAttributePropertySelector.h"
+#include "Sampling/PCGExCurveLookup.h"
 
 namespace PCGEx
 {
@@ -42,7 +43,7 @@ public:
 	EPCGExClusterElement LocalWeightMultiplierSource = EPCGExClusterElement::Vtx;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 
-	const FRichCurve* ScoreCurve = nullptr;
+	PCGExFloatLUT ScoreCurve = nullptr;
 
 	bool bHasCustomLocalWeightMultiplier = false;
 

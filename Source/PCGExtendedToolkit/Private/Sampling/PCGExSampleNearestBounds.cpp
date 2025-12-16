@@ -98,17 +98,14 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
 
-	Context->RuntimeWeightCurve = Settings->LocalWeightRemap;
-
-	if (!Settings->bUseLocalCurve)
-	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-		Context->RuntimeWeightCurve.ExternalCurve = PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightRemap);
-	}
-
-	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
-
+	Context->WeightCurve = Settings->WeightCurveLookup.MakeLookup(
+		Settings->bUseLocalCurve, Settings->LocalWeightRemap, Settings->WeightRemap,
+		[](FRichCurve& CurveData)
+		{
+			CurveData.AddKey(0, 0);
+			CurveData.AddKey(1, 1);
+		});
+	
 	return true;
 }
 

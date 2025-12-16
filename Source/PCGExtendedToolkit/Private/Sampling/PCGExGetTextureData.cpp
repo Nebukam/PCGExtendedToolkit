@@ -111,7 +111,7 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 			// Start loading textures...
 			TSharedPtr<TSet<FSoftObjectPath>> Paths = MakeShared<TSet<FSoftObjectPath>>();
 			for (const PCGExTexture::FReference& Ref : Context->TextureReferences) { Paths->Add(Ref.TexturePath); }
-			PCGExHelpers::LoadBlocking_AnyThread(Paths);
+			PCGExHelpers::LoadBlocking_AnyThread(Paths, Context);
 
 			Context->TextureReferencesList = Context->TextureReferences.Array();
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
@@ -404,7 +404,7 @@ namespace PCGExGetTextureData
 		if (Settings->SourceType == EPCGExGetTexturePathType::MaterialPath)
 		{
 			// Load materials on the main thread x_x
-			PCGExHelpers::LoadBlocking_AnyThread(MaterialReferences);
+			PCGExHelpers::LoadBlocking_AnyThread(MaterialReferences, Context);
 
 			if (Settings->bOutputTextureIds)
 			{

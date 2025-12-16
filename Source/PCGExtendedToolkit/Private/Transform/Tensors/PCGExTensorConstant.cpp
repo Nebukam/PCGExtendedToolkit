@@ -24,7 +24,18 @@ PCGExTensor::FTensorSample FPCGExTensorConstant::Sample(const int32 InSeedIndex,
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
-PCGEX_TENSOR_BOILERPLATE(Constant, { NewFactory->Config.Mutations = Mutations; NewFactory->Config.Direction = Direction; NewFactory->Config.Potency = Potency; NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant; NewFactory->Config.Weight = 1; NewFactory->Config.TensorWeight = TensorWeight; NewFactory->Config.WeightInput = EPCGExInputValueType::Constant; }, {})
+PCGEX_TENSOR_BOILERPLATE(
+	Constant,
+	{
+	NewFactory->Config.Mutations = Mutations;
+	NewFactory->Config.Direction = Direction;
+	NewFactory->Config.Potency = Potency;
+	NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant;
+	NewFactory->Config.Weight = 1;
+	NewFactory->Config.TensorWeight = TensorWeight;
+	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
+	},
+	{})
 
 PCGExFactories::EPreparationResult UPCGExTensorConstantFactory::InitInternalData(FPCGExContext* InContext)
 {

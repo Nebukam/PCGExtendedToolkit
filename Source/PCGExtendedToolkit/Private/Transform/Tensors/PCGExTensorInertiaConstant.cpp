@@ -34,7 +34,19 @@ PCGExTensor::FTensorSample FPCGExTensorInertiaConstant::Sample(const int32 InSee
 	return Samples.Flatten(Config.TensorWeight);
 }
 
-PCGEX_TENSOR_BOILERPLATE(InertiaConstant, { NewFactory->Config.Axis = Axis; NewFactory->Config.Offset = Offset; NewFactory->Config.Potency = Potency; NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant; NewFactory->Config.Weight = 1; NewFactory->Config.TensorWeight = TensorWeight; NewFactory->Config.WeightInput = EPCGExInputValueType::Constant; NewFactory->Config.bSetInertiaOnce = bSetInertiaOnce; }, {})
+PCGEX_TENSOR_BOILERPLATE(
+	InertiaConstant,
+	{
+	NewFactory->Config.Axis = Axis;
+	NewFactory->Config.Offset = Offset;
+	NewFactory->Config.Potency = Potency;
+	NewFactory->Config.PotencyInput = EPCGExInputValueType::Constant;
+	NewFactory->Config.Weight = 1;
+	NewFactory->Config.TensorWeight = TensorWeight;
+	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
+	NewFactory->Config.bSetInertiaOnce = bSetInertiaOnce;
+	},
+	{})
 
 PCGExFactories::EPreparationResult UPCGExTensorInertiaConstantFactory::InitInternalData(FPCGExContext* InContext)
 {

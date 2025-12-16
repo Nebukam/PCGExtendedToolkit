@@ -13,6 +13,7 @@
 #include "Details/PCGExDetailsAxis.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
+#include "Sampling/PCGExCurveLookup.h"
 
 #include "PCGExTensor.generated.h"
 
@@ -128,6 +129,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Guide", meta=(PCG_Overridable, DisplayName="Guide Curve", EditCondition="!bUseLocalGuideCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveVector> GuideCurve;
 
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Guide", meta=(PCG_NotOverridable))
+	//FPCGExCurveLookupDetails GuideCurveLookup;
+	
+	//PCGExFloatLUT GuideCurveObj = nullptr;
+	
 	// Potency Falloff
 
 	/** Per-point internal Weight input type */
@@ -157,11 +163,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Falloff Curve", EditCondition="!bUseLocalPotencyFalloffCurve", EditConditionHides, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> PotencyFalloffCurve;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails PotencyFalloffCurveLookup;
+	
+	PCGExFloatLUT PotencyFalloffLUT = nullptr;
+	
 	/** A multiplier applied to Potency after it's computed. Makes it easy to scale entire tensors up or down, or invert their influence altogether. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Scale", DisplayPriority=-1))
 	double PotencyScale = 1;
-
-	const FRichCurve* PotencyFalloffCurveObj = nullptr;
 
 	// Weight Falloff
 
@@ -192,7 +201,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight Falloff Curve", EditCondition="!bUseLocalWeightFalloffCurve", EditConditionHides, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> WeightFalloffCurve;
 
-	const FRichCurve* WeightFalloffCurveObj = nullptr;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails WeightFalloffCurveLookup;
+	
+	PCGExFloatLUT WeightFalloffLUT = nullptr;
 
 	/** How should overlapping effector influence be flattened (not implemented yet)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
@@ -202,7 +214,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Sampling Mutations", EditCondition="bSupportMutations", EditConditionHides, HideEditConditionToggle))
 	FPCGExTensorSamplingMutationsDetails Mutations;
 
-	virtual void Init();
+	virtual void Init(FPCGExContext* InContext);
 };
 
 namespace PCGExTensor
