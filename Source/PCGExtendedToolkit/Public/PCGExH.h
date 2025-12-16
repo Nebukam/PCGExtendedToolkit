@@ -93,20 +93,30 @@ namespace PCGEx
 		const int32 A = NH64A(Hash);
 		return A == Not ? NH64B(Hash) : A;
 	}
-	
+
 	template <typename T>
 	FORCEINLINE static T SafeScalarTolerance(const T& InValue)
-	{		
+	{
 		return FMath::Max(InValue, SMALL_NUMBER);
 	}
-	
+
 	FORCEINLINE static FVector SafeTolerance(const FVector& InVector)
-	{		
+	{
 		return FVector(
 			FMath::Max(InVector.X, SMALL_NUMBER),
 			FMath::Max(InVector.Y, SMALL_NUMBER),
 			FMath::Max(InVector.Z, SMALL_NUMBER)
 		);
+	}
+
+	FORCEINLINE static uint64 SH3(const FVector& Seed, const FVector& Tolerance)
+	{
+		// Hash needed when spatial consistency is necessary
+		// FNV1A doesn't preserve it
+		return GetTypeHash(FInt64Vector3(
+			FMath::RoundToInt64(Seed.X / Tolerance.X),
+			FMath::RoundToInt64(Seed.Y / Tolerance.Y),
+			FMath::RoundToInt64(Seed.Z / Tolerance.Z)));
 	}
 	
 #define PCGEX_FNV1A\
@@ -122,7 +132,7 @@ namespace PCGEx
 		const int64 X = FMath::FloorToInt64(Seed[0] / Tolerance[0]);
 		const int64 Y = FMath::FloorToInt64(Seed[1] / Tolerance[1]);
 		const int64 Z = FMath::FloorToInt64(Seed[2] / Tolerance[2]);
-    
+
 		PCGEX_FNV1A
 	}
 
@@ -132,7 +142,7 @@ namespace PCGEx
 		const int64 X = FMath::FloorToInt64(Seed[0] / Tolerance[0]);
 		const int64 Y = FMath::FloorToInt64(Seed[1] / Tolerance[1]);
 		const int64 Z = FMath::FloorToInt64(Seed[2] / Tolerance[2]);
-    
+
 		PCGEX_FNV1A
 	}
 
@@ -142,10 +152,10 @@ namespace PCGEx
 		if (X > Y) { Swap(X, Y); }
 		if (X > Z) { Swap(X, Z); }
 		if (Y > Z) { Swap(Y, Z); }
-	
+
 		PCGEX_FNV1A
 	}
-	
+
 #undef PCGEX_FNV1A
 
 	template <typename S, typename T>
@@ -153,7 +163,7 @@ namespace PCGEx
 	{
 		const int64 X = FMath::FloorToInt64(Seed[0] / Tolerance[0]);
 		const int64 Y = FMath::FloorToInt64(Seed[1] / Tolerance[1]);
-		
+
 		uint64 Hash = 14695981039346656037ULL;
 		Hash = (Hash ^ X) * 1099511628211ULL;
 		Hash = (Hash ^ Y) * 1099511628211ULL;

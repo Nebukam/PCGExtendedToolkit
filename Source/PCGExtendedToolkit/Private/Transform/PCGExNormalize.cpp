@@ -122,61 +122,54 @@ namespace PCGExNormalize
 
 		if (!OutputBuffer.IsValid()) { return false; }
 
-		StartParallelLoopForPoints();
-
-		return true;
-	}
-
-	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::Normalize::ProcessPoints);
-
-		const TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
-
-		using FWrapFn = std::function<double(const double)>;
-
-		FWrapFn Wrap = [](const double Value)-> double { return Value; };
-
-
-		switch (Settings->Wrapping)
 		{
-		case EPCGExIndexSafety::Ignore: break;
-		case EPCGExIndexSafety::Tile: Wrap = [](const double Value)-> double
-			{
-				constexpr double OnePlus = 1 + UE_SMALL_NUMBER;
-				const double W = FMath::Fmod(Value, OnePlus);
-				return W < 0 ? W + OnePlus : W;
-			};
-			break;
-		case EPCGExIndexSafety::Clamp: Wrap = [](const double Value)-> double { return FMath::Clamp(Value, 0, 1); };
-			break;
-		case EPCGExIndexSafety::Yoyo: Wrap = [](const double Value)-> double
-			{
-				double C = FMath::Fmod(Value, 2);
-				C = C < 0 ? C + 2 : C;
-				return C <= 1 ? C : 2 - C;
-			};
-			break;
-		}
+			TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::Normalize::ProcessPoints);
 
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			FVector UVW = Settings->Offset + ((TransformBuffer->Read(Index).TransformPosition(InTransforms[Index].GetLocation()) - Box.Min) * Settings->Tile) / Size;
-			for (int i = 0; i < 3; i++)
+			const TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+
+			using FWrapFn = std::function<double(const double)>;
+
+			FWrapFn Wrap = [](const double Value)-> double { return Value; };
+
+
+			switch (Settings->Wrapping)
 			{
-				UVW[i] = Wrap(UVW[i]);
-				if (OneMinus[i]) { UVW[i] = 1 - UVW[i]; }
+			case EPCGExIndexSafety::Ignore: break;
+			case EPCGExIndexSafety::Tile: Wrap = [](const double Value)-> double
+				{
+					constexpr double OnePlus = 1 + UE_SMALL_NUMBER;
+					const double W = FMath::Fmod(Value, OnePlus);
+					return W < 0 ? W + OnePlus : W;
+				};
+				break;
+			case EPCGExIndexSafety::Clamp: Wrap = [](const double Value)-> double { return FMath::Clamp(Value, 0, 1); };
+				break;
+			case EPCGExIndexSafety::Yoyo: Wrap = [](const double Value)-> double
+				{
+					double C = FMath::Fmod(Value, 2);
+					C = C < 0 ? C + 2 : C;
+					return C <= 1 ? C : 2 - C;
+				};
+				break;
 			}
-			OutputBuffer->Set(Index, UVW);
-		}
-	}
 
-	void FProcessor::OnPointsProcessingComplete()
-	{
-		PointDataFacade->WriteFastest(TaskManager);
+			PCGEX_PARALLEL_FOR(
+				InTransforms.Num(),
+				FVector UVW = Settings->Offset + ((TransformBuffer->Read(i).TransformPosition(InTransforms[i].GetLocation()) - Box.Min) * Settings->Tile) / Size;
+				for (int j = 0; j < 3; j++)
+				{
+				UVW[j] = Wrap(UVW[j]);
+				if (OneMinus[j]) { UVW[j] = 1 - UVW[j]; }
+				}
+				OutputBuffer->Set(i, UVW);
+			)
+
+			PointDataFacade->WriteFastest(TaskManager);
+
+			return true;
+		}
 	}
 }
-
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

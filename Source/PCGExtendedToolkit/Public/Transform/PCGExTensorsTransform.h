@@ -179,8 +179,5 @@ namespace PCGExTensorsTransform
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-
-		virtual void CompleteWork() override;
 	};
 }

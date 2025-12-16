@@ -60,10 +60,12 @@ bool FPCGExTensorsTransformElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-			//NewBatch->bRequiresWriteStep = true;
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
@@ -109,7 +111,7 @@ namespace PCGExTensorsTransform
 		Metrics.SetNum(PointDataFacade->GetNum());
 		Pings.Init(0, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints(PCGExData::EIOSide::Out, 64);
+		StartParallelLoopForPoints(PCGExData::EIOSide::Out);
 
 		return true;
 	}
@@ -118,10 +120,11 @@ namespace PCGExTensorsTransform
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::TensorTransform::ProcessPoints);
 
-		if (bIteratedOnce) { return; }
-
-		PointDataFacade->Fetch(Scope);
-		FilterScope(Scope);
+		if (!bIteratedOnce)
+		{
+			PointDataFacade->Fetch(Scope);
+			FilterScope(Scope);
+		}
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange(false);
@@ -186,27 +189,25 @@ namespace PCGExTensorsTransform
 	{
 		bIteratedOnce = true;
 		RemainingIterations--;
-		if (RemainingIterations > 0) { StartParallelLoopForPoints(PCGExData::EIOSide::Out, 32); }
-		else { StartParallelLoopForRange(PointDataFacade->GetNum()); }
-	}
-
-	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
-	{
-		PCGEX_SCOPE_LOOP(Index)
+		if (RemainingIterations > 0)
 		{
-			const PCGExPaths::FPathMetrics& Metric = Metrics[Index];
+			StartParallelLoopForPoints(PCGExData::EIOSide::Out);
+			return;
+		}
+
+		PCGEX_PARALLEL_FOR(
+			PointDataFacade->GetNum(),
+
+			const PCGExPaths::FPathMetrics& Metric = Metrics[i];
 			const int32 UpdateCount = Metric.Count;
 
-			PCGEX_OUTPUT_VALUE(EffectorsPings, Index, Pings[Index])
-			PCGEX_OUTPUT_VALUE(UpdateCount, Index, UpdateCount)
-			PCGEX_OUTPUT_VALUE(TraveledDistance, Index, Metric.Length)
-			PCGEX_OUTPUT_VALUE(GracefullyStopped, Index, UpdateCount < Settings->Iterations)
-			PCGEX_OUTPUT_VALUE(MaxIterationsReached, Index, UpdateCount == Settings->Iterations)
-		}
-	}
+			PCGEX_OUTPUT_VALUE(EffectorsPings, i, Pings[i])
+			PCGEX_OUTPUT_VALUE(UpdateCount, i, UpdateCount)
+			PCGEX_OUTPUT_VALUE(TraveledDistance, i, Metric.Length)
+			PCGEX_OUTPUT_VALUE(GracefullyStopped, i, UpdateCount < Settings->Iterations)
+			PCGEX_OUTPUT_VALUE(MaxIterationsReached, i, UpdateCount == Settings->Iterations)
+		)
 
-	void FProcessor::CompleteWork()
-	{
 		PointDataFacade->WriteFastest(TaskManager);
 	}
 }

@@ -315,28 +315,29 @@ namespace PCGExAttributeRemap
 			switch (Strategy)
 			{
 			case 3: // Absolute + PreserveSign
-				ParallelFor(PointDataFacade->GetNum(), [&](const int32 i)
-				{
+				PCGEX_PARALLEL_FOR(
+					PointDataFacade->GetNum(),
 					double V = InProxy->Get<double>(i);
 					OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(FMath::Abs(V), Rule.SnapCache->Read(i)) * PCGExMath::SignPlus(V)));
-				});
+				)
 				break;
 			case 2: // Absolute only
-				ParallelFor(PointDataFacade->GetNum(), [&](const int32 i)
-				{
+				PCGEX_PARALLEL_FOR(
+					PointDataFacade->GetNum(),
 					OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(FMath::Abs(InProxy->Get<double>(i)), Rule.SnapCache->Read(i))));
-				});
+				)
 				break;
 			case 1: // Preserve sign only
-				ParallelFor(PointDataFacade->GetNum(), [&](const int32 i)
-				{
+				PCGEX_PARALLEL_FOR(
+					PointDataFacade->GetNum(),
 					OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(InProxy->Get<double>(i), Rule.SnapCache->Read(i))));
-				});
+				)
 				break;
-			default: ParallelFor(PointDataFacade->GetNum(), [&](const int32 i)
-				{
+			default:
+				PCGEX_PARALLEL_FOR(
+					PointDataFacade->GetNum(),
 					OutProxy->Set(i, Rule.OutputClampDetails.GetClampedValue(Rule.RemapDetails.GetRemappedValue(FMath::Abs(InProxy->Get<double>(i)), Rule.SnapCache->Read(i))));
-				});
+				)
 				break;
 			}
 		}

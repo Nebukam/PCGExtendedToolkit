@@ -196,13 +196,11 @@ namespace PCGExBoundsToPoints
 		}
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (!bGeneratePerPointData && bSymmetry)
 		{
-			TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
-			UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
-			for (int64& Key : MetadataEntries) { Metadata->InitializeOnSet(Key); }
+			PointDataFacade->Source->InitializeMetadataEntries_Unsafe(false);
 		}
 	}
 }

@@ -216,9 +216,11 @@ namespace PCGExData
 
 		FTaggedData GetTaggedData(const EIOSide Source = EIOSide::In);
 
+		void InitializeMetadataEntries_Unsafe(const bool bConservative = true) const;
+		
 		TSharedPtr<IPCGAttributeAccessorKeys> GetInKeys();
 		TSharedPtr<IPCGAttributeAccessorKeys> GetOutKeys(const bool bEnsureValidKeys = false);
-
+		
 		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return FConstPoint(In, Index, IOIndex); }
 		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return FMutablePoint(Out, Index, IOIndex); }
 
