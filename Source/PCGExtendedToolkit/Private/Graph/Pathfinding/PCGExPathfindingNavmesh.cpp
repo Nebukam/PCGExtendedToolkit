@@ -124,7 +124,7 @@ bool FPCGExPathfindingNavmeshElement::AdvanceWork(FPCGExContext* InContext, cons
 		};
 
 		PCGExPathfinding::ProcessGoals(Context->SeedsDataFacade, Context->GoalPicker, NavClusterTask);
-		Context->SetAsyncState(PCGExGraph::State_Pathfinding);
+		Context->SetState(PCGExGraph::State_Pathfinding);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_Pathfinding)

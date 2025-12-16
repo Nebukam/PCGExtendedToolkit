@@ -85,7 +85,6 @@ public:
 	void UnpauseContext();
 
 	void SetState(const PCGExCommon::ContextState StateId);
-	void SetAsyncState(const PCGExCommon::ContextState WaitState);
 
 	virtual bool IsWaitingForTasks();
 	void ReadyForExecution();

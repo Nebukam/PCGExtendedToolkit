@@ -248,13 +248,6 @@ void FPCGExContext::AddNotifyActor(AActor* InActor)
 }
 #pragma region State
 
-
-void FPCGExContext::SetAsyncState(const PCGExCommon::ContextState WaitState)
-{
-	// TODO : SetAsyncState is moot now
-	SetState(WaitState);
-}
-
 bool FPCGExContext::IsWaitingForTasks()
 {
 	if (TaskManager) { return TaskManager->IsWaitingForTasks(); }

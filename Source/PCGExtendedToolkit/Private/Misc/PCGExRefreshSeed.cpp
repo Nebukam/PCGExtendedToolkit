@@ -60,7 +60,7 @@ bool FPCGExRefreshSeedElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 			PCGEX_LAUNCH(FPCGExRefreshSeedTask, Settings->Base + Context->CurrentIO->IOIndex, Context->CurrentIO)
 		}
 
-		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)

@@ -415,7 +415,7 @@ namespace PCGExGeo
 		PCGExHelpers::SafeReleaseHandle(MeshHandle);
 	}
 
-	int32 FGeoStaticMeshMap::Find(const FSoftObjectPath& InPath)
+	int32 FGeoStaticMeshMap::FindOrAdd(const FSoftObjectPath& InPath)
 	{
 		if (const int32* GSMPtr = Map.Find(InPath)) { return *GSMPtr; }
 

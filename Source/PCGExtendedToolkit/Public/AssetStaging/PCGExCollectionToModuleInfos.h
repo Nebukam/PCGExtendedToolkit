@@ -92,7 +92,6 @@ public:
 protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	void FlattenCollection(const TSharedPtr<PCGExStaging::FPickPacker>& Packer, UPCGExAssetCollection* Collection, const UPCGExCollectionToModuleInfosSettings* Settings, TArray<PCGExCollectionToGrammar::FModule>& OutModules, TSet<FName>& OutSymbols, TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const;

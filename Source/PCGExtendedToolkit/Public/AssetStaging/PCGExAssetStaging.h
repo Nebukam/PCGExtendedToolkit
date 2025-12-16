@@ -188,7 +188,6 @@ protected:
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
 namespace PCGExAssetStaging
@@ -240,11 +239,9 @@ namespace PCGExAssetStaging
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-
-		virtual void CompleteWork() override;
+		virtual void OnPointsProcessingComplete() override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
-
 		virtual void Write() override;
 	};
 }

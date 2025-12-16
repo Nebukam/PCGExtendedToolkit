@@ -85,7 +85,7 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 		else
 		{
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 
 			if (!Context->StaticMeshLoader->Start(Context->GetTaskManager()))
 			{

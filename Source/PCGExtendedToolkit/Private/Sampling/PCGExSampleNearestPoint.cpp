@@ -129,7 +129,7 @@ bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
+		Context->SetState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
@@ -198,11 +198,6 @@ bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, cons
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
-}
-
-bool FPCGExSampleNearestPointElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExSampleNearestPoint

@@ -105,7 +105,7 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	PCGEX_ON_STATE(PCGExCommon::State_AsyncPreparation)
 	{
-		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 		if (!Context->TextureReferences.IsEmpty())
 		{
 			// Start loading textures...
@@ -114,7 +114,7 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 			PCGExHelpers::LoadBlocking_AnyThread(Paths, Context);
 
 			Context->TextureReferencesList = Context->TextureReferences.Array();
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 
 			Context->TextureReady.Init(false, Context->TextureReferencesList.Num());
 			Context->TextureDataList.Init(nullptr, Context->TextureReferencesList.Num());
