@@ -54,6 +54,11 @@ namespace PCGExStaging
 		}
 	}
 
+	IPickUnpacker::~IPickUnpacker()
+	{
+		PCGExHelpers::SafeReleaseHandle(CollectionsHandle);
+	}
+
 	bool IPickUnpacker::UnpackDataset(FPCGContext* InContext, const UPCGParamData* InAttributeSet)
 	{
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
@@ -77,14 +82,19 @@ namespace PCGExStaging
 			return false;
 		}
 
+		{
+			PCGEX_MAKE_SHARED(CollectionPaths, TSet<FSoftObjectPath>)
+			for (int i = 0; i < NumEntries; i++) { CollectionPaths->Add(CollectionPath->GetValueFromItemKey(i)); }
+			CollectionsHandle = PCGExHelpers::LoadBlocking_AnyThread(CollectionPaths);			
+		}
+		
 		for (int i = 0; i < NumEntries; i++)
 		{
 			int32 Idx = CollectionIdx->GetValueFromItemKey(i);
 
 			TSoftObjectPtr<UPCGExAssetCollection> CollectionSoftPtr(CollectionPath->GetValueFromItemKey(i));
-			PCGExHelpers::LoadBlocking_AnyThread<UPCGExAssetCollection>(CollectionSoftPtr);
 			UPCGExAssetCollection* Collection = CollectionSoftPtr.Get();
-			
+
 			if (!Collection)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Some collections could not be loaded."));
@@ -626,7 +636,7 @@ namespace PCGExStaging
 
 			TArray<TTuple<int64, int64>> DelayedEntries;
 			DelayedEntries.SetNum(OutMetadataEntries.Num());
-			
+
 			int32 WriteIndex = 0;
 			for (int i = 0; i < NumPoints; i++)
 			{
@@ -645,7 +655,7 @@ namespace PCGExStaging
 					WriteIndex++;
 				}
 			}
-			
+
 			Metadata->AddDelayedEntries(DelayedEntries);
 		}
 
