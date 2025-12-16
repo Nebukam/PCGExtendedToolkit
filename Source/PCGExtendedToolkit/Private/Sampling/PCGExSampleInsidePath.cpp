@@ -149,7 +149,7 @@ bool FPCGExSampleInsidePathElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
+		Context->SetState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()

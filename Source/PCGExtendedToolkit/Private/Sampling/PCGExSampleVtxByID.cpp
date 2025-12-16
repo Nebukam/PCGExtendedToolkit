@@ -85,13 +85,6 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-void FPCGExSampleVtxByIDElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(SampleVtxByID)
-}
-
 bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleVtxByIDElement::Execute);
@@ -100,7 +93,7 @@ bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
+		Context->SetState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
@@ -137,11 +130,6 @@ bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
-}
-
-bool FPCGExSampleVtxByIDElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExSampleVtxByID

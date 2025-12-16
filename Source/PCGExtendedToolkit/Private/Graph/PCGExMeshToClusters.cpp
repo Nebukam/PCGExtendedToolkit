@@ -516,7 +516,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 				return false;
 			}
 
-			const int32 Idx = Context->StaticMeshMap->Find(Settings->StaticMeshConstant.ToSoftObjectPath());
+			const int32 Idx = Context->StaticMeshMap->FindOrAdd(Settings->StaticMeshConstant.ToSoftObjectPath());
 
 			if (Idx == -1)
 			{
@@ -554,7 +554,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 				if (Settings->AttributeHandling == EPCGExMeshAttributeHandling::StaticMeshSoftPath)
 				{
-					const int32 Idx = Context->StaticMeshMap->Find(Path);
+					const int32 Idx = Context->StaticMeshMap->FindOrAdd(Path);
 
 					if (Idx == -1)
 					{
@@ -589,7 +589,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 					}
 					else
 					{
-						const int32 Idx = Context->StaticMeshMap->Find(TSoftObjectPtr<UStaticMesh>(SMComponents[0]->GetStaticMesh()).ToSoftObjectPath());
+						const int32 Idx = Context->StaticMeshMap->FindOrAdd(TSoftObjectPtr<UStaticMesh>(SMComponents[0]->GetStaticMesh()).ToSoftObjectPath());
 						if (Idx == -1)
 						{
 							if (!Settings->bIgnoreMeshWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some actors have invalid SMCs.")); }
@@ -615,12 +615,12 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 
 		// Preload all & build local graphs to copy to points later on			
-		Context->SetAsyncState(PCGExGeo::State_ExtractingMesh);
+		Context->SetState(PCGExGeo::State_ExtractingMesh);
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExGeo::State_ExtractingMesh)
 	{
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		Context->SetState(PCGExGraph::State_WritingClusters);
 
 		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 

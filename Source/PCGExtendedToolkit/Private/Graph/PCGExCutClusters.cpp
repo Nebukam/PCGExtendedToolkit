@@ -105,7 +105,7 @@ bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSe
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGExPaths::State_BuildingPaths);
+		Context->SetState(PCGExPaths::State_BuildingPaths);
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetTaskManager(), BuildPathsTask)
 
 		BuildPathsTask->OnSubLoopStartCallback = [Context](const PCGExMT::FScope& Scope)

@@ -148,7 +148,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails RemapCurveLookup;
-	
+
 	/** Whether and how to truncate output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExTruncateMode TruncateOutput = EPCGExTruncateMode::None;
@@ -297,8 +297,6 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
-
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
 namespace PCGExAttributeRemap

@@ -145,7 +145,7 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 			CurveData.AddKey(0, 0);
 			CurveData.AddKey(1, 1);
 		});
-	
+
 	return true;
 }
 
@@ -171,12 +171,6 @@ bool FPCGExSampleNearestSplineElement::AdvanceWork(FPCGExContext* InContext, con
 
 	return Context->TryComplete();
 }
-
-bool FPCGExSampleNearestSplineElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
-}
-
 
 namespace PCGExSampleNearestSpline
 {
