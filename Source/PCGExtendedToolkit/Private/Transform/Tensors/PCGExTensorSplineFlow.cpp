@@ -39,7 +39,14 @@ PCGExFactories::EPreparationResult UPCGExTensorSplineFlowFactory::Prepare(FPCGEx
 	return Super::Prepare(InContext, TaskManager);
 }
 
-PCGEX_TENSOR_BOILERPLATE(SplineFlow, { NewFactory->Config.Potency *=NewFactory->Config.PotencyScale; }, { NewOperation->Splines = &Splines; })
+PCGEX_TENSOR_BOILERPLATE(
+	SplineFlow,
+	{
+	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
+	},
+	{
+	NewOperation->Splines = &Splines;
+	})
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

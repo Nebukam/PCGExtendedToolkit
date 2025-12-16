@@ -125,7 +125,7 @@ namespace PCGExMT
 	};
 
 #define PCGEX_SCHEDULING_SCOPE(_MANAGER, ...) PCGExMT::FSchedulingScope SchedulingScope(_MANAGER); if(!SchedulingScope.Token.IsValid()) { return __VA_ARGS__; }
-	
+
 	struct FSchedulingScope
 	{
 		TWeakPtr<FAsyncToken> Token;
@@ -337,12 +337,12 @@ namespace PCGExMT
 		void TriggerSimpleCallback(int32 Index);
 	};
 
-	PCGEXTENDEDTOOLKIT_API 
+	PCGEXTENDEDTOOLKIT_API
 	void ExecuteOnMainThread(const TSharedPtr<IAsyncHandleGroup>& ParentHandle, FExecuteCallback&& Callback);
-	
-	PCGEXTENDEDTOOLKIT_API 
+
+	PCGEXTENDEDTOOLKIT_API
 	void ExecuteOnMainThread(FExecuteCallback&& Callback);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void ExecuteOnMainThreadAndWait(FExecuteCallback&& Callback);
 

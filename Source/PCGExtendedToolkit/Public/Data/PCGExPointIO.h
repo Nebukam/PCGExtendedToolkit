@@ -219,10 +219,6 @@ namespace PCGExData
 		TSharedPtr<IPCGAttributeAccessorKeys> GetInKeys();
 		TSharedPtr<IPCGAttributeAccessorKeys> GetOutKeys(const bool bEnsureValidKeys = false);
 
-		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
-		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
-		void PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
-
 		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return FConstPoint(In, Index, IOIndex); }
 		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return FMutablePoint(Out, Index, IOIndex); }
 

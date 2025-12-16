@@ -14,6 +14,7 @@
 #include "PCGExProxyDataBlending.h"
 #include "Data/PCGExDefaultValueContainer.h"
 #include "Metadata/PCGDefaultValueInterface.h"
+#include "Sampling/PCGExCurveLookup.h"
 
 #include "PCGExBlendOpFactoryProvider.generated.h"
 
@@ -94,7 +95,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
-	const FRichCurve* ScoreCurveObj = nullptr;
+	PCGExFloatLUT ScoreLUT = nullptr;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExCurveLookupDetails WeightCurveLookup;
 
 	void Init();
 

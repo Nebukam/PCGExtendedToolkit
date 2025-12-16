@@ -14,6 +14,11 @@
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoNeighborSampler, UPCGExNeighborSamplerFactoryData)
 
+void FPCGExSamplingConfig::Init()
+{
+	WeightLUT = WeightCurveLookup.MakeLookup(bUseLocalCurve, LocalWeightCurve, WeightCurve);
+}
+
 void FPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	Cluster = InCluster;
@@ -96,7 +101,7 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 				LocalWeight = SamplingConfig.BlendOver == EPCGExBlendOver::Index ? 1 - (CurrentDepth / SafeMaxDepth) : SamplingConfig.FixedBlend;
 			}
 
-			LocalWeight = WeightCurveObj->Eval(LocalWeight);
+			LocalWeight = WeightLUT->Eval(LocalWeight);
 
 			if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx) { SampleNeighborNode(Node, Lk, LocalWeight, Scope); }
 			else { SampleNeighborEdge(Node, Lk, LocalWeight, Scope); }
@@ -232,6 +237,7 @@ UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExCon
 
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingConfig = SamplingConfig;
+	SamplerFactory->SamplingConfig.Init();
 
 	GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 

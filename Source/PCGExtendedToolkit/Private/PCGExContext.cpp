@@ -205,6 +205,7 @@ FPCGExContext::~FPCGExContext()
 {
 	//WorkHandle.Reset();
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
+	PCGExHelpers::SafeReleaseHandles(TrackedAssets);
 }
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
@@ -340,7 +341,7 @@ void FPCGExContext::OnComplete()
 
 TSet<FSoftObjectPath>& FPCGExContext::GetRequiredAssets()
 {
-	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
+	FWriteScopeLock WriteScopeLock(AssetsLock);
 	if (!RequiredAssets) { RequiredAssets = MakeShared<TSet<FSoftObjectPath>>(); }
 	return *RequiredAssets.Get();
 }
@@ -351,7 +352,7 @@ void FPCGExContext::RegisterAssetDependencies()
 
 void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 {
-	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
+	FWriteScopeLock WriteScopeLock(AssetsLock);
 	if (!RequiredAssets) { RequiredAssets = MakeShared<TSet<FSoftObjectPath>>(); }
 	RequiredAssets->Add(Dependency);
 }
@@ -362,19 +363,31 @@ bool FPCGExContext::LoadAssets()
 
 	SetState(PCGExCommon::State_LoadingAssetDependencies);
 
-	PCGExHelpers::Load(GetTaskManager(), [CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
-	                   {
-		                   PCGEX_SHARED_CONTEXT_RET(CtxHandle, {})
-		                   return SharedContext.Get()->RequiredAssets->Array();
-	                   }, [CtxHandle = GetOrCreateHandle()](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
-	                   {
-		                   PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-		                   SharedContext.Get()->AssetsHandle = StreamableHandle;
-		                   if (!bSuccess) { SharedContext.Get()->CancelExecution("Error loading assets."); }
-	                   });
+	PCGExHelpers::Load(
+		GetTaskManager(),
+		[CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
+		{
+			PCGEX_SHARED_CONTEXT_RET(CtxHandle, {})
+			return SharedContext.Get()->RequiredAssets->Array();
+		}, [CtxHandle = GetOrCreateHandle()](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
+		{
+			PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+			SharedContext.Get()->TrackAssetsHandle(StreamableHandle);
+			if (!bSuccess) { SharedContext.Get()->CancelExecution("Error loading assets."); }
+		});
 
 
 	return true;
+}
+
+
+void FPCGExContext::TrackAssetsHandle(const TSharedPtr<FStreamableHandle>& InHandle)
+{
+	if (!InHandle.IsValid() || !InHandle->IsActive()) { return; }
+	{
+		FWriteScopeLock WriteScopeLock(AssetsLock);
+		TrackedAssets.Add(InHandle);
+	}
 }
 
 UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const

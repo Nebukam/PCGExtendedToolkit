@@ -56,7 +56,7 @@ FPCGExTensorConfigBase::FPCGExTensorConfigBase(const bool SupportAttributes, con
 PCGEX_SETTING_VALUE_IMPL(FPCGExTensorConfigBase, Weight, double, WeightInput, WeightAttribute, Weight);
 PCGEX_SETTING_VALUE_IMPL(FPCGExTensorConfigBase, Potency, double, PotencyInput, PotencyAttribute, Potency);
 
-void FPCGExTensorConfigBase::Init()
+void FPCGExTensorConfigBase::Init(FPCGExContext* InContext)
 {
 	PCGEX_MAKE_SHARED(CurvePaths, TSet<FSoftObjectPath>)
 
@@ -64,14 +64,10 @@ void FPCGExTensorConfigBase::Init()
 	if (!bUseLocalPotencyFalloffCurve) { CurvePaths->Add(PotencyFalloffCurve.ToSoftObjectPath()); }
 	if (!bUseLocalGuideCurve) { CurvePaths->Add(GuideCurve.ToSoftObjectPath()); }
 
-	if (!CurvePaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(CurvePaths); }
+	if (!CurvePaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(CurvePaths, InContext); }
 
-	LocalWeightFalloffCurve.ExternalCurve = WeightFalloffCurve.Get();
-	WeightFalloffCurveObj = LocalWeightFalloffCurve.GetRichCurveConst();
-
-	LocalPotencyFalloffCurve.ExternalCurve = PotencyFalloffCurve.Get();
-	PotencyFalloffCurveObj = LocalPotencyFalloffCurve.GetRichCurveConst();
-
+	WeightFalloffLUT = WeightFalloffCurveLookup.MakeLookup(bUseLocalWeightFalloffCurve, LocalWeightFalloffCurve, WeightFalloffCurve);
+	PotencyFalloffLUT = PotencyFalloffCurveLookup.MakeLookup(bUseLocalPotencyFalloffCurve, LocalPotencyFalloffCurve, PotencyFalloffCurve);
 	LocalGuideCurve.ExternalCurve = GuideCurve.Get();
 }
 

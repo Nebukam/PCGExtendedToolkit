@@ -108,7 +108,7 @@ namespace PCGExData
 			{
 				UObject* GenericInstance = SharedContext.Get()->ManagedObjects->New<UObject>(GetTransientPackage(), In->GetClass());
 				if (!GenericInstance) { return false; }
-				
+
 				Out = Cast<UPCGBasePointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -230,42 +230,26 @@ namespace PCGExData
 			{
 				UPCGMetadata* OutMetadata = Out->Metadata;
 				TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange(true);
-				for (int64& Key : MetadataEntries) { OutMetadata->InitializeOnSet(Key); }
 
+				TArray<int64*> KeysNeedingInit;
+				KeysNeedingInit.Reserve(MetadataEntries.Num());
+				const int64 ItemKeyOffset = OutMetadata->GetItemKeyCountForParent();
+
+				for (int64& Key : MetadataEntries)
+				{
+					if (Key == PCGInvalidEntryKey || Key < ItemKeyOffset) { KeysNeedingInit.Add(&Key); }
+				}
+
+				if (KeysNeedingInit.Num() > 0) { OutMetadata->AddEntriesInPlace(KeysNeedingInit); }
 				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, false);
 			}
 			else
 			{
-				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, true);
+				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, false);
 			}
 		}
 
 		return OutKeys;
-	}
-
-	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
-	{
-		const TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
-		InMap.Empty(MetadataEntries.Num());
-		for (int i = 0; i < MetadataEntries.Num(); i++)
-		{
-			int64& Key = MetadataEntries[i];
-			if (Key == PCGInvalidEntryKey) { Out->Metadata->InitializeOnSet(Key); }
-			InMap.Add(Key, i);
-		}
-	}
-
-	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
-	{
-		const TConstPCGValueRange<int64> MetadataEntries = In->GetConstMetadataEntryValueRange();
-		InMap.Empty(MetadataEntries.Num());
-		for (int i = 0; i < MetadataEntries.Num(); i++) { InMap.Add(MetadataEntries[i], i); }
-	}
-
-	void FPointIO::PrintOutInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
-	{
-		if (Out) { PrintOutKeysMap(InMap); }
-		else { PrintInKeysMap(InMap); }
 	}
 
 	FScope FPointIO::GetInScope(const int32 Start, const int32 Count, const bool bInclusive) const
@@ -761,7 +745,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
 
 		FWriteScopeLock WriteLock(PairsLock);
-		
+
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
@@ -776,9 +760,9 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 	int32 FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsMinMax);
-		
+
 		FWriteScopeLock WriteLock(PairsLock);
-		
+
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
@@ -793,9 +777,9 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 	int32 FPointIOCollection::StageAnyOutputs()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsAny);
-		
+
 		FWriteScopeLock WriteLock(PairsLock);
-		
+
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 

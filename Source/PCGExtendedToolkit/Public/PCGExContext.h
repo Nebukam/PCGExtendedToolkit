@@ -42,10 +42,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 protected:
 	mutable FRWLock AsyncLock;
 	mutable FRWLock StagedOutputLock;
-	mutable FRWLock AssetDependenciesLock;
+	mutable FRWLock AssetsLock;
 
 	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
-	TSharedPtr<FStreamableHandle> AssetsHandle;
 	const IPCGExElement* ElementHandle = nullptr;
 
 public:
@@ -127,12 +126,12 @@ public:
 	virtual void RegisterAssetDependencies();
 	void AddAssetDependency(const FSoftObjectPath& Dependency);
 	bool LoadAssets();
-
+	
+	void TrackAssetsHandle(const TSharedPtr<FStreamableHandle>& InHandle);
+	
 protected:
 	TSharedPtr<TSet<FSoftObjectPath>> RequiredAssets;
-
-	/** Handle holder for any loaded resources */
-	TSharedPtr<FStreamableHandle> AssetDependenciesHandle;
+	TArray<TSharedPtr<FStreamableHandle>> TrackedAssets;
 
 #pragma endregion
 
@@ -180,7 +179,7 @@ protected:
 
 	TArray<UPCGExInstancedFactory*> ProcessorOperations;
 	TSet<UPCGExInstancedFactory*> InternalOperations;
-
+	
 public:
 	void AddNotifyActor(AActor* InActor);
 };

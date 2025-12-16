@@ -1,0 +1,148 @@
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "PCGEx.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
+
+#include "PCGExCurveLookup.generated.h"
+
+struct FStreamableHandle;
+
+namespace PCGExSampling
+{
+	class FCurveFloatLookup;
+}
+
+using PCGExFloatLUT = TSharedPtr<PCGExSampling::FCurveFloatLookup, ESPMode::ThreadSafe>;
+
+UENUM(BlueprintType)
+enum class EPCGExCurveLUTMode : uint8
+{
+	Direct = 0 UMETA(DisplayName = "Direct"),
+	Lookup = 1 UMETA(DisplayName = "Lookup"),
+};
+
+namespace PCGExSampling
+{
+	using FInitCurveDataDefaults = std::function<void(FRichCurve& CurveData)>;
+}
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExCurveLookupDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCurveLookupDetails() = default;
+
+	explicit FPCGExCurveLookupDetails(const EPCGExCurveLUTMode InMode, const int32 InNumSamples = 256)
+		: Mode(InMode), Samples(InNumSamples)
+	{
+	}
+
+	virtual ~FPCGExCurveLookupDetails() = default;
+
+#pragma region boilerplate
+
+	// Note : we don't expose these members just yet, but we will in a future refactor.
+	// They will supersede members that already exist in the lookup hosts
+
+	/** Whether to use in-editor curve or an external asset. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bUseLocalCurve = false;
+
+	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
+	/** Curve the weight value will be remapped over. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Curve", EditCondition = "bUseLocalCurve", EditConditionHides))
+	FRuntimeFloatCurve LocalCurve;
+
+	/** Curve the weight value will be remapped over. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
+	TSoftObjectPtr<UCurveFloat> ExternalCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+
+#pragma endregion
+
+	/** Curve lookup mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExCurveLUTMode Mode = EPCGExCurveLUTMode::Direct;
+
+	/** Number of samples in the lookup table. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExCurveLUTMode::Lookup", ClampMin=32))
+	int32 Samples = 512;
+
+	PCGExFloatLUT MakeFloatLookup(const FRuntimeFloatCurve& InCurve) const;
+	PCGExFloatLUT MakeLookup(const bool InUseLocalCurve, FRuntimeFloatCurve RuntimeCurve, TSoftObjectPtr<UCurveFloat> InExternalCurve, const PCGExSampling::FInitCurveDataDefaults& InitFn) const;
+	PCGExFloatLUT MakeLookup(const bool InUseLocalCurve, const FRuntimeFloatCurve& RuntimeCurve, TSoftObjectPtr<UCurveFloat> InExternalCurve) const;
+	PCGExFloatLUT MakeFloatLookup(const PCGExSampling::FInitCurveDataDefaults& InitFn) const;
+	PCGExFloatLUT MakeFloatLookup() const;
+};
+
+namespace PCGExSampling
+{
+	/**
+	 * Drop-in curve evaluator with optional LUT acceleration.
+	 * Samples the curve over its natural time range [MinTime, MaxTime].
+	 */
+	class PCGEXTENDEDTOOLKIT_API FCurveFloatLookup : public TSharedFromThis<FCurveFloatLookup>
+	{
+		friend struct FPCGExCurveLookupDetails;
+
+	public:
+		FCurveFloatLookup() = default;
+		~FCurveFloatLookup();
+
+		void Init(const FRuntimeFloatCurve& InCurve, const EPCGExCurveLUTMode InMode = EPCGExCurveLUTMode::Lookup, const int32 InNumSamples = 256);
+
+		// Evaluate at time T - same signature as FRichCurve::Eval()
+		FORCEINLINE double Eval(const double InTime) const
+		{
+			if (Mode == EPCGExCurveLUTMode::Direct) { return CurvePtr ? CurvePtr->Eval(static_cast<float>(InTime)) : 0.0f; }
+			return EvalLUT(InTime);
+		}
+
+		FORCEINLINE bool IsValid() const { return CurvePtr != nullptr; }
+		FORCEINLINE bool UsesLUT() const { return Mode != EPCGExCurveLUTMode::Direct && LUT.Num() > 0; }
+		FORCEINLINE float GetMinTime() const { return TimeMin; }
+		FORCEINLINE float GetMaxTime() const { return TimeMax; }
+		FORCEINLINE const FRichCurve* GetCurve() const { return CurvePtr; }
+		FORCEINLINE const float* GetRawLUT() const { return LUT.GetData(); }
+		FORCEINLINE int32 GetLUTSize() const { return LUT.Num(); }
+
+		static PCGExFloatLUT Make(const FRuntimeFloatCurve& InCurve, const EPCGExCurveLUTMode InMode = EPCGExCurveLUTMode::Lookup, const int32 InNumSamples = 256)
+		{
+			PCGExFloatLUT NewLUT = MakeShared<FCurveFloatLookup>();
+			NewLUT->Init(InCurve, InMode, InNumSamples);
+			return NewLUT;
+		}
+
+	protected:
+		TSharedPtr<FStreamableHandle> ExternalCurveHandle = nullptr;
+
+		FORCEINLINE float EvalLUT(const float InTime) const
+		{
+			// Normalize time to [0, 1] within curve's range
+			const float NormalizedTime = (InTime - TimeMin) * TimeToNormalized;
+			const float ClampedIdx = FMath::Clamp(NormalizedTime, 0.0f, 1.0f) * LUTMaxIdx;
+
+			const int32 Lo = static_cast<int32>(ClampedIdx);
+			const int32 Hi = Lo + 1;
+			const float Frac = ClampedIdx - static_cast<float>(Lo);
+
+			// Hi is safe because LUT has Count+1 entries
+			return LUT[Lo] + (LUT[Hi] - LUT[Lo]) * Frac;
+		}
+
+		TArray<float> LUT;
+		FRuntimeFloatCurve Curve;
+		const FRichCurve* CurvePtr = nullptr;
+		EPCGExCurveLUTMode Mode = EPCGExCurveLUTMode::Direct;
+
+		float TimeMin = 0.0f;
+		float TimeMax = 1.0f;
+		float TimeToNormalized = 1.0f; // 1.0 / (TimeMax - TimeMin)
+		float LUTMaxIdx = 0.0f;        // LUT.Num() - 2 (because we have Count+1 entries)
+	};
+}
