@@ -212,6 +212,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return Type(FMath::Abs(A.Pitch), FMath::Abs(A.Yaw), FMath::Abs(A.Roll)); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			const Type& R = *static_cast<const Type*>(Value);
@@ -397,6 +400,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A.GetNormalized(); }
 
+		static FORCEINLINE Type Abs(const Type& A) { return FTypeOps<FRotator>::Abs(A.Rotator()).Quaternion().GetNormalized(); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return (A.Rotator() * Factor).Quaternion(); }
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			const FRotator R = static_cast<const FQuat*>(Value)->Rotator();
@@ -579,6 +585,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B) { return NaiveHash(A, B); }
 
+		static FORCEINLINE Type Abs(const Type& A) { return Type(FTypeOps<FQuat>::Abs(A.GetRotation()), FTypeOps<FVector>::Abs(A.GetLocation()), FTypeOps<FVector>::Abs(A.GetScale3D())); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return Type((A.Rotator() * Factor).Quaternion(), A.GetLocation() * Factor, A.GetScale3D() * Factor); }
+
 		static FORCEINLINE Type ModSimple(const Type& A, double M)
 		{
 			if (M == 0.0) return A;
@@ -672,7 +681,7 @@ namespace PCGExTypeOps
 				break;
 			}
 		}
-		
+
 		static FORCEINLINE void ExtractVector(const void* Transform, ETransformPart Part, void* OutValue, EPCGMetadataTypes& OutType)
 		{
 			const Type& T = *static_cast<const Type*>(Transform);

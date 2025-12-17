@@ -10,6 +10,7 @@
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Sampling/PCGExSampling.h"
+#include "Async/ParallelFor.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExNormalizeElement"

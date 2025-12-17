@@ -153,6 +153,9 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? (A + B) / W : A; }
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
+		
+		static FORCEINLINE Type Abs(const Type& A) { return Type(FMath::Abs(A.X), FMath::Abs(A.Y)); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
 
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
@@ -333,6 +336,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return Type(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z)); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			const Type& V = *static_cast<const Type*>(Value);
@@ -539,6 +545,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return Type(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z), FMath::Abs(A.W)); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return Type(A.X*Factor, A.Y*Factor, A.Z*Factor, A.W*Factor); }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			const Type& V = *static_cast<const Type*>(Value);

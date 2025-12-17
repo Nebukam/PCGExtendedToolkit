@@ -131,6 +131,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return A; }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
@@ -256,6 +259,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return A; }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
@@ -340,6 +346,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return A; }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
@@ -424,6 +433,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return A; }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field) { return 0; }
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)

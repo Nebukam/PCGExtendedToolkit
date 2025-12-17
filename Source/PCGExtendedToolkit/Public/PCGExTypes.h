@@ -18,8 +18,7 @@
 //#include "PCGExTypeErasedBuffer.h"
 
 namespace PCGExTypes
-{		
-
+{
 	//
 	// FScopedTypedValue - RAII wrapper for type-erased stack values
 	//
@@ -96,45 +95,57 @@ namespace PCGExTypes
 		static int32 GetTypeSize(EPCGMetadataTypes InType);
 	};
 
-	
+
 	/**
 	 * Convenience functions for common operations
 	 */
-	
+
 	// Convert between types (compile-time)
-	template<typename TFrom, typename TTo>
+	template <typename TFrom, typename TTo>
 	FORCEINLINE TTo Convert(const TFrom& Value)
 	{
 		return PCGExTypeOps::FTypeOps<TFrom>::template ConvertTo<TTo>(Value);
 	}
-	
+
 	// Compute hash for any supported type
-	template<typename T>
+	template <typename T>
 	FORCEINLINE uint32 ComputeHash(const T& Value)
 	{
 		return PCGExTypeOps::FTypeOps<T>::Hash(Value);
 	}
-	
+
 	// Check if two values are equal
-	template<typename T>
+	template <typename T>
 	FORCEINLINE bool AreEqual(const T& A, const T& B)
 	{
 		return A == B;
 	}
-	
+
 	// Lerp between values
-	template<typename T>
+	template <typename T>
 	FORCEINLINE T Lerp(const T& A, const T& B, double Alpha)
 	{
 		return PCGExTypeOps::FTypeOps<T>::Lerp(A, B, Alpha);
 	}
-	
+
 	// Clamp to min/max
-	template<typename T>
+	template <typename T>
 	FORCEINLINE T Clamp(const T& Value, const T& MinVal, const T& MaxVal)
 	{
 		T Result = PCGExTypeOps::FTypeOps<T>::Max(Value, MinVal);
 		return PCGExTypeOps::FTypeOps<T>::Min(Result, MaxVal);
+	}
+
+	template <typename T>
+	FORCEINLINE T Abs(const T& A)
+	{
+		return PCGExTypeOps::FTypeOps<T>::Abs(A);
+	}
+
+	template <typename T>
+	FORCEINLINE T Factor(const T& A, const double Factor)
+	{
+		return PCGExTypeOps::FTypeOps<T>::Factor(A, Factor);
 	}
 }
 

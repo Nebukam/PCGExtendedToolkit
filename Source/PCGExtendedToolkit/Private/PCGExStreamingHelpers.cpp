@@ -12,6 +12,7 @@
 #include "Async/Async.h"
 #include "Async/ParallelFor.h"
 #include "UObject/SoftObjectPath.h"
+#include "Engine/StreamableManager.h"
 
 namespace PCGExHelpers
 {
