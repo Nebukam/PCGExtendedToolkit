@@ -485,11 +485,16 @@ namespace PCGExData
 
 		if (LastInit == EIOInit::Forward && Out == In && OriginalIn)
 		{
-			TargetContext->StageOutput(const_cast<UPCGData*>(OriginalIn), OutputPin, Tags->Flatten(), false, false, bPinless);
+			TargetContext->StageOutput(const_cast<UPCGData*>(OriginalIn), OutputPin, bPinless ? EStaging::Pinless : EStaging::None, Tags->Flatten());
 		}
 		else
 		{
-			TargetContext->StageOutput(Out, OutputPin, Tags->Flatten(), Out != In, bMutable, bPinless);
+			const EStaging Staging =
+				(Out != In ? EStaging::Managed : EStaging::None) |
+				(bMutable ? EStaging::Mutable : EStaging::None) |
+				(bPinless ? EStaging::Pinless : EStaging::None);
+
+			TargetContext->StageOutput(Out, OutputPin, Staging, Tags->Flatten());
 		}
 
 		return true;
@@ -519,10 +524,8 @@ namespace PCGExData
 				UPCGData* MutableData = const_cast<UPCGData*>(InitializationData.Get());
 				if (!MutableData) { return false; }
 
-				FPCGTaggedData& StagedData = TargetContext->StageOutput(MutableData, false, false);
-				StagedData.Pin = OutputPin;
-				Tags->DumpTo(StagedData.Tags);
-				StagedData.bPinlessData = bPinless;
+				const EStaging Staging = (bPinless ? EStaging::Pinless : EStaging::None);
+				TargetContext->StageOutput(MutableData, OutputPin, Staging, Tags->Flatten());
 
 				return true;
 			}

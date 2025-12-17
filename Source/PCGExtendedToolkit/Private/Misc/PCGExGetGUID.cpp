@@ -75,8 +75,7 @@ bool FPCGExGetGUIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSet
 
 			GuidData->Metadata->AddEntry();
 
-			FPCGTaggedData& StagedData = Context->StageOutput(GuidData, true);
-			StagedData.Pin = FName("GUID");
+			Context->StageOutput(GuidData, FName("GUID"), PCGExData::EStaging::Managed);
 		}
 
 		Context->Done();

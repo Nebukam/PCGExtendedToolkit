@@ -151,23 +151,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="ISMDescriptor"))
 	FPCGExStaticMeshComponentDescriptor SMDescriptor;
 
-	virtual void ClearSubCollection() override
-	{
-		FPCGExAssetCollectionEntry::ClearSubCollection();
-		SubCollection = nullptr;
-	}
-
-	bool Matches(const FPCGMeshInstanceList& InstanceList) const
-	{
-		// TODO : This is way too weak
-		return InstanceList.Descriptor.StaticMesh == ISMDescriptor.StaticMesh;
-	}
-
-	bool SameAs(const FPCGExMeshCollectionEntry& Other) const
-	{
-		return SubCollection == Other.SubCollection && Weight == Other.Weight && Category == Other.Category && StaticMesh == Other.StaticMesh;
-	}
-
+	virtual void ClearSubCollection() override;
+	
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 
 	virtual void GetMaterialPaths(const int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const;
