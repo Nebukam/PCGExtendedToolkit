@@ -158,7 +158,7 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 
 	if (AmpRangeBuffer)
 	{
-		AmpRangeBuffer->SetValue(Node.PointIndex, Config.bAbsoluteRange ? PCGExMath::Abs(AmplitudeRange) : AmplitudeRange);
+		AmpRangeBuffer->SetValue(Node.PointIndex, Config.bAbsoluteRange ? PCGExTypes::Abs(AmplitudeRange) : AmplitudeRange);
 	}
 	if (AmpRangeLengthBuffer) { AmpRangeLengthBuffer->SetValue(Node.PointIndex, AmplitudeRange.Length()); }
 

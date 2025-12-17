@@ -149,6 +149,9 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W > 0.5 ? B : A; }
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
+		
+		static FORCEINLINE Type Abs(const Type& A) { return A; }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return FMath::IsNearlyZero(Factor) ? false : A; }
 
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
@@ -257,6 +260,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			return static_cast<double>(*static_cast<const Type*>(Value));
@@ -362,6 +368,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			return static_cast<double>(*static_cast<const Type*>(Value));
@@ -467,6 +476,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			return static_cast<double>(*static_cast<const Type*>(Value));
@@ -572,6 +584,9 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
+		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
+		
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			return static_cast<double>(*static_cast<const Type*>(Value));

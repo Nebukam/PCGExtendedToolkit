@@ -6,7 +6,6 @@
 #include "PCGExInstancedFactory.h"
 #include "PCGExSettings.h"
 #include "Helpers/PCGSettingsHelpers.h"
-#include "Transform/PCGExNormalize.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

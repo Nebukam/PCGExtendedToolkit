@@ -201,8 +201,8 @@ namespace PCGExReversePointOrder
 					PCGEX_SCOPE_LOOP(Index)
 					{
 						const T_REAL FirstValue = FirstWriter->GetValue(Index);
-						FirstWriter->SetValue(Index, PCGExMath::DblMult(SecondWriter->GetValue(Index), -1));
-						SecondWriter->SetValue(Index, PCGExMath::DblMult(FirstValue, -1));
+						FirstWriter->SetValue(Index, PCGExTypes::Factor(SecondWriter->GetValue(Index), -1));
+						SecondWriter->SetValue(Index, PCGExTypes::Factor(FirstValue, -1));
 					}
 				}
 				else

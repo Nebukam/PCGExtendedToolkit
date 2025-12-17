@@ -115,6 +115,9 @@ namespace PCGExTypeOps
 		// Weight/Average accumulation helpers
 		virtual void BlendWeight(const void* A, const void* B, double Weight, void* Out) const = 0;
 		virtual void NormalizeWeight(const void* A, double TotalWeight, void* Out) const = 0;
+
+		virtual void Abs(const void* A, void* Out) const = 0;
+		virtual void Factor(const void* A, const double Factor, void* Out) const = 0;
 	};
 
 	// Type Operations Registry

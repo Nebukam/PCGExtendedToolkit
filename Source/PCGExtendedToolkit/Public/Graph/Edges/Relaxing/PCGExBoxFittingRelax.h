@@ -7,6 +7,7 @@
 #include "PCGExFittingRelaxBase.h"
 #include "PCGExMath.h"
 #include "PCGExRelaxClusterOperation.h"
+#include "PCGExTypes.h"
 
 
 #include "PCGExBoxFittingRelax.generated.h"
@@ -80,7 +81,7 @@ public:
 			if (Distance <= KINDA_SMALL_NUMBER) { continue; }
 
 			// Overlap resolution
-			FVector OverlapSize = CurrentBox.GetExtent() + OtherBox.GetExtent() - PCGExMath::Abs(Delta);
+			FVector OverlapSize = CurrentBox.GetExtent() + OtherBox.GetExtent() - PCGExTypes::Abs(Delta);
 
 			AddDelta(OtherNode->Index, Node.Index, (RepulsionConstant * OverlapSize * (Delta / Distance)));
 		}
