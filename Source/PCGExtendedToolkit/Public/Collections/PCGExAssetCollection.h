@@ -305,31 +305,16 @@ namespace PCGExAssetCollection
 		TSharedPtr<FCategory> Main;
 		TMap<FName, TSharedPtr<FCategory>> Categories;
 
-		explicit FCache()
-		{
-			Main = MakeShared<FCategory>(NAME_None);
-		}
+		explicit FCache();
+		~FCache() = default;
 
-		~FCache()
-		{
-		}
-
-		bool IsEmpty() const
-		{
-			return Main ? Main->IsEmpty() : true;
-		}
+		FORCEINLINE bool IsEmpty() const { return Main ? Main->IsEmpty() : true; }
 
 		void Compile();
 		void RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry);
 	};
 
 #pragma region Staging bounds update
-
-
-	void GetBoundingBoxBySpawning(const TSoftClassPtr<AActor>& InActorClass, FVector& Origin, FVector& BoxExtent, const bool bOnlyCollidingComponents = true, const bool bIncludeFromChildActors = true);
-
-	void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const TSoftClassPtr<AActor>& InActor, const bool bOnlyCollidingComponents = true, const bool bIncludeFromChildActors = true);
-	void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const UStaticMesh* InMesh);
 
 #pragma endregion
 }

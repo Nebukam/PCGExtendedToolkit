@@ -95,10 +95,9 @@ bool FPCGExIterationsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 			Metadata->AddEntry();
 
-			FPCGTaggedData& StagedData = Context->StageOutput(Data, false, false);
-			StagedData.Pin = OutputLabel;
-			StagedData.Tags.Add(FString::Printf(TEXT("Iteration:%u"), i));
-			StagedData.Tags.Add(NumIterationsTag);
+			Context->StageOutput(
+				Data, OutputLabel, PCGExData::EStaging::None,
+				{FString::Printf(TEXT("Iteration:%u"), i), NumIterationsTag});
 		}
 	}
 	else
@@ -119,10 +118,9 @@ bool FPCGExIterationsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		for (int i = 0; i < NumIterations; i++)
 		{
-			FPCGTaggedData& StagedData = Context->StageOutput(Data, false, false);
-			StagedData.Pin = OutputLabel;
-			StagedData.Tags.Add(FString::Printf(TEXT("Iteration:%u"), i));
-			StagedData.Tags.Add(NumIterationsTag);
+			Context->StageOutput(
+				Data, OutputLabel, PCGExData::EStaging::None,
+				{FString::Printf(TEXT("Iteration:%u"), i), NumIterationsTag});
 		}
 	}
 

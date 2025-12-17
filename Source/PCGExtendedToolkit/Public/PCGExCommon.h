@@ -97,6 +97,17 @@ namespace PCGExData
 		Out
 	};
 
+	enum class EStaging : uint8
+	{
+		None              = 0,
+		Managed           = 1 << 0,
+		Mutable           = 1 << 1,
+		Pinless           = 1 << 2,
+		MutableAndManaged = Managed | Mutable
+	};
+
+	ENUM_CLASS_FLAGS(EStaging)
+
 	struct FTaggedData
 	{
 		const UPCGData* Data = nullptr;

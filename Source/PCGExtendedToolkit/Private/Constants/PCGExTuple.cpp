@@ -328,8 +328,7 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 		}
 	}
 
-	FPCGTaggedData& StagedData = Context->StageOutput(TupleData, true);
-	StagedData.Pin = FName("Tuple");
+	Context->StageOutput(TupleData, FName("Tuple"));
 
 	Context->Done();
 	return Context->TryComplete();

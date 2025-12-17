@@ -216,9 +216,9 @@ namespace PCGExCreateSpline
 		TProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Output();
 
 		// Output spline data
-		FPCGTaggedData& StagedData = Context->StageOutput(SplineData, true, false);
-		StagedData.Pin = Settings->GetMainOutputPin();
-		PointDataFacade->Source->Tags->DumpTo(StagedData.Tags);
+		Context->StageOutput(
+			SplineData, Settings->GetMainOutputPin(), PCGExData::EStaging::Managed,
+			PointDataFacade->Source->Tags->Flatten());
 
 		// Output spline component
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)

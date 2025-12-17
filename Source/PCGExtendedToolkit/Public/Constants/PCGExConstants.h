@@ -152,8 +152,7 @@ protected:
 		FPCGMetadataAttribute<T>* Attrib = OutputData->Metadata->CreateAttribute<T>(InName, InValue, true, false);
 		Attrib->SetValue(OutputData->Metadata->AddEntry(), InValue);
 
-		FPCGTaggedData& StagedData = InContext->StageOutput(OutputData, true);
-		StagedData.Pin = InName;
+		InContext->StageOutput(OutputData, InName, PCGExData::EStaging::Managed);
 	}
 
 public:

@@ -153,8 +153,7 @@ bool FPCGExFactoryProviderElement::AdvanceWork(FPCGExContext* InContext, const U
 	FPCGAttributeIdentifier CacheInvalidation(FName("PCGEx/CRC"), PCGMetadataDomainID::Data);
 	Context->OutFactory->Metadata->CreateAttribute<int32>(CacheInvalidation, Settings->InternalCacheInvalidator, false, false);
 
-	FPCGTaggedData& StagedData = Context->StageOutput(Context->OutFactory, false);
-	StagedData.Pin = Settings->GetMainOutputPin();
+	Context->StageOutput(Context->OutFactory, Settings->GetMainOutputPin());
 
 	return Context->TryComplete();
 }

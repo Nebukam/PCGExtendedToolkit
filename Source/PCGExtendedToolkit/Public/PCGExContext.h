@@ -39,9 +39,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
 	friend class IPCGExElement;
 
-protected:
+protected:	
+	mutable FRWLock StagingLock;
+	TArray<FPCGTaggedData> StagedData;
+	
 	mutable FRWLock AsyncLock;
-	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetsLock;
 
 	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
@@ -65,11 +67,9 @@ public:
 #pragma region Output Data
 
 	bool bFlattenOutput = false;
-
+	
 	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
-	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable);
-	void StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless);
-	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged);
+	void StageOutput(UPCGData* InData, const FName& InPin, const PCGExData::EStaging Staging = PCGExData::EStaging::None, const TSet<FString>& InTags = {});
 
 #pragma endregion
 
