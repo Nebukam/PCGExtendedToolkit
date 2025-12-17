@@ -4,7 +4,6 @@
 #include "Geometry/PCGExGeoTasks.h"
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGExMT.h"
 #include "Transform/PCGExFitting.h"
 #include "Data/PCGExPointIO.h"

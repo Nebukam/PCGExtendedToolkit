@@ -5,6 +5,7 @@
 #include "Details/PCGExDetailsSubdivision.h"
 
 #include "PCGExMath.h"
+#include "PCGExTypes.h"
 #include "Details/PCGExDetailsSettings.h"
 
 
@@ -30,7 +31,7 @@ bool FPCGExManhattanDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCG
 	}
 	else
 	{
-		GridSize = PCGExMath::Abs(GridSize);
+		GridSize = PCGExTypes::Abs(GridSize);
 		//GridIntSize = FIntVector3(FMath::Floor(GridSize.X), FMath::Floor(GridSize.Y), FMath::Floor(GridSize.Z));
 		GridSizeBuffer = PCGExDetails::MakeSettingValue(GridSize);
 		if (SpaceAlign == EPCGExManhattanAlign::Custom) { OrientBuffer = PCGExDetails::MakeSettingValue(OrientConstant); }
@@ -87,8 +88,8 @@ int32 FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVecto
 	}
 	else
 	{
-		FVector Subdivs = PCGExMath::Abs(GridSizeBuffer->Read(Index));
-		FVector Maxes = PCGExMath::Abs(DirectionAndSize);
+		FVector Subdivs = PCGExTypes::Abs(GridSizeBuffer->Read(Index));
+		FVector Maxes = PCGExTypes::Abs(DirectionAndSize);
 		if (Method == EPCGExManhattanMethod::GridCount)
 		{
 			Subdivs = FVector(FMath::Floor(Maxes.X / Subdivs.X), FMath::Floor(Maxes.Y / Subdivs.Y), FMath::Floor(Maxes.Z / Subdivs.Z));

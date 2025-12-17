@@ -3,7 +3,10 @@
 
 #pragma once
 
-#include "PCGExMath.h"
+#include "CoreMinimal.h"
+#include "Math/RandomStream.h"
+
+#include "PCGExRandom.generated.h"
 
 class UPCGComponent;
 class UPCGSettings;

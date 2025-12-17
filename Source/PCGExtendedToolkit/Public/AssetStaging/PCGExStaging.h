@@ -20,6 +20,7 @@ namespace PCGExMeshCollection
 
 
 struct FPCGExActorCollectionEntry;
+struct FStreamableHandle;
 struct FPCGExAssetCollectionEntry;
 struct FPCGMeshInstanceList;
 struct FPCGContext;

@@ -448,7 +448,6 @@ namespace PCGExWritePathProperties
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-
 		virtual void CompleteWork() override;
 		virtual void Output() override;
 	};

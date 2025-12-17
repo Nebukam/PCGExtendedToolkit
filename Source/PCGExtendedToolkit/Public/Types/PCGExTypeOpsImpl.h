@@ -257,6 +257,16 @@ namespace PCGExTypeOps
 			*static_cast<T*>(Out) = TypeOps::NormalizeWeight(*static_cast<const T*>(A), TotalWeight);
 		}
 
+		virtual void Abs(const void* A, void* Out) const override
+		{
+			*static_cast<T*>(Out) = TypeOps::Abs(*static_cast<const T*>(A));
+		}
+
+		virtual void Factor(const void* A, const double Factor, void* Out) const override
+		{
+			*static_cast<T*>(Out) = TypeOps::Factor(*static_cast<const T*>(A), Factor);
+		}
+
 		//~ End ITypeOpsBase interface
 
 		//Static instance accessor
@@ -386,4 +396,7 @@ namespace PCGExTypeOps
 
 	template <typename T>
 	const ITypeOpsBase* FTypeOpsRegistry::Get() { return &TTypeOpsImpl<T>::GetInstance(); }
+
+	template <typename T>
+	EPCGMetadataTypes FTypeOpsRegistry::GetTypeId() { return &TTypeOpsImpl<T>::GetTypeId(); }
 }

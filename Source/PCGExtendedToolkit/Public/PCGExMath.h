@@ -175,47 +175,6 @@ namespace PCGExMath
 	}
 
 	template <typename T>
-	FORCEINLINE static T Abs(const T& A)
-	{
-		if constexpr (std::is_same_v<T, bool>)
-		{
-			return A;
-		}
-		else if constexpr (std::is_same_v<T, FVector2D>)
-		{
-			return FVector2D(FMath::Abs(A.X), FMath::Abs(A.Y));
-		}
-		else if constexpr (std::is_same_v<T, FVector>)
-		{
-			return FVector(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z));
-		}
-		else if constexpr (std::is_same_v<T, FVector4>)
-		{
-			return FVector4(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z), FMath::Abs(A.W));
-		}
-		else if constexpr (std::is_same_v<T, FQuat>)
-		{
-			return Abs(A.Rotator()).Quaternion().GetNormalized();
-		}
-		else if constexpr (std::is_same_v<T, FRotator>)
-		{
-			return FRotator(FMath::Abs(A.Pitch), FMath::Abs(A.Yaw), FMath::Abs(A.Roll));
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			return FTransform(Abs(A.GetRotation()), Abs(A), Abs(A.GetScale3D()));
-		}
-		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
-		{
-			return Max(A, A);
-		}
-		else
-		{
-			return FMath::Abs(A);
-		}
-	}
-
-	template <typename T>
 	FORCEINLINE static int SignPlus(const T& InValue)
 	{
 		const int Sign = FMath::Sign(InValue);
@@ -309,38 +268,6 @@ namespace PCGExMath
 		return FVector(Round10(A.X), Round10(A.Y), Round10(A.Z));
 	}
 
-
-#pragma endregion
-
-#pragma region DoubleMult
-
-	template <typename T, typename CompilerSafety = void>
-	FORCEINLINE static T DblMult(const T& A, const double M)
-	{
-		if constexpr (std::is_same_v<T, FQuat>)
-		{
-			return (A.Rotator() * M).Quaternion();
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			return FTransform((A.Rotator() * M).Quaternion(), A.GetLocation() * M, A.GetScale3D() * M);
-		}
-		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
-		{
-			return A;
-		}
-		else
-		{
-			return A * M;
-		}
-	}
-
-	// For some reason if constexpr (std::is_same_v<T, bool>) refused to compile in the branching above
-	template <typename CompilerSafety = void>
-	FORCEINLINE static bool DblMult(const bool& A, const double M)
-	{
-		return M > 0 ? A : false;
-	}
 
 #pragma endregion
 
