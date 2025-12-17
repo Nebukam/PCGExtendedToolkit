@@ -48,7 +48,7 @@ namespace PCGExPCGDataAssetCollection
 	};
 }
 
-USTRUCT(Hidden, BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection Entry")
+USTRUCT(BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
