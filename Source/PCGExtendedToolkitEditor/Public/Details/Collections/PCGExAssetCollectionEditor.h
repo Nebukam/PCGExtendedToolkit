@@ -24,6 +24,7 @@ namespace PCGExAssetCollectionEditor
 		TSharedPtr<SWidget> Header = nullptr;
 		TSharedPtr<SWidget> View = nullptr;
 		TSharedPtr<SWidget> Footer = nullptr;
+		TWeakPtr<SWidget> WeakView = nullptr;
 		FName Label = NAME_None;
 		ETabRole Role = MajorTab;
 		FString Icon = TEXT("");
