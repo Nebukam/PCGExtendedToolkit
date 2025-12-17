@@ -287,70 +287,9 @@ namespace PCGExAssetCollection
 		}
 	}
 
-	void GetBoundingBoxBySpawning(const TSoftClassPtr<AActor>& InActorClass, FVector& Origin, FVector& BoxExtent, const bool bOnlyCollidingComponents, const bool bIncludeFromChildActors)
+	FCache::FCache()
 	{
-#if WITH_EDITOR
-		UWorld* World = GWorld;
-		if (!World)
-		{
-			UE_LOG(LogPCGEx, Error, TEXT("No world to compute actor bounds!"));
-			return;
-		}
-
-		if (IsInGameThread())
-		{
-			UClass* ActorClass = InActorClass.LoadSynchronous();
-			if (!ActorClass) { return; }
-
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.bNoFail = true;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			AActor* TempActor = World->SpawnActor<AActor>(ActorClass, FTransform(), SpawnParams);
-			if (!TempActor)
-			{
-				UE_LOG(LogPCGEx, Error, TEXT("Failed to create temp actor!"));
-				return;
-			}
-
-			// Compute the bounds
-			TempActor->GetActorBounds(bOnlyCollidingComponents, Origin, BoxExtent, bIncludeFromChildActors);
-
-			// Hide the actor to ensure it doesn't affect gameplay or rendering
-			TempActor->SetActorHiddenInGame(true);
-			TempActor->SetActorEnableCollision(false);
-
-			// Destroy the temporary actor
-			TempActor->Destroy();
-		}
-		else
-		{
-			// If this throw, it's because a collection has been initialized outside of game thread, which is bad.
-			UE_LOG(LogPCGEx, Error, TEXT("GetBoundingBoxBySpawning executed outside of game thread."));
-		}
-#else
-		UE_LOG(LogPCGEx, Error, TEXT("GetBoundingBoxBySpawning called in non-editor context."));
-#endif
-	}
-
-	void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const TSoftClassPtr<AActor>& InActor, const bool bOnlyCollidingComponents, const bool bIncludeFromChildActors)
-	{
-		FVector Origin = FVector::ZeroVector;
-		FVector Extents = FVector::ZeroVector;
-		GetBoundingBoxBySpawning(InActor, Origin, Extents, bOnlyCollidingComponents, bIncludeFromChildActors);
-
-		InStaging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
-	}
-
-	void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const UStaticMesh* InMesh)
-	{
-		if (!InMesh)
-		{
-			InStaging.Bounds = FBox(ForceInit);
-			return;
-		}
-
-		InStaging.Bounds = InMesh->GetBoundingBox();
+		Main = MakeShared<FCategory>(NAME_None);
 	}
 
 	void FCache::Compile()

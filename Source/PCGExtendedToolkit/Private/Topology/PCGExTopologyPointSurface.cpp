@@ -10,6 +10,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Async/ParallelFor.h"
+#include "Data/PCGExDataTag.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE TopologyPointSurface
@@ -220,8 +221,9 @@ namespace PCGExTopologyPointSurface
 
 		if (InternalMeshData)
 		{
-			TSet<FString> MeshTags;
-			Context->StageOutput(InternalMeshData, PCGExTopology::MeshOutputLabel, MeshTags, true, false, false);
+			Context->StageOutput(
+				InternalMeshData, PCGExTopology::MeshOutputLabel, PCGExData::EStaging::Managed,
+				PointDataFacade->Source->Tags->Flatten());
 		}
 	}
 }

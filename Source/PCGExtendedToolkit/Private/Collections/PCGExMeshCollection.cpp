@@ -116,6 +116,12 @@ namespace PCGExMeshCollection
 	}
 }
 
+void FPCGExMeshCollectionEntry::ClearSubCollection()
+{
+	FPCGExAssetCollectionEntry::ClearSubCollection();
+	SubCollection = nullptr;
+}
+
 void FPCGExMeshCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
 	FPCGExAssetCollectionEntry::GetAssetPaths(OutPaths);
@@ -301,17 +307,19 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 	Staging.Path = StaticMesh.ToSoftObjectPath();
 
 	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
-	
-	const UStaticMesh* M = StaticMesh.Get();
-	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
 
-	if (M)
+	if (const UStaticMesh* M = StaticMesh.Get())
 	{
+		Staging.Bounds = M->GetBoundingBox();
 		for (const TObjectPtr<UStaticMeshSocket>& MSocket : M->Sockets)
 		{
 			FPCGExSocket& NewSocket = Staging.Sockets.Emplace_GetRef(MSocket->SocketName, MSocket->RelativeLocation, MSocket->RelativeRotation, MSocket->RelativeScale, MSocket->Tag);
 			NewSocket.bManaged = true;
 		}
+	}
+	else
+	{
+		Staging.Bounds = FBox(ForceInit);
 	}
 
 	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
@@ -402,5 +410,11 @@ void UPCGExMeshCollection::EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMod
 void UPCGExMeshCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
 {
 	Super::EDITOR_RegisterTrackingKeys(Context);
-	for (const FPCGExMeshCollectionEntry& Entry : Entries) { if (Entry.bIsSubCollection && Entry.SubCollection) { Entry.SubCollection->EDITOR_RegisterTrackingKeys(Context); } }
+	for (const FPCGExMeshCollectionEntry& Entry : Entries)
+	{
+		if (Entry.bIsSubCollection && Entry.SubCollection)
+		{
+			Entry.SubCollection->EDITOR_RegisterTrackingKeys(Context);
+		}
+	}
 }

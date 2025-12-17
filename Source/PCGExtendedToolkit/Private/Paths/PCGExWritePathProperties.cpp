@@ -84,22 +84,23 @@ bool FPCGExWritePathPropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         if (Context->PathAttributeSet)
-			                                         {
-				                                         Context->MergedAttributeSetKeys[Entry->IOIndex] = Context->PathAttributeSet->Metadata->AddEntry();
-			                                         }
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
+				if (Context->PathAttributeSet)
+				{
+					Context->MergedAttributeSetKeys[Entry->IOIndex] = Context->PathAttributeSet->Metadata->AddEntry();
+				}
 
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}
@@ -111,8 +112,7 @@ bool FPCGExWritePathPropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 
 	if (Context->PathAttributeSet)
 	{
-		FPCGTaggedData& StagedData = Context->StageOutput(Context->PathAttributeSet, false, false);
-		StagedData.Pin = PCGExWritePathProperties::OutputPathProperties;
+		Context->StageOutput(Context->PathAttributeSet, PCGExWritePathProperties::OutputPathProperties);
 	}
 
 	Context->MainBatch->Output();
@@ -317,8 +317,7 @@ namespace PCGExWritePathProperties
 		TProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>::Output();
 		if (PathAttributeSet && !Context->PathAttributeSet)
 		{
-			FPCGTaggedData& StagedData = Context->StageOutput(PathAttributeSet, false, false);
-			StagedData.Pin = OutputPathProperties;
+			Context->StageOutput(PathAttributeSet, OutputPathProperties);
 		}
 
 		if (PCGExPaths::FInclusionInfos Infos; Settings->bUseInclusionPins && Context->InclusionHelper && Context->InclusionHelper->Find(Path->Idx, Infos))
@@ -326,20 +325,17 @@ namespace PCGExWritePathProperties
 			if (!Infos.Depth)
 			{
 				Context->NumOuter++;
-				FPCGTaggedData& StagedData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
-				StagedData.Pin = OutputPathOuter;
+				Context->StageOutput(PointDataFacade->GetOut(), OutputPathOuter);
 			}
 			else
 			{
 				Context->NumInner++;
-				FPCGTaggedData& InnerData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
-				InnerData.Pin = OutputPathInner;
+				Context->StageOutput(PointDataFacade->GetOut(), OutputPathInner);
 
 				if (Infos.bOdd && (!Settings->bOuterIsNotOdd || Infos.Depth > 0))
 				{
 					Context->NumOdd++;
-					FPCGTaggedData& StagedData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
-					StagedData.Pin = OutputPathMedian;
+					Context->StageOutput(PointDataFacade->GetOut(), OutputPathMedian);
 				}
 			}
 		}

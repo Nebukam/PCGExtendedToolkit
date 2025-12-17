@@ -224,7 +224,7 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 		}
 	}
 
-	Context->StageOutput(ParamData, true, true);
+	Context->StageOutput(ParamData, Settings->GetMainOutputPin(), PCGExData::EStaging::MutableAndManaged);
 	Context->Done();
 	return Context->TryComplete();
 }

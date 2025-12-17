@@ -64,10 +64,9 @@ bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		{
 			UPCGData* OutputCopy = Context->ManagedObjects->DuplicateData<UPCGData>(IO->InitializationData);
 			PCGExDataHelpers::SetDataValue<int32>(OutputCopy, Settings->OutputName, Context->Hashes[Idx]);
-			FPCGTaggedData& OutData = Context->StageOutput(OutputCopy, true, true);
-
-			OutData.Tags = IO->Tags->Flatten();
-			OutData.Pin = Settings->GetMainOutputPin();
+			Context->StageOutput(
+				OutputCopy, Settings->GetMainInputPin(), PCGExData::EStaging::MutableAndManaged,
+				IO->Tags->Flatten());
 		}
 		else
 		{

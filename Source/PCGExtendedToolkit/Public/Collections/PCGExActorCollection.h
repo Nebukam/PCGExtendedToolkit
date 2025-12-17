@@ -21,6 +21,11 @@ namespace PCGExAssetCollection
 
 class UPCGExActorCollection;
 
+namespace PCGExActorCollection
+{
+	void GetBoundingBoxBySpawning(const TSoftClassPtr<AActor>& InActorClass, FVector& Origin, FVector& BoxExtent, const bool bOnlyCollidingComponents = true, const bool bIncludeFromChildActors = true);
+}
+
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Actor Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCollectionEntry
 {
@@ -42,17 +47,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExActorCollection> SubCollection;
 
-	virtual void ClearSubCollection() override
-	{
-		FPCGExAssetCollectionEntry::ClearSubCollection();
-		SubCollection = nullptr;
-	}
-
-	bool SameAs(const FPCGExActorCollectionEntry& Other) const
-	{
-		return SubCollection == Other.SubCollection && Weight == Other.Weight && Category == Other.Category && Actor == Other.Actor;
-	}
-
+	virtual void ClearSubCollection() override;
+		
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
@@ -64,6 +60,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
+	
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")

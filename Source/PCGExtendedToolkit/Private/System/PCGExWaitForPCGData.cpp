@@ -705,14 +705,14 @@ namespace PCGExWaitForPCGData
 				{
 					if (Settings->bOutputRoaming)
 					{
-						Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->RoamingPin, DataTags, false, false, false);
+						Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->RoamingPin, PCGExData::EStaging::None, DataTags);
 
 						// const_cast is fine here, we don't modify the data.
 					}
 					continue;
 				}
 
-				Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), TaggedData.Pin, DataTags, false, false, false);
+				Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), TaggedData.Pin, PCGExData::EStaging::None, DataTags);
 			}
 		}
 		else
@@ -734,12 +734,12 @@ namespace PCGExWaitForPCGData
 					{
 						if (Settings->bOutputRoaming)
 						{
-							Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->RoamingPin, DataTags, false, false, false);
+							Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->RoamingPin, PCGExData::EStaging::None, DataTags);
 						}
 						continue;
 					}
 
-					Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), TaggedData.Pin, DataTags, false, false, false);
+					Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), TaggedData.Pin, PCGExData::EStaging::None, DataTags);
 				}
 			}
 		}

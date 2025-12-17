@@ -167,9 +167,9 @@ namespace PCGExTopologyPathSurface
 
 		if (InternalMeshData)
 		{
-			TSet<FString> MeshTags;
-			PointDataFacade->Source->Tags->DumpTo(MeshTags);
-			Context->StageOutput(InternalMeshData, PCGExTopology::MeshOutputLabel, MeshTags, true, false, false);
+			Context->StageOutput(
+				InternalMeshData, PCGExTopology::MeshOutputLabel, PCGExData::EStaging::Managed,
+				PointDataFacade->Source->Tags->Flatten());
 		}
 	}
 }
