@@ -5,15 +5,12 @@
 
 #include <functional>
 #include "CoreMinimal.h"
-#include "Metadata/PCGMetadataCommon.h"
 #include "PCGExMath.h"
+#include "Metadata/PCGMetadataCommon.h"
 
-#include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExOctree.h"
-#include "Components/SplineMeshComponent.h"
 #include "PCGExVersion.h"
 #include "Details/PCGExMacros.h"
-#include "Details/PCGExSettingsMacros.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
 #include "Utils/PCGValueRange.h"
@@ -23,14 +20,6 @@
 struct FPCGExContext;
 class UPCGPolygon2DData;
 struct FPCGSplineStruct;
-
-namespace ESplineMeshAxis
-{
-	enum Type : int;
-}
-
-struct FPCGExStaticMeshComponentDescriptor;
-struct FPCGExMeshCollectionEntry;
 class UPCGSplineData;
 
 namespace PCGExData
@@ -73,14 +62,6 @@ enum class EPCGExPathNormalDirection : uint8
 	Normal        = 0 UMETA(DisplayName = "Normal", ToolTip="..."),
 	Binormal      = 1 UMETA(DisplayName = "Binormal", ToolTip="..."),
 	AverageNormal = 2 UMETA(DisplayName = "Average Normal", ToolTip="..."),
-};
-
-UENUM()
-enum class EPCGExSplineMeshUpMode : uint8
-{
-	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant up vector"),
-	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Per-point attribute value"),
-	Tangents  = 2 UMETA(DisplayName = "From Tangents (Gimbal fix)", Tooltip="Automatically computed up vector from tangents to enforce gimbal fix")
 };
 
 
@@ -247,8 +228,6 @@ namespace PCGExPaths
 	const FPCGAttributeIdentifier ClosedLoopIdentifier = FPCGAttributeIdentifier(FName("IsClosed"), PCGMetadataDomainID::Data);
 	const FPCGAttributeIdentifier HoleIdentifier = FPCGAttributeIdentifier(FName("IsHole"), PCGMetadataDomainID::Data);
 
-	PCGEXTENDEDTOOLKIT_API void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
-
 	PCGEXTENDEDTOOLKIT_API void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
 
 	PCGEXTENDEDTOOLKIT_API void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop);
@@ -288,30 +267,6 @@ namespace PCGExPaths
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FSplineMeshSegment
-	{
-		FSplineMeshSegment()
-		{
-		}
-
-		bool bSetMeshWithSettings = false;
-		bool bSmoothInterpRollScale = true;
-		bool bUseDegrees = true;
-		FVector UpVector = FVector::UpVector;
-		TSet<FName> Tags;
-
-		ESplineMeshAxis::Type SplineMeshAxis = ESplineMeshAxis::Type::X;
-
-		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
-		int16 MaterialPick = -1;
-		FSplineMeshParams Params;
-
-		void ComputeUpVectorFromTangents();
-
-		void ApplySettings(USplineMeshComponent* Component) const;
-
-		bool ApplyMesh(USplineMeshComponent* Component) const;
-	};
 
 	struct FPathEdge
 	{
@@ -692,7 +647,7 @@ namespace PCGExPaths
 
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const override;
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override;
-		
+
 		void GetEdgeElements(const int32 EdgeIndex, PCGExData::FElement& OutEdge, PCGExData::FElement& OutEdgeStart, PCGExData::FElement& OutEdgeEnd) const;
 	};
 
@@ -755,63 +710,3 @@ namespace PCGExPaths
 		bool Find(const int32 Idx, FInclusionInfos& OutInfos) const;
 	};
 }
-
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
-{
-	GENERATED_BODY()
-
-	FPCGExSplineMeshMutationDetails() = default;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bPushStart = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPushStart", EditConditionHides))
-	EPCGExInputValueType StartPushInput = EPCGExInputValueType::Constant;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushStart && StartPushInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector StartPushInputAttribute;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double StartPushConstant = 0.1;
-
-	PCGEX_SETTING_VALUE_DECL(StartPush, double);
-
-	/** If enabled, value will relative to the size of the segment */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
-	bool bRelativeStart = true;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bPushEnd = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPushEnd", EditConditionHides))
-	EPCGExInputValueType EndPushInput = EPCGExInputValueType::Constant;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushEnd && EndPushInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector EndPushInputAttribute;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double EndPushConstant = 0.1;
-
-	PCGEX_SETTING_VALUE_DECL(EndPush, double);
-
-	/** If enabled, value will relative to the size of the segment */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))
-	bool bRelativeEnd = true;
-
-	bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-	void Mutate(const int32 PointIndex, PCGExPaths::FSplineMeshSegment& InSegment);
-
-protected:
-	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAmount;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> EndAmount;
-};

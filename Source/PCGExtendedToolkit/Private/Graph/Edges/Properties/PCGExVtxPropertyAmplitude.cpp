@@ -3,7 +3,6 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertyAmplitude.h"
 
-#include "PCGExMath.h"
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExDetailsSettings.h"

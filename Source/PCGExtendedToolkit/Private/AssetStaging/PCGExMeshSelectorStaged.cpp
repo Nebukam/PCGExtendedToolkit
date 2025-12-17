@@ -3,6 +3,7 @@
 
 #include "AssetStaging/PCGExMeshSelectorStaged.h"
 
+#include "PCGExLabels.h"
 #include "Data/PCGPointData.h"
 #include "Elements/PCGStaticMeshSpawnerContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"

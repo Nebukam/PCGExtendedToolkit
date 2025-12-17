@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExProxyDataBlending.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 namespace PCGExBlending
 {

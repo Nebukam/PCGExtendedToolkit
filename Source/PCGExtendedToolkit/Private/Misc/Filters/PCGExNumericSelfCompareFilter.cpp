@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExNumericSelfCompareFilter.h"
 
 #include "PCGExMath.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"

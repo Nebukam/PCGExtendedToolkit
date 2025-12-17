@@ -4,8 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExAttributeHelpers.h"
+#include "PCGExCommon.h"
+#include "Details/PCGExMacros.h"
+#include "Metadata/PCGAttributePropertySelector.h"
+#include "Types/PCGExAttributeIdentity.h"
 #include "UObject/Object.h"
+
+struct FPCGExContext;
 
 namespace PCGExMT
 {

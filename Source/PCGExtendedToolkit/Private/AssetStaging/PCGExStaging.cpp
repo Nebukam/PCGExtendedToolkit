@@ -4,16 +4,19 @@
 #include "AssetStaging/PCGExStaging.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 #include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Collections/PCGExMeshCollection.h"
+#include "Collections/PCGExPCGDataAssetCollection.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExStaging
 {
@@ -292,10 +295,12 @@ namespace PCGExStaging
 
 		return static_cast<C*>(Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
 	}
-
-	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
-	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
-	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExActorCollection, FPCGExActorCollectionEntry>;
+	
+#pragma region externalization
+#define PCGEX_TPL(_NAME, ...) template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGEx##_NAME##Collection, FPCGEx##_NAME##CollectionEntry>;
+	PCGEX_FORALL_COLLECTION_TYPE(PCGEX_TPL)
+#undef PCGEX_TPL
+#pragma endregion
 
 	template <typename C, typename A>
 	TDistributionHelper<C, A>::TDistributionHelper(C* InCollection, const FPCGExAssetDistributionDetails& InDetails)
@@ -427,10 +432,12 @@ namespace PCGExStaging
 		}
 	}
 
-	template class PCGEXTENDEDTOOLKIT_API TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
-	template class PCGEXTENDEDTOOLKIT_API TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
-	template class PCGEXTENDEDTOOLKIT_API TDistributionHelper<UPCGExActorCollection, FPCGExActorCollectionEntry>;
-
+#pragma region externalization
+#define PCGEX_TPL(_NAME, ...) template class PCGEXTENDEDTOOLKIT_API TDistributionHelper<UPCGEx##_NAME##Collection, FPCGEx##_NAME##CollectionEntry>;
+	PCGEX_FORALL_COLLECTION_TYPE(PCGEX_TPL)
+#undef PCGEX_TPL
+#pragma endregion
+	
 	IMicroDistributionHelper::IMicroDistributionHelper(const FPCGExMicroCacheDistributionDetails& InDetails)
 		: Details(InDetails)
 	{

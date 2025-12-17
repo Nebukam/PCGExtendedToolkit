@@ -149,6 +149,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 {
 	GENERATED_BODY()
 
+	FPCGExBitmaskRef() = default;
+	explicit FPCGExBitmaskRef(TObjectPtr<UPCGExBitmaskCollection> InSource, const FName InIdentifier);
+	
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TObjectPtr<UPCGExBitmaskCollection> Source;
 

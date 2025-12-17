@@ -4,15 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#if WITH_EDITOR
-#include "AssetRegistry/AssetData.h"
-#endif
-
 #include "PCGDataAsset.h"
+
+#include "PCGExCollectionHelpers.h"
 #include "PCGExAssetCollection.h"
-#include "Engine/DataAsset.h"
-#include "Engine/StaticMesh.h"
 #include "UObject/SoftObjectPath.h"
 
 #include "PCGExPCGDataAssetCollection.generated.h"
@@ -27,15 +22,12 @@ namespace PCGExPCGDataAssetCollection
 		TArray<int32> Weights;
 		TArray<int32> Order;
 
-		int32 HighestIndex = -1;
-
 	public:
 		FMicroCache() = default;
 
 		virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::PCGDataAsset; }
 
 		virtual int32 Num() const override { return Order.Num(); }
-		int32 GetHighestIndex() const { return HighestIndex; }
 
 		virtual int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const override;
 
@@ -55,6 +47,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExA
 
 	FPCGExPCGDataAssetCollectionEntry() = default;
 
+	virtual PCGExAssetCollection::EType GetType() const override { return FPCGExAssetCollectionEntry::GetType() | PCGExAssetCollection::EType::PCGDataAsset; }
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UPCGDataAsset> DataAsset = nullptr;
 
@@ -64,7 +58,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExA
 	virtual void ClearSubCollection() override;
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
-
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
 	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
@@ -94,8 +87,6 @@ public:
 #endif
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExPCGDataAssetCollection, FPCGExPCGDataAssetCollectionEntry)
-
-	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	TArray<FPCGExPCGDataAssetCollectionEntry> Entries;

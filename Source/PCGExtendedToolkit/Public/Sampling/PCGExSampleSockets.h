@@ -7,14 +7,19 @@
 #include "PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-#include "Collections/PCGExAssetLoader.h"
-#include "Collections/PCGExMeshCollection.h"
+#include "Details/PCGExDetailsStaging.h"
 
 #include "PCGExSampleSockets.generated.h"
 
 namespace PCGExStaging
 {
 	class FSocketHelper;
+}
+
+namespace PCGEx
+{
+	template<typename T>
+	class TAssetLoader;
 }
 
 /**

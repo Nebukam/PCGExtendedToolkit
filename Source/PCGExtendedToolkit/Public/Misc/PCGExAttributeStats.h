@@ -10,11 +10,11 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Types/PCGExAttributeIdentity.h"
 #include "Types/PCGExTypeTraits.h"
 
 #include "PCGExAttributeStats.generated.h"

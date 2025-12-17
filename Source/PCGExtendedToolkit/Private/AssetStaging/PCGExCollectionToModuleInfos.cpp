@@ -5,6 +5,7 @@
 
 
 #include "PCGGraph.h"
+#include "PCGParamData.h"
 #include "PCGPin.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExAssetCollection.h"

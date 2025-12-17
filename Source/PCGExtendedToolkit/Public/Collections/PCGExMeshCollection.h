@@ -5,13 +5,9 @@
 
 #include "CoreMinimal.h"
 
-#if WITH_EDITOR
-#include "AssetRegistry/AssetData.h"
-#endif
-
-#include "PCGExComponentDescriptors.h"
+#include "PCGExCollectionHelpers.h"
 #include "PCGExAssetCollection.h"
-#include "Engine/DataAsset.h"
+#include "PCGExComponentDescriptors.h"
 #include "ISMPartition/ISMComponentDescriptor.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 #include "Engine/StaticMesh.h"
@@ -116,6 +112,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	FPCGExMeshCollectionEntry() = default;
 
+	virtual PCGExAssetCollection::EType GetType() const override { return FPCGExAssetCollectionEntry::GetType() | PCGExAssetCollection::EType::Mesh; }
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMesh = nullptr;
 
@@ -152,7 +150,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	FPCGExStaticMeshComponentDescriptor SMDescriptor;
 
 	virtual void ClearSubCollection() override;
-	
+
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 
 	virtual void GetMaterialPaths(const int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const;
@@ -226,8 +224,6 @@ public:
 #endif
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExMeshCollection, FPCGExMeshCollectionEntry)
-
-	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	TArray<FPCGExMeshCollectionEntry> Entries;

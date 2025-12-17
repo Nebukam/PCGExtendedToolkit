@@ -10,11 +10,14 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
-
 
 #include "PCGExStringCompareFilter.generated.h"
 
+namespace PCGEx
+{
+	template <typename T>
+	class TAttributeBroadcaster;
+}
 
 USTRUCT(BlueprintType)
 struct FPCGExStringCompareFilterConfig

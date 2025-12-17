@@ -3,13 +3,15 @@
 
 #include "Sampling/PCGExSampleSockets.h"
 
+#include "Engine/StaticMesh.h"
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "AssetStaging/PCGExSocketStaging.h"
 #include "AssetStaging/PCGExStaging.h"
+#include "Collections/PCGExAssetLoader.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 

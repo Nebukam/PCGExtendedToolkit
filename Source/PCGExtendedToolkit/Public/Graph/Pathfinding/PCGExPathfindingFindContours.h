@@ -6,9 +6,8 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
-
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Topology/PCGExTopology.h"
+#include "Topology/PCGExCell.h"
 
 #include "PCGExPathfindingFindContours.generated.h"
 

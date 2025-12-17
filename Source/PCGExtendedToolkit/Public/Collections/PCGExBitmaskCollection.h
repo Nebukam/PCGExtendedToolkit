@@ -4,12 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "Engine/DataAsset.h"
-
-#if WITH_EDITOR
-#include "AssetRegistry/AssetData.h"
-#endif
 
 #include "Details/PCGExDetailsBitmask.h"
 

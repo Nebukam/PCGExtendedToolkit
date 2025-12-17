@@ -13,6 +13,7 @@
 #include "PCGExSubSystem.h"
 #include "Tasks/Task.h"
 #include "Async/Async.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"

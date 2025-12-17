@@ -5,10 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
-
 #include "PCGExSpatialTriage.generated.h"
 
 namespace PCGExSpatialTriage

@@ -8,7 +8,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExContext.h"
-#include "PCGExAttributeHelpers.h"
 #include "Metadata/PCGMetadataCommon.h"
 #include "PCGExHelpers.h"
 
@@ -16,6 +15,7 @@
 #include "PCGParamData.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 class UPCGMetadata;
 class FPCGMetadataAttributeBase;

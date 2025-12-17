@@ -9,7 +9,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 
-#include "Topology/PCGExTopology.h"
+#include "Topology/PCGExCell.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor
