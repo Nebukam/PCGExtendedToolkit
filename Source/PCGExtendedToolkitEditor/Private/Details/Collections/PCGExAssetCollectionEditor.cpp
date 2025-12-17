@@ -41,36 +41,33 @@ void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = true;
 
-	// Create a layout
+	CreateTabs(Tabs);
+
 	TSharedRef<FTabManager::FArea> Area =
 		FTabManager::NewPrimaryArea()
 		->SetOrientation(Orient_Horizontal);
 
-	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("PCGExAssetCollectionEditor_Layout_v1")
+	const TSharedRef<FTabManager::FLayout> Layout =
+		FTabManager::NewLayout("PCGExAssetCollectionEditor_Layout_v4")
 		->AddArea(Area);
 
-	CreateTabs(Tabs);
-
-	for (int i = 0; i < Tabs.Num(); i++)
-	{
-		Area->Split
-			(
-				FTabManager::NewStack()
-				->AddTab(Tabs[i].Id, ETabState::OpenedTab)
-				->SetForegroundTab(Tabs[i].Id)
-			);
-	}
+	TSharedRef<FTabManager::FStack> MainStack = FTabManager::NewStack();
+	// Add tabs in reverse order so asset comes first
+	for (int i = Tabs.Num()-1; i >= 0 ; i--) { MainStack->AddTab(Tabs[i].Id, ETabState::OpenedTab); }
+	Area->Split(MainStack);
+	
+	if (!Tabs.IsEmpty()) { MainStack->SetForegroundTab(Tabs.Last().Id); }
 
 	InitAssetEditor(EToolkitMode::Standalone, InitToolkitHost, FName("PCGExAssetCollectionEditor"), Layout, bCreateDefaultStandaloneMenu, bCreateDefaultToolbar, ObjectsToEdit);
 
 	// Toolbar extender
 	TSharedRef<FExtender> ToolbarExtender = MakeShared<FExtender>();
 	ToolbarExtender->AddToolBarExtension(
-			"Asset",
-			EExtensionHook::After,
-			GetToolkitCommands(),
-			FToolBarExtensionDelegate::CreateSP(this, &FPCGExAssetCollectionEditor::BuildEditorToolbar)
-		);
+		"Asset",
+		EExtensionHook::After,
+		GetToolkitCommands(),
+		FToolBarExtensionDelegate::CreateSP(this, &FPCGExAssetCollectionEditor::BuildEditorToolbar)
+	);
 
 	AddToolbarExtender(ToolbarExtender);
 	RegenerateMenusAndToolbars();
@@ -101,8 +98,8 @@ void FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>
 
 	PCGEX_DECL_ASSET_FILTER(Staging, "AssetEditor.Staging", "Staging", "Show/hide Staging")
 	Mapping.Add(FName("Staging"), Staging.Id);
-	
-	PCGEX_DECL_ASSET_FILTER(Grammar, "AssetEditor.Grammar", "Grammar", "Show/hide Grammar")	
+
+	PCGEX_DECL_ASSET_FILTER(Grammar, "AssetEditor.Grammar", "Grammar", "Show/hide Grammar")
 	Mapping.Add(FName("GrammarSource"), Grammar.Id);
 	Mapping.Add(FName("AssetGrammar"), Grammar.Id);
 	Mapping.Add(FName("SubGrammarMode"), Grammar.Id);
@@ -183,46 +180,46 @@ void FPCGExAssetCollectionEditor::BuildEditorToolbar(FToolBarBuilder& ToolbarBui
 		//PCGEX_SECTION_HEADER("Rebuild\nStaging")
 
 		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData(); }
-							})
-					),
-				NAME_None,
-				FText::FromString(TEXT("Rebuild")),
-				INVTEXT("Rebuild Staging for this asset collection."),
-				PCGEX_SLATE_ICON(RebuildStaging)
-			);
+			FUIAction(
+				FExecuteAction::CreateLambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData(); }
+					})
+			),
+			NAME_None,
+			FText::FromString(TEXT("Rebuild")),
+			INVTEXT("Rebuild Staging for this asset collection."),
+			PCGEX_SLATE_ICON(RebuildStaging)
+		);
 
 		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Recursive(); }
-							})
-					),
-				NAME_None,
-				FText::GetEmpty(), //FText::FromString(TEXT("Rebuild (Recursive)")),
-				INVTEXT("Rebuild staging recursively (this and all subcollections)."),
-				PCGEX_SLATE_ICON(RebuildStagingRecursive)
-			);
+			FUIAction(
+				FExecuteAction::CreateLambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Recursive(); }
+					})
+			),
+			NAME_None,
+			FText::GetEmpty(), //FText::FromString(TEXT("Rebuild (Recursive)")),
+			INVTEXT("Rebuild staging recursively (this and all subcollections)."),
+			PCGEX_SLATE_ICON(RebuildStagingRecursive)
+		);
 
 		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Project(); }
-							})
-					),
-				NAME_None,
-				FText::GetEmpty(), //FText::FromString(TEXT("Rebuild All (Project)")),
-				INVTEXT("Rebuild staging for the entire project. (Will go through all collection assets)"),
-				PCGEX_SLATE_ICON(RebuildStagingProject)
-			);
+			FUIAction(
+				FExecuteAction::CreateLambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Project(); }
+					})
+			),
+			NAME_None,
+			FText::GetEmpty(), //FText::FromString(TEXT("Rebuild All (Project)")),
+			INVTEXT("Rebuild staging for the entire project. (Will go through all collection assets)"),
+			PCGEX_SLATE_ICON(RebuildStagingProject)
+		);
 
 		ToolbarBuilder.AddSeparator();
 	}
@@ -239,18 +236,18 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 	ToolbarBuilder.BeginSection("AppendSection");
 	{
 		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_AddBrowserSelection(); }
-							})
-					),
-				NAME_None,
-				FText::GetEmpty(),
-				INVTEXT("Append the current content browser' selection to this collection."),
-				PCGEX_SLATE_ICON(AddContentBrowserSelection)
-			);
+			FUIAction(
+				FExecuteAction::CreateLambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_AddBrowserSelection(); }
+					})
+			),
+			NAME_None,
+			FText::GetEmpty(),
+			INVTEXT("Append the current content browser' selection to this collection."),
+			PCGEX_SLATE_ICON(AddContentBrowserSelection)
+		);
 	}
 	ToolbarBuilder.EndSection();
 
@@ -263,96 +260,96 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 		PCGEX_SECTION_HEADER("Weight")
 
 		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_NormalizedWeightToSum(); }
-							})
-					),
-				NAME_None,
-				FText::GetEmpty(),
-				INVTEXT("Normalize weight sum to 100"),
-				PCGEX_SLATE_ICON(NormalizeWeight)
-			);
+			FUIAction(
+				FExecuteAction::CreateLambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_NormalizedWeightToSum(); }
+					})
+			),
+			NAME_None,
+			FText::GetEmpty(),
+			INVTEXT("Normalize weight sum to 100"),
+			PCGEX_SLATE_ICON(NormalizeWeight)
+		);
 
 		ToolbarBuilder.AddWidget(
-				SNew(SUniformGridPanel)
-				.SlotPadding(FMargin(2, 2))
-				+ SUniformGridPanel::Slot(0, 0)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("= i")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SetWeightIndex(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Set the weight index to the entry index."))
-				]
-				+ SUniformGridPanel::Slot(1, 0)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("100")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_WeightOne(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Reset all weights to 100"))
-				]
-				+ SUniformGridPanel::Slot(2, 0)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("+=1")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_PadWeight(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Add 1 to all weights"))
-				]
-				// Row 2
-				+ SUniformGridPanel::Slot(0, 1)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("×2")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_MultWeight2(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Multiply weights by 2"))
-				]
-				+ SUniformGridPanel::Slot(1, 1)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("×10")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_MultWeight10(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Multiply weights by 10"))
-				]
-				+ SUniformGridPanel::Slot(2, 1)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("???")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_WeightRandom(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Assign random weights"))
-				]
-			);
+			SNew(SUniformGridPanel)
+			.SlotPadding(FMargin(2, 2))
+			+ SUniformGridPanel::Slot(0, 0)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("= i")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SetWeightIndex(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Set the weight index to the entry index."))
+			]
+			+ SUniformGridPanel::Slot(1, 0)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("100")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_WeightOne(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Reset all weights to 100"))
+			]
+			+ SUniformGridPanel::Slot(2, 0)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("+=1")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_PadWeight(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Add 1 to all weights"))
+			]
+			// Row 2
+			+ SUniformGridPanel::Slot(0, 1)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("×2")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_MultWeight2(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Multiply weights by 2"))
+			]
+			+ SUniformGridPanel::Slot(1, 1)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("×10")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_MultWeight10(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Multiply weights by 10"))
+			]
+			+ SUniformGridPanel::Slot(2, 1)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("???")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_WeightRandom(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Assign random weights"))
+			]
+		);
 	}
 	ToolbarBuilder.EndSection();
 
@@ -366,33 +363,33 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 		PCGEX_SECTION_HEADER("Sort")
 
 		ToolbarBuilder.AddWidget(
-				SNew(SUniformGridPanel)
-				.SlotPadding(FMargin(1, 2))
-				+ SUniformGridPanel::Slot(0, 0)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("▲")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SortByWeightAscending(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Sort collection by ascending weight"))
-				]
-				+ SUniformGridPanel::Slot(0, 1)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("▼")))
-					.OnClicked_Lambda(
-						[&]()
-						{
-							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SortByWeightDescending(); }
-							return FReply::Handled();
-						})
-					.ToolTipText(FText::FromString("Sort collection by descending weight"))
-				]
-			);
+			SNew(SUniformGridPanel)
+			.SlotPadding(FMargin(1, 2))
+			+ SUniformGridPanel::Slot(0, 0)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("▲")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SortByWeightAscending(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Sort collection by ascending weight"))
+			]
+			+ SUniformGridPanel::Slot(0, 1)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("▼")))
+				.OnClicked_Lambda(
+					[&]()
+					{
+						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SortByWeightDescending(); }
+						return FReply::Handled();
+					})
+				.ToolTipText(FText::FromString("Sort collection by descending weight"))
+			]
+		);
 	}
 	ToolbarBuilder.EndSection();
 
@@ -402,37 +399,37 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 void FPCGExAssetCollectionEditor::BuildAssetFooterToolbar(FToolBarBuilder& ToolbarBuilder)
 {
 #pragma region Expand/Collapse
-/*
-	ToolbarBuilder.BeginSection("FilterSection");
-	{
-		PCGEX_SECTION_HEADER("")
-
-		TSharedRef<SUniformGridPanel> Grid =
-			SNew(SUniformGridPanel)
-			.SlotPadding(FMargin(2, 2));
-
-		// Show all
-		Grid->AddSlot(0, 0)
-		[
-			SNew(SButton)
-			.Text(FText::FromString(TEXT("▼")))
-			.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
-			.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::ExpandAll)
-			.ToolTipText(FText::FromString(TEXT("Expand all properties.")))
-		];
-
-		// Show all
-		Grid->AddSlot(1, 0)
-		[
-			SNew(SButton)
-			.Text(FText::FromString(TEXT("▶")))
-			.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
-			.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::CollapseAll)
-			.ToolTipText(FText::FromString(TEXT("Collapse all properties.")))
-		];
-	}
-	ToolbarBuilder.EndSection();
-*/
+	/*
+		ToolbarBuilder.BeginSection("FilterSection");
+		{
+			PCGEX_SECTION_HEADER("")
+	
+			TSharedRef<SUniformGridPanel> Grid =
+				SNew(SUniformGridPanel)
+				.SlotPadding(FMargin(2, 2));
+	
+			// Show all
+			Grid->AddSlot(0, 0)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("▼")))
+				.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+				.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::ExpandAll)
+				.ToolTipText(FText::FromString(TEXT("Expand all properties.")))
+			];
+	
+			// Show all
+			Grid->AddSlot(1, 0)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("▶")))
+				.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+				.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::CollapseAll)
+				.ToolTipText(FText::FromString(TEXT("Collapse all properties.")))
+			];
+		}
+		ToolbarBuilder.EndSection();
+	*/
 #pragma endregion
 
 #pragma region Filters
@@ -508,41 +505,48 @@ void FPCGExAssetCollectionEditor::BuildAssetFooterToolbar(FToolBarBuilder& Toolb
 
 void FPCGExAssetCollectionEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
-	TabManager->SetCanDoDragOperation(false);
+	InTabManager->SetCanDoDragOperation(false);
 
-	for (const PCGExAssetCollectionEditor::TabInfos& Tab : Tabs)
+	for (PCGExAssetCollectionEditor::TabInfos& Tab : Tabs)
 	{
-		// Register tab spawner with out layout Id
+		// Register tab spawner with our layout Id
 		FTabSpawnerEntry& Entry =
-			TabManager->RegisterTabSpawner(
-					          Tab.Id,
-					          FOnSpawnTab::CreateLambda(
-						          [Tab](const FSpawnTabArgs& Args)
-						          {
-							          return SNew(SDockTab)
-								          .TabRole(Tab.Role)
-								          .CanEverClose(false)
-								          [
-									          SNew(SVerticalBox)
-									          + SVerticalBox::Slot()
-									          .AutoHeight()
-									          [
-										          Tab.Header.IsValid() ? Tab.Header.ToSharedRef() : SNullWidget::NullWidget
-									          ]
-									          + SVerticalBox::Slot()
-									          .FillHeight(1.f)
-									          [
-										          Tab.View.ToSharedRef()
-									          ]
-									          + SVerticalBox::Slot()
-									          .AutoHeight()
-									          [
-										          Tab.Footer.IsValid() ? Tab.Footer.ToSharedRef() : SNullWidget::NullWidget
-									          ]
-								          ];
-						          })
-				          )
-			          .SetDisplayName(FText::FromName(Tab.Label));
+			InTabManager->RegisterTabSpawner(
+				            Tab.Id,
+				            FOnSpawnTab::CreateLambda(
+					            [Tab](const FSpawnTabArgs& Args)
+					            {
+						            return SNew(SDockTab)
+							            .TabRole(Tab.Role)
+							            .CanEverClose(false)
+							            [
+								            SNew(SVerticalBox)
+								            + SVerticalBox::Slot()
+								            .AutoHeight()
+								            [
+									            Tab.Header.IsValid() ? Tab.Header.ToSharedRef() : SNullWidget::NullWidget
+								            ]
+								            + SVerticalBox::Slot()
+								            .FillHeight(1.f)
+								            [
+									            Tab.View.ToSharedRef()
+								            ]
+								            + SVerticalBox::Slot()
+								            .AutoHeight()
+								            [
+									            Tab.Footer.IsValid() ? Tab.Footer.ToSharedRef() : SNullWidget::NullWidget
+								            ]
+							            ];
+					            })
+			            )
+			            .SetDisplayName(FText::FromName(Tab.Label));
+		
+		Tab.WeakView = Tab.View;
+		
+		// Release shared ptr otherwise editor won't close
+		Tab.View = nullptr;
+		Tab.Header = nullptr;
+		Tab.Footer = nullptr;
 
 		if (!Tab.Icon.IsEmpty())
 		{
@@ -551,7 +555,7 @@ void FPCGExAssetCollectionEditor::RegisterTabSpawners(const TSharedRef<FTabManag
 		}
 	}
 
-	if (!Tabs.IsEmpty()) { TabManager->SetMainTab(Tabs[0].Id); }
+	if (!Tabs.IsEmpty()) { InTabManager->SetMainTab(Tabs[0].Id); }
 
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 }
@@ -560,7 +564,7 @@ void FPCGExAssetCollectionEditor::ForceRefreshTabs()
 {
 	for (const PCGExAssetCollectionEditor::TabInfos& Tab : Tabs)
 	{
-		if (TSharedPtr<IDetailsView> DetailsView = StaticCastSharedPtr<IDetailsView>(Tab.View))
+		if (TSharedPtr<IDetailsView> DetailsView = StaticCastSharedPtr<IDetailsView>(Tab.WeakView.Pin()))
 		{
 			DetailsView->ForceRefresh();
 		}
