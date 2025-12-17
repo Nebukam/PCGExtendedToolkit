@@ -5,6 +5,7 @@
 
 
 #include "PCGExMT.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
@@ -96,6 +97,14 @@ bool FPCGExSampleTextureElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 namespace PCGExSampleTexture
 {
+	FSampler::FSampler(const FPCGExTextureParamConfig& InConfig, const TSharedPtr<PCGExTexture::FLookup>& InTextureMap, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+		: Config(InConfig), TextureMap(InTextureMap)
+	{
+		IDGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+		bValid = IDGetter->Prepare(Config.TextureIDAttributeName, InDataFacade->Source);
+		if (!bValid) { return; }
+	}
+
 	FProcessor::~FProcessor()
 	{
 	}

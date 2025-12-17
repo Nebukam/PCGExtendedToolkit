@@ -3,6 +3,10 @@
 
 #include "Collections/PCGExBitmaskCollection.h"
 
+#if WITH_EDITOR
+#include "AssetRegistry/AssetData.h"
+#endif
+
 #include "PCGExContext.h"
 
 void FPCGExBitmaskCollectionEntry::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const

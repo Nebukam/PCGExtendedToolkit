@@ -7,7 +7,7 @@
 #include "Data/PCGExDataForward.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Topology/PCGExTopology.h"
+#include "Topology/PCGExCell.h"
 
 #include "PCGExPathfindingFindAllCells.generated.h"
 

@@ -8,7 +8,6 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Geometry/PCGExGeo.h"
 

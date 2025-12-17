@@ -4,7 +4,6 @@
 #include "Collections/PCGExPCGDataAssetCollection.h"
 
 #include "PCGExGlobalSettings.h"
-#include "Transform/PCGExTransform.h"
 
 namespace PCGExPCGDataAssetCollection
 {
@@ -176,15 +175,3 @@ void UPCGExPCGDataAssetCollection::EDITOR_AddBrowserSelectionInternal(const TArr
 	}
 }
 #endif
-
-void UPCGExPCGDataAssetCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
-{
-	Super::EDITOR_RegisterTrackingKeys(Context);
-	for (const FPCGExPCGDataAssetCollectionEntry& Entry : Entries)
-	{
-		if (Entry.bIsSubCollection && Entry.SubCollection)
-		{
-			Entry.SubCollection->EDITOR_RegisterTrackingKeys(Context);
-		}
-	}
-}

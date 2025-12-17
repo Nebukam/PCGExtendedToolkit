@@ -114,14 +114,8 @@ namespace PCGExSampleTexture
 	public:
 		virtual ~FSampler() = default;
 
-		explicit FSampler(const FPCGExTextureParamConfig& InConfig, const TSharedPtr<PCGExTexture::FLookup>& InTextureMap, const TSharedRef<PCGExData::FFacade>& InDataFacade)
-			: Config(InConfig), TextureMap(InTextureMap)
-		{
-			IDGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
-			bValid = IDGetter->Prepare(Config.TextureIDAttributeName, InDataFacade->Source);
-			if (!bValid) { return; }
-		}
-
+		explicit FSampler(const FPCGExTextureParamConfig& InConfig, const TSharedPtr<PCGExTexture::FLookup>& InTextureMap, const TSharedRef<PCGExData::FFacade>& InDataFacade);
+		
 		bool IsValid() const { return bValid; }
 		virtual bool Sample(const PCGExData::FConstPoint& Point, const FVector2D& UV) const = 0;
 	};

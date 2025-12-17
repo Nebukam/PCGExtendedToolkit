@@ -6,10 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
-#include "PCGExPaths.h"
-#include "PCGExPointsProcessor.h"
-#include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExMeshCollection.h"
+#include "Details/PCGExDetailsSplineMesh.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 #include "Tangents/PCGExTangentsInstancedFactory.h"
@@ -22,6 +20,15 @@ namespace PCGExMT
 
 	template <typename T>
 	class TScopedSet;
+}
+
+namespace PCGExStaging
+{
+	template <typename C, typename A>
+	class TDistributionHelper;
+	
+	template <typename T>
+	class TMicroDistributionHelper;
 }
 
 /**

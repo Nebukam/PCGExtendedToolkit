@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Geometry/PCGExGeo.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsElement"

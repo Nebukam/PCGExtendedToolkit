@@ -8,6 +8,7 @@
 #include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExOffsetPath.generated.h"
 

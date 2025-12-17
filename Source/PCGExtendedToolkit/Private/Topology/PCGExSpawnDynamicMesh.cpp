@@ -7,6 +7,7 @@
 #include "PCGPin.h"
 #include "Data/PCGDynamicMeshData.h"
 #include "Topology/PCGExDynamicMeshComponent.h"
+#include "Topology/PCGExCell.h"
 #include "Topology/PCGExTopology.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

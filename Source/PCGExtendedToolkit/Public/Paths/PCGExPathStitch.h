@@ -5,9 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-#include "PCGExPaths.h"
 
-#include "PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExPointIOMerger.h"
 

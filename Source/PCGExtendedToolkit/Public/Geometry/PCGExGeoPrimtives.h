@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGeo.h"
 #include "PCGExH.h"
 
 namespace PCGExGeo

@@ -158,6 +158,7 @@ namespace PCGExMT
 	using FEndCallback = std::function<void(const bool)>;
 	using FSimpleCallback = std::function<void()>;
 
+	
 	struct FScope
 	{
 		int32 Start = -1;

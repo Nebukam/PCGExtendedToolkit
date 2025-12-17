@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExStringCompareFilter.h"
 
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"

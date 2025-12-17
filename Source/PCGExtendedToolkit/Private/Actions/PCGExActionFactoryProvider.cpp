@@ -5,9 +5,9 @@
 
 
 #include "PCGPin.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExDataFilter.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWriteActions"

@@ -4,8 +4,6 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
 #include "PCGExHelpers.h"
-#include "PCGExStreamingHelpers.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics

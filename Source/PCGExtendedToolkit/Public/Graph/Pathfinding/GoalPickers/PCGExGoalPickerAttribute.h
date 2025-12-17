@@ -6,9 +6,6 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
-#include "Data/PCGExAttributeHelpers.h"
-
-
 #include "PCGExGoalPickerAttribute.generated.h"
 
 namespace PCGExData

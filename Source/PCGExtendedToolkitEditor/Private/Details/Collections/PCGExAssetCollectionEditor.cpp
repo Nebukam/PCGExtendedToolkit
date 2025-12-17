@@ -11,6 +11,7 @@
 #include "PropertyEditorModule.h"
 #include "ToolMenus.h"
 #include "Collections/PCGExAssetCollection.h"
+#include "Details/Collections/PCGExCollectionEditorUtils.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -240,7 +241,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				FExecuteAction::CreateLambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_AddBrowserSelection(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::AddBrowserSelection(Collection); }
 					})
 			),
 			NAME_None,
@@ -264,7 +265,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				FExecuteAction::CreateLambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_NormalizedWeightToSum(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::NormalizedWeightToSum(Collection); }
 					})
 			),
 			NAME_None,
@@ -283,7 +284,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SetWeightIndex(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::SetWeightIndex(Collection); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Set the weight index to the entry index."))
@@ -295,7 +296,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_WeightOne(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::WeightOne(Collection); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Reset all weights to 100"))
@@ -307,7 +308,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_PadWeight(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::PadWeight(Collection); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Add 1 to all weights"))
@@ -320,7 +321,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_MultWeight2(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::MultWeight(Collection, 2); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Multiply weights by 2"))
@@ -332,7 +333,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_MultWeight10(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::MultWeight(Collection, 10); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Multiply weights by 10"))
@@ -344,7 +345,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_WeightRandom(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::WeightRandom(Collection); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Assign random weights"))
@@ -372,7 +373,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SortByWeightAscending(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::SortByWeightAscending(Collection); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Sort collection by ascending weight"))
@@ -384,7 +385,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 				.OnClicked_Lambda(
 					[&]()
 					{
-						PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SortByWeightDescending(); }
+						PCGEX_CURRENT_COLLECTION { PCGExCollectionEditorUtils::SortByWeightDescending(Collection); }
 						return FReply::Handled();
 					})
 				.ToolTipText(FText::FromString("Sort collection by descending weight"))

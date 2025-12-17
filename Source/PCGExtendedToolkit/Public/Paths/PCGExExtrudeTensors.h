@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExPaths.h"
 
 #include "PCGExPathProcessor.h"
 #include "PCGExSorting.h"

@@ -9,7 +9,6 @@
 #include "PCGExInstancedFactory.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
 #include "Data/PCGExBufferHelper.h"
 
 

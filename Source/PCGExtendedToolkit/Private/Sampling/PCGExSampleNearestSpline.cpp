@@ -5,7 +5,6 @@
 
 #include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
-#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"

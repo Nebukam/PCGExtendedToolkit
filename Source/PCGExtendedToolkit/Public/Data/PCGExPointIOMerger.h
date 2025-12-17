@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExAttributeHelpers.h"
 #include "PCGExData.h"
 #include "PCGExDataFilter.h"
 #include "PCGExDataHelpers.h"
 #include "PCGExPointIO.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 #include "UObject/Object.h"
 
