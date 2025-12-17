@@ -201,9 +201,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 			ApplySettings(RTData);
 			RTData->Initialize(RT, Transform);
 
-			FPCGTaggedData& StagedData = StageOutput(RTData, false, false);
-			StagedData.Pin = PCGExTexture::OutputTextureDataLabel;
-			StagedData.Tags.Add(Ref.GetTag());
+			StageOutput(RTData, PCGExTexture::OutputTextureDataLabel, PCGExData::EStaging::None, {Ref.GetTag()});
 
 
 			MoveToNextTask();
@@ -251,9 +249,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		return;
 	}
 
-	FPCGTaggedData& StagedData = StageOutput(TexData, false, false);
-	StagedData.Pin = PCGExTexture::OutputTextureDataLabel;
-	StagedData.Tags.Add(Ref.GetTag());
+	StageOutput(TexData, PCGExTexture::OutputTextureDataLabel, PCGExData::EStaging::None, {Ref.GetTag()});
 
 	MoveToNextTask();
 

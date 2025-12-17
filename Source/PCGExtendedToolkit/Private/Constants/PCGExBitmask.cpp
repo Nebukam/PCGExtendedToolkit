@@ -75,8 +75,7 @@ bool FPCGExBitmaskElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSet
 	BitmaskData->Metadata->CreateAttribute<int64>(FName("Bitmask"), Bitmask, false, true);
 	BitmaskData->Metadata->AddEntry();
 
-	FPCGTaggedData& StagedData = Context->StageOutput(BitmaskData, true);
-	StagedData.Pin = FName("Bitmask");
+	Context->StageOutput(BitmaskData, FName("Bitmask"), PCGExData::EStaging::Managed);
 
 	Context->Done();
 	return Context->TryComplete();

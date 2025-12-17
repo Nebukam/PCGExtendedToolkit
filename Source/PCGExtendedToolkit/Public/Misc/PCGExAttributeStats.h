@@ -350,10 +350,9 @@ namespace PCGExAttributeStats
 				{
 					UniqueValuesParamData = Context->ManagedObjects->New<UPCGParamData>();
 
-					FPCGTaggedData& StagedData = Context->StageOutput(UniqueValuesParamData, false, false);
-					StagedData.Pin = OutputAttributeUniqueValues;
-					StagedData.Tags.Add(Identifier);
-					StagedData.Tags.Add(Identity.Identifier.Name.ToString());
+					Context->StageOutput(
+						UniqueValuesParamData, OutputAttributeUniqueValues, PCGExData::EStaging::None,
+						{Identifier, Identity.Identifier.Name.ToString()});
 
 					InDataFacade->Source->Tags->AddRaw(Identifier);
 				}

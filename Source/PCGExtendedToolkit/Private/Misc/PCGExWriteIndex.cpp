@@ -241,7 +241,9 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 		{
 			FPCGTaggedData& TaggedData = Context->WorkingData[i];
 			Settings->TagData(i, TaggedData, Context->NumEntries[i], Context->MaxNumEntries);
-			Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->GetMainOutputPin(), TaggedData.Tags, false, false, false);
+			Context->StageOutput(
+				const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->GetMainOutputPin(),
+				PCGExData::EStaging::None, TaggedData.Tags);
 		}
 
 		Context->Done();

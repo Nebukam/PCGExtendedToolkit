@@ -153,10 +153,9 @@ bool FPCGExAttributeStatsElement::AdvanceWork(FPCGExContext* InContext, const UP
 	for (int i = 0; i < Context->OutputParams.Num(); i++)
 	{
 		UPCGParamData* ParamData = Context->OutputParams[i];
-
-		FPCGTaggedData& StagedData = Context->StageOutput(ParamData, false, false);
-		StagedData.Pin = PCGExAttributeStats::OutputAttributeStats;
-		StagedData.Tags.Add(Context->AttributesInfos->Attributes[i]->Name.ToString());
+		Context->StageOutput(
+			ParamData, PCGExAttributeStats::OutputAttributeStats, PCGExData::EStaging::None,
+			{Context->AttributesInfos->Attributes[i]->Name.ToString()});
 	}
 
 	return Context->TryComplete();

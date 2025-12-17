@@ -34,34 +34,28 @@ UPCGExInstancedFactory* FPCGExContext::RegisterOperation(UPCGExInstancedFactory*
 
 void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 {
-	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + InIncreaseNum);
+	FWriteScopeLock WriteScopeLock(StagingLock);
+	StagedData.Reserve(StagedData.Num() + InIncreaseNum);
 }
 
-FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable)
+void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const PCGExData::EStaging Staging, const TSet<FString>& InTags)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
 
-	check(WorkHandle.IsValid())
+	if (IsWorkCancelled() || IsWorkCompleted()) { return; }
 
-	int32 Index = -1;
-	if (!IsInGameThread())
 	{
-		FWriteScopeLock WriteScopeLock(StagedOutputLock);
+		FWriteScopeLock WriteScopeLock(StagingLock);
 
-		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
+		FPCGTaggedData& Output = StagedData.Emplace_GetRef();
 		Output.Data = InData;
-		Index = OutputData.TaggedData.Num() - 1;
-	}
-	else
-	{
-		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
-		Output.Data = InData;
-		Index = OutputData.TaggedData.Num() - 1;
+		Output.Pin = InPin;
+		Output.Tags.Append(InTags);
+		Output.bPinlessData = EnumHasAnyFlags(Staging, PCGExData::EStaging::Pinless);
 	}
 
-	if (bManaged) { ManagedObjects->Add(InData); }
-	if (bIsMutable)
+	if (EnumHasAnyFlags(Staging, PCGExData::EStaging::Managed)) { ManagedObjects->Add(InData); }
+	if (EnumHasAnyFlags(Staging, PCGExData::EStaging::Mutable))
 	{
 		if (bCleanupConsumableAttributes)
 		{
@@ -69,89 +63,17 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 			{
 				for (const FName ConsumableName : ConsumableAttributesSet)
 				{
-					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName))
+					if (Metadata->HasAttribute(ConsumableName)
+						&& !ProtectedAttributesSet.Contains(ConsumableName))
 					{
-						continue;
+						Metadata->DeleteAttribute(ConsumableName);
 					}
-					Metadata->DeleteAttribute(ConsumableName);
 				}
 			}
 		}
 
 		if (bFlattenOutput) { InData->Flatten(); }
 	}
-
-	return OutputData.TaggedData[Index];
-}
-
-void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless)
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
-
-	if (IsWorkCancelled()) { return; }
-
-	if (!IsInGameThread())
-	{
-		FWriteScopeLock WriteScopeLock(StagedOutputLock);
-
-		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
-		Output.Data = InData;
-		Output.Pin = InPin;
-		Output.Tags.Append(InTags);
-		Output.bPinlessData = bPinless;
-	}
-	else
-	{
-		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
-		Output.Data = InData;
-		Output.Pin = InPin;
-		Output.Tags.Append(InTags);
-		Output.bPinlessData = bPinless;
-	}
-
-	if (bManaged) { ManagedObjects->Add(InData); }
-	if (bIsMutable)
-	{
-		if (bCleanupConsumableAttributes)
-		{
-			if (UPCGMetadata* Metadata = InData->MutableMetadata())
-			{
-				for (const FName ConsumableName : ConsumableAttributesSet)
-				{
-					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName))
-					{
-						continue;
-					}
-					Metadata->DeleteAttribute(ConsumableName);
-				}
-			}
-		}
-
-		if (bFlattenOutput) { InData->Flatten(); }
-	}
-}
-
-FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)
-{
-	check(WorkHandle.IsValid())
-
-	int32 Index = -1;
-	if (!IsInGameThread())
-	{
-		FWriteScopeLock WriteScopeLock(StagedOutputLock);
-		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
-		Output.Data = InData;
-		Index = OutputData.TaggedData.Num() - 1;
-	}
-	else
-	{
-		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
-		Output.Data = InData;
-		Index = OutputData.TaggedData.Num() - 1;
-	}
-
-	if (bManaged) { ManagedObjects->Add(InData); }
-	return OutputData.TaggedData[Index];
 }
 
 #pragma endregion
@@ -273,7 +195,7 @@ void FPCGExContext::Done()
 
 bool FPCGExContext::TryComplete(const bool bForce)
 {
-	if (IsWorkCompleted()) { return true; }
+	if (IsWorkCancelled() || IsWorkCompleted()) { return true; }
 	if (!bForce && !IsDone()) { return false; }
 
 	bool bExpected = false;
@@ -320,12 +242,16 @@ void FPCGExContext::OnComplete()
 
 	if (ElementHandle) { ElementHandle->CompleteWork(this); }
 
-	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	TArray<FPCGTaggedData> TaggedDataCopy = OutputData.TaggedData;
-	ManagedObjects->Remove(TaggedDataCopy);
-	UnpauseContext();
-
 	PCGEX_TERMINATE_ASYNC
+
+	{
+		FWriteScopeLock WriteScopeLock(StagingLock);
+		OutputData.TaggedData.Append(StagedData);
+		ManagedObjects->Remove(StagedData);
+		StagedData.Empty();
+	}
+
+	UnpauseContext();
 }
 
 #pragma endregion
@@ -480,6 +406,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
+
 		UnpauseContext();
 	}
 

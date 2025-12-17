@@ -154,7 +154,7 @@ bool FPCGExBranchOnDataAttributeElement::AdvanceWork(FPCGExContext* InContext, c
 				});
 			}
 
-			Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), OutputPin, TaggedData.Tags, false, false, false);
+			Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), OutputPin, PCGExData::EStaging::None, TaggedData.Tags);
 		}
 	}
 
