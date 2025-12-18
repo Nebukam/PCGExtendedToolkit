@@ -110,7 +110,7 @@ public:
 		NewVtx->DeleteAttribute(EdgeCountIdentifier);
 		NewVtx->DeleteAttribute(PCGExGraph::Attr_PCGExEdgeIdx);
 
-		const PCGExCommon::DataIDType PairId = PointIO->Tags->GetTypedValue<int64>(PCGExGraph::TagStr_PCGExCluster);
+		const PCGExCommon::DataIDType PairId = PCGEX_GET_DATAIDTAG(PointIO->Tags, PCGExGraph::TagStr_PCGExCluster);
 
 		PCGExGraph::MarkClusterVtx(NewVtx, PairId);
 		PCGExGraph::MarkClusterEdges(NewEdges, PairId);

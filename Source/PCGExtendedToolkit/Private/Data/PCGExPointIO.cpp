@@ -888,7 +888,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
 	bool FPointIOTaggedDictionary::RemoveKey(const TSharedRef<FPointIO>& PointIOKey)
 	{
-		const PCGExCommon::DataIDType TagValue = PointIOKey->Tags->GetTypedValue<int64>(TagIdentifier);
+		const PCGExCommon::DataIDType TagValue = PCGEX_GET_DATAIDTAG(PointIOKey->Tags, TagIdentifier);
 
 		if (!TagValue) { return false; }
 
@@ -902,7 +902,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
 	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry)
 	{
-		const PCGExCommon::DataIDType TagValue = PointIOEntry->Tags->GetTypedValue<int64>(TagIdentifier);
+		const PCGExCommon::DataIDType TagValue = PCGEX_GET_DATAIDTAG(PointIOEntry->Tags, TagIdentifier);
 		if (!TagValue) { return false; }
 
 		if (const int32* Index = TagMap.Find(TagValue->Value))

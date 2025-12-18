@@ -125,6 +125,8 @@ namespace PCGExCommon
 {
 	using DataIDType = TSharedPtr<PCGExData::TDataValue<int64>>;
 	using ContextState = uint64;
+	
+#define PCGEX_GET_DATAIDTAG(_TAG, _ID) _TAG->GetTypedValue<int64>(_ID);
 
 	const FString PCGExPrefix = TEXT("PCGEx/");
 
