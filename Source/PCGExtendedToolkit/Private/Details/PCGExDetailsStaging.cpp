@@ -7,8 +7,16 @@
 #include "UObject/Object.h"
 #include "UObject/Package.h"
 #include "Collections/PCGExAssetCollection.h"
+#include "Collections/PCGExCollectionHelpers.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
+
+FPCGExEntryTypeDetails::FPCGExEntryTypeDetails()
+{
+	EntryTypes = TSoftObjectPtr<UPCGExBitmaskCollection>(
+		FSoftObjectPath(TEXT("/PCGExtendedToolkit/Data/Bitmasks/PCGEx_CollectionEntryTypes.PCGEx_CollectionEntryTypes"))
+	);
+}
 
 FPCGExAssetDistributionIndexDetails::FPCGExAssetDistributionIndexDetails()
 {
@@ -41,7 +49,7 @@ UPCGExAssetCollection* FPCGExRoamingAssetCollectionDetails::TryBuildCollection(F
 	UPCGExAssetCollection* Collection = InContext->ManagedObjects->New<UPCGExAssetCollection>(GetTransientPackage(), AssetCollectionType.Get(), NAME_None);
 	if (!Collection) { return nullptr; }
 
-	if (!Collection->BuildFromAttributeSet(InContext, InAttributeSet, *this, bBuildStaging))
+	if (!PCGExCollectionHelpers::BuildFromAttributeSet(Collection, InContext, InAttributeSet, *this, bBuildStaging))
 	{
 		InContext->ManagedObjects->Destroy(Collection);
 		return nullptr;
@@ -56,7 +64,7 @@ UPCGExAssetCollection* FPCGExRoamingAssetCollectionDetails::TryBuildCollection(F
 	UPCGExAssetCollection* Collection = InContext->ManagedObjects->New<UPCGExAssetCollection>(GetTransientPackage(), AssetCollectionType.Get(), NAME_None);
 	if (!Collection) { return nullptr; }
 
-	if (!Collection->BuildFromAttributeSet(InContext, InputPin, *this, bBuildStaging))
+	if (!PCGExCollectionHelpers::BuildFromAttributeSet(Collection, InContext, InputPin, *this, bBuildStaging))
 	{
 		InContext->ManagedObjects->Destroy(Collection);
 		return nullptr;

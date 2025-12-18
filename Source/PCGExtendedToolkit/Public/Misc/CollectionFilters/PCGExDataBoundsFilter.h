@@ -4,18 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
-
 #include "UObject/Object.h"
-
-#include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-#include "Data/PCGExFilterGroup.h"
 #include "Details/PCGExDetailsCompareShorthands.h"
-
-
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
-
 
 #include "PCGExDataBoundsFilter.generated.h"
 

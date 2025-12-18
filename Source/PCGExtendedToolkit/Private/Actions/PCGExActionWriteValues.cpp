@@ -7,8 +7,8 @@
 
 
 #include "PCGPin.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWriteActionWriteValuess"

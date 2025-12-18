@@ -57,3 +57,15 @@ namespace PCGExGraph
 	const FName SourceVtxFiltersLabel = FName("VtxFilters");
 	const FName SourceEdgeFiltersLabel = FName("EdgeFilters");
 }
+
+namespace PCGExStaging
+{
+	const FName SourceCollectionMapLabel = TEXT("Map");
+	const FName OutputCollectionMapLabel = TEXT("Map");
+	const FName OutputSocketLabel = TEXT("Sockets");
+
+	const FName Tag_CollectionPath = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Path"));
+	const FName Tag_CollectionIdx = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Idx"));
+	const FName Tag_EntryIdx = FName(PCGExCommon::PCGExPrefix + TEXT("CollectionEntry"));
+}
+

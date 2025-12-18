@@ -7,10 +7,11 @@
 #include "PCGExCommon.h"
 #include "PCGExMath.h"
 #include "PCGExSettingsMacros.h"
+#include "Collections/PCGExBitmaskCollection.h"
 #include "Data/PCGExDataFilter.h"
-#include "Sampling/PCGExSampling.h"
 #include "PCGExDetailsStaging.generated.h"
 
+class UPCGParamData;
 class UPCGExAssetCollection;
 
 UENUM()
@@ -80,15 +81,29 @@ using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 namespace PCGExAssetCollection
 {
 	const FName SourceAssetCollection = TEXT("AttributeSet");
-
-	const TSet<EPCGMetadataTypes> SupportedPathTypes = {EPCGMetadataTypes::SoftObjectPath, EPCGMetadataTypes::String, EPCGMetadataTypes::Name};
-
-
-	const TSet<EPCGMetadataTypes> SupportedWeightTypes = {EPCGMetadataTypes::Float, EPCGMetadataTypes::Double, EPCGMetadataTypes::Integer32, EPCGMetadataTypes::Integer64,};
-
-	const TSet<EPCGMetadataTypes> SupportedCategoryTypes = {EPCGMetadataTypes::String, EPCGMetadataTypes::Name};
 }
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExEntryTypeDetails
+{
+	GENERATED_BODY()
+
+	FPCGExEntryTypeDetails();
+
+	/** Name of the int64 that will hold entry type as a bitmask */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName EntryTypeAttributeName = FName("EntryType");
+
+	/** Bitmask collection containing the flags to apply per entry type. Is expected to have the following bitmasks identifiers:
+	 * - Collection
+	 * - Mesh
+	 * - Actor
+	 * - PCGDataAsset
+	 * Note that "Collection" will be OR'd to subcollection with their matching specific type; i.e Collection | Mesh for a MeshCollection. 
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	TSoftObjectPtr<UPCGExBitmaskCollection> EntryTypes;
+};
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
@@ -265,7 +280,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketOutputDetails
 
 	/** Which scale components from the sampled transform should be applied to the point.  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
-	uint8 TransformScale = static_cast<uint8>(EPCGExApplySampledComponentFlags::All);
+	uint8 TransformScale = 7; //static_cast<uint8>(EPCGExApplySampledComponentFlags::All);
 
 	/** Meta filter settings for socket points, as they naturally inherit from the original points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))

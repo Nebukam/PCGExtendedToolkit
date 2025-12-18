@@ -9,14 +9,15 @@
 #include "PCGExHelpers.h"
 #include "PCGExtendedToolkit.h"
 #include "PCGExTypes.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 namespace PCGExData
 {

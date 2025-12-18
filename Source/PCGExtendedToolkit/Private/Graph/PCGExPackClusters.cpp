@@ -4,6 +4,7 @@
 #include "Graph/PCGExPackClusters.h"
 
 #include "PCGExMT.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 #include "Graph/PCGExCluster.h"

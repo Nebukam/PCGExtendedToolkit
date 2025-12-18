@@ -10,8 +10,6 @@
 #include "Engine/World.h"
 
 #if WITH_EDITOR
-#include "ContentBrowserModule.h"
-#include "IContentBrowserSingleton.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #endif
@@ -343,15 +341,23 @@ void UPCGExAssetCollection::PostEditImport()
 
 void UPCGExAssetCollection::RebuildStagingData(const bool bRecursive)
 {
+	ForEachEntry([&](FPCGExAssetCollectionEntry* InEntry, const int32 i) { InEntry->UpdateStaging(this, i, bRecursive); });
 	InvalidateCache();
 }
 
 void UPCGExAssetCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
 {
 	Context->EDITOR_TrackPath(this);
+	ForEachEntry([&](const FPCGExAssetCollectionEntry* InEntry, const int32 i)
+	{
+		if (!InEntry->bIsSubCollection) { return; }
+		if (const UPCGExAssetCollection* SubCollection = InEntry->GetSubCollectionVoid())
+		{
+			SubCollection->EDITOR_RegisterTrackingKeys(Context);
+		}
+	});
 }
 
-#if WITH_EDITOR
 bool UPCGExAssetCollection::HasCircularDependency(const UPCGExAssetCollection* OtherCollection) const
 {
 	if (!OtherCollection) { return false; }
@@ -368,7 +374,7 @@ bool UPCGExAssetCollection::HasCircularDependency(TSet<const UPCGExAssetCollecti
 
 	if (bCircularDependency) { return true; }
 
-	ForEachEntry([&](const FPCGExAssetCollectionEntry* InEntry)
+	ForEachEntry([&](const FPCGExAssetCollectionEntry* InEntry, const int32 i)
 	{
 		if (bCircularDependency) { return; }
 		if (UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid())
@@ -380,11 +386,12 @@ bool UPCGExAssetCollection::HasCircularDependency(TSet<const UPCGExAssetCollecti
 	return bCircularDependency;
 }
 
+#if WITH_EDITOR
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (PropertyChangedEvent.Property) { Super::PostEditChangeProperty(PropertyChangedEvent); }
 
-	ForEachEntry([&](FPCGExAssetCollectionEntry* InEntry)
+	ForEachEntry([&](FPCGExAssetCollectionEntry* InEntry, const int32 i)
 	{
 		UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid();
 		if (Other && HasCircularDependency(Other))
@@ -398,26 +405,6 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	EDITOR_SetDirty();
 
 	if (bAutoRebuildStaging) { EDITOR_RebuildStagingData(); }
-}
-
-void UPCGExAssetCollection::EDITOR_AddBrowserSelection()
-{
-	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
-	TArray<FAssetData> SelectedAssets;
-	ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
-
-	if (SelectedAssets.IsEmpty()) { return; }
-
-	EDITOR_AddBrowserSelectionTyped(SelectedAssets);
-}
-
-void UPCGExAssetCollection::EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData)
-{
-	Modify(true);
-	EDITOR_AddBrowserSelectionInternal(InAssetData);
-	(void)MarkPackageDirty();
-	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
-	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()
@@ -458,70 +445,22 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 	}
 }
 
-#define PCGEX_ASSET_COLLECTION_UTIL_CALL(_BODY) \
-Modify(true); \
-_BODY \
-FPropertyChangedEvent EmptyEvent(nullptr); \
-PostEditChangeProperty(EmptyEvent); \
-MarkPackageDirty(); \
-FCoreUObjectDelegates::BroadcastOnObjectModified(this);
-
-void UPCGExAssetCollection::EDITOR_SortByWeightAscending() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SortByWeightAscendingTyped();) }
-
-void UPCGExAssetCollection::EDITOR_SortByWeightAscendingTyped()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_SortByWeightDescending() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SortByWeightDescendingTyped();) }
-
-void UPCGExAssetCollection::EDITOR_SortByWeightDescendingTyped()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_SetWeightIndex() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_SetWeightIndexTyped();) }
-
-void UPCGExAssetCollection::EDITOR_SetWeightIndexTyped()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_PadWeight() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_PadWeightTyped();) }
-
-void UPCGExAssetCollection::EDITOR_PadWeightTyped()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_MultWeight2() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_MultWeight2Typed();) }
-
-void UPCGExAssetCollection::EDITOR_MultWeight2Typed()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_MultWeight10() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_MultWeight10Typed();) }
-
-void UPCGExAssetCollection::EDITOR_MultWeight10Typed()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_WeightOne() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightOneTyped();) }
-
-void UPCGExAssetCollection::EDITOR_WeightOneTyped()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_WeightRandom() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_WeightRandomTyped();) }
-
-void UPCGExAssetCollection::EDITOR_WeightRandomTyped()
-{
-}
-
-void UPCGExAssetCollection::EDITOR_NormalizedWeightToSum() { PCGEX_ASSET_COLLECTION_UTIL_CALL(EDITOR_NormalizedWeightToSumTyped();); }
-
-void UPCGExAssetCollection::EDITOR_NormalizedWeightToSumTyped()
-{
-}
-
 void UPCGExAssetCollection::EDITOR_SanitizeAndRebuildStagingData(const bool bRecursive)
 {
+	ForEachEntry([&](FPCGExAssetCollectionEntry* InEntry, const int32 i)
+	{
+		InEntry->EDITOR_Sanitize();
+		InEntry->UpdateStaging(this, i, bRecursive);
+	});
+}
+
+void UPCGExAssetCollection::EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData)
+{
+	Modify(true);
+	EDITOR_AddBrowserSelectionInternal(InAssetData);
+	(void)MarkPackageDirty();
+	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
+	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
 void UPCGExAssetCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
@@ -544,4 +483,21 @@ void UPCGExAssetCollection::BuildCache()
 
 void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
 {
+	const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;
+	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;
+
+	ForEachEntry([&](const FPCGExAssetCollectionEntry* InEntry, const int32 i)
+	{
+		if (InEntry->bIsSubCollection)
+		{
+			if (bRecursive || bCollectionOnly)
+			{
+				if (InEntry->InternalSubCollection) { InEntry->InternalSubCollection->GetAssetPaths(OutPaths, Flags); }
+			}
+			return;
+		}
+		if (bCollectionOnly) { return; }
+
+		InEntry->GetAssetPaths(OutPaths);
+	});
 }

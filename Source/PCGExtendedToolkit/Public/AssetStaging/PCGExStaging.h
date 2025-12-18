@@ -8,6 +8,11 @@
 #include "Details/PCGExDetailsStaging.h"
 #include "Transform/PCGExTransform.h"
 
+namespace PCGExData
+{
+	class FPointIOCollection;
+}
+
 namespace PCGExAssetCollection
 {
 	class FCache;
@@ -18,19 +23,26 @@ namespace PCGExMeshCollection
 	class FMicroCache;
 }
 
+#define PCGEX_FORALL_COLLECTION_TYPE(MACRO, ...)\
+MACRO(Asset, __VA_ARGS__)\
+MACRO(Mesh, __VA_ARGS__)\
+MACRO(Actor, __VA_ARGS__)\
+MACRO(PCGDataAsset, __VA_ARGS__)
 
-struct FPCGExActorCollectionEntry;
 struct FStreamableHandle;
-struct FPCGExAssetCollectionEntry;
 struct FPCGMeshInstanceList;
 struct FPCGContext;
 class UPCGBasePointData;
 class UPCGParamData;
 struct FPCGExContext;
-struct FPCGExMeshCollectionEntry;
-class UPCGExAssetCollection;
-class UPCGExMeshCollection;
-class UPCGExActorCollection;
+
+#pragma region externalization
+#define PCGEX_TPL(_NAME, ...)\
+class UPCGEx##_NAME##Collection;\
+struct FPCGEx##_NAME##CollectionEntry;
+PCGEX_FORALL_COLLECTION_TYPE(PCGEX_TPL)
+#undef PCGEX_TPL
+#pragma endregion
 
 namespace PCGExDetails
 {
@@ -53,13 +65,6 @@ using EPCGExAbsoluteRotationFlagsBitmask = TEnumAsByte<EPCGExAbsoluteRotationFla
 
 namespace PCGExStaging
 {
-	const FName SourceCollectionMapLabel = TEXT("Map");
-	const FName OutputCollectionMapLabel = TEXT("Map");
-	const FName OutputSocketLabel = TEXT("Sockets");
-
-	const FName Tag_CollectionPath = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Path"));
-	const FName Tag_CollectionIdx = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Idx"));
-	const FName Tag_EntryIdx = FName(PCGExCommon::PCGExPrefix + TEXT("CollectionEntry"));
 
 	class PCGEXTENDEDTOOLKIT_API FPickPacker : public TSharedFromThis<FPickPacker>
 	{
@@ -114,9 +119,11 @@ namespace PCGExStaging
 		bool ResolveEntry(const uint64 EntryHash, const A*& OutEntry, int16& OutSecondaryIndex, const C*& OutParentCollection);
 	};
 
-	extern template class TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
-	extern template class TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
-	extern template class TPickUnpacker<UPCGExActorCollection, FPCGExActorCollectionEntry>;
+#pragma region externalization
+#define PCGEX_TPL(_NAME, ...) extern template class TPickUnpacker<UPCGEx##_NAME##Collection, FPCGEx##_NAME##CollectionEntry>;
+	PCGEX_FORALL_COLLECTION_TYPE(PCGEX_TPL)
+#undef PCGEX_TPL
+#pragma endregion
 
 	class PCGEXTENDEDTOOLKIT_API IDistributionHelper : public TSharedFromThis<IDistributionHelper>
 	{
@@ -148,10 +155,12 @@ namespace PCGExStaging
 		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, const uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) const;
 	};
 
-	extern template class TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
-	extern template class TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
-	extern template class TDistributionHelper<UPCGExActorCollection, FPCGExActorCollectionEntry>;
-
+#pragma region externalization
+#define PCGEX_TPL(_NAME, ...) extern template class TDistributionHelper<UPCGEx##_NAME##Collection, FPCGEx##_NAME##CollectionEntry>;
+	PCGEX_FORALL_COLLECTION_TYPE(PCGEX_TPL)
+#undef PCGEX_TPL
+#pragma endregion
+	
 	class PCGEXTENDEDTOOLKIT_API IMicroDistributionHelper : public TSharedFromThis<IMicroDistributionHelper>
 	{
 	protected:

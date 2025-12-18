@@ -3,6 +3,10 @@
 
 #include "Collections/PCGExActorCollection.h"
 
+#if WITH_EDITOR
+#include "AssetRegistry/AssetData.h"
+#endif
+
 #include "PCGExtendedToolkit.h"
 #include "Engine/Blueprint.h"
 
@@ -171,15 +175,3 @@ void UPCGExActorCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAss
 	}
 }
 #endif
-
-void UPCGExActorCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
-{
-	Super::EDITOR_RegisterTrackingKeys(Context);
-	for (const FPCGExActorCollectionEntry& Entry : Entries)
-	{
-		if (Entry.bIsSubCollection && Entry.SubCollection)
-		{
-			Entry.SubCollection->EDITOR_RegisterTrackingKeys(Context);
-		}
-	}
-}

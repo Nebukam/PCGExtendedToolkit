@@ -23,18 +23,6 @@ class UPCGManagedComponent;
 class UPCGData;
 class UPCGComponent;
 
-UENUM()
-enum class EPCGExPointPropertyOutput : uint8
-{
-	None      = 0 UMETA(DisplayName = "None", Tooltip="..."),
-	Density   = 1 UMETA(DisplayName = "Density", Tooltip="..."),
-	Steepness = 2 UMETA(DisplayName = "Steepness", Tooltip="..."),
-	ColorR    = 3 UMETA(DisplayName = "R Channel", Tooltip="..."),
-	ColorG    = 4 UMETA(DisplayName = "G Channel", Tooltip="..."),
-	ColorB    = 5 UMETA(DisplayName = "B Channel", Tooltip="..."),
-	ColorA    = 6 UMETA(DisplayName = "A Channel", Tooltip="..."),
-};
-
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Native Point Properties"))
 enum class EPCGExPointNativeProperties : uint8
 {
@@ -311,12 +299,8 @@ namespace PCGEx
 
 #pragma region Metadata Type
 
-	static bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
-	{
-		if (!InMetadata) { return false; }
-		if (!InMetadata->GetConstMetadataDomain(Identifier.MetadataDomain)) { return false; }
-		return InMetadata->HasAttribute(Identifier);
-	}
+	PCGEXTENDEDTOOLKIT_API
+	bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier);
 
 	static bool HasAttribute(const UPCGData* InData, const FPCGAttributeIdentifier& Identifier)
 	{
@@ -358,49 +342,6 @@ namespace PCGEx
 	{
 		if (!InData) { return nullptr; }
 		return TryGetMutableAttribute<T>(InData->MutableMetadata(), Identifier);
-	}
-
-	constexpr static int32 GetMetadataSize(const EPCGMetadataTypes InType)
-	{
-		switch (InType)
-		{
-		case EPCGMetadataTypes::Boolean:
-		case EPCGMetadataTypes::Float:
-		case EPCGMetadataTypes::Double:
-		case EPCGMetadataTypes::Integer32:
-		case EPCGMetadataTypes::Integer64: return 1;
-		case EPCGMetadataTypes::Vector2: return 2;
-		case EPCGMetadataTypes::Vector:
-		case EPCGMetadataTypes::Rotator: return 3;
-		case EPCGMetadataTypes::Vector4:
-		case EPCGMetadataTypes::Quaternion: return 4;
-		default: case EPCGMetadataTypes::Transform:
-		case EPCGMetadataTypes::String:
-		case EPCGMetadataTypes::Name:
-		case EPCGMetadataTypes::Unknown: return -1;
-		}
-	}
-
-	constexpr static int32 GetMetadataRating(const EPCGMetadataTypes InType)
-	{
-		switch (InType)
-		{
-		default: return 0;
-		case EPCGMetadataTypes::Boolean:
-		case EPCGMetadataTypes::Float:
-		case EPCGMetadataTypes::Double:
-		case EPCGMetadataTypes::Integer32:
-		case EPCGMetadataTypes::Integer64: return 1;
-		case EPCGMetadataTypes::Vector2: return 2;
-		case EPCGMetadataTypes::Vector:
-		case EPCGMetadataTypes::Rotator: return 3;
-		case EPCGMetadataTypes::Vector4:
-		case EPCGMetadataTypes::Quaternion: return 4;
-		case EPCGMetadataTypes::Transform: return 5;
-		case EPCGMetadataTypes::String:
-		case EPCGMetadataTypes::Name: return 6;
-		case EPCGMetadataTypes::Unknown: return -1;
-		}
 	}
 	
 	constexpr static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
