@@ -123,7 +123,7 @@ namespace PCGExData
 
 namespace PCGExCommon
 {
-	using DataIDType = TSharedPtr<PCGExData::TDataValue<int32>>;
+	using DataIDType = TSharedPtr<PCGExData::TDataValue<int64>>;
 	using ContextState = uint64;
 
 	const FString PCGExPrefix = TEXT("PCGEx/");

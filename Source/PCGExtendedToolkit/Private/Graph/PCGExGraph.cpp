@@ -813,7 +813,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		PCGEX_SHARED_CONTEXT_VOID(NodeDataFacade->Source->GetContextHandle())
 
 		const UPCGBasePointData* NodePointData = NodeDataFacade->Source->GetOutIn();
-		PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodePointData->GetUniqueID());
+		PairId = NodeDataFacade->Source->Tags->Set<int64>(TagStr_PCGExCluster, NodePointData->GetUniqueID());
 
 
 		// We initialize from the number of output point if it's greater than 0 at init time

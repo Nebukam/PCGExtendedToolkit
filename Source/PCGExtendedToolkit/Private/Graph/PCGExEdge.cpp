@@ -11,7 +11,7 @@ namespace PCGExGraph
 {
 	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExCommon::DataIDType& OutId)
 	{
-		OutId = IO->Tags->Set<int32>(TagStr_PCGExCluster, IO->GetOutIn()->GetUniqueID());
+		OutId = IO->Tags->Set<int64>(TagStr_PCGExCluster, IO->GetOutIn()->GetUniqueID());
 		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}

@@ -611,6 +611,23 @@ namespace PCGExHelpers
 		return Result;
 	}
 
+	void AppendEntriesFromCommaSeparatedList(const FString& InCommaSeparatedString, TSet<FString>& OutStrings)
+	{
+		if (InCommaSeparatedString.IsEmpty()) { return; }
+
+		TArray<FString> Result;
+		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
+		// Trim leading and trailing spaces
+		for (int i = 0; i < Result.Num(); i++)
+		{
+			FString& String = Result[i];
+			String.TrimStartAndEndInline();
+			if (String.IsEmpty()) { continue; }
+
+			OutStrings.Add(String);
+		}
+	}
+
 	void AppendUniqueEntriesFromCommaSeparatedList(const FString& InCommaSeparatedString, TArray<FString>& OutStrings)
 	{
 		if (InCommaSeparatedString.IsEmpty()) { return; }

@@ -268,6 +268,10 @@ public:
 	/** Tuple values */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ToolTip="Per-row values. Do no change the type here, it will be reset internally; instead, change it in the composition.", FullyExpand=true))
 	TArray<FPCGExTupleBody> Values;
+	
+	/** A list of tags separated by a comma, for easy overrides. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FString CommaSeparatedTags;
 };
 
 class FPCGExTupleElement final : public IPCGExElement

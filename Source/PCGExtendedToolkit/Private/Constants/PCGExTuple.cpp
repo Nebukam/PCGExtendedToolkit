@@ -328,7 +328,9 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 		}
 	}
 
-	Context->StageOutput(TupleData, FName("Tuple"));
+	TSet<FString> Tags;
+	PCGExHelpers::AppendEntriesFromCommaSeparatedList(Settings->CommaSeparatedTags, Tags);
+	Context->StageOutput(TupleData, FName("Tuple"), PCGExData::EStaging::None, Tags);
 
 	Context->Done();
 	return Context->TryComplete();
