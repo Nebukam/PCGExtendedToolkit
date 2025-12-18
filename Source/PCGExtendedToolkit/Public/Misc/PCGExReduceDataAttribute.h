@@ -5,8 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExHelpers.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExTypes.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExDetailsAttributes.h"
 
 #include "PCGExReduceDataAttribute.generated.h"
@@ -16,11 +19,13 @@ class FPCGMetadataAttributeBase;
 UENUM()
 enum class EPCGExReduceDataDomainMethod : uint8
 {
-	Min     = 0 UMETA(DisplayName = "Min", ToolTip=""),
-	Max     = 1 UMETA(DisplayName = "Max", ToolTip=""),
-	Sum     = 2 UMETA(DisplayName = "Sum", ToolTip=""),
-	Average = 3 UMETA(DisplayName = "Average", ToolTip=""),
-	Join    = 4 UMETA(DisplayName = "Join", ToolTip=""),
+	Min          = 0 UMETA(DisplayName = "Min", ToolTip=""),
+	Max          = 1 UMETA(DisplayName = "Max", ToolTip=""),
+	Sum          = 2 UMETA(DisplayName = "Sum", ToolTip=""),
+	Average      = 3 UMETA(DisplayName = "Average", ToolTip=""),
+	Join         = 4 UMETA(DisplayName = "Join", ToolTip=""),
+	Hash         = 5 UMETA(DisplayName = "Hash", ToolTip="Hashed in order of inputs"),
+	UnsignedHash = 6 UMETA(DisplayName = "Hash (Sorted)", ToolTip="Sorted, then hashed in sorted order"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/reduce-data"))
@@ -59,6 +64,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bCustomOutputType;
 
+	/* Not supported for Join! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bCustomOutputType"))
 	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Integer32;
 
@@ -85,4 +91,27 @@ protected:
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
+
+	template <typename T, typename Fn>
+	void ForEachValue(const TArray<const FPCGMetadataAttributeBase*>& InAttributes, Fn&& Func) const
+	{
+		for (int i = 0; i < InAttributes.Num(); i++)
+		{
+			const FPCGMetadataAttributeBase* Att = InAttributes[i];
+			PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
+			{
+				using T_ATTR = decltype(ValueType);
+				const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
+				T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+				Func(PCGExTypes::Convert<T_ATTR, T>(Value), i);
+			});
+		}
+	}
+
+	template <typename T>
+	void AggregateValues(TArray<T>& OutList, const TArray<const FPCGMetadataAttributeBase*>& InAttributes) const
+	{
+		OutList.Reserve(InAttributes.Num());
+		ForEachValue<T>(InAttributes, [&](T Value, int32) { OutList.Add(Value); });
+	}
 };
