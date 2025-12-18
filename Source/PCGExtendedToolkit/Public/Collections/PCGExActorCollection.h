@@ -5,12 +5,10 @@
 
 #include "CoreMinimal.h"
 
-#if WITH_EDITOR
-#include "AssetRegistry/AssetData.h"
-#endif
-
+#include "PCGExCollectionHelpers.h"
 #include "PCGExAssetCollection.h"
-#include "Engine/DataAsset.h"
+#include "GameFramework/Actor.h"
+#include "UObject/SoftObjectPath.h"
 
 #include "PCGExActorCollection.generated.h"
 
@@ -33,6 +31,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 
 	FPCGExActorCollectionEntry() = default;
 
+	virtual PCGExAssetCollection::EType GetType() const override { return FPCGExAssetCollectionEntry::GetType() | PCGExAssetCollection::EType::Actor; }
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftClassPtr<AActor> Actor;
 
@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 	TObjectPtr<UPCGExActorCollection> SubCollection;
 
 	virtual void ClearSubCollection() override;
-		
+
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
@@ -60,7 +60,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
-	
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")
@@ -81,6 +80,4 @@ public:
 	TArray<FPCGExActorCollectionEntry> Entries;
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExActorCollection, FPCGExActorCollectionEntry)
-
-	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const override;
 };

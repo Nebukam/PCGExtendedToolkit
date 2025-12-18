@@ -5,6 +5,7 @@
 #include "Misc/PCGExAttributeStats.h"
 
 #include "PCGExMT.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 

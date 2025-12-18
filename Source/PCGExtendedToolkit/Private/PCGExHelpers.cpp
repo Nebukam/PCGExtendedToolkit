@@ -346,6 +346,13 @@ namespace PCGEx
 		}
 	}
 
+	bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InMetadata) { return false; }
+		if (!InMetadata->GetConstMetadataDomain(Identifier.MetadataDomain)) { return false; }
+		return InMetadata->HasAttribute(Identifier);
+	}
+
 	FReadWriteScope::FReadWriteScope(const int32 NumElements, const bool bSetNum)
 	{
 		if (bSetNum)

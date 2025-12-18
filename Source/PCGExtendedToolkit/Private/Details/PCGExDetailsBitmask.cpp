@@ -68,6 +68,11 @@ void FPCGExClampedBitOp::Mutate(int64& Flags) const
 	}
 }
 
+FPCGExBitmaskRef::FPCGExBitmaskRef(const TObjectPtr<UPCGExBitmaskCollection> InSource, const FName InIdentifier)
+	:Source(InSource), Identifier(InIdentifier)
+{
+}
+
 #if WITH_EDITOR
 TArray<FName> FPCGExBitmaskRef::EDITOR_GetIdentifierOptions() const
 {

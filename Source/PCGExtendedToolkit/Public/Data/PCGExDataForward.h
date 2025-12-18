@@ -5,10 +5,15 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDataFilter.h"
+#include "Types/PCGExAttributeIdentity.h"
 #include "UObject/Object.h"
-#include "PCGExAttributeHelpers.h"
 
 #include "PCGExDataForward.generated.h"
+
+namespace PCGEx
+{
+	class IAttributeBroadcaster;
+}
 
 namespace PCGExData
 {

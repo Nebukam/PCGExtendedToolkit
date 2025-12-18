@@ -9,6 +9,7 @@
 #include "PCGComponent.h"
 #include "PCGExMT.h"
 #include "PCGParamData.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 
 #include "Graph/PCGExGraph.h"

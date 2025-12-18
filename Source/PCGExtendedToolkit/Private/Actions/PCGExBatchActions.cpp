@@ -8,9 +8,9 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/States/PCGExClusterStates.h"
 #include "Actions/PCGExActionFactoryProvider.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"

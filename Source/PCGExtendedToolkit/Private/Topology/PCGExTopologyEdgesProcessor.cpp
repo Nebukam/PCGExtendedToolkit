@@ -8,7 +8,7 @@
 #include "PCGComponent.h"
 #include "PCGExMT.h"
 #include "Topology/PCGExDynamicMeshComponent.h"
-#include "Topology/PCGExTopology.h"
+#include "Topology/PCGExCell.h"
 #include "Data/PCGDynamicMeshData.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"

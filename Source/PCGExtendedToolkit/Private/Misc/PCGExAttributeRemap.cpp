@@ -14,6 +14,7 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "PCGExVersion.h"
 #include "Async/ParallelFor.h"
+#include "Types/PCGExSubSelectionOps.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
@@ -164,7 +165,7 @@ namespace PCGExAttributeRemap
 
 		// Number of dimensions to be remapped
 		UnderlyingType = InputDescriptor.WorkingType;
-		Dimensions = PCGEx::GetMetadataSize(UnderlyingType);
+		Dimensions = FMath::Min(4, PCGEx::FSubSelectorRegistry::Get(UnderlyingType)->GetNumFields());
 
 		// Get per-field proxies for input
 		if (!GetPerFieldProxyBuffers(Context, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }

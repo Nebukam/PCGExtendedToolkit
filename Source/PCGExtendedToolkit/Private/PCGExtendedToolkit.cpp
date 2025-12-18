@@ -6,8 +6,6 @@
 #include "ISettingsModule.h"
 #endif
 #include "PCGExGlobalSettings.h"
-#include "Types/PCGExSubSelectionOps.h"
-#include "Types/PCGExTypeOps.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 

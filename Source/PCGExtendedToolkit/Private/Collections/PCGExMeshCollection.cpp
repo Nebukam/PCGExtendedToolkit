@@ -3,9 +3,14 @@
 
 #include "Collections/PCGExMeshCollection.h"
 
+#if WITH_EDITOR
+#include "AssetRegistry/AssetData.h"
+#endif
+
 #include "PCGExGlobalSettings.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Transform/PCGExTransform.h"
+
 
 void FPCGExMaterialOverrideCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
@@ -406,15 +411,3 @@ void UPCGExMeshCollection::EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMod
 	MarkPackageDirty();
 }
 #endif
-
-void UPCGExMeshCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
-{
-	Super::EDITOR_RegisterTrackingKeys(Context);
-	for (const FPCGExMeshCollectionEntry& Entry : Entries)
-	{
-		if (Entry.bIsSubCollection && Entry.SubCollection)
-		{
-			Entry.SubCollection->EDITOR_RegisterTrackingKeys(Context);
-		}
-	}
-}

@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "Engine/AssetManager.h"

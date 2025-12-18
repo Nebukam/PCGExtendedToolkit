@@ -142,8 +142,30 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 					EPCGMetadataTypes TypeA = A.SubSelection.bIsValid && A.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : A.RealType;
 					EPCGMetadataTypes TypeB = B.SubSelection.bIsValid && B.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : B.RealType;
 
-					int32 RatingA = PCGEx::GetMetadataRating(TypeA);
-					int32 RatingB = PCGEx::GetMetadataRating(TypeB);
+					auto GetMetadataRating = [](const EPCGMetadataTypes InType)
+					{
+						switch (InType)
+						{
+						default: return 0;
+						case EPCGMetadataTypes::Boolean:
+						case EPCGMetadataTypes::Float:
+						case EPCGMetadataTypes::Double:
+						case EPCGMetadataTypes::Integer32:
+						case EPCGMetadataTypes::Integer64: return 1;
+						case EPCGMetadataTypes::Vector2: return 2;
+						case EPCGMetadataTypes::Vector:
+						case EPCGMetadataTypes::Rotator: return 3;
+						case EPCGMetadataTypes::Vector4:
+						case EPCGMetadataTypes::Quaternion: return 4;
+						case EPCGMetadataTypes::Transform: return 5;
+						case EPCGMetadataTypes::String:
+						case EPCGMetadataTypes::Name: return 6;
+						case EPCGMetadataTypes::Unknown: return -1;
+						}
+					};
+					
+					int32 RatingA = GetMetadataRating(TypeA);
+					int32 RatingB = GetMetadataRating(TypeB);
 
 					RealTypeC = RatingA > RatingB ? TypeA : TypeB;
 				}

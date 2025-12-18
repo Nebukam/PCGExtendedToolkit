@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 #include "PCGExBlendOpFactoryProvider.h"
 #include "PCGExScopedContainers.h"

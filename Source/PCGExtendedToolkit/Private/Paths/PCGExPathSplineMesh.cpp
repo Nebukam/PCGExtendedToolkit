@@ -14,6 +14,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
+#include "AssetStaging/PCGExStaging.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 

@@ -14,6 +14,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "Data/PCGSplineData.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 #include "PCGExSampleNearestSpline.generated.h"

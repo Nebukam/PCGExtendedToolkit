@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExBlending.h"
