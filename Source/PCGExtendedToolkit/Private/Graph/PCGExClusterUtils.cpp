@@ -160,7 +160,7 @@ namespace PCGExClusterUtils
 
 	TSharedPtr<PCGExData::FPointIOTaggedEntries> FClusterDataLibrary::GetAssociatedEdges(const TSharedPtr<PCGExData::FPointIO>& InVtxIO) const
 	{
-		if (const PCGExCommon::DataIDType CurrentPairId = PCGEX_GET_DATAIDTAG(InVtxIO->Tags, PCGExGraph::TagStr_PCGExCluster);
+		if (const PCGExCommon::DataIDType CurrentPairId = PCGEX_GET_DATAIDTAG(InVtxIO->Tags, PCGExGraph::TagStr_PCGExCluster))
 		{
 			if (TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = InputDictionary->GetEntries(CurrentPairId->Value); EdgesEntries && !EdgesEntries->Entries.IsEmpty()) { return EdgesEntries; }
 		}

@@ -118,6 +118,11 @@ bool FPCGExReduceDataAttributeElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->OutputType = EPCGMetadataTypes::String;
 	}
+	else if (!Settings->bCustomOutputType
+		&& (Settings->Method == EPCGExReduceDataDomainMethod::Hash || Settings->Method == EPCGExReduceDataDomainMethod::UnsignedHash))
+	{
+		Context->OutputType = EPCGMetadataTypes::Integer64;
+	}
 
 	return true;
 }
@@ -138,46 +143,29 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 		if (Settings->Method == EPCGExReduceDataDomainMethod::Join)
 		{
 			TArray<FString> StringsToJoin;
-			StringsToJoin.Reserve(Context->Attributes.Num());
-			FString OutValue = TEXT("");
+			AggregateValues(StringsToJoin, Context->Attributes);
 
-			if (Settings->bCustomOutputType)
-			{
-				for (int i = 0; i < Context->Attributes.Num(); i++)
-				{
-					const FPCGMetadataAttributeBase* Att = Context->Attributes[i];
-					PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
-					{
-						using T_ATTR = decltype(ValueType);
-						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-						T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
-
-						PCGEx::ExecuteWithRightType(Settings->OutputType, [&](auto DummyValue)
-						{
-							using T = decltype(DummyValue);
-							StringsToJoin.Add(PCGExTypes::Convert<T_ATTR, FString>(Value));
-						});
-					});
-				}
-			}
-			else
-			{
-				for (int i = 0; i < Context->Attributes.Num(); i++)
-				{
-					const FPCGMetadataAttributeBase* Att = Context->Attributes[i];
-					PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
-					{
-						using T_ATTR = decltype(ValueType);
-						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-						T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
-						StringsToJoin.Add(PCGExTypes::Convert<T_ATTR, FString>(Value));
-					});
-				}
-			}
-
-			OutValue = FString::Join(StringsToJoin, *Settings->JoinDelimiter);
+			const FString OutValue = FString::Join(StringsToJoin, *Settings->JoinDelimiter);
 			FPCGMetadataAttribute<FString>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, OutValue);
 			OutAtt->SetValue(OutMetadata->AddEntry(), OutValue);
+		}
+		else if (Settings->Method == EPCGExReduceDataDomainMethod::Hash
+			|| Settings->Method == EPCGExReduceDataDomainMethod::UnsignedHash)
+		{
+			TArray<int32> Hashes;
+			AggregateValues(Hashes, Context->Attributes);
+
+			if (Settings->Method == EPCGExReduceDataDomainMethod::UnsignedHash) { Hashes.Sort(); }
+
+			int64 AggregatedHash = CityHash64(reinterpret_cast<const char*>(Hashes.GetData()), Hashes.Num() * sizeof(int32));
+
+			PCGEx::ExecuteWithRightType(Context->OutputType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				const T OutValue = PCGExTypes::Convert<int64, T>(AggregatedHash);
+				FPCGMetadataAttribute<T>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, OutValue);
+				OutAtt->SetValue(OutMetadata->AddEntry(), OutValue);
+			});
 		}
 		else
 		{
@@ -186,32 +174,24 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 				using T = decltype(DummyValue);
 				T ReducedValue = T{};
 
-				for (int i = 0; i < Context->Attributes.Num(); i++)
+				ForEachValue<T>(Context->Attributes, [&](T Value, int32 i)
 				{
-					const FPCGMetadataAttributeBase* Att = Context->Attributes[i];
-					PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
+					if (i == 0) { ReducedValue = Value; }
+					else
 					{
-						using T_ATTR = decltype(ValueType);
-						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-						T Value = PCGExTypes::Convert<T_ATTR, T>(PCGExDataHelpers::ReadDataValue(TypedAtt));
-
-						if (i == 0) { ReducedValue = Value; }
-						else
+						switch (Settings->Method)
 						{
-							switch (Settings->Method)
-							{
-							case EPCGExReduceDataDomainMethod::Min: ReducedValue = PCGExTypeOps::FTypeOps<T>::Min(ReducedValue, Value);
-								break;
-							case EPCGExReduceDataDomainMethod::Max: ReducedValue = PCGExTypeOps::FTypeOps<T>::Max(ReducedValue, Value);
-								break;
-							case EPCGExReduceDataDomainMethod::Sum:
-							case EPCGExReduceDataDomainMethod::Average: ReducedValue = PCGExTypeOps::FTypeOps<T>::Add(ReducedValue, Value);
-								break;
-							default: case EPCGExReduceDataDomainMethod::Join: break;
-							}
+						case EPCGExReduceDataDomainMethod::Min: ReducedValue = PCGExTypeOps::FTypeOps<T>::Min(ReducedValue, Value);
+							break;
+						case EPCGExReduceDataDomainMethod::Max: ReducedValue = PCGExTypeOps::FTypeOps<T>::Max(ReducedValue, Value);
+							break;
+						case EPCGExReduceDataDomainMethod::Sum:
+						case EPCGExReduceDataDomainMethod::Average: ReducedValue = PCGExTypeOps::FTypeOps<T>::Add(ReducedValue, Value);
+							break;
+						default: case EPCGExReduceDataDomainMethod::Join: break;
 						}
-					});
-				}
+					}
+				});
 
 				if (Settings->Method == EPCGExReduceDataDomainMethod::Average)
 				{
