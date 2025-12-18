@@ -30,7 +30,7 @@ enum class EPCGExBlendingType : uint8
 	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
 	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
 	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
-	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash."),
+	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Sorted)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash."),
 	WeightNormalize  = 18 UMETA(DisplayName = "Weight (Normalize)", ToolTip="Weights based on distance to blend targets and force normalized."),
 	Unset            = 200 UMETA(Hidden),
 };
@@ -91,7 +91,7 @@ enum class EPCGExABBlendingType : uint8
 	AbsoluteMin      = 16 UMETA(DisplayName = "Absolute Min", ToolTip="+Min(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
 	AbsoluteMax      = 17 UMETA(DisplayName = "Absolute Max", ToolTip="+Max(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
 	Hash             = 18 UMETA(DisplayName = "Hash", ToolTip="Hash(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
-	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
+	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Sorted)", ToolTip="Hash(Min(A, B), Max(A, B))", ActionIcon="PCGEx.Pin.OUT_BlendOp"),
 	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%"),
 	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "%"),
 	WeightNormalize  = 22 UMETA(DisplayName = "Weight (Always Normalize)", ToolTip="(A + B) / Weight. Always normalize final values.", ActionIcon="PCGEx.Pin.OUT_BlendOp", SearchHints = "Weight"),

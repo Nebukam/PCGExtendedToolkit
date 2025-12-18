@@ -64,7 +64,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 			}
 		}
 
-		Context->SearchKey = Context->SearchKeyIO->Tags->GetTypedValue<int64>(PCGExGraph::TagStr_PCGExCluster);
+		Context->SearchKey = PCGEX_GET_DATAIDTAG(Context->SearchKeyIO->Tags, PCGExGraph::TagStr_PCGExCluster);
 		if (!Context->SearchKey)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Found no valid key to match against."));
