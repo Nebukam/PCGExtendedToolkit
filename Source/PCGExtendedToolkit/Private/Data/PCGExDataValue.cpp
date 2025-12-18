@@ -156,7 +156,7 @@ template class PCGEXTENDEDTOOLKIT_API TDataValue<_TYPE>;
 			{
 				return MakeShared<TDataValue<double>>(FCString::Atod(*RightSide));
 			}
-			return MakeShared<TDataValue<int32>>(FCString::Atoi(*RightSide));
+			return MakeShared<TDataValue<int64>>(FCString::Atoi64(*RightSide));
 		}
 
 		if (FVector ParsedVector; ParsedVector.InitFromString(RightSide))

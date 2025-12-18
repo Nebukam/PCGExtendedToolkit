@@ -112,7 +112,12 @@ bool FPCGExWritePathPropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 
 	if (Context->PathAttributeSet)
 	{
+		Context->IncreaseStagedOutputReserve(Context->MainPoints->Num() + 1);
 		Context->StageOutput(Context->PathAttributeSet, PCGExWritePathProperties::OutputPathProperties);
+	}
+	else
+	{
+		Context->IncreaseStagedOutputReserve(Context->MainPoints->Num() * 2);
 	}
 
 	Context->MainBatch->Output();
@@ -314,10 +319,12 @@ namespace PCGExWritePathProperties
 
 	void FProcessor::Output()
 	{
+		const TSet<FString> FlattenedTags = PointDataFacade->Source->Tags->Flatten();
+
 		TProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>::Output();
 		if (PathAttributeSet && !Context->PathAttributeSet)
 		{
-			Context->StageOutput(PathAttributeSet, OutputPathProperties);
+			Context->StageOutput(PathAttributeSet, OutputPathProperties, PCGExData::EStaging::None, FlattenedTags);
 		}
 
 		if (PCGExPaths::FInclusionInfos Infos; Settings->bUseInclusionPins && Context->InclusionHelper && Context->InclusionHelper->Find(Path->Idx, Infos))
@@ -325,17 +332,17 @@ namespace PCGExWritePathProperties
 			if (!Infos.Depth)
 			{
 				Context->NumOuter++;
-				Context->StageOutput(PointDataFacade->GetOut(), OutputPathOuter);
+				Context->StageOutput(PointDataFacade->GetOut(), OutputPathOuter, PCGExData::EStaging::None, FlattenedTags);
 			}
 			else
 			{
 				Context->NumInner++;
-				Context->StageOutput(PointDataFacade->GetOut(), OutputPathInner);
+				Context->StageOutput(PointDataFacade->GetOut(), OutputPathInner, PCGExData::EStaging::None, FlattenedTags);
 
 				if (Infos.bOdd && (!Settings->bOuterIsNotOdd || Infos.Depth > 0))
 				{
 					Context->NumOdd++;
-					Context->StageOutput(PointDataFacade->GetOut(), OutputPathMedian);
+					Context->StageOutput(PointDataFacade->GetOut(), OutputPathMedian, PCGExData::EStaging::None, FlattenedTags);
 				}
 			}
 		}
