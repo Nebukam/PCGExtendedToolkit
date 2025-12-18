@@ -31,6 +31,8 @@ namespace PCGExSampling
 	using FInitCurveDataDefaults = std::function<void(FRichCurve& CurveData)>;
 }
 
+struct FPCGExCurveLookupDetails; // Force-forward so it doesn't get captured as part of namespace when declared as friend later on
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExCurveLookupDetails
 {
@@ -88,7 +90,7 @@ namespace PCGExSampling
 	 */
 	class PCGEXTENDEDTOOLKIT_API FCurveFloatLookup : public TSharedFromThis<FCurveFloatLookup>
 	{
-		friend struct FPCGExCurveLookupDetails;
+		friend struct ::FPCGExCurveLookupDetails;
 
 	public:
 		FCurveFloatLookup() = default;
