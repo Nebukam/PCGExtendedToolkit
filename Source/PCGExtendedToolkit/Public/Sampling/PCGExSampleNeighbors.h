@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 
 #include "PCGExSampleNeighbors.generated.h"
 
@@ -19,7 +19,7 @@ class UPCGExNeighborSamplerFactoryData;
 class FPCGExNeighborSampleOperation;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="sampling/sample-neighbors"))
-class UPCGExSampleNeighborsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExSampleNeighborsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -40,7 +40,7 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	//~Begin UPCGExEdgesProcessorSettings
+	//~Begin UPCGExClustersProcessorSettings
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
@@ -48,7 +48,7 @@ private:
 	friend class FPCGExSampleNeighborsElement;
 };
 
-struct FPCGExSampleNeighborsContext final : FPCGExEdgesProcessorContext
+struct FPCGExSampleNeighborsContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
 	TArray<TObjectPtr<const UPCGExNeighborSamplerFactoryData>> SamplerFactories;
@@ -57,7 +57,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
+class FPCGExSampleNeighborsElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNeighbors)

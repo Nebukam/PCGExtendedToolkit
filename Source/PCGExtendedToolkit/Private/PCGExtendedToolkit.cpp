@@ -6,12 +6,17 @@
 #include "ISettingsModule.h"
 #endif
 #include "PCGExGlobalSettings.h"
+#include "Collections/Core/PCGExAssetCollectionTypes.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 
 void FPCGExtendedToolkitModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	
+	// We need this because the registry holds a reference to the collection ::StaticClass
+	// and it cannot be access during initialization so we defer it here.
+	PCGExAssetCollection::FTypeRegistry::ProcessPendingRegistrations();
 }
 
 void FPCGExtendedToolkitModule::ShutdownModule()

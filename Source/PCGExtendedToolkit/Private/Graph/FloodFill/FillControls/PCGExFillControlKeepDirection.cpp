@@ -88,7 +88,7 @@ FString UPCGExFillControlsKeepDirectionProviderSettings::GetDisplayName() const
 {
 	FString DName = GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Fill Control"), TEXT("FC")) + TEXT(" @ ");
 
-	if (Config.WindowSizeInput == EPCGExInputValueType::Attribute) { DName += PCGEx::GetSelectorDisplayName(Config.WindowSizeAttribute); }
+	if (Config.WindowSizeInput == EPCGExInputValueType::Attribute) { DName += PCGExMetaHelpers::GetSelectorDisplayName(Config.WindowSizeAttribute); }
 	else { DName += FString::Printf(TEXT("%d"), Config.WindowSize); }
 
 	return DName;

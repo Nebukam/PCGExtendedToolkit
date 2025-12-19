@@ -8,7 +8,7 @@
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/Blending/PCGExBlending.h"
 #include "PCGExOperation.h"
@@ -92,7 +92,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 
 	/** Curve over which the sampling will be remapped. Used differently depending on sampler.  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight Curve", EditCondition="!bUseLocalCurve", EditConditionHides))
-	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGExCurves::WeightDistributionLinear);
 
 	PCGExFloatLUT WeightLUT = nullptr;
 

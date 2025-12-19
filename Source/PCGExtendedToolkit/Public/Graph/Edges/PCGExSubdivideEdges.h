@@ -7,12 +7,12 @@
 #include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExDetailsSubdivision.h"
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivideEdges.generated.h"
 
 UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
-class UPCGExSubdivideEdgesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExSubdivideEdgesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -85,7 +85,7 @@ private:
 	friend class FPCGExSubdivideEdgesElement;
 };
 
-struct FPCGExSubdivideEdgesContext final : FPCGExEdgesProcessorContext
+struct FPCGExSubdivideEdgesContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExSubdivideEdgesElement;
 
@@ -95,7 +95,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExSubdivideEdgesElement final : public FPCGExEdgesProcessorElement
+class FPCGExSubdivideEdgesElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SubdivideEdges)

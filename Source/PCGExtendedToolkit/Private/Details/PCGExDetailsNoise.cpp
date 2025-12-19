@@ -4,7 +4,7 @@
 #include "Details/PCGExDetailsNoise.h"
 
 #include "PCGEx.h"
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
 #include "Helpers/PCGHelpers.h"
 
@@ -55,7 +55,7 @@ void FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData
 {
 	const int32 NumPicks = GetNumPicks(InContext, InData, NumMaxItems);
 
-	PCGEx::ArrayOfIndices(OutPicks, NumMaxItems);
+	PCGExArrayHelpers::ArrayOfIndices(OutPicks, NumMaxItems);
 
 	int32 S = 0;
 	BaseSeed.TryReadDataValue(InContext, InData, S);

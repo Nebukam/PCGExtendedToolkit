@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 

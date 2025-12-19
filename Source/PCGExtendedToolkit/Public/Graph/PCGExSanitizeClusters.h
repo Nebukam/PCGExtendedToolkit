@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEdgesProcessor.h"
+#include "PCGExClustersProcessor.h"
 #include "PCGExSanitizeClusters.generated.h"
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/sanitize"))
-class UPCGExSanitizeClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExSanitizeClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -24,18 +24,18 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface
+	//~Begin UPCGExClustersProcessorSettings interface
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	//~End UPCGExEdgesProcessorSettings interface
+	//~End UPCGExClustersProcessorSettings interface
 
 	/** Graph & Edges output properties. Note that pruning isolated points is ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct FPCGExSanitizeClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExSanitizeClustersContext final : FPCGExClustersProcessorContext
 {
 	friend class UPCGExSanitizeClustersSettings;
 	friend class FPCGExSanitizeClustersElement;
@@ -44,7 +44,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExSanitizeClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SanitizeClusters)

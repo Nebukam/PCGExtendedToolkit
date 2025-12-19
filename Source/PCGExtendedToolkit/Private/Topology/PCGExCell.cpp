@@ -6,7 +6,7 @@
 #include "GeomTools.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
@@ -377,7 +377,7 @@ namespace PCGExTopology
 
 		if (!Data.bIsClosedLoop) { return ECellResult::OpenCell; }
 
-		PCGEx::ShiftArrayToSmallest(Nodes); // ! important to guarantee contour determinism
+		PCGExArrayHelpers::ShiftArrayToSmallest(Nodes); // ! important to guarantee contour determinism
 
 		if (!Constraints->IsUniqueCellHash(SharedThis(this))) { return ECellResult::Duplicate; }
 

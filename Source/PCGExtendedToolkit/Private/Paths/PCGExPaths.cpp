@@ -78,7 +78,7 @@ namespace PCGExPaths
 	{
 		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
 
-		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
+		const FPCGMetadataAttribute<bool>* Attr = PCGExMetaHelpers::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
 		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
 	}
 
@@ -89,7 +89,7 @@ namespace PCGExPaths
 
 	void SetIsHole(UPCGData* InData, const bool bIsHole)
 	{
-		FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetMutableAttribute<bool>(InData, HoleIdentifier);
+		FPCGMetadataAttribute<bool>* Attr = PCGExMetaHelpers::TryGetMutableAttribute<bool>(InData, HoleIdentifier);
 
 		if (!bIsHole)
 		{
@@ -110,7 +110,7 @@ namespace PCGExPaths
 	{
 		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
 
-		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, HoleIdentifier);
+		const FPCGMetadataAttribute<bool>* Attr = PCGExMetaHelpers::TryGetConstAttribute<bool>(InData, HoleIdentifier);
 		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
 	}
 
@@ -660,7 +660,7 @@ namespace PCGExPaths
 		if (NumPoints < 2) { return nullptr; }
 
 		TArray<FSplinePoint> SplinePoints;
-		PCGEx::InitArray(SplinePoints, NumPoints);
+		PCGExArrayHelpers::InitArray(SplinePoints, NumPoints);
 
 		ESplinePointType::Type PointType = ESplinePointType::Linear;
 		bool bComputeTangents = false;
@@ -733,7 +733,7 @@ namespace PCGExPaths
 			}
 		};
 
-		PCGEx::InitArray(SplinePoints, NumPoints);
+		PCGExArrayHelpers::InitArray(SplinePoints, NumPoints);
 
 		for (int i = 0; i < NumPoints; i++)
 		{

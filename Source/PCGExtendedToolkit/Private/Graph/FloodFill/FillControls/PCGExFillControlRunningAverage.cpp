@@ -95,7 +95,7 @@ UPCGExFactoryData* UPCGExFillControlsRunningAverageProviderSettings::CreateFacto
 FString UPCGExFillControlsRunningAverageProviderSettings::GetDisplayName() const
 {
 	FString DName = GetDefaultNodeTitle().ToString().Replace(TEXT("PCGEx | Fill Control"), TEXT("FC")) + TEXT(" @ ");
-	DName += PCGEx::GetSelectorDisplayName(Config.Operand);
+	DName += PCGExMetaHelpers::GetSelectorDisplayName(Config.Operand);
 	return DName;
 }
 #endif

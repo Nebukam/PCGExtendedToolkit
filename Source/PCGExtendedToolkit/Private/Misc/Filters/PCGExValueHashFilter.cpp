@@ -4,7 +4,7 @@
 #include "Misc/Filters/PCGExValueHashFilter.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
@@ -31,7 +31,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 		return PCGExFactories::EPreparationResult::MissingData;
 	}
 
-	PCGEx::InitArray(Hashes, SetSources.Num());
+	PCGExArrayHelpers::InitArray(Hashes, SetSources.Num());
 
 	TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
 	PCGEX_ASYNC_GROUP_CHKD_RET(TaskManager, GrabUniqueValues, PCGExFactories::EPreparationResult::Fail)
@@ -88,14 +88,14 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 		if (Config.SetAttributeName.IsNone())
 		{
-			TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(SourceFacade->GetIn()->Metadata);
+			TSharedPtr<PCGExData::FAttributesInfos> Infos = PCGExData::FAttributesInfos::Get(SourceFacade->GetIn()->Metadata);
 			if (Infos->Attributes.IsEmpty()) { return; }
 
 			Identifier = Infos->Identities[0].Identifier;
 		}
 		else
 		{
-			Identifier = PCGEx::GetAttributeIdentifier(Config.SetAttributeName, SourceFacade->GetIn());
+			Identifier = PCGExMetaHelpers::GetAttributeIdentifier(Config.SetAttributeName, SourceFacade->GetIn());
 		}
 
 		TSharedPtr<PCGExData::IBuffer> Buffer = SourceFacade->GetDefaultReadable(Identifier, PCGExData::EIOSide::In, false);
@@ -117,7 +117,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 bool UPCGExValueHashFilterFactory::DomainCheck()
 {
-	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA);
+	return PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandA);
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExValueHashFilterFactory::CreateFilter() const
@@ -145,7 +145,7 @@ bool PCGExPointFilter::FValueHashFilter::Init(FPCGExContext* InContext, const TS
 	bInvert = TypedFilterFactory->Config.bInvert;
 	bAnyPass = TypedFilterFactory->Config.Mode == EPCGExValueHashMode::Individual ? TypedFilterFactory->Config.Inclusion == EPCGExValueHashSetInclusionMode::Any : true;
 
-	FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(TypedFilterFactory->Config.OperandA, PointDataFacade->GetIn());
+	FPCGAttributeIdentifier Identifier = PCGExMetaHelpers::GetAttributeIdentifier(TypedFilterFactory->Config.OperandA, PointDataFacade->GetIn());
 	OperandA = InPointDataFacade->GetDefaultReadable(Identifier, PCGExData::EIOSide::In, true);
 
 	if (!OperandA)

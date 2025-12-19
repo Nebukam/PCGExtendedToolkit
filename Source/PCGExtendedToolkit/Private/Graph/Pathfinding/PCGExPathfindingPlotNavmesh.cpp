@@ -119,7 +119,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	};
 
 
-	PCGEx::FReadWriteScope PlotScope(NumPlots + 2, false);
+	PCGExPointArrayDataHelpers::FReadWriteScope PlotScope(NumPlots + 2, false);
 
 	// First, compute the final number of points
 	int32 NumPoints = 0;
@@ -158,7 +158,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 	UPCGBasePointData* OutPathData = PathIO->GetOut();
-	PCGEx::SetNumPointsAllocated(OutPathData, NumPoints);
+	PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPathData, NumPoints);
 
 	// Copy seed/goal properties
 	PlotScope.CopyPoints(PointIO->GetIn(), PathIO->GetOut());

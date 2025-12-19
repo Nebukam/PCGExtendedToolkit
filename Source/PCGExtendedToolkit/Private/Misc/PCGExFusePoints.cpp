@@ -97,7 +97,7 @@ namespace PCGExFusePoints
 		UnionGraph->Reserve(PointDataFacade->GetNum(), 0);
 
 		// Register fetch-able buffers for chunked reads
-		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
+		TArray<PCGExData::FAttributeIdentity> SourceAttributes;
 		PCGExBlending::GetFilteredIdentities(PointDataFacade->GetIn()->Metadata, SourceAttributes, &Settings->BlendingDetails, &Context->CarryOverDetails);
 
 		PointDataFacade->CreateReadables(SourceAttributes);
@@ -168,7 +168,7 @@ namespace PCGExFusePoints
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
 
 		UPCGBasePointData* OutData = PointDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(OutData, NumUnionNodes, PointDataFacade->GetAllocations());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutData, NumUnionNodes, PointDataFacade->GetAllocations());
 
 		if (Settings->Mode == EPCGExFusedPointOutput::MostCentral)
 		{

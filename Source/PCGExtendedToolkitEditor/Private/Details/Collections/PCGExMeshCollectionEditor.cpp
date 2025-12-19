@@ -9,7 +9,7 @@
 
 #include "PropertyEditorModule.h"
 #include "ToolMenus.h"
-#include "Collections/PCGExAssetCollection.h"
+#include "Collections/Core/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"

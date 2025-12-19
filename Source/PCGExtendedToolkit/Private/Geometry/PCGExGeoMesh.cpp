@@ -8,7 +8,7 @@
 
 #include "PCGEx.h"
 #include "PCGExH.h"
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
@@ -22,7 +22,7 @@ bool FPCGExGeoMeshImportDetails::Validate(FPCGExContext* InContext)
 {
 	if (bImportUVs)
 	{
-		PCGEx::BuildMap(InContext, PCGExGeo::SourceUVImportRulesLabel, UVChannels);
+		PCGExData::BuildMap(InContext, PCGExGeo::SourceUVImportRulesLabel, UVChannels);
 
 		if (UVChannels.IsEmpty())
 		{
@@ -54,7 +54,7 @@ bool FPCGExGeoMeshImportDetails::Validate(FPCGExContext* InContext)
 				continue;
 			}
 
-			if (!PCGEx::IsWritableAttributeName(Pair.Key))
+			if (!PCGExMetaHelpers::IsWritableAttributeName(Pair.Key))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is not a valid attribute name, it will be ignored."));
 				continue;
@@ -152,7 +152,7 @@ namespace PCGExGeo
 		if (Triangles.IsEmpty()) { return; }
 
 		TArray<FVector> DualPositions;
-		PCGEx::InitArray(DualPositions, Triangles.Num());
+		PCGExArrayHelpers::InitArray(DualPositions, Triangles.Num());
 
 		Edges.Empty();
 

@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExClusterMT.h"
-#include "PCGExEdgesProcessor.h"
+#include "PCGExClustersProcessor.h"
 #include "Data/PCGExPointIOMerger.h"
 
 
@@ -13,7 +13,7 @@
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/merge-vtx"))
-class UPCGExMergeVerticesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExMergeVerticesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -28,25 +28,25 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface
+	//~Begin UPCGExClustersProcessorSettings interface
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	//~End UPCGExEdgesProcessorSettings interface
+	//~End UPCGExClustersProcessorSettings interface
 
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-struct FPCGExMergeVerticesContext final : FPCGExEdgesProcessorContext
+struct FPCGExMergeVerticesContext final : FPCGExClustersProcessorContext
 {
 	friend class UPCGExMergeVerticesSettings;
 	friend class FPCGExMergeVerticesElement;
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	PCGExCommon::DataIDType OutVtxId;
+	PCGExDataId OutVtxId;
 	TSharedPtr<PCGExData::FFacade> CompositeDataFacade;
 	TSharedPtr<FPCGExPointIOMerger> Merger;
 
@@ -57,7 +57,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExMergeVerticesElement final : public FPCGExEdgesProcessorElement
+class FPCGExMergeVerticesElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(MergeVertices)

@@ -28,6 +28,15 @@ enum class EPCGExSplineMeshUpMode : uint8
 	Tangents  = 2 UMETA(DisplayName = "From Tangents (Gimbal fix)", Tooltip="Automatically computed up vector from tangents to enforce gimbal fix")
 };
 
+UENUM()
+enum class EPCGExSplineMeshAxis : uint8
+{
+	Default = 0 UMETA(Hidden),
+	X       = 1 UMETA(DisplayName = "X", ToolTip="X Axis"),
+	Y       = 2 UMETA(DisplayName = "Y", ToolTip="Y Axis"),
+	Z       = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
+};
+
 namespace PCGExPaths
 {
 	PCGEXTENDEDTOOLKIT_API void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);

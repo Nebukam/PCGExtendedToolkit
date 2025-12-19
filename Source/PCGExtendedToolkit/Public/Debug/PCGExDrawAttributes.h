@@ -11,7 +11,7 @@
 
 #include "PCGExDrawAttributes.generated.h"
 
-namespace PCGEx
+namespace PCGExData
 {
 	template <typename T>
 	class TAttributeBroadcaster;
@@ -101,7 +101,7 @@ struct FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 
 	FString GetNestedStructDisplayText() const
 	{
-		return PCGEx::GetSelectorDisplayName(Selector);
+		return PCGExMetaHelpers::GetSelectorDisplayName(Selector);
 	}
 };
 

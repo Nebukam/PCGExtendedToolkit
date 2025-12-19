@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Collections/PCGExComponentDescriptors.h"
+#include "Collections/Core/PCGExComponentDescriptors.h"
 #include "Data/PCGExDataFilter.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"

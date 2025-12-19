@@ -3,56 +3,35 @@
 
 #include "Collections/PCGExPCGDataAssetCollection.h"
 
-#include "PCGExGlobalSettings.h"
+#if WITH_EDITOR
+#include "AssetRegistry/AssetData.h"
+#endif
+
+#include "PCGDataAsset.h"
+#include "PCGExHelpers.h"
+
+// Register the PCGDataAsset collection type at startup
+PCGEX_REGISTER_COLLECTION_TYPE(PCGDataAsset, UPCGExPCGDataAssetCollection, FPCGExPCGDataAssetCollectionEntry, "PCG Data Asset Collection", Base)
+
+// =====================================================================================
+// PCGDataAsset MicroCache - Point weight picking
+// =====================================================================================
 
 namespace PCGExPCGDataAssetCollection
 {
-	
-	int32 FMicroCache::GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const
+	void FMicroCache::ProcessPointWeights(const TArray<int32>& InPointWeights)
 	{
-		switch (PickMode)
-		{
-		default: case EPCGExIndexPickMode::Ascending: return GetPickAscending(Index);
-		case EPCGExIndexPickMode::Descending: return GetPickDescending(Index);
-		case EPCGExIndexPickMode::WeightAscending: return GetPickWeightAscending(Index);
-		case EPCGExIndexPickMode::WeightDescending: return GetPickWeightDescending(Index);
-		}
+		BuildFromWeights(InPointWeights);
 	}
+}
 
-	int32 FMicroCache::GetPickAscending(const int32 Index) const
-	{
-		return Order.IsValidIndex(Index) ? Index : -1;
-	}
+// =====================================================================================
+// PCGDataAsset Collection Entry
+// =====================================================================================
 
-	int32 FMicroCache::GetPickDescending(const int32 Index) const
-	{
-		return Order.IsValidIndex(Index) ? (Order.Num() - 1) - Index : -1;
-	}
-
-	int32 FMicroCache::GetPickWeightAscending(const int32 Index) const
-	{
-		return Order.IsValidIndex(Index) ? Order[Index] : -1;
-	}
-
-	int32 FMicroCache::GetPickWeightDescending(const int32 Index) const
-	{
-		return Order.IsValidIndex(Index) ? Order[(Order.Num() - 1) - Index] : -1;
-	}
-
-	int32 FMicroCache::GetPickRandom(const int32 Seed) const
-	{
-		return Order[FRandomStream(Seed).RandRange(0, Order.Num() - 1)];
-	}
-
-	int32 FMicroCache::GetPickRandomWeighted(const int32 Seed) const
-	{
-		if (Order.IsEmpty()) { return -1; }
-
-		const int32 Threshold = FRandomStream(Seed).RandRange(0, WeightSum - 1);
-		int32 Pick = 0;
-		while (Pick < Weights.Num() && Weights[Pick] < Threshold) { Pick++; }
-		return Order[Pick];
-	}
+UPCGExAssetCollection* FPCGExPCGDataAssetCollectionEntry::GetSubCollectionPtr() const
+{
+	return SubCollection;
 }
 
 void FPCGExPCGDataAssetCollectionEntry::ClearSubCollection()
@@ -61,12 +40,6 @@ void FPCGExPCGDataAssetCollectionEntry::ClearSubCollection()
 	SubCollection = nullptr;
 }
 
-void FPCGExPCGDataAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
-{
-	FPCGExAssetCollectionEntry::GetAssetPaths(OutPaths);
-}
-
-
 bool FPCGExPCGDataAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (!bIsSubCollection)
@@ -74,14 +47,53 @@ bool FPCGExPCGDataAssetCollectionEntry::Validate(const UPCGExAssetCollection* Pa
 		if (!DataAsset.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
 	}
 
-	return Super::Validate(ParentCollection);
+	return FPCGExAssetCollectionEntry::Validate(ParentCollection);
 }
 
-UPCGExAssetCollection* FPCGExPCGDataAssetCollectionEntry::GetSubCollectionVoid() const
+void FPCGExPCGDataAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive)
 {
-	return SubCollection;
+	ClearManagedSockets();
+
+	if (bIsSubCollection)
+	{
+		FPCGExAssetCollectionEntry::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
+		return;
+	}
+
+	Staging.Path = DataAsset.ToSoftObjectPath();
+
+	// Load the data asset to compute bounds
+	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(DataAsset);
+
+	if (const UPCGDataAsset* Asset = DataAsset.Get())
+	{
+		// Compute bounds from all point data in the asset
+		FBox CombinedBounds(ForceInit);
+
+		for (const FPCGTaggedData& TaggedData : Asset->Data.GetAllInputs())
+		{
+			if (const UPCGSpatialData* PointData = Cast<UPCGSpatialData>(TaggedData.Data))
+			{
+				CombinedBounds += PointData->GetBounds();
+			}
+		}
+
+		Staging.Bounds = CombinedBounds.IsValid ? CombinedBounds : FBox(ForceInit);
+	}
+	else
+	{
+		Staging.Bounds = FBox(ForceInit);
+	}
+
+	FPCGExAssetCollectionEntry::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
+	PCGExHelpers::SafeReleaseHandle(Handle);
 }
 
+void FPCGExPCGDataAssetCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
+{
+	FPCGExAssetCollectionEntry::SetAssetPath(InPath);
+	DataAsset = TSoftObjectPtr<UPCGDataAsset>(InPath);
+}
 
 #if WITH_EDITOR
 void FPCGExPCGDataAssetCollectionEntry::EDITOR_Sanitize()
@@ -101,65 +113,35 @@ void FPCGExPCGDataAssetCollectionEntry::EDITOR_Sanitize()
 
 void FPCGExPCGDataAssetCollectionEntry::BuildMicroCache()
 {
-	const TSharedPtr<PCGExPCGDataAssetCollection::FMicroCache> NewCache = MakeShared<PCGExPCGDataAssetCollection::FMicroCache>();
-
-	MicroCache = NewCache;
-}
-
-void FPCGExPCGDataAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
-{
-	ClearManagedSockets();
-
-	if (bIsSubCollection)
+	if (!bOverrideWeights || PointWeights.IsEmpty())
 	{
-		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
+		MicroCache = nullptr;
 		return;
 	}
 
-	if (Staging.InternalIndex == -1 && GetDefault<UPCGExGlobalSettings>()->bDisableCollisionByDefault)
-	{
-	}
-
-	Staging.Path = DataAsset.ToSoftObjectPath();
-
-	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(DataAsset);
-
-	const UPCGDataAsset* M = DataAsset.Get();
-
-	if (M)
-	{
-		//update Staging
-	}
-	else
-	{
-		Staging.Bounds = FBox(ForceInit);
-	}
-
-	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
-	PCGExHelpers::SafeReleaseHandle(Handle);
+	TSharedPtr<PCGExPCGDataAssetCollection::FMicroCache> NewCache = MakeShared<PCGExPCGDataAssetCollection::FMicroCache>();
+	NewCache->ProcessPointWeights(PointWeights);
+	MicroCache = NewCache;
 }
 
-void FPCGExPCGDataAssetCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
-{
-	Super::SetAssetPath(InPath);
-	DataAsset = TSoftObjectPtr<UPCGDataAsset>(InPath);
-}
+// =====================================================================================
+// PCGDataAsset Collection - Editor Functions
+// =====================================================================================
 
 #if WITH_EDITOR
 void UPCGExPCGDataAssetCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
 {
-	Super::EDITOR_AddBrowserSelectionInternal(InAssetData);
+	UPCGExAssetCollection::EDITOR_AddBrowserSelectionInternal(InAssetData);
 
 	for (const FAssetData& SelectedAsset : InAssetData)
 	{
-		TSoftObjectPtr<UPCGDataAsset> DataAsset = TSoftObjectPtr<UPCGDataAsset>(SelectedAsset.ToSoftObjectPath());
-		if (!DataAsset.LoadSynchronous()) { continue; }
+		TSoftObjectPtr<UPCGDataAsset> Asset = TSoftObjectPtr<UPCGDataAsset>(SelectedAsset.ToSoftObjectPath());
+		if (!Asset.LoadSynchronous()) { continue; }
 
 		bool bAlreadyExists = false;
-
 		for (const FPCGExPCGDataAssetCollectionEntry& ExistingEntry : Entries)
 		{
-			if (ExistingEntry.DataAsset == DataAsset)
+			if (ExistingEntry.DataAsset == Asset)
 			{
 				bAlreadyExists = true;
 				break;
@@ -169,7 +151,7 @@ void UPCGExPCGDataAssetCollection::EDITOR_AddBrowserSelectionInternal(const TArr
 		if (bAlreadyExists) { continue; }
 
 		FPCGExPCGDataAssetCollectionEntry Entry = FPCGExPCGDataAssetCollectionEntry();
-		Entry.DataAsset = DataAsset;
+		Entry.DataAsset = Asset;
 
 		Entries.Add(Entry);
 	}

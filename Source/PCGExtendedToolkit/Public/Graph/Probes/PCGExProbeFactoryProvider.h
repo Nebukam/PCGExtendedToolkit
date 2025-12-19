@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExProbeFactoryProvider.generated.h"

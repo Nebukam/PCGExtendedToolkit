@@ -17,7 +17,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExBooleanCompareFilterConfig, OperandB, bool, Compa
 
 bool UPCGExBooleanCompareFilterFactory::DomainCheck()
 {
-	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
+	return PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandB));
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
@@ -84,9 +84,9 @@ PCGEX_CREATE_FILTER_FACTORY(BooleanCompare)
 #if WITH_EDITOR
 FString UPCGExBooleanCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + (Config.Comparison == EPCGExEquality::Equal ? TEXT(" == ") : TEXT(" != "));
+	FString DisplayName = PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandA) + (Config.Comparison == EPCGExEquality::Equal ? TEXT(" == ") : TEXT(" != "));
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandB); }
 	else
 	{
 		DisplayName += FString::Printf(TEXT("%s"), Config.OperandBConstant ? TEXT("true") : TEXT("false"));

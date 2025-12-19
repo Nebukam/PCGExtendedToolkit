@@ -40,7 +40,7 @@ TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::OutputPinPropertie
 
 bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
@@ -108,7 +108,7 @@ namespace PCGExCopyClustersToPoints
 
 		const int32 NumTargets = Context->TargetsDataFacade->GetNum();
 
-		PCGEx::InitArray(EdgesDupes, NumTargets);
+		PCGExArrayHelpers::InitArray(EdgesDupes, NumTargets);
 
 		MatchScope = PCGExMatching::FMatchingScope(GetParentBatch<FBatch>()->EdgesDataFacades->Num());
 		InfiniteScope = PCGExMatching::FMatchingScope(Context->InitialMainPointsNum, true);
@@ -223,8 +223,8 @@ namespace PCGExCopyClustersToPoints
 
 		const int32 NumTargets = Context->TargetsDataFacade->GetNum();
 
-		PCGEx::InitArray(VtxDupes, NumTargets);
-		PCGEx::InitArray(VtxTag, NumTargets);
+		PCGExArrayHelpers::InitArray(VtxDupes, NumTargets);
+		PCGExArrayHelpers::InitArray(VtxTag, NumTargets);
 
 		PCGExMatching::FMatchingScope MatchScope = PCGExMatching::FMatchingScope(Context->InitialMainPointsNum);
 
@@ -252,7 +252,7 @@ namespace PCGExCopyClustersToPoints
 			// Create a vtx copy per target point
 			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::Duplicate);
 
-			PCGExCommon::DataIDType OutId;
+			PCGExDataId OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 			VtxDupes[i] = VtxDupe;

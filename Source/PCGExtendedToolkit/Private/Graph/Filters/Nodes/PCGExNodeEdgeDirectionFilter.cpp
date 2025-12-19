@@ -195,7 +195,7 @@ FString UPCGExNodeEdgeDirectionFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Config.DotComparisonDetails.Comparison);
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.Direction); }
 	else { DisplayName += TEXT("Constant"); }
 
 	DisplayName += TEXT(" (");

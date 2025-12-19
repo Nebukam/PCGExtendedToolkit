@@ -34,7 +34,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL(FindClusterHull)
 
 bool FPCGExFindClusterHullElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindClusterHull)
 

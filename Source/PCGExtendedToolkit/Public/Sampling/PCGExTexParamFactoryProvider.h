@@ -11,7 +11,7 @@
 #else
 #include "Materials/MaterialParameters.h"
 #endif
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExTexParamFactoryProvider.generated.h"

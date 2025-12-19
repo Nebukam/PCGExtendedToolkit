@@ -59,7 +59,7 @@ namespace PCGExGraph
 		TypedBlender->AddSources(InFacades, &ProtectedClusterAttributes);
 
 		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes, UnionBlender->GetAllocatedProperties()); // TODO : Proper Allocation
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, NumUnionNodes, UnionBlender->GetAllocatedProperties()); // TODO : Proper Allocation
 
 		if (!TypedBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
 

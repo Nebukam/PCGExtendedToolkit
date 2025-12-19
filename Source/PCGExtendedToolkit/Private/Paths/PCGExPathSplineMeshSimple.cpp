@@ -9,7 +9,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
-#include "Collections/PCGExAssetLoader.h"
+#include "Core/PCGExAssetLoader.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"

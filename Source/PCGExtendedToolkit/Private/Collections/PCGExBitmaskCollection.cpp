@@ -7,7 +7,7 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 
 void FPCGExBitmaskCollectionEntry::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
 {

@@ -4,41 +4,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGDataAsset.h"
 
-#include "PCGExCollectionHelpers.h"
-#include "PCGExAssetCollection.h"
-#include "UObject/SoftObjectPath.h"
-
+#include "Core/PCGExAssetCollection.h"
 #include "PCGExPCGDataAssetCollection.generated.h"
 
+class UPCGDataAsset;
 class UPCGExPCGDataAssetCollection;
+
+// =====================================================================================
+// PCGDataAsset MicroCache - Handles point-level picking within data assets
+// =====================================================================================
 
 namespace PCGExPCGDataAssetCollection
 {
 	class PCGEXTENDEDTOOLKIT_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
-		double WeightSum = 0;
-		TArray<int32> Weights;
-		TArray<int32> Order;
-
 	public:
 		FMicroCache() = default;
 
-		virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::PCGDataAsset; }
+		virtual PCGExAssetCollection::FTypeId GetTypeId() const override
+		{
+			return PCGExAssetCollection::TypeIds::PCGDataAsset;
+		}
 
-		virtual int32 Num() const override { return Order.Num(); }
-
-		virtual int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const override;
-
-		virtual int32 GetPickAscending(const int32 Index) const override;
-		virtual int32 GetPickDescending(const int32 Index) const override;
-		virtual int32 GetPickWeightAscending(const int32 Index) const override;
-		virtual int32 GetPickWeightDescending(const int32 Index) const override;
-		virtual int32 GetPickRandom(const int32 Seed) const override;
-		virtual int32 GetPickRandomWeighted(const int32 Seed) const override;
+		void ProcessPointWeights(const TArray<int32>& InPointWeights);
 	};
 }
+
+// =====================================================================================
+// PCGDataAsset Collection Entry
+// =====================================================================================
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAssetCollectionEntry
@@ -47,7 +42,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExA
 
 	FPCGExPCGDataAssetCollectionEntry() = default;
 
-	virtual PCGExAssetCollection::EType GetType() const override { return FPCGExAssetCollectionEntry::GetType() | PCGExAssetCollection::EType::PCGDataAsset; }
+	// ---------------------------------------------------------------------------------
+	// Type System
+	// ---------------------------------------------------------------------------------
+
+	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
+	{
+		return PCGExAssetCollection::TypeIds::PCGDataAsset;
+	}
+
+	// ---------------------------------------------------------------------------------
+	// PCGDataAsset-Specific Properties (DO NOT REORDER - Serialization compatibility)
+	// ---------------------------------------------------------------------------------
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UPCGDataAsset> DataAsset = nullptr;
@@ -55,14 +61,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExA
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExPCGDataAssetCollection> SubCollection;
 
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	bool bOverrideWeights = false;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Weights", EditCondition="!bIsSubCollection && bOverrideWeights", EditConditionHides))
+	TArray<int32> PointWeights;
+
+	// ---------------------------------------------------------------------------------
+	// Subcollection Access
+	// ---------------------------------------------------------------------------------
+
+	virtual UPCGExAssetCollection* GetSubCollectionPtr() const override;
+
 	virtual void ClearSubCollection() override;
 
-	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
+	// ---------------------------------------------------------------------------------
+	// Lifecycle
+	// ---------------------------------------------------------------------------------
+
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
-
-	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
-
-	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
+	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
 #if WITH_EDITOR
@@ -70,24 +88,62 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExA
 #endif
 
 	virtual void BuildMicroCache() override;
+
+	// ---------------------------------------------------------------------------------
+	// Typed MicroCache Access
+	// ---------------------------------------------------------------------------------
+
+	PCGExPCGDataAssetCollection::FMicroCache* GetDataAssetMicroCache() const
+	{
+		return static_cast<PCGExPCGDataAssetCollection::FMicroCache*>(MicroCache.Get());
+	}
+
+#pragma region DEPRECATED
+	UPROPERTY()
+	int32 PointWeightsCumulativeWeight_DEPRECATED = -1;
+
+	UPROPERTY()
+	TArray<int32> PointWeightsOrder_DEPRECATED;
+
+	UPROPERTY()
+	TArray<int32> ProcessedPointWeights_DEPRECATED;
+#pragma endregion
 };
 
-UCLASS(Hidden, BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection")
+// =====================================================================================
+// PCGDataAsset Collection
+// =====================================================================================
+
+UCLASS(BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection")
 class PCGEXTENDEDTOOLKIT_API UPCGExPCGDataAssetCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
+	PCGEX_ASSET_COLLECTION_BODY(FPCGExPCGDataAssetCollectionEntry)
 
 	friend struct FPCGExPCGDataAssetCollectionEntry;
 
 public:
-	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::PCGDataAsset; }
+	// ---------------------------------------------------------------------------------
+	// Type System
+	// ---------------------------------------------------------------------------------
+
+	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
+	{
+		return PCGExAssetCollection::TypeIds::PCGDataAsset;
+	}
+
+	// ---------------------------------------------------------------------------------
+	// Entries Array
+	// ---------------------------------------------------------------------------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
+	TArray<FPCGExPCGDataAssetCollectionEntry> Entries;
+
+	// ---------------------------------------------------------------------------------
+	// Editor Functions
+	// ---------------------------------------------------------------------------------
 
 #if WITH_EDITOR
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 #endif
-
-	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExPCGDataAssetCollection, FPCGExPCGDataAssetCollectionEntry)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
-	TArray<FPCGExPCGDataAssetCollectionEntry> Entries;
 };

@@ -9,7 +9,7 @@
 #include "GeometryScript/MeshRepairFunctions.h"
 #include "GeometryScript/PolygonFunctions.h"
 
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"

@@ -7,56 +7,16 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
-#include "PCGExtendedToolkit.h"
 #include "Engine/Blueprint.h"
 
-namespace PCGExActorCollection
+// Register the Actor collection type at startup
+PCGEX_REGISTER_COLLECTION_TYPE(Actor, UPCGExActorCollection, FPCGExActorCollectionEntry, "Actor Collection", Base)
+
+#pragma region FPCGExActorCollectionEntry
+
+const UPCGExAssetCollection* FPCGExActorCollectionEntry::GetSubCollectionPtr() const
 {
-	void GetBoundingBoxBySpawning(const TSoftClassPtr<AActor>& InActorClass, FVector& Origin, FVector& BoxExtent, const bool bOnlyCollidingComponents, const bool bIncludeFromChildActors)
-	{
-#if WITH_EDITOR
-		UWorld* World = GWorld;
-		if (!World)
-		{
-			UE_LOG(LogPCGEx, Error, TEXT("No world to compute actor bounds!"));
-			return;
-		}
-
-		if (IsInGameThread())
-		{
-			UClass* ActorClass = InActorClass.LoadSynchronous();
-			if (!ActorClass) { return; }
-
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.bNoFail = true;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			AActor* TempActor = World->SpawnActor<AActor>(ActorClass, FTransform(), SpawnParams);
-			if (!TempActor)
-			{
-				UE_LOG(LogPCGEx, Error, TEXT("Failed to create temp actor!"));
-				return;
-			}
-
-			// Compute the bounds
-			TempActor->GetActorBounds(bOnlyCollidingComponents, Origin, BoxExtent, bIncludeFromChildActors);
-
-			// Hide the actor to ensure it doesn't affect gameplay or rendering
-			TempActor->SetActorHiddenInGame(true);
-			TempActor->SetActorEnableCollision(false);
-
-			// Destroy the temporary actor
-			TempActor->Destroy();
-		}
-		else
-		{
-			// If this throw, it's because a collection has been initialized outside of game thread, which is bad.
-			UE_LOG(LogPCGEx, Error, TEXT("GetBoundingBoxBySpawning executed outside of game thread."));
-		}
-#else
-		UE_LOG(LogPCGEx, Error, TEXT("GetBoundingBoxBySpawning called in non-editor context."));
-#endif
-	}
+	return SubCollection;
 }
 
 void FPCGExActorCollectionEntry::ClearSubCollection()
@@ -65,24 +25,65 @@ void FPCGExActorCollectionEntry::ClearSubCollection()
 	SubCollection = nullptr;
 }
 
-void FPCGExActorCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
-{
-	// This is a subclass, no asset to load.
-	//FPCGExAssetCollectionEntry::GetAssetPaths(OutPaths);
-}
-
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
-	if (bIsSubCollection) { return SubCollection ? true : false; }
-	if (!Actor && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
+	if (!bIsSubCollection)
+	{
+		if (!Actor.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
+	}
 
-	return Super::Validate(ParentCollection);
+	return FPCGExAssetCollectionEntry::Validate(ParentCollection);
+}
+
+void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive)
+{
+	ClearManagedSockets();
+
+	if (bIsSubCollection)
+	{
+		FPCGExAssetCollectionEntry::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
+		return;
+	}
+
+	Staging.Path = Actor.ToSoftObjectPath();
+
+	// Load the actor class to compute bounds
+	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(Actor.ToSoftObjectPath());
+
+	if (const UClass* ActorClass = Actor.Get())
+	{
+		// Try to get default object bounds
+		if (const AActor* CDO = Cast<AActor>(ActorClass->GetDefaultObject()))
+		{
+			FVector Origin, BoxExtent;
+			CDO->GetActorBounds(false, Origin, BoxExtent);
+			Staging.Bounds = FBox(Origin - BoxExtent, Origin + BoxExtent);
+		}
+		else
+		{
+			Staging.Bounds = FBox(ForceInit);
+		}
+	}
+	else
+	{
+		Staging.Bounds = FBox(ForceInit);
+	}
+
+	FPCGExAssetCollectionEntry::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
+	PCGExHelpers::SafeReleaseHandle(Handle);
+}
+
+void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
+{
+	FPCGExAssetCollectionEntry::SetAssetPath(InPath);
+	Actor = TSoftClassPtr<AActor>(InPath);
 }
 
 #if WITH_EDITOR
 void FPCGExActorCollectionEntry::EDITOR_Sanitize()
 {
 	FPCGExAssetCollectionEntry::EDITOR_Sanitize();
+
 	if (!bIsSubCollection)
 	{
 		InternalSubCollection = nullptr;
@@ -94,84 +95,43 @@ void FPCGExActorCollectionEntry::EDITOR_Sanitize()
 }
 #endif
 
-void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
-{
-	ClearManagedSockets();
-
-	if (bIsSubCollection)
-	{
-		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
-		return;
-	}
-
-	Staging.Path = Actor ? Actor->GetPathName() : FSoftObjectPath();
-
-	// TODO : Implement socket from tagged components
-
-	FVector Origin = FVector::ZeroVector;
-	FVector Extents = FVector::ZeroVector;
-
-	PCGExActorCollection::GetBoundingBoxBySpawning(Actor, Origin, Extents, bOnlyCollidingComponents, bIncludeFromChildActors);
-	Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
-
-	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
-}
-
-void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
-{
-	Super::SetAssetPath(InPath);
-	Actor = TSoftClassPtr<AActor>(InPath);
-}
-
-UPCGExAssetCollection* FPCGExActorCollectionEntry::GetSubCollectionVoid() const
-{
-	return SubCollection;
-}
+#pragma endregion 
 
 #if WITH_EDITOR
 void UPCGExActorCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
 {
-	Super::EDITOR_AddBrowserSelectionInternal(InAssetData);
-
-	static const FName GeneratedClassTag = "GeneratedClass";
+	UPCGExAssetCollection::EDITOR_AddBrowserSelectionInternal(InAssetData);
 
 	for (const FAssetData& SelectedAsset : InAssetData)
 	{
-		TSoftClassPtr<AActor> Actor = nullptr;
-
-		// Ensure the asset is a Blueprint
+		// Handle Blueprint assets
 		if (SelectedAsset.AssetClassPath == UBlueprint::StaticClass()->GetClassPathName())
 		{
-			if (FString ClassPath; SelectedAsset.GetTagValue(GeneratedClassTag, ClassPath))
+			const UBlueprint* Blueprint = Cast<UBlueprint>(SelectedAsset.GetAsset());
+			if (!Blueprint || !Blueprint->GeneratedClass || !Blueprint->GeneratedClass->IsChildOf(AActor::StaticClass()))
 			{
-				Actor = TSoftClassPtr<AActor>(FSoftObjectPath(ClassPath));
+				continue;
 			}
-			else { continue; }
-		}
-		else if (SelectedAsset.AssetClassPath == UClass::StaticClass()->GetClassPathName())
-		{
-			Actor = TSoftClassPtr<AActor>(SelectedAsset.ToSoftObjectPath());
-		}
 
-		if (!Actor.LoadSynchronous()) { continue; }
+			TSoftClassPtr<AActor> ActorClass = TSoftClassPtr<AActor>(Blueprint->GeneratedClass.Get());
 
-		bool bAlreadyExists = false;
-
-		for (const FPCGExActorCollectionEntry& ExistingEntry : Entries)
-		{
-			if (ExistingEntry.Actor == Actor)
+			bool bAlreadyExists = false;
+			for (const FPCGExActorCollectionEntry& ExistingEntry : Entries)
 			{
-				bAlreadyExists = true;
-				break;
+				if (ExistingEntry.Actor == ActorClass)
+				{
+					bAlreadyExists = true;
+					break;
+				}
 			}
+
+			if (bAlreadyExists) { continue; }
+
+			FPCGExActorCollectionEntry Entry = FPCGExActorCollectionEntry();
+			Entry.Actor = ActorClass;
+
+			Entries.Add(Entry);
 		}
-
-		if (bAlreadyExists) { continue; }
-
-		FPCGExActorCollectionEntry Entry = FPCGExActorCollectionEntry();
-		Entry.Actor = Actor;
-
-		Entries.Add(Entry);
 	}
 }
 #endif

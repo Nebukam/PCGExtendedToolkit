@@ -136,7 +136,7 @@ bool FPCGExRecursionTrackerElement::AdvanceWork(FPCGExContext* InContext, const 
 
 	const bool bDoAdditionalDataTesting = Settings->Type == EPCGExRecursionTrackerType::Simple ? Settings->bDoAdditionalDataTesting : false;
 
-	if (!PCGEx::IsWritableAttributeName(Settings->ContinueAttributeName))
+	if (!PCGExMetaHelpers::IsWritableAttributeName(Settings->ContinueAttributeName))
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name for ContinueAttributeName"));
 		return true;
@@ -148,8 +148,8 @@ bool FPCGExRecursionTrackerElement::AdvanceWork(FPCGExContext* InContext, const 
 	const FString TAG_REMAINDER_STR = TEXT("PCGEx/Remainder");
 
 	TSet<FString> RemoveTags;
-	RemoveTags.Append(PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->RemoveTags));
-	TArray<FString> AddTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->AddTags);
+	RemoveTags.Append(PCGExArrayHelpers::GetStringArrayFromCommaSeparatedList(Settings->RemoveTags));
+	TArray<FString> AddTags = PCGExArrayHelpers::GetStringArrayFromCommaSeparatedList(Settings->AddTags);
 
 	int32 SafeMax = Settings->MaxCount;
 	int32 RemainderOffset = 0;

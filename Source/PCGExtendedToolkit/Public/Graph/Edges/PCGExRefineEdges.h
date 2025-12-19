@@ -8,7 +8,7 @@
 
 
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
 
@@ -37,7 +37,7 @@ enum class EPCGExRefineEdgesOutput : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "filter edge mst minimum spanning tree skeleton gabriel"), meta=(PCGExNodeLibraryDoc="clusters/refine-cluster"))
-class UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExRefineEdgesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -102,7 +102,7 @@ private:
 	friend class FPCGExRefineEdgesElement;
 };
 
-struct FPCGExRefineEdgesContext final : FPCGExEdgesProcessorContext
+struct FPCGExRefineEdgesContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExRefineEdgesElement;
 
@@ -119,7 +119,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
+class FPCGExRefineEdgesElement final : public FPCGExClustersProcessorElement
 {
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* InContext) const override
 	{

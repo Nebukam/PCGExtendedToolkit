@@ -4,7 +4,7 @@
 #include "Graph/PCGExPackClusters.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 #include "Graph/PCGExCluster.h"
@@ -27,7 +27,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL(PackClusters)
 
 bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PackClusters)
 
@@ -89,10 +89,10 @@ namespace PCGExPackClusters
 		// Copy vtx points after edge points
 		const UPCGBasePointData* VtxPoints = VtxDataFacade->GetIn();
 		UPCGBasePointData* PackedPoints = PackedIO->GetOut();
-		PCGEx::SetNumPointsAllocated(PackedPoints, VtxStartIndex + NumVtx, AllocateProperties);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PackedPoints, VtxStartIndex + NumVtx, AllocateProperties);
 
 		TArray<int32> WriteIndices;
-		PCGEx::ArrayOfIndices(WriteIndices, NumVtx, VtxStartIndex);
+		PCGExArrayHelpers::ArrayOfIndices(WriteIndices, NumVtx, VtxStartIndex);
 		VtxPoints->CopyPropertiesTo(PackedPoints, VtxPointSelection, WriteIndices, AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
 
 		// The following may be redundant
@@ -100,7 +100,7 @@ namespace PCGExPackClusters
 		for (int32 Index : WriteIndices) { MetadataEntries[Index] = PCGInvalidEntryKey; }
 
 		//
-		VtxAttributes = PCGEx::FAttributesInfos::Get(VtxDataFacade->GetIn()->Metadata);
+		VtxAttributes = PCGExData::FAttributesInfos::Get(VtxDataFacade->GetIn()->Metadata);
 		if (VtxAttributes->Identities.IsEmpty()) { return true; }
 
 		PCGEX_ASYNC_GROUP_CHKD(TaskManager, CopyVtxAttributes)
@@ -109,9 +109,9 @@ namespace PCGExPackClusters
 		{
 			PCGEX_ASYNC_THIS
 
-			const PCGEx::FAttributeIdentity& Identity = This->VtxAttributes->Identities[Index];
+			const PCGExData::FAttributeIdentity& Identity = This->VtxAttributes->Identities[Index];
 
-			PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				TArray<T> RawValues;

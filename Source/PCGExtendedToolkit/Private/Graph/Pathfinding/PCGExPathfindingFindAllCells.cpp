@@ -37,7 +37,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL(FindAllCells)
 
 bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindAllCells)
 
@@ -62,7 +62,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 		const int32 NumSeeds = SeedsPoints->GetNum();
 
 		Context->SeedQuality.Init(false, NumSeeds);
-		PCGEx::InitArray(Context->UdpatedSeedPoints, NumSeeds);
+		PCGExArrayHelpers::InitArray(Context->UdpatedSeedPoints, NumSeeds);
 
 		Context->GoodSeeds = NewPointIO(SeedsPoints.ToSharedRef(), PCGExFindAllCells::OutputGoodSeedsLabel);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::NewOutput);

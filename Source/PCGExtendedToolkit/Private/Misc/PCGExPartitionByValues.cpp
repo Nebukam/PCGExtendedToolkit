@@ -202,7 +202,7 @@ namespace PCGExPartitionByValuesBase
 		Rules.Empty();
 		const int32 NumPoints = PointDataFacade->GetNum();
 
-		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEx::InitArray(KeySums, NumPoints); }
+		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGExArrayHelpers::InitArray(KeySums, NumPoints); }
 
 		FName Consumable = NAME_None;
 
@@ -211,7 +211,7 @@ namespace PCGExPartitionByValuesBase
 			const TSharedPtr<PCGExData::TBuffer<double>> DataCache = PointDataFacade->GetBroadcaster<double>(Config.Selector, true);
 			if (!DataCache) { continue; }
 
-			if (PCGExHelpers::TryGetAttributeName(Config.Selector, PointDataFacade->Source->GetIn(), Consumable)) { Context->AddConsumableAttributeName(Consumable); }
+			if (PCGExMetaHelpers::TryGetAttributeName(Config.Selector, PointDataFacade->Source->GetIn(), Consumable)) { Context->AddConsumableAttributeName(Consumable); }
 
 			PCGExPartition::FRule& NewRule = Rules.Emplace_GetRef(Config);
 			NewRule.DataCache = DataCache;
@@ -253,7 +253,7 @@ namespace PCGExPartitionByValuesBase
 
 			//Manually create & insert partition at the sorted IO Index
 			const TSharedRef<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex].ToSharedRef();
-			PCGEx::SetNumPointsAllocated(PartitionIO->GetOut(), Partition->Points.Num(), PartitionIO->GetAllocations());
+			PCGExPointArrayDataHelpers::SetNumPointsAllocated(PartitionIO->GetOut(), Partition->Points.Num(), PartitionIO->GetAllocations());
 			PartitionIO->InheritProperties(Partition->Points, EPCGPointNativeProperties::All);
 
 			// Force creation of valid keys once

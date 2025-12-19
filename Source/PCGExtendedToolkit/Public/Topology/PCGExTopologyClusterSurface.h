@@ -5,13 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 
-#include "PCGExTopologyEdgesProcessor.h"
+#include "PCGExTopologyClustersProcessor.h"
 #include "PCGExTopologyClusterSurface.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "collision"), meta=(PCGExNodeLibraryDoc="topology/cluster-surface"))
-class UPCGExTopologyClusterSurfaceSettings : public UPCGExTopologyEdgesProcessorSettings
+class UPCGExTopologyClusterSurfaceSettings : public UPCGExTopologyClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -26,10 +26,10 @@ protected:
 	//~End UPCGSettings
 
 private:
-	friend class FPCGExTopologyEdgesProcessorElement;
+	friend class FPCGExTopologyClustersProcessorElement;
 };
 
-struct FPCGExTopologyClusterSurfaceContext final : FPCGExTopologyEdgesProcessorContext
+struct FPCGExTopologyClusterSurfaceContext final : FPCGExTopologyClustersProcessorContext
 {
 	friend class FPCGExTopologyClusterSurfaceElement;
 
@@ -37,7 +37,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExTopologyClusterSurfaceElement final : public FPCGExTopologyEdgesProcessorElement
+class FPCGExTopologyClusterSurfaceElement final : public FPCGExTopologyClustersProcessorElement
 {
 public:
 	// Generates artifacts

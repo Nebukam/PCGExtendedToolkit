@@ -114,7 +114,7 @@ namespace PCGExBlendPath
 		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
 			Metrics = PCGExPaths::FPathMetrics(PointDataFacade->GetIn()->GetTransform(0).GetLocation());
-			PCGEx::InitArray(Length, PointDataFacade->GetNum());
+			PCGExArrayHelpers::InitArray(Length, PointDataFacade->GetNum());
 
 			const TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 			for (int i = 0; i < PointDataFacade->GetNum(); i++) { Length[i] = Metrics.Add(Transforms[i].GetLocation()); }

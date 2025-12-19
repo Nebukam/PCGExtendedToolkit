@@ -95,8 +95,8 @@ PCGEX_CREATE_FILTER_FACTORY(SegmentLength)
 #if WITH_EDITOR
 FString UPCGExSegmentLengthFilterProviderSettings::GetDisplayName() const
 {
-	FString TargetStr = Config.CompareAgainst == EPCGExInputValueType::Attribute ? PCGEx::GetSelectorDisplayName(Config.IndexAttribute) : FString::Printf(TEXT("%d"), Config.IndexConstant);
-	FString OtherStr = Config.ThresholdInput == EPCGExInputValueType::Attribute ? PCGEx::GetSelectorDisplayName(Config.ThresholdAttribute) : FString::Printf(TEXT("%.1f"), Config.ThresholdConstant);
+	FString TargetStr = Config.CompareAgainst == EPCGExInputValueType::Attribute ? PCGExMetaHelpers::GetSelectorDisplayName(Config.IndexAttribute) : FString::Printf(TEXT("%d"), Config.IndexConstant);
+	FString OtherStr = Config.ThresholdInput == EPCGExInputValueType::Attribute ? PCGExMetaHelpers::GetSelectorDisplayName(Config.ThresholdAttribute) : FString::Printf(TEXT("%.1f"), Config.ThresholdConstant);
 	FString Str = TEXT("Dist to ") + TargetStr + PCGExCompare::ToString(Config.Comparison) + OtherStr;
 	return Str;
 }

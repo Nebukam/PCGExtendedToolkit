@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "PCGExFloodFill.generated.h"
 
 namespace PCGExBlending

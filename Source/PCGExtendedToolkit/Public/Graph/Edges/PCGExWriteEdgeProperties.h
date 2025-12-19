@@ -8,7 +8,7 @@
 #include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExWriteEdgeProperties.generated.h"
@@ -36,7 +36,7 @@ enum class EPCGExHeuristicsWriteMode : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="metadata/edge-properties"))
-class UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExWriteEdgePropertiesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -200,7 +200,7 @@ private:
 	friend class FPCGExWriteEdgePropertiesElement;
 };
 
-struct FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
+struct FPCGExWriteEdgePropertiesContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExWriteEdgePropertiesElement;
 
@@ -212,7 +212,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
+class FPCGExWriteEdgePropertiesElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WriteEdgeProperties)

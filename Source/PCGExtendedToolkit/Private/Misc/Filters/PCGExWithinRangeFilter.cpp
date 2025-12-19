@@ -14,7 +14,7 @@
 
 bool UPCGExWithinRangeFilterFactory::DomainCheck()
 {
-	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA);
+	return PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandA);
 }
 
 bool UPCGExWithinRangeFilterFactory::Init(FPCGExContext* InContext)
@@ -112,7 +112,7 @@ FString UPCGExWithinRangeFilterProviderSettings::GetDisplayName() const
 		return GetDefaultNodeTitle().ToString();
 	}
 
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT("[");
+	FString DisplayName = PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandA) + TEXT("[");
 
 	DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.RangeMin) / 1000.0));
 	DisplayName += TEXT(" .. ");

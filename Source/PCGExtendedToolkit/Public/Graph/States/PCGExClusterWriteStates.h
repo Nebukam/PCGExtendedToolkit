@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "PCGExClusterWriteStates.generated.h"
 
 namespace PCGExClusterStates
@@ -16,7 +16,7 @@ namespace PCGExClusterStates
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes"))
-class UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFlagNodesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -52,7 +52,7 @@ private:
 	friend class FPCGExFlagNodesElement;
 };
 
-struct FPCGExFlagNodesContext final : FPCGExEdgesProcessorContext
+struct FPCGExFlagNodesContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExFlagNodesElement;
 
@@ -62,7 +62,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
+class FPCGExFlagNodesElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FlagNodes)

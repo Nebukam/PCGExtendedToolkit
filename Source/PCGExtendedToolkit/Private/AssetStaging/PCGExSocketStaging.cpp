@@ -37,7 +37,7 @@ bool FPCGExSocketStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SocketStaging)
 
-	Context->CollectionPickDatasetUnpacker = MakeShared<PCGExStaging::TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>();
+	Context->CollectionPickDatasetUnpacker = MakeShared<PCGExStaging::FPickUnpacker>();
 	Context->CollectionPickDatasetUnpacker->UnpackPin(InContext, PCGExSocketStaging::SourceStagingMap);
 
 	if (!Context->CollectionPickDatasetUnpacker->HasValidMapping())
@@ -114,7 +114,8 @@ namespace PCGExSocketStaging
 			if (!PointFilterCache[Index]) { continue; }
 
 			const uint64 Hash = EntryHashGetter->Read(Index);
-			if (!Context->CollectionPickDatasetUnpacker->ResolveEntry(Hash, Entry, MaterialPick)) { continue; }
+			if (FPCGExEntryAccessResult Result = Context->CollectionPickDatasetUnpacker->ResolveEntry(Hash, MaterialPick);
+				!Result.IsValid()) { continue; }
 
 			SocketHelper->Add(Index, PCGExStaging::GetSimplifiedEntryHash(Hash), Entry);
 		}

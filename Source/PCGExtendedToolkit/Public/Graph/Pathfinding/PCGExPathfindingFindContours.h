@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Topology/PCGExCell.h"
 
 #include "PCGExPathfindingFindContours.generated.h"
@@ -27,7 +27,7 @@ enum class EPCGExContourShapeTypeOutput : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-contours"))
-class UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFindContoursSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -89,7 +89,7 @@ private:
 	friend class FPCGExFindContoursElement;
 };
 
-struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
+struct FPCGExFindContoursContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;
@@ -111,7 +111,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
+class FPCGExFindContoursElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindContours)

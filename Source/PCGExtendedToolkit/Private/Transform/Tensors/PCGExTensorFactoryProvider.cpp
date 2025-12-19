@@ -35,7 +35,7 @@ PCGExFactories::EPreparationResult UPCGExTensorFactoryData::InitInternalData(FPC
 void UPCGExTensorFactoryData::InheritFromOtherTensor(const UPCGExTensorFactoryData* InOtherTensor)
 {
 	const TSet<FString> Exclusions = {TEXT("Points"), TEXT("Splines"), TEXT("ManagedSplines")};
-	PCGExHelpers::CopyProperties(this, InOtherTensor, &Exclusions);
+	PCGExPropertyHelpers::CopyProperties(this, InOtherTensor, &Exclusions);
 	if (InOtherTensor->GetClass() == GetClass())
 	{
 		// Same type let's automate

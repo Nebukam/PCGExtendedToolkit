@@ -165,7 +165,7 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& Ta
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 	UPCGBasePointData* OutData = PathIO->GetOut();
-	PCGEx::SetNumPointsAllocated(OutData, NumPositions);
+	PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutData, NumPositions);
 
 	int32 WriteIndex = 0;
 	TPCGValueRange<FTransform> OutTransforms = OutData->GetTransformValueRange(false);

@@ -3,7 +3,7 @@
 
 #include "Details/PCGExDetailsBitmask.h"
 
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "Collections/PCGExBitmaskCollection.h"
 
 namespace PCGExBitmask

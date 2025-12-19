@@ -147,7 +147,7 @@ FString UPCGExIsoEdgeDirectionFilterProviderSettings::GetDisplayName() const
 	}
 	else
 	{
-		DisplayName += PCGEx::GetSelectorDisplayName(Config.Direction);
+		DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.Direction);
 	}
 	return DisplayName;
 }

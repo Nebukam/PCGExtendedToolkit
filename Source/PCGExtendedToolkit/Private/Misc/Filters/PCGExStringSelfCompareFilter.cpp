@@ -5,7 +5,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -81,7 +81,7 @@ FString UPCGExStringSelfCompareFilterProviderSettings::GetDisplayName() const
 	if (Config.IndexMode == EPCGExIndexMode::Pick) { DisplayName += TEXT(" @ "); }
 	else { DisplayName += TEXT(" i+ "); }
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.IndexAttribute); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.IndexAttribute); }
 	else { DisplayName += FString::Printf(TEXT("%d"), Config.IndexConstant); }
 
 	return DisplayName;

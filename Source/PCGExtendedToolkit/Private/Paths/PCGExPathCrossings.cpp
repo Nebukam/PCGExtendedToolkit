@@ -60,8 +60,8 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 
 	Context->CrossingBlending = Settings->CrossingBlending;
 
-	Context->CanCutTag = PCGEx::StringTagFromName(Settings->CanCutTag);
-	Context->CanBeCutTag = PCGEx::StringTagFromName(Settings->CanBeCutTag);
+	Context->CanCutTag = PCGExMetaHelpers::StringTagFromName(Settings->CanCutTag);
+	Context->CanBeCutTag = PCGExMetaHelpers::StringTagFromName(Settings->CanBeCutTag);
 
 	if (Settings->bOrientCrossing)
 	{
@@ -82,7 +82,7 @@ bool FPCGExPathCrossingsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		const bool bIsCanBeCutTagValid = PCGEx::IsValidStringTag(Context->CanBeCutTag);
+		const bool bIsCanBeCutTagValid = PCGExMetaHelpers::IsValidStringTag(Context->CanBeCutTag);
 
 		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 		                                         {
@@ -132,8 +132,8 @@ namespace PCGExPathCrossings
 		Details = Settings->IntersectionDetails;
 		Details.Init();
 
-		bCanBeCut = PCGEx::IsValidStringTag(Context->CanBeCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanBeCutTag, Settings->bInvertCanBeCutTag) : true;
-		bCanCut = PCGEx::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag, Settings->bInvertCanCutTag) : true;
+		bCanBeCut = PCGExMetaHelpers::IsValidStringTag(Context->CanBeCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanBeCutTag, Settings->bInvertCanBeCutTag) : true;
+		bCanCut = PCGExMetaHelpers::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag, Settings->bInvertCanCutTag) : true;
 
 		if (bCanCut && !Context->CanCutFilterFactories.IsEmpty())
 		{
@@ -287,7 +287,7 @@ namespace PCGExPathCrossings
 
 		const UPCGBasePointData* InPoints = PointIO->GetIn();
 		UPCGBasePointData* OutPoints = PointIO->GetOut();
-		PCGEx::SetNumPointsAllocated(OutPoints, NumPointsFinal, InPoints->GetAllocatedProperties());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPointsFinal, InPoints->GetAllocatedProperties());
 
 		TArray<int32> WriteIndices;
 		WriteIndices.Reserve(InPoints->GetNumPoints());

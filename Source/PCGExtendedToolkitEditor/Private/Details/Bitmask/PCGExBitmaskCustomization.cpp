@@ -7,7 +7,7 @@
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
-#include "Collections/PCGExAssetCollection.h"
+#include "Collections/Core/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Constants/PCGExTuple.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"

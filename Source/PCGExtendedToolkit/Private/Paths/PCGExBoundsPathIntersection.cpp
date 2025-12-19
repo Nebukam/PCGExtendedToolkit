@@ -261,7 +261,7 @@ namespace PCGExBoundsPathIntersection
 
 		// Allocate new points
 		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
-		PCGEx::SetNumPointsAllocated(PointDataFacade->Source->GetOut(), WriteIndex, PointDataFacade->Source->GetAllocations() | EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Seed);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointDataFacade->Source->GetOut(), WriteIndex, PointDataFacade->Source->GetAllocations() | EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Seed);
 
 		// Copy/Move existing points to their new index
 		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();

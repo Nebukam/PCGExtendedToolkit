@@ -78,12 +78,12 @@ namespace PCGExReversePointOrder
 	{
 		TProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>::RegisterBuffersDependencies(FacadePreloader);
 
-		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
+		const TSharedPtr<PCGExData::FAttributesInfos> AttributesInfos = PCGExData::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 
 		for (const FPCGExSwapAttributePairDetails& OriginalPair : Settings->SwapAttributesValues)
 		{
-			PCGEx::FAttributeIdentity* FirstIdentity = AttributesInfos->Find(OriginalPair.FirstAttributeName);
-			PCGEx::FAttributeIdentity* SecondIdentity = AttributesInfos->Find(OriginalPair.SecondAttributeName);
+			PCGExData::FAttributeIdentity* FirstIdentity = AttributesInfos->Find(OriginalPair.FirstAttributeName);
+			PCGExData::FAttributeIdentity* SecondIdentity = AttributesInfos->Find(OriginalPair.SecondAttributeName);
 			if (!FirstIdentity || !SecondIdentity) { continue; }
 			if (FirstIdentity->UnderlyingType != SecondIdentity->UnderlyingType) { continue; }
 
@@ -150,7 +150,7 @@ namespace PCGExReversePointOrder
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-#define PCGEX_NATIVE_REVERSE(_NAME, _TYPE, ...) PCGEx::Reverse(PointDataFacade->GetOut()->Get##_NAME##ValueRange());
+#define PCGEX_NATIVE_REVERSE(_NAME, _TYPE, ...) PCGExPointArrayDataHelpers::Reverse(PointDataFacade->GetOut()->Get##_NAME##ValueRange());
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_REVERSE)
 #undef PCGEX_NATIVE_REVERSE
 
@@ -170,7 +170,7 @@ namespace PCGExReversePointOrder
 			PCGEX_ASYNC_THIS
 			FPCGExSwapAttributePairDetails& WorkingPair = This->SwapPairs[Scope.Start];
 
-			PCGEx::ExecuteWithRightType(WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
 			{
 				using T_REAL = decltype(DummyValue);
 				WorkingPair.FirstWriter = This->PointDataFacade->GetWritable<T_REAL>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
@@ -185,11 +185,11 @@ namespace PCGExReversePointOrder
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ReversePointOrder::ProcessPoints);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExArrayHelpers::ReversePointOrder::ProcessPoints);
 
 		for (const FPCGExSwapAttributePairDetails& WorkingPair : SwapPairs)
 		{
-			PCGEx::ExecuteWithRightType(WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
 			{
 				using T_REAL = decltype(DummyValue);
 				TSharedPtr<PCGExData::TBuffer<T_REAL>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<T_REAL>>(WorkingPair.FirstWriter);

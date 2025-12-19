@@ -8,7 +8,7 @@
 #include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExDetailsFiltering.h"
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 
 UENUM()
@@ -19,7 +19,7 @@ enum class EPCGExClusterClosestPickMode : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/pick-closest-cluster"))
-class UPCGExPickClosestClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExPickClosestClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -82,7 +82,7 @@ private:
 	friend class FPCGExPickClosestClustersElement;
 };
 
-struct FPCGExPickClosestClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExPickClosestClustersContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExPickClosestClustersElement;
 
@@ -100,7 +100,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExPickClosestClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PickClosestClusters)

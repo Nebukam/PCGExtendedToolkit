@@ -42,7 +42,7 @@ if ((Settings->_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags:
 	if (Settings->bSaveAttributeForRestore || Settings->bRestorePreviousProjection)
 	{
 		PCGEX_VALIDATE_NAME(Settings->AttributePrefix)
-		Context->CachedTransformAttributeName = PCGEx::MakePCGExAttributeName(Settings->AttributePrefix.ToString(), TEXT("T"));
+		Context->CachedTransformAttributeName = PCGExMetaHelpers::MakePCGExAttributeName(Settings->AttributePrefix.ToString(), TEXT("T"));
 	}
 
 

@@ -30,7 +30,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(BreakClustersToPaths)
 
 bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
@@ -172,7 +172,7 @@ namespace PCGExBreakClustersToPaths
 			const bool bReverse = DirectionSettings.SortExtrapolation(Cluster.Get(), Chain->Seed.Edge, Chain->Seed.Node, Chain->Links.Last().Node);
 
 			bool bDoReverse = bReverse;
-			(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ChainSize, PathIO->GetOut()->GetAllocatedProperties());
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), ChainSize, PathIO->GetOut()->GetAllocatedProperties());
 
 			TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
 			IdxMapping[0] = Cluster->GetNodePointIndex(Chain->Seed);
@@ -225,7 +225,7 @@ namespace PCGExBreakClustersToPaths
 			if (!PathIO) { continue; }
 
 			UPCGBasePointData* MutablePoints = PathIO->GetOut();
-			(void)PCGEx::SetNumPointsAllocated(MutablePoints, 2, PathIO->GetAllocations());
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, 2, PathIO->GetAllocations());
 
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 

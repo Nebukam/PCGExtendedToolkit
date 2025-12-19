@@ -8,7 +8,7 @@
 #include "PCGPin.h"
 #include "PCGSettings.h"
 #include "PCGExConstantsDefinitions.h"
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExHelpers.h"
 #include "Details/PCGExMacros.h"
@@ -140,7 +140,7 @@ protected:
 	template <typename T>
 	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue, const UPCGExConstantsSettings* Settings) const
 	{
-		if (!PCGEx::IsWritableAttributeName(InName))
+		if (!PCGExMetaHelpers::IsWritableAttributeName(InName))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("\"{0}\" is not a valid attribute name."), FText::FromName(InName)));
 			return;

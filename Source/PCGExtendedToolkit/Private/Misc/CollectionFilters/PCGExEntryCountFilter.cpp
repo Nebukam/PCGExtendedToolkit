@@ -33,7 +33,7 @@ FString UPCGExEntryCountFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Entry Count ") + PCGExCompare::ToString(Config.Comparison);
 	if (Config.CompareAgainst == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.OperandB); }
-	else { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandBAttr); }
+	else { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandBAttr); }
 	return DisplayName;
 }
 #endif

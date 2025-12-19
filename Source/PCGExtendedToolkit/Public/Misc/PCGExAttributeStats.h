@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExFactories.h"
+#include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
@@ -235,7 +235,7 @@ private:
 struct FPCGExAttributeStatsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeStatsElement;
-	TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos;
+	TSharedPtr<PCGExData::FAttributesInfos> AttributesInfos;
 
 	TArray<UPCGParamData*> OutputParams;
 	TMap<FName, UPCGParamData*> OutputParamsMap;
@@ -262,10 +262,10 @@ namespace PCGExAttributeStats
 	class IAttributeStats : public TSharedFromThis<IAttributeStats>
 	{
 	public:
-		const PCGEx::FAttributeIdentity Identity;
+		const PCGExData::FAttributeIdentity Identity;
 		const int64 Key;
 
-		explicit IAttributeStats(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
+		explicit IAttributeStats(const PCGExData::FAttributeIdentity& InIdentity, const int64 InKey)
 			: Identity(InIdentity), Key(InKey)
 		{
 		}
@@ -298,7 +298,7 @@ namespace PCGExAttributeStats
 		int32 DifferentSetValuesNum = 0;
 		int32 DefaultValuesNum = 0;
 
-		explicit TAttributeStats(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
+		explicit TAttributeStats(const PCGExData::FAttributeIdentity& InIdentity, const int64 InKey)
 			: IAttributeStats(InIdentity, InKey)
 		{
 		}

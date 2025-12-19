@@ -3,7 +3,7 @@
 
 #include "Misc/Filters/PCGExStringCompareFilter.h"
 
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
@@ -14,7 +14,7 @@
 
 bool UPCGExStringCompareFilterFactory::DomainCheck()
 {
-	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
+	return PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandB));
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExStringCompareFilterFactory::CreateFilter() const

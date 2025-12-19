@@ -5,11 +5,7 @@
 
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
-#include "Collections/PCGExCollectionHelpers.h"
-#include "Collections/PCGExAssetCollection.h"
-#include "Collections/PCGExActorCollection.h"
-#include "Collections/PCGExMeshCollection.h"
-#include "Collections/PCGExPCGDataAssetCollection.h"
+#include "Collections/Core/PCGExAssetCollection.h"
 
 namespace PCGExCollectionEditorUtils
 {
@@ -29,41 +25,62 @@ namespace PCGExCollectionEditorUtils
 
 	void SortByWeightAscending(UPCGExAssetCollection* InCollection)
 	{
-		PCGEX_PER_COLLECTION(SortByWeightAscendingTpl(Collection->Entries))
+		InCollection->Sort([&](const FPCGExAssetCollectionEntry* A, const FPCGExAssetCollectionEntry* B) { return A->Weight < B->Weight; });
 	}
 
 	void SortByWeightDescending(UPCGExAssetCollection* InCollection)
 	{
-		PCGEX_PER_COLLECTION(SortByWeightDescendingTpl(Collection->Entries))
+		InCollection->Sort([&](const FPCGExAssetCollectionEntry* A, const FPCGExAssetCollectionEntry* B) { return A->Weight > B->Weight; });
 	}
 
 	void SetWeightIndex(UPCGExAssetCollection* InCollection)
 	{
-		PCGEX_PER_COLLECTION(SetWeightIndexTpl(Collection->Entries))
+		InCollection->ForEachEntry([&](FPCGExAssetCollectionEntry* Entry, int32 i) { Entry->Weight = i + 1; });
 	}
 
 	void PadWeight(UPCGExAssetCollection* InCollection)
 	{
-		PCGEX_PER_COLLECTION(PadWeightTpl(Collection->Entries))
+		InCollection->ForEachEntry([&](FPCGExAssetCollectionEntry* Entry, int32 i) { Entry->Weight += 1; });
 	}
 
 	void MultWeight(UPCGExAssetCollection* InCollection, int32 Mult)
 	{
-		PCGEX_PER_COLLECTION(MultWeightTpl(Collection->Entries, Mult))
+		InCollection->ForEachEntry([&](FPCGExAssetCollectionEntry* Entry, int32 i) { Entry->Weight *= Mult; });
 	}
 
 	void WeightOne(UPCGExAssetCollection* InCollection)
 	{
-		PCGEX_PER_COLLECTION(WeightOneTpl(Collection->Entries))
+		InCollection->ForEachEntry([&](FPCGExAssetCollectionEntry* Entry, int32 i) { Entry->Weight = 100; });
 	}
 
 	void WeightRandom(UPCGExAssetCollection* InCollection)
 	{
-		PCGEX_PER_COLLECTION(WeightRandomTpl(Collection->Entries))
+		FRandomStream RandomSource(FMath::Rand());
+		const int32 NumEntries = InCollection->NumEntries();
+		InCollection->ForEachEntry(
+			[&](FPCGExAssetCollectionEntry* Entry, int32 i)
+			{
+				Entry->Weight = RandomSource.RandRange(1, NumEntries * 100);
+			});
 	}
 
 	void NormalizedWeightToSum(UPCGExAssetCollection* InCollection)
 	{
-		PCGEX_PER_COLLECTION(NormalizedWeightToSumTpl(Collection->Entries))
+		double Sum = 0;
+
+		InCollection->ForEachEntry([&](const FPCGExAssetCollectionEntry* Entry, int32 i) { Sum += Entry->Weight; });
+		InCollection->ForEachEntry([&](FPCGExAssetCollectionEntry* Entry, int32 i)
+		{
+			int32& W = Entry->Weight;
+
+			if (W <= 0)
+			{
+				W = 0;
+				return;
+			}
+
+			const double Weight = (static_cast<double>(W) / Sum) * 100;
+			W = Weight;
+		});
 	}
 }

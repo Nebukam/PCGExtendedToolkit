@@ -160,7 +160,7 @@ namespace PCGExFuseCollinear
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), ReadIndices.Num(), PointDataFacade->GetAllocations());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointDataFacade->GetOut(), ReadIndices.Num(), PointDataFacade->GetAllocations());
 		PointDataFacade->Source->InheritPoints(ReadIndices, 0);
 
 		Finalize(ReadIndices);

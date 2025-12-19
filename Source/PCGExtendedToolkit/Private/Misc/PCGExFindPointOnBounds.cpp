@@ -34,13 +34,13 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 		Context->BestIndices.Init(-1, Context->MainPoints->Num());
 
 		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputPin(), 0);
-		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Context->MainPoints, AttributeMismatches);
+		Context->MergedAttributesInfos = PCGExData::FAttributesInfos::Get(Context->MainPoints, AttributeMismatches);
 
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
-		PCGEx::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainPoints->Num());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainPoints->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -85,7 +85,7 @@ bool FPCGExFindPointOnBoundsElement::AdvanceWork(FPCGExContext* InContext, const
 	return Context->TryComplete();
 }
 
-void PCGExFindPointOnBounds::MergeBestCandidatesAttributes(const TSharedPtr<PCGExData::FPointIO>& Target, const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections, const TArray<int32>& BestIndices, const PCGEx::FAttributesInfos& InAttributesInfos)
+void PCGExFindPointOnBounds::MergeBestCandidatesAttributes(const TSharedPtr<PCGExData::FPointIO>& Target, const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections, const TArray<int32>& BestIndices, const PCGExData::FAttributesInfos& InAttributesInfos)
 {
 	UPCGMetadata* OutMetadata = Target->GetOut()->Metadata;
 
@@ -99,13 +99,13 @@ void PCGExFindPointOnBounds::MergeBestCandidatesAttributes(const TSharedPtr<PCGE
 		PCGMetadataEntryKey OutKey = Target->GetOut()->GetMetadataEntry(i);
 		UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
 
-		for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
+		for (const PCGExData::FAttributeIdentity& Identity : InAttributesInfos.Identities)
 		{
-			PCGEx::ExecuteWithRightType(Identity.GetTypeId(), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Identity.GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
-				FPCGMetadataAttribute<T>* OutAttribute = PCGEx::TryGetMutableAttribute<T>(OutMetadata, Identity.Identifier);
+				FPCGMetadataAttribute<T>* OutAttribute = PCGExMetaHelpers::TryGetMutableAttribute<T>(OutMetadata, Identity.Identifier);
 
 				if (!OutAttribute)
 				{
@@ -202,7 +202,7 @@ namespace PCGExFindPointOnBounds
 		else
 		{
 			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
-			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), 1);
+			PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointDataFacade->GetOut(), 1);
 
 			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);

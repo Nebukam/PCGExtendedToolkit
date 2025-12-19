@@ -18,7 +18,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExModuloCompareFilterConfig, OperandC, double, Comp
 
 bool UPCGExModuloCompareFilterFactory::DomainCheck()
 {
-	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.OperandBSource == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandC));
+	return PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.OperandBSource == EPCGExInputValueType::Constant || PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandB)) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandC));
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExModuloCompareFilterFactory::CreateFilter() const
@@ -95,14 +95,14 @@ PCGEX_CREATE_FILTER_FACTORY(ModuloCompare)
 #if WITH_EDITOR
 FString UPCGExModuloCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + " % ";
+	FString DisplayName = PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandA) + " % ";
 
-	if (Config.OperandBSource == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
+	if (Config.OperandBSource == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandB); }
 	else { DisplayName += FString::Printf(TEXT("%.3f "), (static_cast<int32>(1000 * Config.OperandBConstant) / 1000.0)); }
 
 	DisplayName += PCGExCompare::ToString(Config.Comparison);
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandC); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandC); }
 	else { DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Config.OperandCConstant) / 1000.0)); }
 
 	return DisplayName;

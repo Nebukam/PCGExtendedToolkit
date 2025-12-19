@@ -18,7 +18,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExBitmaskFilterConfig, Bitmask, int64, MaskInput, B
 
 bool UPCGExBitmaskFilterFactory::DomainCheck()
 {
-	return (Config.MaskInput == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.BitmaskAttribute)) && PCGExHelpers::IsDataDomainAttribute(Config.FlagsAttribute);
+	return (Config.MaskInput == EPCGExInputValueType::Constant || PCGExMetaHelpers::IsDataDomainAttribute(Config.BitmaskAttribute)) && PCGExMetaHelpers::IsDataDomainAttribute(Config.FlagsAttribute);
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExBitmaskFilterFactory::CreateFilter() const

@@ -106,9 +106,9 @@ namespace PCGExSelfPruning
 		else { Mask.Init(true, NumPoints); }
 
 		TArray<int32> Order;
-		PCGEx::ArrayOfIndices(Order, NumPoints);
+		PCGExArrayHelpers::ArrayOfIndices(Order, NumPoints);
 
-		PCGEx::InitArray(Candidates, NumPoints);
+		PCGExArrayHelpers::InitArray(Candidates, NumPoints);
 		Priority.SetNumUninitialized(NumPoints);
 		BoxSecondary.Init(FBox(NoInit), NumPoints);
 

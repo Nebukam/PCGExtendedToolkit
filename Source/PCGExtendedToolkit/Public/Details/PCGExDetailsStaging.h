@@ -287,7 +287,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketOutputDetails
 	FPCGExCarryOverDetails CarryOverDetails;
 
 
-	bool Init(FPCGExContext* InContext);
+	bool Init(FPCGExContext* InContext) const;
 
 	TArray<int32> TrScaComponents;
 };

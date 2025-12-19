@@ -8,7 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "Engine/AssetManager.h"
@@ -107,8 +107,8 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 		return;
 	}
 
-	TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PrimaryDataFacade->Source->GetIn()->Metadata);
-	const PCGEx::FAttributeIdentity* Identity = Infos->Find(InAttributeName);
+	TSharedPtr<PCGExData::FAttributesInfos> Infos = PCGExData::FAttributesInfos::Get(PrimaryDataFacade->Source->GetIn()->Metadata);
+	const PCGExData::FAttributeIdentity* Identity = Infos->Find(InAttributeName);
 
 	if (!Identity)
 	{
@@ -462,7 +462,7 @@ namespace PCGExPackActorData
 
 			for (FPCGMetadataAttributeBase* OutAttribute : Attributes)
 			{
-				PCGEx::ExecuteWithRightType(
+				PCGExMetaHelpers::ExecuteWithRightType(
 					OutAttribute->GetTypeId(), [&](auto DummyValue)
 					{
 						using T_REAL = decltype(DummyValue);

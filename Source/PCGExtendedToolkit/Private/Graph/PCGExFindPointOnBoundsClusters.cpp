@@ -18,7 +18,7 @@ PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMod
 
 void FPCGExFindPointOnBoundsClustersContext::ClusterProcessing_InitialProcessingDone()
 {
-	FPCGExEdgesProcessorContext::ClusterProcessing_InitialProcessingDone();
+	FPCGExClustersProcessorContext::ClusterProcessing_InitialProcessingDone();
 	PCGEX_SETTINGS_LOCAL(FindPointOnBoundsClusters)
 }
 
@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExFindPointOnBoundsClustersSettings::OutputPinProp
 
 bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 	PCGEX_CONTEXT_AND_SETTINGS(FindPointOnBoundsClusters)
 
 	PCGEX_FWD(CarryOverDetails)
@@ -49,14 +49,14 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 		Context->IOMergeSources.Init(nullptr, Context->MainEdges->Num());
 
 		Context->MergedOut = PCGExData::NewPointIO(Context, Settings->GetMainOutputPin(), 0);
-		Context->MergedAttributesInfos = PCGEx::FAttributesInfos::Get(Collection, AttributeMismatches);
+		Context->MergedAttributesInfos = PCGExData::FAttributesInfos::Get(Collection, AttributeMismatches);
 
 		Context->CarryOverDetails.Attributes.Prune(*Context->MergedAttributesInfos);
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
 		// There is a risk we allocate too many points here if there's less valid clusters than expected
-		(void)PCGEx::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainEdges->Num());
+		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainEdges->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -207,7 +207,7 @@ namespace PCGExFindPointOnBoundsClusters
 		else
 		{
 			PCGEX_INIT_IO_VOID(IORef, PCGExData::EIOInit::New)
-			(void)PCGEx::SetNumPointsAllocated(IORef->GetOut(), 1);
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(IORef->GetOut(), 1);
 
 			IORef->InheritPoints(BestIndex, 0, 1);
 

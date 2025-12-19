@@ -75,7 +75,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 
 	PathIO->IOIndex = Query->QueryIndex;
 	UPCGBasePointData* PathPoints = PathIO->GetOut();
-	PCGEx::SetNumPointsAllocated(PathPoints, PathIndices.Num() + ExtraIndices, AllocateProperties);
+	PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathPoints, PathIndices.Num() + ExtraIndices, AllocateProperties);
 
 	PathIO->InheritPoints(PathIndices, Settings->bAddSeedToPath ? 1 : 0);
 
@@ -128,7 +128,7 @@ PCGExData::EIOInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const
 
 bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingEdges)
 
@@ -237,7 +237,7 @@ namespace PCGExPathfindingEdges
 		if (bForceSingleThreadedProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
 
 		const int32 NumQueries = Context->SeedGoalPairs.Num();
-		PCGEx::InitArray(Queries, NumQueries);
+		PCGExArrayHelpers::InitArray(Queries, NumQueries);
 		QueriesIO.Init(nullptr, NumQueries);
 
 		Context->OutputPaths->IncreaseReserve(NumQueries);

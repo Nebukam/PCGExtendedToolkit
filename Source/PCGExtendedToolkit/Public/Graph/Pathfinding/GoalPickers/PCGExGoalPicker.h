@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExInstancedFactory.h"
+#include "Factories/PCGExInstancedFactory.h"
 #include "PCGExMath.h"
 
 #include "UObject/Object.h"

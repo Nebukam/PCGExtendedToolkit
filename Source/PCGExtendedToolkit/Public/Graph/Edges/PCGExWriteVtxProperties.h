@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWriteVtxProperties.generated.h"
 
@@ -23,7 +23,7 @@ namespace PCGExWriteVtxProperties
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="metadata/vtx-properties"))
-class UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExWriteVtxPropertiesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -77,7 +77,7 @@ private:
 	friend class FPCGExWriteVtxPropertiesElement;
 };
 
-struct FPCGExWriteVtxPropertiesContext final : FPCGExEdgesProcessorContext
+struct FPCGExWriteVtxPropertiesContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExWriteVtxPropertiesElement;
 
@@ -89,7 +89,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement
+class FPCGExWriteVtxPropertiesElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WriteVtxProperties)

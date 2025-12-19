@@ -7,9 +7,10 @@
 #include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "PCGExScopedContainers.h"
+#include "PCGParamData.h"
 #include "AssetStaging/PCGExStaging.h"
-#include "Collections/PCGExAssetCollection.h"
-#include "Collections/PCGExAssetLoader.h"
+#include "Collections/Core/PCGExAssetCollection.h"
+#include "Core/PCGExAssetLoader.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -97,10 +98,10 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 		Context->CollectionsLoader = MakeShared<PCGEx::TAssetLoader<UPCGExAssetCollection>>(Context, Context->MainPoints.ToSharedRef(), Names);
 	}
 
-	if (Context->bPickMaterials && Context->MainCollection->GetType() != PCGExAssetCollection::EType::Mesh)
+	if (Context->bPickMaterials && !Context->MainCollection->IsType(PCGExAssetCollection::TypeIds::Mesh))
 	{
 		Context->bPickMaterials = false;
-		PCGE_LOG(Warning, GraphAndLog, FTEXT("Pick Material is set to true, but the selected collection doesn't support material picking."));
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("Pick Material is enabled, but the selected collection doesn't support material picking."));
 	}
 
 	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
@@ -385,8 +386,8 @@ namespace PCGExAssetStaging
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>* Helper = nullptr;
-			PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>* MicroHelper = nullptr;
+			PCGExStaging::FDistributionHelper* Helper = nullptr;
+			PCGExStaging::FMicroDistributionHelper* MicroHelper = nullptr;
 
 			if (!PointFilterCache[Index] || !Source->TryGetHelpers(Index, Helper, MicroHelper))
 			{
@@ -394,18 +395,18 @@ namespace PCGExAssetStaging
 				continue;
 			}
 
-			const FPCGExAssetCollectionEntry* Entry = nullptr;
-			const UPCGExAssetCollection* EntryHost = nullptr;
-
 			const int32 Seed = PCGExRandom::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
-			Helper->GetEntry(Entry, Index, Seed, EntryHost);
+			FPCGExEntryAccessResult Result = Helper->GetEntry(Index, Seed);
 
-			if (!Entry || !Entry->Staging.Bounds.IsValid)
+			if (!Result.IsValid() || !Result.Entry->Staging.Bounds.IsValid)
 			{
 				InvalidPoint(Index);
 				continue;
 			}
+
+			const FPCGExAssetCollectionEntry* Entry = Result.Entry;
+			const UPCGExAssetCollection* EntryHost = Result.Host;
 
 			FTransform& OutTransform = OutTransforms[Index];
 			FBox OutBounds = Entry->Staging.Bounds;
@@ -414,10 +415,11 @@ namespace PCGExAssetStaging
 			const FPCGExAssetStagingData& Staging = Entry->Staging;
 			const FPCGExFittingVariations& EntryVariations = Entry->GetVariations(EntryHost);
 
-			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get(); MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get(); 
+				MicroHelper && MicroCache && MicroCache->GetTypeId() == PCGExAssetCollection::TypeIds::Mesh)
 			{
 				const PCGExMeshCollection::FMicroCache* EntryMicroCache = static_cast<const PCGExMeshCollection::FMicroCache*>(MicroCache);
-				MicroHelper->GetPick(EntryMicroCache, Index, Seed, SecondaryIndex);
+				SecondaryIndex = MicroHelper->GetPick(EntryMicroCache, Index, Seed);
 
 				if (Context->bPickMaterials)
 				{

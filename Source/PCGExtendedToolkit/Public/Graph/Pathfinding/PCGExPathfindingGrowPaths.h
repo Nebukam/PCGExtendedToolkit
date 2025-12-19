@@ -11,7 +11,7 @@
 #include "Data/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"
@@ -92,7 +92,7 @@ class UPCGExSearchInstancedFactory;
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="pathfinding/pathfinding-grow-paths"))
-class UPCGExPathfindingGrowPathsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExPathfindingGrowPathsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -235,7 +235,7 @@ public:
 	bool bUseOctreeSearch = false;
 };
 
-struct FPCGExPathfindingGrowPathsContext final : FPCGExEdgesProcessorContext
+struct FPCGExPathfindingGrowPathsContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
@@ -255,7 +255,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
+class FPCGExPathfindingGrowPathsElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathfindingGrowPaths)

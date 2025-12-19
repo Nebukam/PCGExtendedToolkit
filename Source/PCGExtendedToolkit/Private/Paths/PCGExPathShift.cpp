@@ -39,7 +39,7 @@ bool FPCGExShiftPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->ShiftType != EPCGExShiftType::CherryPick) { return true; }
 
-	Context->ShiftedProperties = PCGEx::GetPointNativeProperties(Settings->CherryPickedProperties);
+	Context->ShiftedProperties = PCGExPointArrayDataHelpers::GetPointNativeProperties(Settings->CherryPickedProperties);
 
 	TSet<FName> UniqueNames;
 
@@ -221,7 +221,7 @@ namespace PCGExShiftPath
 			return;
 		}
 
-		PCGEx::ArrayOfIndices(Indices, PointDataFacade->GetIn()->GetNumPoints());
+		PCGExArrayHelpers::ArrayOfIndices(Indices, PointDataFacade->GetIn()->GetNumPoints());
 
 		if (Settings->bReverseShift)
 		{
@@ -271,7 +271,7 @@ namespace PCGExShiftPath
 
 					if (!Buffer || Buffer->GetUnderlyingDomain() != PCGExData::EDomainType::Elements) { return; }
 
-					PCGEx::ExecuteWithRightType(Buffer->GetTypeId(), [&](auto DummyValue)
+					PCGExMetaHelpers::ExecuteWithRightType(Buffer->GetTypeId(), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
 						TSharedPtr<PCGExData::TArrayBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(This->Buffers[Index]);

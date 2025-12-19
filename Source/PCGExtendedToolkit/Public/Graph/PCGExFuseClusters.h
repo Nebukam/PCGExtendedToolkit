@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExUnionProcessor.h"
-#include "PCGExEdgesProcessor.h"
+#include "PCGExClustersProcessor.h"
 #include "PCGExIntersections.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExBlending.h"
@@ -18,7 +18,7 @@ namespace PCGExFuseClusters
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/fuse-clusters"))
-class UPCGExFuseClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFuseClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -33,11 +33,11 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface
+	//~Begin UPCGExClustersProcessorSettings interface
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	//~End UPCGExEdgesProcessorSettings interface
+	//~End UPCGExClustersProcessorSettings interface
 
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
@@ -97,7 +97,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct FPCGExFuseClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExFuseClustersContext final : FPCGExClustersProcessorContext
 {
 	friend class UPCGExFuseClustersSettings;
 	friend class FPCGExFuseClustersElement;
@@ -116,7 +116,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExFuseClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FuseClusters)

@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExScopedContainers.h"
+#include "Containers/PCGExScopedContainers.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Sampling/PCGExSampling.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "PCGExFloodFillClusters.generated.h"
@@ -74,7 +74,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFloodFillSeedPickingDetails
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/flood-fill"))
-class UPCGExClusterDiffusionSettings : public UPCGExEdgesProcessorSettings
+class UPCGExClusterDiffusionSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -177,7 +177,7 @@ private:
 	friend class FPCGExClusterDiffusionElement;
 };
 
-struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
+struct FPCGExClusterDiffusionContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExClusterDiffusionElement;
 
@@ -198,7 +198,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement
+class FPCGExClusterDiffusionElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ClusterDiffusion)

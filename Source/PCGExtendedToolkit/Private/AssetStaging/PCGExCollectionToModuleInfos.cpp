@@ -8,7 +8,7 @@
 #include "PCGParamData.h"
 #include "PCGPin.h"
 #include "AssetStaging/PCGExStaging.h"
-#include "Collections/PCGExAssetCollection.h"
+#include "Collections/Core/PCGExAssetCollection.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -70,7 +70,7 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 
 #define PCGEX_DECLARE_ATT(_NAME, _TYPE, _GETTER, _DEFAULT) \
 	FPCGMetadataAttribute<_TYPE>* _NAME##Attribute = nullptr; \
-	PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = Metadata->FindOrCreateAttribute<_TYPE>(PCGEx::GetAttributeIdentifier(Settings->_NAME##AttributeName, OutputModules), _DEFAULT, false, true);
+	PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = Metadata->FindOrCreateAttribute<_TYPE>(PCGExMetaHelpers::GetAttributeIdentifier(Settings->_NAME##AttributeName, OutputModules), _DEFAULT, false, true);
 	PCGEX_FOREACH_MODULE_FIELD(PCGEX_DECLARE_ATT);
 #undef PCGEX_DECLARE_ATT
 
@@ -108,19 +108,26 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 	return InContext->TryComplete();
 }
 
-void FPCGExCollectionToModuleInfosElement::FlattenCollection(const TSharedPtr<PCGExStaging::FPickPacker>& Packer, UPCGExAssetCollection* Collection, const UPCGExCollectionToModuleInfosSettings* Settings, TArray<PCGExCollectionToGrammar::FModule>& OutModules, TSet<FName>& UniqueSymbols, TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const
+void FPCGExCollectionToModuleInfosElement::FlattenCollection(
+	const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
+	const UPCGExAssetCollection* Collection,
+	const UPCGExCollectionToModuleInfosSettings* Settings,
+	TArray<PCGExCollectionToGrammar::FModule>& OutModules,
+	TSet<FName>& UniqueSymbols,
+	TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const
 {
 	if (!Collection) { return; }
 
-	const PCGExAssetCollection::FCache* Cache = Collection->LoadCache();
+	const PCGExAssetCollection::FCache* Cache = const_cast<UPCGExAssetCollection*>(Collection)->LoadCache();
 	const int32 NumEntries = Cache->Main->Order.Num();
 
 	const FPCGExAssetCollectionEntry* Entry = nullptr;
-	const UPCGExAssetCollection* EntryHost = nullptr;
 
 	for (int i = 0; i < NumEntries; i++)
 	{
-		Collection->GetEntryAt(Entry, i, EntryHost);
+		FPCGExEntryAccessResult Result = Collection->GetEntryAt(i);
+		Entry = Result.Entry;
+		
 		if (!Entry) { continue; }
 
 		if (Entry->bIsSubCollection && Entry->SubGrammarMode == EPCGExGrammarSubCollectionMode::Flatten)
@@ -146,7 +153,7 @@ void FPCGExCollectionToModuleInfosElement::FlattenCollection(const TSharedPtr<PC
 		}
 
 		Module.Entry = Entry;
-		Module.Idx = Packer->GetPickIdx(EntryHost, Entry->Staging.InternalIndex, 0);
+		Module.Idx = Packer->GetPickIdx(Result.Host, Entry->Staging.InternalIndex, 0);
 	}
 }
 

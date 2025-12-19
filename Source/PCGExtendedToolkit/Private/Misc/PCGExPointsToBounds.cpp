@@ -24,7 +24,7 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 
 			const FPCGMetadataAttributeBase* Source = InBoundsData->Metadata->GetConstAttribute(AttributeIdentifier);
 
-			PCGEx::ExecuteWithRightType(Source->GetTypeId(), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Source->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
@@ -37,7 +37,7 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 		}
 	}
 
-#define PCGEX_WRITE_REDUCED_PROPERTY(_NAME)	if (bWrite##_NAME){ PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(_NAME##AttributeName), InBoundsData->GetConst##_NAME##ValueRange()[0]); }
+#define PCGEX_WRITE_REDUCED_PROPERTY(_NAME)	if (bWrite##_NAME){ PCGExData::WriteMark(OutData, PCGExMetaHelpers::GetAttributeIdentifier(_NAME##AttributeName), InBoundsData->GetConst##_NAME##ValueRange()[0]); }
 
 	PCGEX_WRITE_REDUCED_PROPERTY(Transform)
 	PCGEX_WRITE_REDUCED_PROPERTY(Density)
@@ -50,7 +50,7 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 
 	if (bWriteBestFitPlane)
 	{
-		PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitPlaneAttributeName), Plane.GetTransform(AxisOrder));
+		PCGExData::WriteMark(OutData, PCGExMetaHelpers::GetAttributeIdentifier(BestFitPlaneAttributeName), Plane.GetTransform(AxisOrder));
 	}
 }
 
@@ -65,7 +65,7 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 
 			const FPCGMetadataAttributeBase* Source = OutData->Metadata->GetConstAttribute(AttributeIdentifier);
 
-			PCGEx::ExecuteWithRightType(Source->GetTypeId(), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Source->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
@@ -78,7 +78,7 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 		}
 	}
 
-#define PCGEX_WRITE_REDUCED_PROPERTY(_NAME)	if (bWrite##_NAME){ PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(_NAME##AttributeName), OutData->GetConst##_NAME##ValueRange()[0]); }
+#define PCGEX_WRITE_REDUCED_PROPERTY(_NAME)	if (bWrite##_NAME){ PCGExData::WriteMark(OutData, PCGExMetaHelpers::GetAttributeIdentifier(_NAME##AttributeName), OutData->GetConst##_NAME##ValueRange()[0]); }
 
 	PCGEX_WRITE_REDUCED_PROPERTY(Transform)
 	PCGEX_WRITE_REDUCED_PROPERTY(Density)
@@ -91,7 +91,7 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 
 	if (bWriteBestFitPlane)
 	{
-		PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitPlaneAttributeName), Plane.GetTransform(AxisOrder));
+		PCGExData::WriteMark(OutData, PCGExMetaHelpers::GetAttributeIdentifier(BestFitPlaneAttributeName), Plane.GetTransform(AxisOrder));
 	}
 }
 
@@ -199,7 +199,7 @@ namespace PCGExPointsToBounds
 	{
 		const UPCGBasePointData* InData = OutputIO->GetIn();
 		UPCGBasePointData* OutData = OutputIO->GetOut();
-		PCGEx::SetNumPointsAllocated(OutData, 1);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutData, 1);
 
 		OutputIO->InheritPoints(0, 0, 1);
 

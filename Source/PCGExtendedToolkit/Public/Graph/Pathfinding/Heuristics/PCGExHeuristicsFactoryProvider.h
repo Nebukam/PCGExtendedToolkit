@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "PCGExLabels.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
@@ -86,7 +86,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Score Curve", EditCondition="!bRawSettings && !bUseLocalCurve", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
-	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGExCurves::WeightDistributionLinear);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails ScoreCurveLookup;

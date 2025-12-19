@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Topology/PCGExCell.h"
 
 #include "PCGExPathfindingFindAllCells.generated.h"
@@ -18,7 +18,7 @@ namespace PCGExFindAllCells
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-all-cells"))
-class UPCGExFindAllCellsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFindAllCellsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ private:
 	friend class FPCGExFindAllCellsElement;
 };
 
-struct FPCGExFindAllCellsContext final : FPCGExEdgesProcessorContext
+struct FPCGExFindAllCellsContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExFindAllCellsElement;
 	friend class FPCGExCreateBridgeTask;
@@ -84,7 +84,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExFindAllCellsElement final : public FPCGExEdgesProcessorElement
+class FPCGExFindAllCellsElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindAllCells)

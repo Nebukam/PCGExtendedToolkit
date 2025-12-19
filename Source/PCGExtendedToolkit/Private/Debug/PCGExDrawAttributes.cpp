@@ -5,7 +5,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "PCGExMath.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
 

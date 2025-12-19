@@ -4,7 +4,7 @@
 
 #include "Details/PCGExDetailsSplineMesh.h"
 
-#include "Collections/PCGExComponentDescriptors.h"
+#include "Collections/Core/PCGExComponentDescriptors.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Details/PCGExDetailsSettings.h"
 

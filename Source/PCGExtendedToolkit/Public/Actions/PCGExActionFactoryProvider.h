@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExOperation.h"
 
@@ -27,7 +27,7 @@
 	_BODY \
 	return NewOperation;}
 
-namespace PCGEx
+namespace PCGExData
 {
 	class FAttributesInfos;
 }
@@ -83,8 +83,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExActionFactoryData : public UPCGExFactoryData
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoAction)
 
-	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
-	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
+	TSharedPtr<PCGExData::FAttributesInfos> CheckSuccessInfos;
+	TSharedPtr<PCGExData::FAttributesInfos> CheckFailInfos;
 
 	UPROPERTY(meta=(PCG_NotOverridable))
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
@@ -93,7 +93,7 @@ public:
 	virtual TSharedPtr<FPCGExActionOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool Boot(FPCGContext* InContext);
-	virtual bool AppendAndValidate(const TSharedPtr<PCGEx::FAttributesInfos>& InInfos, FString& OutMessage) const;
+	virtual bool AppendAndValidate(const TSharedPtr<PCGExData::FAttributesInfos>& InInfos, FString& OutMessage) const;
 
 	virtual void BeginDestroy() override;
 };

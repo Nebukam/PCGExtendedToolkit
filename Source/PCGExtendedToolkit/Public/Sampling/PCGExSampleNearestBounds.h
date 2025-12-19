@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCurveLookup.h"
-#include "PCGExFactories.h"
+#include "Factories/PCGExFactories.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"

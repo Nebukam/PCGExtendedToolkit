@@ -186,7 +186,7 @@ namespace PCGExCreateShapes
 		}
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(OutPointData, NumPoints);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPointData, NumPoints);
 
 		for (int i = 0; i < NumSeeds; i++)
 		{
@@ -231,7 +231,7 @@ namespace PCGExCreateShapes
 			PCGEX_MAKE_SHARED(IOFacade, PCGExData::FFacade, IO.ToSharedRef())
 			PerSeedFacades.Add(IOFacade);
 
-			PCGEx::SetNumPointsAllocated(IOFacade->GetOut(), NumPoints);
+			PCGExPointArrayDataHelpers::SetNumPointsAllocated(IOFacade->GetOut(), NumPoints);
 
 			for (int j = 0; j < NumBuilders; j++)
 			{
@@ -268,7 +268,7 @@ namespace PCGExCreateShapes
 				IO->IOIndex = BuilderIndex * 10000 + ShapeIndex;
 				PCGEX_MAKE_SHARED(IOFacade, PCGExData::FFacade, IO.ToSharedRef())
 
-				PCGEx::SetNumPointsAllocated(IOFacade->GetOut(), Shape->NumPoints);
+				PCGExPointArrayDataHelpers::SetNumPointsAllocated(IOFacade->GetOut(), Shape->NumPoints);
 
 				Shape->StartIndex = 0;
 				BuildShape(This->Context, IOFacade.ToSharedRef(), Builder, Shape);
@@ -301,7 +301,7 @@ namespace PCGExCreateShapes
 
 		if (Settings->bWriteShapeId)
 		{
-			FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(Settings->ShapeIdAttributeName);
+			FPCGAttributeIdentifier Identifier = PCGExMetaHelpers::GetAttributeIdentifier(Settings->ShapeIdAttributeName);
 
 			if (Settings->OutputMode == EPCGExShapeOutputMode::PerShape && !Settings->bForceOutputToElement)
 			{

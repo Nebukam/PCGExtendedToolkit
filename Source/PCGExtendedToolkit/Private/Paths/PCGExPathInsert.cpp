@@ -43,7 +43,7 @@ bool FPCGExPathInsertElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		const bool bIsCanBeCutTagValid = PCGEx::IsValidStringTag(Context->CanBeCutTag);
+		const bool bIsCanBeCutTagValid = PCGExMetaHelpers::IsValidStringTag(Context->CanBeCutTag);
 
 		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)

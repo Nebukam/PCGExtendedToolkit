@@ -6,11 +6,11 @@
 #include "CoreMinimal.h"
 
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "PCGExEdgeOrder.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/metadata/edge-order"))
-class UPCGExEdgeOrderSettings : public UPCGExEdgesProcessorSettings
+class UPCGExEdgeOrderSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,7 @@ private:
 	friend class FPCGExEdgeOrderElement;
 };
 
-struct FPCGExEdgeOrderContext final : FPCGExEdgesProcessorContext
+struct FPCGExEdgeOrderContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExEdgeOrderElement;
 
@@ -46,7 +46,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExEdgeOrderElement final : public FPCGExEdgesProcessorElement
+class FPCGExEdgeOrderElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(EdgeOrder)

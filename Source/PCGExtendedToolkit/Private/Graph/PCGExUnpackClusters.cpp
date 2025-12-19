@@ -61,15 +61,15 @@ public:
 		const FPCGExUnpackClustersContext* Context = TaskManager->GetContext<FPCGExUnpackClustersContext>();
 		PCGEX_SETTINGS(UnpackClusters)
 
-		FPCGAttributeIdentifier EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount, PointIO->GetIn());
-		const FPCGMetadataAttribute<int32>* EdgeCount = PCGEx::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
+		FPCGAttributeIdentifier EdgeCountIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount, PointIO->GetIn());
+		const FPCGMetadataAttribute<int32>* EdgeCount = PCGExMetaHelpers::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
 		int32 NumEdges = -1;
 
 		if (!EdgeCount)
 		{
 			// Support for legacy data that was storing the edge count as a point index
-			EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
-			EdgeCount = PCGEx::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
+			EdgeCountIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
+			EdgeCount = PCGExMetaHelpers::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
 			if (EdgeCount) { NumEdges = PCGExDataHelpers::ReadDataValue(EdgeCount); }
 		}
 		else
@@ -96,7 +96,7 @@ public:
 
 		const TSharedPtr<PCGExData::FPointIO> NewEdges = Context->OutEdges->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 		UPCGBasePointData* MutableEdgePoints = NewEdges->GetOut();
-		PCGEx::SetNumPointsAllocated(MutableEdgePoints, NumEdges, AllocateProperties);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutableEdgePoints, NumEdges, AllocateProperties);
 		NewEdges->InheritPoints(0, 0, NumEdges);
 
 		NewEdges->DeleteAttribute(EdgeCountIdentifier);
@@ -104,13 +104,13 @@ public:
 
 		const TSharedPtr<PCGExData::FPointIO> NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 		UPCGBasePointData* MutableVtxPoints = NewVtx->GetOut();
-		PCGEx::SetNumPointsAllocated(MutableVtxPoints, NumVtx, AllocateProperties);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutableVtxPoints, NumVtx, AllocateProperties);
 		NewVtx->InheritPoints(NumEdges, 0, NumVtx);
 
 		NewVtx->DeleteAttribute(EdgeCountIdentifier);
 		NewVtx->DeleteAttribute(PCGExGraph::Attr_PCGExEdgeIdx);
 
-		const PCGExCommon::DataIDType PairId = PCGEX_GET_DATAIDTAG(PointIO->Tags, PCGExGraph::TagStr_PCGExCluster);
+		const PCGExDataId PairId = PCGEX_GET_DATAIDTAG(PointIO->Tags, PCGExGraph::TagStr_PCGExCluster);
 
 		PCGExGraph::MarkClusterVtx(NewVtx, PairId);
 		PCGExGraph::MarkClusterEdges(NewEdges, PairId);

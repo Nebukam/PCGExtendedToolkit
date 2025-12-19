@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExMeshToClusters.h"
 
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "GameFramework/Actor.h"
@@ -49,7 +49,7 @@ namespace PCGExGraphTask
 
 			VtxDupe->IOIndex = TaskIndex;
 
-			PCGExCommon::DataIDType OutId;
+			PCGExDataId OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 			PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
@@ -175,7 +175,7 @@ namespace PCGExMeshToCluster
 			if (Mesh->DesiredTriangulationType == EPCGExTriangulationType::Boundaries)
 			{
 				const int32 NumHullVertices = Mesh->HullIndices.Num();
-				(void)PCGEx::SetNumPointsAllocated(VtxPoints, NumHullVertices, Allocations);
+				(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(VtxPoints, NumHullVertices, Allocations);
 				InitUVWriters();
 
 				TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
@@ -250,7 +250,7 @@ namespace PCGExMeshToCluster
 			}
 			else
 			{
-				(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), Allocations);
+				(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), Allocations);
 				InitUVWriters();
 
 				TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);

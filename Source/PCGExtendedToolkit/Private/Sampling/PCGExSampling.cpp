@@ -5,7 +5,7 @@
 
 #include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"

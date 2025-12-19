@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExFactories.h"
+#include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExMathMean.h"
 #include "PCGExPointsProcessor.h"

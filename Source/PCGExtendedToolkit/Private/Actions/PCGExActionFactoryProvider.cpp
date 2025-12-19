@@ -56,7 +56,7 @@ bool UPCGExActionFactoryData::Boot(FPCGContext* InContext)
 	return true;
 }
 
-bool UPCGExActionFactoryData::AppendAndValidate(const TSharedPtr<PCGEx::FAttributesInfos>& InInfos, FString& OutMessage) const
+bool UPCGExActionFactoryData::AppendAndValidate(const TSharedPtr<PCGExData::FAttributesInfos>& InInfos, FString& OutMessage) const
 {
 	TSet<FName> Mismatch;
 

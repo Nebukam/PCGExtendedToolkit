@@ -93,7 +93,7 @@ FString UPCGExEdgeNeighborsCountFilterProviderSettings::GetDisplayName() const
 
 	DisplayName += ")" + PCGExCompare::ToString(Config.Comparison);
 	if (Config.ThresholdInput == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.ThresholdConstant); }
-	else { DisplayName += PCGEx::GetSelectorDisplayName(Config.ThresholdAttribute); }
+	else { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.ThresholdAttribute); }
 
 	return DisplayName;
 }

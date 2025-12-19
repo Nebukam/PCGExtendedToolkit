@@ -17,7 +17,78 @@
   "Installed": false,
   "Modules": [
     {
+      "Name": "PCGExCore",
+      "_comment": "🔒 REQUIRED",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExFoundations",
+      "_comment": "🔒 REQUIRED",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExCompositing",
+      "_comment": "🔒 REQUIRED",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExTensors",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExShapes",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
       "Name": "PCGExtendedToolkit",
+      "_comment": "🔒 REQUIRED",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
@@ -31,6 +102,7 @@
     },
     {
       "Name": "PCGExtendedToolkitEditor",
+      "_comment": "🔒 REQUIRED",
       "Type": "Editor",
       "LoadingPhase": "Default",
       "PlatformAllowList": [

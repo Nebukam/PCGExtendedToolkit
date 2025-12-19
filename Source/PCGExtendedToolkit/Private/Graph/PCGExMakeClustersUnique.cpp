@@ -19,7 +19,7 @@ PCGEX_INITIALIZE_ELEMENT(MakeClustersUnique)
 
 bool FPCGExMakeClustersUniqueElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(MakeClustersUnique)
 
@@ -39,7 +39,7 @@ bool FPCGExMakeClustersUniqueElement::AdvanceWork(FPCGExContext* InContext, cons
 
 	while (Context->AdvancePointsIO(false))
 	{
-		PCGExCommon::DataIDType OutId;
+		PCGExDataId OutId;
 		PCGExGraph::SetClusterVtx(Context->CurrentIO, OutId);
 
 		if (!Context->TaggedEdges) { continue; }

@@ -59,7 +59,7 @@ FString UPCGExEdgeLengthFilterProviderSettings::GetDisplayName() const
 	FString DisplayName = "Edge Length ";
 	DisplayName += PCGExCompare::ToString(Config.Comparison);
 	if (Config.ThresholdInput == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%f"), Config.ThresholdConstant); }
-	else { DisplayName += PCGEx::GetSelectorDisplayName(Config.ThresholdAttribute); }
+	else { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.ThresholdAttribute); }
 
 	return DisplayName;
 }

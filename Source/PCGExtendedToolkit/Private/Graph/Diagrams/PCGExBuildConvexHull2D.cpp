@@ -118,7 +118,7 @@ namespace PCGExBuildConvexHull2D
 		UPCGBasePointData* MutablePoints = PathIO->GetOut();
 		TArray<FVector2D> ProjectedPoints;
 
-		(void)PCGEx::SetNumPointsAllocated(MutablePoints, LastIndex + 1, PointDataFacade->GetAllocations());
+		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, LastIndex + 1, PointDataFacade->GetAllocations());
 		ProjectedPoints.Reserve(LastIndex + 1);
 
 		PCGExPaths::SetClosedLoop(PathIO->GetOut(), true);

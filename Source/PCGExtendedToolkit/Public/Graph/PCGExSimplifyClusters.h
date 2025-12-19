@@ -7,7 +7,7 @@
 #include "PCGExChain.h"
 #include "PCGExClusterMT.h"
 #include "Details/PCGExDetailsIntersection.h"
-#include "PCGExEdgesProcessor.h"
+#include "PCGExClustersProcessor.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExBlending.h"
 
@@ -22,7 +22,7 @@ enum class EPCGExSimplifyClusterEdgeFilterRole : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/simplify"))
-class UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExSimplifyClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -38,12 +38,12 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface	
+	//~Begin UPCGExClustersProcessorSettings interface	
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceKeepConditionLabel, "Prevents vtx from being pruned by the simplification process", PCGExFactories::PointFilters, false)
-	//~End UPCGExEdgesProcessorSettings interface
+	//~End UPCGExClustersProcessorSettings interface
 
 	/** If enabled, only check for dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -94,7 +94,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
+struct FPCGExSimplifyClustersContext : FPCGExClustersProcessorContext
 {
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;
@@ -107,7 +107,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExSimplifyClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SimplifyClusters)

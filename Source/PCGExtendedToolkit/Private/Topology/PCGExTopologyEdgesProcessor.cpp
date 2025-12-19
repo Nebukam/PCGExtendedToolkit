@@ -1,17 +1,17 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Topology/PCGExTopologyEdgesProcessor.h"
+#include "Topology/PCGExTopologyClustersProcessor.h"
 
 #include "CoreMinimal.h"
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "PCGComponent.h"
 #include "PCGExMT.h"
 #include "Topology/PCGExDynamicMeshComponent.h"
 #include "Topology/PCGExCell.h"
 #include "Data/PCGDynamicMeshData.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Transform/PCGExTransform.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExDataTag.h"
@@ -23,10 +23,10 @@
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor
 
-PCGExData::EIOInit UPCGExTopologyEdgesProcessorSettings::GetMainOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
-PCGExData::EIOInit UPCGExTopologyEdgesProcessorSettings::GetEdgeOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetMainOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetEdgeOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
 
-TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
@@ -37,7 +37,7 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperti
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::OutputPinProperties() const
 {
 	if (OutputMode == EPCGExTopologyOutputMode::Legacy) { return Super::OutputPinProperties(); }
 
@@ -47,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::OutputPinPropert
 }
 
 #if WITH_EDITOR
-void UPCGExTopologyEdgesProcessorSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+void UPCGExTopologyClustersProcessorSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
 {
 	for (TObjectPtr<UPCGPin>& OutPin : OutputPins)
 	{
@@ -58,11 +58,11 @@ void UPCGExTopologyEdgesProcessorSettings::ApplyDeprecationBeforeUpdatePins(UPCG
 }
 #endif
 
-void FPCGExTopologyEdgesProcessorContext::RegisterAssetDependencies()
+void FPCGExTopologyClustersProcessorContext::RegisterAssetDependencies()
 {
-	PCGEX_SETTINGS_LOCAL(TopologyEdgesProcessor)
+	PCGEX_SETTINGS_LOCAL(TopologyClustersProcessor)
 
-	FPCGExEdgesProcessorContext::RegisterAssetDependencies();
+	FPCGExClustersProcessorContext::RegisterAssetDependencies();
 
 	if (Settings->Topology.Material.ToSoftObjectPath().IsValid())
 	{
@@ -70,11 +70,11 @@ void FPCGExTopologyEdgesProcessorContext::RegisterAssetDependencies()
 	}
 }
 
-bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
+bool FPCGExTopologyClustersProcessorElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
+	PCGEX_CONTEXT_AND_SETTINGS(TopologyClustersProcessor)
 
 	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false, false);
 	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
@@ -110,8 +110,8 @@ namespace PCGExTopologyEdges
 
 	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		FPCGExTopologyEdgesProcessorContext* Context = static_cast<FPCGExTopologyEdgesProcessorContext*>(ExecutionContext);
-		const UPCGExTopologyEdgesProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyEdgesProcessorSettings>();
+		FPCGExTopologyClustersProcessorContext* Context = static_cast<FPCGExTopologyClustersProcessorContext*>(ExecutionContext);
+		const UPCGExTopologyClustersProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyClustersProcessorSettings>();
 
 		EdgeDataFacade->bSupportsScopedGet = true;
 		EdgeFilterFactories = &Context->EdgeConstraintsFilterFactories;
@@ -165,8 +165,8 @@ namespace PCGExTopologyEdges
 
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
 
-		FPCGExTopologyEdgesProcessorContext* Context = static_cast<FPCGExTopologyEdgesProcessorContext*>(ExecutionContext);
-		const UPCGExTopologyEdgesProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyEdgesProcessorSettings>();
+		FPCGExTopologyClustersProcessorContext* Context = static_cast<FPCGExTopologyClustersProcessorContext*>(ExecutionContext);
+		const UPCGExTopologyClustersProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyClustersProcessorSettings>();
 
 		if (InternalMeshData)
 		{
@@ -226,10 +226,10 @@ namespace PCGExTopologyEdges
 
 	void IProcessor::ApplyPointData()
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(TopologyEdgesProcessor::ApplyPointData);
+		TRACE_CPUPROFILER_EVENT_SCOPE(TopologyClustersProcessor::ApplyPointData);
 
-		FPCGExTopologyEdgesProcessorContext* Context = static_cast<FPCGExTopologyEdgesProcessorContext*>(ExecutionContext);
-		const UPCGExTopologyEdgesProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyEdgesProcessorSettings>();
+		FPCGExTopologyClustersProcessorContext* Context = static_cast<FPCGExTopologyClustersProcessorContext*>(ExecutionContext);
+		const UPCGExTopologyClustersProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyClustersProcessorSettings>();
 
 		FTransform Transform = Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh ? Context->GetComponent()->GetOwner()->GetTransform() : FTransform::Identity;
 		Transform.SetScale3D(FVector::OneVector);
@@ -293,14 +293,14 @@ namespace PCGExTopologyEdges
 	{
 		ProjectedHashMap = MakeShared<TMap<uint64, int32>>();
 		ProjectedHashMap->Reserve(InVtx->GetNum());
-		static_cast<FPCGExTopologyEdgesProcessorContext*>(InContext)->HashMaps[InVtx->IOIndex] = ProjectedHashMap;
+		static_cast<FPCGExTopologyClustersProcessorContext*>(InContext)->HashMaps[InVtx->IOIndex] = ProjectedHashMap;
 	}
 
 	void IBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		PCGExClusterMT::IBatch::RegisterBuffersDependencies(FacadePreloader);
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyClustersProcessor)
 
 		check(Settings);
 
@@ -316,7 +316,7 @@ namespace PCGExTopologyEdges
 	{
 		if (!this->bIsBatchValid) { return; }
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyClustersProcessor)
 		PCGExClusterMT::IBatch::Output();
 	}
 

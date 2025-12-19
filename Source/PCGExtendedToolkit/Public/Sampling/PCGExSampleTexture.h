@@ -8,7 +8,7 @@
 #include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGTextureData.h"

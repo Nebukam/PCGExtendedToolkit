@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExEdgesProcessor.h"
+#include "PCGExClustersProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
@@ -20,7 +20,7 @@ namespace PCGExMatching
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/copy-clusters-to-points"))
-class UPCGExCopyClustersToPointsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExCopyClustersToPointsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -37,11 +37,11 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface
+	//~Begin UPCGExClustersProcessorSettings interface
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	//~End UPCGExEdgesProcessorSettings interface
+	//~End UPCGExClustersProcessorSettings interface
 
 	/** If enabled, allows you to pick which input gets copied to which target point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -60,7 +60,7 @@ public:
 	FPCGExForwardDetails TargetsForwarding;
 };
 
-struct FPCGExCopyClustersToPointsContext final : FPCGExEdgesProcessorContext
+struct FPCGExCopyClustersToPointsContext final : FPCGExClustersProcessorContext
 {
 	friend class UPCGExCopyClustersToPointsSettings;
 	friend class FPCGExCopyClustersToPointsElement;
@@ -78,7 +78,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExCopyClustersToPointsElement final : public FPCGExEdgesProcessorElement
+class FPCGExCopyClustersToPointsElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CopyClustersToPoints)
@@ -100,7 +100,7 @@ namespace PCGExCopyClustersToPoints
 
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>>* VtxDupes = nullptr;
-		TArray<PCGExCommon::DataIDType>* VtxTag = nullptr;
+		TArray<PCGExDataId>* VtxTag = nullptr;
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> EdgesDupes;
 
@@ -126,7 +126,7 @@ namespace PCGExCopyClustersToPoints
 
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>> VtxDupes;
-		TArray<PCGExCommon::DataIDType> VtxTag;
+		TArray<PCGExDataId> VtxTag;
 
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 			: TBatch(InContext, InVtx, InEdges)

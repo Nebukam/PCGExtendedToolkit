@@ -6,8 +6,8 @@
 
 #include "UObject/Object.h"
 #include "UObject/Package.h"
-#include "Collections/PCGExAssetCollection.h"
-#include "Collections/PCGExCollectionHelpers.h"
+#include "Collections/Core/PCGExAssetCollection.h"
+#include "Collections/Core/PCGExCollectionHelpers.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
 
@@ -26,6 +26,15 @@ FPCGExAssetDistributionIndexDetails::FPCGExAssetDistributionIndexDetails()
 PCGEX_SETTING_VALUE_IMPL_BOOL(FPCGExAssetDistributionIndexDetails, Index, int32, true, IndexSource, -1);
 PCGEX_SETTING_VALUE_IMPL(FPCGExAssetDistributionDetails, Category, FName, CategoryInput, CategoryAttribute, Category);
 
+
+bool FPCGExSocketOutputDetails::Init(FPCGExContext* InContext) const
+{
+	PCGEX_VALIDATE_NAME_C(InContext, SocketNameAttributeName)
+	PCGEX_VALIDATE_NAME_C(InContext, SocketTagAttributeName)
+	PCGEX_VALIDATE_NAME_C(InContext, CategoryAttributeName)
+	PCGEX_VALIDATE_NAME_C(InContext, AssetPathAttributeName)
+	return true;
+}
 
 FPCGExRoamingAssetCollectionDetails::FPCGExRoamingAssetCollectionDetails(const TSubclassOf<UPCGExAssetCollection>& InAssetCollectionType)
 	: bSupportCustomType(false), AssetCollectionType(InAssetCollectionType)

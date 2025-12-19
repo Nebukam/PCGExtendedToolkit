@@ -88,7 +88,7 @@ bool FPCGExReduceDataAttributeElement::Boot(FPCGExContext* InContext) const
 		if (!TaggedData.Data || !TaggedData.Data->Metadata) { continue; }
 		const FPCGMetadataAttributeBase* Attribute = nullptr;
 
-		if (PCGEx::HasAttribute(TaggedData.Data, ReadIdentifier)) { Attribute = TaggedData.Data->Metadata->GetConstAttribute(ReadIdentifier); }
+		if (PCGExMetaHelpers::HasAttribute(TaggedData.Data, ReadIdentifier)) { Attribute = TaggedData.Data->Metadata->GetConstAttribute(ReadIdentifier); }
 
 		if (!Attribute)
 		{
@@ -159,7 +159,7 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 
 			int64 AggregatedHash = CityHash64(reinterpret_cast<const char*>(Hashes.GetData()), Hashes.Num() * sizeof(int32));
 
-			PCGEx::ExecuteWithRightType(Context->OutputType, [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Context->OutputType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				const T OutValue = PCGExTypes::Convert<int64, T>(AggregatedHash);
@@ -169,7 +169,7 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 		}
 		else
 		{
-			PCGEx::ExecuteWithRightType(Context->OutputType, [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Context->OutputType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				T ReducedValue = T{};

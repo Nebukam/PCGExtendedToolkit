@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "Data/Blending/PCGExBlending.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"

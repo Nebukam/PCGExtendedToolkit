@@ -3,7 +3,7 @@
 
 #include "Transform/PCGExTransform.h"
 
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 #include "PCGExHelpers.h"
 #include "PCGExMathBounds.h"
 #include "Data/PCGExData.h"
@@ -159,7 +159,7 @@ bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSup
 	if (FirstAlphaInput != EPCGExSampleSource::Constant)
 	{
 		PCGEX_VALIDATE_NAME_C(InContext, FirstAlphaAttribute)
-		if (!bSupportPoints && !PCGExHelpers::IsDataDomainAttribute(FirstAlphaAttribute))
+		if (!bSupportPoints && !PCGExMetaHelpers::IsDataDomainAttribute(FirstAlphaAttribute))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Only @Data attributes are supported."));
 			PCGEX_LOG_INVALID_ATTR_C(InContext, First Alpha, FirstAlphaAttribute)
@@ -170,7 +170,7 @@ bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSup
 	if (SecondAlphaInput != EPCGExSampleSource::Constant)
 	{
 		PCGEX_VALIDATE_NAME_C(InContext, SecondAlphaAttribute)
-		if (!bSupportPoints && !PCGExHelpers::IsDataDomainAttribute(SecondAlphaAttribute))
+		if (!bSupportPoints && !PCGExMetaHelpers::IsDataDomainAttribute(SecondAlphaAttribute))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Only @Data attributes are supported."));
 			PCGEX_LOG_INVALID_ATTR_C(InContext, Second Alpha, SecondAlphaAttribute)
@@ -181,7 +181,7 @@ bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSup
 	return true;
 }
 
-bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const TArray<PCGExData::FTaggedData>& InTargets)
+bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const TArray<FPCGExTaggedData>& InTargets)
 {
 	if (FirstAlphaInput == EPCGExSampleSource::Target)
 	{

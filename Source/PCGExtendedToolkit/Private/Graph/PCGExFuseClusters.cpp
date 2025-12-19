@@ -25,7 +25,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL(FuseClusters)
 
 bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext))
+	if (!FPCGExClustersProcessorElement::Boot(InContext))
 	{
 		return false;
 	}

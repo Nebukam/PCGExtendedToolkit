@@ -252,7 +252,7 @@ namespace PCGExBuildVoronoiGraph2D
 			}
 
 			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
-			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, NumCentroids, PointDataFacade->GetAllocations());
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(CentroidsPoints, NumCentroids, PointDataFacade->GetAllocations());
 
 			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(true);
 			TPCGValueRange<int32> OutSeeds = CentroidsPoints->GetSeedValueRange(true);
@@ -334,7 +334,7 @@ namespace PCGExBuildVoronoiGraph2D
 		{
 			UPCGBasePointData* Centroids = PointDataFacade->GetOut();
 			const int32 NumCentroids = Voronoi->Centroids.Num();
-			(void)PCGEx::SetNumPointsAllocated(Centroids, NumCentroids, PointDataFacade->GetAllocations());
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(Centroids, NumCentroids, PointDataFacade->GetAllocations());
 
 			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange(true);
 			TPCGValueRange<int32> OutSeeds = Centroids->GetSeedValueRange(true);

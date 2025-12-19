@@ -8,7 +8,7 @@
 
 
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExFilterVtx.generated.h"
@@ -27,7 +27,7 @@ namespace PCGExFilterVtx
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/find-clusters-data-1"))
-class UPCGExFilterVtxSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFilterVtxSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -121,7 +121,7 @@ private:
 	friend class FPCGExFilterVtxElement;
 };
 
-struct FPCGExFilterVtxContext final : FPCGExEdgesProcessorContext
+struct FPCGExFilterVtxContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExFilterVtxElement;
 
@@ -137,7 +137,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExFilterVtxElement final : public FPCGExEdgesProcessorElement
+class FPCGExFilterVtxElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FilterVtx)

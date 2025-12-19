@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Details/PCGExDetailsNoise.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExClusterCentrality.generated.h"
@@ -32,7 +32,7 @@ enum class EPCGExCentralityDownsampling : uint8
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="clusters/centrality"))
-class UPCGExClusterCentralitySettings : public UPCGExEdgesProcessorSettings
+class UPCGExClusterCentralitySettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -77,7 +77,7 @@ public:
 	FPCGExRandomRatioDetails RandomDownsampling;
 };
 
-struct FPCGExClusterCentralityContext final : FPCGExEdgesProcessorContext
+struct FPCGExClusterCentralityContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExClusterCentralityElement;
 
@@ -87,7 +87,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExClusterCentralityElement final : public FPCGExEdgesProcessorElement
+class FPCGExClusterCentralityElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ClusterCentrality)

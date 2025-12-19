@@ -69,7 +69,7 @@ bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 	if (Settings->PathAttributePackingMode == EPCGExAttributeSetPackingMode::Merged && Settings->WriteAnyPathData())
 	{
 		Context->PathAttributeSet = Context->ManagedObjects->New<UPCGParamData>();
-		PCGEx::InitArray(Context->MergedAttributeSetKeys, Context->MainPoints->Num());
+		PCGExArrayHelpers::InitArray(Context->MergedAttributeSetKeys, Context->MainPoints->Num());
 	}
 
 	return true;
@@ -165,7 +165,7 @@ namespace PCGExWritePathProperties
 
 		const int32 NumPoints = PointIO->GetIn()->GetNumPoints();
 
-		PCGEx::InitArray(Details, NumPoints);
+		PCGExArrayHelpers::InitArray(Details, NumPoints);
 
 		for (int i = 0; i < NumPoints; i++)
 		{
@@ -256,7 +256,7 @@ namespace PCGExWritePathProperties
 
 #define PCGEX_OUTPUT_PATH_VALUE(_NAME, _TYPE, _VALUE) if(Context->bWrite##_NAME){\
 	if (Settings->bWritePathDataToPoints) { WriteMark(PointIO, Settings->_NAME##AttributeName, _VALUE);}\
-			PathAttributeSet->Metadata->FindOrCreateAttribute<_TYPE>(PCGEx::GetAttributeIdentifier(Settings->_NAME##AttributeName, PathAttributeSet).Name, _VALUE)->SetValue(Key, _VALUE); }
+			PathAttributeSet->Metadata->FindOrCreateAttribute<_TYPE>(PCGExMetaHelpers::GetAttributeIdentifier(Settings->_NAME##AttributeName, PathAttributeSet).Name, _VALUE)->SetValue(Key, _VALUE); }
 
 			PCGEX_OUTPUT_PATH_VALUE(PathLength, double, PathLength->TotalLength)
 			PCGEX_OUTPUT_PATH_VALUE(PathDirection, FVector, (PathDir / Path->NumPoints).GetSafeNormal())

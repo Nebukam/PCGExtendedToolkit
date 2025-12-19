@@ -156,7 +156,7 @@ namespace PCGExPathfindingGrowPaths
 
 		PCGExGraph::CleanupVtxData(PathIO);
 
-		PCGEx::SetNumPointsAllocated(PathIO->GetOut(), Path.Num());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), Path.Num());
 		TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
 
 		for (int i = 0; i < Path.Num(); i++) { IdxMapping[i] = Processor->Cluster->GetNodePointIndex(Path[i]); }
@@ -204,7 +204,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL(PathfindingGrowPaths)
 
 bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 

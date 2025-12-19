@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExConnectClustersSettings::InputPinProperties() co
 
 bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectClusters)
 
@@ -108,7 +108,7 @@ bool FPCGExConnectClustersElement::AdvanceWork(FPCGExContext* InContext, const U
 	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExConnectClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExConnectClusters::FBatch>(Batch);
-		PCGExCommon::DataIDType PairId;
+		PCGExDataId PairId;
 		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
 		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
 	}
@@ -198,7 +198,7 @@ namespace PCGExConnectClusters
 		// First find which cluster are connected
 
 		TArray<FBox> Bounds;
-		PCGEx::InitArray(Bounds, NumBounds);
+		PCGExArrayHelpers::InitArray(Bounds, NumBounds);
 		for (int i = 0; i < NumBounds; i++) { Bounds[i] = ValidClusters[i]->Bounds; }
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)

@@ -4,7 +4,7 @@
 #include "Misc/Filters/PCGExNumericSelfCompareFilter.h"
 
 #include "PCGExMath.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
@@ -78,12 +78,12 @@ PCGEX_CREATE_FILTER_FACTORY(NumericSelfCompare)
 #if WITH_EDITOR
 FString UPCGExNumericSelfCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + PCGExCompare::ToString(Config.Comparison);
+	FString DisplayName = PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandA) + PCGExCompare::ToString(Config.Comparison);
 
 	if (Config.IndexMode == EPCGExIndexMode::Pick) { DisplayName += TEXT(" @ "); }
 	else { DisplayName += TEXT(" i+ "); }
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.IndexAttribute); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.IndexAttribute); }
 	else { DisplayName += FString::Printf(TEXT("%d"), Config.IndexConstant); }
 
 	return DisplayName;

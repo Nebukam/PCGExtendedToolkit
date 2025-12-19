@@ -8,9 +8,9 @@
 #include "PCGExTopology.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Transform/PCGExTransform.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 
-#include "PCGExTopologyEdgesProcessor.generated.h"
+#include "PCGExTopologyClustersProcessor.generated.h"
 
 class UPCGDynamicMeshData;
 
@@ -22,7 +22,7 @@ enum class EPCGExTopologyOutputMode : uint8
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
-class PCGEXTENDEDTOOLKIT_API UPCGExTopologyEdgesProcessorSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExTopologyClustersProcessorSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -82,12 +82,12 @@ protected:
 	virtual bool IsCacheable() const override { return false; }
 
 private:
-	friend class FPCGExTopologyEdgesProcessorElement;
+	friend class FPCGExTopologyClustersProcessorElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyClustersProcessorContext : FPCGExClustersProcessorContext
 {
-	friend class FPCGExTopologyEdgesProcessorElement;
+	friend class FPCGExTopologyClustersProcessorElement;
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeConstraintsFilterFactories;
 
 	TSharedPtr<PCGExTopology::FHoles> Holes;
@@ -99,7 +99,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesP
 	virtual void RegisterAssetDependencies() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExTopologyClustersProcessorElement : public FPCGExClustersProcessorElement
 {
 protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
@@ -163,8 +163,8 @@ namespace PCGExTopologyEdges
 		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: IProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
-			static_assert(std::is_base_of_v<FPCGExTopologyEdgesProcessorContext, TContext>, "TContext must inherit from FPCGExTopologyProcessorContext");
-			static_assert(std::is_base_of_v<UPCGExTopologyEdgesProcessorSettings, TSettings>, "TSettings must inherit from UPCGExTopologyProcessorSettings");
+			static_assert(std::is_base_of_v<FPCGExTopologyClustersProcessorContext, TContext>, "TContext must inherit from FPCGExTopologyProcessorContext");
+			static_assert(std::is_base_of_v<UPCGExTopologyClustersProcessorSettings, TSettings>, "TSettings must inherit from UPCGExTopologyProcessorSettings");
 		}
 
 		virtual ~TProcessor() override = default;

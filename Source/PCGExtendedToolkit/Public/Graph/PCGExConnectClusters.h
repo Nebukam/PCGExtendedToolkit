@@ -7,7 +7,7 @@
 #include "Data/PCGExPointIOMerger.h"
 
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 
 #include "PCGExConnectClusters.generated.h"
 
@@ -22,7 +22,7 @@ enum class EPCGExBridgeClusterMethod : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/connect-clusters"))
-class UPCGExConnectClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExConnectClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -86,7 +86,7 @@ private:
 	friend class FPCGExConnectClustersElement;
 };
 
-struct FPCGExConnectClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExConnectClustersContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExConnectClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -101,7 +101,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExConnectClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ConnectClusters)

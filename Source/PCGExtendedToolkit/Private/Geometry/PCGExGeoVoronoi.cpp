@@ -34,8 +34,8 @@ namespace PCGExGeo
 		}
 
 		const int32 NumSites = Delaunay->Sites.Num();
-		PCGEx::InitArray(Circumcenters, NumSites);
-		PCGEx::InitArray(Centroids, NumSites);
+		PCGExArrayHelpers::InitArray(Circumcenters, NumSites);
+		PCGExArrayHelpers::InitArray(Centroids, NumSites);
 
 		for (FDelaunaySite2& Site : Delaunay->Sites)
 		{
@@ -69,8 +69,8 @@ namespace PCGExGeo
 		}
 
 		const int32 NumSites = Delaunay->Sites.Num();
-		PCGEx::InitArray(Circumcenters, NumSites);
-		PCGEx::InitArray(Centroids, NumSites);
+		PCGExArrayHelpers::InitArray(Circumcenters, NumSites);
+		PCGExArrayHelpers::InitArray(Centroids, NumSites);
 		WithinBounds.Init(true, NumSites);
 
 		for (FDelaunaySite2& Site : Delaunay->Sites)
@@ -123,8 +123,8 @@ namespace PCGExGeo
 		}
 
 		const int32 NumSites = Delaunay->Sites.Num();
-		PCGEx::InitArray(Circumspheres, NumSites);
-		PCGEx::InitArray(Centroids, NumSites);
+		PCGExArrayHelpers::InitArray(Circumspheres, NumSites);
+		PCGExArrayHelpers::InitArray(Centroids, NumSites);
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(GeoVoronoi::FindVoronoiEdges);

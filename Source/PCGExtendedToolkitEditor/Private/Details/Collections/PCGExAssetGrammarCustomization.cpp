@@ -5,21 +5,13 @@
 
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
-#include "IDetailChildrenBuilder.h"
-#include "PCGExGlobalEditorSettings.h"
 #include "PropertyHandle.h"
-#include "Collections/PCGExAssetCollection.h"
-#include "Collections/PCGExMeshCollection.h"
-#include "Collections/PCGExAssetGrammar.h"
-#include "Constants/PCGExTuple.h"
-#include "Details/PCGExCustomizationMacros.h"
+#include "Collections/Core/PCGExAssetCollection.h"
+#include "Collections/Core/PCGExAssetGrammar.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
-#include "Widgets/Input/SNumericEntryBox.h"
-#include "Widgets/Input/SRotatorInputBox.h"
-#include "Widgets/Input/SVectorInputBox.h"
 
 #define PCGEX_SMALL_LABEL(_TEXT) \
 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(1, 0)\

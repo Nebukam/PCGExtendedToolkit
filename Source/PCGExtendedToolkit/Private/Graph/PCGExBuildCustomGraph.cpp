@@ -9,7 +9,7 @@
 #include "PCGComponent.h"
 #include "PCGExMT.h"
 #include "PCGParamData.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
 
 #include "Graph/PCGExGraph.h"
@@ -215,7 +215,7 @@ namespace PCGExBuildCustomGraph
 				return;
 			}
 
-			(void)PCGEx::SetNumPointsAllocated(PointIO->GetOut(), GraphSettings->Idx.Num());
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointIO->GetOut(), GraphSettings->Idx.Num());
 
 			PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
 			PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)

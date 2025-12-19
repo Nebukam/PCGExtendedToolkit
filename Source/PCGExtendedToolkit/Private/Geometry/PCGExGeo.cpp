@@ -227,7 +227,7 @@ namespace PCGExGeo
 	{
 		const int32 NumPoints = InPointData->GetNumPoints();
 		const TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
-		PCGEx::InitArray(OutPositions, NumPoints);
+		PCGExArrayHelpers::InitArray(OutPositions, NumPoints);
 		PCGEX_PARALLEL_FOR(NumPoints, OutPositions[i] = Transforms[i].GetLocation();)
 	}
 
@@ -583,7 +583,7 @@ bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FPointIO>& P
 	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 	if (bLocalProjectionNormal)
 	{
-		if (!PCGExHelpers::IsDataDomainAttribute(LocalNormal))
+		if (!PCGExMetaHelpers::IsDataDomainAttribute(LocalNormal))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Only @Data domain attributes are supported for local projection."));
 		}
@@ -606,7 +606,7 @@ bool FPCGExGeo2DProjectionDetails::Init(const UPCGData* InData)
 	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 	if (bLocalProjectionNormal)
 	{
-		if (!PCGExHelpers::IsDataDomainAttribute(LocalNormal))
+		if (!PCGExMetaHelpers::IsDataDomainAttribute(LocalNormal))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Only @Data domain attributes are supported for local projection."));
 		}
@@ -681,7 +681,7 @@ void FPCGExGeo2DProjectionDetails::ProjectFlat(const TSharedPtr<PCGExData::FFaca
 {
 	const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
 	const int32 NumVectors = Transforms.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
+	PCGExArrayHelpers::InitArray(OutPositions, NumVectors);
 	PCGEX_PARALLEL_FOR(
 		NumVectors,
 		OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i));
@@ -695,7 +695,7 @@ template PCGEXTENDEDTOOLKIT_API void FPCGExGeo2DProjectionDetails::ProjectFlat<F
 void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
 {
 	const int32 NumVectors = InPositions.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
+	PCGExArrayHelpers::InitArray(OutPositions, NumVectors);
 
 	if (NormalGetter)
 	{
@@ -716,7 +716,7 @@ void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, T
 void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 {
 	const int32 NumVectors = InPositions.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
+	PCGExArrayHelpers::InitArray(OutPositions, NumVectors);
 	PCGEX_PARALLEL_FOR(
 		NumVectors,
 		OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InPositions[i]));
@@ -726,7 +726,7 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>& InTransforms, TArray<FVector2D>& OutPositions) const
 {
 	const int32 NumVectors = InTransforms.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
+	PCGExArrayHelpers::InitArray(OutPositions, NumVectors);
 	PCGEX_PARALLEL_FOR(
 		NumVectors,
 		OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InTransforms[i].GetLocation()));

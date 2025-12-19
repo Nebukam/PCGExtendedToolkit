@@ -25,7 +25,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, Range
 UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
+	if (!WeightOverDistance) { WeightOverDistance = PCGExCurves::WeightDistributionLinear; }
 }
 
 FName UPCGExSampleInsidePathSettings::GetMainInputPin() const { return PCGExPaths::SourcePathsLabel; }
@@ -74,7 +74,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->RangeMinInput != EPCGExInputValueType::Constant)
 	{
-		if (!PCGExHelpers::IsDataDomainAttribute(Settings->RangeMinAttribute))
+		if (!PCGExMetaHelpers::IsDataDomainAttribute(Settings->RangeMinAttribute))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Min Range attribute must be on the @Data domain"));
 			return false;
@@ -83,7 +83,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->RangeMaxInput != EPCGExInputValueType::Constant)
 	{
-		if (!PCGExHelpers::IsDataDomainAttribute(Settings->RangeMaxAttribute))
+		if (!PCGExMetaHelpers::IsDataDomainAttribute(Settings->RangeMaxAttribute))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Max Range attribute must be on the @Data domain"));
 			return false;

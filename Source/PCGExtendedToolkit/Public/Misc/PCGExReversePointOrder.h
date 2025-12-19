@@ -12,7 +12,7 @@
 
 #include "PCGExReversePointOrder.generated.h"
 
-namespace PCGEx
+namespace PCGExData
 {
 	struct FAttributeIdentity;
 }
@@ -42,13 +42,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSwapAttributePairDetails
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName FirstAttributeName = NAME_None;
-	PCGEx::FAttributeIdentity* FirstIdentity = nullptr;
+	PCGExData::FAttributeIdentity* FirstIdentity = nullptr;
 	TSharedPtr<PCGExData::IBuffer> FirstWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName SecondAttributeName = NAME_None;
-	PCGEx::FAttributeIdentity* SecondIdentity = nullptr;
+	PCGExData::FAttributeIdentity* SecondIdentity = nullptr;
 	TSharedPtr<PCGExData::IBuffer> SecondWriter;
 
 	/**  */

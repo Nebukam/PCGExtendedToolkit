@@ -31,7 +31,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(RelaxClusters)
 
 bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(RelaxClusters)
 	PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_VALIDATE_NAME)

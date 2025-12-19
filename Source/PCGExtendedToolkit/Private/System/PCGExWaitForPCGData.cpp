@@ -13,7 +13,7 @@
 #include "PCGExSubSystem.h"
 #include "Tasks/Task.h"
 #include "Async/Async.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
@@ -219,13 +219,13 @@ namespace PCGExWaitForPCGData
 		if (Settings->bDedupeData) { TargetAttributesToDataTags.bAddIndexTag = false; }
 		if (!TargetAttributesToDataTags.Init(Context, PointDataFacade)) { return false; }
 
-		InspectionTracker = MakeShared<PCGEx::FIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
+		InspectionTracker = MakeShared<FPCGExIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
 			This->OnInspectionComplete();
 		});
 
-		WatcherTracker = MakeShared<PCGEx::FIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
+		WatcherTracker = MakeShared<FPCGExIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
 		                                                {
 			                                                PCGEX_ASYNC_THIS
 			                                                This->WatchToken = This->TaskManager->TryCreateToken(FName("Watch"));

@@ -94,7 +94,7 @@ namespace PCGExMergePoints
 			if (const TSharedPtr<PCGExData::IDataValue> TagValue = PointDataFacade->Source->Tags->GetValue(Tag))
 			{
 				bool bTryBroadcast = false;
-				PCGEx::ExecuteWithRightType(TagValue->GetTypeId(), [&](auto DummyValue)
+				PCGExMetaHelpers::ExecuteWithRightType(TagValue->GetTypeId(), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					const T Value = StaticCastSharedPtr<PCGExData::TDataValue<T>>(TagValue)->Value;

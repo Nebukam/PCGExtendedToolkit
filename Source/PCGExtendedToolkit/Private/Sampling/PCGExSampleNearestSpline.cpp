@@ -47,7 +47,7 @@ UPCGExSampleNearestSplineSettings::UPCGExSampleNearestSplineSettings(const FObje
 	: Super(ObjectInitializer)
 {
 	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
-	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinearInv; }
+	if (!WeightOverDistance) { WeightOverDistance = PCGExCurves::WeightDistributionLinearInv; }
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties() const

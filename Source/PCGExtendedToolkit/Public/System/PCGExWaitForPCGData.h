@@ -226,8 +226,8 @@ namespace PCGExWaitForPCGData
 		TWeakPtr<PCGExMT::FAsyncToken> SearchComponentsToken;
 		TWeakPtr<PCGExMT::FAsyncToken> SearchActorsToken;
 		TWeakPtr<PCGExMT::FAsyncToken> WatchToken;
-		TSharedPtr<PCGEx::FIntTracker> InspectionTracker;
-		TSharedPtr<PCGEx::FIntTracker> WatcherTracker;
+		TSharedPtr<FPCGExIntTracker> InspectionTracker;
+		TSharedPtr<FPCGExIntTracker> WatcherTracker;
 		double StartTime = 0;
 
 		TSet<FSoftObjectPath> UniqueActorReferences;

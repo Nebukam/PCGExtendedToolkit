@@ -6,11 +6,11 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataFilter.h"
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "PCGExPackClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/pack-cluster"))
-class UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExPackClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -42,7 +42,7 @@ private:
 	friend class FPCGExPackClustersElement;
 };
 
-struct FPCGExPackClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExPackClustersContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExPackClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -54,7 +54,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExPackClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PackClusters)
@@ -71,7 +71,7 @@ namespace PCGExPackClusters
 		TArray<int32> VtxPointSelection;
 		TSharedPtr<PCGExData::FPointIO> PackedIO;
 		TSharedPtr<PCGExData::FFacade> PackedIOFacade;
-		TSharedPtr<PCGEx::FAttributesInfos> VtxAttributes;
+		TSharedPtr<PCGExData::FAttributesInfos> VtxAttributes;
 
 		int32 VtxStartIndex = -1;
 		int32 NumVtx = -1;

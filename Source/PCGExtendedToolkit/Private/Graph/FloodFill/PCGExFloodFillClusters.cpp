@@ -56,7 +56,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ClusterDiffusion)
 
 bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_VALIDATE_NAME)
@@ -457,7 +457,7 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
 		PathIO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
 
-		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
+		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
 		PathIO->InheritPoints(PathIndices, 0);
 
 		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);
@@ -478,7 +478,7 @@ namespace PCGExClusterDiffusion
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
 		PathIO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
 
-		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
+		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
 		PathIO->InheritPoints(PathIndices, 0);
 
 		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);

@@ -56,7 +56,7 @@ struct FPCGExBatchActionsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBatchActionsElement;
 
-	TSharedPtr<PCGEx::FAttributesInfos> DefaultAttributes;
+	TSharedPtr<PCGExData::FAttributesInfos> DefaultAttributes;
 	TArray<TObjectPtr<const UPCGExActionFactoryData>> ActionsFactories;
 
 protected:

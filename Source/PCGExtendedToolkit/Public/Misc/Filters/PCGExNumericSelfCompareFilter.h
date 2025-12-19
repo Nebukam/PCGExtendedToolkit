@@ -12,7 +12,7 @@
 
 #include "PCGExNumericSelfCompareFilter.generated.h"
 
-namespace PCGEx
+namespace PCGExData
 {
 	template <typename T>
 	class TAttributeBroadcaster;

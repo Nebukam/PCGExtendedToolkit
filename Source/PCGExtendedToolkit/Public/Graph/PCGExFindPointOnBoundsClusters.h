@@ -5,12 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "Details/PCGExDetailsCluster.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Misc/PCGExFindPointOnBounds.h"
 #include "PCGExFindPointOnBoundsClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/find-point-on-bounds"))
-class UPCGExFindPointOnBoundsClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFindPointOnBoundsClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -84,7 +84,7 @@ private:
 	friend class FPCGExFindPointOnBoundsClustersElement;
 };
 
-struct FPCGExFindPointOnBoundsClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExFindPointOnBoundsClustersContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExFindPointOnBoundsClustersElement;
 
@@ -93,7 +93,7 @@ struct FPCGExFindPointOnBoundsClustersContext final : FPCGExEdgesProcessorContex
 	TArray<int32> BestIndices;
 	TSharedPtr<PCGExData::FPointIO> MergedOut;
 	TArray<TSharedPtr<PCGExData::FPointIO>> IOMergeSources;
-	TSharedPtr<PCGEx::FAttributesInfos> MergedAttributesInfos;
+	TSharedPtr<PCGExData::FAttributesInfos> MergedAttributesInfos;
 
 	virtual void ClusterProcessing_InitialProcessingDone() override;
 
@@ -101,7 +101,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExFindPointOnBoundsClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExFindPointOnBoundsClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindPointOnBoundsClusters)

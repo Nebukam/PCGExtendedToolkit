@@ -19,7 +19,7 @@ bool FPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 	if (!BaseConfig.Fitting.Init(InContext, InSeedDataFacade)) { return false; }
 
 	const int32 NumSeeds = SeedFacade->GetNum();
-	PCGEx::InitArray(Shapes, NumSeeds);
+	PCGExArrayHelpers::InitArray(Shapes, NumSeeds);
 	return true;
 }
 

@@ -39,11 +39,11 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 		return PCGExFactories::EPreparationResult::MissingData;
 	}
 
-	TempTaggedData.Init(PCGExData::FTaggedData(), TempTargets.Num());
+	TempTaggedData.Init(FPCGExTaggedData(), TempTargets.Num());
 	TempPolyPaths.Init(nullptr, TempTargets.Num());
 	PolyPaths.Reserve(TempTargets.Num());
 
-	Datas = MakeShared<TArray<PCGExData::FTaggedData>>();
+	Datas = MakeShared<TArray<FPCGExTaggedData>>();
 	Datas->Reserve(TempTargets.Num());
 
 	TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
@@ -163,7 +163,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 			if (bBuildEdgeOctree) { Path->BuildEdgeOctree(); }
 			TempPolyPaths[Index] = Path;
 			TSharedPtr<PCGExData::FTags> Tags = MakeShared<PCGExData::FTags>(TempTargets[Index].Tags);
-			TempTaggedData[Index] = PCGExData::FTaggedData(Data, Tags, nullptr);
+			TempTaggedData[Index] = FPCGExTaggedData(Data, Tags, nullptr);
 		}
 	};
 

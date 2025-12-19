@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEdgesProcessor.h"
+#include "PCGExClustersProcessor.h"
 
 #include "PCGExMakeClustersUnique.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/make-unique"))
-class UPCGExMakeClustersUniqueSettings : public UPCGExEdgesProcessorSettings
+class UPCGExMakeClustersUniqueSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -24,20 +24,20 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface
+	//~Begin UPCGExClustersProcessorSettings interface
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	//~End UPCGExEdgesProcessorSettings interface
+	//~End UPCGExClustersProcessorSettings interface
 };
 
-struct FPCGExMakeClustersUniqueContext final : FPCGExEdgesProcessorContext
+struct FPCGExMakeClustersUniqueContext final : FPCGExClustersProcessorContext
 {
 	friend class UPCGExMakeClustersUniqueSettings;
 	friend class FPCGExMakeClustersUniqueElement;
 };
 
-class FPCGExMakeClustersUniqueElement final : public FPCGExEdgesProcessorElement
+class FPCGExMakeClustersUniqueElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(MakeClustersUnique)

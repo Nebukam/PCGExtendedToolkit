@@ -5,7 +5,7 @@
 
 #include "PCGParamData.h"
 #include "PCGPin.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Constants/PCGExBitmask.h"
 
@@ -49,7 +49,7 @@ bool FPCGExBitmaskMergeElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		const UPCGMetadata* Metadata = ParamData->Metadata;
 		if (!Metadata) { continue; }
 
-		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
+		const TSharedPtr<PCGExData::FAttributesInfos> Infos = PCGExData::FAttributesInfos::Get(Metadata);
 
 		for (int i = 0; i < Infos->Attributes.Num(); i++)
 		{

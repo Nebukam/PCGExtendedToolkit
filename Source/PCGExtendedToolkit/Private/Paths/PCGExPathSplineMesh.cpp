@@ -14,6 +14,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
+#include "PCGParamData.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
@@ -194,10 +195,10 @@ namespace PCGExPathSplineMesh
 		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
 		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
 
-		Helper = MakeShared<PCGExStaging::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
+		Helper = MakeShared<PCGExStaging::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(PointDataFacade)) { return false; }
 
-		MicroHelper = MakeShared<PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>(Settings->MaterialDistributionSettings);
+		MicroHelper = MakeShared<PCGExStaging::FMicroDistributionHelper>(Settings->MaterialDistributionSettings);
 		if (!MicroHelper->Init(PointDataFacade)) { return false; }
 
 		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
@@ -213,7 +214,7 @@ namespace PCGExPathSplineMesh
 
 		LastIndex = PointDataFacade->GetNum() - 1;
 
-		PCGEx::InitArray(Segments, bClosedLoop ? LastIndex + 1 : LastIndex);
+		PCGExArrayHelpers::InitArray(Segments, bClosedLoop ? LastIndex + 1 : LastIndex);
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
@@ -286,13 +287,13 @@ namespace PCGExPathSplineMesh
 			PCGExPaths::FSplineMeshSegment Segment;
 			ON_SCOPE_EXIT { Segments[Index] = Segment; };
 
+			FPCGExEntryAccessResult Entry;
 			const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
-			const UPCGExAssetCollection* EntryHost = nullptr;
 
 			const int32 Seed = PCGExRandom::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
-			if (bUseTags) { Helper->GetEntry(MeshEntry, Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags, EntryHost); }
-			else { Helper->GetEntry(MeshEntry, Index, Seed, EntryHost); }
+			if (bUseTags) { Entry = Helper->GetEntry(Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags); }
+			else { Entry = Helper->GetEntry(Index, Seed); }
 
 			Segment.MeshEntry = MeshEntry;
 
@@ -312,10 +313,11 @@ namespace PCGExPathSplineMesh
 			const FQuat NextRotation = NextTransform.GetRotation();
 			const FVector NextScale = NextTransform.GetScale3D();
 
-			if (const PCGExAssetCollection::FMicroCache* MicroCache = MeshEntry->MicroCache.Get(); MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (const PCGExAssetCollection::FMicroCache* MicroCache = MeshEntry->MicroCache.Get();
+				MicroHelper && MicroCache && MicroCache->GetTypeId() == PCGExAssetCollection::TypeIds::Mesh)
 			{
 				const PCGExMeshCollection::FMicroCache* EntryMicroCache = static_cast<const PCGExMeshCollection::FMicroCache*>(MicroCache);
-				MicroHelper->GetPick(EntryMicroCache, Index, Seed, Segment.MaterialPick);
+				Segment.MaterialPick = MicroHelper->GetPick(EntryMicroCache, Index, Seed);
 				if (Segment.MaterialPick != -1) { MeshEntry->GetMaterialPaths(Segment.MaterialPick, *ScopedMaterials->Get(Scope)); }
 			}
 

@@ -24,7 +24,7 @@ bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 
 bool UPCGExDotFilterFactory::DomainCheck()
 {
-	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) && Config.DotComparisonDetails.GetOnlyUseDataDomain() && !Config.bTransformOperandA && !Config.bTransformOperandB;
+	return PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExMetaHelpers::IsDataDomainAttribute(Config.OperandB)) && Config.DotComparisonDetails.GetOnlyUseDataDomain() && !Config.bTransformOperandA && !Config.bTransformOperandB;
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExDotFilterFactory::CreateFilter() const
@@ -111,9 +111,9 @@ PCGEX_CREATE_FILTER_FACTORY(Dot)
 #if WITH_EDITOR
 FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT(" ⋅ ");
+	FString DisplayName = PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandA) + TEXT(" ⋅ ");
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandB); }
 	else { DisplayName += " (v3) "; }
 
 	return DisplayName + Config.DotComparisonDetails.GetDisplayComparison();

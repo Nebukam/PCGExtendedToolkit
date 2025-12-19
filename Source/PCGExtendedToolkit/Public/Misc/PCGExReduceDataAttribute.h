@@ -98,7 +98,7 @@ protected:
 		for (int i = 0; i < InAttributes.Num(); i++)
 		{
 			const FPCGMetadataAttributeBase* Att = InAttributes[i];
-			PCGEx::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
+			PCGExMetaHelpers::ExecuteWithRightType(Att->GetTypeId(), [&](auto ValueType)
 			{
 				using T_ATTR = decltype(ValueType);
 				const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);

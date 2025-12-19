@@ -35,7 +35,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(CutEdges)
 
 bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(CutEdges)
 

@@ -143,7 +143,7 @@ namespace PCGExCreateSpline
 		PositionOffset = SplineActor->GetTransform().GetLocation();
 		SplineData = Context->ManagedObjects->New<UPCGSplineData>();
 		SplineData->InitializeFromData(PointDataFacade->GetIn());
-		PCGEx::InitArray(SplinePoints, PointDataFacade->GetNum());
+		PCGExArrayHelpers::InitArray(SplinePoints, PointDataFacade->GetNum());
 
 		SplineEntryKeys.Init(PCGInvalidEntryKey, SplinePoints.Num());
 

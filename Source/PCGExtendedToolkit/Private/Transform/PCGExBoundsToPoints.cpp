@@ -95,12 +95,12 @@ namespace PCGExBoundsToPoints
 		{
 			if (bSymmetry)
 			{
-				PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumPoints * 2);
+				PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointDataFacade->GetOut(), NumPoints * 2);
 				PointDataFacade->Source->InheritProperties(0, NumPoints, NumPoints);
 			}
 			else
 			{
-				PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumPoints);
+				PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointDataFacade->GetOut(), NumPoints);
 			}
 		}
 

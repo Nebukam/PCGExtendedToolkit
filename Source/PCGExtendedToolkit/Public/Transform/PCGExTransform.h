@@ -258,7 +258,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 
 	bool Validate(FPCGExContext* InContext, const bool bSupportPoints = false) const;
 
-	bool Init(FPCGExContext* InContext, const TArray<PCGExData::FTaggedData>& InTargets);
+	bool Init(FPCGExContext* InContext, const TArray<FPCGExTaggedData>& InTargets);
 	bool Init(FPCGExContext* InContext, const FPCGExAxisDeformDetails& Parent, const TSharedRef<PCGExData::FFacade>& InDataFacade, const int32 InTargetIndex, const bool bSupportPoint = false);
 
 	void GetAlphas(const int32 Index, double& OutFirst, double& OutSecond, const bool bSort = true) const;

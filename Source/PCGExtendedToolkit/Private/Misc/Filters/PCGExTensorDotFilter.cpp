@@ -86,7 +86,7 @@ TArray<FPCGPinProperties> UPCGExTensorDotFilterProviderSettings::InputPinPropert
 #if WITH_EDITOR
 FString UPCGExTensorDotFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT(" ⋅ Tensor");
+	FString DisplayName = PCGExMetaHelpers::GetSelectorDisplayName(Config.OperandA) + TEXT(" ⋅ Tensor");
 	return DisplayName;
 }
 #endif

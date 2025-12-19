@@ -22,7 +22,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL(PartitionVertices)
 
 bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionVertices)
 
@@ -78,7 +78,7 @@ namespace PCGExPartitionVertices
 
 		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		UPCGBasePointData* MutablePoints = PointPartitionIO->GetOut();
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumNodes, VtxDataFacade->GetAllocations());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, NumNodes, VtxDataFacade->GetAllocations());
 
 		TMap<int32, int32> EndpointsMap;
 		EndpointsMap.Reserve(NumNodes);
@@ -115,7 +115,7 @@ namespace PCGExPartitionVertices
 
 	void FProcessor::CompleteWork()
 	{
-		PCGExCommon::DataIDType OutId;
+		PCGExDataId OutId;
 		PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
 		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, OutId);
 

@@ -92,7 +92,7 @@ namespace PCGExCopyToPoints
 		const UPCGBasePointData* Targets = Context->TargetsDataFacade->GetIn();
 		const int32 NumTargets = Targets->GetNumPoints();
 
-		PCGEx::InitArray(Dupes, NumTargets);
+		PCGExArrayHelpers::InitArray(Dupes, NumTargets);
 
 		StartParallelLoopForRange(NumTargets, 32);
 

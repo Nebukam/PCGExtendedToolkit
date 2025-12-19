@@ -149,7 +149,7 @@ namespace PCGExBuildVoronoiGraph
 			}
 
 			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
-			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, Centroids, PointDataFacade->GetAllocations());
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(CentroidsPoints, Centroids, PointDataFacade->GetAllocations());
 
 			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(true);
 
@@ -171,7 +171,7 @@ namespace PCGExBuildVoronoiGraph
 		{
 			UPCGBasePointData* Centroids = PointDataFacade->GetOut();
 			const int32 NumSites = Voronoi->Centroids.Num();
-			(void)PCGEx::SetNumPointsAllocated(Centroids, NumSites, PointDataFacade->GetAllocations());
+			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(Centroids, NumSites, PointDataFacade->GetAllocations());
 
 			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange(false);
 

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExInstancedFactory.h"
+#include "Factories/PCGExInstancedFactory.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExBufferHelper.h"
@@ -52,7 +52,7 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 public:
 	virtual bool WantsPerDataInstance() override { return true; }
 
-	TSharedPtr<PCGEx::FUniqueNameGenerator> UniqueNameGenerator;
+	TSharedPtr<FPCGExUniqueNameGenerator> UniqueNameGenerator;
 	bool bIsPreviewMode = false;
 	bool bIsProcessing = false;
 

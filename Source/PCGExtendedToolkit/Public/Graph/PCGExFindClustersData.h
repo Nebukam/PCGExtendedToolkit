@@ -70,7 +70,7 @@ struct FPCGExFindClustersDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindClustersDataElement;
 
-	PCGExCommon::DataIDType SearchKey;
+	PCGExDataId SearchKey;
 	TSharedPtr<PCGExData::FPointIO> SearchKeyIO;
 };
 

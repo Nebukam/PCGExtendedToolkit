@@ -55,7 +55,7 @@ bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 
 	FString Message = TEXT("An unspecified error occured.");
 	bool bIsBatchActionsValid = true;
-	PCGEX_MAKE_SHARED(ValidationInfos, PCGEx::FAttributesInfos)
+	PCGEX_MAKE_SHARED(ValidationInfos, PCGExData::FAttributesInfos)
 	for (const TObjectPtr<const UPCGExActionFactoryData>& Factory : Context->ActionsFactories)
 	{
 		if (!Factory->AppendAndValidate(ValidationInfos, Message))
@@ -123,7 +123,7 @@ namespace PCGExBatchActions
 		// Initialize writers with provided default value
 		for (FPCGMetadataAttributeBase* AttributeBase : Context->DefaultAttributes->Attributes)
 		{
-			PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
@@ -161,7 +161,7 @@ namespace PCGExBatchActions
 		{
 			for (const TSharedPtr<PCGExData::IBuffer>& DataCache : PointDataFacade->Buffers)
 			{
-				if (!DataCache->InAttribute || !Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) || PCGEx::IsPCGExAttribute(DataCache->Identifier.Name)) { continue; }
+				if (!DataCache->InAttribute || !Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) || PCGExMetaHelpers::IsPCGExAttribute(DataCache->Identifier.Name)) { continue; }
 
 				PointDataFacade->Source->DeleteAttribute(DataCache->InAttribute->Name);
 			}

@@ -125,7 +125,7 @@ FString UPCGExDistanceFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Distance ") + PCGExCompare::ToString(Config.Comparison);
 
-	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.DistanceThreshold); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.DistanceThreshold); }
 	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.DistanceThresholdConstant) / 1000.0)); }
 
 	return DisplayName;

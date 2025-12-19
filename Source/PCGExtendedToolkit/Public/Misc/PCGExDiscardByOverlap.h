@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExFactories.h"
+#include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExMathMean.h"
 

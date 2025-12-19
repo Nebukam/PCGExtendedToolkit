@@ -12,7 +12,7 @@
 //#include "Components/StaticMeshComponent.h"
 //#include "StaticMeshResources.h"
 #include "PCGComponent.h"
-#include "PCGExContext.h"
+#include "Core/PCGExContext.h"
 
 void FPCGExCollisionDetails::Init(FPCGExContext* InContext)
 {

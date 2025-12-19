@@ -9,15 +9,15 @@
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Graph/PCGExCluster.h"
 
-#define LOCTEXT_NAMESPACE "TopologyEdgesProcessor"
-#define PCGEX_NAMESPACE TopologyEdgesProcessor
+#define LOCTEXT_NAMESPACE "TopologyClustersProcessor"
+#define PCGEX_NAMESPACE TopologyClustersProcessor
 
 PCGEX_INITIALIZE_ELEMENT(TopologyClusterSurface)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(TopologyClusterSurface)
 
 bool FPCGExTopologyClusterSurfaceElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExTopologyEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExTopologyClustersProcessorElement::Boot(InContext)) { return false; }
 	PCGEX_CONTEXT_AND_SETTINGS(TopologyClusterSurface)
 
 	return true;
@@ -25,7 +25,7 @@ bool FPCGExTopologyClusterSurfaceElement::Boot(FPCGExContext* InContext) const
 
 bool FPCGExTopologyClusterSurfaceElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExTopologyEdgesProcessorElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExTopologyClustersProcessorElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(TopologyClusterSurface)
 	PCGEX_EXECUTION_CHECK

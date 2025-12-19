@@ -95,8 +95,8 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	IndicesBuffer.Reserve(MaxQueryNumPoints);
 
 	// Create easy-to-track scopes for indices
-	PCGEx::FReadWriteScope PlotScope(ValidPlotIndex + 2, false);
-	PCGEx::FReadWriteScope ClusterScope(NumPoints, false);
+	PCGExPointArrayDataHelpers::FReadWriteScope PlotScope(ValidPlotIndex + 2, false);
+	PCGExPointArrayDataHelpers::FReadWriteScope ClusterScope(NumPoints, false);
 
 	int32 WriteIndex = 0;
 
@@ -158,7 +158,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PathIO->IOIndex = Query->QueryIndex;
 
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
-	PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ClusterScope.Num() + PlotScope.Num(), PathIO->GetAllocations());
+	PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), ClusterScope.Num() + PlotScope.Num(), PathIO->GetAllocations());
 
 	// Commit read/write scopes
 	PlotScope.CopyPoints(Query->PlotFacade->GetIn(), PathIO->GetOut(), true, true);
@@ -188,7 +188,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(PathfindingPlotEdges)
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
@@ -340,7 +340,7 @@ namespace PCGExPathfindingPlotEdges
 		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 		const int32 NumPlots = ValidPlots.Num();
-		PCGEx::InitArray(Queries, NumPlots);
+		PCGExArrayHelpers::InitArray(Queries, NumPlots);
 		QueriesIO.Init(nullptr, NumPlots);
 
 		Context->OutputPaths->IncreaseReserve(NumPlots);

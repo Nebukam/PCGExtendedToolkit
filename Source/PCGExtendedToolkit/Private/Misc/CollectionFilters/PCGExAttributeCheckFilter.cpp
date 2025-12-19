@@ -4,7 +4,7 @@
 #include "Misc/CollectionFilters/PCGExAttributeCheckFilter.h"
 
 #include "PCGExHelpers.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
@@ -17,16 +17,16 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExAttributeCheckFilterFactory::CreateF
 
 bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
-	const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(IO->GetIn()->Metadata);
+	const TSharedPtr<PCGExData::FAttributesInfos> Infos = PCGExData::FAttributesInfos::Get(IO->GetIn()->Metadata);
 
 	bool bResult = false;
 
-	const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(FName(TypedFilterFactory->Config.AttributeName), IO->GetIn());
+	const FPCGAttributeIdentifier Identifier = PCGExMetaHelpers::GetAttributeIdentifier(FName(TypedFilterFactory->Config.AttributeName), IO->GetIn());
 	const FString IdentifierStr = Identifier.Name.ToString();
 
 	if (TypedFilterFactory->Config.bDoCheckType)
 	{
-		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities)
+		for (const PCGExData::FAttributeIdentity& Identity : Infos->Identities)
 		{
 			const FString Str = Identity.Identifier.Name.ToString();
 			bool bMatches = false;
@@ -59,7 +59,7 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 	}
 	else
 	{
-		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities)
+		for (const PCGExData::FAttributeIdentity& Identity : Infos->Identities)
 		{
 			const FString Str = Identity.Identifier.Name.ToString();
 			bool bMatches = false;

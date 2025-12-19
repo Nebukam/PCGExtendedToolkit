@@ -61,7 +61,7 @@ bool FPCGExSortCollectionsElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		TArray<int32> Indices;
-		PCGEx::ArrayOfIndices(Indices, Context->Datas.Num());
+		PCGExArrayHelpers::ArrayOfIndices(Indices, Context->Datas.Num());
 		Indices.Sort([&](const int32 A, const int32 B) { return Context->Sorter->SortData(A, B); });
 
 		for (const int32 i : Indices) { Context->OutputData.TaggedData.Add(Context->Datas[i]); }

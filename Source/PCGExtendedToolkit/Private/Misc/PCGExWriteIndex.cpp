@@ -62,7 +62,7 @@ void UPCGExWriteIndexSettings::TagData(const int32 Index, FPCGTaggedData& InTagg
 
 bool UPCGExWriteIndexSettings::CollectionLevelOutputOnly() const
 {
-	return (!bOutputPointIndex) && (!bOutputCollectionNumEntries || PCGExHelpers::IsDataDomainAttribute(NumEntriesAttributeName)) && (!bOutputCollectionIndex || PCGExHelpers::IsDataDomainAttribute(CollectionIndexAttributeName));
+	return (!bOutputPointIndex) && (!bOutputCollectionNumEntries || PCGExMetaHelpers::IsDataDomainAttribute(NumEntriesAttributeName)) && (!bOutputCollectionIndex || PCGExMetaHelpers::IsDataDomainAttribute(CollectionIndexAttributeName));
 }
 
 bool UPCGExWriteIndexSettings::HasDynamicPins() const
@@ -112,20 +112,20 @@ bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bOutputPointIndex)
 	{
 		PCGEX_VALIDATE_NAME(Settings->OutputAttributeName)
-		Context->EntryIndexIdentifier = PCGEx::GetAttributeIdentifier(Settings->OutputAttributeName);
+		Context->EntryIndexIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(Settings->OutputAttributeName);
 	}
 
 	if (Settings->bOutputCollectionIndex && !Settings->bOutputCollectionIndexToTags)
 	{
 		PCGEX_VALIDATE_NAME(Settings->CollectionIndexAttributeName)
-		Context->CollectionIndexIdentifier = PCGEx::GetAttributeIdentifier(Settings->CollectionIndexAttributeName);
+		Context->CollectionIndexIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(Settings->CollectionIndexAttributeName);
 		bTagOnly = false;
 	}
 
 	if (Settings->bOutputCollectionNumEntries)
 	{
 		if (!Settings->bNormalizeNumEntries) { PCGEX_VALIDATE_NAME(Settings->NumEntriesAttributeName) }
-		Context->NumEntriesIdentifier = PCGEx::GetAttributeIdentifier(Settings->NumEntriesAttributeName);
+		Context->NumEntriesIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(Settings->NumEntriesAttributeName);
 		bTagOnly = false;
 	}
 
@@ -207,7 +207,7 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		if (Settings->bOutputCollectionIndex && !Settings->bOutputCollectionIndexToTags)
 		{
-			PCGEx::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				for (int i = 0; i < Context->WorkingData.Num(); i++)
@@ -222,7 +222,7 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		if (Settings->bOutputCollectionNumEntries && !Settings->bOutputNumEntriesToTags)
 		{
-			PCGEx::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				const PCGExTypeOps::ITypeOpsBase* TypeOps = PCGExTypeOps::FTypeOpsRegistry::Get<T>();
@@ -271,7 +271,7 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputCollectionIndex && !Settings->bOutputCollectionIndexToTags)
 		{
-			PCGEx::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->CollectionIndexIdentifier, PCGExTypes::Convert<int32, T>(BatchIndex));
@@ -280,7 +280,7 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputCollectionNumEntries && !Settings->bOutputNumEntriesToTags)
 		{
-			PCGEx::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				if (Settings->bNormalizeNumEntries)

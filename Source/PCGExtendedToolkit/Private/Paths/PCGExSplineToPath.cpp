@@ -49,7 +49,7 @@ namespace PCGExSplineToPath
 
 			UPCGBasePointData* MutablePoints = PointDataFacade->Source->GetOut();
 			const int32 LastIndex = Spline.bClosedLoop ? NumSegments - 1 : NumSegments;
-			PCGEx::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1, EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed);
+			PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1, EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed);
 
 			PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL)
 
@@ -130,8 +130,8 @@ namespace PCGExSplineToPath
 
 			// Copy attributes
 
-			TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-			PCGEx::FAttributeIdentity::Get(SplineData->Metadata, SourceAttributes, nullptr);
+			TArray<PCGExData::FAttributeIdentity> SourceAttributes;
+			PCGExData::FAttributeIdentity::Get(SplineData->Metadata, SourceAttributes, nullptr);
 			Context->CarryOverDetails.Prune(SourceAttributes);
 
 			if (!SourceAttributes.IsEmpty())
@@ -142,9 +142,9 @@ namespace PCGExSplineToPath
 
 				const TSharedPtr<FPCGAttributeAccessorKeysEntries> Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(SplineData->Metadata);
 
-				for (PCGEx::FAttributeIdentity Identity : SourceAttributes)
+				for (PCGExData::FAttributeIdentity Identity : SourceAttributes)
 				{
-					PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+					PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
 						const FPCGMetadataAttribute<T>* SourceAttr = SplineData->Metadata->GetConstTypedAttribute<T>(Identity.Identifier);

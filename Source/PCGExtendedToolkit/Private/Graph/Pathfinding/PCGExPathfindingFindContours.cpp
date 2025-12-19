@@ -41,7 +41,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL(FindContours)
 
 bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 
@@ -66,11 +66,11 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 
 		Context->GoodSeeds = NewPointIO(Context->SeedsDataFacade->Source, PCGExFindContours::OutputGoodSeedsLabel);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::Duplicate);
-		PCGEx::SetNumPointsAllocated(Context->GoodSeeds->GetOut(), NumSeeds);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(Context->GoodSeeds->GetOut(), NumSeeds);
 
 		Context->BadSeeds = NewPointIO(Context->SeedsDataFacade->Source, PCGExFindContours::OutputBadSeedsLabel);
 		Context->BadSeeds->InitializeOutput(PCGExData::EIOInit::Duplicate);
-		PCGEx::SetNumPointsAllocated(Context->BadSeeds->GetOut(), NumSeeds);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(Context->BadSeeds->GetOut(), NumSeeds);
 	}
 
 	return true;
@@ -237,7 +237,7 @@ namespace PCGExFindContours
 
 		const int32 SeedIndex = InCell->CustomIndex;
 		const int32 NumCellPoints = InCell->Nodes.Num();
-		PCGEx::SetNumPointsAllocated(PathIO->GetOut(), NumCellPoints);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), NumCellPoints);
 
 		PathIO->Tags->Reset();                              // Tag forwarding handled by artifacts
 		PathIO->IOIndex = BatchIndex * 1000000 + SeedIndex; // Enforce seed order for collection output

@@ -118,7 +118,7 @@ namespace PCGExGeo
 			if constexpr (bComputeAdjacency) { Adjacency.Reserve(NumSites * 4); }
 			if constexpr (bComputeHull) { FacesUsage.Reserve(NumSites); }
 
-			//PCGEx::InitArray(Sites, NumSites);
+			//PCGExArrayHelpers::InitArray(Sites, NumSites);
 			Sites.SetNumUninitialized(NumSites);
 
 			for (int i = 0; i < NumSites; i++)

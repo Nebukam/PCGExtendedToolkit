@@ -30,7 +30,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(SubdivideEdges)
 
 bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SubdivideEdges)
 
@@ -91,7 +91,7 @@ namespace PCGExSubdivideEdges
 		}
 
 		SubBlending = Context->Blending->CreateOperation();
-		PCGEx::InitArray(Subdivisions, EdgeDataFacade->GetNum());
+		PCGExArrayHelpers::InitArray(Subdivisions, EdgeDataFacade->GetNum());
 		SubdivisionPoints.Init(nullptr, EdgeDataFacade->GetNum());
 
 		StartParallelLoopForEdges();

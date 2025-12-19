@@ -5,7 +5,7 @@
 #include "Misc/PCGExAttributeStats.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
@@ -55,7 +55,7 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 	FPCGExNameFiltersDetails Filters = Settings->Filters;
 	Filters.Init();
 
-	Context->AttributesInfos = MakeShared<PCGEx::FAttributesInfos>();
+	Context->AttributesInfos = MakeShared<PCGExData::FAttributesInfos>();
 	TSet<FName> OutMismatch;
 
 	TSet<FName> UniqueNames;
@@ -67,7 +67,7 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 	{
-		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(IO->GetIn()->Metadata);
+		TSharedPtr<PCGExData::FAttributesInfos> Infos = PCGExData::FAttributesInfos::Get(IO->GetIn()->Metadata);
 		Context->AttributesInfos->Append(Infos, OutMismatch);
 	}
 
@@ -112,7 +112,7 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 
 	Context->Rows.Reserve(NumRows);
 	Context->OutputParams.Reserve(Context->AttributesInfos->Identities.Num());
-	for (const PCGEx::FAttributeIdentity& Identity : Context->AttributesInfos->Identities)
+	for (const PCGExData::FAttributeIdentity& Identity : Context->AttributesInfos->Identities)
 	{
 		UPCGParamData* NewParamData = Context->ManagedObjects->New<UPCGParamData>();
 		Context->OutputParams.Add(NewParamData);
@@ -120,7 +120,7 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 
 		for (int i = 0; i < NumRows; i++) { Context->Rows.Add(NewParamData->Metadata->AddEntry()); }
 
-		PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+		PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 		{
 			using T = decltype(DummyValue);
 			PCGEX_FOREACH_STAT(PCGEX_STAT_DECL, T)
@@ -189,11 +189,11 @@ namespace PCGExAttributeStats
 		Stats.Reserve(NumAttributes);
 		for (int i = 0; i < NumAttributes; i++)
 		{
-			const PCGEx::FAttributeIdentity& Identity = Context->AttributesInfos->Identities[i];
+			const PCGExData::FAttributeIdentity& Identity = Context->AttributesInfos->Identities[i];
 
 			if (Settings->bOutputPerUniqueValuesStats) { PerAttributeStatMap.Add(Identity.Identifier.Name, i); }
 
-			PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
 				using T_REAL = decltype(DummyValue);
 				PCGEX_MAKE_SHARED(S, TAttributeStats<T_REAL>, Identity, Key)

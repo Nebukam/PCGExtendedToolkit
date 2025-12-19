@@ -85,7 +85,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(FilterVtx)
 
 bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FilterVtx)
 
@@ -309,7 +309,7 @@ namespace PCGExFilterVtx
 
 				PCGExGraph::CleanupVtxData(OutIO);
 
-				(void)PCGEx::SetNumPointsAllocated(OutIO->GetOut(), NumNodes, OutIO->GetAllocations());
+				(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutIO->GetOut(), NumNodes, OutIO->GetAllocations());
 				OutIO->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
 
 				ReadIndices.SetNumUninitialized(NumNodes);
@@ -336,7 +336,7 @@ namespace PCGExFilterVtx
 			{
 				Cluster->GatherNodesPointIndices(ReadIndices, bValid);
 				ReadIndices.Sort();
-				(void)PCGEx::SetNumPointsAllocated(IO->GetOut(), ReadIndices.Num());
+				(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(IO->GetOut(), ReadIndices.Num());
 				IO->InheritPoints(ReadIndices, 0);
 			};
 

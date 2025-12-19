@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Actions/PCGExActionWriteValues.h"
-#include "PCGExFactoryProvider.h"
+#include "Factories/PCGExFactoryProvider.h"
 #include "PCGExHelpers.h"
 
 
@@ -20,7 +20,7 @@ bool FPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, 
 
 	for (FPCGMetadataAttributeBase* AttributeBase : TypedFactory->CheckSuccessInfos->Attributes)
 	{
-		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		PCGExMetaHelpers::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
 		{
 			using T = decltype(DummyValue);
 			const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
@@ -32,7 +32,7 @@ bool FPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, 
 
 	for (FPCGMetadataAttributeBase* AttributeBase : TypedFactory->CheckFailInfos->Attributes)
 	{
-		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		PCGExMetaHelpers::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
 		{
 			using T = decltype(DummyValue);
 			const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
@@ -50,7 +50,7 @@ void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index)
 	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
 		FPCGMetadataAttributeBase* AttributeBase = SuccessAttributes[i];
-		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		PCGExMetaHelpers::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
 		{
 			using T = decltype(DummyValue);
 			static_cast<PCGExData::TBuffer<T>*>(SuccessWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
@@ -63,7 +63,7 @@ void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index)
 	for (int i = 0; i < FailAttributes.Num(); i++)
 	{
 		FPCGMetadataAttributeBase* AttributeBase = FailAttributes[i];
-		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		PCGExMetaHelpers::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
 		{
 			using T = decltype(DummyValue);
 			static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));

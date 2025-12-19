@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-#include "Collections/PCGExComponentDescriptors.h"
+#include "Collections/Core/PCGExComponentDescriptors.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Transform/PCGExTransform.h"
 

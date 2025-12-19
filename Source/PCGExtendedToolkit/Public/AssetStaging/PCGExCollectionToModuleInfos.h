@@ -95,5 +95,11 @@ protected:
 
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
-	void FlattenCollection(const TSharedPtr<PCGExStaging::FPickPacker>& Packer, UPCGExAssetCollection* Collection, const UPCGExCollectionToModuleInfosSettings* Settings, TArray<PCGExCollectionToGrammar::FModule>& OutModules, TSet<FName>& OutSymbols, TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const;
+	void FlattenCollection(
+		const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
+		const UPCGExAssetCollection* Collection, 
+		const UPCGExCollectionToModuleInfosSettings* Settings, 
+		TArray<PCGExCollectionToGrammar::FModule>& OutModules,
+		TSet<FName>& OutSymbols,
+		TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const;
 };

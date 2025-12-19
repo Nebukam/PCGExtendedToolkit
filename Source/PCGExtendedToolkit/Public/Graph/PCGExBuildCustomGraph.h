@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExInstancedFactory.h"
+#include "Factories/PCGExInstancedFactory.h"
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExBufferHelper.h"

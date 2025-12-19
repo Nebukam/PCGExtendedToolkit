@@ -133,7 +133,7 @@ struct FPCGExCopyToPathsContext final : FPCGExPointsProcessorContext
 
 	TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
 
-	TArray<PCGExData::FTaggedData> DeformersData;
+	TArray<FPCGExTaggedData> DeformersData;
 	TArray<TSharedPtr<PCGExData::FFacade>> DeformersFacades;
 	TArray<const FPCGSplineStruct*> Deformers;
 

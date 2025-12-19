@@ -8,7 +8,7 @@
 #include "Details/PCGExDetailsRelax.h"
 
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExRelaxClusters.generated.h"
@@ -19,7 +19,7 @@ MACRO(Direction, FVector, FVector::ZeroVector)\
 MACRO(Amplitude, double, 0)
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/relax-cluster"))
-class UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
+class UPCGExRelaxClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -82,7 +82,7 @@ private:
 	friend class FPCGExRelaxClustersElement;
 };
 
-struct FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
+struct FPCGExRelaxClustersContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExRelaxClustersElement;
 
@@ -96,7 +96,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExRelaxClustersElement final : public FPCGExEdgesProcessorElement
+class FPCGExRelaxClustersElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(RelaxClusters)

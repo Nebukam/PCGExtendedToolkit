@@ -33,7 +33,10 @@ public class PCGExtendedToolkit : ModuleRules
 				"Engine",
 				"GeometryScriptingCore",
 				"PCG",
-				"PCGGeometryScriptInterop"
+				"PCGGeometryScriptInterop", 
+				"Niagara",
+				"PCGExCore",
+				"PCGExFoundations"
 			}
 		);
 
@@ -52,7 +55,9 @@ public class PCGExtendedToolkit : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"PCGExCore",
+				"PCGExFoundations"
 			}
 		);
 

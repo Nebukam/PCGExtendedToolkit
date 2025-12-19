@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
-#include "PCGExFactories.h"
+#include "Factories/PCGExFactories.h"
 
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"
 
@@ -27,7 +27,7 @@ enum class EPCGExBreakClusterLeavesHandling : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/break-cluster-to-paths"))
-class UPCGExBreakClustersToPathsSettings : public UPCGExEdgesProcessorSettings
+class UPCGExBreakClustersToPathsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -91,7 +91,7 @@ private:
 	friend class FPCGExBreakClustersToPathsElement;
 };
 
-struct FPCGExBreakClustersToPathsContext final : FPCGExEdgesProcessorContext
+struct FPCGExBreakClustersToPathsContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExBreakClustersToPathsElement;
 
@@ -104,7 +104,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement
+class FPCGExBreakClustersToPathsElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BreakClustersToPaths)

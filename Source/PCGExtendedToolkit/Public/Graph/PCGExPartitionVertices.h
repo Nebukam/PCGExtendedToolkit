@@ -5,14 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExClusterMT.h"
-#include "PCGExEdgesProcessor.h"
+#include "PCGExClustersProcessor.h"
 
 
 #include "PCGExPartitionVertices.generated.h"
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/partition-vtx"))
-class UPCGExPartitionVerticesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExPartitionVerticesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -27,14 +27,14 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface
+	//~Begin UPCGExClustersProcessorSettings interface
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-	//~End UPCGExEdgesProcessorSettings interface
+	//~End UPCGExClustersProcessorSettings interface
 };
 
-struct FPCGExPartitionVerticesContext final : FPCGExEdgesProcessorContext
+struct FPCGExPartitionVerticesContext final : FPCGExClustersProcessorContext
 {
 	friend class UPCGExPartitionVerticesSettings;
 	friend class FPCGExPartitionVerticesElement;
@@ -46,7 +46,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
+class FPCGExPartitionVerticesElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PartitionVertices)

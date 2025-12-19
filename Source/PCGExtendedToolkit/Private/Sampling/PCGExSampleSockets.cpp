@@ -10,7 +10,7 @@
 #include "PCGExStreamingHelpers.h"
 #include "AssetStaging/PCGExSocketStaging.h"
 #include "AssetStaging/PCGExStaging.h"
-#include "Collections/PCGExAssetLoader.h"
+#include "Core/PCGExAssetLoader.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Metadata/PCGObjectPropertyOverride.h"

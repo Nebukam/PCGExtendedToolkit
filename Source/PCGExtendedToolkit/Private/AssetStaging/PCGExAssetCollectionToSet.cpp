@@ -5,6 +5,7 @@
 
 
 #include "PCGGraph.h"
+#include "PCGParamData.h"
 #include "PCGPin.h"
 #include "Collections/PCGExActorCollection.h"
 
@@ -93,23 +94,20 @@ bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, co
 
 #define PCGEX_DECLARE_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) \
 	FPCGMetadataAttribute<_TYPE>* _NAME##Attribute = nullptr; \
-	if(bOutput##_NAME){PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = OutputSet->Metadata->FindOrCreateAttribute<_TYPE>(PCGEx::GetAttributeIdentifier(Settings->_NAME##AttributeName, OutputSet), _DEFAULT, false, true);}
+	if(bOutput##_NAME){PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = OutputSet->Metadata->FindOrCreateAttribute<_TYPE>(PCGExMetaHelpers::GetAttributeIdentifier(Settings->_NAME##AttributeName, OutputSet), _DEFAULT, false, true);}
 	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);
 #undef PCGEX_DECLARE_ATT
 
 	const PCGExAssetCollection::FCache* MainCache = MainCollection->LoadCache();
 	TArray<const FPCGExAssetCollectionEntry*> Entries;
 
-	const FPCGExAssetCollectionEntry* Entry = nullptr;
-	const UPCGExAssetCollection* EntryHost = nullptr;
-
 	TSet<uint64> GUIDS;
 
 	for (int i = 0; i < MainCache->Main->Order.Num(); i++)
 	{
 		GUIDS.Empty();
-		MainCollection->GetEntryAt(Entry, i, EntryHost);
-		ProcessEntry(Entry, Entries, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
+		FPCGExEntryAccessResult Result = MainCollection->GetEntryAt(i);
+		ProcessEntry(Result.Entry, Entries, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
 	}
 
 	if (Entries.IsEmpty()) { return OutputToPin(); }
@@ -173,29 +171,27 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(const FPCGExAssetCollection
 		GUIDS.Add(SubCollection->GetUniqueID(), &bVisited);
 		if (bVisited) { return; } // !! Circular dependency !!
 
-		const FPCGExAssetCollectionEntry* NestedEntry = nullptr;
-		const UPCGExAssetCollection* EntryHost = nullptr;
-
+		FPCGExEntryAccessResult SubResult;
 		switch (SubHandling)
 		{
 		default: ;
 		case EPCGExSubCollectionToSet::Expand: for (int i = 0; i < SubCache->Main->Order.Num(); i++)
 			{
-				SubCollection->GetEntryAt(NestedEntry, i, EntryHost);
-				ProcessEntry(NestedEntry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
+				SubResult = SubCollection->GetEntryAt(i);
+				ProcessEntry(SubResult.Entry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 			}
 			return;
-		case EPCGExSubCollectionToSet::PickRandom: SubCollection->GetEntryRandom(NestedEntry, 0, EntryHost);
+		case EPCGExSubCollectionToSet::PickRandom: SubResult = SubCollection->GetEntryRandom(0);
 			break;
-		case EPCGExSubCollectionToSet::PickRandomWeighted: SubCollection->GetEntryWeightedRandom(NestedEntry, 0, EntryHost);
+		case EPCGExSubCollectionToSet::PickRandomWeighted: SubResult = SubCollection->GetEntryWeightedRandom(0);
 			break;
-		case EPCGExSubCollectionToSet::PickFirstItem: SubCollection->GetEntryAt(NestedEntry, 0, EntryHost);
+		case EPCGExSubCollectionToSet::PickFirstItem: SubResult = SubCollection->GetEntryAt(0);
 			break;
-		case EPCGExSubCollectionToSet::PickLastItem: SubCollection->GetEntryAt(NestedEntry, SubCache->Main->Indices.Num() - 1, EntryHost);
+		case EPCGExSubCollectionToSet::PickLastItem: SubResult = SubCollection->GetEntryAt(SubCache->Main->Indices.Num() - 1);
 			break;
 		}
 
-		ProcessEntry(NestedEntry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
+		ProcessEntry(SubResult.Entry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 	}
 	else
 	{

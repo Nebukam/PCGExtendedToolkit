@@ -156,7 +156,7 @@ namespace PCGExConnectPoints
 		CanGenerate.SetNumUninitialized(NumPoints);
 		AcceptConnections.SetNumUninitialized(NumPoints);
 
-		PCGEx::InitArray(WorkingTransforms, NumPoints);
+		PCGExArrayHelpers::InitArray(WorkingTransforms, NumPoints);
 
 		if (!Context->GeneratorsFiltersFactories.IsEmpty())
 		{

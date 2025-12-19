@@ -87,10 +87,10 @@ namespace PCGExTensor
 		const FBox InBounds = InFactory->InputDataFacade->GetIn()->GetBounds();
 		Octree = MakeShared<PCGExOctree::FItemOctree>(InBounds.GetCenter(), (InBounds.GetExtent() + FVector(10)).Length());
 
-		PCGEx::InitArray(Transforms, NumEffectors);
-		PCGEx::InitArray(Radiuses, NumEffectors);
-		PCGEx::InitArray(Potencies, NumEffectors);
-		PCGEx::InitArray(Weights, NumEffectors);
+		PCGExArrayHelpers::InitArray(Transforms, NumEffectors);
+		PCGExArrayHelpers::InitArray(Radiuses, NumEffectors);
+		PCGExArrayHelpers::InitArray(Potencies, NumEffectors);
+		PCGExArrayHelpers::InitArray(Weights, NumEffectors);
 
 		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
 		TConstPCGValueRange<float> InSteepness = InPoints->GetConstSteepnessValueRange();

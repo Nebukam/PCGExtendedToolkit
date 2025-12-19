@@ -247,7 +247,7 @@ namespace PCGExDiscardByOverlap
 		InPoints = PointDataFacade->GetIn();
 		NumPoints = InPoints->GetNumPoints();
 
-		PCGEx::InitArray(LocalPointBounds, NumPoints);
+		PCGExArrayHelpers::InitArray(LocalPointBounds, NumPoints);
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 

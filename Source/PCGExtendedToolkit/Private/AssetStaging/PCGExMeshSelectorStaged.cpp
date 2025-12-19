@@ -58,7 +58,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 		return true;
 	}
 
-	const FPCGMetadataAttribute<int64>* HashAttribute = PCGEx::TryGetConstAttribute<int64>(InPointData->Metadata, PCGExStaging::Tag_EntryIdx);
+	const FPCGMetadataAttribute<int64>* HashAttribute = PCGExMetaHelpers::TryGetConstAttribute<int64>(InPointData->Metadata, PCGExStaging::Tag_EntryIdx);
 
 	if (!HashAttribute)
 	{
@@ -83,7 +83,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 	}
 
 	// 1- Build collection map from override attribute set		
-	TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap = MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
+	TSharedPtr<PCGExStaging::FPickUnpacker> CollectionMap = MakeShared<PCGExStaging::FPickUnpacker>();
 
 	CollectionMap->UnpackPin(&Context, PCGPinConstants::DefaultParamsLabel);
 
@@ -105,7 +105,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 	else
 	{
 		// Retrieve existing partitions
-		CollectionMap->RetrievePartitions(InPointData, OutMeshInstances);
+		CollectionMap->BuildPartitions(InPointData, OutMeshInstances);
 
 		const int32 NumPoints = InPointData->GetNumPoints();
 
@@ -131,8 +131,10 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 			const FPCGExMeshCollectionEntry* Entry = nullptr;
 			int16 MaterialPick = -1;
 
-			const UPCGExMeshCollection* ParentCollection = nullptr;
-			if (!CollectionMap->ResolveEntry(Partition.Key, Entry, MaterialPick, ParentCollection)) { continue; }
+			FPCGExEntryAccessResult Result = CollectionMap->ResolveEntry(Partition.Key, MaterialPick);
+			if (!Result.IsValid() || !Result.Host->IsType(PCGExAssetCollection::TypeIds::Mesh)) { continue; }
+			
+			Entry = static_cast<const FPCGExMeshCollectionEntry*>(Result.Entry);
 
 			FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];
 
@@ -146,7 +148,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 			}
 			else
 			{
-				Entry->InitPCGSoftISMDescriptor(ParentCollection, OutDescriptor);
+				Entry->InitPCGSoftISMDescriptor(static_cast<const UPCGExMeshCollection*>(Result.Host), OutDescriptor);
 			}
 
 			if (bForceDisableCollisions)

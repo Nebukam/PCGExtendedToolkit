@@ -165,7 +165,7 @@ namespace PCGExUberFilter
 		}
 		else
 		{
-			PCGEx::InitArray(PointFilterCache, PointDataFacade->GetNum());
+			PCGExArrayHelpers::InitArray(PointFilterCache, PointDataFacade->GetNum());
 		}
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
@@ -283,7 +283,7 @@ namespace PCGExUberFilter
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 		TArray<int32> Indices;
-		PCGEx::InitArray(Indices, NumPoints);
+		PCGExArrayHelpers::InitArray(Indices, NumPoints);
 
 		TArray<int32> ReadIndices;
 		IndicesInside->Collapse(ReadIndices);
@@ -291,7 +291,7 @@ namespace PCGExUberFilter
 		Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::New);
 		if (!Inside) { return; }
 
-		PCGEx::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num(), Inside->GetAllocations());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num(), Inside->GetAllocations());
 		Inside->InheritProperties(ReadIndices, Inside->GetAllocations());
 
 		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
@@ -304,7 +304,7 @@ namespace PCGExUberFilter
 
 		if (!Outside) { return; }
 
-		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num(), Outside->GetAllocations());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num(), Outside->GetAllocations());
 		Outside->InheritProperties(ReadIndices, Outside->GetAllocations());
 	}
 }

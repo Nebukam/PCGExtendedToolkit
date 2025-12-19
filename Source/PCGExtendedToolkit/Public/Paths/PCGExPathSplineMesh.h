@@ -24,11 +24,8 @@ namespace PCGExMT
 
 namespace PCGExStaging
 {
-	template <typename C, typename A>
-	class TDistributionHelper;
-	
-	template <typename T>
-	class TMicroDistributionHelper;
+	class FDistributionHelper;
+	class FMicroDistributionHelper;
 }
 
 /**
@@ -208,8 +205,8 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
-		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
-		TSharedPtr<PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>> MicroHelper;
+		TSharedPtr<PCGExStaging::FDistributionHelper> Helper;
+		TSharedPtr<PCGExStaging::FMicroDistributionHelper> MicroHelper;
 
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;

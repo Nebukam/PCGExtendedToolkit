@@ -115,7 +115,7 @@ bool FPCGExBranchOnDataAttributeElement::AdvanceWork(FPCGExContext* InContext, c
 			if (!TaggedData.Data || !TaggedData.Data->Metadata) { continue; }
 			const FPCGMetadataAttributeBase* Attr = nullptr;
 
-			if (PCGEx::HasAttribute(TaggedData.Data, ReadIdentifier)) { Attr = TaggedData.Data->Metadata->GetConstAttribute(ReadIdentifier); }
+			if (PCGExMetaHelpers::HasAttribute(TaggedData.Data, ReadIdentifier)) { Attr = TaggedData.Data->Metadata->GetConstAttribute(ReadIdentifier); }
 
 			FName OutputPin = Settings->GetMainOutputPin();
 			bool bDistributed = false;
@@ -126,7 +126,7 @@ bool FPCGExBranchOnDataAttributeElement::AdvanceWork(FPCGExContext* InContext, c
 			}
 			else
 			{
-				PCGEx::ExecuteWithRightType(Attr->GetTypeId(), [&](auto ValueType)
+				PCGExMetaHelpers::ExecuteWithRightType(Attr->GetTypeId(), [&](auto ValueType)
 				{
 					using T_ATTR = decltype(ValueType);
 					const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Attr);

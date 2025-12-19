@@ -55,7 +55,7 @@ PCGExData::EIOInit UPCGExClusterCentralitySettings::GetEdgeOutputInitMode() cons
 
 bool FPCGExClusterCentralityElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterCentrality)
 
@@ -125,7 +125,7 @@ namespace PCGExClusterCentrality
 			}
 			else
 			{
-				PCGEx::ArrayOfIndices(RandomSamples, NumNodes);
+				PCGExArrayHelpers::ArrayOfIndices(RandomSamples, NumNodes);
 				bVtxComplete = false;
 				StartParallelLoopForNodes();
 			}

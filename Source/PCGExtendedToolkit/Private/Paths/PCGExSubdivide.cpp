@@ -123,7 +123,7 @@ namespace PCGExSubdivide
 		SubBlending = Context->Blending->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;
 
-		PCGEx::InitArray(Subdivisions, PointDataFacade->GetNum());
+		PCGExArrayHelpers::InitArray(Subdivisions, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
@@ -226,7 +226,7 @@ namespace PCGExSubdivide
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumPoints, InPoints->GetAllocatedProperties());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, NumPoints, InPoints->GetAllocatedProperties());
 
 		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntries = MutablePoints->GetMetadataEntryValueRange();

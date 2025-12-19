@@ -5,7 +5,7 @@
 
 
 #include "PCGExMT.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
@@ -134,7 +134,7 @@ namespace PCGExSampleTexture
 		{
 			if (Factory->Config.OutputType == EPCGExTexSampleAttributeType::Invalid) { continue; }
 
-			PCGEx::ExecuteWithRightType(Factory->Config.MetadataType, [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(Factory->Config.MetadataType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 

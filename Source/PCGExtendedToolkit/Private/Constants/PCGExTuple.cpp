@@ -239,7 +239,7 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 			{
 				// Need to adjust size and assign Guids
 				const int32 StartIndex = Body.Row.Num();
-				PCGEx::InitArray(Body.Row, Guids.Num());
+				PCGExArrayHelpers::InitArray(Body.Row, Guids.Num());
 				for (int i = StartIndex; i < Guids.Num(); ++i)
 				{
 					Composition[i].SanitizeEntry(Body.Row[i]);
@@ -329,7 +329,7 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 	}
 
 	TSet<FString> Tags;
-	PCGExHelpers::AppendEntriesFromCommaSeparatedList(Settings->CommaSeparatedTags, Tags);
+	PCGExArrayHelpers::AppendEntriesFromCommaSeparatedList(Settings->CommaSeparatedTags, Tags);
 	Context->StageOutput(TupleData, FName("Tuple"), PCGExData::EStaging::None, Tags);
 
 	Context->Done();

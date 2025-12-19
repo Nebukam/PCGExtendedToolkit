@@ -5,9 +5,8 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExCollectionHelpers.h"
-#include "PCGExAssetCollection.h"
-#include "PCGExComponentDescriptors.h"
+#include "Core/PCGExAssetCollection.h"
+#include "Core/PCGExComponentDescriptors.h"
 #include "ISMPartition/ISMComponentDescriptor.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 #include "Engine/StaticMesh.h"
@@ -17,12 +16,16 @@
 
 class UPCGExMeshCollection;
 
+// =====================================================================================
+// Material Override Structures
+// =====================================================================================
+
 UENUM()
 enum class EPCGExMaterialVariantsMode : uint8
 {
-	None   = 0 UMETA(DisplayName = "None", ToolTip="No variants.", ActionIcon="STF_None"),
-	Single = 1 UMETA(DisplayName = "Single Slot", ToolTip="Single-slot variants, for when there is only a single material slot override.", ActionIcon="SingleMat"),
-	Multi  = 2 UMETA(DisplayName = "Multi Slots", ToolTip="Multi-slot variants, more admin, for when there is multiple material slots for the entry.", ActionIcon="MultiMat"),
+	None   = 0 UMETA(DisplayName = "None", ToolTip="No variants."),
+	Single = 1 UMETA(DisplayName = "Single Slot", ToolTip="Single-slot variants."),
+	Multi  = 2 UMETA(DisplayName = "Multi Slots", ToolTip="Multi-slot variants."),
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Entry")
@@ -46,7 +49,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
 	GENERATED_BODY()
 
 	virtual ~FPCGExMaterialOverrideCollection() = default;
-
 	FPCGExMaterialOverrideCollection() = default;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=1))
@@ -73,37 +75,34 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 	TSoftObjectPtr<UMaterialInterface> Material = nullptr;
 };
 
+// =====================================================================================
+// Mesh MicroCache - Handles material variant picking
+// =====================================================================================
+
 namespace PCGExMeshCollection
 {
 	class PCGEXTENDEDTOOLKIT_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
-		double WeightSum = 0;
-		TArray<int32> Weights;
-		TArray<int32> Order;
-
-		int32 HighestIndex = -1;
+		int32 HighestMaterialIndex = -1;
 
 	public:
 		FMicroCache() = default;
 
-		virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
+		virtual PCGExAssetCollection::FTypeId GetTypeId() const override
+		{
+			return PCGExAssetCollection::TypeIds::Mesh;
+		}
 
-		virtual int32 Num() const override { return Order.Num(); }
-		int32 GetHighestIndex() const { return HighestIndex; }
+		int32 GetHighestIndex() const { return HighestMaterialIndex; }
 
-		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, const int32 InSlotIndex = -1);
+		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, int32 InSlotIndex = -1);
 		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideCollection>& Overrides);
-
-		virtual int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const override;
-
-		virtual int32 GetPickAscending(const int32 Index) const override;
-		virtual int32 GetPickDescending(const int32 Index) const override;
-		virtual int32 GetPickWeightAscending(const int32 Index) const override;
-		virtual int32 GetPickWeightDescending(const int32 Index) const override;
-		virtual int32 GetPickRandom(const int32 Seed) const override;
-		virtual int32 GetPickRandomWeighted(const int32 Seed) const override;
 	};
 }
+
+// =====================================================================================
+// Mesh Collection Entry
+// =====================================================================================
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
@@ -112,7 +111,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	FPCGExMeshCollectionEntry() = default;
 
-	virtual PCGExAssetCollection::EType GetType() const override { return FPCGExAssetCollectionEntry::GetType() | PCGExAssetCollection::EType::Mesh; }
+	// ---------------------------------------------------------------------------------
+	// Type System
+	// ---------------------------------------------------------------------------------
+
+	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
+	{
+		return PCGExAssetCollection::TypeIds::Mesh;
+	}
+
+	// ---------------------------------------------------------------------------------
+	// Mesh-Specific Properties (DO NOT REORDER - Serialization compatibility)
+	// ---------------------------------------------------------------------------------
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMesh = nullptr;
@@ -120,62 +130,50 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExMeshCollection> SubCollection;
 
-	/** A list of material variants */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExMaterialVariantsMode MaterialVariants = EPCGExMaterialVariantsMode::None;
 
-	/** Material slot index. -1 uses the index inside the container. */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ Slot Index", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Single", EditConditionHides))
 	int32 SlotIndex = 0;
 
-	/** A list of single material variants */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Single", EditConditionHides))
 	TArray<FPCGExMaterialOverrideSingleEntry> MaterialOverrideVariants;
 
-	/** A list of material variants */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Multi", EditConditionHides))
 	TArray<FPCGExMaterialOverrideCollection> MaterialOverrideVariantsList;
 
-
-	/** Descriptor source. */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides, DisplayAfter="Variations"))
 	EPCGExEntryVariationMode DescriptorSource = EPCGExEntryVariationMode::Local;
 
-	/** Config used when this entry is consumed as an instanced static mesh */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ ISM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="DescriptorSource"))
 	FSoftISMComponentDescriptor ISMDescriptor;
 
-	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="ISMDescriptor"))
 	FPCGExStaticMeshComponentDescriptor SMDescriptor;
 
+	// ---------------------------------------------------------------------------------
+	// Subcollection Access
+	// ---------------------------------------------------------------------------------
+
+	virtual UPCGExAssetCollection* GetSubCollectionPtr() const override;
+
 	virtual void ClearSubCollection() override;
 
-	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
+	// ---------------------------------------------------------------------------------
+	// Asset & Material Handling
+	// ---------------------------------------------------------------------------------
 
-	virtual void GetMaterialPaths(const int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const;
-	virtual void ApplyMaterials(const int32 PickIndex, UStaticMeshComponent* TargetComponent) const;
-	virtual void ApplyMaterials(const int32 PickIndex, FPCGSoftISMComponentDescriptor& Descriptor) const;
+	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
+	void GetMaterialPaths(int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const;
+	void ApplyMaterials(int32 PickIndex, UStaticMeshComponent* TargetComponent) const;
+	void ApplyMaterials(int32 PickIndex, FPCGSoftISMComponentDescriptor& Descriptor) const;
+
+	// ---------------------------------------------------------------------------------
+	// Lifecycle
+	// ---------------------------------------------------------------------------------
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
-
-	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
-
-#pragma region DEPRECATED
-
-	// DEPRECATED -- Moved to macro cache instead.
-	UPROPERTY()
-	int32 MaterialVariantsCumulativeWeight_DEPRECATED = -1;
-
-	UPROPERTY()
-	TArray<int32> MaterialVariantsOrder_DEPRECATED;
-
-	UPROPERTY()
-	TArray<int32> MaterialVariantsWeights_DEPRECATED;
-
-#pragma endregion
-
-	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
+	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
 	void InitPCGSoftISMDescriptor(const UPCGExMeshCollection* ParentCollection, FPCGSoftISMComponentDescriptor& TargetDescriptor) const;
@@ -185,46 +183,81 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 #endif
 
 	virtual void BuildMicroCache() override;
+
+	// ---------------------------------------------------------------------------------
+	// Typed MicroCache Access
+	// ---------------------------------------------------------------------------------
+
+	PCGExMeshCollection::FMicroCache* GetMeshMicroCache() const
+	{
+		return static_cast<PCGExMeshCollection::FMicroCache*>(MicroCache.Get());
+	}
+
+#pragma region DEPRECATED
+	UPROPERTY()
+	int32 MaterialVariantsCumulativeWeight_DEPRECATED = -1;
+
+	UPROPERTY()
+	TArray<int32> MaterialVariantsOrder_DEPRECATED;
+
+	UPROPERTY()
+	TArray<int32> MaterialVariantsWeights_DEPRECATED;
+#pragma endregion
 };
+
+// =====================================================================================
+// Mesh Collection
+// =====================================================================================
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
 class PCGEXTENDEDTOOLKIT_API UPCGExMeshCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
+	PCGEX_ASSET_COLLECTION_BODY(FPCGExMeshCollectionEntry)
 
 	friend struct FPCGExMeshCollectionEntry;
-	friend class UPCGExMeshSelectorBase;
 
 public:
-	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
+	// ---------------------------------------------------------------------------------
+	// Type System
+	// ---------------------------------------------------------------------------------
 
-	/** Global descriptor rule. */
+	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
+	{
+		return PCGExAssetCollection::TypeIds::Mesh;
+	}
+
+	// ---------------------------------------------------------------------------------
+	// Mesh-Specific Properties
+	// ---------------------------------------------------------------------------------
+
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExGlobalVariationRule GlobalDescriptorMode = EPCGExGlobalVariationRule::PerEntry;
 
-	/** Config used when this entry is consumed as an instanced static mesh */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ Global ISM Settings"))
 	FSoftISMComponentDescriptor GlobalISMDescriptor;
 
-	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Global SM Settings"))
 	FPCGExStaticMeshComponentDescriptor GlobalSMDescriptor;
+
+	// ---------------------------------------------------------------------------------
+	// Entries Array
+	// ---------------------------------------------------------------------------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
+	TArray<FPCGExMeshCollectionEntry> Entries;
+
+	// ---------------------------------------------------------------------------------
+	// Editor Functions
+	// ---------------------------------------------------------------------------------
 
 #if WITH_EDITOR
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 
-	/** Disable collision on all entries. */
 	UFUNCTION()
 	void EDITOR_DisableCollisions();
 
-	/** Set Descriptor source on all entries. */
 	UFUNCTION()
 	void EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMode DescriptorSource);
-
 #endif
-
-	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExMeshCollection, FPCGExMeshCollectionEntry)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
-	TArray<FPCGExMeshCollectionEntry> Entries;
 };

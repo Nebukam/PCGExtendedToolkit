@@ -23,7 +23,9 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"PCG",
 				"PCGEditor",
 				"PCGGeometryScriptInterop",
-				"PCGExtendedToolkit"
+				"PCGExtendedToolkit",
+				"PCGExCore",
+				"PCGExFoundations"
 			}
 		);
 

@@ -69,7 +69,7 @@ FString UPCGExNodeNeighborsCountFilterProviderSettings::GetDisplayName() const
 	FString DisplayName = "Neighbors Count" + PCGExCompare::ToString(Config.Comparison);
 
 	if (Config.CompareAgainst == EPCGExInputValueType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.Count); }
-	else { DisplayName += PCGEx::GetSelectorDisplayName(Config.LocalCount); }
+	else { DisplayName += PCGExMetaHelpers::GetSelectorDisplayName(Config.LocalCount); }
 
 	return DisplayName;
 }

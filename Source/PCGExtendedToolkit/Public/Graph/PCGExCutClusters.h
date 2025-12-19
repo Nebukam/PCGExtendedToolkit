@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
+#include "Graph/PCGExClustersProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Paths/PCGExPaths.h"
 
@@ -32,7 +32,7 @@ namespace PCGExCutEdges
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/cut-clusters"))
-class UPCGExCutEdgesSettings : public UPCGExEdgesProcessorSettings
+class UPCGExCutEdgesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -97,7 +97,7 @@ private:
 	friend class FPCGExCutEdgesElement;
 };
 
-struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
+struct FPCGExCutEdgesContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExCutEdgesElement;
 
@@ -116,7 +116,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class FPCGExCutEdgesElement final : public FPCGExEdgesProcessorElement
+class FPCGExCutEdgesElement final : public FPCGExClustersProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CutEdges)

@@ -132,7 +132,7 @@ UPCGExFactoryData* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExC
 #if WITH_EDITOR
 FString UPCGExCreateHeuristicAttributeSettings::GetDisplayName() const
 {
-	return TEXT("HX : ") + PCGEx::GetSelectorDisplayName(Config.Attribute) + TEXT(" @ ") + FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
+	return TEXT("HX : ") + PCGExMetaHelpers::GetSelectorDisplayName(Config.Attribute) + TEXT(" @ ") + FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif
 

@@ -23,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExPickClosestClustersSettings::InputPinProperties(
 
 void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 {
-	FPCGExEdgesProcessorContext::ClusterProcessing_InitialProcessingDone();
+	FPCGExClustersProcessorContext::ClusterProcessing_InitialProcessingDone();
 
 	TArray<TSharedPtr<PCGExPickClosestClusters::FProcessor>> Processors;
 	GatherClusterProcessors(Processors);
@@ -81,7 +81,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(PickClosestClusters)
 
 bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 
@@ -145,7 +145,7 @@ namespace PCGExPickClosestClusters
 	void FProcessor::Search()
 	{
 		const int32 NumTargets = Context->TargetDataFacade->Source->GetNum();
-		PCGEx::InitArray(Distances, NumTargets);
+		PCGExArrayHelpers::InitArray(Distances, NumTargets);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ProcessTargets)
 

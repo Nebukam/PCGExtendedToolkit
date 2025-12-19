@@ -5,24 +5,16 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExCollectionHelpers.h"
-#include "PCGExAssetCollection.h"
+#include "Core/PCGExAssetCollection.h"
 #include "GameFramework/Actor.h"
-#include "UObject/SoftObjectPath.h"
 
 #include "PCGExActorCollection.generated.h"
 
-namespace PCGExAssetCollection
-{
-	enum class ELoadingFlags : uint8;
-}
-
 class UPCGExActorCollection;
 
-namespace PCGExActorCollection
-{
-	void GetBoundingBoxBySpawning(const TSoftClassPtr<AActor>& InActorClass, FVector& Origin, FVector& BoxExtent, const bool bOnlyCollidingComponents = true, const bool bIncludeFromChildActors = true);
-}
+// =====================================================================================
+// Actor Collection Entry
+// =====================================================================================
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Actor Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCollectionEntry
@@ -31,53 +23,77 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 
 	FPCGExActorCollectionEntry() = default;
 
-	virtual PCGExAssetCollection::EType GetType() const override { return FPCGExAssetCollectionEntry::GetType() | PCGExAssetCollection::EType::Actor; }
+	// ---------------------------------------------------------------------------------
+	// Type System
+	// ---------------------------------------------------------------------------------
+
+	virtual PCGExAssetCollection::FTypeId GetTypeId() const override { return PCGExAssetCollection::TypeIds::Actor; }
+
+	// ---------------------------------------------------------------------------------
+	// Actor-Specific Properties (DO NOT REORDER - Serialization compatibility)
+	// ---------------------------------------------------------------------------------
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
-	TSoftClassPtr<AActor> Actor;
-
-	/** If enabled, the cached bounds will only account for collicable components on the actor. */
-	UPROPERTY(EditAnywhere, Category = "Settings|Bounds", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
-	bool bOnlyCollidingComponents = false;
-
-	/** If enabled, the cached bounds will also account for child actors. */
-	UPROPERTY(EditAnywhere, Category = "Settings|Bounds", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
-	bool bIncludeFromChildActors = true;
+	TSoftClassPtr<AActor> Actor = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExActorCollection> SubCollection;
 
-	virtual void ClearSubCollection() override;
+	// ---------------------------------------------------------------------------------
+	// Subcollection Access
+	// ---------------------------------------------------------------------------------
 
-	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
+	virtual const UPCGExAssetCollection* GetSubCollectionPtr() const override;
+
+	virtual void ClearSubCollection() override;
+	
+	// ---------------------------------------------------------------------------------
+	// Lifecycle
+	// ---------------------------------------------------------------------------------
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
-	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
+	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
-
-	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
 
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif
 };
 
+// =====================================================================================
+// Actor Collection
+// =====================================================================================
+
 UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")
 class PCGEXTENDEDTOOLKIT_API UPCGExActorCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
+	PCGEX_ASSET_COLLECTION_BODY(FPCGExActorCollectionEntry)
 
 	friend struct FPCGExActorCollectionEntry;
 
 public:
-	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Actor; }
+	// ---------------------------------------------------------------------------------
+	// Type System
+	// ---------------------------------------------------------------------------------
 
-#if WITH_EDITOR
-	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
-#endif
+	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
+	{
+		return PCGExAssetCollection::TypeIds::Actor;
+	}
+
+	// ---------------------------------------------------------------------------------
+	// Entries Array
+	// ---------------------------------------------------------------------------------
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	TArray<FPCGExActorCollectionEntry> Entries;
 
-	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExActorCollection, FPCGExActorCollectionEntry)
+	// ---------------------------------------------------------------------------------
+	// Editor Functions
+	// ---------------------------------------------------------------------------------
+
+#if WITH_EDITOR
+	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
+#endif
 };
