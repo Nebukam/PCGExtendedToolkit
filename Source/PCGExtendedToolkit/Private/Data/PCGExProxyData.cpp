@@ -512,8 +512,8 @@ namespace PCGExData
 #pragma region TConstantProxy
 
 	template <typename T_CONST>
-	TConstantProxy<T_CONST>::TConstantProxy()
-		: IBufferProxy(PCGExTypes::TTraits<T_CONST>::Type, PCGExTypes::TTraits<T_CONST>::Type)
+	TConstantProxy<T_CONST>::TConstantProxy(EPCGMetadataTypes InWorkingType)
+	: IBufferProxy(PCGExTypes::TTraits<T_CONST>::Type, InWorkingType)
 	{
 	}
 
