@@ -162,6 +162,7 @@ namespace PCGExGraph
 		PCGExMT::TH64MapShards<int32> NodeBinsShards;
 		TMap<uint64, int32> NodeBins;
 
+		TWeakPtr<PCGExData::FPointIOCollection> SourceCollection = nullptr;
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<TSharedPtr<FUnionNode>> Nodes;
@@ -179,7 +180,7 @@ namespace PCGExGraph
 		mutable FRWLock UnionLock;
 		mutable FRWLock EdgesLock;
 
-		explicit FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds);
+		explicit FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceCollection = nullptr);
 
 		~FUnionGraph() = default;
 

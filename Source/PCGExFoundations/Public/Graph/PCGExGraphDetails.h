@@ -9,7 +9,6 @@
 
 #include "PCGExGraphDetails.generated.h"
 
-
 namespace PCGExData
 {
 	struct FConstPoint;

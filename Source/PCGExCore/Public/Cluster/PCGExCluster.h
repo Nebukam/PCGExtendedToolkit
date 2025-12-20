@@ -34,7 +34,7 @@ namespace PCGExData
 
 namespace PCGExSorting
 {
-	class FPointSorter;
+	class FSorter;
 }
 
 namespace PCGExCluster

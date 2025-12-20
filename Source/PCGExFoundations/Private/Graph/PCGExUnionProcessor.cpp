@@ -3,11 +3,15 @@
 
 #include "Graph/PCGExUnionProcessor.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExMT.h"
+#include "Blenders/PCGExMetadataBlender.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExUnionBlender.h"
-#include "Details/PCGExDistancesDetails.h"
+#include "Core/PCGExClustersProcessor.h"
+#include "Core/PCGExProxyDataBlending.h"
+#include "Data/PCGExData.h"
+#include "Graph/PCGExGraph.h"
+#include "Graph/PCGExGraphBuilder.h"
+#include "Graph/PCGExIntersections.h"
 
 namespace PCGExGraph
 {
@@ -77,7 +81,7 @@ namespace PCGExGraph
 			PCGEX_ASYNC_THIS
 
 			const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = This->UnionGraph->NodesUnion;
-			const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->Context->MainPoints;
+			const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->UnionGraph->SourceCollection.Pin();
 			const TSharedPtr<PCGExBlending::IUnionBlender> Blender = This->UnionBlender;
 
 			TArray<PCGExData::FWeightedPoint> WeightedPoints;
@@ -116,9 +120,10 @@ namespace PCGExGraph
 
 		bRunning = true;
 
-		PointPointIntersectionDetails.Update(Context, GraphMetadataDetails);
-		PointEdgeIntersectionDetails.Update(Context, GraphMetadataDetails);
-		EdgeEdgeIntersectionDetails.Update(Context, GraphMetadataDetails);
+
+		GraphMetadataDetails.Update(Context, PointPointIntersectionDetails);
+		GraphMetadataDetails.Update(Context, PointEdgeIntersectionDetails);
+		GraphMetadataDetails.Update(Context, EdgeEdgeIntersectionDetails);
 		GraphMetadataDetails.EdgesBlendingDetailsPtr = bUseCustomEdgeEdgeBlending ? &CustomEdgeEdgeBlendingDetails : &DefaultEdgesBlendingDetails;
 		GraphMetadataDetails.EdgesCarryOverDetails = EdgesCarryOverDetails;
 

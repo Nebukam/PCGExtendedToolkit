@@ -1,15 +1,15 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExSorting.h"
+#include "Sorting/PCGExPointSorter.h"
 
 #include "PCGExCompare.h"
-#include "PCGExSortingRuleProvider.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
+#include "Sorting/PCGExSortingDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"
 #define PCGEX_NAMESPACE ModularSortPoints
@@ -17,84 +17,9 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-FPCGExSortRuleConfig::FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
-	: FPCGExInputConfig(Other), Tolerance(Other.Tolerance), bInvertRule(Other.bInvertRule)
-{
-}
-
-FPCGExCollectionSortingDetails::FPCGExCollectionSortingDetails(const bool InEnabled)
-{
-	bEnabled = InEnabled;
-}
-
-bool FPCGExCollectionSortingDetails::Init(const FPCGContext* InContext)
-{
-	if (!bEnabled) { return true; }
-	return true;
-}
-
-void FPCGExCollectionSortingDetails::Sort(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::SortByTag);
-
-	if (!bEnabled) { return; }
-
-	const FString TagNameStr = TagName.ToString();
-	TArray<double> Scores;
-
-	TArray<TSharedPtr<PCGExData::FPointIO>>& Pairs = InCollection->Pairs;
-
-	Scores.SetNumUninitialized(Pairs.Num());
-
-#if WITH_EDITOR
-	if (!bQuietMissingTagWarning)
-	{
-		for (int i = 0; i < Pairs.Num(); i++)
-		{
-			Pairs[i]->IOIndex = i;
-			if (const TSharedPtr<PCGExData::IDataValue> Value = Pairs[i]->Tags->GetValue(TagNameStr))
-			{
-				Scores[i] = Value->GetValue<double>();
-			}
-			else
-			{
-				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Some data is missing the '{0}' value tag."), FText::FromString(TagNameStr)))
-				Scores[i] = (static_cast<double>(i) + FallbackOrderOffset) * FallbackOrderMultiplier;
-			}
-		}
-	}
-	else
-#endif
-	{
-		for (int i = 0; i < Pairs.Num(); i++)
-		{
-			Pairs[i]->IOIndex = i;
-			Scores[i] = Pairs[i]->Tags->GetValue(TagNameStr, (static_cast<double>(i) + FallbackOrderOffset) * FallbackOrderMultiplier);
-		}
-	}
-
-	if (Direction == EPCGExSortDirection::Ascending)
-	{
-		Pairs.Sort([&](const TSharedPtr<PCGExData::FPointIO>& A, const TSharedPtr<PCGExData::FPointIO>& B) { return Scores[A->IOIndex] < Scores[B->IOIndex]; });
-	}
-	else
-	{
-		Pairs.Sort([&](const TSharedPtr<PCGExData::FPointIO>& A, const TSharedPtr<PCGExData::FPointIO>& B) { return Scores[A->IOIndex] > Scores[B->IOIndex]; });
-	}
-
-	for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->IOIndex = i; }
-}
-
 namespace PCGExSorting
 {
-	void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus)
-	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceSortingRules, FPCGExDataTypeInfoSortRule::AsId());
-		PCGEX_PIN_TOOLTIP("Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.")
-		Pin.PinStatus = InStatus;
-	}
-
-	FPointSorter::FPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
+	FSorter::FSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
 		: ExecutionContext(InContext), DataFacade(InDataFacade)
 	{
 		const UPCGData* InData = InDataFacade->Source->GetIn();
@@ -109,7 +34,12 @@ namespace PCGExSorting
 		}
 	}
 
-	FPointSorter::FPointSorter(TArray<FPCGExSortRuleConfig> InRuleConfigs)
+	FRuleHandler::FRuleHandler(const FPCGExSortRuleConfig& Config)
+		: Selector(Config.Selector), Tolerance(Config.Tolerance), bInvertRule(Config.bInvertRule)
+	{
+	}
+
+	FSorter::FSorter(TArray<FPCGExSortRuleConfig> InRuleConfigs)
 	{
 		for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
 		{
@@ -118,7 +48,7 @@ namespace PCGExSorting
 		}
 	}
 
-	bool FPointSorter::Init(FPCGExContext* InContext)
+	bool FSorter::Init(FPCGExContext* InContext)
 	{
 		for (int i = 0; i < RuleHandlers.Num(); i++)
 		{
@@ -146,7 +76,7 @@ namespace PCGExSorting
 		return !RuleHandlers.IsEmpty();
 	}
 
-	bool FPointSorter::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades)
+	bool FSorter::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades)
 	{
 		int32 MaxIndex = 0;
 		for (const TSharedRef<PCGExData::FFacade>& Facade : InDataFacades) { MaxIndex = FMath::Max(Facade->Idx, MaxIndex); }
@@ -182,7 +112,7 @@ namespace PCGExSorting
 		return !RuleHandlers.IsEmpty();
 	}
 
-	bool FPointSorter::Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas)
+	bool FSorter::Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas)
 	{
 		IdxMap.Reserve(InTaggedDatas.Num());
 		for (int i = 0; i < InTaggedDatas.Num(); i++) { IdxMap.Add(InTaggedDatas[i].Data->GetUniqueID(), i); }
@@ -215,7 +145,7 @@ namespace PCGExSorting
 		return !RuleHandlers.IsEmpty();
 	}
 
-	bool FPointSorter::Sort(const int32 A, const int32 B)
+	bool FSorter::Sort(const int32 A, const int32 B)
 	{
 		int Result = 0;
 		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
@@ -234,7 +164,7 @@ namespace PCGExSorting
 		return Result < 0;
 	}
 
-	bool FPointSorter::Sort(const PCGExData::FElement A, const PCGExData::FElement B)
+	bool FSorter::Sort(const PCGExData::FElement A, const PCGExData::FElement B)
 	{
 		int Result = 0;
 		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
@@ -253,7 +183,7 @@ namespace PCGExSorting
 		return Result < 0;
 	}
 
-	bool FPointSorter::SortData(const int32 A, const int32 B)
+	bool FSorter::SortData(const int32 A, const int32 B)
 	{
 		int Result = 0;
 		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
@@ -287,16 +217,5 @@ namespace PCGExSorting
 
 		if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
 		return Result < 0;
-	}
-
-	TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel)
-	{
-		TArray<FPCGExSortRuleConfig> OutRules;
-		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
-
-		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
-
-		return OutRules;
 	}
 }

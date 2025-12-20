@@ -7,7 +7,7 @@
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExData.h"
 #include "Cluster/PCGExCluster.h"
-#include "Sorting/PCGExSorting.h"
+#include "Sorting/PCGExPointSorter.h"
 
 void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>* InSortingRules) const
 {
@@ -24,7 +24,7 @@ bool FPCGExEdgeDirectionSettings::Init(FPCGExContext* InContext, const TSharedRe
 	{
 		if (!InSortingRules) { return false; }
 
-		Sorter = MakeShared<PCGExSorting::FPointSorter>(InContext, InVtxDataFacade, *InSortingRules);
+		Sorter = MakeShared<PCGExSorting::FSorter>(InContext, InVtxDataFacade, *InSortingRules);
 		Sorter->SortDirection = DirectionChoice == EPCGExEdgeDirectionChoice::GreatestToSmallest ? EPCGExSortDirection::Descending : EPCGExSortDirection::Ascending;
 		if (!Sorter->Init(InContext)) { return false; }
 	}

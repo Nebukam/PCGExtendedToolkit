@@ -3,10 +3,23 @@
 
 #pragma once
 
-#include "Data/PCGExData.h"
+#include "PCGExVersion.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
 
-#include "PCGExBlending.h"
-#include "Data/PCGExProxyData.h"
+#if PCGEX_ENGINE_VERSION > 506
+#include "PCGPointPropertiesTraits.h"
+#else
+#include "PCGCommon.h"
+#endif
+
+struct FPCGExContext;
+class UPCGBasePointData;
+enum class EPCGExABBlendingType : uint8;
+
+namespace PCGExMath
+{
+	class FDistances;
+}
 
 namespace PCGEx
 {
@@ -21,6 +34,10 @@ namespace PCGExDetails
 
 namespace PCGExData
 {
+	enum class EIOSide : uint8;
+	class IBuffer;
+	class FFacade;
+	struct FWeightedPoint;
 	class IBufferProxy;
 	class IUnionData;
 
@@ -29,6 +46,7 @@ namespace PCGExData
 
 namespace PCGExBlending
 {
+	struct FBlendingParam;
 	class IBlendOperation;
 	//
 	// IBlender - Base interface for multi-attribute blending

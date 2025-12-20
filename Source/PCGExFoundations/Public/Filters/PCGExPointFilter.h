@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "UObject/Object.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "Factories/PCGExFactoryData.h"
@@ -29,27 +30,6 @@ namespace PCGExCluster
 
 class UPCGExFilterProviderSettings;
 
-UENUM()
-enum class EPCGExFilterFallback : uint8
-{
-	Pass = 0 UMETA(DisplayName = "Pass", ToolTip="This item will be considered to successfully pass the filter", ActionIcon="MissingData_Pass"),
-	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="This item will be considered to failing to pass the filter", ActionIcon="MissingData_Fail"),
-};
-
-UENUM()
-enum class EPCGExFilterResult : uint8
-{
-	Pass = 0 UMETA(DisplayName = "Pass", ToolTip="Passes the filters"),
-	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="Fails the filters"),
-};
-
-UENUM(BlueprintType)
-enum class EPCGExFilterNoDataFallback : uint8
-{
-	Error = 0 UMETA(DisplayName = "Throw Error", ToolTip="This filter will throw an error if there is no data.", ActionIcon="MissingData_Error"),
-	Pass  = 1 UMETA(DisplayName = "Pass", ToolTip="This filter will pass if there is no data", ActionIcon="MissingData_Pass"),
-	Fail  = 2 UMETA(DisplayName = "Fail", ToolTip="This filter will fail if there is no data", ActionIcon="MissingData_Fail"),
-};
 
 namespace PCGExGraph
 {
@@ -59,19 +39,6 @@ namespace PCGExGraph
 namespace PCGExPointFilter
 {
 	class IFilter;
-}
-
-namespace PCGExFilters
-{
-	enum class EType : uint8
-	{
-		None = 0,
-		Point,
-		Group,
-		Node,
-		Edge,
-		Collection,
-	};
 }
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter"))
@@ -136,7 +103,6 @@ public:
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 };
-
 
 namespace PCGExPointFilter
 {

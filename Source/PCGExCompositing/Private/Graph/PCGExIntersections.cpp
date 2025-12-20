@@ -12,6 +12,7 @@
 #include "Math/PCGExBoundsCloud.h"
 #include "Cluster/PCGExCluster.h"
 #include "Cluster/PCGExEdge.h"
+#include "Data/PCGExUnionData.h"
 #include "Graph/PCGExGraph.h"
 #include "Sampling/PCGExSampling.h"
 
@@ -46,8 +47,8 @@ namespace PCGExGraph
 		Adjacency.Add(InAdjacency);
 	}
 
-	FUnionGraph::FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds)
-		: FuseDetails(InFuseDetails), Bounds(InBounds)
+	FUnionGraph::FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceCollection)
+		: FuseDetails(InFuseDetails), Bounds(InBounds), SourceCollection(InSourceCollection)
 	{
 		Nodes.Empty();
 		Edges.Empty();

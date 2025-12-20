@@ -90,7 +90,7 @@ namespace PCGExFusePoints
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
+		UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, PointDataFacade->GetIn()->GetBounds().ExpandBy(10), Context->MainPoints);
 
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }

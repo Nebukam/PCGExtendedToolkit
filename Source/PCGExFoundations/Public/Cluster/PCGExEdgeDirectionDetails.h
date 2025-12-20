@@ -14,7 +14,7 @@ struct FPCGExContext;
 
 namespace PCGExSorting
 {
-	class FPointSorter;
+	class FSorter;
 }
 
 namespace PCGExCluster
@@ -51,7 +51,7 @@ struct PCGEXFOUNDATIONS_API FPCGExEdgeDirectionSettings
 	bool bAscendingDesired = false;
 	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
 
-	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+	TSharedPtr<PCGExSorting::FSorter> Sorter;
 
 	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr) const;
 

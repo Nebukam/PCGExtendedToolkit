@@ -13,6 +13,7 @@
 #include "Graph/PCGExGraph.h"
 #include "Cluster/PCGExGraphLabels.h"
 #include "Graph/PCGExSubGraph.h"
+#include "Sorting/PCGExSortHelpers.h"
 
 
 namespace PCGExGraphTask

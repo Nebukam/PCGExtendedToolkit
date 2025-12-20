@@ -11,7 +11,7 @@
 
 #include "Cluster/PCGExCluster.h"
 #include "Async/ParallelFor.h"
-#include "Core/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExClusterData.h"
 #include "Data/PCGExPointIO.h"

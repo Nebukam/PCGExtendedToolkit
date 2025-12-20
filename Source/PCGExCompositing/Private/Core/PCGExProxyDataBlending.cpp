@@ -3,13 +3,17 @@
 
 #include "Core/PCGExProxyDataBlending.h"
 
+#include "PCGExBlendingCommon.h"
+#include "Containers/PCGExIndexLookup.h"
 #include "Types/PCGExTypes.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Data/PCGExUnionData.h"
 #include "Core/PCGExBlendOperations.h"
-#include "Details/PCGExDistancesDetails.h"
+#include "Core/PCGExOpStats.h"
+#include "Data/PCGExData.h"
+#include "Math/PCGExMathDistances.h"
 
 namespace PCGExBlending
 {

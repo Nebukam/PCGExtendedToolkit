@@ -4,6 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExBlendingDetails.h"
+#include "PCGExGraphMetadata.h"
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExIntersectionDetails.h"
 #include "Graph/PCGExGraphDetails.h"
 
@@ -11,11 +14,20 @@ struct FPCGExCarryOverDetails;
 
 namespace PCGExBlending
 {
+	class FMetadataBlender;
 	class IUnionBlender;
+}
+
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedPtr;
 }
 
 namespace PCGExGraph
 {
+	class FEdgeEdgeIntersections;
+	class FPointEdgeIntersections;
 	class FUnionGraph;
 	class FGraphBuilder;
 
@@ -25,7 +37,7 @@ namespace PCGExGraph
 
 	public:
 		FPCGExContext* Context = nullptr;
-
+		
 		TSharedRef<PCGExData::FFacade> UnionDataFacade;
 		TSharedPtr<FUnionGraph> UnionGraph;
 		const TArray<TSharedRef<PCGExData::FFacade>>* SourceEdgesIO = nullptr;
@@ -49,7 +61,13 @@ namespace PCGExGraph
 
 		TSharedPtr<PCGExBlending::IUnionBlender> UnionBlender;
 
-		explicit FUnionProcessor(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade> InUnionDataFacade, TSharedRef<FUnionGraph> InUnionGraph, FPCGExPointPointIntersectionDetails PointPointIntersectionDetails, FPCGExBlendingDetails InDefaultPointsBlending, FPCGExBlendingDetails InDefaultEdgesBlending);
+		explicit FUnionProcessor(
+			FPCGExContext* InContext,
+			TSharedRef<PCGExData::FFacade> InUnionDataFacade,
+			TSharedRef<FUnionGraph> InUnionGraph,
+			FPCGExPointPointIntersectionDetails PointPointIntersectionDetails,
+			FPCGExBlendingDetails InDefaultPointsBlending,
+			FPCGExBlendingDetails InDefaultEdgesBlending);
 
 		~FUnionProcessor();
 

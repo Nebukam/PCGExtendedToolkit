@@ -6,19 +6,21 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Cluster/PCGExCluster.h"
+#include "Cluster/PCGExClusterHelpers.h"
+#include "Cluster/PCGExGraphLabels.h"
 
 namespace PCGExCluster
 {
-	FClusterDataLibrary::FClusterDataLibrary(const bool InDisableInvalidData)
+	FDataLibrary::FDataLibrary(const bool InDisableInvalidData)
 	{
 		bDisableInvalidData = InDisableInvalidData;
 		ProblemsTracker.Init(0, EProblemLogs.Num() + 1);
-		InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_PCGExCluster);
+		InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::Labels::TagStr_PCGExCluster);
 	}
 
-	bool FClusterDataLibrary::Build(const TSharedPtr<PCGExData::FPointIOCollection>& InMixedCollection)
+	bool FDataLibrary::Build(const TSharedPtr<PCGExData::FPointIOCollection>& InMixedCollection)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FClusterDataLibrary::Build_Mixed);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FDataLibrary::Build_Mixed);
 
 		if (InMixedCollection->Pairs.IsEmpty()) { return false; }
 
@@ -28,9 +30,9 @@ namespace PCGExCluster
 		{
 			// Vtx ?
 
-			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+			if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExVtx))
 			{
-				if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+				if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExEdges))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
@@ -48,9 +50,9 @@ namespace PCGExCluster
 
 			// Edge ?
 
-			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+			if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExEdges))
 			{
-				if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+				if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExVtx))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
@@ -72,18 +74,18 @@ namespace PCGExCluster
 		return BuildDictionary();
 	}
 
-	bool FClusterDataLibrary::Build(const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection, const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection)
+	bool FDataLibrary::Build(const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection, const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FClusterDataLibrary::Build);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FDataLibrary::Build);
 
 		if (InVtxCollection->IsEmpty() || InEdgeCollection->IsEmpty()) { return false; }
 
 		// Gather Vtx inputs
 		for (const TSharedPtr<PCGExData::FPointIO>& VtxIO : InVtxCollection->Pairs)
 		{
-			if (VtxIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+			if (VtxIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExVtx))
 			{
-				if (VtxIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+				if (VtxIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExEdges))
 				{
 					Invalidate(VtxIO, EProblem::DoubleMarking);
 					continue;
@@ -99,9 +101,9 @@ namespace PCGExCluster
 				continue;
 			}
 
-			if (VtxIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+			if (VtxIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExEdges))
 			{
-				if (VtxIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+				if (VtxIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExVtx))
 				{
 					Invalidate(VtxIO, EProblem::DoubleMarking);
 					continue;
@@ -117,9 +119,9 @@ namespace PCGExCluster
 		// Gather Edge inputs
 		for (const TSharedPtr<PCGExData::FPointIO>& MainIO : InEdgeCollection->Pairs)
 		{
-			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+			if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExEdges))
 			{
-				if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+				if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExVtx))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
@@ -135,9 +137,9 @@ namespace PCGExCluster
 				continue;
 			}
 
-			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+			if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExVtx))
 			{
-				if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+				if (MainIO->Tags->IsTagged(PCGExGraph::Labels::TagStr_PCGExEdges))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
@@ -153,14 +155,14 @@ namespace PCGExCluster
 		return BuildDictionary();
 	}
 
-	bool FClusterDataLibrary::IsDataValid(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
+	bool FDataLibrary::IsDataValid(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
 	{
 		return !Invalidated.Contains(InPointIO);
 	}
 
-	TSharedPtr<PCGExData::FPointIOTaggedEntries> FClusterDataLibrary::GetAssociatedEdges(const TSharedPtr<PCGExData::FPointIO>& InVtxIO) const
+	TSharedPtr<PCGExData::FPointIOTaggedEntries> FDataLibrary::GetAssociatedEdges(const TSharedPtr<PCGExData::FPointIO>& InVtxIO) const
 	{
-		if (const PCGExDataId CurrentPairId = PCGEX_GET_DATAIDTAG(InVtxIO->Tags, PCGExGraph::TagStr_PCGExCluster))
+		if (const PCGExDataId CurrentPairId = PCGEX_GET_DATAIDTAG(InVtxIO->Tags, PCGExGraph::Labels::TagStr_PCGExCluster))
 		{
 			if (TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = InputDictionary->GetEntries(CurrentPairId->Value); EdgesEntries && !EdgesEntries->Entries.IsEmpty()) { return EdgesEntries; }
 		}
@@ -168,7 +170,7 @@ namespace PCGExCluster
 		return nullptr;
 	}
 
-	void FClusterDataLibrary::PrintLogs(FPCGExContext* InContext, bool bSkipTrivial, bool bSkipImportant)
+	void FDataLibrary::PrintLogs(FPCGExContext* InContext, bool bSkipTrivial, bool bSkipImportant)
 	{
 		for (int i = 0; i < ProblemsTracker.Num(); i++)
 		{
@@ -181,7 +183,7 @@ namespace PCGExCluster
 		}
 	}
 
-	bool FClusterDataLibrary::BuildDictionary()
+	bool FDataLibrary::BuildDictionary()
 	{
 		// Try to rebuild valid relationships between the valid data
 
@@ -215,7 +217,7 @@ namespace PCGExCluster
 		return InputDictionary->TagMap.Num() > 0;
 	}
 
-	void FClusterDataLibrary::Invalidate(const TSharedPtr<PCGExData::FPointIO>& InPointData, const EProblem Problem)
+	void FDataLibrary::Invalidate(const TSharedPtr<PCGExData::FPointIO>& InPointData, const EProblem Problem)
 	{
 		bool bAlreadyInvalid = false;
 		Invalidated.Add(InPointData, &bAlreadyInvalid);
@@ -227,7 +229,7 @@ namespace PCGExCluster
 		if (Problem != EProblem::None) { Log(Problem); }
 	}
 
-	void FClusterDataLibrary::Log(const EProblem Problem)
+	void FDataLibrary::Log(const EProblem Problem)
 	{
 		ProblemsTracker[static_cast<int32>(Problem)]++;
 	}

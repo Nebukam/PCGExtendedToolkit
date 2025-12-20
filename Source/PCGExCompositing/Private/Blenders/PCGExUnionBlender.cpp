@@ -7,6 +7,8 @@
 
 #include "Blenders/PCGExUnionBlender.h"
 
+#include "Containers/PCGExIndexLookup.h"
+#include "Core/PCGExOpStats.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExDataTags.h"

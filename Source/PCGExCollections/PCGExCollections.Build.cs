@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExActions : ModuleRules
+public class PCGExCollections : ModuleRules
 {
-	public PCGExActions(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExCollections(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;

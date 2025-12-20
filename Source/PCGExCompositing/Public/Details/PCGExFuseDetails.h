@@ -10,6 +10,7 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExFuseDetails.generated.h"
 
+struct FPCGExContext;
 
 namespace PCGExMath
 {

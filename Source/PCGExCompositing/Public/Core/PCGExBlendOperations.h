@@ -4,10 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExBlending.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExBlendingCommon.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Types/PCGExTypeOps.h"
-#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGEx
 {

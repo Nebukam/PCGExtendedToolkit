@@ -4,12 +4,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
+#include "Core/PCGExProxyDataBlending.h"
+#include "Data/PCGExDataCommon.h"
 
-#include "PCGExBlending.h"
-#include "PCGExProxyDataBlending.h"
-#include "PCGExScopedContainers.h"
+struct FPCGAttributeIdentifier;
+struct FPCGExBlendingDetails;
 
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedArray;
+}
 
 namespace PCGExBlending
 {

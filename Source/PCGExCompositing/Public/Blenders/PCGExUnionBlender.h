@@ -4,9 +4,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Core/PCGExProxyDataBlending.h"
 #include "UObject/Object.h"
-#include "PCGExProxyDataBlending.h"
 #include "Types/PCGExAttributeIdentity.h"
+
+namespace PCGExData
+{
+	class FUnionMetadata;
+}
+
+namespace PCGExMath
+{
+	class FDistances;
+}
 
 namespace PCGExBlending
 {

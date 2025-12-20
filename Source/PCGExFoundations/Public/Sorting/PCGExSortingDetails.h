@@ -6,28 +6,15 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "PCGExSortingCommon.h"
 #include "Details/PCGExAttributesDetails.h"
-#include "PCGExSorting.generated.h"
 
-struct FPCGContext;
-enum class EPCGPinStatus : uint8;
-struct FPCGPinProperties;
+#include "PCGExSortingDetails.generated.h"
 
 namespace PCGExData
 {
-	struct FElement;
-	class FFacade;
-	class IDataValue;
 	class FPointIOCollection;
-	class IBufferProxy;
 }
-
-UENUM()
-enum class EPCGExSortDirection : uint8
-{
-	Ascending  = 0 UMETA(DisplayName = "Ascending", ToolTip = "Ascending", ActionIcon="Ascending"),
-	Descending = 1 UMETA(DisplayName = "Descending", ToolTip = "Descending", ActionIcon="Descending")
-};
 
 USTRUCT(BlueprintType)
 struct PCGEXFOUNDATIONS_API FPCGExSortRuleConfig : public FPCGExInputConfig
@@ -89,53 +76,7 @@ struct PCGEXFOUNDATIONS_API FPCGExCollectionSortingDetails
 
 namespace PCGExSorting
 {
-	const FName SourceSortingRules = TEXT("SortRules");
-
 	PCGEXFOUNDATIONS_API void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus);
-
-	class PCGEXFOUNDATIONS_API FRuleHandler : public TSharedFromThis<FRuleHandler>
-	{
-	public:
-		FRuleHandler() = default;
-
-		explicit FRuleHandler(const FPCGExSortRuleConfig& Config)
-			: Selector(Config.Selector), Tolerance(Config.Tolerance), bInvertRule(Config.bInvertRule)
-		{
-		}
-
-		TSharedPtr<PCGExData::IBufferProxy> Buffer;
-		TArray<TSharedPtr<PCGExData::IBufferProxy>> Buffers;
-		TArray<TSharedPtr<PCGExData::IDataValue>> DataValues;
-
-		FPCGAttributePropertyInputSelector Selector;
-
-		double Tolerance = DBL_COMPARE_TOLERANCE;
-		bool bInvertRule = false;
-		bool bAbsolute = false;
-	};
-
-	class PCGEXFOUNDATIONS_API FPointSorter : public TSharedFromThis<FPointSorter>
-	{
-	protected:
-		FPCGExContext* ExecutionContext = nullptr;
-		TArray<TSharedPtr<FRuleHandler>> RuleHandlers;
-		TMap<uint32, int32> IdxMap;
-
-	public:
-		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-		TSharedPtr<PCGExData::FFacade> DataFacade;
-
-		FPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs);
-		explicit FPointSorter(TArray<FPCGExSortRuleConfig> InRuleConfigs);
-
-		bool Init(FPCGExContext* InContext);
-		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades);
-		bool Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas);
-
-		bool Sort(const int32 A, const int32 B);
-		bool Sort(const PCGExData::FElement A, const PCGExData::FElement B);
-		bool SortData(const int32 A, const int32 B);
-	};
 
 	PCGEXFOUNDATIONS_API TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
 }

@@ -211,17 +211,7 @@ namespace PCGExData
 		}
 		else
 		{
-			// Same type - direct copy
-			// For complex types, this needs proper assignment
-			if constexpr (TypeTraits::TIsComplexType<T_REAL>)
-			{
-				*static_cast<T_REAL*>(OutValue) = RealValue;
-			}
-			else
-			{
-				// POD - can use raw copy
-				*static_cast<T_REAL*>(OutValue) = RealValue;
-			}
+			*static_cast<T_REAL*>(OutValue) = RealValue;
 		}
 	}
 

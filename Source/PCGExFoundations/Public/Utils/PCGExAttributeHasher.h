@@ -9,7 +9,7 @@
 #include "Containers/PCGExScopedContainers.h"
 #include "Core/PCGExMTCommon.h"
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Sorting/PCGExSorting.h"
+#include "Sorting/PCGExPointSorter.h"
 #include "PCGExAttributeHasher.generated.h"
 
 namespace PCGExMT

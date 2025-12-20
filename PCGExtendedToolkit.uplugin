@@ -157,6 +157,34 @@
       ]
     },
     {
+      "Name": "PCGExStates",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExCollections",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
       "Name": "PCGExtendedToolkit",
       "_comment": "📌REQUIRED",
       "Type": "Runtime",

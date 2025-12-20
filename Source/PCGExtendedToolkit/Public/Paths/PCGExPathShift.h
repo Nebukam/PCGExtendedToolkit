@@ -5,10 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExMath.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
-#include "Data/Blending/PCGExBlending.h"
 
 #include "PCGExPathShift.generated.h"
 

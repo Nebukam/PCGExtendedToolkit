@@ -5,8 +5,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExSortingDetails.h"
+#include "Factories/PCGExFactoryData.h"
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExSorting.h"
 
 #include "PCGExSortingRuleProvider.generated.h"
 

@@ -9,11 +9,9 @@
 #include "PCGExAssetCollectionTypes.h"
 #include "PCGExAssetGrammar.h"
 #include "Core/PCGExContext.h"
-#include "PCGExHelpers.h"
-#include "PCGExStreamingHelpers.h"
 #include "Details/PCGExDetailsStaging.h"
+#include "Streaming/PCGExStreamingHelpers.h"
 #include "Transform/PCGExFitting.h"
-#include "Transform/PCGExTransform.h"
 
 #include "PCGExAssetCollection.generated.h"
 

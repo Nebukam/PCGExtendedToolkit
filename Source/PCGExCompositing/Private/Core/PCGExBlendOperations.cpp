@@ -3,7 +3,7 @@
 
 #include "Core/PCGExBlendOperations.h"
 
-#include "PCGEx.h"
+#include "Core/PCGExOpStats.h"
 
 namespace PCGExBlending
 {

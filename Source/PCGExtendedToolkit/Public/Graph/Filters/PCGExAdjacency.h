@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExMathMean.h"
 #include "Bitmasks/PCGExBitmaskDetails.h"
+#include "Math/PCGExMathMean.h"
 
 #include "PCGExAdjacency.generated.h"
 
