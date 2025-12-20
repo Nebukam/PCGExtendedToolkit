@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExInstancedFactory.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 #include "PCGExEdgeRefineOperation.generated.h"
@@ -31,7 +31,7 @@ public:
 	TArray<int8>* VtxFilterCache = nullptr;
 	TArray<int8>* EdgeFilterCache = nullptr;
 
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics = nullptr)
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics = nullptr)
 	{
 		Cluster = InCluster;
 		Heuristics = InHeuristics;
@@ -60,7 +60,7 @@ public:
 
 protected:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
-	TSharedPtr<PCGExHeuristics::FHeuristicsHandler> Heuristics;
+	TSharedPtr<PCGExHeuristics::FHandler> Heuristics;
 	mutable FRWLock EdgeLock;
 	mutable FRWLock NodeLock;
 };

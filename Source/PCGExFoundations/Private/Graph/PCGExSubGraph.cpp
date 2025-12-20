@@ -9,7 +9,7 @@
 #include "Blenders/PCGExUnionBlender.h"
 #include "Metadata/PCGMetadata.h"
 
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Async/ParallelFor.h"
 #include "Core/PCGExBlending.h"
 #include "Core/PCGExOpStats.h"
@@ -18,7 +18,7 @@
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExGraphBuilder.h"
-#include "Graph/PCGExGraphLabels.h"
+#include "Cluster/PCGExGraphLabels.h"
 #include "Helpers/PCGExPointArrayDataHelpers.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Math/PCGExMathDistances.h"

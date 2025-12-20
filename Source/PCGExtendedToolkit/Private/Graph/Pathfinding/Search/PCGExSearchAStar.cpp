@@ -4,12 +4,12 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
-bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
+bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	check(InQuery->PickResolution == PCGExPathfinding::EQueryPickResolution::Success)
 

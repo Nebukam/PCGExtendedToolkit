@@ -18,7 +18,7 @@ namespace PCGExCluster
 class FPCGExEdgeRefineByFilter : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
 	{
 		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 0 : 1;

@@ -1,12 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Filters/PCGExFilterFactoryProvider.h"
+#include "Filters/PCGExFilterFactoryProvider.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExLabels.h"
-#include "Data/PCGExPointFilter.h"
-#include "Misc/Filters/PCGExConstantFilter.h"
+#include "Containers/PCGExManagedObjects.h"
+#include "Filters/PCGExFilterLabels.h"
+#include "Filters/Elements/PCGExConstantFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateFilter"
 #define PCGEX_NAMESPACE PCGExCreateFilter

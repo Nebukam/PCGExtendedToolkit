@@ -8,7 +8,7 @@
 #include "Details/PCGExSettingsMacros.h"
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "Misc/Filters/PCGExFilterFactoryProvider.h"
+#include "Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExNodeEdgeDirectionFilter.generated.h"
 

@@ -41,7 +41,7 @@ class FPCGExSearchOperation;
 
 namespace PCGExHeuristics
 {
-	class FHeuristicsHandler;
+	class FHandler;
 }
 
 UENUM()
@@ -202,7 +202,7 @@ namespace PCGExPathfinding
 		void AddPathNode(const int32 InNodeIndex, const int32 InEdgeIndex = -1);
 		void SetResolution(const EPathfindingResolution InResolution);
 
-		void FindPath(const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
+		void FindPath(const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& HeuristicsHandler, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
 
 		void AppendNodePoints(TArray<int32>& OutPoints, const int32 TruncateStart = 0, const int32 TruncateEnd = 0) const;
 
@@ -233,7 +233,7 @@ namespace PCGExPathfinding
 
 		void BuildPlotQuery(const TSharedPtr<PCGExData::FFacade>& InPlot, const FPCGExNodeSelectionDetails& SeedSelectionDetails, const FPCGExNodeSelectionDetails& GoalSelectionDetails);
 
-		void FindPaths(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler);
+		void FindPaths(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& HeuristicsHandler);
 
 		void Cleanup();
 	};

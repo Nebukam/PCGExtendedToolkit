@@ -14,7 +14,7 @@
 namespace PCGExHeuristics
 {
 	class FLocalFeedbackHandler;
-	class FHeuristicsHandler;
+	class FHandler;
 }
 
 namespace PCGExPathfinding
@@ -38,7 +38,7 @@ public:
 	PCGExCluster::FCluster* Cluster = nullptr;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
-	virtual bool ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
+	virtual bool ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
 
 	virtual TSharedPtr<PCGExPathfinding::FSearchAllocations> NewAllocations() const;
 };

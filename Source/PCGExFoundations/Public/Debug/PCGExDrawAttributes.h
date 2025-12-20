@@ -5,14 +5,15 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExHelpers.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExAttributesDetails.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #include "PCGExDrawAttributes.generated.h"
 
 namespace PCGExData
 {
+	class FPointIO;
 	template <typename T>
 	class TAttributeBroadcaster;
 }

@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExHeuristicsFactoryProvider.h"
+#include "Heuristics/PCGExHeuristicOperation.h"
 #include "UObject/Object.h"
-#include "PCGExHeuristicOperation.h"
+#include "Heuristics/PCGExHeuristicsFactoryProvider.h"
 
 #include "PCGExHeuristicFeedback.generated.h"
 

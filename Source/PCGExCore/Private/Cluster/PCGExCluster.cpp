@@ -1,12 +1,12 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
-#include "Graph/PCGExGraphLabels.h"
+#include "Cluster/PCGExGraphLabels.h"
 #include "Math/PCGExMathAxis.h"
 
 namespace PCGExCluster

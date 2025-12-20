@@ -9,7 +9,7 @@
 #include "Blenders/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"

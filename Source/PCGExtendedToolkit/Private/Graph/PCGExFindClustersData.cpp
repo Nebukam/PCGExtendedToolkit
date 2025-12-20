@@ -5,7 +5,7 @@
 
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExClusterUtils.h"
+#include "Cluster/PCGExClusterDataLibrary.h"
 #include "Graph/PCGExGraph.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 

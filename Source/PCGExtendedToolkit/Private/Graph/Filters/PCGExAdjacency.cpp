@@ -8,7 +8,7 @@
 #include "Collections/PCGExBitmaskCollection.h"
 #include "Bitmasks/PCGExBitmaskDetails.h"
 #include "Data/PCGExData.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 bool FPCGExAdjacencySettings::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet)
 {

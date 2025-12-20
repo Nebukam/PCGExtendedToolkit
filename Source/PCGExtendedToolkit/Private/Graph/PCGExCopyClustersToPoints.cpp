@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoTasks.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 

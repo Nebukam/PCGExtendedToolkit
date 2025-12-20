@@ -10,8 +10,8 @@
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExMetadataBlender.h"
 #include "Math/PCGExBoundsCloud.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExEdge.h"
+#include "Cluster/PCGExCluster.h"
+#include "Cluster/PCGExEdge.h"
 #include "Graph/PCGExGraph.h"
 #include "Sampling/PCGExSampling.h"
 

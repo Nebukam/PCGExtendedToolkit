@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Details/PCGExCompareShorthandsDetails.h"
-#include "Misc/Filters/PCGExFilterFactoryProvider.h"
+#include "Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExDataBoundsFilter.generated.h"
 

@@ -1,8 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
-#include "Graph/PCGExCluster.h"
+#include "Heuristics/Elements/PCGExHeuristicFeedback.h"
+#include "Cluster/PCGExCluster.h"
+#include "Containers/PCGExManagedObjects.h"
 
 double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {

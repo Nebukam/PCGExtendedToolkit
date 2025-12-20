@@ -5,7 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"

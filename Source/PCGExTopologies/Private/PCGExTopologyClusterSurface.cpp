@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "TopologyClustersProcessor"
 #define PCGEX_NAMESPACE TopologyClustersProcessor

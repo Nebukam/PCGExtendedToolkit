@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE WriteStates

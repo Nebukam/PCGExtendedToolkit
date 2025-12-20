@@ -5,7 +5,7 @@
 
 #include "PCGExStreamingHelpers.h"
 #include "Blenders/PCGExMetadataBlender.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"

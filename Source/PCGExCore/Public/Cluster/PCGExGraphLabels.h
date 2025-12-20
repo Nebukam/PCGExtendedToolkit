@@ -14,14 +14,22 @@ namespace PCGExGraph
 
 		const FName SourceEdgesLabel = TEXT("Edges");
 		const FName OutputEdgesLabel = TEXT("Edges");
-		const FName OutputSitesLabel = TEXT("Sites");
+
+		const FName SourceVerticesLabel = TEXT("Vtx");
+		const FName OutputVerticesLabel = TEXT("Vtx");
 
 		const FName OutputKeptEdgesLabel = TEXT("Kept Edges");
 		const FName OutputRemovedEdgesLabel = TEXT("Removed Edges");
 
+		const FName OutputSitesLabel = TEXT("Sites");
+
+		const FName SourceVtxFiltersLabel = FName("VtxFilters");
+		const FName SourceEdgeFiltersLabel = FName("EdgeFilters");
+
 		const FName SourcePackedClustersLabel = TEXT("Packed Clusters");
-		const FName SourceEdgeSortingRules = TEXT("Direction Sorting");
 		const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
+
+		const FName SourceEdgeSortingRules = TEXT("Direction Sorting");
 
 		const FName Attr_PCGExEdgeIdx = FName(PCGExCommon::PCGExPrefix + TEXT("EData"));
 		const FName Attr_PCGExVtxIdx = FName(PCGExCommon::PCGExPrefix + TEXT("VData"));

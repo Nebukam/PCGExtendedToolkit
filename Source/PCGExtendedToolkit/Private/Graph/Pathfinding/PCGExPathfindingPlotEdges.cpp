@@ -13,8 +13,8 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExClusterUtils.h"
+#include "Cluster/PCGExCluster.h"
+#include "Cluster/PCGExClusterDataLibrary.h"
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
@@ -67,7 +67,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 	return PinProperties;
 }
 
-void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler>& ClusterForwardHandler) const
+void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExCluster::FClusterDataForwardHandler>& ClusterForwardHandler) const
 {
 	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
 
@@ -313,7 +313,7 @@ namespace PCGExPathfindingPlotEdges
 
 		if (ValidPlots.IsEmpty()) { return false; }
 
-		ClusterDataForwardHandler = MakeShared<PCGExClusterUtils::FClusterDataForwardHandler>(Cluster, StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->VtxDataForwardHandler, Context->EdgesDataForwarding.TryGetHandler(EdgeDataFacade, false));
+		ClusterDataForwardHandler = MakeShared<PCGExCluster::FClusterDataForwardHandler>(Cluster, StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->VtxDataForwardHandler, Context->EdgesDataForwarding.TryGetHandler(EdgeDataFacade, false));
 
 		if (Settings->bUseOctreeSearch)
 		{

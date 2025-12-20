@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExHeuristicFeedback.h"
 #include "PCGExHeuristicsFactoryProvider.h"
+#include "Cluster/PCGExNode.h"
 #include "PCGExHeuristics.generated.h"
 
 UENUM()
@@ -60,7 +60,7 @@ namespace PCGExHeuristics
 		}
 	};
 
-	class PCGEXFOUNDATIONS_API FHeuristicsHandler : public TSharedFromThis<FHeuristicsHandler>
+	class PCGEXFOUNDATIONS_API FHandler : public TSharedFromThis<FHandler>
 	{
 		FPCGExContext* ExecutionContext = nullptr;
 		bool bIsValidHandler = false;
@@ -85,8 +85,8 @@ namespace PCGExHeuristics
 		bool HasLocalFeedback() const { return !LocalFeedbackFactories.IsEmpty(); };
 		bool HasAnyFeedback() const { return HasGlobalFeedback() || HasLocalFeedback(); };
 
-		FHeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
-		~FHeuristicsHandler();
+		FHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
+		~FHandler();
 
 		bool BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
 		void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);

@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
@@ -105,7 +105,7 @@ namespace PCGExPathfinding
 		}
 	}
 
-	void FPathQuery::FindPath(const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback)
+	void FPathQuery::FindPath(const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& HeuristicsHandler, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback)
 	{
 		if (PickResolution != EQueryPickResolution::Success)
 		{
@@ -204,7 +204,7 @@ namespace PCGExPathfinding
 		}
 	}
 
-	void FPlotQuery::FindPaths(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler)
+	void FPlotQuery::FindPaths(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& HeuristicsHandler)
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, PlotTasks)
 

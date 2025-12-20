@@ -8,7 +8,7 @@
 #include "Blenders/PCGExBlendOpsManager.h"
 #include "Blenders/PCGExMetadataBlender.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 #define LOCTEXT_NAMESPACE "WriteEdgeProperties"

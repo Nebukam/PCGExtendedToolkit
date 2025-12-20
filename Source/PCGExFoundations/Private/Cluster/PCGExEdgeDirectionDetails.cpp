@@ -1,13 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExEdgeDirectionSettings.h"
+#include "Cluster/PCGExEdgeDirectionDetails.h"
 
 #include "Core/PCGExContext.h"
 #include "Data/PCGExDataPreloader.h"
-#include "PCGExSorting.h"
 #include "Data/PCGExData.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
+#include "Sorting/PCGExSorting.h"
 
 void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>* InSortingRules) const
 {

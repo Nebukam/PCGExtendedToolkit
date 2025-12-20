@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDistancesDetails.h"
+#include "Math/PCGExMathDistances.h"
 
 namespace PCGExData
 {

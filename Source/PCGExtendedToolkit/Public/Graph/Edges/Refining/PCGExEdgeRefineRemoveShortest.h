@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "PCGExEdgeRefineRemoveShortest.generated.h"
 
 /**

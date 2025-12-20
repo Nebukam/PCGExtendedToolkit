@@ -4,10 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEdge.h"
-#include "PCGExSorting.h"
+#include "Cluster/PCGExEdge.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
-#include "PCGExEdgeDirectionSettings.generated.h"
+#include "PCGExEdgeDirectionDetails.generated.h"
+
+struct FPCGExSortRuleConfig;
+struct FPCGExContext;
+
+namespace PCGExSorting
+{
+	class FPointSorter;
+}
 
 namespace PCGExCluster
 {
@@ -16,6 +24,7 @@ namespace PCGExCluster
 
 namespace PCGExData
 {
+	class FFacade;
 	class FFacadePreloader;
 
 	template <typename T>
@@ -23,7 +32,7 @@ namespace PCGExData
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionSettings
+struct PCGEXFOUNDATIONS_API FPCGExEdgeDirectionSettings
 {
 	GENERATED_BODY()
 

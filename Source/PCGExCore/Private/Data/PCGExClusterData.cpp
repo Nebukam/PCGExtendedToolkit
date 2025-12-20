@@ -6,7 +6,7 @@
 
 #include "Data/PCGExPointIO.h"
 #include "PCGExGlobalSettings.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoClusterPart, UPCGExClusterData)
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoVtx, UPCGExClusterNodesData)

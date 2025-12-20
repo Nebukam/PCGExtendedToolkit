@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Blenders/PCGExBlendOpsManager.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlOperation.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
@@ -52,7 +52,7 @@ namespace PCGExFloodFill
 		// Gather all neighbors and compute heuristics, add to candidate for the first time only
 		bool bIsAlreadyInSet = false;
 
-		TSharedPtr<PCGExHeuristics::FHeuristicsHandler> HeuristicsHandler = FillControlsHandler->HeuristicsHandler.Pin();
+		TSharedPtr<PCGExHeuristics::FHandler> HeuristicsHandler = FillControlsHandler->HeuristicsHandler.Pin();
 		if (!HeuristicsHandler) { return; }
 
 		const PCGExCluster::FNode& FromNode = *From.Node;

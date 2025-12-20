@@ -12,7 +12,7 @@
 #include "PCGExVersion.h"
 #include "Details/PCGExMacros.h"
 #include "Geometry/PCGExGeo.h"
-#include "Graph/PCGExEdge.h"
+#include "Cluster/PCGExEdge.h"
 #include "Utils/PCGValueRange.h"
 
 #include "PCGExPaths.generated.h"

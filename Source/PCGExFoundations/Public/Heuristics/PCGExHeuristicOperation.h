@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Cluster/PCGExClusterCommon.h"
 #include "UObject/Object.h"
-#include "Curves/CurveFloat.h"
-#include "Curves/RichCurve.h"
-#include "PCGExOperation.h"
-#include "Details/PCGExDetailsCluster.h"
+#include "Factories/PCGExOperation.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Utils/PCGExCurveLookup.h"
 

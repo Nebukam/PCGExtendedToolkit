@@ -8,6 +8,11 @@
 #include "UObject/Object.h"
 #include "Data/PCGExPointElements.h"
 
+namespace PCGExMath
+{
+	class FDistances;
+}
+
 namespace PCGEx
 {
 	class FIndexLookup;

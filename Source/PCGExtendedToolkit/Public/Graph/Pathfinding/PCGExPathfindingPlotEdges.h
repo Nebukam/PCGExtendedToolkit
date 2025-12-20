@@ -15,7 +15,7 @@
 
 #include "PCGExPathfindingPlotEdges.generated.h"
 
-namespace PCGExClusterUtils
+namespace PCGExCluster
 {
 	class FClusterDataForwardHandler;
 }
@@ -160,7 +160,7 @@ struct FPCGExPathfindingPlotEdgesContext final : FPCGExClustersProcessorContext
 
 	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
 
-	void BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler>& ClusterForwardHandler = nullptr) const;
+	void BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExCluster::FClusterDataForwardHandler>& ClusterForwardHandler = nullptr) const;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -189,7 +189,7 @@ namespace PCGExPathfindingPlotEdges
 		TArray<TSharedPtr<PCGExData::FPointIO>> QueriesIO;
 		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
 
-		TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler> ClusterDataForwardHandler;
+		TSharedPtr<PCGExCluster::FClusterDataForwardHandler> ClusterDataForwardHandler;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)

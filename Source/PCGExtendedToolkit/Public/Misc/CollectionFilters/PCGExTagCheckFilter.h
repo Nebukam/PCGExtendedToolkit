@@ -13,7 +13,7 @@
 #include "Data/PCGExFilterGroup.h"
 
 
-#include "Misc/Filters/PCGExFilterFactoryProvider.h"
+#include "Filters/PCGExFilterFactoryProvider.h"
 
 
 #include "PCGExTagCheckFilter.generated.h"

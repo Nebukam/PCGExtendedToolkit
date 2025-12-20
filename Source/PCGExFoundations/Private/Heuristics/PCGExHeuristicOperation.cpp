@@ -2,11 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
+#include "Heuristics/PCGExHeuristicOperation.h"
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 
 void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)

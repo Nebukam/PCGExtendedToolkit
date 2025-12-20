@@ -4,7 +4,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
@@ -16,19 +16,19 @@ _OP->ReferenceWeight = ReferenceWeight * _FACTORY->WeightFactor;
 
 namespace PCGExHeuristics
 {
-	FHeuristicsHandler::FHeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
+	FHandler::FHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
 		: ExecutionContext(InContext), VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{
 		bIsValidHandler = BuildFrom(InContext, InFactories);
 	}
 
-	FHeuristicsHandler::~FHeuristicsHandler()
+	FHandler::~FHandler()
 	{
 		Operations.Empty();
 		Feedbacks.Empty();
 	}
 
-	bool FHeuristicsHandler::BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
+	bool FHandler::BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
 	{
 		for (const UPCGExHeuristicsFactoryData* OperationFactory : InFactories)
 		{
@@ -72,7 +72,7 @@ namespace PCGExHeuristics
 		return true;
 	}
 
-	void FHeuristicsHandler::PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster)
+	void FHandler::PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster)
 	{
 		InCluster->ComputeEdgeLengths(true); // TODO : Make our own copy
 
@@ -85,13 +85,13 @@ namespace PCGExHeuristics
 		}
 	}
 
-	void FHeuristicsHandler::CompleteClusterPreparation()
+	void FHandler::CompleteClusterPreparation()
 	{
 		TotalStaticWeight = 0;
 		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
 	}
 
-	double FHeuristicsHandler::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback) const
+	double FHandler::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback) const
 	{
 		double GScore = 0;
 		double EWeight = TotalStaticWeight;
@@ -105,7 +105,7 @@ namespace PCGExHeuristics
 		return GScore / EWeight;
 	}
 
-	double FHeuristicsHandler::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback, const TSharedPtr<PCGEx::FHashLookup>& TravelStack) const
+	double FHandler::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback, const TSharedPtr<PCGEx::FHashLookup>& TravelStack) const
 	{
 		double EScore = 0;
 		double EWeight = TotalStaticWeight;
@@ -140,45 +140,45 @@ namespace PCGExHeuristics
 		return EScore / EWeight;
 	}
 
-	void FHeuristicsHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
+	void FHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
 	{
 		for (const TSharedPtr<FPCGExHeuristicFeedback>& Op : Feedbacks) { Op->FeedbackPointScore(Node); }
 	}
 
-	void FHeuristicsHandler::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
+	void FHandler::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
 	{
 		for (const TSharedPtr<FPCGExHeuristicFeedback>& Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 	}
 
-	FVector FHeuristicsHandler::GetSeedUVW() const
+	FVector FHandler::GetSeedUVW() const
 	{
 		FVector UVW = FVector::ZeroVector;
 		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { UVW += Op->GetSeedUVW(); }
 		return UVW;
 	}
 
-	FVector FHeuristicsHandler::GetGoalUVW() const
+	FVector FHandler::GetGoalUVW() const
 	{
 		FVector UVW = FVector::ZeroVector;
 		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { UVW += Op->GetGoalUVW(); }
 		return UVW;
 	}
 
-	const PCGExCluster::FNode* FHeuristicsHandler::GetRoamingSeed()
+	const PCGExCluster::FNode* FHandler::GetRoamingSeed()
 	{
 		if (RoamingSeedNode) { return RoamingSeedNode; }
 		RoamingSeedNode = Cluster->GetRoamingNode(GetSeedUVW());
 		return RoamingSeedNode;
 	}
 
-	const PCGExCluster::FNode* FHeuristicsHandler::GetRoamingGoal()
+	const PCGExCluster::FNode* FHandler::GetRoamingGoal()
 	{
 		if (RoamingGoalNode) { return RoamingGoalNode; }
 		RoamingGoalNode = Cluster->GetRoamingNode(GetGoalUVW());
 		return RoamingGoalNode;
 	}
 
-	TSharedPtr<FLocalFeedbackHandler> FHeuristicsHandler::MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+	TSharedPtr<FLocalFeedbackHandler> FHandler::MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 	{
 		if (LocalFeedbackFactories.IsEmpty()) { return nullptr; }
 

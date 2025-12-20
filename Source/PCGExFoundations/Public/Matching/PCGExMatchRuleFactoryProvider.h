@@ -6,7 +6,8 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExMatching.h"
-#include "PCGExOperation.h"
+#include "Factories/PCGExFactoryData.h"
+#include "Factories/PCGExOperation.h"
 
 #include "PCGExMatchRuleFactoryProvider.generated.h"
 

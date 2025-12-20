@@ -165,7 +165,7 @@ namespace PCGExFloodFill
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 		TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
-		TWeakPtr<PCGExHeuristics::FHeuristicsHandler> HeuristicsHandler;
+		TWeakPtr<PCGExHeuristics::FHandler> HeuristicsHandler;
 
 		TArray<TSharedPtr<FPCGExFillControlOperation>> Operations;
 

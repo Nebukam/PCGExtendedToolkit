@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExDataFilter.h"
-#include "Graph/PCGExEdge.h"
+#include "Cluster/PCGExEdge.h"
 
 #include "Math/PCGExWinding.h"
 #include "PCGExCellDetails.generated.h"

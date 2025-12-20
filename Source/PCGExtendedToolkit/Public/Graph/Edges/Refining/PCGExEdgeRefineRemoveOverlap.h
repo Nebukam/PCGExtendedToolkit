@@ -7,7 +7,7 @@
 
 #include "PCGExEdgeRefineOperation.h"
 #include "PCGExMath.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineRemoveOverlap.generated.h"
 
@@ -24,7 +24,7 @@ enum class EPCGExEdgeOverlapPick : uint8
 class FPCGExEdgeRemoveOverlap : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
 	{
 		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;

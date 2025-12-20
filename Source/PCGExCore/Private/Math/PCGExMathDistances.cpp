@@ -133,8 +133,3 @@ namespace PCGExMath
 		return GetDistances(EPCGExDistance::None, EPCGExDistance::None);
 	}
 }
-
-const PCGExMath::FDistances* FPCGExDistanceDetails::MakeDistances() const
-{
-	return PCGExMath::GetDistances(Source, Target);
-}

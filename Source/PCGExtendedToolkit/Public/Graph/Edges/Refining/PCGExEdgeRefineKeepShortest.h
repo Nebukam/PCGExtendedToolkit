@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "PCGExEdgeRefineKeepShortest.generated.h"
 
 class UPCGExHeuristicLocalDistance;

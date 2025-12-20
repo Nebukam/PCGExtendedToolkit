@@ -10,7 +10,7 @@
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Async/ParallelFor.h"
 #include "PCGExVersion.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFilterVtx"
 #define PCGEX_NAMESPACE FilterVtx

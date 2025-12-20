@@ -1,13 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExClusterUtils.h"
+#include "Cluster/PCGExClusterDataLibrary.h"
 
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
-namespace PCGExClusterUtils
+namespace PCGExCluster
 {
 	FClusterDataLibrary::FClusterDataLibrary(const bool InDisableInvalidData)
 	{

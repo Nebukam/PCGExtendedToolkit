@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "PCGExMath.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "PCGExEdgeRefineSkeleton.generated.h"
 
 /**
@@ -15,7 +15,7 @@
 class FPCGExEdgeRefineSkeleton : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
 	{
 		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 1 : 0;

@@ -4,14 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExHeuristicsLabels.h"
+#include "Cluster/PCGExClusterCommon.h"
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExLabels.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
-
-#include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsCluster.h"
+#include "Factories/PCGExFactoryData.h"
 #include "Utils/PCGExCurveLookup.h"
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"
@@ -90,7 +89,7 @@ struct PCGEXFOUNDATIONS_API FPCGExHeuristicConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails ScoreCurveLookup;
-	
+
 	PCGExFloatLUT ScoreLUT = nullptr;
 
 	/** Use a local attribute */
@@ -150,6 +149,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputHeuristicsLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExHeuristics::Labels::OutputHeuristicsLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

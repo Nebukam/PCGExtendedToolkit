@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExLink.h"
+#include "Cluster/PCGExLink.h"
 
 namespace PCGExGraph
 {

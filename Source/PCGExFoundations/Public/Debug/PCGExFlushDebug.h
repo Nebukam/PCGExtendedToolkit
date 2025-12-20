@@ -4,8 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Core/PCGExContext.h"
+#include "Core/PCGExElement.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExSettings.h"
+#include "Details/PCGExMacros.h"
 
 #include "PCGExFlushDebug.generated.h"
 

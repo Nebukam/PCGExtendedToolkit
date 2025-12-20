@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExClusterMT.h"
-#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
+#include "Cluster/PCGExGraphLabels.h"
 
 #include "PCGExClustersProcessor.generated.h"
 
@@ -18,9 +18,9 @@ return MakeShared<PCGEx##_CLASS::FBatch>(const_cast<FPCGEx##_CLASS##Context*>(th
 
 #define PCGEX_CLUSTER_BATCH_PROCESSING(_STATE) if (!Context->ProcessClusters(_STATE)) { return false; }
 
-namespace PCGExClusterUtils
+namespace PCGExCluster
 {
-	class FClusterDataLibrary;
+	class FDataLibrary;
 }
 
 namespace PCGExData
@@ -52,8 +52,8 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const;
 
-	virtual FName GetMainInputPin() const override { return PCGExGraph::SourceVerticesLabel; }
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainInputPin() const override { return PCGExGraph::Labels::SourceVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExGraph::Labels::OutputVerticesLabel; }
 
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings
@@ -82,7 +82,7 @@ struct PCGEXFOUNDATIONS_API FPCGExClustersProcessorContext : FPCGExPointsProcess
 	bool bQuietMissingClusterPairElement = false;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
-	TSharedPtr<PCGExClusterUtils::FClusterDataLibrary> ClusterDataLibrary;
+	TSharedPtr<PCGExCluster::FDataLibrary> ClusterDataLibrary;
 	TSharedPtr<PCGExData::FPointIOTaggedEntries> TaggedEdges;
 
 	const TArray<FPCGExSortRuleConfig>* GetEdgeSortingRules() const;

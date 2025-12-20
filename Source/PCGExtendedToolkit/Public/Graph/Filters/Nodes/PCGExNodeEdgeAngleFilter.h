@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "Misc/Filters/PCGExFilterFactoryProvider.h"
+#include "Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExNodeEdgeAngleFilter.generated.h"
 

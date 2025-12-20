@@ -9,7 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/ConvexHull2d.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"

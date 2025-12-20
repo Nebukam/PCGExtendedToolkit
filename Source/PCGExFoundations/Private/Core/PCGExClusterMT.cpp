@@ -1,16 +1,17 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExClusterMT.h"
+#include "Core/PCGExClusterMT.h"
 
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
+#include "Cluster/PCGExCluster.h"
+#include "Data/PCGExClusterData.h"
+#include "Heuristics/PCGExHeuristics.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Math/PCGExProjectionDetails.h"
+#include "Pickers/Elements/PCGExPickerAttributeSet.h"
 
 namespace PCGExClusterMT
 {
@@ -161,7 +162,7 @@ namespace PCGExClusterMT
 		if (bWantsHeuristics)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
-			HeuristicsHandler = MakeShared<PCGExHeuristics::FHeuristicsHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade, *HeuristicsFactories);
+			HeuristicsHandler = MakeShared<PCGExHeuristics::FHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade, *HeuristicsFactories);
 
 			if (!HeuristicsHandler->IsValidHandler()) { return false; }
 
@@ -529,7 +530,13 @@ namespace PCGExClusterMT
 	{
 		if (!bIsBatchValid) { return; }
 
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->TaskManager); }, { Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){ PCGEX_ASYNC_THIS This->OnInitialPostProcess(); };})
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, {Processor->bIsProcessorValid = Processor->Process(This->TaskManager); }, {
+			                        Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+			                        {
+				                        PCGEX_ASYNC_THIS
+				                        This->OnInitialPostProcess();
+			                        };
+		                        })
 	}
 
 	void IBatch::OnInitialPostProcess()

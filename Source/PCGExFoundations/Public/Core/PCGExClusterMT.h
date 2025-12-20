@@ -5,55 +5,30 @@
 
 #include "PCGExVersion.h"
 #include "CoreMinimal.h"
+#include "Cluster/PCGExEdgeDirectionDetails.h"
 #include "Core/PCGExContext.h"
-#include "PCGExEdgeDirectionSettings.h"
+#include "Math/PCGExProjectionDetails.h"
+
 #if PCGEX_ENGINE_VERSION > 506
 #include "PCGPointPropertiesTraits.h"
 #else
 #include "PCGCommon.h"
 #endif
-#include "Graph/PCGExGraphDetails.h"
-#include "Geometry/PCGExGeo.h"
 
-namespace PCGExMT
-{
-	class FTaskManager;
-}
+#include "Graph/PCGExGraphDetails.h"
 
 template <typename T>
 class FPCGMetadataAttribute;
-
-class UPCGSettings;
-struct FPCGExContext;
-
-namespace PCGExGraph
-{
-	struct FGraphMetadataDetails;
-	class FGraphBuilder;
-}
+class UPCGExHeuristicsFactoryData;
 
 namespace PCGEx
 {
-	class FWorkHandle;
+	class FIndexLookup;
 }
-
-namespace PCGExCluster
-{
-	struct FNode;
-}
-
-class UPCGExPointFilterFactoryData;
 
 namespace PCGExHeuristics
 {
-	class FHeuristicsHandler;
-}
-
-class UPCGExHeuristicsFactoryData;
-
-namespace PCGExClusterFilter
-{
-	class FManager;
+	class FHandler;
 }
 
 namespace PCGExClusterMT
@@ -113,7 +88,7 @@ namespace PCGExClusterMT
 
 		bool bIsProcessorValid = false;
 
-		TSharedPtr<PCGExHeuristics::FHeuristicsHandler> HeuristicsHandler;
+		TSharedPtr<PCGExHeuristics::FHandler> HeuristicsHandler;
 
 		bool bIsTrivial = false;
 		bool bIsOneToOne = false;

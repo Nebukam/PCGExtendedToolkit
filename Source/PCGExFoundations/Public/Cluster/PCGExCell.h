@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Containers/PCGExScopedContainers.h"
 #include "Data/PCGExDataFilter.h"
-#include "Graph/PCGExEdge.h"
+#include "Cluster/PCGExEdge.h"
 #include "Math/PCGExProjectionDetails.h"
 #include "Math/PCGExWinding.h"
 

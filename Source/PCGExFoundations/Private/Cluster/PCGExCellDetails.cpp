@@ -11,8 +11,8 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraphLabels.h"
+#include "Cluster/PCGExCluster.h"
+#include "Cluster/PCGExGraphLabels.h"
 
 void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const
 {

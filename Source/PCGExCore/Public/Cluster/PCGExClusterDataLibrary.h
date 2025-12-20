@@ -24,7 +24,7 @@ namespace PCGExData
 	class FPointIOTaggedDictionary;
 }
 
-namespace PCGExClusterUtils
+namespace PCGExCluster
 {
 	using FProblem = TTuple<bool, FText>;
 
@@ -44,7 +44,7 @@ namespace PCGExClusterUtils
 
 	static const TMap<EProblem, FProblem> EProblemLogs = {{EProblem::DoubleMarking, FProblem{false, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety.")}}, {EProblem::VtxTagButNoMeta, FProblem{false, FTEXT("A Vtx-tagged input has no metadata and will be discarded.")}}, {EProblem::EdgeTagButNoMeta, FProblem{false, FTEXT("An Edges-tagged input has no edge metadata and will be discarded.")}}, {EProblem::NoTags, FProblem{false, FTEXT("An input data is neither tagged Vtx or Edges and will be ignored.")}}, {EProblem::VtxDupes, FProblem{true, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed.")}}, {EProblem::RoamingEdges, FProblem{true, FTEXT("Some input edges have no associated vtx.")}}, {EProblem::RoamingVtx, FProblem{true, FTEXT("Some input vtx have no associated edges.")}}, {EProblem::VtxWrongPin, FProblem{true, FTEXT("There are vtx in the edge pin. They will be ignored.")}}, {EProblem::EdgeWrongPin, FProblem{true, FTEXT("There are edges in the vtx pin. They will be ignored.")}}};
 
-	class PCGEXFOUNDATIONS_API FClusterDataLibrary : public TSharedFromThis<FClusterDataLibrary>
+	class PCGEXCORE_API FDataLibrary : public TSharedFromThis<FDataLibrary>
 	{
 		bool bDisableInvalidData = true;
 		TArray<int32> ProblemsTracker;
@@ -57,7 +57,7 @@ namespace PCGExClusterUtils
 
 		TSharedPtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
 
-		explicit FClusterDataLibrary(const bool InDisableInvalidData);
+		explicit FDataLibrary(const bool InDisableInvalidData);
 
 		bool Build(const TSharedPtr<PCGExData::FPointIOCollection>& InMixedCollection);
 		bool Build(const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection, const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection);
@@ -76,7 +76,7 @@ namespace PCGExClusterUtils
 	};
 
 	// Utility to forward data from vtx/edges clusters to path-like outputs (cells, paths, etc)
-	class PCGEXFOUNDATIONS_API FClusterDataForwardHandler : public TSharedFromThis<FClusterDataForwardHandler>
+	class PCGEXCORE_API FClusterDataForwardHandler : public TSharedFromThis<FClusterDataForwardHandler>
 	{
 	protected:
 		TSharedPtr<PCGExCluster::FCluster> Cluster;

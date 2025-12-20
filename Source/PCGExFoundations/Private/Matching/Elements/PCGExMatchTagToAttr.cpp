@@ -1,11 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/Matching/PCGExMatchTagToAttr.h"
+#include "Matching/Elements/PCGExMatchTagToAttr.h"
 
-#include "PCGExHelpers.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
+#include "Factories/PCGExFactoryData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExMatchTagToAttr"

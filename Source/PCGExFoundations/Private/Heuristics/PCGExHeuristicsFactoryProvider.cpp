@@ -1,9 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
+#include "Heuristics/PCGExHeuristicsFactoryProvider.h"
 
-#include "PCGExHelpers.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics

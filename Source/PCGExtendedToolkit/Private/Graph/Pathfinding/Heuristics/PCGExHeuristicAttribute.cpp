@@ -8,7 +8,7 @@
 #include "PCGExMath.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"
 #define PCGEX_NAMESPACE CreateHeuristicAttribute

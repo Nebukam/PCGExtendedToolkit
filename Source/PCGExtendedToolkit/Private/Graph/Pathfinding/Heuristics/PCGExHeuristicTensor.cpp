@@ -5,7 +5,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicTensor.h"
 
 
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"

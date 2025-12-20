@@ -7,7 +7,7 @@
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIOMerger.h"
-#include "Graph/PCGExCluster.h"
+#include "Cluster/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPackClusters"
 #define PCGEX_NAMESPACE PackClusters

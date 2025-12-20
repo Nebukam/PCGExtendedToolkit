@@ -5,8 +5,8 @@
 #include "Graph/PCGExGraphHelpers.h"
 
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExEdge.h"
-#include "Graph/PCGExGraphLabels.h"
+#include "Cluster/PCGExEdge.h"
+#include "Cluster/PCGExGraphLabels.h"
 #include "Async/ParallelFor.h"
 #include "Data/PCGExDataTags.h"
 #include "Helpers/PCGExArrayHelpers.h"

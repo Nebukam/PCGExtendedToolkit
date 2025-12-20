@@ -7,7 +7,7 @@
 #include "PCGExCompare.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "Misc/Filters/PCGExFilterFactoryProvider.h"
+#include "Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExNodeNeighborsCountFilter.generated.h"
 
