@@ -1,17 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 
-#include "PCGExElement.h"
-#include "Styling/SlateStyle.h"
 #include "PCGPin.h"
-
-#include "PCGExMT.h"
-#include "Helpers/PCGSettingsHelpers.h"
-#include "Misc/PCGExMergePoints.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
+#include "Filters/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

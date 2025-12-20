@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
+#include "Data/PCGExDataCommon.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExMatching.generated.h"
 
@@ -107,17 +107,3 @@ struct PCGEXFOUNDATIONS_API FPCGExMatchingDetails
 
 	bool WantsUnmatchedSplit() const { return Mode != EPCGExMapMatchMode::Disabled && bSplitUnmatched; }
 };
-
-namespace PCGExMatching
-{
-	const FName OutputMatchRuleLabel = TEXT("Match Rule");
-	const FName SourceMatchRulesLabel = TEXT("Match Rules");
-	const FName SourceMatchRulesEdgesLabel = TEXT("Match Rules (Edges)");
-	const FName OutputUnmatchedLabel = TEXT("Unmatched");
-	const FName OutputUnmatchedVtxLabel = TEXT("Unmatched Vtx");
-	const FName OutputUnmatchedEdgesLabel = TEXT("Unmatched Edges");
-
-	PCGEXFOUNDATIONS_API void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
-
-	PCGEXFOUNDATIONS_API void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
-}

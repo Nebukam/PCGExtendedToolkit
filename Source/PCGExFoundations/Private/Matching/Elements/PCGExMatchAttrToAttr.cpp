@@ -1,9 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/Matching/PCGExMatchAttrToAttr.h"
+#include "Matching/Elements/PCGExMatchAttrToAttr.h"
 
-#include "PCGExHelpers.h"
+#include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointElements.h"

@@ -4,10 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMatchRuleFactoryProvider.h"
-#include "PCGExMath.h"
-#include "PCGExPointsProcessor.h"
-
+#include "Matching/PCGExMatchRuleFactoryProvider.h"
 #include "PCGExMatchByIndex.generated.h"
 
 namespace PCGExData

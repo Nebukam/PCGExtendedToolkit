@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
-#include "PCGExMatchRuleFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
-
+#include "Matching/PCGExMatchRuleFactoryProvider.h"
 #include "PCGExMatchSharedTag.generated.h"
+
+struct FPCGExTaggedData;
 
 namespace PCGExData
 {
+	class FTags;
 	template <typename T>
 	class TAttributeBroadcaster;
 }

@@ -4,10 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMatchRuleFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
-
-
+#include "Matching/PCGExMatchRuleFactoryProvider.h"
 #include "PCGExMatchRandom.generated.h"
 
 namespace PCGExData
@@ -82,7 +79,7 @@ class UPCGExCreateMatchRandomSettings : public UPCGExMatchRuleFactoryProviderSet
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchRandom, "Match : Random", "Randomly pass or fail match", FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchRandom, "Match : Random", "Randomly pass or fail match", FName (GetDisplayName ()))
 
 #endif
 	//~End UPCGSettings

@@ -1,12 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
-
+#include "Heuristics/PCGExHeuristics.h"
 
 #include "Cluster/PCGExCluster.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
+#include "Heuristics/Elements/PCGExHeuristicFeedback.h"
+#include "Heuristics/PCGExHeuristicOperation.h"
 
 #define PCGEX_INIT_HEURISTIC_OPERATION(_OP, _FACTORY)\
 _OP->PrimaryDataFacade = VtxDataFacade;\
@@ -16,6 +15,30 @@ _OP->ReferenceWeight = ReferenceWeight * _FACTORY->WeightFactor;
 
 namespace PCGExHeuristics
 {
+	double FLocalFeedbackHandler::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+	{
+		double GScore = 0;
+		for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
+		return GScore;
+	}
+
+	double FLocalFeedbackHandler::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup>& TravelStack) const
+	{
+		double EScore = 0;
+		for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
+		return EScore;
+	}
+
+	void FLocalFeedbackHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
+	{
+		for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
+	}
+
+	void FLocalFeedbackHandler::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
+	{
+		for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
+	}
+
 	FHandler::FHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
 		: ExecutionContext(InContext), VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{

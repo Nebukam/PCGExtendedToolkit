@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPicker.h"
 #include "PCGExPickerConstantRange.h"
-#include "PCGExPickerFactoryProvider.h"
+#include "Pickers/PCGExPickerFactoryProvider.h"
 
 #include "PCGExPickerAttributeSetRanges.generated.h"
 

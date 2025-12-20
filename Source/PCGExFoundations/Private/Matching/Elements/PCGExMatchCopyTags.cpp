@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/Matching/PCGExMatchCopyTags.h"
+#include "Matching/Elements/PCGExMatchCopyTags.h"
 
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"

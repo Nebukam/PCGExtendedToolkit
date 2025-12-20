@@ -1,10 +1,8 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Pickers/PCGExPickerAttributeSet.h"
+#include "Pickers/Elements/PCGExPickerAttributeSet.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExMath.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -91,7 +89,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 					continue;
 				}
 
-				const TSharedPtr<PCGExData::TAttributeBroadcaster<double>> Values = PCGEx::MakeTypedBroadcaster<double>(Infos->Attributes[0]->Name, Facade->Source);
+				const TSharedPtr<PCGExData::TAttributeBroadcaster<double>> Values = PCGExData::MakeTypedBroadcaster<double>(Infos->Attributes[0]->Name, Facade->Source);
 				if (!Values) { continue; }
 				Values->GrabUniqueValues(UniqueIndices);
 			}
@@ -99,7 +97,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 			{
 				for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
 				{
-					const TSharedPtr<PCGExData::TAttributeBroadcaster<double>> Values = PCGEx::MakeTypedBroadcaster<double>(Selector, Facade->Source);
+					const TSharedPtr<PCGExData::TAttributeBroadcaster<double>> Values = PCGExData::MakeTypedBroadcaster<double>(Selector, Facade->Source);
 					if (!Values) { continue; }
 					Values->GrabUniqueValues(UniqueIndices);
 				}
@@ -122,7 +120,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 					continue;
 				}
 
-				const TSharedPtr<PCGExData::TAttributeBroadcaster<int32>> Values = PCGEx::MakeTypedBroadcaster<int32>(Infos->Attributes[0]->Name, Facade->Source);
+				const TSharedPtr<PCGExData::TAttributeBroadcaster<int32>> Values = PCGExData::MakeTypedBroadcaster<int32>(Infos->Attributes[0]->Name, Facade->Source);
 				if (!Values) { continue; }
 				Values->GrabUniqueValues(UniqueIndices);
 			}
@@ -130,7 +128,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 			{
 				for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
 				{
-					const TSharedPtr<PCGExData::TAttributeBroadcaster<int32>> Values = PCGEx::MakeTypedBroadcaster<int32>(Selector, Facade->Source);
+					const TSharedPtr<PCGExData::TAttributeBroadcaster<int32>> Values = PCGExData::MakeTypedBroadcaster<int32>(Selector, Facade->Source);
 					if (!Values) { continue; }
 					Values->GrabUniqueValues(UniqueIndices);
 				}

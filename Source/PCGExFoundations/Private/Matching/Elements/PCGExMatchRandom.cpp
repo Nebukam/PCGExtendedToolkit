@@ -1,12 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/Matching/PCGExMatchRandom.h"
+#include "Matching/Elements/PCGExMatchRandom.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExRandomHelpers.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExRandomHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExMatchRandom"

@@ -1,15 +1,14 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExPointsMT.h"
+#include "Core/PCGExPointsMT.h"
 
 #include "PCGExGlobalSettings.h"
-#include "Data/PCGExPointFilter.h"
 #include "Factories/PCGExInstancedFactory.h"
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
+#include "Filters/PCGExPointFilter.h"
 
 namespace PCGExPointsMT
 {

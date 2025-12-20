@@ -7,6 +7,7 @@
 #include "Data/PCGExPointElements.h"
 #include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Math/PCGExMathDistances.h"
 
 
 FPCGExFuseDetailsBase::FPCGExFuseDetailsBase()

@@ -10,7 +10,11 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExFuseDetails.generated.h"
 
-struct FPCGExContext;
+
+namespace PCGExMath
+{
+	class FDistances;
+}
 
 namespace PCGExData
 {
@@ -20,8 +24,6 @@ namespace PCGExData
 
 namespace PCGExDetails
 {
-	class FDistances;
-
 	template <typename T>
 	class TSettingValue;
 }

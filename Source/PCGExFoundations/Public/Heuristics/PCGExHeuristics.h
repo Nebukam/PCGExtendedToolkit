@@ -8,6 +8,18 @@
 #include "Cluster/PCGExNode.h"
 #include "PCGExHeuristics.generated.h"
 
+class FPCGExHeuristicFeedback;
+
+namespace PCGEx
+{
+	class FHashLookup;
+}
+
+namespace PCGExGraph
+{
+	struct FEdge;
+}
+
 UENUM()
 enum class EPCGExHeuristicScoreMode : uint8
 {
@@ -35,29 +47,13 @@ namespace PCGExHeuristics
 
 		~FLocalFeedbackHandler() = default;
 
-		double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
-		{
-			double GScore = 0;
-			for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
-			return GScore;
-		}
+		double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const;
 
-		double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const
-		{
-			double EScore = 0;
-			for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
-			return EScore;
-		}
+		double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
 
-		void FeedbackPointScore(const PCGExCluster::FNode& Node)
-		{
-			for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
-		}
+		void FeedbackPointScore(const PCGExCluster::FNode& Node);
 
-		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
-		{
-			for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
-		}
+		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);
 	};
 
 	class PCGEXFOUNDATIONS_API FHandler : public TSharedFromThis<FHandler>

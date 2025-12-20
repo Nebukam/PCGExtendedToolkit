@@ -1,13 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/Matching/PCGExMatchByIndex.h"
+#include "Matching/Elements/PCGExMatchByIndex.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExMath.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
+#include "Matching/PCGExMatchingHandler.h"
+#include "Math/PCGExMath.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExMatchByIndex"

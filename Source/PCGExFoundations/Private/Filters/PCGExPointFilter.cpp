@@ -1,10 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/PCGExPointFilter.h"
+#include "Filters/PCGExPointFilter.h"
 
-#include "PCGExMT.h"
-#include "PCGExSubSystem.h"
+#include "PCGExFoundationsSubSystem.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Cluster/PCGExCluster.h"
@@ -102,13 +101,13 @@ namespace PCGExPointFilter
 		{
 			if (SupportedFactoriesTypes && !SupportedFactoriesTypes->Contains(Factory->GetFactoryType()))
 			{
-				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A filter is of an unexpected type : {0}."), FText::FromString(GetNameSafe(Factory->GetClass()))
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A filter is of an unexpected type : {0}."), FText::FromString(GetNameSafe(Factory->GetClass()))))
 				continue;
 			}
 
 			if (bWillBeUsedWithCollections && !Factory->SupportsCollectionEvaluation())
 			{
-				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A filter can't be used with collections : {0}. (Requires per-point evaluation)"), FText::FromString(GetNameSafe(Factory->GetClass()))
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A filter can't be used with collections : {0}. (Requires per-point evaluation)"), FText::FromString(GetNameSafe(Factory->GetClass()))))
 				continue;
 			}
 
@@ -123,7 +122,7 @@ namespace PCGExPointFilter
 			{
 				if (Factory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Error)
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), FText::FromString(GetNameSafe(Factory->GetClass()));
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), FText::FromString(GetNameSafe(Factory->GetClass()))));
 				}
 				else if (Factory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Pass)
 				{
@@ -144,8 +143,8 @@ namespace PCGExPointFilter
 		{
 			// Guaranteed fail.
 			ManagedFilters.Reset();
-			PCGEX_SUBSYSTEM
-			const TSharedPtr<IFilter> NewFilter = PCGExSubsystem->GetConstantFilter(false);
+			PCGEX_FOUNDATIONS_SUBSYSTEM
+			const TSharedPtr<IFilter> NewFilter = PCGExFoundationSubsystem->GetConstantFilter(false);
 			NewFilter->bUseDataDomainSelectorsOnly = true;
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
 			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
@@ -157,8 +156,8 @@ namespace PCGExPointFilter
 		}
 		else if (bWantsTrueConstant)
 		{
-			PCGEX_SUBSYSTEM
-			const TSharedPtr<IFilter> NewFilter = PCGExSubsystem->GetConstantFilter(true);
+			PCGEX_FOUNDATIONS_SUBSYSTEM
+			const TSharedPtr<IFilter> NewFilter = PCGExFoundationSubsystem->GetConstantFilter(true);
 			NewFilter->bUseDataDomainSelectorsOnly = true;
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
 			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;

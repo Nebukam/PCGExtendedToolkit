@@ -1,10 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Pickers/PCGExPickerConstant.h"
+#include "Pickers/Elements/PCGExPickerConstant.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExMath.h"
+#include "Containers/PCGExManagedObjects.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstant"
 #define PCGEX_NAMESPACE CreatePickerConstant

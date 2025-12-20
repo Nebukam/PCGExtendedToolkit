@@ -5,8 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExMatchRuleFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
+#include "Matching/PCGExMatchRuleFactoryProvider.h"
 
 
 #include "PCGExMatchAttrToAttr.generated.h"

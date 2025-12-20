@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
+#include "PCGExMatchAttrToAttr.h"
 #include "Matching/PCGExMatchRuleFactoryProvider.h"
 
 #include "PCGExMatchTagToAttr.generated.h"

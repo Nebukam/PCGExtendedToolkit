@@ -1,9 +1,8 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Pickers/PCGExPickerAttributeSetRanges.h"
+#include "Pickers/Elements/PCGExPickerAttributeSetRanges.h"
 
-#include "PCGExHelpers.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -53,7 +52,7 @@ bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(FPCGExContext* InCon
 				continue;
 			}
 
-			const TSharedPtr<PCGExData::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeTypedBroadcaster<FVector2D>(Infos->Attributes[0]->Name, Facade->Source);
+			const TSharedPtr<PCGExData::TAttributeBroadcaster<FVector2D>> Values = PCGExData::MakeTypedBroadcaster<FVector2D>(Infos->Attributes[0]->Name, Facade->Source);
 			if (!Values) { continue; }
 			Values->GrabUniqueValues(UniqueRanges);
 		}
@@ -61,7 +60,7 @@ bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(FPCGExContext* InCon
 		{
 			for (const FPCGAttributePropertyInputSelector& Selector : InConfig.Attributes)
 			{
-				const TSharedPtr<PCGExData::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeTypedBroadcaster<FVector2D>(Selector, Facade->Source);
+				const TSharedPtr<PCGExData::TAttributeBroadcaster<FVector2D>> Values = PCGExData::MakeTypedBroadcaster<FVector2D>(Selector, Facade->Source);
 				if (!Values) { continue; }
 				Values->GrabUniqueValues(UniqueRanges);
 			}

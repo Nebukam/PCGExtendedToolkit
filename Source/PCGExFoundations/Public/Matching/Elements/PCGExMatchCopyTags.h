@@ -4,10 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMatchRuleFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
-
-
+#include "Matching/PCGExMatchRuleFactoryProvider.h"
 #include "PCGExMatchCopyTags.generated.h"
 
 
@@ -56,7 +53,7 @@ class UPCGExCreateMatchCopyTagsSettings : public UPCGExMatchRuleFactoryProviderS
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchAttrToAttr, "Match : Copy Tags", "Copy matched targets tags to candidate", FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(MatchAttrToAttr, "Match : Copy Tags", "Copy matched targets tags to candidate", FName (GetDisplayName ()))
 
 #endif
 	//~End UPCGSettings

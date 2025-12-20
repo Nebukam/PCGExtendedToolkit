@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Pickers/PCGExPicker.h"
 #include "Pickers/PCGExPickerFactoryProvider.h"
 
 #include "PCGExPickerAttributeSet.generated.h"

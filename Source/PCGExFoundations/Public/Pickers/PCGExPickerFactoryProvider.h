@@ -82,7 +82,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExPicker::OutputPickerLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExPicker::Labels::OutputPickerLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };
 

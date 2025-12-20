@@ -16,13 +16,8 @@ struct PCGEXFOUNDATIONS_API FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 
-	explicit FPCGExPickerConfigBase()
-	{
-	}
-
-	virtual ~FPCGExPickerConfigBase()
-	{
-	}
+	FPCGExPickerConfigBase() = default;
+	virtual ~FPCGExPickerConfigBase() = default;
 
 	/** Whether to treat values as discrete indices or relative ones */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -48,6 +43,9 @@ struct PCGEXFOUNDATIONS_API FPCGExPickerConfigBase
 
 namespace PCGExPicker
 {
-	const FName OutputPickerLabel = TEXT("Picker");
-	const FName SourcePickersLabel = TEXT("Pickers");
+	namespace Labels
+	{
+		const FName OutputPickerLabel = TEXT("Picker");
+		const FName SourcePickersLabel = TEXT("Pickers");
+	}
 }

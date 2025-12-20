@@ -4,9 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExHeuristicFeedback.h"
-#include "PCGExHeuristicsFactoryProvider.h"
-#include "PCGExHeuristics.generated.h"
 
 namespace PCGExHeuristics
 {
