@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGPointArrayData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
@@ -188,7 +188,7 @@ namespace PCGExFindAllCells
 		// Enforce IO index based on edge IO + smallest node point index, for deterministic output order
 		PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 1000000 + Cluster->GetNodePointIndex(InCell->Nodes[0]);
 
-		PCGExGraph::CleanupClusterData(PathIO);
+		PCGExCluster::Helpers::CleanupClusterData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 

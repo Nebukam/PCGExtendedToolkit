@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "Types/PCGExAttributeIdentity.h"
 
@@ -137,7 +137,7 @@ namespace PCGExFindPointOnBounds
 
 		if (Settings->bBestFitBounds)
 		{
-			PCGExGeo::FBestFitPlane BestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
+			PCGExMath::FBestFitPlane BestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
 
 			FTransform T = BestFitPlane.GetTransform(Settings->AxisOrder);
 			UVW = T.TransformVector(UVW);

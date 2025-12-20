@@ -95,7 +95,7 @@ namespace PCGExPointFilter
 
 		const TObjectPtr<const UPCGExStringSelfCompareFilterFactory> TypedFilterFactory;
 
-		TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> OperandA;
+		TSharedPtr<PCGExData::TAttributeBroadcaster<FString>> OperandA;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;

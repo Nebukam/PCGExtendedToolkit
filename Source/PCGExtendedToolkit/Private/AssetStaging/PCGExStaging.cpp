@@ -5,12 +5,12 @@
 
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "PCGParamData.h"
 #include "Collections/Core/PCGExAssetCollection.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Engine/StaticMeshSocket.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
@@ -788,7 +788,7 @@ namespace PCGExStaging
 				WorldTransform.SetScale3D(OutScale);
 
 				OutTransform[Index] = WorldTransform;
-				OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(WorldTransform.GetLocation());
+				OutSeed[Index] = PCGExRandomHelpers::ComputeSpatialSeed(WorldTransform.GetLocation());
 
 				PCGEX_OUTPUT_VALUE(SocketName, Index, Socket.SocketName)
 				PCGEX_OUTPUT_VALUE(SocketTag, Index, FName(Socket.Tag))

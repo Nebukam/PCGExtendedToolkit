@@ -6,11 +6,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExMetaHelpers.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "Utils/PCGValueRange.h"
-
-#include "Helpers/PCGExPointArrayDataHelpers.generated.h"
 
 class UPCGBasePointData;
 class UPCGManagedComponent;
@@ -82,5 +80,7 @@ extern template void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRange, co
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
-	PCGEXCORE_API void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
+	PCGEXCORE_API void Reorder(UPCGBasePointData* InData, const TArray<int32>& InOrder);
+
+	PCGEXCORE_API void PointsToPositions(const UPCGBasePointData* InPointData, TArray<FVector>& OutPositions);
 }

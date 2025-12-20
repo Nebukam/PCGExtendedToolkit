@@ -1,10 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/PCGExAttributeHasher.h"
+#include "Utils/PCGExAttributeHasher.h"
 
 #include "PCGExGlobalSettings.h"
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"

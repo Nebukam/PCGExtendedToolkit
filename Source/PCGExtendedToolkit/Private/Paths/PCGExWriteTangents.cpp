@@ -8,7 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPaths.h"
 #include "Paths/Tangents/PCGExTangentsAuto.h"
 
@@ -46,7 +46,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteTangents)
 
 FName UPCGExWriteTangentsSettings::GetPointFilterPin() const
 {
-	return PCGExPointFilter::SourcePointFiltersLabel;
+	return PCGExFilter::Labels::SourcePointFiltersLabel;
 }
 
 UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)

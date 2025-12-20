@@ -4,7 +4,7 @@
 #include "Data/PCGExTaggedData.h"
 
 #include "PCGData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 
 FPCGExTaggedData::FPCGExTaggedData(const UPCGData* InData, const TSharedPtr<PCGExData::FTags>& InTags, const TSharedPtr<IPCGAttributeAccessorKeys>& InKeys)
 	: Data(InData), Tags(InTags), Keys(InKeys)

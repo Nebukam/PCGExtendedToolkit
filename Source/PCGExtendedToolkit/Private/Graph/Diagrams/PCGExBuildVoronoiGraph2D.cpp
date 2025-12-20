@@ -4,9 +4,9 @@
 #include "Graph/Diagrams/PCGExBuildVoronoiGraph2D.h"
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -173,14 +173,14 @@ namespace PCGExBuildVoronoiGraph2D
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		// Build voronoi
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
+		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
-		Voronoi = MakeShared<PCGExGeo::TVoronoi2>();
+		Voronoi = MakeShared<PCGExMath::TVoronoi2>();
 
 		const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 		bool bSuccess = false;
@@ -207,7 +207,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 		auto MarkOOB = [&](const int32 SiteIndex)
 		{
-			const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
+			const PCGExMath::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
 			for (int i = 0; i < 3; i++) { IsVtxValid[Site.Vtx[i]] = false; }
 		};
 
@@ -221,7 +221,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 			UpdateSitePosition = [&](const int32 SiteIndex)
 			{
-				const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
+				const PCGExMath::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
 				const FVector& SitePos = SitesPositions[SiteIndex];
 				for (int i = 0; i < 3; i++) { SitesOutputDetails.AddInfluence(Site.Vtx[i], SitePos); }
 			};
@@ -262,7 +262,7 @@ namespace PCGExBuildVoronoiGraph2D
 				if (const int32 Idx = RemappedIndices[i]; Idx != -1)
 				{
 					OutTransforms[Idx].SetLocation(SitesPositions[i]);
-					OutSeeds[Idx] = PCGExRandom::ComputeSpatialSeed(SitesPositions[i]);
+					OutSeeds[Idx] = PCGExRandomHelpers::ComputeSpatialSeed(SitesPositions[i]);
 				}
 			}
 
@@ -342,7 +342,7 @@ namespace PCGExBuildVoronoiGraph2D
 #define PCGEX_UPDATE_VSITE_DATA\
 			SitesPositions[i] = CC;\
 			OutTransforms[i].SetLocation(CC);\
-			OutSeeds[i] = PCGExRandom::ComputeSpatialSeed(CC);
+			OutSeeds[i] = PCGExRandomHelpers::ComputeSpatialSeed(CC);
 			if (Settings->Method == EPCGExCellCenter::Circumcenter)
 			{
 				for (int i = 0; i < NumCentroids; i++)

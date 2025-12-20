@@ -7,6 +7,7 @@
 #include "Factories/PCGExFactoryProvider.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Factories/PCGExFactoryData.h"
 #include "Tasks/Task.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"

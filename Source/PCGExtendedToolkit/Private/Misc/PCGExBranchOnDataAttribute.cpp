@@ -131,10 +131,10 @@ bool FPCGExBranchOnDataAttributeElement::AdvanceWork(FPCGExContext* InContext, c
 					using T_ATTR = decltype(ValueType);
 					const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Attr);
 
-					T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+					T_ATTR Value = PCGExData::Helpers::ReadDataValue(TypedAtt);
 
-					const double AsNumeric = PCGExTypes::Convert<T_ATTR, double>(Value);
-					const FString AsString = PCGExTypes::Convert<T_ATTR, FString>(Value);
+					const double AsNumeric = PCGExTypeOps::Convert<T_ATTR, double>(Value);
+					const FString AsString = PCGExTypeOps::Convert<T_ATTR, FString>(Value);
 
 
 					for (int i = 0; i < NumBranches; ++i)

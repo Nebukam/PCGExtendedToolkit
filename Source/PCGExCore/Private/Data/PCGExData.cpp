@@ -5,15 +5,18 @@
 
 #include "PCGExGlobalSettings.h"
 #include "PCGExH.h"
+#include "PCGExLog.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExAttributeBroadcaster.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
-#include "Geometry/PCGExGeoPointBox.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Math/PCGExBoundsCloud.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Types/PCGExAttributeIdentity.h"
+#include "Types/PCGExTypes.h"
 
 namespace PCGExData
 {
@@ -295,7 +298,7 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 			if (bSparseBuffer && !bScoped)
 			{
 				// Un-scoping reader.
-				if (!InternalBroadcaster) { InternalBroadcaster = MakeShared<PCGEx::TAttributeBroadcaster<T>>(); }
+				if (!InternalBroadcaster) { InternalBroadcaster = MakeShared<PCGExData::TAttributeBroadcaster<T>>(); }
 				if (!InternalBroadcaster->Prepare(InSelector, Source)) { return false; }
 
 				InternalBroadcaster->GrabAndDump(*InValues, bCaptureMinMax, this->Min, this->Max);
@@ -316,7 +319,7 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 			}
 		}
 
-		InternalBroadcaster = MakeShared<PCGEx::TAttributeBroadcaster<T>>();
+		InternalBroadcaster = MakeShared<PCGExData::TAttributeBroadcaster<T>>();
 		if (!InternalBroadcaster->Prepare(InSelector, Source))
 		{
 			TypedInAttribute = nullptr;
@@ -548,7 +551,7 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 			bReadInitialized = true;
 
 			InAttribute = TypedInAttribute;
-			InValue = PCGExDataHelpers::ReadDataValue(TypedInAttribute);
+			InValue = PCGExData::Helpers::ReadDataValue(TypedInAttribute);
 		}
 
 		return bReadInitialized;
@@ -573,7 +576,7 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 		}
 
 		PCGEX_SHARED_CONTEXT(Source->GetContextHandle())
-		bReadInitialized = PCGExDataHelpers::TryReadDataValue(SharedContext.Get(), Source->GetIn(), InSelector, InValue, bQuiet);
+		bReadInitialized = PCGExData::Helpers::TryReadDataValue(SharedContext.Get(), Source->GetIn(), InSelector, InValue, bQuiet);
 
 		return bReadInitialized;
 	}
@@ -602,7 +605,7 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 
 		auto GrabExistingValues = [&]()
 		{
-			OutValue = PCGExDataHelpers::ReadDataValue(TypedOutAttribute);
+			OutValue = PCGExData::Helpers::ReadDataValue(TypedOutAttribute);
 		};
 
 		if (Init == EBufferInit::Inherit) { GrabExistingValues(); }
@@ -621,7 +624,7 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 
 		if (const FPCGMetadataAttribute<T>* ExistingAttribute = PCGExMetaHelpers::TryGetConstAttribute<T>(Source->GetIn(), Identifier))
 		{
-			return InitForWrite(PCGExDataHelpers::ReadDataValue(ExistingAttribute), ExistingAttribute->AllowsInterpolation(), Init);
+			return InitForWrite(PCGExData::Helpers::ReadDataValue(ExistingAttribute), ExistingAttribute->AllowsInterpolation(), Init);
 		}
 
 		return InitForWrite(T{}, true, Init);
@@ -644,7 +647,7 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 
 		if (!TypedOutAttribute) { return; }
 
-		PCGExDataHelpers::SetDataValue(TypedOutAttribute, OutValue);
+		PCGExData::Helpers::SetDataValue(TypedOutAttribute, OutValue);
 	}
 
 #pragma region externalization
@@ -965,13 +968,13 @@ template PCGEXCORE_API const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAtt
 		return Source->FindConstAttribute(InIdentifier, InSide);
 	}
 
-	TSharedPtr<PCGExGeo::FPointBoxCloud> FFacade::GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion)
+	TSharedPtr<PCGExMath::FBoundsCloud> FFacade::GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion)
 	{
 		FWriteScopeLock WriteScopeLock(CloudLock);
 
 		if (Cloud) { return Cloud; }
 
-		Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Expansion);
+		Cloud = MakeShared<PCGExMath::FBoundsCloud>(GetIn(), BoundsSource, Expansion);
 		Cloud->Idx = Idx;
 		return Cloud;
 	}
@@ -1203,7 +1206,7 @@ template PCGEXCORE_API const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAtt
 
 		Metadata->DeleteAttribute(MarkID);
 		FPCGMetadataAttribute<T>* Mark = Metadata->CreateAttribute<T>(MarkID, MarkValue, true, true);
-		PCGExDataHelpers::SetDataValue(Mark, MarkValue);
+		PCGExData::Helpers::SetDataValue(Mark, MarkValue);
 		return Mark;
 	}
 
@@ -1221,7 +1224,7 @@ template PCGEXCORE_API const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAtt
 		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* Mark = PCGExMetaHelpers::TryGetConstAttribute<T>(Metadata, MarkID);
 		if (!Mark) { return false; }
-		OutMark = PCGExDataHelpers::ReadDataValue(Mark);
+		OutMark = PCGExData::Helpers::ReadDataValue(Mark);
 		return true;
 	}
 

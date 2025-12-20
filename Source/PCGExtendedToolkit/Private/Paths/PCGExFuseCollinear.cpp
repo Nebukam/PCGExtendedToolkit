@@ -7,8 +7,8 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Blenders/PCGExUnionBlender.h"
+#include "Details/PCGExDistancesDetails.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/PCGExPaths.h"
 #include "Paths/PCGExPathShift.h"
@@ -221,7 +221,7 @@ namespace PCGExFuseCollinear
 
 		DataBlender = MakeShared<PCGExBlending::FUnionBlender>(
 			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails),
-			nullptr, PCGExDetails::GetNoneDistances());
+			nullptr, PCGExMath::GetNoneDistances());
 
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
 		UnionSources.Add(PointDataFacade);

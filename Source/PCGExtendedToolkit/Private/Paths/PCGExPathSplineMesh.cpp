@@ -8,10 +8,10 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "PCGParamData.h"
@@ -290,7 +290,7 @@ namespace PCGExPathSplineMesh
 			FPCGExEntryAccessResult Entry;
 			const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 
-			const int32 Seed = PCGExRandom::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
+			const int32 Seed = PCGExRandomHelpers::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
 			if (bUseTags) { Entry = Helper->GetEntry(Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags); }
 			else { Entry = Helper->GetEntry(Index, Seed); }

@@ -160,7 +160,7 @@ namespace PCGExCopyClustersToPoints
 			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate);
 
 			EdgesDupes[i] = EdgeDupe;
-			PCGExGraph::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
+			PCGExCluster::Helpers::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
 
 			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails)
 		}
@@ -253,7 +253,7 @@ namespace PCGExCopyClustersToPoints
 			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::Duplicate);
 
 			PCGExDataId OutId;
-			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
+			PCGExCluster::Helpers::SetClusterVtx(VtxDupe, OutId);
 
 			VtxDupes[i] = VtxDupe;
 			VtxTag[i] = OutId;

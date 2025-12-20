@@ -1,10 +1,8 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Types/PCGExSubSelectionOps.h"
-
-#include "Types/PCGExSubSelectionOpsImpl.h"
-#include "Details/PCGExMacros.h"
+#include "Data/PCGExSubSelectionOps.h"
+#include "Data/PCGExSubSelectionOpsImpl.h"
 
 namespace PCGExData
 {

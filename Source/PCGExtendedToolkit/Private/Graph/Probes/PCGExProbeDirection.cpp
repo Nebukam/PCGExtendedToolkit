@@ -7,7 +7,7 @@
 #include "PCGExH.h"
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigDirection, Direction, FVector, DirectionInput, DirectionAttribute, DirectionConstant)

@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 
 #include "PCGContext.h"
-#include "Details/PCGExMacros.h"
 #include "Data/PCGPointArrayData.h"
 #include "Async/ParallelFor.h"
+#include "Core/PCGExMTCommon.h"
+#include "Helpers/PCGExArrayHelpers.h"
 
 namespace PCGExPointArrayDataHelpers
 {
-		
 	FReadWriteScope::FReadWriteScope(const int32 NumElements, const bool bSetNum)
 	{
 		if (bSetNum)
@@ -78,7 +78,7 @@ namespace PCGExPointArrayDataHelpers
 			WriteIndices.Empty();
 		}
 	}
-	
+
 	int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, const EPCGPointNativeProperties Properties)
 	{
 		InData->SetNumPoints(InNumPoints);
@@ -104,7 +104,7 @@ namespace PCGExPointArrayDataHelpers
 
 		const int32 NumIndices = InOrder.Num();
 		TArray<T> ValuesCopy;
-		InitArray(ValuesCopy, NumIndices);
+		PCGExArrayHelpers::InitArray(ValuesCopy, NumIndices);
 		if (NumIndices < 4096)
 		{
 			for (int i = 0; i < NumIndices; i++) { ValuesCopy[i] = MoveTemp(InRange[InOrder[i]]); }
@@ -112,8 +112,8 @@ namespace PCGExPointArrayDataHelpers
 		}
 		else
 		{
-			ParallelFor(NumIndices, [&](int32 i) { ValuesCopy[i] = InRange[InOrder[i]]; });
-			ParallelFor(NumIndices, [&](int32 i) { InRange[i] = ValuesCopy[i]; });
+			PCGEX_PARALLEL_FOR(NumIndices, ValuesCopy[i] = InRange[InOrder[i]];)
+			PCGEX_PARALLEL_FOR(NumIndices, InRange[i] = ValuesCopy[i];)
 		}
 	}
 
@@ -123,9 +123,9 @@ template PCGEXCORE_API void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRa
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
-	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder)
+	void Reorder(UPCGBasePointData* InData, const TArray<int32>& InOrder)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointArrayDataHelpers::ReorderPointArrayData);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointArrayDataHelpers::Reorder);
 
 		EPCGPointNativeProperties AllocatedProperties = InData->GetAllocatedProperties();
 
@@ -138,6 +138,14 @@ template PCGEXCORE_API void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRa
 #undef PCGEX_REORDER_RANGE_DECL
 	}
 
+	void PointsToPositions(const UPCGBasePointData* InPointData, TArray<FVector>& OutPositions)
+	{
+		const int32 NumPoints = InPointData->GetNumPoints();
+		const TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
+		PCGExArrayHelpers::InitArray(OutPositions, NumPoints);
+		PCGEX_PARALLEL_FOR(NumPoints, OutPositions[i] = Transforms[i].GetLocation();)
+	}
+
 	void InitEmptyNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties)
 	{
 		const UPCGPointArrayData* FromPoints = Cast<UPCGPointArrayData>(From);
@@ -148,7 +156,7 @@ template PCGEXCORE_API void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRa
 		ToPoints->CopyUnallocatedPropertiesFrom(FromPoints);
 		ToPoints->AllocateProperties(FromPoints->GetAllocatedProperties());
 	}
-	
+
 	EPCGPointNativeProperties GetPointNativeProperties(uint8 Flags)
 	{
 		const EPCGExPointNativeProperties InFlags = static_cast<EPCGExPointNativeProperties>(Flags);
@@ -165,5 +173,4 @@ template PCGEXCORE_API void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRa
 
 		return OutFlags;
 	}
-	
 }

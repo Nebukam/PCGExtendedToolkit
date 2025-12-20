@@ -46,7 +46,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
@@ -107,7 +107,7 @@ namespace PCGExSampleTexture
 	protected:
 		FPCGExTextureParamConfig Config;
 		TSharedPtr<PCGExTexture::FLookup> TextureMap;
-		TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> IDGetter;
+		TSharedPtr<PCGExData::TAttributeBroadcaster<FString>> IDGetter;
 
 		bool bValid = false;
 

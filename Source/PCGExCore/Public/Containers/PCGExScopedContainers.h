@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "Misc/ScopeRWLock.h"
 #include "PCGExCommon.h"
+#include "Core/PCGExMTCommon.h"
 
 namespace PCGExMT
 {

@@ -7,7 +7,7 @@
 #include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
 
@@ -140,7 +140,7 @@ namespace PCGExWritePathProperties
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
@@ -249,7 +249,7 @@ namespace PCGExWritePathProperties
 
 		if (Settings->WriteAnyPathData())
 		{
-			const PCGExGeo::FPolygonInfos PolyInfos = PCGExGeo::FPolygonInfos(Path->GetProjectedPoints());
+			const PCGExMath::FPolygonInfos PolyInfos = PCGExMath::FPolygonInfos(Path->GetProjectedPoints());
 
 			PathAttributeSet = Context->PathAttributeSet ? Context->PathAttributeSet.Get() : Context->ManagedObjects->New<UPCGParamData>();
 			const int64 Key = Context->PathAttributeSet ? Context->MergedAttributeSetKeys[PointDataFacade->Source->IOIndex] : PathAttributeSet->Metadata->AddEntry();

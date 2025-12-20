@@ -100,8 +100,8 @@ bool FPCGExClustersProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	if (TaggedEdges && !TaggedEdges->Entries.IsEmpty())
 	{
 		PCGExDataId OutId;
-		PCGExGraph::SetClusterVtx(CurrentIO, OutId); // Update key
-		PCGExGraph::MarkClusterEdges(TaggedEdges->Entries, OutId);
+		PCGExCluster::Helpers::SetClusterVtx(CurrentIO, OutId); // Update key
+		PCGExCluster::Helpers::MarkClusterEdges(TaggedEdges->Entries, OutId);
 	}
 	else { TaggedEdges = nullptr; }
 

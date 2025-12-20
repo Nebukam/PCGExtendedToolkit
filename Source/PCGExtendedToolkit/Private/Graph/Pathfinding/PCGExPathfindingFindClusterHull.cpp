@@ -5,7 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGPointArrayData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
@@ -114,7 +114,7 @@ namespace PCGExFindClusterHull
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
-		PCGExGraph::CleanupClusterData(PathIO);
+		PCGExCluster::Helpers::CleanupClusterData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 

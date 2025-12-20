@@ -1,15 +1,15 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/Blending/PCGExProxyDataBlending.h"
+#include "Core/PCGExProxyDataBlending.h"
 
-#include "PCGExTypes.h"
+#include "Types/PCGExTypes.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Data/PCGExUnionData.h"
-#include "Data/Blending/PCGExBlendOperations.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Core/PCGExBlendOperations.h"
+#include "Details/PCGExDistancesDetails.h"
 
 namespace PCGExBlending
 {
@@ -24,7 +24,7 @@ namespace PCGExBlending
 		IOLookup = MakeShared<PCGEx::FIndexLookup>(MaxIndex + 1);
 		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { IOLookup->Set(Src->Source->IOIndex, SourcesData.Add(Src->GetIn())); }
 
-		Distances = PCGExDetails::GetDistances();
+		Distances = PCGExMath::GetDistances();
 	}
 
 	int32 FDummyUnionBlender::ComputeWeights(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const

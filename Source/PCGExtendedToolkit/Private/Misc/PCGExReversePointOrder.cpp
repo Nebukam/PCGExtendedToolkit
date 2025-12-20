@@ -7,7 +7,7 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -139,7 +139,7 @@ namespace PCGExReversePointOrder
 			FPCGExGeo2DProjectionDetails Proj = Settings->ProjectionDetails;
 
 			if (Proj.Method == EPCGExProjectionMethod::Normal) { if (!Proj.Init(PointDataFacade)) { return false; } }
-			else { Proj.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+			else { Proj.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 			TArray<FVector2D> ProjectedPoints;
 			Proj.ProjectFlat(PointDataFacade, ProjectedPoints);

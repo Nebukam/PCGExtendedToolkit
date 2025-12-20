@@ -7,11 +7,11 @@
 #include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
 
-#include "PCGExPropertyHelpers.h"
 #include "PCGParamData.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExAttributeBroadcaster.h"
+#include "Helpers/PCGExPropertyHelpers.h"
 
 void UPCGExInstancedFactory::BindContext(FPCGExContext* InContext)
 {

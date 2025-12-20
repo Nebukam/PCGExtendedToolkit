@@ -7,7 +7,7 @@
 #include "Graph/PCGExGraph.h"
 #include "Algo/Reverse.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
@@ -154,7 +154,7 @@ namespace PCGExPathfindingGrowPaths
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-		PCGExGraph::CleanupVtxData(PathIO);
+		PCGExCluster::Helpers::CleanupVtxData(PathIO);
 
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), Path.Num());
 		TArray<int32>& IdxMapping = PathIO->GetIdxMapping();

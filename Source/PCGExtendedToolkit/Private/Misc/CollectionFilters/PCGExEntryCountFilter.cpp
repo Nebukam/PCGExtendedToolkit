@@ -20,7 +20,7 @@ bool PCGExPointFilter::FEntryCountFilter::Test(const TSharedPtr<PCGExData::FPoin
 	int32 B = TypedFilterFactory->Config.OperandB;
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
-		if (!PCGExDataHelpers::TryReadDataValue(IO->GetContext(), IO->GetIn(), TypedFilterFactory->Config.OperandBAttr, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+		if (!PCGExData::Helpers::TryReadDataValue(IO->GetContext(), IO->GetIn(), TypedFilterFactory->Config.OperandBAttr, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 	}
 
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, IO->GetNum(), B, TypedFilterFactory->Config.Tolerance);

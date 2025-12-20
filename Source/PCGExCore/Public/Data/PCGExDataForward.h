@@ -6,10 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExDataFilter.h"
 #include "Types/PCGExAttributeIdentity.h"
-#include "UObject/Object.h"
 
 #include "PCGExDataForward.generated.h"
-
 
 namespace PCGExData
 {

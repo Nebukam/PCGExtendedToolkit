@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/PCGExManagedObjectsInterfaces.h"
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExHelpers.h"
 
 #include "PCGExInstancedFactory.generated.h"
 

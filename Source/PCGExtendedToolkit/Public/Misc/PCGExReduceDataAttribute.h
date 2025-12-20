@@ -10,7 +10,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Details/PCGExDetailsAttributes.h"
+#include "Details/PCGExAttributesDetails.h"
 
 #include "PCGExReduceDataAttribute.generated.h"
 
@@ -102,8 +102,8 @@ protected:
 			{
 				using T_ATTR = decltype(ValueType);
 				const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-				T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
-				Func(PCGExTypes::Convert<T_ATTR, T>(Value), i);
+				T_ATTR Value = PCGExData::Helpers::ReadDataValue(TypedAtt);
+				Func(PCGExTypeOps::Convert<T_ATTR, T>(Value), i);
 			});
 		}
 	}

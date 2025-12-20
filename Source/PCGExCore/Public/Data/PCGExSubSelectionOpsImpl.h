@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSubSelectionOps.h"
-#include "Details/PCGExMacros.h"
+#include "Types/PCGExTypeOpsImpl.h"
 #include "Helpers/PCGExMetaHelpers.h"
 
 /**

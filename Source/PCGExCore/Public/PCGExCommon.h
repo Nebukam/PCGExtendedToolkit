@@ -16,6 +16,7 @@ class UPCGData;
 class IPCGAttributeAccessorKeys;
 
 using PCGExValueHash = uint32;
+using InlineSparseAllocator = TSetAllocator<TSparseArrayAllocator<TInlineAllocator<8>, TInlineAllocator<8>>, TInlineAllocator<8>>;
 
 UENUM()
 enum class EPCGExOptionState : uint8

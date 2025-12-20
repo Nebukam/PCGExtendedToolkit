@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
+#include "PCGExSubSelection.h"
 #include "Types/PCGExTypeOps.h"
 
 /**

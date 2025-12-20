@@ -3,16 +3,15 @@
 
 #pragma once
 
-#include <functional>
-
 #include "CoreMinimal.h"
-#include "PCGExEdge.h"
-#include "PCGExSortHelpers.h"
-#include "Details/PCGExDetailsGraph.h"
-#include "Utils/PCGValueRange.h"
+#include "PCGExGraphCommon.h"
+#include "Graph/PCGExEdge.h"
+#include "PCGExH.h"
 
-class UPCGMetadata;
-struct FPCGContext;
+namespace PCGExBlending
+{
+	class FUnionBlender;
+}
 
 namespace PCGExMT
 {
@@ -21,73 +20,25 @@ namespace PCGExMT
 	class IAsyncHandleGroup;
 }
 
-struct FPCGExCarryOverDetails;
-struct FPCGExEdgeUnionMetadataDetails;
-struct FPCGExPointUnionMetadataDetails;
-struct FPCGExEdgeEdgeIntersectionDetails;
-struct FPCGExPointEdgeIntersectionDetails;
-struct FPCGExPointPointIntersectionDetails;
-
-namespace PCGExDetails
-{
-	class FDistances;
-}
-
-namespace PCGExData
-{
-	class FPointIOCollection;
-	class FFacade;
-	struct FConstPoint;
-	struct FMutablePoint;
-	class FUnionMetadata;
-	template <typename T>
-	class TBuffer;
-}
-
-namespace PCGExBlending
-{
-	class FUnionBlender;
-}
-
-struct FPCGExBlendingDetails;
-struct FPCGExTransformDetails;
-
-namespace PCGExGraph
-{
-	struct FLink;
-	class FGraphBuilder;
-	class FSubGraph;
-
-}
-
 namespace PCGExCluster
 {
 	class FCluster;
 }
 
+namespace PCGExData
+{
+	class FFacade;
+
+	template <typename T>
+	class TBuffer;
+}
 
 namespace PCGExGraph
 {
-	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
-
-	PCGEX_CTX_STATE(State_PreparingUnion)
-	PCGEX_CTX_STATE(State_ProcessingUnion)
-
-	PCGEX_CTX_STATE(State_WritingClusters)
-	PCGEX_CTX_STATE(State_ReadyToCompile)
-	PCGEX_CTX_STATE(State_Compiling)
-
-	PCGEX_CTX_STATE(State_ProcessingPointEdgeIntersections)
-	PCGEX_CTX_STATE(State_ProcessingEdgeEdgeIntersections)
-
-	PCGEX_CTX_STATE(State_Pathfinding)
-	PCGEX_CTX_STATE(State_WaitingPathfinding)
-
-	const TSet<FName> ProtectedClusterAttributes = {Attr_PCGExEdgeIdx, Attr_PCGExVtxIdx};
-
+	struct FGraphMetadataDetails;
 	class FGraph;
-	
-	class PCGEXTENDEDTOOLKIT_API FSubGraph : public TSharedFromThis<FSubGraph>
+
+	class PCGEXFOUNDATIONS_API FSubGraph : public TSharedFromThis<FSubGraph>
 	{
 	public:
 		TWeakPtr<FGraph> WeakParentGraph;
@@ -139,6 +90,4 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		void CompileRange(const PCGExMT::FScope& Scope);
 		void CompilationComplete();
 	};
-
-
 }

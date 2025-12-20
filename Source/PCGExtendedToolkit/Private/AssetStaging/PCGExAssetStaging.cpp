@@ -5,7 +5,7 @@
 
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "PCGExScopedContainers.h"
 #include "PCGParamData.h"
 #include "AssetStaging/PCGExStaging.h"
@@ -395,7 +395,7 @@ namespace PCGExAssetStaging
 				continue;
 			}
 
-			const int32 Seed = PCGExRandom::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
+			const int32 Seed = PCGExRandomHelpers::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
 			FPCGExEntryAccessResult Result = Helper->GetEntry(Index, Seed);
 
@@ -445,7 +445,7 @@ namespace PCGExAssetStaging
 			if (PathWriter) { PathWriter->SetValue(Index, Staging.Path); }
 			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Staging.InternalIndex, SecondaryIndex)); }
 
-			RandomSource.Initialize(PCGExRandom::GetSeed(Seed, Variations.Seed));
+			RandomSource.Initialize(PCGExRandomHelpers::GetSeed(Seed, Variations.Seed));
 
 			if (Variations.bEnabledBefore)
 			{

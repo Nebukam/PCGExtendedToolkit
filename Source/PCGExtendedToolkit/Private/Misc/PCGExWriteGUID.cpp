@@ -7,7 +7,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Helpers/PCGHelpers.h"
 #include "Misc/Guid.h"
 

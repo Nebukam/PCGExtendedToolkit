@@ -215,19 +215,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 
 namespace PCGExPaths
 {
-	PCGEX_CTX_STATE(State_BuildingPaths)
-
-	const FName SourcePathsLabel = TEXT("Paths");
-	const FName OutputPathsLabel = TEXT("Paths");
-
-	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
-	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");
-	const FName SourceTriggerFilters = TEXT("Trigger Conditions");
-	const FName SourceShiftFilters = TEXT("Shift Conditions");
-
-	const FPCGAttributeIdentifier ClosedLoopIdentifier = FPCGAttributeIdentifier(FName("IsClosed"), PCGMetadataDomainID::Data);
-	const FPCGAttributeIdentifier HoleIdentifier = FPCGAttributeIdentifier(FName("IsHole"), PCGMetadataDomainID::Data);
-
+	
 	PCGEXTENDEDTOOLKIT_API void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
 
 	PCGEXTENDEDTOOLKIT_API void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop);

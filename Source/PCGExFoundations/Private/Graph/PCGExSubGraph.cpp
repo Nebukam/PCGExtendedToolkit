@@ -3,24 +3,53 @@
 
 #include "Graph/PCGExSubGraph.h"
 
+#include "PCGExGlobalSettings.h"
 #include "Core/PCGExContext.h"
-#include "PCGExRandom.h"
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "PCGExPointsProcessor.h"
-#include "PCGExSortHelpers.h"
-#include "Details/PCGExDetailsIntersection.h"
-#include "Data/Blending/PCGExUnionBlender.h"
+#include "Blenders/PCGExUnionBlender.h"
 #include "Metadata/PCGMetadata.h"
 
 #include "Graph/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
-
 #include "Async/ParallelFor.h"
-#include "Data/PCGExDataTag.h"
+#include "Core/PCGExBlending.h"
+#include "Core/PCGExOpStats.h"
+#include "Data/PCGExClusterData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Graph/PCGExGraph.h"
+#include "Graph/PCGExGraphBuilder.h"
+#include "Graph/PCGExGraphLabels.h"
+#include "Helpers/PCGExPointArrayDataHelpers.h"
+#include "Helpers/PCGExRandomHelpers.h"
+#include "Math/PCGExMathDistances.h"
+#include "Sorting/PCGExSortHelpers.h"
+
+namespace PCGExGraphTask
+{
+	class FWriteSubGraphCluster final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
+
+		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
+			: FTask(), SubGraph(InSubGraph)
+		{
+		}
+
+		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
+		{
+			UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
+			const TSharedPtr<PCGExGraph::FGraph> ParentGraph = SubGraph->WeakParentGraph.Pin();
+			if (!ParentGraph) { return; }
+			PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, ParentGraph->NodeIndexLookup)
+			ClusterEdgesData->SetBoundCluster(NewCluster);
+
+			SubGraph->BuildCluster(NewCluster.ToSharedRef());
+		}
+	};
+}
 
 namespace PCGExGraph
 {
@@ -40,7 +69,7 @@ namespace PCGExGraph
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing
 		PCGEX_PARALLEL_FOR(FlattenedEdges.Num(), FlattenedEdges[i].IOIndex = -1;)
-		InCluster->BuildFrom(SharedThis(this));
+		InCluster->BuildFromSubgraphData(VtxDataFacade, EdgesDataFacade, FlattenedEdges, Nodes.Num());
 
 		// Look into the cost of this
 
@@ -178,8 +207,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 		{
-			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExDetails::GetNoneDistances());
-			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
+			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExMath::GetNoneDistances());
+			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &PCGExGraph::Labels::ProtectedClusterAttributes);
 			if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
 			{
 				// TODO : Log error
@@ -223,7 +252,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (!ParentGraph || !Builder) { return; }
 
-		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Attr_PCGExEdgeIdx, -1, false, PCGExData::EBufferInit::New);
+		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Labels::Attr_PCGExEdgeIdx, -1, false, PCGExData::EBufferInit::New);
 
 
 		UPCGBasePointData* OutVtxData = VtxDataFacade->GetOut();
@@ -278,7 +307,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (EdgeLength) { EdgeLength->SetValue(EdgeIndex, FVector::Dist(VtxTransforms[Start].GetLocation(), VtxTransforms[End].GetLocation())); }
 
-			if (EdgeSeeds[EdgeIndex] == 0 || ParentGraph->bRefreshEdgeSeed) { EdgeSeeds[EdgeIndex] = PCGExRandom::ComputeSpatialSeed(EdgePt.GetLocation(), SeedOffset); }
+			if (EdgeSeeds[EdgeIndex] == 0 || ParentGraph->bRefreshEdgeSeed) { EdgeSeeds[EdgeIndex] = PCGExRandomHelpers::ComputeSpatialSeed(EdgePt.GetLocation(), SeedOffset); }
 		}
 	}
 

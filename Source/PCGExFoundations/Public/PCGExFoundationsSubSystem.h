@@ -19,7 +19,7 @@ namespace PCGExPointFilter
 }
 
 UCLASS()
-class PCGEXCORE_API UPCGExFoundationsSubSystem : public UWorldSubsystem
+class PCGEXFOUNDATIONS_API UPCGExFoundationsSubSystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,6 @@ public:
 	TSharedPtr<PCGExPointFilter::IFilter> GetConstantFilter(const bool bValue) const;
 
 protected:
-	
 	UPROPERTY()
 	TObjectPtr<UPCGExConstantFilterFactory> ConstantFilterFactory_TRUE;
 

@@ -6,16 +6,16 @@
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExStreamingHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-#include "Data/Blending/PCGExUnionBlender.h"
+#include "Blenders/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExMetadataBlender.h"
+#include "Blenders/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Details/PCGExDetailsDistances.h"
-#include "Details/PCGExDetailsSettings.h"
-#include "Geometry/PCGExGeoPointBox.h"
+#include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExSettingsDetails.h"
+#include "Math/PCGExBoundsCloud.h"
 
 PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestBoundsSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
@@ -232,7 +232,7 @@ namespace PCGExSampleNearestBounds
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
+			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExMath::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
@@ -241,7 +241,7 @@ namespace PCGExSampleNearestBounds
 			TSet<FName> MissingAttributes;
 			PCGExBlending::AssembleBlendingDetails(Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes, Context->TargetsHandler->GetFacades(), BlendingDetails, MissingAttributes);
 
-			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(&BlendingDetails, nullptr, PCGExDetails::GetDistances());
+			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(&BlendingDetails, nullptr, PCGExMath::GetDistances());
 			UnionBlender->AddSources(Context->TargetsHandler->GetFacades());
 			if (!UnionBlender->Init(Context, PointDataFacade)) { return false; }
 			DataBlender = UnionBlender;
@@ -302,7 +302,7 @@ namespace PCGExSampleNearestBounds
 		Union->Reserve(Context->TargetsHandler->Num());
 		Union->WeightRange = -2; // Don't remap
 
-		PCGExGeo::FSample CloudSample;
+		PCGExMath::FSample CloudSample;
 
 		double DefaultDet = 0;
 
@@ -336,7 +336,7 @@ namespace PCGExSampleNearestBounds
 
 			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 
-			auto SampleSingle = [&](const PCGExData::FElement& Current, const PCGExGeo::FPointBox* NearbyBox)
+			auto SampleSingle = [&](const PCGExData::FElement& Current, const PCGExMath::FPointBox* NearbyBox)
 			{
 				double DetCandidate = Det;
 				bool bReplaceWithCurrent = Union->IsEmpty();
@@ -372,7 +372,7 @@ namespace PCGExSampleNearestBounds
 
 			Context->TargetsHandler->FindTargetsWithBoundsTest(BCAE, [&](const PCGExOctree::FItem& Target)
 			{
-				Context->Clouds[Target.Index]->GetOctree()->FindElementsWithBoundsTest(BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
+				Context->Clouds[Target.Index]->GetOctree()->FindElementsWithBoundsTest(BCAE, [&](const PCGExMath::FPointBox* NearbyBox)
 				{
 					NearbyBox->Sample(Origin, CloudSample);
 					if (!CloudSample.bIsInside) { return; }

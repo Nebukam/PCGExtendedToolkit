@@ -8,7 +8,7 @@
 #include "PCGParamData.h"
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 
@@ -88,7 +88,7 @@ TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::InputPinProperties() c
 	if (Type == EPCGExRecursionTrackerType::Simple && Mode != EPCGExRecursionTrackerMode::Create && bDoAdditionalDataTesting)
 	{
 		PCGEX_PIN_ANY(PCGExRecursionTracker::SourceTestData, "Collections on that will be tested using the filters below. If no filter is provided, only fail on empty data.", Normal)
-		PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, "Collection filters used on the collections above.", Normal)
+		PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceFiltersLabel, "Collection filters used on the collections above.", Normal)
 	}
 
 	return PinProperties;

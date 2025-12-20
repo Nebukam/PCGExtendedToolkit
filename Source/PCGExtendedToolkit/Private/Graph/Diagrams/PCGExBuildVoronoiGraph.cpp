@@ -3,7 +3,7 @@
 
 #include "Graph/Diagrams/PCGExBuildVoronoiGraph.h"
 
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -99,9 +99,9 @@ namespace PCGExBuildVoronoiGraph
 		// Build voronoi
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
+		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Voronoi = MakeShared<PCGExGeo::TVoronoi3>();
+		Voronoi = MakeShared<PCGExMath::TVoronoi3>();
 
 		if (!Voronoi->Process(ActivePositions))
 		{
@@ -214,7 +214,7 @@ namespace PCGExBuildVoronoiGraph
 
 		for (int i = 0; i < NumSites; i++)
 		{
-			OutSeeds[i] = PCGExRandom::ComputeSpatialSeed(OutTransforms[i].GetLocation());
+			OutSeeds[i] = PCGExRandomHelpers::ComputeSpatialSeed(OutTransforms[i].GetLocation());
 		}
 
 		// Compile graph

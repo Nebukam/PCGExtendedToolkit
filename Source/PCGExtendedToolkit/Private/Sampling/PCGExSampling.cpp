@@ -9,7 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDistancesDetails.h"
 
 bool FPCGExApplySamplingDetails::WantsApply() const
 {
@@ -137,7 +137,7 @@ namespace PCGExSampling
 		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 		Selector.SetAttributeName(ActorReferenceName);
 
-		const TUniquePtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences = MakeUnique<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
+		const TUniquePtr<PCGExData::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences = MakeUnique<PCGExData::TAttributeBroadcaster<FSoftObjectPath>>();
 		if (!ActorReferences->Prepare(Selector, InFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Actor reference attribute does not exist."));
@@ -161,7 +161,7 @@ namespace PCGExSampling
 		const TArray<const UPCGBasePointData*>& Sources,
 		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 		const PCGExData::FPoint& Target,
-		const PCGExDetails::FDistances* InDistanceDetails,
+		const PCGExMath::FDistances* InDistanceDetails,
 		TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
@@ -329,7 +329,7 @@ namespace PCGExSampling
 
 	void FTargetsHandler::SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
 	{
-		Distances = PCGExDetails::GetDistances(Source, Target, bOverlapIsZero);
+		Distances = PCGExMath::GetDistances(Source, Target, bOverlapIsZero);
 	}
 
 	void FTargetsHandler::SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails)

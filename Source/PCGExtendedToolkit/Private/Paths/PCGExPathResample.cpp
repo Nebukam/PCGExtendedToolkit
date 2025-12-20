@@ -4,7 +4,7 @@
 #include "Paths/PCGExPathResample.h"
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
@@ -243,7 +243,7 @@ namespace PCGExResamplePath
 			{
 				const FPointSample& Sample = Samples[Index];
 				OutTransforms[Index].SetLocation(Sample.Location);
-				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
+				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandomHelpers::ComputeSpatialSeed(Sample.Location); }
 			}
 		}
 		else
@@ -257,7 +257,7 @@ namespace PCGExResamplePath
 				
 				OutTransforms[Index].SetLocation(Sample.Location);
 				
-				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
+				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandomHelpers::ComputeSpatialSeed(Sample.Location); }
 
 				const FVector Start = Path->GetPos(Sample.Start);
 				const double SampleBreadth = FVector::Dist(Start, Path->GetPos(Sample.End));

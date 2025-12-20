@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Data/PCGExDataFilter.h"
-#include "Details/PCGExDetailsAttributes.h"
+#include "Details/PCGExAttributesDetails.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/PCGMetadataCommon.h"
 
@@ -168,9 +168,9 @@ namespace PCGExBlending
 	const FName SourceBlendingLabel = TEXT("Blend Ops");
 	const FName OutputBlendingLabel = TEXT("Blend Op");
 
-	PCGEXCORE_API void ConvertBlending(const EPCGExBlendingType From, EPCGExABBlendingType& OutTo);
+	PCGEXCOMPOSITING_API void ConvertBlending(const EPCGExBlendingType From, EPCGExABBlendingType& OutTo);
 
-	PCGEXCORE_API void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface = EPCGExBlendingInterface::Individual);
+	PCGEXCOMPOSITING_API void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface = EPCGExBlendingInterface::Individual);
 
 	struct FBlendingParam
 	{
@@ -190,7 +190,7 @@ namespace PCGExBlending
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
+struct PCGEXCOMPOSITING_API FPCGExAttributeBlendToTargetDetails : public FPCGExAttributeSourceToTargetDetails
 {
 	GENERATED_BODY()
 
@@ -202,7 +202,7 @@ struct PCGEXCORE_API FPCGExAttributeBlendToTargetDetails : public FPCGExAttribut
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExPointPropertyBlendingOverrides
+struct PCGEXCOMPOSITING_API FPCGExPointPropertyBlendingOverrides
 {
 	GENERATED_BODY()
 
@@ -266,7 +266,7 @@ struct PCGEXCORE_API FPCGExPointPropertyBlendingOverrides
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExPropertiesBlendingDetails
+struct PCGEXCOMPOSITING_API FPCGExPropertiesBlendingDetails
 {
 	GENERATED_BODY()
 
@@ -308,7 +308,7 @@ struct PCGEXCORE_API FPCGExPropertiesBlendingDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExBlendingDetails
+struct PCGEXCOMPOSITING_API FPCGExBlendingDetails
 {
 	GENERATED_BODY()
 
@@ -350,13 +350,13 @@ struct PCGEXCORE_API FPCGExBlendingDetails
 
 namespace PCGExBlending
 {
-	PCGEXCORE_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExBlendingType>& PerAttributeBlending, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXCOMPOSITING_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExBlendingType>& PerAttributeBlending, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXCORE_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExBlendingType>& PerAttributeBlending, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXCOMPOSITING_API void AssembleBlendingDetails(const FPCGExPropertiesBlendingDetails& PropertiesBlending, const TMap<FName, EPCGExBlendingType>& PerAttributeBlending, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXCORE_API void AssembleBlendingDetails(const EPCGExBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXCOMPOSITING_API void AssembleBlendingDetails(const EPCGExBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TSharedRef<PCGExData::FPointIO>& SourceIO, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXCORE_API void AssembleBlendingDetails(const EPCGExBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
+	PCGEXCOMPOSITING_API void AssembleBlendingDetails(const EPCGExBlendingType& DefaultBlending, const TArray<FName>& Attributes, const TArray<TSharedRef<PCGExData::FFacade>>& InSources, FPCGExBlendingDetails& OutDetails, TSet<FName>& OutMissingAttributes);
 
-	PCGEXCORE_API void GetFilteredIdentities(const UPCGMetadata* InMetadata, TArray<PCGExData::FAttributeIdentity>& OutIdentities, const FPCGExBlendingDetails* InBlendingDetails = nullptr, const FPCGExCarryOverDetails* InCarryOverDetails = nullptr, const TSet<FName>* IgnoreAttributeSet = nullptr);
+	PCGEXCOMPOSITING_API void GetFilteredIdentities(const UPCGMetadata* InMetadata, TArray<PCGExData::FAttributeIdentity>& OutIdentities, const FPCGExBlendingDetails* InBlendingDetails = nullptr, const FPCGExCarryOverDetails* InCarryOverDetails = nullptr, const TSet<FName>* IgnoreAttributeSet = nullptr);
 }

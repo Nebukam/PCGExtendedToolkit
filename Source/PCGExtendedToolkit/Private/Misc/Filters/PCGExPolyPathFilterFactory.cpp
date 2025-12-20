@@ -4,7 +4,7 @@
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #if PCGEX_ENGINE_VERSION > 506
 #include "Data/PCGPolygon2DData.h"

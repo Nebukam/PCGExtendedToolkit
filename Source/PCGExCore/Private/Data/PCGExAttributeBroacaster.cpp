@@ -1,7 +1,6 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Data/PCGExAttributeBroadcaster.h"
 
 #include "Metadata/PCGAttributePropertySelector.h"
@@ -13,6 +12,7 @@
 #include "Data/PCGExDataValue.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGExArrayHelpers.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGExData
 {
@@ -85,10 +85,10 @@ namespace PCGExData
 			PCGExMetaHelpers::ExecuteWithRightType(ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 			{
 				using T_REAL = decltype(DummyValue);
-				DataValue = MakeShared<PCGExData::TDataValue<T_REAL>>(PCGExDataHelpers::ReadDataValue(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute)));
+				DataValue = MakeShared<PCGExData::TDataValue<T_REAL>>(PCGExData::Helpers::ReadDataValue(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute)));
 
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				TypedDataValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGExTypes::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
+				TypedDataValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGExTypeOps::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
 			});
 		}
 		else

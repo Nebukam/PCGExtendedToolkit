@@ -4,11 +4,9 @@
 #include "Factories/PCGExFactoryProvider.h"
 
 #include "Core/PCGExContext.h"
-#include "PCGExMT.h"
 #include "PCGPin.h"
 #include "Data/PCGExPointIO.h"
 #include "Factories/PCGExFactoryData.h"
-#include "PCGExCore/Public/PCGExMT.h"
 #include "Tasks/Task.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"

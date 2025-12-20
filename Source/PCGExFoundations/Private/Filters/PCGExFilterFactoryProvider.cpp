@@ -20,7 +20,7 @@ UPCGExFilterProviderSettings::UPCGExFilterProviderSettings()
 	Priority = GetDefaultPriority();
 }
 
-FName UPCGExFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabel; }
+FName UPCGExFilterProviderSettings::GetMainOutputPin() const { return PCGExFilter::Labels::OutputFilterLabel; }
 
 UPCGExFactoryData* UPCGExFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
@@ -47,7 +47,7 @@ bool UPCGExFilterProviderSettings::ShouldCancel(FPCGExFactoryProviderContext* In
 	return false;
 }
 
-FName UPCGExFilterCollectionProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputColFilterLabel; }
+FName UPCGExFilterCollectionProviderSettings::GetMainOutputPin() const { return PCGExFilter::Labels::OutputColFilterLabel; }
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

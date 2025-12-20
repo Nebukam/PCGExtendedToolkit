@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExLabels.h"
+#include "Factories/PCGExFactoryData.h"
 
 #include "PCGExPointFilter.generated.h"
 
@@ -78,21 +78,21 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter"))
 struct FPCGExDataTypeInfoFilter : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXCORE_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
 };
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter (Point)"))
 struct FPCGExDataTypeInfoFilterPoint : public FPCGExDataTypeInfoFilter
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXCORE_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
 };
 
 /**
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXCORE_API UPCGExFilterFactoryData : public UPCGExFactoryData
+class PCGEXFOUNDATIONS_API UPCGExFilterFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -125,7 +125,7 @@ protected:
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXCORE_API UPCGExPointFilterFactoryData : public UPCGExFilterFactoryData
+class PCGEXFOUNDATIONS_API UPCGExPointFilterFactoryData : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -140,7 +140,7 @@ public:
 
 namespace PCGExPointFilter
 {
-	class PCGEXCORE_API IFilter : public TSharedFromThis<IFilter>
+	class PCGEXFOUNDATIONS_API IFilter : public TSharedFromThis<IFilter>
 	{
 	public:
 		explicit IFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
@@ -181,7 +181,7 @@ namespace PCGExPointFilter
 		virtual ~IFilter() = default;
 	};
 
-	class PCGEXCORE_API ISimpleFilter : public IFilter
+	class PCGEXFOUNDATIONS_API ISimpleFilter : public IFilter
 	{
 	public:
 		explicit ISimpleFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
@@ -196,7 +196,7 @@ namespace PCGExPointFilter
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
-	class PCGEXCORE_API ICollectionFilter : public IFilter
+	class PCGEXFOUNDATIONS_API ICollectionFilter : public IFilter
 	{
 	public:
 		explicit ICollectionFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory)
@@ -215,7 +215,7 @@ namespace PCGExPointFilter
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
-	class PCGEXCORE_API FManager : public TSharedFromThis<FManager>
+	class PCGEXFOUNDATIONS_API FManager : public TSharedFromThis<FManager>
 	{
 	public:
 		explicit FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
@@ -265,23 +265,23 @@ namespace PCGExPointFilter
 		virtual void InitCache();
 	};
 
-	PCGEXCORE_API void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader);
+	PCGEXFOUNDATIONS_API void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader);
 
-	PCGEXCORE_API void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
+	PCGEXFOUNDATIONS_API void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
 }
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter (Data)"))
 struct FPCGExDataTypeInfoFilterCollection : public FPCGExDataTypeInfoFilter
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXCORE_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
 };
 
 /**
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXCORE_API UPCGExFilterCollectionFactoryData : public UPCGExPointFilterFactoryData
+class PCGEXFOUNDATIONS_API UPCGExFilterCollectionFactoryData : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

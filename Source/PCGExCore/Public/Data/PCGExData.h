@@ -27,6 +27,11 @@
 #endif
 #pragma endregion
 
+namespace PCGExMath
+{
+	class FBoundsCloud;
+}
+
 struct FPCGExContext;
 
 namespace PCGExMT
@@ -41,11 +46,6 @@ namespace PCGExData
 
 	template <typename T>
 	class TAttributeBroadcaster;
-}
-
-namespace PCGExGeo
-{
-	class FPointBoxCloud;
 }
 
 namespace PCGExData
@@ -238,7 +238,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 	protected:
 		// Used to read from an attribute as another type
-		TSharedPtr<PCGEx::TAttributeBroadcaster<T>> InternalBroadcaster;
+		TSharedPtr<PCGExData::TAttributeBroadcaster<T>> InternalBroadcaster;
 		bool bSparseBuffer = false;
 
 		TSharedPtr<TArray<T>> InValues;
@@ -347,7 +347,7 @@ extern template class TSingleValueBuffer<_TYPE>;
 		TSharedRef<FPointIO> Source;
 		TArray<TSharedPtr<IBuffer>> Buffers;
 		TMap<uint64, TSharedPtr<IBuffer>> BufferMap;
-		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
+		TSharedPtr<PCGExMath::FBoundsCloud> Cloud;
 
 		TMap<FName, FName> WritableRemap; // TODO : Manage remapping in the facade directly to remove the need for dummy attributes
 
@@ -427,7 +427,7 @@ extern template class TSingleValueBuffer<_TYPE>;
 		template <typename T>
 		const FPCGMetadataAttribute<T>* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const;
 
-		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
+		TSharedPtr<PCGExMath::FBoundsCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
 
 		const UPCGBasePointData* GetData(const EIOSide InSide) const;
 		const UPCGBasePointData* GetIn() const;

@@ -3,15 +3,13 @@
 
 #include "Data/PCGExUnionData.h"
 
-#include "PCGExPointsMT.h"
+#include "Containers/PCGExIndexLookup.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDistancesDetails.h"
 
 namespace PCGExData
 {
-#pragma region Union Data
-
 	void IUnionData::Add(const FElement& Point)
 	{
 		FWriteScopeLock WriteScopeLock(UnionLock);
@@ -41,7 +39,7 @@ namespace PCGExData
 		const TArray<const UPCGBasePointData*>& Sources,
 		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 		const FPoint& Target,
-		const PCGExDetails::FDistances* InDistanceDetails,
+		const PCGExMath::FDistances* InDistanceDetails,
 		TArray<FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
@@ -148,7 +146,4 @@ namespace PCGExData
 
 		return true;
 	}
-
-
-#pragma endregion
 }

@@ -6,7 +6,7 @@
 
 #include "PCGExMath.h"
 #include "PCGExTypes.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExManhattanDetails, GridSize, FVector, GridSizeInput, GridSizeAttribute, GridSize)
@@ -38,7 +38,7 @@ bool FPCGExManhattanDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCG
 		else if (SpaceAlign == EPCGExManhattanAlign::World) { OrientBuffer = PCGExDetails::MakeSettingValue(FQuat::Identity); }
 	}
 
-	PCGEx::GetAxesOrder(Order, Comps);
+	PCGExMath::GetAxesOrder(Order, Comps);
 
 	bInitialized = true;
 	return true;

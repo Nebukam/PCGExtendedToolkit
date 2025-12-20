@@ -8,7 +8,7 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExUnionBlender.h"
+#include "Blenders/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExBlending.h"
 
 

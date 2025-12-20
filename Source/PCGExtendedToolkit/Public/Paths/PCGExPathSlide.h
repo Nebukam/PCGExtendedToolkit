@@ -48,7 +48,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filter which points are processed by the slide maths.", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourceFiltersLabel, "Filter which points are processed by the slide maths.", PCGExFactories::PointFilters, false)
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;

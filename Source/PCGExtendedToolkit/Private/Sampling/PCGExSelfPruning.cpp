@@ -4,13 +4,13 @@
 #include "Sampling/PCGExSelfPruning.h"
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "PCGExSorting.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Geometry/PCGExGeo.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSelfPruningElement"
@@ -125,7 +125,7 @@ namespace PCGExSelfPruning
 				TConstPCGValueRange<int32> Seeds = PointDataFacade->GetIn()->GetConstSeedValueRange();
 				const int32 MaxRange = NumPoints * Settings->RandomRange;
 				const int32 MinRange = -MaxRange;
-				for (int i = 0; i < NumPoints; i++) { Priority[i] = Order[i] + PCGExRandom::GetRandomStreamFromPoint(Seeds[i], 0, Settings).RandRange(MinRange, MaxRange); }
+				for (int i = 0; i < NumPoints; i++) { Priority[i] = Order[i] + PCGExRandomHelpers::GetRandomStreamFromPoint(Seeds[i], 0, Settings).RandRange(MinRange, MaxRange); }
 				if (Settings->SortDirection == EPCGExSortDirection::Descending) { Order.Sort([&](const int32 A, const int32 B) { return Priority[A] > Priority[B]; }); }
 				else { Order.Sort([&](const int32 A, const int32 B) { return Priority[A] < Priority[B]; }); }
 			}

@@ -3,7 +3,7 @@
 
 #include "Data/PCGExDataFilter.h"
 
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Types/PCGExAttributeIdentity.h"

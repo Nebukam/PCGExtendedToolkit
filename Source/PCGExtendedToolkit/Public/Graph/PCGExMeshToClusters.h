@@ -8,7 +8,7 @@
 #include "Transform/PCGExFitting.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 
 
 #include "Geometry/PCGExGeoMesh.h"
@@ -110,7 +110,7 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 	FPCGExGeoMeshImportDetails ImportDetails;
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
-	TSharedPtr<PCGExGeo::FGeoStaticMeshMap> StaticMeshMap;
+	TSharedPtr<PCGExMath::FGeoStaticMeshMap> StaticMeshMap;
 	TArray<int32> MeshIdx;
 
 	TSharedPtr<PCGExData::FPointIOCollection> RootVtx;

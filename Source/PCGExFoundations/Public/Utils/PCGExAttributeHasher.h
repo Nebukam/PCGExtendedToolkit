@@ -7,8 +7,9 @@
 
 #include "CoreMinimal.h"
 #include "Containers/PCGExScopedContainers.h"
+#include "Core/PCGExMTCommon.h"
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "PCGExSorting.h"
+#include "Sorting/PCGExSorting.h"
 #include "PCGExAttributeHasher.generated.h"
 
 namespace PCGExMT
@@ -32,7 +33,7 @@ enum class EPCGExDataHashScope : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExAttributeHashConfig
+struct PCGEXFOUNDATIONS_API FPCGExAttributeHashConfig
 {
 	GENERATED_BODY()
 
@@ -58,7 +59,7 @@ struct PCGEXCORE_API FPCGExAttributeHashConfig
 
 namespace PCGEx
 {
-	class PCGEXCORE_API FAttributeHasher : public TSharedFromThis<FAttributeHasher>
+	class PCGEXFOUNDATIONS_API FAttributeHasher : public TSharedFromThis<FAttributeHasher>
 	{
 		FPCGExAttributeHashConfig Config;
 

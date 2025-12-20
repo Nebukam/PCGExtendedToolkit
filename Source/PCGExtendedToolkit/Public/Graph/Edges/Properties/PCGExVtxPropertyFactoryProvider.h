@@ -15,7 +15,7 @@
 #define PCGEX_VTX_EXTRA_CREATE \
 	NewOperation->Config = Config;
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	struct FBestFitPlane;
 }
@@ -145,7 +145,7 @@ public:
 	virtual bool PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
-	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP);
+	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP);
 
 protected:
 	const PCGExCluster::FCluster* Cluster = nullptr;

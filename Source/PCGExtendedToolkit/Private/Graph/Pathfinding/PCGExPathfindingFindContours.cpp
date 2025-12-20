@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGPointArrayData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
@@ -242,7 +242,7 @@ namespace PCGExFindContours
 		PathIO->Tags->Reset();                              // Tag forwarding handled by artifacts
 		PathIO->IOIndex = BatchIndex * 1000000 + SeedIndex; // Enforce seed order for collection output
 
-		PCGExGraph::CleanupClusterData(PathIO);
+		PCGExCluster::Helpers::CleanupClusterData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 

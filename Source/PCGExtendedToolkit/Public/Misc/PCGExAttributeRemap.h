@@ -13,9 +13,9 @@
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExProxyData.h"
-#include "Details/PCGExDetailsAttributes.h"
-#include "Details/PCGExDetailsInputShorthands.h"
-#include "Sampling/PCGExCurveLookup.h"
+#include "Details/PCGExAttributesDetails.h"
+#include "Details/PCGExInputShorthandsDetails.h"
+#include "Utils/PCGExCurveLookup.h"
 #include "Sampling/PCGExSampling.h"
 #include "Transform/PCGExFitting.h"
 

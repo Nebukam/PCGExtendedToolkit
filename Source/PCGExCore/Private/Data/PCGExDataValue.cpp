@@ -3,7 +3,7 @@
 
 #include "Data/PCGExDataValue.h"
 
-#include "Data/PCGExBroadcast.h"
+#include "Data/PCGExSubSelection.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Types/PCGExTypes.h"
 #include "Types/PCGExTypeTraits.h"
@@ -20,8 +20,8 @@ namespace PCGExData
 	template <typename T>
 	T IDataValue::GetValue()
 	{
-		if (IsNumeric()) { return PCGExTypes::Convert<double, T>(AsDouble()); }
-		return PCGExTypes::Convert<FString, T>(AsString());
+		if (IsNumeric()) { return PCGExTypeOps::Convert<double, T>(AsDouble()); }
+		return PCGExTypeOps::Convert<FString, T>(AsString());
 	}
 
 #pragma region externalization
@@ -203,7 +203,7 @@ template class PCGEXCORE_API TDataValue<_TYPE>;
 			PCGExMetaHelpers::ExecuteWithRightType(SourceAttribute->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				const T Value = PCGExDataHelpers::ReadDataValue<T>(static_cast<const FPCGMetadataAttribute<T>*>(SourceAttribute));
+				const T Value = PCGExData::Helpers::ReadDataValue<T>(static_cast<const FPCGMetadataAttribute<T>*>(SourceAttribute));
 
 				PCGExData::FSubSelection SubSelection(Selector);
 				TSharedPtr<IDataValue> TypedDataValue = nullptr;

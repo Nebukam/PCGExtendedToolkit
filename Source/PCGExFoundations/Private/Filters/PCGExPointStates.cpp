@@ -101,7 +101,7 @@ bool UPCGExStateFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin*
 TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required)
+	PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceFiltersLabel, TEXT("Filters used to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required)
 	return PinProperties;
 }
 
@@ -125,7 +125,7 @@ UPCGExFactoryData* UPCGExStateFactoryProviderSettings::CreateFactory(FPCGExConte
 
 	NewFactory->Priority = Priority;
 
-	if (const bool bRequiresFilters = NewFactory->GetRequiresFilters(); !GetInputFactories(InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters, bRequiresFilters) && bRequiresFilters)
+	if (const bool bRequiresFilters = NewFactory->GetRequiresFilters(); !GetInputFactories(InContext, PCGExFilter::Labels::SourceFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters, bRequiresFilters) && bRequiresFilters)
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

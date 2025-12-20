@@ -12,7 +12,9 @@
 #include "PCGExCommon.h"
 #include "Core/PCGExContext.h"
 #include "PCGExPointElements.h"
-#include "PCGExHelpers.h"
+#include "PCGExTaggedData.h"
+#include "Containers/PCGExManagedObjects.h"
+#include "Helpers/PCGExPointArrayDataHelpers.h"
 
 namespace PCGExData
 {

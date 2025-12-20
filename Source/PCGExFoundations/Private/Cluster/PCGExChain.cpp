@@ -1,12 +1,12 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExChain.h"
+#include "Cluster/PCGExChain.h"
 
-#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/PCGExGraph.h"
 
 namespace PCGExCluster
 {
@@ -297,6 +297,11 @@ namespace PCGExCluster
 
 		ChainSearchTask->StartIterations(Chains.Num(), 64, false);
 		return true;
+	}
+
+	FNodeChainBuilder::FNodeChainBuilder(const TSharedRef<FCluster>& InCluster)
+		: Cluster(InCluster)
+	{
 	}
 
 	void FNodeChainBuilder::Dedupe()

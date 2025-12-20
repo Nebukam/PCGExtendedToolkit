@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
 	bool WantsImport() const;
 };
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	const FName SourceUVImportRulesLabel = TEXT("UV Imports");
 

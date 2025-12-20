@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExClusterUtils.h"
 
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 
@@ -36,7 +36,7 @@ namespace PCGExClusterUtils
 					continue;
 				}
 
-				if (!PCGExGraph::IsPointDataVtxReady(MainIO->GetIn()->Metadata))
+				if (!PCGExCluster::Helpers::IsPointDataVtxReady(MainIO->GetIn()->Metadata))
 				{
 					Invalidate(MainIO, EProblem::VtxTagButNoMeta);
 					continue;
@@ -56,7 +56,7 @@ namespace PCGExClusterUtils
 					continue;
 				}
 
-				if (!PCGExGraph::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
+				if (!PCGExCluster::Helpers::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
 				{
 					Invalidate(MainIO, EProblem::EdgeTagButNoMeta);
 					continue;
@@ -89,7 +89,7 @@ namespace PCGExClusterUtils
 					continue;
 				}
 
-				if (!PCGExGraph::IsPointDataVtxReady(VtxIO->GetIn()->Metadata))
+				if (!PCGExCluster::Helpers::IsPointDataVtxReady(VtxIO->GetIn()->Metadata))
 				{
 					Invalidate(VtxIO, EProblem::VtxTagButNoMeta);
 					continue;
@@ -125,7 +125,7 @@ namespace PCGExClusterUtils
 					continue;
 				}
 
-				if (!PCGExGraph::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
+				if (!PCGExCluster::Helpers::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
 				{
 					Invalidate(MainIO, EProblem::EdgeTagButNoMeta);
 					continue;

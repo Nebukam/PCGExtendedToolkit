@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 #include "PCGExMathMean.h"
-#include "Details/PCGExDetailsBitmask.h"
+#include "Bitmasks/PCGExBitmaskDetails.h"
 
 #include "PCGExAdjacency.generated.h"
 

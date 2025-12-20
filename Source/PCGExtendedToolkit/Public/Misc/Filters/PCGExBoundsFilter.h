@@ -11,7 +11,7 @@
 #include "PCGExPointsProcessor.h"
 
 
-#include "Geometry/PCGExGeoPointBox.h"
+#include "Math/PCGExBoundsCloud.h"
 
 
 #include "PCGExBoundsFilter.generated.h"
@@ -91,7 +91,7 @@ public:
 	FPCGExBoundsFilterConfig Config;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
-	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
+	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;
 
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override { return true; }
@@ -117,7 +117,7 @@ namespace PCGExPointFilter
 		}
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
-		const TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>>* Clouds = nullptr;
+		const TArray<TSharedPtr<PCGExMath::FBoundsCloud>>* Clouds = nullptr;
 
 		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
 		bool bIgnoreSelf = false;

@@ -4,12 +4,12 @@
 #include "Paths/PCGExBevelPath.h"
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlending.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "Paths/PCGExPaths.h"
 
@@ -511,8 +511,8 @@ namespace PCGExBevelPath
 			OutTransform[A].SetLocation(Bevel->Arrive);
 			OutTransform[B].SetLocation(Bevel->Leave);
 
-			OutSeeds[A] = PCGExRandom::ComputeSpatialSeed(OutTransform[A].GetLocation());
-			OutSeeds[B] = PCGExRandom::ComputeSpatialSeed(OutTransform[B].GetLocation());
+			OutSeeds[A] = PCGExRandomHelpers::ComputeSpatialSeed(OutTransform[A].GetLocation());
+			OutSeeds[B] = PCGExRandomHelpers::ComputeSpatialSeed(OutTransform[B].GetLocation());
 
 			if (Bevel->Subdivisions.IsEmpty()) { continue; }
 
@@ -520,7 +520,7 @@ namespace PCGExBevelPath
 			{
 				const int32 SubIndex = A + i + 1;
 				OutTransform[SubIndex].SetLocation(Bevel->Subdivisions[i]);
-				OutSeeds[SubIndex] = PCGExRandom::ComputeSpatialSeed(OutTransform[SubIndex].GetLocation());
+				OutSeeds[SubIndex] = PCGExRandomHelpers::ComputeSpatialSeed(OutTransform[SubIndex].GetLocation());
 			}
 		}
 	}

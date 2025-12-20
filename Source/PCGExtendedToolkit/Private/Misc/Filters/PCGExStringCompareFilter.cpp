@@ -36,7 +36,7 @@ bool PCGExPointFilter::FStringCompareFilter::Init(FPCGExContext* InContext, cons
 {
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+	OperandA = MakeShared<PCGExData::TAttributeBroadcaster<FString>>();
 	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
 		PCGEX_LOG_INVALID_ATTR_HANDLED_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
@@ -45,7 +45,7 @@ bool PCGExPointFilter::FStringCompareFilter::Init(FPCGExContext* InContext, cons
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute)
 	{
-		OperandB = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+		OperandB = MakeShared<PCGExData::TAttributeBroadcaster<FString>>();
 		if (!OperandB->Prepare(TypedFilterFactory->Config.OperandB, PointDataFacade->Source))
 		{
 			PCGEX_LOG_INVALID_ATTR_HANDLED_C(InContext, Operand B, TypedFilterFactory->Config.OperandB)
@@ -69,9 +69,9 @@ bool PCGExPointFilter::FStringCompareFilter::Test(const TSharedPtr<PCGExData::FP
 	FString A = TEXT("");
 	FString B = TEXT("");
 
-	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExData::Helpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
-	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExData::Helpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
 }

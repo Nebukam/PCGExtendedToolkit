@@ -12,6 +12,7 @@
 
 #include "PCGExFunctionPrototypes.generated.h"
 
+struct FPCGContext;
 /** Holds function prototypes used to match against actor function signatures. */
 UCLASS()
 class PCGEXCORE_API UPCGExFunctionPrototypes : public UBlueprintFunctionLibrary
@@ -30,5 +31,9 @@ private:
 
 namespace PCGExHelpers
 {
-	PCGEXCORE_API TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext);
+	PCGEXCORE_API TArray<UFunction*> FindUserFunctions(
+		const TSubclassOf<AActor>& ActorClass,
+		const TArray<FName>& FunctionNames,
+		const TArray<const UFunction*>& FunctionPrototypes,
+		const FPCGContext* InContext);
 }

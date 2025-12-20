@@ -4,22 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Filters/PCGExClusterFilter.h"
+#include "Filters/PCGExFilterCommon.h"
 #include "UObject/Object.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
-
-UENUM()
-enum class EPCGExFilterGroupMode : uint8
-{
-	AND = 0 UMETA(DisplayName = "And", ToolTip="All connected filters must pass.", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "And Combine"),
-	OR  = 1 UMETA(DisplayName = "Or", ToolTip="Only a single connected filter must pass.", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Or Combine")
-};
 
 /**
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXCORE_API UPCGExFilterGroupFactoryData : public UPCGExClusterFilterFactoryData
+class PCGEXFOUNDATIONS_API UPCGExFilterGroupFactoryData : public UPCGExClusterFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -72,7 +66,7 @@ public:
 
 namespace PCGExFilterGroup
 {
-	class PCGEXCORE_API FFilterGroup : public PCGExClusterFilter::IFilter
+	class PCGEXFOUNDATIONS_API FFilterGroup : public PCGExClusterFilter::IFilter
 	{
 	public:
 		explicit FFilterGroup(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories)
@@ -111,7 +105,7 @@ namespace PCGExFilterGroup
 		virtual void PostInitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter);
 	};
 
-	class PCGEXCORE_API FFilterGroupAND final : public FFilterGroup
+	class PCGEXFOUNDATIONS_API FFilterGroupAND final : public FFilterGroup
 	{
 	public:
 		explicit FFilterGroupAND(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories)
@@ -126,7 +120,7 @@ namespace PCGExFilterGroup
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
-	class PCGEXCORE_API FFilterGroupOR final : public FFilterGroup
+	class PCGEXFOUNDATIONS_API FFilterGroupOR final : public FFilterGroup
 	{
 	public:
 		explicit FFilterGroupOR(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories)
@@ -145,7 +139,7 @@ namespace PCGExFilterGroup
 #pragma region UPCGExFilterGroupProvider
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|FilterGroup", meta=(PCGExNodeLibraryDoc="filters/and-or"))
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXFOUNDATIONS_API UPCGExFilterGroupProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

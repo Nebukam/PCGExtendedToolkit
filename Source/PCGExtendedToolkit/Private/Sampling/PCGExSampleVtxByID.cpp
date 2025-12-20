@@ -6,13 +6,13 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Details/PCGExDetailsDistances.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleVtxByIDElement"
@@ -180,7 +180,7 @@ namespace PCGExSampleVtxByID
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
+			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExMath::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetFacades)) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}

@@ -5,9 +5,9 @@
 
 #include "PCGExMT.h"
 #include "PCGParamData.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Blenders/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExMetadataBlender.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPaths.h"
 
 

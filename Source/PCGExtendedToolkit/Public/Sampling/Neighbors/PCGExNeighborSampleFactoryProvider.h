@@ -16,7 +16,7 @@
 
 
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "Sampling/PCGExCurveLookup.h"
+#include "Utils/PCGExCurveLookup.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"

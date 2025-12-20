@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 
@@ -282,11 +282,11 @@ namespace PCGExPathSolidify
 
 			const EPCGExAxisOrder Order = GetOrder(Index);
 
-			PCGEx::ReorderAxes(Order, XAxis, YAxis, ZAxis);
-			const FQuat Quat = PCGEx::MakeRot(GetConstruction(Order, Index), XAxis, YAxis, ZAxis);
+			PCGExMath::ReorderAxes(Order, XAxis, YAxis, ZAxis);
+			const FQuat Quat = PCGExMath::MakeRot(GetConstruction(Order, Index), XAxis, YAxis, ZAxis);
 
 			// Find primary / secondary / tertiary components
-			PCGEx::FindOrderMatch(Quat, RealXAxis, RealYAxis, RealZAxis, A, B, C);
+			PCGExMath::FindOrderMatch(Quat, RealXAxis, RealYAxis, RealZAxis, A, B, C);
 
 			const FVector QuatAxes[3] = {Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ()};
 			const bool bForwardFlipped = FVector::DotProduct(QuatAxes[A], RealXAxis) < 0;

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "Data/PCGExDataCommon.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 

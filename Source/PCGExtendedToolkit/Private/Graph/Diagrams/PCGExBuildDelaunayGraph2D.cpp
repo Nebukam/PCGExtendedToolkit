@@ -117,7 +117,7 @@ namespace PCGExBuildDelaunayGraph2D
 			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
 			UPCGBasePointData* MutablePoints = SitesIO->GetOut();
 
-			PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
+			PCGExMath::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 			const int32 NumSites = Delaunay->Sites.Num();
 
 			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
@@ -128,7 +128,7 @@ namespace PCGExBuildDelaunayGraph2D
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
+				const PCGExMath::FDelaunaySite2& Site = Delaunay->Sites[i];
 
 				FVector Centroid = FVector::ZeroVector;
 				for (int j = 0; j < 3; j++) { Centroid += InTransforms[Site.Vtx[j]].GetLocation(); }
@@ -183,7 +183,7 @@ namespace PCGExBuildDelaunayGraph2D
 			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
 			UPCGBasePointData* MutablePoints = SitesIO->GetOut();
 
-			PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
+			PCGExMath::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 			const int32 NumSites = Delaunay->Sites.Num();
 
 			// TODO : Revisit this to avoid allocating so much memory when we only need a subset
@@ -206,7 +206,7 @@ namespace PCGExBuildDelaunayGraph2D
 				if (VisitedSites[i]) { continue; }
 				VisitedSites[i] = true;
 
-				const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
+				const PCGExMath::FDelaunaySite2& Site = Delaunay->Sites[i];
 
 				TSet<int32> QueueSet;
 				TSet<uint64> QueuedEdgesSet;
@@ -227,7 +227,7 @@ namespace PCGExBuildDelaunayGraph2D
 				{
 					for (const int32 MergeSiteIndex : Queue)
 					{
-						const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
+						const PCGExMath::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
 						for (int j = 0; j < 3; j++) { Centroid += InTransforms[MSite.Vtx[j]].GetLocation(); }
 
 						if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
@@ -290,14 +290,14 @@ namespace PCGExBuildDelaunayGraph2D
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
+		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Delaunay = MakeShared<PCGExGeo::TDelaunay2>();
+		Delaunay = MakeShared<PCGExMath::TDelaunay2>();
 
 		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
 		{

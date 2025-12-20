@@ -4,10 +4,10 @@
 #include "Paths/PCGExSplineToPath.h"
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGSplineData.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
@@ -82,7 +82,7 @@ namespace PCGExSplineToPath
 					OutTransforms[Index].SetLocation(Transform.GetLocation());
 				}
 
-				OutSeeds[Index] = PCGExRandom::ComputeSpatialSeed(OutTransforms[Index].GetLocation());
+				OutSeeds[Index] = PCGExRandomHelpers::ComputeSpatialSeed(OutTransforms[Index].GetLocation());
 			};
 
 			auto GetPointType = [](EInterpCurveMode Mode)-> int32
@@ -155,7 +155,7 @@ namespace PCGExSplineToPath
 
 						if (Identity.InDataDomain())
 						{
-							OutBuffer->SetValue(0, PCGExDataHelpers::ReadDataValue(SourceAttr));
+							OutBuffer->SetValue(0, PCGExData::Helpers::ReadDataValue(SourceAttr));
 							return;
 						}
 

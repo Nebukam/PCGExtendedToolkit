@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 
@@ -186,7 +186,7 @@ namespace PCGExBuildVoronoiGraph2D
 		TArray<FVector> SitesPositions;
 
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExGeo::TVoronoi2> Voronoi;
+		TSharedPtr<PCGExMath::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TSharedPtr<PCGExData::FFacade> SiteDataFacade;

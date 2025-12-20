@@ -7,8 +7,8 @@
 #include "PCGExMath.h"
 #include "PCGExPathProcessor.h"
 #include "Data/Blending/PCGExBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-#include "Details/PCGExDetailsInputShorthands.h"
+#include "Blenders/PCGExMetadataBlender.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 
 
 #include "Shapes/PCGExShapes.h"

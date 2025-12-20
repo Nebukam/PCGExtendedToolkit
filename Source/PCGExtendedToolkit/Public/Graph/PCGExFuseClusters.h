@@ -7,7 +7,7 @@
 #include "PCGExUnionProcessor.h"
 #include "PCGExClustersProcessor.h"
 #include "PCGExIntersections.h"
-#include "Data/Blending/PCGExUnionBlender.h"
+#include "Blenders/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExBlending.h"
 
 #include "PCGExFuseClusters.generated.h"

@@ -13,7 +13,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
-void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const
+void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExMath::FBestFitPlane& Plane) const
 {
 	if (!AttributeIdentifiers.IsEmpty())
 	{
@@ -54,7 +54,7 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 	}
 }
 
-void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const
+void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExMath::FBestFitPlane& Plane) const
 {
 	if (!AttributeIdentifiers.IsEmpty())
 	{
@@ -168,7 +168,7 @@ namespace PCGExPointsToBounds
 		}
 
 		Bounds = FBox(ForceInit);
-		BestFitPlane = PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
+		BestFitPlane = PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
 		FTransform InvTransform = BestFitPlane.GetTransform(Settings->AxisOrder).Inverse();
 
 		const UPCGBasePointData* InPointData = OutputIO->GetIn();
@@ -267,7 +267,7 @@ namespace PCGExPointsToBounds
 		else
 		{
 			Settings->DataDetails.OutputInverse(PointDataFacade->GetIn(), OutputFacade->GetOut(), BlendedAttributes, BestFitPlane);
-			PCGExGraph::CleanupClusterData(OutputFacade->Source);
+			PCGExCluster::Helpers::CleanupClusterData(OutputFacade->Source);
 		}
 	}
 }

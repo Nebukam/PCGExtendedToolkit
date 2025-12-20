@@ -3,8 +3,9 @@
 
 #include "Filters/Elements/PCGExFilterGroup.h"
 
-
-#include "PCGExSubSystem.h"
+#include "PCGExFoundationsSubSystem.h"
+#include "Containers/PCGExManagedObjects.h"
+#include "Filters/PCGExFilterLabels.h"
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExFilterGroup
@@ -50,7 +51,7 @@ namespace PCGExFilterGroup
 		{
 			if (SupportedFactoriesTypes && !SupportedFactoriesTypes->Contains(ManagedFactory->GetFactoryType()))
 			{
-				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A grouped filter is of an unexpected type : {0}."), FText::FromString(GetNameSafe(ManagedFactory->GetClass()));
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A grouped filter is of an unexpected type : {0}."), FText::FromString(GetNameSafe(ManagedFactory->GetClass()))));
 				continue;
 			}
 
@@ -64,7 +65,7 @@ namespace PCGExFilterGroup
 			{
 				if (ManagedFactory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Error)
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped filter failed to initialize properly : {0}."), FText::FromString(GetNameSafe(ManagedFactory->GetClass()));
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped filter failed to initialize properly : {0}."), FText::FromString(GetNameSafe(ManagedFactory->GetClass()))));
 				}
 				else if (ManagedFactory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Pass)
 				{
@@ -83,8 +84,8 @@ namespace PCGExFilterGroup
 
 		auto RegisterConstant = [&](bool bConstant)
 		{
-			PCGEX_SUBSYSTEM
-			const TSharedPtr<PCGExPointFilter::IFilter> NewFilter = PCGExSubsystem->GetConstantFilter(bConstant);
+			PCGEX_FOUNDATIONS_SUBSYSTEM
+			const TSharedPtr<PCGExPointFilter::IFilter> NewFilter = PCGExFoundationSubsystem->GetConstantFilter(bConstant);
 			NewFilter->bUseDataDomainSelectorsOnly = true;
 			NewFilter->bCacheResults = bCacheResults;
 			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
@@ -309,7 +310,7 @@ void UPCGExFilterGroupProviderSettings::ApplyPreconfiguredSettings(const FPCGPre
 TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, "List of filters that will be processed in either AND or OR mode.", Required)
+	PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceFiltersLabel, "List of filters that will be processed in either AND or OR mode.", Required)
 	return PinProperties;
 }
 
@@ -320,7 +321,7 @@ TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::OutputPinProperties
 	return PinProperties;
 }
 
-FName UPCGExFilterGroupProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabel; }
+FName UPCGExFilterGroupProviderSettings::GetMainOutputPin() const { return PCGExFilter::Labels::OutputFilterLabel; }
 
 UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
@@ -329,7 +330,7 @@ UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContex
 	if (Mode == EPCGExFilterGroupMode::AND) { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryDataAND>(); }
 	else { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryDataOR>(); }
 
-	if (!GetInputFactories(InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories, PCGExFactories::AnyFilters))
+	if (!GetInputFactories(InContext, PCGExFilter::Labels::SourceFiltersLabel, NewFactory->FilterFactories, PCGExFactories::AnyFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

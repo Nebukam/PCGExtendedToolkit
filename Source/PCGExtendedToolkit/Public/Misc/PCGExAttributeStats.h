@@ -12,7 +12,7 @@
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Types/PCGExAttributeIdentity.h"
 #include "Types/PCGExTypeTraits.h"
@@ -52,7 +52,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** Attributes to get. */

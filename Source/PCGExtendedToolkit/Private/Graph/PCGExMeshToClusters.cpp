@@ -50,7 +50,7 @@ namespace PCGExGraphTask
 			VtxDupe->IOIndex = TaskIndex;
 
 			PCGExDataId OutId;
-			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
+			PCGExCluster::Helpers::SetClusterVtx(VtxDupe, OutId);
 
 			PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
 			Launch(VtxTask);
@@ -61,7 +61,7 @@ namespace PCGExGraphTask
 				if (!EdgeDupe) { return; }
 
 				EdgeDupe->IOIndex = TaskIndex;
-				PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
+				PCGExCluster::Helpers::MarkClusterEdges(EdgeDupe, OutId);
 
 				PCGEX_MAKE_SHARED(EdgeTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, EdgeDupe, TransformDetails);
 				Launch(EdgeTask);
@@ -78,12 +78,12 @@ namespace PCGExMeshToCluster
 	class FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FExtractMeshAndBuildGraph(const int32 InTaskIndex, const TSharedPtr<PCGExGeo::FGeoStaticMesh>& InMesh)
+		FExtractMeshAndBuildGraph(const int32 InTaskIndex, const TSharedPtr<PCGExMath::FGeoStaticMesh>& InMesh)
 			: FPCGExIndexedTask(InTaskIndex), Mesh(InMesh)
 		{
 		}
 
-		TSharedPtr<PCGExGeo::FGeoStaticMesh> Mesh;
+		TSharedPtr<PCGExMath::FGeoStaticMesh> Mesh;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
@@ -436,7 +436,7 @@ namespace PCGExMeshToCluster
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGExGeo::DeclareGeoMeshImportInputs(ImportDetails, PinProperties);
+	PCGExMath::DeclareGeoMeshImportInputs(ImportDetails, PinProperties);
 	return PinProperties;
 }
 
@@ -482,7 +482,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::FPointIO> Targets = Context->MainPoints->Pairs[0];
 	Context->MeshIdx.SetNum(Targets->GetNum());
 
-	Context->StaticMeshMap = MakeShared<PCGExGeo::FGeoStaticMeshMap>();
+	Context->StaticMeshMap = MakeShared<PCGExMath::FGeoStaticMeshMap>();
 	Context->StaticMeshMap->DesiredTriangulationType = Settings->GraphOutputType;
 
 	Context->RootVtx = MakeShared<PCGExData::FPointIOCollection>(Context); // Make this pinless
@@ -532,7 +532,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 			Selector.SetAttributeName(Settings->StaticMeshAttribute);
 
-			const TUniquePtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> PathGetter = MakeUnique<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
+			const TUniquePtr<PCGExData::TAttributeBroadcaster<FSoftObjectPath>> PathGetter = MakeUnique<PCGExData::TAttributeBroadcaster<FSoftObjectPath>>();
 			if (!PathGetter->Prepare(Selector, Context->MainPoints->Pairs[0].ToSharedRef()))
 			{
 				PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));
@@ -615,10 +615,10 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 
 		// Preload all & build local graphs to copy to points later on			
-		Context->SetState(PCGExGeo::State_ExtractingMesh);
+		Context->SetState(PCGExMath::State_ExtractingMesh);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExGeo::State_ExtractingMesh)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExMath::State_ExtractingMesh)
 	{
 		Context->SetState(PCGExGraph::State_WritingClusters);
 

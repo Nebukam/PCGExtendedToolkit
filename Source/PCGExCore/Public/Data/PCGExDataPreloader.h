@@ -7,7 +7,6 @@
 #include "PCGExCommon.h"
 #include "Core/PCGExMTCommon.h"
 #include "Helpers/PCGExMetaHelpers.h"
-#include "Metadata/PCGAttributePropertySelector.h"
 #include "Types/PCGExAttributeIdentity.h"
 #include "UObject/Object.h"
 

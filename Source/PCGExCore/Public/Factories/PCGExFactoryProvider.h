@@ -9,10 +9,10 @@
 #include "UObject/Object.h"
 
 #include "Core/PCGExContext.h"
-#include "PCGExElement.h"
+#include "Core/PCGExElement.h"
+#include "Core/PCGExSettings.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExSettings.h"
 #include "PCGExVersion.h"
 
 #include "PCGExFactoryProvider.generated.h"

@@ -162,7 +162,7 @@ bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, con
 			PCGExMetaHelpers::ExecuteWithRightType(Context->OutputType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				const T OutValue = PCGExTypes::Convert<int64, T>(AggregatedHash);
+				const T OutValue = PCGExTypeOps::Convert<int64, T>(AggregatedHash);
 				FPCGMetadataAttribute<T>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, OutValue);
 				OutAtt->SetValue(OutMetadata->AddEntry(), OutValue);
 			});

@@ -3,12 +3,10 @@
 
 #include "Data/PCGExDataForward.h"
 
-#include "PCGEx.h"
-#include "PCGExTypes.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 
 void FPCGExForwardDetails::Filter(TArray<PCGExData::FAttributeIdentity>& Identities) const
@@ -50,7 +48,7 @@ bool FPCGExAttributeToTagDetails::Init(const FPCGExContext* InContext, const TSh
 	Getters.Reserve(Attributes.Num());
 	for (FPCGAttributePropertyInputSelector& Selector : Attributes)
 	{
-		const TSharedPtr<PCGExData::IAttributeBroadcaster>& Getter = PCGEx::MakeBroadcaster(Selector, InSourceFacade->Source, true);
+		const TSharedPtr<PCGExData::IAttributeBroadcaster>& Getter = PCGExData::MakeBroadcaster(Selector, InSourceFacade->Source, true);
 		if (!Getter)
 		{
 			PCGEX_LOG_INVALID_SELECTOR_C(InContext, Tag, Selector)
@@ -78,13 +76,13 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, T
 			PCGExMetaHelpers::ExecuteWithRightType(Getter->GetMetadataType(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				TSharedPtr<PCGEx::TAttributeBroadcaster<T>> TypedGetter = StaticCastSharedPtr<PCGEx::TAttributeBroadcaster<T>>(Getter);
+				TSharedPtr<PCGExData::TAttributeBroadcaster<T>> TypedGetter = StaticCastSharedPtr<PCGExData::TAttributeBroadcaster<T>>(Getter);
 				if (!TypedGetter) { return; }
 
 				Prefix = TypedGetter->GetName().ToString();
 
 				T TypedValue = T{};
-				if (TypedGetter->TryFetchSingle(TagSource, TypedValue)) { Value = PCGExTypes::Convert<T, FString>(TypedValue); }
+				if (TypedGetter->TryFetchSingle(TagSource, TypedValue)) { Value = PCGExTypeOps::Convert<T, FString>(TypedValue); }
 			});
 
 			if (Value.IsEmpty()) { continue; }
@@ -121,7 +119,7 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, U
 			PCGExMetaHelpers::ExecuteWithRightType(Getter->GetMetadataType(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				TSharedPtr<PCGEx::TAttributeBroadcaster<T>> TypedGetter = StaticCastSharedPtr<PCGEx::TAttributeBroadcaster<T>>(Getter);
+				TSharedPtr<PCGExData::TAttributeBroadcaster<T>> TypedGetter = StaticCastSharedPtr<PCGExData::TAttributeBroadcaster<T>>(Getter);
 				if (!TypedGetter) { return; }
 
 				const FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(Getter->GetName(), PCGMetadataDomainID::Data);
@@ -209,7 +207,7 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					const T ForwardValue = Identity.InDataDomain() ? PCGExDataHelpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+					const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					TSharedPtr<TBuffer<T>> Writer = nullptr;
 
@@ -250,13 +248,13 @@ namespace PCGExData
 				const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 				if (!SourceAtt) { return; }
 
-				const T ForwardValue = Identity.InDataDomain() ? PCGExDataHelpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+				const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 				const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
 
 				InTargetDataFacade->Source->DeleteAttribute(Identifier);
 				FPCGMetadataAttribute<T>* TargetAtt = InTargetDataFacade->Source->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation());
-				if (bElementDomainToDataDomain) { PCGExDataHelpers::SetDataValue(TargetAtt, ForwardValue); }
+				if (bElementDomainToDataDomain) { PCGExData::Helpers::SetDataValue(TargetAtt, ForwardValue); }
 			});
 		}
 	}
@@ -276,7 +274,7 @@ namespace PCGExData
 				const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 				if (!SourceAtt) { return; }
 
-				const T ForwardValue = Identity.InDataDomain() ? PCGExDataHelpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+				const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 				TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
 				if (Writer->GetUnderlyingDomain() == EDomainType::Elements)
@@ -308,13 +306,13 @@ namespace PCGExData
 				const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 				if (!SourceAtt) { return; }
 
-				const T ForwardValue = Identity.InDataDomain() ? PCGExDataHelpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+				const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 				const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
 
 				InTargetMetadata->DeleteAttribute(Identifier);
 				FPCGMetadataAttribute<T>* TargetAtt = InTargetMetadata->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation(), true, true);
-				if (bElementDomainToDataDomain) { PCGExDataHelpers::SetDataValue(TargetAtt, ForwardValue); }
+				if (bElementDomainToDataDomain) { PCGExData::Helpers::SetDataValue(TargetAtt, ForwardValue); }
 			});
 		}
 	}

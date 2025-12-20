@@ -33,7 +33,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 	}
 
 	Merger->MergeAsync(GetTaskManager(), &CarryOverDetails);
-	PCGExGraph::SetClusterVtx(CompositeDataFacade->Source, OutVtxId); // After merge since it forwards IDs
+	PCGExCluster::Helpers::SetClusterVtx(CompositeDataFacade->Source, OutVtxId); // After merge since it forwards IDs
 }
 
 void FPCGExMergeVerticesContext::ClusterProcessing_WorkComplete()
@@ -146,7 +146,7 @@ namespace PCGExMergeVertices
 
 		PCGEX_INIT_IO_VOID(EdgeDataFacade->Source, PCGExData::EIOInit::Forward)
 
-		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
+		PCGExCluster::Helpers::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
 
 		ForwardCluster();
 	}

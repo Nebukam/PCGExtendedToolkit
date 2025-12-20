@@ -7,6 +7,7 @@
 #include "UObject/SoftObjectPath.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "PCGExCommon.h"
+#include "PCGExTypeTraits.h"
 
 /**
  * PCGEx Type Operations System
@@ -199,7 +200,7 @@ namespace PCGExTypeOps
 	FORCEINLINE TTo Convert(const TFrom& Value)
 	{
 		TTo Result{};
-		FConversionTable::Convert(TTypeTraits<TFrom>::Type, &Value, TTypeTraits<TTo>::Type, &Result);
+		FConversionTable::Convert(PCGExTypes::TTraits<TFrom>::Type, &Value, PCGExTypes::TTraits<TTo>::Type, &Result);
 		return Result;
 	}
 

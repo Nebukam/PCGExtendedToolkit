@@ -270,7 +270,7 @@ namespace PCGExSimplifyClusters
 	const PCGExGraph::FGraphMetadataDetails* FBatch::GetGraphMetadataDetails()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
-		GraphMetadataDetails.Grab(Context, Settings->EdgeUnionData);
+		Settings->EdgeUnionData.Update(Context, GraphMetadataDetails);
 		GraphMetadataDetails.EdgesBlendingDetailsPtr = &Settings->EdgeBlendingDetails;
 		GraphMetadataDetails.EdgesCarryOverDetails = &Context->EdgeCarryOverDetails;
 		return &GraphMetadataDetails;

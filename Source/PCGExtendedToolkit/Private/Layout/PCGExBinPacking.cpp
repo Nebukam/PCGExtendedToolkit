@@ -8,7 +8,7 @@
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Layout/PCGExLayout.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBinPackingElement"
@@ -302,7 +302,7 @@ namespace PCGExBinPacking
 		Bins.Reserve(TargetBins->GetNum());
 
 		bool bRelativeSeed = Settings->SeedMode == EPCGExBinSeedMode::UVWConstant;
-		TSharedPtr<PCGEx::TAttributeBroadcaster<FVector>> SeedGetter = MakeShared<PCGEx::TAttributeBroadcaster<FVector>>();
+		TSharedPtr<PCGExData::TAttributeBroadcaster<FVector>> SeedGetter = MakeShared<PCGExData::TAttributeBroadcaster<FVector>>();
 		if (Settings->SeedMode == EPCGExBinSeedMode::PositionAttribute)
 		{
 			if (!SeedGetter->Prepare(Settings->SeedPositionAttribute, TargetBins.ToSharedRef()))

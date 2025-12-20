@@ -24,7 +24,7 @@ UPCGExFactoryData* UPCGEx##_FILTERID##FilterProviderSettings::CreateFactory(FPCG
 	return NewFactory; }
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXFOUNDATIONS_API UPCGExFilterProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

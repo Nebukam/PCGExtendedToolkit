@@ -5,12 +5,12 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "PCGParamData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Blenders/PCGExUnionBlender.h"
+#include "Details/PCGExDistancesDetails.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -475,7 +475,7 @@ namespace PCGExPathCrossings
 			return;
 		}
 
-		const TSharedPtr<PCGExBlending::FUnionBlender> TypedBlender = MakeShared<PCGExBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, PCGExDetails::GetDistances());
+		const TSharedPtr<PCGExBlending::FUnionBlender> TypedBlender = MakeShared<PCGExBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, PCGExMath::GetDistances());
 		UnionBlender = TypedBlender;
 
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;

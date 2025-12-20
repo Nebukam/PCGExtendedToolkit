@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/SoftObjectPath.h"
 #include "Details/PCGExMacros.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 struct FPCGExContext;
 class UPCGBasePointData;
@@ -87,5 +88,4 @@ namespace PCGExData
 		const FProxyDescriptor& InBaseDescriptor,
 		const int32 NumDesiredFields,
 		TArray<TSharedPtr<IBufferProxy>>& OutProxies);
-
 } // namespace PCGExData

@@ -192,7 +192,7 @@ bool PCGExPointFilter::FValueHashFilter::Test(const TSharedPtr<PCGExData::FPoint
 {
 	double H = 0;
 
-	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, H, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExData::Helpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, H, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	bool bPass = false;
 	if (bAnyPass)

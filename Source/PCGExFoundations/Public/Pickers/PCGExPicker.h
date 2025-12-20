@@ -2,8 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "Math/PCGExMath.h"
 
-#include "PCGExMath.h"
 #include "PCGExPicker.generated.h"
 
 namespace PCGExPicker
@@ -12,7 +12,7 @@ namespace PCGExPicker
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPickerConfigBase
+struct PCGEXFOUNDATIONS_API FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 

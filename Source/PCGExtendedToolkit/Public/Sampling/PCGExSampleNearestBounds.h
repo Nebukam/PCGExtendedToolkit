@@ -31,9 +31,9 @@ MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
 
-namespace PCGExGeo
+namespace PCGExMath
 {
-	class FPointBoxCloud;
+	class FBoundsCloud;
 }
 
 class UPCGExBlendOpFactory;
@@ -87,7 +87,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** If enabled, allows you to filter out which targets get sampled by which data */
@@ -307,7 +307,7 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
-	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
+	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
 	TSharedPtr<PCGExSorting::FPointSorter> Sorter;

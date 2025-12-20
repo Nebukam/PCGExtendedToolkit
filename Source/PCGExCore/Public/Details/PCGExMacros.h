@@ -54,18 +54,6 @@ if(!SharedContext.Get()){ return _RET; }
 
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
 
-#define PCGEX_AXIS_X FVector::ForwardVector
-#define PCGEX_AXIS_Y FVector::RightVector
-#define PCGEX_AXIS_Z FVector::UpVector
-#define PCGEX_AXIS_X_N FVector::BackwardVector
-#define PCGEX_AXIS_Y_N FVector::LeftVector
-#define PCGEX_AXIS_Z_N FVector::DownVector
-
-#define PCGEX_FOREACH_XYZ(MACRO)\
-MACRO(X)\
-MACRO(Y)\
-MACRO(Z)
-
 #define PCGEX_CONSUMABLE_SELECTOR(_SELECTOR, _NAME) if (PCGExMetaHelpers::TryGetAttributeName(_SELECTOR, InData, _NAME)) { InContext->AddConsumableAttributeName(_NAME); }
 #define PCGEX_CONSUMABLE_SELECTOR_C(_CONTEXT, _SELECTOR, _NAME) if (PCGExMetaHelpers::TryGetAttributeName(_SELECTOR, InData, _NAME)) { _CONTEXT->AddConsumableAttributeName(_NAME); }
 #define PCGEX_CONSUMABLE_CONDITIONAL(_CONDITION, _SELECTOR, _NAME) if (_CONDITION && PCGExMetaHelpers::TryGetAttributeName(_SELECTOR, InData, _NAME)) { InContext->AddConsumableAttributeName(_NAME); }

@@ -7,7 +7,7 @@
 
 struct FPCGExGeo2DProjectionDetails;
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	class TDelaunay3;
 	class TDelaunay2;

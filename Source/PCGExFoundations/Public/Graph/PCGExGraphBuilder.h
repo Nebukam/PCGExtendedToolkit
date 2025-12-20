@@ -6,73 +6,33 @@
 #include <functional>
 
 #include "CoreMinimal.h"
-#include "PCGExEdge.h"
-#include "PCGExSortHelpers.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "PCGExGraphCommon.h"
+#include "Data/PCGExDataCommon.h"
+#include "Graph/PCGExGraphDetails.h"
 #include "Utils/PCGValueRange.h"
 
-class UPCGMetadata;
-struct FPCGContext;
-
-namespace PCGExMT
+namespace PCGEx
 {
-	struct FScope;
-	class FTaskManager;
-	class IAsyncHandleGroup;
-}
-
-struct FPCGExCarryOverDetails;
-struct FPCGExEdgeUnionMetadataDetails;
-struct FPCGExPointUnionMetadataDetails;
-struct FPCGExEdgeEdgeIntersectionDetails;
-struct FPCGExPointEdgeIntersectionDetails;
-struct FPCGExPointPointIntersectionDetails;
-
-namespace PCGExDetails
-{
-	class FDistances;
+	class FIndexLookup;
 }
 
 namespace PCGExData
 {
 	class FPointIOCollection;
 	class FFacade;
-	struct FConstPoint;
-	struct FMutablePoint;
-	class FUnionMetadata;
-	template <typename T>
-	class TBuffer;
 }
 
-namespace PCGExBlending
+namespace PCGExMT
 {
-	class FUnionBlender;
+	class FTaskManager;
 }
-
-struct FPCGExBlendingDetails;
-struct FPCGExTransformDetails;
 
 namespace PCGExGraph
 {
-	struct FLink;
-	class FGraphBuilder;
-	class FSubGraph;
-
-	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
-	using FSubGraphPostProcessCallback = std::function<void(const TSharedRef<FSubGraph>& InSubGraph)>;
-}
-
-namespace PCGExCluster
-{
-	class FCluster;
-}
-
-
-namespace PCGExGraph
-{
+	struct FGraphMetadataDetails;
 	class FGraph;
 
-	class PCGEXTENDEDTOOLKIT_API FGraphBuilder : public TSharedFromThis<FGraphBuilder>
+	class PCGEXFOUNDATIONS_API FGraphBuilder : public TSharedFromThis<FGraphBuilder>
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> TaskManager;

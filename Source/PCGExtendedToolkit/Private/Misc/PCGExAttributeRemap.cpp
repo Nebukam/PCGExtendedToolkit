@@ -11,7 +11,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "PCGExVersion.h"
 #include "Async/ParallelFor.h"
 #include "Types/PCGExSubSelectionOps.h"
@@ -165,7 +165,7 @@ namespace PCGExAttributeRemap
 
 		// Number of dimensions to be remapped
 		UnderlyingType = InputDescriptor.WorkingType;
-		Dimensions = FMath::Min(4, PCGEx::FSubSelectorRegistry::Get(UnderlyingType)->GetNumFields());
+		Dimensions = FMath::Min(4, PCGExData::FSubSelectorRegistry::Get(UnderlyingType)->GetNumFields());
 
 		// Get per-field proxies for input
 		if (!GetPerFieldProxyBuffers(Context, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }

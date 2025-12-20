@@ -6,7 +6,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
@@ -57,8 +57,8 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 	if (Mode == EPCGExUberFilterMode::Write) { return Super::OutputPinProperties(); }
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Points that passed the filters.", Required)
-	if (bOutputDiscardedElements) { PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required) }
+	PCGEX_PIN_POINTS(PCGExFilter::Labels::OutputInsideFiltersLabel, "Points that passed the filters.", Required)
+	if (bOutputDiscardedElements) { PCGEX_PIN_POINTS(PCGExFilter::Labels::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required) }
 	return PinProperties;
 }
 
@@ -68,7 +68,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(UberFilter)
 FName UPCGExUberFilterSettings::GetMainOutputPin() const
 {
 	// Ensure proper forward when node is disabled
-	return Mode == EPCGExUberFilterMode::Partition ? PCGExPointFilter::OutputInsideFiltersLabel : Super::GetMainOutputPin();
+	return Mode == EPCGExUberFilterMode::Partition ? PCGExFilter::Labels::OutputInsideFiltersLabel : Super::GetMainOutputPin();
 }
 
 bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
@@ -87,8 +87,8 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
-	Context->Inside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
-	Context->Outside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
+	Context->Inside->OutputPin = PCGExFilter::Labels::OutputInsideFiltersLabel;
+	Context->Outside->OutputPin = PCGExFilter::Labels::OutputOutsideFiltersLabel;
 
 	return true;
 }

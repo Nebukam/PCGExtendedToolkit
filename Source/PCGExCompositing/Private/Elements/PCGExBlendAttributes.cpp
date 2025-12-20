@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExBlendOpsManager.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBlendAttributesElement"

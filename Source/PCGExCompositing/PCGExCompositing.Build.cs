@@ -30,7 +30,7 @@ public class PCGExCompositing : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"PCG", 
+				"PCG",
 				"PCGExCore",
 			}
 		);
@@ -50,7 +50,7 @@ public class PCGExCompositing : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings"
+				"DeveloperSettings",
 			}
 		);
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
+#include "PCGExCommon.h"
 #include "UObject/Object.h"
 #include "Data/PCGExPointElements.h"
 
@@ -69,11 +69,11 @@ namespace PCGExData
 			const TArray<const UPCGBasePointData*>& Sources,
 			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 			const FPoint& Target,
-			const PCGExDetails::FDistances* InDistanceDetails,
+			const PCGExMath::FDistances* InDistanceDetails,
 			TArray<FWeightedPoint>& OutWeightedPoints) const;
 
 		virtual void Reserve(const int32 InSetReserve, const int32 InElementReserve);
-		virtual void Reset();				
+		virtual void Reset();
 	};
 
 	class PCGEXCORE_API FUnionMetadata : public TSharedFromThis<FUnionMetadata>

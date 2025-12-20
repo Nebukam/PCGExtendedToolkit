@@ -8,7 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -47,7 +47,7 @@ bool PCGExPointFilter::FNumericSelfCompareFilter::Init(FPCGExContext* InContext,
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
+	OperandA = MakeShared<PCGExData::TAttributeBroadcaster<double>>();
 
 	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{

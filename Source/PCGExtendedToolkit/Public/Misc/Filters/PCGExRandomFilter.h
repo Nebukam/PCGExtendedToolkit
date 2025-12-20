@@ -11,7 +11,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 #include "Details/PCGExSettingsMacros.h"
-#include "Sampling/PCGExCurveLookup.h"
+#include "Utils/PCGExCurveLookup.h"
 
 #include "PCGExRandomFilter.generated.h"
 

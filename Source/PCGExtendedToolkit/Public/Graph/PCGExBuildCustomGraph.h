@@ -8,7 +8,7 @@
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExBufferHelper.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 #include "PCGExBuildCustomGraph.generated.h"
 
 #define PCGEX_CUSTOM_GRAPH_EDGE_SUPPORT false

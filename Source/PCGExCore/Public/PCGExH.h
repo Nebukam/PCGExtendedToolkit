@@ -12,6 +12,12 @@
 
 namespace PCGEx
 {
+	struct FIndexKey
+	{
+		int32 Index;
+		uint64 Key;
+	};
+	
 	template <typename, typename = void>
 	struct HasGetTypeHash : std::false_type
 	{
@@ -168,101 +174,5 @@ namespace PCGEx
 		Hash = (Hash ^ X) * 1099511628211ULL;
 		Hash = (Hash ^ Y) * 1099511628211ULL;
 		return Hash;
-	}
-
-	class FIndexLookup : public TSharedFromThis<FIndexLookup>
-	{
-	protected:
-		TArray<int32> Data;
-
-	public:
-		explicit FIndexLookup(const int32 Size)
-		{
-			Data.Init(-1, Size);
-		}
-
-		FIndexLookup(const int32 Size, bool bFill)
-		{
-			Data.Init(-1, Size);
-		}
-
-		FORCEINLINE int32& operator[](const int32 At) { return Data[At]; }
-		FORCEINLINE int32 operator[](const int32 At) const { return Data[At]; }
-		FORCEINLINE void Set(const int32 At, const int32 Value) { Data[At] = Value; }
-		FORCEINLINE int32 Get(const int32 At) { return Data[At]; }
-		FORCEINLINE int32& GetMutable(const int32 At) { return Data[At]; }
-
-		operator TArrayView<const int32>() const { return Data; }
-		operator TArrayView<int32>() { return Data; }
-	};
-
-	class FHashLookup : public TSharedFromThis<FHashLookup>
-	{
-	protected:
-		uint64 InternalInitValue;
-
-	public:
-		virtual ~FHashLookup() = default;
-
-		explicit FHashLookup(const uint64 InitValue, const int32 Size)
-			: InternalInitValue(InitValue)
-		{
-		}
-
-		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) = 0;
-		FORCEINLINE virtual uint64 Get(const int32 At) = 0;
-		FORCEINLINE virtual bool IsInitValue(const uint64 InValue) { return InValue == InternalInitValue; }
-		virtual void Reset() = 0;
-	};
-
-	class FHashLookupArray : public FHashLookup
-	{
-	protected:
-		TArray<uint64> Data;
-
-	public:
-		explicit FHashLookupArray(const uint64 InitValue, const int32 Size)
-			: FHashLookup(InitValue, Size)
-		{
-			Data.Init(InitValue, Size);
-		}
-
-		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) override { Data[At] = Value; }
-		FORCEINLINE virtual uint64 Get(const int32 At) override { return Data[At]; }
-		virtual void Reset() override { for (uint64& V : Data) { V = InternalInitValue; } }
-
-		operator TArrayView<const uint64>() const { return Data; }
-		operator TArrayView<uint64>() { return Data; }
-	};
-
-	class FHashLookupMap : public FHashLookup
-	{
-	protected:
-		TMap<int32, uint64> Data;
-
-	public:
-		explicit FHashLookupMap(const uint64 InitValue, const int32 Size)
-			: FHashLookup(InitValue, Size)
-		{
-			if (Size > 0) { Data.Reserve(Size); }
-		}
-
-		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) override { Data.Add(At, Value); }
-		FORCEINLINE virtual uint64 Get(const int32 At) override
-		{
-			if (const uint64* Value = Data.Find(At)) { return *Value; }
-			return InternalInitValue;
-		}
-
-		virtual void Reset() override { Data.Reset(); }
-
-		FORCEINLINE bool Contains(const int32 Index) const { return Data.Contains(Index); }
-	};
-
-	template <typename T>
-	static TSharedPtr<FHashLookup> NewHashLookup(const uint64 InitValue, const int32 Size)
-	{
-		TSharedPtr<T> TypedPtr = MakeShared<T>(InitValue, Size);
-		return StaticCastSharedPtr<FHashLookup>(TypedPtr);
 	}
 }

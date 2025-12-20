@@ -5,14 +5,14 @@
 
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Details/PCGExDetailsDistances.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 #include "Paths/PCGExPaths.h"
 
@@ -224,7 +224,7 @@ namespace PCGExSampleInsidePath
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExDetails::GetDistances());
+			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExMath::GetDistances());
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
@@ -241,8 +241,8 @@ namespace PCGExSampleInsidePath
 			PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_INIT)
 		}
 
-		if (!PCGExDataHelpers::TryGetSettingDataValue(Context, PointDataFacade->GetIn(), Settings->RangeMinInput, Settings->RangeMinAttribute, Settings->RangeMin, RangeMin)) { return false; }
-		if (!PCGExDataHelpers::TryGetSettingDataValue(Context, PointDataFacade->GetIn(), Settings->RangeMaxInput, Settings->RangeMaxAttribute, Settings->RangeMax, RangeMax)) { return false; }
+		if (!PCGExData::Helpers::TryGetSettingDataValue(Context, PointDataFacade->GetIn(), Settings->RangeMinInput, Settings->RangeMinAttribute, Settings->RangeMin, RangeMin)) { return false; }
+		if (!PCGExData::Helpers::TryGetSettingDataValue(Context, PointDataFacade->GetIn(), Settings->RangeMaxInput, Settings->RangeMaxAttribute, Settings->RangeMax, RangeMax)) { return false; }
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 

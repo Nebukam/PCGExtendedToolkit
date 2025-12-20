@@ -4,9 +4,9 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "Data/PCGExPointElements.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExGoalPickerRandom, NumGoals, int32, NumGoalsType, NumGoalAttribute, NumGoals)
 
@@ -35,7 +35,7 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 
 int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FConstPoint& Seed) const
 {
-	FRandomStream Random = PCGExRandom::GetRandomStreamFromPoint(Seed.Data->GetSeed(Seed.Index), Seed.Index);
+	FRandomStream Random = PCGExRandomHelpers::GetRandomStreamFromPoint(Seed.Data->GetSeed(Seed.Index), Seed.Index);
 	return Random.RandRange(0, MaxGoalIndex);
 }
 
@@ -43,7 +43,7 @@ void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FConstPoint& Seed, 
 {
 	int32 Picks = NumGoalsBuffer->Read(Seed.Index);
 
-	FRandomStream Random = PCGExRandom::GetRandomStreamFromPoint(Seed.Data->GetSeed(Seed.Index), Seed.Index);
+	FRandomStream Random = PCGExRandomHelpers::GetRandomStreamFromPoint(Seed.Data->GetSeed(Seed.Index), Seed.Index);
 
 	if (GoalCount == EPCGExGoalPickRandomAmount::Random) { Picks = Random.RandRange(0, Picks); }
 

@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	class TDelaunay2;
 }
@@ -133,7 +133,7 @@ namespace PCGExBuildDelaunayGraph2D
 
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExGeo::TDelaunay2> Delaunay;
+		TSharedPtr<PCGExMath::TDelaunay2> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;

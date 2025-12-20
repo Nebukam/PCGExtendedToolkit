@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeBroadcaster.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIOMerger.h"
 #include "Graph/PCGExCluster.h"
 

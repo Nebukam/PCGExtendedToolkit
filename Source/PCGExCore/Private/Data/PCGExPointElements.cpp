@@ -2,8 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/PCGExPointElements.h"
-
-#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 
 namespace PCGExData

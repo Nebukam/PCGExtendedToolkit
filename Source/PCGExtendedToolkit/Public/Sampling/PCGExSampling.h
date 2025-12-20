@@ -190,7 +190,7 @@ namespace PCGExSampling
 			const TArray<const UPCGBasePointData*>& Sources,
 			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, 
 			const PCGExData::FPoint& Target, 
-			const PCGExDetails::FDistances* InDistanceDetails, 
+			const PCGExMath::FDistances* InDistanceDetails, 
 			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
 
 		FORCEINLINE void AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight)
@@ -216,7 +216,7 @@ namespace PCGExSampling
 		TArray<const PCGPointOctree::FPointOctree*> TargetOctrees;
 		int32 MaxNumTargets = 0;
 
-		const PCGExDetails::FDistances* Distances = nullptr;
+		const PCGExMath::FDistances* Distances = nullptr;
 
 	public:
 		using FInitData = std::function<FBox(const TSharedPtr<PCGExData::FPointIO>&, const int32)>;
@@ -242,7 +242,7 @@ namespace PCGExSampling
 
 		void SetDistances(const FPCGExDistanceDetails& InDetails);
 		void SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero);
-		FORCEINLINE const PCGExDetails::FDistances* GetDistances() const { return Distances; }
+		FORCEINLINE const PCGExMath::FDistances* GetDistances() const { return Distances; }
 
 		void SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails);
 		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, PCGExMatching::FMatchingScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;

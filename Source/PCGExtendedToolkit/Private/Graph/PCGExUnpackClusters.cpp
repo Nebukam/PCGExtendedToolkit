@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -70,11 +70,11 @@ public:
 			// Support for legacy data that was storing the edge count as a point index
 			EdgeCountIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
 			EdgeCount = PCGExMetaHelpers::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
-			if (EdgeCount) { NumEdges = PCGExDataHelpers::ReadDataValue(EdgeCount); }
+			if (EdgeCount) { NumEdges = PCGExData::Helpers::ReadDataValue(EdgeCount); }
 		}
 		else
 		{
-			NumEdges = PCGExDataHelpers::ReadDataValue(EdgeCount);
+			NumEdges = PCGExData::Helpers::ReadDataValue(EdgeCount);
 		}
 
 		if (NumEdges == -1)
@@ -112,8 +112,8 @@ public:
 
 		const PCGExDataId PairId = PCGEX_GET_DATAIDTAG(PointIO->Tags, PCGExGraph::TagStr_PCGExCluster);
 
-		PCGExGraph::MarkClusterVtx(NewVtx, PairId);
-		PCGExGraph::MarkClusterEdges(NewEdges, PairId);
+		PCGExCluster::Helpers::MarkClusterVtxlusterVtx(NewVtx, PairId);
+		PCGExCluster::Helpers::MarkClusterEdges(NewEdges, PairId);
 	}
 };
 

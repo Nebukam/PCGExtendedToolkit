@@ -8,7 +8,7 @@
 #include "PropertyHandle.h"
 #include "Collections/PCGExBitmaskCollection.h"
 #include "Constants/PCGExTuple.h"
-#include "Details/PCGExDetailsBitmask.h"
+#include "Bitmasks/PCGExBitmaskDetails.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"

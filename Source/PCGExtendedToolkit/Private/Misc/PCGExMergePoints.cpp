@@ -4,7 +4,7 @@
 #include "Misc/PCGExMergePoints.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Graph/PCGExEdge.h"
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsElement"

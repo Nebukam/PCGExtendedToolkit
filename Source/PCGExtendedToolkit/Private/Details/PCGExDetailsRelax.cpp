@@ -4,7 +4,7 @@
 
 #include "Details/PCGExDetailsRelax.h"
 
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExInfluenceDetails, Influence, double, InfluenceInput, LocalInfluence, Influence)
 

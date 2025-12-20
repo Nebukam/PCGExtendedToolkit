@@ -8,7 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Sampling/PCGExSampling.h"
 #include "Async/ParallelFor.h"
 

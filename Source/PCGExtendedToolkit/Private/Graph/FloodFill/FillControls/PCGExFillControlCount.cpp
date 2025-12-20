@@ -7,7 +7,7 @@
 
 #include "PCGExHelpers.h"
 #include "Data/PCGExDataPreloader.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigCount, MaxCount, int32, MaxCountInput, MaxCountAttribute, MaxCount)

@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendNone.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
+#include "Blenders/PCGExMetadataBlender.h"
 
 
 bool FPCGExSubPointsBlendNone::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet)

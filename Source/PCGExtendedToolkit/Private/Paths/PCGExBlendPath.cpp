@@ -6,8 +6,8 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Blenders/PCGExBlendOpsManager.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"

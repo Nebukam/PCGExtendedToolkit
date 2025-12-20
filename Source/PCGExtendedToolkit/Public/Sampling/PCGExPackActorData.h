@@ -634,7 +634,7 @@ namespace PCGExPackActorData
 		UPCGExCustomActorDataPacker* Packer = nullptr;
 
 		TSet<AActor*> UniqueActors;
-		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
+		TSharedPtr<PCGExData::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
 		TArray<FPCGPoint> PointsForProcessing;
 		TArray<int8> PointMask;

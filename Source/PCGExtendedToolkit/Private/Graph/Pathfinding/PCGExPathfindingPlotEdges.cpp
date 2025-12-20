@@ -10,7 +10,7 @@
 #include "Graph/PCGExGraph.h"
 #include "Algo/Reverse.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Graph/PCGExCluster.h"
@@ -178,7 +178,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PathIO->Tags->Append(Query->Cluster->EdgesIO.Pin()->Tags.ToSharedRef());
 	PathIO->Tags->Append(Query->PlotFacade->Source->Tags.ToSharedRef());
 
-	PCGExGraph::CleanupClusterData(PathIO);
+	PCGExCluster::Helpers::CleanupClusterData(PathIO);
 	PCGExPaths::SetClosedLoop(PathIO->GetOut(), Settings->bClosedLoop);
 }
 

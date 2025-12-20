@@ -4,7 +4,7 @@
 #include "Graph/Filters/Edges/PCGExEdgeLengthFilter.h"
 
 #include "PCGExHelpers.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 

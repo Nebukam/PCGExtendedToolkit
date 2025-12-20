@@ -5,7 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Geometry/PCGExGeoPointBox.h"
+#include "Math/PCGExBoundsCloud.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
@@ -53,13 +53,13 @@ bool PCGExPointFilter::FBoundsFilter::Init(FPCGExContext* InContext, const TShar
 
 #define PCGEX_TEST_BOUNDS(_NAME, _BOUNDS, _TEST)\
 case EPCGExBoxCheckMode::_TEST:\
-	BoundCheck = [&](const PCGExData::FConstPoint& Point) { if (bCheckAgainstDataBounds) { return bCollectionTestResult; } for(const TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud : *Clouds){ if(Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
-	BoundCheckProxy = [&](const PCGExData::FProxyPoint& Point) { for(const TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud : *Clouds){ if(Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
+	BoundCheck = [&](const PCGExData::FConstPoint& Point) { if (bCheckAgainstDataBounds) { return bCollectionTestResult; } for(const TSharedPtr<PCGExMath::FBoundsCloud> Cloud : *Clouds){ if(Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
+	BoundCheckProxy = [&](const PCGExData::FProxyPoint& Point) { for(const TSharedPtr<PCGExMath::FBoundsCloud> Cloud : *Clouds){ if(Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
 	break;
 #define PCGEX_TEST_BOUNDS_INV(_NAME, _BOUNDS, _TEST)\
 case EPCGExBoxCheckMode::_TEST:\
-	BoundCheck = [&](const PCGExData::FConstPoint& Point) { if (bCheckAgainstDataBounds) { return bCollectionTestResult; } for(const TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud : *Clouds){ if(!Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
-	BoundCheckProxy = [&](const PCGExData::FProxyPoint& Point) { for(const TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud : *Clouds){ if(!Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
+	BoundCheck = [&](const PCGExData::FConstPoint& Point) { if (bCheckAgainstDataBounds) { return bCollectionTestResult; } for(const TSharedPtr<PCGExMath::FBoundsCloud> Cloud : *Clouds){ if(!Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
+	BoundCheckProxy = [&](const PCGExData::FProxyPoint& Point) { for(const TSharedPtr<PCGExMath::FBoundsCloud> Cloud : *Clouds){ if(!Cloud->_NAME<EPCGExPointBoundsSource::_BOUNDS, EPCGExBoxCheckMode::_TEST>(Point)){return true;} } return false;};\
 	break;
 #define PCGEX_FOREACH_TESTTYPE(_NAME, _BOUNDS)\
 case EPCGExPointBoundsSource::_BOUNDS:\

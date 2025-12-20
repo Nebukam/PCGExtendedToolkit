@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "PCGExMath.h"
 #include "PCGExTypeOps.h"
 #include "PCGExTypeOpsVector.h"
+#include "Math/PCGExMathAxis.h"
 
 /**
  * Rotation and Transform Type Operations

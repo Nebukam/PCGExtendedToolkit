@@ -12,28 +12,11 @@
 
 #include "PCGEx.generated.h"
 
-using InlineSparseAllocator = TSetAllocator<TSparseArrayAllocator<TInlineAllocator<8>, TInlineAllocator<8>>, TInlineAllocator<8>>;
-
 UENUM()
 enum class EPCGExAttributeSetPackingMode : uint8
 {
 	PerInput = 0 UMETA(DisplayName = "Per Input", ToolTip="..."),
 	Merged   = 1 UMETA(DisplayName = "Merged", ToolTip="..."),
-};
-
-UENUM()
-enum class EPCGExWinding : uint8
-{
-	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="Clockwise", ActionIcon="CW"),
-	CounterClockwise = 2 UMETA(DisplayName = "Counter Clockwise", ToolTip="Counter Clockwise", ActionIcon="CCW"),
-};
-
-UENUM()
-enum class EPCGExWindingMutation : uint8
-{
-	Unchanged        = 0 UMETA(DisplayName = "Unchanged", ToolTip="Unchanged", ActionIcon="Unchanged"),
-	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="Clockwise", ActionIcon="CW"),
-	CounterClockwise = 2 UMETA(DisplayName = "CounterClockwise", ToolTip="Counter Clockwise", ActionIcon="CCW"),
 };
 
 namespace PCGEx
@@ -59,9 +42,4 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
 
-	struct PCGEXTENDEDTOOLKIT_API FOpStats
-	{
-		int32 Count = 0;
-		double TotalWeight = 0;
-	};
 }

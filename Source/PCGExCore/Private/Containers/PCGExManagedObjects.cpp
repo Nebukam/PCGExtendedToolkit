@@ -4,6 +4,7 @@
 #include "Containers/PCGExManagedObjects.h"
 
 #include "CoreMinimal.h"
+#include "Containers/PCGExManagedObjectsInterfaces.h"
 
 namespace PCGEx
 {
@@ -25,7 +26,7 @@ namespace PCGEx
 			Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
 		}
 	}
-	
+
 	FManagedObjects::FManagedObjects(FPCGContext* InContext, const TWeakPtr<FWorkHandle>& InWorkHandle)
 		: WorkHandle(InWorkHandle), WeakHandle(InContext->GetOrCreateHandle())
 	{
@@ -137,7 +138,7 @@ namespace PCGEx
 	void FManagedObjects::Destroy(UObject* InObject)
 	{
 		// ♫ Let it go ♫
-		
+
 		/*
 		check(InObject)
 
@@ -148,7 +149,7 @@ namespace PCGEx
 			if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
 		}
 		*/
-		
+
 		Remove(InObject);
 	}
 
@@ -172,5 +173,4 @@ namespace PCGEx
 			}, true);
 		}
 	}
-
 }

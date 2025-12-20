@@ -15,7 +15,7 @@
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExDataForward.h"
 #include "Details/PCGExDetailsCollision.h"
-#include "Details/PCGExDetailsInputShorthands.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Geometry/PCGExGeoMesh.h"
 
 
@@ -73,7 +73,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** Surface source */
@@ -336,7 +336,7 @@ namespace PCGExSampleSurfaceGuided
 		TArray<int32> FaceIndex;
 		TArray<int32> MeshIndex;
 		TArray<FVector> HitLocation;
-		TArray<PCGExGeo::FMeshData> MeshData;
+		TArray<PCGExMath::FMeshData> MeshData;
 		TSharedPtr<PCGExMT::TScopedArray<const UStaticMesh*>> ScopedMeshes;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)

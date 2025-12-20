@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExPointIOMerger.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsClusters"
@@ -123,7 +123,7 @@ namespace PCGExFindPointOnBoundsClusters
 			TArray<int32> PtIndices;
 			IdxLookup->Dump(PtIndices);
 
-			PCGExGeo::FBestFitPlane BestFitPlane(InVtxTransforms, PtIndices);
+			PCGExMath::FBestFitPlane BestFitPlane(InVtxTransforms, PtIndices);
 
 			FTransform T = BestFitPlane.GetTransform(Settings->AxisOrder);
 			UVW = T.TransformVector(UVW);

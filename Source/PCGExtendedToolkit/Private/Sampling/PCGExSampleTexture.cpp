@@ -6,7 +6,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeBroadcaster.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 
@@ -100,7 +100,7 @@ namespace PCGExSampleTexture
 	FSampler::FSampler(const FPCGExTextureParamConfig& InConfig, const TSharedPtr<PCGExTexture::FLookup>& InTextureMap, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 		: Config(InConfig), TextureMap(InTextureMap)
 	{
-		IDGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+		IDGetter = MakeShared<PCGExData::TAttributeBroadcaster<FString>>();
 		bValid = IDGetter->Prepare(Config.TextureIDAttributeName, InDataFacade->Source);
 		if (!bValid) { return; }
 	}

@@ -10,8 +10,6 @@
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "Metadata/PCGMetadata.h"
 
-#include "PCGExMetaHelpers.generated.h"
-
 class UPCGManagedComponent;
 class UPCGData;
 class UPCGComponent;

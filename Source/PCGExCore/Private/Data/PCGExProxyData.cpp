@@ -3,8 +3,6 @@
 
 #include "Data/PCGExProxyData.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExTypes.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExPointElements.h"
@@ -16,7 +14,7 @@ namespace PCGExData
 
 	void FProxyDescriptor::UpdateSubSelection()
 	{
-		SubSelection = PCGEx::FSubSelection(Selector);
+		SubSelection = PCGExData::FSubSelection(Selector);
 	}
 
 	bool FProxyDescriptor::SetFieldIndex(const int32 InFieldIndex)
@@ -38,7 +36,7 @@ namespace PCGExData
 
 		Side = InSide;
 
-		if (!PCGEx::TryGetTypeAndSource(Selector, InFacade, RealType, Side))
+		if (!PCGExData::TryGetTypeAndSource(Selector, InFacade, RealType, Side))
 		{
 			if (bRequired) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , Selector) }
 			bValid = false;
@@ -60,7 +58,7 @@ namespace PCGExData
 		bool bValid = true;
 		Side = bIsConstant ? EIOSide::In : InSide;
 
-		if (!PCGEx::TryGetTypeAndSource(InSelector, InFacade, RealType, Side))
+		if (!PCGExData::TryGetTypeAndSource(InSelector, InFacade, RealType, Side))
 		{
 			if (bRequired) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , InSelector) }
 			bValid = false;
@@ -146,7 +144,7 @@ namespace PCGExData
 		return RealType == InDescriptor.RealType && WorkingType == InDescriptor.WorkingType;
 	}
 
-	void IBufferProxy::SetSubSelection(const PCGEx::FSubSelection& InSubSelection)
+	void IBufferProxy::SetSubSelection(const PCGExData::FSubSelection& InSubSelection)
 	{
 		bWantsSubSelection = InSubSelection.bIsValid;
 		if (bWantsSubSelection) { CachedSubSelection.Initialize(InSubSelection, RealType, WorkingType); }

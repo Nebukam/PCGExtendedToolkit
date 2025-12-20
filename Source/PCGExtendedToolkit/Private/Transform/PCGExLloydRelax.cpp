@@ -82,7 +82,7 @@ namespace PCGExLloydRelax
 		{
 			NumIterations--;
 
-			TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
+			TUniquePtr<PCGExMath::TDelaunay3> Delaunay = MakeUnique<PCGExMath::TDelaunay3>();
 			TArray<FVector>& Positions = Processor->ActivePositions;
 
 			//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
@@ -99,9 +99,9 @@ namespace PCGExLloydRelax
 			Counts.Init(1, NumPoints);
 
 			FVector Centroid;
-			for (const PCGExGeo::FDelaunaySite3& Site : Delaunay->Sites)
+			for (const PCGExMath::FDelaunaySite3& Site : Delaunay->Sites)
 			{
-				PCGExGeo::GetCentroid(Positions, Site.Vtx, Centroid);
+				PCGExMath::GetCentroid(Positions, Site.Vtx, Centroid);
 				for (const int32 PtIndex : Site.Vtx)
 				{
 					Counts[PtIndex] += 1;
@@ -138,7 +138,7 @@ namespace PCGExLloydRelax
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
+		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
 		PCGEX_SHARED_THIS_DECL
 		PCGEX_LAUNCH(FLloydRelaxTask, 0, ThisPtr, &InfluenceDetails, Settings->Iterations)

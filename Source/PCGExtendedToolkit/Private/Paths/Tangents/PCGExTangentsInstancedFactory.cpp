@@ -4,7 +4,7 @@
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExTangentsScalingDetails, ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
 PCGEX_SETTING_VALUE_IMPL(FPCGExTangentsScalingDetails, LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))

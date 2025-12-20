@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
+#include "PCGExSubSelection.h"
 #include "Types/PCGExTypeOps.h"
 
 /**
@@ -162,7 +162,7 @@ namespace PCGExData
 		static TArray<TUniquePtr<ISubSelectorOps>> Ops;
 		static bool bInitialized;
 	};
-	
+
 	// Module Initialization
 	struct FSubSelectionOpsModuleInit
 	{

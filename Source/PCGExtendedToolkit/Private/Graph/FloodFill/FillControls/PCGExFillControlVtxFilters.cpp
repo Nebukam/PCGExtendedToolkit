@@ -80,7 +80,7 @@ bool UPCGExFillControlsFactoryVtxFilters::RegisterConsumableAttributesWithData(F
 TArray<FPCGPinProperties> UPCGExFillControlsVtxFiltersProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, TEXT("Filters used on edges."), Required)
+	PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceVtxFiltersLabel, TEXT("Filters used on edges."), Required)
 	return PinProperties;
 }
 
@@ -90,7 +90,7 @@ UPCGExFactoryData* UPCGExFillControlsVtxFiltersProviderSettings::CreateFactory(F
 	PCGEX_FORWARD_FILLCONTROL_FACTORY
 	Super::CreateFactory(InContext, NewFactory);
 
-	if (!GetInputFactories(InContext, PCGExPointFilter::SourceVtxFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
+	if (!GetInputFactories(InContext, PCGExFilter::Labels::SourceVtxFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

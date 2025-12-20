@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
@@ -16,7 +16,7 @@ namespace PCGExGraph
 	class FGraphBuilder;
 }
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	class TVoronoi3;
 }
@@ -111,7 +111,7 @@ namespace PCGExBuildVoronoiGraph
 	{
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExGeo::TVoronoi3> Voronoi;
+		TSharedPtr<PCGExMath::TVoronoi3> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;

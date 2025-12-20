@@ -32,6 +32,7 @@ public class PCGExTensors : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExFoundations",
 			}
 		);
 

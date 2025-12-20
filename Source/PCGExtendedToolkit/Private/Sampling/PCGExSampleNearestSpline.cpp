@@ -6,10 +6,10 @@
 #include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsDistances.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExSettingsDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
@@ -288,7 +288,7 @@ namespace PCGExSampleNearestSpline
 		TArray<PCGExPolyPath::FSample> Samples;
 		Samples.Reserve(Context->NumTargets);
 
-		const PCGExDetails::FDistances* DistanceDetails = PCGExDetails::GetDistances(Settings->DistanceSettings, Settings->DistanceSettings);
+		const PCGExMath::FDistances* DistanceDetails = PCGExMath::GetDistances(Settings->DistanceSettings, Settings->DistanceSettings);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

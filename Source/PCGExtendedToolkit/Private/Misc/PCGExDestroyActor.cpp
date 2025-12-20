@@ -73,7 +73,7 @@ namespace PCGExDestroyActor
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences = MakeShared<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
+		TSharedPtr<PCGExData::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences = MakeShared<PCGExData::TAttributeBroadcaster<FSoftObjectPath>>();
 		if (!ActorReferences->Prepare(Settings->ActorReferenceAttribute, PointDataFacade->Source))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs don't have the specified Actor Reference attribute."));

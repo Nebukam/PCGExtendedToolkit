@@ -6,7 +6,7 @@
 
 #include "PCGExHelpers.h"
 #include "Data/PCGExData.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigNumericCompare, MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)

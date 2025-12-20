@@ -6,7 +6,7 @@
 
 #include "PCGExHelpers.h"
 #include "Data/PCGExDataPreloader.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 

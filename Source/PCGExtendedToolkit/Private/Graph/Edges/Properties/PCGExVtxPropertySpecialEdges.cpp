@@ -26,7 +26,7 @@ bool FPCGExVtxPropertySpecialEdges::PrepareForCluster(FPCGExContext* InContext, 
 	return bIsValidOperation;
 }
 
-void FPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP)
+void FPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
 {
 	double LLongest = 0;
 	int32 ILongest = -1;

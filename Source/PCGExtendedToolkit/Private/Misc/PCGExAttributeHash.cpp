@@ -5,7 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -63,7 +63,7 @@ bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		if (const int32 Idx = IO->IOIndex; Context->ValidHash[Idx] && Settings->bOutputToAttribute)
 		{
 			UPCGData* OutputCopy = Context->ManagedObjects->DuplicateData<UPCGData>(IO->InitializationData);
-			PCGExDataHelpers::SetDataValue<int32>(OutputCopy, Settings->OutputName, Context->Hashes[Idx]);
+			PCGExData::Helpers::SetDataValue<int32>(OutputCopy, Settings->OutputName, Context->Hashes[Idx]);
 			Context->StageOutput(
 				OutputCopy, Settings->GetMainInputPin(), PCGExData::EStaging::MutableAndManaged,
 				IO->Tags->Flatten());

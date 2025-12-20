@@ -4,7 +4,7 @@
 #include "Misc/PCGExRefreshSeed.h"
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -41,7 +41,7 @@ public:
 		TConstPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetConstTransformValueRange();
 
 		const FVector BaseOffset = FVector(TaskIndex) * 0.001;
-		for (int i = 0; i < PointIO->GetNum(); i++) { Seeds[i] = PCGExRandom::ComputeSpatialSeed(Transforms[i].GetLocation(), BaseOffset); }
+		for (int i = 0; i < PointIO->GetNum(); i++) { Seeds[i] = PCGExRandomHelpers::ComputeSpatialSeed(Transforms[i].GetLocation(), BaseOffset); }
 	}
 };
 

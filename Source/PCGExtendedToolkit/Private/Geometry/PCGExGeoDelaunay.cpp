@@ -9,7 +9,7 @@
 #include "ThirdParty/Delaunator/include/delaunator.hpp"
 #include "Async/ParallelFor.h"
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	FDelaunaySite2::FDelaunaySite2(const UE::Geometry::FIndex3i& InVtx, const UE::Geometry::FIndex3i& InAdjacency, const int32 InId)
 		: Id(InId)

@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Matching/PCGExMatching.h"
-#include "Geometry/PCGExGeoPointBox.h"
+#include "Math/PCGExBoundsCloud.h"
 
 
 #include "Graph/PCGExIntersections.h"
@@ -51,7 +51,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	//PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	//PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** If enabled, allows you to filter out which targets get sampled by which data */
@@ -96,7 +96,7 @@ struct FPCGExBoundsPathIntersectionContext final : FPCGExPathProcessorContext
 	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
-	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
+	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -120,7 +120,7 @@ namespace PCGExBoundsPathIntersection
 
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
-		TArray<TSharedPtr<PCGExGeo::FIntersections>> Intersections;
+		TArray<TSharedPtr<PCGExMath::FIntersections>> Intersections;
 
 		TArray<int32> StartIndices;
 		FPCGExBoxIntersectionDetails Details;

@@ -7,7 +7,7 @@
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsAxis.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 #include "PCGExBuildDelaunayGraph.generated.h"
 
 namespace PCGExGraph
@@ -15,7 +15,7 @@ namespace PCGExGraph
 	class FGraphBuilder;
 }
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	class TDelaunay3;
 }
@@ -119,7 +119,7 @@ namespace PCGExBuildDelaunayGraph
 
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExGeo::TDelaunay3> Delaunay;
+		TSharedPtr<PCGExMath::TDelaunay3> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 

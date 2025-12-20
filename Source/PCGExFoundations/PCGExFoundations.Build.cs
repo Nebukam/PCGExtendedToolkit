@@ -32,6 +32,7 @@ public class PCGExFoundations : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExCompositing",
 			}
 		);
 
@@ -45,10 +46,8 @@ public class PCGExFoundations : ModuleRules
 				"GeometryFramework",
 				"GeometryAlgorithms",
 				"PhysicsCore",
-				"NavigationSystem",
 				"Slate",
 				"SlateCore",
-				"GameplayTags",
 				"PropertyPath",
 				"DeveloperSettings"
 			}

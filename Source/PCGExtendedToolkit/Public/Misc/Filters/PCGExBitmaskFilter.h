@@ -9,7 +9,7 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "Details/PCGExDetailsBitmask.h"
+#include "Bitmasks/PCGExBitmaskDetails.h"
 
 #include "PCGExBitmaskFilter.generated.h"
 

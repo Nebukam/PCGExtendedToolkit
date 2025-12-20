@@ -5,11 +5,16 @@
 
 #include "PCGElement.h"
 #include "PCGContext.h"
+#include "PCGModule.h"
 #include "Details/PCGExMacros.h"
 
 namespace PCGExHelpers
 {
-	TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext)
+	TArray<UFunction*> FindUserFunctions(
+		const TSubclassOf<AActor>& ActorClass,
+		const TArray<FName>& FunctionNames,
+		const TArray<const UFunction*>& FunctionPrototypes,
+		const FPCGContext* InContext)
 	{
 		TArray<UFunction*> Functions;
 

@@ -8,8 +8,8 @@
 #include "UObject/Package.h"
 #include "Collections/Core/PCGExAssetCollection.h"
 #include "Collections/Core/PCGExCollectionHelpers.h"
-#include "Details/PCGExDetailsDistances.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExSettingsDetails.h"
 
 FPCGExEntryTypeDetails::FPCGExEntryTypeDetails()
 {

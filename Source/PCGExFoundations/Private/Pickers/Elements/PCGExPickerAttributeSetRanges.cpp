@@ -53,7 +53,7 @@ bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(FPCGExContext* InCon
 				continue;
 			}
 
-			const TSharedPtr<PCGEx::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeTypedBroadcaster<FVector2D>(Infos->Attributes[0]->Name, Facade->Source);
+			const TSharedPtr<PCGExData::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeTypedBroadcaster<FVector2D>(Infos->Attributes[0]->Name, Facade->Source);
 			if (!Values) { continue; }
 			Values->GrabUniqueValues(UniqueRanges);
 		}
@@ -61,7 +61,7 @@ bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(FPCGExContext* InCon
 		{
 			for (const FPCGAttributePropertyInputSelector& Selector : InConfig.Attributes)
 			{
-				const TSharedPtr<PCGEx::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeTypedBroadcaster<FVector2D>(Selector, Facade->Source);
+				const TSharedPtr<PCGExData::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeTypedBroadcaster<FVector2D>(Selector, Facade->Source);
 				if (!Values) { continue; }
 				Values->GrabUniqueValues(UniqueRanges);
 			}

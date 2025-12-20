@@ -18,14 +18,14 @@ namespace PCGEx
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
 
-		FDiscoverAssetsTask(const TSharedPtr<IAssetLoader>& InLoader, const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster)
+		FDiscoverAssetsTask(const TSharedPtr<IAssetLoader>& InLoader, const TSharedPtr<PCGExData::TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster)
 			: FTask(), Loader(InLoader), Broadcaster(InBroadcaster)
 		{
 		}
 
 		int32 IOIndex = -1;
 		TSharedPtr<IAssetLoader> Loader;
-		TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>> Broadcaster;
+		TSharedPtr<PCGExData::TAttributeBroadcaster<FSoftObjectPath>> Broadcaster;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
@@ -92,7 +92,7 @@ namespace PCGEx
 			TSharedRef<PCGExData::FPointIO> PointIORef = PointIO.ToSharedRef();
 			for (const FName& AssetAttributeName : AttributeNames)
 			{
-				PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<FSoftObjectPath>)
+				PCGEX_MAKE_SHARED(Broadcaster, PCGExData::TAttributeBroadcaster<FSoftObjectPath>)
 
 				if (!Broadcaster->Prepare(AssetAttributeName, PointIORef))
 				{

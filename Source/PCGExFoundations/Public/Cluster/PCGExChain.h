@@ -4,11 +4,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCluster.h"
+#include "Graph/PCGExLink.h"
+
+namespace PCGExGraph
+{
+	class FGraph;
+}
+
+namespace PCGExMT
+{
+	class FTaskManager;
+}
 
 namespace PCGExCluster
 {
-	class PCGEXTENDEDTOOLKIT_API FNodeChain : public TSharedFromThis<FNodeChain>
+	class FCluster;
+	using PCGExGraph::FLink;
+	
+	class PCGEXFOUNDATIONS_API FNodeChain : public TSharedFromThis<FNodeChain>
 	{
 	public:
 		FLink Seed;
@@ -39,17 +52,14 @@ namespace PCGExCluster
 		int32 GetNodes(const TSharedPtr<FCluster>& Cluster, TArray<int32>& OutNodes, bool bReverse);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FNodeChainBuilder : public TSharedFromThis<FNodeChainBuilder>
+	class PCGEXFOUNDATIONS_API FNodeChainBuilder : public TSharedFromThis<FNodeChainBuilder>
 	{
 	public:
 		TSharedRef<FCluster> Cluster;
 		TSharedPtr<TArray<int8>> Breakpoints;
 		TArray<TSharedPtr<FNodeChain>> Chains;
 
-		FNodeChainBuilder(const TSharedRef<FCluster>& InCluster)
-			: Cluster(InCluster)
-		{
-		}
+		FNodeChainBuilder(const TSharedRef<FCluster>& InCluster);
 
 		bool Compile(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);
 		bool CompileLeavesOnly(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);

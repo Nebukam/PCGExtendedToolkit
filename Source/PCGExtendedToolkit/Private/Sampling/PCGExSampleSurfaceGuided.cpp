@@ -4,7 +4,7 @@
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PCGExWriteGUID.h"
@@ -12,7 +12,7 @@
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 #include "Async/ParallelFor.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
@@ -221,7 +221,7 @@ namespace PCGExSampleSurfaceGuided
 		if (Context->ApplySampling.WantsApply())
 		{
 			const FVector Cross = CrossAxis->Read(Index) * (Settings->CrossAxis.bFlip ? 1 : -1);
-			const FQuat Rot = PCGEx::MakeRot(Settings->RotationConstruction, HitResult.ImpactNormal, Cross);
+			const FQuat Rot = PCGExMath::MakeRot(Settings->RotationConstruction, HitResult.ImpactNormal, Cross);
 			const FTransform OutTransform(Rot, Impact, FVector::OneVector);
 			Context->ApplySampling.Apply(MutablePoint, OutTransform, OutTransform);
 		}
@@ -417,7 +417,7 @@ namespace PCGExSampleSurfaceGuided
 
 		if (MIndex < 0 || FIndex < 0) { return; }
 
-		const PCGExGeo::FMeshData& Data = MeshData[MIndex];
+		const PCGExMath::FMeshData& Data = MeshData[MIndex];
 
 		const int32 Index0 = Data.Indices[FIndex * 3 + 0];
 		const int32 Index1 = Data.Indices[FIndex * 3 + 1];
@@ -455,7 +455,7 @@ namespace PCGExSampleSurfaceGuided
 					int32& IndexRef = StaticMeshIndexMap.FindOrAdd(Mesh, -1);
 					if (IndexRef == -1)
 					{
-						PCGExGeo::FMeshData Data(Mesh);
+						PCGExMath::FMeshData Data(Mesh);
 						if (Data.bIsValid) { IndexRef = MeshData.Add(Data); }
 					}
 

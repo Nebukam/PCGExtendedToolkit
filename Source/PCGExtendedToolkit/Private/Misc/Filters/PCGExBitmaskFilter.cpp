@@ -8,8 +8,8 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsBitmask.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Bitmasks/PCGExBitmaskDetails.h"
+#include "Details/PCGExSettingsDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -77,9 +77,9 @@ bool PCGExPointFilter::FBitmaskFilter::Test(const TSharedPtr<PCGExData::FPointIO
 	int64 OutFlags = 0;
 	int64 OutMask = 0;
 
-	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.FlagsAttribute, OutFlags, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExData::Helpers::TryReadDataValue(IO, TypedFilterFactory->Config.FlagsAttribute, OutFlags, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
-	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.MaskInput, TypedFilterFactory->Config.BitmaskAttribute, TypedFilterFactory->Config.Bitmask, OutMask, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExData::Helpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.MaskInput, TypedFilterFactory->Config.BitmaskAttribute, TypedFilterFactory->Config.Bitmask, OutMask, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	for (const FPCGExSimpleBitmask& Comp : Compositions) { Comp.Mutate(OutMask); }
 

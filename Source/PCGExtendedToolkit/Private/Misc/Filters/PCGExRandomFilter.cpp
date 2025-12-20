@@ -3,12 +3,12 @@
 
 #include "Misc/Filters/PCGExRandomFilter.h"
 
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
@@ -121,19 +121,19 @@ bool PCGExPointFilter::FRandomFilter::Test(const int32 PointIndex) const
 {
 	const double LocalWeightRange = WeightOffset + WeightBuffer->Read(PointIndex);
 	const double LocalThreshold = ThresholdBuffer ? (ThresholdOffset + ThresholdBuffer->Read(PointIndex)) / ThresholdRange : Threshold;
-	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(Seeds[PointIndex], RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange);
+	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandomHelpers::GetRandomStreamFromPoint(Seeds[PointIndex], RandomSeed)).GetFraction() * LocalWeightRange) / WeightRange);
 	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= LocalThreshold : RandomValue >= LocalThreshold;
 }
 
 bool PCGExPointFilter::FRandomFilter::Test(const PCGExData::FProxyPoint& Point) const
 {
-	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::ComputeSpatialSeed(Point.GetLocation(), RandomSeedV)).GetFraction() * WeightRange) / WeightRange);
+	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandomHelpers::ComputeSpatialSeed(Point.GetLocation(), RandomSeedV)).GetFraction() * WeightRange) / WeightRange);
 	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
 }
 
 bool PCGExPointFilter::FRandomFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
-	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(IO->GetIn()->GetSeed(0), RandomSeed)).GetFraction() * WeightRange) / WeightRange);
+	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandomHelpers::GetRandomStreamFromPoint(IO->GetIn()->GetSeed(0), RandomSeed)).GetFraction() * WeightRange) / WeightRange);
 	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
 }
 

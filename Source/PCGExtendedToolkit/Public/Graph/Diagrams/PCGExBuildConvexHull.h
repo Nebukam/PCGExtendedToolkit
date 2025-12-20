@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 
 #include "PCGExBuildConvexHull.generated.h"
 
@@ -14,7 +14,7 @@ namespace PCGExGraph
 	class FGraphBuilder;
 }
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	class TDelaunay3;
 }
@@ -77,7 +77,7 @@ namespace PCGExBuildConvexHull
 	{
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExGeo::TDelaunay3> Delaunay;
+		TSharedPtr<PCGExMath::TDelaunay3> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;

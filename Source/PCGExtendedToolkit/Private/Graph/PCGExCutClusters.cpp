@@ -8,7 +8,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDistancesDetails.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -274,7 +274,7 @@ namespace PCGExCutEdges
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
 		const UPCGBasePointData* InVtxPointData = VtxDataFacade->GetIn();
-		const PCGExDetails::FDistances* Distances = PCGExDetails::GetDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
+		const PCGExMath::FDistances* Distances = PCGExMath::GetDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
 		
 		PCGEX_SCOPE_LOOP(Index)
 		{

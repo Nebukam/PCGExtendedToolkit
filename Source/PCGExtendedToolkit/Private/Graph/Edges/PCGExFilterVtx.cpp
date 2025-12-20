@@ -55,8 +55,8 @@ TArray<FPCGPinProperties> UPCGExFilterVtxSettings::OutputPinProperties() const
 	}
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Vtx points that passed the filters.", Required)
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Vtx points that didn't pass the filters.", Required)
+	PCGEX_PIN_POINTS(PCGExFilter::Labels::OutputInsideFiltersLabel, "Vtx points that passed the filters.", Required)
+	PCGEX_PIN_POINTS(PCGExFilter::Labels::OutputOutsideFiltersLabel, "Vtx points that didn't pass the filters.", Required)
 	return PinProperties;
 }
 
@@ -108,13 +108,13 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 		Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 		Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
-		Context->Inside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
-		Context->Outside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
+		Context->Inside->OutputPin = PCGExFilter::Labels::OutputInsideFiltersLabel;
+		Context->Outside->OutputPin = PCGExFilter::Labels::OutputOutsideFiltersLabel;
 
 		if (Settings->bSwap)
 		{
-			Context->Inside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
-			Context->Outside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
+			Context->Inside->OutputPin = PCGExFilter::Labels::OutputOutsideFiltersLabel;
+			Context->Outside->OutputPin = PCGExFilter::Labels::OutputInsideFiltersLabel;
 		}
 	}
 
@@ -307,7 +307,7 @@ namespace PCGExFilterVtx
 
 				if (!OutIO) { return; }
 
-				PCGExGraph::CleanupVtxData(OutIO);
+				PCGExCluster::Helpers::CleanupVtxData(OutIO);
 
 				(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutIO->GetOut(), NumNodes, OutIO->GetAllocations());
 				OutIO->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
@@ -326,8 +326,8 @@ namespace PCGExFilterVtx
 
 			if (!Inside || !Outside) { return; }
 
-			PCGExGraph::CleanupVtxData(Inside);
-			PCGExGraph::CleanupVtxData(Outside);
+			PCGExCluster::Helpers::CleanupVtxData(Inside);
+			PCGExCluster::Helpers::CleanupVtxData(Outside);
 
 			Inside->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
 			Outside->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
@@ -389,7 +389,7 @@ namespace PCGExFilterVtx
 
 			if (!OutIO) { return; }
 
-			PCGExGraph::CleanupVtxData(OutIO);
+			PCGExCluster::Helpers::CleanupVtxData(OutIO);
 
 			return;
 		}
@@ -401,8 +401,8 @@ namespace PCGExFilterVtx
 
 		if (!Inside || !Outside) { return; }
 
-		PCGExGraph::CleanupVtxData(Inside);
-		PCGExGraph::CleanupVtxData(Outside);
+		PCGExCluster::Helpers::CleanupVtxData(Inside);
+		PCGExCluster::Helpers::CleanupVtxData(Outside);
 
 		TArray<int8> Mask;
 		Mask.SetNumUninitialized(VtxDataFacade->GetNum(PCGExData::EIOSide::In));

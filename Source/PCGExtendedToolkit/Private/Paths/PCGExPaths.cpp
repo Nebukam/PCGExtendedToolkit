@@ -66,7 +66,7 @@ namespace PCGExPaths
 
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop)
 	{
-		PCGExDataHelpers::SetDataValue(InData, ClosedLoopIdentifier, bIsClosedLoop);
+		PCGExData::Helpers::SetDataValue(InData, ClosedLoopIdentifier, bIsClosedLoop);
 	}
 
 	void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop)
@@ -79,7 +79,7 @@ namespace PCGExPaths
 		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
 
 		const FPCGMetadataAttribute<bool>* Attr = PCGExMetaHelpers::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
-		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
+		return Attr ? PCGExData::Helpers::ReadDataValue(Attr) : false;
 	}
 
 	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData)
@@ -98,7 +98,7 @@ namespace PCGExPaths
 		}
 
 		if (!Attr) { Attr = InData->Metadata->CreateAttribute<bool>(HoleIdentifier, bIsHole, true, true); }
-		PCGExDataHelpers::SetDataValue(Attr, bIsHole);
+		PCGExData::Helpers::SetDataValue(Attr, bIsHole);
 	}
 
 	void SetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsHole)
@@ -111,7 +111,7 @@ namespace PCGExPaths
 		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
 
 		const FPCGMetadataAttribute<bool>* Attr = PCGExMetaHelpers::TryGetConstAttribute<bool>(InData, HoleIdentifier);
-		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
+		return Attr ? PCGExData::Helpers::ReadDataValue(Attr) : false;
 	}
 
 	bool GetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData)
@@ -787,8 +787,8 @@ namespace PCGExPaths
 		Positions = InPointIO->GetIn()->GetConstTransformValueRange();
 
 		Projection = InProjection;
-		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
-		else { if (!Projection.Init(InPointIO)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(InPointIO)) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); } }
 
 		InitFromTransforms(WindingMutation);
 	}
@@ -797,8 +797,8 @@ namespace PCGExPaths
 		: FPath(InPathFacade->GetIn()->GetConstTransformValueRange(), GetClosedLoop(InPathFacade->Source), Expansion)
 	{
 		Projection = InProjection;
-		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
-		else { if (!Projection.Init(InPathFacade)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(InPathFacade)) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); } }
 
 		InitFromTransforms(WindingMutation);
 	}
@@ -817,8 +817,8 @@ namespace PCGExPaths
 		Positions = TConstPCGValueRange<FTransform>(MakeConstStridedView(LocalTransforms));
 
 		Projection = InProjection;
-		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
-		else { if (!Projection.Init(SplineData)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(SplineData)) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); } }
 
 
 		InitFromTransforms(WindingMutation);
@@ -844,8 +844,8 @@ namespace PCGExPaths
 		Positions = TConstPCGValueRange<FTransform>(MakeConstStridedView(LocalTransforms));
 
 		Projection = InProjection;
-		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
-		else { if (!Projection.Init(PolygonData)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(PolygonData)) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); } }
 
 		InitFromTransforms(WindingMutation);
 

@@ -7,7 +7,7 @@
 
 #include "CoreMinimal.h"
 
-class PCGEXCORE_API FIntTracker final : public TSharedFromThis<FIntTracker>
+class PCGEXCORE_API FPCGExIntTracker final : public TSharedFromThis<FPCGExIntTracker>
 {
 	FRWLock Lock;
 	bool bTriggered = false;
@@ -18,18 +18,18 @@ class PCGEXCORE_API FIntTracker final : public TSharedFromThis<FIntTracker>
 	TFunction<void()> ThresholdFn = nullptr;
 
 public:
-	explicit FIntTracker(TFunction<void()>&& InThresholdFn)
+	explicit FPCGExIntTracker(TFunction<void()>&& InThresholdFn)
 	{
 		ThresholdFn = InThresholdFn;
 	}
 
-	explicit FIntTracker(TFunction<void()>&& InStartFn, TFunction<void()>&& InThresholdFn)
+	explicit FPCGExIntTracker(TFunction<void()>&& InStartFn, TFunction<void()>&& InThresholdFn)
 	{
 		StartFn = InStartFn;
 		ThresholdFn = InThresholdFn;
 	}
 
-	~FIntTracker() = default;
+	~FPCGExIntTracker() = default;
 
 	void IncrementPending(const int32 Count = 1);
 	void IncrementCompleted(const int32 Count = 1);

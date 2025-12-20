@@ -12,7 +12,7 @@
 #else
 #include "PCGCommon.h"
 #endif
-#include "Details/PCGExDetailsGraph.h"
+#include "Graph/PCGExGraphDetails.h"
 #include "Geometry/PCGExGeo.h"
 
 namespace PCGExMT
@@ -64,7 +64,7 @@ namespace PCGExClusterMT
 
 	class IBatch;
 
-	class PCGEXTENDEDTOOLKIT_API IProcessor : public TSharedFromThis<IProcessor>
+	class PCGEXFOUNDATIONS_API IProcessor : public TSharedFromThis<IProcessor>
 	{
 		friend class IBatch;
 
@@ -210,7 +210,7 @@ namespace PCGExClusterMT
 		const TSettings* GetSettings() { return Settings; }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
+	class PCGEXFOUNDATIONS_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
 		mutable FRWLock BatchLock;
@@ -343,5 +343,5 @@ namespace PCGExClusterMT
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
+	PCGEXFOUNDATIONS_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
 }

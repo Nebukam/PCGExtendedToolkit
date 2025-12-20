@@ -110,7 +110,7 @@ namespace PCGExBuildDelaunayGraph
 
 			Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
-			PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
+			PCGExMath::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 			const int32 NumSites = Delaunay->Sites.Num();
 
 			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
@@ -124,7 +124,7 @@ namespace PCGExBuildDelaunayGraph
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
+				const PCGExMath::FDelaunaySite3& Site = Delaunay->Sites[i];
 
 				FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
 				Centroid += InTransforms[Site.Vtx[1]].GetLocation();
@@ -179,7 +179,7 @@ namespace PCGExBuildDelaunayGraph
 			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
 			UPCGBasePointData* MutablePoints = SitesIO->GetOut();
 
-			PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
+			PCGExMath::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 			const int32 NumSites = Delaunay->Sites.Num();
 
 			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
@@ -190,7 +190,7 @@ namespace PCGExBuildDelaunayGraph
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
+				const PCGExMath::FDelaunaySite3& Site = Delaunay->Sites[i];
 
 				FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
 				Centroid += InTransforms[Site.Vtx[1]].GetLocation();
@@ -228,9 +228,9 @@ namespace PCGExBuildDelaunayGraph
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
+		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Delaunay = MakeShared<PCGExGeo::TDelaunay3>();
+		Delaunay = MakeShared<PCGExMath::TDelaunay3>();
 
 		bool bProcessed = false;
 		if (Settings->bMarkHull) { bProcessed = Delaunay->Process<false, true>(ActivePositions); }

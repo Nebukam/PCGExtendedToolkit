@@ -1,13 +1,10 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExStreamingHelpers.h"
+#include "Streaming/PCGExStreamingHelpers.h"
 
 #include "CoreMinimal.h"
 #include "Core/PCGExContext.h"
-#include "PCGExMT.h"
-#include "UObject/Interface.h"
-#include "GameFramework/Actor.h"
 #include "Engine/AssetManager.h"
 #include "Async/Async.h"
 #include "Async/ParallelFor.h"

@@ -5,14 +5,14 @@
 
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOperations.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPaths.h"
 
 

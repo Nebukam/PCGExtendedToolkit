@@ -5,8 +5,8 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Blenders/PCGExUnionBlender.h"
+#include "Details/PCGExDistancesDetails.h"
 #include "Graph/PCGExGraph.h"
 #include "Async/ParallelFor.h"
 
@@ -207,7 +207,7 @@ namespace PCGExFusePoints
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
 		UnionSources.Add(PointDataFacade);
 
-		TypedBlender->AddSources(UnionSources, &PCGExGraph::ProtectedClusterAttributes);
+		TypedBlender->AddSources(UnionSources, &PCGExGraph::Labels::ProtectedClusterAttributes);
 		if (!TypedBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
 		{
 			bIsProcessorValid = false;

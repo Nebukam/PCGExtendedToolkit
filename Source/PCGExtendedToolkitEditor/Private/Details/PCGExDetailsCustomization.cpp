@@ -6,7 +6,7 @@
 
 #include "AssetToolsModule.h"
 #include "IDetailChildrenBuilder.h"
-#include "Details/PCGExDetailsInputShorthands.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Details/Collections/PCGExActorCollectionActions.h"
 #include "Details/Actions/PCGExActorDataPackerActions.h"
 #include "Details/Bitmask/PCGExBitmaskActions.h"

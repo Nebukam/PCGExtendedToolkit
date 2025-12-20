@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExPointFilter.h"
-#include "Details/PCGExDetailsBitmask.h"
+#include "Bitmasks/PCGExBitmaskDetails.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExPointStates.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExStateConfigBase
+struct PCGEXFOUNDATIONS_API FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
@@ -56,14 +56,14 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | State : Point"))
 struct FPCGExDataTypeInfoPointState : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXCORE_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
 };
 
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXCORE_API UPCGExPointStateFactoryData : public UPCGExClusterFilterFactoryData
+class PCGEXFOUNDATIONS_API UPCGExPointStateFactoryData : public UPCGExClusterFilterFactoryData
 {
 	// Inherits from ClusterFilterFactory because states are filters so we want to inherit from the widest type
 	// This is a bit inelegant but greatly simplifies maintenance
@@ -94,7 +94,7 @@ namespace PCGExPointStates
 	const FName OutputStateLabel = TEXT("State");
 	const FName SourceStatesLabel = TEXT("States");
 
-	class PCGEXCORE_API FState final : public PCGExPointFilter::IFilter
+	class PCGEXFOUNDATIONS_API FState final : public PCGExPointFilter::IFilter
 	{
 	public:
 		FPCGExStateConfigBase BaseConfig;
@@ -117,7 +117,7 @@ namespace PCGExPointStates
 		TSharedPtr<PCGExPointFilter::FManager> Manager;
 	};
 
-	class PCGEXCORE_API FStateManager final : public PCGExPointFilter::FManager
+	class PCGEXFOUNDATIONS_API FStateManager final : public PCGExPointFilter::FManager
 	{
 		TArray<TSharedPtr<FState>> States;
 		TSharedPtr<TArray<int64>> FlagsCache;
@@ -133,7 +133,7 @@ namespace PCGExPointStates
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXCORE_API UPCGExStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXFOUNDATIONS_API UPCGExStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

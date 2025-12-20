@@ -9,7 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsIntersection.h"
 #include "Data/PCGExDataFilter.h"
-#include "Data/Blending/PCGExUnionBlender.h"
+#include "Blenders/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExBlending.h"
 
 
@@ -86,7 +86,7 @@ private:
 struct FPCGExFusePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
-	const PCGExDetails::FDistances* Distances = nullptr;
+	const PCGExMath::FDistances* Distances = nullptr;
 	FPCGExCarryOverDetails CarryOverDetails;
 
 protected:

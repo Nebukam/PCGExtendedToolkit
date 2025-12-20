@@ -78,7 +78,7 @@ namespace PCGExPointsMT
 
 	class IBatch;
 
-	class PCGEXTENDEDTOOLKIT_API IProcessor : public TSharedFromThis<IProcessor>
+	class PCGEXFOUNDATIONS_API IProcessor : public TSharedFromThis<IProcessor>
 	{
 		friend class IBatch;
 
@@ -189,7 +189,7 @@ namespace PCGExPointsMT
 		const TSettings* GetSettings() { return Settings; }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
+	class PCGEXFOUNDATIONS_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
@@ -278,5 +278,5 @@ namespace PCGExPointsMT
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch);
+	PCGEXFOUNDATIONS_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch);
 }

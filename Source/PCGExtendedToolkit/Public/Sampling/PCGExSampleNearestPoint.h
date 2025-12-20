@@ -17,7 +17,7 @@
 #include "PCGExSorting.h"
 #include "Data/Blending/PCGExBlending.h"
 #include "Data/Matching/PCGExMatching.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
@@ -74,7 +74,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
 	//~End UPCGExPointsProcessorSettings
 

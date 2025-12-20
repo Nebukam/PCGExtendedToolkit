@@ -10,7 +10,7 @@
 #include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsInputShorthands.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 
 
 #include "PCGExTransformPoints.generated.h"
@@ -31,7 +31,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
 #endif
 
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

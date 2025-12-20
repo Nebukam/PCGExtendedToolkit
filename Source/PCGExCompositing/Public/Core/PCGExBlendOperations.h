@@ -33,7 +33,7 @@ namespace PCGExBlending
 	// Provides a runtime-polymorphic interface for blending values of any type.
 	// Eliminates the need for template instantiation per blend mode.
 	//
-	class PCGEXCORE_API IBlendOperation
+	class PCGEXCOMPOSITING_API IBlendOperation
 	{
 	protected:
 		EPCGExABBlendingType Mode;
@@ -381,7 +381,7 @@ namespace PCGExBlending
 	// Single entry point for creating blend operations. Uses switch on type
 	// to dispatch to the appropriate TBlendOperationImpl<T> constructor.
 	//
-	class PCGEXCORE_API FBlendOperationFactory
+	class PCGEXCOMPOSITING_API FBlendOperationFactory
 	{
 	public:
 		// Create a blend operation for runtime type and mode
@@ -406,7 +406,7 @@ namespace PCGExBlending
 	// Avoids repeated allocations by caching commonly used blend operations.
 	// Thread-safe through use of shared pointers and critical section.
 	//
-	class PCGEXCORE_API FBlenderPool
+	class PCGEXCOMPOSITING_API FBlenderPool
 	{
 	public:
 		// Get or create a blend operation

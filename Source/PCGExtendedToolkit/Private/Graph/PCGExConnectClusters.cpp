@@ -4,7 +4,7 @@
 #include "Graph/PCGExConnectClusters.h"
 
 
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIOMerger.h"
 
@@ -109,8 +109,8 @@ bool FPCGExConnectClustersElement::AdvanceWork(FPCGExContext* InContext, const U
 	{
 		const TSharedPtr<PCGExConnectClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExConnectClusters::FBatch>(Batch);
 		PCGExDataId PairId;
-		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
-		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
+		PCGExCluster::Helpers::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
+		PCGExCluster::Helpers::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
 	}
 
 	Context->OutputPointsAndEdges();
@@ -203,7 +203,7 @@ namespace PCGExConnectClusters
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)
 		{
-			const TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
+			const TUniquePtr<PCGExMath::TDelaunay3> Delaunay = MakeUnique<PCGExMath::TDelaunay3>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
@@ -217,7 +217,7 @@ namespace PCGExConnectClusters
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay2D)
 		{
-			const TUniquePtr<PCGExGeo::TDelaunay2> Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
+			const TUniquePtr<PCGExMath::TDelaunay2> Delaunay = MakeUnique<PCGExMath::TDelaunay2>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);

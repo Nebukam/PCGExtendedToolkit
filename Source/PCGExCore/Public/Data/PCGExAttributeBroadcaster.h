@@ -6,7 +6,7 @@
 #include <type_traits>
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
+#include "PCGExSubSelection.h"
 #include "Metadata/PCGMetadataCommon.h"
 #include "Helpers/PCGExMetaHelpers.h"
 #include "Metadata/PCGAttributePropertySelector.h"
@@ -23,10 +23,11 @@ namespace PCGExMT
 	struct FScope;
 }
 
+struct FPCGExTaggedData;
+
 namespace PCGExData
 {
 	struct FElement;
-	struct FPCGExTaggedData;
 	class FPointIO;
 	class IDataValue;
 	class FPointIOCollection;
@@ -35,8 +36,6 @@ namespace PCGExData
 
 namespace PCGExData
 {
-#pragma region Attribute Broadcaster
-
 	class PCGEXCORE_API IAttributeBroadcaster : public TSharedFromThis<IAttributeBroadcaster>
 	{
 	public:
@@ -164,7 +163,6 @@ namespace PCGExData
 	template <typename T>
 	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
 
-
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
@@ -175,8 +173,6 @@ extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(co
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
-
-#pragma endregion
 
 #pragma endregion
 }

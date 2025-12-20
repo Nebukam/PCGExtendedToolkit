@@ -5,7 +5,7 @@
 
 #include "PCGEx.h"
 #include "Core/PCGExContext.h"
-#include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGHelpers.h"
 
 int32 FPCGExRandomRatioDetails::GetNumPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems) const
@@ -25,7 +25,7 @@ int32 FPCGExRandomRatioDetails::GetNumPicks(FPCGExContext* InContext, const UPCG
 
 	int32 MinPicks = 0;
 	int32 MaxPicks = NumMaxItems;
-	
+
 	if (bDoClampMin)
 	{
 		ClampMin.TryReadDataValue(InContext, InData, MinPicks);
@@ -37,8 +37,8 @@ int32 FPCGExRandomRatioDetails::GetNumPicks(FPCGExContext* InContext, const UPCG
 		ClampMax.TryReadDataValue(InContext, InData, MaxPicks);
 		MaxPicks = FMath::Clamp(MaxPicks, 0, NumMaxItems);
 	}
-	
-	if (MaxPicks < MinPicks){ Swap(MinPicks, MaxPicks); }
+
+	if (MaxPicks < MinPicks) { Swap(MinPicks, MaxPicks); }
 	NumPicks = FMath::Clamp(NumPicks, MinPicks, MaxPicks);
 
 	return NumPicks;

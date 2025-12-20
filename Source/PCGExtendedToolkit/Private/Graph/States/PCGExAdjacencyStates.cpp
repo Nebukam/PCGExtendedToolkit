@@ -75,7 +75,7 @@ namespace PCGExAdjacencyStates
 TArray<FPCGPinProperties> UPCGExAdjacencyStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check which node should be processed."), Advanced)
+	PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceFiltersLabel, TEXT("Filters used to check which node should be processed."), Advanced)
 	return PinProperties;
 }
 

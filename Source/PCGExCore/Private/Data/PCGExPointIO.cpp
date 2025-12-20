@@ -3,16 +3,13 @@
 
 #include "Data/PCGExPointIO.h"
 
-
 #include "Data/PCGPointArrayData.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
-#include "PCGEx.h"
 #include "Core/PCGExContext.h"
-#include "PCGExMT.h"
-#include "PCGExSettings.h"
 #include "PCGParamData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGPointData.h"
+#include "Helpers/PCGExArrayHelpers.h"
 
 namespace PCGExData
 {

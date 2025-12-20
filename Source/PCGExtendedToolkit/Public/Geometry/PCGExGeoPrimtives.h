@@ -7,7 +7,7 @@
 #include "PCGExGeo.h"
 #include "PCGExH.h"
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	struct PCGEXTENDEDTOOLKIT_API FTriangle
 	{

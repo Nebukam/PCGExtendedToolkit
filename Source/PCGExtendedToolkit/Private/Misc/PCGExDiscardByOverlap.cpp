@@ -7,7 +7,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Misc/PCGExWriteGUID.h"
 
@@ -424,7 +424,7 @@ namespace PCGExDiscardByOverlap
 		for (const FName Name : Settings->Weighting.DataScores)
 		{
 			double S = 0;
-			PCGExDataHelpers::TryReadDataValue(Context, PointDataFacade->GetIn(), Name, S);
+			PCGExData::Helpers::TryReadDataValue(Context, PointDataFacade->GetIn(), Name, S);
 			RawScores.DataScore += S;
 		}
 

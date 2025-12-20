@@ -7,46 +7,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "UObject/Interface.h"
 #include "UObject/UObjectGlobals.h"
 
 #include "PCGContext.h"
 #include "Async/Async.h"
 
-#include "PCGExManagedObjects.generated.h"
-
-UINTERFACE()
-class PCGEXCORE_API UPCGExManagedObjectInterface : public UInterface
-{
-	GENERATED_BODY()
-};
-
-class PCGEXCORE_API IPCGExManagedObjectInterface
-{
-	GENERATED_BODY()
-
-public:
-	virtual void Cleanup() = 0;
-};
-
-UINTERFACE()
-class PCGEXCORE_API UPCGExManagedComponentInterface : public UInterface
-{
-	GENERATED_BODY()
-};
-
-class PCGEXCORE_API IPCGExManagedComponentInterface
-{
-	GENERATED_BODY()
-
-public:
-	virtual void SetManagedComponent(UPCGManagedComponent* InManagedComponent) = 0;
-	virtual UPCGManagedComponent* GetManagedComponent() = 0;
-};
-
 namespace PCGEx
 {
-	
 	class PCGEXCORE_API FPCGExAsyncStateScope
 	{
 	public:

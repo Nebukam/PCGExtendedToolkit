@@ -33,8 +33,8 @@ TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::InputPinPropertie
 TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(PCGExPointFilter::OutputInsideFiltersLabel, "Collections that passed the filters.", Required)
-	PCGEX_PIN_ANY(PCGExPointFilter::OutputOutsideFiltersLabel, "Collections that didn't pass the filters.", Required)
+	PCGEX_PIN_ANY(PCGExFilter::Labels::OutputInsideFiltersLabel, "Collections that passed the filters.", Required)
+	PCGEX_PIN_ANY(PCGExFilter::Labels::OutputOutsideFiltersLabel, "Collections that didn't pass the filters.", Required)
 	return PinProperties;
 }
 
@@ -44,7 +44,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(UberFilterCollections)
 FName UPCGExUberFilterCollectionsSettings::GetMainOutputPin() const
 {
 	// Ensure proper forward when node is disabled
-	return PCGExPointFilter::OutputInsideFiltersLabel;
+	return PCGExFilter::Labels::OutputInsideFiltersLabel;
 }
 
 bool UPCGExUberFilterCollectionsSettings::GetIsMainTransactional() const { return true; }
@@ -60,13 +60,13 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
-	Context->Inside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
-	Context->Outside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
+	Context->Inside->OutputPin = PCGExFilter::Labels::OutputInsideFiltersLabel;
+	Context->Outside->OutputPin = PCGExFilter::Labels::OutputOutsideFiltersLabel;
 
 	if (Settings->bSwap)
 	{
-		Context->Inside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
-		Context->Outside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
+		Context->Inside->OutputPin = PCGExFilter::Labels::OutputOutsideFiltersLabel;
+		Context->Outside->OutputPin = PCGExFilter::Labels::OutputInsideFiltersLabel;
 	}
 
 	Context->bHasOnlyCollectionFilters = true;

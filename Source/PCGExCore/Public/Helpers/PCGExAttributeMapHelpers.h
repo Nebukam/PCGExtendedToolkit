@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <functional>
 #include <type_traits>
 
 #include "CoreMinimal.h"
@@ -17,7 +16,7 @@
 #include "Types/PCGExAttributeIdentity.h"
 #include "Types/PCGExTypeOpsImpl.h"
 
-namespace PCGExData
+namespace PCGExAttributeMapHelpers
 {
 	template <typename T_KEY, typename T_VALUE>
 	static int32 BuildMap(const UPCGMetadata* Metadata, const FPCGMetadataAttributeBase* KeyAttr, const FPCGMetadataAttributeBase* ValueAttr, TMap<T_KEY, T_VALUE>& OutMap)
@@ -88,7 +87,7 @@ namespace PCGExData
 			const UPCGParamData* ParamData = Cast<UPCGParamData>(TaggedData.Data);
 			if (!ParamData) { continue; }
 
-			TSharedPtr<FAttributesInfos> Infos = FAttributesInfos::Get(ParamData->Metadata);
+			TSharedPtr<PCGExData::FAttributesInfos> Infos = PCGExData::FAttributesInfos::Get(ParamData->Metadata);
 			if (!Infos || Infos->Attributes.IsEmpty()) { continue; }
 
 			FPCGMetadataAttributeBase* KeyCandidate = nullptr;

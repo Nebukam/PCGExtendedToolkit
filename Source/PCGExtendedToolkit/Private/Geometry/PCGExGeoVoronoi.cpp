@@ -7,7 +7,7 @@
 #include "PCGExHelpers.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	TVoronoi2::~TVoronoi2()
 	{

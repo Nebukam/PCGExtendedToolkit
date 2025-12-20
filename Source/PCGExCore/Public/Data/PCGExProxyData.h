@@ -4,13 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExTypes.h"
-#include "Details/PCGExMacros.h"
-#include "Types/PCGExBroadcast.h"
+#include "PCGExDataCommon.h"
+#include "Types/PCGExTypes.h"
+#include "Data/PCGExSubSelection.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Types/PCGExTypeOps.h"
 #include "UObject/Object.h"
-#include "Types/PCGExCachedSubSelection.h"
+#include "Data/PCGExCachedSubSelection.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 struct FPCGExContext;
 class UPCGBasePointData;
@@ -59,7 +60,7 @@ namespace PCGExData
 	struct PCGEXCORE_API FProxyDescriptor
 	{
 		FPCGAttributePropertyInputSelector Selector;
-		PCGEx::FSubSelection SubSelection;
+		PCGExData::FSubSelection SubSelection;
 
 		EIOSide Side = EIOSide::In;
 		EProxyRole Role = EProxyRole::Read;
@@ -103,7 +104,7 @@ namespace PCGExData
 	protected:
 		// SubSelection support
 		bool bWantsSubSelection = false;
-		PCGEx::FCachedSubSelection CachedSubSelection;
+		PCGExData::FCachedSubSelection CachedSubSelection;
 
 		// Type operations from registry - provides all conversion & blending
 		const PCGExTypeOps::ITypeOpsBase* RealOps = nullptr;
@@ -138,7 +139,7 @@ namespace PCGExData
 		virtual bool EnsureReadable() const { return true; }
 
 		// SubSelection configuration
-		void SetSubSelection(const PCGEx::FSubSelection& InSubSelection);
+		void SetSubSelection(const PCGExData::FSubSelection& InSubSelection);
 
 		// Role-specific initialization
 		virtual void InitForRole(EProxyRole InRole);

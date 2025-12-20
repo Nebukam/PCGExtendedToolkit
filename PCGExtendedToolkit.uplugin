@@ -18,7 +18,7 @@
   "Modules": [
     {
       "Name": "PCGExCore",
-      "_comment": "🔒 REQUIRED",
+      "_comment": "📌REQUIRED",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
@@ -32,7 +32,7 @@
     },
     {
       "Name": "PCGExFoundations",
-      "_comment": "🔒 REQUIRED",
+      "_comment": "📌REQUIRED",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
@@ -46,7 +46,7 @@
     },
     {
       "Name": "PCGExCompositing",
-      "_comment": "🔒 REQUIRED",
+      "_comment": "📌REQUIRED",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
@@ -87,8 +87,78 @@
       ]
     },
     {
+      "Name": "PCGExActions",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExPathfinding",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExPathfindingNavmesh",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExTopologies",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExBridges",
+      "Type": "Runtime",
+      "_comment": "✅ OPTIONAL - Can be stripped off if not needed.",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
       "Name": "PCGExtendedToolkit",
-      "_comment": "🔒 REQUIRED",
+      "_comment": "📌REQUIRED",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
@@ -102,7 +172,7 @@
     },
     {
       "Name": "PCGExtendedToolkitEditor",
-      "_comment": "🔒 REQUIRED",
+      "_comment": "📌REQUIRED",
       "Type": "Editor",
       "LoadingPhase": "Default",
       "PlatformAllowList": [

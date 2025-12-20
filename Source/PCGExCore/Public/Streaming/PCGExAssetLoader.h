@@ -4,8 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExTypes.h"
+#include "PCGExCommon.h"
+#include "Core/PCGExMTCommon.h"
 #include "Misc/ScopeRWLock.h"
+#include "Types/PCGExTypes.h"
 #include "UObject/SoftObjectPtr.h"
 #include "UObject/SoftObjectPath.h"
 

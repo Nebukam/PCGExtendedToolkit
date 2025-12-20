@@ -82,7 +82,7 @@ namespace PCGExLloydRelax2D
 		{
 			NumIterations--;
 
-			TUniquePtr<PCGExGeo::TDelaunay2> Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
+			TUniquePtr<PCGExMath::TDelaunay2> Delaunay = MakeUnique<PCGExMath::TDelaunay2>();
 			TArray<FVector>& Positions = Processor->ActivePositions;
 
 			//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
@@ -99,9 +99,9 @@ namespace PCGExLloydRelax2D
 			for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
 
 			FVector Centroid;
-			for (const PCGExGeo::FDelaunaySite2& Site : Delaunay->Sites)
+			for (const PCGExMath::FDelaunaySite2& Site : Delaunay->Sites)
 			{
-				PCGExGeo::GetCentroid(Positions, Site.Vtx, Centroid);
+				PCGExMath::GetCentroid(Positions, Site.Vtx, Centroid);
 				for (const int32 PtIndex : Site.Vtx)
 				{
 					Counts[PtIndex] += 1;
@@ -137,12 +137,12 @@ namespace PCGExLloydRelax2D
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(PointDataFacade); }
-		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
+		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
 		PCGEX_SHARED_THIS_DECL
 		PCGEX_LAUNCH(FLloydRelaxTask, 0, ThisPtr, &InfluenceDetails, Settings->Iterations)

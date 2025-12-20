@@ -9,7 +9,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 #include "Data/PCGExPointFilter.h"
-#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDistancesDetails.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExNumericCompareNearestFilter.generated.h"

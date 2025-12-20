@@ -7,7 +7,7 @@
 #include "PCGExMath.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
-#include "Details/PCGExDetailsAttributes.h"
+#include "Details/PCGExAttributesDetails.h"
 
 #include "PCGExPartition.generated.h"
 
@@ -77,7 +77,7 @@ struct FPCGExPartitonRuleConfig : public FPCGExInputConfig
 
 namespace PCGExPartition
 {
-	struct FRule final : PCGEx::TAttributeBroadcaster<double>
+	struct FRule final : PCGExData::TAttributeBroadcaster<double>
 	{
 		explicit FRule(FPCGExPartitonRuleConfig& InRule)
 			: TAttributeBroadcaster<double>(), RuleConfig(&InRule), FilterSize(InRule.FilterSize), Upscale(InRule.Upscale), Offset(InRule.Offset)

@@ -4,7 +4,7 @@
 #include "Graph/PCGExPickClosestClusters.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIOMerger.h"
 #include "Graph/PCGExCluster.h"
 

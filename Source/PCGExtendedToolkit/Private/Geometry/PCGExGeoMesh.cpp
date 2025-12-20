@@ -22,7 +22,7 @@ bool FPCGExGeoMeshImportDetails::Validate(FPCGExContext* InContext)
 {
 	if (bImportUVs)
 	{
-		PCGExData::BuildMap(InContext, PCGExGeo::SourceUVImportRulesLabel, UVChannels);
+		PCGExAttributeMapHelpers::BuildMap(InContext, PCGExMath::SourceUVImportRulesLabel, UVChannels);
 
 		if (UVChannels.IsEmpty())
 		{
@@ -73,7 +73,7 @@ bool FPCGExGeoMeshImportDetails::WantsImport() const
 	return bImportVertexColor || !UVChannels.IsEmpty();
 }
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public PCGExMT::FTask
 	{

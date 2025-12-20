@@ -9,7 +9,7 @@
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExNeighborSampleFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExBlendOpsManager.h"
 
 
 #include "PCGExNeighborSampleBlend.generated.h"

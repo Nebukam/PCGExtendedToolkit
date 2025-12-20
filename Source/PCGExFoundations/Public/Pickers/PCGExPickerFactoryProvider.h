@@ -7,6 +7,7 @@
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExPicker.h"
+#include "Factories/PCGExFactoryData.h"
 
 #include "PCGExPickerFactoryProvider.generated.h"
 
@@ -25,11 +26,11 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Picker"))
 struct FPCGExDataTypeInfoPicker : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryData : public UPCGExFactoryData
+class PCGEXFOUNDATIONS_API UPCGExPickerFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -62,7 +63,7 @@ protected:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXFOUNDATIONS_API UPCGExPickerFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -87,5 +88,5 @@ public:
 
 namespace PCGExPicker
 {
-	PCGEXTENDEDTOOLKIT_API bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks);
+	PCGEXFOUNDATIONS_API bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks);
 }

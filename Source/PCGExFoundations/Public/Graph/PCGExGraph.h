@@ -3,196 +3,27 @@
 
 #pragma once
 
-#include <functional>
-
 #include "CoreMinimal.h"
-#include "PCGExEdge.h"
-#include "PCGExSortHelpers.h"
-#include "Details/PCGExDetailsGraph.h"
-#include "Utils/PCGValueRange.h"
+#include "PCGExGraphMetadata.h"
+#include "Graph/PCGExEdge.h"
+#include "Graph/PCGExGraphDetails.h"
+#include "Graph/PCGExNode.h"
 
-class UPCGMetadata;
-struct FPCGContext;
-
-namespace PCGExMT
+namespace PCGEx
 {
-	struct FScope;
-	class FTaskManager;
-	class IAsyncHandleGroup;
-}
-
-struct FPCGExCarryOverDetails;
-struct FPCGExEdgeUnionMetadataDetails;
-struct FPCGExPointUnionMetadataDetails;
-struct FPCGExEdgeEdgeIntersectionDetails;
-struct FPCGExPointEdgeIntersectionDetails;
-struct FPCGExPointPointIntersectionDetails;
-
-namespace PCGExDetails
-{
-	class FDistances;
+	class FIndexLookup;
 }
 
 namespace PCGExData
 {
-	class FPointIOCollection;
-	class FFacade;
-	struct FConstPoint;
-	struct FMutablePoint;
 	class FUnionMetadata;
-	template <typename T>
-	class TBuffer;
 }
-
-namespace PCGExBlending
-{
-	class FUnionBlender;
-}
-
-struct FPCGExBlendingDetails;
-struct FPCGExTransformDetails;
 
 namespace PCGExGraph
 {
-	struct FLink;
-	class FGraphBuilder;
 	class FSubGraph;
 
-}
-
-namespace PCGExCluster
-{
-	class FCluster;
-}
-
-
-namespace PCGExGraph
-{
-	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
-
-	PCGEX_CTX_STATE(State_PreparingUnion)
-	PCGEX_CTX_STATE(State_ProcessingUnion)
-
-	PCGEX_CTX_STATE(State_WritingClusters)
-	PCGEX_CTX_STATE(State_ReadyToCompile)
-	PCGEX_CTX_STATE(State_Compiling)
-
-	PCGEX_CTX_STATE(State_ProcessingPointEdgeIntersections)
-	PCGEX_CTX_STATE(State_ProcessingEdgeEdgeIntersections)
-
-	PCGEX_CTX_STATE(State_Pathfinding)
-	PCGEX_CTX_STATE(State_WaitingPathfinding)
-
-	const TSet<FName> ProtectedClusterAttributes = {Attr_PCGExEdgeIdx, Attr_PCGExVtxIdx};
-
-	class FGraph;
-
-#pragma region Graph Utils
-
-	bool BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO, const TMap<uint32, int32>& EndpointsLookup, TArray<FEdge>& OutEdges, const bool bStopOnError = false);
-
-#pragma endregion
-
-#pragma region Graph
-
-	struct PCGEXTENDEDTOOLKIT_API FGraphMetadataDetails
-	{
-		const FPCGExBlendingDetails* EdgesBlendingDetailsPtr = nullptr;
-		const FPCGExCarryOverDetails* EdgesCarryOverDetails = nullptr;
-
-#define PCGEX_FOREACH_POINTPOINT_METADATA(MACRO)\
-		MACRO(IsPointUnion, PointUnionData.bWriteIsUnion, PointUnionData.IsUnion, TEXT("bIsUnion"))\
-		MACRO(PointUnionSize, PointUnionData.bWriteUnionSize, PointUnionData.UnionSize, TEXT("UnionSize"))\
-		MACRO(IsSubEdge, EdgeUnionData.bWriteIsSubEdge, EdgeUnionData.IsSubEdge, TEXT("bIsSubEdge"))\
-		MACRO(IsEdgeUnion, EdgeUnionData.bWriteIsUnion, EdgeUnionData.IsUnion, TEXT("bIsUnion"))\
-		MACRO(EdgeUnionSize, EdgeUnionData.bWriteUnionSize, EdgeUnionData.UnionSize, TEXT("UnionSize"))
-
-#define PCGEX_FOREACH_POINTEDGE_METADATA(MACRO)\
-		MACRO(IsIntersector, bWriteIsIntersector, IsIntersector,TEXT("bIsIntersector"))
-
-#define PCGEX_FOREACH_EDGEEDGE_METADATA(MACRO)\
-		MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
-
-#define PCGEX_GRAPH_META_DECL(_NAME, _ACCESSOR, _ACCESSOR2, _DEFAULT)	bool bWrite##_NAME = false; FName _NAME##AttributeName = _DEFAULT;
-		PCGEX_FOREACH_POINTPOINT_METADATA(PCGEX_GRAPH_META_DECL);
-		PCGEX_FOREACH_POINTEDGE_METADATA(PCGEX_GRAPH_META_DECL);
-		PCGEX_FOREACH_EDGEEDGE_METADATA(PCGEX_GRAPH_META_DECL);
-
-		bool bFlagCrossing = false;
-		FName FlagA = NAME_None;
-		FName FlagB = NAME_None;
-
-		void Grab(const FPCGContext* Context, const FPCGExPointPointIntersectionDetails& InDetails);
-		void Grab(const FPCGContext* Context, const FPCGExPointEdgeIntersectionDetails& InDetails);
-		void Grab(const FPCGContext* Context, const FPCGExEdgeEdgeIntersectionDetails& InDetails);
-		void Grab(const FPCGContext* Context, const FPCGExPointUnionMetadataDetails& InDetails);
-		void Grab(const FPCGContext* Context, const FPCGExEdgeUnionMetadataDetails& InDetails);
-
-#undef PCGEX_FOREACH_POINTPOINT_METADATA
-#undef PCGEX_FOREACH_POINTEDGE_METADATA
-#undef PCGEX_FOREACH_EDGEEDGE_METADATA
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FGraphNodeMetadata
-	{
-		int32 NodeIndex;
-		int32 UnionSize = 0; // Fuse size
-		EPCGExIntersectionType Type;
-
-		explicit FGraphNodeMetadata(const int32 InNodeIndex, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown);
-
-		FORCEINLINE bool IsUnion() const { return UnionSize > 1; }
-		FORCEINLINE bool IsIntersector() const { return Type == EPCGExIntersectionType::PointEdge; }
-		FORCEINLINE bool IsCrossing() const { return Type == EPCGExIntersectionType::EdgeEdge; }
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FGraphEdgeMetadata
-	{
-		int32 EdgeIndex;
-		int32 RootIndex;
-		EPCGExIntersectionType Type;
-
-		int32 UnionSize = 0; // Fuse size
-		int8 bIsSubEdge = 0; // Sub Edge (result of a)
-
-		FORCEINLINE bool IsUnion() const { return UnionSize > 1; }
-		FORCEINLINE bool IsRoot() const { return EdgeIndex == RootIndex; }
-
-		explicit FGraphEdgeMetadata(const int32 InEdgeIndex, const int32 InRootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown);
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FNode
-	{
-		FNode() = default;
-
-		FNode(const int32 InNodeIndex, const int32 InPointIndex);
-
-		int8 bValid = 1; // int for atomic operations
-
-		int32 Index = -1;      // Index in the context of the list that helds the node
-		int32 PointIndex = -1; // Index in the context of the UPCGBasePointData that helds the vtx
-		int32 NumExportedEdges = 0;
-
-		NodeLinks Links;
-
-		~FNode() = default;
-
-		FORCEINLINE int32 Num() const { return Links.Num(); }
-		FORCEINLINE int32 IsEmpty() const { return Links.IsEmpty(); }
-
-		FORCEINLINE bool IsLeaf() const { return Links.Num() == 1; }
-		FORCEINLINE bool IsBinary() const { return Links.Num() == 2; }
-		FORCEINLINE bool IsComplex() const { return Links.Num() > 2; }
-
-		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.AddUnique(FLink(0, EdgeIndex)); }
-		FORCEINLINE void Link(const int32 NodeIndex, const int32 EdgeIndex) { Links.AddUnique(FLink(NodeIndex, EdgeIndex)); }
-
-		bool IsAdjacentTo(const int32 OtherNodeIndex) const;
-
-		int32 GetEdgeIndex(const int32 AdjacentNodeIndex) const;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FGraph : public TSharedFromThis<FGraph>
+	class PCGEXFOUNDATIONS_API FGraph : public TSharedFromThis<FGraph>
 	{
 		mutable FRWLock GraphLock;
 		mutable FRWLock MetadataLock;
@@ -295,18 +126,4 @@ namespace PCGExGraph
 
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
-
-	bool BuildEndpointsLookup(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TMap<uint32, int32>& OutIndices, TArray<int32>& OutAdjacency);
-
-#pragma endregion
-
-	PCGEXTENDEDTOOLKIT_API bool IsPointDataVtxReady(const UPCGMetadata* Metadata);
-
-	PCGEXTENDEDTOOLKIT_API bool IsPointDataEdgeReady(const UPCGMetadata* Metadata);
-
-	PCGEXTENDEDTOOLKIT_API void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
-
-	PCGEXTENDEDTOOLKIT_API void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
-
-	PCGEXTENDEDTOOLKIT_API void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 }

@@ -10,6 +10,7 @@
 
 namespace PCGEx
 {
+	class FIndexLookup;
 	struct FOpStats;
 }
 
@@ -32,7 +33,7 @@ namespace PCGExBlending
 	//
 	// IBlender - Base interface for multi-attribute blending
 	//
-	class PCGEXCORE_API IBlender : public TSharedFromThis<IBlender>
+	class PCGEXCOMPOSITING_API IBlender : public TSharedFromThis<IBlender>
 	{
 	public:
 		virtual ~IBlender() = default;
@@ -62,7 +63,7 @@ namespace PCGExBlending
 	//
 	// FDummyBlender - No-op blender implementation
 	//
-	class PCGEXCORE_API FDummyBlender final : public IBlender
+	class PCGEXCOMPOSITING_API FDummyBlender final : public IBlender
 	{
 	public:
 		virtual ~FDummyBlender() override = default;
@@ -99,7 +100,7 @@ namespace PCGExBlending
 	//
 	// IUnionBlender - Interface for union-based multi-source blending
 	//
-	class PCGEXCORE_API IUnionBlender : public TSharedFromThis<IUnionBlender>
+	class PCGEXCOMPOSITING_API IUnionBlender : public TSharedFromThis<IUnionBlender>
 	{
 	public:
 		virtual ~IUnionBlender() = default;
@@ -119,7 +120,7 @@ namespace PCGExBlending
 	//
 	// FDummyUnionBlender - Minimal union blender for weight computation only
 	//
-	class PCGEXCORE_API FDummyUnionBlender final : public IUnionBlender
+	class PCGEXCOMPOSITING_API FDummyUnionBlender final : public IUnionBlender
 	{
 	public:
 		virtual ~FDummyUnionBlender() override = default;
@@ -148,7 +149,7 @@ namespace PCGExBlending
 		TSharedPtr<PCGExData::FFacade> CurrentTargetData;
 		TSharedPtr<PCGEx::FIndexLookup> IOLookup;
 		TArray<const UPCGBasePointData*> SourcesData;
-		const PCGExDetails::FDistances* Distances = nullptr;
+		const PCGExMath::FDistances* Distances = nullptr;
 	};
 
 	//
@@ -159,7 +160,7 @@ namespace PCGExBlending
 	//
 	// Replaces: IProxyDataBlender<T> and TProxyDataBlender<T, MODE, bool>
 	//
-	class PCGEXCORE_API FProxyDataBlender : public TSharedFromThis<FProxyDataBlender>
+	class PCGEXCOMPOSITING_API FProxyDataBlender : public TSharedFromThis<FProxyDataBlender>
 	{
 	public:
 		virtual ~FProxyDataBlender() = default;
@@ -227,13 +228,13 @@ namespace PCGExBlending
 
 	// Create blender with just type and mode - caller sets A, B, C proxies manually
 	// This replaces the old CreateProxyBlender<T>(BlendMode, bReset) template
-	PCGEXCORE_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(
+	PCGEXCOMPOSITING_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		EPCGMetadataTypes WorkingType,
 		EPCGExABBlendingType BlendMode,
 		bool bResetValueForMultiBlend = true);
 
 	// Create blender with A, B, and C descriptors
-	PCGEXCORE_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(
+	PCGEXCOMPOSITING_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		FPCGExContext* InContext,
 		const EPCGExABBlendingType BlendMode,
 		const PCGExData::FProxyDescriptor& A,
@@ -242,7 +243,7 @@ namespace PCGExBlending
 		const bool bResetValueForMultiBlend = true);
 
 	// Create blender with A and C descriptors (B = null, uses C for reading current value)
-	PCGEXCORE_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(
+	PCGEXCOMPOSITING_API TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		FPCGExContext* InContext,
 		const EPCGExABBlendingType BlendMode,
 		const PCGExData::FProxyDescriptor& A,

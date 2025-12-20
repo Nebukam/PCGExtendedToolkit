@@ -4,11 +4,11 @@
 #include "Paths/PCGExBoundsPathIntersection.h"
 
 #include "PCGExMT.h"
-#include "PCGExRandom.h"
+#include "PCGExRandomHelpers.h"
 #include "PCGParamData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Blenders/PCGExBlendOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
@@ -79,7 +79,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
 	{
-		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
+		TSharedPtr<PCGExMath::FBoundsCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
 		Cloud->Idx = Context->Clouds.Add(Cloud);
 		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
@@ -206,7 +206,7 @@ namespace PCGExBoundsPathIntersection
 
 			TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->Source->GetIn()->GetConstTransformValueRange();
 
-			const TSharedPtr<PCGExGeo::FIntersections> LocalIntersections = MakeShared<PCGExGeo::FIntersections>(InTransforms[Index].GetLocation(), InTransforms[NextIndex].GetLocation());
+			const TSharedPtr<PCGExMath::FIntersections> LocalIntersections = MakeShared<PCGExMath::FIntersections>(InTransforms[Index].GetLocation(), InTransforms[NextIndex].GetLocation());
 
 			// For each cloud...
 			Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 InTargetIndex)
@@ -230,7 +230,7 @@ namespace PCGExBoundsPathIntersection
 		{
 			StartIndices[i] = WriteIndex++;
 
-			TSharedPtr<PCGExGeo::FIntersections> LocalIntersection = Intersections[i];
+			TSharedPtr<PCGExMath::FIntersections> LocalIntersection = Intersections[i];
 
 			if (!LocalIntersection) { continue; }
 
@@ -282,7 +282,7 @@ namespace PCGExBoundsPathIntersection
 			OutMetadataEntries[WriteIndex] = ParentKey;
 			WriteIndex++;
 
-			TSharedPtr<PCGExGeo::FIntersections> LocalIntersection = Intersections[i];
+			TSharedPtr<PCGExMath::FIntersections> LocalIntersection = Intersections[i];
 
 			if (!LocalIntersection) { continue; }
 
@@ -327,7 +327,7 @@ namespace PCGExBoundsPathIntersection
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			TSharedPtr<PCGExGeo::FIntersections> LocalIntersection = Intersections[Index];
+			TSharedPtr<PCGExMath::FIntersections> LocalIntersection = Intersections[Index];
 			if (!LocalIntersection) { continue; }
 
 			int32 NextIndex = Index + 1;
@@ -346,11 +346,11 @@ namespace PCGExBoundsPathIntersection
 			const int32 CutsNum = LocalIntersection->Cuts.Num();
 			for (int j = 0; j < CutsNum; j++)
 			{
-				const PCGExGeo::FCut& Cut = LocalIntersection->Cuts[j];
+				const PCGExMath::FCut& Cut = LocalIntersection->Cuts[j];
 				const int32 CutIndex = StartIndex + j + 1;
 
 				Metrics.Add(Cut.Position);
-				OutSeeds[CutIndex] = PCGExRandom::ComputeSpatialSeed(Cut.Position);
+				OutSeeds[CutIndex] = PCGExRandomHelpers::ComputeSpatialSeed(Cut.Position);
 				OutTransforms[CutIndex].SetLocation(Cut.Position);
 
 				if (bWillWriteAny) { Details.SetIntersection(CutIndex, Cut); }

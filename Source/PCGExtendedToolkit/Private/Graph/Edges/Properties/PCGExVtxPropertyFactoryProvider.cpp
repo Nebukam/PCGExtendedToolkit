@@ -97,7 +97,7 @@ bool FPCGExVtxPropertyOperation::PrepareForCluster(FPCGExContext* InContext, TSh
 
 bool FPCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }
 
-void FPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP)
+void FPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
 {
 }
 

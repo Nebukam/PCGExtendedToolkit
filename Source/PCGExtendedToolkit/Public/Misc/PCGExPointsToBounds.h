@@ -8,12 +8,12 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
+#include "Blenders/PCGExMetadataBlender.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExPointsToBounds.generated.h"
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	struct FBestFitPlane;
 }
@@ -94,8 +94,8 @@ struct FPCGExPointsToBoundsDataDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bWriteBestFitPlane", EditConditionHides, HideInlineEditCondition))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
 
-	void Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const;
-	void OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const;
+	void Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExMath::FBestFitPlane& Plane) const;
+	void OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExMath::FBestFitPlane& Plane) const;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/points-to-bounds"))
@@ -178,7 +178,7 @@ namespace PCGExPointsToBounds
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
 	{
-		PCGExGeo::FBestFitPlane BestFitPlane;
+		PCGExMath::FBestFitPlane BestFitPlane;
 		TSharedPtr<PCGExData::FPointIO> OutputIO;
 		TSharedPtr<PCGExData::FFacade> OutputFacade;
 		TArray<FPCGAttributeIdentifier> BlendedAttributes;

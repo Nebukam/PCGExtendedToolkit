@@ -7,7 +7,7 @@
 #include "PCGExTypes.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataTag.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
 #include "Data/PCGSplineData.h"
@@ -207,7 +207,7 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		if (Settings->bOutputCollectionIndex && !Settings->bOutputCollectionIndexToTags)
 		{
-			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExData::Helpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				for (int i = 0; i < Context->WorkingData.Num(); i++)
@@ -222,7 +222,7 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		if (Settings->bOutputCollectionNumEntries && !Settings->bOutputNumEntriesToTags)
 		{
-			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExData::Helpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				const PCGExTypeOps::ITypeOpsBase* TypeOps = PCGExTypeOps::FTypeOpsRegistry::Get<T>();
@@ -271,25 +271,25 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputCollectionIndex && !Settings->bOutputCollectionIndexToTags)
 		{
-			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExData::Helpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->CollectionIndexIdentifier, PCGExTypes::Convert<int32, T>(BatchIndex));
+				PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->CollectionIndexIdentifier, PCGExTypeOps::Convert<int32, T>(BatchIndex));
 			});
 		}
 
 		if (Settings->bOutputCollectionNumEntries && !Settings->bOutputNumEntriesToTags)
 		{
-			PCGExMetaHelpers::ExecuteWithRightType(PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
+			PCGExMetaHelpers::ExecuteWithRightType(PCGExData::Helpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
 				if (Settings->bNormalizeNumEntries)
 				{
-					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGExTypes::Convert<double, T>(static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries));
+					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGExTypeOps::Convert<double, T>(static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries));
 				}
 				else
 				{
-					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGExTypes::Convert<int32, T>(PointDataFacade->GetNum()));
+					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGExTypeOps::Convert<int32, T>(PointDataFacade->GetNum()));
 				}
 			});
 		}

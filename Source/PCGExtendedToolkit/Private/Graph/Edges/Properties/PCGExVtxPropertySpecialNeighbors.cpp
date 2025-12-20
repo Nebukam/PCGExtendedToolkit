@@ -25,7 +25,7 @@ bool FPCGExVtxPropertySpecialNeighbors::PrepareForCluster(FPCGExContext* InConte
 	return bIsValidOperation;
 }
 
-void FPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP)
+void FPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
 {
 	int32 LLargest = MIN_int32;
 	int32 ILargest = -1;

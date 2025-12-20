@@ -12,8 +12,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSettings"
 
-#pragma region UPCGSettings interface
-
 #if WITH_EDITOR
 bool UPCGExSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
@@ -55,6 +53,5 @@ bool UPCGExSettings::WantsBulkInitData() const
 {
 	PCGEX_GET_OPTION_STATE(BulkInitData, bBulkInitData)
 }
-#pragma endregion
 
 #undef LOCTEXT_NAMESPACE

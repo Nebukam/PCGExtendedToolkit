@@ -137,7 +137,7 @@ namespace PCGExClusterMT
 				TArray<int32> PtIndices;
 				IdxLookup->Dump(PtIndices);
 
-				ProjectionDetails.Init(PCGExGeo::FBestFitPlane(InVtxTransforms, PtIndices));
+				ProjectionDetails.Init(PCGExMath::FBestFitPlane(InVtxTransforms, PtIndices));
 
 				for (const int32 i : PtIndices)
 				{
@@ -326,7 +326,7 @@ namespace PCGExClusterMT
 		if (WantsProjection())
 		{
 			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(VtxDataFacade); }
-			else if (!WantsPerClusterProjection()) { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(VtxDataFacade->GetIn()->GetConstTransformValueRange())); }
+			else if (!WantsPerClusterProjection()) { ProjectionDetails.Init(PCGExMath::FBestFitPlane(VtxDataFacade->GetIn()->GetConstTransformValueRange())); }
 		}
 
 		if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)

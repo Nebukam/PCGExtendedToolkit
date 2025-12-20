@@ -9,7 +9,7 @@
 #include "CompGeom/Delaunay2.h"
 #include "CompGeom/Delaunay3.h"
 
-namespace PCGExGeo
+namespace PCGExMath
 {
 	struct PCGEXTENDEDTOOLKIT_API FDelaunaySite2
 	{

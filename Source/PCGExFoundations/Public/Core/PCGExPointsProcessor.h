@@ -35,6 +35,11 @@ namespace PCGExData
 {
 	class FPointIO;
 	class FPointIOCollection;
+
+	class IBuffer;
+
+	template <typename T>
+	class TBuffer;
 }
 
 class UPCGExInstancedFactory;
@@ -44,11 +49,17 @@ namespace PCGExFactories
 	enum class EType : uint8;
 }
 
+namespace PCGExDetails
+{
+	template <typename T>
+	class TSettingValue;
+}
+
 struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGExSettings
+class PCGEXFOUNDATIONS_API UPCGExPointsProcessorSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -91,7 +102,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
+struct PCGEXFOUNDATIONS_API FPCGExPointsProcessorContext : FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 
@@ -136,7 +147,7 @@ protected:
 	virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGExElement
+class PCGEXFOUNDATIONS_API FPCGExPointsProcessorElement : public IPCGExElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PointsProcessor)

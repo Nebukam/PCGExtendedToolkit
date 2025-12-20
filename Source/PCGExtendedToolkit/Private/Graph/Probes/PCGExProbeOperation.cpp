@@ -5,7 +5,7 @@
 #include "Graph/Probes/PCGExProbeOperation.h"
 
 
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Graph/Probes/PCGExProbing.h"
 
 bool FPCGExProbeOperation::RequiresOctree() { return true; }

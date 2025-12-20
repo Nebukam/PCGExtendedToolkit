@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
 #include "Details/PCGExMacros.h"
 #include "PCGExH.h"
+#include "Core/PCGExMTCommon.h"
 #include "Data/PCGBasePointData.h"
 #include "UObject/UObjectGlobals.h"
 

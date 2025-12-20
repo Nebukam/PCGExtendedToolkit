@@ -29,7 +29,7 @@ namespace PCGExData
 }
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
-class PCGEXTENDEDTOOLKIT_API UPCGExClustersProcessorSettings : public UPCGExPointsProcessorSettings
+class PCGEXFOUNDATIONS_API UPCGExClustersProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ public:
 	bool WantsScopedIndexLookupBuild() const;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExClustersProcessorContext : FPCGExPointsProcessorContext
+struct PCGEXFOUNDATIONS_API FPCGExClustersProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class UPCGExClustersProcessorSettings;
 	friend class FPCGExClustersProcessorElement;
@@ -150,7 +150,7 @@ protected:
 	virtual TSharedPtr<PCGExPointsMT::IBatch> CreateEdgeBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExClustersProcessorElement : public FPCGExPointsProcessorElement
+class PCGEXFOUNDATIONS_API FPCGExClustersProcessorElement : public FPCGExPointsProcessorElement
 {
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 

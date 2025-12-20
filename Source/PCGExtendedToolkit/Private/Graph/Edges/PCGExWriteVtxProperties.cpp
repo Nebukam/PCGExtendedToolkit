@@ -133,7 +133,7 @@ namespace PCGExWriteVtxProperties
 			Adjacency.Reset();
 			GetAdjacencyData(Cluster.Get(), Node, Adjacency);
 
-			const PCGExGeo::FBestFitPlane BestFitPlane = bWantsOOB ? Settings->bIncludeVtxInOOB ? PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) : PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) : PCGExGeo::FBestFitPlane();
+			const PCGExMath::FBestFitPlane BestFitPlane = bWantsOOB ? Settings->bIncludeVtxInOOB ? PCGExMath::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) : PCGExMath::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) : PCGExMath::FBestFitPlane();
 
 			const FTransform BFPT = BestFitPlane.GetTransform();
 
