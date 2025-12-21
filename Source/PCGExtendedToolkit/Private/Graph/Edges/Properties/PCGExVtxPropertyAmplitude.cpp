@@ -6,7 +6,7 @@
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 
 #include "Sampling/PCGExSampling.h"

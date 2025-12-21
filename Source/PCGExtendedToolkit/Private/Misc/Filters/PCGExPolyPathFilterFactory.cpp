@@ -113,7 +113,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 		const UPCGData* Data = TempTargets[Index].Data;
 		if (!Data) { return; }
 
-		const bool bIsClosedLoop = PCGExPaths::GetClosedLoop(Data);
+		const bool bIsClosedLoop = PCGExPaths::Helpers::GetClosedLoop(Data);
 		if (LocalSampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { return; }
 		if (LocalSampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { return; }
 
@@ -353,7 +353,7 @@ namespace PCGExPathInclusion
 		return static_cast<EFlags>(OutFlags);
 	}
 
-	PCGExMath::FClosestPosition FHandler::FindClosestIntersection(const PCGExMath::FSegment& Segment, const FPCGExPathIntersectionDetails& InDetails, const UPCGData* InParentData) const
+	PCGExMath::FClosestPosition FHandler::Helpers::FindClosestIntersection(const PCGExMath::FSegment& Segment, const FPCGExPathIntersectionDetails& InDetails, const UPCGData* InParentData) const
 	{
 		PCGExMath::FClosestPosition ClosestIntersection;
 

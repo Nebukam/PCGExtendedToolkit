@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGraphCommon.h"
-#include "Cluster/PCGExEdge.h"
+#include "Clusters/PCGExEdge.h"
 #include "PCGExH.h"
 
 namespace PCGExBlending

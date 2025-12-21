@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExHeuristicsFactoryProvider.h"
-#include "Cluster/PCGExNode.h"
+#include "Clusters/PCGExNode.h"
 #include "PCGExHeuristics.generated.h"
 
 class FPCGExHeuristicFeedback;
@@ -19,13 +19,6 @@ namespace PCGExGraph
 {
 	struct FEdge;
 }
-
-UENUM()
-enum class EPCGExHeuristicScoreMode : uint8
-{
-	LowerIsBetter  = 0 UMETA(DisplayName = "Lower is Better", Tooltip="Lower values are considered more desirable."),
-	HigherIsBetter = 1 UMETA(DisplayName = "Higher is Better", Tooltip="Higher values are considered more desirable."),
-};
 
 namespace PCGExHeuristics
 {

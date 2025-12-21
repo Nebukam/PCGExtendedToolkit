@@ -85,7 +85,7 @@ namespace PCGExPathInsert
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointIO->GetIn());
 
 		Path = MakeShared<PCGExPaths::FPath>(PointIO->GetIn(), 0); //Details.Tolerance * 2);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;

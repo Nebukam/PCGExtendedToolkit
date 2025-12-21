@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Cluster/PCGExCell.h"
+#include "Clusters/PCGExCell.h"
 #include "PCGExTopology.h"
 #include "Math/PCGExTransform.h"
 #include "Graph/PCGExClustersProcessor.h"

@@ -7,7 +7,7 @@
 
 #include "PCGExEdgeRefineOperation.h"
 #include "PCGExMath.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineRemoveOverlap.generated.h"
 

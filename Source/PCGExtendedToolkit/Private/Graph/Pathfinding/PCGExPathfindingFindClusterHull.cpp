@@ -7,7 +7,7 @@
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindClusterHull"
@@ -125,7 +125,7 @@ namespace PCGExFindClusterHull
 		PathIO->InheritPoints(ReadIndices, 0);
 		InCell->PostProcessPoints(PathIO->GetOut());
 
-		PCGExPaths::SetClosedLoop(PathDataFacade->GetOut(), true);
+		PCGExPaths::Helpers::SetClosedLoop(PathDataFacade->GetOut(), true);
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
 		PathDataFacade->WriteFastest(TaskManager);

@@ -37,7 +37,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The points to sample.", Required)
-	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
@@ -48,7 +48,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::OutputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	if (OutputMode == EPCGExSampleInsidePathOutput::Split) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discard inputs are paths that failed to sample any points, despite valid targets.", Normal) }
-	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -95,7 +95,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 	{
-		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+		const bool bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(IO->GetIn());
 
 		switch (Settings->ProcessInputs)
 		{

@@ -9,7 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/ConvexHull2d.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
@@ -121,7 +121,7 @@ namespace PCGExBuildConvexHull2D
 		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, LastIndex + 1, PointDataFacade->GetAllocations());
 		ProjectedPoints.Reserve(LastIndex + 1);
 
-		PCGExPaths::SetClosedLoop(PathIO->GetOut(), true);
+		PCGExPaths::Helpers::SetClosedLoop(PathIO->GetOut(), true);
 
 		for (int i = 0; i <= LastIndex; i++) { ProjectedPoints.Emplace(ActivePositions[ConvexHullIndices[i]]); }
 		if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0)) { Algo::Reverse(ConvexHullIndices); }

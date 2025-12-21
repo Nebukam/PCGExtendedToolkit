@@ -177,7 +177,7 @@ namespace PCGExPathToClusters
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointIO->GetIn());
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
@@ -240,7 +240,7 @@ namespace PCGExPathToClusters
 		if (NumPoints < 2) { return false; }
 
 		UnionGraph = Context->UnionGraph;
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 		bForceSingleThreadedProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		if (bForceSingleThreadedProcessPoints)

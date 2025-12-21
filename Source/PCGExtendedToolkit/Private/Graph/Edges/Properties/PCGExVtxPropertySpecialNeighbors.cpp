@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertySpecialNeighbors.h"
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialNeighbors"

@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGraphMetadata.h"
-#include "Cluster/PCGExEdge.h"
+#include "Clusters/PCGExEdge.h"
 #include "Graph/PCGExGraphDetails.h"
-#include "Cluster/PCGExNode.h"
+#include "Clusters/PCGExNode.h"
 
 namespace PCGEx
 {

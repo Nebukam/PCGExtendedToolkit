@@ -4,7 +4,7 @@
 #include "Graph/PCGExMergeVertices.h"
 
 #include "PCGExMT.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 

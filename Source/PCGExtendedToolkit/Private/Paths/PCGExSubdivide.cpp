@@ -102,7 +102,7 @@ namespace PCGExSubdivide
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetOut());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetOut());
 
 		if (Settings->SubdivideMethod == EPCGExSubdivideMode::Manhattan)
 		{

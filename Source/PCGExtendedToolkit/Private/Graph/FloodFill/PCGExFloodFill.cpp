@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Blenders/PCGExBlendOpsManager.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlOperation.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"

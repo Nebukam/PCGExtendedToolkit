@@ -5,7 +5,7 @@
 
 #include "PCGExVersion.h"
 #include "CoreMinimal.h"
-#include "Cluster/PCGExEdgeDirectionDetails.h"
+#include "Clusters/PCGExEdgeDirectionDetails.h"
 #include "Core/PCGExContext.h"
 #include "Math/PCGExProjectionDetails.h"
 
@@ -29,6 +29,11 @@ namespace PCGEx
 namespace PCGExHeuristics
 {
 	class FHandler;
+}
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
 }
 
 namespace PCGExClusterMT

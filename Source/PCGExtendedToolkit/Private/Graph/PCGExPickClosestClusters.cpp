@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIOMerger.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters

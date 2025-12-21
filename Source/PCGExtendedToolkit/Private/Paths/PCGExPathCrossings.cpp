@@ -127,7 +127,7 @@ namespace PCGExPathCrossings
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointIO->GetIn());
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
 		Details = Settings->IntersectionDetails;
 		Details.Init();

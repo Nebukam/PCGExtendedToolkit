@@ -78,7 +78,7 @@ void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 	}
 
 	// Mark @Data.IsClosed if a single circle "owns" the data
-	if (bOwnsData && Circle->bClosedLoop) { PCGExPaths::SetClosedLoop(InDataFacade->GetOut(), true); }
+	if (bOwnsData && Circle->bClosedLoop) { PCGExPaths::Helpers::SetClosedLoop(InDataFacade->GetOut(), true); }
 }
 
 PCGEX_SHAPE_BUILDER_BOILERPLATE(Circle)

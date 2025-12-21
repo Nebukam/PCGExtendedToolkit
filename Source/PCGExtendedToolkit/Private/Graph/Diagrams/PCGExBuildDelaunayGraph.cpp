@@ -9,7 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Paths/PCGExPaths.h"
 

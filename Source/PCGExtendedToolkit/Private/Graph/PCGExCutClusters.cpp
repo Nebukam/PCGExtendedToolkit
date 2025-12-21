@@ -9,7 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDistancesDetails.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 

@@ -8,7 +8,7 @@
 #include "PCGExEdgeRefineOperation.h"
 #include "PCGExMath.h"
 #include "Details/PCGExDetailsCollision.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "PCGExEdgeRefineLineTrace.generated.h"
 
 struct FPCGExCollisionDetails;

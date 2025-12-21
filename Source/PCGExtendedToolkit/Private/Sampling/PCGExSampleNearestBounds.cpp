@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required)
-	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExBoundsSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
 
@@ -44,7 +44,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 

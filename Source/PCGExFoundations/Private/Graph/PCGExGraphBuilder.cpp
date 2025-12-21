@@ -8,10 +8,10 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Cluster/PCGExCluster.h"
-#include "Cluster/PCGExClusterHelpers.h"
+#include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClusterHelpers.h"
 #include "Graph/PCGExGraph.h"
-#include "Cluster/PCGExGraphLabels.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Graph/PCGExSubGraph.h"
 #include "Sorting/PCGExSortHelpers.h"
 

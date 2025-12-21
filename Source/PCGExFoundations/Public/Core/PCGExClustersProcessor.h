@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExClusterMT.h"
 #include "PCGExPointsProcessor.h"
-#include "Cluster/PCGExGraphLabels.h"
+#include "Clusters/PCGExClusterCommon.h"
 
 #include "PCGExClustersProcessor.generated.h"
 
@@ -52,8 +52,8 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const;
 
-	virtual FName GetMainInputPin() const override { return PCGExGraph::Labels::SourceVerticesLabel; }
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::Labels::OutputVerticesLabel; }
+	virtual FName GetMainInputPin() const override { return PCGExCluster::Labels::SourceVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExCluster::Labels::OutputVerticesLabel; }
 
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings

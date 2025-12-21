@@ -7,7 +7,7 @@
 #include "PCGExHelpers.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"

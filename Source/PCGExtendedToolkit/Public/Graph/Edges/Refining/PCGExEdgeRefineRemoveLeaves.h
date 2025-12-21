@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "PCGExEdgeRefineRemoveLeaves.generated.h"
 
 /**

@@ -48,7 +48,7 @@ bool PCGExPointFilter::FAngleFilter::Init(FPCGExContext* InContext, const TShare
 	DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 	if (!DotComparison.Init(InContext, InPointDataFacade.ToSharedRef(), PCGEX_QUIET_HANDLING)) { return false; }
 
-	bClosedLoop = PCGExPaths::GetClosedLoop(InPointDataFacade->GetIn());
+	bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(InPointDataFacade->GetIn());
 	LastIndex = InPointDataFacade->GetNum() - 1;
 	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 

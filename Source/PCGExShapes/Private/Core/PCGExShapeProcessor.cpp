@@ -3,6 +3,8 @@
 
 #include "Core/PCGExShapeProcessor.h"
 
+#include "Filters/PCGExPointFilter.h"
+
 #define LOCTEXT_NAMESPACE "PCGExShapeProcessorElement"
 
 UPCGExShapeProcessorSettings::UPCGExShapeProcessorSettings(const FObjectInitializer& ObjectInitializer)
@@ -20,7 +22,7 @@ TArray<FPCGPinProperties> UPCGExShapeProcessorSettings::InputPinProperties() con
 		else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required) }
 	}
 
-	PCGEX_PIN_FACTORIES(PCGExShapes::SourceShapeBuildersLabel, "Shape builders that will be used by this element.", Required, FPCGExDataTypeInfoShape::AsId())
+	PCGEX_PIN_FACTORIES(PCGExShapes::Labels::SourceShapeBuildersLabel, "Shape builders that will be used by this element.", Required, FPCGExDataTypeInfoShape::AsId())
 
 	if (SupportsPointFilters())
 	{
@@ -39,7 +41,7 @@ bool FPCGExShapeProcessorElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ShapeProcessor)
 
-	if (!PCGExFactories::GetInputFactories(Context, PCGExShapes::SourceShapeBuildersLabel, Context->BuilderFactories, {PCGExFactories::EType::ShapeBuilder}))
+	if (!PCGExFactories::GetInputFactories(Context, PCGExShapes::Labels::SourceShapeBuildersLabel, Context->BuilderFactories, {PCGExFactories::EType::ShapeBuilder}))
 	{
 		return false;
 	}

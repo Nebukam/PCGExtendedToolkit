@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExShapesLabels.h"
+#include "PCGExShapesCommon.h"
 #include "Factories/PCGExFactoryData.h"
 #include "Factories/PCGExFactoryProvider.h"
 
@@ -60,6 +60,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputPin() const override { return PCGExShapesLabels::OutputShapeBuilderLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExShapes::Labels::OutputShapeBuilderLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

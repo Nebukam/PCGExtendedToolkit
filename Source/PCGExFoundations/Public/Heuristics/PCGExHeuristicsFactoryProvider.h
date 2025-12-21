@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExHeuristicsLabels.h"
-#include "Cluster/PCGExClusterCommon.h"
+#include "PCGExHeuristicsCommon.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"

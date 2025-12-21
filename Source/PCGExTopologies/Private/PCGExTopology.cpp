@@ -17,7 +17,7 @@
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoPrimtives.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
 
 void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const

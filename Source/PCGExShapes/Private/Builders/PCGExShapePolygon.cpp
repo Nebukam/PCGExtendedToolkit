@@ -231,7 +231,7 @@ void FPCGExShapePolygonBuilder::BuildShape(TSharedPtr<PCGExShapes::FShape> InSha
 			WriteIndex++;
 		}
 
-		if (!Polygon->bHasSkeleton && Polygon->Config->bIsClosedLoop && bIsolated) { PCGExPaths::SetClosedLoop(InDataFacade->Source, true); }
+		if (!Polygon->bHasSkeleton && Polygon->Config->bIsClosedLoop && bIsolated) { PCGExPaths::Helpers::SetClosedLoop(InDataFacade->Source, true); }
 	}
 }
 

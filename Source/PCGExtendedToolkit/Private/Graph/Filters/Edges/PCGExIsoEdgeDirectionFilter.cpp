@@ -9,7 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExIsoEdgeDirectionFilter"
 #define PCGEX_NAMESPACE IsoEdgeDirectionFilter

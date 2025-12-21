@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "PCGExMath.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "PCGExEdgeRefineSkeleton.generated.h"
 
 /**

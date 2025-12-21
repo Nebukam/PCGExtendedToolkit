@@ -5,7 +5,7 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlEdgeFilters.h"
 
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 

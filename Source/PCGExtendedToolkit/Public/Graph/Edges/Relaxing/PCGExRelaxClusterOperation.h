@@ -7,7 +7,7 @@
 #include "Factories/PCGExInstancedFactory.h"
 
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "PCGExRelaxClusterOperation.generated.h"
 
 /**

@@ -4,7 +4,7 @@
 #include "Filters/PCGExFilterFactoryProvider.h"
 
 #include "Containers/PCGExManagedObjects.h"
-#include "Filters/PCGExFilterLabels.h"
+#include "Filters/PCGExFilterCommon.h"
 #include "Filters/Elements/PCGExConstantFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateFilter"

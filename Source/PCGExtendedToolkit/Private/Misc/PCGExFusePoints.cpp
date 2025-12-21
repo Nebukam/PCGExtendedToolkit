@@ -207,7 +207,7 @@ namespace PCGExFusePoints
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
 		UnionSources.Add(PointDataFacade);
 
-		TypedBlender->AddSources(UnionSources, &PCGExGraph::Labels::ProtectedClusterAttributes);
+		TypedBlender->AddSources(UnionSources, &PCGExCluster::Labels::ProtectedClusterAttributes);
 		if (!TypedBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
 		{
 			bIsProcessorValid = false;

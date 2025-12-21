@@ -11,38 +11,6 @@
 
 struct FPCGPinProperties;
 
-UENUM()
-enum class EPCGExMapMatchMode : uint8
-{
-	Disabled = 0 UMETA(DisplayName = "Disabled", ToolTip="Disabled"),
-	All      = 1 UMETA(DisplayName = "All", ToolTip="All tests must pass to consider a match successful"),
-	Any      = 2 UMETA(DisplayName = "Any", ToolTip="Any single test must pass must to consider a match successful"),
-};
-
-UENUM()
-enum class EPCGExMatchStrictness : uint8
-{
-	Required = 0 UMETA(DisplayName = "Required", ToolTip="Required check. If it fails, the match will be a fail."),
-	Any      = 1 UMETA(DisplayName = "Optional", ToolTip="Optional check. If it fails but other pass, it's still a success."),
-};
-
-UENUM()
-enum class EPCGExClusterComponentTagMatchMode : uint8
-{
-	Vtx       = 0 UMETA(DisplayName = "Vtx", ToolTip="Only match vtx (most efficient check)"),
-	Edges     = 1 UMETA(DisplayName = "Edges", ToolTip="Only match edges"),
-	Any       = 2 UMETA(DisplayName = "Any", ToolTip="Match either vtx or edges"),
-	Both      = 3 UMETA(DisplayName = "Vtx and Edges", ToolTip="Match no vtx and edges"),
-	Separated = 4 UMETA(DisplayName = "Separate", ToolTip="Uses two separate set of match handlers -- the default pin will be used on Vtx, the extra one for Edges."),
-};
-
-UENUM()
-enum class EPCGExMatchingDetailsUsage : uint8
-{
-	Default  = 0,
-	Cluster  = 1,
-	Sampling = 2,
-};
 
 /**
  * Used when data from different pins needs to be paired together

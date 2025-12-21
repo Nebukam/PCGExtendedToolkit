@@ -5,7 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Data/PCGExClusterData.h"
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterCluster, UPCGExClusterFilterFactoryData)

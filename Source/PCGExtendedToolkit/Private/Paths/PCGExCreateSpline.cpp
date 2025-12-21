@@ -125,7 +125,7 @@ namespace PCGExCreateSpline
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 
 		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
 		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }

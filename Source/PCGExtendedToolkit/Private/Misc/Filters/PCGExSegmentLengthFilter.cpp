@@ -55,7 +55,7 @@ bool PCGExPointFilter::FSegmentLengthFilter::Init(FPCGExContext* InContext, cons
 {
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	bClosedLoop = PCGExPaths::GetClosedLoop(InPointDataFacade->GetIn());
+	bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(InPointDataFacade->GetIn());
 	LastIndex = InPointDataFacade->GetNum() - 1;
 	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 	bOffset = TypedFilterFactory->Config.IndexMode == EPCGExIndexMode::Offset;

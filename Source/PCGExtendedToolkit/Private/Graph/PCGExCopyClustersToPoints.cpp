@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoTasks.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 
@@ -27,14 +27,14 @@ TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy clusters to.", Required)
-	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 

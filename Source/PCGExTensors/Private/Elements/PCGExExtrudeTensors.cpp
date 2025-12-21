@@ -161,7 +161,7 @@ namespace PCGExExtrudeTensors
 		}
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		PCGExPaths::SetClosedLoop(OutPointData, false);
+		PCGExPaths::Helpers::SetClosedLoop(OutPointData, false);
 
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPointData, ExtrudedPoints.Num(), PointDataFacade->GetAllocations());
 
@@ -169,7 +169,7 @@ namespace PCGExExtrudeTensors
 		for (int i = 0; i < ExtrudedPoints.Num(); i++) { OutTransforms[i] = ExtrudedPoints[i]; }
 
 
-		PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), bIsClosedLoop);
+		PCGExPaths::Helpers::SetClosedLoop(PointDataFacade->GetOut(), bIsClosedLoop);
 
 		if (Settings->bTagIfIsStoppedByFilters && bHitStopFilters) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByFiltersTag); }
 		if (bHitIntersection)

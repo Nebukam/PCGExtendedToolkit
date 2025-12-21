@@ -4,7 +4,7 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"

@@ -115,7 +115,7 @@ namespace PCGExSmooth
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 		NumPoints = PointDataFacade->GetNum();
 
 		if (!Context->BlendingFactories.IsEmpty())

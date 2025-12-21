@@ -11,7 +11,7 @@
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoMesh.h"
 #include "Geometry/PCGExGeoTasks.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"

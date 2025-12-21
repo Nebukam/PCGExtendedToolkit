@@ -4,7 +4,7 @@
 #include "Graph/States/PCGExAdjacencyStates.h"
 
 #include "Data/PCGExData.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 

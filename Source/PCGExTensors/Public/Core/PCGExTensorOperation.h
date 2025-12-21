@@ -59,7 +59,7 @@ public:
 	template <bool bFast = false>
 	bool ComputeFactor(const FVector& InPosition, const FPCGSplineStruct& InEffector, const double Radius, FTransform& OutTransform, PCGExTensor::FEffectorMetrics& OutMetrics) const
 	{
-		OutTransform = PCGExPaths::GetClosestTransform(InEffector, InPosition, true);
+		OutTransform = PCGExPaths::Helpers::GetClosestTransform(InEffector, InPosition, true);
 
 		const FVector Scale = OutTransform.GetScale3D();
 

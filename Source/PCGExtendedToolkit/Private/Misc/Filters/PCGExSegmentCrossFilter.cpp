@@ -45,7 +45,7 @@ namespace PCGExPointFilter
 	{
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(InPointDataFacade->Source->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(InPointDataFacade->Source->GetIn());
 		LastIndex = InPointDataFacade->GetNum() - 1;
 
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();

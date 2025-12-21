@@ -204,7 +204,7 @@ namespace PCGExBreakClustersToPaths
 
 			if (bDoReverse) { Algo::Reverse(IdxMapping); }
 
-			PCGExPaths::SetClosedLoop(PathIO->GetOut(), Chain->bIsClosedLoop);
+			PCGExPaths::Helpers::SetClosedLoop(PathIO->GetOut(), Chain->bIsClosedLoop);
 
 			PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 100000 + Cluster->GetNodePointIndex(FMath::Min(Chain->Links.Last().Node, Chain->Links[0].Node));
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
@@ -234,7 +234,7 @@ namespace PCGExBreakClustersToPaths
 			IdxMapping[1] = Edge.End;
 
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
-			PCGExPaths::SetClosedLoop(PathIO->GetOut(), false);
+			PCGExPaths::Helpers::SetClosedLoop(PathIO->GetOut(), false);
 		}
 	}
 

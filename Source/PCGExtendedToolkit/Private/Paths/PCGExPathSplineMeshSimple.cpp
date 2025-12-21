@@ -221,7 +221,7 @@ namespace PCGExPathSplineMeshSimple
 			}
 		}
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 		bUseTags = Settings->TaggingDetails.IsEnabled();
 
 		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);

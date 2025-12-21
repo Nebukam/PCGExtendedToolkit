@@ -26,7 +26,7 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathProcessorSettings : public UPCGExPointsProcessorSettings
+class PCGEXFOUNDATIONS_API UPCGExPathProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -54,13 +54,13 @@ public:
 	bool bOmitInvalidPathsOutputs = true;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : FPCGExPointsProcessorContext
+struct PCGEXFOUNDATIONS_API FPCGExPathProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathProcessorElement;
 	TSharedPtr<PCGExData::FPointIOCollection> MainPaths;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElement
+class PCGEXFOUNDATIONS_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathProcessor)

@@ -369,7 +369,7 @@ namespace PCGExData
 		T_CONST Constant = T_CONST{};
 
 	public:
-		TConstantProxy();
+		explicit TConstantProxy(EPCGMetadataTypes InWorkingType);
 
 		template <typename T>
 		void SetConstant(const T& InValue);

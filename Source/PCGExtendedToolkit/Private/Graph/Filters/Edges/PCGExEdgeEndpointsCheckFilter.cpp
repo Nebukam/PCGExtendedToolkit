@@ -4,7 +4,7 @@
 #include "Graph/Filters/Edges/PCGExEdgeEndpointsCheckFilter.h"
 
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeEndpointsCheckFilter"

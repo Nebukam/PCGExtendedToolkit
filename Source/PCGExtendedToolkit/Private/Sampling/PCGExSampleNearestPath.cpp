@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() 
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The paths to sample.", Required)
-	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
@@ -46,7 +46,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() 
 TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -80,7 +80,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	{
 		if (IO->GetNum() < 2) { return FBox(ForceInit); }
 
-		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+		const bool bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(IO->GetIn());
 
 		switch (Settings->SampleInputs)
 		{

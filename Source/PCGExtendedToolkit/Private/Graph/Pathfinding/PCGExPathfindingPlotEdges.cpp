@@ -13,8 +13,8 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Cluster/PCGExCluster.h"
-#include "Cluster/PCGExClusterDataLibrary.h"
+#include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClusterDataLibrary.h"
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
@@ -55,7 +55,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 	PCGEX_PIN_POINTS(PCGExGraph::SourcePlotsLabel, "Plot points for pathfinding.", Required)
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
-	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -63,7 +63,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
-	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -179,7 +179,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PathIO->Tags->Append(Query->PlotFacade->Source->Tags.ToSharedRef());
 
 	PCGExCluster::Helpers::CleanupClusterData(PathIO);
-	PCGExPaths::SetClosedLoop(PathIO->GetOut(), Settings->bClosedLoop);
+	PCGExPaths::Helpers::SetClosedLoop(PathIO->GetOut(), Settings->bClosedLoop);
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)

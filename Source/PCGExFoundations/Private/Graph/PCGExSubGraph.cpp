@@ -9,7 +9,7 @@
 #include "Blenders/PCGExUnionBlender.h"
 #include "Metadata/PCGMetadata.h"
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Async/ParallelFor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Core/PCGExOpStats.h"
@@ -18,7 +18,7 @@
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExGraphBuilder.h"
-#include "Cluster/PCGExGraphLabels.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Helpers/PCGExPointArrayDataHelpers.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Math/PCGExMathDistances.h"
@@ -208,7 +208,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 		{
 			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExMath::GetNoneDistances());
-			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &PCGExGraph::Labels::ProtectedClusterAttributes);
+			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &PCGExCluster::Labels::ProtectedClusterAttributes);
 			if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
 			{
 				// TODO : Log error

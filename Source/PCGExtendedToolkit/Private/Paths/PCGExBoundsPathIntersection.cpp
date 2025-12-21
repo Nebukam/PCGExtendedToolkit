@@ -33,7 +33,7 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperti
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "Intersection points (bounds)", Required)
-	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, EPCGExBlendingInterface::Individual);
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
 	return PinProperties;
@@ -42,7 +42,7 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperti
 TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -163,7 +163,7 @@ namespace PCGExBoundsPathIntersection
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 
 		SubBlending = Context->Blending->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;

@@ -10,7 +10,7 @@
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/PCGExPointElements.h"
-#include "Cluster/PCGExEdge.h"
+#include "Clusters/PCGExEdge.h"
 #include "Details/PCGExFuseDetails.h"
 
 #include "PCGExIntersections.generated.h"

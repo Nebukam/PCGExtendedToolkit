@@ -115,7 +115,7 @@ namespace PCGExSplineToPath
 				PCGEX_OUTPUT_VALUE(PointType, i, GetPointType(SplinePositions.Points[i].InterpMode));
 			}
 
-			PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), Spline.bClosedLoop);
+			PCGExPaths::Helpers::SetClosedLoop(PointDataFacade->GetOut(), Spline.bClosedLoop);
 
 			if (!Spline.bClosedLoop)
 			{

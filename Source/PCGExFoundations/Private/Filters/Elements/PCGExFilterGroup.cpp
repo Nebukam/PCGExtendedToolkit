@@ -5,8 +5,8 @@
 
 #include "PCGExFoundationsSubSystem.h"
 #include "Containers/PCGExManagedObjects.h"
-#include "Filters/PCGExFilterLabels.h"
-#include "Cluster/PCGExCluster.h"
+#include "Filters/PCGExFilterCommon.h"
+#include "Clusters/PCGExCluster.h"
 
 namespace PCGExFilterGroup
 {

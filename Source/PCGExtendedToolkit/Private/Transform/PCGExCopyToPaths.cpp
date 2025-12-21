@@ -24,7 +24,7 @@ TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, "Paths or splines to deform along", Required)
-	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal)
 	return PinProperties;
 }
@@ -32,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -362,7 +362,7 @@ namespace PCGExCopyToPaths
 		TSharedPtr<PCGExData::FFacade> PathFacade = Context->DeformersFacades[InSplineIndex];
 		PathFacade->bSupportsScopedGet = false;
 
-		const bool bClosedLoop = PCGExPaths::GetClosedLoop(PathFacade->GetIn());
+		const bool bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PathFacade->GetIn());
 
 		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
 

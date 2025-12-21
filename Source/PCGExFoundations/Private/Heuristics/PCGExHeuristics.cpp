@@ -3,7 +3,7 @@
 
 #include "Heuristics/PCGExHeuristics.h"
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Heuristics/Elements/PCGExHeuristicFeedback.h"
 #include "Heuristics/PCGExHeuristicOperation.h"
 

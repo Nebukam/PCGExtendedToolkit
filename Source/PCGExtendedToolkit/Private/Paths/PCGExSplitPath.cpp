@@ -86,7 +86,7 @@ namespace PCGExSplitPath
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
@@ -376,7 +376,7 @@ namespace PCGExSplitPath
 			{
 				// Disconnecting closed loop last point will produce an open path
 				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-				PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), false);
+				PCGExPaths::Helpers::SetClosedLoop(PointDataFacade->GetOut(), false);
 			}
 
 			return;
@@ -410,7 +410,7 @@ namespace PCGExSplitPath
 		{
 			if (!PathIO) { continue; }
 
-			PCGExPaths::SetClosedLoop(PathIO->GetOut(), false);
+			PCGExPaths::Helpers::SetClosedLoop(PathIO->GetOut(), false);
 
 			if ((OddEven & 1) == 0) { if (Settings->bTagIfEvenSplit) { PathIO->Tags->AddRaw(Settings->IsEvenTag); } }
 			else if (Settings->bTagIfOddSplit) { PathIO->Tags->AddRaw(Settings->IsOddTag); }

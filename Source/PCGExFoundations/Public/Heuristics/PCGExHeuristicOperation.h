@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Cluster/PCGExClusterCommon.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "UObject/Object.h"
 #include "Factories/PCGExOperation.h"
 #include "Metadata/PCGAttributePropertySelector.h"

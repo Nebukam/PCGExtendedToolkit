@@ -151,7 +151,7 @@ bool FPCGExShrinkPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 		                                         {
-			                                         if (PCGExPaths::GetClosedLoop(Entry))
+			                                         if (PCGExPaths::Helpers::GetClosedLoop(Entry))
 			                                         {
 				                                         if (!Settings->bQuietClosedLoopWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are closed loop and cannot be shrinked. You must split them first.")); }
 				                                         PCGEX_INIT_IO(Entry, PCGExData::EIOInit::Forward)

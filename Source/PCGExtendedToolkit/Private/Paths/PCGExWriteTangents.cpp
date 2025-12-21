@@ -123,7 +123,7 @@ namespace PCGExWriteTangents
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 
 		Tangents = Context->Tangents->CreateOperation();
 		Tangents->bClosedLoop = bClosedLoop;

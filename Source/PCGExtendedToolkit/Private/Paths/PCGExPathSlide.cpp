@@ -80,7 +80,7 @@ namespace PCGExPathSlide
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointIO->GetIn());
 
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 

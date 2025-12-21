@@ -5,7 +5,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicSteepness.h"
 
 #include "PCGExMath.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 
 void FPCGExHeuristicSteepness::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)

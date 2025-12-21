@@ -4,7 +4,7 @@
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExH.h"
-#include "Cluster/PCGExEdge.h"
+#include "Clusters/PCGExEdge.h"
 #include "Graph/PCGExSubGraph.h"
 #include "Helpers/PCGExMetaHelpers.h"
 

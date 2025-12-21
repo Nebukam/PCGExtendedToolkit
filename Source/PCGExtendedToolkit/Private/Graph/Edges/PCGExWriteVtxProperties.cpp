@@ -6,7 +6,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "WriteVtxProperties"

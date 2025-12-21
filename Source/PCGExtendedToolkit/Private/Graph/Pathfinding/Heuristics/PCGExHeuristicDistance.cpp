@@ -4,7 +4,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 
 void FPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)

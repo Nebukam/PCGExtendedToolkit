@@ -4,7 +4,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicAzimuth.h"
 
 #include "PCGExMath.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 
 double FPCGExHeuristicAzimuth::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const

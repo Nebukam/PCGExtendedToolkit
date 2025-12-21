@@ -6,7 +6,7 @@
 #include "PCGExFoundationsSubSystem.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 #include "Async/ParallelFor.h"
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilter, UPCGExFilterFactoryData)

@@ -134,7 +134,7 @@ namespace PCGExPathSolidify
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointIO->GetIn());
 
 		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;

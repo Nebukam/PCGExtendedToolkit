@@ -36,11 +36,11 @@ PCGExFactories::EPreparationResult UPCGExTensorSplineFactoryData::InitInternalDa
 				const UPCGBasePointData* PathData = Cast<UPCGBasePointData>(TaggedData.Data);
 				if (!PathData) { continue; }
 
-				const bool bIsClosedLoop = PCGExPaths::GetClosedLoop(PathData);
+				const bool bIsClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PathData);
 				if (SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 				if (SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
 
-				if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::MakeSplineFromPoints(PathData->GetConstTransformValueRange(), PointType, bIsClosedLoop, bSmoothLinear))
+				if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::Helpers::MakeSplineFromPoints(PathData->GetConstTransformValueRange(), PointType, bIsClosedLoop, bSmoothLinear))
 				{
 					ManagedSplines.Add(SplineStruct);
 				}

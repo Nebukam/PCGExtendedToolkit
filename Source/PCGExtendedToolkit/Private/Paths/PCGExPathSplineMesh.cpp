@@ -188,7 +188,7 @@ namespace PCGExPathSplineMesh
 		SegmentMutationDetails = Settings->MutationDetails;
 		if (!SegmentMutationDetails.Init(PointDataFacade)) { return false; }
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 		bUseTags = Settings->TaggingDetails.IsEnabled();
 

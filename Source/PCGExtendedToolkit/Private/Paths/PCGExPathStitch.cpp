@@ -50,7 +50,7 @@ bool FPCGExPathStitchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 		                                         {
-			                                         if (Entry->GetNum() < 2 || PCGExPaths::GetClosedLoop(Entry->GetIn()))
+			                                         if (Entry->GetNum() < 2 || PCGExPaths::Helpers::GetClosedLoop(Entry->GetIn()))
 			                                         {
 				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 				                                         bHasInvalidInputs = true;
@@ -211,7 +211,7 @@ namespace PCGExPathStitch
 
 		Merger->MergeAsync(TaskManager, &Context->CarryOverDetails);
 
-		PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), bClosedLoop);
+		PCGExPaths::Helpers::SetClosedLoop(PointDataFacade->GetOut(), bClosedLoop);
 	}
 
 	void FProcessor::Write()

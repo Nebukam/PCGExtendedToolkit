@@ -91,7 +91,7 @@ namespace PCGExOffsetPath
 		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
 
-		Path = MakeShared<PCGExPaths::FPath>(InTransforms, PCGExPaths::GetClosedLoop(PointDataFacade->GetIn()), 0);
+		Path = MakeShared<PCGExPaths::FPath>(InTransforms, PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn()), 0);
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 		{

@@ -4,7 +4,7 @@
 #include "Data/PCGExPointStates.h"
 
 #include "PCGParamData.h"
-#include "Cluster/PCGExCluster.h"
+#include "Clusters/PCGExCluster.h"
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoPointState, UPCGExPointStateFactoryData)
 
