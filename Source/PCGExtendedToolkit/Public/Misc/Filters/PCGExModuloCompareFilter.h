@@ -9,7 +9,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 
 #include "PCGExModuloCompareFilter.generated.h"
 

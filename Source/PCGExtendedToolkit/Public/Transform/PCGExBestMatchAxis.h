@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Details/PCGExDistancesDetails.h"

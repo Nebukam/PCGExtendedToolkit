@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExStaging.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 #include "PCGExCollectionToModuleInfos.generated.h"

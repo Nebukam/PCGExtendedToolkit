@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Utils/PCGExCompare.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExUberBranch.generated.h"
 
 UENUM(BlueprintType)

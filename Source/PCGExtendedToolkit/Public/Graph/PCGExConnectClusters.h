@@ -7,7 +7,7 @@
 #include "Data/PCGExPointIOMerger.h"
 
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 
 #include "PCGExConnectClusters.generated.h"
 

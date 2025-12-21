@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExVersion.h"
 
 #include "PCGExRecursionTracker.generated.h"

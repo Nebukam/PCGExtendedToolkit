@@ -9,7 +9,7 @@
 #include "PCGExLabels.h"
 #include "PCGExMathMean.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExSettingsMacros.h"

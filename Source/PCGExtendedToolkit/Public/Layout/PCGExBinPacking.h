@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExLayout.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Transform/PCGExTransform.h"

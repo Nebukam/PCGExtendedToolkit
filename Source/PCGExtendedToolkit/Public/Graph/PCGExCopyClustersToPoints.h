@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Utils/PCGExCompare.h"
-#include "PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"

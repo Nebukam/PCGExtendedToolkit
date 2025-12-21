@@ -9,7 +9,7 @@
 #include "Curves/RichCurve.h"
 
 #include "PCGExFilterFactoryProvider.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Utils/PCGExCurveLookup.h"
 

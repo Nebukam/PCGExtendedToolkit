@@ -5,7 +5,7 @@
 
 
 #include "Data/PCGExDataTags.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIOMerger.h"
 
 

@@ -11,13 +11,15 @@
 
 #include "PCGExSortingDetails.generated.h"
 
+struct FPCGContext;
+
 namespace PCGExData
 {
 	class FPointIOCollection;
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExSortRuleConfig : public FPCGExInputConfig
+struct PCGEXCORE_API FPCGExSortRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -39,7 +41,7 @@ struct PCGEXFOUNDATIONS_API FPCGExSortRuleConfig : public FPCGExInputConfig
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExCollectionSortingDetails
+struct PCGEXCORE_API FPCGExCollectionSortingDetails
 {
 	GENERATED_BODY()
 
@@ -76,9 +78,9 @@ struct PCGEXFOUNDATIONS_API FPCGExCollectionSortingDetails
 
 namespace PCGExSorting
 {
-	PCGEXFOUNDATIONS_API void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus);
+	PCGEXCORE_API void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus);
 
-	PCGEXFOUNDATIONS_API TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
+	PCGEXCORE_API TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
 }
 
 #undef PCGEX_UNSUPPORTED_STRING_TYPES

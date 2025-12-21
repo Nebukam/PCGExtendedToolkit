@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExFoundations/Public/Core/PCGExPointsProcessor.h"
-#include "PCGExFoundations/Public/Filters/PCGExFilterCommon.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExBlendAttributes.generated.h"
 
 class UPCGExBlendOpFactory;

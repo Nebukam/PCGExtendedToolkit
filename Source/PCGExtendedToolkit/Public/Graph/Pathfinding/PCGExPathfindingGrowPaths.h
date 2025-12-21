@@ -11,7 +11,7 @@
 #include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Paths/PCGExPath.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"

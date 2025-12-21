@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 

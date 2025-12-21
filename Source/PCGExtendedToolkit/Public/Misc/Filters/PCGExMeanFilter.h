@@ -8,8 +8,8 @@
 #include "PCGExMathMean.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointFilter.h"
+#include "Core/PCGExPointsProcessor.h"
 
 
 #include "PCGExMeanFilter.generated.h"

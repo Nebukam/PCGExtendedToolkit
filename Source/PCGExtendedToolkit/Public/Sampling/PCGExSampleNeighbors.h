@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 
 #include "PCGExSampleNeighbors.generated.h"
 

@@ -11,7 +11,7 @@
 #include "Heuristics/PCGExHeuristicsHandler.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Math/PCGExProjectionDetails.h"
-#include "Pickers/Elements/PCGExPickerAttributeSet.h"
+#include "Pickers/PCGExPickerAttributeSet.h"
 
 namespace PCGExClusterMT
 {

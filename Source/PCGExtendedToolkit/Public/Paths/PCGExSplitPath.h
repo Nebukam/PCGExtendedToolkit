@@ -7,7 +7,7 @@
 #include "Factories/PCGExFactories.h"
 #include "PCGExPathProcessor.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 
 
 #include "PCGExSplitPath.generated.h"

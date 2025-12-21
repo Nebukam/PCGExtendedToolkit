@@ -7,7 +7,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Misc/Pickers/PCGExPickerConstantRange.h"
 
 

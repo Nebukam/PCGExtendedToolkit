@@ -6,10 +6,10 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPathfinding.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Paths/PCGExPath.h"
 
 #include "PCGExPathfindingEdges.generated.h"

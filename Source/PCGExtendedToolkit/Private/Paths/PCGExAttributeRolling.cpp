@@ -4,7 +4,7 @@
 #include "Paths/PCGExAttributeRolling.h"
 
 #include "PCGExMT.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 

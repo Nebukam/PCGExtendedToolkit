@@ -4,7 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfindingEdges.h"
 
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"

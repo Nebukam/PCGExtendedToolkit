@@ -8,7 +8,7 @@
 
 
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
 

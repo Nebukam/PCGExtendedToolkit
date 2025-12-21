@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsStaging.h"
 
 #include "PCGExSampleSockets.generated.h"

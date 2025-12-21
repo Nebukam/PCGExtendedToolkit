@@ -7,7 +7,7 @@
 #include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExDetailsSubdivision.h"
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivideEdges.generated.h"
 

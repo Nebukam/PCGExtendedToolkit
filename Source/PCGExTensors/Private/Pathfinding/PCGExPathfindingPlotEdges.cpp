@@ -5,7 +5,7 @@
 
 
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
 #include "Algo/Reverse.h"

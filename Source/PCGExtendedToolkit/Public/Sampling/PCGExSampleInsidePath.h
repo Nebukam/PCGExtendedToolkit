@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCurveLookup.h"
+#include "Utils/PCGExCurveLookup.h"
 #include "PCGExGlobalSettings.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampleNearestPath.h"
 #include "PCGExSampling.h"
 #include "Data/Matching/PCGExMatching.h"

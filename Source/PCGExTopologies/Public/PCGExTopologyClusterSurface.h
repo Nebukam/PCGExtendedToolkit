@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 
 #include "PCGExTopologyClustersProcessor.h"
 #include "PCGExTopologyClusterSurface.generated.h"

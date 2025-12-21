@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Graph/PCGExGraphDetails.h"
 
 #include "Geometry/PCGExGeo.h"

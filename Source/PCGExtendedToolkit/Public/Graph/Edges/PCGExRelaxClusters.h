@@ -8,7 +8,7 @@
 #include "Details/PCGExDetailsRelax.h"
 
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExRelaxClusters.generated.h"

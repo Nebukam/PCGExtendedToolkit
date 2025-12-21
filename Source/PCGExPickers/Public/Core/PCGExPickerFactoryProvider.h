@@ -26,11 +26,11 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Picker"))
 struct FPCGExDataTypeInfoPicker : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXPICKERS_API)
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXFOUNDATIONS_API UPCGExPickerFactoryData : public UPCGExFactoryData
+class PCGEXPICKERS_API UPCGExPickerFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -63,7 +63,7 @@ protected:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXFOUNDATIONS_API UPCGExPickerFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXPICKERS_API UPCGExPickerFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -88,5 +88,5 @@ public:
 
 namespace PCGExPicker
 {
-	PCGEXFOUNDATIONS_API bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks);
+	PCGEXPICKERS_API bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks);
 }

@@ -9,7 +9,7 @@
 #include "PCGExMath.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 
 #include "PCGExSegmentLengthFilter.generated.h"
 

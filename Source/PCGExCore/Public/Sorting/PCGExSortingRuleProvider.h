@@ -20,14 +20,14 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Sort Rule"))
 struct FPCGExDataTypeInfoSortRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXCORE_API)
 };
 
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXFOUNDATIONS_API UPCGExSortingRule : public UPCGExFactoryData
+class PCGEXCORE_API UPCGExSortingRule : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXFOUNDATIONS_API UPCGExSortingRuleProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXCORE_API UPCGExSortingRuleProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

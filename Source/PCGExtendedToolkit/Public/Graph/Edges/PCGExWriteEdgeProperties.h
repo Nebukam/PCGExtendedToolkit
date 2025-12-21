@@ -8,7 +8,7 @@
 #include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExWriteEdgeProperties.generated.h"

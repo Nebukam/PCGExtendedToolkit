@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExFlatProjection.generated.h"

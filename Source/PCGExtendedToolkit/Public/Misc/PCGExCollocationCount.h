@@ -7,7 +7,7 @@
 
 #include "PCGExGlobalSettings.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Utils/PCGPointOctree.h"
 
 

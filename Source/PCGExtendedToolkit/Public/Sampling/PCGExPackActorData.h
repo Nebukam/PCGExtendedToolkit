@@ -8,7 +8,7 @@
 #include "PCGExGlobalSettings.h"
 #include "Factories/PCGExInstancedFactory.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExBufferHelper.h"
 
 

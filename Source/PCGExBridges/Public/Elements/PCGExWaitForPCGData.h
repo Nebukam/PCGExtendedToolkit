@@ -7,7 +7,7 @@
 #include "PCGComponent.h"
 #include "PCGExGlobalSettings.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForward.h"
 
 #include "PCGExWaitForPCGData.generated.h"

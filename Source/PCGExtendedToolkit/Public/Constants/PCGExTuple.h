@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExConstantEnum.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGSettings.h"
 #include "StructUtils/InstancedStruct.h"
 

@@ -4,6 +4,7 @@
 #include "Core/PCGExPathProcessor.h"
 
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 
@@ -12,8 +13,8 @@ UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(const FObjectInitialize
 {
 }
 
-FName UPCGExPathProcessorSettings::GetMainInputPin() const { return PCGExPaths::SourcePathsLabel; }
-FName UPCGExPathProcessorSettings::GetMainOutputPin() const { return PCGExPaths::OutputPathsLabel; }
+FName UPCGExPathProcessorSettings::GetMainInputPin() const { return PCGExPaths::Labels::SourcePathsLabel; }
+FName UPCGExPathProcessorSettings::GetMainOutputPin() const { return PCGExPaths::Labels::OutputPathsLabel; }
 
 bool FPCGExPathProcessorElement::Boot(FPCGExContext* InContext) const
 {

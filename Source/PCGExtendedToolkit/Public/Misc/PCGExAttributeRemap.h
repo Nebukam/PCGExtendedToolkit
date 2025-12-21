@@ -11,7 +11,7 @@
 #include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExMath.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExProxyData.h"
 #include "Details/PCGExAttributesDetails.h"
 #include "Details/PCGExInputShorthandsDetails.h"

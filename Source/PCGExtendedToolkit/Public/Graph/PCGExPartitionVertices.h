@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExClusterMT.h"
-#include "PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 
 
 #include "PCGExPartitionVertices.generated.h"

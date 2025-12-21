@@ -4,7 +4,7 @@
 #include "Sampling/PCGExSampling.h"
 
 #include "GameFramework/Actor.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"

@@ -224,21 +224,13 @@ namespace PCGExBlending
 			bool bWantsDirectAccess = false);
 
 		// Type-safe set (converts to working type)
-		template <typename T>
-		void Set(const int32 TargetIndex, const T& Value) const;
+		//template <typename T>
+		//void Set(const int32 TargetIndex, const T& Value) const { if (C) { C->Set(TargetIndex, Value); } }
 
 	protected:
 		// Cached type info
 		bool bNeedsLifecycleManagement = false;
 	};
-
-	// Template implementations
-
-	template <typename T>
-	void FProxyDataBlender::Set(const int32 TargetIndex, const T& Value) const
-	{
-		if (C) { C->Set(TargetIndex, Value); }
-	}
 
 	//
 	// Factory functions for creating proxy blenders

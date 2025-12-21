@@ -7,7 +7,7 @@
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/PCGExPathProcessor.h"

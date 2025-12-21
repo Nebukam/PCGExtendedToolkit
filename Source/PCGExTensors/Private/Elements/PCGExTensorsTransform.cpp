@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Async/ParallelFor.h"
 

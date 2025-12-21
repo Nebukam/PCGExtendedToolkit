@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPartition.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 
 
 #include "PCGExPartitionByValues.generated.h"

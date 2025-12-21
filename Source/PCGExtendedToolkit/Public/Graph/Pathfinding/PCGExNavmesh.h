@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathfinding.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Paths/PCGExPath.h"
 #include "AI/Navigation/NavigationTypes.h"
 

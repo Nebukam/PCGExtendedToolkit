@@ -9,9 +9,9 @@
 #include "PCGExLabels.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
-#include "PCGExCurveLookup.h"
+#include "Utils/PCGExCurveLookup.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSorting.h"
 #include "Data/Matching/PCGExMatching.h"

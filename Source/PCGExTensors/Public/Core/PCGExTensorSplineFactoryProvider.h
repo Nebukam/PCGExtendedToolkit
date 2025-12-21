@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "Data/PCGSplineStruct.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"

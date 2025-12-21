@@ -7,7 +7,7 @@
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExDetailsIntersection.h"
 

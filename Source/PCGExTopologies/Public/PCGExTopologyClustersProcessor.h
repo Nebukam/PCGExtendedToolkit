@@ -7,7 +7,7 @@
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "PCGExTopology.h"
 #include "Math/PCGExTransform.h"
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExClustersProcessor.h"
 
 #include "PCGExTopologyClustersProcessor.generated.h"

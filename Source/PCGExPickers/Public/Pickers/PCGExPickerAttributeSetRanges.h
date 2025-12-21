@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPickerConstantRange.h"
-#include "Pickers/PCGExPickerFactoryProvider.h"
+#include "Core/PCGExPickerFactoryProvider.h"
 
 #include "PCGExPickerAttributeSetRanges.generated.h"
 

@@ -22,7 +22,7 @@ namespace PCGExData
 
 namespace PCGExSorting
 {
-	class PCGEXFOUNDATIONS_API FRuleHandler : public TSharedFromThis<FRuleHandler>
+	class PCGEXCORE_API FRuleHandler : public TSharedFromThis<FRuleHandler>
 	{
 	public:
 		FRuleHandler() = default;
@@ -40,7 +40,7 @@ namespace PCGExSorting
 		bool bAbsolute = false;
 	};
 
-	class PCGEXFOUNDATIONS_API FSorter : public TSharedFromThis<FSorter>
+	class PCGEXCORE_API FSorter : public TSharedFromThis<FSorter>
 	{
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;

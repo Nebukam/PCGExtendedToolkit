@@ -9,7 +9,7 @@
 #include "PCGExMathMean.h"
 
 #include "PCGExOctree.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExPointElements.h"
 
 #include "PCGExDiscardByOverlap.generated.h"

@@ -4,17 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExBlendOpFactory.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExOperation.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
-#include "Data/PCGExDefaultValueContainer.h"
 #include "Metadata/PCGDefaultValueInterface.h"
 #include "Utils/PCGExCurveLookup.h"
+#include "Utils/PCGExDefaultValueContainer.h"
 
 #include "PCGExBlendOpFactoryProvider.generated.h"
 
@@ -82,7 +81,7 @@ protected:
 public:
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
-	virtual FName GetMainOutputPin() const override { return PCGExBlending::OutputBlendingLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExBlending::Labels::OutputBlendingLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 	/** Filter Priority.*/

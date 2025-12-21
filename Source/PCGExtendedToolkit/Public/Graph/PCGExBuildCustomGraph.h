@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExInstancedFactory.h"
 #include "PCGExLabels.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExBufferHelper.h"
 #include "Graph/PCGExGraphDetails.h"
 #include "PCGExBuildCustomGraph.generated.h"

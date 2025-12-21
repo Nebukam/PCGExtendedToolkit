@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Details/PCGExDetailsNoise.h"
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExClusterCentrality.generated.h"

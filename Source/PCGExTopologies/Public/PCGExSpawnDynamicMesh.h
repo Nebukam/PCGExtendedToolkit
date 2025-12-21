@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Collections/Core/PCGExComponentDescriptors.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Transform/PCGExTransform.h"

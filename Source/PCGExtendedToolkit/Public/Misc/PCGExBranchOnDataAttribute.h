@@ -7,7 +7,7 @@
 #include "Utils/PCGExCompare.h"
 #include "PCGExGlobalSettings.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Constants/PCGExConstantEnum.h"
 
 #include "PCGExBranchOnDataAttribute.generated.h"

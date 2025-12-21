@@ -7,7 +7,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 
 
 #define PCGEX_FOREACH_STAT(MACRO, _TYPE)\

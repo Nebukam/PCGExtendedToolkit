@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExPathProcessor.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 
 
 #include "Elements/PCGCreateSpline.h"

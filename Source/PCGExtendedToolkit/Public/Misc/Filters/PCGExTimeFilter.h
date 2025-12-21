@@ -8,7 +8,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "PCGExPolyPathFilterFactory.h"
 
 #include "PCGExTimeFilter.generated.h"

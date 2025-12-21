@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPointsMT.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 
 #include "Orient/PCGExOrientOperation.h"
 #include "PCGExOrient.generated.h"

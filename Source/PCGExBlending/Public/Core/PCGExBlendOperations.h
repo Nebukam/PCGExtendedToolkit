@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExBlendingCommon.h"
 #include "Helpers/PCGExMetaHelpers.h"
-#include "Types/PCGExTypeOps.h"
+#include "Types/PCGExTypeOpsImpl.h"
 
 namespace PCGEx
 {

@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Pickers/Elements/PCGExPickerConstant.h"
+#include "Pickers/PCGExPickerConstant.h"
 
 #include "Containers/PCGExManagedObjects.h"
 

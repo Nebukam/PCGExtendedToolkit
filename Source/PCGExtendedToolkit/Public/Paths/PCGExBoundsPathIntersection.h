@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Math/PCGExBoundsCloud.h"
 

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "PCGExPackClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/pack-cluster"))

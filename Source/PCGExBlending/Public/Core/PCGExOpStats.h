@@ -7,7 +7,7 @@
 
 namespace PCGEx
 {
-	struct PCGEXTENDEDTOOLKIT_API FOpStats
+	struct PCGEXBLENDING_API FOpStats
 	{
 		int32 Count = 0;
 		double TotalWeight = 0;

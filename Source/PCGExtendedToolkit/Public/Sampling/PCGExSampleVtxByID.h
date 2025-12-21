@@ -8,7 +8,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "Data/Blending/PCGExBlending.h"
 

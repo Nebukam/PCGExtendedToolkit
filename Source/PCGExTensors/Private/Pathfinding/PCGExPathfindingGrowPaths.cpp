@@ -3,7 +3,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Algo/Reverse.h"
 #include "Data/PCGExData.h"

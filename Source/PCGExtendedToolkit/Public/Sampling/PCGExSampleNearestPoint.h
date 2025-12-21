@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCurveLookup.h"
+#include "Utils/PCGExCurveLookup.h"
 #include "Factories/PCGExFactories.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
@@ -12,7 +12,7 @@
 
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSorting.h"
 #include "Data/Blending/PCGExBlending.h"

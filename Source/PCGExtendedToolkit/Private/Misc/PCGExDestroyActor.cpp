@@ -5,7 +5,7 @@
 
 #include "PCGComponent.h"
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSubSystem.h"
 #include "PCGManagedResource.h"
 #include "Data/PCGExAttributeBroadcaster.h"

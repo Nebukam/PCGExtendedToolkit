@@ -5,10 +5,10 @@
 
 #include "PCGExMath.h"
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTags.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Blenders/PCGExBlendOpsManager.h"

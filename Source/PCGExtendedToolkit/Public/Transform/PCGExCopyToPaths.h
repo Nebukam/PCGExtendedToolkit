@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 
 #include "Data/Matching/PCGExMatching.h"
 #include "Paths/PCGExCreateSpline.h"

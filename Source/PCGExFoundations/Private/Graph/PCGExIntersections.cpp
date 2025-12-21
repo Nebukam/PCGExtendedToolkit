@@ -5,16 +5,15 @@
 
 #include "Async/ParallelFor.h"
 #include "Details/PCGExIntersectionDetails.h"
-#include "PCGExMath.h"
-#include "PCGExPointsProcessor.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExMetadataBlender.h"
 #include "Math/PCGExBoundsCloud.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExEdge.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExGraph.h"
-#include "Sampling/PCGExSampling.h"
+#include "Graph/PCGExGraphMetadata.h"
 
 namespace PCGExGraph
 {

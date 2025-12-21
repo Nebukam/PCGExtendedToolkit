@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsIntersection.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Blenders/PCGExUnionBlender.h"

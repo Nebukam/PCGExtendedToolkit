@@ -4,7 +4,7 @@
 #include "Sampling/PCGExSampleNearestBounds.h"
 
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"

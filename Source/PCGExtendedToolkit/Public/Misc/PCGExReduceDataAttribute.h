@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExHelpers.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExAttributesDetails.h"

@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExFindClustersData.generated.h"
 

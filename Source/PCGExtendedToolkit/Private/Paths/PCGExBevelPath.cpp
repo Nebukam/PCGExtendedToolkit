@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExSettingsDetails.h"

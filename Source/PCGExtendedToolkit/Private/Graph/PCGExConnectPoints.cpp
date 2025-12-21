@@ -5,7 +5,7 @@
 
 
 #include "PCGExMT.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Graph/PCGExGraph.h"

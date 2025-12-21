@@ -8,7 +8,7 @@
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDistancesDetails.h"
 #include "Sampling/PCGExSampling.h"
 

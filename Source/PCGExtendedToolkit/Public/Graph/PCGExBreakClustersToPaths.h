@@ -7,7 +7,7 @@
 #include "PCGExChain.h"
 #include "Factories/PCGExFactories.h"
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"
 

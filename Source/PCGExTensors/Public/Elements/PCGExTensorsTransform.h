@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Paths/PCGExPath.h"
 #include "Sampling/PCGExSampling.h"
 #include "Tensors/PCGExTensor.h"

@@ -8,7 +8,7 @@
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExMathMean.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 
 #include "PCGExUberFilterCollections.generated.h"
 

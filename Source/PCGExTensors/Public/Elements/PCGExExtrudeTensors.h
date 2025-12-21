@@ -9,7 +9,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExSorting.h"
 #include "Data/Utils/PCGExDataForward.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 
 #include "Transform/PCGExTensorsTransform.h"
 #include "Transform/PCGExTransform.h"

@@ -9,7 +9,7 @@
 
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "PCGExTexParamFactoryProvider.h"

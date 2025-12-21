@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
 #include "Transform/PCGExFitting.h"
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Graph/PCGExGraphDetails.h"
 

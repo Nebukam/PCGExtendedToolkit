@@ -7,7 +7,7 @@
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDetailsRelax.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Types/PCGExTypeOpsRotation.h"

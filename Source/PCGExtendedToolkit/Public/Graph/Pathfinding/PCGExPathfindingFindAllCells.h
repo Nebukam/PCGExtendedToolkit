@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Data/Utils/PCGExDataForward.h"
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "Topology/PCGExCell.h"
 
 #include "PCGExPathfindingFindAllCells.generated.h"

@@ -8,7 +8,7 @@
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Transform/PCGExFitting.h"
 #include "Details/PCGExDetailsStaging.h"
 

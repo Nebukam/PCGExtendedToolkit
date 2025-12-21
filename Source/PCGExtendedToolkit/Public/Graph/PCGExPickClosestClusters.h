@@ -8,7 +8,7 @@
 #include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExDetailsFiltering.h"
 
-#include "Graph/PCGExClustersProcessor.h"
+#include "Core/PCGExClustersProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 
 UENUM()

@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTags.h"
-#include "Data/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Blenders/PCGExUnionBlender.h"

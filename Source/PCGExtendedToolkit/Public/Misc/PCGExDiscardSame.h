@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExPointsProcessor.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHasher.h"
 #include "Data/PCGExFilterGroup.h"
 
