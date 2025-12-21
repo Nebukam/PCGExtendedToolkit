@@ -7,10 +7,10 @@
 
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExDataForward.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
 #include "Graph/PCGExClustersProcessor.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 #include "PCGExPathfindingEdges.generated.h"
 

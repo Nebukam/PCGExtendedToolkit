@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "PCGExCompare.h"
+#include "Utils/PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDistancesDetails.h"

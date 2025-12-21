@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
+#include "Utils/PCGExCompare.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Types/PCGExAttributeIdentity.h"
@@ -52,7 +52,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** Attributes to get. */

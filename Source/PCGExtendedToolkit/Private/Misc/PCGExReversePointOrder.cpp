@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 

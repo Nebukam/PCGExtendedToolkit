@@ -3,12 +3,7 @@
 
 #pragma once
 
-#include "HAL/Platform.h"
-#include "Math/IntVector.h"
-#include "Math/UnrealMathUtility.h"
-#include "Templates/SharedPointer.h"
-#include "Templates/TypeHash.h"
-#include "type_traits"
+#include "CoreMinimal.h"
 
 namespace PCGEx
 {

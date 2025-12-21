@@ -8,7 +8,7 @@
 #include "Blenders/PCGExBlendOpsManager.h"
 #include "Blenders/PCGExMetadataBlender.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 
 #include "Paths/Smoothing/PCGExMovingAverageSmoothing.h"

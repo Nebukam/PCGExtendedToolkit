@@ -6,6 +6,7 @@
 
 #include "PCGExMath.h"
 #include "PCGExMT.h"
+#include "Clusters/PCGExChainHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
@@ -159,7 +160,7 @@ namespace PCGExSimplifyClusters
 
 			if (Settings->bOperateOnLeavesOnly && !Chain->bIsLeaf)
 			{
-				Chain->Dump(Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
+				PCGExCluster::ChainHelpers::Dump(Chain, Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
 				continue;
 			}
 
@@ -167,7 +168,7 @@ namespace PCGExSimplifyClusters
 			{
 				// TODO : When using reduced dump we know in advance the number of edges will be the number of chains (optionally minus leaves)
 				// We can pre-populate the graph union data
-				Chain->DumpReduced(Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
+				PCGExCluster::ChainHelpers::DumpReduced(Chain, Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
 				continue;
 			}
 

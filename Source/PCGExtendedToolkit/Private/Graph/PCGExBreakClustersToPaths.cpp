@@ -7,10 +7,10 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGPointArrayData.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExChain.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
 #define PCGEX_NAMESPACE BreakClustersToPaths

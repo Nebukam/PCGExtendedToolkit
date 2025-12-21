@@ -4,11 +4,11 @@
 #include "Core/PCGExClusterMT.h"
 
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGExClusterData.h"
-#include "Heuristics/PCGExHeuristics.h"
+#include "Heuristics/PCGExHeuristicsHandler.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Math/PCGExProjectionDetails.h"
 #include "Pickers/Elements/PCGExPickerAttributeSet.h"

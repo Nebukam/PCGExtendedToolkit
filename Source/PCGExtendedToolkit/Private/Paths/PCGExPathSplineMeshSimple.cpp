@@ -18,7 +18,7 @@
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Engine/StaticMesh.h"
 
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

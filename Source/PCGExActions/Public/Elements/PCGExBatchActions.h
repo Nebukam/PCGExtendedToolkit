@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 
 #include "PCGExBatchActions.generated.h"
 

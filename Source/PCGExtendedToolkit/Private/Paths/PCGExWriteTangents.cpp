@@ -9,7 +9,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 #include "Paths/Tangents/PCGExTangentsAuto.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
@@ -46,7 +46,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteTangents)
 
 FName UPCGExWriteTangentsSettings::GetPointFilterPin() const
 {
-	return PCGExFilter::Labels::SourcePointFiltersLabel;
+	return PCGExFilters::Labels::SourcePointFiltersLabel;
 }
 
 UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)

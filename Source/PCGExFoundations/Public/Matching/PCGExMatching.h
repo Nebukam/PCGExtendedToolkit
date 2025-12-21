@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMatchingCommon.h"
 #include "Data/PCGExDataCommon.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExMatching.generated.h"

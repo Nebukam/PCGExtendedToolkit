@@ -8,7 +8,7 @@
 #include "PCGExMath.h"
 #include "PCGExSettingsMacros.h"
 #include "Collections/PCGExBitmaskCollection.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "PCGExDetailsStaging.generated.h"
 
 class UPCGParamData;

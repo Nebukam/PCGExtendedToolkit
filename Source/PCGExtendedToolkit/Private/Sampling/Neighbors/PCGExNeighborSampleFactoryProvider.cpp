@@ -207,13 +207,13 @@ TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperti
 	bool bIsRequired = false;
 	if (SupportsVtxFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceVtxFiltersLabel, "Filters applied to vtx", Required) }
-		else { PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced) }
+		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExFilters::Labels::SourceVtxFiltersLabel, "Filters applied to vtx", Required) }
+		else { PCGEX_PIN_FILTERS(PCGExFilters::Labels::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced) }
 	}
 	if (SupportsEdgeFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceEdgeFiltersLabel, "Filters applied to edges", Required) }
-		else { PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced) }
+		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExFilters::Labels::SourceEdgeFiltersLabel, "Filters applied to edges", Required) }
+		else { PCGEX_PIN_FILTERS(PCGExFilters::Labels::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced) }
 	}
 	PCGEX_PIN_FILTERS(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced)
 	return PinProperties;
@@ -239,9 +239,9 @@ UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExCon
 	SamplerFactory->SamplingConfig = SamplingConfig;
 	SamplerFactory->SamplingConfig.Init();
 
-	GetInputFactories(InContext, PCGExFilter::Labels::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(InContext, PCGExFilters::Labels::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
-	GetInputFactories(InContext, PCGExFilter::Labels::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(InContext, PCGExFilters::Labels::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
 	GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 

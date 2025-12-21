@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-#include "PCGExPaths.h"
+#include "PCGExPath.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Blenders/PCGExUnionBlender.h"

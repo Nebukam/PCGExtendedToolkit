@@ -9,7 +9,7 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 #include "PCGExScopedContainers.h"
-#include "Bitmasks/PCGExBitmaskDetails.h"
+#include "Data/Bitmasks/PCGExBitmaskDetails.h"
 
 #include "PCGExProbeBitmasks.generated.h"
 

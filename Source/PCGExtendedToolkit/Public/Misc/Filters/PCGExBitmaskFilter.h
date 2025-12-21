@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
+#include "Utils/PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "Bitmasks/PCGExBitmaskDetails.h"
+#include "Data/Bitmasks/PCGExBitmaskDetails.h"
 
 #include "PCGExBitmaskFilter.generated.h"
 

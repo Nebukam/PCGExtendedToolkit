@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExBoxFittingRelax.h"
 #include "PCGExRelaxClusterOperation.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 

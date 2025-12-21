@@ -10,7 +10,7 @@
 
 #include "Graph/PCGExEdgeDirectionSettings.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "Filters/PCGExFilterFactoryProvider.h"
+#include "Core/PCGExFilterFactoryProvider.h"
 
 #include "PCGExIsoEdgeDirectionFilter.generated.h"
 

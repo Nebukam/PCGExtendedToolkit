@@ -6,7 +6,7 @@
 
 #include "PCGPin.h"
 #include "Data/PCGExPointFilter.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Types/PCGExAttributeIdentity.h"
 
 

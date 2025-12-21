@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "Bitmasks/PCGExBitmaskDetails.h"
+#include "Data/Bitmasks/PCGExBitmaskDetails.h"
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"

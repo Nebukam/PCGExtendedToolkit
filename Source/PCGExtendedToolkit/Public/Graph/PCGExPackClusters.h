@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 
 #include "Graph/PCGExClustersProcessor.h"
 #include "PCGExPackClusters.generated.h"

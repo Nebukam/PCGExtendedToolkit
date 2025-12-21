@@ -3,7 +3,7 @@
 
 #include "Core/PCGExShapeProcessor.h"
 
-#include "Filters/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExShapeProcessorElement"
 

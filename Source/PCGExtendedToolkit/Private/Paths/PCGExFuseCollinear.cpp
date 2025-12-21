@@ -10,7 +10,7 @@
 #include "Blenders/PCGExUnionBlender.h"
 #include "Details/PCGExDistancesDetails.h"
 #include "Graph/PCGExGraph.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathShift.h"
 #include "Sampling/PCGExSampling.h"
 

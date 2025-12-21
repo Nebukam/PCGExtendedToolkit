@@ -8,7 +8,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExDataForward.h"
+#include "Data/Utils/PCGExDataForward.h"
 
 #include "PCGExWaitForPCGData.generated.h"
 

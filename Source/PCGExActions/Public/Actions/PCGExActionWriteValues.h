@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 
 #include "PCGExActionFactoryProvider.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 
 #include "PCGExActionWriteValues.generated.h"
 

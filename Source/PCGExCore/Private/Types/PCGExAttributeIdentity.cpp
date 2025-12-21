@@ -4,7 +4,7 @@
 #include "Types/PCGExAttributeIdentity.h"
 
 #include "PCGParamData.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGExMetaHelpers.h"

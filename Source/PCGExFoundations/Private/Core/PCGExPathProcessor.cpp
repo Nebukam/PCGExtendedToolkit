@@ -3,7 +3,7 @@
 
 #include "Core/PCGExPathProcessor.h"
 
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 

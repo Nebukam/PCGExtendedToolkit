@@ -6,7 +6,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
-#include "Clusters/PCGExClusterHelpers.h"
+#include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/PCGExClusterCommon.h"
 
 namespace PCGExCluster

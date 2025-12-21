@@ -95,7 +95,7 @@ namespace PCGExGraph
 		WeakTaskManager = TaskManager;
 
 		const int32 NumEdges = Edges.Num();
-		PCGEx::RadixSort(Edges);
+		PCGExSortingHelpers::RadixSort(Edges);
 
 		FlattenedEdges.SetNumUninitialized(NumEdges);
 

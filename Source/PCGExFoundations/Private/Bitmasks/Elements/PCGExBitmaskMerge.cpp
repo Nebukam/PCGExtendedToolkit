@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Bitmasks/Elements/PCGExBitmaskMerge.h"
+#include "Data/Bitmasks/Elements/PCGExBitmaskMerge.h"
 
 #include "PCGParamData.h"
 #include "PCGPin.h"

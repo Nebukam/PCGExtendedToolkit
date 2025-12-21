@@ -7,7 +7,7 @@
 #include "Factories/PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
 
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 #include "PCGExSubPointsInstancedFactory.generated.h"
 
 namespace PCGExData

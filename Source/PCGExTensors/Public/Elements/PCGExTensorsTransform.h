@@ -8,7 +8,7 @@
 #include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 #include "Sampling/PCGExSampling.h"
 #include "Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
@@ -53,7 +53,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/**  */

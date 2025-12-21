@@ -32,7 +32,10 @@ public class PCGExFoundations : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
-				"PCGExCompositing",
+				"PCGExBlending",
+				"PCGExFilters",
+				"PCGExPickers",
+				"PCGExHeuristics",
 			}
 		);
 

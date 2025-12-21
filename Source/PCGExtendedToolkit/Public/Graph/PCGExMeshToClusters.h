@@ -7,7 +7,7 @@
 #include "PCGExLabels.h"
 #include "Transform/PCGExFitting.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExDataForward.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Graph/PCGExGraphDetails.h"
 
 

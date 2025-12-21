@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
+#include "Utils/PCGExCompare.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "PCGExMathMean.h"
@@ -55,7 +55,7 @@ protected:
 public:
 	virtual FName GetMainOutputPin() const override;
 	virtual bool GetIsMainTransactional() const override;
-	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
+	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
 	/** Write result to point instead of split outputs */

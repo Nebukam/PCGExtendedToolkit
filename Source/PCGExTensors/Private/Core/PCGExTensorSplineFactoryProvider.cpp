@@ -4,7 +4,7 @@
 #include "Transform/Tensors/PCGExTensorSplineFactoryProvider.h"
 
 #include "Data/PCGSplineData.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 #include "Paths/PCGExSplineToPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensor"

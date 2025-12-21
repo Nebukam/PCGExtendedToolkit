@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "HAL/Platform.h"
+#include "CoreMinimal.h"
 #include "Runtime/Launch/Resources/Version.h"
 
 #ifndef PCGEX_VERSION

@@ -4,7 +4,7 @@
 #include "Misc/Filters/PCGExRandomRatioFilter.h"
 
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"

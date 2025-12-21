@@ -14,7 +14,7 @@
 #include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Misc/PCGExDiscardByPointCount.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
 PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)

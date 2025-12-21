@@ -6,9 +6,9 @@
 #include "PCGExGlobalSettings.h"
 #include "Factories/PCGExInstancedFactory.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
-#include "Filters/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 
 namespace PCGExPointsMT
 {

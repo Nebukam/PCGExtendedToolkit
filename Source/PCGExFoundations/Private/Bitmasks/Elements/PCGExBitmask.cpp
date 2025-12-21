@@ -1,13 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Bitmasks/Elements//PCGExBitmask.h"
+#include "Data/Bitmasks/Elements//PCGExBitmask.h"
 
 #include "PCGGraph.h"
 #include "PCGParamData.h"
 #include "PCGPin.h"
 #include "PCGExVersion.h"
-#include "Bitmasks/PCGExBitmaskDetails.h"
+#include "Data/Bitmasks/PCGExBitmaskDetails.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Details/PCGExMacros.h"
 

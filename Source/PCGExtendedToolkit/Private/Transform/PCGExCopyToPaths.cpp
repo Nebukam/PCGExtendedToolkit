@@ -11,7 +11,7 @@
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 #include "Helpers/PCGHelpers.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCopyToPathsElement"

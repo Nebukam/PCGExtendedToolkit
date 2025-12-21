@@ -112,7 +112,7 @@ struct PCGEXTENSORS_API FPCGExTensorConfigBase
 
 	/** How individual effectors on that tensor are composited */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
-	EPCGExEffectorFlattenMode Compositing = EPCGExEffectorFlattenMode::Weighted;
+	EPCGExEffectorFlattenMode Blending = EPCGExEffectorFlattenMode::Weighted;
 
 	// Guide falloff
 

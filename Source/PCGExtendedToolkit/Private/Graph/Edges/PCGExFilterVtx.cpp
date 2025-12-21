@@ -55,8 +55,8 @@ TArray<FPCGPinProperties> UPCGExFilterVtxSettings::OutputPinProperties() const
 	}
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExFilter::Labels::OutputInsideFiltersLabel, "Vtx points that passed the filters.", Required)
-	PCGEX_PIN_POINTS(PCGExFilter::Labels::OutputOutsideFiltersLabel, "Vtx points that didn't pass the filters.", Required)
+	PCGEX_PIN_POINTS(PCGExFilters::Labels::OutputInsideFiltersLabel, "Vtx points that passed the filters.", Required)
+	PCGEX_PIN_POINTS(PCGExFilters::Labels::OutputOutsideFiltersLabel, "Vtx points that didn't pass the filters.", Required)
 	return PinProperties;
 }
 
@@ -108,13 +108,13 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 		Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 		Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
-		Context->Inside->OutputPin = PCGExFilter::Labels::OutputInsideFiltersLabel;
-		Context->Outside->OutputPin = PCGExFilter::Labels::OutputOutsideFiltersLabel;
+		Context->Inside->OutputPin = PCGExFilters::Labels::OutputInsideFiltersLabel;
+		Context->Outside->OutputPin = PCGExFilters::Labels::OutputOutsideFiltersLabel;
 
 		if (Settings->bSwap)
 		{
-			Context->Inside->OutputPin = PCGExFilter::Labels::OutputOutsideFiltersLabel;
-			Context->Outside->OutputPin = PCGExFilter::Labels::OutputInsideFiltersLabel;
+			Context->Inside->OutputPin = PCGExFilters::Labels::OutputOutsideFiltersLabel;
+			Context->Outside->OutputPin = PCGExFilters::Labels::OutputInsideFiltersLabel;
 		}
 	}
 

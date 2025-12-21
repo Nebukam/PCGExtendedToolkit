@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExNavmesh.h"
 #include "PCGExPathfindingTasks.h"
-#include "Data/PCGExDataForward.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "AI/Navigation/NavigationTypes.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

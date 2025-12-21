@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
+#include "Utils/PCGExCompare.h"
 
 #include "UObject/Object.h"
 
-#include "Filters/PCGExFilterFactoryProvider.h"
+#include "Core/PCGExFilterFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 
 #include "PCGExEntryCountFilter.generated.h"

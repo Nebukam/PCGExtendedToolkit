@@ -13,7 +13,7 @@
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPathElement"

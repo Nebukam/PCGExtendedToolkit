@@ -11,7 +11,7 @@
 #include "Data/Blending/PCGExBlending.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Geometry/PCGExGeo.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"

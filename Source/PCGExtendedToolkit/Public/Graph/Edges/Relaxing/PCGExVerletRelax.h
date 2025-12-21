@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExRelaxClusterOperation.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "PCGExVerletRelax.generated.h"
 

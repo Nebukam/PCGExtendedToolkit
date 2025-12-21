@@ -7,7 +7,7 @@
 #include "PCGExRandomHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath

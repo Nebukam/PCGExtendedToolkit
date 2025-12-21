@@ -13,7 +13,7 @@
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "PCGExTexParamFactoryProvider.h"
-#include "Data/PCGExDataForward.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Details/PCGExInputShorthandsDetails.h"
 #include "Geometry/PCGExGeoMesh.h"
@@ -73,7 +73,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** Surface source */

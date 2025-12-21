@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExCompare.h"
-#include "Filters/PCGExFilterFactoryProvider.h"
-#include "Filters/PCGExPointFilter.h"
+#include "Utils/PCGExCompare.h"
+#include "Core/PCGExFilterFactoryProvider.h"
+#include "Core/PCGExPointFilter.h"
 #include "Math/PCGExMath.h"
 
 #include "PCGExNumericSelfCompareFilter.generated.h"

@@ -51,7 +51,7 @@ public:
 #endif
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
-	PCGEX_NODE_POINT_FILTER(PCGExFilter::Labels::SourceFiltersLabel, "Filters which points can be processed as overlapping", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters which points can be processed as overlapping", PCGExFactories::PointFilters, false)
 
 protected:
 	virtual bool HasDynamicPins() const override;

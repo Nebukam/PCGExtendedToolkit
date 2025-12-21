@@ -117,7 +117,7 @@ namespace PCGExEdgeEndpointsCheck
 TArray<FPCGPinProperties> UPCGExEdgeEndpointsCheckFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceVtxFiltersLabel, TEXT("Filters used on endpoints."), Required)
+	PCGEX_PIN_FILTERS(PCGExFilters::Labels::SourceVtxFiltersLabel, TEXT("Filters used on endpoints."), Required)
 	return PinProperties;
 }
 
@@ -129,7 +129,7 @@ UPCGExFactoryData* UPCGExEdgeEndpointsCheckFilterProviderSettings::CreateFactory
 
 	Super::CreateFactory(InContext, NewFactory);
 
-	if (!GetInputFactories(InContext, PCGExFilter::Labels::SourceVtxFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
+	if (!GetInputFactories(InContext, PCGExFilters::Labels::SourceVtxFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

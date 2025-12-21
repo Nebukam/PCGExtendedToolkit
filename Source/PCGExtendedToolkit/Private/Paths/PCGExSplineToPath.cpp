@@ -13,7 +13,7 @@
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 #include "Paths/PCGExPathProcessor.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineToPathElement"
 #define PCGEX_NAMESPACE SplineToPath

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Math/PCGExMath.h"
 #include "PCGExMatchByIndex.generated.h"
 
 namespace PCGExData

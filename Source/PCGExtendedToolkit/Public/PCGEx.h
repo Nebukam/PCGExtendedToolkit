@@ -24,9 +24,6 @@ namespace PCGEx
 
 	const FName DEPRECATED_NAME = TEXT("#DEPRECATED");
 
-	const FName PreviousAttributeName = TEXT("#Previous");
-	const FName PreviousNameAttributeName = TEXT("#PreviousName");
-
 	const FName SourceTargetsLabel = TEXT("Targets");
 	const FName SourceSourcesLabel = TEXT("Sources");
 	const FName SourceBoundsLabel = TEXT("Bounds");

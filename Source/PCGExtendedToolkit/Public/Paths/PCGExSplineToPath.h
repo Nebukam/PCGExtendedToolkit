@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGSplineStruct.h"
 #include "Details/PCGExDetailsFiltering.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"

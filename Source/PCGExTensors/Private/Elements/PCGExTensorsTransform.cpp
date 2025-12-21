@@ -16,7 +16,7 @@ TArray<FPCGPinProperties> UPCGExTensorsTransformSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, FPCGExDataTypeInfoTensor::AsId())
-	PCGEX_PIN_FILTERS(PCGExFilter::Labels::SourceStopConditionLabel, "Transformed points will be tested against those filters, and transform will stop at first fail. Only a small subset of PCGEx are supported.", Normal)
+	PCGEX_PIN_FILTERS(PCGExFilters::Labels::SourceStopConditionLabel, "Transformed points will be tested against those filters, and transform will stop at first fail. Only a small subset of PCGEx are supported.", Normal)
 	return PinProperties;
 }
 
@@ -45,7 +45,7 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	GetInputFactories(Context, PCGExFilter::Labels::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExFilters::Labels::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters, false);
 
 	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
 

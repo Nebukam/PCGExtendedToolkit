@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-#include "PCGExPaths.h"
+#include "PCGExPath.h"
 #include "Details/PCGExSettingsMacros.h"
 
 #include "Sampling/PCGExSampling.h"

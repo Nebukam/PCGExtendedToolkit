@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Collections/Core/PCGExComponentDescriptors.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "GeometryScript/MeshRepairFunctions.h"

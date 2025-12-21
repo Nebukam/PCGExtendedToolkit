@@ -7,7 +7,7 @@
 #include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 
 #include "Shapes/PCGExShapeBuilderOperation.h"

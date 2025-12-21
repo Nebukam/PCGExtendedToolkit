@@ -4,11 +4,11 @@
 #include "Core/PCGExClustersProcessor.h"
 
 #include "Clusters/PCGExClusterDataLibrary.h"
-#include "Clusters/PCGExClusterHelpers.h"
+#include "Clusters/PCGExClustersHelpers.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Filters/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExGraphCommon.h"
 #include "Heuristics/PCGExHeuristicsCommon.h"

@@ -12,13 +12,13 @@
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "Clusters/PCGExCluster.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const
 {

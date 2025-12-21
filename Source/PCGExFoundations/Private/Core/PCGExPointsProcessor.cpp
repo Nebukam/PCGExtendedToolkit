@@ -5,7 +5,7 @@
 
 #include "PCGPin.h"
 #include "Data/PCGExPointIO.h"
-#include "Filters/PCGExPointFilter.h"
+#include "Core/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

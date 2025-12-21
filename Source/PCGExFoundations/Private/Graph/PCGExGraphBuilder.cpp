@@ -9,7 +9,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
-#include "Clusters/PCGExClusterHelpers.h"
+#include "Clusters/PCGExClustersHelpers.h"
 #include "Graph/PCGExGraph.h"
 #include "Clusters/PCGExClusterCommon.h"
 #include "Graph/PCGExSubGraph.h"
@@ -48,7 +48,7 @@ namespace PCGExGraph
 		PCGEX_SHARED_CONTEXT_VOID(NodeDataFacade->Source->GetContextHandle())
 
 		const UPCGBasePointData* NodePointData = NodeDataFacade->Source->GetOutIn();
-		PairId = NodeDataFacade->Source->Tags->Set<int64>(Labels::TagStr_PCGExCluster, NodePointData->GetUniqueID());
+		PairId = NodeDataFacade->Source->Tags->Set<int64>(PCGExCluster::Labels::TagStr_PCGExCluster, NodePointData->GetUniqueID());
 
 
 		// We initialize from the number of output point if it's greater than 0 at init time
@@ -76,7 +76,7 @@ namespace PCGExGraph
 		Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
 		EdgesIO = MakeShared<PCGExData::FPointIOCollection>(SharedContext.Get());
-		EdgesIO->OutputPin = Labels::OutputEdgesLabel;
+		EdgesIO->OutputPin = PCGExCluster::Labels::OutputEdgesLabel;
 	}
 
 	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
@@ -201,7 +201,7 @@ namespace PCGExGraph
 						MortonHash[i] = PCGEx::FIndexKey(Idx, (static_cast<uint64>(P.X) << 42) ^ (static_cast<uint64>(P.Y) << 21) ^ static_cast<uint64>(P.Z));
 					)
 
-					PCGEx::RadixSort(MortonHash);
+					PCGExSortingHelpers::RadixSort(MortonHash);
 
 					PCGEX_PARALLEL_FOR(
 						NumValidNodes,
@@ -239,7 +239,7 @@ namespace PCGExGraph
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::VtxEndpoints);
 
-			const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Labels::Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(PCGExCluster::Labels::Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
 			const TSharedPtr<PCGExData::TArrayBuffer<int64>> ElementsVtxEndpointWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(VtxEndpointWriter);
 
 			TArray<int64>& VtxEndpoints = *ElementsVtxEndpointWriter->GetOutValues().Get();

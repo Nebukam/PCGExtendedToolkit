@@ -15,7 +15,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSocketsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

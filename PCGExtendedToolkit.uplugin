@@ -17,35 +17,7 @@
   "Installed": false,
   "Modules": [
     {
-      "Name": "PCGExCore",
-      "_comment": "📌REQUIRED",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
       "Name": "PCGExFoundations",
-      "_comment": "📌REQUIRED",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExCompositing",
       "_comment": "📌REQUIRED",
       "Type": "Runtime",
       "LoadingPhase": "Default",

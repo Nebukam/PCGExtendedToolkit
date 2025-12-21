@@ -46,7 +46,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"Niagara",
 				"PCGExCore",
 				"PCGExFoundations",
-				"PCGExCompositing",
+				"PCGExBlending",
 			}
 		);
 

@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "Data/PCGExPointFilter.h"
 #include "PCGExVersion.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 #include "PCGExPolyPathFilterFactory.generated.h"
 
 namespace PCGExPathInclusion

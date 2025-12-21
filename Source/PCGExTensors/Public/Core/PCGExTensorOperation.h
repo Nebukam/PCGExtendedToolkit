@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExTensor.h"
-#include "Paths/PCGExPaths.h"
+#include "Paths/PCGExPath.h"
 
 namespace PCGExDetails
 {

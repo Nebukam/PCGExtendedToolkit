@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsIntersection.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExBlending.h"
 

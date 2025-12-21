@@ -6,7 +6,7 @@
 #include "Core/PCGExContext.h"
 #include "PCGExMath.h"
 #include "Collections/PCGExBitmaskCollection.h"
-#include "Bitmasks/PCGExBitmaskDetails.h"
+#include "Data/Bitmasks/PCGExBitmaskDetails.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 

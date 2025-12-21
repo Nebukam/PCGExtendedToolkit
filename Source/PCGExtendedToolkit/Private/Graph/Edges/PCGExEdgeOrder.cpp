@@ -5,7 +5,7 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataPreloader.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Clusters/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "EdgeOrder"
