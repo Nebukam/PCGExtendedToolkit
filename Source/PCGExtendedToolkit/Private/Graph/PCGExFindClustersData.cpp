@@ -6,7 +6,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExClusterDataLibrary.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindClustersDataElement"

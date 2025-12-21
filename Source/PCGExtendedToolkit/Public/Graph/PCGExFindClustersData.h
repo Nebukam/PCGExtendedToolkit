@@ -8,7 +8,7 @@
 #include "PCGExLabels.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Union/PCGExIntersections.h"
+#include "Graphs/Union/PCGExIntersections.h"
 #include "PCGExFindClustersData.generated.h"
 
 UENUM()

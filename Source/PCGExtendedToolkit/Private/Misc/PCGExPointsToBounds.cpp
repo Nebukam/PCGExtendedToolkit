@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeo.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"

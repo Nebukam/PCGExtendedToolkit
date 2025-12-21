@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Core/PCGExGraphDetails.h"
+#include "Graphs/PCGExGraphDetails.h"
 
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointElements.h"

@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Union/PCGExIntersections.h"
+#include "Graphs/Union/PCGExIntersections.h"
 
 #include "Async/ParallelFor.h"
 #include "Details/PCGExIntersectionDetails.h"
@@ -12,8 +12,8 @@
 #include "Clusters/PCGExEdge.h"
 #include "Data/PCGExData.h"
 #include "Core/PCGExUnionData.h"
-#include "Core/PCGExGraph.h"
-#include "Core/PCGExGraphMetadata.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphMetadata.h"
 #include "PCGExMatching/Public/Helpers/PCGExTargetsHandler.h"
 
 namespace PCGExGraph

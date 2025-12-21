@@ -9,7 +9,7 @@
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotNavmeshElement"

@@ -13,7 +13,7 @@
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleVtxByIDElement"
 #define PCGEX_NAMESPACE SampleVtxByID

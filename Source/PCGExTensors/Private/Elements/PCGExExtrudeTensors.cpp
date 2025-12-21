@@ -9,7 +9,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 #include "Paths/PCGExPathProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExExtrudeTensorsElement"

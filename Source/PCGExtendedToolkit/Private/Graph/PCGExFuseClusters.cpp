@@ -7,9 +7,9 @@
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
 #include "Clusters/PCGExCluster.h"
-#include "Union/PCGExIntersections.h"
+#include "Graphs/Union/PCGExIntersections.h"
 #include "Graph/Data/PCGExClusterData.h"
-#include "Union/PCGExUnionProcessor.h"
+#include "Graphs/Union/PCGExUnionProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

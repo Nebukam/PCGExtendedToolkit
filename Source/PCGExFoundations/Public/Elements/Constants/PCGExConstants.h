@@ -11,9 +11,10 @@
 #include "Core/PCGExContext.h"
 #include "PCGExGlobalSettings.h"
 #include "Details/PCGExMacros.h"
-#include "Core/PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Containers/PCGExManagedObjects.h"
+#include "Core/PCGExElement.h"
+#include "Core/PCGExSettings.h"
 #include "PCGExConstants.generated.h"
 
 

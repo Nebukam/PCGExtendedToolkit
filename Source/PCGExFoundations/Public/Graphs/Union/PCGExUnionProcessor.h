@@ -7,8 +7,8 @@
 #include "Details/PCGExBlendingDetails.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExIntersectionDetails.h"
-#include "Core/PCGExGraphDetails.h"
-#include "Core/PCGExGraphMetadata.h"
+#include "Graphs/PCGExGraphDetails.h"
+#include "Graphs/PCGExGraphMetadata.h"
 
 struct FPCGExCarryOverDetails;
 

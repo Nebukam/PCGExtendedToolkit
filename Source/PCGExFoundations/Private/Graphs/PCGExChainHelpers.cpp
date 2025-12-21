@@ -1,13 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Helpers/PCGExChainHelpers.h"
+#include "Graphs/PCGExChainHelpers.h"
 
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/Artifacts/PCGExChain.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 
 namespace PCGExCluster
 {

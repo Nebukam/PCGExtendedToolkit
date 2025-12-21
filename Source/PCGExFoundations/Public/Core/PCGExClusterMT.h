@@ -7,7 +7,7 @@
 #include "Clusters/PCGExEdgeDirectionDetails.h"
 #include "Compute/PCGDataDescription.h"
 #include "Core/PCGExContext.h"
-#include "Core/PCGExGraphDetails.h"
+#include "Graphs/PCGExGraphDetails.h"
 #include "Math/PCGExProjectionDetails.h"
 
 #if PCGEX_ENGINE_VERSION > 506

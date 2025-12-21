@@ -3,15 +3,15 @@
 
 #include "Core/PCGExClustersProcessor.h"
 
+#include "PCGExHeuristicsCommon.h"
 #include "Clusters/PCGExClusterDataLibrary.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExPointFilter.h"
-#include "Core/PCGExGraph.h"
-#include "Graph/PCGExGraphCommon.h"
-#include "Heuristics/PCGExHeuristicsCommon.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphCommon.h"
 #include "Sorting/PCGExSortingRuleProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

@@ -10,6 +10,8 @@
 
 #include "PCGExFitting.generated.h"
 
+struct FPCGExFittingVariations;
+
 namespace PCGExData
 {
 }

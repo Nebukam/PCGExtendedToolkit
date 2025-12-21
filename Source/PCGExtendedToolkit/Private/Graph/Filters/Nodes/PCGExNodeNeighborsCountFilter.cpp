@@ -8,7 +8,7 @@
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clusters/PCGExCluster.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
 #define PCGEX_NAMESPACE NodeNeighborsCountFilter

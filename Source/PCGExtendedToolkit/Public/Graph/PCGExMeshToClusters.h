@@ -8,7 +8,7 @@
 #include "Transform/PCGExFitting.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForward.h"
-#include "Core/PCGExGraphDetails.h"
+#include "Graphs/PCGExGraphDetails.h"
 
 
 #include "Geometry/PCGExGeoMesh.h"

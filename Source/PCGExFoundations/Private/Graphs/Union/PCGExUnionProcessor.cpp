@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Union/PCGExUnionProcessor.h"
+#include "Graphs/Union/PCGExUnionProcessor.h"
 
 #include "PCGExGlobalSettings.h"
 #include "Blenders/PCGExMetadataBlender.h"
@@ -11,9 +11,9 @@
 #include "Core/PCGExElement.h"
 #include "Core/PCGExProxyDataBlending.h"
 #include "Data/PCGExData.h"
-#include "Core/PCGExGraph.h"
-#include "Core/PCGExGraphBuilder.h"
-#include "Union/PCGExIntersections.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Graphs/Union/PCGExIntersections.h"
 
 namespace PCGExGraph
 {

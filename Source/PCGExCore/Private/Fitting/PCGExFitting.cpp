@@ -5,6 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Fitting/PCGExFittingVariations.h"
 #include "Math/PCGExMathBounds.h"
 
 void FPCGExScaleToFitDetails::Process(const PCGExData::FPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const

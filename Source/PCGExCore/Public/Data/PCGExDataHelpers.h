@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDataCommon.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "Helpers/PCGExMetaHelpers.h"
 
@@ -14,15 +15,6 @@ namespace PCGExData
 {
 	class FPointIO;
 }
-
-UENUM(BlueprintType)
-enum class EPCGExNumericOutput : uint8
-{
-	Double = 0,
-	Float  = 1,
-	Int32  = 2,
-	Int64  = 3,
-};
 
 namespace PCGExData
 {

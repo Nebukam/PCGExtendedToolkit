@@ -13,7 +13,7 @@
 #include "Details/PCGExBlendingDetails.h"
 
 
-#include "Union/PCGExIntersections.h"
+#include "Graphs/Union/PCGExIntersections.h"
 
 #include "PCGExFusePoints.generated.h"
 

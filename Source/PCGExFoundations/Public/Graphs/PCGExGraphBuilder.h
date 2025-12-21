@@ -8,7 +8,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGraphCommon.h"
 #include "Data/PCGExDataCommon.h"
-#include "Core/PCGExGraphDetails.h"
+#include "Graphs/PCGExGraphDetails.h"
 #include "Utils/PCGValueRange.h"
 
 namespace PCGEx

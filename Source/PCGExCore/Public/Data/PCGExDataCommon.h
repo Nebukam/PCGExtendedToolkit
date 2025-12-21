@@ -37,6 +37,15 @@ enum class EPCGExDataInputValueType : uint8
 	Attribute = 1 UMETA(DisplayName = "@Data", Tooltip="Attribute. Can only read from @Data domain.", ActionIcon="DataAttribute"),
 };
 
+UENUM(BlueprintType)
+enum class EPCGExNumericOutput : uint8
+{
+	Double = 0,
+	Float  = 1,
+	Int32  = 2,
+	Int64  = 3,
+};
+
 namespace PCGExData
 {
 	enum class EIOInit : uint8

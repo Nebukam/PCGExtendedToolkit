@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
+#include "Factories/PCGExFactoryData.h"
 
 #include "PCGExProbeFactoryProvider.generated.h"
 

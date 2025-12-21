@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Core/PCGExGraphDetails.h"
+#include "Graphs/PCGExGraphDetails.h"
 
 #include "PCGExBuildConvexHull.generated.h"
 

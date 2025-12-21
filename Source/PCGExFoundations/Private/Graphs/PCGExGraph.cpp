@@ -1,11 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 
 #include "PCGExH.h"
 #include "Clusters/PCGExEdge.h"
-#include "Core/PCGExSubGraph.h"
+#include "Graphs/PCGExSubGraph.h"
 #include "Helpers/PCGExMetaHelpers.h"
 
 namespace PCGExGraph

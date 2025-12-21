@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
 #include "Core/PCGExPathProcessor.h"
-#include "Union/PCGExUnionProcessor.h"
-#include "Union/PCGExIntersections.h"
+#include "Graphs/Union/PCGExUnionProcessor.h"
+#include "Graphs/Union/PCGExIntersections.h"
 #include "PCGExPathToClusters.generated.h"
 
 namespace PCGExPathToClusters

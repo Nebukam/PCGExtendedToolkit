@@ -6,7 +6,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Async/ParallelFor.h"
 #include "PCGExVersion.h"

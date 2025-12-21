@@ -9,7 +9,7 @@
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 

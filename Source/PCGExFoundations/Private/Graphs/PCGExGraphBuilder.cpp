@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Core/PCGExGraphBuilder.h"
+#include "Graphs/PCGExGraphBuilder.h"
 
 #include "Core/PCGExContext.h"
 #include "Data/PCGExClusterData.h"
@@ -10,9 +10,9 @@
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 #include "Clusters/PCGExClusterCommon.h"
-#include "Core/PCGExSubGraph.h"
+#include "Graphs/PCGExSubGraph.h"
 #include "Sorting/PCGExSortingHelpers.h"
 
 

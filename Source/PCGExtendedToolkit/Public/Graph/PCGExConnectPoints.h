@@ -7,7 +7,7 @@
 #include "PCGExLabels.h"
 #include "PCGExOctree.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Core/PCGExGraphDetails.h"
+#include "Graphs/PCGExGraphDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "PCGExConnectPoints.generated.h"
 

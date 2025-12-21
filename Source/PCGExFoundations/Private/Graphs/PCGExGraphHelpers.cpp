@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Core/PCGExGraphHelpers.h"
+#include "Graphs/PCGExGraphHelpers.h"
 
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExEdge.h"

@@ -9,7 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Details/PCGExDistancesDetails.h"
-#include "Core/PCGExGraph.h"
+#include "Graphs/PCGExGraph.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathShift.h"
 #include "Sampling/PCGExSampling.h"

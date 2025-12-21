@@ -11,7 +11,7 @@
 #include "Math/PCGExBoundsCloud.h"
 
 
-#include "Union/PCGExIntersections.h"
+#include "Graphs/Union/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
 
 class UPCGExSubPointsBlendInstancedFactory;
