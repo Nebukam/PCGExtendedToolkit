@@ -7,11 +7,21 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExLayout.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSorting.h"
 #include "Details/PCGExSettingsMacros.h"
-#include "Transform/PCGExTransform.h"
+#include "Sorting/PCGExSortingCommon.h"
+#include "Math/PCGExUVW.h"
 
 #include "PCGExBinPacking.generated.h"
+
+namespace PCGExSorting
+{
+	class FSorter;
+}
+
+namespace PCGExData
+{
+	struct FMutablePoint;
+}
 
 UENUM()
 enum class EPCGExBinFreeSpacePartitionMode : uint8
@@ -206,7 +216,7 @@ namespace PCGExBinPacking
 	protected:
 		TSharedPtr<FBinSplit> Splitter;
 		double MinOccupation = 0;
-		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+		TSharedPtr<PCGExSorting::FSorter> Sorter;
 		TArray<TSharedPtr<FBin>> Bins;
 		TBitArray<> Fitted;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> PaddingBuffer;

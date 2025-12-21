@@ -8,6 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
+#include "Core/PCGExOpStats.h"
 
 namespace PCGExBlending
 {

@@ -8,8 +8,8 @@
 
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
-#include "AssetStaging/PCGExSocketStaging.h"
-#include "AssetStaging/PCGExStaging.h"
+#include "Elements/PCGExSocketStaging.h"
+#include "Elements/PCGExStaging.h"
 #include "Core/PCGExAssetLoader.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -26,7 +26,7 @@ PCGEX_INITIALIZE_ELEMENT(SampleSockets)
 TArray<FPCGPinProperties> UPCGExSampleSocketsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExStaging::OutputSocketLabel, "Socket points.", Normal)
+	PCGEX_PIN_POINTS(PCGExStaging::Labels::OutputSocketLabel, "Socket points.", Normal)
 	return PinProperties;
 }
 
@@ -68,7 +68,7 @@ bool FPCGExSampleSocketsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->SocketsCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->SocketsCollection->OutputPin = PCGExStaging::OutputSocketLabel;
+	Context->SocketsCollection->OutputPin = PCGExStaging::Labels::OutputSocketLabel;
 
 	return true;
 }

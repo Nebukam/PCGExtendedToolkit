@@ -6,7 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeo.h"
-#include "Geometry/PCGExGeoTasks.h"
+#include "Geometry/PCGExFittingTasks.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCopyToPointsElement"
 #define PCGEX_NAMESPACE CopyToPoints
@@ -115,7 +115,7 @@ namespace PCGExCopyToPoints
 
 			Dupes[i] = Dupe;
 
-			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, Dupe, &Context->TransformDetails)
+			PCGEX_LAUNCH(PCGExFitting::Tasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, Dupe, &Context->TransformDetails)
 		}
 
 		if (Copies > 0) { FPlatformAtomics::InterlockedAdd(&NumCopies, Copies); }

@@ -77,7 +77,7 @@ namespace PCGExBuildConvexHull
 	{
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExMath::TDelaunay3> Delaunay;
+		TSharedPtr<PCGExMath::Geo::TDelaunay3> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;

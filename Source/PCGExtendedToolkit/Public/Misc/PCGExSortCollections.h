@@ -46,7 +46,7 @@ struct FPCGExSortCollectionsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSortCollectionsElement;
 	TArray<FPCGTaggedData> Datas;
-	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+	TSharedPtr<PCGExSorting::FSorter> Sorter;
 };
 
 class FPCGExSortCollectionsElement final : public FPCGExPointsProcessorElement

@@ -7,7 +7,6 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExTransform.h"
 #include "Data/Utils/PCGExDataForward.h"
 
 

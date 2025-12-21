@@ -15,7 +15,7 @@ bool UPCGExPickerFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	return PCGExFactories::GetInputFactories(InContext, PCGExPicker::SourcePickersLabel, PickerFactories, {PCGExFactories::EType::IndexPicker});
+	return PCGExFactories::GetInputFactories(InContext, PCGExPickers::Labels::SourcePickersLabel, PickerFactories, {PCGExFactories::EType::IndexPicker});
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExPickerFilterFactory::CreateFilter() const
@@ -58,7 +58,7 @@ bool PCGExPointFilter::FPickerFilter::Test(const TSharedPtr<PCGExData::FPointIO>
 TArray<FPCGPinProperties> UPCGExPickerFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers", Required, FPCGExDataTypeInfoPicker::AsId())
+	PCGEX_PIN_FACTORIES(PCGExPickers::Labels::SourcePickersLabel, "Pickers", Required, FPCGExDataTypeInfoPicker::AsId())
 	return PinProperties;
 }
 

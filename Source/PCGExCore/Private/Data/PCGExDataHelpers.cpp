@@ -8,7 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Types/PCGExTypes.h"
 
-namespace PCGExDataHelpers
+namespace PCGExData
 {
 	namespace Helpers
 	{

@@ -7,7 +7,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Geometry/PCGExGeoDelaunay.h"
+#include "Math/Geo/PCGExDelaunay.h"
 #include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelax2DElement"
@@ -82,7 +82,7 @@ namespace PCGExLloydRelax2D
 		{
 			NumIterations--;
 
-			TUniquePtr<PCGExMath::TDelaunay2> Delaunay = MakeUnique<PCGExMath::TDelaunay2>();
+			TUniquePtr<PCGExMath::Geo::TDelaunay2> Delaunay = MakeUnique<PCGExMath::Geo::TDelaunay2>();
 			TArray<FVector>& Positions = Processor->ActivePositions;
 
 			//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
@@ -99,7 +99,7 @@ namespace PCGExLloydRelax2D
 			for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
 
 			FVector Centroid;
-			for (const PCGExMath::FDelaunaySite2& Site : Delaunay->Sites)
+			for (const PCGExMath::Geo::FDelaunaySite2& Site : Delaunay->Sites)
 			{
 				PCGExMath::GetCentroid(Positions, Site.Vtx, Centroid);
 				for (const int32 PtIndex : Site.Vtx)

@@ -1,11 +1,11 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Collections/Core/PCGExCollectionHelpers.h"
+#include "Core/PCGExCollectionHelpers.h"
 
 #include "PCGParamData.h"
-#include "Details/PCGExDetailsStaging.h"
-#include "Collections/Core/PCGExAssetCollection.h"
+#include "Details/PCGExStagingDetails.h"
+#include "Core/PCGExAssetCollection.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 
 namespace PCGExCollectionHelpers

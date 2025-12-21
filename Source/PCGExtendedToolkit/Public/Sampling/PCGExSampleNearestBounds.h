@@ -310,7 +310,7 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
-	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+	TSharedPtr<PCGExSorting::FSorter> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
 

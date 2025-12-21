@@ -6,7 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Geometry/PCGExGeoTasks.h"
+#include "Geometry/PCGExFittingTasks.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -162,7 +162,7 @@ namespace PCGExCopyClustersToPoints
 			EdgesDupes[i] = EdgeDupe;
 			PCGExCluster::Helpers::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
 
-			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails)
+			PCGEX_LAUNCH(PCGExFitting::Tasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails)
 		}
 
 		if (Copies > 0) { FPlatformAtomics::InterlockedAdd(&NumCopies, Copies); }
@@ -258,7 +258,7 @@ namespace PCGExCopyClustersToPoints
 			VtxDupes[i] = VtxDupe;
 			VtxTag[i] = OutId;
 
-			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, VtxDupe, &Context->TransformDetails)
+			PCGEX_LAUNCH(PCGExFitting::Tasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, VtxDupe, &Context->TransformDetails)
 
 			Context->TargetsAttributesToClusterTags.Tag(Context->TargetsDataFacade->GetInPoint(i), VtxDupe);
 			Context->TargetsForwardHandler->Forward(i, VtxDupe->GetOut()->Metadata);

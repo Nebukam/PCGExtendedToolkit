@@ -6,8 +6,9 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExPicker.h"
+#include "PCGExPickersCommon.h"
 #include "Factories/PCGExFactoryData.h"
+#include "Math/PCGExMath.h"
 
 #include "PCGExPickerFactoryProvider.generated.h"
 
@@ -27,6 +28,37 @@ struct FPCGExDataTypeInfoPicker : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXPICKERS_API)
+};
+
+
+USTRUCT(BlueprintType)
+struct PCGEXPICKERS_API FPCGExPickerConfigBase
+{
+	GENERATED_BODY()
+
+	FPCGExPickerConfigBase() = default;
+	virtual ~FPCGExPickerConfigBase() = default;
+
+	/** Whether to treat values as discrete indices or relative ones */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTreatAsNormalized = false;
+
+	/** How to truncate relative picks */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bTreatAsNormalized", EditConditionHides))
+	EPCGExTruncateMode TruncateMode = EPCGExTruncateMode::Round;
+
+	/** How to sanitize index pick when they're out-of-bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore;
+
+
+	virtual void Sanitize()
+	{
+	}
+
+	virtual void Init()
+	{
+	}
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -82,11 +114,11 @@ protected:
 	//~End UPCGSettings
 
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExPicker::Labels::OutputPickerLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExPickers::Labels::OutputPickerLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };
 
-namespace PCGExPicker
+namespace PCGExPickers
 {
 	PCGEXPICKERS_API bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks);
 }

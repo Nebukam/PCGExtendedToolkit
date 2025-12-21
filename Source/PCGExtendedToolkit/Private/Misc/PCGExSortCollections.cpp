@@ -45,7 +45,7 @@ bool FPCGExSortCollectionsElement::Boot(FPCGExContext* InContext) const
 
 	Context->Datas = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
 
-	Context->Sorter = MakeShared<PCGExSorting::FPointSorter>(RuleConfigs);
+	Context->Sorter = MakeShared<PCGExSorting::FSorter>(RuleConfigs);
 	Context->Sorter->SortDirection = Settings->SortDirection;
 
 	return Context->Sorter->Init(InContext, Context->Datas);

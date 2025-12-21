@@ -9,7 +9,7 @@
 #include "Data/PCGExPointIOMerger.h"
 
 
-#include "Geometry/PCGExGeoDelaunay.h"
+#include "Math/Geo/PCGExDelaunay.h"
 #include "Clusters/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectClusters"
@@ -203,7 +203,7 @@ namespace PCGExConnectClusters
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)
 		{
-			const TUniquePtr<PCGExMath::TDelaunay3> Delaunay = MakeUnique<PCGExMath::TDelaunay3>();
+			const TUniquePtr<PCGExMath::Geo::TDelaunay3> Delaunay = MakeUnique<PCGExMath::Geo::TDelaunay3>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
@@ -217,7 +217,7 @@ namespace PCGExConnectClusters
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay2D)
 		{
-			const TUniquePtr<PCGExMath::TDelaunay2> Delaunay = MakeUnique<PCGExMath::TDelaunay2>();
+			const TUniquePtr<PCGExMath::Geo::TDelaunay2> Delaunay = MakeUnique<PCGExMath::Geo::TDelaunay2>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);

@@ -8,9 +8,9 @@
 #include "Data/PCGExPointIO.h"
 #include "GameFramework/Actor.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Geometry/PCGExGeoDelaunay.h"
+#include "Math/Geo/PCGExDelaunay.h"
 #include "Geometry/PCGExGeoMesh.h"
-#include "Geometry/PCGExGeoTasks.h"
+#include "Geometry/PCGExFittingTasks.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -52,7 +52,7 @@ namespace PCGExGraphTask
 			PCGExDataId OutId;
 			PCGExCluster::Helpers::SetClusterVtx(VtxDupe, OutId);
 
-			PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
+			PCGEX_MAKE_SHARED(VtxTask, PCGExFitting::Tasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
 			Launch(VtxTask);
 
 			for (const TSharedPtr<PCGExData::FPointIO>& Edges : GraphBuilder->EdgesIO->Pairs)
@@ -63,7 +63,7 @@ namespace PCGExGraphTask
 				EdgeDupe->IOIndex = TaskIndex;
 				PCGExCluster::Helpers::MarkClusterEdges(EdgeDupe, OutId);
 
-				PCGEX_MAKE_SHARED(EdgeTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, EdgeDupe, TransformDetails);
+				PCGEX_MAKE_SHARED(EdgeTask, PCGExFitting::Tasks::FTransformPointIO, TaskIndex, PointIO, EdgeDupe, TransformDetails);
 				Launch(EdgeTask);
 			}
 
@@ -78,12 +78,12 @@ namespace PCGExMeshToCluster
 	class FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FExtractMeshAndBuildGraph(const int32 InTaskIndex, const TSharedPtr<PCGExMath::FGeoStaticMesh>& InMesh)
+		FExtractMeshAndBuildGraph(const int32 InTaskIndex, const TSharedPtr<PCGExMesh::FGeoStaticMesh>& InMesh)
 			: FPCGExIndexedTask(InTaskIndex), Mesh(InMesh)
 		{
 		}
 
-		TSharedPtr<PCGExMath::FGeoStaticMesh> Mesh;
+		TSharedPtr<PCGExMesh::FGeoStaticMesh> Mesh;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
@@ -482,7 +482,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::FPointIO> Targets = Context->MainPoints->Pairs[0];
 	Context->MeshIdx.SetNum(Targets->GetNum());
 
-	Context->StaticMeshMap = MakeShared<PCGExMath::FGeoStaticMeshMap>();
+	Context->StaticMeshMap = MakeShared<PCGExMesh::FGeoStaticMeshMap>();
 	Context->StaticMeshMap->DesiredTriangulationType = Settings->GraphOutputType;
 
 	Context->RootVtx = MakeShared<PCGExData::FPointIOCollection>(Context); // Make this pinless

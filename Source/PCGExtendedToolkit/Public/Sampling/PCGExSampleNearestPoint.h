@@ -344,7 +344,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	TArray<TSharedPtr<PCGExData::TBuffer<double>>> TargetWeights;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
-	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+	TSharedPtr<PCGExSorting::FSorter> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
 

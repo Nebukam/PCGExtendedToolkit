@@ -1,12 +1,12 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetStaging/PCGExAssetCollectionToSet.h"
-
+#include "Elements/PCGExAssetCollectionToSet.h"
 
 #include "PCGGraph.h"
 #include "PCGParamData.h"
 #include "PCGPin.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Collections/PCGExActorCollection.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

@@ -7,8 +7,9 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExStaging.h"
+#include "Helpers/PCGExCollectionsHelpers.h"
 #include "Core/PCGExPointFilter.h"
+#include "Details/PCGExSocketOutputDetails.h"
 
 #include "PCGExSocketStaging.generated.h"
 
@@ -47,7 +48,7 @@ struct FPCGExSocketStagingContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSocketStagingElement;
 
-	TSharedPtr<PCGExStaging::FPickUnpacker> CollectionPickDatasetUnpacker;
+	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionPickDatasetUnpacker;
 	FPCGExSocketOutputDetails OutputSocketDetails;
 	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
 
@@ -70,7 +71,7 @@ namespace PCGExSocketStaging
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSocketStagingContext, UPCGExSocketStagingSettings>
 	{
-		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
+		TSharedPtr<PCGExCollections::FSocketHelper> SocketHelper;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashGetter;
 
 	public:

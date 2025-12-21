@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHasher.h"
+#include "Data/Utils/PCGExAttributeHasher.h"
 
 
 #include "PCGExAttributeHash.generated.h"

@@ -11,8 +11,8 @@
 #include "PCGExProbeOperation.h"
 
 
-#include "Transform/Tensors/PCGExTensor.h"
-#include "Transform/Tensors/PCGExTensorHandler.h"
+#include "Tensors/PCGExTensor.h"
+#include "Tensors/PCGExTensorHandler.h"
 
 #include "PCGExProbeTensor.generated.h"
 

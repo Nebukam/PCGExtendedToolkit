@@ -138,7 +138,7 @@ namespace PCGExReversePointOrder
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>
 	{
 		TArray<FPCGExSwapAttributePairDetails> SwapPairs;
-		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+		TSharedPtr<PCGExSorting::FSorter> Sorter;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 

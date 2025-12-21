@@ -13,6 +13,7 @@
 #include "Graphs/PCGExGraph.h"
 #include "Graphs/PCGExGraphCommon.h"
 #include "Sorting/PCGExSortingRuleProvider.h"
+#include "Core/PCGExHeuristicsFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

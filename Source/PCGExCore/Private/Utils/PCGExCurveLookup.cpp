@@ -1,6 +1,6 @@
 ﻿#include "Utils/PCGExCurveLookup.h"
 
-#include "Streaming/PCGExStreamingHelpers.h"
+#include "Helpers/PCGExStreamingHelpers.h"
 
 PCGExFloatLUT FPCGExCurveLookupDetails::MakeFloatLookup(const FRuntimeFloatCurve& InCurve) const
 {

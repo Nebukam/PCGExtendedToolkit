@@ -4,6 +4,7 @@
 #include "Pickers/PCGExPickerConstantRange.h"
 
 #include "Containers/PCGExManagedObjects.h"
+#include "Math/PCGExMath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantRange"
 #define PCGEX_NAMESPACE CreatePickerConstantRange

@@ -8,7 +8,7 @@
 #include "IDetailChildrenBuilder.h"
 #include "PCGExGlobalEditorSettings.h"
 #include "PropertyHandle.h"
-#include "Collections/Core/PCGExAssetCollection.h"
+#include "Core/PCGExAssetCollection.h"
 #include "Details/PCGExCustomizationMacros.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Widgets/Text/STextBlock.h"

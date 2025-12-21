@@ -111,7 +111,7 @@ namespace PCGExBuildVoronoiGraph
 	{
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExMath::TVoronoi3> Voronoi;
+		TSharedPtr<PCGExMath::Geo::TVoronoi3> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;

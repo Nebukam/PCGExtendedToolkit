@@ -7,6 +7,7 @@
 
 #include "Core/PCGExAssetCollection.h"
 #include "GameFramework/Actor.h"
+#include "Helpers/PCGExArrayHelpers.h"
 
 #include "PCGExActorCollection.generated.h"
 

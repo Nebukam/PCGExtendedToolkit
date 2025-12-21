@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Data/PCGExPointIOMerger.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 
 
 #include "PCGExMergeVertices.generated.h"

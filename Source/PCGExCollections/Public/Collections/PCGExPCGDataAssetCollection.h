@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "Core/PCGExAssetCollection.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "PCGExPCGDataAssetCollection.generated.h"
 
 class UPCGDataAsset;

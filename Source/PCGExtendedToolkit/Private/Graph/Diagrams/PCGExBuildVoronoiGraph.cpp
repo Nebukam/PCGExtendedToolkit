@@ -9,7 +9,7 @@
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Geometry/PCGExGeoVoronoi.h"
+#include "Math/Geo/PCGExVoronoi.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -101,7 +101,7 @@ namespace PCGExBuildVoronoiGraph
 		TArray<FVector> ActivePositions;
 		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Voronoi = MakeShared<PCGExMath::TVoronoi3>();
+		Voronoi = MakeShared<PCGExMath::Geo::TVoronoi3>();
 
 		if (!Voronoi->Process(ActivePositions))
 		{

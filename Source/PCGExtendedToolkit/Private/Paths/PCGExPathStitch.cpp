@@ -253,7 +253,7 @@ namespace PCGExPathStitch
 		TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules);
 		if (!RuleConfigs.IsEmpty())
 		{
-			const TSharedPtr<PCGExSorting::FPointSorter> Sorter = MakeShared<PCGExSorting::FPointSorter>(RuleConfigs);
+			const TSharedPtr<PCGExSorting::FSorter> Sorter = MakeShared<PCGExSorting::FSorter>(RuleConfigs);
 			Sorter->SortDirection = Settings->SortDirection;
 
 			if (Sorter->Init(Context, Context->Datas))

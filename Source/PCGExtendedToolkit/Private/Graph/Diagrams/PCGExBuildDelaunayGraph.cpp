@@ -8,7 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Geometry/PCGExGeoDelaunay.h"
+#include "Math/Geo/PCGExDelaunay.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Paths/PCGExPath.h"
@@ -110,7 +110,7 @@ namespace PCGExBuildDelaunayGraph
 
 			Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
-			PCGExMath::TDelaunay3* Delaunay = Processor->Delaunay.Get();
+			PCGExMath::Geo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 			const int32 NumSites = Delaunay->Sites.Num();
 
 			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
@@ -179,7 +179,7 @@ namespace PCGExBuildDelaunayGraph
 			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
 			UPCGBasePointData* MutablePoints = SitesIO->GetOut();
 
-			PCGExMath::TDelaunay3* Delaunay = Processor->Delaunay.Get();
+			PCGExMath::Geo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 			const int32 NumSites = Delaunay->Sites.Num();
 
 			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
@@ -230,7 +230,7 @@ namespace PCGExBuildDelaunayGraph
 		TArray<FVector> ActivePositions;
 		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Delaunay = MakeShared<PCGExMath::TDelaunay3>();
+		Delaunay = MakeShared<PCGExMath::Geo::TDelaunay3>();
 
 		bool bProcessed = false;
 		if (Settings->bMarkHull) { bProcessed = Delaunay->Process<false, true>(ActivePositions); }

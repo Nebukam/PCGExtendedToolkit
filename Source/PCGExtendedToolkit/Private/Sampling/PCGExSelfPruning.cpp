@@ -114,7 +114,7 @@ namespace PCGExSelfPruning
 
 		if (Settings->Mode == EPCGExSelfPruningMode::Prune)
 		{
-			TSharedPtr<PCGExSorting::FPointSorter> Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			TSharedPtr<PCGExSorting::FSorter> Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 
 			PCGEX_SHARED_CONTEXT(Context->GetOrCreateHandle())

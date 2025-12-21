@@ -1,22 +1,19 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Collections/Core/PCGExAssetCollection.h"
+#include "Core/PCGExAssetCollection.h"
 
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
 #include "Engine/World.h"
+#include "Helpers/PCGExArrayHelpers.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #endif
-
-#include "PCGEx.h"
-#include "PCGExtendedToolkit.h"
-#include "Details/PCGExMacros.h"
 
 bool FPCGExEntryAccessResult::IsType(PCGExAssetCollection::FTypeId TypeId) const
 {

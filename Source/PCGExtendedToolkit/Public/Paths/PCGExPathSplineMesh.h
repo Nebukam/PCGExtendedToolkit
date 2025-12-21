@@ -205,8 +205,8 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
-		TSharedPtr<PCGExStaging::FDistributionHelper> Helper;
-		TSharedPtr<PCGExStaging::FMicroDistributionHelper> MicroHelper;
+		TSharedPtr<PCGExCollections::FDistributionHelper> Helper;
+		TSharedPtr<PCGExCollections::FMicroDistributionHelper> MicroHelper;
 
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;

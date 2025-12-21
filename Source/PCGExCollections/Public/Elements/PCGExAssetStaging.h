@@ -4,15 +4,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "PCGExGlobalSettings.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExLabels.h"
-
 #include "Core/PCGExPointsProcessor.h"
-#include "Transform/PCGExFitting.h"
-#include "Details/PCGExDetailsStaging.h"
+#include "Details/PCGExSocketOutputDetails.h"
+#include "Details/PCGExStagingDetails.h"
+#include "Fitting/PCGExFitting.h"
 
 #include "PCGExAssetStaging.generated.h"
+
+namespace PCGExCollections
+{
+	class FCollectionSource;
+	class FPickPacker;
+}
 
 namespace PCGExStaging
 {
@@ -124,11 +130,11 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteEntryType = false;
-	
+
 	/** Entry Type Details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteEntryType"))
 	FPCGExEntryTypeDetails EntryType;
-	
+
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
@@ -177,7 +183,7 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 	TObjectPtr<UPCGExAssetCollection> MainCollection;
 	bool bPickMaterials = false;
 
-	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
+	TSharedPtr<PCGExCollections::FPickPacker> CollectionPickDatasetPacker;
 
 	FPCGExSocketOutputDetails OutputSocketDetails;
 	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
@@ -195,7 +201,6 @@ protected:
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
-
 };
 
 namespace PCGExAssetStaging
@@ -217,7 +222,7 @@ namespace PCGExAssetStaging
 		FPCGExFittingVariationsDetails Variations;
 
 		TSharedPtr<TArray<PCGExValueHash>> SourceKeys;
-		TSharedPtr<PCGExStaging::FCollectionSource> Source;
+		TSharedPtr<PCGExCollections::FCollectionSource> Source;
 		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;

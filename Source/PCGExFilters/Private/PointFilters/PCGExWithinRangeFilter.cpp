@@ -3,6 +3,7 @@
 
 #include "PointFilters/PCGExWithinRangeFilter.h"
 
+#include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Pickers/PCGExPickerAttributeSetRanges.h"

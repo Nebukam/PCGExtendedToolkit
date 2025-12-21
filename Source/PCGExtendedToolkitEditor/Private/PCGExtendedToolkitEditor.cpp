@@ -34,7 +34,7 @@
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
-#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
+#include "Tensors/PCGExTensorFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 

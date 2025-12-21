@@ -2,11 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Collections/Core/PCGExAssetGrammar.h"
+#include "Core/PCGExAssetGrammar.h"
 
 #include "UObject/Object.h"
 #include "UObject/Package.h"
-#include "Collections/Core/PCGExAssetCollection.h"
+#include "Core/PCGExAssetCollection.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 
 double FPCGExAssetGrammarDetails::GetSize(const FBox& InBounds, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const

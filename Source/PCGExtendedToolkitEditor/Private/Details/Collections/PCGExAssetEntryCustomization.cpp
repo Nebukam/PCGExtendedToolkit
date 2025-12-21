@@ -9,7 +9,7 @@
 #include "PCGExGlobalEditorSettings.h"
 #include "PropertyHandle.h"
 #include "Collections/PCGExActorCollection.h"
-#include "Collections/Core/PCGExAssetCollection.h"
+#include "Core/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"

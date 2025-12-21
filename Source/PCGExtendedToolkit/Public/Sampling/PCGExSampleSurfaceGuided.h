@@ -336,7 +336,7 @@ namespace PCGExSampleSurfaceGuided
 		TArray<int32> FaceIndex;
 		TArray<int32> MeshIndex;
 		TArray<FVector> HitLocation;
-		TArray<PCGExMath::FMeshData> MeshData;
+		TArray<PCGExMesh::FMeshData> MeshData;
 		TSharedPtr<PCGExMT::TScopedArray<const UStaticMesh*>> ScopedMeshes;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)

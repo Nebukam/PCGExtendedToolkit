@@ -1,17 +1,17 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetStaging/PCGExMeshSelectorStaged.h"
+#include "Elements/PCGExMeshSelectorStaged.h"
 
-#include "PCGExLabels.h"
+#include "Helpers/PCGExCollectionsHelpers.h"
 #include "Data/PCGPointData.h"
 #include "Elements/PCGStaticMeshSpawnerContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 
-#include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Engine/StaticMesh.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Tasks/Task.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PCGExMeshSelectorStaged)
@@ -58,7 +58,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 		return true;
 	}
 
-	const FPCGMetadataAttribute<int64>* HashAttribute = PCGExMetaHelpers::TryGetConstAttribute<int64>(InPointData->Metadata, PCGExStaging::Tag_EntryIdx);
+	const FPCGMetadataAttribute<int64>* HashAttribute = PCGExMetaHelpers::TryGetConstAttribute<int64>(InPointData->Metadata, PCGExCollections::Labels::Tag_EntryIdx);
 
 	if (!HashAttribute)
 	{
@@ -78,12 +78,12 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 			OutPointData->SetNumPoints(NumPoints);
 			InPointData->CopyPointsTo(OutPointData, 0, 0, InPointData->GetNumPoints());
 
-			OutPointData->Metadata->DeleteAttribute(PCGExStaging::Tag_EntryIdx);
+			OutPointData->Metadata->DeleteAttribute(PCGExCollections::Labels::Tag_EntryIdx);
 		}
 	}
 
 	// 1- Build collection map from override attribute set		
-	TSharedPtr<PCGExStaging::FPickUnpacker> CollectionMap = MakeShared<PCGExStaging::FPickUnpacker>();
+	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionMap = MakeShared<PCGExCollections::FPickUnpacker>();
 
 	CollectionMap->UnpackPin(&Context, PCGPinConstants::DefaultParamsLabel);
 
@@ -133,7 +133,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 
 			FPCGExEntryAccessResult Result = CollectionMap->ResolveEntry(Partition.Key, MaterialPick);
 			if (!Result.IsValid() || !Result.Host->IsType(PCGExAssetCollection::TypeIds::Mesh)) { continue; }
-			
+
 			Entry = static_cast<const FPCGExMeshCollectionEntry*>(Result.Entry);
 
 			FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];

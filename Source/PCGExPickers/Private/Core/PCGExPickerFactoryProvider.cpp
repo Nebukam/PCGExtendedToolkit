@@ -42,7 +42,7 @@ UPCGExFactoryData* UPCGExPickerFactoryProviderSettings::CreateFactory(FPCGExCont
 	return Super::CreateFactory(InContext, InFactory);
 }
 
-namespace PCGExPicker
+namespace PCGExPickers
 {
 	bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks)
 	{

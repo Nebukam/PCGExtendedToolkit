@@ -98,7 +98,7 @@ namespace PCGExReversePointOrder
 
 		if (Settings->Method == EPCGExPointReverseMethod::SortingRules)
 		{
-			Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 		}
 		else if (Settings->Method == EPCGExPointReverseMethod::Winding && Settings->ProjectionDetails.bLocalProjectionNormal)

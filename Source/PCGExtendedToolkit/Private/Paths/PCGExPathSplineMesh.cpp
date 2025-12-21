@@ -15,7 +15,7 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "PCGParamData.h"
-#include "AssetStaging/PCGExStaging.h"
+#include "Elements/PCGExStaging.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 
@@ -52,7 +52,7 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 
 	if (CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
-		PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required)
+		PCGEX_PIN_PARAM(PCGExCollections::Labels::SourceAssetCollection, "Attribute set to be used as collection.", Required)
 	}
 
 	return PinProperties;
@@ -80,7 +80,7 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 	}
 	else if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
-		Context->MainCollection = Cast<UPCGExMeshCollection>(Settings->AttributeSetDetails.TryBuildCollection(Context, PCGExAssetCollection::SourceAssetCollection, false));
+		Context->MainCollection = Cast<UPCGExMeshCollection>(Settings->AttributeSetDetails.TryBuildCollection(Context, PCGExCollections::Labels::SourceAssetCollection, false));
 		if (!Context->MainCollection)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
@@ -195,10 +195,10 @@ namespace PCGExPathSplineMesh
 		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
 		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
 
-		Helper = MakeShared<PCGExStaging::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
+		Helper = MakeShared<PCGExCollections::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(PointDataFacade)) { return false; }
 
-		MicroHelper = MakeShared<PCGExStaging::FMicroDistributionHelper>(Settings->MaterialDistributionSettings);
+		MicroHelper = MakeShared<PCGExCollections::FMicroDistributionHelper>(Settings->MaterialDistributionSettings);
 		if (!MicroHelper->Init(PointDataFacade)) { return false; }
 
 		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)

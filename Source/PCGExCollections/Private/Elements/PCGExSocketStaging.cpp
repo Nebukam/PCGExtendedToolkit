@@ -1,11 +1,8 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetStaging/PCGExSocketStaging.h"
+#include "Elements/PCGExSocketStaging.h"
 
-
-#include "PCGExMT.h"
-#include "PCGExScopedContainers.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -27,7 +24,7 @@ TArray<FPCGPinProperties> UPCGExSocketStagingSettings::InputPinProperties() cons
 TArray<FPCGPinProperties> UPCGExSocketStagingSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExStaging::OutputSocketLabel, "Socket points.", Normal)
+	PCGEX_PIN_POINTS(PCGExStaging::Labels::OutputSocketLabel, "Socket points.", Normal)
 	return PinProperties;
 }
 
@@ -37,7 +34,7 @@ bool FPCGExSocketStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SocketStaging)
 
-	Context->CollectionPickDatasetUnpacker = MakeShared<PCGExStaging::FPickUnpacker>();
+	Context->CollectionPickDatasetUnpacker = MakeShared<PCGExCollections::FPickUnpacker>();
 	Context->CollectionPickDatasetUnpacker->UnpackPin(InContext, PCGExSocketStaging::SourceStagingMap);
 
 	if (!Context->CollectionPickDatasetUnpacker->HasValidMapping())
@@ -50,7 +47,7 @@ bool FPCGExSocketStagingElement::Boot(FPCGExContext* InContext) const
 	if (!Context->OutputSocketDetails.Init(Context)) { return false; }
 
 	Context->SocketsCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->SocketsCollection->OutputPin = PCGExStaging::OutputSocketLabel;
+	Context->SocketsCollection->OutputPin = PCGExStaging::Labels::OutputSocketLabel;
 
 	return true;
 }
@@ -91,8 +88,8 @@ namespace PCGExSocketStaging
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
-		EntryHashGetter = PointDataFacade->GetReadable<int64>(PCGExStaging::Tag_EntryIdx, PCGExData::EIOSide::In, true);
-		SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, PointDataFacade->GetNum());
+		EntryHashGetter = PointDataFacade->GetReadable<int64>(PCGExCollections::Labels::Tag_EntryIdx, PCGExData::EIOSide::In, true);
+		SocketHelper = MakeShared<PCGExCollections::FSocketHelper>(&Context->OutputSocketDetails, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 

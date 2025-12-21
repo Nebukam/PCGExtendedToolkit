@@ -6,17 +6,17 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 #include "Utils/PCGExCurveLookup.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
-#include "PCGExSorting.h"
-#include "Data/Matching/PCGExMatching.h"
-#include "Details/PCGExSettingsMacros.h"
-#include "Geometry/PCGExGeo.h"
+#include "Details/PCGExMatchingDetails.h"
+#include "Graph/Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
+#include "Math/PCGExMathAxis.h"
+#include "Math/PCGExProjectionDetails.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExSampleNearestPath.generated.h"
 
@@ -33,6 +33,16 @@ MACRO(SegmentTime, double, 0)\
 MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(ClosedLoop, int32, false)
+
+namespace PCGExSorting
+{
+	class FSorter;
+}
+
+namespace PCGExMatching
+{
+	class FTargetsHandler;
+}
 
 class UPCGExBlendOpFactory;
 
@@ -431,7 +441,7 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> Paths;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
-	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+	TSharedPtr<PCGEsxSorting::FSorter> Sorter;
 
 	PCGExFloatLUT WeightCurve = nullptr;
 

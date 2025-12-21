@@ -7,7 +7,7 @@
 #include "PCGExAssetCollection.h"
 #include "Core/PCGExContext.h"
 #include "PCGParamData.h"
-#include "Details/PCGExDetailsStaging.h"
+#include "Details/PCGExStagingDetails.h"
 
 /**
  * Collection Helper Functions

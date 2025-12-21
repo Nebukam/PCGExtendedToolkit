@@ -67,8 +67,6 @@ namespace PCGExCluster
 {
 	namespace Labels
 	{
-		const FName SourcePickersLabel = TEXT("Pickers");
-
 		const FName SourceEdgesLabel = TEXT("Edges");
 		const FName OutputEdgesLabel = TEXT("Edges");
 

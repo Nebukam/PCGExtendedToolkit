@@ -5,10 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
-#include "PCGExPath.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Math/PCGExMath.h"
+#include "Math/PCGExMathAxis.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
 
-#include "Sampling/PCGExSampling.h"
 #include "PCGExPathSolidify.generated.h"
 
 namespace PCGExPaths

@@ -187,7 +187,7 @@ namespace PCGExPathfindingGrowPaths
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points to start growth from.", Required)
+	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seed points to start growth from.", Required)
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, FPCGExDataTypeInfoHeuristics::AsId())
 	return PinProperties;
 }
@@ -208,7 +208,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
-	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExCommon::Labels::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);

@@ -417,7 +417,7 @@ namespace PCGExSampleSurfaceGuided
 
 		if (MIndex < 0 || FIndex < 0) { return; }
 
-		const PCGExMath::FMeshData& Data = MeshData[MIndex];
+		const PCGExMesh::FMeshData& Data = MeshData[MIndex];
 
 		const int32 Index0 = Data.Indices[FIndex * 3 + 0];
 		const int32 Index1 = Data.Indices[FIndex * 3 + 1];
@@ -455,7 +455,7 @@ namespace PCGExSampleSurfaceGuided
 					int32& IndexRef = StaticMeshIndexMap.FindOrAdd(Mesh, -1);
 					if (IndexRef == -1)
 					{
-						PCGExMath::FMeshData Data(Mesh);
+						PCGExMesh::FMeshData Data(Mesh);
 						if (Data.bIsValid) { IndexRef = MeshData.Add(Data); }
 					}
 

@@ -11,7 +11,7 @@
 #include "Details/PCGExInputShorthandsDetails.h"
 
 
-#include "Shapes/PCGExShapes.h"
+#include "Shapes/PCGExElementsShapes.h"
 
 #include "PCGExPathResample.generated.h"
 

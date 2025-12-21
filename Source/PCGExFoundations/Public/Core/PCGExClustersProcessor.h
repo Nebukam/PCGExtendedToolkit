@@ -7,6 +7,7 @@
 #include "PCGExClusterMT.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Clusters/PCGExClusterCommon.h"
+#include "Sorting/PCGExSortingDetails.h"
 
 #include "PCGExClustersProcessor.generated.h"
 

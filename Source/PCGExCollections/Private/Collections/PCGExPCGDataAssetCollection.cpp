@@ -8,6 +8,7 @@
 #endif
 
 #include "PCGDataAsset.h"
+#include "Data/PCGSpatialData.h"
 
 
 // Register the PCGDataAsset collection type at startup

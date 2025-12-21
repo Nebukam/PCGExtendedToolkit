@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "Core/PCGExAssetCollection.h"
-#include "Core/PCGExComponentDescriptors.h"
+#include "Data/Descriptors/PCGExComponentDescriptors.h"
 #include "ISMPartition/ISMComponentDescriptor.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 #include "Engine/StaticMesh.h"

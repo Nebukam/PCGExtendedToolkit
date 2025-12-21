@@ -110,7 +110,7 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 	FPCGExGeoMeshImportDetails ImportDetails;
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
-	TSharedPtr<PCGExMath::FGeoStaticMeshMap> StaticMeshMap;
+	TSharedPtr<PCGExMesh::FGeoStaticMeshMap> StaticMeshMap;
 	TArray<int32> MeshIdx;
 
 	TSharedPtr<PCGExData::FPointIOCollection> RootVtx;

@@ -3,17 +3,29 @@
 
 #include "Sampling/PCGExSampleNearestPath.h"
 
-#include "PCGExMT.h"
-#include "PCGExStreamingHelpers.h"
+#include "Blenders/PCGExUnionOpsManager.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Core/PCGExOpStats.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOperations.h"
-#include "Blenders/PCGExBlendOpsManager.h"
-#include "Details/PCGExBlendingDetails.h"
-#include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
+#include "Helpers/PCGExTargetsHandler.h"
+#include "Paths/PCGExBlendPath.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
+#include "Paths/PCGExPolyPath.h"
+#include "Sampling/PCGExSamplingHelpers.h"
+#include "Sampling/PCGExSamplingUnionData.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
+#include "Types/PCGExTypeOpsNumeric.h"
+#include "Types/PCGExTypeOpsRotation.h"
+#include "Types/PCGExTypes.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPathElement"
@@ -35,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The paths to sample.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::SourcePathsLabel, "The paths to sample.", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
@@ -52,7 +64,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::OutputPinProperties()
 
 bool UPCGExSampleNearestPathSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
+	if (InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -73,10 +85,10 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
-	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExPaths::SourcePathsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExPaths::Labels::SourcePathsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 	{
 		if (IO->GetNum() < 2) { return FBox(ForceInit); }
 
@@ -116,7 +128,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::FPointSorter>(PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::FSorter>(PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 

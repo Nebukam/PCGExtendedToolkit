@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExStaging.h"
+#include "Helpers/PCGExCollectionsHelpers.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 #include "PCGExCollectionToModuleInfos.generated.h"
 
@@ -78,7 +77,7 @@ protected:
 	/** Mesh collection entry Idx. Serialize the id of the parent collection (in the collection map) and entry index within that collection.
 	 * This is a critical piece of data that will be used by the Grammar Staging node to retrieve the corresponding mesh. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Entry", EditCondition="false"))
-	FName EntryAttributeName = PCGExStaging::Tag_EntryIdx;
+	FName EntryAttributeName = PCGExCollections::Labels::Tag_EntryIdx;
 
 	/** Name of the attribute the entry' Category value will be written to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Category"))
@@ -96,9 +95,9 @@ protected:
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	void FlattenCollection(
-		const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
-		const UPCGExAssetCollection* Collection, 
-		const UPCGExCollectionToModuleInfosSettings* Settings, 
+		const TSharedPtr<PCGExCollections::FPickPacker>& Packer,
+		const UPCGExAssetCollection* Collection,
+		const UPCGExCollectionToModuleInfosSettings* Settings,
 		TArray<PCGExCollectionToGrammar::FModule>& OutModules,
 		TSet<FName>& OutSymbols,
 		TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const;

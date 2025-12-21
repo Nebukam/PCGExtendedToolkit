@@ -1,7 +1,7 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Collections/Core/PCGExAssetCollectionTypes.h"
+#include "Core/PCGExAssetCollectionTypes.h"
 
 namespace PCGExAssetCollection
 {

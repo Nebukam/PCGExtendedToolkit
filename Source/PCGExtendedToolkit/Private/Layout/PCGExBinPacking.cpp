@@ -3,13 +3,15 @@
 
 #include "Layout/PCGExBinPacking.h"
 
-
-#include "PCGExMT.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "Layout/PCGExLayout.h"
+#include "Math/PCGExMathBounds.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBinPackingElement"
 #define PCGEX_NAMESPACE BinPacking
@@ -18,7 +20,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExBinPackingSettings, Padding, FVector, OccupationP
 
 bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
-	OutRules.Append(PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
+	OutRules.Append(PCGExSorting::GetSortingRules(InContext, PCGExSorting::Labels::SourceSortingRules));
 	return !OutRules.IsEmpty();
 }
 
@@ -255,7 +257,7 @@ namespace PCGExBinPacking
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		if (Settings->GetSortingRules(ExecutionContext, RuleConfigs) && !RuleConfigs.IsEmpty())
 		{
-			Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, RuleConfigs);
+			Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, RuleConfigs);
 			Sorter->SortDirection = Settings->SortDirection;
 		}
 	}

@@ -32,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics. Used to drive flooding.", Required, FPCGExDataTypeInfoHeuristics::AsId())
-	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points.", Required)
+	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seed points.", Required)
 	PCGEX_PIN_FACTORIES(PCGExFloodFill::SourceFillControlsLabel, "Fill controls, used to constraint & limit flood fill", Normal, FPCGExDataTypeInfoFillControl::AsId())
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 
@@ -66,7 +66,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	// Fill controls are optional, actually
 	PCGExFactories::GetInputFactories<UPCGExFillControlsFactoryData>(Context, PCGExFloodFill::SourceFillControlsLabel, Context->FillControlFactories, {PCGExFactories::EType::FillControls}, false);
 
-	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
+	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExCommon::Labels::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
 	if (Settings->PathOutput != EPCGExFloodFillPathOutput::None)

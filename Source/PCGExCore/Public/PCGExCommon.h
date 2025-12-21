@@ -44,6 +44,13 @@ enum class EPCGExDistance : uint8
 	None         = 3 UMETA(Hidden, DisplayName = "None", ToolTip="Used for union blending with full weight."),
 };
 
+UENUM()
+enum class EPCGExTransformMode : uint8
+{
+	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores source transform."),
+	Relative = 1 UMETA(DisplayName = "Relative", ToolTip="Relative to source transform."),
+};
+
 namespace PCGExCommon
 {
 	using ContextState = FName;
@@ -74,8 +81,10 @@ namespace PCGExCommon
 
 	namespace Labels
 	{
+		const FName SourceSeedsLabel = TEXT("Seeds");
 		const FName SourceTargetsLabel = TEXT("Targets");
 		const FName SourceSourcesLabel = TEXT("Sources");
 		const FName SourceBoundsLabel = TEXT("Bounds");
+		const FName SourceDeformersLabel = TEXT("Deformers");
 	}
 }

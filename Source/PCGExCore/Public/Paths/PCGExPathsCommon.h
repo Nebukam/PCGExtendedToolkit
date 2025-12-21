@@ -40,6 +40,23 @@ enum class EPCGExPathNormalDirection : uint8
 	AverageNormal = 2 UMETA(DisplayName = "Average Normal", ToolTip="..."),
 };
 
+UENUM()
+enum class EPCGExSplineMeshUpMode : uint8
+{
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant up vector"),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Per-point attribute value"),
+	Tangents  = 2 UMETA(DisplayName = "From Tangents (Gimbal fix)", Tooltip="Automatically computed up vector from tangents to enforce gimbal fix")
+};
+
+UENUM()
+enum class EPCGExSplineMeshAxis : uint8
+{
+	Default = 0 UMETA(Hidden),
+	X       = 1 UMETA(DisplayName = "X", ToolTip="X Axis"),
+	Y       = 2 UMETA(DisplayName = "Y", ToolTip="Y Axis"),
+	Z       = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
+};
+
 namespace PCGExPaths
 {
 	namespace Labels

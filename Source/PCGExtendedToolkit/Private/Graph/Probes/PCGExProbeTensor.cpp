@@ -5,9 +5,9 @@
 
 
 #include "Graph/Probes/PCGExProbing.h"
-#include "Transform/Tensors/PCGExTensor.h"
-#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
-#include "Transform/Tensors/PCGExTensorHandler.h"
+#include "Tensors/PCGExTensor.h"
+#include "Tensors/PCGExTensorFactoryProvider.h"
+#include "Tensors/PCGExTensorHandler.h"
 
 TArray<FPCGPinProperties> UPCGExProbeTensorProviderSettings::InputPinProperties() const
 {

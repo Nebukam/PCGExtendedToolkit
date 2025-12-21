@@ -11,8 +11,8 @@
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Geometry/PCGExGeoDelaunay.h"
-#include "Geometry/PCGExGeoVoronoi.h"
+#include "Math/Geo/PCGExDelaunay.h"
+#include "Math/Geo/PCGExVoronoi.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -180,7 +180,7 @@ namespace PCGExBuildVoronoiGraph2D
 		TArray<FVector> ActivePositions;
 		PCGExPointArrayDataHelpers::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
-		Voronoi = MakeShared<PCGExMath::TVoronoi2>();
+		Voronoi = MakeShared<PCGExMath::Geo::TVoronoi2>();
 
 		const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 		bool bSuccess = false;
@@ -207,7 +207,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 		auto MarkOOB = [&](const int32 SiteIndex)
 		{
-			const PCGExMath::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
+			const PCGExMath::Geo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
 			for (int i = 0; i < 3; i++) { IsVtxValid[Site.Vtx[i]] = false; }
 		};
 
@@ -221,7 +221,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 			UpdateSitePosition = [&](const int32 SiteIndex)
 			{
-				const PCGExMath::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
+				const PCGExMath::Geo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
 				const FVector& SitePos = SitesPositions[SiteIndex];
 				for (int i = 0; i < 3; i++) { SitesOutputDetails.AddInfluence(Site.Vtx[i], SitePos); }
 			};

@@ -222,7 +222,7 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
-	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
+	TSharedPtr<PCGExSorting::FSorter> Sorter;
 	PCGExFloatLUT WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_DECL_TOGGLE)

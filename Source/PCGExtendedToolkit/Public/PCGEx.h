@@ -8,15 +8,9 @@
 #include "Templates/SharedPointerFwd.h"
 #include "UObject/SoftObjectPath.h"
 
-#include "PCGExCommon.h"
-
 #include "PCGEx.generated.h"
 
 namespace PCGEx
 {
-
-	const FName DEPRECATED_NAME = TEXT("#DEPRECATED");
-
 	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
-
 }

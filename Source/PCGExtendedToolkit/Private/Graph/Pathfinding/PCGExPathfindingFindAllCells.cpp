@@ -50,7 +50,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
 	}
 
-	//const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
+	//const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExCommon::Labels::SourceSeedsLabel, true);
 	//if (!SeedsPoints) { return false; }
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);

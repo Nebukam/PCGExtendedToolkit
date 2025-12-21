@@ -8,7 +8,7 @@
 #include "Factories/PCGExInstancedFactory.h"
 #include "Details/PCGExMacros.h"
 #include "Core/PCGExMT.h"
-#include "Streaming/PCGExStreamingHelpers.h"
+#include "Helpers/PCGExStreamingHelpers.h"
 #include "PCGManagedResource.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"

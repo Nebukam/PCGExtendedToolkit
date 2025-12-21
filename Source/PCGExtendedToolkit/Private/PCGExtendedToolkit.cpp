@@ -6,7 +6,7 @@
 #include "ISettingsModule.h"
 #endif
 #include "PCGExGlobalSettings.h"
-#include "Collections/Core/PCGExAssetCollectionTypes.h"
+#include "Core/PCGExAssetCollectionTypes.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 

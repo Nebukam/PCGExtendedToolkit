@@ -133,7 +133,7 @@ namespace PCGExBuildDelaunayGraph2D
 
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExMath::TDelaunay2> Delaunay;
+		TSharedPtr<PCGExMath::Geo::TDelaunay2> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;

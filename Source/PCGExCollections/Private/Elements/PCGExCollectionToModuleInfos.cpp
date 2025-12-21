@@ -1,14 +1,14 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetStaging/PCGExCollectionToModuleInfos.h"
+#include "Elements/PCGExCollectionToModuleInfos.h"
 
 
 #include "PCGGraph.h"
 #include "PCGParamData.h"
 #include "PCGPin.h"
-#include "AssetStaging/PCGExStaging.h"
-#include "Collections/Core/PCGExAssetCollection.h"
+#include "Helpers/PCGExMetaHelpers.h"
+#include "Core/PCGExAssetCollection.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -26,7 +26,7 @@ TArray<FPCGPinProperties> UPCGExCollectionToModuleInfosSettings::OutputPinProper
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_PARAM(FName("ModuleInfos"), TEXT("Module infos generated from the selected collection"), Normal)
-	PCGEX_PIN_PARAM(PCGExStaging::OutputCollectionMapLabel, "Collection map", Normal)
+	PCGEX_PIN_PARAM(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map", Normal)
 	return PinProperties;
 }
 
@@ -61,7 +61,7 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 		return true;
 	}
 
-	TSharedPtr<PCGExStaging::FPickPacker> Packer = MakeShared<PCGExStaging::FPickPacker>(InContext);
+	TSharedPtr<PCGExCollections::FPickPacker> Packer = MakeShared<PCGExCollections::FPickPacker>(InContext);
 
 	MainCollection->EDITOR_RegisterTrackingKeys(InContext);
 
@@ -101,7 +101,7 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 	Packer->PackToDataset(OutputMap);
 
 	FPCGTaggedData& CollectionMapData = InContext->OutputData.TaggedData.Emplace_GetRef();
-	CollectionMapData.Pin = PCGExStaging::OutputCollectionMapLabel;
+	CollectionMapData.Pin = PCGExCollections::Labels::OutputCollectionMapLabel;
 	CollectionMapData.Data = OutputMap;
 
 	InContext->Done();
@@ -109,7 +109,7 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 }
 
 void FPCGExCollectionToModuleInfosElement::FlattenCollection(
-	const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
+	const TSharedPtr<PCGExCollections::FPickPacker>& Packer,
 	const UPCGExAssetCollection* Collection,
 	const UPCGExCollectionToModuleInfosSettings* Settings,
 	TArray<PCGExCollectionToGrammar::FModule>& OutModules,
@@ -127,7 +127,7 @@ void FPCGExCollectionToModuleInfosElement::FlattenCollection(
 	{
 		FPCGExEntryAccessResult Result = Collection->GetEntryAt(i);
 		Entry = Result.Entry;
-		
+
 		if (!Entry) { continue; }
 
 		if (Entry->bIsSubCollection && Entry->SubGrammarMode == EPCGExGrammarSubCollectionMode::Flatten)

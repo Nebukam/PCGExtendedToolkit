@@ -119,7 +119,7 @@ namespace PCGExBuildDelaunayGraph
 
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TSharedPtr<PCGExMath::TDelaunay3> Delaunay;
+		TSharedPtr<PCGExMath::Geo::TDelaunay3> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 
