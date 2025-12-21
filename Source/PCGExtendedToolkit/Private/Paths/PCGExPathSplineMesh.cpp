@@ -6,7 +6,7 @@
 #include "PCGComponent.h"
 #include "Components/SplineMeshComponent.h"
 
-#include "PCGExHelpers.h"
+
 #include "PCGExMT.h"
 #include "PCGExRandomHelpers.h"
 #include "PCGExScopedContainers.h"

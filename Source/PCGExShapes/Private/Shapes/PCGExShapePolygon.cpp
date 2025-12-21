@@ -1,6 +1,6 @@
 #include "Shapes/PCGExShapePolygon.h"
 
-#include "PCGExHelpers.h"
+
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"

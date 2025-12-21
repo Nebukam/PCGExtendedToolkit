@@ -3,7 +3,7 @@
 
 
 #include "Misc/PCGExAttributeRemap.h"
-#include "PCGExHelpers.h"
+
 #include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
 #include "AssetStaging/PCGExAssetStaging.h"

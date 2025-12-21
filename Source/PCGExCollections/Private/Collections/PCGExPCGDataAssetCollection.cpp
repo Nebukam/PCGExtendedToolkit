@@ -8,7 +8,7 @@
 #endif
 
 #include "PCGDataAsset.h"
-#include "PCGExHelpers.h"
+
 
 // Register the PCGDataAsset collection type at startup
 PCGEX_REGISTER_COLLECTION_TYPE(PCGDataAsset, UPCGExPCGDataAssetCollection, FPCGExPCGDataAssetCollectionEntry, "PCG Data Asset Collection", Base)

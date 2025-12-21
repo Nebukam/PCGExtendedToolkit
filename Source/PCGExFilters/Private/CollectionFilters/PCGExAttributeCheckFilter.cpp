@@ -1,9 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/CollectionFilters/PCGExAttributeCheckFilter.h"
+#include "CollectionFilters/PCGExAttributeCheckFilter.h"
 
-#include "PCGExHelpers.h"
+
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
 

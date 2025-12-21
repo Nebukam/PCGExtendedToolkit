@@ -8,14 +8,7 @@
 
 #include "UObject/Object.h"
 
-#include "Core/PCGExPointFilter.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExFilterGroup.h"
-
-
 #include "Core/PCGExFilterFactoryProvider.h"
-
-
 #include "PCGExTagCheckFilter.generated.h"
 
 

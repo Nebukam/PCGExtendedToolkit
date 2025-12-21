@@ -52,7 +52,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainInputPin() const override { return PCGEx::SourceTargetsLabel; }
+	virtual FName GetMainInputPin() const override { return PCGExCommon::Labels::SourceTargetsLabel; }
 	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual bool GetMainAcceptMultipleData() const override { return false; }
 	//~End UPCGExPointsProcessorSettings

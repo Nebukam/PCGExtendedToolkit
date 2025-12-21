@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Graphs/PCGExGraphDetails.h"
 
 #include "PCGExVtxPropertyEdgeMatch.generated.h"

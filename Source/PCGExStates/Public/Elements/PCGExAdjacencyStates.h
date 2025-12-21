@@ -16,7 +16,7 @@ namespace PCGExAdjacency
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyStateConfigBase
+struct PCGEXSTATES_API FPCGExAdjacencyStateConfigBase
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyStateConfigBase
  * 
  */
 UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyStateFactoryData : public UPCGExClusterStateFactoryData
+class PCGEXSTATES_API UPCGExAdjacencyStateFactoryData : public UPCGExClusterStateFactoryData
 {
 	GENERATED_BODY()
 
@@ -81,7 +81,7 @@ public:
 
 namespace PCGExAdjacencyStates
 {
-	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExClusterStates::FState
+	class PCGEXSTATES_API FState final : public PCGExClusterStates::FState
 	{
 	protected:
 		TConstPCGValueRange<FTransform> InTransformRange;
@@ -113,7 +113,7 @@ namespace PCGExAdjacencyStates
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes/state-bitmask-adjacency"))
-class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
+class PCGEXSTATES_API UPCGExAdjacencyStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
 {
 	GENERATED_BODY()
 

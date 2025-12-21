@@ -4,7 +4,7 @@
 #include "Graph/Filters/Edges/PCGExEdgeEndpointsCompareNumFilter.h"
 
 
-#include "PCGExHelpers.h"
+
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Graphs/PCGExGraph.h"

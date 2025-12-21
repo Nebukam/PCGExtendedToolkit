@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExMathMean.h"
+#include "Math/PCGExMathMean.h"
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExDetailsSubdivision.h"
 #include "Details/PCGExSettingsMacros.h"

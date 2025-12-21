@@ -5,7 +5,7 @@
 
 
 #include "PCGExH.h"
-#include "PCGExHelpers.h"
+
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "Graph/Probes/PCGExProbing.h"
 

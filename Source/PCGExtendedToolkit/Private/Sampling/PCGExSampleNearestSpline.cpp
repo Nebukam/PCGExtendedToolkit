@@ -53,7 +53,7 @@ UPCGExSampleNearestSplineSettings::UPCGExSampleNearestSplineSettings(const FObje
 TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline data set to check against.", Required)
+	PCGEX_PIN_POLYLINES(PCGExCommon::Labels::SourceTargetsLabel, "The spline data set to check against.", Required)
 	return PinProperties;
 }
 
@@ -72,7 +72,7 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
-	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
+	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGExCommon::Labels::SourceTargetsLabel);
 
 	if (!Targets.IsEmpty())
 	{

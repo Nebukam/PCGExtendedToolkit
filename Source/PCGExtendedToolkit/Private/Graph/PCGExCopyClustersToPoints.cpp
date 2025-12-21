@@ -26,7 +26,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(CopyClustersToPoints)
 TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy clusters to.", Required)
+	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceTargetsLabel, "Target points to copy clusters to.", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
 }
@@ -44,7 +44,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-	Context->TargetsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, false, true);
+	Context->TargetsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExCommon::Labels::SourceTargetsLabel, false, true);
 	if (!Context->TargetsDataFacade) { return false; }
 
 	PCGEX_FWD(TransformDetails)

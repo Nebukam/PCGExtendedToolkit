@@ -1,9 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/CollectionFilters/PCGExEntryCountFilter.h"
+#include "CollectionFilters/PCGExEntryCountFilter.h"
 
-#include "PCGExHelpers.h"
+
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
 

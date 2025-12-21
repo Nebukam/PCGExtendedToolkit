@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Materials/MaterialInterface.h"
 #include "PCGComponent.h"
-#include "PCGExHelpers.h"
+
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGRenderTargetData.h"

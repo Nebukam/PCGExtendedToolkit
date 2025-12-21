@@ -60,7 +60,7 @@ namespace PCGExMT
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXGRAPHS_API FPCGExBoxIntersectionDetails
+struct PCGEXFOUNDATIONS_API FPCGExBoxIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -136,7 +136,7 @@ namespace PCGExGraph
 
 #pragma region Compound Graph
 
-	class PCGEXGRAPHS_API FUnionNode : public TSharedFromThis<FUnionNode>
+	class PCGEXFOUNDATIONS_API FUnionNode : public TSharedFromThis<FUnionNode>
 	{
 	protected:
 		mutable FRWLock AdjacencyLock;
@@ -159,7 +159,7 @@ namespace PCGExGraph
 
 	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->Bounds;}, { return A->Index == B->Index; })
 
-	class PCGEXGRAPHS_API FUnionGraph : public TSharedFromThis<FUnionGraph>
+	class PCGEXFOUNDATIONS_API FUnionGraph : public TSharedFromThis<FUnionGraph>
 	{
 		int32 NumCollapsedEdges = 0;
 
@@ -212,7 +212,7 @@ namespace PCGExGraph
 
 #pragma endregion
 
-	class PCGEXGRAPHS_API FIntersectionCache : public TSharedFromThis<FIntersectionCache>
+	class PCGEXFOUNDATIONS_API FIntersectionCache : public TSharedFromThis<FIntersectionCache>
 	{
 	public:
 		TConstPCGValueRange<FTransform> NodeTransforms;
@@ -236,7 +236,7 @@ namespace PCGExGraph
 		void BuildCache();
 	};
 
-	class PCGEXGRAPHS_API FEdgeProxy : public TSharedFromThis<FEdgeProxy>
+	class PCGEXFOUNDATIONS_API FEdgeProxy : public TSharedFromThis<FEdgeProxy>
 	{
 	public:
 		virtual ~FEdgeProxy() = default;
@@ -253,7 +253,7 @@ namespace PCGExGraph
 
 #pragma region Point Edge intersections
 
-	struct PCGEXGRAPHS_API FPESplit
+	struct PCGEXFOUNDATIONS_API FPESplit
 	{
 		int32 Index = -1;
 		double Time = -1;
@@ -262,7 +262,7 @@ namespace PCGExGraph
 		bool operator==(const FPESplit& Other) const { return Index == Other.Index; }
 	};
 
-	class PCGEXGRAPHS_API FPointEdgeProxy : public FEdgeProxy
+	class PCGEXFOUNDATIONS_API FPointEdgeProxy : public FEdgeProxy
 	{
 	public:
 		TArray<FPESplit, TInlineAllocator<8>> CollinearPoints;
@@ -274,7 +274,7 @@ namespace PCGExGraph
 		virtual bool IsEmpty() const override { return CollinearPoints.IsEmpty(); }
 	};
 
-	class PCGEXGRAPHS_API FPointEdgeIntersections : public FIntersectionCache
+	class PCGEXFOUNDATIONS_API FPointEdgeIntersections : public FIntersectionCache
 	{
 	public:
 		const FPCGExPointEdgeIntersectionDetails* Details;
@@ -298,7 +298,7 @@ namespace PCGExGraph
 
 #pragma region Edge Edge intersections
 
-	struct PCGEXGRAPHS_API FEESplit
+	struct PCGEXFOUNDATIONS_API FEESplit
 	{
 		FEESplit() = default;
 
@@ -311,7 +311,7 @@ namespace PCGExGraph
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(A, B); }
 	};
 
-	struct PCGEXGRAPHS_API FEECrossing
+	struct PCGEXFOUNDATIONS_API FEECrossing
 	{
 		int32 Index = -1;
 		FEESplit Split;
@@ -326,7 +326,7 @@ namespace PCGExGraph
 		bool operator==(const FEECrossing& Other) const { return Index == Other.Index; }
 	};
 
-	class PCGEXGRAPHS_API FEdgeEdgeProxy : public FEdgeProxy
+	class PCGEXFOUNDATIONS_API FEdgeEdgeProxy : public FEdgeProxy
 	{
 	public:
 		TArray<FEECrossing> Crossings;
@@ -335,7 +335,7 @@ namespace PCGExGraph
 		virtual bool IsEmpty() const override { return Crossings.IsEmpty(); }
 	};
 
-	class PCGEXGRAPHS_API FEdgeEdgeIntersections : public FIntersectionCache
+	class PCGEXFOUNDATIONS_API FEdgeEdgeIntersections : public FIntersectionCache
 	{
 	public:
 		const FPCGExEdgeEdgeIntersectionDetails* Details;

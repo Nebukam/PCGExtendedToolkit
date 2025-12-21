@@ -23,7 +23,7 @@ namespace PCGExGraph
 {
 	class FSubGraph;
 
-	class PCGEXGRAPHS_API FGraph : public TSharedFromThis<FGraph>
+	class PCGEXFOUNDATIONS_API FGraph : public TSharedFromThis<FGraph>
 	{
 		mutable FRWLock GraphLock;
 		mutable FRWLock MetadataLock;

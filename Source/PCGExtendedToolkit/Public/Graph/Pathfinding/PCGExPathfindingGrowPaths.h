@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMathMean.h"
+#include "Math/PCGExMathMean.h"
 #include "PCGExMT.h"
 #include "PCGExPathfinding.h"
 

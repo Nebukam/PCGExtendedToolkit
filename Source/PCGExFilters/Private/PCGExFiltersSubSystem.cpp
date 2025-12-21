@@ -3,7 +3,7 @@
 
 #include "PCGExFiltersSubSystem.h"
 
-#include "Filters/PCGExConstantFilter.h"
+#include "PointFilters/PCGExConstantFilter.h"
 #include "Helpers/PCGAsync.h"
 
 #if WITH_EDITOR

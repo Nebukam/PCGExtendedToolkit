@@ -7,7 +7,7 @@
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
-#include "PCGExMathMean.h"
+#include "Math/PCGExMathMean.h"
 
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExSorting.h"

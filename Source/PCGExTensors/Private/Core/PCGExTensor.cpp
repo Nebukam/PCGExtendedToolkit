@@ -4,7 +4,7 @@
 #include "Transform/Tensors/PCGExTensor.h"
 
 #include "PCGExMathBounds.h"
-#include "PCGExHelpers.h"
+
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"

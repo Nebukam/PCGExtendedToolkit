@@ -39,7 +39,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceTargetsLabel, "The point data set to check against.", Required)
 
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
@@ -87,7 +87,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
-	Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel);
+	Context->TargetsHandler->Init(Context, PCGExCommon::Labels::SourceTargetsLabel);
 
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxTargets)

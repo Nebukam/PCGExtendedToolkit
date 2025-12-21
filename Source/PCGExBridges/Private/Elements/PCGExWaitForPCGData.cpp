@@ -118,7 +118,7 @@ void UPCGExWaitForPCGDataSettings::GetTargetGraphPins(TArray<FPCGPinProperties>&
 
 FName UPCGExWaitForPCGDataSettings::GetMainInputPin() const
 {
-	return PCGEx::SourceTargetsLabel;
+	return PCGExCommon::Labels::SourceTargetsLabel;
 }
 
 bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const

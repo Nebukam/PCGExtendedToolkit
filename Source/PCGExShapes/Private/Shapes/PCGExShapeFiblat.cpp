@@ -3,7 +3,7 @@
 
 #include "Shapes/PCGExShapeFiblat.h"
 
-#include "PCGExHelpers.h"
+
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"

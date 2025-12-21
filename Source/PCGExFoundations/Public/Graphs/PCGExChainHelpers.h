@@ -20,13 +20,13 @@ namespace PCGExCluster
 {
 	namespace ChainHelpers
 	{
-		PCGEXGRAPHS_API void Dump(
+		PCGEXFOUNDATIONS_API void Dump(
 			const TSharedRef<PCGExCluster::FNodeChain>& Chain,
 			const TSharedRef<PCGExCluster::FCluster>& Cluster,
 			const TSharedPtr<PCGExGraph::FGraph>& Graph,
 			const bool bAddMetadata);
 
-		PCGEXGRAPHS_API void DumpReduced(
+		PCGEXFOUNDATIONS_API void DumpReduced(
 			const TSharedRef<PCGExCluster::FNodeChain>& Chain,
 			const TSharedRef<PCGExCluster::FCluster>& Cluster,
 			const TSharedPtr<PCGExGraph::FGraph>& Graph,

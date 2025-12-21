@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The points to sample.", Required)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceTargetsLabel, "The points to sample.", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
@@ -93,7 +93,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
-	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExCommon::Labels::SourceTargetsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 	{
 		const bool bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(IO->GetIn());
 

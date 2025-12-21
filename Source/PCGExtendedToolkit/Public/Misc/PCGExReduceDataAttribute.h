@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExHelpers.h"
+
 
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExTypes.h"

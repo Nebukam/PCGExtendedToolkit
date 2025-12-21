@@ -71,4 +71,11 @@ namespace PCGExCommon
 	PCGEX_CTX_STATE(State_Writing)
 
 	PCGEX_CTX_STATE(State_UnionWriting)
+
+	namespace Labels
+	{
+		const FName SourceTargetsLabel = TEXT("Targets");
+		const FName SourceSourcesLabel = TEXT("Sources");
+		const FName SourceBoundsLabel = TEXT("Bounds");
+	}
 }

@@ -26,7 +26,7 @@ enum class EPCGExIntersectionType : uint8
 
 namespace PCGExGraph
 {
-	struct PCGEXGRAPHS_API FGraphMetadataDetails
+	struct PCGEXFOUNDATIONS_API FGraphMetadataDetails
 	{
 		const FPCGExBlendingDetails* EdgesBlendingDetailsPtr = nullptr;
 		const FPCGExCarryOverDetails* EdgesCarryOverDetails = nullptr;
@@ -63,7 +63,7 @@ namespace PCGExGraph
 		void Update(FPCGExContext* InContext, const FPCGExEdgeEdgeIntersectionDetails& InDetails);
 	};
 
-	struct PCGEXGRAPHS_API FGraphNodeMetadata
+	struct PCGEXFOUNDATIONS_API FGraphNodeMetadata
 	{
 		int32 NodeIndex;
 		int32 UnionSize = 0; // Fuse size
@@ -76,7 +76,7 @@ namespace PCGExGraph
 		FORCEINLINE bool IsCrossing() const { return Type == EPCGExIntersectionType::EdgeEdge; }
 	};
 
-	struct PCGEXGRAPHS_API FGraphEdgeMetadata
+	struct PCGEXFOUNDATIONS_API FGraphEdgeMetadata
 	{
 		int32 EdgeIndex;
 		int32 RootIndex;

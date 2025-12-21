@@ -17,15 +17,6 @@ namespace PCGEx
 
 	const FName DEPRECATED_NAME = TEXT("#DEPRECATED");
 
-	const FName SourceTargetsLabel = TEXT("Targets");
-	const FName SourceSourcesLabel = TEXT("Sources");
-	const FName SourceBoundsLabel = TEXT("Bounds");
-
 	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
-
-	PCGEXTENDEDTOOLKIT_API FName GetCompoundName(const FName A, const FName B);
-	PCGEXTENDEDTOOLKIT_API FName GetCompoundName(const FName A, const FName B, const FName C);
-
-	PCGEXTENDEDTOOLKIT_API void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
 
 }

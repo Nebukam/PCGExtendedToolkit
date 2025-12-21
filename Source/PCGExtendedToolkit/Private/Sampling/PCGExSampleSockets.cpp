@@ -5,7 +5,7 @@
 
 #include "Engine/StaticMesh.h"
 #include "PCGComponent.h"
-#include "PCGExHelpers.h"
+
 #include "PCGExMT.h"
 #include "PCGExStreamingHelpers.h"
 #include "AssetStaging/PCGExSocketStaging.h"

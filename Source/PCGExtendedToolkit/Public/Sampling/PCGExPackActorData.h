@@ -9,7 +9,7 @@
 #include "Factories/PCGExInstancedFactory.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExBufferHelper.h"
+#include "Helpers/PCGExBufferHelper.h"
 
 
 #include "PCGExPackActorData.generated.h"

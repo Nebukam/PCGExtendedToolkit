@@ -6,14 +6,13 @@
 #include "UObject/Object.h"
 #include "CoreMinimal.h"
 #include "PCGExPointStates.h"
-#include "Data/PCGExPointStates.h"
 
 #include "Core/PCGExClusterFilter.h"
 #include "PCGExClusterStates.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateConfigBase
+struct PCGEXSTATES_API FPCGExClusterStateConfigBase : public FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
@@ -26,14 +25,14 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | State : Cluster"))
 struct FPCGExDataTypeInfoClusterState : public FPCGExDataTypeInfoPointState
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXSTATES_API)
 };
 
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryData : public UPCGExPointStateFactoryData
+class PCGEXSTATES_API UPCGExClusterStateFactoryData : public UPCGExPointStateFactoryData
 {
 	GENERATED_BODY()
 
@@ -51,7 +50,7 @@ public:
 
 namespace PCGExClusterStates
 {
-	class PCGEXTENDEDTOOLKIT_API FState : public PCGExClusterFilter::IFilter
+	class PCGEXSTATES_API FState : public PCGExClusterFilter::IFilter
 	{
 	public:
 		FPCGExClusterStateConfigBase Config;
@@ -81,7 +80,7 @@ namespace PCGExClusterStates
 		TSharedPtr<PCGExClusterFilter::FManager> Manager;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FStateManager final : public PCGExClusterFilter::FManager
+	class PCGEXSTATES_API FStateManager final : public PCGExClusterFilter::FManager
 	{
 		TArray<TSharedPtr<FState>> States;
 		TSharedPtr<TArray<int64>> FlagsCache;
@@ -99,7 +98,7 @@ namespace PCGExClusterStates
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes/node-flag"))
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
+class PCGEXSTATES_API UPCGExClusterStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
 {
 	GENERATED_BODY()
 

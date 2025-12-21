@@ -32,6 +32,7 @@ public class PCGExFilters : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExPickers",
 			}
 		);
 
@@ -50,7 +51,7 @@ public class PCGExFilters : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings"
+				"DeveloperSettings",
 			}
 		);
 

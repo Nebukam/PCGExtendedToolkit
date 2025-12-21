@@ -17,7 +17,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExPathInsertSettings, Range, int32, RangeInput, Ran
 TArray<FPCGPinProperties> UPCGExPathInsertSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to insert.", Required)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceTargetsLabel, "The point data set to insert.", Required)
 	return PinProperties;
 }
 

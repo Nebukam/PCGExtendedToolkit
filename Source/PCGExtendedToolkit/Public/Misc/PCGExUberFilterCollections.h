@@ -7,7 +7,7 @@
 #include "Utils/PCGExCompare.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
-#include "PCGExMathMean.h"
+#include "Math/PCGExMathMean.h"
 #include "Core/PCGExPointsProcessor.h"
 
 #include "PCGExUberFilterCollections.generated.h"

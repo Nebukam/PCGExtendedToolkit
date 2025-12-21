@@ -4,7 +4,7 @@
 #include "Geometry/PCGExGeoVoronoi.h"
 
 #include "CoreMinimal.h"
-#include "PCGExHelpers.h"
+
 #include "Geometry/PCGExGeoDelaunay.h"
 
 namespace PCGExMath

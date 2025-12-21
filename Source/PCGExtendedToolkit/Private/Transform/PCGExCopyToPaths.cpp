@@ -23,7 +23,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(CopyToPaths)
 TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, "Paths or splines to deform along", Required)
+	PCGEX_PIN_ANY(PCGExCommon::Labels::SourceTargetsLabel, "Paths or splines to deform along", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal)
 	return PinProperties;
@@ -63,7 +63,7 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	TArray<FPCGTaggedData> Targets = Context->InputData.GetSpatialInputsByPin(PCGEx::SourceTargetsLabel);
+	TArray<FPCGTaggedData> Targets = Context->InputData.GetSpatialInputsByPin(PCGExCommon::Labels::SourceTargetsLabel);
 
 	Context->Deformers.Reserve(Targets.Num());
 	Context->DeformersData.Reserve(Targets.Num());

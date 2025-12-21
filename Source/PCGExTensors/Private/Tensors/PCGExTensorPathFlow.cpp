@@ -3,7 +3,7 @@
 
 #include "Transform/Tensors/PCGExTensorPathFlow.h"
 
-#include "PCGExHelpers.h"
+
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPathFlow"

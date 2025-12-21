@@ -3,7 +3,7 @@
 
 #include "Graph/Probes/PCGExProbeIndex.h"
 
-#include "PCGExHelpers.h"
+
 #include "PCGExMath.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"

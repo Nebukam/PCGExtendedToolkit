@@ -3,7 +3,7 @@
 
 #include "Transform/Tensors/PCGExTensorSpin.h"
 
-#include "PCGExHelpers.h"
+
 #include "Data/PCGExData.h"
 
 

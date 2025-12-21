@@ -6,7 +6,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExHelpers.h"
+
 #include "Components/DynamicMeshComponent.h"
 #include "PCGExDynamicMeshComponent.generated.h"
 

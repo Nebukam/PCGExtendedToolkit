@@ -3,7 +3,7 @@
 
 #include "Misc/PCGExReduceDataAttribute.h"
 
-#include "PCGExHelpers.h"
+
 #include "PCGExTypes.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataHelpers.h"

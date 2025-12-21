@@ -26,7 +26,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(DestroyActor)
 
 FName UPCGExDestroyActorSettings::GetMainInputPin() const
 {
-	return PCGEx::SourceTargetsLabel;
+	return PCGExCommon::Labels::SourceTargetsLabel;
 }
 
 bool FPCGExDestroyActorElement::Boot(FPCGExContext* InContext) const

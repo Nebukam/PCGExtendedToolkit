@@ -4,7 +4,7 @@
 #include "Graph/Filters/Nodes/PCGExNodeEdgeDirectionFilter.h"
 
 
-#include "PCGExHelpers.h"
+
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clusters/PCGExCluster.h"

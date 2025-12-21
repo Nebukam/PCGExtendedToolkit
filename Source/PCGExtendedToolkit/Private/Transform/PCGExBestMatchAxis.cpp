@@ -17,7 +17,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExBestMatchAxisSettings, Match, FVector, MatchInput
 TArray<FPCGPinProperties> UPCGExBestMatchAxisSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget) { PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points"), Required) }
+	if (Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget) { PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceTargetsLabel, TEXT("Target points"), Required) }
 	return PinProperties;
 }
 
@@ -36,7 +36,7 @@ bool FPCGExBestMatchAxisElement::Boot(FPCGExContext* InContext) const
 	if (Settings->Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget)
 	{
 		Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
-		Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel);
+		Context->TargetsHandler->Init(Context, PCGExCommon::Labels::SourceTargetsLabel);
 
 		Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 		if (!Context->NumMaxTargets)

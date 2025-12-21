@@ -5,11 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "Details/PCGExBlendingDetails.h"
-#include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExWriteEdgeProperties.generated.h"
 

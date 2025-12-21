@@ -8,6 +8,7 @@
 
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
+#include "Factories/PCGExFactoryData.h"
 #include "Factories/PCGExOperation.h"
 
 #include "PCGExVtxPropertyFactoryProvider.generated.h"

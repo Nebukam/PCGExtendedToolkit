@@ -215,7 +215,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(PackActorData)
 
 FName UPCGExPackActorDataSettings::GetMainInputPin() const
 {
-	return PCGEx::SourceTargetsLabel;
+	return PCGExCommon::Labels::SourceTargetsLabel;
 }
 
 bool FPCGExPackActorDataElement::Boot(FPCGExContext* InContext) const

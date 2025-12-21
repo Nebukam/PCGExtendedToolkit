@@ -3,7 +3,7 @@
 
 #include "Transform/Tensors/PCGExTensorPole.h"
 
-#include "PCGExHelpers.h"
+
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorPole"
