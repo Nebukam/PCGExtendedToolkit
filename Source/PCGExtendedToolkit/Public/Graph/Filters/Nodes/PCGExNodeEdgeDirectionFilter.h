@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExGraphDetails.h"
+#include "Core/PCGExGraphDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Core/PCGExFilterFactoryProvider.h"
 
 #include "PCGExNodeEdgeDirectionFilter.generated.h"

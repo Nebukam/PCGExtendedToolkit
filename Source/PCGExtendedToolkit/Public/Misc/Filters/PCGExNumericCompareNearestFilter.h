@@ -70,7 +70,7 @@ public:
 	UPROPERTY()
 	FPCGExNumericCompareNearestFilterConfig Config;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	TSharedPtr<TArray<TSharedPtr<PCGExData::TBuffer<double>>>> OperandA;
 
 	virtual bool Init(FPCGExContext* InContext) override;
@@ -100,7 +100,7 @@ namespace PCGExPointFilter
 
 		const TObjectPtr<const UPCGExNumericCompareNearestFilterFactory> TypedFilterFactory;
 
-		TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+		TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 		TSet<const UPCGData*> IgnoreList;
 
 		TSharedPtr<TArray<TSharedPtr<PCGExData::TBuffer<double>>>> OperandA;

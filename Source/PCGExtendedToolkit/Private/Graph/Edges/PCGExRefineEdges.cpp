@@ -8,9 +8,9 @@
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExGraph.h"
+#include "Core/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Async/ParallelFor.h"
 #include "PCGExVersion.h"
 

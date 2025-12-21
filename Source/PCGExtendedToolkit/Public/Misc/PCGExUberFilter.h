@@ -10,7 +10,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "Core/PCGExPointFilter.h"
-#include "Details/PCGExDetailsFiltering.h"
+#include "Details/PCGExFilterDetails.h"
 
 #include "PCGExUberFilter.generated.h"
 

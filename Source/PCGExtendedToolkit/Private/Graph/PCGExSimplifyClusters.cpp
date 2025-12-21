@@ -9,7 +9,7 @@
 #include "Clusters/PCGExChainHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExUnionData.h"
+#include "Core/PCGExUnionData.h"
 #include "Graph/PCGExChain.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

@@ -4,12 +4,16 @@
 #include "Paths/PCGExWritePathProperties.h"
 #include "MinVolumeBox3.h"
 #include "OrientedBoxTypes.h"
-#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Math/PCGExWinding.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
+#include "Sampling/PCGExSamplingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties

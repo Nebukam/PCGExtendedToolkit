@@ -1,13 +1,12 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "System/PCGExWaitForPCGData.h"
+#include "Elements/PCGExWaitForPCGData.h"
 
-#include "PCGExMT.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExStreamingHelpers.h"
+#include "Streaming/PCGExStreamingHelpers.h"
 #include "PCGGraph.h"
 #include "PCGSubsystem.h"
 #include "PCGExSubSystem.h"

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 
 #include "PCGExSorting.h"
 #include "Data/PCGExPointIOMerger.h"

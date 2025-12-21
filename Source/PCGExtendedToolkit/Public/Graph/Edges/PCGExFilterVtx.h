@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExDetailsFiltering.h"
+#include "Details/PCGExFilterDetails.h"
 
 
-#include "Graph/PCGExClusterMT.h"
+#include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 
 #include "PCGExFilterVtx.generated.h"
 

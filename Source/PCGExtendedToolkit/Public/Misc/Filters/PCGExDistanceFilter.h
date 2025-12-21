@@ -72,7 +72,7 @@ public:
 	UPROPERTY()
 	FPCGExDistanceFilterConfig Config;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override;
@@ -99,7 +99,7 @@ namespace PCGExPointFilter
 		}
 
 		const TObjectPtr<const UPCGExDistanceFilterFactory> TypedFilterFactory;
-		TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+		TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 		TSet<const UPCGData*> IgnoreList;
 
 		bool bCheckAgainstDataBounds = false;

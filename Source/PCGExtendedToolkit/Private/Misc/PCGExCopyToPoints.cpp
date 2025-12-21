@@ -87,7 +87,7 @@ namespace PCGExCopyToPoints
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		MatchScope = PCGExMatching::FMatchingScope(Context->InitialMainPointsNum);
+		MatchScope = PCGExMatching::FScope(Context->InitialMainPointsNum);
 
 		const UPCGBasePointData* Targets = Context->TargetsDataFacade->GetIn();
 		const int32 NumTargets = Targets->GetNumPoints();

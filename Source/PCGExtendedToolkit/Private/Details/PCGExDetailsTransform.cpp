@@ -11,7 +11,7 @@
 #include "Details/PCGExSettingsDetails.h"
 #include "Engine/EngineTypes.h"
 #include "Math/PCGExMathAxis.h"
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
 
 
 FPCGExAttachmentRules::FPCGExAttachmentRules(EAttachmentRule InLoc, EAttachmentRule InRot, EAttachmentRule InScale)

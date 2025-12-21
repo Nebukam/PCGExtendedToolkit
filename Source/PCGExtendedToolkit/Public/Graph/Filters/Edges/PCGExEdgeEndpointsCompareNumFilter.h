@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Utils/PCGExCompare.h"
 
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Core/PCGExFilterFactoryProvider.h"
 
 #include "PCGExEdgeEndpointsCompareNumFilter.generated.h"

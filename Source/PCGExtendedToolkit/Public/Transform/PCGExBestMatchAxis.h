@@ -84,7 +84,7 @@ struct FPCGExBestMatchAxisContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBestMatchAxisElement;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
 protected:

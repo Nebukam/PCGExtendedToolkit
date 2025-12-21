@@ -8,7 +8,7 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExTransform.generated.h"
 #include "Core/PCGExContext.h"
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
 
 namespace PCGExData
 {

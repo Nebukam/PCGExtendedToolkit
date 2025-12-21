@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGSplineStruct.h"
-#include "Details/PCGExDetailsFiltering.h"
+#include "Details/PCGExFilterDetails.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 #include "Sampling/PCGExSampling.h"

@@ -9,7 +9,7 @@
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExDetailsRelax.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Types/PCGExTypeOpsRotation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRelaxClusters"

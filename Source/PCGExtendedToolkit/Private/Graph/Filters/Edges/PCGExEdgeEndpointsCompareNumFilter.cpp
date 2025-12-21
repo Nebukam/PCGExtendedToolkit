@@ -7,7 +7,7 @@
 #include "PCGExHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataPreloader.h"
-#include "Graph/PCGExGraph.h"
+#include "Core/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeEndpointsCompareNumFilter"
 #define PCGEX_NAMESPACE EdgeEndpointsCompareNumFilter

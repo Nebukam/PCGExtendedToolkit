@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 
-#include "Graph/PCGExClusterMT.h"
+#include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Paths/PCGExPath.h"
 
 #include "PCGExCutClusters.generated.h"

@@ -10,10 +10,10 @@
 #include "Details/PCGExDetailsIntersection.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Blenders/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 
 
-#include "Graph/PCGExIntersections.h"
+#include "Union/PCGExIntersections.h"
 
 #include "PCGExFusePoints.generated.h"
 

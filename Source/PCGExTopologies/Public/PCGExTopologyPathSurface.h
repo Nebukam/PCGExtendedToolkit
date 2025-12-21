@@ -7,7 +7,7 @@
 #include "PCGExCell.h"
 #include "PCGExTopology.h"
 #include "Data/PCGDynamicMeshData.h"
-#include "Graph/PCGExClusterMT.h"
+#include "Core/PCGExClusterMT.h"
 #include "Paths/PCGExPathProcessor.h"
 
 #include "PCGExTopologyPathSurface.generated.h"

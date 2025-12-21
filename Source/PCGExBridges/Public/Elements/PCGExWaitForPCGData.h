@@ -12,6 +12,8 @@
 
 #include "PCGExWaitForPCGData.generated.h"
 
+class FPCGExIntTracker;
+
 namespace PCGEx
 {
 	class FPCGExIntTracker;

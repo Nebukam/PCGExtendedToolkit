@@ -4,11 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
-#include "Details/PCGExDetailsIntersection.h"
-#include "Geometry/PCGExGeo.h"
+#include "Core/PCGExPathProcessor.h"
+#include "Details/PCGExIntersectionDetails.h"
+#include "Math/PCGExProjectionDetails.h"
 
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Sampling/PCGExSamplingCommon.h"
 #include "PCGExWritePathProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_PATH(MACRO)\
@@ -63,6 +64,14 @@ namespace PCGExData
 	template <typename T>
 	class TBuffer;
 }
+
+
+UENUM()
+enum class EPCGExAttributeSetPackingMode : uint8
+{
+	PerInput = 0 UMETA(DisplayName = "Per Input", ToolTip="..."),
+	Merged   = 1 UMETA(DisplayName = "Merged", ToolTip="..."),
+};
 
 /**
  * 

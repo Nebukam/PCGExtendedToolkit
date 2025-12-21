@@ -35,7 +35,7 @@ bool FPCGExBestMatchAxisElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget)
 	{
-		Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
+		Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
 		Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel);
 
 		Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
@@ -96,7 +96,7 @@ namespace PCGExBestMatchAxis
 		{
 			IgnoreList.Add(PointDataFacade->GetIn());
 
-			if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+			if (PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 			{
 				(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 				return false;

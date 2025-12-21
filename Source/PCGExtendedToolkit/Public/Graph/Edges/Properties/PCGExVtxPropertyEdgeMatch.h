@@ -8,7 +8,7 @@
 #include "UObject/Object.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
-#include "Graph/PCGExGraphDetails.h"
+#include "Core/PCGExGraphDetails.h"
 
 #include "PCGExVtxPropertyEdgeMatch.generated.h"
 

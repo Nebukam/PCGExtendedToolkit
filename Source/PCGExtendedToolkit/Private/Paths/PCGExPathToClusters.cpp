@@ -6,10 +6,10 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExUnionData.h"
-#include "Graph/PCGExGraph.h"
+#include "Core/PCGExUnionData.h"
+#include "Core/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExUnionProcessor.h"
+#include "Union/PCGExUnionProcessor.h"
 #include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathToClustersElement"

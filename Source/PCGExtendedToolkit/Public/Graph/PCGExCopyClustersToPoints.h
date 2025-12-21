@@ -95,8 +95,8 @@ namespace PCGExCopyClustersToPoints
 
 	protected:
 		int32 NumCopies = 0;
-		PCGExMatching::FMatchingScope MatchScope;
-		PCGExMatching::FMatchingScope InfiniteScope;
+		PCGExMatching::FScope MatchScope;
+		PCGExMatching::FScope InfiniteScope;
 
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>>* VtxDupes = nullptr;

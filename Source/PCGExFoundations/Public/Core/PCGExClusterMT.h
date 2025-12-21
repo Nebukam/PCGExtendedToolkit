@@ -2,11 +2,12 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-
 #include "PCGExVersion.h"
-#include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "Clusters/PCGExEdgeDirectionDetails.h"
+#include "Compute/PCGDataDescription.h"
 #include "Core/PCGExContext.h"
+#include "Core/PCGExGraphDetails.h"
 #include "Math/PCGExProjectionDetails.h"
 
 #if PCGEX_ENGINE_VERSION > 506
@@ -15,14 +16,38 @@
 #include "PCGCommon.h"
 #endif
 
-#include "Graph/PCGExGraphDetails.h"
+namespace PCGExData
+{
+	class FPointIOCollection;
+}
 
+namespace PCGExCluster
+{
+	struct FNode;
+}
+
+namespace PCGExClusterFilter
+{
+	class FManager;
+}
+
+class UPCGExPointFilterFactoryData;
+
+namespace PCGExMT
+{
+	struct FScope;
+	class FTaskManager;
+}
+
+class UPCGSettings;
+struct FPCGExContext;
 template <typename T>
 class FPCGMetadataAttribute;
 class UPCGExHeuristicsFactoryData;
 
 namespace PCGEx
 {
+	class FWorkHandle;
 	class FIndexLookup;
 }
 
@@ -33,6 +58,7 @@ namespace PCGExHeuristics
 
 namespace PCGExGraph
 {
+	struct FGraphMetadataDetails;
 	class FGraphBuilder;
 }
 

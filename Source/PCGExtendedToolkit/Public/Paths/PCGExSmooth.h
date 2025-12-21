@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
-#include "PCGExPathProcessor.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Core/PCGExPathProcessor.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExSmooth.generated.h"

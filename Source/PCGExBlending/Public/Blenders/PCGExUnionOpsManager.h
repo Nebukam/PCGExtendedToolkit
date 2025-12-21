@@ -7,7 +7,7 @@
 #include "Core/PCGExProxyDataBlending.h"
 #include "UObject/Object.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExUnionData.h"
+#include "Core/PCGExUnionData.h"
 
 class UPCGExBlendOpFactory;
 

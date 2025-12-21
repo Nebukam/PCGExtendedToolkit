@@ -10,7 +10,7 @@
 
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 
 #include "PCGExSampleVtxByID.generated.h"
 

@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "PCGExClusterStates.h"
 #include "Data/PCGExPointStates.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 #include "PCGExAdjacencyStates.generated.h"
 
 

@@ -5,11 +5,11 @@
 
 #include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExUnionData.h"
+#include "Core/PCGExUnionData.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/PCGExIntersections.h"
+#include "Union/PCGExIntersections.h"
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExUnionProcessor.h"
+#include "Union/PCGExUnionProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

@@ -86,7 +86,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
-	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
+	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
 	Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel);
 
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
@@ -233,7 +233,7 @@ namespace PCGExSampleNearestPoint
 
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
 			(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
 			return false;

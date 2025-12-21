@@ -7,7 +7,7 @@
 #include "PCGParamData.h"
 #include "PCGExVersion.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoClusterState, UPCGExClusterStateFactoryData)
 

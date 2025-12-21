@@ -7,11 +7,11 @@
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Details/PCGExDistancesDetails.h"
-#include "Graph/PCGExGraph.h"
+#include "Core/PCGExGraph.h"
 #include "Async/ParallelFor.h"
 
 
-#include "Graph/PCGExIntersections.h"
+#include "Union/PCGExIntersections.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 #define PCGEX_NAMESPACE FusePoints

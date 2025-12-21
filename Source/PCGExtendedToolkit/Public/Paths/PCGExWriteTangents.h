@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "PCGExWriteTangents.generated.h"
 

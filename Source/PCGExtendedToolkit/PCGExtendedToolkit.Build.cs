@@ -47,6 +47,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"PCGExCore",
 				"PCGExFoundations",
 				"PCGExBlending",
+				"PCGExStates",
 			}
 		);
 

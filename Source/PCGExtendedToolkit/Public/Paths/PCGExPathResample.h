@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMath.h"
-#include "PCGExPathProcessor.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Core/PCGExPathProcessor.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Blenders/PCGExMetadataBlender.h"
 #include "Details/PCGExInputShorthandsDetails.h"
 

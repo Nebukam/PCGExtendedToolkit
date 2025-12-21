@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 
 #include "Core/PCGExPointsProcessor.h"
 

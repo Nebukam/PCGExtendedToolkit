@@ -219,7 +219,7 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
 	TSharedPtr<PCGExSorting::FPointSorter> Sorter;

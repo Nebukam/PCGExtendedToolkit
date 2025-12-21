@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 #include "PCGExPath.h"
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Blenders/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"

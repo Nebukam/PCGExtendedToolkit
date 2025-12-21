@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 
 #include "Factories/PCGExFactoryProvider.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
 

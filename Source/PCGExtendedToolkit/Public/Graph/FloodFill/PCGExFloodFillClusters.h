@@ -9,7 +9,7 @@
 #include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "PCGExFloodFillClusters.generated.h"
 

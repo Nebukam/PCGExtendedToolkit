@@ -8,7 +8,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExUnionData.h"
+#include "Core/PCGExUnionData.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Details/PCGExDistancesDetails.h"
 

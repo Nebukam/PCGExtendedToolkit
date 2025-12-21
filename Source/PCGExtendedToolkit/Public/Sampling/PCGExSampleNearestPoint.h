@@ -15,10 +15,11 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSorting.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Graph/Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
 
@@ -337,7 +338,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
 	TArray<TSharedPtr<PCGExData::TBuffer<double>>> TargetWeights;

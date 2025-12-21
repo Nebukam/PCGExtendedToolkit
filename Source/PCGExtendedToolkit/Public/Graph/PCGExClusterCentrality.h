@@ -7,7 +7,7 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Details/PCGExDetailsNoise.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 
 #include "PCGExClusterCentrality.generated.h"
 

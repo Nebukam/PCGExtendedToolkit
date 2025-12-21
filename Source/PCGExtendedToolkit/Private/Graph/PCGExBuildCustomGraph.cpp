@@ -12,8 +12,8 @@
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
 
-#include "Graph/PCGExGraph.h"
-#include "Graph/PCGExUnionProcessor.h"
+#include "Core/PCGExGraph.h"
+#include "Union/PCGExUnionProcessor.h"
 #include "Elements/PCGExecuteBlueprint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraphElement"

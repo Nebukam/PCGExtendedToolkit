@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExDetailsCluster.h"
-#include "Details/PCGExDetailsFiltering.h"
+#include "Details/PCGExFilterDetails.h"
 
 #include "Core/PCGExClustersProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"

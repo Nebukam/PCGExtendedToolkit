@@ -9,7 +9,7 @@
 #include "Details/PCGExDetailsIntersection.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExPointFilter.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 
 
 #include "PCGExSimplifyClusters.generated.h"

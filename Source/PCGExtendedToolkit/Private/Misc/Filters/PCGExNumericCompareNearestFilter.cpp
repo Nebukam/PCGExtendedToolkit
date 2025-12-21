@@ -21,7 +21,7 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 
 PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 {
-	TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
+	TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
 	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return PCGExFactories::EPreparationResult::MissingData; }
 
 	TargetsHandler->SetDistances(Config.DistanceDetails);

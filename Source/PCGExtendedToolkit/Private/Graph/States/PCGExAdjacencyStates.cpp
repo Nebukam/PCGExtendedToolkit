@@ -6,7 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExAdjacencyStateFactoryData::CreateFilter() const
 {

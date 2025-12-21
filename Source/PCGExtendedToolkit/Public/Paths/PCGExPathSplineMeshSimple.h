@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 #include "Collections/Core/PCGExComponentDescriptors.h"
 #include "Details/PCGExDetailsSplineMesh.h"
 #include "Details/PCGExDetailsStaging.h"

@@ -6,9 +6,9 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExDetailsIntersection.h"
 
 #include "PCGExFuseCollinear.generated.h"

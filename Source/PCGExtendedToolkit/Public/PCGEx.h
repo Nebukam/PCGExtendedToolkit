@@ -12,13 +12,6 @@
 
 #include "PCGEx.generated.h"
 
-UENUM()
-enum class EPCGExAttributeSetPackingMode : uint8
-{
-	PerInput = 0 UMETA(DisplayName = "Per Input", ToolTip="..."),
-	Merged   = 1 UMETA(DisplayName = "Merged", ToolTip="..."),
-};
-
 namespace PCGEx
 {
 
@@ -28,10 +21,6 @@ namespace PCGEx
 	const FName SourceSourcesLabel = TEXT("Sources");
 	const FName SourceBoundsLabel = TEXT("Bounds");
 
-	const FName SourceAdditionalReq = TEXT("AdditionalRequirementsFilters");
-	const FName SourcePerInputOverrides = TEXT("PerInputOverrides");
-
-	const FName SourcePointFilters = TEXT("PointFilters");
 	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
 
 	PCGEXTENDEDTOOLKIT_API FName GetCompoundName(const FName A, const FName B);

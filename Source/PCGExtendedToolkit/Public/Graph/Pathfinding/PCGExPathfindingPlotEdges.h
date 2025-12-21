@@ -144,7 +144,7 @@ struct FPCGExPathfindingPlotEdgesContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> PlotsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> PlotsHandler;
 	TSharedPtr<PCGExMatching::FDataMatcher> MainDataMatcher;
 	TSharedPtr<PCGExMatching::FDataMatcher> EdgeDataMatcher;
 	int32 NumMaxPlots = 0;

@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExPointFilter.h"
 #include "Data/Bitmasks/PCGExBitmaskDetails.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 
 #include "PCGExPointStates.generated.h"
 

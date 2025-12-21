@@ -10,7 +10,7 @@
 #include "Topology/PCGExDynamicMeshComponent.h"
 #include "Topology/PCGExCell.h"
 #include "Data/PCGDynamicMeshData.h"
-#include "Graph/PCGExClusterMT.h"
+#include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Transform/PCGExTransform.h"
 #include "Core/PCGExPointFilter.h"

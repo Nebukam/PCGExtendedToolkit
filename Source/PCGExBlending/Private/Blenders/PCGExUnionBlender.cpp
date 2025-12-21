@@ -13,7 +13,7 @@
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExUnionData.h"
+#include "Core/PCGExUnionData.h"
 #include "Details/PCGExBlendingDetails.h"
 
 namespace PCGExBlending

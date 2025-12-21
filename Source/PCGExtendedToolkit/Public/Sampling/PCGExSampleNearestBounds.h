@@ -15,7 +15,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSorting.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Data/Matching/PCGExMatching.h"
 
 #include "PCGExSampleNearestBounds.generated.h"
@@ -304,7 +304,7 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
 	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;

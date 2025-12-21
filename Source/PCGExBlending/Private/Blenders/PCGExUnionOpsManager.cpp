@@ -7,7 +7,7 @@
 #include "Core/PCGExBlendOpsManager.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExUnionData.h"
+#include "Core/PCGExUnionData.h"
 
 namespace PCGExBlending
 {

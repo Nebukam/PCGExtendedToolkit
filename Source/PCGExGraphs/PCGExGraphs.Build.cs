@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExTopologies : ModuleRules
+public class PCGExGraphs : ModuleRules
 {
-	public PCGExTopologies(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExGraphs(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
@@ -50,7 +50,8 @@ public class PCGExTopologies : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"PCGExBlending"
 			}
 		);
 

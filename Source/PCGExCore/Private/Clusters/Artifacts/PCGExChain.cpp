@@ -4,7 +4,6 @@
 #include "Clusters/Artifacts/PCGExChain.h"
 
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExUnionData.h"
 #include "Clusters/PCGExCluster.h"
 
 namespace PCGExCluster

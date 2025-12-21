@@ -7,7 +7,7 @@
 #include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsAxis.h"
-#include "Graph/PCGExGraphDetails.h"
+#include "Core/PCGExGraphDetails.h"
 #include "PCGExBuildDelaunayGraph.generated.h"
 
 namespace PCGExGraph

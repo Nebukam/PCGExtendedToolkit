@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 #include "PCGExSubPointsBlendOperation.generated.h"
 
@@ -12,6 +12,11 @@
 PCGEX_FACTORY_NEW_OPERATION(SubPointsBlend##_TYPE)\
 NewOperation->Factory = this;\
 NewOperation->BlendFactory = this;
+
+namespace PCGExPaths
+{
+	struct FPathMetrics;
+}
 
 class UPCGExSubPointsBlendInstancedFactory;
 

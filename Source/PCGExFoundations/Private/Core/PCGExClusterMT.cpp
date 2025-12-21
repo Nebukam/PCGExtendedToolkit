@@ -8,10 +8,13 @@
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGExClusterData.h"
-#include "Heuristics/PCGExHeuristicsHandler.h"
+#include "PCGExHeuristicsHandler.h"
+#include "Core/PCGExClusterFilter.h"
+#include "Core/PCGExGraphBuilder.h"
+#include "Core/PCGExGraphHelpers.h"
+#include "Core/PCGExPointsMT.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Math/PCGExProjectionDetails.h"
-#include "Pickers/PCGExPickerAttributeSet.h"
 
 namespace PCGExClusterMT
 {
@@ -333,7 +336,7 @@ namespace PCGExClusterMT
 		if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 		{
 			// Trivial
-			PCGExGraph::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
+			PCGExGraph::Helpers::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
 			if (RequiresGraphBuilder())
 			{
 				GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails);
@@ -382,7 +385,7 @@ namespace PCGExClusterMT
 			PCGExArrayHelpers::InitArray(ReverseLookup, NumVtx);
 			PCGExArrayHelpers::InitArray(ExpectedAdjacency, NumVtx);
 
-			RawLookupAttribute = PCGExMetaHelpers::TryGetConstAttribute<int64>(VtxDataFacade->GetIn(), PCGExGraph::Attr_PCGExVtxIdx);
+			RawLookupAttribute = PCGExMetaHelpers::TryGetConstAttribute<int64>(VtxDataFacade->GetIn(), PCGExCluster::Labels::Attr_PCGExVtxIdx);
 			if (!RawLookupAttribute) { return; } // FAIL
 
 			BuildEndpointLookupTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
@@ -530,13 +533,9 @@ namespace PCGExClusterMT
 	{
 		if (!bIsBatchValid) { return; }
 
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, {Processor->bIsProcessorValid = Processor->Process(This->TaskManager); }, {
-			                        Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
-			                        {
-				                        PCGEX_ASYNC_THIS
-				                        This->OnInitialPostProcess();
-			                        };
-		                        })
+		PCGEX_ASYNC_MT_LOOP_TPL(
+			Process, bForceSingleThreadedProcessing, {Processor->bIsProcessorValid = Processor->Process(This->TaskManager); }, {
+			Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]() { PCGEX_ASYNC_THIS This->OnInitialPostProcess(); }; })
 	}
 
 	void IBatch::OnInitialPostProcess()
@@ -597,7 +596,10 @@ namespace PCGExClusterMT
 					return;
 				}
 
-				if (TSharedPtr<PCGExData::FPointIOCollection> OutCollection = This->GraphEdgeOutputCollection.Pin()) { InBuilder->MoveEdgesOutputs(OutCollection, This->VtxDataFacade->Source->IOIndex * 100000); }
+				if (TSharedPtr<PCGExData::FPointIOCollection> OutCollection = This->GraphEdgeOutputCollection.Pin())
+				{
+					InBuilder->MoveEdgesOutputs(OutCollection, This->VtxDataFacade->Source->IOIndex * 100000);
+				}
 				else { InBuilder->StageEdgesOutputs(); }
 			};
 		}

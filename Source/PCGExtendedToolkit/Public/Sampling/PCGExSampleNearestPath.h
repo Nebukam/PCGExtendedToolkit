@@ -425,7 +425,7 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 
 	FPCGExApplySamplingDetails ApplySampling;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> Paths;

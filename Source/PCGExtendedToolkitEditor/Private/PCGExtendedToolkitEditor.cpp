@@ -24,7 +24,7 @@
 #include "Details/PCGExDetailsCustomization.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 #include "Graph/Probes/PCGExProbeFactoryProvider.h"

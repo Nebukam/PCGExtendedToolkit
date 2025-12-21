@@ -10,8 +10,8 @@
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDistancesDetails.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Core/PCGExGraph.h"
+#include "Core/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCutEdges"
 #define PCGEX_NAMESPACE CutEdges

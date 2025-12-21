@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Math/PCGExBoundsCloud.h"
 
 
-#include "Graph/PCGExIntersections.h"
+#include "Union/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
 
 class UPCGExSubPointsBlendInstancedFactory;
@@ -93,7 +93,7 @@ struct FPCGExBoundsPathIntersectionContext final : FPCGExPathProcessorContext
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
-	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
 	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;

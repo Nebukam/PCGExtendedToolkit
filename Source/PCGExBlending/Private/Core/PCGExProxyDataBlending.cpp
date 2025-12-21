@@ -9,7 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
-#include "Data/PCGExUnionData.h"
+#include "Core/PCGExUnionData.h"
 #include "Core/PCGExBlendOperations.h"
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExData.h"

@@ -9,7 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExPointFilter.h"
-#include "Graph/PCGExGraph.h"
+#include "Core/PCGExGraph.h"
 #include "Graph/PCGExGraphCommon.h"
 #include "Heuristics/PCGExHeuristicsCommon.h"
 #include "Sorting/PCGExSortingRuleProvider.h"

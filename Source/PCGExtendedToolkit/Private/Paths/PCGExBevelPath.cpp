@@ -8,7 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlending.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "Paths/PCGExPath.h"
