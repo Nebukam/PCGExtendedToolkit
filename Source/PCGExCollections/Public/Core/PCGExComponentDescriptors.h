@@ -16,7 +16,7 @@
 #include "PCGExComponentDescriptors.generated.h"
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Primitive Component Descriptor")
-struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveComponentDescriptor
+struct PCGEXCOLLECTIONS_API FPCGExPrimitiveComponentDescriptor
 {
 	GENERATED_BODY()
 
@@ -415,7 +415,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveComponentDescriptor
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Component Descriptor")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshComponentDescriptor : public FPCGExPrimitiveComponentDescriptor
+struct PCGEXCOLLECTIONS_API FPCGExMeshComponentDescriptor : public FPCGExPrimitiveComponentDescriptor
 {
 	GENERATED_BODY()
 
@@ -446,7 +446,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshComponentDescriptor : public FPCGExPrimi
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Static Mesh Component Descriptor")
-struct PCGEXTENDEDTOOLKIT_API FPCGExStaticMeshComponentDescriptor : public FPCGExMeshComponentDescriptor
+struct PCGEXCOLLECTIONS_API FPCGExStaticMeshComponentDescriptor : public FPCGExMeshComponentDescriptor
 {
 	GENERATED_BODY()
 
@@ -599,7 +599,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStaticMeshComponentDescriptor : public FPCGE
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Dynamic Mesh Component Descriptor")
-struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicMeshDescriptor : public FPCGExMeshComponentDescriptor
+struct PCGEXCOLLECTIONS_API FPCGExDynamicMeshDescriptor : public FPCGExMeshComponentDescriptor
 {
 	GENERATED_BODY()
 

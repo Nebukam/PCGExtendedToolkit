@@ -11,7 +11,7 @@
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 #include "Details/PCGExBlendingDetails.h"
-#include "PCGExOperation.h"
+#include "Factories/PCGExOperation.h"
 #include "Details/PCGExDetailsCluster.h"
 
 

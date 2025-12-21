@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExOperation.h"
+#include "Factories/PCGExOperation.h"
 #include "PCGExTensor.h"
 #include "Paths/PCGExPath.h"
 

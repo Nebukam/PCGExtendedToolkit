@@ -12,10 +12,12 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
 #include "Data/PCGSplineData.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Math/PCGExMathAxis.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExSampleNearestSpline.generated.h"
 

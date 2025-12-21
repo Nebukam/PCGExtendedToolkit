@@ -28,7 +28,7 @@ namespace PCGExCollectionHelpers
 	 * @param bBuildStaging Whether to rebuild staging data after building
 	 * @return true if successful
 	 */
-	PCGEXTENDEDTOOLKIT_API
+	PCGEXCOLLECTIONS_API
 	bool BuildFromAttributeSet(
 		UPCGExAssetCollection* InCollection,
 		FPCGExContext* InContext,
@@ -39,7 +39,7 @@ namespace PCGExCollectionHelpers
 	/**
 	 * Build a collection from an attribute set on a specific input pin
 	 */
-	PCGEXTENDEDTOOLKIT_API
+	PCGEXCOLLECTIONS_API
 	bool BuildFromAttributeSet(
 		UPCGExAssetCollection* InCollection,
 		FPCGExContext* InContext,
@@ -53,7 +53,7 @@ namespace PCGExCollectionHelpers
 	 * @param TagInheritance Bitmask of EPCGExAssetTagInheritance flags
 	 * @param OutTags Set to append tags to
 	 */
-	PCGEXTENDEDTOOLKIT_API
+	PCGEXCOLLECTIONS_API
 	void AccumulateTags(
 		const FPCGExAssetCollectionEntry* Entry,
 		uint8 TagInheritance,
@@ -65,7 +65,7 @@ namespace PCGExCollectionHelpers
 	 * @param OutPaths Set to append paths to
 	 * @param bRecursive Whether to include subcollection assets
 	 */
-	PCGEXTENDEDTOOLKIT_API
+	PCGEXCOLLECTIONS_API
 	void GetAllAssetPaths(
 		const UPCGExAssetCollection* Collection,
 		TSet<FSoftObjectPath>& OutPaths,
@@ -77,7 +77,7 @@ namespace PCGExCollectionHelpers
 	 * @param AssetPath Path to look for
 	 * @return true if found
 	 */
-	PCGEXTENDEDTOOLKIT_API
+	PCGEXCOLLECTIONS_API
 	bool ContainsAsset(
 		const UPCGExAssetCollection* Collection,
 		const FSoftObjectPath& AssetPath);
@@ -87,7 +87,7 @@ namespace PCGExCollectionHelpers
 	 * @param Collection Collection to count
 	 * @return Total entry count
 	 */
-	PCGEXTENDEDTOOLKIT_API
+	PCGEXCOLLECTIONS_API
 	int32 CountTotalEntries(const UPCGExAssetCollection* Collection);
 
 	/**
@@ -97,7 +97,7 @@ namespace PCGExCollectionHelpers
 	 * @param Target Target collection (must be same type as source)
 	 * @return true if successful
 	 */
-	PCGEXTENDEDTOOLKIT_API
+	PCGEXCOLLECTIONS_API
 	bool FlattenCollection(
 		const UPCGExAssetCollection* Source,
 		UPCGExAssetCollection* Target);

@@ -40,7 +40,7 @@ struct FPCGExAssetCollectionEntry;
 /**
  * Entry Access Result - Clean return type for polymorphic access
  */
-struct PCGEXTENDEDTOOLKIT_API FPCGExEntryAccessResult
+struct PCGEXCOLLECTIONS_API FPCGExEntryAccessResult
 {
 	const FPCGExAssetCollectionEntry* Entry = nullptr;
 	const UPCGExAssetCollection* Host = nullptr;
@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEntryAccessResult
  * Staging Data - Shared across all entry types
  */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staging Data")
-struct PCGEXTENDEDTOOLKIT_API FPCGExAssetStagingData
+struct PCGEXCOLLECTIONS_API FPCGExAssetStagingData
 {
 	GENERATED_BODY()
 
@@ -96,7 +96,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetStagingData
  * Base Collection Entry
  */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
-struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
+struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
 
@@ -211,7 +211,7 @@ namespace PCGExAssetCollection
 	 * Unified MicroCache base class
 	 * Handles weighted random picking for per-entry sub-selections (e.g., material variants)
 	 */
-	class PCGEXTENDEDTOOLKIT_API FMicroCache : public TSharedFromThis<FMicroCache>
+	class PCGEXCOLLECTIONS_API FMicroCache : public TSharedFromThis<FMicroCache>
 	{
 	protected:
 		double WeightSum = 0;
@@ -243,7 +243,7 @@ namespace PCGExAssetCollection
 	/**
 	 * Category - groups entries by name for category-based picking
 	 */
-	class PCGEXTENDEDTOOLKIT_API FCategory : public TSharedFromThis<FCategory>
+	class PCGEXCOLLECTIONS_API FCategory : public TSharedFromThis<FCategory>
 	{
 	public:
 		FName Name = NAME_None;
@@ -282,7 +282,7 @@ namespace PCGExAssetCollection
 	/**
 	 * Main cache - holds the main category and named sub-categories
 	 */
-	class PCGEXTENDEDTOOLKIT_API FCache : public TSharedFromThis<FCache>
+	class PCGEXCOLLECTIONS_API FCache : public TSharedFromThis<FCache>
 	{
 	public:
 		int32 WeightSum = 0;
@@ -303,7 +303,7 @@ namespace PCGExAssetCollection
  * Base Asset Collection
  */
 UCLASS(Abstract, BlueprintType, DisplayName="[PCGEx] Asset Collection")
-class PCGEXTENDEDTOOLKIT_API UPCGExAssetCollection : public UDataAsset
+class PCGEXCOLLECTIONS_API UPCGExAssetCollection : public UDataAsset
 {
 	mutable FRWLock CacheLock;
 

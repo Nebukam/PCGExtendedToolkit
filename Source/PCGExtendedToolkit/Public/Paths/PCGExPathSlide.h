@@ -4,13 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExLabels.h"
-#include "PCGExMathMean.h"
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Math/PCGExMathMean.h"
 
-#include "Sampling/PCGExSampling.h"
 #include "PCGExPathSlide.generated.h"
 
 namespace PCGExPaths

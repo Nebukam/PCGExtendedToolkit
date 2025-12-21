@@ -5,10 +5,15 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExInstancedFactory.h"
-#include "PCGExOperation.h"
+#include "Factories/PCGExOperation.h"
 
 #include "Paths/PCGExPath.h"
 #include "PCGExSubPointsInstancedFactory.generated.h"
+
+namespace PCGExPaths
+{
+	struct FPathMetrics;
+}
 
 namespace PCGExData
 {

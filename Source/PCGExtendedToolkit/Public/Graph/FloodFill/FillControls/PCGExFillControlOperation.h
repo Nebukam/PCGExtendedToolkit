@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExOperation.h"
+#include "Factories/PCGExOperation.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "UObject/Object.h"
 

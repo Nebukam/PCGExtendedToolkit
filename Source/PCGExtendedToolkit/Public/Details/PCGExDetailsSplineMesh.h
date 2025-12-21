@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExSettingsMacros.h"
 #include "Components/SplineMeshComponent.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
+#include "Misc/PCGExModularPartitionByValues.h"
 
 #include "PCGExDetailsSplineMesh.generated.h"
 

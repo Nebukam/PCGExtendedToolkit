@@ -50,7 +50,7 @@ namespace PCGExAssetCollection
 	/**
 	 * Information about a registered collection type
 	 */
-	struct PCGEXTENDEDTOOLKIT_API FTypeInfo
+	struct PCGEXCOLLECTIONS_API FTypeInfo
 	{
 		FTypeId Id = NAME_None;
 		TWeakObjectPtr<UClass> CollectionClass = nullptr;
@@ -65,7 +65,7 @@ namespace PCGExAssetCollection
 	/**
 	 * Singleton registry for collection types
 	 */
-	class PCGEXTENDEDTOOLKIT_API FTypeRegistry
+	class PCGEXCOLLECTIONS_API FTypeRegistry
 	{
 	public:
 		static FTypeRegistry& Get();
@@ -142,7 +142,7 @@ PCGExAssetCollection::FTypeRegistry::Get().Register(Info); \
  * Replaces the bit-flag enum approach
  */
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionTypeSet
+struct PCGEXCOLLECTIONS_API FPCGExCollectionTypeSet
 {
 	GENERATED_BODY()
 

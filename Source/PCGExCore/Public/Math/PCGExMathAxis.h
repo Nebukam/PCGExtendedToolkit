@@ -63,6 +63,15 @@ enum class EPCGExMakeRotAxis : uint8
 	ZY = 8 UMETA(DisplayName = "Z > Y", ToolTip="(8) Main direction used for Z (Up), second axis for Y (Right)", ActionIcon="RotOrder_ZY")
 };
 
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Rotation Component Flags"))
+enum class EPCGExAbsoluteRotationFlags : uint8
+{
+	None = 0 UMETA(Hidden),
+	X    = 1 << 0 UMETA(DisplayName = "Pitch", ToolTip = "Pitch", ActionIcon="X"),
+	Y    = 1 << 1 UMETA(DisplayName = "Yaw", ToolTip = "Yaw", ActionIcon="Y"),
+	Z    = 1 << 2 UMETA(DisplayName = "Roll", ToolTip = "Roll", ActionIcon="Z")
+};
+
 namespace PCGExMath
 {
 	static const int32 AxisOrders[6][3] = {
@@ -111,7 +120,7 @@ namespace PCGExMath
 	PCGEXCORE_API FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B);
 
 	PCGEXCORE_API void FindOrderMatch(const FQuat& Quat, const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis, int32& X, int32& Y, int32& Z, const bool bPermute = true);
-	
+
 	template <const EPCGExAxis Dir = EPCGExAxis::Forward>
 	FORCEINLINE static FVector GetDirection(const FQuat& Quat)
 	{

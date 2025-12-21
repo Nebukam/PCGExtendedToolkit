@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExPointFilter.h"
-#include "PCGExFilterFactoryProvider.h"
+#include "Core/PCGExFilterFactoryProvider.h"
 
 #include "PCGExClusterFilter.generated.h"
 

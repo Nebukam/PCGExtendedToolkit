@@ -26,14 +26,6 @@ struct FPCGMeshInstanceList;
 class UPCGBasePointData;
 class UPCGParamData;
 
-UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Rotation Component Flags"))
-enum class EPCGExAbsoluteRotationFlags : uint8
-{
-	None = 0 UMETA(Hidden),
-	X    = 1 << 0 UMETA(DisplayName = "Pitch", ToolTip = "Pitch", ActionIcon="X"),
-	Y    = 1 << 1 UMETA(DisplayName = "Yaw", ToolTip = "Yaw", ActionIcon="Y"),
-	Z    = 1 << 2 UMETA(DisplayName = "Roll", ToolTip = "Roll", ActionIcon="Z")
-};
 
 ENUM_CLASS_FLAGS(EPCGExAbsoluteRotationFlags)
 using EPCGExAbsoluteRotationFlagsBitmask = TEnumAsByte<EPCGExAbsoluteRotationFlags>;
@@ -45,7 +37,7 @@ namespace PCGExStaging
 	 * Works with any collection type through the polymorphic API.
 	 * Use FPCGExEntryAccessResult::As<T>() when you need type-specific entry data.
 	 */
-	class PCGEXTENDEDTOOLKIT_API FDistributionHelper : public TSharedFromThis<FDistributionHelper>
+	class PCGEXCOLLECTIONS_API FDistributionHelper : public TSharedFromThis<FDistributionHelper>
 	{
 	protected:
 		PCGExAssetCollection::FCache* Cache = nullptr;
@@ -98,7 +90,7 @@ namespace PCGExStaging
 	 * Helper for distributing within an entry's MicroCache
 	 * (e.g., selecting material variants)
 	 */
-	class PCGEXTENDEDTOOLKIT_API FMicroDistributionHelper : public TSharedFromThis<FMicroDistributionHelper>
+	class PCGEXCOLLECTIONS_API FMicroDistributionHelper : public TSharedFromThis<FMicroDistributionHelper>
 	{
 	protected:
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> IndexGetter;
@@ -125,7 +117,7 @@ namespace PCGExStaging
 	 * Packs collection references and entry picks into an attribute set
 	 * for downstream consumption (e.g., by mesh spawner)
 	 */
-	class PCGEXTENDEDTOOLKIT_API FPickPacker : public TSharedFromThis<FPickPacker>
+	class PCGEXCOLLECTIONS_API FPickPacker : public TSharedFromThis<FPickPacker>
 	{
 		TArray<const UPCGExAssetCollection*> AssetCollections;
 		TMap<const UPCGExAssetCollection*, uint32> CollectionMap;
@@ -152,7 +144,7 @@ namespace PCGExStaging
 	/**
 	 * Unpacks collection references and entry picks from an attribute set
 	 */
-	class PCGEXTENDEDTOOLKIT_API FPickUnpacker : public TSharedFromThis<FPickUnpacker>
+	class PCGEXCOLLECTIONS_API FPickUnpacker : public TSharedFromThis<FPickUnpacker>
 	{
 	protected:
 		TMap<uint32, UPCGExAssetCollection*> CollectionMap;
@@ -202,7 +194,7 @@ namespace PCGExStaging
 	 * Manages collection source(s) for staging operations.
 	 * Supports both single collection and per-point collection mapping.
 	 */
-	class PCGEXTENDEDTOOLKIT_API FCollectionSource : public TSharedFromThis<FCollectionSource>
+	class PCGEXCOLLECTIONS_API FCollectionSource : public TSharedFromThis<FCollectionSource>
 	{
 		TSharedPtr<FDistributionHelper> Helper;
 		TSharedPtr<FMicroDistributionHelper> MicroHelper;
@@ -245,9 +237,9 @@ namespace PCGExStaging
 	};
 
 	/** Get simplified entry hash (strips secondary index) */
-	PCGEXTENDEDTOOLKIT_API uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
+	PCGEXCOLLECTIONS_API uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
 
-	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
+	struct PCGEXCOLLECTIONS_API FSocketInfos
 	{
 		FSocketInfos() = default;
 		FSoftObjectPath Path;
@@ -262,9 +254,9 @@ MACRO(SocketTag, FName, NAME_None) \
 MACRO(Category, FName, NAME_None) \
 MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 
-	PCGEXTENDEDTOOLKIT_API uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
+	PCGEXCOLLECTIONS_API uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
 
-	class PCGEXTENDEDTOOLKIT_API FSocketHelper : public TSharedFromThis<FSocketHelper>
+	class PCGEXCOLLECTIONS_API FSocketHelper : public TSharedFromThis<FSocketHelper>
 	{
 		FRWLock SocketLock;
 		const FPCGExSocketOutputDetails* Details = nullptr;
@@ -282,6 +274,7 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 		TSharedPtr<PCGExData::FFacade> InputDataFacade;
 		TSharedPtr<PCGExData::FFacade> SocketFacade;
 
+		// TODO : Move this method to a collection-specific helper
 		void Add(const int32 Index, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
 		void Add(const int32 Index, const TObjectPtr<UStaticMesh>& Mesh);
 

@@ -17,7 +17,7 @@ class UPCGExPCGDataAssetCollection;
 
 namespace PCGExPCGDataAssetCollection
 {
-	class PCGEXTENDEDTOOLKIT_API FMicroCache : public PCGExAssetCollection::FMicroCache
+	class PCGEXCOLLECTIONS_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
 	public:
 		FMicroCache() = default;
@@ -36,7 +36,7 @@ namespace PCGExPCGDataAssetCollection
 // =====================================================================================
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection Entry")
-struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAssetCollectionEntry
+struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
 
@@ -115,7 +115,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPCGDataAssetCollectionEntry : public FPCGExA
 // =====================================================================================
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection")
-class PCGEXTENDEDTOOLKIT_API UPCGExPCGDataAssetCollection : public UPCGExAssetCollection
+class PCGEXCOLLECTIONS_API UPCGExPCGDataAssetCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 	PCGEX_ASSET_COLLECTION_BODY(FPCGExPCGDataAssetCollectionEntry)

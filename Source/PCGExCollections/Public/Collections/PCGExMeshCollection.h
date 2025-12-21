@@ -29,7 +29,7 @@ enum class EPCGExMaterialVariantsMode : uint8
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Entry")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideEntry
+struct PCGEXCOLLECTIONS_API FPCGExMaterialOverrideEntry
 {
 	GENERATED_BODY()
 
@@ -44,7 +44,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideEntry
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Collection")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
+struct PCGEXCOLLECTIONS_API FPCGExMaterialOverrideCollection
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Single Entry")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
+struct PCGEXCOLLECTIONS_API FPCGExMaterialOverrideSingleEntry
 {
 	GENERATED_BODY()
 
@@ -81,7 +81,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 
 namespace PCGExMeshCollection
 {
-	class PCGEXTENDEDTOOLKIT_API FMicroCache : public PCGExAssetCollection::FMicroCache
+	class PCGEXCOLLECTIONS_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
 		int32 HighestMaterialIndex = -1;
 
@@ -105,7 +105,7 @@ namespace PCGExMeshCollection
 // =====================================================================================
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
+struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
 
@@ -210,7 +210,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 // =====================================================================================
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeshCollection : public UPCGExAssetCollection
+class PCGEXCOLLECTIONS_API UPCGExMeshCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 	PCGEX_ASSET_COLLECTION_BODY(FPCGExMeshCollectionEntry)

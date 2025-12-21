@@ -47,7 +47,7 @@ enum class EPCGExCollectionGrammarSize : uint8
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Grammar Details")
-struct PCGEXTENDEDTOOLKIT_API FPCGExAssetGrammarDetails
+struct PCGEXCOLLECTIONS_API FPCGExAssetGrammarDetails
 {
 	GENERATED_BODY()
 
@@ -79,7 +79,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetGrammarDetails
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Grammar Details")
-struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionGrammarDetails
+struct PCGEXCOLLECTIONS_API FPCGExCollectionGrammarDetails
 {
 	GENERATED_BODY()
 

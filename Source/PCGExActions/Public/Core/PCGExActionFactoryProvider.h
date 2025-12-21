@@ -8,7 +8,7 @@
 
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExOperation.h"
+#include "Factories/PCGExOperation.h"
 
 
 #include "PCGExActionFactoryProvider.generated.h"
