@@ -45,7 +45,7 @@ TArray<FPCGPinProperties> UPCGExClusterCentralitySettings::InputPinProperties() 
 	if (DownsamplingMode == EPCGExCentralityDownsampling::Filters) { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Required) }
 	else { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Advanced) }
 
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::Labels::SourceOverridesSearch)
 	return PinProperties;
 }
 

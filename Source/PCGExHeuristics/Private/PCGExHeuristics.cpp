@@ -22,9 +22,9 @@ void FPCGExHeuristicsModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExHeuristicsModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExHeuristicsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
-	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 	
 	PCGEX_REGISTER_DATA_TYPE(Heuristics, Heuristics)
 }

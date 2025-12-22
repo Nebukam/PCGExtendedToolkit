@@ -23,9 +23,9 @@ void FPCGExFiltersModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExFiltersModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExFiltersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
-	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 	
 	PCGEX_REGISTER_DATA_TYPE(Filter, Filter)
 	PCGEX_REGISTER_DATA_TYPE(FilterPoint, FilterPoint)

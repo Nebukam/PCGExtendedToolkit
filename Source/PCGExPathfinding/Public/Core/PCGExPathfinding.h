@@ -84,8 +84,11 @@ struct PCGEXELEMENTSPATHFINDING_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
-	const FName SourceOverridesGoalPicker = TEXT("Overrides : Goal Picker");
-	const FName SourceOverridesSearch = TEXT("Overrides : Search");
+	namespace Labels
+	{
+		const FName SourceOverridesGoalPicker = TEXT("Overrides : Goal Picker");
+		const FName SourceOverridesSearch = TEXT("Overrides : Search");
+	}
 
 	enum class EQueryPickResolution : uint8
 	{
@@ -140,104 +143,6 @@ namespace PCGExPathfinding
 		}
 
 		bool IsValid() const { return Seed != -1 && Goal != -1; }
-	};
-
-	class PCGEXELEMENTSPATHFINDING_API FSearchAllocations : public TSharedFromThis<FSearchAllocations>
-	{
-	protected:
-		int32 NumNodes = 0;
-
-	public:
-		FSearchAllocations() = default;
-
-		TBitArray<> Visited;
-		TArray<double> GScore;
-		TSharedPtr<PCGEx::FHashLookup> TravelStack;
-		TSharedPtr<PCGEx::FScoredQueue> ScoredQueue;
-
-		void Init(const PCGExClusters::FCluster* InCluster);
-		void Reset();
-	};
-
-	class PCGEXELEMENTSPATHFINDING_API FPathQuery : public TSharedFromThis<FPathQuery>
-	{
-	public:
-		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const FNodePick& InSeed, const FNodePick& InGoal, const int32 InQueryIndex)
-			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
-		{
-		}
-
-		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const PCGExData::FConstPoint& InSeed, const PCGExData::FConstPoint& InGoal, const int32 InQueryIndex)
-			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
-		{
-		}
-
-		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const PCGExData::FConstPoint& InGoalPointRef, const int32 InQueryIndex)
-			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
-		{
-		}
-
-		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const TSharedPtr<FPathQuery>& NextQuery, const int32 InQueryIndex)
-			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(NextQuery->Seed), QueryIndex(InQueryIndex)
-		{
-		}
-
-		TSharedRef<PCGExClusters::FCluster> Cluster;
-
-		FNodePick Seed;
-		FNodePick Goal;
-		EQueryPickResolution PickResolution = EQueryPickResolution::None;
-
-		TArray<int32> PathNodes;
-		TArray<int32> PathEdges;
-		EPathfindingResolution Resolution = EPathfindingResolution::None;
-
-		const int32 QueryIndex = -1;
-
-		bool HasValidEndpoints() const { return Seed.IsValid() && Goal.IsValid() && PickResolution == EQueryPickResolution::Success; };
-		bool HasValidPathPoints() const { return PathNodes.Num() >= 2; };
-		bool IsQuerySuccessful() const { return Resolution == EPathfindingResolution::Success; };
-
-		EQueryPickResolution ResolvePicks(const FPCGExNodeSelectionDetails& SeedSelectionDetails, const FPCGExNodeSelectionDetails& GoalSelectionDetails);
-
-		void Reserve(const int32 NumReserve);
-		void AddPathNode(const int32 InNodeIndex, const int32 InEdgeIndex = -1);
-		void SetResolution(const EPathfindingResolution InResolution);
-
-		void FindPath(const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& HeuristicsHandler, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
-
-		void AppendNodePoints(TArray<int32>& OutPoints, const int32 TruncateStart = 0, const int32 TruncateEnd = 0) const;
-
-		void AppendEdgePoints(TArray<int32>& OutPoints) const;
-
-		void Cleanup();
-	};
-
-	class PCGEXELEMENTSPATHFINDING_API FPlotQuery : public TSharedFromThis<FPlotQuery>
-	{
-		TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler;
-
-	public:
-		explicit FPlotQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, bool ClosedLoop, const int32 InQueryIndex)
-			: Cluster(InCluster), bIsClosedLoop(ClosedLoop), QueryIndex(InQueryIndex)
-		{
-		}
-
-		TSharedRef<PCGExClusters::FCluster> Cluster;
-		bool bIsClosedLoop = false;
-		TSharedPtr<PCGExData::FFacade> PlotFacade;
-		const int32 QueryIndex = -1;
-
-		TArray<TSharedPtr<FPathQuery>> SubQueries;
-
-		using CompletionCallback = std::function<void(const TSharedPtr<FPlotQuery>&)>;
-		CompletionCallback OnCompleteCallback;
-
-		void BuildPlotQuery(const TSharedPtr<PCGExData::FFacade>& InPlot, const FPCGExNodeSelectionDetails& SeedSelectionDetails, const FPCGExNodeSelectionDetails& GoalSelectionDetails);
-
-		void FindPaths(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FPCGExSearchOperation>& SearchOperation, const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& HeuristicsHandler);
-
-		void Cleanup();
 	};
 
 	void ProcessGoals(const TSharedPtr<PCGExData::FFacade>& InSeedDataFacade, const UPCGExGoalPicker* GoalPicker, TFunction<void(int32, int32)>&& GoalFunc);

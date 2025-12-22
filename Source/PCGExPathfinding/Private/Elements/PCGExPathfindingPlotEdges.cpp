@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/PCGExPathfindingPlotEdges.h"
+#include "Elements/PCGExPathfindingPlotEdges.h"
 
 #include "PCGExHeuristicsHandler.h"
 #include "PCGParamData.h"
@@ -13,11 +13,12 @@
 #include "Clusters/PCGExClusterDataLibrary.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Core/PCGExHeuristicsFactoryProvider.h"
-#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
+#include "Core/PCGExPathQuery.h"
+#include "Core/PCGExPlotQuery.h"
+#include "Search/PCGExSearchAStar.h"
 #include "Helpers/PCGExDataMatcher.h"
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Helpers/PCGExTargetsHandler.h"
-#include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
 #include "Paths/PCGExPathsHelpers.h"
 
@@ -54,7 +55,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExClusters::Labels::SourcePlotsLabel, "Plot points for pathfinding.", Required)
 	PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::Labels::SourceOverridesSearch)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
 }
@@ -197,7 +198,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->VtxDataForwarding.bEnabled = Settings->VtxDataForwarding.bEnabled && Settings->PathComposition == EPCGExPathComposition::Edges;
 	Context->EdgesDataForwarding.bEnabled = Settings->EdgesDataForwarding.bEnabled && Settings->PathComposition == EPCGExPathComposition::Vtx;
 
-	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::SourceOverridesSearch)
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::Labels::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;

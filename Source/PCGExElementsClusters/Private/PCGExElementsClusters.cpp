@@ -22,9 +22,9 @@ void FPCGExElementsClustersModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExElementsClustersModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
-	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 		
 	PCGEX_REGISTER_DATA_TYPE(ClusterState, ClusterState)
 }

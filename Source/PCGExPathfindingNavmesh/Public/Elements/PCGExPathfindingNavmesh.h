@@ -4,11 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExNavmesh.h"
-#include "PCGExPathfindingTasks.h"
 
 #include "AI/Navigation/NavigationTypes.h"
+#include "Core/PCGExNavmesh.h"
+#include "Core/PCGExPathfinding.h"
+#include "Core/PCGExPathfindingTasks.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"
@@ -29,7 +32,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingNavmesh, "Pathfinding : Navmesh", "Extract paths from navmesh.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Pathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Pathfinding); }
 #endif
 
 protected:

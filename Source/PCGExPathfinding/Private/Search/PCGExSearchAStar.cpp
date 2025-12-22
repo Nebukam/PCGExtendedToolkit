@@ -2,12 +2,12 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
+#include "Search/PCGExSearchAStar.h"
 
 #include "PCGExHeuristicsHandler.h"
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExHashLookup.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "Core/PCGExPathfinding.h"
 #include "Utils/PCGExScoredQueue.h"
 
 bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const

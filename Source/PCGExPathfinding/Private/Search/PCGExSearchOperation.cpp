@@ -2,9 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
+#include "Search/PCGExSearchOperation.h"
 
-#include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "Core/PCGExPathfinding.h"
 
 void FPCGExSearchOperation::PrepareForCluster(PCGExClusters::FCluster* InCluster)
 {

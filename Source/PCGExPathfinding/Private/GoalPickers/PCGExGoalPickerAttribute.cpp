@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
+#include "GoalPickers/PCGExGoalPickerAttribute.h"
 
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"

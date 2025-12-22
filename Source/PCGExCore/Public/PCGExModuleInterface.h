@@ -12,12 +12,16 @@
 #include "PCGExCoreSettingsCache.h"
 #endif
 
+#define PCGEX_ADD_CLASS_ICON(_NAME) \
+InStyle->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), FVector2D(16.0f)));\
+InStyle->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), FVector2D(128.0f)));
+
 #define PCGEX_REGISTER_PIN_ICON(_NAME) \
 const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()))\
 .Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(InStyle->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), FVector2D(22.0f)));\
 InStyle->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(InStyle->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), FVector2D(22.0f)));
 		
-#define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME, _COLOR) \
+#define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) \
 PCGEX_REGISTER_PIN_ICON(OUT_##_NAME) \
 PCGEX_REGISTER_PIN_ICON(IN_##_NAME)\
 InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_NODE_COLOR_NAME(_NAME); }); \
@@ -38,6 +42,9 @@ public:
 	virtual void ShutdownModule() override;
 
 #if WITH_EDITOR
-	virtual void RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry);
+	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry);
+	
+	void RegisterMenuExtensions();
+	void UnregisterMenuExtensions();
 #endif
 };

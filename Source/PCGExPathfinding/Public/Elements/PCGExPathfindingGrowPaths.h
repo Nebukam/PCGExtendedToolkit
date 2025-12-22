@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Math/PCGExMathMean.h"
 
-#include "PCGExPathfinding.h"
+#include "Core/PCGExPathfinding.h"
 
 #include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
@@ -99,7 +99,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingGrowPaths, "Pathfinding : Grow Paths", "Grow paths from seeds.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Pathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Pathfinding); }
 #endif
 
 protected:

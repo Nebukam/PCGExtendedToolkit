@@ -22,9 +22,9 @@ void FPCGExMatchingModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExMatchingModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExMatchingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
-	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 	
 	PCGEX_REGISTER_DATA_TYPE(MatchRule, MatchRule)
 }

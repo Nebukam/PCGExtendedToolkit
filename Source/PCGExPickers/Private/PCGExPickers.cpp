@@ -22,9 +22,9 @@ void FPCGExPickersModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExPickersModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExPickersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
-	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 	
 	PCGEX_REGISTER_DATA_TYPE(Picker, Picker)
 }

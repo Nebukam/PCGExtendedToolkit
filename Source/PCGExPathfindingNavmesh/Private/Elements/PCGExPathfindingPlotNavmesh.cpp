@@ -1,12 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/PCGExPathfindingPlotNavmesh.h"
+#include "Elements/PCGExPathfindingPlotNavmesh.h"
 
 #include "Clusters/PCGExClusterCommon.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Paths/PCGExPathsCommon.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotNavmeshElement"
