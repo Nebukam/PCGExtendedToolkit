@@ -4,19 +4,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExScopedContainers.h"
 #include "Details/PCGExDetailsRelax.h"
-
-
 #include "Core/PCGExClustersProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExSamplingCommon.h"
+
 #include "PCGExRelaxClusters.generated.h"
 
 #define PCGEX_FOREACH_FIELD_RELAX_CLUSTER(MACRO)\
 MACRO(DirectionAndSize, FVector, FVector::ZeroVector)\
 MACRO(Direction, FVector, FVector::ZeroVector)\
 MACRO(Amplitude, double, 0)
+
+namespace PCGExMT
+{
+	template<typename T>
+	class TScopedNumericValue;
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/relax-cluster"))
 class UPCGExRelaxClustersSettings : public UPCGExClustersProcessorSettings

@@ -7,8 +7,6 @@
 #include "Materials/MaterialInterface.h"
 #include "PCGComponent.h"
 
-
-#include "PCGExStreamingHelpers.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -22,6 +20,7 @@
 
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
+#include "Helpers/PCGExStreamingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGetTextureDataElement"
 #define PCGEX_NAMESPACE GetTextureData

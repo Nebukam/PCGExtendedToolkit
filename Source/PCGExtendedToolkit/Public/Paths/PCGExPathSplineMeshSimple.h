@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 
 #include "Core/PCGExPathProcessor.h"
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
 #include "Details/PCGExDetailsSplineMesh.h"
-#include "Details/PCGExDetailsStaging.h"
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
 #include "PCGExPathSplineMeshSimple.generated.h"
@@ -156,10 +156,6 @@ public:
 	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
 
 #pragma endregion
-
-	/** Tagging details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
-	FPCGExAssetTaggingDetails TaggingDetails;
 
 	/** Default static mesh config applied to spline mesh components. */
 	UPROPERTY(EditAnywhere, Category = Settings)

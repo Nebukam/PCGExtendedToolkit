@@ -5,6 +5,7 @@
 
 
 #include "PCGParamData.h"
+#include "Containers/PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Core/PCGExPointFilter.h"

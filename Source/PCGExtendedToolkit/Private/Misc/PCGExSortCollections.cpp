@@ -3,6 +3,9 @@
 
 #include "Misc/PCGExSortCollections.h"
 #include "PCGModule.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortCollectionsElement"
 #define PCGEX_NAMESPACE SortCollections

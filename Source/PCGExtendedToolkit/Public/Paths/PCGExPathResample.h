@@ -4,14 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMath.h"
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Blenders/PCGExMetadataBlender.h"
+#include "Core/PCGExShapesCommon.h"
 #include "Details/PCGExInputShorthandsDetails.h"
-
-
-#include "Shapes/PCGExElementsShapes.h"
+#include "Math/PCGExMath.h"
 
 #include "PCGExPathResample.generated.h"
 

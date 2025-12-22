@@ -5,12 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSorting.h"
-#include "Geometry/PCGExGeo.h"
+#include "Math/PCGExProjectionDetails.h"
+#include "Math/PCGExWinding.h"
+#include "Sorting/PCGExSortingCommon.h"
 
 #include "PCGExReversePointOrder.generated.h"
+
+namespace PCGExSorting
+{
+	class FSorter;
+}
 
 namespace PCGExData
 {

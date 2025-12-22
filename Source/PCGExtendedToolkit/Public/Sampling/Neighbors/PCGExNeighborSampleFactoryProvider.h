@@ -12,12 +12,11 @@
 #include "PCGExGlobalSettings.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Factories/PCGExOperation.h"
-#include "Details/PCGExDetailsCluster.h"
 
 
 #include "Core/PCGExClusterFilter.h"
+#include "Graph/FloodFill/PCGExFloodFillClusters.h"
 #include "Utils/PCGExCurveLookup.h"
-#include "Sampling/PCGExSampling.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
 

@@ -6,10 +6,6 @@
 #include "PCGComponent.h"
 #include "Components/SplineMeshComponent.h"
 
-
-
-#include "PCGExStreamingHelpers.h"
-#include "Core/PCGExAssetLoader.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
@@ -17,8 +13,11 @@
 #include "PCGExVersion.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Engine/StaticMesh.h"
+#include "Helpers/PCGExAssetLoader.h"
+#include "Helpers/PCGExStreamingHelpers.h"
 
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -222,7 +221,7 @@ namespace PCGExPathSplineMeshSimple
 		}
 
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
-		bUseTags = Settings->TaggingDetails.IsEnabled();
+		bUseTags = true;
 
 		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
 		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
@@ -392,7 +391,7 @@ namespace PCGExPathSplineMeshSimple
 			if (Materials[Index]) { SplineMeshComponent->SetMaterial(SlotIndex, Materials[Index]); }
 		}
 
-		if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
+		if (bUseTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 		if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 
 		Settings->StaticMeshDescriptor.InitComponent(SplineMeshComponent);

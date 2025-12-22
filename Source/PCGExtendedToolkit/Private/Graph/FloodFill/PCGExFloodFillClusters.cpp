@@ -6,14 +6,17 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Blenders/PCGExBlendOpsManager.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clusters/PCGExCluster.h"
+#include "Containers/PCGExHashLookup.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Core/PCGExHeuristicsFactoryProvider.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClusterDiffusion"
 #define PCGEX_NAMESPACE ClusterDiffusion
@@ -455,7 +458,7 @@ namespace PCGExClusterDiffusion
 		// Create a copy of the final vtx, so we get all the goodies
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
-		PathIO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
+		PathIO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
 
 		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
 		PathIO->InheritPoints(PathIndices, 0);
@@ -476,7 +479,7 @@ namespace PCGExClusterDiffusion
 		// Create a copy of the final vtx, so we get all the goodies
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
-		PathIO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
+		PathIO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
 
 		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
 		PathIO->InheritPoints(PathIndices, 0);

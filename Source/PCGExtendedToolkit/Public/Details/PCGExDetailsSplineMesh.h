@@ -8,7 +8,7 @@
 #include "Details/PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Misc/PCGExModularPartitionByValues.h"
-#include "Paths/PCGExPathSplineMesh.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExDetailsSplineMesh.generated.h"
 

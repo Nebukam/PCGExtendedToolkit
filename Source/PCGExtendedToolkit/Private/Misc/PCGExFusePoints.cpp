@@ -9,6 +9,8 @@
 #include "Details/PCGExDistancesDetails.h"
 #include "Graphs/PCGExGraph.h"
 #include "Async/ParallelFor.h"
+#include "Clusters/PCGExClusterCommon.h"
+#include "Data/PCGExData.h"
 
 
 #include "Graphs/Union/PCGExIntersections.h"

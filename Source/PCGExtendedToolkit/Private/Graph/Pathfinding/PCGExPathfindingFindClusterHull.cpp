@@ -8,7 +8,11 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Clusters/Artifacts/PCGExCell.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindClusterHull"
 #define PCGEX_NAMESPACE FindClusterHull

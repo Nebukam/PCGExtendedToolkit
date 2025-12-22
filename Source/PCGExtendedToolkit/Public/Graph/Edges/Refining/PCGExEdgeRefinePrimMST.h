@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
+#include "Containers/PCGExHashLookup.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 #include "PCGExEdgeRefinePrimMST.generated.h"
 

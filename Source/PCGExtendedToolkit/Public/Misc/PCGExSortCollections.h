@@ -7,9 +7,13 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSorting.h"
-
+#include "Sorting/PCGExSortingCommon.h"
 #include "PCGExSortCollections.generated.h"
+
+namespace PCGExSorting
+{
+	class FSorter;
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/reduce-data"))
 class UPCGExSortCollectionsSettings : public UPCGExPointsProcessorSettings

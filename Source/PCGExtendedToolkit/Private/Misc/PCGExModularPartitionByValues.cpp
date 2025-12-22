@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExModularPartitionByValues.h"
 
+#include "Containers/PCGExManagedObjects.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExModularPartitionByValues"

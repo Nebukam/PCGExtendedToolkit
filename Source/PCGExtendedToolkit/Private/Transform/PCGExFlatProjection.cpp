@@ -6,7 +6,8 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Sampling/PCGExSampling.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"

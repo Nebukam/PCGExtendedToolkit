@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineRemoveHighestScore.generated.h"
 
 /**

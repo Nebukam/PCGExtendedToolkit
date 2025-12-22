@@ -4,11 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Clusters/Artifacts/PCGExCellDetails.h"
 
 #include "Core/PCGExClustersProcessor.h"
-#include "Topology/PCGExCell.h"
-
 #include "PCGExPathfindingFindClusterHull.generated.h"
+
+namespace PCGExTopology
+{
+	class FCellConstraints;
+}
 
 namespace PCGExFindClusterHull
 {

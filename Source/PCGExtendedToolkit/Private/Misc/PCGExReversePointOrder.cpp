@@ -9,6 +9,10 @@
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
+#include "Types/PCGExTypes.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"

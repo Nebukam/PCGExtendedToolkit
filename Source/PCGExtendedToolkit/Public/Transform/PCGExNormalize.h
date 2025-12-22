@@ -7,8 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExTransform.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Math/PCGExMath.h"
 
 #include "PCGExNormalize.generated.h"
 

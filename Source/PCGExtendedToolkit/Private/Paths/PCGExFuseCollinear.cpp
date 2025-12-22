@@ -3,16 +3,13 @@
 
 #include "Paths/PCGExFuseCollinear.h"
 
-#include "PCGExMath.h"
-
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExUnionBlender.h"
-#include "Details/PCGExDistancesDetails.h"
-#include "Graphs/PCGExGraph.h"
+#include "Math/PCGExMathDistances.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathShift.h"
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExSamplingUnionData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
