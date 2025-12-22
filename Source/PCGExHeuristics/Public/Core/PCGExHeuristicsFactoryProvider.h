@@ -145,7 +145,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractHeuristics, "Heuristics Definition", "Creates a single heuristic computational node, to be used with pathfinding nodes.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorHeuristics; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Heuristics); }
 #endif
 	//~End UPCGSettings
 

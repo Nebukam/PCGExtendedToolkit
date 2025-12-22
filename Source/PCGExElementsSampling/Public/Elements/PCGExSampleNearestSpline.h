@@ -10,7 +10,7 @@
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "PCGExGlobalSettings.h"
+
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGSplineData.h"
 #include "Details/PCGExSettingsMacros.h"
@@ -120,7 +120,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestSpline, "Sample : Nearest Spline", "Find the closest transform on nearest polylines.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling; }
 #endif
 
 protected:

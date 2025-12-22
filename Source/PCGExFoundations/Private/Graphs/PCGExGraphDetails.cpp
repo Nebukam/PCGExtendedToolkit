@@ -3,7 +3,8 @@
 
 #include "Graphs/PCGExGraphDetails.h"
 
-#include "PCGExGlobalSettings.h"
+
+#include "PCGExCoreSettingsCache.h"
 #include "Data/PCGExPointElements.h"
 
 void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const

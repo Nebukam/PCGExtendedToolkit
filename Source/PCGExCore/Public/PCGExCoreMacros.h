@@ -104,7 +104,7 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 
 #define PCGEX_GET_OPTION_STATE(_OPTION, _DEFAULT)\
 switch (_OPTION){ \
-default: case EPCGExOptionState::Default: return GetDefault<UPCGExGlobalSettings>()->_DEFAULT; \
+default: case EPCGExOptionState::Default: return PCGEX_CORE_SETTINGS._DEFAULT; \
 case EPCGExOptionState::Enabled: return true; \
 case EPCGExOptionState::Disabled: return false; }
 

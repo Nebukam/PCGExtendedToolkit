@@ -2,10 +2,12 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Core/PCGExMT.h"
+
+#include "PCGExCoreSettingsCache.h"
 #include "Tasks/Task.h"
 #include "Core/PCGExContext.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGExLog.h"
+#include "PCGExSettingsCacheBody.h"
 #include "Core/PCGExSettings.h"
 #include "PCGExSubSystem.h"
 #include "Misc/ScopeRWLock.h"
@@ -293,7 +295,7 @@ namespace PCGExMT
 	{
 		FTaskManager* Manager = GetManager();
 		UE_LOG(LogPCGEx, Error, TEXT( "[%s @ %s] Empty thread - Graph will hang until cancelled. Enable bAssertOnEmptyThread for stack trace; Please head out to PCGEx Discord or log an issue on git." ), Manager ? *GetNameSafe(Manager->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT( "UNKNOWN NODE"), *DEBUG_HandleId());
-		if (GetDefault<UPCGExGlobalSettings>()->bAssertOnEmptyThread) { ensure(false); }
+		if (PCGEX_CORE_SETTINGS.bAssertOnEmptyThread) { ensure(false); }
 	}
 
 	bool IAsyncHandleGroup::IsAvailable() const

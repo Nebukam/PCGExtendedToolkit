@@ -44,12 +44,7 @@ public class PCGExCore : ModuleRules
 				"GeometryFramework",
 				"GeometryAlgorithms",
 				"PhysicsCore",
-				"NavigationSystem",
-				"Slate",
-				"SlateCore",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings"
+				"PropertyPath"
 			}
 		);
 
@@ -62,11 +57,19 @@ public class PCGExCore : ModuleRules
 
 		if (Target.bBuildEditor == true)
 		{
+			PublicDependencyModuleNames.AddRange(
+				new[]
+				{
+					"Slate",
+					"SlateCore",
+				}
+			);
+
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"PCGExCoreEditor",
 				});
 		}
 	}

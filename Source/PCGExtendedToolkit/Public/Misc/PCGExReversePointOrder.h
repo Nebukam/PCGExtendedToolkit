@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Core/PCGExPointsProcessor.h"
 #include "Math/PCGExProjectionDetails.h"
 #include "Math/PCGExWinding.h"
@@ -73,7 +73,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ReversePointOrder, "Reverse Point Order", "Simply reverse the order of points. Very useful with paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Generic; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
 #endif
 
 protected:

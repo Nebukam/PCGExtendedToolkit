@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGExLayout.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExSettingsMacros.h"
@@ -51,7 +50,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BinPacking, "Bin Packing", "[EXPERIMENTAL] An simple bin packing node.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorTransform); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Transform); }
 #endif
 
 protected:

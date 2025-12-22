@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Core/PCGExPointsProcessor.h"
 
 #include "Components/PrimitiveComponent.h"
@@ -52,7 +52,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample : Nearest Surface", "Find the closest point on the nearest collidable surface.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling; }
 #endif
 
 protected:

@@ -5,9 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGExPointFilter.h"
 
 #include "PCGExFilterFactoryProvider.generated.h"
@@ -37,7 +35,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AbstractFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.", PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Filter); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 #endif
 	//~End UPCGSettings

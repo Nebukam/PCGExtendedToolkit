@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Factories/PCGExInstancedFactory.h"
 
 #include "Core/PCGExPointsProcessor.h"
@@ -560,7 +560,7 @@ public:
 
 	virtual FLinearColor GetNodeTitleColor() const override
 	{
-		return GetDefault<UPCGExGlobalSettings>()->ColorSampling;
+		return PCGEX_NODE_COLOR_NAME(Sampling);
 	}
 
 	virtual bool CanDynamicallyTrackKeys() const override { return bTrackActors; }

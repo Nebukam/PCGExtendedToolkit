@@ -7,7 +7,8 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
-#include "PCGExGlobalSettings.h"
+
+#include "PCGExCollectionsSettingsCache.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Helpers/PCGExPropertyHelpers.h"
 
@@ -234,7 +235,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 		return;
 	}
 
-	if (Staging.InternalIndex == -1 && GetDefault<UPCGExGlobalSettings>()->bDisableCollisionByDefault)
+	if (Staging.InternalIndex == -1 && PCGEX_COLLECTIONS_SETTINGS.bDisableCollisionByDefault)
 	{
 		ISMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 		SMDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);

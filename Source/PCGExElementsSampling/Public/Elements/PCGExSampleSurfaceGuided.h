@@ -8,7 +8,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Materials/MaterialInterface.h"
 
-#include "PCGExGlobalSettings.h"
+
 #include "PCGExSampleNearestPoint.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/External/PCGExMesh.h"
@@ -80,7 +80,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Line Trace", "Find the collision point on the nearest collidable surface in a given direction.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling; }
 #endif
 
 protected:
@@ -137,7 +137,7 @@ public:
 
 	/** Second value used for constructing rotation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Cross Axis"))
-	FPCGExInputShorthandSelectorDirection CrossAxis = FPCGExInputShorthandSelectorDirection(FString("$Rotation.Forward"), GetDefault<UPCGExGlobalSettings>()->WorldForward, true);
+	FPCGExInputShorthandSelectorDirection CrossAxis = FPCGExInputShorthandSelectorDirection(FString("$Rotation.Forward"), PCGEX_CORE_SETTINGS.WorldForward, true);
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))

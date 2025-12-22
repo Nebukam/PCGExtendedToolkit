@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
 #include "Clusters/PCGExClusterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Graphs/Union/PCGExIntersections.h"
@@ -31,7 +30,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FindClustersData, "Find Clusters", "Find vtx/edge pairs inside a soup of data collections");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(FilterHub); }
 #endif
 
 protected:

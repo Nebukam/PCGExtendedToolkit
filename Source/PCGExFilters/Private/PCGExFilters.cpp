@@ -2,6 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExFilters.h"
+
+#include "Core/PCGExClusterFilter.h"
+#include "Core/PCGExPointFilter.h"
+#include "Data/Registry/PCGDataTypeRegistry.h"
 #if WITH_EDITOR
 #include "ISettingsModule.h"
 #endif
@@ -10,14 +14,27 @@
 
 void FPCGExFiltersModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	IPCGExModuleInterface::StartupModule();
 }
 
 void FPCGExFiltersModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module
+	IPCGExModuleInterface::ShutdownModule();
 }
+
+#if WITH_EDITOR
+void FPCGExFiltersModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+{
+	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	
+	PCGEX_REGISTER_DATA_TYPE(Filter, Filter)
+	PCGEX_REGISTER_DATA_TYPE(FilterPoint, FilterPoint)
+	PCGEX_REGISTER_DATA_TYPE(FilterCollection, FilterCollection)
+	PCGEX_REGISTER_DATA_TYPE(FilterCluster, FilterCluster)
+	PCGEX_REGISTER_DATA_TYPE(FilterVtx, FilterVtx)
+	PCGEX_REGISTER_DATA_TYPE(FilterEdge, FilterEdge)
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE
 

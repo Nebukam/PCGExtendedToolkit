@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExGlobalSettings.h"
+
 #include "Core/PCGExShapeProcessor.h"
 
 #include "PCGExCreateShapes.generated.h"
@@ -29,7 +29,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CreateShapes, "Create Shapes", "Use shape builders to create shapes from input seed points.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Transform; }
 #endif
 
 protected:

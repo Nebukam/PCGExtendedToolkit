@@ -4,12 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Data/Bitmasks/PCGExBitmaskDetails.h"
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
 #include "PCGExCoreMacros.h"
+#include "PCGExCoreSettingsCache.h"
 
 #include "PCGExBitmask.generated.h"
 
@@ -27,7 +28,7 @@ public:
 
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Bitmask, "Bitmask", "A Simple bitmask attribute.", GetDisplayName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Constant); }
 	FName GetDisplayName() const;
 #endif
 

@@ -31,10 +31,11 @@ public class PCGExElementsPaths : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PCG",
+				"PCGExCore",
 				"PCGExFilters",
 				"PCGExMatching",
 				"PCGExBlending",
-				"PCGExCore",
+				"PCGExFoundations",
 			}
 		);
 

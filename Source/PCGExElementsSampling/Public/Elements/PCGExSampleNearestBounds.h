@@ -11,7 +11,7 @@
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "PCGExGlobalSettings.h"
+
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExMatchingDetails.h"
@@ -85,7 +85,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestBounds, "Sample : Nearest Bounds", "Sample nearest target bounds.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling; }
 #endif
 
 protected:

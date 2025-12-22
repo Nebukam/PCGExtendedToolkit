@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Utils/PCGExCurveLookup.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
@@ -41,7 +41,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleInsidePath, "Sample : Inside Path", "Sample the points inside the paths.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling; }
 #endif
 
 protected:

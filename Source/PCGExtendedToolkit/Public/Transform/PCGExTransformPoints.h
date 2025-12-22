@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExGlobalSettings.h"
+
 
 
 #include "Core/PCGExPointsProcessor.h"
@@ -29,7 +29,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TransformPoints, "Transform Points", "A Transform points with the same settings found in Asset Collection variations, with attribute override support.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Transform; }
 #endif
 
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExBlendingCommon.h"
 
-#include "PCGExGlobalSettings.h"
+
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
@@ -115,7 +115,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Merge points group to a single point representing their bounds.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscAdd); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscAdd); }
 #endif
 
 protected:

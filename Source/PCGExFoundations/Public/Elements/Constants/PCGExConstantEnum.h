@@ -4,7 +4,8 @@
 #pragma once
 #include "PCGSettings.h"
 #include "PCGExCoreMacros.h"
-#include "PCGExGlobalSettings.h"
+#include "PCGExCoreSettingsCache.h"
+
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
@@ -63,7 +64,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(EnumConstant, "Enum Constant", "Break an enum into handy constant values.", FName(GetDisplayName())); // Tim says nope! :D
 	FString GetDisplayName() const;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; };
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; };
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Constant); };
 	// End unrolling of Tim's lovely macro
 #endif
 

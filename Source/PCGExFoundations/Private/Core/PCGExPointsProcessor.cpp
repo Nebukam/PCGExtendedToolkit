@@ -11,19 +11,6 @@
 
 #pragma region UPCGSettings interface
 
-#if WITH_EDITOR
-bool UPCGExPointsProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
-{
-	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
-}
-#endif
-
-bool UPCGExPointsProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
-{
-	if (GetDefault<UPCGExGlobalSettings>()->bToneDownOptionalPins && !InPin->Properties.IsRequiredPin() && !InPin->IsOutputPin()) { return InPin->EdgeCount() > 0; }
-	return Super::IsPinUsedByNodeExecution(InPin);
-}
-
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

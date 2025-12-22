@@ -92,7 +92,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsFeedback, "Heuristics : Feedback", "Heuristics based on visited score feedback.", FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorHeuristicsFeedback; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(HeuristicsFeedback); }
 #endif
 	//~End UPCGSettings
 

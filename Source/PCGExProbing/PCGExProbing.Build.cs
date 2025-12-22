@@ -32,6 +32,7 @@ public class PCGExProbing : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExFilters"
 			}
 		);
 
@@ -50,7 +51,7 @@ public class PCGExProbing : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings"
+				"DeveloperSettings", 
 			}
 		);
 

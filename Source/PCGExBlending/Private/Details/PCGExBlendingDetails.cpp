@@ -4,6 +4,7 @@
 #include "Details/PCGExBlendingDetails.h"
 
 #include "PCGExBlendingCommon.h"
+#include "PCGExBlendingSettingsCache.h"
 #include "PCGPin.h"
 #include "Core/PCGExBlendOpFactory.h"
 #include "Data/PCGExData.h"
@@ -206,9 +207,9 @@ void FPCGExBlendingDetails::GetBlendingParams(const UPCGMetadata* SourceMetadata
 				EPCGExBlendingType DesiredBlending = DefaultBlending;
 
 #define PCGEX_GET_GLOBAL_BLENDMODE(_TYPE, _NAME, ...)\
-if (Identity.UnderlyingType == EPCGMetadataTypes::Boolean){\
-if (GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode != EPCGExBlendingTypeDefault::Default){\
-DesiredBlending = static_cast<EPCGExBlendingType>(GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode);}}
+if (Identity.UnderlyingType == EPCGMetadataTypes::_NAME){\
+if (PCGEX_BLENDING_SETTINGS.Default##_NAME##BlendMode != EPCGExBlendingTypeDefault::Default){\
+DesiredBlending = static_cast<EPCGExBlendingType>(PCGEX_BLENDING_SETTINGS.Default##_NAME##BlendMode);}}
 
 				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_GET_GLOBAL_BLENDMODE)
 

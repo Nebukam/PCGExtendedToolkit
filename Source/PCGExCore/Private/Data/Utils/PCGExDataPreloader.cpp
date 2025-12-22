@@ -3,7 +3,9 @@
 
 #include "Data/Utils/PCGExDataPreloader.h"
 
-#include "PCGExGlobalSettings.h"
+#include "PCGExCoreSettingsCache.h"
+
+#include "PCGExSettingsCacheBody.h"
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Types/PCGExTypeTraits.h"
@@ -221,7 +223,7 @@ template PCGEXCORE_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InC
 					}
 				};
 
-			PrefetchAttributesTask->StartSubLoops(SourceFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			PrefetchAttributesTask->StartSubLoops(SourceFacade->GetNum(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 		}
 		else
 		{

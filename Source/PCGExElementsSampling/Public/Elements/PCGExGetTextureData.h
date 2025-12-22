@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
-#include "PCGExGlobalSettings.h"
+
 
 
 #include "Core/PCGExPointsProcessor.h"
@@ -53,7 +53,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(GetTextureData, "Get Texture Data", "Create texture data object from paths.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTexParam; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(TexParam; }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 

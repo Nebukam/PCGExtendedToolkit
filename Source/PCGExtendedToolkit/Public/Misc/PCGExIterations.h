@@ -32,7 +32,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Iterations, "Iterations", "A Simple Iterations data generator. It create a single instance of a lightweight dummy data object and adds duplicate entries to the node output to be used as individual iterations for a loop node.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Constant; }
 #endif
 
 protected:

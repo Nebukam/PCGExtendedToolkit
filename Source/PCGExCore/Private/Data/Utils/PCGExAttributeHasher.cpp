@@ -3,7 +3,8 @@
 
 #include "Data/Utils/PCGExAttributeHasher.h"
 
-#include "PCGExGlobalSettings.h"
+#include "PCGExCoreSettingsCache.h"
+#include "PCGExSettingsCacheBody.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
@@ -108,7 +109,7 @@ namespace PCGEx
 			This->CompileScope(Scope);
 		};
 
-		CompileHash->StartSubLoops(NumValues, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CompileHash->StartSubLoops(NumValues, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 	}
 
 	void FAttributeHasher::CompileScope(const PCGExMT::FScope& Scope)

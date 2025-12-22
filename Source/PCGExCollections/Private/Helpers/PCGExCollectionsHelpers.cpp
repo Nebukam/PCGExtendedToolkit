@@ -3,7 +3,7 @@
 
 #include "Helpers/PCGExCollectionsHelpers.h"
 
-#include "PCGExGlobalSettings.h"
+
 #include "PCGParamData.h"
 #include "Core/PCGExAssetCollection.h"
 #include "Data/PCGExData.h"

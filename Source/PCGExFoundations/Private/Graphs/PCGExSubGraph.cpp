@@ -3,7 +3,8 @@
 
 #include "Graphs/PCGExSubGraph.h"
 
-#include "PCGExGlobalSettings.h"
+
+#include "PCGExCoreSettingsCache.h"
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Blenders/PCGExUnionBlender.h"
@@ -242,7 +243,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			This->CompileRange(Scope);
 		};
 
-		CompileSubGraph->StartSubLoops(FlattenedEdges.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CompileSubGraph->StartSubLoops(FlattenedEdges.Num(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 	}
 
 	void FSubGraph::CompileRange(const PCGExMT::FScope& Scope)
@@ -321,7 +322,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		PCGEX_SHARED_THIS_DECL
 
-		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters && ParentGraph->bBuildClusters)
+		if (PCGEX_CORE_SETTINGS.bCacheClusters && ParentGraph->bBuildClusters)
 		{
 			if (Cast<UPCGExClusterEdgesData>(EdgesDataFacade->Source->GetOut()))
 			{

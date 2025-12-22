@@ -3,7 +3,8 @@
 
 #include "Helpers/PCGExSocketHelpers.h"
 
-#include "PCGExGlobalSettings.h"
+
+#include "PCGExCoreSettingsCache.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSocket.h"
@@ -156,7 +157,7 @@ namespace PCGExStaging
 			This->CompileRange(Scope);
 		};
 
-		CreateSocketPoints->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() * 4);
+		CreateSocketPoints->StartSubLoops(NumPoints, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize() * 4);
 	}
 
 	FSocketInfos& FSocketHelper::NewSocketInfos(const uint64 EntryHash, int32& OutIndex)

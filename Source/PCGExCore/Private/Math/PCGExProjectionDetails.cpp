@@ -4,7 +4,8 @@
 #include "Math/PCGExProjectionDetails.h"
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+#include "PCGExCoreSettingsCache.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
@@ -14,15 +15,15 @@
 
 FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails()
 {
-	WorldUp = GetDefault<UPCGExGlobalSettings>()->WorldUp;
-	WorldFwd = GetDefault<UPCGExGlobalSettings>()->WorldForward;
+	WorldUp = PCGEX_CORE_SETTINGS.WorldUp;
+	WorldFwd = PCGEX_CORE_SETTINGS.WorldForward;
 	ProjectionNormal = WorldUp;
 }
 
 FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
 	: bSupportLocalNormal(InSupportLocalNormal)
 {
-	WorldUp = GetDefault<UPCGExGlobalSettings>()->WorldUp;
+	WorldUp = PCGEX_CORE_SETTINGS.WorldUp;
 	ProjectionNormal = WorldUp;
 }
 

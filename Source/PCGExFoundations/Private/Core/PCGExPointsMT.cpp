@@ -3,7 +3,7 @@
 
 #include "Core/PCGExPointsMT.h"
 
-#include "PCGExGlobalSettings.h"
+
 #include "Factories/PCGExInstancedFactory.h"
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataPreloader.h"
@@ -239,7 +239,7 @@ namespace PCGExPointsMT
 			ProcessorFacades.Add(NewProcessor->PointDataFacade);
 			SubProcessorMap->Add(&NewProcessor->PointDataFacade->Source.Get(), NewProcessor);
 
-			NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
+			NewProcessor->bIsTrivial = IO->GetNum() < PCGEX_CORE_SETTINGS.SmallPointsSize;
 
 			if (bDoInitData) { NewProcessor->PointDataFacade->Source->InitializeOutput(DataInitializationPolicy); }
 		}

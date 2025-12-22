@@ -334,7 +334,7 @@ namespace PCGExClusterMT
 			else if (!WantsPerClusterProjection()) { ProjectionDetails.Init(PCGExMath::FBestFitPlane(VtxDataFacade->GetIn()->GetConstTransformValueRange())); }
 		}
 
-		if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
+		if (!bScopedIndexLookupBuild || NumVtx < PCGEX_CORE_SETTINGS.SmallClusterSize)
 		{
 			// Trivial
 			PCGExGraphs::Helpers::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
@@ -442,7 +442,7 @@ namespace PCGExClusterMT
 				}
 			};
 
-			BuildEndpointLookupTask->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			BuildEndpointLookupTask->StartSubLoops(VtxDataFacade->GetNum(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 		}
 	}
 
@@ -524,7 +524,7 @@ namespace PCGExClusterMT
 
 			Processors.Add(NewProcessor.ToSharedRef());
 
-			NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
+			NewProcessor->bIsTrivial = IO->GetNum() < PCGEX_CORE_SETTINGS.SmallClusterSize;
 		}
 
 		StartProcessing();

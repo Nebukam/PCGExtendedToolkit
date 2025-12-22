@@ -2,22 +2,33 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExElementsActions.h"
+
 #if WITH_EDITOR
 #include "ISettingsModule.h"
+#include "Core/PCGExActionFactoryProvider.h"
+#include "Data/Registry/PCGDataTypeRegistry.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "FPCGExActionsModule"
 
 void FPCGExElementsActionsModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	IPCGExModuleInterface::StartupModule();
 }
 
 void FPCGExElementsActionsModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module
+	IPCGExModuleInterface::ShutdownModule();
 }
+
+#if WITH_EDITOR
+void FPCGExElementsActionsModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+{
+	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	
+	PCGEX_REGISTER_DATA_TYPE(Action, Action)
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE
 

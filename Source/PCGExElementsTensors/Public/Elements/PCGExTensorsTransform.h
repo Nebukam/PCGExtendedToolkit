@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
-#include "PCGExGlobalSettings.h"
+
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Core/PCGExTensor.h"
@@ -43,7 +43,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TensorsTransform, "Tensors Transform", "Transform input points using tensors.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Transform; }
 #endif
 
 protected:

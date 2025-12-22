@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Details/PCGExFilterDetails.h"
-
-
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExClusterFilter.h"
@@ -39,7 +37,7 @@ public:
 
 	PCGEX_NODE_INFOS(FilterVtx, "Cluster : Filter Vtx", "Filter out vtx from clusters.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(ClusterOp); }
 #endif
 
 protected:

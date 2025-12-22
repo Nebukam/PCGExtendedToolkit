@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExSettingsMacros.h"
@@ -31,7 +31,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Normalize, "Normalize", "Output normalized position against data bounds to a new vector attribute.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Transform; }
 #endif
 
 protected:

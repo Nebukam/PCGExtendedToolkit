@@ -4,12 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleManager.h"
+#include "PCGExModuleInterface.h"
 
-class FPCGExElementsActionsModule final : public IModuleInterface
+class FPCGExElementsActionsModule final : public IPCGExModuleInterface
 {
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+	
+#if WITH_EDITOR
+	virtual void RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry) override;
+#endif
 };

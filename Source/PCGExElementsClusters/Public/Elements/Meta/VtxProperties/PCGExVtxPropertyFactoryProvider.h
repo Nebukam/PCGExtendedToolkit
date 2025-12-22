@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Factories/PCGExFactoryData.h"
 #include "Factories/PCGExOperation.h"
 
@@ -184,7 +184,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractVtxProperty, "Vtx : Abstract", "Abstract vtx extra settings.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(NeighborSampler; }
 #endif
 
 protected:

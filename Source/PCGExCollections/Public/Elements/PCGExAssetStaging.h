@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
-#include "PCGExGlobalSettings.h"
 #include "Factories/PCGExFactories.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExSocketOutputDetails.h"
@@ -62,7 +61,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Asset Staging", "Data staging from PCGEx Asset Collections.", FName(TEXT("[ ") + ( CollectionSource == EPCGExCollectionSource::Asset ? AssetCollection.GetAssetName() : TEXT("Attribute Set to Collection")) + TEXT(" ]")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscAdd); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscAdd); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 

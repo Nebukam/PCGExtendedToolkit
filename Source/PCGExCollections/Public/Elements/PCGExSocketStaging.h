@@ -4,8 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
-
 #include "Core/PCGExPointsProcessor.h"
 #include "Helpers/PCGExCollectionsHelpers.h"
 #include "Core/PCGExPointFilter.h"
@@ -29,7 +27,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SocketStaging, "Socket Staging", "Socket staging from Asset Staging' Collection Map.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorSampling); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 #endif
 
 protected:

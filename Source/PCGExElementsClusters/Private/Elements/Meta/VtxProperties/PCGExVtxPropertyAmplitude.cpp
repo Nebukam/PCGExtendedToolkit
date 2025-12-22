@@ -17,7 +17,7 @@
 
 FPCGExAmplitudeConfig::FPCGExAmplitudeConfig()
 {
-	UpConstant = GetDefault<UPCGExGlobalSettings>()->WorldUp;
+	UpConstant = PCGEX_CORE_SETTINGS.WorldUp;
 }
 
 bool FPCGExAmplitudeConfig::Validate(FPCGExContext* InContext) const

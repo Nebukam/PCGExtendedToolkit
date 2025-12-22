@@ -12,7 +12,7 @@
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
-#include "PCGExGlobalSettings.h" // Needed for child classes
+#include "PCGExCoreSettingsCache.h" // Boilerplate
 #include "PCGExPointsMT.h"
 
 #include "PCGExPointsProcessor.generated.h"
@@ -70,11 +70,7 @@ public:
 	//~Begin UPCGSettings	
 #if WITH_EDITOR
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
-
-	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
-
-	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

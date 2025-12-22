@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Utils/PCGExCompare.h"
-#include "PCGExGlobalSettings.h"
-
 #include "Core/PCGExPointsProcessor.h"
 #include "Elements/Constants/PCGExConstantEnum.h"
 
@@ -83,7 +81,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BranchOnDataAttribute, "Branch on Data", "Branch on @Data domain attribute.", BranchSource);
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(FilterHub); }
 #endif
 
 	virtual bool HasDynamicPins() const override { return true; }

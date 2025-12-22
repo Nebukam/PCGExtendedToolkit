@@ -35,7 +35,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSockets, "Sample : Sockets", "Parse static mesh paths and output sockets as points.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorSampling); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 #endif
 
 protected:

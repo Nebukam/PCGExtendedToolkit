@@ -124,7 +124,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkit"))->GetBaseDir() / TEXT("Resources") / TEXT("Icons"));
 
 	const FVector2D SizeIcon = FVector2D(16.0f, 16.0f);
-	const FVector2D SizePin = FVector2D(22.0f, 22.0f);
+	const FVector2D SizePin = FVector2D(22.0f);
 	const FVector2D SizeThumbnail = FVector2D(128.0f, 128.0f);
 
 	PCGEX_ADD_ICON(PCGExAssetCollection)

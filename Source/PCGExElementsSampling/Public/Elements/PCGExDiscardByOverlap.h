@@ -6,9 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-
 #include "Math/PCGExMathMean.h"
-
 #include "PCGExOctree.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExPointElements.h"
@@ -118,7 +116,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DiscardByOverlap, "Discard By Overlap", "Discard entire datasets based on how they overlap with each other.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(FilterHub); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 #endif
 

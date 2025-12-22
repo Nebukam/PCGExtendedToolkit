@@ -4,12 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExFilterDetails.h"
-
-
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExClusterFilter.h"
+#include "Details/PCGExFilterDetails.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
 
 #include "PCGExRefineEdges.generated.h"
@@ -49,7 +47,7 @@ public:
 
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RefineEdges, "Cluster : Refine", "Refine edges according to special rules.", (Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(ClusterOp); }
 #endif
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;

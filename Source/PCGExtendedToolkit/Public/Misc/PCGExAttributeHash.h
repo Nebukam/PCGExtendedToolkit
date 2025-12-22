@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExAttributeHasher.h"
 
@@ -21,7 +20,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AttributeHash, "Attribute Hash", "Generates a hash from the input data, based on a attribute or property.", FName(FString::Printf(TEXT("Hash : %s"), *HashConfig.SourceAttribute.GetName().ToString())));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
 #endif
 
 protected:

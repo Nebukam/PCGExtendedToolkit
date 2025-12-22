@@ -3,9 +3,11 @@
 
 #include "Data/PCGExData.h"
 
-#include "PCGExGlobalSettings.h"
+#include "PCGExCoreSettingsCache.h"
+
 #include "PCGExH.h"
 #include "PCGExLog.h"
+#include "PCGExSettingsCacheBody.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataTags.h"
@@ -1067,7 +1069,7 @@ template PCGEXCORE_API const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAtt
 			return;
 		}
 
-		if (Source->GetNum(EIOSide::Out) < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
+		if (Source->GetNum(EIOSide::Out) < PCGEX_CORE_SETTINGS.SmallPointsSize)
 		{
 			WriteSynchronous(true);
 			Callback();
@@ -1123,7 +1125,7 @@ template PCGEXCORE_API const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAtt
 	{
 		if (!Source->GetOut()) { return; }
 
-		if (Source->GetNum(EIOSide::Out) < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize) { WriteSynchronous(bEnsureValidKeys); }
+		if (Source->GetNum(EIOSide::Out) < PCGEX_CORE_SETTINGS.SmallPointsSize) { WriteSynchronous(bEnsureValidKeys); }
 		else { Write(TaskManager, bEnsureValidKeys); }
 	}
 

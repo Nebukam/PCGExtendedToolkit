@@ -8,7 +8,7 @@
 #include "UObject/Object.h"
 
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Factories/PCGExFactoryData.h"
 #include "Factories/PCGExOperation.h"
 
@@ -100,7 +100,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ActionAbstract, "Action : Abstract", "Abstract Action Provider.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorAction; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Action); }
 #endif
 
 protected:

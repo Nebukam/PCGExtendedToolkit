@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExBlendAttributes.generated.h"
 
@@ -27,7 +26,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BlendAttributes, "Uber Blend", "[EXPERIMENTAL] One-stop node to combine multiple blends.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
 #endif
 
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)

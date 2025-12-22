@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExGlobalSettings.h"
+
 #include "PCGExPickersCommon.h"
 #include "Factories/PCGExFactoryData.h"
 #include "Math/PCGExMath.h"
@@ -106,7 +106,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Picker, "Picker Definition", "Creates a single Picker definition.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Misc); }
 #endif
 
 protected:

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Core/PCGExPointsProcessor.h"
 
 #include "PCGExPathProcessor.generated.h"
@@ -35,7 +35,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorPath; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Path); }
 #endif
 	//~End UPCGSettings
 

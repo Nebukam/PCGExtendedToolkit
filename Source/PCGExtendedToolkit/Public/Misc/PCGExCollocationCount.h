@@ -4,9 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "PCGExGlobalSettings.h"
-
 #include "Core/PCGExPointsProcessor.h"
 #include "Utils/PCGPointOctree.h"
 
@@ -29,7 +26,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(CollocationCount, "Collocation Count", "Write the number of time a point shares its location with another.", CollicationNumAttributeName);
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
 #endif
 
 protected:

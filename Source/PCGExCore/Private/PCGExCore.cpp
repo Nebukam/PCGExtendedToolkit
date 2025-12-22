@@ -3,18 +3,31 @@
 
 #include "PCGExCore.h"
 
+#if WITH_EDITOR
+#include "Data/Registry/PCGDataTypeRegistry.h"
+#include "Sorting/PCGExSortingRuleProvider.h"
+#endif
+
 #define LOCTEXT_NAMESPACE "FPCGExCoreModule"
 
 void FPCGExCoreModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	IPCGExModuleInterface::StartupModule();
 }
 
 void FPCGExCoreModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module
+	IPCGExModuleInterface::ShutdownModule();
 }
+
+#if WITH_EDITOR
+void FPCGExCoreModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+{
+	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+
+	PCGEX_REGISTER_DATA_TYPE(SortRule, SortRule)
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE
 

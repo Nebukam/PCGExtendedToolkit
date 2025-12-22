@@ -3,7 +3,8 @@
 
 #include "Clusters/PCGExClustersHelpers.h"
 
-#include "PCGExGlobalSettings.h"
+#include "PCGExSettingsCacheBody.h"
+#include "PCGExCoreSettingsCache.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
@@ -110,7 +111,7 @@ namespace PCGExClusters
 
 		TSharedPtr<FCluster> TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO)
 		{
-			if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
+			if (PCGEX_CORE_SETTINGS.bCacheClusters)
 			{
 				if (const UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgeIO->GetIn()))
 				{

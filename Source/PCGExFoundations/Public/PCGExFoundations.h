@@ -4,14 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleManager.h"
+#include "PCGExModuleInterface.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
 
-class FPCGExFoundationsModule final : public IModuleInterface
+class FPCGExFoundationsModule final : public IPCGExModuleInterface
 {
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+	
+#if WITH_EDITOR
+	virtual void RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry) override;
+#endif
 };

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExAxisDeformDetails.h"
 #include "Details/PCGExMatchingDetails.h"
@@ -37,7 +37,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CopyToPaths, "Copy to Path", "Deform points along a path/spline.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorTransform); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Transform); }
 #endif
 
 protected:

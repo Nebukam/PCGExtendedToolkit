@@ -2,22 +2,33 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExMatching.h"
+
 #if WITH_EDITOR
 #include "ISettingsModule.h"
+#include "Core/PCGExMatchRuleFactoryProvider.h"
+#include "Data/Registry/PCGDataTypeRegistry.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "FPCGExMatchingModule"
 
 void FPCGExMatchingModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	IPCGExModuleInterface::StartupModule();
 }
 
 void FPCGExMatchingModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module
+	IPCGExModuleInterface::ShutdownModule();
 }
+
+#if WITH_EDITOR
+void FPCGExMatchingModule::RegisterDataTypeInfos(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+{
+	IPCGExModuleInterface::RegisterDataTypeInfos(InStyle, InRegistry);
+	
+	PCGEX_REGISTER_DATA_TYPE(MatchRule, MatchRule)
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE
 

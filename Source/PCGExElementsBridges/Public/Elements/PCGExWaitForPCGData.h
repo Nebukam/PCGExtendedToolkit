@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGComponent.h"
-#include "PCGExGlobalSettings.h"
-
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 
@@ -61,7 +59,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WaitForPCGData, "Wait for PCG Data", "Wait for PCG Components Generated output.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorAction); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Action); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 

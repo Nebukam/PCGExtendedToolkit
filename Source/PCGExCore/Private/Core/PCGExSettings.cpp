@@ -3,10 +3,11 @@
 
 #include "Core/PCGExSettings.h"
 
-#include "PCGExGlobalSettings.h"
 #include "Styling/SlateStyle.h"
 #include "PCGPin.h"
 #include "PCGExCoreMacros.h"
+#include "PCGExCoreSettingsCache.h"
+#include "PCGExSettingsCacheBody.h"
 
 #include "Helpers/PCGSettingsHelpers.h"
 
@@ -15,13 +16,13 @@
 #if WITH_EDITOR
 bool UPCGExSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
-	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
+	return PCGEX_CORE_SETTINGS.GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
 }
 #endif
 
 bool UPCGExSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (GetDefault<UPCGExGlobalSettings>()->bToneDownOptionalPins && !InPin->Properties.IsRequiredPin() && !InPin->IsOutputPin()) { return InPin->EdgeCount() > 0; }
+	if (PCGEX_CORE_SETTINGS.bToneDownOptionalPins && !InPin->Properties.IsRequiredPin() && !InPin->IsOutputPin()) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 

@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExGlobalSettings.h"
+
 #include "Factories/PCGExFactoryData.h"
 
 #include "PCGExProbeFactoryProvider.generated.h"
@@ -52,7 +52,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractProbe, "Probe Definition", "Creates a single probe to look for a nearby connection.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorProbe; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Probe); }
 #endif
 	//~End UPCGSettings
 

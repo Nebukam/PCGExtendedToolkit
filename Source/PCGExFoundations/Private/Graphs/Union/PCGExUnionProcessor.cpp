@@ -3,7 +3,8 @@
 
 #include "Graphs/Union/PCGExUnionProcessor.h"
 
-#include "PCGExGlobalSettings.h"
+
+#include "PCGExCoreSettingsCache.h"
 #include "Blenders/PCGExMetadataBlender.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExUnionBlender.h"
@@ -108,7 +109,7 @@ namespace PCGExGraphs
 			}
 		};
 
-		ProcessNodesGroup->StartSubLoops(NumUnionNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2, false);
+		ProcessNodesGroup->StartSubLoops(NumUnionNodes, PCGEX_CORE_SETTINGS.ClusterDefaultBatchChunkSize * 2, false);
 
 
 		return true;
@@ -281,7 +282,7 @@ namespace PCGExGraphs
 #undef PCGEX_FOUND_PE
 		};
 
-		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
+		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), PCGEX_CORE_SETTINGS.ClusterDefaultBatchChunkSize * 2);
 	}
 
 
@@ -330,7 +331,7 @@ namespace PCGExGraphs
 			}
 		};
 
-		BlendPointEdgeGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
+		BlendPointEdgeGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), PCGEX_CORE_SETTINGS.ClusterDefaultBatchChunkSize * 2);
 	}
 
 	void FUnionProcessor::OnPointEdgeIntersectionsComplete()
@@ -407,7 +408,7 @@ namespace PCGExGraphs
 		};
 
 
-		FindEdgeEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
+		FindEdgeEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), PCGEX_CORE_SETTINGS.ClusterDefaultBatchChunkSize * 2);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsFound()
@@ -460,7 +461,7 @@ namespace PCGExGraphs
 			PCGEX_SCOPE_LOOP(Index) { This->EdgeEdgeIntersections->BlendIntersection(Index, Blender, Trackers); }
 		};
 
-		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->UniqueCrossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
+		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->UniqueCrossings.Num(), PCGEX_CORE_SETTINGS.ClusterDefaultBatchChunkSize * 2);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete()

@@ -9,8 +9,9 @@
 #include "Helpers/PCGExMetaHelpers.h"
 #include "PCGExConstantsDefinitions.h"
 #include "Core/PCGExContext.h"
-#include "PCGExGlobalSettings.h"
+
 #include "PCGExCoreMacros.h"
+#include "PCGExCoreSettingsCache.h"
 #include "PCGParamData.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Core/PCGExElement.h"
@@ -27,7 +28,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Constant, "Constant", "Constants.", GetEnumName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Constant); }
 
 	FName GetEnumName() const;
 

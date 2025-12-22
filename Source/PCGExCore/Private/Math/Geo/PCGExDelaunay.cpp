@@ -4,7 +4,9 @@
 #include "Math/Geo/PCGExDelaunay.h"
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+#include "PCGExCoreSettingsCache.h"
+
+#include "PCGExSettingsCacheBody.h"
 #include "Math/Geo/PCGExPrimtives.h"
 #include "ThirdParty/Delaunator/include/delaunator.hpp"
 #include "Async/ParallelFor.h"
@@ -102,7 +104,7 @@ namespace PCGExMath
 					}
 				};
 
-				if (GetDefault<UPCGExGlobalSettings>()->bUseDelaunator)
+				if (PCGEX_CORE_SETTINGS.bUseDelaunator)
 				{
 					std::vector<double> OutVector(Positions.Num() * 2);
 					ProjectionDetails.Project(Positions, OutVector);

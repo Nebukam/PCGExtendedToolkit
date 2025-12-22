@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCoreSettingsCache.h"
 
 #include "PCGSettings.h"
 #include "UObject/Object.h"
@@ -12,7 +13,7 @@
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExGlobalSettings.h"
+#include "PCGExCoreSettingsCache.h" // Boilerplate
 #include "PCGExVersion.h"
 
 #include "PCGExFactoryProvider.generated.h"
@@ -56,7 +57,7 @@ public:
 #if WITH_EDITOR
 	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.", FName(GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Debug); }
 #endif
 
 	virtual int32 GetDefaultPriority() const { return 0; }

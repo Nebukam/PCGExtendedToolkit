@@ -24,8 +24,8 @@ public class PCGExtendedToolkit : ModuleRules
 		ToggleOptionalModule("PCGExElementsTopology");
 		ToggleOptionalModule("PCGExElementsSampling");
 		
-		ToggleOptionalModule("PCGExPathfinding");
-		ToggleOptionalModule("PCGExPathfindingNavmesh");
+		ToggleOptionalModule("PCGExElementsPathfinding");
+		ToggleOptionalModule("PCGExElementsPathfindingNavmesh");
 
 		ToggleOptionalModule("PCGExCollections");
 

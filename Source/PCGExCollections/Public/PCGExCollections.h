@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleManager.h"
+#include "PCGExModuleInterface.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
 
-class FPCGExCollectionsModule final : public IModuleInterface
+class FPCGExCollectionsModule final : public IPCGExModuleInterface
 {
 public:
 	/** IModuleInterface implementation */

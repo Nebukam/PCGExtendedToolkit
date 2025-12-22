@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCoreMacros.h" // Boilerplate
 #include "Containers/PCGExManagedObjectsInterfaces.h"
 
 #include "PCGExInstancedFactory.generated.h"
