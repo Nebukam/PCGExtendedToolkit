@@ -84,7 +84,7 @@ namespace PCGExMT
 
 #define PCGEX_SCHEDULING_SCOPE(_MANAGER, ...) PCGExMT::FSchedulingScope SchedulingScope(_MANAGER); if(!SchedulingScope.Token.IsValid()) { return __VA_ARGS__; }
 
-	struct FSchedulingScope
+	struct PCGEXCORE_API FSchedulingScope
 	{
 		TWeakPtr<FAsyncToken> Token;
 		explicit FSchedulingScope(const TSharedPtr<FTaskManager>& InManager);

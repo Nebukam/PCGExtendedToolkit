@@ -35,7 +35,7 @@ namespace PCGExData
 
 namespace PCGExPaths
 {
-	struct FPathEdge
+	struct PCGEXCORE_API FPathEdge
 	{
 		int32 Start = -1;
 		int32 End = -1;
@@ -56,7 +56,7 @@ namespace PCGExPaths
 
 	class FPath;
 
-	class IPathEdgeExtra : public TSharedFromThis<IPathEdgeExtra>
+	class PCGEXCORE_API IPathEdgeExtra : public TSharedFromThis<IPathEdgeExtra>
 	{
 	protected:
 		bool bClosedLoop = false;
@@ -78,7 +78,7 @@ namespace PCGExPaths
 	};
 
 	template <typename T>
-	class TPathEdgeExtra : public IPathEdgeExtra
+	class PCGEXCORE_API TPathEdgeExtra : public IPathEdgeExtra
 	{
 	protected:
 		TArray<T> Data;
@@ -103,7 +103,7 @@ namespace PCGExPaths
 
 	PCGEX_OCTREE_SEMANTICS(FPathEdge, { return Element->Bounds;}, { return A == B; })
 
-	class FPath : public TSharedFromThis<FPath>
+	class PCGEXCORE_API FPath : public TSharedFromThis<FPath>
 	{
 	protected:
 		bool bClosedLoop = false;
@@ -264,7 +264,7 @@ namespace PCGExPaths
 		}
 	};
 
-	class FPathEdgeLength : public TPathEdgeExtra<double>
+	class PCGEXCORE_API FPathEdgeLength : public TPathEdgeExtra<double>
 	{
 	public:
 		double TotalLength = 0;
@@ -279,7 +279,7 @@ namespace PCGExPaths
 		virtual void ProcessingDone(const FPath* Path) override;
 	};
 
-	class FPathEdgeLengthSquared : public TPathEdgeExtra<double>
+	class PCGEXCORE_API FPathEdgeLengthSquared : public TPathEdgeExtra<double>
 	{
 	public:
 		explicit FPathEdgeLengthSquared(const int32 InNumSegments, const bool InClosedLoop)
@@ -290,7 +290,7 @@ namespace PCGExPaths
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	class FPathEdgeNormal : public TPathEdgeExtra<FVector>
+	class PCGEXCORE_API FPathEdgeNormal : public TPathEdgeExtra<FVector>
 	{
 		FVector Up = FVector::UpVector;
 
@@ -303,7 +303,7 @@ namespace PCGExPaths
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	class FPathEdgeBinormal : public TPathEdgeExtra<FVector>
+	class PCGEXCORE_API FPathEdgeBinormal : public TPathEdgeExtra<FVector>
 	{
 		FVector Up = FVector::UpVector;
 
@@ -320,7 +320,7 @@ namespace PCGExPaths
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	class FPathEdgeAvgNormal : public TPathEdgeExtra<FVector>
+	class PCGEXCORE_API FPathEdgeAvgNormal : public TPathEdgeExtra<FVector>
 	{
 		FVector Up = FVector::UpVector;
 
@@ -334,7 +334,7 @@ namespace PCGExPaths
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	class FPathEdgeHalfAngle : public TPathEdgeExtra<double>
+	class PCGEXCORE_API FPathEdgeHalfAngle : public TPathEdgeExtra<double>
 	{
 		FVector Up = FVector::UpVector;
 
@@ -348,7 +348,7 @@ namespace PCGExPaths
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	class FPathEdgeFullAngle : public TPathEdgeExtra<double>
+	class PCGEXCORE_API FPathEdgeFullAngle : public TPathEdgeExtra<double>
 	{
 		FVector Up = FVector::UpVector;
 

@@ -170,7 +170,7 @@ namespace PCGExTangents
 	const FName SourceOverridesTangentsStart = TEXT("Overrides : Start Tangents");
 	const FName SourceOverridesTangentsEnd = TEXT("Overrides : End Tangents");
 
-	class FTangentsHandler : public TSharedFromThis<FTangentsHandler>
+	class PCGEXFOUNDATIONS_API FTangentsHandler : public TSharedFromThis<FTangentsHandler>
 	{
 	protected:
 		bool bClosedLoop = false;

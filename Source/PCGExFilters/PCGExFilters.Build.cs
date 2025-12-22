@@ -32,6 +32,7 @@ public class PCGExFilters : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExMatching",
 				"PCGExPickers",
 			}
 		);

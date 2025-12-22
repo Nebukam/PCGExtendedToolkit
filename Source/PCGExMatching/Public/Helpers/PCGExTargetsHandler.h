@@ -38,7 +38,7 @@ namespace PCGExData
 
 namespace PCGExMatching
 {
-	class FTargetsHandler : public TSharedFromThis<FTargetsHandler>
+	class PCGEXMATCHING_API FTargetsHandler : public TSharedFromThis<FTargetsHandler>
 	{
 	protected:
 		TSharedPtr<PCGExOctree::FItemOctree> TargetsOctree;

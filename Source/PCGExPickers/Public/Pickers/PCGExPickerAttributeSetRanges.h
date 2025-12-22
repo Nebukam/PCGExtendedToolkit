@@ -34,6 +34,7 @@ public:
 	FPCGExPickerAttributeSetRangesConfig Config;
 	TArray<FPCGExPickerConstantRangeConfig> Ranges;
 
+	PCGEXPICKERS_API
 	static bool GetUniqueRanges(FPCGExContext* InContext, FName InPinLabel, const FPCGExPickerAttributeSetRangesConfig& InConfig, TArray<FPCGExPickerConstantRangeConfig>& OutRanges);
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }

@@ -6,6 +6,7 @@
 
 
 #include "PCGExPickersCommon.h"
+#include "Core/PCGExPickerFactoryProvider.h"
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"

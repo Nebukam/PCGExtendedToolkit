@@ -194,6 +194,21 @@ protected:
 
 namespace PCGExPathSplineMesh
 {
+	struct FSplineMeshSegment : PCGExPaths::FSplineMeshSegment
+	{
+		FSplineMeshSegment()
+		{
+		}
+				
+		bool bSetMeshWithSettings = false;
+
+		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
+		int16 MaterialPick = -1;
+
+		virtual void ApplySettings(USplineMeshComponent* Component) const override;
+		bool ApplyMesh(USplineMeshComponent* Component) const;
+	};
+
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
 	{
 	protected:
@@ -228,7 +243,7 @@ namespace PCGExPathSplineMesh
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 
 		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
-		TArray<PCGExPaths::FSplineMeshSegment> Segments;
+		TArray<FSplineMeshSegment> Segments;
 
 		AActor* TargetActor = nullptr;
 		EObjectFlags ObjectFlags = RF_NoFlags;

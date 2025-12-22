@@ -5,6 +5,7 @@
 #include "Graph/Pathfinding/Search/PCGExSearchDijkstra.h"
 
 
+#include "PCGExHeuristicsHandler.h"
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExHashLookup.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"

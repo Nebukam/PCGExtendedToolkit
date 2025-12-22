@@ -232,9 +232,6 @@ namespace PCGExCollections
 		UPCGExAssetCollection* GetSingleSource() const { return SingleSource; }
 	};
 
-	/** Get simplified entry hash (strips secondary index) */
-	PCGEXCOLLECTIONS_API uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
-
 	class PCGEXCOLLECTIONS_API FSocketHelper : public PCGExStaging::FSocketHelper
 	{
 	public:

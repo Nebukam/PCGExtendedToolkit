@@ -101,10 +101,16 @@ enum class EPCGExComparisonDataType : uint8
 
 namespace PCGExCompare
 {
+	PCGEXCORE_API
 	FString ToString(const EPCGExComparison Comparison);
+	
+	PCGEXCORE_API
 	FString ToString(const EPCGExStringComparison Comparison);
+	
+	PCGEXCORE_API
 	FString ToString(const EPCGExStringMatchMode MatchMode);
 
+	PCGEXCORE_API
 	bool Compare(const EPCGExStringComparison Method, const FString& A, const FString& B);
 
 #pragma region Numeric comparisons ops
@@ -326,10 +332,16 @@ namespace PCGExCompare
 		}
 	}
 
+	PCGEXCORE_API
 	bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::IDataValue>& A, const double B, const double Tolerance = DBL_COMPARE_TOLERANCE);
+	
+	PCGEXCORE_API
 	bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::IDataValue>& A, const FString B);
 
+	PCGEXCORE_API
 	bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, const bool bStrict = true);
+	
+	PCGEXCORE_API
 	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::IDataValue>>& OutValues);
 }
 

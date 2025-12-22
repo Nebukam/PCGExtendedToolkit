@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExSocket.h"
 #include "Data/PCGExDataCommon.h"
 #include "Details/PCGExSettingsMacros.h"
 
@@ -14,7 +15,6 @@ namespace PCGExData
 	class FFacade;
 }
 
-struct FPCGExSocket;
 namespace PCGExDetails
 {
 	template <typename T>

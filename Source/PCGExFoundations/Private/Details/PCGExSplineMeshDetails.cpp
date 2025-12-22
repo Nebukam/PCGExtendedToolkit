@@ -4,8 +4,8 @@
 
 #include "Details/PCGExSplineMeshDetails.h"
 
+#include "Data/Descriptors/PCGExComponentDescriptors.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "PCGExCollections/Public/Collections/PCGExMeshCollection.h"
 
 namespace PCGExPaths
 {
@@ -68,21 +68,6 @@ namespace PCGExPaths
 		Component->SplineBoundaryMax = 0;
 
 		Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
-
-		if (bSetMeshWithSettings) { ApplyMesh(Component); }
-	}
-
-	bool FSplineMeshSegment::ApplyMesh(USplineMeshComponent* Component) const
-	{
-		check(Component)
-		UStaticMesh* StaticMesh = MeshEntry->Staging.TryGet<UStaticMesh>(); //LoadSynchronous<UStaticMesh>();
-
-		if (!StaticMesh) { return false; }
-
-		Component->SetStaticMesh(StaticMesh); // Will trigger a force rebuild, so put this last
-		MeshEntry->ApplyMaterials(MaterialPick, Component);
-
-		return true;
 	}
 }
 

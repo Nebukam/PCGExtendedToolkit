@@ -6,19 +6,17 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExVersion.h"
-#include "Factories/PCGExFactoryData.h"
+
 #if PCGEX_ENGINE_VERSION < 507
 #include "MaterialTypes.h"
 #else
 #include "Materials/MaterialParameters.h"
 #endif
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExGlobalSettings.h"
-
-#include "PCGExTexParamFactoryProvider.generated.h"
 
 class UPCGBaseTextureData;
 class UMaterialInterface;
+class UPCGExTexParamFactoryData;
 
 namespace PCGExData
 {

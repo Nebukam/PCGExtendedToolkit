@@ -540,10 +540,6 @@ namespace PCGExCollections
 	// Utility Functions
 	// =====================================================================================
 
-	uint64 GetSimplifiedEntryHash(uint64 InEntryHash)
-	{
-		return (InEntryHash & 0xFFFFFFFF00000000ull) | ((InEntryHash >> 16) & 0xFFFF);
-	}
 
 	FSocketHelper::FSocketHelper(const FPCGExSocketOutputDetails* InDetails, const int32 InNumPoints)
 		: PCGExStaging::FSocketHelper(InDetails, InNumPoints)

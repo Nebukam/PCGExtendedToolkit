@@ -13,7 +13,7 @@ namespace PCGExData
 
 class UPCGData;
 
-struct FPCGExTaggedData
+struct PCGEXCORE_API FPCGExTaggedData
 {
 	const UPCGData* Data = nullptr;
 	TWeakPtr<PCGExData::FTags> Tags;

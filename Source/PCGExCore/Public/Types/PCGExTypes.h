@@ -14,6 +14,8 @@
 #include "Types/PCGExTypeOpsRotation.h"
 #include "Types/PCGExTypeOpsString.h"
 
+#include "Helpers/PCGExMetaHelpers.h"
+
 // Type-erased buffers
 //#include "PCGExTypeErasedBuffer.h"
 
@@ -35,21 +37,9 @@ namespace PCGExTypes
 		static constexpr int32 BufferAlignment = 16;
 
 		// Static assertions to ensure buffer is large enough for all types
-		static_assert(BufferSize >= sizeof(bool), "Buffer too small for bool");
-		static_assert(BufferSize >= sizeof(int32), "Buffer too small for int32");
-		static_assert(BufferSize >= sizeof(int64), "Buffer too small for int64");
-		static_assert(BufferSize >= sizeof(float), "Buffer too small for float");
-		static_assert(BufferSize >= sizeof(double), "Buffer too small for double");
-		static_assert(BufferSize >= sizeof(FVector2D), "Buffer too small for FVector2D");
-		static_assert(BufferSize >= sizeof(FVector), "Buffer too small for FVector");
-		static_assert(BufferSize >= sizeof(FVector4), "Buffer too small for FVector4");
-		static_assert(BufferSize >= sizeof(FQuat), "Buffer too small for FQuat");
-		static_assert(BufferSize >= sizeof(FRotator), "Buffer too small for FRotator");
-		static_assert(BufferSize >= sizeof(FTransform), "Buffer too small for FTransform");
-		static_assert(BufferSize >= sizeof(FString), "Buffer too small for FString");
-		static_assert(BufferSize >= sizeof(FName), "Buffer too small for FName");
-		static_assert(BufferSize >= sizeof(FSoftObjectPath), "Buffer too small for FSoftObjectPath");
-		static_assert(BufferSize >= sizeof(FSoftClassPath), "Buffer too small for FSoftClassPath");
+#define PCGEX_TPL(_TYPE, _NAME, ...) static_assert(BufferSize >= sizeof(_TYPE), "Buffer too small for "#_NAME);
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+	#undef PCGEX_TPL
 
 	private:
 		alignas(BufferAlignment) uint8 Storage[BufferSize];

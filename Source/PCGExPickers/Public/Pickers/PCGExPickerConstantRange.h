@@ -9,7 +9,7 @@
 #include "PCGExPickerConstantRange.generated.h"
 
 USTRUCT(BlueprintType)
-struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
+struct PCGEXPICKERS_API FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 

@@ -515,14 +515,20 @@ extern template bool TryReadMark<_TYPE>(const TSharedRef<FPointIO>& PointIO, con
 
 #undef PCGEX_TPL
 
-	PCGEXCORE_API void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id);
+	PCGEXCORE_API
+	void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id);
 
-	PCGEXCORE_API UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
+	PCGEXCORE_API
+	UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
 
 #pragma endregion
 
+	PCGEXCORE_API
 	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, bool bTransactional, const bool bRequired);
+
+	PCGEXCORE_API
 	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bRequired, const bool bIsTransactional = false);
 
-	PCGEXCORE_API void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true);
+	PCGEXCORE_API
+	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true);
 }

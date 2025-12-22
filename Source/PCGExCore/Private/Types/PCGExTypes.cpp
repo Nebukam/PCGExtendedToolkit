@@ -3,9 +3,10 @@
 
 #include "Types/PCGExTypes.h"
 
+#include "Helpers/PCGExMetaHelpers.h"
+
 namespace PCGExTypes
 {
-
 	// FScopedTypedValue implementation
 
 	FScopedTypedValue::FScopedTypedValue(EPCGMetadataTypes InType)
@@ -133,25 +134,12 @@ namespace PCGExTypes
 
 	int32 FScopedTypedValue::GetTypeSize(EPCGMetadataTypes InType)
 	{
+#define PCGEX_TPL(_TYPE, _NAME, ...) case EPCGMetadataTypes::_NAME: return sizeof(_TYPE);
 		switch (InType)
 		{
-		case EPCGMetadataTypes::Boolean: return sizeof(bool);
-		case EPCGMetadataTypes::Integer32: return sizeof(int32);
-		case EPCGMetadataTypes::Integer64: return sizeof(int64);
-		case EPCGMetadataTypes::Float: return sizeof(float);
-		case EPCGMetadataTypes::Double: return sizeof(double);
-		case EPCGMetadataTypes::Vector2: return sizeof(FVector2D);
-		case EPCGMetadataTypes::Vector: return sizeof(FVector);
-		case EPCGMetadataTypes::Vector4: return sizeof(FVector4);
-		case EPCGMetadataTypes::Quaternion: return sizeof(FQuat);
-		case EPCGMetadataTypes::Rotator: return sizeof(FRotator);
-		case EPCGMetadataTypes::Transform: return sizeof(FTransform);
-		case EPCGMetadataTypes::String: return sizeof(FString);
-		case EPCGMetadataTypes::Name: return sizeof(FName);
-		case EPCGMetadataTypes::SoftObjectPath: return sizeof(FSoftObjectPath);
-		case EPCGMetadataTypes::SoftClassPath: return sizeof(FSoftClassPath);
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 		default: return 0;
 		}
+#undef PCGEX_TPL
 	}
-
 }

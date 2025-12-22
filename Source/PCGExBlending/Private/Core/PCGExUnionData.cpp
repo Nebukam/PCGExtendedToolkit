@@ -123,28 +123,4 @@ namespace PCGExData
 		return Overlap.Num() > 0;
 	}
 
-	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bRequired)
-	{
-		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bTransactional, bRequired))
-		{
-			return MakeShared<FFacade>(SingleIO.ToSharedRef());
-		}
-
-		return nullptr;
-	}
-
-	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bRequired, const bool bIsTransactional)
-	{
-		TSharedPtr<FPointIOCollection> TargetsCollection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::NoInit, bIsTransactional);
-		if (TargetsCollection->IsEmpty())
-		{
-			if (bRequired) { PCGEX_LOG_MISSING_INPUT(InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel))) }
-			return false;
-		}
-
-		OutFacades.Reserve(OutFacades.Num() + TargetsCollection->Num());
-		for (const TSharedPtr<FPointIO>& IO : TargetsCollection->Pairs) { OutFacades.Add(MakeShared<FFacade>(IO.ToSharedRef())); }
-
-		return true;
-	}
 }

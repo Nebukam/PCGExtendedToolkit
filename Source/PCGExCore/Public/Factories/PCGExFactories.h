@@ -72,6 +72,7 @@ namespace PCGExFactories
 
 namespace PCGExFactories
 {
+	PCGEXCORE_API
 	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bRequired);
 
 	template <typename T_DEF>

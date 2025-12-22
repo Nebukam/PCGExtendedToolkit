@@ -30,7 +30,7 @@ namespace PCGExData
 
 namespace PCGExPaths
 {
-	class FPolyPath : public FPath
+	class PCGEXCORE_API FPolyPath : public FPath
 	{
 		TSharedPtr<FPCGSplineStruct> LocalSpline;
 		TArray<FTransform> LocalTransforms;

@@ -4,6 +4,7 @@
 #include "Core/PCGExContext.h"
 
 #include "Core/PCGExElement.h"
+#include "Core/PCGExSettings.h"
 #include "PCGComponent.h"
 #include "Factories/PCGExInstancedFactory.h"
 #include "PCGExCoreMacros.h"

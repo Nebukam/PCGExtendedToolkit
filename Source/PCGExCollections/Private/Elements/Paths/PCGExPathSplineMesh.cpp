@@ -168,6 +168,25 @@ bool FPCGExPathSplineMeshElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 namespace PCGExPathSplineMesh
 {
+	void FSplineMeshSegment::ApplySettings(USplineMeshComponent* Component) const
+	{
+		PCGExPaths::FSplineMeshSegment::ApplySettings(Component);
+		if (bSetMeshWithSettings) { ApplyMesh(Component); }
+	}
+
+	bool FSplineMeshSegment::ApplyMesh(USplineMeshComponent* Component) const
+	{
+		check(Component)
+		UStaticMesh* StaticMesh = MeshEntry->Staging.TryGet<UStaticMesh>(); //LoadSynchronous<UStaticMesh>();
+
+		if (!StaticMesh) { return false; }
+
+		Component->SetStaticMesh(StaticMesh); // Will trigger a force rebuild, so put this last
+		MeshEntry->ApplyMaterials(MaterialPick, Component);
+
+		return true;
+	}
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		// Must be set before process for filters
@@ -281,7 +300,7 @@ namespace PCGExPathSplineMesh
 				continue;
 			}
 
-			PCGExPaths::FSplineMeshSegment Segment;
+			FSplineMeshSegment Segment;
 			ON_SCOPE_EXIT { Segments[Index] = Segment; };
 
 			FPCGExEntryAccessResult Entry;
@@ -423,7 +442,7 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::ProcessSegment(const int32 Index)
 	{
-		const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
+		const FSplineMeshSegment& Segment = Segments[Index];
 		if (!Segment.MeshEntry) { return; }
 
 		USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, USplineMeshComponent::StaticClass(), Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);

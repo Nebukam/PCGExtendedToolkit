@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Types/PCGExTypeOpsImpl.h"
+
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Types/PCGExTypeOps.h"
 
 namespace PCGExTypeOps
@@ -12,25 +14,13 @@ namespace PCGExTypeOps
 
 	const ITypeOpsBase* FTypeOpsRegistry::Get(const EPCGMetadataTypes Type)
 	{
+#define PCGEX_TPL(_TYPE, _NAME, ...) case EPCGMetadataTypes::_NAME: return &TTypeOpsImpl<_TYPE>::GetInstance();
 		switch (Type)
 		{
-		case EPCGMetadataTypes::Boolean: return &TTypeOpsImpl<bool>::GetInstance();
-		case EPCGMetadataTypes::Integer32: return &TTypeOpsImpl<int32>::GetInstance();
-		case EPCGMetadataTypes::Integer64: return &TTypeOpsImpl<int64>::GetInstance();
-		case EPCGMetadataTypes::Float: return &TTypeOpsImpl<float>::GetInstance();
-		case EPCGMetadataTypes::Double: return &TTypeOpsImpl<double>::GetInstance();
-		case EPCGMetadataTypes::Vector2: return &TTypeOpsImpl<FVector2D>::GetInstance();
-		case EPCGMetadataTypes::Vector: return &TTypeOpsImpl<FVector>::GetInstance();
-		case EPCGMetadataTypes::Vector4: return &TTypeOpsImpl<FVector4>::GetInstance();
-		case EPCGMetadataTypes::Quaternion: return &TTypeOpsImpl<FQuat>::GetInstance();
-		case EPCGMetadataTypes::Rotator: return &TTypeOpsImpl<FRotator>::GetInstance();
-		case EPCGMetadataTypes::Transform: return &TTypeOpsImpl<FTransform>::GetInstance();
-		case EPCGMetadataTypes::String: return &TTypeOpsImpl<FString>::GetInstance();
-		case EPCGMetadataTypes::Name: return &TTypeOpsImpl<FName>::GetInstance();
-		case EPCGMetadataTypes::SoftObjectPath: return &TTypeOpsImpl<FSoftObjectPath>::GetInstance();
-		case EPCGMetadataTypes::SoftClassPath: return &TTypeOpsImpl<FSoftClassPath>::GetInstance();
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 		default: return nullptr;
 		}
+#undef PCGEX_TPL
 	}
 
 	EPCGMetadataTypes FTypeOpsRegistry::GetTypeIdFromIndex(int32 Index)
@@ -172,20 +162,9 @@ namespace PCGExTypeOps
 	static FTypeOpsModuleInit GTypeOpsModuleInit;
 
 	// Explicit Template Instantiations
-	// TTypeOpsImpl instantiations
-	template class TTypeOpsImpl<bool>;
-	template class TTypeOpsImpl<int32>;
-	template class TTypeOpsImpl<int64>;
-	template class TTypeOpsImpl<float>;
-	template class TTypeOpsImpl<double>;
-	template class TTypeOpsImpl<FVector2D>;
-	template class TTypeOpsImpl<FVector>;
-	template class TTypeOpsImpl<FVector4>;
-	template class TTypeOpsImpl<FQuat>;
-	template class TTypeOpsImpl<FRotator>;
-	template class TTypeOpsImpl<FTransform>;
-	template class TTypeOpsImpl<FString>;
-	template class TTypeOpsImpl<FName>;
-	template class TTypeOpsImpl<FSoftObjectPath>;
-	template class TTypeOpsImpl<FSoftClassPath>;
-} 
+	// TTypeOpsImpl instantiations	
+#define PCGEX_TPL(_TYPE, _NAME, ...) template class TTypeOpsImpl<_TYPE>;
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+	
+}

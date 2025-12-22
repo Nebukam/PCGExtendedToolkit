@@ -14,7 +14,6 @@ public class PCGExtendedToolkit : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
 
-		ToggleOptionalModule("PCGExCollections");
 		
 		ToggleOptionalModule("PCGExElementsActions");
 		ToggleOptionalModule("PCGExElementsBridges");
@@ -28,6 +27,7 @@ public class PCGExtendedToolkit : ModuleRules
 		ToggleOptionalModule("PCGExPathfinding");
 		ToggleOptionalModule("PCGExPathfindingNavmesh");
 
+		ToggleOptionalModule("PCGExCollections");
 
 		PublicIncludePaths.AddRange(
 			new string[]

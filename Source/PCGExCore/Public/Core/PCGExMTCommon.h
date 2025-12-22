@@ -14,7 +14,7 @@ namespace PCGExMT
 	using FSimpleCallback = std::function<void()>;
 
 
-	struct FScope
+	struct PCGEXCORE_API FScope
 	{
 		int32 Start = -1;
 		int32 Count = -1;

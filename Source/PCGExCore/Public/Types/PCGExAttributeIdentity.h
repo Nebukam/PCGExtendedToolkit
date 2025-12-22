@@ -53,7 +53,7 @@ namespace PCGExData
 		static int32 ForEach(const UPCGMetadata* InMetadata, FForEachFunc&& Func);
 	};
 
-	class FAttributesInfos : public TSharedFromThis<FAttributesInfos>
+	class PCGEXCORE_API FAttributesInfos : public TSharedFromThis<FAttributesInfos>
 	{
 	public:
 		TMap<FPCGAttributeIdentifier, int32> Map;

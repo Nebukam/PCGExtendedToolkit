@@ -24,7 +24,7 @@ namespace PCGExTypeOps
 	 * 
 	 */
 	template <typename T>
-	class TTypeOpsImpl : public ITypeOpsBase
+	class PCGEXCORE_API TTypeOpsImpl : public ITypeOpsBase
 	{
 	public:
 		using TypeOps = FTypeOps<T>;

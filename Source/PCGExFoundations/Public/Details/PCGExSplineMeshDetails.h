@@ -12,8 +12,6 @@
 
 #include "PCGExSplineMeshDetails.generated.h"
 
-struct FPCGExMeshCollectionEntry;
-
 namespace PCGExData
 {
 	class FFacade;
@@ -27,11 +25,9 @@ namespace PCGExPaths
 
 	struct PCGEXFOUNDATIONS_API FSplineMeshSegment
 	{
-		FSplineMeshSegment()
-		{
-		}
+		FSplineMeshSegment() = default;
+		virtual ~FSplineMeshSegment() = default;
 
-		bool bSetMeshWithSettings = false;
 		bool bSmoothInterpRollScale = true;
 		bool bUseDegrees = true;
 		FVector UpVector = FVector::UpVector;
@@ -39,15 +35,11 @@ namespace PCGExPaths
 
 		ESplineMeshAxis::Type SplineMeshAxis = ESplineMeshAxis::Type::X;
 
-		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
-		int16 MaterialPick = -1;
 		FSplineMeshParams Params;
 
 		void ComputeUpVectorFromTangents();
 
-		void ApplySettings(USplineMeshComponent* Component) const;
-
-		bool ApplyMesh(USplineMeshComponent* Component) const;
+		virtual void ApplySettings(USplineMeshComponent* Component) const;
 	};
 }
 

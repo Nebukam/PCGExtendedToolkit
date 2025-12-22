@@ -10,6 +10,8 @@
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Relax/PCGExRelaxClusterOperation.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
 #include "Graphs/PCGExGraphCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideEdges"

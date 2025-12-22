@@ -32,6 +32,8 @@ public class PCGExElementsSampling : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExFilters",
+				"PCGExMatching",
 				"PCGExBlending",
 				"PCGExFoundations",
 			}

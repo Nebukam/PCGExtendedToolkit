@@ -32,6 +32,7 @@ public class PCGExElementsShapes : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExFilters",
 				"PCGExFoundations",
 			}
 		);
