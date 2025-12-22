@@ -6,9 +6,9 @@
 #include <functional>
 
 #include "CoreMinimal.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
@@ -24,7 +24,7 @@ namespace PCGExData
 	class FPointIOTaggedDictionary;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	using FProblem = TTuple<bool, FText>;
 
@@ -89,11 +89,11 @@ namespace PCGExCluster
 	class PCGEXCORE_API FClusterDataForwardHandler : public TSharedFromThis<FClusterDataForwardHandler>
 	{
 	protected:
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExClusters::FCluster> Cluster;
 		TSharedPtr<PCGExData::FDataForwardHandler> VtxDataForwardHandler;
 		TSharedPtr<PCGExData::FDataForwardHandler> EdgeDataForwardHandler;
 
 	public:
-		FClusterDataForwardHandler(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler);
+		FClusterDataForwardHandler(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler);
 	};
 }

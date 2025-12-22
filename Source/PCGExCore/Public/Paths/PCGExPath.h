@@ -6,7 +6,7 @@
 #include <functional>
 #include "CoreMinimal.h"
 #include "PCGExOctree.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "Math/PCGExMath.h"
 #include "Math/PCGExProjectionDetails.h"
 #include "Utils/PCGValueRange.h"
@@ -21,7 +21,6 @@ namespace PCGExMT
 
 struct FPCGExContext;
 class UPCGPolygon2DData;
-struct FPCGSplineStruct;
 class UPCGSplineData;
 
 namespace PCGExData

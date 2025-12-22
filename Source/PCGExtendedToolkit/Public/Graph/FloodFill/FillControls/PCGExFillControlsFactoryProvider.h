@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Factories/PCGExFactoryData.h"
 #include "Factories/PCGExFactoryProvider.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 

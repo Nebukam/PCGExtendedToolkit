@@ -19,7 +19,7 @@ namespace PCGExData
 	class FUnionMetadata;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FSubGraph;
 

@@ -23,8 +23,6 @@
 #include "Sampling/PCGExSamplingUnionData.h"
 #include "Sorting/PCGExPointSorter.h"
 #include "Sorting/PCGExSortingDetails.h"
-#include "Types/PCGExTypeOpsNumeric.h"
-#include "Types/PCGExTypeOpsRotation.h"
 #include "Types/PCGExTypes.h"
 
 

@@ -52,8 +52,8 @@ bool UPCGExPathfindingPlotEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin*
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::SourcePlotsLabel, "Plot points for pathfinding.", Required)
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::SourcePlotsLabel, "Plot points for pathfinding.", Required)
+	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
@@ -62,12 +62,12 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Paths output.", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
-void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExCluster::FClusterDataForwardHandler>& ClusterForwardHandler) const
+void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO, const TSharedPtr<PCGExClusters::FClusterDataForwardHandler>& ClusterForwardHandler) const
 {
 	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
 
@@ -178,7 +178,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PathIO->Tags->Append(Query->Cluster->EdgesIO.Pin()->Tags.ToSharedRef());
 	PathIO->Tags->Append(Query->PlotFacade->Source->Tags.ToSharedRef());
 
-	PCGExCluster::Helpers::CleanupClusterData(PathIO);
+	PCGExClusters::Helpers::CleanupClusterData(PathIO);
 	PCGExPaths::Helpers::SetClosedLoop(PathIO->GetOut(), Settings->bClosedLoop);
 }
 
@@ -200,11 +200,11 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	Context->PlotsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
 	Context->PlotsHandler->Init(
-		Context, PCGExGraph::SourcePlotsLabel,
+		Context, PCGExClusters::Labels::SourcePlotsLabel,
 		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 		{
 			if (IO->GetNum() < 2)
@@ -313,7 +313,7 @@ namespace PCGExPathfindingPlotEdges
 
 		if (ValidPlots.IsEmpty()) { return false; }
 
-		ClusterDataForwardHandler = MakeShared<PCGExCluster::FClusterDataForwardHandler>(Cluster, StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->VtxDataForwardHandler, Context->EdgesDataForwarding.TryGetHandler(EdgeDataFacade, false));
+		ClusterDataForwardHandler = MakeShared<PCGExClusters::FClusterDataForwardHandler>(Cluster, StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->VtxDataForwardHandler, Context->EdgesDataForwarding.TryGetHandler(EdgeDataFacade, false));
 
 		if (Settings->bUseOctreeSearch)
 		{

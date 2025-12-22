@@ -7,6 +7,11 @@
 #include "Data/PCGExPointElements.h"
 #include "PCGExPathfinding.generated.h"
 
+namespace PCGEx
+{
+	class FHashLookup;
+}
+
 namespace PCGExMT
 {
 	class FTaskManager;
@@ -26,7 +31,7 @@ namespace PCGExSearch
 
 struct FPCGExNodeSelectionDetails;
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 	struct FNode;
@@ -110,10 +115,10 @@ namespace PCGExPathfinding
 		}
 
 		PCGExData::FConstPoint Point;
-		const PCGExCluster::FNode* Node = nullptr;
+		const PCGExClusters::FNode* Node = nullptr;
 
 		bool IsValid() const { return Node != nullptr; };
-		bool ResolveNode(const TSharedRef<PCGExCluster::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails);
+		bool ResolveNode(const TSharedRef<PCGExClusters::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails);
 
 		operator PCGExData::FConstPoint() const { return Point; }
 	};
@@ -153,34 +158,34 @@ namespace PCGExPathfinding
 		TSharedPtr<PCGEx::FHashLookup> TravelStack;
 		TSharedPtr<PCGExSearch::FScoredQueue> ScoredQueue;
 
-		void Init(const PCGExCluster::FCluster* InCluster);
+		void Init(const PCGExClusters::FCluster* InCluster);
 		void Reset();
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPathQuery : public TSharedFromThis<FPathQuery>
 	{
 	public:
-		FPathQuery(const TSharedRef<PCGExCluster::FCluster>& InCluster, const FNodePick& InSeed, const FNodePick& InGoal, const int32 InQueryIndex)
+		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const FNodePick& InSeed, const FNodePick& InGoal, const int32 InQueryIndex)
 			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 		{
 		}
 
-		FPathQuery(const TSharedRef<PCGExCluster::FCluster>& InCluster, const PCGExData::FConstPoint& InSeed, const PCGExData::FConstPoint& InGoal, const int32 InQueryIndex)
+		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const PCGExData::FConstPoint& InSeed, const PCGExData::FConstPoint& InGoal, const int32 InQueryIndex)
 			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 		{
 		}
 
-		FPathQuery(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const PCGExData::FConstPoint& InGoalPointRef, const int32 InQueryIndex)
+		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const PCGExData::FConstPoint& InGoalPointRef, const int32 InQueryIndex)
 			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
 		{
 		}
 
-		FPathQuery(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const TSharedPtr<FPathQuery>& NextQuery, const int32 InQueryIndex)
+		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const TSharedPtr<FPathQuery>& NextQuery, const int32 InQueryIndex)
 			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(NextQuery->Seed), QueryIndex(InQueryIndex)
 		{
 		}
 
-		TSharedRef<PCGExCluster::FCluster> Cluster;
+		TSharedRef<PCGExClusters::FCluster> Cluster;
 
 		FNodePick Seed;
 		FNodePick Goal;
@@ -216,12 +221,12 @@ namespace PCGExPathfinding
 		TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler;
 
 	public:
-		explicit FPlotQuery(const TSharedRef<PCGExCluster::FCluster>& InCluster, bool ClosedLoop, const int32 InQueryIndex)
+		explicit FPlotQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, bool ClosedLoop, const int32 InQueryIndex)
 			: Cluster(InCluster), bIsClosedLoop(ClosedLoop), QueryIndex(InQueryIndex)
 		{
 		}
 
-		TSharedRef<PCGExCluster::FCluster> Cluster;
+		TSharedRef<PCGExClusters::FCluster> Cluster;
 		bool bIsClosedLoop = false;
 		TSharedPtr<PCGExData::FFacade> PlotFacade;
 		const int32 QueryIndex = -1;

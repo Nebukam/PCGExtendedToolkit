@@ -14,7 +14,7 @@ namespace PCGExData
 	class FPointIO;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraph;
 

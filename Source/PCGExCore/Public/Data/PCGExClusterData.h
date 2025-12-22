@@ -13,7 +13,7 @@ namespace PCGExData
 	enum class EIOInit : uint8;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
@@ -84,18 +84,18 @@ public:
 
 	virtual void InitializeSpatialDataInternal(const FPCGInitializeFromDataParams& InParams) override;
 
-	virtual void SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
-	const TSharedPtr<PCGExCluster::FCluster>& GetBoundCluster() const;
+	virtual void SetBoundCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster);
+	const TSharedPtr<PCGExClusters::FCluster>& GetBoundCluster() const;
 
 	virtual void BeginDestroy() override;
 
 protected:
-	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExClusters::FCluster> Cluster;
 
 	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
 };
 
 namespace PCGExClusterData
 {
-	TSharedPtr<PCGExCluster::FCluster> TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO);
+	TSharedPtr<PCGExClusters::FCluster> TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO);
 }

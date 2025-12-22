@@ -12,7 +12,7 @@
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGExBufferHelper.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	namespace Helpers
 	{
@@ -20,7 +20,7 @@ namespace PCGExGraph
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-			const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(EdgeIO.ToSharedRef(), PCGExCluster::Labels::Attr_PCGExEdgeIdx);
+			const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(EdgeIO.ToSharedRef(), PCGExClusters::Labels::Attr_PCGExEdgeIdx);
 			if (!EndpointsBuffer->InitForRead()) { return false; }
 
 			const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
@@ -86,7 +86,7 @@ namespace PCGExGraph
 			PCGExArrayHelpers::InitArray(OutAdjacency, InPointIO->GetNum());
 			OutIndices.Empty();
 
-			const TUniquePtr<PCGExData::TArrayBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(InPointIO.ToSharedRef(), PCGExCluster::Labels::Attr_PCGExVtxIdx);
+			const TUniquePtr<PCGExData::TArrayBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(InPointIO.ToSharedRef(), PCGExClusters::Labels::Attr_PCGExVtxIdx);
 			if (!IndexBuffer->InitForRead()) { return false; }
 
 			const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();

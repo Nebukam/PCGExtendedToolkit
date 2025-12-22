@@ -3,10 +3,11 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
-#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPathCrossings.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath

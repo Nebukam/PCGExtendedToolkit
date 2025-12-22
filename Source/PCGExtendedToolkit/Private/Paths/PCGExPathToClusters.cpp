@@ -18,7 +18,7 @@
 TArray<FPCGPinProperties> UPCGExPathToClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
 	return PinProperties;
 }
 
@@ -49,7 +49,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 		Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionVtxPoints.ToSharedRef());
 
-		Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, Context->MainPoints->GetInBounds().ExpandBy(10), Context->MainPoints);
+		Context->UnionGraph = MakeShared<PCGExGraphs::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, Context->MainPoints->GetInBounds().ExpandBy(10), Context->MainPoints);
 
 		// TODO : Support local fuse distance, requires access to all input facades
 		if (!Context->UnionGraph->Init(Context)) { return false; }
@@ -57,7 +57,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
 
-		Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(Context, Context->UnionDataFacade.ToSharedRef(), Context->UnionGraph.ToSharedRef(), Settings->PointPointIntersectionDetails, Settings->DefaultPointsBlendingDetails, Settings->DefaultEdgesBlendingDetails);
+		Context->UnionProcessor = MakeShared<PCGExGraphs::FUnionProcessor>(Context, Context->UnionDataFacade.ToSharedRef(), Context->UnionGraph.ToSharedRef(), Settings->PointPointIntersectionDetails, Settings->DefaultPointsBlendingDetails, Settings->DefaultEdgesBlendingDetails);
 
 		Context->UnionProcessor->VtxCarryOverDetails = &Context->CarryOverDetails;
 
@@ -125,13 +125,13 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(Settings->bFusePaths ? PCGExGraph::State_PreparingUnion : PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(Settings->bFusePaths ? PCGExGraphs::State_PreparingUnion : PCGExCommon::State_Done)
 
 #pragma region Intersection management
 
 	if (Settings->bFusePaths)
 	{
-		PCGEX_ON_STATE(PCGExGraph::State_PreparingUnion)
+		PCGEX_ON_STATE(PCGExGraphs::State_PreparingUnion)
 		{
 			const int32 NumFacades = Context->MainBatch->ProcessorFacades.Num();
 			Context->PathsFacades.Reserve(NumFacades);
@@ -179,24 +179,24 @@ namespace PCGExPathToClusters
 
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointIO->GetIn());
 
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New);
 
-		TArray<PCGExGraph::FEdge> Edges;
+		TArray<PCGExGraphs::FEdge> Edges;
 		PCGExArrayHelpers::InitArray(Edges, bClosedLoop ? NumPoints : NumPoints - 1);
 
 		for (int i = 0; i < Edges.Num(); i++)
 		{
-			Edges[i] = PCGExGraph::FEdge(i, i, i + 1, PointIO->IOIndex);
+			Edges[i] = PCGExGraphs::FEdge(i, i, i + 1, PointIO->IOIndex);
 		}
 
 		if (bClosedLoop)
 		{
 			const int32 LastIndex = Edges.Num() - 1;
-			Edges[LastIndex] = PCGExGraph::FEdge(LastIndex, LastIndex, 0, PointIO->IOIndex);
+			Edges[LastIndex] = PCGExGraphs::FEdge(LastIndex, LastIndex, 0, PointIO->IOIndex);
 		}
 
 		GraphBuilder->Graph->InsertEdges(Edges);

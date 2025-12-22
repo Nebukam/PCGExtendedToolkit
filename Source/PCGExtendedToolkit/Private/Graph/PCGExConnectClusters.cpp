@@ -27,8 +27,8 @@ TArray<FPCGPinProperties> UPCGExConnectClustersSettings::InputPinProperties() co
 
 	if (BridgeMethod == EPCGExBridgeClusterMethod::Filters)
 	{
-		PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required)
-		PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required)
+		PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required)
+		PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required)
 	}
 
 	return PinProperties;
@@ -53,11 +53,11 @@ bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 
 		/*
 		if (!GetInputFactories(
-			Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
+			Context, PCGExClusters::Labels::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
 			PCGExFactories::ClusterNodeFilters, true)) { return false; }
 
 		if (!GetInputFactories(
-			Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
+			Context, PCGExClusters::Labels::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
 			PCGExFactories::ClusterNodeFilters, true)) { return false; }
 		*/
 	}
@@ -109,8 +109,8 @@ bool FPCGExConnectClustersElement::AdvanceWork(FPCGExContext* InContext, const U
 	{
 		const TSharedPtr<PCGExConnectClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExConnectClusters::FBatch>(Batch);
 		PCGExDataId PairId;
-		PCGExCluster::Helpers::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
-		PCGExCluster::Helpers::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
+		PCGExClusters::Helpers::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
+		PCGExClusters::Helpers::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
 	}
 
 	Context->OutputPointsAndEdges();
@@ -293,9 +293,9 @@ namespace PCGExConnectClusters
 		UPCGMetadata* EdgeMetadata = CompoundedEdgesDataFacade->GetOut()->MutableMetadata();
 		UPCGMetadata* VtxMetadata = VtxDataFacade->GetOut()->MutableMetadata();
 
-		EdgeEndpointsAtt = EdgeMetadata->GetMutableTypedAttribute_Unsafe<int64>(PCGExGraph::Attr_PCGExEdgeIdx);
-		OutVtxEndpointAtt = VtxMetadata->GetMutableTypedAttribute_Unsafe<int64>(PCGExGraph::Attr_PCGExVtxIdx);
-		InVtxEndpointAtt = VtxDataFacade->GetIn()->Metadata->GetMutableTypedAttribute_Unsafe<int64>(PCGExGraph::Attr_PCGExVtxIdx);
+		EdgeEndpointsAtt = EdgeMetadata->GetMutableTypedAttribute_Unsafe<int64>(PCGExClusters::Labels::Attr_PCGExEdgeIdx);
+		OutVtxEndpointAtt = VtxMetadata->GetMutableTypedAttribute_Unsafe<int64>(PCGExClusters::Labels::Attr_PCGExVtxIdx);
+		InVtxEndpointAtt = VtxDataFacade->GetIn()->Metadata->GetMutableTypedAttribute_Unsafe<int64>(PCGExClusters::Labels::Attr_PCGExVtxIdx);
 
 		if (Settings->bFlagVtxConnector)
 		{
@@ -317,22 +317,22 @@ namespace PCGExConnectClusters
 
 	void FBatch::CreateBridge(const int32 EdgeIndex, const int32 FromClusterIndex, const int32 ToClusterIndex)
 	{
-		const TSharedPtr<PCGExCluster::FCluster> ClusterA = ValidClusters[FromClusterIndex];
-		const TSharedPtr<PCGExCluster::FCluster> ClusterB = ValidClusters[ToClusterIndex];
+		const TSharedPtr<PCGExClusters::FCluster> ClusterA = ValidClusters[FromClusterIndex];
+		const TSharedPtr<PCGExClusters::FCluster> ClusterB = ValidClusters[ToClusterIndex];
 
 		int32 IndexA = -1;
 		int32 IndexB = -1;
 
 		double Distance = MAX_dbl;
 
-		const TArray<PCGExCluster::FNode>& NodesRefA = *ClusterA->Nodes;
-		const TArray<PCGExCluster::FNode>& NodesRefB = *ClusterB->Nodes;
+		const TArray<PCGExClusters::FNode>& NodesRefA = *ClusterA->Nodes;
+		const TArray<PCGExClusters::FNode>& NodesRefB = *ClusterB->Nodes;
 
 		//Brute force find closest points
-		for (const PCGExCluster::FNode& Node : NodesRefA)
+		for (const PCGExClusters::FNode& Node : NodesRefA)
 		{
 			FVector NodePos = ClusterA->GetPos(Node);
-			const PCGExCluster::FNode& OtherNode = NodesRefB[ClusterB->FindClosestNode(NodePos)];
+			const PCGExClusters::FNode& OtherNode = NodesRefB[ClusterB->FindClosestNode(NodePos)];
 
 			if (const double Dist = FVector::DistSquared(NodePos, ClusterB->GetPos(OtherNode)); Dist < Distance)
 			{

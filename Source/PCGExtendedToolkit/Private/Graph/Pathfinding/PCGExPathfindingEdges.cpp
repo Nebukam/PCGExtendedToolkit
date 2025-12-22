@@ -89,7 +89,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 		Query->Goal.Point.Data->CopyPropertiesTo(PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1, AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
 	}
 
-	PCGExCluster::Helpers::CleanupClusterData(PathIO);
+	PCGExClusters::Helpers::CleanupClusterData(PathIO);
 
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
@@ -109,8 +109,8 @@ TArray<FPCGPinProperties> UPCGExPathfindingEdgesSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seeds points for pathfinding.", Required)
-	PCGEX_PIN_POINT(PCGExGraph::SourceGoalsLabel, "Goals points for pathfinding.", Required)
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_POINT(PCGExClusters::Labels::SourceGoalsLabel, "Goals points for pathfinding.", Required)
+	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesGoalPicker)
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
 	return PinProperties;
@@ -119,7 +119,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingEdgesSettings::InputPinProperties() c
 TArray<FPCGPinProperties> UPCGExPathfindingEdgesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Paths output.", Required)
 	return PinProperties;
 }
 
@@ -138,7 +138,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExCommon::Labels::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
-	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceGoalsLabel, false, true);
+	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceGoalsLabel, false, true);
 	if (!Context->GoalsDataFacade) { return false; }
 
 	PCGEX_FWD(SeedAttributesToPathTags)
@@ -151,7 +151,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	// Prepare path seed/goal pairs
 

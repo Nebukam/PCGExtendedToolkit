@@ -6,7 +6,7 @@
 
 #include "PCGExH.h"
 
-#include "Graph/Filters/PCGExAdjacency.h"
+#include "Filters/PCGExAdjacency.h"
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(Bitmasks, { NewFactory->BitmaskData = PCGExAdjacency::FBitmaskData::Make(Config.Collections, Config.Compositions, Config.Angle); }, { NewOperation->BitmaskData = BitmaskData; })

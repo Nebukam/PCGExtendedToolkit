@@ -11,7 +11,7 @@
 #include "Types/PCGExAttributeIdentity.h"
 
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BatchActions
 
 PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }

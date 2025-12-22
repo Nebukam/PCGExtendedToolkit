@@ -100,7 +100,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TimeStep = 0.1;
 
-	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 
@@ -148,7 +148,7 @@ public:
 		return EPCGExClusterElement::Vtx;
 	}
 
-	virtual void Step1(const PCGExCluster::FNode& Node) override
+	virtual void Step1(const PCGExClusters::FNode& Node) override
 	{
 		const double F = (1 - FrictionBuffer->Read(Node.PointIndex)) * 0.99;
 
@@ -163,11 +163,11 @@ public:
 		(*WriteBuffer)[Node.Index].SetLocation(P + V);
 	}
 
-	virtual void Step2(const PCGExGraph::FEdge& Edge) override
+	virtual void Step2(const PCGExGraphs::FEdge& Edge) override
 	{
 		// Compute position corrections based on edges
-		const PCGExCluster::FNode* NodeA = Cluster->GetEdgeStart(Edge);
-		const PCGExCluster::FNode* NodeB = Cluster->GetEdgeEnd(Edge);
+		const PCGExClusters::FNode* NodeA = Cluster->GetEdgeStart(Edge);
+		const PCGExClusters::FNode* NodeB = Cluster->GetEdgeEnd(Edge);
 
 		const int32 A = NodeA->Index;
 		const int32 B = NodeB->Index;
@@ -186,7 +186,7 @@ public:
 		AddDelta(B, Correction * Stiffness);
 	}
 
-	virtual void Step3(const PCGExCluster::FNode& Node) override
+	virtual void Step3(const PCGExClusters::FNode& Node) override
 	{
 		// Update positions based on accumulated forces
 		if (FrictionBuffer->Read(Node.Index) >= 1) { return; }

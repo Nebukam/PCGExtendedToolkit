@@ -11,11 +11,17 @@
 
 #include "PCGExTopology.generated.h"
 
+struct FPCGExContext;
 struct FGeometryScriptSimplePolygon;
 
 namespace PCGExData
 {
+	class FFacadePreloader;
+	class FFacade;
 	struct FMutablePoint;
+
+	template <typename T>
+	class TBuffer;
 }
 
 struct FPCGExNodeSelectionDetails;
@@ -30,7 +36,7 @@ namespace PCGExMath
 	struct FTriangle;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
@@ -152,5 +158,5 @@ namespace PCGExTopology
 		const FName OutputMeshLabel = FName("Mesh");
 	}
 
-	PCGEXELEMENTSTOPOLOGY_API void MarkTriangle(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExMath::Geo::FTriangle& InTriangle);
+	PCGEXELEMENTSTOPOLOGY_API void MarkTriangle(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const PCGExMath::Geo::FTriangle& InTriangle);
 }

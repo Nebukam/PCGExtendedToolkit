@@ -12,11 +12,12 @@
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExMatchingDetails.h"
-#include "Graph/Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
+#include "Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
 #include "Math/PCGExMathAxis.h"
 #include "Math/PCGExProjectionDetails.h"
 #include "Sampling/PCGExApplySamplingDetails.h"
 #include "Sampling/PCGExSamplingCommon.h"
+#include "Sorting/PCGExSortingCommon.h"
 
 #include "PCGExSampleNearestPath.generated.h"
 
@@ -441,7 +442,7 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> Paths;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
-	TSharedPtr<PCGEsxSorting::FSorter> Sorter;
+	TSharedPtr<PCGExSorting::FSorter> Sorter;
 
 	PCGExFloatLUT WeightCurve = nullptr;
 

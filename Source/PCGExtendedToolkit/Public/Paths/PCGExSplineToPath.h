@@ -8,10 +8,9 @@
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGSplineStruct.h"
 #include "Details/PCGExFilterDetails.h"
-#include "Misc/Filters/PCGExPolyPathFilterFactory.h"
-
-#include "Sampling/PCGExSampling.h"
-#include "Transform/PCGExFitting.h"
+#include "Filters/Points/PCGExPolyPathFilterFactory.h"
+#include "Fitting/PCGExFitting.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExSplineToPath.generated.h"
 

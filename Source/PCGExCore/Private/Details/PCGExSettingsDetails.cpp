@@ -4,7 +4,7 @@
 
 #include "Details/PCGExSettingsDetails.h"
 
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"

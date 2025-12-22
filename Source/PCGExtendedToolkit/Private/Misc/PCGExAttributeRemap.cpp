@@ -4,8 +4,6 @@
 
 #include "Misc/PCGExAttributeRemap.h"
 
-#include "PCGExMT.h"
-#include "PCGExScopedContainers.h"
 #include "Elements/PCGExAssetStaging.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -14,7 +12,8 @@
 #include "Details/PCGExSettingsDetails.h"
 #include "PCGExVersion.h"
 #include "Async/ParallelFor.h"
-#include "Types/PCGExSubSelectionOps.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Data/PCGExSubSelectionOps.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
@@ -156,6 +155,9 @@ namespace PCGExAttributeRemap
 
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedInputProxies;
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedOutputProxies;
+
+		PCGExData::FProxyDescriptor InputDescriptor;
+		PCGExData::FProxyDescriptor OutputDescriptor;
 
 		InputDescriptor.DataFacade = PointDataFacade;
 		OutputDescriptor.DataFacade = PointDataFacade;

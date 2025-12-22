@@ -8,7 +8,7 @@
 #include "Details/PCGExIntersectionDetails.h"
 #include "Helpers/PCGExMetaHelpers.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	void FGraphMetadataDetails::Update(FPCGExContext* InContext, const FPCGExPointUnionMetadataDetails& InDetails)
 	{

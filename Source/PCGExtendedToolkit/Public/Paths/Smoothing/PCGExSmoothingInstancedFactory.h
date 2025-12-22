@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExInstancedFactory.h"
 #include "Factories/PCGExOperation.h"
-#include "Data/Blending/PCGExProxyDataBlending.h"
+#include "Core/PCGExOpStats.h"
 
 #include "PCGExSmoothingInstancedFactory.generated.h"
 

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExVersion.h"
+#include "Factories/PCGExFactoryData.h"
 #if PCGEX_ENGINE_VERSION < 507
 #include "MaterialTypes.h"
 #else

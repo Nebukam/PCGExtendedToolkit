@@ -40,12 +40,12 @@ UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal(FPCGContext* Context) cons
 	return NewData;
 }
 
-void UPCGExClusterEdgesData::SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster)
+void UPCGExClusterEdgesData::SetBoundCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster)
 {
 	Cluster = InCluster;
 }
 
-const TSharedPtr<PCGExCluster::FCluster>& UPCGExClusterEdgesData::GetBoundCluster() const
+const TSharedPtr<PCGExClusters::FCluster>& UPCGExClusterEdgesData::GetBoundCluster() const
 {
 	return Cluster;
 }
@@ -56,14 +56,14 @@ void UPCGExClusterEdgesData::BeginDestroy()
 	Cluster.Reset();
 }
 
-TSharedPtr<PCGExCluster::FCluster> PCGExClusterData::TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO)
+TSharedPtr<PCGExClusters::FCluster> PCGExClusterData::TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO)
 {
 	if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
 	{
 		if (const UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgeIO->GetIn()))
 		{
 			//Try to fetch cached cluster
-			if (const TSharedPtr<PCGExCluster::FCluster>& CachedCluster = ClusterEdgesData->GetBoundCluster())
+			if (const TSharedPtr<PCGExClusters::FCluster>& CachedCluster = ClusterEdgesData->GetBoundCluster())
 			{
 				// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
 				if (CachedCluster->IsValidWith(VtxIO, EdgeIO))

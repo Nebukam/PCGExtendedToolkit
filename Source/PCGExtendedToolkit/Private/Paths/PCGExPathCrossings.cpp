@@ -2,15 +2,17 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExPathCrossings.h"
-#include "PCGExMath.h"
-#include "PCGExMT.h"
+
 #include "PCGParamData.h"
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
 #include "Blenders/PCGExUnionBlender.h"
-#include "Details/PCGExDistancesDetails.h"
+#include "Data/PCGExData.h"
+#include "Math/PCGExMathDistances.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -32,9 +34,9 @@ void UPCGExPathCrossingsSettings::PostInitProperties()
 TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FILTERS(PCGExPaths::SourceCanCutFilters, "Fiter which edges can 'cut' other edges. Leave empty so all edges are can cut other edges.", Normal)
-	PCGEX_PIN_FILTERS(PCGExPaths::SourceCanBeCutFilters, "Fiter which edges can be 'cut' by other edges. Leave empty so all edges are can cut other edges.", Normal)
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_FILTERS(PCGExPaths::Labels::SourceCanCutFilters, "Fiter which edges can 'cut' other edges. Leave empty so all edges are can cut other edges.", Normal)
+	PCGEX_PIN_FILTERS(PCGExPaths::Labels::SourceCanBeCutFilters, "Fiter which edges can be 'cut' by other edges. Leave empty so all edges are can cut other edges.", Normal)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::Labels::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
@@ -52,11 +54,11 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bWriteCrossDirection) { PCGEX_VALIDATE_NAME(Settings->CrossDirectionAttributeName) }
 	if (Settings->bWriteIsPointCrossing) { PCGEX_VALIDATE_NAME(Settings->IsPointCrossingAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::Labels::SourceOverridesBlendingOps)
 
-	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExPaths::Labels::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
 
-	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExPaths::Labels::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
 
 	Context->CrossingBlending = Settings->CrossingBlending;
 
@@ -116,6 +118,8 @@ bool FPCGExPathCrossingsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 namespace PCGExPathCrossings
 {
+	const PCGExPaths::FPathEdgeOctree* FProcessor::GetEdgeOctree() const { return Path->GetEdgeOctree(); }
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);

@@ -27,7 +27,7 @@ bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionVertices)
 
 	Context->VtxPartitions = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->VtxPartitions->OutputPin = PCGExGraph::OutputVerticesLabel;
+	Context->VtxPartitions->OutputPin = PCGExClusters::Labels::OutputVerticesLabel;
 
 	return true;
 }
@@ -64,10 +64,10 @@ bool FPCGExPartitionVerticesElement::AdvanceWork(FPCGExContext* InContext, const
 
 namespace PCGExPartitionVertices
 {
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, true, true);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, true, true);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -92,8 +92,8 @@ namespace PCGExPartitionVertices
 		Cluster->VtxIO = PointPartitionIO;
 		Cluster->NumRawVtx = NumNodes;
 
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		for (PCGExCluster::FNode& Node : Nodes)
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+		for (PCGExClusters::FNode& Node : Nodes)
 		{
 			int32 i = Node.Index;
 
@@ -102,8 +102,8 @@ namespace PCGExPartitionVertices
 			Node.PointIndex = i;
 		}
 
-		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
-		for (PCGExGraph::FEdge& Edge : Edges)
+		TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges;
+		for (PCGExGraphs::FEdge& Edge : Edges)
 		{
 			Edge.Start = EndpointsMap[Edge.Start];
 			Edge.End = EndpointsMap[Edge.End];
@@ -116,8 +116,8 @@ namespace PCGExPartitionVertices
 	void FProcessor::CompleteWork()
 	{
 		PCGExDataId OutId;
-		PCGExCluster::Helpers::SetClusterVtx(PointPartitionIO, OutId);
-		PCGExCluster::Helpers::MarkClusterEdges(EdgeDataFacade->Source, OutId);
+		PCGExClusters::Helpers::SetClusterVtx(PointPartitionIO, OutId);
+		PCGExClusters::Helpers::MarkClusterEdges(EdgeDataFacade->Source, OutId);
 
 		ForwardCluster();
 	}

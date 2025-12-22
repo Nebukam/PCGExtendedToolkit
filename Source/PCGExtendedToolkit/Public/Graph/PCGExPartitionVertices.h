@@ -4,9 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
-
 
 #include "PCGExPartitionVertices.generated.h"
 
@@ -40,7 +38,7 @@ struct FPCGExPartitionVerticesContext final : FPCGExClustersProcessorContext
 	friend class FPCGExPartitionVerticesElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> VtxPartitions;
-	TArray<PCGExGraph::FEdge> IndexedEdges;
+	TArray<PCGExGraphs::FEdge> IndexedEdges;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -62,7 +60,7 @@ namespace PCGExPartitionVertices
 		friend class FProcessorBatch;
 
 	protected:
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExClusters::FCluster> HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef) override;
 
 		TSharedPtr<PCGExData::FPointIO> PointPartitionIO;
 

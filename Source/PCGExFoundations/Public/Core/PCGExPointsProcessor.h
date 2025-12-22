@@ -7,7 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGPin.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"

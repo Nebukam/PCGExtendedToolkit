@@ -53,7 +53,7 @@ bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGExContext* InContext, const
 	return true;
 }
 
-bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* InCluster, PCGExGraph::FEdge& InEdge) const
+bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExClusters::FCluster* InCluster, PCGExGraphs::FEdge& InEdge) const
 {
 	const uint32 Start = InEdge.Start;
 	const uint32 End = InEdge.End;
@@ -91,8 +91,8 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 	return false;
 }
 
-bool FPCGExEdgeDirectionSettings::SortExtrapolation(const PCGExCluster::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const
+bool FPCGExEdgeDirectionSettings::SortExtrapolation(const PCGExClusters::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const
 {
-	PCGExGraph::FEdge ChainDir = PCGExGraph::FEdge(InEdgeIndex, InCluster->GetNodePointIndex(StartNodeIndex), InCluster->GetNode(EndNodeIndex)->PointIndex);
+	PCGExGraphs::FEdge ChainDir = PCGExGraphs::FEdge(InEdgeIndex, InCluster->GetNodePointIndex(StartNodeIndex), InCluster->GetNode(EndNodeIndex)->PointIndex);
 	return SortEndpoints(InCluster, ChainDir);
 }

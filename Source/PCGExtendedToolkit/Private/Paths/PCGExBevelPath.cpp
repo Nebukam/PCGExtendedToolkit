@@ -3,14 +3,14 @@
 
 #include "Paths/PCGExBevelPath.h"
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Geometry/PCGExGeo.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Helpers/PCGExRandomHelpers.h"
+#include "Math/Geo/PCGExGeo.h"
 #include "Paths/PCGExPath.h"
 
 
@@ -264,7 +264,7 @@ namespace PCGExBevelPath
 
 	void FBevel::SubdivideArc(const double Factor, const bool bIsCount)
 	{
-		const PCGExGeo::FExCenterArc Arc = PCGExGeo::FExCenterArc(Arrive, Corner, Leave);
+		const PCGExMath::Geo::FExCenterArc Arc = PCGExMath::Geo::FExCenterArc(Arrive, Corner, Leave);
 
 		if (Arc.bIsLine)
 		{

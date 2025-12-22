@@ -27,7 +27,7 @@ namespace PCGExData
 	class TBuffer;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	struct FNode;
 	struct FAdjacencyData;
@@ -82,7 +82,7 @@ struct FPCGExSimpleEdgeOutputSettings
 	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade);
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir) const;
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const;
+	virtual void Set(const int32 EntryIndex, const PCGExClusters::FAdjacencyData& Data) const;
 };
 
 USTRUCT(BlueprintType)
@@ -132,8 +132,8 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade) override;
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount) const;
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const override;
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data, const int32 NeighborCount);
+	virtual void Set(const int32 EntryIndex, const PCGExClusters::FAdjacencyData& Data) const override;
+	virtual void Set(const int32 EntryIndex, const PCGExClusters::FAdjacencyData& Data, const int32 NeighborCount);
 };
 
 /**
@@ -143,13 +143,13 @@ class FPCGExVtxPropertyOperation : public FPCGExOperation
 {
 public:
 	virtual bool WantsBFP() const;
-	virtual bool PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
+	virtual bool PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExClusters::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
-	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP);
+	virtual void ProcessNode(PCGExClusters::FNode& Node, const TArray<PCGExClusters::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP);
 
 protected:
-	const PCGExCluster::FCluster* Cluster = nullptr;
+	const PCGExClusters::FCluster* Cluster = nullptr;
 	bool bIsValidOperation = true;
 };
 

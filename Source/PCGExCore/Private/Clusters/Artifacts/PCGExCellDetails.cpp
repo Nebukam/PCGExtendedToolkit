@@ -65,7 +65,7 @@ bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
 	return true;
 }
 
-void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const
+void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const
 {
 	auto FwdTags = [&](const TSet<FString>& SourceTags)
 	{
@@ -121,7 +121,7 @@ void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExCluster::FCluster
 	if (VtxIDBuffer)
 	{
 		TSharedPtr<PCGExData::FPointIO> VtxIO = InCluster->VtxIO.Pin();
-		const FPCGMetadataAttribute<int64>* VtxIDAttr = VtxIO ? VtxIO->FindConstAttribute<int64>(PCGExCluster::Labels::Attr_PCGExVtxIdx) : nullptr;
+		const FPCGMetadataAttribute<int64>* VtxIDAttr = VtxIO ? VtxIO->FindConstAttribute<int64>(PCGExClusters::Labels::Attr_PCGExVtxIdx) : nullptr;
 
 		if (VtxIO && VtxIDAttr)
 		{

@@ -13,17 +13,6 @@
 #include "Math/PCGExMathAxis.h"
 #include "Sampling/PCGExApplySamplingDetails.h"
 
-
-FPCGExAttachmentRules::FPCGExAttachmentRules(EAttachmentRule InLoc, EAttachmentRule InRot, EAttachmentRule InScale)
-	: LocationRule(InLoc), RotationRule(InRot), ScaleRule(InScale)
-{
-}
-
-FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
-{
-	return FAttachmentTransformRules(LocationRule, RotationRule, ScaleRule, bWeldSimulatedBodies);
-}
-
 FPCGExAxisDeformDetails::FPCGExAxisDeformDetails(const FString InFirst, const FString InSecond, const double InFirstValue, const double InSecondValue)
 {
 	FirstAlphaAttribute = FName(TEXT("@Data.") + InFirst);

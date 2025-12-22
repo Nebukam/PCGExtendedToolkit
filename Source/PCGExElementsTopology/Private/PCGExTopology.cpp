@@ -1,10 +1,8 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Topology/PCGExTopology.h"
+#include "PCGExTopology.h"
 
-
-#include "GeomTools.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshRepairFunctions.h"
 #include "GeometryScript/PolygonFunctions.h"
@@ -13,11 +11,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/Utils/PCGExDataPreloader.h"
-#include "Data/PCGExDataTags.h"
-#include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
-#include "Math/Geo/PCGExPrimtives.h"
-#include "Clusters/PCGExCluster.h"
 #include "Paths/PCGExPath.h"
 
 void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const

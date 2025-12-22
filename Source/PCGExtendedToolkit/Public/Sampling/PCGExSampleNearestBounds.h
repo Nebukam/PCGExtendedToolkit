@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Utils/PCGExCurveLookup.h"
 #include "Factories/PCGExFactories.h"
 #include "UObject/Object.h"
@@ -11,12 +12,13 @@
 #include "Curves/RichCurve.h"
 
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
-#include "PCGExSorting.h"
 #include "Details/PCGExBlendingDetails.h"
-#include "Data/Matching/PCGExMatching.h"
+#include "Details/PCGExMatchingDetails.h"
+#include "Math/PCGExMathAxis.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Sampling/PCGExSamplingCommon.h"
+#include "Sorting/PCGExSortingCommon.h"
 
 #include "PCGExSampleNearestBounds.generated.h"
 
@@ -30,6 +32,16 @@ MACRO(ComponentWiseDistance, FVector, FVector::ZeroVector)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
+
+namespace PCGExSorting
+{
+	class FSorter;
+}
+
+namespace PCGExMatching
+{
+	class FTargetsHandler;
+}
 
 namespace PCGExMath
 {

@@ -135,7 +135,7 @@ namespace PCGExRelaxClusters
 
 		virtual ~FProcessor() override;
 
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExClusters::FCluster> HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef) override;
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void StartNextStep();
 		void RelaxScope(const PCGExMT::FScope& Scope) const;

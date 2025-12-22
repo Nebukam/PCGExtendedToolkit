@@ -34,17 +34,17 @@ void UPCGExClusterCentralitySettings::ApplyDeprecation(UPCGNode* InOutNode)
 
 bool UPCGExClusterCentralitySettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExGraph::SourceVtxFiltersLabel) { return DownsamplingMode == EPCGExCentralityDownsampling::Filters; }
+	if (InPin->Properties.Label == PCGExClusters::Labels::SourceVtxFiltersLabel) { return DownsamplingMode == EPCGExCentralityDownsampling::Filters; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 TArray<FPCGPinProperties> UPCGExClusterCentralitySettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 
-	if (DownsamplingMode == EPCGExCentralityDownsampling::Filters) { PCGEX_PIN_FILTERS(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Required) }
-	else { PCGEX_PIN_FILTERS(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Advanced) }
+	if (DownsamplingMode == EPCGExCentralityDownsampling::Filters) { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Required) }
+	else { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Advanced) }
 
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
 	return PinProperties;
@@ -63,7 +63,7 @@ bool FPCGExClusterCentralityElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
 	{
-		if (!GetInputFactories(Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters))
+		if (!GetInputFactories(Context, PCGExClusters::Labels::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters))
 		{
 			return false;
 		}
@@ -141,9 +141,9 @@ namespace PCGExClusterCentrality
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const PCGExCluster::FEdge& Edge = *Cluster->GetEdge(Index);
-			const PCGExCluster::FNode& Start = *Cluster->GetEdgeStart(Edge);
-			const PCGExCluster::FNode& End = *Cluster->GetEdgeStart(Edge);
+			const PCGExClusters::FEdge& Edge = *Cluster->GetEdge(Index);
+			const PCGExClusters::FNode& Start = *Cluster->GetEdgeStart(Edge);
+			const PCGExClusters::FNode& End = *Cluster->GetEdgeStart(Edge);
 
 			DirectedEdgeScores[Index] = HeuristicsHandler->GetEdgeScore(Start, End, Edge, *Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
 
@@ -274,13 +274,13 @@ namespace PCGExClusterCentrality
 		while (Queue->Dequeue(CurrentNode, CurrentScore))
 		{
 			Stack.Add(CurrentNode);
-			const PCGExCluster::FNode& Current = *Cluster->GetNode(CurrentNode);
+			const PCGExClusters::FNode& Current = *Cluster->GetNode(CurrentNode);
 
-			for (const PCGExGraph::FLink Lk : Current.Links)
+			for (const PCGExGraphs::FLink Lk : Current.Links)
 			{
 				const int32 Neighbor = Lk.Node;
 				const int32 EdgeIndex = Lk.Edge;
-				const PCGExGraph::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
+				const PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
 				const double EdgeCost = Edge.Start == Current.PointIndex ? DirectedEdgeScores[Edge.PointIndex] : DirectedEdgeScores[NumEdges + Edge.PointIndex];
 				const double NewDist = Score[CurrentNode] + EdgeCost;
@@ -328,7 +328,7 @@ namespace PCGExClusterCentrality
 			Max = FMath::Max(Max, C);
 		}
 
-		const TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
+		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
 		TSharedPtr<PCGExData::TBuffer<double>> Buffer = VtxDataFacade->GetWritable<double>(Settings->CentralityValueAttributeName, Settings->bOutputOneMinus ? 1 : 0, true, PCGExData::EBufferInit::New);
 
 		for (int i = 0; i < NumNodes; i++) { Max = FMath::Max(Max, Betweenness[i]); }

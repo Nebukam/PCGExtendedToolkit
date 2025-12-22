@@ -8,6 +8,7 @@
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForward.h"
+#include "Math/PCGExUVW.h"
 
 
 #include "PCGExBoundsAxisToPoints.generated.h"

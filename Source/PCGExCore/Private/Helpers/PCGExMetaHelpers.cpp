@@ -174,6 +174,13 @@ namespace PCGExMetaHelpers
 		return Selector;
 	}
 
+	bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InMetadata) { return false; }
+		if (!InMetadata->GetConstMetadataDomain(Identifier.MetadataDomain)) { return false; }
+		return InMetadata->HasAttribute(Identifier);
+	}
+
 	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
 	{
 		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }

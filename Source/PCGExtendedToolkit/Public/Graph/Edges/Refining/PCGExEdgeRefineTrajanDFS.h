@@ -34,11 +34,11 @@ public:
 
 		TFunction<void(int32)> DFS = [&](const int32 Index)
 		{
-			const PCGExCluster::FNode& Current = *Cluster->GetNode(Index);
+			const PCGExClusters::FNode& Current = *Cluster->GetNode(Index);
 
 			Disc[Index] = Low[Index] = Time++;
 
-			for (const PCGExGraph::FLink Lk : Current.Links)
+			for (const PCGExGraphs::FLink Lk : Current.Links)
 			{
 				if (Disc[Lk.Node] == -1)
 				{

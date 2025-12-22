@@ -5,31 +5,31 @@
 
 #include "CoreMinimal.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FNodeChain;
 	class FCluster;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraph;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	namespace ChainHelpers
 	{
 		PCGEXFOUNDATIONS_API void Dump(
-			const TSharedRef<PCGExCluster::FNodeChain>& Chain,
-			const TSharedRef<PCGExCluster::FCluster>& Cluster,
-			const TSharedPtr<PCGExGraph::FGraph>& Graph,
+			const TSharedRef<PCGExClusters::FNodeChain>& Chain,
+			const TSharedRef<PCGExClusters::FCluster>& Cluster,
+			const TSharedPtr<PCGExGraphs::FGraph>& Graph,
 			const bool bAddMetadata);
 
 		PCGEXFOUNDATIONS_API void DumpReduced(
-			const TSharedRef<PCGExCluster::FNodeChain>& Chain,
-			const TSharedRef<PCGExCluster::FCluster>& Cluster,
-			const TSharedPtr<PCGExGraph::FGraph>& Graph,
+			const TSharedRef<PCGExClusters::FNodeChain>& Chain,
+			const TSharedRef<PCGExClusters::FCluster>& Cluster,
+			const TSharedPtr<PCGExGraphs::FGraph>& Graph,
 			const bool bAddMetadata);
 	}
 }

@@ -4,12 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExChain.h"
 #include "Factories/PCGExFactories.h"
 
 #include "Core/PCGExClustersProcessor.h"
+#include "Math/PCGExWinding.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"
+
+namespace PCGExClusters
+{
+	class FNodeChainBuilder;
+	class FNodeChain;
+}
 
 UENUM()
 enum class EPCGExBreakClusterOperationTarget : uint8
@@ -98,7 +104,7 @@ struct FPCGExBreakClustersToPathsContext final : FPCGExClustersProcessorContext
 	bool bUseProjection = false;
 	bool bUsePerClusterProjection = false;
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
-	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
+	TArray<TSharedPtr<PCGExClusters::FNodeChain>> Chains;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -120,7 +126,7 @@ namespace PCGExBreakClustersToPaths
 		friend class FBatch;
 
 	protected:
-		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
+		TSharedPtr<PCGExClusters::FNodeChainBuilder> ChainBuilder;
 		TArray<TSharedPtr<PCGExData::FPointIO>> ChainsIO;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;

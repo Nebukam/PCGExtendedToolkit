@@ -7,11 +7,9 @@
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clusters/PCGExCluster.h"
-
-
-#include "Sampling/PCGExSampling.h"
-#include "Types/PCGExTypeOpsNumeric.h"
-#include "Types/PCGExTypeOpsVector.h"
+#include "Containers/PCGExManagedObjects.h"
+#include "Data/Utils/PCGExDataPreloader.h"
+#include "Types/PCGExTypes.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyAmplitude"
@@ -35,7 +33,7 @@ bool FPCGExAmplitudeConfig::Validate(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExVtxPropertyAmplitude::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertyAmplitude::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExClusters::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -100,7 +98,7 @@ bool FPCGExVtxPropertyAmplitude::PrepareForCluster(FPCGExContext* InContext, TSh
 	return bIsValidOperation;
 }
 
-void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
+void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExClusters::FNode& Node, const TArray<PCGExClusters::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
 {
 	const int32 NumAdjacency = Adjacency.Num();
 
@@ -114,7 +112,7 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 	
 	for (int i = 0; i < NumAdjacency; i++)
 	{
-		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
+		const PCGExClusters::FAdjacencyData& A = Adjacency[i];
 
 		const FVector DirAndSize = A.Direction * A.Length;
 

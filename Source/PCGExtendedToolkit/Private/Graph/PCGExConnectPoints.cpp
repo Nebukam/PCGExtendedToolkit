@@ -21,10 +21,10 @@
 TArray<FPCGPinProperties> UPCGExConnectPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceProbesLabel, "Probes used to connect points", Required, FPCGExDataTypeInfoProbe::AsId())
+	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceProbesLabel, "Probes used to connect points", Required, FPCGExDataTypeInfoProbe::AsId())
 
-	PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal)
-	PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal)
+	PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal)
+	PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal)
 
 	return PinProperties;
 }
@@ -32,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExConnectPointsSettings::InputPinProperties() cons
 TArray<FPCGPinProperties> UPCGExConnectPointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
 	return PinProperties;
 }
 
@@ -45,13 +45,13 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectPoints)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryData>(Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories, {PCGExFactories::EType::Probe}))
+	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryData>(Context, PCGExClusters::Labels::SourceProbesLabel, Context->ProbeFactories, {PCGExFactories::EType::Probe}))
 	{
 		return false;
 	}
 
-	GetInputFactories(Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories, PCGExFactories::PointFilters, false);
-	GetInputFactories(Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExClusters::Labels::SourceFilterGenerators, Context->GeneratorsFiltersFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExClusters::Labels::SourceFilterConnectables, Context->ConnectablesFiltersFactories, PCGExFactories::PointFilters, false);
 
 	Context->CWCoincidenceTolerance = FVector(Settings->CoincidenceTolerance);
 
@@ -151,7 +151,7 @@ namespace PCGExConnectPoints
 		if (RadiusSources.IsEmpty() && DirectOperations.IsEmpty()) { return false; }
 
 		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New)) { return false; }
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
 		CanGenerate.SetNumUninitialized(NumPoints);
 		AcceptConnections.SetNumUninitialized(NumPoints);

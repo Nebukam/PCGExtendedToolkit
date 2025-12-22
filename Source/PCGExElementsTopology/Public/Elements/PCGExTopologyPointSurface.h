@@ -4,10 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "PCGExCell.h"
+#include "PCGExCoreMacros.h"
 #include "PCGExTopology.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGDynamicMeshData.h"
+#include "GeometryScript/MeshRepairFunctions.h"
+#include "Math/PCGExProjectionDetails.h"
 
 #include "PCGExTopologyPointSurface.generated.h"
 

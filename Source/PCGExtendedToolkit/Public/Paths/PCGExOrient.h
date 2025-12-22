@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
-#include "PCGExPointsMT.h"
 
 #include "Core/PCGExPointsProcessor.h"
+#include "Math/PCGExMathAxis.h"
 
 #include "Orient/PCGExOrientOperation.h"
 #include "PCGExOrient.generated.h"

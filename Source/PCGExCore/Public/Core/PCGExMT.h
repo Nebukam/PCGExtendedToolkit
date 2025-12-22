@@ -15,7 +15,7 @@
 #include "Misc/QueuedThreadPool.h"
 #include "Tasks/Task.h"
 
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
 namespace PCGEx
 {

@@ -3,19 +3,25 @@
 
 #include "Sampling/PCGExSampleNearestBounds.h"
 
-#include "PCGExMT.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "PCGExStreamingHelpers.h"
+#include "Blenders/PCGExUnionBlender.h"
+#include "Blenders/PCGExUnionOpsManager.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Core/PCGExOpStats.h"
+#include "Data/PCGBasePointData.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Blenders/PCGExBlendOpsManager.h"
-#include "Blenders/PCGExMetadataBlender.h"
-#include "Blenders/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
+#include "Helpers/PCGExTargetsHandler.h"
 #include "Math/PCGExBoundsCloud.h"
+#include "Math/PCGExMathDistances.h"
+#include "Sampling/PCGExSamplingHelpers.h"
+#include "Sampling/PCGExSamplingUnionData.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Types/PCGExTypes.h"
 
 PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestBoundsSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
@@ -33,7 +39,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceBoundsLabel, "The bounds data set to check against.", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExBoundsSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
@@ -50,8 +56,8 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::OutputPinProperties
 
 bool UPCGExSampleNearestBoundsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExBoundsSampleMethod::BestCandidate; }
-	if (InPin->Properties.Label == PCGExBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
+	if (InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules) { return SampleMethod == EPCGExBoundsSampleMethod::BestCandidate; }
+	if (InPin->Properties.Label == PCGExBlending::Labels::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -74,11 +80,11 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
-	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceBoundsLabel);
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExCommon::Labels::SourceBoundsLabel);
 
 	if (!Context->NumMaxTargets)
 	{
@@ -88,7 +94,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::FSorter>(PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::FSorter>(PCGExSorting::GetSortingRules(InContext, PCGExSorting::Labels::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 

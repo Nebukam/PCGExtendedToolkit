@@ -3,11 +3,11 @@
 
 #include "Transform/PCGExBestMatchAxis.h"
 
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExTargetsHandler.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBestMatchAxisElement"
 #define PCGEX_NAMESPACE BestMatchAxis

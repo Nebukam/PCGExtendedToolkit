@@ -3,20 +3,20 @@
 
 #include "Graph/FloodFill/PCGExFloodFill.h"
 
-#include "PCGExMT.h"
-#include "Blenders/PCGExBlendOpsManager.h"
+#include "PCGExHeuristicsHandler.h"
 #include "Clusters/PCGExCluster.h"
+#include "Containers/PCGExHashLookup.h"
+#include "Core/PCGExBlendOpsManager.h"
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlOperation.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFloodFill"
 #define PCGEX_NAMESPACE FloodFill
 
 namespace PCGExFloodFill
 {
-	FDiffusion::FDiffusion(const TSharedPtr<FFillControlsHandler>& InFillControlsHandler, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExCluster::FNode* InSeedNode)
+	FDiffusion::FDiffusion(const TSharedPtr<FFillControlsHandler>& InFillControlsHandler, const TSharedPtr<PCGExClusters::FCluster>& InCluster, const PCGExClusters::FNode* InSeedNode)
 		: FillControlsHandler(InFillControlsHandler), SeedNode(InSeedNode), Cluster(InCluster)
 	{
 		TravelStack = MakeShared<PCGEx::FHashLookupMap>(0, 0);
@@ -34,7 +34,7 @@ namespace PCGExFloodFill
 		Visited.Add(SeedNode->Index);
 		*(FillControlsHandler->InfluencesCount->GetData() + SeedNode->PointIndex) = 1;
 		FCandidate& SeedCandidate = Captured.Emplace_GetRef();
-		SeedCandidate.Link = PCGExGraph::FLink(-1, -1);
+		SeedCandidate.Link = PCGExGraphs::FLink(-1, -1);
 		SeedCandidate.Node = SeedNode;
 		SeedCandidate.CaptureIndex = 0;
 
@@ -55,14 +55,14 @@ namespace PCGExFloodFill
 		TSharedPtr<PCGExHeuristics::FHandler> HeuristicsHandler = FillControlsHandler->HeuristicsHandler.Pin();
 		if (!HeuristicsHandler) { return; }
 
-		const PCGExCluster::FNode& FromNode = *From.Node;
-		const PCGExCluster::FNode& RoamingGoal = *HeuristicsHandler->GetRoamingGoal();
+		const PCGExClusters::FNode& FromNode = *From.Node;
+		const PCGExClusters::FNode& RoamingGoal = *HeuristicsHandler->GetRoamingGoal();
 
 		FVector FromPosition = Cluster->GetPos(FromNode);
 
-		for (const PCGExGraph::FLink& Lk : FromNode.Links)
+		for (const PCGExGraphs::FLink& Lk : FromNode.Links)
 		{
-			PCGExCluster::FNode* OtherNode = Cluster->GetNode(Lk);
+			PCGExClusters::FNode* OtherNode = Cluster->GetNode(Lk);
 			Visited.Add(OtherNode->Index, &bIsAlreadyInSet);
 
 			if (bIsAlreadyInSet) { continue; }
@@ -75,7 +75,7 @@ namespace PCGExFloodFill
 			FCandidate Candidate = FCandidate{};
 			Candidate.CaptureIndex = From.CaptureIndex;
 
-			Candidate.Link = PCGExGraph::FLink(FromNode.Index, Lk.Edge);
+			Candidate.Link = PCGExGraphs::FLink(FromNode.Index, Lk.Edge);
 			Candidate.Node = OtherNode;
 
 			if (FillControlsHandler->bUseLocalScore || FillControlsHandler->bUsePreviousScore)
@@ -186,7 +186,7 @@ namespace PCGExFloodFill
 		}
 	}
 
-	FFillControlsHandler::FFillControlsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TSharedPtr<PCGExData::FFacade>& InSeedsDataCache, const TArray<TObjectPtr<const UPCGExFillControlsFactoryData>>& InFactories)
+	FFillControlsHandler::FFillControlsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TSharedPtr<PCGExData::FFacade>& InSeedsDataCache, const TArray<TObjectPtr<const UPCGExFillControlsFactoryData>>& InFactories)
 		: ExecutionContext(InContext), Cluster(InCluster), VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache), SeedsDataFacade(InSeedsDataCache)
 	{
 		bIsValidHandler = BuildFrom(InContext, InFactories);

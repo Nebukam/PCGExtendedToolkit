@@ -62,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TimeStep = 0.01;
 
-	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		Deltas.Init(FInt64Vector3(0), Cluster->Nodes->Num());
@@ -117,7 +117,7 @@ public:
 		return EPCGExClusterElement::Vtx;
 	}
 
-	virtual void Step1(const PCGExGraph::FEdge& Edge) override
+	virtual void Step1(const PCGExGraphs::FEdge& Edge) override
 	{
 		// Apply spring forces for each edge
 
@@ -141,7 +141,7 @@ public:
 		AddDelta(Start, End, (SpringConstant * Displacement * Direction));
 	}
 
-	virtual void Step3(const PCGExCluster::FNode& Node) override
+	virtual void Step3(const PCGExClusters::FNode& Node) override
 	{
 		// Update positions based on accumulated forces
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();

@@ -21,7 +21,7 @@ PCGExData::EIOInit UPCGExSubdivideEdgesSettings::GetEdgeOutputInitMode() const {
 TArray<FPCGPinProperties> UPCGExSubdivideEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::Labels::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
@@ -38,7 +38,7 @@ bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagSubEdge) { PCGEX_VALIDATE_NAME(Settings->SubEdgeFlagName) }
 	if (Settings->bWriteVtxAlpha) { PCGEX_VALIDATE_NAME(Settings->VtxAlphaAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::Labels::SourceOverridesBlendingOps)
 
 	return true;
 }
@@ -60,7 +60,7 @@ bool FPCGExSubdivideEdgesElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_ReadyToCompile)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::State_ReadyToCompile)
 
 	if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
 	Context->MainPoints->StageOutputs();
@@ -74,9 +74,9 @@ namespace PCGExSubdivideEdges
 	{
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup, true, false, false);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -101,7 +101,7 @@ namespace PCGExSubdivideEdges
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 
 		EdgeDataFacade->Fetch(Scope);
 		FilterEdgeScope(Scope);
@@ -111,10 +111,10 @@ namespace PCGExSubdivideEdges
 
 #define PCGEX_PROCESS_EDGE \
 		if (!EdgeFilterCache[Index]) { continue; } \
-		PCGExGraph::FEdge& Edge = ClusterEdges[Index]; \
+		PCGExGraphs::FEdge& Edge = ClusterEdges[Index]; \
 		DirectionSettings.SortEndpoints(Cluster.Get(), Edge); \
-		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge); \
-		const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge); \
+		const PCGExClusters::FNode* StartNode = Cluster->GetEdgeStart(Edge); \
+		const PCGExClusters::FNode* EndNode = Cluster->GetEdgeEnd(Edge); \
 		FSubdivision& Sub = Subdivisions[Index];
 
 		TSharedPtr<TArray<FVector>> Subdivs = MakeShared<TArray<FVector>>();
@@ -123,10 +123,10 @@ namespace PCGExSubdivideEdges
 		{
 			if (!EdgeFilterCache[Index]) { continue; }
 
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
-			const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
-			const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
+			const PCGExClusters::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+			const PCGExClusters::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
 			FSubdivision& Sub = Subdivisions[Index];
 

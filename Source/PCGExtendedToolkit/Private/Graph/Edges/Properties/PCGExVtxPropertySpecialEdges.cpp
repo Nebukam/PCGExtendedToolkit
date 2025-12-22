@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
-bool FPCGExVtxPropertySpecialEdges::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertySpecialEdges::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExClusters::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -26,7 +26,7 @@ bool FPCGExVtxPropertySpecialEdges::PrepareForCluster(FPCGExContext* InContext, 
 	return bIsValidOperation;
 }
 
-void FPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
+void FPCGExVtxPropertySpecialEdges::ProcessNode(PCGExClusters::FNode& Node, const TArray<PCGExClusters::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
 {
 	double LLongest = 0;
 	int32 ILongest = -1;
@@ -39,7 +39,7 @@ void FPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const
 
 	for (int i = 0; i < Adjacency.Num(); i++)
 	{
-		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
+		const PCGExClusters::FAdjacencyData& A = Adjacency[i];
 
 		if (A.Length > LLongest)
 		{

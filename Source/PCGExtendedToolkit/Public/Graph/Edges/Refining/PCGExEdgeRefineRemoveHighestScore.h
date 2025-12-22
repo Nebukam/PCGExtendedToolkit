@@ -14,15 +14,15 @@
 class FPCGExEdgeRemoveHighestScore : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void ProcessNode(PCGExCluster::FNode& Node) override
+	virtual void ProcessNode(PCGExClusters::FNode& Node) override
 	{
 		int32 BestIndex = -1;
 		double HighestScore = MIN_dbl_neg;
 
-		const PCGExCluster::FNode& RoamingSeedNode = *Heuristics->GetRoamingSeed();
-		const PCGExCluster::FNode& RoamingGoalNode = *Heuristics->GetRoamingGoal();
+		const PCGExClusters::FNode& RoamingSeedNode = *Heuristics->GetRoamingSeed();
+		const PCGExClusters::FNode& RoamingGoalNode = *Heuristics->GetRoamingGoal();
 
-		for (const PCGExGraph::FLink Lk : Node.Links)
+		for (const PCGExGraphs::FLink Lk : Node.Links)
 		{
 			const double Score = Heuristics->GetEdgeScore(Node, *Cluster->GetNode(Lk), *Cluster->GetEdge(Lk), RoamingSeedNode, RoamingGoalNode);
 			if (Score > HighestScore)

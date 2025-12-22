@@ -35,7 +35,7 @@ bool FPCGExSortCollectionsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SortCollections)
 
-	TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules);
+	TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(InContext, PCGExSorting::Labels::SourceSortingRules);
 
 	if (RuleConfigs.IsEmpty())
 	{

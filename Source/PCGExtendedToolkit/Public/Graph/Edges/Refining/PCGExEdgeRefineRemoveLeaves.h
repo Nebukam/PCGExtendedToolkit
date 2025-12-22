@@ -14,7 +14,7 @@
 class FPCGExEdgeRemoveLeaves : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void ProcessNode(PCGExCluster::FNode& Node) override
+	virtual void ProcessNode(PCGExClusters::FNode& Node) override
 	{
 		int32 CurrentNodeIndex = Node.Index;
 		int32 PrevNodeIndex = -1;
@@ -23,7 +23,7 @@ public:
 
 		while (CurrentNodeIndex != -1)
 		{
-			PCGExCluster::FNode* From = Cluster->GetNode(CurrentNodeIndex);
+			PCGExClusters::FNode* From = Cluster->GetNode(CurrentNodeIndex);
 
 			if (From->IsComplex()) { return; }
 

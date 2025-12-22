@@ -23,14 +23,14 @@ namespace PCGExGraphTask
 	public:
 		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
 
-		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder, const bool bInWriteNodeFacade, const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
+		FCompileGraph(const TSharedPtr<PCGExGraphs::FGraphBuilder>& InGraphBuilder, const bool bInWriteNodeFacade, const PCGExGraphs::FGraphMetadataDetails* InMetadataDetails = nullptr)
 			: FTask(), Builder(InGraphBuilder), bWriteNodeFacade(bInWriteNodeFacade), MetadataDetails(InMetadataDetails)
 		{
 		}
 
-		TSharedPtr<PCGExGraph::FGraphBuilder> Builder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> Builder;
 		const bool bWriteNodeFacade = false;
-		const PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
+		const PCGExGraphs::FGraphMetadataDetails* MetadataDetails = nullptr;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
@@ -40,7 +40,7 @@ namespace PCGExGraphTask
 	};
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	FGraphBuilder::FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails)
 		: OutputDetails(InDetails), NodeDataFacade(InNodeDataFacade)
@@ -48,7 +48,7 @@ namespace PCGExGraph
 		PCGEX_SHARED_CONTEXT_VOID(NodeDataFacade->Source->GetContextHandle())
 
 		const UPCGBasePointData* NodePointData = NodeDataFacade->Source->GetOutIn();
-		PairId = NodeDataFacade->Source->Tags->Set<int64>(PCGExCluster::Labels::TagStr_PCGExCluster, NodePointData->GetUniqueID());
+		PairId = NodeDataFacade->Source->Tags->Set<int64>(PCGExClusters::Labels::TagStr_PCGExCluster, NodePointData->GetUniqueID());
 
 
 		// We initialize from the number of output point if it's greater than 0 at init time
@@ -76,7 +76,7 @@ namespace PCGExGraph
 		Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
 		EdgesIO = MakeShared<PCGExData::FPointIOCollection>(SharedContext.Get());
-		EdgesIO->OutputPin = PCGExCluster::Labels::OutputEdgesLabel;
+		EdgesIO->OutputPin = PCGExClusters::Labels::OutputEdgesLabel;
 	}
 
 	void FGraphBuilder::CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails)
@@ -239,7 +239,7 @@ namespace PCGExGraph
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::VtxEndpoints);
 
-			const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(PCGExCluster::Labels::Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(PCGExClusters::Labels::Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
 			const TSharedPtr<PCGExData::TArrayBuffer<int64>> ElementsVtxEndpointWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(VtxEndpointWriter);
 
 			TArray<int64>& VtxEndpoints = *ElementsVtxEndpointWriter->GetOutValues().Get();
@@ -309,10 +309,10 @@ namespace PCGExGraph
 			SubGraph->VtxDataFacade = NodeDataFacade;
 			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
 
-			PCGExCluster::Helpers::MarkClusterEdges(EdgeIO, PairId);
+			PCGExClusters::Helpers::MarkClusterEdges(EdgeIO, PairId);
 		}
 
-		PCGExCluster::Helpers::MarkClusterVtx(NodeDataFacade->Source, PairId);
+		PCGExClusters::Helpers::MarkClusterVtx(NodeDataFacade->Source, PairId);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BatchCompileSubGraphs)
 

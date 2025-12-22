@@ -3,6 +3,7 @@
 
 #include "Tensors/PCGExTensorSplineFlow.h"
 
+#include "Data/PCGSplineStruct.h"
 #include "Containers/PCGExManagedObjects.h"
 
 

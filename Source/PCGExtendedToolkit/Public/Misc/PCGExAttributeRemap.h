@@ -4,20 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
-
-#include "PCGEx.h"
-#include "PCGExGlobalSettings.h"
-#include "PCGExMath.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExProxyData.h"
 #include "Details/PCGExAttributesDetails.h"
 #include "Details/PCGExInputShorthandsDetails.h"
+#include "Fitting/PCGExFittingCommon.h"
+#include "Math/PCGExMath.h"
+#include "Sampling/PCGExSamplingCommon.h"
 #include "Utils/PCGExCurveLookup.h"
-#include "Sampling/PCGExSampling.h"
-#include "Transform/PCGExFitting.h"
 
 #include "PCGExAttributeRemap.generated.h"
 
@@ -308,9 +304,6 @@ namespace PCGExAttributeRemap
 
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> InputProxies;
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> OutputProxies;
-
-		PCGExData::FProxyDescriptor InputDescriptor;
-		PCGExData::FProxyDescriptor OutputDescriptor;
 
 		TArray<FPCGExComponentRemapRule> Rules;
 

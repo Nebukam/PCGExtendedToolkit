@@ -5,13 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "Utils/PCGExCompare.h"
-#include "Transform/PCGExFitting.h"
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForward.h"
-#include "Data/Matching/PCGExMatching.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExMatchingDetails.h"
+#include "Fitting/PCGExFitting.h"
+#include "Helpers/PCGExDataMatcher.h"
 
 #include "PCGExCopyToPoints.generated.h"
 

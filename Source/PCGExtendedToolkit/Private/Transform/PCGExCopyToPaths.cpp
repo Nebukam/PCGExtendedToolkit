@@ -25,7 +25,7 @@ TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_ANY(PCGExCommon::Labels::SourceTargetsLabel, "Paths or splines to deform along", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
-	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal)
 	return PinProperties;
 }
 
@@ -38,7 +38,7 @@ TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::OutputPinProperties() const
 
 bool UPCGExCopyToPathsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGEx::SourceBoundsLabel) { return InPin->EdgeCount() > 0; }
+	if (InPin->Properties.Label == PCGExCommon::Labels::SourceBoundsLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -53,7 +53,7 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
-	TArray<FPCGTaggedData> UnifiedBounds = Context->InputData.GetSpatialInputsByPin(PCGEx::SourceBoundsLabel);
+	TArray<FPCGTaggedData> UnifiedBounds = Context->InputData.GetSpatialInputsByPin(PCGExCommon::Labels::SourceBoundsLabel);
 	for (int i = 0; i < UnifiedBounds.Num(); ++i)
 	{
 		if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(UnifiedBounds[i].Data))

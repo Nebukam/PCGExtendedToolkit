@@ -1,24 +1,21 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Topology/PCGExTopologyClustersProcessor.h"
+#include "Core/PCGExTopologyClustersProcessor.h"
 
 #include "CoreMinimal.h"
 #include "Core/PCGExContext.h"
 #include "PCGComponent.h"
-#include "PCGExMT.h"
-#include "Topology/PCGExDynamicMeshComponent.h"
-#include "Topology/PCGExCell.h"
 #include "Data/PCGDynamicMeshData.h"
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Transform/PCGExTransform.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Async/ParallelFor.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
+#include "Components/PCGExDynamicMeshComponent.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor
@@ -29,10 +26,10 @@ PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetEdgeOutputInitMod
 TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
+	PCGEX_PIN_POINT(PCGExTopology::Labels::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
 	if (SupportsEdgeConstraints())
 	{
-		PCGEX_PIN_FILTERS(PCGExTopology::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal)
+		PCGEX_PIN_FILTERS(PCGExTopology::Labels::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal)
 	}
 	return PinProperties;
 }
@@ -42,7 +39,7 @@ TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::OutputPinProp
 	if (OutputMode == EPCGExTopologyOutputMode::Legacy) { return Super::OutputPinProperties(); }
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal)
+	PCGEX_PIN_MESH(PCGExTopology::Labels::OutputMeshLabel, "PCG Dynamic Mesh", Normal)
 	return PinProperties;
 }
 
@@ -52,7 +49,7 @@ void UPCGExTopologyClustersProcessorSettings::ApplyDeprecationBeforeUpdatePins(U
 	for (TObjectPtr<UPCGPin>& OutPin : OutputPins)
 	{
 		// If vtx/edge pins are connected, set Legacy output mode
-		if ((OutPin->Properties.Label == PCGExGraph::OutputVerticesLabel || OutPin->Properties.Label == PCGExGraph::OutputEdgesLabel) && OutPin->EdgeCount() > 0) { OutputMode = EPCGExTopologyOutputMode::Legacy; }
+		if ((OutPin->Properties.Label == PCGExClusters::Labels::OutputVerticesLabel || OutPin->Properties.Label == PCGExClusters::Labels::OutputEdgesLabel) && OutPin->EdgeCount() > 0) { OutputMode = EPCGExTopologyOutputMode::Legacy; }
 	}
 	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 }
@@ -76,15 +73,15 @@ bool FPCGExTopologyClustersProcessorElement::Boot(FPCGExContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(TopologyClustersProcessor)
 
-	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false, false);
+	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::Labels::SourceHolesLabel, false, false);
 	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
 	{
 		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
 	}
 
-	PCGExHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
+	PCGExArrayHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
 
-	GetInputFactories(Context, PCGExTopology::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(Context, PCGExTopology::Labels::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
 	Context->HashMaps.Init(nullptr, Context->MainPoints->Num());
 	return true;
@@ -102,10 +99,10 @@ namespace PCGExTopologyEdges
 	{
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> IProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> IProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with nodes only, will be deleted.
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, false, false);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
 	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -135,7 +132,7 @@ namespace PCGExTopologyEdges
 
 		InitConstraints();
 
-		for (PCGExCluster::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
+		for (PCGExClusters::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
 
 		// IMPORTANT : Need to wait for projection to be completed.
 		// Children should start work only in CompleteWork!!

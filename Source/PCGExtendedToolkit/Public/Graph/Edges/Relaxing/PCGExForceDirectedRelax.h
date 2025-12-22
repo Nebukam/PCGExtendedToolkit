@@ -26,12 +26,12 @@ public:
 		}
 	}
 
-	virtual void Step1(const PCGExCluster::FNode& Node) override
+	virtual void Step1(const PCGExClusters::FNode& Node) override
 	{
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
 		FVector Force = FVector::ZeroVector;
 
-		for (const PCGExGraph::FLink& Lk : Node.Links)
+		for (const PCGExGraphs::FLink& Lk : Node.Links)
 		{
 			const FVector OtherPosition = (ReadBuffer->GetData() + Lk.Node)->GetLocation();
 			CalculateAttractiveForce(Force, Position, OtherPosition);

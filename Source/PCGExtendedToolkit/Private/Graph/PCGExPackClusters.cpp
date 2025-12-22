@@ -18,7 +18,7 @@ PCGExData::EIOInit UPCGExPackClustersSettings::GetEdgeOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExPackClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPackedClustersLabel, "Individually packed clusters", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputPackedClustersLabel, "Individually packed clusters", Required)
 	return PinProperties;
 }
 
@@ -35,7 +35,7 @@ bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 	Context->CarryOverDetails.Init();
 
 	Context->PackedClusters = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->PackedClusters->OutputPin = PCGExGraph::OutputPackedClustersLabel;
+	Context->PackedClusters->OutputPin = PCGExClusters::Labels::OutputPackedClustersLabel;
 
 	return true;
 }
@@ -83,8 +83,8 @@ namespace PCGExPackClusters
 		PackedIO = Context->PackedClusters->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate);
 		PackedIOFacade = MakeShared<PCGExData::FFacade>(PackedIO.ToSharedRef());
 
-		PackedIO->Tags->Set<int32>(PCGExGraph::TagStr_PCGExCluster, EdgeDataFacade->GetIn()->GetUniqueID());
-		WriteMark(PackedIO.ToSharedRef(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
+		PackedIO->Tags->Set<int32>(PCGExGraphs::TagStr_PCGExCluster, EdgeDataFacade->GetIn()->GetUniqueID());
+		WriteMark(PackedIO.ToSharedRef(), PCGExClusters::Labels::Tag_PackedClusterEdgeCount, NumEdges);
 
 		// Copy vtx points after edge points
 		const UPCGBasePointData* VtxPoints = VtxDataFacade->GetIn();

@@ -7,12 +7,13 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSorting.h"
-#include "Data/PCGExPointIOMerger.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
+#include "Sorting/PCGExSortingDetails.h"
 
 
 #include "PCGExMergePoints.generated.h"
 
+class FPCGExPointIOMerger;
 // Hidden for now because buggy, concurrent writing occurs and I don't know why; need to look into it
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/merge-points"))
 class UPCGExMergePointsSettings : public UPCGExPointsProcessorSettings

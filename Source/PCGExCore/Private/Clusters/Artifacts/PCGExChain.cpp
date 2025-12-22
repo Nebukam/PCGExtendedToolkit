@@ -6,7 +6,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	void FNodeChain::FixUniqueHash()
 	{

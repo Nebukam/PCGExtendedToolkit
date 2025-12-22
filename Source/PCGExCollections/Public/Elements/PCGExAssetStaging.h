@@ -16,6 +16,7 @@
 
 namespace PCGExCollections
 {
+	class FSocketHelper;
 	class FCollectionSource;
 	class FPickPacker;
 }
@@ -30,19 +31,6 @@ struct FPCGExAssetCollectionEntry;
 namespace PCGExMeshCollection
 {
 	class FMicroCache;
-}
-
-namespace PCGExStaging
-{
-	class FPickPacker;
-
-	template <typename C, typename E>
-	class TDistributionHelper;
-
-	template <typename T>
-	class TMicroDistributionHelper;
-
-	class FSocketHelper;
 }
 
 namespace PCGExMT
@@ -223,7 +211,7 @@ namespace PCGExAssetStaging
 
 		TSharedPtr<TArray<PCGExValueHash>> SourceKeys;
 		TSharedPtr<PCGExCollections::FCollectionSource> Source;
-		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
+		TSharedPtr<PCGExCollections::FSocketHelper> SocketHelper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;

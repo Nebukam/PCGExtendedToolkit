@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsStaging.h"
+#include "Details/PCGExSocketOutputDetails.h"
 
 #include "PCGExSampleSockets.generated.h"
 

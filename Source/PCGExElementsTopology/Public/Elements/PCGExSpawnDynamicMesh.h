@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
+#include "Details/PCGExAttachmentRules.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
-#include "Transform/PCGExTransform.h"
 
 #include "PCGExSpawnDynamicMesh.generated.h"
 

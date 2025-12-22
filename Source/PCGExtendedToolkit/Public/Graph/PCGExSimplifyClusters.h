@@ -125,7 +125,7 @@ namespace PCGExSimplifyClusters
 	protected:
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TSharedPtr<TArray<int8>> Breakpoints;
-		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
+		TSharedPtr<PCGExClusters::FNodeChainBuilder> ChainBuilder;
 
 		double FuseDistance = -1;
 
@@ -156,7 +156,7 @@ namespace PCGExSimplifyClusters
 		friend class FProcessor;
 
 	protected:
-		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
+		PCGExGraphs::FGraphMetadataDetails GraphMetadataDetails;
 		TSharedPtr<TArray<int8>> Breakpoints;
 
 	public:
@@ -167,7 +167,7 @@ namespace PCGExSimplifyClusters
 			bRequiresGraphBuilder = true;
 		}
 
-		virtual const PCGExGraph::FGraphMetadataDetails* GetGraphMetadataDetails() override;
+		virtual const PCGExGraphs::FGraphMetadataDetails* GetGraphMetadataDetails() override;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void Process() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;

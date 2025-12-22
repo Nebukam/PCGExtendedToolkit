@@ -4,20 +4,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Graphs/PCGExGraphDetails.h"
-
-#include "Geometry/PCGExGeo.h"
+#include "Math/PCGExProjectionDetails.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
 
 namespace PCGExMath
 {
+	namespace Geo
+	{
+		class TDelaunay2;
+	}
+
 	class TDelaunay2;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraphBuilder;
 }
@@ -58,7 +62,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	/** Output the Urquhart graph of the Delaunay triangulation (removes the longest edge of each Delaunay cell) */
@@ -134,7 +138,7 @@ namespace PCGExBuildDelaunayGraph2D
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
 		TSharedPtr<PCGExMath::Geo::TDelaunay2> Delaunay;
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 

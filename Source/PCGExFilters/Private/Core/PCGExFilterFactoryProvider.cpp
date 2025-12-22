@@ -5,7 +5,7 @@
 
 #include "Containers/PCGExManagedObjects.h"
 #include "PCGExFilterCommon.h"
-#include "PointFilters/PCGExConstantFilter.h"
+#include "Filters/Points/PCGExConstantFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateFilter"
 #define PCGEX_NAMESPACE PCGExCreateFilter

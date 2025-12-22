@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Math/PCGExMath.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
 namespace PCGExMath
 {

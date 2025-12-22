@@ -18,14 +18,14 @@
 TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::Labels::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Paths output.", Required)
 	return PinProperties;
 }
 
@@ -46,7 +46,7 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 }
 #endif
 
-FName UPCGExPathfindingPlotNavmeshSettings::GetMainInputPin() const { return PCGExGraph::SourcePlotsLabel; }
+FName UPCGExPathfindingPlotNavmeshSettings::GetMainInputPin() const { return PCGExClusters::Labels::SourcePlotsLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 
@@ -57,7 +57,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotNavmesh)
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::Labels::SourceOverridesBlendingOps)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 

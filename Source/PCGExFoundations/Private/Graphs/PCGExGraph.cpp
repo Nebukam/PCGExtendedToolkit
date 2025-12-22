@@ -8,7 +8,7 @@
 #include "Graphs/PCGExSubGraph.h"
 #include "Helpers/PCGExMetaHelpers.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 
 	FGraph::FGraph(const int32 InNumNodes)

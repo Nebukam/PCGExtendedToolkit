@@ -3,13 +3,14 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
-#include "PCGExMT.h"
-#include "PCGExScopedContainers.h"
+#include "Containers/PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Math/PCGExMathDistances.h"
+#include "Sampling/PCGExSamplingHelpers.h"
+#include "Types/PCGExTypes.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine

@@ -37,7 +37,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	/** Whether to fuse paths into a single graph or not. */
@@ -106,10 +106,10 @@ struct FPCGExPathToClustersContext final : FPCGExPathProcessorContext
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
+	TSharedPtr<PCGExGraphs::FUnionGraph> UnionGraph;
 	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 
-	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
+	TSharedPtr<PCGExGraphs::FUnionProcessor> UnionProcessor;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -133,7 +133,7 @@ namespace PCGExPathToClusters
 		bool bClosedLoop = false;
 
 	public:
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 		explicit FNonFusingProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)
@@ -161,7 +161,7 @@ namespace PCGExPathToClusters
 		int32 LastIndex = 0;
 
 	public:
-		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
+		TSharedPtr<PCGExGraphs::FUnionGraph> UnionGraph;
 
 		explicit FFusingProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)

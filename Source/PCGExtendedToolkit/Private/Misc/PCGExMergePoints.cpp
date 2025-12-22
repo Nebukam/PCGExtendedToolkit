@@ -3,9 +3,14 @@
 
 #include "Misc/PCGExMergePoints.h"
 
-#include "PCGExMT.h"
 #include "Data/PCGExDataTags.h"
 #include "Clusters/PCGExEdge.h"
+#include "Data/PCGBasePointData.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
+#include "Graph/Edges/PCGExEdgeOrder.h"
+#include "Types/PCGExTypes.h"
+#include "Utils/PCGExPointIOMerger.h"
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsElement"
 #define PCGEX_NAMESPACE MergePoints
@@ -233,7 +238,7 @@ namespace PCGExMergePoints
 
 		// Make sure we ignore attributes that should not be brought out
 		IgnoredAttributes.Append(*ConvertedTags.Get());
-		IgnoredAttributes.Append({PCGExGraph::Attr_PCGExEdgeIdx, PCGExGraph::Attr_PCGExVtxIdx, PCGExGraph::Tag_PCGExCluster, PCGExGraph::Tag_PCGExVtx, PCGExGraph::Tag_PCGExEdges,});
+		IgnoredAttributes.Append({PCGExClusters::Labels::Attr_PCGExEdgeIdx, PCGExClusters::Labels::Attr_PCGExVtxIdx, PCGExClusters::Labels::Tag_PCGExCluster, PCGExClusters::Labels::Tag_PCGExVtx, PCGExClusters::Labels::Tag_PCGExEdges,});
 
 		{
 			PCGEX_SCHEDULING_SCOPE(TaskManager);

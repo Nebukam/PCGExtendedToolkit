@@ -3,14 +3,15 @@
 
 #include "Sampling/PCGExSampleNearestSurface.h"
 
-#include "PCGExMT.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Engine/OverlapResult.h"
 #include "Components/PrimitiveComponent.h"
+#include "Containers/PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "Sampling/PCGExSamplingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface
@@ -18,7 +19,7 @@
 TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required) }
+	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::Labels::SourceActorReferencesLabel, "Points with actor reference paths.", Required) }
 	return PinProperties;
 }
 
@@ -44,7 +45,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 	{
 		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReference)
 
-		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, false, true);
+		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::Labels::SourceActorReferencesLabel, false, true);
 		if (!Context->ActorReferenceDataFacade) { return false; }
 
 		if (!PCGExSampling::GetIncludedActors(Context, Context->ActorReferenceDataFacade.ToSharedRef(), Settings->ActorReference, Context->IncludedActors))

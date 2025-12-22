@@ -16,7 +16,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BuildVoronoiGraph2D
 
 bool FPCGExVoronoiSitesOutputDetails::Validate(FPCGExContext* InContext) const
@@ -86,8 +86,8 @@ void FPCGExVoronoiSitesOutputDetails::Output(const int32 SiteIndex)
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
-	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Updated Delaunay sites.", Required) }
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
+	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputSitesLabel, "Updated Delaunay sites.", Required) }
 	return PinProperties;
 }
 
@@ -108,7 +108,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 		if (!Settings->bPruneOpenSites) { PCGEX_VALIDATE_NAME(Settings->OpenSiteFlag) }
 
 		Context->SitesOutput = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->SitesOutput->OutputPin = PCGExGraph::OutputSitesLabel;
+		Context->SitesOutput->OutputPin = PCGExClusters::Labels::OutputSitesLabel;
 
 		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 		{
@@ -327,7 +327,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 			RemappedIndices.Empty();
 
-			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 		}
 		else
@@ -386,7 +386,7 @@ namespace PCGExBuildVoronoiGraph2D
 			}
 
 
-			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 		}
 

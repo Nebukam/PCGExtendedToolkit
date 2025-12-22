@@ -5,7 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTensorFactoryProvider.h"
-#include "PointFilters/PCGExPolyPathFilterFactory.h"
+#include "Data/PCGSplineStruct.h"
+#include "Filters/Points/PCGExPolyPathFilterFactory.h"
 
 #include "PCGExTensorSplineFactoryProvider.generated.h"
 

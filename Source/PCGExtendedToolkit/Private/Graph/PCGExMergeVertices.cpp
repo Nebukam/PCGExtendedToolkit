@@ -3,9 +3,10 @@
 
 #include "Graph/PCGExMergeVertices.h"
 
-#include "PCGExMT.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Data/PCGExClusterData.h"
+#include "Utils/PCGExPointIOMerger.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -33,7 +34,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 	}
 
 	Merger->MergeAsync(GetTaskManager(), &CarryOverDetails);
-	PCGExCluster::Helpers::SetClusterVtx(CompositeDataFacade->Source, OutVtxId); // After merge since it forwards IDs
+	PCGExClusters::Helpers::SetClusterVtx(CompositeDataFacade->Source, OutVtxId); // After merge since it forwards IDs
 }
 
 void FPCGExMergeVerticesContext::ClusterProcessing_WorkComplete()
@@ -53,7 +54,7 @@ bool FPCGExMergeVerticesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
-	TSharedPtr<PCGExData::FPointIO> CompositeIO = PCGExData::NewPointIO(Context, PCGExGraph::OutputVerticesLabel, 0);
+	TSharedPtr<PCGExData::FPointIO> CompositeIO = PCGExData::NewPointIO(Context, PCGExClusters::Labels::OutputVerticesLabel, 0);
 	Context->CompositeDataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
 	CompositeIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New);
 
@@ -87,10 +88,10 @@ bool FPCGExMergeVerticesElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 namespace PCGExMergeVertices
 {
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, true, true);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, true, true);
 	}
 
 	FProcessor::~FProcessor()
@@ -110,11 +111,11 @@ namespace PCGExMergeVertices
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExCluster::FNode& Node = Nodes[Index];
+			PCGExClusters::FNode& Node = Nodes[Index];
 
 			Node.PointIndex += StartIndexOffset;
 		}
@@ -122,11 +123,11 @@ namespace PCGExMergeVertices
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 
 			Edge.Start += StartIndexOffset;
 			Edge.End += StartIndexOffset;
@@ -146,7 +147,7 @@ namespace PCGExMergeVertices
 
 		PCGEX_INIT_IO_VOID(EdgeDataFacade->Source, PCGExData::EIOInit::Forward)
 
-		PCGExCluster::Helpers::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
+		PCGExClusters::Helpers::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
 
 		ForwardCluster();
 	}

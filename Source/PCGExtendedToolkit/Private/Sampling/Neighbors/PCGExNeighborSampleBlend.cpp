@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void FPCGExNeighborSampleBlend::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
+void FPCGExNeighborSampleBlend::PrepareForCluster(FPCGExContext* InContext, const TSharedRef<PCGExClusters::FCluster> InCluster, const TSharedRef<PCGExData::FFacade> InVtxDataFacade, const TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	FPCGExNeighborSampleOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 
@@ -34,22 +34,22 @@ void FPCGExNeighborSampleBlend::PrepareForLoops(const TArray<PCGExMT::FScope>& L
 	BlendOpsManager->InitScopedTrackers(Loops);
 }
 
-void FPCGExNeighborSampleBlend::PrepareNode(const PCGExCluster::FNode& TargetNode, const PCGExMT::FScope& Scope) const
+void FPCGExNeighborSampleBlend::PrepareNode(const PCGExClusters::FNode& TargetNode, const PCGExMT::FScope& Scope) const
 {
 	BlendOpsManager->BeginMultiBlend(TargetNode.PointIndex, BlendOpsManager->GetScopedTrackers(Scope));
 }
 
-void FPCGExNeighborSampleBlend::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
+void FPCGExNeighborSampleBlend::SampleNeighborNode(const PCGExClusters::FNode& TargetNode, const PCGExGraphs::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
 	BlendOpsManager->MultiBlend(Cluster->GetNodePointIndex(Lk), TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
 }
 
-void FPCGExNeighborSampleBlend::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
+void FPCGExNeighborSampleBlend::SampleNeighborEdge(const PCGExClusters::FNode& TargetNode, const PCGExGraphs::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
 	BlendOpsManager->MultiBlend(Cluster->GetNodePointIndex(Lk), TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
 }
 
-void FPCGExNeighborSampleBlend::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope)
+void FPCGExNeighborSampleBlend::FinalizeNode(const PCGExClusters::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope)
 {
 	BlendOpsManager->EndMultiBlend(TargetNode.PointIndex, BlendOpsManager->GetScopedTrackers(Scope));
 }
@@ -102,7 +102,7 @@ UPCGExFactoryData* UPCGExNeighborSampleBlendSettings::CreateFactory(FPCGExContex
 {
 	UPCGExNeighborSamplerFactoryBlend* SamplerFactory = InContext->ManagedObjects->New<UPCGExNeighborSamplerFactoryBlend>();
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(InContext, PCGExBlending::SourceBlendingLabel, SamplerFactory->BlendingFactories, {PCGExFactories::EType::Blending}))
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(InContext, PCGExBlending::Labels::SourceBlendingLabel, SamplerFactory->BlendingFactories, {PCGExFactories::EType::Blending}))
 	{
 		InContext->ManagedObjects->Destroy(SamplerFactory);
 		return nullptr;

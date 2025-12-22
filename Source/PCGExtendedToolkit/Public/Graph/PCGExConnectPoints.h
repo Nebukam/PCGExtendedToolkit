@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
 #include "PCGExOctree.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Graphs/PCGExGraphDetails.h"
-#include "Geometry/PCGExGeo.h"
+#include "Math/PCGExProjectionDetails.h"
 #include "PCGExConnectPoints.generated.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraphBuilder;
 }
@@ -48,7 +48,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	/**  */
@@ -101,7 +101,7 @@ namespace PCGExConnectPoints
 		TSharedPtr<PCGExPointFilter::FManager> GeneratorsFilter;
 		TSharedPtr<PCGExPointFilter::FManager> ConnectableFilter;
 
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 		TArray<TSharedPtr<FPCGExProbeOperation>> RadiusSources;
 

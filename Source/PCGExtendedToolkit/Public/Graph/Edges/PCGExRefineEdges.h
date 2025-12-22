@@ -151,7 +151,7 @@ namespace PCGExRefineEdges
 		FPCGExFilterResultDetails ResultOutputVtx = FPCGExFilterResultDetails(false, false);
 		FPCGExFilterResultDetails ResultOutputEdges = FPCGExFilterResultDetails(false, false);
 
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExClusters::FCluster> HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef) override;
 		mutable FRWLock NodeLock;
 
 	public:

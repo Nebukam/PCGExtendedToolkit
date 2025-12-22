@@ -40,11 +40,11 @@ bool FPCGExMakeClustersUniqueElement::AdvanceWork(FPCGExContext* InContext, cons
 	while (Context->AdvancePointsIO(false))
 	{
 		PCGExDataId OutId;
-		PCGExCluster::Helpers::SetClusterVtx(Context->CurrentIO, OutId);
+		PCGExClusters::Helpers::SetClusterVtx(Context->CurrentIO, OutId);
 
 		if (!Context->TaggedEdges) { continue; }
 
-		PCGExCluster::Helpers::MarkClusterEdges(Context->TaggedEdges->Entries, OutId);
+		PCGExClusters::Helpers::MarkClusterEdges(Context->TaggedEdges->Entries, OutId);
 	}
 
 	Context->OutputPointsAndEdges();

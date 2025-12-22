@@ -3,22 +3,24 @@
 
 #include "Sampling/PCGExSampleNearestPoint.h"
 
-#include "PCGExMath.h"
-#include "PCGExMT.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "PCGExStreamingHelpers.h"
-#include "Data/PCGExDataTags.h"
-#include "Core/PCGExPointFilter.h"
-#include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Blenders/PCGExBlendOpsManager.h"
 #include "Blenders/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Blenders/PCGExUnionOpsManager.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Core/PCGExOpStats.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTags.h"
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-
-
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
+#include "Helpers/PCGExTargetsHandler.h"
 #include "Misc/PCGExSortPoints.h"
+#include "Sampling/PCGExSamplingHelpers.h"
+#include "Sampling/PCGExSamplingUnionData.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
+#include "Types/PCGExTypes.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
@@ -45,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
-	PCGEX_PIN_FILTERS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced)
+	PCGEX_PIN_FILTERS(PCGExFilters::Labels::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced)
 
 	return PinProperties;
 }
@@ -59,8 +61,8 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::OutputPinProperties(
 
 bool UPCGExSampleNearestPointSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
-	if (InPin->Properties.Label == PCGExBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
+	if (InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
+	if (InPin->Properties.Label == PCGExBlending::Labels::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -83,7 +85,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
@@ -100,7 +102,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::FSorter>(PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::FSorter>(PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 
@@ -117,7 +119,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 			CurveData.AddKey(0, 0);
 			CurveData.AddKey(1, 1);
 		});
-	
+
 	return true;
 }
 
@@ -333,7 +335,7 @@ namespace PCGExSampleNearestPoint
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		
+
 		const bool bProcessFilteredOutAsFails = Settings->bProcessFilteredOutAsFails;
 		const double DefaultDet = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
@@ -349,10 +351,10 @@ namespace PCGExSampleNearestPoint
 			double RangeMax = FMath::Square(RangeMaxGetter->Read(Index));
 
 			if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
-			
+
 			Union->Reset();
 			Union->Reserve(Context->TargetsHandler->Num(), RangeMax || bSingleSample ? 8 : Context->NumMaxTargets);
-			
+
 			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
 			const FVector Origin = InTransforms[Index].GetLocation();
 

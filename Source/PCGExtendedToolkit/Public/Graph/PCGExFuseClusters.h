@@ -104,13 +104,13 @@ struct FPCGExFuseClustersContext final : FPCGExClustersProcessorContext
 	friend class PCGExFuseClusters::FProcessor;
 
 	TArray<TSharedRef<PCGExData::FFacade>> VtxFacades;
-	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
+	TSharedPtr<PCGExGraphs::FUnionGraph> UnionGraph;
 	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 
 	FPCGExCarryOverDetails VtxCarryOverDetails;
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
-	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
+	TSharedPtr<PCGExGraphs::FUnionProcessor> UnionProcessor;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -134,11 +134,11 @@ namespace PCGExFuseClusters
 	{
 		int32 VtxIOIndex = 0;
 		int32 EdgesIOIndex = 0;
-		TArray<PCGExGraph::FEdge> IndexedEdges;
+		TArray<PCGExGraphs::FEdge> IndexedEdges;
 
 	public:
 		bool bInvalidEdges = true;
-		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
+		TSharedPtr<PCGExGraphs::FUnionGraph> UnionGraph;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)

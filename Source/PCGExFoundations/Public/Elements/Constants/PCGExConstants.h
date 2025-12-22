@@ -10,7 +10,7 @@
 #include "PCGExConstantsDefinitions.h"
 #include "Core/PCGExContext.h"
 #include "PCGExGlobalSettings.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "PCGParamData.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Core/PCGExElement.h"

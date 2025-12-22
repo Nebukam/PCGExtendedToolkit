@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "PCGExH.h"
 #include "Core/PCGExMTCommon.h"
 #include "Data/PCGBasePointData.h"

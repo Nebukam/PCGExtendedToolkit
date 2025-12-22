@@ -9,7 +9,7 @@
 #include "PCGExVersion.h"
 #include "Data/Bitmasks/PCGExBitmaskDetails.h"
 #include "Containers/PCGExManagedObjects.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Bitmask

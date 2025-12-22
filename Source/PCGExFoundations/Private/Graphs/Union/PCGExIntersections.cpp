@@ -16,7 +16,7 @@
 #include "Graphs/PCGExGraphMetadata.h"
 #include "PCGExMatching/Public/Helpers/PCGExTargetsHandler.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	FUnionNode::FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex)
 		: Point(InPoint), Center(InCenter), Index(InIndex)
@@ -48,7 +48,7 @@ namespace PCGExGraph
 	}
 
 	FUnionGraph::FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceCollection)
-		: FuseDetails(InFuseDetails), Bounds(InBounds), SourceCollection(InSourceCollection)
+		: SourceCollection(InSourceCollection), FuseDetails(InFuseDetails), Bounds(InBounds)
 	{
 		Nodes.Empty();
 		Edges.Empty();

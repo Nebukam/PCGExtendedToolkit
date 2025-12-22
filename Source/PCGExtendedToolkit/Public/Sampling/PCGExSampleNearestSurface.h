@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
@@ -12,6 +13,8 @@
 #include "Components/PrimitiveComponent.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Materials/MaterialInterface.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
 
@@ -28,6 +31,12 @@ MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
 class AActor;
 class UWorld;
 class UPCGExPointFilterFactoryData;
+
+namespace PCGExMT
+{
+	template<typename T>
+	class TScopedNumericValue;
+}
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.

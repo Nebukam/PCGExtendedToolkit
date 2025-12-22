@@ -7,7 +7,7 @@
 
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Sampling/PCGExSampling.h"
+#include "Sampling/PCGExSamplingCommon.h"
 #include "PCGExWriteVtxProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_VTXEXTRAS(MACRO) \

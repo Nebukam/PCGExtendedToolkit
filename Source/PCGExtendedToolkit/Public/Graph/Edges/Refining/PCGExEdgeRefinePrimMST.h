@@ -22,8 +22,8 @@ public:
 		TBitArray<> Visited;
 		Visited.Init(false, NumNodes);
 
-		const PCGExCluster::FNode& RoamingSeedNode = *Heuristics->GetRoamingSeed();
-		const PCGExCluster::FNode& RoamingGoalNode = *Heuristics->GetRoamingGoal();
+		const PCGExClusters::FNode& RoamingSeedNode = *Heuristics->GetRoamingSeed();
+		const PCGExClusters::FNode& RoamingGoalNode = *Heuristics->GetRoamingGoal();
 
 		const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(NumNodes);
 		ScoredQueue->Enqueue(RoamingSeedNode.Index, 0);
@@ -33,18 +33,18 @@ public:
 		double CurrentNodeScore;
 		while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentNodeScore))
 		{
-			const PCGExCluster::FNode& Current = *Cluster->GetNode(CurrentNodeIndex);
+			const PCGExClusters::FNode& Current = *Cluster->GetNode(CurrentNodeIndex);
 			Visited[CurrentNodeIndex] = true;
 
-			for (const PCGExGraph::FLink Lk : Current.Links)
+			for (const PCGExGraphs::FLink Lk : Current.Links)
 			{
 				const uint32 NeighborIndex = Lk.Node;
 				const uint32 EdgeIndex = Lk.Edge;
 
 				if (Visited[NeighborIndex]) { continue; } // Exit early
 
-				const PCGExCluster::FNode& AdjacentNode = *Cluster->GetNode(NeighborIndex);
-				PCGExGraph::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
+				const PCGExClusters::FNode& AdjacentNode = *Cluster->GetNode(NeighborIndex);
+				PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
 				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, RoamingSeedNode, RoamingGoalNode, nullptr, TravelStack);
 				if (!ScoredQueue->Enqueue(NeighborIndex, Score)) { continue; }

@@ -11,8 +11,6 @@
 
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExSampleNearestPath.h"
-#include "PCGExSampling.h"
-#include "Data/Matching/PCGExMatching.h"
 
 #include "PCGExSampleInsidePath.generated.h"
 

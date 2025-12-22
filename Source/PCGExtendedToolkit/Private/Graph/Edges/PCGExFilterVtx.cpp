@@ -37,11 +37,11 @@ TArray<FPCGPinProperties> UPCGExFilterVtxSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_FILTERS(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Required)
+	PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Required)
 
 	if (Mode == EPCGExVtxFilterOutput::Clusters)
 	{
-		PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Optional Edge filters. Selected edges will be invalidated, possibly pruning more vtx along the way.", Normal)
+		PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceEdgeFiltersLabel, "Optional Edge filters. Selected edges will be invalidated, possibly pruning more vtx along the way.", Normal)
 	}
 
 	return PinProperties;
@@ -93,14 +93,14 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(GraphBuilderDetails)
 
-	if (!GetInputFactories(Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters))
+	if (!GetInputFactories(Context, PCGExClusters::Labels::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters))
 	{
 		return false;
 	}
 
 	if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 	{
-		GetInputFactories(Context, PCGExGraph::SourceEdgeFiltersLabel, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+		GetInputFactories(Context, PCGExClusters::Labels::SourceEdgeFiltersLabel, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	}
 
 	if (!Context->bWantsClusters)
@@ -142,7 +142,7 @@ bool FPCGExFilterVtxElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode == EPCGExVtxFilterOutput::Clusters ? PCGExGraph::State_ReadyToCompile : PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode == EPCGExVtxFilterOutput::Clusters ? PCGExGraphs::State_ReadyToCompile : PCGExCommon::State_Done)
 
 	if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 	{
@@ -164,10 +164,10 @@ bool FPCGExFilterVtxElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 namespace PCGExFilterVtx
 {
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with nodes only, will be deleted.
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, false, false);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
 	FProcessor::~FProcessor()
@@ -202,18 +202,18 @@ namespace PCGExFilterVtx
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		TArray<PCGExCluster::FEdge>& Edges = *Cluster->Edges.Get();
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+		TArray<PCGExClusters::FEdge>& Edges = *Cluster->Edges.Get();
 
 		const bool bNodeInvalidateEdges = Settings->bNodeInvalidateEdges;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExCluster::FNode& Node = Nodes[Index];
+			PCGExClusters::FNode& Node = Nodes[Index];
 			Node.bValid = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
 			if (!Node.bValid && bNodeInvalidateEdges)
 			{
-				for (const PCGExGraph::FLink& Lk : Node.Links) { FPlatformAtomics::InterlockedExchange(&Edges[Lk.Edge].bValid, 0); }
+				for (const PCGExGraphs::FLink& Lk : Node.Links) { FPlatformAtomics::InterlockedExchange(&Edges[Lk.Edge].bValid, 0); }
 			}
 		}
 	}
@@ -223,19 +223,19 @@ namespace PCGExFilterVtx
 		EdgeDataFacade->Fetch(Scope);
 		FilterEdgeScope(Scope);
 
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 			Edge.bValid = EdgeFilterCache[Index] ? !Settings->bInvertEdgeFilters : Settings->bInvertEdgeFilters;
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
-		TArray<PCGExCluster::FEdge>& Edges = *Cluster->Edges.Get();
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
+		TArray<PCGExClusters::FEdge>& Edges = *Cluster->Edges.Get();
 
 		PassNum = 0;
 		FailNum = 0;
@@ -244,11 +244,11 @@ namespace PCGExFilterVtx
 		{
 			ParallelFor(Nodes.Num(), [&](const int32 i)
 			{
-				PCGExCluster::FNode& Node = Nodes[i];
+				PCGExClusters::FNode& Node = Nodes[i];
 				if (Node.bValid)
 				{
 					int32 ValidCount = 0;
-					for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+					for (const PCGExGraphs::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
 					Node.bValid = static_cast<bool>(ValidCount);
 				}
 
@@ -258,12 +258,12 @@ namespace PCGExFilterVtx
 		}
 		else
 		{
-			for (PCGExCluster::FNode& Node : Nodes)
+			for (PCGExClusters::FNode& Node : Nodes)
 			{
 				if (Node.bValid)
 				{
 					int32 ValidCount = 0;
-					for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+					for (const PCGExGraphs::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
 					Node.bValid = static_cast<bool>(ValidCount);
 				}
 
@@ -274,20 +274,20 @@ namespace PCGExFilterVtx
 
 		if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)
 		{
-			for (PCGExCluster::FNode& Node : Nodes)
+			for (PCGExClusters::FNode& Node : Nodes)
 			{
 				ResultOutputVtx.Write(Node.PointIndex, static_cast<bool>(Node.bValid));
 				Node.bValid = true;
 			}
 
-			for (PCGExCluster::FEdge& Edge : Edges) { Edge.bValid = true; }
+			for (PCGExClusters::FEdge& Edge : Edges) { Edge.bValid = true; }
 
 			return;
 		}
 
 		if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 		{
-			TArray<PCGExGraph::FEdge> ValidEdges;
+			TArray<PCGExGraphs::FEdge> ValidEdges;
 			Cluster->GetValidEdges(ValidEdges);
 
 			if (ValidEdges.IsEmpty()) { return; }
@@ -307,7 +307,7 @@ namespace PCGExFilterVtx
 
 				if (!OutIO) { return; }
 
-				PCGExCluster::Helpers::CleanupVtxData(OutIO);
+				PCGExClusters::Helpers::CleanupVtxData(OutIO);
 
 				(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutIO->GetOut(), NumNodes, OutIO->GetAllocations());
 				OutIO->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
@@ -326,8 +326,8 @@ namespace PCGExFilterVtx
 
 			if (!Inside || !Outside) { return; }
 
-			PCGExCluster::Helpers::CleanupVtxData(Inside);
-			PCGExCluster::Helpers::CleanupVtxData(Outside);
+			PCGExClusters::Helpers::CleanupVtxData(Inside);
+			PCGExClusters::Helpers::CleanupVtxData(Outside);
 
 			Inside->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
 			Outside->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
@@ -389,7 +389,7 @@ namespace PCGExFilterVtx
 
 			if (!OutIO) { return; }
 
-			PCGExCluster::Helpers::CleanupVtxData(OutIO);
+			PCGExClusters::Helpers::CleanupVtxData(OutIO);
 
 			return;
 		}
@@ -401,8 +401,8 @@ namespace PCGExFilterVtx
 
 		if (!Inside || !Outside) { return; }
 
-		PCGExCluster::Helpers::CleanupVtxData(Inside);
-		PCGExCluster::Helpers::CleanupVtxData(Outside);
+		PCGExClusters::Helpers::CleanupVtxData(Inside);
+		PCGExClusters::Helpers::CleanupVtxData(Outside);
 
 		TArray<int8> Mask;
 		Mask.SetNumUninitialized(VtxDataFacade->GetNum(PCGExData::EIOSide::In));
@@ -410,7 +410,7 @@ namespace PCGExFilterVtx
 		for (int Pi = 0; Pi < Processors.Num(); Pi++)
 		{
 			const TSharedPtr<FProcessor> P = GetProcessor<FProcessor>(Pi);
-			for (const TArray<PCGExCluster::FNode>& Nodes = *P->Cluster->Nodes.Get(); const PCGExCluster::FNode& Node : Nodes)
+			for (const TArray<PCGExClusters::FNode>& Nodes = *P->Cluster->Nodes.Get(); const PCGExClusters::FNode& Node : Nodes)
 			{
 				Mask[Node.PointIndex] = Node.bValid ? 1 : 0;
 			}

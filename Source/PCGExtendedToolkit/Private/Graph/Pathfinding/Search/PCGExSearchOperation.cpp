@@ -6,7 +6,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
-void FPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void FPCGExSearchOperation::PrepareForCluster(PCGExClusters::FCluster* InCluster)
 {
 	Cluster = InCluster;
 }

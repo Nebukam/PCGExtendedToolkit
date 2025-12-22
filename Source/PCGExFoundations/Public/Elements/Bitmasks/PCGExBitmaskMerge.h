@@ -9,7 +9,7 @@
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "PCGExBitmaskMerge.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="metadata/bitmasks/bitmask-merge"))

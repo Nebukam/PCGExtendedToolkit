@@ -63,7 +63,7 @@ struct PCGEXCORE_API FPCGExNodeSelectionDetails
 	}
 };
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	namespace Labels
 	{

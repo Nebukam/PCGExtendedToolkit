@@ -4,15 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
+#include "Graph/PCGExMergeVertices.h"
 #include "Graphs/PCGExGraphDetails.h"
-#include "Geometry/PCGExGeo.h"
+#include "Math/Geo/PCGExGeo.h"
 #include "Math/Geo/PCGExVoronoi.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraphBuilder;
 }
@@ -98,7 +98,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	/** Method used to find Voronoi cell location */
@@ -187,7 +187,7 @@ namespace PCGExBuildVoronoiGraph2D
 
 		TSharedPtr<TArray<int32>> OutputIndices;
 		TSharedPtr<PCGExMath::Geo::TVoronoi2> Voronoi;
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 		TSharedPtr<PCGExData::FFacade> SiteDataFacade;
 		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;

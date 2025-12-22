@@ -119,7 +119,7 @@ namespace PCGExFindPointOnBoundsClusters
 		if (Settings->bBestFitBounds)
 		{
 			const TConstPCGValueRange<FTransform> InVtxTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
-			const TUniquePtr<PCGExCluster::FCluster::TConstVtxLookup> IdxLookup = MakeUnique<PCGExCluster::FCluster::TConstVtxLookup>(Cluster);
+			const TUniquePtr<PCGExClusters::FCluster::TConstVtxLookup> IdxLookup = MakeUnique<PCGExClusters::FCluster::TConstVtxLookup>(Cluster);
 			TArray<int32> PtIndices;
 			IdxLookup->Dump(PtIndices);
 
@@ -165,11 +165,11 @@ namespace PCGExFindPointOnBoundsClusters
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExCluster::FNode& Node = Nodes[Index];
+			PCGExClusters::FNode& Node = Nodes[Index];
 
 			UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
 		}

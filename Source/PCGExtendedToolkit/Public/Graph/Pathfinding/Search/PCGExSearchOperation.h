@@ -26,7 +26,7 @@ namespace PCGExPathfinding
 
 class FPCGExHeuristicOperation;
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
@@ -35,9 +35,9 @@ class FPCGExSearchOperation : public FPCGExOperation
 {
 public:
 	bool bEarlyExit = true;
-	PCGExCluster::FCluster* Cluster = nullptr;
+	PCGExClusters::FCluster* Cluster = nullptr;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForCluster(PCGExClusters::FCluster* InCluster);
 	virtual bool ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
 
 	virtual TSharedPtr<PCGExPathfinding::FSearchAllocations> NewAllocations() const;

@@ -28,8 +28,8 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainInputPin() const override { return PCGExGraph::SourcePackedClustersLabel; }
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainInputPin() const override { return PCGExClusters::Labels::SourcePackedClustersLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	/** Flatten unpacked metadata  Depending on your setup this is a tradeoff between memory and speed.*/

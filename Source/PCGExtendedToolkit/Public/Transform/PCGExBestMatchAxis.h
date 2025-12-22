@@ -7,13 +7,17 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExTransform.h"
-#include "Data/Matching/PCGExMatching.h"
 #include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 
 
 #include "PCGExBestMatchAxis.generated.h"
+
+namespace PCGExMatching
+{
+	class FTargetsHandler;
+}
 
 class FPCGExComputeIOBounds;
 

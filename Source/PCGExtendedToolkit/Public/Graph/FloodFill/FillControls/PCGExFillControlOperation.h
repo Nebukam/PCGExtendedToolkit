@@ -34,6 +34,6 @@ public:
 protected:
 	TSharedPtr<PCGExData::FFacade> GetSourceFacade() const;
 
-	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExClusters::FCluster> Cluster;
 	TSharedPtr<PCGExFloodFill::FFillControlsHandler> Handler;
 };

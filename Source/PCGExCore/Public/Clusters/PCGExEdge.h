@@ -24,7 +24,7 @@ enum class EPCGExEdgeDirectionChoice : uint8
 	GreatestToSmallest = 1 UMETA(DisplayName = "Greatest to Smallest", ToolTip="Direction points from the greatest to smallest value")
 };
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct PCGEXCORE_API FEdge
 	{
@@ -59,7 +59,7 @@ namespace PCGExGraph
 	};
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 

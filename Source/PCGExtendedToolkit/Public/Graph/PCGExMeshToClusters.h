@@ -15,7 +15,7 @@
 
 #include "PCGExMeshToClusters.generated.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraphBuilder;
 }
@@ -53,7 +53,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual FName GetMainInputPin() const override { return PCGExCommon::Labels::SourceTargetsLabel; }
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	virtual bool GetMainAcceptMultipleData() const override { return false; }
 	//~End UPCGExPointsProcessorSettings
 
@@ -118,7 +118,7 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> EdgeChildCollection;
 	TSharedPtr<PCGExData::FPointIOCollection> BaseMeshDataCollection;
 
-	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
+	TArray<TSharedPtr<PCGExGraphs::FGraphBuilder>> GraphBuilders;
 
 	bool bWantsImport = false;
 };

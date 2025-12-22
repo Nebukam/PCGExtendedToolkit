@@ -90,7 +90,7 @@ namespace PCGExFusePoints
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, PointDataFacade->GetIn()->GetBounds().ExpandBy(10), Context->MainPoints);
+		UnionGraph = MakeShared<PCGExGraphs::FUnionGraph>(Settings->PointPointIntersectionDetails.FuseDetails, PointDataFacade->GetIn()->GetBounds().ExpandBy(10), Context->MainPoints);
 
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
@@ -207,7 +207,7 @@ namespace PCGExFusePoints
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
 		UnionSources.Add(PointDataFacade);
 
-		TypedBlender->AddSources(UnionSources, &PCGExCluster::Labels::ProtectedClusterAttributes);
+		TypedBlender->AddSources(UnionSources, &PCGExClusters::Labels::ProtectedClusterAttributes);
 		if (!TypedBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
 		{
 			bIsProcessorValid = false;

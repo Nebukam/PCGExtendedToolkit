@@ -44,9 +44,9 @@ namespace PCGExClusterMT
 
 #pragma endregion
 
-	TSharedPtr<PCGExCluster::FCluster> IProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> IProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, false, false, false);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, false, false, false);
 	}
 
 	void IProcessor::ForwardCluster() const
@@ -108,14 +108,14 @@ namespace PCGExClusterMT
 
 		if (!bBuildCluster) { return true; }
 
-		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source))
+		if (const TSharedPtr<PCGExClusters::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source))
 		{
 			Cluster = HandleCachedCluster(CachedCluster.ToSharedRef());
 		}
 
 		if (!Cluster)
 		{
-			Cluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup);
+			Cluster = MakeShared<PCGExClusters::FCluster>(VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup);
 			Cluster->bIsOneToOne = bIsOneToOne;
 
 			if (!Cluster->BuildFrom(*EndpointsLookup, ExpectedAdjacency))
@@ -137,7 +137,7 @@ namespace PCGExClusterMT
 
 				const TConstPCGValueRange<FTransform> InVtxTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
 
-				const TUniquePtr<PCGExCluster::FCluster::TConstVtxLookup> IdxLookup = MakeUnique<PCGExCluster::FCluster::TConstVtxLookup>(Cluster);
+				const TUniquePtr<PCGExClusters::FCluster::TConstVtxLookup> IdxLookup = MakeUnique<PCGExClusters::FCluster::TConstVtxLookup>(Cluster);
 				TArray<int32> PtIndices;
 				IdxLookup->Dump(PtIndices);
 
@@ -152,8 +152,8 @@ namespace PCGExClusterMT
 			}
 			else
 			{
-				const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes.Get();
-				for (const PCGExCluster::FNode& Node : NodesRef) { Cluster->ProjectedCentroid += ProjectedVtx[Node.PointIndex]; }
+				const TArray<PCGExClusters::FNode>& NodesRef = *Cluster->Nodes.Get();
+				for (const PCGExClusters::FNode& Node : NodesRef) { Cluster->ProjectedCentroid += ProjectedVtx[Node.PointIndex]; }
 			}
 
 			Cluster->ProjectedCentroid /= Cluster->Nodes->Num();
@@ -266,7 +266,7 @@ namespace PCGExClusterMT
 		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), VtxFilterCache, bParallel); }
 	}
 
-	bool IProcessor::IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); }
+	bool IProcessor::IsNodePassingFilters(const PCGExClusters::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); }
 
 	bool IProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories)
 	{
@@ -286,7 +286,7 @@ namespace PCGExClusterMT
 
 		if (EdgesFiltersManager)
 		{
-			TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges.Get();
+			TArray<PCGExGraphs::FEdge>& EdgesRef = *Cluster->Edges.Get();
 			EdgesFiltersManager->Test(Scope.GetView(EdgesRef), Scope.GetView(EdgeFilterCache), bParallel);
 		}
 	}
@@ -336,10 +336,10 @@ namespace PCGExClusterMT
 		if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 		{
 			// Trivial
-			PCGExGraph::Helpers::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
+			PCGExGraphs::Helpers::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
 			if (RequiresGraphBuilder())
 			{
-				GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails);
+				GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails);
 				GraphBuilder->SourceEdgeFacades = EdgesDataFacades;
 			}
 
@@ -385,7 +385,7 @@ namespace PCGExClusterMT
 			PCGExArrayHelpers::InitArray(ReverseLookup, NumVtx);
 			PCGExArrayHelpers::InitArray(ExpectedAdjacency, NumVtx);
 
-			RawLookupAttribute = PCGExMetaHelpers::TryGetConstAttribute<int64>(VtxDataFacade->GetIn(), PCGExCluster::Labels::Attr_PCGExVtxIdx);
+			RawLookupAttribute = PCGExMetaHelpers::TryGetConstAttribute<int64>(VtxDataFacade->GetIn(), PCGExClusters::Labels::Attr_PCGExVtxIdx);
 			if (!RawLookupAttribute) { return; } // FAIL
 
 			BuildEndpointLookupTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
@@ -401,7 +401,7 @@ namespace PCGExClusterMT
 
 				if (This->RequiresGraphBuilder())
 				{
-					This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails);
+					This->GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails);
 					This->GraphBuilder->SourceEdgeFacades = This->EdgesDataFacades;
 				}
 
@@ -575,7 +575,7 @@ namespace PCGExClusterMT
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(TaskManager); }
 	}
 
-	const PCGExGraph::FGraphMetadataDetails* IBatch::GetGraphMetadataDetails()
+	const PCGExGraphs::FGraphMetadataDetails* IBatch::GetGraphMetadataDetails()
 	{
 		return nullptr;
 	}
@@ -586,7 +586,7 @@ namespace PCGExClusterMT
 
 		if (bOutputToContext)
 		{
-			GraphBuilder->OnCompilationEndCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+			GraphBuilder->OnCompilationEndCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<PCGExGraphs::FGraphBuilder>& InBuilder, const bool bSuccess)
 			{
 				PCGEX_ASYNC_THIS
 

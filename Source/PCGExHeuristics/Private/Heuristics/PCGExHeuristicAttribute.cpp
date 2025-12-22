@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"
 #define PCGEX_NAMESPACE CreateHeuristicAttribute
 
-void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
 {
 	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 
@@ -38,7 +38,7 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 	{
 		if (Source == EPCGExClusterElement::Vtx)
 		{
-			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { CachedScores[Node.Index] += FMath::Max(0, Values->Read(Node.PointIndex)) * Factor; }
+			for (const PCGExClusters::FNode& Node : (*InCluster->Nodes)) { CachedScores[Node.Index] += FMath::Max(0, Values->Read(Node.PointIndex)) * Factor; }
 		}
 		else
 		{
@@ -65,7 +65,7 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 		{
 			if (Source == EPCGExClusterElement::Vtx)
 			{
-				for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
+				for (const PCGExClusters::FNode& Node : (*InCluster->Nodes))
 				{
 					const double NormalizedValue = PCGExMath::Remap(Values->Read(Node.PointIndex), InMinValue, InMaxValue, OutMin, OutMax);
 					CachedScores[Node.Index] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
@@ -83,7 +83,7 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 	}
 }
 
-double FPCGExHeuristicAttribute::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicAttribute::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return CachedScores[Source == EPCGExClusterElement::Edge ? Edge.PointIndex : To.Index];
 }

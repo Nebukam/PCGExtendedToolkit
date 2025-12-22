@@ -6,9 +6,9 @@
 #include "CoreMinimal.h"
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "PCGExTopology.h"
-#include "Math/PCGExTransform.h"
+#include "Clusters/Artifacts/PCGExCellDetails.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Core/PCGExClustersProcessor.h"
+#include "Details/PCGExAttachmentRules.h"
 
 #include "PCGExTopologyClustersProcessor.generated.h"
 
@@ -142,7 +142,7 @@ namespace PCGExTopologyEdges
 		virtual ~IProcessor() override = default;
 
 		virtual void InitConstraints();
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExClusters::FCluster> HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef) override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void Output() override;

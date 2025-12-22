@@ -4,11 +4,11 @@
 #include "Clusters/PCGExEdge.h"
 #include "Clusters/PCGExCluster.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	FBoundedEdge::FBoundedEdge(const FCluster* Cluster, const int32 InEdgeIndex)
 		: Index(InEdgeIndex), Bounds(FBoxSphereBounds(FSphere(FMath::Lerp(Cluster->GetStartPos(InEdgeIndex), Cluster->GetEndPos(InEdgeIndex), 0.5), Cluster->GetDist(InEdgeIndex) * 0.5)))

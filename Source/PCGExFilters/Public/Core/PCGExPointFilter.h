@@ -18,12 +18,12 @@ namespace PCGExData
 	class FPointIOCollection;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FEdge;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	struct FNode;
 }
@@ -129,8 +129,8 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 Index) const;
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const; // destined for no-context evaluation only, can't rely on attributes or anything.
-		virtual bool Test(const PCGExCluster::FNode& Node) const;
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const;
+		virtual bool Test(const PCGExClusters::FNode& Node) const;
+		virtual bool Test(const PCGExGraphs::FEdge& Edge) const;
 
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const; // destined for collection only, is expected to test internal PointDataFacade directly.
 
@@ -151,8 +151,8 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
-		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
+		virtual bool Test(const PCGExClusters::FNode& Node) const override final;
+		virtual bool Test(const PCGExGraphs::FEdge& Edge) const override final;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
@@ -170,8 +170,8 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
-		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
+		virtual bool Test(const PCGExClusters::FNode& Node) const override final;
+		virtual bool Test(const PCGExGraphs::FEdge& Edge) const override final;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
@@ -195,16 +195,16 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExData::FProxyPoint& Point);
-		virtual bool Test(const PCGExCluster::FNode& Node);
-		virtual bool Test(const PCGExGraph::FEdge& Edge);
+		virtual bool Test(const PCGExClusters::FNode& Node);
+		virtual bool Test(const PCGExGraphs::FEdge& Edge);
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection);
 
 		virtual int32 Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults, const bool bParallel = false);
 		virtual int32 Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults, const bool bParallel = false);
 
-		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
-		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResultsPtr, const bool bParallel = false);
-		virtual int32 Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
+		virtual int32 Test(const TArrayView<PCGExClusters::FNode> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
+		virtual int32 Test(const TArrayView<PCGExClusters::FNode> Items, const TSharedPtr<TArray<int8>>& OutResultsPtr, const bool bParallel = false);
+		virtual int32 Test(const TArrayView<PCGExGraphs::FEdge> Items, const TArrayView<int8> OutResults, const bool bParallel = false);
 
 		virtual ~FManager()
 		{

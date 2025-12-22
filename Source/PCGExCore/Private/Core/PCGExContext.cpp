@@ -6,7 +6,7 @@
 #include "Core/PCGExElement.h"
 #include "PCGComponent.h"
 #include "Factories/PCGExInstancedFactory.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "Core/PCGExMT.h"
 #include "Helpers/PCGExStreamingHelpers.h"
 #include "PCGManagedResource.h"

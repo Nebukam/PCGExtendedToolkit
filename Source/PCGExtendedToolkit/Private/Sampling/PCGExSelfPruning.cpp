@@ -22,7 +22,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSelfPruningSettings, SecondaryExpansion, double, 
 
 bool UPCGExSelfPruningSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if ((Mode != EPCGExSelfPruningMode::Prune || bRandomize) && InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return false; }
+	if ((Mode != EPCGExSelfPruningMode::Prune || bRandomize) && InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules) { return false; }
 
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
@@ -114,7 +114,7 @@ namespace PCGExSelfPruning
 
 		if (Settings->Mode == EPCGExSelfPruningMode::Prune)
 		{
-			TSharedPtr<PCGExSorting::FSorter> Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			TSharedPtr<PCGExSorting::FSorter> Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 
 			PCGEX_SHARED_CONTEXT(Context->GetOrCreateHandle())

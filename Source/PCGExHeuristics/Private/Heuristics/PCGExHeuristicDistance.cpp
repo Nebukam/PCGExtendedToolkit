@@ -8,18 +8,18 @@
 #include "Containers/PCGExManagedObjects.h"
 
 
-void FPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicDistance::PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
 {
 	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 	BoundsSize = InCluster->Bounds.GetSize().Length();
 }
 
-double FPCGExHeuristicDistance::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicDistance::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
 	return GetScoreInternal(Cluster->GetDist(From, Goal) / BoundsSize);
 }
 
-double FPCGExHeuristicDistance::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicDistance::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return GetScoreInternal((*Cluster->EdgeLengths)[Edge.Index]);
 }

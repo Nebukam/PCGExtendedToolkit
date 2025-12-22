@@ -217,8 +217,8 @@ namespace PCGExClusterDiffusion
 		friend FBatch;
 
 	protected:
-		const PCGExCluster::FNode* RoamingSeedNode = nullptr;
-		const PCGExCluster::FNode* RoamingGoalNode = nullptr;
+		const PCGExClusters::FNode* RoamingSeedNode = nullptr;
+		const PCGExClusters::FNode* RoamingGoalNode = nullptr;
 
 		TSharedPtr<TArray<int8>> InfluencesCount;
 		TArray<int8> Seeded;

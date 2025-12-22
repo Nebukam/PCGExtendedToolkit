@@ -24,7 +24,7 @@ enum class EPCGExIntersectionType : uint8
 	FusedEdge = 3 UMETA(DisplayName = "Fused Edge", ToolTip="Fused Edge Intersection."),
 };
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct PCGEXFOUNDATIONS_API FGraphMetadataDetails
 	{

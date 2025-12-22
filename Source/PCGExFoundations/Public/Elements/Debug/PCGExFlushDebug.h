@@ -8,7 +8,7 @@
 #include "Core/PCGExElement.h"
 
 #include "Core/PCGExSettings.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
 #include "PCGExFlushDebug.generated.h"
 

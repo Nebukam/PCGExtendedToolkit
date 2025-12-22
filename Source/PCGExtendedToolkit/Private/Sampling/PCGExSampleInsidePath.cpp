@@ -3,18 +3,28 @@
 
 #include "Sampling/PCGExSampleInsidePath.h"
 
-#include "PCGExStreamingHelpers.h"
+#include "Blenders/PCGExUnionOpsManager.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Core/PCGExOpStats.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Blenders/PCGExBlendOpsManager.h"
-#include "Details/PCGExBlendingDetails.h"
-#include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
+#include "Helpers/PCGExTargetsHandler.h"
+#include "Math/PCGExMathDistances.h"
 #include "Misc/PCGExDiscardByPointCount.h"
+#include "Paths/PCGExBlendPath.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
+#include "Paths/PCGExPolyPath.h"
+#include "Sampling/PCGExSamplingUnionData.h"
+#include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
+#include "Types/PCGExTypes.h"
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
 PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
@@ -28,9 +38,9 @@ UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(const FObjectInit
 	if (!WeightOverDistance) { WeightOverDistance = PCGExCurves::WeightDistributionLinear; }
 }
 
-FName UPCGExSampleInsidePathSettings::GetMainInputPin() const { return PCGExPaths::SourcePathsLabel; }
+FName UPCGExSampleInsidePathSettings::GetMainInputPin() const { return PCGExPaths::Labels::SourcePathsLabel; }
 
-FName UPCGExSampleInsidePathSettings::GetMainOutputPin() const { return PCGExPaths::OutputPathsLabel; }
+FName UPCGExSampleInsidePathSettings::GetMainOutputPin() const { return PCGExPaths::Labels::OutputPathsLabel; }
 
 TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() const
 {
@@ -54,7 +64,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::OutputPinProperties() 
 
 bool UPCGExSampleInsidePathSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
+	if (InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -90,7 +100,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
 	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExCommon::Labels::SourceTargetsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
@@ -118,7 +128,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::FSorter>(PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::FSorter>(PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 

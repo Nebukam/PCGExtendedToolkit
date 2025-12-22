@@ -24,7 +24,7 @@ namespace PCGExMath
 	struct FTriangle;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
@@ -355,5 +355,5 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	bool WriteAny() const;
 	bool Init(FPCGExContext* InContext);
 
-	void Process(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const;
+	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const;
 };

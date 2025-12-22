@@ -110,8 +110,8 @@ namespace PCGExWriteVtxProperties
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		TArray<PCGExCluster::FAdjacencyData> Adjacency;
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+		TArray<PCGExClusters::FAdjacencyData> Adjacency;
 
 		TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
 		TPCGValueRange<FTransform> OutTransforms;
@@ -127,7 +127,7 @@ namespace PCGExWriteVtxProperties
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExCluster::FNode& Node = Nodes[Index];
+			PCGExClusters::FNode& Node = Nodes[Index];
 			if (VtxEdgeCountWriter) { VtxEdgeCountWriter->SetValue(Node.PointIndex, Node.Num()); }
 
 			Adjacency.Reset();

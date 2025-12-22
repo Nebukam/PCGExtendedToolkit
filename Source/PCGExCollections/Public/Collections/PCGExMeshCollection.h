@@ -10,6 +10,7 @@
 #include "ISMPartition/ISMComponentDescriptor.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 #include "Engine/StaticMesh.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "UObject/SoftObjectPath.h"
 
 #include "PCGExMeshCollection.generated.h"

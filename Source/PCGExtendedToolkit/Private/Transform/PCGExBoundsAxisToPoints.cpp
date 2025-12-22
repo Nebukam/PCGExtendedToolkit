@@ -3,10 +3,10 @@
 
 #include "Transform/PCGExBoundsAxisToPoints.h"
 
-#include "PCGExMathBounds.h"
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Math/PCGExMathAxis.h"
+#include "Math/PCGExMathBounds.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsAxisToPointsElement"

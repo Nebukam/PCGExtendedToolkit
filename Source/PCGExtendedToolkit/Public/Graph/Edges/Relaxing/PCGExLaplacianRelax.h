@@ -16,12 +16,12 @@ class UPCGExLaplacianRelax : public UPCGExRelaxClusterOperation
 	GENERATED_BODY()
 
 public:
-	virtual void Step1(const PCGExCluster::FNode& Node) override
+	virtual void Step1(const PCGExClusters::FNode& Node) override
 	{
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
 		FVector Force = FVector::ZeroVector;
 
-		for (const PCGExGraph::FLink& Lk : Node.Links) { Force += (ReadBuffer->GetData() + Lk.Node)->GetLocation() - Position; }
+		for (const PCGExGraphs::FLink& Lk : Node.Links) { Force += (ReadBuffer->GetData() + Lk.Node)->GetLocation() - Position; }
 
 		(*WriteBuffer)[Node.Index].SetLocation(Position + Force / static_cast<double>(Node.Links.Num()));
 	}

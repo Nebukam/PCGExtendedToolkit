@@ -3,7 +3,6 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
-#include "PCGExMT.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,7 +11,10 @@
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 #include "Async/ParallelFor.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Data/External/PCGExMesh.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Sampling/PCGExSamplingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
@@ -26,7 +28,7 @@ UPCGExSampleSurfaceGuidedSettings::UPCGExSampleSurfaceGuidedSettings(const FObje
 TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required) }
+	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::Labels::SourceActorReferencesLabel, "Points with actor reference paths.", Required) }
 	if (bWriteRenderMat && bExtractTextureParameters) { PCGEX_PIN_FACTORIES(PCGExTexture::SourceTexLabel, "External texture params definitions.", Required, FPCGExDataTypeInfoTexParam::AsId()) }
 	return PinProperties;
 }
@@ -64,7 +66,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReference)
-		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::SourceActorReferencesLabel, false, true);
+		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::Labels::SourceActorReferencesLabel, false, true);
 		if (!Context->ActorReferenceDataFacade) { return false; }
 
 		if (!PCGExSampling::GetIncludedActors(Context, Context->ActorReferenceDataFacade.ToSharedRef(), Settings->ActorReference, Context->IncludedActors))
@@ -423,9 +425,16 @@ namespace PCGExSampleSurfaceGuided
 		const int32 Index1 = Data.Indices[FIndex * 3 + 1];
 		const int32 Index2 = Data.Indices[FIndex * 3 + 2];
 
-		const FVector BaryCoords = FMath::ComputeBaryCentric2D(HitLocation[Index], FVector(Data.Positions->VertexPosition(Index0)), FVector(Data.Positions->VertexPosition(Index1)), FVector(Data.Positions->VertexPosition(Index2)));
+		const FVector BaryCoords = FMath::ComputeBaryCentric2D(
+			HitLocation[Index],
+			FVector(Data.Positions->VertexPosition(Index0)),
+			FVector(Data.Positions->VertexPosition(Index1)),
+			FVector(Data.Positions->VertexPosition(Index2)));
 
-		FLinearColor LinearColor = FLinearColor(Data.Colors->VertexColor(Index0)) * BaryCoords.X + FLinearColor(Data.Colors->VertexColor(Index1)) * BaryCoords.Y + FLinearColor(Data.Colors->VertexColor(Index2)) * BaryCoords.Z;
+		FLinearColor LinearColor =
+			FLinearColor(Data.Colors->VertexColor(Index0)) * BaryCoords.X
+			+ FLinearColor(Data.Colors->VertexColor(Index1)) * BaryCoords.Y
+			+ FLinearColor(Data.Colors->VertexColor(Index2)) * BaryCoords.Z;
 
 		OutColor = LinearColor;
 	}

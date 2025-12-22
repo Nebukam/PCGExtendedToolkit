@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExSettingsMacros.h"
+#include "Data/PCGExDataCommon.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExDetailsRelax.generated.h"

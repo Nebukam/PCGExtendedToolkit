@@ -53,7 +53,7 @@ TArray<FPCGPinProperties> UPCGExClustersProcessorSettings::InputPinProperties() 
 		else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required) }
 	}
 
-	PCGEX_PIN_POINTS(PCGExCluster::Labels::SourceEdgesLabel, "Edges associated with the main input points", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::SourceEdgesLabel, "Edges associated with the main input points", Required)
 
 	if (SupportsPointFilters())
 	{
@@ -63,8 +63,8 @@ TArray<FPCGPinProperties> UPCGExClustersProcessorSettings::InputPinProperties() 
 
 	if (SupportsEdgeSorting())
 	{
-		if (RequiresEdgeSorting()) { PCGEX_PIN_FACTORIES(PCGExCluster::Labels::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, FPCGExDataTypeInfoSortRule::AsId()) }
-		else { PCGEX_PIN_FACTORIES(PCGExCluster::Labels::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, FPCGExDataTypeInfoSortRule::AsId()) }
+		if (RequiresEdgeSorting()) { PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, FPCGExDataTypeInfoSortRule::AsId()) }
+		else { PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, FPCGExDataTypeInfoSortRule::AsId()) }
 	}
 	return PinProperties;
 }
@@ -72,7 +72,7 @@ TArray<FPCGPinProperties> UPCGExClustersProcessorSettings::InputPinProperties() 
 TArray<FPCGPinProperties> UPCGExClustersProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExCluster::Labels::OutputEdgesLabel, "Edges associated with the main output points", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Edges associated with the main output points", Required)
 	return PinProperties;
 }
 
@@ -101,8 +101,8 @@ bool FPCGExClustersProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	if (TaggedEdges && !TaggedEdges->Entries.IsEmpty())
 	{
 		PCGExDataId OutId;
-		PCGExCluster::Helpers::SetClusterVtx(CurrentIO, OutId); // Update key
-		PCGExCluster::Helpers::MarkClusterEdges(TaggedEdges->Entries, OutId);
+		PCGExClusters::Helpers::SetClusterVtx(CurrentIO, OutId); // Update key
+		PCGExClusters::Helpers::MarkClusterEdges(TaggedEdges->Entries, OutId);
 	}
 	else { TaggedEdges = nullptr; }
 
@@ -210,13 +210,13 @@ bool FPCGExClustersProcessorContext::ProcessClusters(const PCGExCommon::ContextS
 
 bool FPCGExClustersProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId)
 {
-	PCGEX_ON_STATE_INTERNAL(PCGExGraph::State_ReadyToCompile)
+	PCGEX_ON_STATE_INTERNAL(PCGExGraphs::State_ReadyToCompile)
 	{
-		SetState(PCGExGraph::State_Compiling);
+		SetState(PCGExGraphs::State_Compiling);
 		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->CompileGraphBuilder(bOutputToContext); }
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExGraph::State_Compiling)
+	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExGraphs::State_Compiling)
 	{
 		ClusterProcessing_GraphCompilationDone();
 		SetState(NextStateId);
@@ -344,13 +344,13 @@ void FPCGExClustersProcessorElement::DisabledPassThroughData(FPCGContext* Contex
 	FPCGExPointsProcessorElement::DisabledPassThroughData(Context);
 
 	//Forward main edges
-	TArray<FPCGTaggedData> EdgesSources = Context->InputData.GetInputsByPin(PCGExCluster::Labels::SourceEdgesLabel);
+	TArray<FPCGTaggedData> EdgesSources = Context->InputData.GetInputsByPin(PCGExClusters::Labels::SourceEdgesLabel);
 	for (const FPCGTaggedData& TaggedData : EdgesSources)
 	{
 		FPCGTaggedData& TaggedDataCopy = Context->OutputData.TaggedData.Emplace_GetRef();
 		TaggedDataCopy.Data = TaggedData.Data;
 		TaggedDataCopy.Tags.Append(TaggedData.Tags);
-		TaggedDataCopy.Pin = PCGExCluster::Labels::OutputEdgesLabel;
+		TaggedDataCopy.Pin = PCGExClusters::Labels::OutputEdgesLabel;
 	}
 }
 
@@ -364,14 +364,14 @@ bool FPCGExClustersProcessorElement::Boot(FPCGExContext* InContext) const
 
 	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(Context, PCGExHeuristics::Labels::SourceHeuristicsLabel, Context->HeuristicsFactories, {PCGExFactories::EType::Heuristics}, false);
 
-	Context->ClusterDataLibrary = MakeShared<PCGExCluster::FDataLibrary>(true);
+	Context->ClusterDataLibrary = MakeShared<PCGExClusters::FDataLibrary>(true);
 
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedEdges;
 
 	Context->MainEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->MainEdges->OutputPin = PCGExCluster::Labels::OutputEdgesLabel;
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExCluster::Labels::SourceEdgesLabel);
+	Context->MainEdges->OutputPin = PCGExClusters::Labels::OutputEdgesLabel;
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExClusters::Labels::SourceEdgesLabel);
 	Context->MainEdges->Initialize(Sources);
 
 	if (!Context->ClusterDataLibrary->Build(Context->MainPoints, Context->MainEdges))
@@ -383,7 +383,7 @@ bool FPCGExClustersProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SupportsEdgeSorting())
 	{
-		Context->EdgeSortingRules = PCGExSorting::GetSortingRules(Context, PCGExCluster::Labels::SourceEdgeSortingRules);
+		Context->EdgeSortingRules = PCGExSorting::GetSortingRules(Context, PCGExClusters::Labels::SourceEdgeSortingRules);
 		if (Settings->RequiresEdgeSorting() && Context->EdgeSortingRules.IsEmpty())
 		{
 			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing valid sorting rules."))

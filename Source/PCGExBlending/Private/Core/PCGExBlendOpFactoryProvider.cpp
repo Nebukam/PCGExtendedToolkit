@@ -13,8 +13,8 @@
 void UPCGExBlendOpFactoryProviderSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
 {
 	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
-	InOutNode->RenameInputPin(FName("Constant A"), PCGExBlending::SourceConstantA);
-	InOutNode->RenameInputPin(FName("Constant B"), PCGExBlending::SourceConstantB);
+	InOutNode->RenameInputPin(FName("Constant A"), PCGExBlending::Labels::SourceConstantA);
+	InOutNode->RenameInputPin(FName("Constant B"), PCGExBlending::Labels::SourceConstantB);
 }
 
 void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -37,7 +37,7 @@ void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChang
 
 bool UPCGExBlendOpFactoryProviderSettings::IsPinDefaultValueEnabled(FName PinLabel) const
 {
-	return PinLabel == PCGExBlending::SourceConstantA || PinLabel == PCGExBlending::SourceConstantB;
+	return PinLabel == PCGExBlending::Labels::SourceConstantA || PinLabel == PCGExBlending::Labels::SourceConstantB;
 }
 
 bool UPCGExBlendOpFactoryProviderSettings::IsPinDefaultValueActivated(FName PinLabel) const
@@ -138,8 +138,8 @@ void UPCGExBlendOpFactoryProviderSettings::ResetDefaultValue(FName PinLabel)
 
 bool UPCGExBlendOpFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExBlending::SourceConstantA && Config.OperandASource == EPCGExOperandSource::Constant) { return true; }
-	if (InPin->Properties.Label == PCGExBlending::SourceConstantB && Config.OperandBSource == EPCGExOperandSource::Constant) { return true; }
+	if (InPin->Properties.Label == PCGExBlending::Labels::SourceConstantA && Config.OperandASource == EPCGExOperandSource::Constant) { return true; }
+	if (InPin->Properties.Label == PCGExBlending::Labels::SourceConstantB && Config.OperandBSource == EPCGExOperandSource::Constant) { return true; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -172,11 +172,11 @@ void UPCGExBlendOpFactoryProviderSettings::ApplyPreconfiguredSettings(const FPCG
 TArray<FPCGPinProperties> UPCGExBlendOpFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY_SINGLE(PCGExBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
+	PCGEX_PIN_ANY_SINGLE(PCGExBlending::Labels::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 
 	if (Config.bUseOperandB)
 	{
-		PCGEX_PIN_ANY_SINGLE(PCGExBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
+		PCGEX_PIN_ANY_SINGLE(PCGExBlending::Labels::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 	}
 
 	return PinProperties;

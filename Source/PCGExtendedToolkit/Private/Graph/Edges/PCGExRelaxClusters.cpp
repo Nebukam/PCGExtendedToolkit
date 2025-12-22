@@ -21,7 +21,7 @@ PCGExData::EIOInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { 
 TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FILTERS(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Normal)
+	PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Normal)
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRelaxClusters::SourceOverridesRelaxing)
 	return PinProperties;
 }
@@ -37,7 +37,7 @@ bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_VALIDATE_NAME)
 	PCGEX_OPERATION_BIND(Relaxing, UPCGExRelaxClusterOperation, PCGExRelaxClusters::SourceOverridesRelaxing)
 
-	GetInputFactories(Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(Context, PCGExClusters::Labels::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
 	return true;
 }
@@ -76,9 +76,9 @@ namespace PCGExRelaxClusters
 	{
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup, true, false, false);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source, NodeIndexLookup, true, false, false);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -107,7 +107,7 @@ namespace PCGExRelaxClusters
 		TArray<FTransform>& PBufferRef = (*PrimaryBuffer);
 		TArray<FTransform>& SBufferRef = (*SecondaryBuffer);
 
-		TArray<PCGExCluster::FNode> NodesRef = *Cluster->Nodes.Get();
+		TArray<PCGExClusters::FNode> NodesRef = *Cluster->Nodes.Get();
 		TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
 
 		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = InTransforms[NodesRef[i].PointIndex]; }
@@ -197,8 +197,8 @@ namespace PCGExRelaxClusters
 #define PCGEX_RELAX_FILTER if(!IsNodePassingFilters(Node)){ WBufferRef[i] = RBufferRef[i]; }else
 #define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){\
 		if(bLastStep){ \
-			if(InfluenceDetails.bProgressiveInfluence){PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_FILTER{ PCGEX_RELAX_PROGRESS }} } \
-			else{ PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_FILTER{} } } \
+			if(InfluenceDetails.bProgressiveInfluence){PCGEX_SCOPE_LOOP(i){ PCGExClusters::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_FILTER{ PCGEX_RELAX_PROGRESS }} } \
+			else{ PCGEX_SCOPE_LOOP(i){ PCGExClusters::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_FILTER{} } } \
 		}else{ \
 			PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); \
 		}} return; }
@@ -232,7 +232,7 @@ namespace PCGExRelaxClusters
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 
 		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
 
@@ -240,7 +240,7 @@ namespace PCGExRelaxClusters
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExCluster::FNode& Node = Nodes[Index];
+			PCGExClusters::FNode& Node = Nodes[Index];
 
 			if (!InfluenceDetails.bProgressiveInfluence)
 			{

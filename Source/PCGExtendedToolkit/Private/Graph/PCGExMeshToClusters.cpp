@@ -14,7 +14,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE MeshToClusters
 
 namespace PCGExGeoTask
@@ -27,13 +27,13 @@ namespace PCGExGraphTask
 	class FCopyGraphToPoint final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FCopyGraphToPoint(const int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder, const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection, const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection, FPCGExTransformDetails* InTransformDetails)
+		FCopyGraphToPoint(const int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<PCGExGraphs::FGraphBuilder>& InGraphBuilder, const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection, const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection, FPCGExTransformDetails* InTransformDetails)
 			: FPCGExIndexedTask(InTaskIndex), PointIO(InPointIO), GraphBuilder(InGraphBuilder), VtxCollection(InVtxCollection), EdgeCollection(InEdgeCollection), TransformDetails(InTransformDetails)
 		{
 		}
 
 		TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 		TSharedPtr<PCGExData::FPointIOCollection> VtxCollection;
 		TSharedPtr<PCGExData::FPointIOCollection> EdgeCollection;
@@ -50,7 +50,7 @@ namespace PCGExGraphTask
 			VtxDupe->IOIndex = TaskIndex;
 
 			PCGExDataId OutId;
-			PCGExCluster::Helpers::SetClusterVtx(VtxDupe, OutId);
+			PCGExClusters::Helpers::SetClusterVtx(VtxDupe, OutId);
 
 			PCGEX_MAKE_SHARED(VtxTask, PCGExFitting::Tasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
 			Launch(VtxTask);
@@ -61,7 +61,7 @@ namespace PCGExGraphTask
 				if (!EdgeDupe) { return; }
 
 				EdgeDupe->IOIndex = TaskIndex;
-				PCGExCluster::Helpers::MarkClusterEdges(EdgeDupe, OutId);
+				PCGExClusters::Helpers::MarkClusterEdges(EdgeDupe, OutId);
 
 				PCGEX_MAKE_SHARED(EdgeTask, PCGExFitting::Tasks::FTransformPointIO, TaskIndex, PointIO, EdgeDupe, TransformDetails);
 				Launch(EdgeTask);
@@ -407,7 +407,7 @@ namespace PCGExMeshToCluster
 				}
 			}
 
-			TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails);
+			TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 
 			Context->GraphBuilders[TaskIndex] = GraphBuilder;
@@ -419,7 +419,7 @@ namespace PCGExMeshToCluster
 
 
 			TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
-			GraphBuilder->OnCompilationEndCallback = [WeakHandle](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+			GraphBuilder->OnCompilationEndCallback = [WeakHandle](const TSharedRef<PCGExGraphs::FGraphBuilder>& InBuilder, const bool bSuccess)
 			{
 				if (!bSuccess) { return; }
 				PCGEX_SHARED_TCONTEXT_VOID(MeshToClusters, WeakHandle)
@@ -443,7 +443,7 @@ TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::InputPinProperties() con
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
 	PCGEX_PIN_POINTS(FName("BaseMeshData"), "Vtx & edges that have been copied to point. Contains one graph per unique mesh asset.", Advanced)
 	return PinProperties;
 }
@@ -491,7 +491,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	Context->VtxChildCollection->OutputPin = Settings->GetMainOutputPin();
 
 	Context->EdgeChildCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->EdgeChildCollection->OutputPin = PCGExGraph::OutputEdgesLabel;
+	Context->EdgeChildCollection->OutputPin = PCGExClusters::Labels::OutputEdgesLabel;
 
 	Context->BaseMeshDataCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->BaseMeshDataCollection->OutputPin = FName("BaseMeshData");
@@ -620,7 +620,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExMath::State_ExtractingMesh)
 	{
-		Context->SetState(PCGExGraph::State_WritingClusters);
+		Context->SetState(PCGExGraphs::State_WritingClusters);
 
 		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 
@@ -633,7 +633,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_WritingClusters)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::State_WritingClusters)
 	{
 		Context->BaseMeshDataCollection->StageOutputs();
 

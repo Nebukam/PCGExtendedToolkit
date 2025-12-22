@@ -6,7 +6,7 @@
 #include "PCGElement.h"
 #include "PCGContext.h"
 #include "PCGModule.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
 namespace PCGExHelpers
 {

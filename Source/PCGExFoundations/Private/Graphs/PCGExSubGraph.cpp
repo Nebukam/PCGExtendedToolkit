@@ -31,19 +31,19 @@ namespace PCGExGraphTask
 	public:
 		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
 
-		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
+		FWriteSubGraphCluster(const TSharedPtr<PCGExGraphs::FSubGraph>& InSubGraph)
 			: FTask(), SubGraph(InSubGraph)
 		{
 		}
 
-		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
+		TSharedPtr<PCGExGraphs::FSubGraph> SubGraph;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
 		{
 			UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
-			const TSharedPtr<PCGExGraph::FGraph> ParentGraph = SubGraph->WeakParentGraph.Pin();
+			const TSharedPtr<PCGExGraphs::FGraph> ParentGraph = SubGraph->WeakParentGraph.Pin();
 			if (!ParentGraph) { return; }
-			PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, ParentGraph->NodeIndexLookup)
+			PCGEX_MAKE_SHARED(NewCluster, PCGExClusters::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, ParentGraph->NodeIndexLookup)
 			ClusterEdgesData->SetBoundCluster(NewCluster);
 
 			SubGraph->BuildCluster(NewCluster.ToSharedRef());
@@ -51,7 +51,7 @@ namespace PCGExGraphTask
 	};
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	void FSubGraph::Add(const FEdge& Edge)
 	{
@@ -65,7 +65,7 @@ namespace PCGExGraph
 		Edges.Shrink();
 	}
 
-	void FSubGraph::BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster)
+	void FSubGraph::BuildCluster(const TSharedRef<PCGExClusters::FCluster>& InCluster)
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing
 		PCGEX_PARALLEL_FOR(FlattenedEdges.Num(), FlattenedEdges[i].IOIndex = -1;)
@@ -208,7 +208,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 		{
 			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExMath::GetNoneDistances());
-			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &PCGExCluster::Labels::ProtectedClusterAttributes);
+			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &PCGExClusters::Labels::ProtectedClusterAttributes);
 			if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
 			{
 				// TODO : Log error
@@ -252,7 +252,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (!ParentGraph || !Builder) { return; }
 
-		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(PCGExCluster::Labels::Attr_PCGExEdgeIdx, -1, false, PCGExData::EBufferInit::New);
+		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(PCGExClusters::Labels::Attr_PCGExEdgeIdx, -1, false, PCGExData::EBufferInit::New);
 
 
 		UPCGBasePointData* OutVtxData = VtxDataFacade->GetOut();

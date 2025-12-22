@@ -7,7 +7,7 @@
 #include "PCGExH.h"
 #include "PCGExLink.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	FORCEINLINE static uint32 NodeGUID(const uint32 Base, const int32 Index)
 	{
@@ -49,7 +49,7 @@ namespace PCGExGraph
 	};
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 
@@ -62,7 +62,7 @@ namespace PCGExCluster
 		double Length = 0;
 	};
 
-	struct PCGEXCORE_API FNode : PCGExGraph::FNode
+	struct PCGEXCORE_API FNode : PCGExGraphs::FNode
 	{
 		FNode() = default;
 

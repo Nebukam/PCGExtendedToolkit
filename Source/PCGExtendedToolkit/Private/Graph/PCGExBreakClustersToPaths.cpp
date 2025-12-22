@@ -3,14 +3,16 @@
 
 #include "Graph/PCGExBreakClustersToPaths.h"
 
-#include "PCGExMT.h"
+#include "Clusters/PCGExCluster.h"
+#include "Clusters/Artifacts/PCGExChain.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGPointArrayData.h"
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/PCGExChain.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
 #define PCGEX_NAMESPACE BreakClustersToPaths
@@ -18,7 +20,7 @@
 TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Paths", Required)
 	return PinProperties;
 }
 
@@ -38,7 +40,7 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 	Context->bUsePerClusterProjection = Context->bUseProjection && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::BestFit;
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	return true;
 }
@@ -113,7 +115,7 @@ namespace PCGExBreakClustersToPaths
 
 	bool FProcessor::BuildChains()
 	{
-		ChainBuilder = MakeShared<PCGExCluster::FNodeChainBuilder>(Cluster.ToSharedRef());
+		ChainBuilder = MakeShared<PCGExClusters::FNodeChainBuilder>(Cluster.ToSharedRef());
 		ChainBuilder->Breakpoints = VtxFilterCache;
 		if (Settings->LeavesHandling == EPCGExBreakClusterLeavesHandling::Only)
 		{
@@ -151,7 +153,7 @@ namespace PCGExBreakClustersToPaths
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const TSharedPtr<PCGExCluster::FNodeChain> Chain = ChainBuilder->Chains[Index];
+			const TSharedPtr<PCGExClusters::FNodeChain> Chain = ChainBuilder->Chains[Index];
 			const TSharedPtr<PCGExData::FPointIO> PathIO = ChainsIO[Index];
 
 			if (!Chain)
@@ -192,7 +194,7 @@ namespace PCGExBreakClustersToPaths
 					ProjectedPoints[i] = PP[PtIndex];
 				}
 
-				if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+				if (!PCGExMath::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
 				{
 					bDoReverse = true;
 				}
@@ -215,11 +217,11 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 
 			const TSharedPtr<PCGExData::FPointIO> PathIO = ChainsIO[Index];
 			if (!PathIO) { continue; }

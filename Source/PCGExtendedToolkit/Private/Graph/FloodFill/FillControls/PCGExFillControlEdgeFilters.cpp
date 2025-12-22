@@ -24,26 +24,26 @@ bool FPCGExFillControlEdgeFilters::PrepareForDiffusions(FPCGExContext* InContext
 
 bool FPCGExFillControlEdgeFilters::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
-	const PCGExGraph::FEdge* E = Cluster->GetEdge(Candidate.Link);
+	const PCGExGraphs::FEdge* E = Cluster->GetEdge(Candidate.Link);
 	// Orient edge in diffusion direction
-	const PCGExGraph::FEdge Edge(E->Index, Candidate.Link.Node, Candidate.Node->PointIndex, E->PointIndex, E->IOIndex);
+	const PCGExGraphs::FEdge Edge(E->Index, Candidate.Link.Node, Candidate.Node->PointIndex, E->PointIndex, E->IOIndex);
 	return EdgeFilterManager->Test(Edge);
 }
 
 bool FPCGExFillControlEdgeFilters::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
 {
 	if (Candidate.Link.Edge == -1) { return true; }
-	const PCGExGraph::FEdge* E = Cluster->GetEdge(Candidate.Link);
+	const PCGExGraphs::FEdge* E = Cluster->GetEdge(Candidate.Link);
 	// Orient edge in diffusion direction
-	const PCGExGraph::FEdge Edge(E->Index, Candidate.Link.Node, Candidate.Node->PointIndex, E->PointIndex, E->IOIndex);
+	const PCGExGraphs::FEdge Edge(E->Index, Candidate.Link.Node, Candidate.Node->PointIndex, E->PointIndex, E->IOIndex);
 	return EdgeFilterManager->Test(Edge);
 }
 
 bool FPCGExFillControlEdgeFilters::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
-	const PCGExGraph::FEdge* E = Cluster->GetEdge(Candidate.Link);
+	const PCGExGraphs::FEdge* E = Cluster->GetEdge(Candidate.Link);
 	// Orient edge in diffusion direction
-	const PCGExGraph::FEdge Edge(E->Index, Candidate.Link.Node, Candidate.Node->PointIndex, E->PointIndex, E->IOIndex);
+	const PCGExGraphs::FEdge Edge(E->Index, Candidate.Link.Node, Candidate.Node->PointIndex, E->PointIndex, E->IOIndex);
 	return EdgeFilterManager->Test(Edge);
 }
 

@@ -4,23 +4,24 @@
 #include "Graph/Diagrams/PCGExBuildDelaunayGraph.h"
 
 
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Data/PCGExClusterData.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
 #include "Paths/PCGExPath.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BuildDelaunayGraph
 
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
-	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Complete delaunay sites.", Required) }
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
+	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputSitesLabel, "Complete delaunay sites.", Required) }
 	return PinProperties;
 }
 
@@ -38,7 +39,7 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGExContext* InContext) const
 	{
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
 		Context->MainSites = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->MainSites->OutputPin = PCGExGraph::OutputSitesLabel;
+		Context->MainSites->OutputPin = PCGExClusters::Labels::OutputSitesLabel;
 		Context->MainSites->Pairs.Init(nullptr, Context->MainPoints->Num());
 	}
 
@@ -55,18 +56,19 @@ bool FPCGExBuildDelaunayGraphElement::AdvanceWork(FPCGExContext* InContext, cons
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 4)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         NewBatch->bRequiresWriteStep = true;
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 4)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
@@ -124,7 +126,7 @@ namespace PCGExBuildDelaunayGraph
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const PCGExMath::FDelaunaySite3& Site = Delaunay->Sites[i];
+				const PCGExMath::Geo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
 				FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
 				Centroid += InTransforms[Site.Vtx[1]].GetLocation();
@@ -190,7 +192,7 @@ namespace PCGExBuildDelaunayGraph
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const PCGExMath::FDelaunaySite3& Site = Delaunay->Sites[i];
+				const PCGExMath::Geo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
 				FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
 				Centroid += InTransforms[Site.Vtx[1]].GetLocation();
@@ -262,7 +264,7 @@ namespace PCGExBuildDelaunayGraph
 			else { PCGEX_LAUNCH(FOutputDelaunaySites, PointDataFacade->Source, ThisPtr) }
 		}
 
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(TaskManager, false);
 

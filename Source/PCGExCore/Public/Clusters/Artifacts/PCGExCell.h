@@ -26,15 +26,18 @@ namespace PCGExMath
 	struct FTriangle;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
 
 namespace PCGExTopology
 {
-	const FName SourceEdgeConstrainsFiltersLabel = FName("ConstrainedEdgeFilters");
-	const FName SourceHolesLabel = FName("Holes");
+	namespace Labels
+	{
+		const FName SourceEdgeConstrainsFiltersLabel = FName("ConstrainedEdgeFilters");
+		const FName SourceHolesLabel = FName("Holes");
+	}
 
 	PCGEXCORE_API void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
@@ -129,7 +132,7 @@ namespace PCGExTopology
 		bool ContainsSignedEdgeHash(const uint64 Hash);
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
-		void BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
+		void BuildWrapperCell(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
 
 		void Cleanup();
 	};
@@ -162,7 +165,7 @@ namespace PCGExTopology
 
 		FCellData Data = FCellData();
 
-		PCGExGraph::FLink Seed = PCGExGraph::FLink(-1, -1);
+		PCGExGraphs::FLink Seed = PCGExGraphs::FLink(-1, -1);
 
 		bool bBuiltSuccessfully = false;
 
@@ -180,9 +183,9 @@ namespace PCGExTopology
 
 		uint64 GetCellHash();
 
-		ECellResult BuildFromCluster(const PCGExGraph::FLink InSeedLink, TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector2D>& ProjectedPositions);
+		ECellResult BuildFromCluster(const PCGExGraphs::FLink InSeedLink, TSharedRef<PCGExClusters::FCluster> InCluster, const TArray<FVector2D>& ProjectedPositions);
 
-		ECellResult BuildFromCluster(const FVector& SeedPosition, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const FVector& UpVector = FVector::UpVector, const FPCGExNodeSelectionDetails* Picking = nullptr);
+		ECellResult BuildFromCluster(const FVector& SeedPosition, const TSharedRef<PCGExClusters::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const FVector& UpVector = FVector::UpVector, const FPCGExNodeSelectionDetails* Picking = nullptr);
 
 		ECellResult BuildFromPath(const TArray<FVector2D>& ProjectedPositions);
 

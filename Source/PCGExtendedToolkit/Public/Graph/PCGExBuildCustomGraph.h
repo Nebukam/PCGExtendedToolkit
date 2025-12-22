@@ -4,16 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Factories/PCGExInstancedFactory.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExBufferHelper.h"
 #include "Graphs/PCGExGraphDetails.h"
+#include "Helpers/PCGExBufferHelper.h"
 #include "PCGExBuildCustomGraph.generated.h"
 
 #define PCGEX_CUSTOM_GRAPH_EDGE_SUPPORT false
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraphBuilder;
 }
@@ -41,7 +41,7 @@ public:
 	TArray<int64> Idx;
 	TMap<int64, int32> IdxMap;
 	TSharedPtr<TArray<int32>> ValidNodeIndices;
-	TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+	TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 	TSet<uint64> UniqueEdges;
 
@@ -474,7 +474,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	virtual bool IsInputless() const override { return Mode == EPCGExCustomGraphActorSourceMode::Owner; }
 	//~End UPCGExPointsProcessorSettings
 

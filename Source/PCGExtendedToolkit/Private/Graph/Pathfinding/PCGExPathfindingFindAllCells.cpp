@@ -17,14 +17,14 @@
 TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
+	PCGEX_PIN_POINT(PCGExTopology::Labels::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Contours", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Contours", Required)
 	//if (bOutputSeeds) { PCGEX_PIN_POINT(PCGExFindAllCells::OutputGoodSeedsLabel, "GoodSeeds", Required, {}) }
 	return PinProperties;
 }
@@ -44,7 +44,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(Artifacts)
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
-	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false, false);
+	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::Labels::SourceHolesLabel, false, false);
 	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
 	{
 		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
@@ -54,7 +54,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	//if (!SeedsPoints) { return false; }
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	/*
 	if (Settings->bOutputFilteredSeeds)
@@ -139,7 +139,7 @@ namespace PCGExFindAllCells
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 		TArray<TSharedPtr<PCGExTopology::FCell>>& CellsContainer = ScopedValidCells->Get_Ref(Scope);
 		CellsContainer.Reserve(Scope.Count * 2);
 
@@ -147,7 +147,7 @@ namespace PCGExFindAllCells
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 
 			//Check endpoints
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, CellsContainer);
@@ -157,7 +157,7 @@ namespace PCGExFindAllCells
 		CellsContainer.Shrink();
 	}
 
-	bool FProcessor::FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, TArray<TSharedPtr<PCGExTopology::FCell>>& Scope, const bool bSkipBinary)
+	bool FProcessor::FindCell(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge, TArray<TSharedPtr<PCGExTopology::FCell>>& Scope, const bool bSkipBinary)
 	{
 		if (Node.IsBinary() && bSkipBinary)
 		{
@@ -170,7 +170,7 @@ namespace PCGExFindAllCells
 		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
 		const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
 
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraphs::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
 		Scope.Add(Cell);
@@ -188,7 +188,7 @@ namespace PCGExFindAllCells
 		// Enforce IO index based on edge IO + smallest node point index, for deterministic output order
 		PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 1000000 + Cluster->GetNodePointIndex(InCell->Nodes[0]);
 
-		PCGExCluster::Helpers::CleanupClusterData(PathIO);
+		PCGExClusters::Helpers::CleanupClusterData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
@@ -210,7 +210,7 @@ namespace PCGExFindAllCells
 		if (NumAttempts == 0 && LastBinary != -1)
 		{
 			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
-			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
+			PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, *ScopedValidCells->Arrays[0].Get(), false);
 		}
 	}

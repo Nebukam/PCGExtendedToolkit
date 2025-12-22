@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
+#include "Clusters/PCGExClusterCommon.h"
+#include "Graph/PCGExBreakClustersToPaths.h"
 #include "Graphs/PCGExGraphDetails.h"
-
-#include "Geometry/PCGExGeo.h"
+#include "Math/PCGExProjectionDetails.h"
 #include "PCGExBuildConvexHull2D.generated.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraphBuilder;
 }
@@ -38,7 +38,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	/** */
@@ -86,7 +86,7 @@ namespace PCGExBuildConvexHull2D
 	{
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

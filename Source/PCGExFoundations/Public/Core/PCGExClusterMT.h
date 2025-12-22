@@ -21,7 +21,7 @@ namespace PCGExData
 	class FPointIOCollection;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	struct FNode;
 }
@@ -56,7 +56,7 @@ namespace PCGExHeuristics
 	class FHandler;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FGraphMetadataDetails;
 	class FGraphBuilder;
@@ -98,7 +98,7 @@ namespace PCGExClusterMT
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
 
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef);
+		virtual TSharedPtr<PCGExClusters::FCluster> HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef);
 
 		void ForwardCluster() const;
 
@@ -129,9 +129,9 @@ namespace PCGExClusterMT
 		TMap<uint32, int32>* EndpointsLookup = nullptr;
 		TArray<int32>* ExpectedAdjacency = nullptr;
 
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExClusters::FCluster> Cluster;
 
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 		IProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
@@ -184,7 +184,7 @@ namespace PCGExClusterMT
 		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
 		virtual void FilterVtxScope(const PCGExMT::FScope& Scope, const bool bParallel = false);
 
-		bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const;
+		bool IsNodePassingFilters(const PCGExClusters::FNode& Node) const;
 
 		bool DefaultEdgeFilterValue = true;
 		TSharedPtr<PCGExClusterFilter::FManager> EdgesFiltersManager;
@@ -266,10 +266,10 @@ namespace PCGExClusterMT
 		TArray<TSharedRef<PCGExData::FFacade>>* EdgesDataFacades = nullptr;
 		TWeakPtr<PCGExData::FPointIOCollection> GraphEdgeOutputCollection;
 
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		TArray<TSharedPtr<PCGExCluster::FCluster>> ValidClusters;
+		TArray<TSharedPtr<PCGExClusters::FCluster>> ValidClusters;
 
 		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* VtxFilterFactories = nullptr;
 		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* EdgeFilterFactories = nullptr;
@@ -321,7 +321,7 @@ namespace PCGExClusterMT
 		virtual void CompleteWork();
 		virtual void Write();
 
-		virtual const PCGExGraph::FGraphMetadataDetails* GetGraphMetadataDetails();
+		virtual const PCGExGraphs::FGraphMetadataDetails* GetGraphMetadataDetails();
 
 		virtual void CompileGraphBuilder(const bool bOutputToContext);
 

@@ -3,7 +3,6 @@
 
 #include "Graph/Diagrams/PCGExBuildVoronoiGraph.h"
 
-#include "PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -11,9 +10,12 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/Geo/PCGExVoronoi.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Data/PCGExClusterData.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Helpers/PCGExRandomHelpers.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BuildVoronoiGraph
 
 namespace PCGExGeoTask
@@ -24,8 +26,8 @@ namespace PCGExGeoTask
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
-	//PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Complete delaunay sites.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
+	//PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputSitesLabel, "Complete delaunay sites.", Required)
 	return PinProperties;
 }
 
@@ -41,7 +43,7 @@ bool FPCGExBuildVoronoiGraphElement::Boot(FPCGExContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
 	Context->SitesOutput = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->SitesOutput->OutputPin = PCGExGraph::OutputSitesLabel;
+	Context->SitesOutput->OutputPin = PCGExClusters::Labels::OutputSitesLabel;
 
 	return true;
 }
@@ -162,7 +164,7 @@ namespace PCGExBuildVoronoiGraph
 
 			Voronoi.Reset();
 
-			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -199,7 +201,7 @@ namespace PCGExBuildVoronoiGraph
 				}
 			}
 
-			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			//ExtractValidSites();

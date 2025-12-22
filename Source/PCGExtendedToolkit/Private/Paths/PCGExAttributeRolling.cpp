@@ -3,10 +3,11 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
-#include "PCGExMT.h"
+#include "Core/PCGExBlendOpsManager.h"
 #include "Core/PCGExPointFilter.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Paths/PCGExBlendPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
@@ -80,7 +81,7 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	return true;
 }

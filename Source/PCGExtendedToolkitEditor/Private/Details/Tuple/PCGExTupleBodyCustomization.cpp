@@ -8,7 +8,7 @@
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "Constants/PCGExTuple.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"

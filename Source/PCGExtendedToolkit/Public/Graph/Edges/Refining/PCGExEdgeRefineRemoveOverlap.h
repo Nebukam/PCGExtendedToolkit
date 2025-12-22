@@ -24,7 +24,7 @@ enum class EPCGExEdgeOverlapPick : uint8
 class FPCGExEdgeRemoveOverlap : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
 	{
 		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
@@ -33,7 +33,7 @@ public:
 		Cluster->GetBoundedEdges(true); // Let's hope it was cached ^_^
 	}
 
-	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
+	virtual void ProcessEdge(PCGExGraphs::FEdge& Edge) override
 	{
 		const double Length = Cluster->GetDistSquared(Edge);
 
@@ -44,7 +44,7 @@ public:
 		{
 			//if (!Edge.bValid) { return false; }
 
-			const PCGExGraph::FEdge& OtherEdge = *Cluster->GetEdge(Item.Index);
+			const PCGExGraphs::FEdge& OtherEdge = *Cluster->GetEdge(Item.Index);
 
 			if (Edge.Index == OtherEdge.Index || Edge.Start == OtherEdge.Start || Edge.Start == OtherEdge.End || Edge.End == OtherEdge.End || Edge.End == OtherEdge.Start) { return true; }
 

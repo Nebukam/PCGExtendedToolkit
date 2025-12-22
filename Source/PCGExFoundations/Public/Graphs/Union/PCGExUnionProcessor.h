@@ -24,7 +24,7 @@ namespace PCGExMT
 	class TScopedPtr;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FEdgeEdgeIntersections;
 	class FPointEdgeIntersections;

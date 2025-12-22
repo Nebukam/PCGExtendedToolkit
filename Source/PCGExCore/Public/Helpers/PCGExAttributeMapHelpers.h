@@ -8,7 +8,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExContext.h"
 #include "Metadata/PCGMetadataCommon.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "PCGParamData.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"

@@ -127,7 +127,7 @@ private:
 	TArray<TSharedPtr<PCGExData::FDataForwardHandler>> IntersectionForwardHandlers;
 };
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FEdgeProxy;
 	class FEdgeEdgeIntersections;

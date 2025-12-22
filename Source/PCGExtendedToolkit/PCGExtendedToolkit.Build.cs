@@ -21,7 +21,6 @@ public class PCGExtendedToolkit : ModuleRules
 		ToggleOptionalModule("PCGExElementsClusters");
 		ToggleOptionalModule("PCGExElementsPaths");
 		ToggleOptionalModule("PCGExElementsShapes");
-		ToggleOptionalModule("PCGExElementsStates");
 		ToggleOptionalModule("PCGExElementsTensors");
 		ToggleOptionalModule("PCGExElementsTopology");
 		

@@ -9,7 +9,7 @@
 #include "Clusters/PCGExCluster.h"
 
 
-void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
 {
 	Cluster = InCluster;
 	LocalWeightMultiplier.Empty();
@@ -32,7 +32,7 @@ void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 		if (LocalWeightMultiplierSource == EPCGExClusterElement::Vtx)
 		{
 			LocalWeightMultiplier.SetNumZeroed(InCluster->Nodes->Num());
-			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.Index] = LocalWeightCache->Read(Node.PointIndex); }
+			for (const PCGExClusters::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.Index] = LocalWeightCache->Read(Node.PointIndex); }
 		}
 		else
 		{
@@ -44,12 +44,12 @@ void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 	}
 }
 
-double FPCGExHeuristicOperation::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicOperation::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
 	return GetScoreInternal(0);
 }
 
-double FPCGExHeuristicOperation::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicOperation::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return GetScoreInternal(0);
 }
@@ -61,9 +61,9 @@ double FPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointInde
 	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterElement::Vtx ? PointIndex : EdgeIndex]);
 }
 
-const PCGExCluster::FNode* FPCGExHeuristicOperation::GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
+const PCGExClusters::FNode* FPCGExHeuristicOperation::GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
 
-const PCGExCluster::FNode* FPCGExHeuristicOperation::GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
+const PCGExClusters::FNode* FPCGExHeuristicOperation::GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
 
 double FPCGExHeuristicOperation::GetScoreInternal(const double InTime) const
 {

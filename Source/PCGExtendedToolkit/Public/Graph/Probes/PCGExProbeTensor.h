@@ -9,10 +9,7 @@
 
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
-
-
-#include "Tensors/PCGExTensor.h"
-#include "Tensors/PCGExTensorHandler.h"
+#include "Core/PCGExTensorHandler.h"
 
 #include "PCGExProbeTensor.generated.h"
 

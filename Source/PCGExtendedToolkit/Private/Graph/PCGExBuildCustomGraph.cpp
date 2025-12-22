@@ -218,7 +218,7 @@ namespace PCGExBuildCustomGraph
 			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PointIO->GetOut(), GraphSettings->Idx.Num());
 
 			PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
-			PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
+			PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraphs::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
 			GraphBuilder->OutputNodeIndices = MakeShared<TArray<int32>>();
 
 			GraphSettings->VtxBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(NodeDataFacade.ToSharedRef());
@@ -250,11 +250,11 @@ namespace PCGExBuildCustomGraph
 			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, InitNodesGroup)
 
 			TWeakPtr<PCGExData::FPointIO> WeakIO = PointIO;
-			TWeakPtr<PCGExGraph::FGraphBuilder> WeakGraphBuilder = GraphBuilder;
+			TWeakPtr<PCGExGraphs::FGraphBuilder> WeakGraphBuilder = GraphBuilder;
 
 			InitNodesGroup->OnCompleteCallback = [WeakGraphBuilder, TaskManager]()
 			{
-				const TSharedPtr<PCGExGraph::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
+				const TSharedPtr<PCGExGraphs::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
 				if (!GBuilder) { return; }
 
 				GBuilder->CompileAsync(TaskManager, true);
@@ -294,7 +294,7 @@ TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::InputPinProperties() c
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
 	return PinProperties;
 }
 
@@ -388,7 +388,7 @@ bool FPCGExBuildCustomGraphElement::AdvanceWork(FPCGExContext* InContext, const 
 			return true;
 		}
 
-		Context->SetState(PCGExGraph::State_WritingClusters);
+		Context->SetState(PCGExGraphs::State_WritingClusters);
 
 		TSet<UClass*> UniqueSettingsClasses;
 
@@ -410,7 +410,7 @@ bool FPCGExBuildCustomGraphElement::AdvanceWork(FPCGExContext* InContext, const 
 		return false;
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_WritingClusters)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::State_WritingClusters)
 	{
 		for (UPCGExCustomGraphSettings* GraphSettings : Context->Builder->GraphSettings)
 		{

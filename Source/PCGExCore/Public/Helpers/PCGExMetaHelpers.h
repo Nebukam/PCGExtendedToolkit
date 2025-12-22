@@ -132,8 +132,7 @@ namespace PCGExMetaHelpers
 
 	PCGEXCORE_API FPCGAttributePropertyInputSelector GetSelectorFromIdentifier(const FPCGAttributeIdentifier& InIdentifier);
 
-	PCGEXCORE_API
-	bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier);
+	PCGEXCORE_API bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier);
 
 	static bool HasAttribute(const UPCGData* InData, const FPCGAttributeIdentifier& Identifier)
 	{

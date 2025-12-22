@@ -23,13 +23,13 @@ TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties(
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, bEndpointsBlending ? EPCGPinStatus::Normal : EPCGPinStatus::Advanced);
-	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
+	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
 	return PinProperties;
 }
 
 bool UPCGExWriteEdgePropertiesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && bEndpointsBlending; }
+	if (InPin->Properties.Label == PCGExBlending::Labels::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && bEndpointsBlending; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -46,7 +46,7 @@ bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bEndpointsBlending && Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 	}
 
 	return true;
@@ -171,7 +171,7 @@ namespace PCGExWriteEdgeProperties
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 		EdgeDataFacade->Fetch(Scope);
 
 		TPCGValueRange<FTransform> Transforms = (bSolidify || Settings->bWriteEdgePosition) ? EdgeDataFacade->GetOut()->GetTransformValueRange(false) : TPCGValueRange<FTransform>();
@@ -180,13 +180,13 @@ namespace PCGExWriteEdgeProperties
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 			const int32 EdgeIndex = Edge.PointIndex;
 
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
-			const PCGExCluster::FNode& StartNode = *Cluster->GetEdgeStart(Edge);
-			const PCGExCluster::FNode& EndNode = *Cluster->GetEdgeEnd(Edge);
+			const PCGExClusters::FNode& StartNode = *Cluster->GetEdgeStart(Edge);
+			const PCGExClusters::FNode& EndNode = *Cluster->GetEdgeEnd(Edge);
 
 			const FVector A = Cluster->GetPos(StartNode);
 			const FVector B = Cluster->GetPos(EndNode);

@@ -47,7 +47,7 @@ public:
 
 	PCGEX_SETTING_VALUE_INLINE(Radius, double, RadiusInput, RadiusAttribute, Radius)
 
-	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 
@@ -57,7 +57,7 @@ public:
 		return true;
 	}
 
-	virtual void Step2(const PCGExCluster::FNode& Node) override
+	virtual void Step2(const PCGExClusters::FNode& Node) override
 	{
 		const FVector& CurrentPos = (ReadBuffer->GetData() + Node.Index)->GetLocation();
 		const double& CurrentRadius = RadiusBuffer->Read(Node.PointIndex);
@@ -66,7 +66,7 @@ public:
 
 		for (int32 OtherNodeIndex = Node.Index + 1; OtherNodeIndex < Cluster->Nodes->Num(); OtherNodeIndex++)
 		{
-			const PCGExCluster::FNode* OtherNode = Cluster->GetNode(OtherNodeIndex);
+			const PCGExClusters::FNode* OtherNode = Cluster->GetNode(OtherNodeIndex);
 			const FVector& OtherPos = (ReadBuffer->GetData() + OtherNodeIndex)->GetLocation();
 
 			FVector Delta = OtherPos - CurrentPos;

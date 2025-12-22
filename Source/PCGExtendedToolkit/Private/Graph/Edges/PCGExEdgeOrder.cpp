@@ -56,10 +56,10 @@ namespace PCGExEdgeOrder
 	{
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
 		// Create a lite copy with only edges edited, we'll forward that to the output
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, false, true, true);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, false, true, true);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -75,8 +75,8 @@ namespace PCGExEdgeOrder
 			return false;
 		}
 
-		VtxEndpointBuffer = VtxDataFacade->GetReadable<int64>(PCGExGraph::Attr_PCGExVtxIdx);
-		EndpointsBuffer = EdgeDataFacade->GetWritable<int64>(PCGExGraph::Attr_PCGExEdgeIdx, PCGExData::EBufferInit::New);
+		VtxEndpointBuffer = VtxDataFacade->GetReadable<int64>(PCGExClusters::Labels::Attr_PCGExVtxIdx);
+		EndpointsBuffer = EdgeDataFacade->GetWritable<int64>(PCGExClusters::Labels::Attr_PCGExEdgeIdx, PCGExData::EBufferInit::New);
 
 		StartParallelLoopForEdges();
 
@@ -87,11 +87,11 @@ namespace PCGExEdgeOrder
 	{
 		EdgeDataFacade->Fetch(Scope);
 
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
@@ -117,7 +117,7 @@ namespace PCGExEdgeOrder
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(EdgeOrder)
-		FacadePreloader.Register<int64>(ExecutionContext, PCGExGraph::Attr_PCGExVtxIdx);
+		FacadePreloader.Register<int64>(ExecutionContext, PCGExClusters::Labels::Attr_PCGExVtxIdx);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 

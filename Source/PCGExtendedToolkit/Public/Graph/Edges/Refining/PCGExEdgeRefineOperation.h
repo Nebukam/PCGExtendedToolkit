@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExHeuristicsHandler.h"
 #include "Factories/PCGExInstancedFactory.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
+#include "Factories/PCGExOperation.h"
 
 #include "PCGExEdgeRefineOperation.generated.h"
 
@@ -31,7 +32,7 @@ public:
 	TArray<int8>* VtxFilterCache = nullptr;
 	TArray<int8>* EdgeFilterCache = nullptr;
 
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics = nullptr)
+	virtual void PrepareForCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics = nullptr)
 	{
 		Cluster = InCluster;
 		Heuristics = InHeuristics;
@@ -50,16 +51,16 @@ public:
 	{
 	}
 
-	virtual void ProcessNode(PCGExCluster::FNode& Node)
+	virtual void ProcessNode(PCGExClusters::FNode& Node)
 	{
 	}
 
-	virtual void ProcessEdge(PCGExGraph::FEdge& Edge)
+	virtual void ProcessEdge(PCGExGraphs::FEdge& Edge)
 	{
 	}
 
 protected:
-	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExClusters::FCluster> Cluster;
 	TSharedPtr<PCGExHeuristics::FHandler> Heuristics;
 	mutable FRWLock EdgeLock;
 	mutable FRWLock NodeLock;

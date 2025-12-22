@@ -3,7 +3,8 @@
 
 #include "Tensors/PCGExTensorSplinePole.h"
 
-
+#include "Data/PCGSplineStruct.h"
+#include "Containers/PCGExManagedObjects.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSplinePole"

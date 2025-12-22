@@ -10,18 +10,18 @@
 #include "Math/PCGExMath.h"
 
 
-void FPCGExHeuristicSteepness::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicSteepness::PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
 {
 	UpwardVector = UpwardVector.GetSafeNormal();
 	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 }
 
-double FPCGExHeuristicSteepness::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicSteepness::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
 	return GetScoreInternal(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal)));
 }
 
-double FPCGExHeuristicSteepness::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicSteepness::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	if (bAccumulate && TravelStack)
 	{

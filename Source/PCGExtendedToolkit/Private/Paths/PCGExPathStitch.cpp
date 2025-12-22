@@ -14,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExPathStitchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeSortingRules, "Sort-in-place to order the data if needed", Normal)
+	PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceEdgeSortingRules, "Sort-in-place to order the data if needed", Normal)
 	return PinProperties;
 }
 
@@ -250,7 +250,7 @@ namespace PCGExPathStitch
 		}
 
 		// Attempt to sort -- if it fails it's ok, just throw a warning
-		TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules);
+		TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules);
 		if (!RuleConfigs.IsEmpty())
 		{
 			const TSharedPtr<PCGExSorting::FSorter> Sorter = MakeShared<PCGExSorting::FSorter>(RuleConfigs);

@@ -5,11 +5,10 @@
 
 
 #include "PCGParamData.h"
+#include "Core/PCGExPickerFactoryProvider.h"
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Data/PCGExPointIO.h"
-#include "Misc/Pickers/PCGExPicker.h"
-#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributesToTagsElement"
@@ -31,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() c
 
 	if (Selection == EPCGExCollectionEntrySelection::Picker || Selection == EPCGExCollectionEntrySelection::PickerFirst || Selection == EPCGExCollectionEntrySelection::PickerLast)
 	{
-		PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
+		PCGEX_PIN_FACTORIES(PCGExPickers::Labels::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
 	}
 
 	return PinProperties;
@@ -63,7 +62,7 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(AttributesToTags)
 
 	Context->Attributes = Settings->Attributes;
-	PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(Settings->CommaSeparatedAttributeSelectors, Context->Attributes);
+	PCGExMetaHelpers::AppendUniqueSelectorsFromCommaSeparatedList(Settings->CommaSeparatedAttributeSelectors, Context->Attributes);
 
 	if (Settings->Resolution == EPCGExAttributeToTagsResolution::Self)
 	{
@@ -118,7 +117,7 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Selection == EPCGExCollectionEntrySelection::Picker || Settings->Selection == EPCGExCollectionEntrySelection::PickerFirst || Settings->Selection == EPCGExCollectionEntrySelection::PickerLast)
 	{
-		if (!PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}))
+		if (!PCGExFactories::GetInputFactories(Context, PCGExPickers::Labels::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}))
 		{
 			return false;
 		}

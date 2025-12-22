@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMath.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExAttributesDetails.h"
+#include "Math/PCGExMath.h"
 
 #include "PCGExPartition.generated.h"
 

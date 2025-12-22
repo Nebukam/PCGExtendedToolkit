@@ -5,7 +5,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExManagedObjects.h"
 
-double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
 	FReadScopeLock ReadScopeLock(FeedbackLock);
 
@@ -13,7 +13,7 @@ double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, 
 	return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
 }
 
-double FPCGExHeuristicFeedback::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicFeedback::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	FReadScopeLock ReadScopeLock(FeedbackLock);
 
@@ -31,7 +31,7 @@ double FPCGExHeuristicFeedback::GetEdgeScore(const PCGExCluster::FNode& From, co
 	return (NW + EW);
 }
 
-void FPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
+void FPCGExHeuristicFeedback::FeedbackPointScore(const PCGExClusters::FNode& Node)
 {
 	FWriteScopeLock WriteScopeLock(FeedbackLock);
 
@@ -40,7 +40,7 @@ void FPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node
 
 	if (bBleed)
 	{
-		for (const PCGExGraph::FLink Lk : Node.Links)
+		for (const PCGExGraphs::FLink Lk : Node.Links)
 		{
 			uint32& E = EdgeFeedbackNum.FindOrAdd(Lk.Edge, 0);
 			E++;
@@ -48,7 +48,7 @@ void FPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node
 	}
 }
 
-void FPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge)
+void FPCGExHeuristicFeedback::FeedbackScore(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge)
 {
 	FWriteScopeLock WriteScopeLock(FeedbackLock);
 
@@ -57,7 +57,7 @@ void FPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, con
 
 	if (bBleed)
 	{
-		for (const PCGExGraph::FLink Lk : Node.Links)
+		for (const PCGExGraphs::FLink Lk : Node.Links)
 		{
 			uint32& E = EdgeFeedbackNum.FindOrAdd(Lk.Edge, 0);
 			E++;

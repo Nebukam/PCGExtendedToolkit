@@ -3,22 +3,22 @@
 
 #include "Graph/Diagrams/PCGExBuildConvexHull.h"
 
-
 #include "PCGExLabels.h"
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
+#include "Graph/Edges/Refining/PCGExEdgeRefineGabriel.h"
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BuildConvexHull
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
 	return PinProperties;
 }
 
@@ -28,7 +28,7 @@ PCGExData::EIOInit UPCGExBuildConvexHullSettings::GetMainDataInitializationPolic
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildConvexHull)
 
-FName UPCGExBuildConvexHullSettings::GetMainOutputPin() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExBuildConvexHullSettings::GetMainOutputPin() const { return PCGExClusters::Labels::OutputVerticesLabel; }
 
 bool FPCGExBuildConvexHullElement::Boot(FPCGExContext* InContext) const
 {
@@ -103,7 +103,7 @@ namespace PCGExBuildConvexHull
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
@@ -113,7 +113,7 @@ namespace PCGExBuildConvexHull
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge E;
+			PCGExGraphs::FEdge E;
 			const uint64 Edge = Edges[Index];
 
 			uint32 A;

@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExInstancedFactory.h"
-#include "PCGExMath.h"
+#include "Math/PCGExMath.h"
 
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.generated.h"

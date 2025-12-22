@@ -6,7 +6,7 @@
 #include "PCGExGlobalSettings.h"
 #include "Styling/SlateStyle.h"
 #include "PCGPin.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 
 #include "Helpers/PCGSettingsHelpers.h"
 

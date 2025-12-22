@@ -11,19 +11,19 @@
 #include "Math/PCGExMath.h"
 
 
-void FPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
+void FPCGExHeuristicTensor::PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
 {
 	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 	TensorsHandler = MakeShared<PCGExTensor::FTensorsHandler>(TensorHandlerDetails);
 	TensorsHandler->Init(Context, *TensorFactories, PrimaryDataFacade);
 }
 
-double FPCGExHeuristicTensor::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+double FPCGExHeuristicTensor::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
 	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(Goal)));
 }
 
-double FPCGExHeuristicTensor::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
+double FPCGExHeuristicTensor::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
 	return GetScoreInternal(GetDot(From.PointIndex, Cluster->GetPos(From), Cluster->GetPos(To)));
 }

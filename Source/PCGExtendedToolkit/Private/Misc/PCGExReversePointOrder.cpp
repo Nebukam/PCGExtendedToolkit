@@ -98,7 +98,7 @@ namespace PCGExReversePointOrder
 
 		if (Settings->Method == EPCGExPointReverseMethod::SortingRules)
 		{
-			Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 		}
 		else if (Settings->Method == EPCGExPointReverseMethod::Winding && Settings->ProjectionDetails.bLocalProjectionNormal)
@@ -144,7 +144,7 @@ namespace PCGExReversePointOrder
 			TArray<FVector2D> ProjectedPoints;
 			Proj.ProjectFlat(PointDataFacade, ProjectedPoints);
 
-			bReversed = !PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0);
+			bReversed = !PCGExMath::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0);
 			if (!bReversed) { return true; }
 		}
 

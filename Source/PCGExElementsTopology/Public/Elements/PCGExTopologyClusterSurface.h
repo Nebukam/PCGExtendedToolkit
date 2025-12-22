@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
+#include "Core/PCGExTopologyClustersProcessor.h"
 
-#include "PCGExTopologyClustersProcessor.h"
 #include "PCGExTopologyClusterSurface.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "collision"), meta=(PCGExNodeLibraryDoc="topology/cluster-surface"))
@@ -72,7 +72,7 @@ namespace PCGExTopologyClusterSurface
 		virtual void CompleteWork() override;
 		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
-		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
+		bool FindCell(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;
 	};

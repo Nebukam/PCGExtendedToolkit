@@ -9,13 +9,18 @@
 
 #include "PCGExBuildConvexHull.generated.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FGraphBuilder;
 }
 
 namespace PCGExMath
 {
+	namespace Geo
+	{
+		class TDelaunay3;
+	}
+
 	class TDelaunay3;
 }
 
@@ -78,7 +83,7 @@ namespace PCGExBuildConvexHull
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
 		TSharedPtr<PCGExMath::Geo::TDelaunay3> Delaunay;
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;
 

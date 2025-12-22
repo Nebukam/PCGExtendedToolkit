@@ -28,9 +28,6 @@ namespace PCGExBlending
 {
 	class FProxyDataBlender;
 
-	const FName SourceConstantA = FName("A");
-	const FName SourceConstantB = FName("B");
-
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 }

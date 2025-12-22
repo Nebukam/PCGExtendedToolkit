@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExDetailsAxis.h"
-#include "PCGExSettingsMacros.h"
+#include "Data/PCGExDataCommon.h"
+#include "Details/PCGExSettingsMacros.h"
+#include "Math/PCGExMathAxis.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExDetailsSubdivision.generated.h"
 

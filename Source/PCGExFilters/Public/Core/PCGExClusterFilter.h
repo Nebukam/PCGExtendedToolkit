@@ -10,12 +10,12 @@
 
 #include "PCGExClusterFilter.generated.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FEdge;
 }
@@ -142,13 +142,13 @@ namespace PCGExClusterFilter
 		}
 
 		bool bInitForCluster = false;
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExClusters::FCluster> Cluster;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		virtual PCGExFilters::EType GetFilterType() const override;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 		virtual void PostInit() override;
 	};
 
@@ -162,8 +162,8 @@ namespace PCGExClusterFilter
 
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Node; }
 		virtual bool Test(const int32 Index) const override final;
-		virtual bool Test(const PCGExCluster::FNode& Node) const override;
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
+		virtual bool Test(const PCGExClusters::FNode& Node) const override;
+		virtual bool Test(const PCGExGraphs::FEdge& Edge) const override final;
 	};
 
 	class PCGEXFILTERS_API IEdgeFilter : public IFilter
@@ -176,16 +176,16 @@ namespace PCGExClusterFilter
 
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Edge; }
 		virtual bool Test(const int32 Index) const override final;
-		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
+		virtual bool Test(const PCGExClusters::FNode& Node) const override final;
+		virtual bool Test(const PCGExGraphs::FEdge& Edge) const override;
 	};
 
 	class PCGEXFILTERS_API FManager : public PCGExPointFilter::FManager
 	{
 	public:
-		FManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+		FManager(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
-		TSharedRef<PCGExCluster::FCluster> Cluster;
+		TSharedRef<PCGExClusters::FCluster> Cluster;
 		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
 
 		virtual ~FManager() override

@@ -5,7 +5,7 @@
 
 #include "Clusters/PCGExCluster.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	FNode::FNode(const int32 InNodeIndex, const int32 InPointIndex)
 		: Index(InNodeIndex), PointIndex(InPointIndex)
@@ -26,10 +26,10 @@ namespace PCGExGraph
 	}
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	FNode::FNode(const int32 InNodeIndex, const int32 InPointIndex)
-		: PCGExGraph::FNode(InNodeIndex, InPointIndex)
+		: PCGExGraphs::FNode(InNodeIndex, InPointIndex)
 	{
 	}
 

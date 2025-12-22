@@ -5,15 +5,26 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
-#include "PCGExPath.h"
-
 #include "Core/PCGExPointsProcessor.h"
-#include "Blenders/PCGExUnionBlender.h"
 #include "Details/PCGExBlendingDetails.h"
-
-
-#include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
+#include "Math/PCGExMathAxis.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathIntersectionDetails.h"
 #include "PCGExPathCrossings.generated.h"
+
+class FPCGExSubPointsBlendOperation;
+
+namespace PCGExBlending
+{
+	class IUnionBlender;
+}
+
+namespace PCGExPaths
+{
+	struct FPathEdgeCrossings;
+	class FPathEdgeLength;
+	class FPath;
+}
 
 /**
  * 
@@ -206,7 +217,7 @@ namespace PCGExPathCrossings
 
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
-		const PCGExPaths::FPathEdgeOctree* GetEdgeOctree() const { return Path->GetEdgeOctree(); }
+		const PCGExPaths::FPathEdgeOctree* GetEdgeOctree() const;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void CompleteWork() override;

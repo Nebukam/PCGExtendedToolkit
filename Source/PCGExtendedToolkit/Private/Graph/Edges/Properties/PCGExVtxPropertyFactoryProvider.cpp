@@ -34,7 +34,7 @@ void FPCGExSimpleEdgeOutputSettings::Set(const int32 EntryIndex, const double In
 	if (LengthWriter) { LengthWriter->SetValue(EntryIndex, InLength); }
 }
 
-void FPCGExSimpleEdgeOutputSettings::Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const
+void FPCGExSimpleEdgeOutputSettings::Set(const int32 EntryIndex, const PCGExClusters::FAdjacencyData& Data) const
 {
 	if (DirWriter)
 	{
@@ -68,14 +68,14 @@ void FPCGExEdgeOutputWithIndexSettings::Set(const int32 EntryIndex, const double
 	if (NCountWriter) { NCountWriter->SetValue(EntryIndex, NeighborCount); }
 }
 
-void FPCGExEdgeOutputWithIndexSettings::Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const
+void FPCGExEdgeOutputWithIndexSettings::Set(const int32 EntryIndex, const PCGExClusters::FAdjacencyData& Data) const
 {
 	FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, Data);
 	if (EIdxWriter) { EIdxWriter->SetValue(EntryIndex, Data.EdgeIndex); }
 	if (VIdxWriter) { VIdxWriter->SetValue(EntryIndex, Data.NodePointIndex); }
 }
 
-void FPCGExEdgeOutputWithIndexSettings::Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data, const int32 NeighborCount)
+void FPCGExEdgeOutputWithIndexSettings::Set(const int32 EntryIndex, const PCGExClusters::FAdjacencyData& Data, const int32 NeighborCount)
 {
 	Set(EntryIndex, Data);
 	if (NCountWriter) { NCountWriter->SetValue(EntryIndex, NeighborCount); }
@@ -86,7 +86,7 @@ bool FPCGExVtxPropertyOperation::WantsBFP() const
 	return false;
 }
 
-bool FPCGExVtxPropertyOperation::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertyOperation::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExClusters::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
 	SecondaryDataFacade = InEdgeDataFacade;
@@ -97,7 +97,7 @@ bool FPCGExVtxPropertyOperation::PrepareForCluster(FPCGExContext* InContext, TSh
 
 bool FPCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }
 
-void FPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
+void FPCGExVtxPropertyOperation::ProcessNode(PCGExClusters::FNode& Node, const TArray<PCGExClusters::FAdjacencyData>& Adjacency, const PCGExMath::FBestFitPlane& BFP)
 {
 }
 

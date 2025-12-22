@@ -7,6 +7,11 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "PCGExFloodFill.generated.h"
 
+namespace PCGEx
+{
+	class FHashLookupMap;
+}
+
 namespace PCGExBlending
 {
 	class FBlendOpsManager;
@@ -95,8 +100,8 @@ namespace PCGExFloodFill
 
 	struct FCandidate
 	{
-		const PCGExCluster::FNode* Node = nullptr;
-		PCGExGraph::FLink Link;
+		const PCGExClusters::FNode* Node = nullptr;
+		PCGExGraphs::FLink Link;
 		int32 CaptureIndex = -1;
 		int32 Depth = 0;
 		double PathScore = 0;
@@ -123,17 +128,17 @@ namespace PCGExFloodFill
 	public:
 		int32 Index = -1;
 		bool bStopped = false;
-		const PCGExCluster::FNode* SeedNode = nullptr;
+		const PCGExClusters::FNode* SeedNode = nullptr;
 		int32 SeedIndex = -1;
 		TSet<int32> Endpoints;
 
 		TSharedPtr<PCGEx::FHashLookupMap> TravelStack; // Required for FillControls & Heuristics
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExClusters::FCluster> Cluster;
 
 		TArray<FCandidate> Candidates;
 		TArray<FCandidate> Captured;
 
-		FDiffusion(const TSharedPtr<FFillControlsHandler>& InFillControlsHandler, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExCluster::FNode* InSeedNode);
+		FDiffusion(const TSharedPtr<FFillControlsHandler>& InFillControlsHandler, const TSharedPtr<PCGExClusters::FCluster>& InCluster, const PCGExClusters::FNode* InSeedNode);
 		~FDiffusion() = default;
 
 		int32 GetSettingsIndex(EPCGExFloodFillSettingSource Source) const;
@@ -161,7 +166,7 @@ namespace PCGExFloodFill
 	public:
 		mutable FRWLock HandlerLock;
 
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExClusters::FCluster> Cluster;
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 		TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
@@ -183,7 +188,7 @@ namespace PCGExFloodFill
 		FORCEINLINE bool IsValidHandler() const { return bIsValidHandler; }
 		FORCEINLINE int32 GetNumDiffusions() const { return NumDiffusions; }
 
-		FFillControlsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TSharedPtr<PCGExData::FFacade>& InSeedsDataCache, const TArray<TObjectPtr<const UPCGExFillControlsFactoryData>>& InFactories);
+		FFillControlsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TSharedPtr<PCGExData::FFacade>& InSeedsDataCache, const TArray<TObjectPtr<const UPCGExFillControlsFactoryData>>& InFactories);
 
 		~FFillControlsHandler();
 

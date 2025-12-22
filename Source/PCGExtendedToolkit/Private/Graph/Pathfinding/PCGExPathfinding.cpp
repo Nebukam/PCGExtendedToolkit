@@ -3,18 +3,18 @@
 
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
-#include "PCGExMT.h"
+#include "PCGExHeuristicsHandler.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
+#include "Containers/PCGExHashLookup.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
 namespace PCGExPathfinding
 {
-	bool FNodePick::ResolveNode(const TSharedRef<PCGExCluster::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails)
+	bool FNodePick::ResolveNode(const TSharedRef<PCGExClusters::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails)
 	{
 		if (Node != nullptr) { return true; }
 
@@ -30,7 +30,7 @@ namespace PCGExPathfinding
 		return true;
 	}
 
-	void FSearchAllocations::Init(const PCGExCluster::FCluster* InCluster)
+	void FSearchAllocations::Init(const PCGExClusters::FCluster* InCluster)
 	{
 		NumNodes = InCluster->Nodes->Num();
 
@@ -126,8 +126,8 @@ namespace PCGExPathfinding
 
 		if (Resolution == EPathfindingResolution::Fail) { return; }
 
-		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-		const TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges;
+		const TArray<PCGExClusters::FNode>& NodesRef = *Cluster->Nodes;
+		const TArray<PCGExGraphs::FEdge>& EdgesRef = *Cluster->Edges;
 
 		// Feedback scores
 
@@ -137,8 +137,8 @@ namespace PCGExPathfinding
 		{
 			for (int i = 0; i < PathEdges.Num(); i++)
 			{
-				const PCGExCluster::FNode& Node = NodesRef[PathNodes[i]];
-				const PCGExGraph::FEdge& Edge = EdgesRef[PathEdges[i]];
+				const PCGExClusters::FNode& Node = NodesRef[PathNodes[i]];
+				const PCGExGraphs::FEdge& Edge = EdgesRef[PathEdges[i]];
 				HeuristicsHandler->FeedbackScore(Node, Edge);
 				LocalFeedback->FeedbackScore(Node, Edge);
 			}

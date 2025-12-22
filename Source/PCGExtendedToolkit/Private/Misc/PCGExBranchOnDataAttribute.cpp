@@ -4,7 +4,7 @@
 #include "Misc/PCGExBranchOnDataAttribute.h"
 
 
-#include "PCGExTypes.h"
+#include "Types/PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Metadata/PCGMetadata.h"
 

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExOrientOperation.h"
 #include "Data/PCGExPointElements.h"
+#include "Factories/PCGExFactoryData.h"
 #include "PCGExOrientWeighted.generated.h"
 
 class FPCGExOrientWeighted : public FPCGExOrientOperation

@@ -4,15 +4,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
-
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
 #include "Details/PCGExBlendingDetails.h"
+#include "Math/PCGExMathAxis.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
 
 #include "PCGExSampleVtxByID.generated.h"
+
+namespace PCGExData
+{
+	class FMultiFacadePreloader;
+}
 
 class UPCGExBlendOpFactory;
 

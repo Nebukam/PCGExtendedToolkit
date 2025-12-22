@@ -8,7 +8,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Constants/PCGExConstantEnum.h"
+#include "Elements/Constants/PCGExConstantEnum.h"
 
 #include "PCGExBranchOnDataAttribute.generated.h"
 

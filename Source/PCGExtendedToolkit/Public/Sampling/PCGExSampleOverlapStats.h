@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 
 #include "Misc/PCGExDiscardByOverlap.h"
-#include "PCGExSampling.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExSampleOverlapStats.generated.h"
 

@@ -15,12 +15,12 @@ namespace PCGExData
 	class FPointIO;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	namespace Helpers
 	{
-		using PCGExGraph::FLink;
-		using PCGExGraph::FEdge;
+		using PCGExGraphs::FLink;
+		using PCGExGraphs::FEdge;
 
 		PCGEXCORE_API void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExDataId& OutId);
 		PCGEXCORE_API void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExDataId& Id);

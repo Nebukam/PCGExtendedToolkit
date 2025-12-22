@@ -22,7 +22,7 @@ TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Hulls", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Hulls", Required)
 	return PinProperties;
 }
 
@@ -42,7 +42,7 @@ bool FPCGExFindClusterHullElement::Boot(FPCGExContext* InContext) const
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	return true;
 }
@@ -114,7 +114,7 @@ namespace PCGExFindClusterHull
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
-		PCGExCluster::Helpers::CleanupClusterData(PathIO);
+		PCGExClusters::Helpers::CleanupClusterData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 

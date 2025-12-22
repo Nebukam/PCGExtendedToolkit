@@ -4,19 +4,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Components/PrimitiveComponent.h"
 #include "Materials/MaterialInterface.h"
 
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
-#include "PCGExScopedContainers.h"
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Details/PCGExInputShorthandsDetails.h"
-#include "Geometry/PCGExGeoMesh.h"
+#include "Math/PCGExMathAxis.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 
 #include "PCGExSampleSurfaceGuided.generated.h"
@@ -36,6 +36,11 @@ MACRO(HitComponentReference, FSoftObjectPath, FSoftObjectPath())\
 MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())\
 MACRO(RenderMat, FSoftObjectPath, FSoftObjectPath())
 
+namespace PCGExMesh
+{
+	struct FMeshData;
+}
+
 UENUM()
 enum class EPCGExTraceSampleDistanceInput : uint8
 {
@@ -45,6 +50,15 @@ enum class EPCGExTraceSampleDistanceInput : uint8
 };
 
 class UPCGExPointFilterFactoryData;
+
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedNumericValue;
+
+	template <typename T>
+	class TScopedArray;
+}
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.

@@ -312,8 +312,8 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 
 bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
 {
-	return InContext->InputData.GetInputCountByPin(PCGExBlending::SourceConstantA)
-		|| InContext->InputData.GetInputCountByPin(PCGExBlending::SourceConstantB);
+	return InContext->InputData.GetInputCountByPin(PCGExBlending::Labels::SourceConstantA)
+		|| InContext->InputData.GetInputCountByPin(PCGExBlending::Labels::SourceConstantB);
 }
 
 PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
@@ -321,8 +321,8 @@ PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* 
 	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, TaskManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
-	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExBlending::SourceConstantA, true, false);
-	if (Config.bUseOperandB) { ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExBlending::SourceConstantB, true, false); }
+	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExBlending::Labels::SourceConstantA, true, false);
+	if (Config.bUseOperandB) { ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExBlending::Labels::SourceConstantB, true, false); }
 
 	if (ConstantA)
 	{

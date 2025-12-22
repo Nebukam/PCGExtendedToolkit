@@ -4,7 +4,9 @@
 #include "Elements/PCGExSpawnDynamicMesh.h"
 
 #include "PCGComponent.h"
+#include "PCGExTopology.h"
 #include "PCGPin.h"
+#include "Components/PCGExDynamicMeshComponent.h"
 #include "Data/PCGDynamicMeshData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -15,14 +17,14 @@
 TArray<FPCGPinProperties> UPCGExSpawnDynamicMeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::SourceMeshLabel, "PCG Dynamic Mesh", Required)
+	PCGEX_PIN_MESH(PCGExTopology::Labels::SourceMeshLabel, "PCG Dynamic Mesh", Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExSpawnDynamicMeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::SourceMeshLabel, "PCG Dynamic Mesh", Normal)
+	PCGEX_PIN_MESH(PCGExTopology::Labels::SourceMeshLabel, "PCG Dynamic Mesh", Normal)
 	return PinProperties;
 }
 
@@ -45,7 +47,7 @@ bool FPCGExSpawnDynamicMeshElement::AdvanceWork(FPCGExContext* InContext, const 
 	const bool bIsPreviewMode = SourcePCGComponent->IsInPreviewMode();
 
 	int32 Index = -1;
-	for (const FPCGTaggedData& Input : InContext->InputData.GetInputsByPin(PCGExTopology::SourceMeshLabel))
+	for (const FPCGTaggedData& Input : InContext->InputData.GetInputsByPin(PCGExTopology::Labels::SourceMeshLabel))
 	{
 		Index++;
 

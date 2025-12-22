@@ -8,7 +8,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FSubGraph;
 	class FGraphBuilder;

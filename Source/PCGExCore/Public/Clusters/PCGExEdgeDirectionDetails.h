@@ -17,7 +17,7 @@ namespace PCGExSorting
 	class FSorter;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
@@ -63,6 +63,6 @@ struct PCGEXCORE_API FPCGExEdgeDirectionSettings
 	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort; }
 	bool RequiresEdgeMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute; }
 
-	bool SortEndpoints(const PCGExCluster::FCluster* InCluster, PCGExGraph::FEdge& InEdge) const;
-	bool SortExtrapolation(const PCGExCluster::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const;
+	bool SortEndpoints(const PCGExClusters::FCluster* InCluster, PCGExGraphs::FEdge& InEdge) const;
+	bool SortExtrapolation(const PCGExClusters::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const;
 };

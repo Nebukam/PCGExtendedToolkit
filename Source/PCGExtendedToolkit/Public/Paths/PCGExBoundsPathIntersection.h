@@ -7,7 +7,7 @@
 #include "Core/PCGExPathProcessor.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/Matching/PCGExMatching.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Math/PCGExBoundsCloud.h"
 
 

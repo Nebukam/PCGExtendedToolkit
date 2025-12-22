@@ -10,7 +10,7 @@
 #include "Core/PCGExTensorSplineFactoryProvider.h"
 #include "Math/PCGExMathAxis.h"
 #include "Paths/PCGExPathsCommon.h"
-#include "PointFilters/PCGExPolyPathFilterFactory.h"
+#include "Filters/Points/PCGExPolyPathFilterFactory.h"
 #include "PCGExTensorPathFlow.generated.h"
 
 

@@ -4,13 +4,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPathProcessor.h"
-#include "PCGExPath.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathIntersectionDetails.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExOffsetPath.generated.h"
+
+namespace PCGExPaths
+{
+	struct FPathEdgeCrossings;
+}
 
 UENUM()
 enum class EPCGExOffsetCleanupMode : uint8

@@ -9,8 +9,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDetailsAxis.h"
-
+#include "Math/PCGExMathAxis.h"
 
 #include "PCGExFindPointOnBounds.generated.h"
 

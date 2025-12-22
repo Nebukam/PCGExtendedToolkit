@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExBlendingCommon.h"
 #include "Utils/PCGExCurveLookup.h"
 #include "Factories/PCGExFactories.h"
 #include "UObject/Object.h"
@@ -11,15 +12,16 @@
 #include "Curves/RichCurve.h"
 
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
-#include "PCGExSorting.h"
 #include "Details/PCGExBlendingDetails.h"
-#include "Data/Matching/PCGExMatching.h"
 #include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Details/PCGExSettingsMacros.h"
-#include "Graph/Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
+#include "Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
+#include "Math/PCGExMathAxis.h"
+#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Sampling/PCGExSamplingCommon.h"
+#include "Sorting/PCGExSortingCommon.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
 
@@ -33,6 +35,11 @@ MACRO(ComponentWiseDistance, FVector, FVector::ZeroVector)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
+
+namespace PCGExMatching
+{
+	class FTargetsHandler;
+}
 
 class UPCGExBlendOpFactory;
 

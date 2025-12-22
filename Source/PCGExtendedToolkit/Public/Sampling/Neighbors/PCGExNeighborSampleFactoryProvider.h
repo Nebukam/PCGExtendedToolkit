@@ -29,7 +29,7 @@
 	NewOperation->EdgesFilterFactories.Append(EdgesFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FLink;
 }
@@ -123,7 +123,7 @@ public:
 
 	PCGExFloatLUT WeightLUT = nullptr;
 
-	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade);
+	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExClusters::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
 	TSharedRef<PCGExData::FPointIO> GetSourceIO() const;
@@ -132,12 +132,12 @@ public:
 	virtual void PrepareForLoops(const TArray<PCGExMT::FScope>& Loops);
 
 	virtual void ProcessNode(const int32 NodeIndex, const PCGExMT::FScope& Scope);
-	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode, const PCGExMT::FScope& Scope) const;
+	virtual void PrepareNode(const PCGExClusters::FNode& TargetNode, const PCGExMT::FScope& Scope) const;
 
-	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
-	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
+	virtual void SampleNeighborNode(const PCGExClusters::FNode& TargetNode, const PCGExGraphs::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
+	virtual void SampleNeighborEdge(const PCGExClusters::FNode& TargetNode, const PCGExGraphs::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
 
-	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope);
+	virtual void FinalizeNode(const PCGExClusters::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope);
 	virtual void CompleteOperation();
 
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
@@ -146,7 +146,7 @@ public:
 
 protected:
 	bool bIsValidOperation = true;
-	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExClusters::FCluster> Cluster;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

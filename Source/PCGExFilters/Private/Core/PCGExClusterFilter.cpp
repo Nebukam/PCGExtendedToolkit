@@ -30,7 +30,7 @@ namespace PCGExClusterFilter
 		return PCGExPointFilter::IFilter::Init(InContext, InPointDataFacade);
 	}
 
-	bool IFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool IFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		bInitForCluster = true;
 		Cluster = InCluster;
@@ -47,17 +47,17 @@ namespace PCGExClusterFilter
 	}
 
 	bool IVtxFilter::Test(const int32 Index) const { return IFilter::Test(*Cluster->GetNode(Index)); }
-	bool IVtxFilter::Test(const PCGExCluster::FNode& Node) const { return IFilter::Test(Node); }
+	bool IVtxFilter::Test(const PCGExClusters::FNode& Node) const { return IFilter::Test(Node); }
 
-	bool IVtxFilter::Test(const PCGExGraph::FEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
+	bool IVtxFilter::Test(const PCGExGraphs::FEdge& Edge) const PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraphs::FIndexedEdge& Edge), false)
 
 	bool IEdgeFilter::Test(const int32 Index) const { return IFilter::Test(*Cluster->GetEdge(Index)); }
 
-	bool IEdgeFilter::Test(const PCGExCluster::FNode& Node) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
+	bool IEdgeFilter::Test(const PCGExClusters::FNode& Node) const PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExClusters::FNode& Node), false)
 
-	bool IEdgeFilter::Test(const PCGExGraph::FEdge& Edge) const { return IFilter::Test(Edge); }
+	bool IEdgeFilter::Test(const PCGExGraphs::FEdge& Edge) const { return IFilter::Test(Edge); }
 
-	FManager::FManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	FManager::FManager(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 		: PCGExPointFilter::FManager(InPointDataFacade), Cluster(InCluster), EdgeDataFacade(InEdgeDataFacade)
 	{
 	}

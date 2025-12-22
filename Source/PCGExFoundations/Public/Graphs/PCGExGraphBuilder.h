@@ -27,7 +27,7 @@ namespace PCGExMT
 	class FTaskManager;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FGraphMetadataDetails;
 	class FGraph;

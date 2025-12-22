@@ -20,7 +20,7 @@ namespace PCGExMT
 	class IAsyncHandleGroup;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
 }
@@ -33,7 +33,7 @@ namespace PCGExData
 	class TBuffer;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FGraphMetadataDetails;
 	class FGraph;
@@ -59,7 +59,7 @@ namespace PCGExGraph
 		void Add(const FEdge& Edge);
 		void Shrink();
 
-		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
+		void BuildCluster(const TSharedRef<PCGExClusters::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();
 
 		void Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FGraphBuilder>& InBuilder);

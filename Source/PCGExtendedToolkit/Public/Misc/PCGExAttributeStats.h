@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Utils/PCGExCompare.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExLabels.h"
@@ -15,6 +16,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Types/PCGExAttributeIdentity.h"
+#include "Types/PCGExTypeOps.h"
 #include "Types/PCGExTypeTraits.h"
 
 #include "PCGExAttributeStats.generated.h"

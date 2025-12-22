@@ -147,6 +147,9 @@ namespace PCGExBlending
 	{
 		const FName SourceOverridesBlendingOps = TEXT("Overrides : Blending");
 
+		const FName SourceConstantA = FName("A");
+		const FName SourceConstantB = FName("B");
+		
 		const FName SourceBlendingLabel = TEXT("Blend Ops");
 		const FName OutputBlendingLabel = TEXT("Blend Op");
 	}

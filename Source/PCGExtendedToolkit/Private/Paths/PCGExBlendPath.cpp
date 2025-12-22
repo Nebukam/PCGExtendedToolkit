@@ -3,11 +3,11 @@
 
 #include "Paths/PCGExBlendPath.h"
 
-
-#include "PCGExMT.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Blenders/PCGExBlendOpsManager.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
@@ -40,7 +40,7 @@ bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendPath)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}))
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}))
 	{
 		return false;
 	}

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	const FName SourceProbesLabel = TEXT("Probes");
 	const FName OutputProbeLabel = TEXT("Probe");

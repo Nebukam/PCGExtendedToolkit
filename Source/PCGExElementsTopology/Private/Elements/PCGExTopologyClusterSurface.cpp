@@ -1,13 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Topology/PCGExTopologyClusterSurface.h"
+#include "Elements/PCGExTopologyClusterSurface.h"
 
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/Artifacts/PCGExCellDetails.h"
 
 #define LOCTEXT_NAMESPACE "TopologyClustersProcessor"
 #define PCGEX_NAMESPACE TopologyClustersProcessor
@@ -74,11 +74,11 @@ namespace PCGExTopologyClusterSurface
 		EdgeDataFacade->Fetch(Scope);
 		FilterConstrainedEdgeScope(Scope);
 
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 
 			if (EdgeFilterCache[Index]) { return; }
 
@@ -89,7 +89,7 @@ namespace PCGExTopologyClusterSurface
 		}
 	}
 
-	bool FProcessor::FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, const int32 LoopIdx, const bool bSkipBinary)
+	bool FProcessor::FindCell(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge, const int32 LoopIdx, const bool bSkipBinary)
 	{
 		if (Node.IsBinary() && bSkipBinary)
 		{
@@ -103,10 +103,12 @@ namespace PCGExTopologyClusterSurface
 
 		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraphs::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
-		SubTriangulations[LoopIdx]->Add(Cell->Polygon);
+		FGeometryScriptSimplePolygon& Polygon = SubTriangulations[LoopIdx]->Emplace_GetRef();
+		Polygon.Reset(Cell->Polygon.Num());
+		Polygon.Vertices->Append(Cell->Polygon);
 
 		FPlatformAtomics::InterlockedAdd(&NumTriangulations, 1);
 
@@ -118,7 +120,7 @@ namespace PCGExTopologyClusterSurface
 		if (NumAttempts == 0 && LastBinary != -1)
 		{
 			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
-			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
+			PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, 0, false);
 		}
 	}
@@ -132,7 +134,9 @@ namespace PCGExTopologyClusterSurface
 
 		if (NumTriangulations == 0 && CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
 		{
-			SubTriangulations[0]->Add(CellsConstraints->WrapperCell->Polygon);
+			FGeometryScriptSimplePolygon& Polygon = SubTriangulations[0]->Emplace_GetRef();
+			Polygon.Reset(CellsConstraints->WrapperCell->Polygon.Num());
+			Polygon.Vertices->Append(CellsConstraints->WrapperCell->Polygon);
 			FPlatformAtomics::InterlockedAdd(&NumTriangulations, 1);
 		}
 

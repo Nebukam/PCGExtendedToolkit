@@ -15,13 +15,13 @@
 class FPCGExEdgeRefineSkeleton : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
 	{
 		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 1 : 0;
 	}
 
-	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
+	virtual void ProcessEdge(PCGExGraphs::FEdge& Edge) override
 	{
 		FPCGExEdgeRefineOperation::ProcessEdge(Edge);
 

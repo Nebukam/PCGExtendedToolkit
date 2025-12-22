@@ -3,17 +3,18 @@
 
 #include "Paths/PCGExBoundsPathIntersection.h"
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
 #include "PCGParamData.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Blenders/PCGExBlendOpsManager.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
+#include "Helpers/PCGExRandomHelpers.h"
+#include "Helpers/PCGExTargetsHandler.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
-#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
-#include "Sampling/PCGExSampling.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"
 #define PCGEX_NAMESPACE BoundsPathIntersection
@@ -32,10 +33,10 @@ void UPCGExBoundsPathIntersectionSettings::PostInitProperties()
 TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "Intersection points (bounds)", Required)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceBoundsLabel, "Intersection points (bounds)", Required)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, EPCGExBlendingInterface::Individual);
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::Labels::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
@@ -64,12 +65,12 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	if (!Settings->OutputSettings.Validate(Context)) { return false; }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::Labels::SourceOverridesBlendingOps)
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExMatching::FTargetsHandler>();
-	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceBoundsLabel);
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGExCommon::Labels::SourceBoundsLabel);
 
 	if (!Context->NumMaxTargets)
 	{

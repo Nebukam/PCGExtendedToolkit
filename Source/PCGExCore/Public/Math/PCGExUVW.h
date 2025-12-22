@@ -11,6 +11,7 @@
 
 #include "PCGExUVW.generated.h"
 
+struct FPCGExContext;
 class UPCGBasePointData;
 enum class EPCGExMinimalAxis : uint8;
 
@@ -114,7 +115,6 @@ protected:
 
 namespace PCGExMath
 {
-	
 	struct FPCGExConstantUVW
 	{
 		FPCGExConstantUVW()

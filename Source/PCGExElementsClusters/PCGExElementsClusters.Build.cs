@@ -31,7 +31,9 @@ public class PCGExElementsClusters : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PCG",
-				"PCGExCore",
+				"PCGExCore", 
+				"PCGExFoundations", 
+				"PCGExFilters",
 			}
 		);
 

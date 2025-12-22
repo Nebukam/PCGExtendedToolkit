@@ -15,7 +15,7 @@
 #include "Graphs/PCGExGraphBuilder.h"
 #include "Graphs/Union/PCGExIntersections.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	FUnionProcessor::FUnionProcessor(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade> InUnionDataFacade, TSharedRef<FUnionGraph> InUnionGraph, FPCGExPointPointIntersectionDetails InPointPointIntersectionSettings, FPCGExBlendingDetails InDefaultPointsBlending, FPCGExBlendingDetails InDefaultEdgesBlending)
 		: Context(InContext), UnionDataFacade(InUnionDataFacade), UnionGraph(InUnionGraph), PointPointIntersectionDetails(InPointPointIntersectionSettings), DefaultPointsBlendingDetails(InDefaultPointsBlending), DefaultEdgesBlendingDetails(InDefaultEdgesBlending)
@@ -62,7 +62,7 @@ namespace PCGExGraph
 
 		UnionBlender = TypedBlender;
 
-		TypedBlender->AddSources(InFacades, &PCGExCluster::Labels::ProtectedClusterAttributes);
+		TypedBlender->AddSources(InFacades, &PCGExClusters::Labels::ProtectedClusterAttributes);
 
 		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(MutablePoints, NumUnionNodes, UnionBlender->GetAllocatedProperties()); // TODO : Proper Allocation
@@ -304,7 +304,7 @@ namespace PCGExGraph
 		MetadataBlender->SetTargetData(UnionDataFacade);
 		MetadataBlender->SetSourceData(UnionDataFacade, PCGExData::EIOSide::Out);
 
-		if (!MetadataBlender->Init(Context, bUseCustomPointEdgeBlending ? CustomPointEdgeBlendingDetails : DefaultPointsBlendingDetails, &PCGExCluster::Labels::ProtectedClusterAttributes))
+		if (!MetadataBlender->Init(Context, bUseCustomPointEdgeBlending ? CustomPointEdgeBlendingDetails : DefaultPointsBlendingDetails, &PCGExClusters::Labels::ProtectedClusterAttributes))
 		{
 			// Fail
 			Context->CancelExecution(FString("Error initializing Point/Edge blending"));
@@ -429,7 +429,7 @@ namespace PCGExGraph
 		MetadataBlender->SetTargetData(UnionDataFacade);
 		MetadataBlender->SetSourceData(UnionDataFacade, PCGExData::EIOSide::Out);
 
-		if (!MetadataBlender->Init(Context, bUseCustomEdgeEdgeBlending ? CustomEdgeEdgeBlendingDetails : DefaultPointsBlendingDetails, &PCGExCluster::Labels::ProtectedClusterAttributes))
+		if (!MetadataBlender->Init(Context, bUseCustomEdgeEdgeBlending ? CustomEdgeEdgeBlendingDetails : DefaultPointsBlendingDetails, &PCGExClusters::Labels::ProtectedClusterAttributes))
 		{
 			// Fail
 			Context->CancelExecution(FString("Error initializing Edge/Edge blending"));

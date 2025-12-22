@@ -24,7 +24,7 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Contours", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Contours", Required)
 	if (bOutputFilteredSeeds)
 	{
 		PCGEX_PIN_POINT(PCGExFindContours::OutputGoodSeedsLabel, "GoodSeeds", Required)
@@ -56,7 +56,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	if (Settings->bOutputFilteredSeeds)
 	{
@@ -242,7 +242,7 @@ namespace PCGExFindContours
 		PathIO->Tags->Reset();                              // Tag forwarding handled by artifacts
 		PathIO->IOIndex = BatchIndex * 1000000 + SeedIndex; // Enforce seed order for collection output
 
-		PCGExCluster::Helpers::CleanupClusterData(PathIO);
+		PCGExClusters::Helpers::CleanupClusterData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 

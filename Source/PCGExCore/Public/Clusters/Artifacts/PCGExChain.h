@@ -11,10 +11,10 @@ namespace PCGExMT
 	class FTaskManager;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FCluster;
-	using PCGExGraph::FLink;
+	using PCGExGraphs::FLink;
 	
 	class PCGEXCORE_API FNodeChain : public TSharedFromThis<FNodeChain>
 	{

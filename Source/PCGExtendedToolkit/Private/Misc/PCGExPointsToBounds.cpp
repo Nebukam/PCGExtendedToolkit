@@ -267,7 +267,7 @@ namespace PCGExPointsToBounds
 		else
 		{
 			Settings->DataDetails.OutputInverse(PointDataFacade->GetIn(), OutputFacade->GetOut(), BlendedAttributes, BestFitPlane);
-			PCGExCluster::Helpers::CleanupClusterData(OutputFacade->Source);
+			PCGExClusters::Helpers::CleanupClusterData(OutputFacade->Source);
 		}
 	}
 }

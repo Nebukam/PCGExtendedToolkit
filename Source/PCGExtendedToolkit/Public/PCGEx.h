@@ -8,9 +8,7 @@
 #include "Templates/SharedPointerFwd.h"
 #include "UObject/SoftObjectPath.h"
 
-#include "PCGEx.generated.h"
-
 namespace PCGEx
 {
-	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
+	
 }

@@ -20,16 +20,16 @@ TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seeds points for pathfinding.", Required)
-	PCGEX_PIN_POINT(PCGExGraph::SourceGoalsLabel, "Goals points for pathfinding.", Required)
+	PCGEX_PIN_POINT(PCGExClusters::Labels::SourceGoalsLabel, "Goals points for pathfinding.", Required)
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesGoalPicker)
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::Labels::SourceOverridesBlendingOps)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Paths output.", Required)
 	return PinProperties;
 }
 
@@ -65,10 +65,10 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingNavmesh)
 
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker, PCGExPathfinding::SourceOverridesGoalPicker)
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExBlending::Labels::SourceOverridesBlendingOps)
 
 	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExCommon::Labels::SourceSeedsLabel, false, true);
-	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceGoalsLabel, false, true);
+	Context->GoalsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceGoalsLabel, false, true);
 
 	if (!Context->SeedsDataFacade || !Context->GoalsDataFacade) { return false; }
 
@@ -87,7 +87,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	Context->FuseDistance = Settings->FuseDistance;
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	// Prepare path queries
 
@@ -124,10 +124,10 @@ bool FPCGExPathfindingNavmeshElement::AdvanceWork(FPCGExContext* InContext, cons
 		};
 
 		PCGExPathfinding::ProcessGoals(Context->SeedsDataFacade, Context->GoalPicker, NavClusterTask);
-		Context->SetState(PCGExGraph::State_Pathfinding);
+		Context->SetState(PCGExGraphs::State_Pathfinding);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_Pathfinding)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::State_Pathfinding)
 	{
 		Context->OutputPaths->StageOutputs();
 		Context->Done();

@@ -31,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics. Used to drive flooding.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics. Used to drive flooding.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seed points.", Required)
 	PCGEX_PIN_FACTORIES(PCGExFloodFill::SourceFillControlsLabel, "Fill controls, used to constraint & limit flood fill", Normal, FPCGExDataTypeInfoFillControl::AsId())
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
@@ -45,7 +45,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::OutputPinProperties() 
 
 	if (PathOutput != EPCGExFloodFillPathOutput::None)
 	{
-		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "High density, overlapping paths representing individual flood lanes", Normal)
+		PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "High density, overlapping paths representing individual flood lanes", Normal)
 	}
 
 	return PinProperties;
@@ -61,7 +61,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	// Fill controls are optional, actually
 	PCGExFactories::GetInputFactories<UPCGExFillControlsFactoryData>(Context, PCGExFloodFill::SourceFillControlsLabel, Context->FillControlFactories, {PCGExFactories::EType::FillControls}, false);
@@ -75,7 +75,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 		if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 
 		Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
+		Context->Paths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 	}
 
 	FPCGExForwardDetails FwdDetails = Settings->SeedForwarding;
@@ -148,7 +148,7 @@ namespace PCGExClusterDiffusion
 		{
 			PCGEX_ASYNC_THIS
 
-			const TArray<PCGExCluster::FNode>& Nodes = *This->Cluster->Nodes.Get();
+			const TArray<PCGExClusters::FNode>& Nodes = *This->Cluster->Nodes.Get();
 			TConstPCGValueRange<FTransform> SeedTransforms = This->Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
 
 			PCGEX_SCOPE_LOOP(Index)
@@ -158,7 +158,7 @@ namespace PCGExClusterDiffusion
 
 				if (ClosestIndex < 0) { continue; }
 
-				const PCGExCluster::FNode* SeedNode = &Nodes[ClosestIndex];
+				const PCGExClusters::FNode* SeedNode = &Nodes[ClosestIndex];
 				if (!This->Settings->Seeds.SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation) || FPlatformAtomics::InterlockedCompareExchange(&This->Seeded[ClosestIndex], 1, 0) == 1)
 				{
 					continue;

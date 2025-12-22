@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExAttributeHash.h"
+#include "PCGExFilterCommon.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHasher.h"
-#include "Data/PCGExFilterGroup.h"
 
 
 #include "PCGExDiscardSame.generated.h"

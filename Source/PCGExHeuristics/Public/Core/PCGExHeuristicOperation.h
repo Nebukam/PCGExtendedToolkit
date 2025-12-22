@@ -15,12 +15,12 @@ namespace PCGEx
 	class FHashLookup;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FEdge;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	struct FNode;
 	class FCluster;
@@ -45,12 +45,12 @@ public:
 
 	bool bHasCustomLocalWeightMultiplier = false;
 
-	virtual void PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
+	virtual void PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster);
 
-	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const;
+	virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const;
 
 
-	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const;
+	virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack = nullptr) const;
 
 
 	double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const;
@@ -58,11 +58,11 @@ public:
 	FORCEINLINE FVector GetSeedUVW() const { return UVWSeed; }
 	FORCEINLINE FVector GetGoalUVW() const { return UVWGoal; }
 
-	const PCGExCluster::FNode* GetRoamingSeed() const;
-	const PCGExCluster::FNode* GetRoamingGoal() const;
+	const PCGExClusters::FNode* GetRoamingSeed() const;
+	const PCGExClusters::FNode* GetRoamingGoal() const;
 
 protected:
-	TSharedPtr<const PCGExCluster::FCluster> Cluster;
+	TSharedPtr<const PCGExClusters::FCluster> Cluster;
 	TArray<double> LocalWeightMultiplier;
 
 	virtual double GetScoreInternal(const double InTime) const;

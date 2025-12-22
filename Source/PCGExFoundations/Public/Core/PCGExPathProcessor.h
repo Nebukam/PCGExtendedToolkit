@@ -17,7 +17,7 @@ class UPCGExPointFilterFactoryData;
 
 class UPCGExNodeStateFactory;
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	class FNodeStateHandler;
 }

@@ -6,8 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExFittingRelaxBase.h"
 #include "PCGExRelaxClusterOperation.h"
-#include "PCGExTypes.h"
-
+#include "Types/PCGExTypes.h"
 
 #include "PCGExBoxFittingRelax.generated.h"
 
@@ -29,7 +28,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Padding = 10;
 
-	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		PCGExArrayHelpers::InitArray(BoxBuffer, Cluster->Nodes->Num());
@@ -52,7 +51,7 @@ public:
 		return Source;
 	}
 
-	virtual void Step2(const PCGExCluster::FNode& Node) override
+	virtual void Step2(const PCGExClusters::FNode& Node) override
 	{
 		const FTransform& CurrentTr = *(ReadBuffer->GetData() + Node.Index);
 		const FBox CurrentBox = BoxBuffer[Node.Index];
@@ -63,7 +62,7 @@ public:
 		for (int32 OtherNodeIndex = Node.Index + 1; OtherNodeIndex < NumNodes; OtherNodeIndex++)
 		{
 			const FTransform& OtherTr = *(ReadBuffer->GetData() + OtherNodeIndex);
-			const PCGExCluster::FNode* OtherNode = Cluster->GetNode(OtherNodeIndex);
+			const PCGExClusters::FNode* OtherNode = Cluster->GetNode(OtherNodeIndex);
 			const FVector& OtherPos = (ReadBuffer->GetData() + OtherNodeIndex)->GetLocation();
 
 			// Transform boxes to world space

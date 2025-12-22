@@ -6,6 +6,7 @@
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExTaggedData.h"
 #include "Data/PCGExPointElements.h"
 
 #define LOCTEXT_NAMESPACE "PCGExMatchAttrToAttr"

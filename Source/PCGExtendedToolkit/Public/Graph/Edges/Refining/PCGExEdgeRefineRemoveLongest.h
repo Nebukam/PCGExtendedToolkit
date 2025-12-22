@@ -14,12 +14,12 @@
 class FPCGExEdgeRemoveLongest : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void ProcessNode(PCGExCluster::FNode& Node) override
+	virtual void ProcessNode(PCGExClusters::FNode& Node) override
 	{
 		int32 BestIndex = -1;
 		double LongestDist = 0;
 
-		for (const PCGExGraph::FLink Lk : Node.Links)
+		for (const PCGExGraphs::FLink Lk : Node.Links)
 		{
 			const double Dist = Cluster->GetDistSquared(Node.Index, Lk.Node);
 			if (Dist > LongestDist)

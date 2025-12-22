@@ -10,9 +10,14 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/ConvexHull2d.h"
 #include "Clusters/PCGExCluster.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Math/PCGExBestFitPlane.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
@@ -20,12 +25,12 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties()
 	if (!bOutputClusters)
 	{
 		TArray<FPCGPinProperties> PinProperties;
-		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required)
+		PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Point data representing closed convex hull paths.", Required)
 		return PinProperties;
 	}
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Point data representing closed convex hull paths.", Required)
 	return PinProperties;
 }
 
@@ -39,7 +44,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
 	Context->PathsIO = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->PathsIO->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->PathsIO->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
 
 	return true;
 }
@@ -124,15 +129,15 @@ namespace PCGExBuildConvexHull2D
 		PCGExPaths::Helpers::SetClosedLoop(PathIO->GetOut(), true);
 
 		for (int i = 0; i <= LastIndex; i++) { ProjectedPoints.Emplace(ActivePositions[ConvexHullIndices[i]]); }
-		if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0)) { Algo::Reverse(ConvexHullIndices); }
+		if (!PCGExMath::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0)) { Algo::Reverse(ConvexHullIndices); }
 
 		if (Settings->bOutputClusters)
 		{
 			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
-			PCGExGraph::FEdge E;
+			PCGExGraphs::FEdge E;
 			for (int i = 0; i <= LastIndex; i++)
 			{
 				const int32 CurrentIndex = ConvexHullIndices[i];
@@ -142,7 +147,7 @@ namespace PCGExBuildConvexHull2D
 				GraphBuilder->Graph->InsertEdge(CurrentIndex, NextIndex, E);
 			}
 
-			if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+			if (!PCGExMath::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
 			{
 				Algo::Reverse(ConvexHullIndices);
 			}

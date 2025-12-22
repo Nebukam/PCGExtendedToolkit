@@ -12,7 +12,7 @@
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Utils/PCGValueRange.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	class FSubGraph;
 }
@@ -37,15 +37,15 @@ namespace PCGExSorting
 	class FSorter;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	struct FBoundedEdge;
 }
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
-	using PCGExGraph::FLink;
-	using PCGExGraph::FEdge;
+	using PCGExGraphs::FLink;
+	using PCGExGraphs::FEdge;
 
 	class PCGEXCORE_API FCluster : public TSharedFromThis<FCluster>
 	{

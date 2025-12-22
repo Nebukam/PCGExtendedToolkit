@@ -46,18 +46,18 @@ namespace PCGExPathfindingGrowPaths
 			return NextGrowthIndex;
 		}
 
-		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
-		const TArray<PCGExGraph::FEdge>& EdgesRef = *Processor->Cluster->Edges;
+		const TArray<PCGExClusters::FNode>& NodesRef = *Processor->Cluster->Nodes;
+		const TArray<PCGExGraphs::FEdge>& EdgesRef = *Processor->Cluster->Edges;
 
-		const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
+		const PCGExClusters::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 
 		double BestScore = MAX_dbl;
 		NextGrowthIndex = -1;
 		NextGrowthEdgeIndex = -1;
 
-		for (const PCGExGraph::FLink Lk : CurrentNode.Links)
+		for (const PCGExGraphs::FLink Lk : CurrentNode.Links)
 		{
-			const PCGExCluster::FNode& OtherNode = NodesRef[Lk.Node];
+			const PCGExClusters::FNode& OtherNode = NodesRef[Lk.Node];
 
 			if (Processor->GetSettings()->bUseNoGrowth)
 			{
@@ -95,10 +95,10 @@ namespace PCGExPathfindingGrowPaths
 
 		TravelStack->Set(NextGrowthIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
 
-		const TArray<PCGExCluster::FNode>& NodesRef = *Processor->Cluster->Nodes;
-		const TArray<PCGExGraph::FEdge>& EdgesRef = *Processor->Cluster->Edges;
+		const TArray<PCGExClusters::FNode>& NodesRef = *Processor->Cluster->Nodes;
+		const TArray<PCGExGraphs::FEdge>& EdgesRef = *Processor->Cluster->Edges;
 
-		const PCGExCluster::FNode& NextNode = NodesRef[NextGrowthIndex];
+		const PCGExClusters::FNode& NextNode = NodesRef[NextGrowthIndex];
 
 		Metrics.Add(Processor->Cluster->GetPos(NextNode));
 		if (MaxDistance > 0 && Metrics.Length > MaxDistance) { return false; }
@@ -154,7 +154,7 @@ namespace PCGExPathfindingGrowPaths
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-		PCGExCluster::Helpers::CleanupVtxData(PathIO);
+		PCGExClusters::Helpers::CleanupVtxData(PathIO);
 
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), Path.Num());
 		TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
@@ -178,7 +178,7 @@ namespace PCGExPathfindingGrowPaths
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupMap>(PCGEx::NH64(-1, -1), 0);
 	}
 
-	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge) const
+	double FGrowth::GetGrowthScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge) const
 	{
 		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, To, nullptr, TravelStack);
 	}
@@ -188,14 +188,14 @@ TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seed points to start growth from.", Required)
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics.", Normal, FPCGExDataTypeInfoHeuristics::AsId())
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Paths output.", Required)
 	return PinProperties;
 }
 
@@ -314,7 +314,7 @@ namespace PCGExPathfindingGrowPaths
 
 			if (NodeIndex == -1) { continue; }
 
-			const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
+			const PCGExClusters::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 			if (!Settings->SeedPicking.WithinDistance(Cluster->GetPos(Node), SeedPosition) || Node.IsEmpty()) { continue; }
 
 			double StartNumIterations;

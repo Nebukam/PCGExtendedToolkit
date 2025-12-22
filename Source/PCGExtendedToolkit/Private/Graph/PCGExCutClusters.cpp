@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExCutEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Cutting paths.", Required)
+	PCGEX_PIN_POINTS(PCGExPaths::Labels::SourcePathsLabel, "Cutting paths.", Required)
 	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_FILTERS(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal) }
 	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_FILTERS(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal) }
 
@@ -57,7 +57,7 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 		GetInputFactories(Context, PCGExCutEdges::SourceNodeFilters, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 	}
 
-	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExPaths::SourcePathsLabel)
+	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExPaths::Labels::SourcePathsLabel)
 	if (PathCollection->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Empty paths."));
@@ -135,7 +135,7 @@ bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSe
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_ReadyToCompile)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::State_ReadyToCompile)
 	if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
 
 	Context->MainPoints->StageOutputs();
@@ -145,10 +145,10 @@ bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSe
 
 namespace PCGExCutEdges
 {
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExClusters::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with edges only, will be deleted.
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, Context->bWantsVtxProcessing, Context->bWantsEdgesProcessing, false);
+		return MakeShared<PCGExClusters::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, Context->bWantsVtxProcessing, Context->bWantsEdgesProcessing, false);
 	}
 
 	FProcessor::~FProcessor()
@@ -165,13 +165,13 @@ namespace PCGExCutEdges
 		{
 			if (Context->bWantsEdgesProcessing)
 			{
-				for (PCGExGraph::FEdge& E : *Cluster->Edges) { E.bValid = false; }
+				for (PCGExGraphs::FEdge& E : *Cluster->Edges) { E.bValid = false; }
 				StartParallelLoopForEdges();
 			}
 
 			if (Context->bWantsVtxProcessing)
 			{
-				for (PCGExCluster::FNode& N : *Cluster->Nodes) { N.bValid = false; }
+				for (PCGExClusters::FNode& N : *Cluster->Nodes) { N.bValid = false; }
 				StartParallelLoopForNodes();
 			}
 		}
@@ -189,12 +189,12 @@ namespace PCGExCutEdges
 		EdgeDataFacade->Fetch(Scope);
 		FilterEdgeScope(Scope);
 
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
 		TConstPCGValueRange<FTransform> InVtxTransforms = VtxDataFacade->Source->GetIn()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
 
 			if (EdgeFilterCache[Index])
 			{
@@ -238,8 +238,8 @@ namespace PCGExCutEdges
 
 					if (FVector::DistSquared(A, B) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
 
-					PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
-					PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
+					PCGExClusters::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+					PCGExClusters::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
 					if (Settings->bInvert)
 					{
@@ -271,14 +271,14 @@ namespace PCGExCutEdges
 	{
 		FilterVtxScope(Scope);
 
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 
 		const UPCGBasePointData* InVtxPointData = VtxDataFacade->GetIn();
 		const PCGExMath::FDistances* Distances = PCGExMath::GetDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
 		
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExCluster::FNode& Node = Nodes[Index];
+			PCGExClusters::FNode& Node = Nodes[Index];
 
 			if (IsNodePassingFilters(Node))
 			{
@@ -314,7 +314,7 @@ namespace PCGExCutEdges
 						FPlatformAtomics::InterlockedExchange(&Node.bValid, 1);
 						if (Settings->bAffectedNodesAffectConnectedEdges)
 						{
-							for (const PCGExGraph::FLink Lk : Node.Links)
+							for (const PCGExGraphs::FLink Lk : Node.Links)
 							{
 								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 1);
 								FPlatformAtomics::InterlockedExchange(&Cluster->GetNode(Lk)->bValid, 1);
@@ -326,7 +326,7 @@ namespace PCGExCutEdges
 						FPlatformAtomics::InterlockedExchange(&Node.bValid, 0);
 						if (Settings->bAffectedNodesAffectConnectedEdges)
 						{
-							for (const PCGExGraph::FLink Lk : Node.Links)
+							for (const PCGExGraphs::FLink Lk : Node.Links)
 							{
 								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 0);
 							}
@@ -376,12 +376,12 @@ namespace PCGExCutEdges
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Index);
+			PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(Index);
 
 			//if (Edge.bValid)		{			continue;		}
 
-			const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
-			const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
+			const PCGExClusters::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+			const PCGExClusters::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
 			if (StartNode->bValid && EndNode->bValid) { Edge.bValid = true; }
 		}
@@ -389,7 +389,7 @@ namespace PCGExCutEdges
 
 	void FProcessor::CompleteWork()
 	{
-		TArray<PCGExGraph::FEdge> ValidEdges;
+		TArray<PCGExGraphs::FEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);
 
 		if (ValidEdges.IsEmpty()) { return; }

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExH.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {	
 	struct PCGEXCORE_API FLink
 	{

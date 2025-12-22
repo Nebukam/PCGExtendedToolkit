@@ -58,17 +58,17 @@ namespace PCGExPointFilter
 
 	bool IFilter::Test(const PCGExData::FProxyPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const PCGExData::FProxyPoint& Point), false)
 
-	bool IFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
-	bool IFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
+	bool IFilter::Test(const PCGExClusters::FNode& Node) const { return Test(Node.PointIndex); }
+	bool IFilter::Test(const PCGExGraphs::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
 	bool IFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const { return bCollectionTestResult; }
 
-	bool ISimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
+	bool ISimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExClusters::FNode& Node), false)
 
-	bool ISimpleFilter::Test(const PCGExData::FProxyPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingPoint(const PCGExCluster::PCGExData::FProxyPoint& Point), false)
+	bool ISimpleFilter::Test(const PCGExData::FProxyPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingPoint(const PCGExClusters::PCGExData::FProxyPoint& Point), false)
 
-	bool ISimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
-	bool ISimpleFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
+	bool ISimpleFilter::Test(const PCGExClusters::FNode& Node) const { return Test(Node.PointIndex); }
+	bool ISimpleFilter::Test(const PCGExGraphs::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
 	bool ISimpleFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const { return bCollectionTestResult; }
 
@@ -82,8 +82,8 @@ namespace PCGExPointFilter
 	bool ICollectionFilter::Test(const int32 Index) const { return bCollectionTestResult; }
 	bool ICollectionFilter::Test(const PCGExData::FProxyPoint& Point) const { return bCollectionTestResult; }
 
-	bool ICollectionFilter::Test(const PCGExCluster::FNode& Node) const { return bCollectionTestResult; }
-	bool ICollectionFilter::Test(const PCGExGraph::FEdge& Edge) const { return bCollectionTestResult; }
+	bool ICollectionFilter::Test(const PCGExClusters::FNode& Node) const { return bCollectionTestResult; }
+	bool ICollectionFilter::Test(const PCGExGraphs::FEdge& Edge) const { return bCollectionTestResult; }
 
 	bool ICollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection), false)
 
@@ -184,13 +184,13 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FManager::Test(const PCGExCluster::FNode& Node)
+	bool FManager::Test(const PCGExClusters::FNode& Node)
 	{
 		for (const IFilter* Filter : Stack) { if (!Filter->Test(Node)) { return false; } }
 		return true;
 	}
 
-	bool FManager::Test(const PCGExGraph::FEdge& Edge)
+	bool FManager::Test(const PCGExGraphs::FEdge& Edge)
 	{
 		for (const IFilter* Filter : Stack) { if (!Filter->Test(Edge)) { return false; } }
 		return true;
@@ -254,7 +254,7 @@ namespace PCGExPointFilter
 		return NumPass;
 	}
 
-	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults, const bool bParallel)
+	int32 FManager::Test(const TArrayView<PCGExClusters::FNode> Items, const TArrayView<int8> OutResults, const bool bParallel)
 	{
 		const int32 NumItems = Items.Num();
 		check(NumItems == OutResults.Num());
@@ -265,7 +265,7 @@ namespace PCGExPointFilter
 		{
 			ParallelFor(NumItems, [&](const int32 i)
 			{
-				const PCGExCluster::FNode& Node = Items[i];
+				const PCGExClusters::FNode& Node = Items[i];
 				PCGEX_TEST_STACK(Node, Node.PointIndex)
 				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
 			});
@@ -274,7 +274,7 @@ namespace PCGExPointFilter
 		{
 			for (int i = 0; i < NumItems; i++)
 			{
-				const PCGExCluster::FNode& Node = Items[i];
+				const PCGExClusters::FNode& Node = Items[i];
 				PCGEX_TEST_STACK(Node, Node.PointIndex)
 				NumPass += bResult;
 			}
@@ -283,7 +283,7 @@ namespace PCGExPointFilter
 		return NumPass;
 	}
 
-	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResultsPtr, const bool bParallel)
+	int32 FManager::Test(const TArrayView<PCGExClusters::FNode> Items, const TSharedPtr<TArray<int8>>& OutResultsPtr, const bool bParallel)
 	{
 		int32 NumPass = 0;
 		TArray<int8>& OutResults = *OutResultsPtr.Get();
@@ -292,14 +292,14 @@ namespace PCGExPointFilter
 		{
 			ParallelFor(Items.Num(), [&](const int32 i)
 			{
-				const PCGExCluster::FNode& Node = Items[i];
+				const PCGExClusters::FNode& Node = Items[i];
 				PCGEX_TEST_STACK(Node, Node.PointIndex)
 				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
 			});
 		}
 		else
 		{
-			for (const PCGExCluster::FNode& Node : Items)
+			for (const PCGExClusters::FNode& Node : Items)
 			{
 				PCGEX_TEST_STACK(Node, Node.PointIndex)
 				NumPass += bResult;
@@ -309,7 +309,7 @@ namespace PCGExPointFilter
 		return NumPass;
 	}
 
-	int32 FManager::Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults, const bool bParallel)
+	int32 FManager::Test(const TArrayView<PCGExGraphs::FEdge> Items, const TArrayView<int8> OutResults, const bool bParallel)
 	{
 		const int32 NumItems = Items.Num();
 		check(NumItems == OutResults.Num());
@@ -318,7 +318,7 @@ namespace PCGExPointFilter
 		{
 			ParallelFor(NumItems, [&](const int32 i)
 			{
-				const PCGExGraph::FEdge& Edge = Items[i];
+				const PCGExGraphs::FEdge& Edge = Items[i];
 				PCGEX_TEST_STACK(Edge, i)
 				if (bResult) { FPlatformAtomics::InterlockedIncrement(&NumPass); }
 			});
@@ -327,7 +327,7 @@ namespace PCGExPointFilter
 		{
 			for (int i = 0; i < NumItems; i++)
 			{
-				const PCGExCluster::FEdge& Edge = Items[i];
+				const PCGExClusters::FEdge& Edge = Items[i];
 				PCGEX_TEST_STACK(Edge, i)
 				NumPass += bResult;
 			}

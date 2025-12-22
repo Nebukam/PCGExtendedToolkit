@@ -15,14 +15,14 @@
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::SourcePackedClustersLabel, "Packed clusters", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::SourcePackedClustersLabel, "Packed clusters", Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges associated with the main output points", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Edges associated with the main output points", Required)
 	return PinProperties;
 }
 
@@ -35,10 +35,10 @@ bool FPCGExUnpackClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(UnpackClusters)
 
 	Context->OutPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutPoints->OutputPin = PCGExGraph::OutputVerticesLabel;
+	Context->OutPoints->OutputPin = PCGExClusters::Labels::OutputVerticesLabel;
 
 	Context->OutEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutEdges->OutputPin = PCGExGraph::OutputEdgesLabel;
+	Context->OutEdges->OutputPin = PCGExClusters::Labels::OutputEdgesLabel;
 
 	return true;
 }
@@ -61,14 +61,14 @@ public:
 		const FPCGExUnpackClustersContext* Context = TaskManager->GetContext<FPCGExUnpackClustersContext>();
 		PCGEX_SETTINGS(UnpackClusters)
 
-		FPCGAttributeIdentifier EdgeCountIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount, PointIO->GetIn());
+		FPCGAttributeIdentifier EdgeCountIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(PCGExClusters::Labels::Tag_PackedClusterEdgeCount, PointIO->GetIn());
 		const FPCGMetadataAttribute<int32>* EdgeCount = PCGExMetaHelpers::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
 		int32 NumEdges = -1;
 
 		if (!EdgeCount)
 		{
 			// Support for legacy data that was storing the edge count as a point index
-			EdgeCountIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
+			EdgeCountIdentifier = PCGExMetaHelpers::GetAttributeIdentifier(PCGExClusters::Labels::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
 			EdgeCount = PCGExMetaHelpers::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
 			if (EdgeCount) { NumEdges = PCGExData::Helpers::ReadDataValue(EdgeCount); }
 		}
@@ -100,7 +100,7 @@ public:
 		NewEdges->InheritPoints(0, 0, NumEdges);
 
 		NewEdges->DeleteAttribute(EdgeCountIdentifier);
-		NewEdges->DeleteAttribute(PCGExGraph::Attr_PCGExVtxIdx);
+		NewEdges->DeleteAttribute(PCGExClusters::Labels::Attr_PCGExVtxIdx);
 
 		const TSharedPtr<PCGExData::FPointIO> NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 		UPCGBasePointData* MutableVtxPoints = NewVtx->GetOut();
@@ -108,12 +108,12 @@ public:
 		NewVtx->InheritPoints(NumEdges, 0, NumVtx);
 
 		NewVtx->DeleteAttribute(EdgeCountIdentifier);
-		NewVtx->DeleteAttribute(PCGExGraph::Attr_PCGExEdgeIdx);
+		NewVtx->DeleteAttribute(PCGExClusters::Labels::Attr_PCGExEdgeIdx);
 
-		const PCGExDataId PairId = PCGEX_GET_DATAIDTAG(PointIO->Tags, PCGExGraph::TagStr_PCGExCluster);
+		const PCGExDataId PairId = PCGEX_GET_DATAIDTAG(PointIO->Tags, PCGExGraphs::TagStr_PCGExCluster);
 
-		PCGExCluster::Helpers::MarkClusterVtxlusterVtx(NewVtx, PairId);
-		PCGExCluster::Helpers::MarkClusterEdges(NewEdges, PairId);
+		PCGExClusters::Helpers::MarkClusterVtxlusterVtx(NewVtx, PairId);
+		PCGExClusters::Helpers::MarkClusterEdges(NewEdges, PairId);
 	}
 };
 

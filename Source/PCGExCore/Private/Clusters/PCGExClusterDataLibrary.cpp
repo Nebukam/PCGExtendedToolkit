@@ -9,13 +9,13 @@
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/PCGExClusterCommon.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	FDataLibrary::FDataLibrary(const bool InDisableInvalidData)
 	{
 		bDisableInvalidData = InDisableInvalidData;
 		ProblemsTracker.Init(0, EProblemLogs.Num() + 1);
-		InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExCluster::Labels::TagStr_PCGExCluster);
+		InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExClusters::Labels::TagStr_PCGExCluster);
 	}
 
 	bool FDataLibrary::Build(const TSharedPtr<PCGExData::FPointIOCollection>& InMixedCollection)
@@ -30,15 +30,15 @@ namespace PCGExCluster
 		{
 			// Vtx ?
 
-			if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExVtx))
+			if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExVtx))
 			{
-				if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExEdges))
+				if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExEdges))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
 				}
 
-				if (!PCGExCluster::Helpers::IsPointDataVtxReady(MainIO->GetIn()->Metadata))
+				if (!PCGExClusters::Helpers::IsPointDataVtxReady(MainIO->GetIn()->Metadata))
 				{
 					Invalidate(MainIO, EProblem::VtxTagButNoMeta);
 					continue;
@@ -50,15 +50,15 @@ namespace PCGExCluster
 
 			// Edge ?
 
-			if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExEdges))
+			if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExEdges))
 			{
-				if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExVtx))
+				if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExVtx))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
 				}
 
-				if (!PCGExCluster::Helpers::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
+				if (!PCGExClusters::Helpers::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
 				{
 					Invalidate(MainIO, EProblem::EdgeTagButNoMeta);
 					continue;
@@ -83,15 +83,15 @@ namespace PCGExCluster
 		// Gather Vtx inputs
 		for (const TSharedPtr<PCGExData::FPointIO>& VtxIO : InVtxCollection->Pairs)
 		{
-			if (VtxIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExVtx))
+			if (VtxIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExVtx))
 			{
-				if (VtxIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExEdges))
+				if (VtxIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExEdges))
 				{
 					Invalidate(VtxIO, EProblem::DoubleMarking);
 					continue;
 				}
 
-				if (!PCGExCluster::Helpers::IsPointDataVtxReady(VtxIO->GetIn()->Metadata))
+				if (!PCGExClusters::Helpers::IsPointDataVtxReady(VtxIO->GetIn()->Metadata))
 				{
 					Invalidate(VtxIO, EProblem::VtxTagButNoMeta);
 					continue;
@@ -101,9 +101,9 @@ namespace PCGExCluster
 				continue;
 			}
 
-			if (VtxIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExEdges))
+			if (VtxIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExEdges))
 			{
-				if (VtxIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExVtx))
+				if (VtxIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExVtx))
 				{
 					Invalidate(VtxIO, EProblem::DoubleMarking);
 					continue;
@@ -119,15 +119,15 @@ namespace PCGExCluster
 		// Gather Edge inputs
 		for (const TSharedPtr<PCGExData::FPointIO>& MainIO : InEdgeCollection->Pairs)
 		{
-			if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExEdges))
+			if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExEdges))
 			{
-				if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExVtx))
+				if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExVtx))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
 				}
 
-				if (!PCGExCluster::Helpers::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
+				if (!PCGExClusters::Helpers::IsPointDataEdgeReady(MainIO->GetIn()->Metadata))
 				{
 					Invalidate(MainIO, EProblem::EdgeTagButNoMeta);
 					continue;
@@ -137,9 +137,9 @@ namespace PCGExCluster
 				continue;
 			}
 
-			if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExVtx))
+			if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExVtx))
 			{
-				if (MainIO->Tags->IsTagged(PCGExCluster::Labels::TagStr_PCGExEdges))
+				if (MainIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExEdges))
 				{
 					Invalidate(MainIO, EProblem::DoubleMarking);
 					continue;
@@ -162,7 +162,7 @@ namespace PCGExCluster
 
 	TSharedPtr<PCGExData::FPointIOTaggedEntries> FDataLibrary::GetAssociatedEdges(const TSharedPtr<PCGExData::FPointIO>& InVtxIO) const
 	{
-		if (const PCGExDataId CurrentPairId = PCGEX_GET_DATAIDTAG(InVtxIO->Tags, PCGExCluster::Labels::TagStr_PCGExCluster))
+		if (const PCGExDataId CurrentPairId = PCGEX_GET_DATAIDTAG(InVtxIO->Tags, PCGExClusters::Labels::TagStr_PCGExCluster))
 		{
 			if (TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = InputDictionary->GetEntries(CurrentPairId->Value); EdgesEntries && !EdgesEntries->Entries.IsEmpty()) { return EdgesEntries; }
 		}
@@ -234,7 +234,7 @@ namespace PCGExCluster
 		ProblemsTracker[static_cast<int32>(Problem)]++;
 	}
 
-	FClusterDataForwardHandler::FClusterDataForwardHandler(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler)
+	FClusterDataForwardHandler::FClusterDataForwardHandler(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler)
 		: Cluster(InCluster), VtxDataForwardHandler(InVtxDataForwardHandler), EdgeDataForwardHandler(InEdgeDataForwardHandler)
 	{
 	}

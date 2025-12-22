@@ -7,7 +7,7 @@
 #include "PCGExEdgeRefineOperation.h"
 #include "PCGExEdgeRefineByFilter.generated.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	struct FNode;
 }
@@ -18,13 +18,13 @@ namespace PCGExCluster
 class FPCGExEdgeRefineByFilter : public FPCGExEdgeRefineOperation
 {
 public:
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHandler>& InHeuristics) override
 	{
 		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 0 : 1;
 	}
 
-	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
+	virtual void ProcessEdge(PCGExGraphs::FEdge& Edge) override
 	{
 		if (*(EdgeFilterCache->GetData() + Edge.Index)) { FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue); }
 	}

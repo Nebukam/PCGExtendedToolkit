@@ -7,9 +7,9 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 
-
 #include "PCGExMergeVertices.generated.h"
 
+class FPCGExPointIOMerger;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/merge-vtx"))
 class UPCGExMergeVerticesSettings : public UPCGExClustersProcessorSettings
@@ -72,7 +72,7 @@ namespace PCGExMergeVertices
 		friend class FProcessorBatch;
 
 	protected:
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExClusters::FCluster> HandleCachedCluster(const TSharedRef<PCGExClusters::FCluster>& InClusterRef) override;
 
 	public:
 		int32 StartIndexOffset = 0;

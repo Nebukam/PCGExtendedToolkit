@@ -14,7 +14,7 @@ namespace PCGEx
 	class FHashLookup;
 }
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	struct FEdge;
 }
@@ -39,13 +39,13 @@ namespace PCGExHeuristics
 
 		~FLocalFeedbackHandler() = default;
 
-		double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const;
+		double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const;
 
-		double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
+		double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
 
-		void FeedbackPointScore(const PCGExCluster::FNode& Node);
+		void FeedbackPointScore(const PCGExClusters::FNode& Node);
 
-		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);
+		void FeedbackScore(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge);
 	};
 
 	class PCGEXHEURISTICS_API FHandler : public TSharedFromThis<FHandler>
@@ -62,7 +62,7 @@ namespace PCGExHeuristics
 		TArray<TSharedPtr<FPCGExHeuristicFeedback>> Feedbacks;
 		TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> LocalFeedbackFactories;
 
-		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExClusters::FCluster> Cluster;
 
 		double ReferenceWeight = 1;
 		double TotalStaticWeight = 0;
@@ -77,28 +77,28 @@ namespace PCGExHeuristics
 		~FHandler();
 
 		bool BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
-		void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
+		void PrepareForCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster);
 		void CompleteClusterPreparation();
 
 
-		double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
+		double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
 
 
-		double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
+		double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
 
-		void FeedbackPointScore(const PCGExCluster::FNode& Node);
-		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);
+		void FeedbackPointScore(const PCGExClusters::FNode& Node);
+		void FeedbackScore(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge);
 
 		FVector GetSeedUVW() const;
 		FVector GetGoalUVW() const;
 
-		const PCGExCluster::FNode* GetRoamingSeed();
-		const PCGExCluster::FNode* GetRoamingGoal();
+		const PCGExClusters::FNode* GetRoamingSeed();
+		const PCGExClusters::FNode* GetRoamingGoal();
 
-		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster);
+		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const TSharedPtr<const PCGExClusters::FCluster>& InCluster);
 
 	protected:
-		PCGExCluster::FNode* RoamingSeedNode = nullptr;
-		PCGExCluster::FNode* RoamingGoalNode = nullptr;
+		PCGExClusters::FNode* RoamingSeedNode = nullptr;
+		PCGExClusters::FNode* RoamingGoalNode = nullptr;
 	};
 }

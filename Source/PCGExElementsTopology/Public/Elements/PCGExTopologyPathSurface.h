@@ -4,13 +4,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCell.h"
 #include "PCGExTopology.h"
 #include "Data/PCGDynamicMeshData.h"
 #include "Core/PCGExClusterMT.h"
-#include "Paths/PCGExPathProcessor.h"
+#include "Core/PCGExPathProcessor.h"
 
 #include "PCGExTopologyPathSurface.generated.h"
+
+namespace PCGExTopology
+{
+	class FHoles;
+}
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="topology/path-surface"))
 class PCGEXELEMENTSTOPOLOGY_API UPCGExTopologyPathSurfaceSettings : public UPCGExPathProcessorSettings

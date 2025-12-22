@@ -9,14 +9,14 @@
 #include "Clusters/Artifacts/PCGExChain.h"
 #include "Graphs/PCGExGraph.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	namespace ChainHelpers
 	{
 		void Dump(
-			const TSharedRef<PCGExCluster::FNodeChain>& Chain,
+			const TSharedRef<PCGExClusters::FNodeChain>& Chain,
 			const TSharedRef<FCluster>& Cluster,
-			const TSharedPtr<PCGExGraph::FGraph>& Graph,
+			const TSharedPtr<PCGExGraphs::FGraph>& Graph,
 			const bool bAddMetadata)
 		{
 			const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
@@ -52,9 +52,9 @@ namespace PCGExCluster
 		}
 
 		void DumpReduced(
-			const TSharedRef<PCGExCluster::FNodeChain>& Chain,
-			const TSharedRef<PCGExCluster::FCluster>& Cluster,
-			const TSharedPtr<PCGExGraph::FGraph>& Graph,
+			const TSharedRef<PCGExClusters::FNodeChain>& Chain,
+			const TSharedRef<PCGExClusters::FCluster>& Cluster,
+			const TSharedPtr<PCGExGraphs::FGraph>& Graph,
 			const bool bAddMetadata)
 		{
 			const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
@@ -65,7 +65,7 @@ namespace PCGExCluster
 				const FEdge& OriginalEdge = *Cluster->GetEdge(Chain->SingleEdge);
 				Graph->InsertEdge(OriginalEdge, OutEdge, IOIndex);
 
-				PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+				PCGExGraphs::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
 				EdgeMetadata.UnionSize = 1;
 
 				if (Graph->EdgesUnion)
@@ -84,7 +84,7 @@ namespace PCGExCluster
 
 				Graph->InsertEdge(Cluster->GetNodePointIndex(Chain->Seed), Cluster->GetNodePointIndex(Chain->Links.Last()), OutEdge, IOIndex);
 
-				PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+				PCGExGraphs::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
 				EdgeMetadata.UnionSize = Chain->Links.Num();
 
 				if (Graph->EdgesUnion)

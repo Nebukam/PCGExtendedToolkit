@@ -17,11 +17,11 @@ bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding:
 	if (!LocalAllocations) { LocalAllocations = NewAllocations(); }
 	else { LocalAllocations->Reset(); }
 
-	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-	const TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges;
+	const TArray<PCGExClusters::FNode>& NodesRef = *Cluster->Nodes;
+	const TArray<PCGExGraphs::FEdge>& EdgesRef = *Cluster->Edges;
 
-	const PCGExCluster::FNode& SeedNode = *InQuery->Seed.Node;
-	const PCGExCluster::FNode& GoalNode = *InQuery->Goal.Node;
+	const PCGExClusters::FNode& SeedNode = *InQuery->Seed.Node;
+	const PCGExClusters::FNode& GoalNode = *InQuery->Goal.Node;
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchAStar::FindPath);
 
@@ -43,21 +43,21 @@ bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding:
 		if (bEarlyExit && CurrentNodeIndex == GoalNode.Index) { break; } // Exit early
 
 		const double CurrentGScore = GScore[CurrentNodeIndex];
-		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
+		const PCGExClusters::FNode& Current = NodesRef[CurrentNodeIndex];
 
 		if (Visited[CurrentNodeIndex]) { continue; }
 		Visited[CurrentNodeIndex] = true;
 		VisitedNum++;
 
-		for (const PCGExGraph::FLink Lk : Current.Links)
+		for (const PCGExGraphs::FLink Lk : Current.Links)
 		{
 			const uint32 NeighborIndex = Lk.Node;
 			const uint32 EdgeIndex = Lk.Edge;
 
 			if (Visited[NeighborIndex]) { continue; }
 
-			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
-			const PCGExGraph::FEdge& Edge = EdgesRef[EdgeIndex];
+			const PCGExClusters::FNode& AdjacentNode = NodesRef[NeighborIndex];
+			const PCGExGraphs::FEdge& Edge = EdgesRef[EdgeIndex];
 
 			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, Feedback, TravelStack);
 			const double TentativeGScore = CurrentGScore + EScore;

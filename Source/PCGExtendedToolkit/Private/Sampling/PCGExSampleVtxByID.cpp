@@ -3,17 +3,18 @@
 
 #include "Sampling/PCGExSampleVtxByID.h"
 
-#include "PCGExMath.h"
-#include "PCGExMT.h"
+#include "Blenders/PCGExUnionOpsManager.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Blenders/PCGExBlendOpsManager.h"
-#include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Clusters/PCGExClusterCommon.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Data/PCGExData.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Graphs/PCGExGraph.h"
+#include "Math/PCGExMathDistances.h"
+#include "Sampling/PCGExSamplingUnionData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleVtxByIDElement"
 #define PCGEX_NAMESPACE SampleVtxByID
@@ -29,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExSampleVtxByIDSettings::InputPinProperties() cons
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExGraph::SourceVerticesLabel, "The point data set to check against.", Required)
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::SourceVerticesLabel, "The point data set to check against.", Required)
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 
 	return PinProperties;
@@ -52,11 +53,11 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	FBox OctreeBounds = FBox(ForceInit);
 
-	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(Context, PCGExGraph::SourceVerticesLabel, PCGExData::EIOInit::NoInit, true);
+	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(Context, PCGExClusters::Labels::SourceVerticesLabel, PCGExData::EIOInit::NoInit, true);
 
 	if (Targets->IsEmpty())
 	{
@@ -66,7 +67,7 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
 	{
-		if (!IO->FindConstAttribute<int64>(PCGExGraph::Attr_PCGExVtxIdx)) { continue; }
+		if (!IO->FindConstAttribute<int64>(PCGExClusters::Labels::Attr_PCGExVtxIdx)) { continue; }
 
 		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 		TargetFacade->Idx = Context->TargetFacades.Num();
@@ -78,7 +79,7 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 
 	Context->TargetsPreloader->ForEach([&](PCGExData::FFacadePreloader& Preloader)
 	{
-		Preloader.Register<int64>(Context, PCGExGraph::Attr_PCGExVtxIdx);
+		Preloader.Register<int64>(Context, PCGExClusters::Labels::Attr_PCGExVtxIdx);
 		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 	});
 
@@ -102,7 +103,7 @@ bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPC
 			for (const TSharedRef<PCGExData::FFacade>& TargetFacade : Context->TargetFacades)
 			{
 				const TConstPCGValueRange<int64> MetadataEntries = TargetFacade->GetIn()->GetConstMetadataEntryValueRange();
-				const FPCGMetadataAttribute<int64>* Attr = TargetFacade->FindConstAttribute<int64>(PCGExGraph::Attr_PCGExVtxIdx);
+				const FPCGMetadataAttribute<int64>* Attr = TargetFacade->FindConstAttribute<int64>(PCGExClusters::Labels::Attr_PCGExVtxIdx);
 
 				for (int i = 0; i < MetadataEntries.Num(); i++)
 				{

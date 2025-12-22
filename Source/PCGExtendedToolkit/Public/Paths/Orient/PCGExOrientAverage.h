@@ -7,6 +7,7 @@
 #include "Math/MathFwd.h"
 #include "Data/PCGExPointElements.h"
 #include "PCGExOrientOperation.h"
+#include "Factories/PCGExFactoryData.h"
 #include "PCGExOrientAverage.generated.h"
 
 class FPCGExOrientAverage : public FPCGExOrientOperation

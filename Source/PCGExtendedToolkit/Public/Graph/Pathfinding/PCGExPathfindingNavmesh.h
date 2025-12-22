@@ -47,7 +47,7 @@ public:
 
 	//~Begin UPCGExPointsProcessorSettings
 	virtual FName GetMainInputPin() const override;
-	virtual FName GetMainOutputPin() const override { return PCGExPaths::OutputPathsLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGExPaths::Labels::OutputPathsLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 

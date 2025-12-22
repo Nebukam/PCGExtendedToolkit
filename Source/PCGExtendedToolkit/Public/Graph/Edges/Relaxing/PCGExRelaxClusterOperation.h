@@ -29,7 +29,7 @@ public:
 		//if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))		{		}
 	}
 
-	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster)
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster)
 	{
 		Cluster = InCluster;
 		return true;
@@ -47,33 +47,33 @@ public:
 
 	// Node steps
 
-	virtual void Step1(const PCGExCluster::FNode& Node)
+	virtual void Step1(const PCGExClusters::FNode& Node)
 	{
 	}
 
-	virtual void Step2(const PCGExCluster::FNode& Node)
+	virtual void Step2(const PCGExClusters::FNode& Node)
 	{
 	}
 
-	virtual void Step3(const PCGExCluster::FNode& Node)
+	virtual void Step3(const PCGExClusters::FNode& Node)
 	{
 	}
 
 	// Edge steps
 
-	virtual void Step1(const PCGExGraph::FEdge& Edge)
+	virtual void Step1(const PCGExGraphs::FEdge& Edge)
 	{
 	}
 
-	virtual void Step2(const PCGExGraph::FEdge& Edge)
+	virtual void Step2(const PCGExGraphs::FEdge& Edge)
 	{
 	}
 
-	virtual void Step3(const PCGExGraph::FEdge& Edge)
+	virtual void Step3(const PCGExGraphs::FEdge& Edge)
 	{
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExClusters::FCluster> Cluster;
 	TArray<FTransform>* ReadBuffer = nullptr;
 	TArray<FTransform>* WriteBuffer = nullptr;
 

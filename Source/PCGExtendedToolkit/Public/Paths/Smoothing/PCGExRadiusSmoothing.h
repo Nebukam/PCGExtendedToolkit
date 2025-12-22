@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExSmoothingInstancedFactory.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExProxyDataBlending.h"
+#include "Factories/PCGExFactoryData.h"
 
 #include "PCGExRadiusSmoothing.generated.h"
 

@@ -51,7 +51,7 @@ namespace PCGExPathfindingGrowPaths
 	{
 	public:
 		const TSharedPtr<FProcessor> Processor;
-		const PCGExCluster::FNode* SeedNode = nullptr;
+		const PCGExClusters::FNode* SeedNode = nullptr;
 		TSharedPtr<PCGEx::FHashLookup> TravelStack;
 
 		int32 SeedPointIndex = -1;
@@ -81,7 +81,7 @@ namespace PCGExPathfindingGrowPaths
 
 	protected:
 		void Init();
-		double GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge) const;
+		double GetGrowthScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge) const;
 	};
 }
 

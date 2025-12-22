@@ -3,7 +3,7 @@
 
 #include "Clusters/PCGExLink.h"
 
-namespace PCGExGraph
+namespace PCGExGraphs
 {
 	
 }

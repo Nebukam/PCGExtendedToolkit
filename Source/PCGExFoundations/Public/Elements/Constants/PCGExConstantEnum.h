@@ -3,7 +3,7 @@
 
 #pragma once
 #include "PCGSettings.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"

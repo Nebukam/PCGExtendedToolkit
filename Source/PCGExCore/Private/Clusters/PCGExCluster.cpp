@@ -9,7 +9,7 @@
 #include "Clusters/PCGExClusterCommon.h"
 #include "Math/PCGExMathAxis.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	FCluster::FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup)
 		: NodeIndexLookup(InNodeIndexLookup), VtxIO(InVtxIO), EdgesIO(InEdgesIO)
@@ -146,7 +146,7 @@ namespace PCGExCluster
 		Nodes->Empty();
 		Edges->Empty();
 
-		const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), PCGExCluster::Labels::Attr_PCGExEdgeIdx);
+		const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), PCGExClusters::Labels::Attr_PCGExEdgeIdx);
 		if (!EndpointsBuffer->InitForRead()) { return false; }
 
 		NumRawVtx = InNodePoints->GetNumPoints();

@@ -5,11 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
-#include "PCGExPath.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Blenders/PCGExBlendOpsManager.h"
-#include "Sampling/PCGExSampling.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExAttributeRolling.generated.h"
 
@@ -20,6 +17,13 @@ MACRO(RangePole, bool, false)\
 MACRO(IsInsideRange, bool, false)\
 MACRO(RangeIndex, int32, -1)\
 MACRO(IndexInsideRange, int32, 0)
+
+class UPCGExBlendOpFactory;
+
+namespace PCGExBlending
+{
+	class FBlendOpsManager;
+}
 
 UENUM()
 enum class EPCGExRollingRangeControl : uint8

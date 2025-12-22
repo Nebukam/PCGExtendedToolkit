@@ -4,18 +4,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Utils/PCGExCurveLookup.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGSplineData.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Filters/Points/PCGExPolyPathFilterFactory.h"
+#include "Graph/Edges/Refining/PCGExEdgeRefineByFilter.h"
 #include "Math/PCGExMathAxis.h"
-#include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 #include "Sampling/PCGExApplySamplingDetails.h"
 #include "Sampling/PCGExSamplingCommon.h"
 

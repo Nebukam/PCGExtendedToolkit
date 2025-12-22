@@ -3,16 +3,17 @@
 
 #include "Graph/Diagrams/PCGExBuildDelaunayGraph2D.h"
 
-
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Data/PCGExClusterData.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Math/PCGExBestFitPlane.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BuildDelaunayGraph2D
 
 namespace PCGExGeoTask
@@ -23,8 +24,8 @@ namespace PCGExGeoTask
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
-	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Complete delaunay sites.", Required) }
+	PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputEdgesLabel, "Point data representing edges.", Required)
+	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExClusters::Labels::OutputSitesLabel, "Complete delaunay sites.", Required) }
 	return PinProperties;
 }
 
@@ -43,7 +44,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGExContext* InContext) const
 	{
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
 		Context->MainSites = MakeShared<PCGExData::FPointIOCollection>(Context);
-		Context->MainSites->OutputPin = PCGExGraph::OutputSitesLabel;
+		Context->MainSites->OutputPin = PCGExClusters::Labels::OutputSitesLabel;
 		Context->MainSites->Pairs.Init(nullptr, Context->MainPoints->Pairs.Num());
 	}
 
@@ -325,7 +326,7 @@ namespace PCGExBuildDelaunayGraph2D
 			else { PCGEX_LAUNCH(FOutputDelaunaySites2D, PointDataFacade->Source, ThisPtr) }
 		}
 
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
 		if (Settings->bMarkHull)
 		{

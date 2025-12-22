@@ -9,7 +9,7 @@
 #include "Clusters/PCGExClusterCommon.h"
 #include "Paths/PCGExPathsCommon.h"
 
-namespace PCGExCluster
+namespace PCGExClusters
 {
 	namespace Helpers
 	{
@@ -36,24 +36,24 @@ namespace PCGExCluster
 
 		void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExDataId& OutId)
 		{
-			OutId = IO->Tags->Set<int64>(PCGExCluster::Labels::TagStr_PCGExCluster, IO->GetOutIn()->GetUniqueID());
-			IO->Tags->AddRaw(PCGExCluster::Labels::TagStr_PCGExVtx);
-			IO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExEdges);
+			OutId = IO->Tags->Set<int64>(PCGExClusters::Labels::TagStr_PCGExCluster, IO->GetOutIn()->GetUniqueID());
+			IO->Tags->AddRaw(PCGExClusters::Labels::TagStr_PCGExVtx);
+			IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExEdges);
 		}
 
 		void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExDataId& Id)
 		{
-			IO->Tags->Set(PCGExCluster::Labels::TagStr_PCGExCluster, Id);
-			IO->Tags->AddRaw(PCGExCluster::Labels::TagStr_PCGExVtx);
-			IO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExEdges);
+			IO->Tags->Set(PCGExClusters::Labels::TagStr_PCGExCluster, Id);
+			IO->Tags->AddRaw(PCGExClusters::Labels::TagStr_PCGExVtx);
+			IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExEdges);
 			IO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
 		}
 
 		void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExDataId& Id)
 		{
-			IO->Tags->Set(PCGExCluster::Labels::TagStr_PCGExCluster, Id);
-			IO->Tags->AddRaw(PCGExCluster::Labels::TagStr_PCGExEdges);
-			IO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExVtx);
+			IO->Tags->Set(PCGExClusters::Labels::TagStr_PCGExCluster, Id);
+			IO->Tags->AddRaw(PCGExClusters::Labels::TagStr_PCGExEdges);
+			IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExVtx);
 			IO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
 		}
 
@@ -64,32 +64,32 @@ namespace PCGExCluster
 
 		bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
 		{
-			return PCGExMetaHelpers::TryGetConstAttribute<int64>(Metadata, PCGExCluster::Labels::Attr_PCGExVtxIdx) ? true : false;
+			return PCGExMetaHelpers::TryGetConstAttribute<int64>(Metadata, PCGExClusters::Labels::Attr_PCGExVtxIdx) ? true : false;
 		}
 
 		bool IsPointDataEdgeReady(const UPCGMetadata* Metadata)
 		{
-			return PCGExMetaHelpers::TryGetConstAttribute<int64>(Metadata, PCGExCluster::Labels::Attr_PCGExEdgeIdx) ? true : false;
+			return PCGExMetaHelpers::TryGetConstAttribute<int64>(Metadata, PCGExClusters::Labels::Attr_PCGExEdgeIdx) ? true : false;
 		}
 
 		void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 		{
 			if (!PointIO->GetOut()) { return; }
 			UPCGMetadata* Metadata = PointIO->GetOut()->MutableMetadata();
-			PointIO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExCluster);
-			PointIO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExVtx);
-			Metadata->DeleteAttribute(PCGExCluster::Labels::Attr_PCGExVtxIdx);
-			Metadata->DeleteAttribute(PCGExCluster::Labels::Attr_PCGExEdgeIdx);
+			PointIO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExCluster);
+			PointIO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExVtx);
+			Metadata->DeleteAttribute(PCGExClusters::Labels::Attr_PCGExVtxIdx);
+			Metadata->DeleteAttribute(PCGExClusters::Labels::Attr_PCGExEdgeIdx);
 		}
 
 		void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 		{
 			if (!PointIO->GetOut()) { return; }
 			UPCGMetadata* Metadata = PointIO->GetOut()->MutableMetadata();
-			PointIO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExCluster);
-			PointIO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExEdges);
-			Metadata->DeleteAttribute(PCGExCluster::Labels::Attr_PCGExVtxIdx);
-			Metadata->DeleteAttribute(PCGExCluster::Labels::Attr_PCGExEdgeIdx);
+			PointIO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExCluster);
+			PointIO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExEdges);
+			Metadata->DeleteAttribute(PCGExClusters::Labels::Attr_PCGExVtxIdx);
+			Metadata->DeleteAttribute(PCGExClusters::Labels::Attr_PCGExEdgeIdx);
 		}
 
 		void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
@@ -101,9 +101,9 @@ namespace PCGExCluster
 
 		void CleanupClusterTags(const TSharedPtr<PCGExData::FPointIO>& IO, const bool bKeepPairTag)
 		{
-			IO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExVtx);
-			IO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExEdges);
-			if (!bKeepPairTag) { IO->Tags->Remove(PCGExCluster::Labels::TagStr_PCGExCluster); }
+			IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExVtx);
+			IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExEdges);
+			if (!bKeepPairTag) { IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExCluster); }
 		}
 	}
 }

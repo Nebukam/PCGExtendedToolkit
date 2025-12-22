@@ -286,7 +286,7 @@ namespace PCGExAssetStaging
 			if (!Source->Init(Context->MainCollection)) { return false; }
 		}
 
-		if (Settings->bDoOutputSockets) { SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, NumPoints); }
+		if (Settings->bDoOutputSockets) { SocketHelper = MakeShared<PCGExCollections::FSocketHelper>(&Context->OutputSocketDetails, NumPoints); }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;

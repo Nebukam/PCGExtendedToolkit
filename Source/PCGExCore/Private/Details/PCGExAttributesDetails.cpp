@@ -6,7 +6,7 @@
 
 #include "Core/PCGExContext.h"
 #include "PCGModule.h"
-#include "Details/PCGExMacros.h"
+#include "PCGExCoreMacros.h"
 #include "Helpers/PCGExMetaHelpers.h"
 #include "Metadata/PCGMetadata.h"
 

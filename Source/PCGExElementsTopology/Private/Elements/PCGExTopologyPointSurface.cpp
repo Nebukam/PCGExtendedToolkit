@@ -1,18 +1,19 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Topology/PCGExTopologyPointSurface.h"
+#include "Elements//PCGExTopologyPointSurface.h"
 
 #include "PCGComponent.h"
 #include "Data/PCGDynamicMeshData.h" // Redundant but required for build on Linux 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
 #include "Async/ParallelFor.h"
 #include "Data/PCGExDataTags.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Math/PCGExProjectionDetails.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE TopologyPointSurface
 
 namespace PCGExGeoTask
@@ -23,7 +24,7 @@ namespace PCGExGeoTask
 TArray<FPCGPinProperties> UPCGExTopologyPointSurfaceSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal)
+	PCGEX_PIN_MESH(PCGExTopology::Labels::OutputMeshLabel, "PCG Dynamic Mesh", Normal)
 	return PinProperties;
 }
 
