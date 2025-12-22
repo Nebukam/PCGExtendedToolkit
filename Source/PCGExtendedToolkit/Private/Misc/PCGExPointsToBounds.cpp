@@ -4,9 +4,10 @@
 #include "Misc/PCGExPointsToBounds.h"
 
 
+#include "Blenders/PCGExMetadataBlender.h"
+#include "Clusters/PCGExClustersHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Geometry/PCGExGeo.h"
 #include "Graphs/PCGExGraph.h"
 
 

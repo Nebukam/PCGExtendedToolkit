@@ -8,8 +8,8 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "ToolMenuSection.h"
+#include "Elements/PCGExPackActorData.h"
 #include "Misc/MessageDialog.h"
-#include "Sampling/PCGExPackActorData.h"
 #include "Widgets/Views/SListView.h"
 
 FText FPCGExActorDataPackerActions::GetName() const

@@ -9,6 +9,7 @@
 
 #include "PCGParamData.h"
 #include "Containers/PCGExManagedObjects.h"
+#include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Helpers/PCGExPropertyHelpers.h"

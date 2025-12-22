@@ -9,6 +9,7 @@
 
 namespace PCGEx
 {
+	class FScoredQueue;
 	class FHashLookup;
 }
 
@@ -156,7 +157,7 @@ namespace PCGExPathfinding
 		TBitArray<> Visited;
 		TArray<double> GScore;
 		TSharedPtr<PCGEx::FHashLookup> TravelStack;
-		TSharedPtr<PCGExSearch::FScoredQueue> ScoredQueue;
+		TSharedPtr<PCGEx::FScoredQueue> ScoredQueue;
 
 		void Init(const PCGExClusters::FCluster* InCluster);
 		void Reset();

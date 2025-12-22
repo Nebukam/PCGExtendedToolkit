@@ -6,9 +6,9 @@
 
 
 #include "Clusters/PCGExCluster.h"
+#include "Containers/PCGExHashLookup.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
-#include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
+#include "Utils/PCGExScoredQueue.h"
 
 bool FPCGExSearchOperationDijkstra::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
@@ -31,9 +31,10 @@ bool FPCGExSearchOperationDijkstra::ResolveQuery(const TSharedPtr<PCGExPathfindi
 	TBitArray<> Visited;
 	Visited.Init(false, NumNodes);
 
+	// TODO : Use local allocations for the hash lookup
 	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
 
-	const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(NumNodes);
+	const TUniquePtr<PCGEx::FScoredQueue> ScoredQueue = MakeUnique<PCGEx::FScoredQueue>(NumNodes);
 	ScoredQueue->Enqueue(SeedNode.Index, 0);
 
 	const PCGExHeuristics::FLocalFeedbackHandler* Feedback = LocalFeedback.Get();

@@ -68,6 +68,8 @@ namespace PCGExFactories
 	static inline TSet<EType> ClusterStates = {EType::ClusterState, EType::PointState};
 }
 
+// TODO : Move this to helper class
+
 namespace PCGExFactories
 {
 	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bRequired);

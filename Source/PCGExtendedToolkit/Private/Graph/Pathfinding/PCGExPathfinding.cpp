@@ -9,8 +9,8 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExHashLookup.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
-#include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
+#include "Utils/PCGExScoredQueue.h"
 
 namespace PCGExPathfinding
 {
@@ -36,7 +36,7 @@ namespace PCGExPathfinding
 
 		Visited.Init(false, NumNodes);
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
-		ScoredQueue = MakeShared<PCGExSearch::FScoredQueue>(NumNodes);
+		ScoredQueue = MakeShared<PCGEx::FScoredQueue>(NumNodes);
 	}
 
 	void FSearchAllocations::Reset()

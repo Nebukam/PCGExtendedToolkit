@@ -7,6 +7,8 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"
@@ -149,25 +151,26 @@ bool FPCGExShrinkPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (PCGExPaths::Helpers::GetClosedLoop(Entry))
-			                                         {
-				                                         if (!Settings->bQuietClosedLoopWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are closed loop and cannot be shrinked. You must split them first.")); }
-				                                         PCGEX_INIT_IO(Entry, PCGExData::EIOInit::Forward)
-				                                         return false;
-			                                         }
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (PCGExPaths::Helpers::GetClosedLoop(Entry))
+				{
+					if (!Settings->bQuietClosedLoopWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are closed loop and cannot be shrinked. You must split them first.")); }
+					PCGEX_INIT_IO(Entry, PCGExData::EIOInit::Forward)
+					return false;
+				}
 
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         NewBatch->bSkipCompletion = true;
-		                                         }))
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to shrink."));
 		}

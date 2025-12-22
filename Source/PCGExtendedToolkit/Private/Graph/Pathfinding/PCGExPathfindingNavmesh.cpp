@@ -3,14 +3,14 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingNavmesh.h"
 
-
-
-
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graphs/PCGExGraph.h"
+#include "Clusters/PCGExClusterCommon.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
+#include "Graphs/PCGExGraphCommon.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingNavmeshElement"

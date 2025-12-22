@@ -5,10 +5,12 @@
 
 
 #include "PCGParamData.h"
-#include "Blenders/PCGExBlendOpsManager.h"
 #include "Blenders/PCGExMetadataBlender.h"
+#include "Core/PCGExBlendOpsManager.h"
+#include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #include "Paths/Smoothing/PCGExMovingAverageSmoothing.h"

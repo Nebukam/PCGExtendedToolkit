@@ -6,14 +6,19 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
+#include "Details/PCGExAxisDeformDetails.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "Math/PCGExMathAxis.h"
 
 #include "Paths/PCGExCreateSpline.h"
-#include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
-#include "Sampling/PCGExSampleInsidePath.h"
+#include "Tangents/PCGExTangentsInstancedFactory.h"
 
 #include "PCGExCopyToPaths.generated.h"
+
+namespace PCGExMatching
+{
+	class FDataMatcher;
+}
 
 UENUM()
 enum class EPCGExCopyToPathsUnit : uint8

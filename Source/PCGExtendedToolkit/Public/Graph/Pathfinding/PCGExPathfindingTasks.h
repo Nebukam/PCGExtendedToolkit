@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 
+#include "Core/PCGExMT.h"
 #include "Data/PCGExPointElements.h"
 
 namespace PCGExPathfinding

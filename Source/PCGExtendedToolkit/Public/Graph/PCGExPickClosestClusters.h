@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 
-#include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExFilterDetails.h"
 
 #include "Core/PCGExClustersProcessor.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 #include "PCGExPickClosestClusters.generated.h"
 
 UENUM()

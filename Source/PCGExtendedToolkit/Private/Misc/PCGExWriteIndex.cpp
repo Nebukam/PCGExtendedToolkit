@@ -3,14 +3,13 @@
 
 #include "Misc/PCGExWriteIndex.h"
 
-
-#include "PCGExTypes.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
 #include "Data/PCGSplineData.h"
+#include "Types/PCGExTypes.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Async/ParallelFor.h"
 

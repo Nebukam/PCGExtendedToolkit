@@ -4,10 +4,11 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
+#include "PCGExHeuristicsHandler.h"
 #include "Clusters/PCGExCluster.h"
+#include "Containers/PCGExHashLookup.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
-#include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
+#include "Utils/PCGExScoredQueue.h"
 
 bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
@@ -28,7 +29,7 @@ bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding:
 	TBitArray<>& Visited = LocalAllocations->Visited;
 	TArray<double>& GScore = LocalAllocations->GScore;
 	const TSharedPtr<PCGEx::FHashLookup> TravelStack = LocalAllocations->TravelStack;
-	const TSharedPtr<PCGExSearch::FScoredQueue> ScoredQueue = LocalAllocations->ScoredQueue;
+	const TSharedPtr<PCGEx::FScoredQueue> ScoredQueue = LocalAllocations->ScoredQueue;
 	ScoredQueue->Enqueue(SeedNode.Index, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 
 	GScore[SeedNode.Index] = 0;

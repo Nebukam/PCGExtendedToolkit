@@ -4,17 +4,21 @@
 #include "Graph/Pathfinding/PCGExPathfindingEdges.h"
 
 
-
+#include "PCGExHeuristicsCommon.h"
+#include "PCGExHeuristicsHandler.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Core/PCGExHeuristicsFactoryProvider.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Graphs/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges

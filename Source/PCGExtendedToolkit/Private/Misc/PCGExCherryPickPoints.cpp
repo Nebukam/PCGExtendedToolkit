@@ -26,7 +26,7 @@ TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() c
 TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (bOutputDiscardedPoints) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded points", Normal) }
+	if (bOutputDiscardedPoints) { PCGEX_PIN_POINTS(PCGExCommon::Labels::OutputDiscardedLabel, "Discarded points", Normal) }
 	return PinProperties;
 }
 
@@ -81,7 +81,7 @@ namespace PCGExCherryPickPoints
 		{
 			if (Settings->bOutputDiscardedPoints)
 			{
-				if (!Settings->bInvert) { PointDataFacade->Source->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel; }
+				if (!Settings->bInvert) { PointDataFacade->Source->OutputPin = PCGExCommon::Labels::OutputDiscardedLabel; }
 				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
 			}
 			else

@@ -27,7 +27,7 @@ void UPCGExDiscardSameSettings::ApplyDeprecation(UPCGNode* InOutNode)
 TArray<FPCGPinProperties> UPCGExDiscardSameSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::OutputDiscardedLabel, "Discarded outputs.", Normal)
 	return PinProperties;
 }
 
@@ -65,7 +65,7 @@ bool FPCGExDiscardSameElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 	{
 		if (!PointIO->IsEnabled())
 		{
-			PointIO->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
+			PointIO->OutputPin = PCGExCommon::Labels::OutputDiscardedLabel;
 			PointIO->Enable();
 		}
 

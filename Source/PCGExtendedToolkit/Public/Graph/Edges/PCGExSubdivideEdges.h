@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExDetailsSubdivision.h"
+#include "Details/PCGExSubdivisionDetails.h"
 
 #include "Core/PCGExClustersProcessor.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"

@@ -87,8 +87,6 @@ namespace PCGExLloydRelax2D
 			TUniquePtr<PCGExMath::Geo::TDelaunay2> Delaunay = MakeUnique<PCGExMath::Geo::TDelaunay2>();
 			TArray<FVector>& Positions = Processor->ActivePositions;
 
-			//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
-
 			const TArrayView<FVector> View = MakeArrayView(Positions);
 			if (!Delaunay->Process(View, Processor->ProjectionDetails)) { return; }
 

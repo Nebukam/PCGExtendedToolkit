@@ -23,6 +23,7 @@ public class PCGExtendedToolkit : ModuleRules
 		ToggleOptionalModule("PCGExElementsShapes");
 		ToggleOptionalModule("PCGExElementsTensors");
 		ToggleOptionalModule("PCGExElementsTopology");
+		ToggleOptionalModule("PCGExElementsSampling");
 		
 		ToggleOptionalModule("PCGExPathfinding");
 		ToggleOptionalModule("PCGExPathfindingNavmesh");
@@ -55,7 +56,6 @@ public class PCGExtendedToolkit : ModuleRules
 				"Niagara",
 				"PCGExCore",
 				"PCGExFoundations",
-				"PCGExBlending",
 			}
 		);
 

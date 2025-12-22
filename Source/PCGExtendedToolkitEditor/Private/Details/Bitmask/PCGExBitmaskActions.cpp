@@ -8,7 +8,7 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "ToolMenuSection.h"
-#include "Collections/PCGExBitmaskCollection.h"
+#include "Data/Bitmasks/PCGExBitmaskCollection.h"
 #include "Misc/MessageDialog.h"
 #include "Widgets/Views/SListView.h"
 

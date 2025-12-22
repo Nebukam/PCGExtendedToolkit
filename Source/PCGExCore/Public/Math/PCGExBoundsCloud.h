@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOctree.h"
-#include "PCGExMathBounds.h"
+#include "Math/PCGExMathBounds.h"
 #include "PCGExMath.h"
 
 #include "PCGExBoundsCloud.generated.h"

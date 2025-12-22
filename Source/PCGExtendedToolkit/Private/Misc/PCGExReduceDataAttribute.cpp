@@ -3,9 +3,8 @@
 
 #include "Misc/PCGExReduceDataAttribute.h"
 
-
-#include "PCGExTypes.h"
 #include "PCGParamData.h"
+#include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExDataHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExReduceDataAttributeElement"

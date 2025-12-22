@@ -6,7 +6,9 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExGoalPickerRandom.generated.h"
 

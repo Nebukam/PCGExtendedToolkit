@@ -14,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExDiscardByPointCountSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::OutputDiscardedLabel, "Discarded outputs.", Normal)
 	return PinProperties;
 }
 
@@ -54,7 +54,7 @@ bool FPCGExDiscardByPointCountElement::AdvanceWork(FPCGExContext* InContext, con
 			PointIO->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
 			if (!FMath::IsWithinInclusive(PointIO->GetNum(), Min, Max))
 			{
-				PointIO->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
+				PointIO->OutputPin = PCGExCommon::Labels::OutputDiscardedLabel;
 				NumDiscarded++;
 			}
 		}

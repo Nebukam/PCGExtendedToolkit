@@ -9,7 +9,7 @@
 #include "PCGExAssetCollectionTypes.h"
 #include "PCGExAssetGrammar.h"
 #include "Core/PCGExContext.h"
-#include "Details/PCGExSocketDetails.h"
+#include "Details/PCGExSocket.h"
 #include "Details/PCGExStagingDetails.h"
 #include "Fitting/PCGExFittingVariations.h"
 #include "Helpers/PCGExStreamingHelpers.h"

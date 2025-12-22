@@ -11,8 +11,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExScopedContainers.h"
 #include "Core/PCGExHeuristicsFactoryProvider.h"
-#include "Graphs/PCGExGraph.h"
-#include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
+#include "Utils/PCGExScoredQueue.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClusterCentralityElement"
 #define PCGEX_NAMESPACE ClusterCentrality
@@ -230,7 +229,7 @@ namespace PCGExClusterCentrality
 		TArray<int32> Stack;
 		Stack.Reserve(NumNodes);
 
-		TSharedPtr<PCGExSearch::FScoredQueue> Queue = MakeShared<PCGExSearch::FScoredQueue>(NumNodes);
+		TSharedPtr<PCGEx::FScoredQueue> Queue = MakeShared<PCGEx::FScoredQueue>(NumNodes);
 
 		if (bDownsample)
 		{
@@ -251,7 +250,7 @@ namespace PCGExClusterCentrality
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue)
+	void FProcessor::ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue)
 	{
 		for (int i = 0; i < NumNodes; i++)
 		{

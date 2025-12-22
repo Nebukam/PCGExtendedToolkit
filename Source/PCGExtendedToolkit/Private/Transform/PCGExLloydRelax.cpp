@@ -8,7 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Math/Geo/PCGExDelaunay.h"
-#include "Details/PCGExDetailsRelax.h"
+#include "Details/PCGExInfluenceDetails.h"
 #include "Async/ParallelFor.h"
 #include "Math/Geo/PCGExGeo.h"
 
@@ -85,8 +85,6 @@ namespace PCGExLloydRelax
 
 			TUniquePtr<PCGExMath::Geo::TDelaunay3> Delaunay = MakeUnique<PCGExMath::Geo::TDelaunay3>();
 			TArray<FVector>& Positions = Processor->ActivePositions;
-
-			//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
 
 			const TArrayView<FVector> View = MakeArrayView(Positions);
 			if (!Delaunay->Process<false, false>(View)) { return; }

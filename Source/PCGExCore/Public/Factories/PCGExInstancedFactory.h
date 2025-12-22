@@ -5,14 +5,28 @@
 
 #include "CoreMinimal.h"
 #include "Containers/PCGExManagedObjectsInterfaces.h"
-#include "Factories/PCGExFactoryProvider.h"
 
 #include "PCGExInstancedFactory.generated.h"
+
+struct FPCGExContext;
+
+namespace PCGEx
+{
+	class FManagedObjects;
+}
+
+namespace PCGExData
+{
+	class FFacadePreloader;
+	class FFacade;
+}
 
 namespace PCGExMT
 {
 	class FTaskManager;
 }
+
+#define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<FPCGEx##_TYPE> NewOperation = MakeShared<FPCGEx##_TYPE>();
 
 class FPCGMetadataAttributeBase;
 /**

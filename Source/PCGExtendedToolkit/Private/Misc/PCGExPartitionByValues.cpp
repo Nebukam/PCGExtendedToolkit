@@ -7,9 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-
-
-#include "Sampling/PCGExSampling.h"
+#include "Helpers/PCGExArrayHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPartitionByValuesBase"
 #define PCGEX_NAMESPACE PartitionByValues

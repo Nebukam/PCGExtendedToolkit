@@ -4,14 +4,16 @@
 #include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
 
 
+#include "PCGExHeuristicsHandler.h"
 #include "Graphs/PCGExGraph.h"
 #include "Algo/Reverse.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
-
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Containers/PCGExHashLookup.h"
+#include "Data/Utils/PCGExDataForward.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingGrowPathsElement"
 #define PCGEX_NAMESPACE PathfindingGrowPaths

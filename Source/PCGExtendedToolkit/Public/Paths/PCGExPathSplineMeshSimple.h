@@ -5,10 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
+#include "Factories/PCGExFactories.h"
 
 #include "Core/PCGExPathProcessor.h"
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
-#include "Details/PCGExDetailsSplineMesh.h"
+#include "Details/PCGExSplineMeshDetails.h"
+#include "Math/PCGExMathAxis.h"
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
 #include "PCGExPathSplineMeshSimple.generated.h"

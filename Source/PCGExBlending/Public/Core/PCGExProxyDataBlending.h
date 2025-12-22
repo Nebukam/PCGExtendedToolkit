@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "PCGExOpStats.h"
 #include "PCGExVersion.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 
@@ -24,7 +25,6 @@ namespace PCGExMath
 namespace PCGEx
 {
 	class FIndexLookup;
-	struct FOpStats;
 }
 
 namespace PCGExDetails

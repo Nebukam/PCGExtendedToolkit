@@ -7,6 +7,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Core/PCGExClusterFilter.h"
+#include "Data/Bitmasks/PCGExBitmaskData.h"
 #include "Filters/PCGExAdjacency.h"
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExAdjacencyStateFactoryData::CreateFilter() const
@@ -85,15 +86,15 @@ UPCGExFactoryData* UPCGExAdjacencyStateFactoryProviderSettings::CreateFactory(FP
 	UPCGExAdjacencyStateFactoryData* NewFactory = InContext->ManagedObjects->New<UPCGExAdjacencyStateFactoryData>();
 	if (!Super::CreateFactory(InContext, NewFactory)) { return nullptr; }
 
-	TSharedPtr<PCGExAdjacency::FBitmaskData> SuccessBitmaskData = MakeShared<PCGExAdjacency::FBitmaskData>();
-	TSharedPtr<PCGExAdjacency::FBitmaskData> FailBitmaskData = nullptr;
+	TSharedPtr<PCGExBitmask::FBitmaskData> SuccessBitmaskData = MakeShared<PCGExBitmask::FBitmaskData>();
+	TSharedPtr<PCGExBitmask::FBitmaskData> FailBitmaskData = nullptr;
 
 	if (Config.bUseAlternativeBitmasksOnFilterFail)
 	{
-		FailBitmaskData = PCGExAdjacency::FBitmaskData::Make(Config.OnFailCollections, Config.OnFailCompositions, Config.Angle);
+		FailBitmaskData = PCGExBitmask::FBitmaskData::Make(Config.OnFailCollections, Config.OnFailCompositions, Config.Angle);
 	}
 
-	SuccessBitmaskData = PCGExAdjacency::FBitmaskData::Make(Config.Collections, Config.Compositions, Config.Angle);
+	SuccessBitmaskData = PCGExBitmask::FBitmaskData::Make(Config.Collections, Config.Compositions, Config.Angle);
 
 	NewFactory->bTransformDirection = Config.bTransformDirection;
 	NewFactory->bInvert = Config.bInvert;

@@ -10,7 +10,8 @@
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"
-#include "Paths/Tangents/PCGExTangentsAuto.h"
+#include "Paths/PCGExPathsHelpers.h"
+#include "Tangents/PCGExTangentsAuto.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

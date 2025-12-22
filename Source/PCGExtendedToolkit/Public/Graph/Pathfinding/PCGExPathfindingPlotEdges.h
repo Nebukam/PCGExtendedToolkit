@@ -6,12 +6,10 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPathfinding.h"
-#include "Core/PCGExPointsProcessor.h"
-
-#include "Data/Matching/PCGExMatching.h"
-#include "Details/PCGExDetailsCluster.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Paths/PCGExPath.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Details/PCGExMatchingDetails.h"
+#include "Paths/PCGExPathOutputDetails.h"
 
 #include "PCGExPathfindingPlotEdges.generated.h"
 
@@ -27,6 +25,7 @@ namespace PCGExData
 
 namespace PCGExMatching
 {
+	class FTargetsHandler;
 	class FDataMatcher;
 }
 

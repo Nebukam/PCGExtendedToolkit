@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsRelax.h"
+#include "Details/PCGExInfluenceDetails.h"
 
 
 #include "PCGExLloydRelax.generated.h"

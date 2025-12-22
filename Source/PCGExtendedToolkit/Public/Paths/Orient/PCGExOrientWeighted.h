@@ -7,6 +7,7 @@
 #include "PCGExOrientOperation.h"
 #include "Data/PCGExPointElements.h"
 #include "Factories/PCGExFactoryData.h"
+#include "Elements/FloodFill/FillControls/PCGExFillControlKeepDirection.h"
 #include "PCGExOrientWeighted.generated.h"
 
 class FPCGExOrientWeighted : public FPCGExOrientOperation
@@ -27,7 +28,10 @@ public:
 
 		const double Weight = (AB + BC) / FMath::Min(AB, BC);
 
-		OutT.SetRotation(PCGExMath::MakeDirection(Factory->OrientAxis, FMath::Lerp(Path->DirToPrevPoint(Point.Index), Path->DirToNextPoint(Point.Index), bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
+		OutT.SetRotation(PCGExMath::MakeDirection(
+			Factory->OrientAxis,
+			FMath::Lerp(Path->DirToPrevPoint(Point.Index), Path->DirToNextPoint(Point.Index), bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier,
+			PCGExMath::GetDirection(Factory->UpAxis)));
 
 		return OutT;
 	}

@@ -4,9 +4,11 @@
 #include "Graph/PCGExPickClosestClusters.h"
 
 
+#include "PCGExPickersCommon.h"
 #include "Data/PCGExDataTags.h"
 #include "Utils/PCGExPointIOMerger.h"
 #include "Clusters/PCGExCluster.h"
+#include "Data/Utils/PCGExDataForward.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters
@@ -17,7 +19,7 @@ PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() co
 TArray<FPCGPinProperties> UPCGExPickClosestClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExClusters::Labels::SourcePickersLabel, "Target points used to test for proximity", Required)
+	PCGEX_PIN_POINT(PCGExPickers::Labels::SourcePickersLabel, "Target points used to test for proximity", Required)
 	return PinProperties;
 }
 
@@ -85,7 +87,7 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 
-	Context->TargetDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourcePickersLabel, false, true);
+	Context->TargetDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExPickers::Labels::SourcePickersLabel, false, true);
 	if (!Context->TargetDataFacade) { return false; }
 
 	PCGEX_FWD(TargetAttributesToTags)

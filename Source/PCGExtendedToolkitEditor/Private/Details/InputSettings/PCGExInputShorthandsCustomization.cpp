@@ -5,9 +5,9 @@
 
 #include "DetailWidgetRow.h"
 #include "PropertyHandle.h"
-#include "Constants/PCGExTuple.h"
 #include "Details/PCGExCustomizationMacros.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"

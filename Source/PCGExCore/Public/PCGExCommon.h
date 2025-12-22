@@ -89,5 +89,6 @@ namespace PCGExCommon
 		const FName SourceSourcesLabel = TEXT("Sources");
 		const FName SourceBoundsLabel = TEXT("Bounds");
 		const FName SourceDeformersLabel = TEXT("Deformers");
+		const FName OutputDiscardedLabel = TEXT("Discarded");
 	}
 }

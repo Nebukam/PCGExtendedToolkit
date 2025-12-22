@@ -9,6 +9,9 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

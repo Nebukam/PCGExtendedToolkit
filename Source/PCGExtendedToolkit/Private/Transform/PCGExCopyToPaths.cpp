@@ -4,14 +4,16 @@
 #include "Transform/PCGExCopyToPaths.h"
 
 
-
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
 
 #include "Helpers/PCGHelpers.h"
+#include "Math/PCGExMathBounds.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCopyToPathsElement"
@@ -59,7 +61,7 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 		if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(UnifiedBounds[i].Data))
 		{
 			Context->bUseUnifiedBounds = true;
-			Context->UnifiedBounds += PCGExTransform::GetBounds(PointData, Settings->BoundsSource);
+			Context->UnifiedBounds += PCGExMath::GetBounds(PointData, Settings->BoundsSource);
 		}
 	}
 
@@ -210,7 +212,7 @@ namespace PCGExCopyToPaths
 		// Set up box reference for this data
 
 		if (Context->bUseUnifiedBounds) { Box = Context->UnifiedBounds; }
-		else { Box = PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource); }
+		else { Box = PCGExMath::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource); }
 
 		Box = FBox(Box.Min + Settings->MinBoundsOffset, Box.Max + Settings->MaxBoundsOffset);
 		PCGExMath::Swizzle(Box.Min, Settings->AxisOrder);

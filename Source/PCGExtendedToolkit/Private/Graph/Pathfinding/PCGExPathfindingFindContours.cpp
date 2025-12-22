@@ -9,7 +9,11 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Clusters/Artifacts/PCGExCell.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours

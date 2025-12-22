@@ -4,12 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "Core/PCGExPathProcessor.h"
-#include "PCGExPath.h"
-
 #include "Details/PCGExBlendingDetails.h"
-
 #include "PCGExPathInsert.generated.h"
+
+namespace PCGExPaths
+{
+	class FPathEdgeLength;
+	class FPath;
+}
 
 namespace PCGExDetails
 {

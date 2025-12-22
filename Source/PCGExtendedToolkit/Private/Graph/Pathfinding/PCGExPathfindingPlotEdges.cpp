@@ -3,23 +3,23 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingPlotEdges.h"
 
-
-
-
+#include "PCGExHeuristicsHandler.h"
 #include "PCGParamData.h"
-#include "Graphs/PCGExGraph.h"
 #include "Algo/Reverse.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClusterDataLibrary.h"
-
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Core/PCGExHeuristicsFactoryProvider.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
+#include "Helpers/PCGExTargetsHandler.h"
 #include "Paths/PCGExPath.h"
-#include "Sampling/PCGExSampling.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotEdgesElement"
 #define PCGEX_NAMESPACE PathfindingPlotEdges
@@ -42,7 +42,7 @@ void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChanged
 
 bool UPCGExPathfindingPlotEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->IsOutputPin() && (InPin->Properties.Label == PCGExMatching::OutputUnmatchedVtxLabel || InPin->Properties.Label == PCGExMatching::OutputUnmatchedEdgesLabel))
+	if (InPin->IsOutputPin() && (InPin->Properties.Label == PCGExMatching::Labels::OutputUnmatchedVtxLabel || InPin->Properties.Label == PCGExMatching::Labels::OutputUnmatchedEdgesLabel))
 	{
 		return DataMatching.WantsUnmatchedSplit();
 	}
@@ -416,14 +416,14 @@ namespace PCGExPathfindingPlotEdges
 				if (!P->ValidPlots.IsEmpty()) { NumEdgesMatched++; }
 				else
 				{
-					P->EdgeDataFacade->Source->OutputPin = PCGExMatching::OutputUnmatchedEdgesLabel;
+					P->EdgeDataFacade->Source->OutputPin = PCGExMatching::Labels::OutputUnmatchedEdgesLabel;
 					P->EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
 				}
 			}
 
 			if (NumEdgesMatched != Processors.Num())
 			{
-				VtxDataFacade->Source->OutputPin = PCGExMatching::OutputUnmatchedVtxLabel;
+				VtxDataFacade->Source->OutputPin = PCGExMatching::Labels::OutputUnmatchedVtxLabel;
 				VtxDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
 			}
 		}

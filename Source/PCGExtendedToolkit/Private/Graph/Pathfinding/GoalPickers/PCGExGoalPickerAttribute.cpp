@@ -4,6 +4,7 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
+#include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 
 

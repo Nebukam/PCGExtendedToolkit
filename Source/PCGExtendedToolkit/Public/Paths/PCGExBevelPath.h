@@ -7,7 +7,7 @@
 #include "Factories/PCGExFactories.h"
 #include "Math/PCGExMathMean.h"
 #include "Core/PCGExPathProcessor.h"
-#include "Details/PCGExDetailsSubdivision.h"
+#include "Details/PCGExSubdivisionDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExBevelPath.generated.h"

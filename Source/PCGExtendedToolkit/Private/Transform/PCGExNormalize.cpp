@@ -9,8 +9,9 @@
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Sampling/PCGExSampling.h"
 #include "Async/ParallelFor.h"
+#include "Math/PCGExMathBounds.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExNormalizeElement"
@@ -55,7 +56,7 @@ bool FPCGExNormalizeElement::Boot(FPCGExContext* InContext) const
 		if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(UnifiedBounds[i].Data))
 		{
 			Context->bUseUnifiedBounds = true;
-			Context->UnifiedBounds += PCGExTransform::GetBounds(PointData, Settings->BoundsSource);
+			Context->UnifiedBounds += PCGExMath::GetBounds(PointData, Settings->BoundsSource);
 		}
 	}
 
@@ -103,7 +104,7 @@ namespace PCGExNormalize
 		TransformBuffer = Settings->GetValueSettingTransform();
 		if (!TransformBuffer->Init(PointDataFacade, true)) { return false; }
 
-		Box = Context->bUseUnifiedBounds ? Context->UnifiedBounds : PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource);
+		Box = Context->bUseUnifiedBounds ? Context->UnifiedBounds : PCGExMath::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource);
 		Size = Box.GetSize();
 
 		OneMinus[0] = EnumHasAnyFlags(static_cast<EPCGExApplySampledComponentFlags>(Settings->OneMinus), EPCGExApplySampledComponentFlags::X);

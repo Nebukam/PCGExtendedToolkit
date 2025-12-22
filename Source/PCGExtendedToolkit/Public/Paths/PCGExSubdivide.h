@@ -4,10 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 
 #include "Core/PCGExPathProcessor.h"
-#include "Details/PCGExDetailsSubdivision.h"
+#include "Details/PCGExSubdivisionDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExSubdivide.generated.h"

@@ -4,13 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 
 #include "Core/PCGExPathProcessor.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExIntersectionDetails.h"
-#include "Sampling/PCGExSampleNearestSurface.h"
 
 #include "PCGExFuseCollinear.generated.h"
 

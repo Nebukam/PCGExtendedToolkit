@@ -10,11 +10,6 @@
 
 #include "PCGExDiscardByPointCount.generated.h"
 
-namespace PCGExDiscardByPointCount
-{
-	const FName OutputDiscardedLabel = TEXT("Discarded");
-}
-
 /**
  * 
  */

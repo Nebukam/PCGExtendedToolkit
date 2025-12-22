@@ -9,6 +9,11 @@
 #include "Core/PCGExClusterStates.h"
 #include "PCGExAdjacencyStates.generated.h"
 
+namespace PCGExBitmask
+{
+	class FBitmaskData;
+}
+
 namespace PCGExAdjacency
 {
 	class FBitmaskData;
@@ -71,8 +76,8 @@ class PCGEXELEMENTSCLUSTERS_API UPCGExAdjacencyStateFactoryData : public UPCGExC
 public:
 	bool bTransformDirection = true;
 	bool bInvert = false;
-	TSharedPtr<PCGExAdjacency::FBitmaskData> SuccessBitmaskData;
-	TSharedPtr<PCGExAdjacency::FBitmaskData> FailBitmaskData;
+	TSharedPtr<PCGExBitmask::FBitmaskData> SuccessBitmaskData;
+	TSharedPtr<PCGExBitmask::FBitmaskData> FailBitmaskData;
 
 	virtual bool GetRequiresFilters() const override { return false; }
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
@@ -88,8 +93,8 @@ namespace PCGExAdjacencyStates
 	public:
 		bool bTransformDirection = true;
 		bool bInvert = false;
-		TSharedPtr<PCGExAdjacency::FBitmaskData> SuccessBitmaskData;
-		TSharedPtr<PCGExAdjacency::FBitmaskData> FailBitmaskData;
+		TSharedPtr<PCGExBitmask::FBitmaskData> SuccessBitmaskData;
+		TSharedPtr<PCGExBitmask::FBitmaskData> FailBitmaskData;
 
 		const UPCGExAdjacencyStateFactoryData* StateFactory = nullptr;
 

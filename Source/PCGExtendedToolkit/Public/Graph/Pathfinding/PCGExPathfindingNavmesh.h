@@ -8,6 +8,7 @@
 #include "PCGExPathfindingTasks.h"
 
 #include "AI/Navigation/NavigationTypes.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"

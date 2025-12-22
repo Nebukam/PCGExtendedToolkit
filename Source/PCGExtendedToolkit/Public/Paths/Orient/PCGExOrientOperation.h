@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExPointElements.h"
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
+#include "Math/PCGExMathAxis.h"
 #include "PCGExOrientOperation.generated.h"
 
 class UPCGExOrientInstancedFactory;

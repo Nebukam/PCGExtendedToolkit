@@ -5,7 +5,7 @@
 
 
 #include "Blenders/PCGExMetadataBlender.h"
-#include "Sampling/PCGExGetTextureData.h"
+#include "Data/PCGExPointElements.h"
 
 
 void FPCGExSubPointsBlendInheritEnd::BlendSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const

@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Fitting/PCGExFittingVariations.h"
 
 #define LOCTEXT_NAMESPACE "PCGExTransformPointsElement"
 #define PCGEX_NAMESPACE TransformPoints

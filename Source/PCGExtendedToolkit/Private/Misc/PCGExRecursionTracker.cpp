@@ -11,6 +11,7 @@
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExArrayHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE RecursionTracker

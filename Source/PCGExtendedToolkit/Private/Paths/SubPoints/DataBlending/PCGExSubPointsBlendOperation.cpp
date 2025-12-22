@@ -5,6 +5,7 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
 #include "Blenders/PCGExMetadataBlender.h"
+#include "Data/PCGExPointElements.h"
 
 
 bool FPCGExSubPointsBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet)

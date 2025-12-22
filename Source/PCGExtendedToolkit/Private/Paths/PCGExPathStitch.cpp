@@ -2,11 +2,13 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExPathStitch.h"
-#include "PCGExMath.h"
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
+#include "Graph/Pathfinding/PCGExPathfindingEdges.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
+#include "Sorting/PCGExPointSorter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathStitchElement"
 #define PCGEX_NAMESPACE PathStitch
@@ -48,24 +50,25 @@ bool FPCGExPathStitchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs are either closed loop or have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2 || PCGExPaths::Helpers::GetClosedLoop(Entry->GetIn()))
-			                                         {
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2 || PCGExPaths::Helpers::GetClosedLoop(Entry->GetIn()))
+				{
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+					bHasInvalidInputs = true;
+					return false;
+				}
 
-			                                         FPCGTaggedData& D = Context->Datas.Emplace_GetRef();
-			                                         D.Data = Entry->GetIn();
-			                                         Entry->Tags->DumpTo(D.Tags);
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         //NewBatch->SetPointsFilterData(&Context->FilterFactories);
-			                                         NewBatch->bRequiresWriteStep = true;
-		                                         }))
+				FPCGTaggedData& D = Context->Datas.Emplace_GetRef();
+				D.Data = Entry->GetIn();
+				Entry->Tags->DumpTo(D.Tags);
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
+				NewBatch->bRequiresWriteStep = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to work with."));
 		}

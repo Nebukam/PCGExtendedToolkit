@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSearchOperation.h"
+#include "Factories/PCGExFactoryData.h"
 
 
 #include "UObject/Object.h"

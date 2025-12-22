@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExLayout::OutputBinsLabel, "Input bins, with added statistics.", Required)
-	PCGEX_PIN_POINTS(PCGExLayout::OutputDiscardedLabel, "Discarded points, one that could not fit into any bin.", Required)
+	PCGEX_PIN_POINTS(PCGExCommon::Labels::OutputDiscardedLabel, "Discarded points, one that could not fit into any bin.", Required)
 	return PinProperties;
 }
 
@@ -100,7 +100,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 	for (int i = 0; i < NumBins; i++) { Context->Bins->Pairs[i]->OutputPin = Context->Bins->OutputPin; }
 
 	Context->Discarded = MakeShared<PCGExData::FPointIOCollection>(InContext);
-	Context->Discarded->OutputPin = PCGExLayout::OutputDiscardedLabel;
+	Context->Discarded->OutputPin = PCGExCommon::Labels::OutputDiscardedLabel;
 
 	return true;
 }

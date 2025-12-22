@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsRelax.h"
+#include "Details/PCGExInfluenceDetails.h"
 #include "Math/PCGExProjectionDetails.h"
 #include "PCGExLloydRelax2D.generated.h"
 

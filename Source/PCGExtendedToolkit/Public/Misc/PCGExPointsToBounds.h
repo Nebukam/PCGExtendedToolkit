@@ -4,14 +4,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExBlendingCommon.h"
 
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Blenders/PCGExMetadataBlender.h"
-#include "Geometry/PCGExGeo.h"
+#include "Details/PCGExBlendingDetails.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Math/PCGExMathAxis.h"
 
 #include "PCGExPointsToBounds.generated.h"
+
+namespace PCGExBlending
+{
+	class FMetadataBlender;
+}
 
 namespace PCGExMath
 {

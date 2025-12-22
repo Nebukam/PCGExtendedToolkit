@@ -3,13 +3,10 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingPlotNavmesh.h"
 
-
-
-
+#include "Clusters/PCGExClusterCommon.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graphs/PCGExGraph.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotNavmeshElement"

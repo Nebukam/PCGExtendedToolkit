@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExSocketDetails.h"
+#include "Details/PCGExSocketFitDetails.h"
 #include "Sampling/PCGExSamplingCommon.h"
 
 namespace PCGExMT

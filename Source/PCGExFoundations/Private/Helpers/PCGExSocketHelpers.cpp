@@ -6,6 +6,7 @@
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExSocket.h"
 #include "Details/PCGExSocketOutputDetails.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Helpers/PCGExRandomHelpers.h"

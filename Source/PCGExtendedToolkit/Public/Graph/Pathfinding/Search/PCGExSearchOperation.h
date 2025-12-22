@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExInstancedFactory.h"
 #include "Factories/PCGExOperation.h"
+#include "PCGExCoreMacros.h"
 
 #include "UObject/Object.h"
 

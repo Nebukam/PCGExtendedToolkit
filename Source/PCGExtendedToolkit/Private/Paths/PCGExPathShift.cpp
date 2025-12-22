@@ -6,6 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "Paths/PCGExPath.h"
 
 
@@ -279,7 +280,7 @@ namespace PCGExShiftPath
 						if (!TypedBuffer) { return; }
 
 						TArray<T>& Values = *TypedBuffer->GetOutValues().Get();
-						PCGEx::ReorderArray(Values, This->Indices);
+						PCGExArrayHelpers::ReorderArray(Values, This->Indices);
 					});
 				};
 

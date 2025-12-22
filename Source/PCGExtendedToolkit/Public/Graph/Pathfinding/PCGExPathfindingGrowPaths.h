@@ -8,11 +8,10 @@
 
 #include "PCGExPathfinding.h"
 
-
-#include "Details/PCGExDetailsCluster.h"
-
 #include "Core/PCGExClustersProcessor.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 

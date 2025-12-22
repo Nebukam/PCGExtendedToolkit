@@ -8,7 +8,7 @@
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/Edges/PCGExEdgeOrder.h"
+#include "Graph/Pathfinding/PCGExPathfindingEdges.h"
 #include "Types/PCGExTypes.h"
 #include "Utils/PCGExPointIOMerger.h"
 

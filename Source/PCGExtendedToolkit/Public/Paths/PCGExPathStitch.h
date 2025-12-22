@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
+#include "Sorting/PCGExSortingCommon.h"
 
-#include "PCGExSorting.h"
 #include "Utils/PCGExPointIOMerger.h"
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
