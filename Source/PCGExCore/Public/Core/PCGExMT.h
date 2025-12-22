@@ -28,6 +28,7 @@ struct FPCGExContext;
 
 namespace PCGExMT
 {
+	PCGEXCORE_API
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 NumIterations, const int32 RangeSize);
 
 	enum class EAsyncHandleState : uint8

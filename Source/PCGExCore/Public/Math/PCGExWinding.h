@@ -23,7 +23,10 @@ enum class EPCGExWindingMutation : uint8
 
 namespace PCGExMath
 {
+	PCGEXCORE_API
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise);
+	
+	PCGEXCORE_API
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise);
 
 	struct PCGEXCORE_API FPolygonInfos

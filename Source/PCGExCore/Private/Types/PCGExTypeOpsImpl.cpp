@@ -163,7 +163,9 @@ namespace PCGExTypeOps
 
 	// Explicit Template Instantiations
 	// TTypeOpsImpl instantiations	
-#define PCGEX_TPL(_TYPE, _NAME, ...) template class TTypeOpsImpl<_TYPE>;
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+	template class TTypeOpsImpl<_TYPE>; \
+	template PCGEXCORE_API const ITypeOpsBase* FTypeOpsRegistry::Get<_TYPE>();
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 	

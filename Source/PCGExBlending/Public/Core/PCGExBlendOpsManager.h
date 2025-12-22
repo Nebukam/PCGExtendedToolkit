@@ -26,7 +26,7 @@ namespace PCGExBlending
 
 	PCGEXBLENDING_API void RegisterBuffersDependencies_Sources(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& Factories);
 
-	class FBlendOpsManager : public IBlender
+	class PCGEXBLENDING_API FBlendOpsManager : public IBlender
 	{
 	protected:
 		TSharedPtr<PCGExData::FFacade> WeightFacade;

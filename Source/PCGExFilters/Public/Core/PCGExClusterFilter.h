@@ -83,7 +83,7 @@ public:
 };
 
 UCLASS(Abstract)
-class UPCGExVtxFilterProviderSettings : public UPCGExClusterFilterProviderSettings
+class PCGEXFILTERS_API UPCGExVtxFilterProviderSettings : public UPCGExClusterFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -119,7 +119,7 @@ public:
 };
 
 UCLASS(Abstract)
-class UPCGExEdgeFilterProviderSettings : public UPCGExClusterFilterProviderSettings
+class PCGEXFILTERS_API UPCGExEdgeFilterProviderSettings : public UPCGExClusterFilterProviderSettings
 {
 	GENERATED_BODY()
 
