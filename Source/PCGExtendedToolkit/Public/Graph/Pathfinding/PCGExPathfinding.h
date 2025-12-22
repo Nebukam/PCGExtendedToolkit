@@ -25,10 +25,6 @@ namespace PCGExData
 	class FFacade;
 }
 
-namespace PCGExSearch
-{
-	class FScoredQueue;
-}
 
 struct FPCGExNodeSelectionDetails;
 

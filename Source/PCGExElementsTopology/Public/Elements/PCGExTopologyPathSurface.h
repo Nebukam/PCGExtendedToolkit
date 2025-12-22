@@ -11,10 +11,11 @@
 
 #include "PCGExTopologyPathSurface.generated.h"
 
-namespace PCGExTopology
+namespace PCGExClusters
 {
 	class FHoles;
 }
+
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="topology/path-surface"))
 class PCGEXELEMENTSTOPOLOGY_API UPCGExTopologyPathSurfaceSettings : public UPCGExPathProcessorSettings
@@ -70,7 +71,7 @@ namespace PCGExTopologyPathSurface
 	class PCGEXELEMENTSTOPOLOGY_API FProcessor : public PCGExPointsMT::TProcessor<FPCGExTopologyPathSurfaceContext, UPCGExTopologyPathSurfaceSettings>
 	{
 	protected:
-		TSharedPtr<PCGExTopology::FHoles> Holes;
+		TSharedPtr<PCGExClusters::FHoles> Holes;
 
 		bool bIsPreviewMode = false;
 

@@ -18,16 +18,23 @@ namespace PCGExData
 		Read  = 1,
 	};
 
-	template <EBufferHelperMode Mode = EBufferHelperMode::Write>
-	class PCGEXCORE_API TBufferHelper : public TSharedFromThis<TBufferHelper<Mode>>
+	class PCGEXCORE_API IBufferHelper : public TSharedFromThis<IBufferHelper>
 	{
+	protected:
 		TSharedPtr<FFacade> DataFacade;
 		TMap<FName, TSharedPtr<IBuffer>> BufferMap;
 		mutable FRWLock BufferLock;
 
 	public:
+		explicit IBufferHelper(const TSharedRef<FFacade>& InDataFacade);
+	};
+
+	template <EBufferHelperMode Mode = EBufferHelperMode::Write>
+	class TBufferHelper : public IBufferHelper
+	{
+	public:
 		explicit TBufferHelper(const TSharedRef<FFacade>& InDataFacade)
-			: DataFacade(InDataFacade)
+			: IBufferHelper(InDataFacade)
 		{
 		}
 

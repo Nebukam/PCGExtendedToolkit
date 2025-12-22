@@ -26,10 +26,10 @@ PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetEdgeOutputInitMod
 TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExTopology::Labels::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
+	PCGEX_PIN_POINT(PCGExClusters::Labels::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
 	if (SupportsEdgeConstraints())
 	{
-		PCGEX_PIN_FILTERS(PCGExTopology::Labels::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal)
+		PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal)
 	}
 	return PinProperties;
 }
@@ -73,15 +73,15 @@ bool FPCGExTopologyClustersProcessorElement::Boot(FPCGExContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(TopologyClustersProcessor)
 
-	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::Labels::SourceHolesLabel, false, false);
+	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceHolesLabel, false, false);
 	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
 	{
-		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
+		Context->Holes = MakeShared<PCGExClusters::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
 	}
 
 	PCGExArrayHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
 
-	GetInputFactories(Context, PCGExTopology::Labels::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(Context, PCGExClusters::Labels::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
 	Context->HashMaps.Init(nullptr, Context->MainPoints->Num());
 	return true;
@@ -117,14 +117,14 @@ namespace PCGExTopologyEdges
 
 		if (!PCGExClusterMT::IProcessor::Process(InTaskManager)) { return false; }
 
-		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
+		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExClusters::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
 
 		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(VtxDataFacade);
 
 		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 
-		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 
 		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *this->ProjectedVtxPositions.Get()); }

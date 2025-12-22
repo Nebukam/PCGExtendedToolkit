@@ -93,7 +93,7 @@ namespace PCGExFindClusterHull
 
 		const TArray<FVector2D>& Proj = *ProjectedVtxPositions.Get();
 
-		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), Proj, CellsConstraints);
 
 		if (!CellsConstraints->WrapperCell)
@@ -110,7 +110,7 @@ namespace PCGExFindClusterHull
 		return true;
 	}
 
-	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell)
+	void FProcessor::ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell)
 	{
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }

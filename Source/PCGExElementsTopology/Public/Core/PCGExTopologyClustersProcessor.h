@@ -91,7 +91,7 @@ struct PCGEXELEMENTSTOPOLOGY_API FPCGExTopologyClustersProcessorContext : FPCGEx
 	friend class FPCGExTopologyClustersProcessorElement;
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeConstraintsFilterFactories;
 
-	TSharedPtr<PCGExTopology::FHoles> Holes;
+	TSharedPtr<PCGExClusters::FHoles> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
 	TArray<TSharedPtr<TMap<uint64, int32>>> HashMaps;
 
@@ -116,19 +116,19 @@ namespace PCGExTopologyEdges
 		friend class IBatch;
 
 	protected:
-		TSharedPtr<PCGExTopology::FHoles> Holes;
+		TSharedPtr<PCGExClusters::FHoles> Holes;
 		FPCGExTopologyUVDetails UVDetails;
 
 		const FVector2D CWTolerance = FVector2D(0.001);
 		bool bIsPreviewMode = false;
 
-		TSharedPtr<PCGExTopology::FCell> WrapperCell;
+		TSharedPtr<PCGExClusters::FCell> WrapperCell;
 		TObjectPtr<UDynamicMesh> InternalMesh;
 		UPCGDynamicMeshData* InternalMeshData = nullptr;
 
 		TSharedPtr<PCGEx::FIndexLookup> VerticesLookup;
 
-		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
+		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
 
 		int32 ConstrainedEdgesNum = 0;
 

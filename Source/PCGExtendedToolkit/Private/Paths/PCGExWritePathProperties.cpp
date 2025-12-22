@@ -208,7 +208,7 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, Index == 0 ? Path->IsClosedLoop() ? PathLength->Get(Path->LastEdge) : 0 : PathLength->Get(Index-1))
 
 			PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev*-1, Current.ToNext));
-			PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
+			PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::Helpers::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
 		}
 	}
 
@@ -245,10 +245,10 @@ namespace PCGExWritePathProperties
 			const FPointDetails& Last = Details[Path->LastIndex];
 
 			PCGEX_OUTPUT_VALUE(Dot, 0, -1);
-			PCGEX_OUTPUT_VALUE(Angle, 0, PCGExSampling::GetAngle(Settings->AngleRange, First.ToNext *-1, First.ToNext));
+			PCGEX_OUTPUT_VALUE(Angle, 0, PCGExSampling::Helpers::GetAngle(Settings->AngleRange, First.ToNext *-1, First.ToNext));
 
 			PCGEX_OUTPUT_VALUE(Dot, Path->LastIndex, -1);
-			PCGEX_OUTPUT_VALUE(Angle, Path->LastIndex, PCGExSampling::GetAngle(Settings->AngleRange, Last.ToPrev *-1, Last.ToPrev));
+			PCGEX_OUTPUT_VALUE(Angle, Path->LastIndex, PCGExSampling::Helpers::GetAngle(Settings->AngleRange, Last.ToPrev *-1, Last.ToPrev));
 		}
 
 		if (Settings->WriteAnyPathData())

@@ -9,7 +9,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "PCGExPathfindingFindClusterHull.generated.h"
 
-namespace PCGExTopology
+namespace PCGExClusters
 {
 	class FCellConstraints;
 }
@@ -101,7 +101,7 @@ namespace PCGExFindClusterHull
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindClusterHullContext, UPCGExFindClusterHullSettings>
 	{
 	public:
-		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
+		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -111,6 +111,6 @@ namespace PCGExFindClusterHull
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell);
+		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell);
 	};
 }

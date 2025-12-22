@@ -90,7 +90,7 @@ namespace PCGExClusters
 		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup);
 		FCluster(const TSharedRef<FCluster>& OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup, bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
 
-		class TConstVtxLookup
+		class PCGEXCORE_API TConstVtxLookup
 		{
 		public:
 			TConstVtxLookup(const TSharedPtr<FCluster>& InCluster)

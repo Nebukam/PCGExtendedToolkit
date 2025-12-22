@@ -187,7 +187,7 @@ namespace PCGExCopyClustersToPoints
 		const int32 NumTargets = InTargetsData->GetNumPoints();
 
 		// Once work is complete, check if there are cached clusters we can forward
-		const TSharedPtr<PCGExClusters::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
+		const TSharedPtr<PCGExClusters::FCluster> CachedCluster = PCGExClusters::Helpers::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
 
 		for (int i = 0; i < NumTargets; i++)
 		{

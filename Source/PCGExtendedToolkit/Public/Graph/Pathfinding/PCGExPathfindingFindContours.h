@@ -12,7 +12,7 @@
 
 #include "PCGExPathfindingFindContours.generated.h"
 
-namespace PCGExTopology
+namespace PCGExClusters
 {
 	class FCellConstraints;
 }
@@ -143,14 +143,14 @@ namespace PCGExFindContours
 		int32 WrapperSeed = -1;
 
 		bool bBuildExpandedNodes = false;
-		TSharedPtr<PCGExTopology::FCell> WrapperCell;
+		TSharedPtr<PCGExClusters::FCell> WrapperCell;
 
-		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>> ScopedValidCells;
-		TArray<TSharedPtr<PCGExTopology::FCell>> ValidCells;
+		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>> ScopedValidCells;
+		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIOIndices;
 
 	public:
-		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
+		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -165,7 +165,7 @@ namespace PCGExFindContours
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
+		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 
 		virtual void Cleanup() override;
 	};

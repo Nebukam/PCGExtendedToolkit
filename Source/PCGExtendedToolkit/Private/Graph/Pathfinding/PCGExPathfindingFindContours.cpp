@@ -133,7 +133,7 @@ namespace PCGExFindContours
 
 		const int32 NumSeeds = Context->SeedsDataFacade->Source->GetNum();
 
-		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->Reserve(NumSeeds);
 		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get()); }
 		if (CellsConstraints->WrapperCell) { CellsConstraints->WrapperCell->CustomIndex = WrapperSeed; }
@@ -145,7 +145,7 @@ namespace PCGExFindContours
 
 	void FProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
 	{
-		ScopedValidCells = MakeShared<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>>(Loops);
+		ScopedValidCells = MakeShared<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>>(Loops);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
@@ -154,19 +154,19 @@ namespace PCGExFindContours
 
 		const TArray<FVector2D>& ProjectedPositions = *ProjectedVtxPositions.Get();
 
-		TArray<TSharedPtr<PCGExTopology::FCell>>& CellsContainer = ScopedValidCells->Get_Ref(Scope);
+		TArray<TSharedPtr<PCGExClusters::FCell>>& CellsContainer = ScopedValidCells->Get_Ref(Scope);
 		CellsContainer.Reserve(Scope.Count * 2);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const FVector SeedWP = InSeedTransforms[Index].GetLocation();
 
-			const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
-			const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(SeedWP, Cluster.ToSharedRef(), ProjectedPositions, ProjectionDetails.ProjectionNormal, &Settings->SeedPicking);
+			const TSharedPtr<PCGExClusters::FCell> Cell = MakeShared<PCGExClusters::FCell>(CellsConstraints.ToSharedRef());
+			const PCGExClusters::ECellResult Result = Cell->BuildFromCluster(SeedWP, Cluster.ToSharedRef(), ProjectedPositions, ProjectionDetails.ProjectionNormal, &Settings->SeedPicking);
 
-			if (Result != PCGExTopology::ECellResult::Success)
+			if (Result != PCGExClusters::ECellResult::Success)
 			{
-				if (Result == PCGExTopology::ECellResult::WrapperCell || (CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
+				if (Result == PCGExClusters::ECellResult::WrapperCell || (CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
 				{
 					// Only track the seed closest to bound center as being associated with the wrapper.
 					// There may be edge cases where we don't want that to happen
@@ -222,7 +222,7 @@ namespace PCGExFindContours
 		ProcessCellsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
 			PCGEX_ASYNC_THIS
-			TArray<TSharedPtr<PCGExTopology::FCell>>& ValidCells_Ref = This->ValidCells;
+			TArray<TSharedPtr<PCGExClusters::FCell>>& ValidCells_Ref = This->ValidCells;
 			const TArray<TSharedPtr<PCGExData::FPointIO>>& CellsIOIndices_Ref = This->CellsIOIndices;
 
 			PCGEX_SCOPE_LOOP(Index)
@@ -235,7 +235,7 @@ namespace PCGExFindContours
 		ProcessCellsTask->StartSubLoops(CellsIOIndices.Num(), 64);
 	}
 
-	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO)
+	void FProcessor::ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO)
 	{
 		if (!PathIO) { return; }
 

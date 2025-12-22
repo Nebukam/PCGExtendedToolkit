@@ -9,7 +9,7 @@
 
 namespace PCGEx
 {
-	class PCGEXCORE_API FScoredQueue
+	class FScoredQueue
 	{
 		struct FScoredNode
 		{

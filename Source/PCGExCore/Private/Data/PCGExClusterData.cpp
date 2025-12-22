@@ -56,23 +56,4 @@ void UPCGExClusterEdgesData::BeginDestroy()
 	Cluster.Reset();
 }
 
-TSharedPtr<PCGExClusters::FCluster> PCGExClusterData::TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO)
-{
-	if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
-	{
-		if (const UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgeIO->GetIn()))
-		{
-			//Try to fetch cached cluster
-			if (const TSharedPtr<PCGExClusters::FCluster>& CachedCluster = ClusterEdgesData->GetBoundCluster())
-			{
-				// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
-				if (CachedCluster->IsValidWith(VtxIO, EdgeIO))
-				{
-					return CachedCluster;
-				}
-			}
-		}
-	}
 
-	return nullptr;
-}

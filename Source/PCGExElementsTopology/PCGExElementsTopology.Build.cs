@@ -31,7 +31,10 @@ public class PCGExElementsTopology : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PCG",
+				"GeometryScriptingCore",
+				"PCGGeometryScriptInterop",
 				"PCGExCore",
+				"PCGExFilters",
 				"PCGExFoundations",
 			}
 		);

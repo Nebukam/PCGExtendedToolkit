@@ -7,6 +7,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClustersHelpers.h"
 #include "Data/PCGExClusterData.h"
 #include "Data/PCGExData.h"
 #include "Graphs/PCGExGraphHelpers.h"
@@ -134,7 +135,7 @@ namespace PCGExFuseClusters
 		EdgesIOIndex = EdgeDataFacade->Source->IOIndex;
 
 		// Prepare insertion
-		Cluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
+		Cluster = PCGExClusters::Helpers::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
 
 		if (!Cluster)
 		{

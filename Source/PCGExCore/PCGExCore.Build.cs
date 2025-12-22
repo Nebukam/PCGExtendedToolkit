@@ -30,7 +30,6 @@ public class PCGExCore : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"GeometryScriptingCore",
 				"PCG",
 			}
 		);

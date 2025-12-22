@@ -217,7 +217,7 @@ struct PCGEXCORE_API FPCGExCellConstraintsDetails
 	double MaxCompactness = 1;
 };
 
-namespace PCGExTopology
+namespace PCGExClusters
 {
 	class FCell;
 }
@@ -271,7 +271,7 @@ struct PCGEXCORE_API FPCGExCellSeedMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPointPropertyOutput CompactnessTo = EPCGExPointPropertyOutput::None;
 
-	void ApplyToPoint(const PCGExTopology::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const;
+	void ApplyToPoint(const PCGExClusters::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const;
 };
 
 USTRUCT(BlueprintType)
@@ -355,5 +355,5 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	bool WriteAny() const;
 	bool Init(FPCGExContext* InContext);
 
-	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const;
+	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExClusters::FCell>& InCell) const;
 };

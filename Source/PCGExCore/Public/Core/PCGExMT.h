@@ -335,7 +335,7 @@ namespace PCGExMT
 	};
 
 	// Built-in task types
-	class FSimpleCallbackTask final : public FPCGExIndexedTask
+	class PCGEXCORE_API FSimpleCallbackTask final : public FPCGExIndexedTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FSimpleCallbackTask)
@@ -348,7 +348,7 @@ namespace PCGExMT
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& TaskManager) override;
 	};
 
-	class FScopeIterationTask : public FTask
+	class PCGEXCORE_API FScopeIterationTask : public FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(FScopeIterationTask)

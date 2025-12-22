@@ -94,8 +94,3 @@ protected:
 
 	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
 };
-
-namespace PCGExClusterData
-{
-	TSharedPtr<PCGExClusters::FCluster> TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO);
-}

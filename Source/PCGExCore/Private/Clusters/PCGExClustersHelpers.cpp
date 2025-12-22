@@ -3,37 +3,18 @@
 
 #include "Clusters/PCGExClustersHelpers.h"
 
+#include "PCGExGlobalSettings.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClusterCommon.h"
+#include "Data/PCGExClusterData.h"
 #include "Paths/PCGExPathsCommon.h"
 
 namespace PCGExClusters
 {
 	namespace Helpers
 	{
-		void GetAdjacencyData(const FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData)
-		{
-			const int32 NumAdjacency = InNode.Num();
-			const FVector NodePosition = InCluster->GetPos(InNode);
-			OutData.Reserve(NumAdjacency);
-			for (int i = 0; i < NumAdjacency; i++)
-			{
-				const FLink Lk = InNode.Links[i];
-
-				const FNode* OtherNode = InCluster->NodesDataPtr + Lk.Node;
-				const FVector OtherPosition = InCluster->GetPos(OtherNode);
-
-				FAdjacencyData& Data = OutData.Emplace_GetRef();
-				Data.NodeIndex = Lk.Node;
-				Data.NodePointIndex = OtherNode->PointIndex;
-				Data.EdgeIndex = Lk.Edge;
-				Data.Direction = (NodePosition - OtherPosition).GetSafeNormal();
-				Data.Length = FVector::Dist(NodePosition, OtherPosition);
-			}
-		}
-
 		void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExDataId& OutId)
 		{
 			OutId = IO->Tags->Set<int64>(PCGExClusters::Labels::TagStr_PCGExCluster, IO->GetOutIn()->GetUniqueID());
@@ -104,6 +85,48 @@ namespace PCGExClusters
 			IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExVtx);
 			IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExEdges);
 			if (!bKeepPairTag) { IO->Tags->Remove(PCGExClusters::Labels::TagStr_PCGExCluster); }
+		}
+
+		void GetAdjacencyData(const FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData)
+		{
+			const int32 NumAdjacency = InNode.Num();
+			const FVector NodePosition = InCluster->GetPos(InNode);
+			OutData.Reserve(NumAdjacency);
+			for (int i = 0; i < NumAdjacency; i++)
+			{
+				const FLink Lk = InNode.Links[i];
+
+				const FNode* OtherNode = InCluster->NodesDataPtr + Lk.Node;
+				const FVector OtherPosition = InCluster->GetPos(OtherNode);
+
+				FAdjacencyData& Data = OutData.Emplace_GetRef();
+				Data.NodeIndex = Lk.Node;
+				Data.NodePointIndex = OtherNode->PointIndex;
+				Data.EdgeIndex = Lk.Edge;
+				Data.Direction = (NodePosition - OtherPosition).GetSafeNormal();
+				Data.Length = FVector::Dist(NodePosition, OtherPosition);
+			}
+		}
+
+		TSharedPtr<FCluster> TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO)
+		{
+			if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
+			{
+				if (const UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgeIO->GetIn()))
+				{
+					//Try to fetch cached cluster
+					if (const TSharedPtr<PCGExClusters::FCluster>& CachedCluster = ClusterEdgesData->GetBoundCluster())
+					{
+						// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
+						if (CachedCluster->IsValidWith(VtxIO, EdgeIO))
+						{
+							return CachedCluster;
+						}
+					}
+				}
+			}
+
+			return nullptr;
 		}
 	}
 }

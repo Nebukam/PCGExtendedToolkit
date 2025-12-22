@@ -23,9 +23,10 @@ struct FPCGPinProperties;
 namespace PCGExMesh
 {
 
-	PCGEXCORE_API void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	PCGEXCORE_API 
+	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
-	struct FMeshData
+	struct PCGEXCORE_API FMeshData
 	{
 		FMeshData() = default;
 		FMeshData(const UStaticMesh* InStaticMesh);

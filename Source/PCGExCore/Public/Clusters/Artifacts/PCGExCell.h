@@ -31,7 +31,7 @@ namespace PCGExClusters
 	class FCluster;
 }
 
-namespace PCGExTopology
+namespace PCGExClusters
 {
 	namespace Labels
 	{
@@ -39,7 +39,8 @@ namespace PCGExTopology
 		const FName SourceHolesLabel = FName("Holes");
 	}
 
-	PCGEXCORE_API void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
+	PCGEXCORE_API
+	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
 #pragma region Cell
 
@@ -64,7 +65,7 @@ namespace PCGExTopology
 
 	class FCell;
 
-	class FHoles : public TSharedFromThis<FHoles>
+	class PCGEXCORE_API FHoles : public TSharedFromThis<FHoles>
 	{
 		// TODO : Need to use per-processor hole instance to match best fit projection
 	protected:
@@ -84,7 +85,7 @@ namespace PCGExTopology
 		bool Overlaps(const TArray<FVector2D>& Polygon);
 	};
 
-	class FCellConstraints : public TSharedFromThis<FCellConstraints>
+	class PCGEXCORE_API FCellConstraints : public TSharedFromThis<FCellConstraints>
 	{
 	protected:
 		PCGExMT::TH64SetShards<> UniquePathsHashSet;

@@ -49,7 +49,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 		Context->ActorReferenceDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExSampling::Labels::SourceActorReferencesLabel, false, true);
 		if (!Context->ActorReferenceDataFacade) { return false; }
 
-		if (!PCGExSampling::GetIncludedActors(Context, Context->ActorReferenceDataFacade.ToSharedRef(), Settings->ActorReference, Context->IncludedActors))
+		if (!PCGExSampling::Helpers::GetIncludedActors(Context, Context->ActorReferenceDataFacade.ToSharedRef(), Settings->ActorReference, Context->IncludedActors))
 		{
 			return false;
 		}

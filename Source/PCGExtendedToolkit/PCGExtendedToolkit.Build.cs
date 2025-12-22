@@ -50,10 +50,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"GeometryScriptingCore",
 				"PCG",
-				"PCGGeometryScriptInterop",
-				"Niagara",
 				"PCGExCore",
 				"PCGExFoundations",
 			}

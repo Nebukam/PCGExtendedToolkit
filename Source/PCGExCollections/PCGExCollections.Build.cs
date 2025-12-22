@@ -30,6 +30,7 @@ public class PCGExCollections : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"Niagara",
 				"PCG",
 				"PCGExCore",
 				"PCGExFilters",

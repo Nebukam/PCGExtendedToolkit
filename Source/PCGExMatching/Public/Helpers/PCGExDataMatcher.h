@@ -23,7 +23,7 @@ struct FPCGExMatchingDetails;
 
 namespace PCGExMatching
 {
-	struct FScope
+	struct PCGEXMATCHING_API FScope
 	{
 	private:
 		int32 NumCandidates = 0;
@@ -42,7 +42,7 @@ namespace PCGExMatching
 		void Invalidate();
 	};
 
-	class FDataMatcher : public TSharedFromThis<FDataMatcher>
+	class PCGEXMATCHING_API FDataMatcher : public TSharedFromThis<FDataMatcher>
 	{
 	protected:
 		const FPCGExMatchingDetails* Details = nullptr;

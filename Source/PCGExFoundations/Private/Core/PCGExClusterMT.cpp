@@ -9,6 +9,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGExClusterData.h"
 #include "PCGExHeuristicsHandler.h"
+#include "Clusters/PCGExClustersHelpers.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Graphs/PCGExGraphBuilder.h"
 #include "Graphs/PCGExGraphHelpers.h"
@@ -108,7 +109,7 @@ namespace PCGExClusterMT
 
 		if (!bBuildCluster) { return true; }
 
-		if (const TSharedPtr<PCGExClusters::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source))
+		if (const TSharedPtr<PCGExClusters::FCluster> CachedCluster = PCGExClusters::Helpers::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source))
 		{
 			Cluster = HandleCachedCluster(CachedCluster.ToSharedRef());
 		}

@@ -17,7 +17,6 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"Engine",
 				"Projects",
 				"PlacementMode",
-				"GeometryScriptingCore",
 				"RenderCore",
 				"RHI",
 				"PCG",
@@ -25,7 +24,8 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"PCGGeometryScriptInterop",
 				"PCGExtendedToolkit",
 				"PCGExCore",
-				"PCGExFoundations"
+				"PCGExFoundations",
+				"PCGExCollections"
 			}
 		);
 

@@ -15,6 +15,6 @@ enum class EPCGExCellOutputMode : uint8
 	OOB   = 2 UMETA(DisplayName = "OOB Bounds", ToolTip="Output cells as OOB bounds"),
 };
 
-namespace PCGExTopology
+namespace PCGExClusters
 {
 }

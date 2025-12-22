@@ -15,7 +15,7 @@
 #include "Clusters/PCGExClusterCommon.h"
 #include "Paths/PCGExPathsHelpers.h"
 
-void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const
+void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExClusters::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const
 {
 	switch (Location)
 	{
@@ -41,9 +41,9 @@ void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InC
 		OutSeedPoint.SetBoundsMax(InCell->Data.Bounds.Max - Offset);
 	}
 
-	PCGExTopology::SetPointProperty(OutSeedPoint, InCell->Data.Area, AreaTo);
-	PCGExTopology::SetPointProperty(OutSeedPoint, InCell->Data.Perimeter, PerimeterTo);
-	PCGExTopology::SetPointProperty(OutSeedPoint, InCell->Data.Compactness, CompactnessTo);
+	PCGExClusters::SetPointProperty(OutSeedPoint, InCell->Data.Area, AreaTo);
+	PCGExClusters::SetPointProperty(OutSeedPoint, InCell->Data.Perimeter, PerimeterTo);
+	PCGExClusters::SetPointProperty(OutSeedPoint, InCell->Data.Compactness, CompactnessTo);
 }
 
 bool FPCGExCellArtifactsDetails::WriteAny() const
@@ -65,7 +65,7 @@ bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
 	return true;
 }
 
-void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const
+void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExClusters::FCell>& InCell) const
 {
 	auto FwdTags = [&](const TSet<FString>& SourceTags)
 	{

@@ -19,7 +19,7 @@
 #include "Paths/PCGExPathsHelpers.h"
 #include "Paths/PCGExPathsCommon.h"
 
-namespace PCGExTopology
+namespace PCGExClusters
 {
 	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
 	{

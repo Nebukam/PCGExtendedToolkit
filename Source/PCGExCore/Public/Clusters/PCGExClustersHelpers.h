@@ -35,5 +35,7 @@ namespace PCGExClusters
 		PCGEXCORE_API void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 	
 		PCGEXCORE_API void GetAdjacencyData(const FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData);
+		
+		PCGEXCORE_API TSharedPtr<FCluster> TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO);
 	}
 }

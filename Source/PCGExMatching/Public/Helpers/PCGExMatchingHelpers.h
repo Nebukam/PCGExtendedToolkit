@@ -13,8 +13,10 @@ namespace PCGExMatching
 {
 	namespace Helpers
 	{
-		PCGEXMATCHING_API void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+		PCGEXMATCHING_API 
+		void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
-		PCGEXMATCHING_API void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+		PCGEXMATCHING_API
+		void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 	}
 }

@@ -82,7 +82,7 @@ namespace PCGExTopologyClusterSurface
 
 			if (EdgeFilterCache[Index]) { return; }
 
-			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
+			PCGEX_MAKE_SHARED(Cell, PCGExClusters::FCell, CellsConstraints.ToSharedRef())
 
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, Scope.LoopIndex);
 			FindCell(*Cluster->GetEdgeEnd(Edge), Edge, Scope.LoopIndex);
@@ -101,10 +101,10 @@ namespace PCGExTopologyClusterSurface
 
 		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
 
-		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
+		PCGEX_MAKE_SHARED(Cell, PCGExClusters::FCell, CellsConstraints.ToSharedRef())
 
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraphs::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
-		if (Result != PCGExTopology::ECellResult::Success) { return false; }
+		const PCGExClusters::ECellResult Result = Cell->BuildFromCluster(PCGExGraphs::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		if (Result != PCGExClusters::ECellResult::Success) { return false; }
 
 		FGeometryScriptSimplePolygon& Polygon = SubTriangulations[LoopIdx]->Emplace_GetRef();
 		Polygon.Reset(Cell->Polygon.Num());
@@ -119,7 +119,7 @@ namespace PCGExTopologyClusterSurface
 	{
 		if (NumAttempts == 0 && LastBinary != -1)
 		{
-			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
+			PCGEX_MAKE_SHARED(Cell, PCGExClusters::FCell, CellsConstraints.ToSharedRef())
 			PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
 			FindCell(*Cluster->GetEdgeStart(Edge), Edge, 0, false);
 		}
