@@ -4,13 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExUnionProcessor.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "PCGExIntersections.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Details/PCGExBlendingDetails.h"
+#include "Details/PCGExIntersectionDetails.h"
 
 #include "PCGExFuseClusters.generated.h"
+
+namespace PCGExGraphs
+{
+	class FUnionProcessor;
+	class FUnionGraph;
+}
 
 namespace PCGExFuseClusters
 {

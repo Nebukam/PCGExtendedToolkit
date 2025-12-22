@@ -11,6 +11,7 @@
 #include "Core/PCGExPointsProcessor.h"
 
 #include "Components/PrimitiveComponent.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Materials/MaterialInterface.h"
 #include "Sampling/PCGExApplySamplingDetails.h"

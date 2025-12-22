@@ -8,7 +8,7 @@
 
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExTypes.h"
+#include "Types/PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExAttributesDetails.h"
 

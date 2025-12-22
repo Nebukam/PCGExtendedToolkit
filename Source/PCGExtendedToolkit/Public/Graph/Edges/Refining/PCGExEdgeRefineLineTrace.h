@@ -6,9 +6,9 @@
 #include "CoreMinimal.h"
 #include "Engine/HitResult.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "PCGExMath.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Clusters/PCGExCluster.h"
+#include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "PCGExEdgeRefineLineTrace.generated.h"
 
 struct FPCGExCollisionDetails;

@@ -8,6 +8,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 
 #include "Details/PCGExMatchingDetails.h"
 #include "Fitting/PCGExFitting.h"

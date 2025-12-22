@@ -4,7 +4,6 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
-#include "PCGExMath.h"
 #include "Data/PCGExData.h"
 
 
@@ -17,7 +16,7 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExInstancedFactory* O
 		SingleSelector = TypedOther->SingleSelector;
 		AttributeSelectors = TypedOther->AttributeSelectors;
 
-		PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(TypedOther->CommaSeparatedNames, AttributeSelectors);
+		PCGExMetaHelpers::AppendUniqueSelectorsFromCommaSeparatedList(TypedOther->CommaSeparatedNames, AttributeSelectors);
 	}
 }
 
@@ -37,7 +36,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 	}
 	else
 	{
-		PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(CommaSeparatedNames, AttributeSelectors);
+		PCGExMetaHelpers::AppendUniqueSelectorsFromCommaSeparatedList(CommaSeparatedNames, AttributeSelectors);
 
 		AttributeGetters.Reset(AttributeSelectors.Num());
 		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors)

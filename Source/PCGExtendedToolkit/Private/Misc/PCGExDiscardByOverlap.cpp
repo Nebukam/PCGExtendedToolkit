@@ -3,12 +3,12 @@
 
 #include "Misc/PCGExDiscardByOverlap.h"
 
-#include "PCGExMathBounds.h"
-
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Math/PCGExMathBounds.h"
 #include "Misc/PCGExWriteGUID.h"
 
 

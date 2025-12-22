@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExMakeClustersUnique.h"
 
+#include "Clusters/PCGExClustersHelpers.h"
 #include "Data/PCGExPointIO.h"
 
 

@@ -7,10 +7,10 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsIntersection.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Details/PCGExBlendingDetails.h"
+#include "Details/PCGExIntersectionDetails.h"
 
 
 #include "Graphs/Union/PCGExIntersections.h"

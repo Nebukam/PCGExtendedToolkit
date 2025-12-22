@@ -5,8 +5,10 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Geometry/PCGExGeo.h"
-#include "Geometry/PCGExFittingTasks.h"
+#include "Data/Utils/PCGExDataForward.h"
+#include "Fitting/PCGExFittingTasks.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Helpers/PCGExMatchingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCopyToPointsElement"
 #define PCGEX_NAMESPACE CopyToPoints

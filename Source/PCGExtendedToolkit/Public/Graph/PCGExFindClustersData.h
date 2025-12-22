@@ -5,8 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-
-
+#include "Clusters/PCGExClusterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Graphs/Union/PCGExIntersections.h"
 #include "PCGExFindClustersData.generated.h"

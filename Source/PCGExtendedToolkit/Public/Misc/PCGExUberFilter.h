@@ -8,7 +8,6 @@
 
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExScopedContainers.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExFilterDetails.h"
 
@@ -20,6 +19,12 @@ namespace PCGExData
 {
 	template <typename T>
 	class TBuffer;
+}
+
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedArray;
 }
 
 UENUM()

@@ -7,8 +7,10 @@
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
 #include "Clusters/PCGExCluster.h"
+#include "Data/PCGExClusterData.h"
+#include "Data/PCGExData.h"
+#include "Graphs/PCGExGraphHelpers.h"
 #include "Graphs/Union/PCGExIntersections.h"
-#include "Graph/Data/PCGExClusterData.h"
 #include "Graphs/Union/PCGExUnionProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -136,7 +138,7 @@ namespace PCGExFuseClusters
 
 		if (!Cluster)
 		{
-			if (!BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges, true)) { return false; }
+			if (!PCGExGraphs::Helpers::BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges, true)) { return false; }
 			if (IndexedEdges.IsEmpty()) { return false; }
 		}
 		else

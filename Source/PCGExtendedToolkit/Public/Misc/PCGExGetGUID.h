@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExMath.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExWriteGUID.h"
+#include "Math/PCGExMath.h"
 #include "Misc/Guid.h"
 
 #include "PCGExGetGUID.generated.h"

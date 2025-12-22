@@ -7,8 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExTransform.h"
-
+#include "Math/PCGExUVW.h"
 
 #include "PCGExMovePivot.generated.h"
 

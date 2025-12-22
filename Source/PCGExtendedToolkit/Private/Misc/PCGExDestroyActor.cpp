@@ -9,6 +9,7 @@
 #include "PCGExSubSystem.h"
 #include "PCGManagedResource.h"
 #include "Data/PCGExAttributeBroadcaster.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDestroyActorElement"

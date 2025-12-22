@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "PCGExMetaCleanup.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="quality-of-life/meta-cleanup"))

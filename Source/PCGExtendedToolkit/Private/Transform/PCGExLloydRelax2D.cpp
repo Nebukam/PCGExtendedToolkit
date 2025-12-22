@@ -9,6 +9,8 @@
 #include "Data/PCGExPointIO.h"
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Async/ParallelFor.h"
+#include "Math/PCGExBestFitPlane.h"
+#include "Math/Geo/PCGExGeo.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelax2DElement"
 #define PCGEX_NAMESPACE LloydRelax2D
@@ -101,7 +103,7 @@ namespace PCGExLloydRelax2D
 			FVector Centroid;
 			for (const PCGExMath::Geo::FDelaunaySite2& Site : Delaunay->Sites)
 			{
-				PCGExMath::GetCentroid(Positions, Site.Vtx, Centroid);
+				PCGExMath::Geo::GetCentroid(Positions, Site.Vtx, Centroid);
 				for (const int32 PtIndex : Site.Vtx)
 				{
 					Counts[PtIndex] += 1;

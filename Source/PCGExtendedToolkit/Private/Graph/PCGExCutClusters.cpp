@@ -9,7 +9,10 @@
 #include "Clusters/PCGExCluster.h"
 #include "Graphs/PCGExGraph.h"
 #include "Core/PCGExClusterFilter.h"
+#include "Graphs/PCGExGraphBuilder.h"
 #include "Graphs/PCGExGraphCommon.h"
+#include "Math/PCGExMathBounds.h"
+#include "Math/PCGExMathDistances.h"
 #include "Paths/PCGExPathsCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCutEdges"

@@ -9,7 +9,8 @@
 #include "Core/PCGExPathProcessor.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
-#include "Details/PCGExDetailsIntersection.h"
+#include "Details/PCGExIntersectionDetails.h"
+#include "Sampling/PCGExSampleNearestSurface.h"
 
 #include "PCGExFuseCollinear.generated.h"
 

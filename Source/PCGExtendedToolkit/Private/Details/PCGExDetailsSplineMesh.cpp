@@ -6,7 +6,6 @@
 
 #include "Details/PCGExSettingsDetails.h"
 #include "PCGExCollections/Public/Collections/PCGExMeshCollection.h"
-#include "PCGExCollections/Public/Core/PCGExComponentDescriptors.h"
 
 namespace PCGExPaths
 {

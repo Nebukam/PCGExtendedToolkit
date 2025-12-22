@@ -4,15 +4,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExChain.h"
-#include "PCGExClusterMT.h"
-#include "Details/PCGExDetailsIntersection.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExPointFilter.h"
 #include "Details/PCGExBlendingDetails.h"
+#include "Details/PCGExIntersectionDetails.h"
+#include "Graphs/PCGExGraphMetadata.h"
 
 
 #include "PCGExSimplifyClusters.generated.h"
+
+namespace PCGExClusters
+{
+	class FNodeChainBuilder;
+}
+
+namespace PCGExData
+{
+	class FUnionMetadata;
+}
 
 UENUM()
 enum class EPCGExSimplifyClusterEdgeFilterRole : uint8

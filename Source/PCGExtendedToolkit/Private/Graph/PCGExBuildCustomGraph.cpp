@@ -15,6 +15,7 @@
 #include "Graphs/PCGExGraph.h"
 #include "Graphs/Union/PCGExUnionProcessor.h"
 #include "Elements/PCGExecuteBlueprint.h"
+#include "Graphs/PCGExGraphBuilder.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraphElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

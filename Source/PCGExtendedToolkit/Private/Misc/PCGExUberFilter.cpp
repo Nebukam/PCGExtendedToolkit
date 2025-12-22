@@ -5,13 +5,15 @@
 #include "Misc/PCGExUberFilter.h"
 
 
+#include "PCGExPickersCommon.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
-#include "Misc/Pickers/PCGExPicker.h"
-#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Core/PCGExPickerFactoryProvider.h"
+#include "Helpers/PCGExArrayHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExUberFilter"

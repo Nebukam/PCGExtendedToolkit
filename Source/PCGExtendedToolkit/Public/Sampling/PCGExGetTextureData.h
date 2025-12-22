@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "PCGExGlobalSettings.h"
 
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGTextureData.h"
 

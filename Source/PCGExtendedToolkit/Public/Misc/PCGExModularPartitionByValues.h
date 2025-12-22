@@ -7,6 +7,7 @@
 #include "Factories/PCGExFactoryProvider.h"
 #include "PCGExPartition.h"
 #include "PCGExPartitionByValues.h"
+#include "Factories/PCGExFactoryData.h"
 
 
 #include "PCGExModularPartitionByValues.generated.h"

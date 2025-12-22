@@ -49,7 +49,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 
 		if (Settings->SearchMode == EPCGExClusterDataSearchMode::EdgesFromVtx)
 		{
-			if (!Context->SearchKeyIO->Tags->IsTagged(PCGExGraphs::TagStr_PCGExVtx))
+			if (!Context->SearchKeyIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExVtx))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input (not a Vtx group)."));
 				return false;
@@ -57,14 +57,14 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 		}
 		else if (Settings->SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges)
 		{
-			if (!Context->SearchKeyIO->Tags->IsTagged(PCGExGraphs::TagStr_PCGExEdges))
+			if (!Context->SearchKeyIO->Tags->IsTagged(PCGExClusters::Labels::TagStr_PCGExEdges))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input. (not an Edges group)"));
 				return false;
 			}
 		}
 
-		Context->SearchKey = PCGEX_GET_DATAIDTAG(Context->SearchKeyIO->Tags, PCGExGraphs::TagStr_PCGExCluster);
+		Context->SearchKey = PCGEX_GET_DATAIDTAG(Context->SearchKeyIO->Tags, PCGExClusters::Labels::TagStr_PCGExCluster);
 		if (!Context->SearchKey)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Found no valid key to match against."));
@@ -90,7 +90,7 @@ bool FPCGExFindClustersDataElement::AdvanceWork(FPCGExContext* InContext, const 
 
 	if (!Boot(Context)) { return true; }
 
-	const TSharedPtr<PCGExClusterUtils::FClusterDataLibrary> Library = MakeShared<PCGExClusterUtils::FClusterDataLibrary>(true);
+	const TSharedPtr<PCGExClusters::FDataLibrary> Library = MakeShared<PCGExClusters::FDataLibrary>(true);
 	if (!Library->Build(Context->MainPoints))
 	{
 		Library->PrintLogs(Context, Settings->bSkipTrivialWarnings, Settings->bSkipImportantWarnings);

@@ -5,12 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "Containers/PCGExScopedContainers.h"
-#include "PCGExSorting.h"
 
-#include "Details/PCGExDetailsCluster.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Sampling/PCGExApplySamplingDetails.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
+#include "Sampling/PCGExSamplingCommon.h"
 #include "PCGExFloodFillClusters.generated.h"
 
 #define PCGEX_FOREACH_FIELD_CLUSTER_DIFF(MACRO)\

@@ -55,7 +55,7 @@ namespace PCGExGraphs
 		}
 
 		UnionGraph->Collapse();
-		Context->SetState(State_ProcessingUnion);
+		Context->SetState(States::State_ProcessingUnion);
 
 		const TSharedPtr<PCGExBlending::FUnionBlender> TypedBlender = MakeShared<PCGExBlending::FUnionBlender>(
 			&DefaultPointsBlendingDetails, VtxCarryOverDetails, PointPointIntersectionDetails.FuseDetails.GetDistances());
@@ -186,9 +186,9 @@ namespace PCGExGraphs
 
 	bool FUnionProcessor::Execute()
 	{
-		if (!bRunning || Context->IsState(State_ProcessingUnion)) { return false; }
+		if (!bRunning || Context->IsState(States::State_ProcessingUnion)) { return false; }
 
-		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingPointEdgeIntersections)
+		PCGEX_ON_ASYNC_STATE_READY(States::State_ProcessingPointEdgeIntersections)
 		{
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
 			else
@@ -198,13 +198,13 @@ namespace PCGExGraphs
 			return false;
 		}
 
-		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingEdgeEdgeIntersections)
+		PCGEX_ON_ASYNC_STATE_READY(States::State_ProcessingEdgeEdgeIntersections)
 		{
 			CompileFinalGraph();
 			return false;
 		}
 
-		PCGEX_ON_ASYNC_STATE_READY(State_WritingClusters)
+		PCGEX_ON_ASYNC_STATE_READY(States::State_WritingClusters)
 		{
 			return true;
 		}
@@ -223,7 +223,7 @@ namespace PCGExGraphs
 
 		PointEdgeIntersections = MakeShared<FPointEdgeIntersections>(GraphBuilder->Graph, UnionDataFacade->Source, &PointEdgeIntersectionDetails);
 
-		Context->SetState(State_ProcessingPointEdgeIntersections);
+		Context->SetState(States::State_ProcessingPointEdgeIntersections);
 
 		// Init point octree
 		(void)PointEdgeIntersections->PointIO->GetOutIn()->GetPointOctree();
@@ -351,7 +351,7 @@ namespace PCGExGraphs
 
 		EdgeEdgeIntersections = MakeShared<FEdgeEdgeIntersections>(GraphBuilder->Graph, UnionGraph, UnionDataFacade->Source, &EdgeEdgeIntersectionDetails);
 
-		Context->SetState(State_ProcessingEdgeEdgeIntersections);
+		Context->SetState(States::State_ProcessingEdgeEdgeIntersections);
 
 		FindEdgeEdgeGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -477,7 +477,7 @@ namespace PCGExGraphs
 
 		bCompilingFinalGraph = true;
 
-		Context->SetState(State_WritingClusters);
+		Context->SetState(States::State_WritingClusters);
 		GraphBuilder->OnCompilationEndCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
 		{
 			PCGEX_ASYNC_THIS

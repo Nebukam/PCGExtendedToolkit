@@ -8,6 +8,7 @@
 
 #include "Core/PCGExPointsProcessor.h"
 #include "PCGExSortPoints.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Utils/PCGExPointIOMerger.h"
 
 #include "PCGExMergePointsByTag.generated.h"

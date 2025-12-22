@@ -6,7 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Geometry/PCGExGeo.h"
+#include "Math/PCGExBestFitPlane.h"
 #include "Types/PCGExAttributeIdentity.h"
 
 

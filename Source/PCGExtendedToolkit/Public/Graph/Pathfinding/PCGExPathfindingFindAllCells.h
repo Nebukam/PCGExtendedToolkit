@@ -4,16 +4,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-
+#include "Clusters/Artifacts/PCGExCellDetails.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Topology/PCGExCell.h"
 
 #include "PCGExPathfindingFindAllCells.generated.h"
+
+namespace PCGExTopology
+{
+	class FCellConstraints;
+	class FHoles;
+}
 
 namespace PCGExFindAllCells
 {
 	class FProcessor;
+}
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedArray;
 }
 
 

@@ -7,6 +7,7 @@
 #include "Utils/PCGExPointIOMerger.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clusters/PCGExCluster.h"
+#include "Math/PCGExBestFitPlane.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsClusters"
 #define PCGEX_NAMESPACE FindPointOnBoundsClusters

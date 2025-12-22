@@ -10,6 +10,7 @@
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Details/PCGExDetailsRelax.h"
 #include "Async/ParallelFor.h"
+#include "Math/Geo/PCGExGeo.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"
 #define PCGEX_NAMESPACE LloydRelax
@@ -99,9 +100,9 @@ namespace PCGExLloydRelax
 			Counts.Init(1, NumPoints);
 
 			FVector Centroid;
-			for (const PCGExMath::FDelaunaySite3& Site : Delaunay->Sites)
+			for (const PCGExMath::Geo::FDelaunaySite3& Site : Delaunay->Sites)
 			{
-				PCGExMath::GetCentroid(Positions, Site.Vtx, Centroid);
+				PCGExMath::Geo::GetCentroid(Positions, Site.Vtx, Centroid);
 				for (const int32 PtIndex : Site.Vtx)
 				{
 					Counts[PtIndex] += 1;

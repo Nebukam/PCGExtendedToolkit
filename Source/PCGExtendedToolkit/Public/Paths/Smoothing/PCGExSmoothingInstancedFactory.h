@@ -15,6 +15,11 @@ namespace PCGExSmooth
 	class FProcessor;
 }
 
+namespace PCGExBlending
+{
+	class IBlender;
+}
+
 class FPCGExSmoothingOperation : public FPCGExOperation
 {
 	friend class PCGExSmooth::FProcessor;

@@ -7,19 +7,20 @@
 #include "Components/SplineMeshComponent.h"
 
 
-
 #include "Helpers/PCGExRandomHelpers.h"
-#include "PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "PCGParamData.h"
-#include "Elements/PCGExStaging.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Helpers/PCGExCollectionsHelpers.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 
 #include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
+#include "Utils/PCGExUniqueNameGenerator.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

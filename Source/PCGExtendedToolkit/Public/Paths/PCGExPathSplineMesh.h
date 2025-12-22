@@ -4,15 +4,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 
 #include "Core/PCGExPathProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Details/PCGExDetailsSplineMesh.h"
+#include "Fitting/PCGExFitting.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
 #include "PCGExPathSplineMesh.generated.h"
+
+namespace PCGExCollections
+{
+	class FMicroDistributionHelper;
+	class FDistributionHelper;
+}
 
 namespace PCGExMT
 {
@@ -22,11 +30,6 @@ namespace PCGExMT
 	class TScopedSet;
 }
 
-namespace PCGExStaging
-{
-	class FDistributionHelper;
-	class FMicroDistributionHelper;
-}
 
 /**
  * 

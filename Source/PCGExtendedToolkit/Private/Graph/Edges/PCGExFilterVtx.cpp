@@ -11,6 +11,9 @@
 #include "Async/ParallelFor.h"
 #include "PCGExVersion.h"
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Graphs/PCGExGraphCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFilterVtx"
 #define PCGEX_NAMESPACE FilterVtx

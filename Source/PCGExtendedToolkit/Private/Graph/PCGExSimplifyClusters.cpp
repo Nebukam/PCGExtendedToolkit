@@ -3,14 +3,16 @@
 
 #include "Graph/PCGExSimplifyClusters.h"
 
-
-#include "PCGExMath.h"
-
-#include "Clusters/PCGExChainHelpers.h"
+#include "Clusters/PCGExCluster.h"
+#include "Clusters/Artifacts/PCGExChain.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
-#include "Graph/PCGExChain.h"
+#include "Graphs/PCGExChainHelpers.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Graphs/PCGExGraphCommon.h"
+#include "Math/PCGExMath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -160,7 +162,7 @@ namespace PCGExSimplifyClusters
 
 			if (Settings->bOperateOnLeavesOnly && !Chain->bIsLeaf)
 			{
-				PCGExClusters::ChainHelpers::Dump(Chain, Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
+				PCGExClusters::ChainHelpers::Dump(Chain.ToSharedRef(), Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
 				continue;
 			}
 
@@ -168,7 +170,7 @@ namespace PCGExSimplifyClusters
 			{
 				// TODO : When using reduced dump we know in advance the number of edges will be the number of chains (optionally minus leaves)
 				// We can pre-populate the graph union data
-				PCGExClusters::ChainHelpers::DumpReduced(Chain, Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
+				PCGExClusters::ChainHelpers::DumpReduced(Chain.ToSharedRef(), Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
 				continue;
 			}
 
@@ -271,7 +273,7 @@ namespace PCGExSimplifyClusters
 	const PCGExGraphs::FGraphMetadataDetails* FBatch::GetGraphMetadataDetails()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
-		Settings->EdgeUnionData.Update(Context, GraphMetadataDetails);
+		GraphMetadataDetails.Update(Context, Settings->EdgeUnionData);
 		GraphMetadataDetails.EdgesBlendingDetailsPtr = &Settings->EdgeBlendingDetails;
 		GraphMetadataDetails.EdgesCarryOverDetails = &Context->EdgeCarryOverDetails;
 		return &GraphMetadataDetails;

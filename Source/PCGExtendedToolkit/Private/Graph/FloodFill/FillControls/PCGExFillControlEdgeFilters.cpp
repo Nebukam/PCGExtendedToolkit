@@ -6,6 +6,7 @@
 
 
 #include "Clusters/PCGExCluster.h"
+#include "Containers/PCGExManagedObjects.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
