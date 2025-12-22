@@ -3,7 +3,7 @@
 
 #include "Graph/Diagrams/PCGExBuildConvexHull.h"
 
-#include "PCGExLabels.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -66,7 +66,7 @@ bool FPCGExBuildConvexHullElement::AdvanceWork(FPCGExContext* InContext, const U
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	Context->MainBatch->Output();

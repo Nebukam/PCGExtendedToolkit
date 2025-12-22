@@ -56,7 +56,7 @@ bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 	{

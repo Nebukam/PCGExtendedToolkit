@@ -3,9 +3,9 @@
 
 #include "Graph/PCGExPickClosestClusters.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExDataTags.h"
-#include "Data/PCGExPointIOMerger.h"
+#include "Utils/PCGExPointIOMerger.h"
 #include "Clusters/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
@@ -116,7 +116,7 @@ bool FPCGExPickClosestClustersElement::AdvanceWork(FPCGExContext* InContext, con
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputBatches();
 	Context->OutputPointsAndEdges();

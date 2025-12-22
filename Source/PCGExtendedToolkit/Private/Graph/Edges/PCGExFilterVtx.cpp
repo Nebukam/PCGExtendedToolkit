@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExFilterVtx.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graphs/PCGExGraph.h"
@@ -142,11 +142,11 @@ bool FPCGExFilterVtxElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode == EPCGExVtxFilterOutput::Clusters ? PCGExGraphs::State_ReadyToCompile : PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode == EPCGExVtxFilterOutput::Clusters ? PCGExGraphs::States::State_ReadyToCompile : PCGExCommon::States::State_Done)
 
 	if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 	{
-		if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
+		if (!Context->CompileGraphBuilders(true, PCGExCommon::States::State_Done)) { return false; }
 		Context->MainPoints->StageOutputs();
 	}
 	else if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)

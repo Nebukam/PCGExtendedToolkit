@@ -4,7 +4,7 @@
 #include "Graph/Edges/PCGExSubdivideEdges.h"
 
 
-#include "PCGExMT.h"
+
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
@@ -60,9 +60,9 @@ bool FPCGExSubdivideEdgesElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::State_ReadyToCompile)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::States::State_ReadyToCompile)
 
-	if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
+	if (!Context->CompileGraphBuilders(true, PCGExCommon::States::State_Done)) { return false; }
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();

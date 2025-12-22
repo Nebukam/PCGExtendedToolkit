@@ -28,7 +28,7 @@ bool IPCGExElement::AdvancePreparation(FPCGExContext* Context, const UPCGExSetti
 
 	PCGEX_EXECUTION_CHECK_C(Context)
 
-	if (Context->IsState(PCGExCommon::State_Preparation))
+	if (Context->IsState(PCGExCommon::States::State_Preparation))
 	{
 		if (!Boot(Context)) { return Context->CancelExecution(FString()); }
 
@@ -42,13 +42,13 @@ bool IPCGExElement::AdvancePreparation(FPCGExContext* Context, const UPCGExSetti
 		PostLoadAssetsDependencies(Context);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_LoadingAssetDependencies)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_LoadingAssetDependencies)
 	{
 		PostLoadAssetsDependencies(Context);
 		PCGEX_EXECUTION_CHECK_C(Context)
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_AsyncPreparation)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_AsyncPreparation)
 	{
 		PCGEX_EXECUTION_CHECK_C(Context)
 	}
@@ -108,7 +108,7 @@ FPCGContext* IPCGExElement::CreateContext() { return new FPCGExContext(); }
 
 void IPCGExElement::OnContextInitialized(FPCGExContext* InContext) const
 {
-	InContext->SetState(PCGExCommon::State_Preparation);
+	InContext->SetState(PCGExCommon::States::State_Preparation);
 }
 
 bool IPCGExElement::Boot(FPCGExContext* InContext) const

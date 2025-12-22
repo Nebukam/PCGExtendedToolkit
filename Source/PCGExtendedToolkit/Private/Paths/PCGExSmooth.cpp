@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExSmooth.h"
 
-#include "PCGExMT.h"
+
 #include "PCGParamData.h"
 #include "Blenders/PCGExBlendOpsManager.h"
 #include "Blenders/PCGExMetadataBlender.h"
@@ -92,7 +92,7 @@ bool FPCGExSmoothElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSett
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 

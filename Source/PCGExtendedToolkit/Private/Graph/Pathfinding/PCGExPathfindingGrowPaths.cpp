@@ -3,7 +3,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
 
-#include "Core/PCGExPointsProcessor.h"
+
 #include "Graphs/PCGExGraph.h"
 #include "Algo/Reverse.h"
 #include "Data/PCGExData.h"
@@ -188,7 +188,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seed points to start growth from.", Required)
-	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics.", Normal, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics.", Normal, FPCGExDataTypeInfoHeuristics::AsId())
 	return PinProperties;
 }
 
@@ -258,7 +258,7 @@ bool FPCGExPathfindingGrowPathsElement::AdvanceWork(FPCGExContext* InContext, co
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPaths->StageOutputs();
 

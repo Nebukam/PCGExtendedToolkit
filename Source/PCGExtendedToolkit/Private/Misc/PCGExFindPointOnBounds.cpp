@@ -3,7 +3,7 @@
 
 #include "Misc/PCGExFindPointOnBounds.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Geometry/PCGExGeo.h"
@@ -69,7 +69,7 @@ bool FPCGExFindPointOnBoundsElement::AdvanceWork(FPCGExContext* InContext, const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{

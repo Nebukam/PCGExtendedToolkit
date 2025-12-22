@@ -4,8 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMath.h"
 #include "PCGExTangentsInstancedFactory.h"
+#include "Data/PCGBasePointData.h"
+#include "Factories/PCGExFactoryData.h"
+#include "Math/PCGExMathAxis.h"
 
 #include "PCGExTangentsFromTransform.generated.h"
 

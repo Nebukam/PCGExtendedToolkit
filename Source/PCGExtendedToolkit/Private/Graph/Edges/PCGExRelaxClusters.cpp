@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
-#include "PCGExMT.h"
+
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
@@ -63,7 +63,7 @@ bool FPCGExRelaxClustersElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
 

@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExEdgeOrder.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Clusters/PCGExCluster.h"
@@ -42,7 +42,7 @@ bool FPCGExEdgeOrderElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
 

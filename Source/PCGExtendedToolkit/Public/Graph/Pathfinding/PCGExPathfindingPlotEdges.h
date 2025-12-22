@@ -7,7 +7,7 @@
 
 #include "PCGExPathfinding.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/Utils/PCGExDataForward.h"
+
 #include "Data/Matching/PCGExMatching.h"
 #include "Details/PCGExDetailsCluster.h"
 #include "Core/PCGExClustersProcessor.h"

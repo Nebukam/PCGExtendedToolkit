@@ -47,7 +47,7 @@ bool FPCGExSanitizeClustersElement::AdvanceWork(FPCGExContext* InContext, const 
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputBatches();
 	Context->MainPoints->StageOutputs();

@@ -3,7 +3,6 @@
 
 #include "Details/PCGExDetailsNoise.h"
 
-#include "PCGEx.h"
 #include "Core/PCGExContext.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGHelpers.h"

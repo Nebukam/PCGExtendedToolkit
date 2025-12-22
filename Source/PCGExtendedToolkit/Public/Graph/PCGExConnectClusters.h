@@ -10,6 +10,8 @@
 
 #include "PCGExConnectClusters.generated.h"
 
+class FPCGExPointIOMerger;
+
 UENUM()
 enum class EPCGExBridgeClusterMethod : uint8
 {

@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExWriteTangents.h"
 
-#include "PCGExMT.h"
+
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
@@ -102,7 +102,7 @@ bool FPCGExWriteTangentsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 

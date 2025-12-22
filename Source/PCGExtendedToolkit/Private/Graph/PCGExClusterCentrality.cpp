@@ -3,15 +3,15 @@
 
 #include "Graph/PCGExClusterCentrality.h"
 
-#include "PCGExMT.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "PCGExScopedContainers.h"
+
+#include "PCGExHeuristicsHandler.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
+#include "Containers/PCGExScopedContainers.h"
+#include "Core/PCGExHeuristicsFactoryProvider.h"
 #include "Graphs/PCGExGraph.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClusterCentralityElement"
@@ -27,7 +27,7 @@ void UPCGExClusterCentralitySettings::ApplyDeprecation(UPCGNode* InOutNode)
 	{
 		RandomDownsampling.ApplyDeprecation();
 	}
-	
+
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif
@@ -41,7 +41,7 @@ bool UPCGExClusterCentralitySettings::IsPinUsedByNodeExecution(const UPCGPin* In
 TArray<FPCGPinProperties> UPCGExClusterCentralitySettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 
 	if (DownsamplingMode == EPCGExCentralityDownsampling::Filters) { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Required) }
 	else { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Advanced) }
@@ -95,7 +95,7 @@ bool FPCGExClusterCentralityElement::AdvanceWork(FPCGExContext* InContext, const
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
 

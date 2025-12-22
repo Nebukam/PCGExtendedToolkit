@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExLabels.h"
+
 #include "Math/PCGExMathMean.h"
 
 #include "PCGExOctree.h"

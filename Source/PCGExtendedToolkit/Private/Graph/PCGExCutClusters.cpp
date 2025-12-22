@@ -3,15 +3,14 @@
 
 #include "Graph/PCGExCutClusters.h"
 
-#include "PCGExMathBounds.h"
-#include "PCGExMT.h"
-
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDistancesDetails.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graphs/PCGExGraph.h"
 #include "Core/PCGExClusterFilter.h"
+#include "Graphs/PCGExGraphCommon.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCutEdges"
 #define PCGEX_NAMESPACE CutEdges
@@ -105,7 +104,7 @@ bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSe
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetState(PCGExPaths::State_BuildingPaths);
+		Context->SetState(PCGExPaths::Labels::State_BuildingPaths);
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetTaskManager(), BuildPathsTask)
 
 		BuildPathsTask->OnSubLoopStartCallback = [Context](const PCGExMT::FScope& Scope)
@@ -121,7 +120,7 @@ bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSe
 		BuildPathsTask->StartSubLoops(Context->PathFacades.Num(), 1);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExPaths::State_BuildingPaths)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExPaths::Labels::State_BuildingPaths)
 	{
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
@@ -135,8 +134,8 @@ bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSe
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::State_ReadyToCompile)
-	if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::States::State_ReadyToCompile)
+	if (!Context->CompileGraphBuilders(true, PCGExCommon::States::State_Done)) { return false; }
 
 	Context->MainPoints->StageOutputs();
 

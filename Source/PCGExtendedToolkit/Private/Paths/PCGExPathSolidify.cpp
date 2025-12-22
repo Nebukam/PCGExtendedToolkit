@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExPathSolidify.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
@@ -109,7 +109,7 @@ bool FPCGExPathSolidifyElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

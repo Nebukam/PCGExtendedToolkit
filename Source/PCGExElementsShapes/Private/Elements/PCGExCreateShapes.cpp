@@ -47,7 +47,7 @@ bool FPCGExCreateShapesElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	if (Settings->OutputMode == EPCGExShapeOutputMode::PerSeed)
 	{

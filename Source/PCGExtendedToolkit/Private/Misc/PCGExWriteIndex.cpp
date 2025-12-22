@@ -3,7 +3,7 @@
 
 #include "Misc/PCGExWriteIndex.h"
 
-#include "PCGExMT.h"
+
 #include "PCGExTypes.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
@@ -198,7 +198,7 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			}
 		}
 
-		PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+		PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 		Context->MainPoints->StageOutputs();
 		Context->Done();

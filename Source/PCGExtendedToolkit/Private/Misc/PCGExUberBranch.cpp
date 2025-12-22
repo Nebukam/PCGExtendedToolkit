@@ -4,7 +4,7 @@
 
 #include "Misc/PCGExUberBranch.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -119,7 +119,7 @@ bool FPCGExUberBranchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 		{
 			TWeakPtr<FPCGContextHandle> Handle = Context->GetOrCreateHandle();
 
-			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 			PCGEX_ASYNC_GROUP_CHKD_RET(Context->GetTaskManager(), BranchTask, true)
 
 			BranchTask->OnSubLoopStartCallback = [Handle, Settings](const PCGExMT::FScope& Scope)
@@ -152,7 +152,7 @@ bool FPCGExUberBranchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			return false;
 		}
 
-		PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+		PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 		{
 			for (int i = 0; i < Settings->NumBranches; i++) { if (!Context->Dispatch[i]) { Context->OutputData.InactiveOutputPinBitmask |= 1ULL << (i + 1); } }
 			Context->MainPoints->StageOutputs();

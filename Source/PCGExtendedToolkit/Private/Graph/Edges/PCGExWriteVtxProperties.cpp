@@ -4,7 +4,7 @@
 #include "Graph/Edges/PCGExWriteVtxProperties.h"
 
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
@@ -61,7 +61,7 @@ bool FPCGExWriteVtxPropertiesElement::AdvanceWork(FPCGExContext* InContext, cons
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
 

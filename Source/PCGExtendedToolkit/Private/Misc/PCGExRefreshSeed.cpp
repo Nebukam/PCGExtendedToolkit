@@ -3,8 +3,8 @@
 
 #include "Misc/PCGExRefreshSeed.h"
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
+
+#include "Helpers/PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -60,10 +60,10 @@ bool FPCGExRefreshSeedElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 			PCGEX_LAUNCH(FPCGExRefreshSeedTask, Settings->Base + Context->CurrentIO->IOIndex, Context->CurrentIO)
 		}
 
-		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		Context->Done();
 		Context->MainPoints->StageOutputs();

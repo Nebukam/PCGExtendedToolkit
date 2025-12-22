@@ -118,7 +118,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		else
 		{
 			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGExCommon::State_Done) { Done(); }
+			if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
 			SetState(NextStateId);
 			return true;
 		}
@@ -130,7 +130,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		BatchProcessing_WritingDone();
 
 		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGExCommon::State_Done) { Done(); }
+		if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
 		SetState(NextStateId);
 	}
 

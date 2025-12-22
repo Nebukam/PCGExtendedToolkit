@@ -4,8 +4,8 @@
 #include "Graph/Pathfinding/PCGExPathfindingPlotEdges.h"
 
 
-#include "PCGExMT.h"
-#include "Core/PCGExPointsProcessor.h"
+
+
 #include "PCGParamData.h"
 #include "Graphs/PCGExGraph.h"
 #include "Algo/Reverse.h"
@@ -53,7 +53,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExClusters::Labels::SourcePlotsLabel, "Plot points for pathfinding.", Required)
-	PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
@@ -248,7 +248,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		if (Settings->DataMatching.Mode != EPCGExMapMatchMode::Disabled && Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
 		{
 			Context->EdgeDataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
-			if (!Context->EdgeDataMatcher->Init(Context, Context->MainDataMatcher, PCGExMatching::SourceMatchRulesEdgesLabel, true)) { return false; }
+			if (!Context->EdgeDataMatcher->Init(Context, Context->MainDataMatcher, PCGExMatching::Labels::SourceMatchRulesEdgesLabel, true)) { return false; }
 		}
 		else
 		{
@@ -276,7 +276,7 @@ bool FPCGExPathfindingPlotEdgesElement::AdvanceWork(FPCGExContext* InContext, co
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPaths->StageOutputs();
 	if (Settings->DataMatching.WantsUnmatchedSplit()) { Context->OutputPointsAndEdges(); }

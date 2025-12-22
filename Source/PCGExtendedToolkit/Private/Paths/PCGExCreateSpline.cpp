@@ -5,7 +5,7 @@
 
 
 #include "PCGComponent.h"
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
@@ -86,7 +86,7 @@ bool FPCGExCreateSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)
 	{

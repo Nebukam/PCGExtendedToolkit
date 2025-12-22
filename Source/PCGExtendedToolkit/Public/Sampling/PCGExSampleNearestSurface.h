@@ -9,7 +9,7 @@
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/Utils/PCGExDataForward.h"
+
 #include "Components/PrimitiveComponent.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Materials/MaterialInterface.h"

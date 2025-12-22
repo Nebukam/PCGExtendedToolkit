@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
+
 #include "Core/PCGExPathProcessor.h"
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
 #include "Details/PCGExDetailsSplineMesh.h"

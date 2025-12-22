@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineKeepLowestScore.generated.h"
 
 class UPCGExHeuristicLocalDistance;

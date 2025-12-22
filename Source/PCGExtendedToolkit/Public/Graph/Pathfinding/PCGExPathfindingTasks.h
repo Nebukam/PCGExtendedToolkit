@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMT.h"
+
 #include "Data/PCGExPointElements.h"
 
 namespace PCGExPathfinding

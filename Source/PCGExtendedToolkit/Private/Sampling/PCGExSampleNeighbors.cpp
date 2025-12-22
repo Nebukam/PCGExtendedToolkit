@@ -4,7 +4,7 @@
 #include "Sampling/PCGExSampleNeighbors.h"
 
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
@@ -58,7 +58,7 @@ bool FPCGExSampleNeighborsElement::AdvanceWork(FPCGExContext* InContext, const U
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
 

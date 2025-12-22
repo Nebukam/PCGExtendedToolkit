@@ -4,7 +4,7 @@
 
 #include "Misc/PCGExUberFilter.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
@@ -36,7 +36,7 @@ void UPCGExUberFilterSettings::ApplyDeprecation(UPCGNode* InOutNode)
 
 bool UPCGExUberFilterSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExPicker::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
+	if (InPin->Properties.Label == PCGExPickers::Labels::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -48,7 +48,7 @@ bool UPCGExUberFilterSettings::OutputPinsCanBeDeactivated() const
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, FPCGExDataTypeInfoPicker::AsId())
+	PCGEX_PIN_FACTORIES(PCGExPickers::Labels::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, FPCGExDataTypeInfoPicker::AsId())
 	return PinProperties;
 }
 
@@ -77,7 +77,7 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
 
-	PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
+	PCGExFactories::GetInputFactories(Context, PCGExPickers::Labels::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
@@ -120,7 +120,7 @@ bool FPCGExUberFilterElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
@@ -156,7 +156,7 @@ namespace PCGExUberFilter
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::NoInit)
 
-		bUsePicks = PCGExPicker::GetPicks(Context->PickerFactories, PointDataFacade, Picks);
+		bUsePicks = PCGExPickers::GetPicks(Context->PickerFactories, PointDataFacade, Picks);
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{

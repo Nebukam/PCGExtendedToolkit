@@ -3,8 +3,8 @@
 
 #include "Graph/PCGExFindPointOnBoundsClusters.h"
 
-#include "PCGExMT.h"
-#include "Data/PCGExPointIOMerger.h"
+
+#include "Utils/PCGExPointIOMerger.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clusters/PCGExCluster.h"
 
@@ -84,7 +84,7 @@ bool FPCGExFindPointOnBoundsClustersElement::AdvanceWork(FPCGExContext* InContex
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{

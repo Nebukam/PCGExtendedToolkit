@@ -181,7 +181,7 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	{
 		if (Context->CollectionsLoader)
 		{
-			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 
 			if (!Context->CollectionsLoader->Start(Context->GetTaskManager()))
 			{
@@ -200,7 +200,7 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		if (Context->CollectionsLoader && Context->CollectionsLoader->IsEmpty())
 		{
@@ -222,7 +222,7 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

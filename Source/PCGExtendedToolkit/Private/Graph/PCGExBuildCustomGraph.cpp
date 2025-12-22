@@ -7,7 +7,7 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "PCGComponent.h"
-#include "PCGExMT.h"
+
 #include "PCGParamData.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExPointIO.h"
@@ -388,7 +388,7 @@ bool FPCGExBuildCustomGraphElement::AdvanceWork(FPCGExContext* InContext, const 
 			return true;
 		}
 
-		Context->SetState(PCGExGraphs::State_WritingClusters);
+		Context->SetState(PCGExGraphs::States::State_WritingClusters);
 
 		TSet<UClass*> UniqueSettingsClasses;
 
@@ -410,7 +410,7 @@ bool FPCGExBuildCustomGraphElement::AdvanceWork(FPCGExContext* InContext, const 
 		return false;
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::State_WritingClusters)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::States::State_WritingClusters)
 	{
 		for (UPCGExCustomGraphSettings* GraphSettings : Context->Builder->GraphSettings)
 		{

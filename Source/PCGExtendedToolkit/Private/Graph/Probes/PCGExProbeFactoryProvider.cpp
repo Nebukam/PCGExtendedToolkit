@@ -3,7 +3,7 @@
 
 #include "Graph/Probes/PCGExProbeFactoryProvider.h"
 
-#include "PCGExLabels.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateProbe"
 #define PCGEX_NAMESPACE CreateProbe

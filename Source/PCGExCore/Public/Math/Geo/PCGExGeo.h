@@ -20,7 +20,10 @@ namespace PCGExMath
 {
 	namespace Geo
 	{
-		PCGEX_CTX_STATE(State_ExtractingMesh)
+		namespace States
+		{
+			PCGEX_CTX_STATE(State_ExtractingMesh)
+		}
 
 		template <typename T>
 		FORCEINLINE double Det(const T& A, const T& B) { return A.X * B.Y - A.Y * B.X; }

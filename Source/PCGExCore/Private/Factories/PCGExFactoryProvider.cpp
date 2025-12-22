@@ -74,7 +74,7 @@ bool FPCGExFactoryProviderElement::AdvanceWork(FPCGExContext* InContext, const U
 
 		if (Context->OutFactory->WantsPreparation(Context))
 		{
-			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 			TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 			PCGEX_SCHEDULING_SCOPE(TaskManager, true)
 			Context->OutFactory->PrepResult = Context->OutFactory->Prepare(Context, TaskManager);
@@ -82,7 +82,7 @@ bool FPCGExFactoryProviderElement::AdvanceWork(FPCGExContext* InContext, const U
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		if (Context->OutFactory->PrepResult != PCGExFactories::EPreparationResult::Success)
 		{

@@ -5,7 +5,7 @@
 
 
 #include "PCGExMath.h"
-#include "PCGExMT.h"
+
 #include "Clusters/PCGExChainHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -62,8 +62,8 @@ bool FPCGExSimplifyClustersElement::AdvanceWork(FPCGExContext* InContext, const 
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::State_ReadyToCompile)
-	if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::States::State_ReadyToCompile)
+	if (!Context->CompileGraphBuilders(true, PCGExCommon::States::State_Done)) { return false; }
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();

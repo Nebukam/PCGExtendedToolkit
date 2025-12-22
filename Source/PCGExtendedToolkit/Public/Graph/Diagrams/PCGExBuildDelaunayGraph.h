@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
+
 #include "Core/PCGExPointsProcessor.h"
-#include "Graph/PCGExMergeVertices.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Graphs/PCGExGraphDetails.h"
 #include "PCGExBuildDelaunayGraph.generated.h"
 

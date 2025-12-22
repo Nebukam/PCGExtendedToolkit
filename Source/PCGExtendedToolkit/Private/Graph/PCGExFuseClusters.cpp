@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExFuseClusters.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
 #include "Clusters/PCGExCluster.h"
@@ -91,9 +91,9 @@ bool FPCGExFuseClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::State_PreparingUnion)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::States::State_PreparingUnion)
 
-	PCGEX_ON_STATE(PCGExGraphs::State_PreparingUnion)
+	PCGEX_ON_STATE(PCGExGraphs::States::State_PreparingUnion)
 	{
 		const int32 NumFacades = Context->Batches.Num();
 

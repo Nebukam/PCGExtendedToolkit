@@ -4,7 +4,7 @@
 #include "Sampling/PCGExSampleOverlapStats.h"
 
 #include "PCGExMathBounds.h"
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
@@ -89,7 +89,7 @@ bool FPCGExSampleOverlapStatsElement::AdvanceWork(FPCGExContext* InContext, cons
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

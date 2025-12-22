@@ -4,9 +4,8 @@
 
 #include "Details/PCGExDetailsSubdivision.h"
 
-#include "PCGExMath.h"
-#include "PCGExTypes.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Types/PCGExTypes.h"
 
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExManhattanDetails, GridSize, FVector, GridSizeInput, GridSizeAttribute, GridSize)

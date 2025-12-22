@@ -4,15 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
+
 #include "Math/PCGExMathMean.h"
 
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSorting.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExSettingsMacros.h"
+#include "Sorting/PCGExSortingCommon.h"
 
 #include "PCGExSelfPruning.generated.h"
 

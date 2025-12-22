@@ -50,7 +50,7 @@ bool FPCGExPartitionVerticesElement::AdvanceWork(FPCGExContext* InContext, const
 		Context->VtxPartitions->Pairs.Reserve(Context->GetClusterProcessorsNum());
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputBatches();
 

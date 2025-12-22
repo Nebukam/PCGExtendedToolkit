@@ -9,13 +9,25 @@
 #include "GameFramework/Actor.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/Geo/PCGExDelaunay.h"
-#include "Geometry/PCGExGeoMesh.h"
-#include "Geometry/PCGExFittingTasks.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Data/PCGExClusterData.h"
+#include "Data/External/PCGExMesh.h"
+#include "Data/External/PCGExMeshCommon.h"
+#include "Fitting/PCGExFitting.h"
+#include "Fitting/PCGExFittingTasks.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Graphs/PCGExGraphCommon.h"
+#include "Math/Geo/PCGExGeo.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE MeshToClusters
+
+namespace PCGExMesh
+{
+	class FGeoStaticMesh;
+}
 
 namespace PCGExGeoTask
 {
@@ -436,7 +448,7 @@ namespace PCGExMeshToCluster
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGExMath::DeclareGeoMeshImportInputs(ImportDetails, PinProperties);
+	PCGExMesh::DeclareGeoMeshImportInputs(ImportDetails, PinProperties);
 	return PinProperties;
 }
 
@@ -615,12 +627,12 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 
 		// Preload all & build local graphs to copy to points later on			
-		Context->SetState(PCGExMath::State_ExtractingMesh);
+		Context->SetState(PCGExMath::Geo::States::State_ExtractingMesh);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExMath::State_ExtractingMesh)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExMath::Geo::States::State_ExtractingMesh)
 	{
-		Context->SetState(PCGExGraphs::State_WritingClusters);
+		Context->SetState(PCGExGraphs::States::State_WritingClusters);
 
 		const TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 
@@ -633,7 +645,7 @@ bool FPCGExMeshToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::State_WritingClusters)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::States::State_WritingClusters)
 	{
 		Context->BaseMeshDataCollection->StageOutputs();
 

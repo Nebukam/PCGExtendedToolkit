@@ -65,6 +65,11 @@ struct PCGEXCORE_API FPCGExNodeSelectionDetails
 
 namespace PCGExClusters
 {
+	namespace States
+	{
+		PCGEX_CTX_STATE(State_ReadyForNextEdges)
+	}
+	
 	namespace Labels
 	{
 		const FName SourceEdgesLabel = TEXT("Edges");
@@ -97,8 +102,22 @@ namespace PCGExClusters
 		const FName Tag_PCGExEdges = FName(PCGExCommon::PCGExPrefix + TEXT("Edges"));
 		const FString TagStr_PCGExEdges = Tag_PCGExEdges.ToString();
 
-		PCGEX_CTX_STATE(State_ReadyForNextEdges)
-
+		
+		
 		const TSet<FName> ProtectedClusterAttributes = {Attr_PCGExEdgeIdx, Attr_PCGExVtxIdx};
+		
+		// TODO : Move at the right place
+		
+		const FName SourceProbesLabel = TEXT("Probes");
+		const FName OutputProbeLabel = TEXT("Probe");
+
+		const FName SourceFilterGenerators = TEXT("Generator Filters");
+		const FName SourceFilterConnectables = TEXT("Connectable Filters");
+
+		const FName Tag_PackedClusterEdgeCount_LEGACY = FName(PCGExCommon::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+		const FName Tag_PackedClusterEdgeCount = FName(TEXT("@Data.") + PCGExCommon::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+
+		const FName SourceGoalsLabel = TEXT("Goals");
+		const FName SourcePlotsLabel = TEXT("Plots");
 	}
 }

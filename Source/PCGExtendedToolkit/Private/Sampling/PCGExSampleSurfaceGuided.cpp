@@ -108,7 +108,7 @@ bool FPCGExSampleSurfaceGuidedElement::AdvanceWork(FPCGExContext* InContext, con
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

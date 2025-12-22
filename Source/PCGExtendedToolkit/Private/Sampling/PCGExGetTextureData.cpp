@@ -7,7 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "PCGComponent.h"
 
-#include "PCGExMT.h"
+
 #include "PCGExStreamingHelpers.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"
@@ -101,11 +101,11 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_AsyncPreparation)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_AsyncPreparation)
 
-	PCGEX_ON_STATE(PCGExCommon::State_AsyncPreparation)
+	PCGEX_ON_STATE(PCGExCommon::States::State_AsyncPreparation)
 	{
-		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 		if (!Context->TextureReferences.IsEmpty())
 		{
 			// Start loading textures...
@@ -114,7 +114,7 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 			PCGExHelpers::LoadBlocking_AnyThread(Paths, Context);
 
 			Context->TextureReferencesList = Context->TextureReferences.Array();
-			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 
 			Context->TextureReady.Init(false, Context->TextureReferencesList.Num());
 			Context->TextureDataList.Init(nullptr, Context->TextureReferencesList.Num());
@@ -130,7 +130,7 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		Context->Done();
 		Context->MainPoints->StageOutputs();

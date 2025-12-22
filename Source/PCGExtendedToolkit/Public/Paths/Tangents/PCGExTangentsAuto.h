@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTangentsInstancedFactory.h"
+#include "Math/Geo/PCGExGeo.h"
 #include "PCGExTangentsAuto.generated.h"
 
 class FPCGExTangentsAuto : public FPCGExTangentsOperation
@@ -14,7 +15,7 @@ public:
 	{
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
-		const PCGExGeo::FApex Apex = PCGExGeo::FApex(InTransforms[PrevIndex].GetLocation(), InTransforms[NextIndex].GetLocation(), InTransforms[Index].GetLocation());
+		const PCGExMath::Geo::FApex Apex = PCGExMath::Geo::FApex(InTransforms[PrevIndex].GetLocation(), InTransforms[NextIndex].GetLocation(), InTransforms[Index].GetLocation());
 
 		OutArrive = Apex.TowardStart * ArriveScale;
 		OutLeave = Apex.TowardEnd * -1 * LeaveScale;

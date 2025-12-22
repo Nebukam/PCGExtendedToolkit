@@ -15,9 +15,12 @@ enum class EPCGExFuseMethod : uint8
 
 namespace PCGExGraphs
 {
-	PCGEX_CTX_STATE(State_PreparingUnion)
-	PCGEX_CTX_STATE(State_ProcessingUnion)
+	namespace States
+	{
+		PCGEX_CTX_STATE(State_PreparingUnion)
+		PCGEX_CTX_STATE(State_ProcessingUnion)
 
-	PCGEX_CTX_STATE(State_ProcessingPointEdgeIntersections)
-	PCGEX_CTX_STATE(State_ProcessingEdgeEdgeIntersections)
+		PCGEX_CTX_STATE(State_ProcessingPointEdgeIntersections)
+		PCGEX_CTX_STATE(State_ProcessingEdgeEdgeIntersections)
+	}
 }

@@ -4,8 +4,8 @@
 #include "Graph/Pathfinding/PCGExPathfindingNavmesh.h"
 
 
-#include "PCGExLabels.h"
-#include "Core/PCGExPointsProcessor.h"
+
+
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -124,10 +124,10 @@ bool FPCGExPathfindingNavmeshElement::AdvanceWork(FPCGExContext* InContext, cons
 		};
 
 		PCGExPathfinding::ProcessGoals(Context->SeedsDataFacade, Context->GoalPicker, NavClusterTask);
-		Context->SetState(PCGExGraphs::State_Pathfinding);
+		Context->SetState(PCGExGraphs::States::State_Pathfinding);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::State_Pathfinding)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraphs::States::State_Pathfinding)
 	{
 		Context->OutputPaths->StageOutputs();
 		Context->Done();

@@ -6,11 +6,14 @@
 
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
-#include "Data/PCGExPointIOMerger.h"
+#include "Utils/PCGExPointIOMerger.h"
 
 
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectClusters"
 #define PCGEX_NAMESPACE ConnectClusters
@@ -76,21 +79,22 @@ bool FPCGExConnectClustersElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters([&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries)
-		                                      {
-			                                      if (Entries->Entries.Num() == 1)
-			                                      {
-				                                      // No clusters to consolidate, just dump existing points
-				                                      Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                      Entries->Entries[0]->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                      return false;
-			                                      }
+		if (!Context->StartProcessingClusters(
+			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries)
+			{
+				if (Entries->Entries.Num() == 1)
+				{
+					// No clusters to consolidate, just dump existing points
+					Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Forward);
+					Entries->Entries[0]->InitializeOutput(PCGExData::EIOInit::Forward);
+					return false;
+				}
 
-			                                      return true;
-		                                      }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-		                                      {
-			                                      NewBatch->bRequiresWriteStep = true;
-		                                      }))
+				return true;
+			}, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = true;
+			}))
 		{
 			if (!Settings->bQuietNoBridgeWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created.")); }
 
@@ -103,7 +107,7 @@ bool FPCGExConnectClustersElement::AdvanceWork(FPCGExContext* InContext, const U
 	}
 
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Context->Batches)
 	{

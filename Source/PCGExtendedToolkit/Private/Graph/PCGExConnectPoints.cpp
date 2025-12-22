@@ -3,17 +3,19 @@
 
 #include "Graph/PCGExConnectPoints.h"
 
-
-#include "PCGExMT.h"
+#include "Containers/PCGExScopedContainers.h"
 #include "Core/PCGExPointFilter.h"
+#include "Data/PCGExClusterData.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Graphs/PCGExGraph.h"
-#include "Graph/Data/PCGExClusterData.h"
-#include "Graphs/Union/PCGExUnionProcessor.h"
 #include "Graph/Probes/PCGExProbeFactoryProvider.h"
 #include "Graph/Probes/PCGExProbeOperation.h"
 #include "Graph/Probes/PCGExProbing.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Math/PCGExBestFitPlane.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectPointsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -85,7 +87,7 @@ bool FPCGExConnectPointsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	Context->MainBatch->Output();

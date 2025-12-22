@@ -6,9 +6,12 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Geometry/PCGExFittingTasks.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Clusters/PCGExClustersHelpers.h"
+#include "Data/PCGExClusterData.h"
+#include "Data/Utils/PCGExDataForward.h"
+#include "Fitting/PCGExFittingTasks.h"
+#include "Helpers/PCGExMatchingHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -60,7 +63,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->DataMatching.Mode != EPCGExMapMatchMode::Disabled && Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
 	{
 		Context->EdgeDataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
-		if (!Context->EdgeDataMatcher->Init(Context, Context->MainDataMatcher, PCGExMatching::SourceMatchRulesEdgesLabel, true)) { return false; }
+		if (!Context->EdgeDataMatcher->Init(Context, Context->MainDataMatcher, PCGExMatching::Labels::SourceMatchRulesEdgesLabel, true)) { return false; }
 	}
 	else
 	{
@@ -88,7 +91,7 @@ bool FPCGExCopyClustersToPointsElement::AdvanceWork(FPCGExContext* InContext, co
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
 	Context->Done();

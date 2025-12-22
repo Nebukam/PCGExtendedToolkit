@@ -3,8 +3,8 @@
 
 #include "Graph/Diagrams/PCGExBuildVoronoiGraph2D.h"
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
+
+#include "Helpers/PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
@@ -14,7 +14,11 @@
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Math/Geo/PCGExVoronoi.h"
 #include "Clusters/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Core/PCGExMT.h"
+#include "Data/PCGExClusterData.h"
+#include "Graphs/PCGExGraph.h"
+#include "Graphs/PCGExGraphBuilder.h"
+#include "Math/PCGExBestFitPlane.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphs"
 #define PCGEX_NAMESPACE BuildVoronoiGraph2D
@@ -146,7 +150,7 @@ bool FPCGExBuildVoronoiGraph2DElement::AdvanceWork(FPCGExContext* InContext, con
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	if (Context->SitesOutput) { Context->SitesOutput->StageOutputs(); }

@@ -183,7 +183,7 @@ bool FPCGExContext::IsWaitingForTasks()
 void FPCGExContext::ReadyForExecution()
 {
 	UnpauseContext();
-	SetState(PCGExCommon::State_InitialExecution);
+	SetState(PCGExCommon::States::State_InitialExecution);
 }
 
 void FPCGExContext::SetState(const PCGExCommon::ContextState StateId)
@@ -193,7 +193,7 @@ void FPCGExContext::SetState(const PCGExCommon::ContextState StateId)
 
 void FPCGExContext::Done()
 {
-	SetState(PCGExCommon::State_Done);
+	SetState(PCGExCommon::States::State_Done);
 }
 
 bool FPCGExContext::TryComplete(const bool bForce)
@@ -283,7 +283,7 @@ bool FPCGExContext::LoadAssets()
 {
 	if (!RequiredAssets || RequiredAssets->IsEmpty()) { return false; }
 
-	SetState(PCGExCommon::State_LoadingAssetDependencies);
+	SetState(PCGExCommon::States::State_LoadingAssetDependencies);
 
 	PCGExHelpers::Load(
 		GetTaskManager(),

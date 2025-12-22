@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Containers/PCGExScopedContainers.h"
 #include "PCGExSorting.h"
-#include "Data/Utils/PCGExDataForward.h"
+
 #include "Details/PCGExDetailsCluster.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Sampling/PCGExApplySamplingDetails.h"

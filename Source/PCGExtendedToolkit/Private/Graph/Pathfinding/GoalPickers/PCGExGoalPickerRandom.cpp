@@ -4,7 +4,7 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 
-#include "PCGExRandomHelpers.h"
+#include "Helpers/PCGExRandomHelpers.h"
 #include "Data/PCGExPointElements.h"
 #include "Details/PCGExSettingsDetails.h"
 

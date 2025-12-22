@@ -4,7 +4,7 @@
 #include "Paths/PCGExFuseCollinear.h"
 
 #include "PCGExMath.h"
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExUnionBlender.h"
@@ -64,7 +64,7 @@ bool FPCGExFuseCollinearElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 

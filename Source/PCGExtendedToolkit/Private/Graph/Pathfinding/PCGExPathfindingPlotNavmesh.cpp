@@ -4,8 +4,8 @@
 #include "Graph/Pathfinding/PCGExPathfindingPlotNavmesh.h"
 
 
-#include "PCGExLabels.h"
-#include "Core/PCGExPointsProcessor.h"
+
+
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -89,10 +89,10 @@ bool FPCGExPathfindingPlotNavmeshElement::AdvanceWork(FPCGExContext* InContext, 
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
 			PCGEX_LAUNCH(FPCGExPlotNavmeshTask, Context->CurrentIO)
 		}
-		Context->SetState(PCGExCommon::State_ProcessingPoints);
+		Context->SetState(PCGExCommon::States::State_ProcessingPoints);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_ProcessingPoints)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_ProcessingPoints)
 	{
 		Context->OutputPaths->StageOutputs();
 		Context->Done();

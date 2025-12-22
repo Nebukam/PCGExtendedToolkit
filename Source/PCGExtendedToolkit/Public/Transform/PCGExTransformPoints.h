@@ -4,13 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExFitting.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
+
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExInputShorthandsDetails.h"
+#include "Fitting/PCGExFittingCommon.h"
 
 
 #include "PCGExTransformPoints.generated.h"

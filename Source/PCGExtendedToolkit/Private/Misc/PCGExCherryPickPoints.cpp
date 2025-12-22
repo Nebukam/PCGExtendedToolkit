@@ -4,12 +4,11 @@
 #include "Misc/PCGExCherryPickPoints.h"
 
 
+#include "Core/PCGExPickerFactoryProvider.h"
 #include "Factories/PCGExFactories.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Misc/PCGExDiscardByPointCount.h"
-#include "Misc/Pickers/PCGExPicker.h"
-#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
 #define PCGEX_NAMESPACE CherryPickPoints
@@ -20,7 +19,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(CherryPickPoints)
 TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
+	PCGEX_PIN_FACTORIES(PCGExPickers::Labels::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
 	return PinProperties;
 }
 
@@ -37,7 +36,7 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CherryPickPoints)
 
-	return PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker});
+	return PCGExFactories::GetInputFactories(Context, PCGExPickers::Labels::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker});
 }
 
 bool FPCGExCherryPickPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -57,7 +56,7 @@ bool FPCGExCherryPickPointsElement::AdvanceWork(FPCGExContext* InContext, const 
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -76,7 +75,7 @@ namespace PCGExCherryPickPoints
 
 		TSet<int32> UniqueIndices;
 		// Grab picks
-		PCGExPicker::GetPicks(Context->PickerFactories, PointDataFacade, UniqueIndices);
+		PCGExPickers::GetPicks(Context->PickerFactories, PointDataFacade, UniqueIndices);
 
 		if (UniqueIndices.IsEmpty())
 		{

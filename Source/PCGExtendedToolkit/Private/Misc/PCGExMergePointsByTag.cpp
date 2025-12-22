@@ -3,9 +3,9 @@
 
 #include "Misc/PCGExMergePointsByTag.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExDataTags.h"
-#include "Data/PCGExPointIOMerger.h"
+#include "Utils/PCGExPointIOMerger.h"
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsByTagElement"
 #define PCGEX_NAMESPACE MergePointsByTag
@@ -298,14 +298,14 @@ bool FPCGExMergePointsByTagElement::AdvanceWork(FPCGExContext* InContext, const 
 
 	PCGEX_ON_ASYNC_STATE_READY(PCPGExMergePointsByTag::State_MergingData)
 	{
-		Context->SetState(PCGExCommon::State_Writing);
+		Context->SetState(PCGExCommon::States::State_Writing);
 
 		TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		PCGEX_SCHEDULING_SCOPE(TaskManager, true)
 		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(TaskManager); }
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_Writing)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_Writing)
 	{
 		Context->MainPoints->StageOutputs();
 		Context->Done();

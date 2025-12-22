@@ -4,7 +4,7 @@
 #include "Misc/PCGExDiscardByOverlap.h"
 
 #include "PCGExMathBounds.h"
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTags.h"
@@ -171,7 +171,7 @@ bool FPCGExDiscardByOverlapElement::AdvanceWork(FPCGExContext* InContext, const 
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->Prune();
 	Context->Done();

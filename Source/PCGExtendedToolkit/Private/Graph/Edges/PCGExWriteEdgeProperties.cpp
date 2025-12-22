@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExWriteEdgeProperties.h"
 
-#include "PCGExMT.h"
+
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Blenders/PCGExBlendOpsManager.h"
 #include "Blenders/PCGExMetadataBlender.h"
@@ -23,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties(
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, bEndpointsBlending ? EPCGPinStatus::Normal : EPCGPinStatus::Advanced);
-	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
+	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
 	return PinProperties;
 }
 
@@ -69,7 +69,7 @@ bool FPCGExWriteEdgePropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
 

@@ -5,11 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/PCGExBufferHelper.h"
-
-
 #include "PCGExDestroyActor.generated.h"
 
 namespace PCGExMT

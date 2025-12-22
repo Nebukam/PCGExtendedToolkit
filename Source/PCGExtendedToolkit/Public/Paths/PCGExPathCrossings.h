@@ -12,6 +12,7 @@
 #include "Paths/PCGExPathIntersectionDetails.h"
 #include "PCGExPathCrossings.generated.h"
 
+class UPCGExSubPointsBlendInstancedFactory;
 class FPCGExSubPointsBlendOperation;
 
 namespace PCGExBlending

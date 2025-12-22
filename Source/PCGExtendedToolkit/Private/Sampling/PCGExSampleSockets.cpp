@@ -6,7 +6,7 @@
 #include "Engine/StaticMesh.h"
 #include "PCGComponent.h"
 
-#include "PCGExMT.h"
+
 #include "PCGExStreamingHelpers.h"
 #include "Elements/PCGExSocketStaging.h"
 #include "Elements/PCGExStaging.h"
@@ -83,11 +83,11 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	{
 		if (Context->StaticMesh)
 		{
-			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 		}
 		else
 		{
-			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 
 			if (!Context->StaticMeshLoader->Start(Context->GetTaskManager()))
 			{
@@ -98,7 +98,7 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		if (Context->StaticMeshLoader && Context->StaticMeshLoader->IsEmpty())
 		{
@@ -115,7 +115,7 @@ bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->SocketsCollection->StageOutputs();
 

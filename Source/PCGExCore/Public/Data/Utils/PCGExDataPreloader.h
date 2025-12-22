@@ -26,7 +26,11 @@ namespace PCGExData
 {
 	class FFacade;
 	class IBuffer;
-	PCGEX_CTX_STATE(State_PreloadingData)
+	
+	namespace States
+	{
+		PCGEX_CTX_STATE(State_PreloadingData)
+	}
 
 	enum class EBufferPreloadType : uint8
 	{

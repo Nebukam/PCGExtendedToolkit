@@ -6,10 +6,10 @@
 #include "CoreMinimal.h"
 #include "Utils/PCGExCompare.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Data/Utils/PCGExDataForward.h"
-#include "Data/Matching/PCGExMatching.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
-#include "Transform/PCGExFitting.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Details/PCGExMatchingDetails.h"
+#include "Fitting/PCGExFitting.h"
+#include "Helpers/PCGExDataMatcher.h"
 
 
 #include "PCGExCopyClustersToPoints.generated.h"

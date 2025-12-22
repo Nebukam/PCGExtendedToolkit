@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExUnpackClusters.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
@@ -127,10 +127,10 @@ bool FPCGExUnpackClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
 		while (Context->AdvancePointsIO(false)) { PCGEX_LAUNCH(FPCGExUnpackClusterTask, Context->CurrentIO) }
-		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		Context->OutPoints->StageOutputs();
 		Context->OutEdges->StageOutputs();

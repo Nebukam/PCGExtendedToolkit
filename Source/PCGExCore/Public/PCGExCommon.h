@@ -61,23 +61,26 @@ namespace PCGExCommon
 
 #define PCGEX_CTX_STATE(_NAME) const PCGExCommon::ContextState _NAME = FName(#_NAME);
 
-	PCGEX_CTX_STATE(State_Preparation)
-	PCGEX_CTX_STATE(State_LoadingAssetDependencies)
-	PCGEX_CTX_STATE(State_AsyncPreparation)
-	PCGEX_CTX_STATE(State_FacadePreloading)
+	namespace States
+	{
+		PCGEX_CTX_STATE(State_Preparation)
+		PCGEX_CTX_STATE(State_LoadingAssetDependencies)
+		PCGEX_CTX_STATE(State_AsyncPreparation)
+		PCGEX_CTX_STATE(State_FacadePreloading)
 
-	PCGEX_CTX_STATE(State_InitialExecution)
-	PCGEX_CTX_STATE(State_ReadyForNextPoints)
-	PCGEX_CTX_STATE(State_ProcessingPoints)
+		PCGEX_CTX_STATE(State_InitialExecution)
+		PCGEX_CTX_STATE(State_ReadyForNextPoints)
+		PCGEX_CTX_STATE(State_ProcessingPoints)
 
-	PCGEX_CTX_STATE(State_WaitingOnAsyncWork)
-	PCGEX_CTX_STATE(State_Done)
+		PCGEX_CTX_STATE(State_WaitingOnAsyncWork)
+		PCGEX_CTX_STATE(State_Done)
 
-	PCGEX_CTX_STATE(State_Processing)
-	PCGEX_CTX_STATE(State_Completing)
-	PCGEX_CTX_STATE(State_Writing)
+		PCGEX_CTX_STATE(State_Processing)
+		PCGEX_CTX_STATE(State_Completing)
+		PCGEX_CTX_STATE(State_Writing)
 
-	PCGEX_CTX_STATE(State_UnionWriting)
+		PCGEX_CTX_STATE(State_UnionWriting)
+	}
 
 	namespace Labels
 	{

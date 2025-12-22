@@ -6,13 +6,12 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
+#include "Details/PCGExMatchingDetails.h"
+#include "Math/PCGExMathAxis.h"
 
-#include "Data/Matching/PCGExMatching.h"
 #include "Paths/PCGExCreateSpline.h"
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
-#include "Sampling/PCGExSampling.h"
-
-#include "Transform/PCGExTransform.h"
+#include "Sampling/PCGExSampleInsidePath.h"
 
 #include "PCGExCopyToPaths.generated.h"
 

@@ -34,7 +34,7 @@ bool FPCGExMakeClustersUniqueElement::AdvanceWork(FPCGExContext* InContext, cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetState(PCGExCommon::State_ReadyForNextPoints);
+		Context->SetState(PCGExCommon::States::State_ReadyForNextPoints);
 	}
 
 	while (Context->AdvancePointsIO(false))

@@ -3,8 +3,8 @@
 
 #include "Sampling/PCGExSelfPruning.h"
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
+
+#include "Helpers/PCGExRandomHelpers.h"
 #include "PCGExSorting.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
@@ -70,7 +70,7 @@ bool FPCGExSelfPruningElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	Context->Done();

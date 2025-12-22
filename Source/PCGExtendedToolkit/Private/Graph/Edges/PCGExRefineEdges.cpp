@@ -4,7 +4,7 @@
 #include "Graph/Edges/PCGExRefineEdges.h"
 
 
-#include "PCGExMT.h"
+
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -37,7 +37,7 @@ void UPCGExRefineEdgesSettings::ApplyDeprecation(UPCGNode* InOutNode)
 
 bool UPCGExRefineEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExClusters::Labels::SourceHeuristicsLabel) { return Refinement && Refinement->WantsHeuristics(); }
+	if (InPin->Properties.Label == PCGExHeuristics::Labels::SourceHeuristicsLabel) { return Refinement && Refinement->WantsHeuristics(); }
 	if (InPin->Properties.Label == PCGExClusters::Labels::SourceEdgeFiltersLabel) { return Refinement && Refinement->SupportFilters(); }
 
 	return Super::IsPinUsedByNodeExecution(InPin);
@@ -46,8 +46,8 @@ bool UPCGExRefineEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) c
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
-	else { PCGEX_PIN_FACTORIES(PCGExClusters::Labels::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Advanced, FPCGExDataTypeInfoHeuristics::AsId()) }
+	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
+	else { PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Advanced, FPCGExDataTypeInfoHeuristics::AsId()) }
 
 	if (Refinement && Refinement->SupportFilters()) { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceEdgeFiltersLabel, "Refinements filters.", Normal) }
 	else { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceEdgeFiltersLabel, "Refinements filters.", Advanced) }
@@ -173,12 +173,12 @@ bool FPCGExRefineEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode != EPCGExRefineEdgesOutput::Clusters ? PCGExCommon::State_Done : PCGExGraphs::State_ReadyToCompile)
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode != EPCGExRefineEdgesOutput::Clusters ? PCGExCommon::States::State_Done : PCGExGraphs::States::State_ReadyToCompile)
 
 	if (Settings->Mode == EPCGExRefineEdgesOutput::Clusters)
 	{
 		// Wait for compilation
-		if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
+		if (!Context->CompileGraphBuilders(true, PCGExCommon::States::State_Done)) { return false; }
 		Context->MainPoints->StageOutputs();
 	}
 	else if (Settings->Mode == EPCGExRefineEdgesOutput::Points)

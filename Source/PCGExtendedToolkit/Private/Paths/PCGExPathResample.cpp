@@ -3,8 +3,8 @@
 
 #include "Paths/PCGExPathResample.h"
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
+
+#include "Helpers/PCGExRandomHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "Paths/PCGExPath.h"
@@ -75,7 +75,7 @@ bool FPCGExResamplePathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 

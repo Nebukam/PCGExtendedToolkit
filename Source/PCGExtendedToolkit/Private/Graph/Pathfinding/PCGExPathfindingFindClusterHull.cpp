@@ -65,7 +65,7 @@ bool FPCGExFindClusterHullElement::AdvanceWork(FPCGExContext* InContext, const U
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	// TODO : Output seeds?
 

@@ -7,7 +7,9 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "Misc/PCGExModularSortPoints.h"
+#include "Sorting/PCGExPointSorter.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSortPoints"
@@ -63,7 +65,7 @@ bool FPCGExSortPointsBaseElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

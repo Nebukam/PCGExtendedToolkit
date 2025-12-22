@@ -12,6 +12,7 @@
 #include "Clusters/PCGExEdge.h"
 #include "Data/PCGExData.h"
 #include "Core/PCGExUnionData.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Graphs/PCGExGraph.h"
 #include "Graphs/PCGExGraphMetadata.h"
 #include "PCGExMatching/Public/Helpers/PCGExTargetsHandler.h"

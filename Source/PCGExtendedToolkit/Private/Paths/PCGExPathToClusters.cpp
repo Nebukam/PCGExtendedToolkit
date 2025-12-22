@@ -4,7 +4,7 @@
 #include "Paths/PCGExPathToClusters.h"
 
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
 #include "Graphs/PCGExGraph.h"
@@ -125,13 +125,13 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(Settings->bFusePaths ? PCGExGraphs::State_PreparingUnion : PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(Settings->bFusePaths ? PCGExGraphs::States::State_PreparingUnion : PCGExCommon::States::State_Done)
 
 #pragma region Intersection management
 
 	if (Settings->bFusePaths)
 	{
-		PCGEX_ON_STATE(PCGExGraphs::State_PreparingUnion)
+		PCGEX_ON_STATE(PCGExGraphs::States::State_PreparingUnion)
 		{
 			const int32 NumFacades = Context->MainBatch->ProcessorFacades.Num();
 			Context->PathsFacades.Reserve(NumFacades);

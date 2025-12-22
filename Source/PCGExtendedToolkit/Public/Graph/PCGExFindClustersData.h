@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExLabels.h"
+
 
 #include "Core/PCGExPointsProcessor.h"
 #include "Graphs/Union/PCGExIntersections.h"

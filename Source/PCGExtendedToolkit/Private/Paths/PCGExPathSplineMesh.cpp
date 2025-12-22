@@ -7,8 +7,8 @@
 #include "Components/SplineMeshComponent.h"
 
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
+
+#include "Helpers/PCGExRandomHelpers.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
@@ -161,7 +161,7 @@ bool FPCGExPathSplineMeshElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);

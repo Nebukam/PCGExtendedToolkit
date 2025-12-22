@@ -7,7 +7,7 @@
 #include "Components/SplineMeshComponent.h"
 
 
-#include "PCGExMT.h"
+
 #include "PCGExStreamingHelpers.h"
 #include "Core/PCGExAssetLoader.h"
 #include "Data/PCGExData.h"
@@ -102,7 +102,7 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 
 		if (Context->StaticMesh)
 		{
@@ -133,7 +133,7 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 		if (Context->IsWaitingForTasks()) { return false; }
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		if (Context->StaticMeshLoader && Context->StaticMeshLoader->IsEmpty())
 		{
@@ -160,7 +160,7 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);

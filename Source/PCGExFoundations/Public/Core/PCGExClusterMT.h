@@ -244,7 +244,7 @@ namespace PCGExClusterMT
 
 	public:
 		TArray<TSharedRef<IProcessor>> Processors;
-		std::atomic<PCGExCommon::ContextState> CurrentState{PCGExCommon::State_InitialExecution};
+		std::atomic<PCGExCommon::ContextState> CurrentState{PCGExCommon::States::State_InitialExecution};
 		int32 GetNumProcessors() const { return Processors.Num(); }
 
 		bool bIsBatchValid = true;

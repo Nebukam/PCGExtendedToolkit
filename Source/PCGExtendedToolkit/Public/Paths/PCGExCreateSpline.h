@@ -6,13 +6,10 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPathProcessor.h"
-
 #include "Core/PCGExPointsProcessor.h"
-
-
+#include "Details/PCGExAttachmentRules.h"
 #include "Elements/PCGCreateSpline.h"
 #include "Tangents/PCGExTangentsInstancedFactory.h"
-#include "Transform/PCGExTransform.h"
 
 #include "PCGExCreateSpline.generated.h"
 

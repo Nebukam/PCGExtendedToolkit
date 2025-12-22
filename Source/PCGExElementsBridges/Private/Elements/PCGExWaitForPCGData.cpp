@@ -5,7 +5,7 @@
 
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "Core/PCGExPointsProcessor.h"
+
 #include "Helpers/PCGExStreamingHelpers.h"
 #include "PCGGraph.h"
 #include "PCGSubsystem.h"
@@ -180,7 +180,7 @@ bool FPCGExWaitForPCGDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	return Context->TryComplete();
 }

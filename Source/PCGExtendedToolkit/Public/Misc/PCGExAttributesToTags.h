@@ -6,10 +6,11 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/Utils/PCGExDataForward.h"
+
 
 #include "PCGExAttributesToTags.generated.h"
 
+struct FPCGExAttributeToTagDetails;
 class UPCGExPickerFactoryData;
 
 UENUM()

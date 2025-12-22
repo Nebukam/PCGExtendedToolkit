@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExCollocationCount.h"
 
-#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -45,7 +44,7 @@ bool FPCGExCollocationCountElement::AdvanceWork(FPCGExContext* InContext, const 
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

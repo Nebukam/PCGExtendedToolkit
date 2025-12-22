@@ -10,6 +10,7 @@
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "PCGExMT.h"
+
 #include "Data/PCGExDataCommon.h"
 
 class FPCGExUniqueNameGenerator;
@@ -92,8 +93,8 @@ public:
 	void ReadyForExecution();
 
 	bool IsState(const PCGExCommon::ContextState StateId) const { return CurrentState.load(std::memory_order_acquire) == StateId.GetComparisonIndex().ToUnstableInt(); }
-	bool IsInitialExecution() const { return IsState(PCGExCommon::State_InitialExecution); }
-	bool IsDone() const { return IsState(PCGExCommon::State_Done); }
+	bool IsInitialExecution() const { return IsState(PCGExCommon::States::State_InitialExecution); }
+	bool IsDone() const { return IsState(PCGExCommon::States::State_Done); }
 	bool IsWorkCompleted() const { return bWorkCompleted.load(std::memory_order_acquire); }
 
 	bool IsWorkCancelled() const

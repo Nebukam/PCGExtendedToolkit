@@ -4,8 +4,8 @@
 #include "Sampling/PCGExPackActorData.h"
 
 #include "PCGComponent.h"
-#include "PCGExMT.h"
-#include "Core/PCGExPointsProcessor.h"
+
+
 #include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
 #include "Data/PCGExAttributeBroadcaster.h"
@@ -258,7 +258,7 @@ bool FPCGExPackActorDataElement::AdvanceWork(FPCGExContext* InContext, const UPC
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

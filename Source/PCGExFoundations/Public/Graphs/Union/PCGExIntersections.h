@@ -8,9 +8,10 @@
 #include "PCGExOctree.h"
 #include "Containers/PCGExScopedContainers.h"
 #include "Core/PCGExOpStats.h"
-#include "Data/Utils/PCGExDataForward.h"
+
 #include "Data/PCGExPointElements.h"
 #include "Clusters/PCGExEdge.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Details/PCGExFuseDetails.h"
 
 #include "PCGExIntersections.generated.h"

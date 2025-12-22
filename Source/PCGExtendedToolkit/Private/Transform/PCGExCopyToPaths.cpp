@@ -4,7 +4,7 @@
 #include "Transform/PCGExCopyToPaths.h"
 
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
@@ -151,7 +151,7 @@ bool FPCGExCopyToPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

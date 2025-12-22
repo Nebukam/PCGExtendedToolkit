@@ -4,16 +4,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
-#include "Transform/PCGExFitting.h"
+
+#include "Clusters/PCGExClusterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Data/Utils/PCGExDataForward.h"
+#include "Data/External/PCGExMeshCommon.h"
+#include "Data/External/PCGExMeshImportDetails.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Fitting/PCGExFitting.h"
 #include "Graphs/PCGExGraphDetails.h"
-
-
-#include "Geometry/PCGExGeoMesh.h"
-
 #include "PCGExMeshToClusters.generated.h"
+
+namespace PCGExMesh
+{
+	class FGeoStaticMeshMap;
+}
 
 namespace PCGExGraphs
 {

@@ -190,7 +190,7 @@ bool FPCGExClustersProcessorContext::ProcessClusters(const PCGExCommon::ContextS
 			else
 			{
 				bBatchProcessingEnabled = false;
-				if (NextStateId == PCGExCommon::State_Done) { Done(); }
+				if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
 				SetState(NextStateId);
 			}
 		}
@@ -200,7 +200,7 @@ bool FPCGExClustersProcessorContext::ProcessClusters(const PCGExCommon::ContextS
 			ClusterProcessing_WritingDone();
 
 			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGExCommon::State_Done) { Done(); }
+			if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
 			SetState(NextStateId);
 		}
 	}
@@ -210,13 +210,13 @@ bool FPCGExClustersProcessorContext::ProcessClusters(const PCGExCommon::ContextS
 
 bool FPCGExClustersProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId)
 {
-	PCGEX_ON_STATE_INTERNAL(PCGExGraphs::State_ReadyToCompile)
+	PCGEX_ON_STATE_INTERNAL(PCGExGraphs::States::State_ReadyToCompile)
 	{
-		SetState(PCGExGraphs::State_Compiling);
+		SetState(PCGExGraphs::States::State_Compiling);
 		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->CompileGraphBuilder(bOutputToContext); }
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExGraphs::State_Compiling)
+	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExGraphs::States::State_Compiling)
 	{
 		ClusterProcessing_GraphCompilationDone();
 		SetState(NextStateId);
@@ -315,7 +315,7 @@ void FPCGExClustersProcessorContext::AdvanceBatch(const PCGExCommon::ContextStat
 	{
 		CurrentBatch = nullptr;
 		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGExCommon::State_Done) { Done(); }
+		if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
 		SetState(NextStateId);
 	}
 	else

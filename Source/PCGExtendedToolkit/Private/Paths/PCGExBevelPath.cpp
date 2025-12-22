@@ -113,7 +113,7 @@ bool FPCGExBevelPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 

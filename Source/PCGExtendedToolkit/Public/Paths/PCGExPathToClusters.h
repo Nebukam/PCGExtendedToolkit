@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExLabels.h"
+
 #include "Core/PCGExPathProcessor.h"
 #include "Graphs/Union/PCGExUnionProcessor.h"
 #include "Graphs/Union/PCGExIntersections.h"

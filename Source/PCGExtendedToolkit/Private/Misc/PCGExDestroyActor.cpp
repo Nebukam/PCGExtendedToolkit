@@ -4,8 +4,8 @@
 #include "Misc/PCGExDestroyActor.h"
 
 #include "PCGComponent.h"
-#include "PCGExMT.h"
-#include "Core/PCGExPointsProcessor.h"
+
+
 #include "PCGExSubSystem.h"
 #include "PCGManagedResource.h"
 #include "Data/PCGExAttributeBroadcaster.h"
@@ -54,7 +54,7 @@ bool FPCGExDestroyActorElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

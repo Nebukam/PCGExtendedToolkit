@@ -7,7 +7,7 @@
 #include "Core/PCGExPathProcessor.h"
 
 #include "PCGExSorting.h"
-#include "Data/PCGExPointIOMerger.h"
+#include "Utils/PCGExPointIOMerger.h"
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExPathStitch.generated.h"

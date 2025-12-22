@@ -6,12 +6,9 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPathfinding.h"
-#include "Core/PCGExPointsProcessor.h"
-#include "Data/Utils/PCGExDataForward.h"
-#include "Details/PCGExDetailsCluster.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Paths/PCGExPath.h"
-
+#include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Paths/PCGExPathOutputDetails.h"
 #include "PCGExPathfindingEdges.generated.h"
 
 class UPCGExSearchInstancedFactory;

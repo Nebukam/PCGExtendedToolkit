@@ -4,7 +4,7 @@
 
 #include "Misc/PCGExUberFilterCollections.h"
 
-#include "PCGExMT.h"
+
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -17,7 +17,7 @@
 
 bool UPCGExUberFilterCollectionsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExPicker::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
+	if (InPin->Properties.Label == PCGExPickers::Labels::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -26,7 +26,7 @@ bool UPCGExUberFilterCollectionsSettings::HasDynamicPins() const { return true; 
 TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, FPCGExDataTypeInfoPicker::AsId())
+	PCGEX_PIN_FACTORIES(PCGExPickers::Labels::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, FPCGExDataTypeInfoPicker::AsId())
 	return PinProperties;
 }
 
@@ -55,7 +55,7 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilterCollections)
 
-	PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
+	PCGExFactories::GetInputFactories(Context, PCGExPickers::Labels::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
 
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
@@ -121,7 +121,7 @@ bool FPCGExUberFilterCollectionsElement::AdvanceWork(FPCGExContext* InContext, c
 
 	if (!Context->bHasOnlyCollectionFilters)
 	{
-		PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+		PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 		Context->MainBatch->Output();
 	}
 
@@ -149,7 +149,7 @@ namespace PCGExUberFilterCollections
 
 		PointDataFacade->Source->bAllowEmptyOutput = true;
 
-		bUsePicks = PCGExPicker::GetPicks(Context->PickerFactories, PointDataFacade, Picks);
+		bUsePicks = PCGExPickers::GetPicks(Context->PickerFactories, PointDataFacade, Picks);
 		NumPoints = bUsePicks ? Picks.Num() : PointDataFacade->GetNum();
 
 		if (Settings->Measure == EPCGExMeanMeasure::Discrete)

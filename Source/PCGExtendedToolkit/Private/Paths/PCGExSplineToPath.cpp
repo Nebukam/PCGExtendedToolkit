@@ -3,8 +3,8 @@
 
 #include "Paths/PCGExSplineToPath.h"
 
-#include "PCGExMT.h"
-#include "PCGExRandomHelpers.h"
+
+#include "Helpers/PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTags.h"
@@ -279,10 +279,10 @@ bool FPCGExSplineToPathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 			NewOutput->Tags->Append(Context->Tags[i]);
 		}
 
-		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+		Context->SetState(PCGExCommon::States::State_WaitingOnAsyncWork);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_WaitingOnAsyncWork)
 	{
 		PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 		Context->Done();

@@ -4,8 +4,7 @@
 #pragma once
 
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Types/PCGExTypeOps.h"
-#include "Types/PCGExTypeTraits.h"
+#include "Types/PCGExTypes.h"
 
 namespace PCGExPropertyHelpers
 {

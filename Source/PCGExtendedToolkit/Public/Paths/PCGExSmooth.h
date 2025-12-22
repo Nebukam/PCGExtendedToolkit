@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
-#include "PCGExLabels.h"
+
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExSettingsMacros.h"

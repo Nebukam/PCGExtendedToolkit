@@ -5,8 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Graph/PCGExMergeVertices.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Graphs/PCGExGraphDetails.h"
+#include "Math/PCGExProjectionDetails.h"
 #include "Math/Geo/PCGExGeo.h"
 #include "Math/Geo/PCGExVoronoi.h"
 
