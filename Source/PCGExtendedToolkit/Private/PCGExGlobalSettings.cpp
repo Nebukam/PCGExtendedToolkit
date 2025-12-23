@@ -24,7 +24,12 @@ void UPCGExGlobalSettings::PostEditChangeProperty(struct FPropertyChangedEvent& 
 void UPCGExGlobalSettings::UpdateSettingsCaches() const
 {
 #define PCGEX_PUSH_SETTING(_MODULE, _SETTING) PCGEX_SETTINGS_INST(_MODULE)._SETTING = _SETTING;
+	
+#if WITH_EDITOR
 #define PCGEX_PUSH_COLOR(_COLOR) PCGEX_CORE_SETTINGS.ColorsMap.Add(FName(#_COLOR), Color##_COLOR);
+#else
+#define PCGEX_PUSH_COLOR(_COLOR)
+#endif
 
 	// Push values to module settings cache
 

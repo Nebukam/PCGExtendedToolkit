@@ -3,10 +3,12 @@
 
 #include "PCGExFilters.h"
 
+#if WITH_EDITOR
 #include "PCGEditorSettings.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
+#endif
 
 
 #define LOCTEXT_NAMESPACE "FPCGExFiltersModule"

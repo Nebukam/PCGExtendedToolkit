@@ -27,6 +27,12 @@ void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyle
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 
+	PCGEX_REGISTER_PIN_ICON(IN_Vtx)
+	PCGEX_REGISTER_PIN_ICON(OUT_Vtx)
+	
+	PCGEX_REGISTER_PIN_ICON(IN_Edges)
+	PCGEX_REGISTER_PIN_ICON(OUT_Edges)
+	
 	PCGEX_REGISTER_DATA_TYPE(ClusterState, ClusterState)
 	PCGEX_REGISTER_DATA_TYPE(FillControl, FillControl)
 }

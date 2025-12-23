@@ -24,10 +24,8 @@ void UPCGExCollectionsSettings::PostEditChangeProperty(struct FPropertyChangedEv
 void UPCGExCollectionsSettings::UpdateSettingsCaches() const
 {
 #define PCGEX_PUSH_SETTING(_MODULE, _SETTING) PCGEX_SETTINGS_INST(_MODULE)._SETTING = _SETTING;
-#define PCGEX_PUSH_COLOR(_COLOR) PCGEX_CORE_SETTINGS.ColorsMap.Add(FName(#_COLOR), Color##_COLOR);
 
 	PCGEX_PUSH_SETTING(Collections, bDisableCollisionByDefault)
 
 #undef PCGEX_PUSH_SETTING
-#undef PCGEX_PUSH_COLOR
 }
