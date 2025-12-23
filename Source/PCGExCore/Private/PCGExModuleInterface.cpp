@@ -37,7 +37,7 @@ void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& I
 	
 	TArray<FCoreRedirect> Redirects;
 
-	const FString ThisModuleName = UE_MODULE_NAME;
+	const FString ThisModuleName = GetModuleName();
 	const FString OldModuleName = TEXT("PCGExtendedToolkit");
 
 	for (TObjectIterator<UClass> It; It; ++It)

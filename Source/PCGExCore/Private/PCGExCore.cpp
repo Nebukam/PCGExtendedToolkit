@@ -10,7 +10,7 @@
 #include "PCGExCoreEditor/Public/PCGExAssetTypesMacros.h"
 #endif
 
-IMPLEMENT_MODULE(FPCGExCoreModule, PCGExCore)
+PCGEX_IMPLEMENT_MODULE(FPCGExCoreModule, PCGExCore)
 
 #if WITH_EDITOR
 void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)

@@ -20,4 +20,4 @@ void FPCGExElementsPathfindingModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsPathfindingModule, PCGExElementsPathfinding)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsPathfindingModule, PCGExElementsPathfinding)

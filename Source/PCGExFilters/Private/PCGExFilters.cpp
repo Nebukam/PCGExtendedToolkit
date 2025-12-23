@@ -38,4 +38,4 @@ void FPCGExFiltersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InS
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExFiltersModule, PCGExFilters)
+PCGEX_IMPLEMENT_MODULE(FPCGExFiltersModule, PCGExFilters)

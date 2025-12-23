@@ -7,7 +7,9 @@
 #include "PCGExModuleInterface.h"
 
 class FPCGExMatchingModule final : public IPCGExModuleInterface
-{
+{ 
+	PCGEX_MODULE_BODY
+	
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;

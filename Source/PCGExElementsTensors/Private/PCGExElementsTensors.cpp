@@ -33,4 +33,4 @@ void FPCGExElementsTensorsModule::RegisterToEditor(const TSharedPtr<FSlateStyleS
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsTensorsModule, PCGExElementsTensors)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsTensorsModule, PCGExElementsTensors)

@@ -20,4 +20,4 @@ void FPCGExElementsSpatialModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsSpatialModule, PCGExElementsSpatial)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsSpatialModule, PCGExElementsSpatial)

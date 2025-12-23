@@ -25,4 +25,4 @@ void FPCGExCollectionsModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExCollectionsModule, PCGExCollections)
+PCGEX_IMPLEMENT_MODULE(FPCGExCollectionsModule, PCGExCollections)

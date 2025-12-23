@@ -9,7 +9,9 @@
 DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
 
 class FPCGExFoundationsModule final : public IPCGExModuleInterface
-{
+{ 
+	PCGEX_MODULE_BODY
+	
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;

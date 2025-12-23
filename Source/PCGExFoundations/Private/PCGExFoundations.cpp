@@ -30,4 +30,4 @@ void FPCGExFoundationsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>&
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExFoundationsModule, PCGExFoundations)
+PCGEX_IMPLEMENT_MODULE(FPCGExFoundationsModule, PCGExFoundations)

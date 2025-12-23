@@ -32,4 +32,4 @@ void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyle
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsClustersModule, PCGExElementsClusters)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsClustersModule, PCGExElementsClusters)

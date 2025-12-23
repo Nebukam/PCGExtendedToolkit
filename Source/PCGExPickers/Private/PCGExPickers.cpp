@@ -32,4 +32,4 @@ void FPCGExPickersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InS
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExPickersModule, PCGExPickers)
+PCGEX_IMPLEMENT_MODULE(FPCGExPickersModule, PCGExPickers)

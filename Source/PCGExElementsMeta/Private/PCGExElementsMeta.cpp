@@ -41,4 +41,4 @@ void FPCGExElementsMetaModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsMetaModule, PCGExElementsMeta)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsMetaModule, PCGExElementsMeta)

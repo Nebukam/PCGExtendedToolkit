@@ -20,4 +20,4 @@ void FPCGExElementsTopologyModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsTopologyModule, PCGExElementsTopology)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsTopologyModule, PCGExElementsTopology)

@@ -7,9 +7,11 @@
 #include "PCGExModuleInterface.h"
 
 class FPCGExBlendingModule final : public IPCGExModuleInterface
-{
+{ 
+	PCGEX_MODULE_BODY
+		
 public:
-	/** IModuleInterface implementation */
+	/** IModuleInterface implementation */	
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	

@@ -20,4 +20,4 @@ void FPCGExElementsBridgesModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsBridgesModule, PCGExElementsBridges)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsBridgesModule, PCGExElementsBridges)

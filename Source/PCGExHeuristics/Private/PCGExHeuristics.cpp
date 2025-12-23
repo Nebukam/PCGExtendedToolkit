@@ -32,4 +32,4 @@ void FPCGExHeuristicsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& 
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExHeuristicsModule, PCGExHeuristics)
+PCGEX_IMPLEMENT_MODULE(FPCGExHeuristicsModule, PCGExHeuristics)

@@ -32,4 +32,4 @@ void FPCGExElementsProbingModule::RegisterToEditor(const TSharedPtr<FSlateStyleS
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsProbingModule, PCGExElementsProbing)
+PCGEX_IMPLEMENT_MODULE(FPCGExElementsProbingModule, PCGExElementsProbing)
