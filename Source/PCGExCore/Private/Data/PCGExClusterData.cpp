@@ -57,5 +57,3 @@ void UPCGExClusterEdgesData::BeginDestroy()
 	Super::BeginDestroy();
 	Cluster.Reset();
 }
-
-

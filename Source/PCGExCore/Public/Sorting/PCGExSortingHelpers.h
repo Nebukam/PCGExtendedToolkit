@@ -9,7 +9,7 @@
 namespace PCGExSortingHelpers
 {
 	using PCGEx::FIndexKey;
-	
+
 	struct FVectorKey
 	{
 		FVectorKey() = default;

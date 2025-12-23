@@ -149,21 +149,19 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W > 0.5 ? B : A; }
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return A; }
-		
+
 		static FORCEINLINE Type Abs(const Type& A) { return A; }
 		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return FMath::IsNearlyZero(Factor) ? false : A; }
 
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
-			return static_cast<double>(*static_cast<const Type*>(Value));
+			return *static_cast<const Type*>(Value);
 		}
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
 		{
 			*static_cast<Type*>(Target) = static_cast<Type>(Value);
 		}
-		
-		
 	};
 
 	// Numeric Type Operations - int32
@@ -172,7 +170,7 @@ namespace PCGExTypeOps
 	struct FTypeOps<int32>
 	{
 		using Type = int32;
-		
+
 		static FORCEINLINE Type GetDefault() { return 0; }
 		static FORCEINLINE PCGExValueHash Hash(const Type& Value) { return GetTypeHash(Value); }
 
@@ -262,10 +260,10 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
 		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
-		
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
-			return static_cast<double>(*static_cast<const Type*>(Value));
+			return *static_cast<const Type*>(Value);
 		}
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
@@ -354,12 +352,12 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return FMath::Max(FMath::Abs(A), FMath::Abs(B)); }
-		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return static_cast<Type>(HashCombine(GetTypeHash(A), GetTypeHash(B))); }
+		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return HashCombine(GetTypeHash(A), GetTypeHash(B)); }
 
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			const Type MinV = FMath::Min(A, B), MaxV = FMath::Max(A, B);
-			return static_cast<Type>(HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV)));
+			return HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV));
 		}
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? static_cast<Type>(FMath::Fmod(static_cast<double>(A), M)) : A; }
@@ -370,7 +368,7 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
 		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
-		
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			return static_cast<double>(*static_cast<const Type*>(Value));
@@ -478,10 +476,10 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
 		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
-		
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
-			return static_cast<double>(*static_cast<const Type*>(Value));
+			return *static_cast<const Type*>(Value);
 		}
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
@@ -570,12 +568,12 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type AbsoluteMin(const Type& A, const Type& B) { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); }
 		static FORCEINLINE Type AbsoluteMax(const Type& A, const Type& B) { return FMath::Max(FMath::Abs(A), FMath::Abs(B)); }
-		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return static_cast<Type>(HashCombine(GetTypeHash(A), GetTypeHash(B))); }
+		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B) { return HashCombine(GetTypeHash(A), GetTypeHash(B)); }
 
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			const Type MinV = FMath::Min(A, B), MaxV = FMath::Max(A, B);
-			return static_cast<Type>(HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV)));
+			return HashCombine(GetTypeHash(MinV), GetTypeHash(MaxV));
 		}
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M) { return M != 0.0 ? FMath::Fmod(A, M) : A; }
@@ -586,15 +584,15 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type Abs(const Type& A) { return FMath::Abs(A); }
 		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
-		
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
-			return static_cast<double>(*static_cast<const Type*>(Value));
+			return *static_cast<const Type*>(Value);
 		}
 
 		static FORCEINLINE void InjectField(void* Target, double Value, ESingleField Field)
 		{
-			*static_cast<Type*>(Target) = static_cast<Type>(Value);
+			*static_cast<Type*>(Target) = Value;
 		}
 	};
 }

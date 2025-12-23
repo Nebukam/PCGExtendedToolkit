@@ -35,7 +35,7 @@ class UPCGExPointFilterFactoryData;
 
 namespace PCGExMT
 {
-	template<typename T>
+	template <typename T>
 	class TScopedNumericValue;
 }
 

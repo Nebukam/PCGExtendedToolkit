@@ -11,22 +11,22 @@
 namespace PCGExPathfinding
 {
 	FPathQuery::FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const FNodePick& InSeed, const FNodePick& InGoal, const int32 InQueryIndex)
-	: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
+		: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 	{
 	}
 
 	FPathQuery::FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const PCGExData::FConstPoint& InSeed, const PCGExData::FConstPoint& InGoal, const int32 InQueryIndex)
-	: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
+		: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 	{
 	}
 
 	FPathQuery::FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const PCGExData::FConstPoint& InGoalPointRef, const int32 InQueryIndex)
-	: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
+		: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
 	{
 	}
 
 	FPathQuery::FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TSharedPtr<FPathQuery>& PreviousQuery, const TSharedPtr<FPathQuery>& NextQuery, const int32 InQueryIndex)
-	: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(NextQuery->Seed), QueryIndex(InQueryIndex)
+		: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(NextQuery->Seed), QueryIndex(InQueryIndex)
 	{
 	}
 
@@ -147,5 +147,4 @@ namespace PCGExPathfinding
 		PathNodes.Empty();
 		PathEdges.Empty();
 	}
-
 }

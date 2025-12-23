@@ -98,7 +98,7 @@ namespace PCGExAssetCollection
 			FReadScopeLock Lock(RegistryLock);
 			for (const auto& Pair : Types) { Callback(Pair.Value); }
 		}
-		
+
 		static void AddPendingRegistration(TFunction<void()>&& Func);
 		static void ProcessPendingRegistrations();
 
@@ -107,7 +107,7 @@ namespace PCGExAssetCollection
 
 		static TArray<TFunction<void()>>& GetPendingRegistrations();
 		static bool& IsProcessed();
-		
+
 		mutable FRWLock RegistryLock;
 		TMap<FTypeId, FTypeInfo> Types;
 		TMap<TWeakObjectPtr<UClass>, FTypeId> ClassToType;
@@ -134,7 +134,6 @@ PCGExAssetCollection::FTypeRegistry::Get().Register(Info); \
 } \
 } GAutoRegister##_CollectionClass; \
 }
-	
 }
 
 /**

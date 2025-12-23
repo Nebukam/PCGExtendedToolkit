@@ -257,7 +257,7 @@ Context->StageOutput(Extra, PCGExRecursionTracker::Output##_NAME##Label, PCGExDa
 			Tags->Set<int32>(TAG_REMAINDER_STR, SafeMax);
 
 			const TSet<FString> FlattenedTags = Tags->Flatten();
-			
+
 			PCGEX_OUTPUT_EXTRA(Progress, float, Settings->bOneMinus ? 1 : 0)
 			PCGEX_OUTPUT_EXTRA(Index, int32, 0)
 			PCGEX_OUTPUT_EXTRA(Remainder, int32, SafeMax)

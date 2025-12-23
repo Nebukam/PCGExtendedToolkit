@@ -226,14 +226,14 @@ namespace PCGExWaitForPCGData
 		});
 
 		WatcherTracker = MakeShared<FPCGExIntTracker>([PCGEX_ASYNC_THIS_CAPTURE]()
-		                                                {
-			                                                PCGEX_ASYNC_THIS
-			                                                This->WatchToken = This->TaskManager->TryCreateToken(FName("Watch"));
-		                                                }, [PCGEX_ASYNC_THIS_CAPTURE]()
-		                                                {
-			                                                PCGEX_ASYNC_THIS
-			                                                PCGEX_ASYNC_RELEASE_TOKEN(This->WatchToken);
-		                                                });
+		                                              {
+			                                              PCGEX_ASYNC_THIS
+			                                              This->WatchToken = This->TaskManager->TryCreateToken(FName("Watch"));
+		                                              }, [PCGEX_ASYNC_THIS_CAPTURE]()
+		                                              {
+			                                              PCGEX_ASYNC_THIS
+			                                              PCGEX_ASYNC_RELEASE_TOKEN(This->WatchToken);
+		                                              });
 
 		PCGEX_MAKE_SHARED(ActorReferences, PCGExData::TAttributeBroadcaster<FSoftObjectPath>)
 

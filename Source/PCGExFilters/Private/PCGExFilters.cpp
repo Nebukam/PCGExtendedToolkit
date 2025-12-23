@@ -25,13 +25,13 @@ void FPCGExFiltersModule::ShutdownModule()
 void FPCGExFiltersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-	
-	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(Filter, Filter,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
-	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterPoint, FilterPoint,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
-	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCollection, FilterCollection,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
-	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCluster, FilterCluster,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
-	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterVtx, FilterVtx,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
-	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterEdge, FilterEdge,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(Filter, Filter, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterPoint, FilterPoint, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCollection, FilterCollection, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCluster, FilterCluster, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterVtx, FilterVtx, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterEdge, FilterEdge, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
 }
 #endif
 

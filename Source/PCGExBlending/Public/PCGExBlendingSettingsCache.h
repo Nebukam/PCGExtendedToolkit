@@ -37,7 +37,6 @@ enum class EPCGExBlendingTypeDefault : uint8
 struct PCGEXBLENDING_API FPCGExBlendingSettingsCache
 {
 	PCGEX_SETTING_CACHE_BODY(Blending)
-	
 	EPCGExBlendingTypeDefault DefaultBooleanBlendMode = EPCGExBlendingTypeDefault::Default;
 	EPCGExBlendingTypeDefault DefaultFloatBlendMode = EPCGExBlendingTypeDefault::Default;
 	EPCGExBlendingTypeDefault DefaultDoubleBlendMode = EPCGExBlendingTypeDefault::Default;
@@ -53,5 +52,4 @@ struct PCGEXBLENDING_API FPCGExBlendingSettingsCache
 	EPCGExBlendingTypeDefault DefaultNameBlendMode = EPCGExBlendingTypeDefault::Copy;
 	EPCGExBlendingTypeDefault DefaultSoftObjectPathBlendMode = EPCGExBlendingTypeDefault::Copy;
 	EPCGExBlendingTypeDefault DefaultSoftClassPathBlendMode = EPCGExBlendingTypeDefault::Copy;
-	
 };

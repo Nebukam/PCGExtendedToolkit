@@ -50,7 +50,6 @@ class PCGEXCORE_API IPCGExModuleInterface : public IModuleInterface
 public:
 	virtual FString GetModuleName() const { return TEXT(""); }
 
-public:
 	// Static registry
 	static TArray<IPCGExModuleInterface*> RegisteredModules;
 

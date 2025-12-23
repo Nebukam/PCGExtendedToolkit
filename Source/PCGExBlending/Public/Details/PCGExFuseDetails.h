@@ -126,7 +126,6 @@ struct PCGEXBLENDING_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 
 	bool IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
 	bool IsWithinToleranceComponentWise(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
-	
+
 	const PCGExMath::FDistances* GetDistances() const;
-	
 };

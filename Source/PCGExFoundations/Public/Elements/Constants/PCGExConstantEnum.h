@@ -16,7 +16,6 @@
 struct FPCGExBitmask;
 
 
-
 UENUM(BlueprintType)
 enum class EPCGExEnumConstantOutputType : uint8
 {

@@ -39,7 +39,7 @@ namespace PCGExTypes
 		// Static assertions to ensure buffer is large enough for all types
 #define PCGEX_TPL(_TYPE, _NAME, ...) static_assert(BufferSize >= sizeof(_TYPE), "Buffer too small for "#_NAME);
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-	#undef PCGEX_TPL
+#undef PCGEX_TPL
 
 	private:
 		alignas(BufferAlignment) uint8 Storage[BufferSize];

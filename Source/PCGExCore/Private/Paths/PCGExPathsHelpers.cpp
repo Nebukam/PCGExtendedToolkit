@@ -235,7 +235,7 @@ namespace PCGExPaths
 		: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
 	{
 	}
-	
+
 	bool FPathEdgeCrossings::FindSplit(const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength, const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails)
 	{
 		if (!OtherPath->IsEdgeValid(OtherEdge)) { return false; }

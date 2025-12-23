@@ -31,7 +31,7 @@ struct PCGEXCORE_API FPCGExCoreSettingsCache
 	bool bBulkInitData = false;
 	bool bUseDelaunator = true;
 	bool bAssertOnEmptyThread = true;
-	
+
 	bool bUseNativeColorsIfPossible = true;
 	bool bToneDownOptionalPins = true;
 
@@ -41,7 +41,7 @@ struct PCGEXCORE_API FPCGExCoreSettingsCache
 
 	int32 SmallPointsSize = 1024;
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }
-	
+
 	int32 SmallClusterSize = 512;
 
 	int32 PointsDefaultBatchChunkSize = 1024;
@@ -51,14 +51,14 @@ struct PCGEXCORE_API FPCGExCoreSettingsCache
 	int32 GetClusterBatchChunkSize(const int32 In = -1) const { return FMath::Max(In <= -1 ? ClusterDefaultBatchChunkSize : In, 1); }
 
 #if WITH_EDITOR
-	
+
 	TMap<FName, FLinearColor> ColorsMap;
-	
+
 	FLinearColor GetColor(const FName InColor) const;
 	FLinearColor GetColorOptIn(const FName InColor) const;
 	FLinearColor GetColorOptIn(const FLinearColor InColor) const;
 	FLinearColor GetColorOptIn(const FName InColor, const FLinearColor InNative) const;
-	
+
 	struct FPinInfos
 	{
 		FName Icon = NAME_None;

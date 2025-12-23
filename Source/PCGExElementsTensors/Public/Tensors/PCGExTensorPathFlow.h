@@ -42,7 +42,6 @@ struct FPCGExTensorPathFlowConfig : public FPCGExTensorConfigBase
 	/**  Which spline transform axis is to be used */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis SplineDirection = EPCGExAxis::Forward;
-
 };
 
 /**

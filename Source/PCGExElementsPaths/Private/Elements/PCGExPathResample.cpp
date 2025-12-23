@@ -255,14 +255,14 @@ namespace PCGExResamplePath
 			PCGEX_SCOPE_LOOP(Index)
 			{
 				const FPointSample& Sample = Samples[Index];
-				
+
 				OutTransforms[Index].SetLocation(Sample.Location);
-				
+
 				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandomHelpers::ComputeSpatialSeed(Sample.Location); }
 
 				const FVector Start = Path->GetPos(Sample.Start);
 				const double SampleBreadth = FVector::Dist(Start, Path->GetPos(Sample.End));
-				
+
 				//if (SourcesRange == 1)
 				//{
 				const double Weight = SampleBreadth > 0 ? FVector::Dist(Start, Sample.Location) / SampleBreadth : 0.5;

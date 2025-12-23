@@ -88,14 +88,14 @@ namespace PCGExMath
 {
 	FVector FPCGExConstantUVW::GetPosition(const PCGExData::FConstPoint& Point) const
 	{
-		const FBox Bounds = PCGExMath::GetLocalBounds(Point, BoundsReference);
+		const FBox Bounds = GetLocalBounds(Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * FVector(U, V, W));
 		return Point.GetTransform().TransformPositionNoScale(LocalPosition);
 	}
 
 	FVector FPCGExConstantUVW::GetPosition(const PCGExData::FConstPoint& Point, FVector& OutOffset) const
 	{
-		const FBox Bounds = PCGExMath::GetLocalBounds(Point, BoundsReference);
+		const FBox Bounds = GetLocalBounds(Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * FVector(U, V, W));
 		const FTransform& Transform = Point.GetTransform();
 		OutOffset = Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
@@ -124,14 +124,14 @@ namespace PCGExMath
 
 	FVector FPCGExConstantUVW::GetPosition(const PCGExData::FConstPoint& Point, const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
 	{
-		const FBox Bounds = PCGExMath::GetLocalBounds(Point, BoundsReference);
+		const FBox Bounds = GetLocalBounds(Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(Axis, bMirrorAxis));
 		return Point.GetTransform().TransformPositionNoScale(LocalPosition);
 	}
 
 	FVector FPCGExConstantUVW::GetPosition(const PCGExData::FConstPoint& Point, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
 	{
-		const FBox Bounds = PCGExMath::GetLocalBounds(Point, BoundsReference);
+		const FBox Bounds = GetLocalBounds(Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(Axis, bMirrorAxis));
 		const FTransform& Transform = Point.GetTransform();
 		OutOffset = Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());

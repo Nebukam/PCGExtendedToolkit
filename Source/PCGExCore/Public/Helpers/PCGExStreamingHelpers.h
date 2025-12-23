@@ -40,15 +40,15 @@ namespace PCGExHelpers
 		return LoadBlocking_AnyThread(SoftObjectPtr.ToSoftObjectPath(), InContext);
 	}
 
-	PCGEXCORE_API 
+	PCGEXCORE_API
 	TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths, FPCGExContext* InContext = nullptr);
 
 	PCGEXCORE_API
 	void Load(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd);
-	
+
 	PCGEXCORE_API
 	void SafeReleaseHandle(TSharedPtr<FStreamableHandle>& InHandle);
-	
+
 	PCGEXCORE_API
 	void SafeReleaseHandles(TArray<TSharedPtr<FStreamableHandle>>& InHandles);
 }

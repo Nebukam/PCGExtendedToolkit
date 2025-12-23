@@ -46,5 +46,4 @@ class FPCGExInputShorthandRotatorCustomization : public FPCGExInputShorthandCust
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 	virtual TSharedRef<SWidget> CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle) override;
-
 };

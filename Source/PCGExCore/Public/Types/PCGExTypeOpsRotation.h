@@ -179,17 +179,17 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(A.Pitch), GetTypeHash(B.Pitch))),
-				static_cast<double>(HashCombine(GetTypeHash(A.Yaw), GetTypeHash(B.Yaw))),
-				static_cast<double>(HashCombine(GetTypeHash(A.Roll), GetTypeHash(B.Roll))));
+				HashCombine(GetTypeHash(A.Pitch), GetTypeHash(B.Pitch)),
+				HashCombine(GetTypeHash(A.Yaw), GetTypeHash(B.Yaw)),
+				HashCombine(GetTypeHash(A.Roll), GetTypeHash(B.Roll)));
 		}
 
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Pitch, B.Pitch)), GetTypeHash(FMath::Max(A.Pitch, B.Pitch)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Yaw, B.Yaw)), GetTypeHash(FMath::Max(A.Yaw, B.Yaw)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Roll, B.Roll)), GetTypeHash(FMath::Max(A.Roll, B.Roll)))));
+				HashCombine(GetTypeHash(FMath::Min(A.Pitch, B.Pitch)), GetTypeHash(FMath::Max(A.Pitch, B.Pitch))),
+				HashCombine(GetTypeHash(FMath::Min(A.Yaw, B.Yaw)), GetTypeHash(FMath::Max(A.Yaw, B.Yaw))),
+				HashCombine(GetTypeHash(FMath::Min(A.Roll, B.Roll)), GetTypeHash(FMath::Max(A.Roll, B.Roll))));
 		}
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M)
@@ -331,7 +331,10 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type Div(const Type& A, double D)
 		{
-			if (D == 0.0) return A;
+			if (D == 0.0)
+			{
+				return A;
+			}
 			// Convert to rotator, divide, convert back
 			FRotator R = A.Rotator();
 			R.Pitch /= D;
@@ -374,7 +377,10 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M)
 		{
-			if (M == 0.0) return A;
+			if (M == 0.0)
+			{
+				return A;
+			}
 			FRotator R = A.Rotator();
 			R.Pitch = FMath::Fmod(R.Pitch, M);
 			R.Yaw = FMath::Fmod(R.Yaw, M);
@@ -514,7 +520,10 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type Div(const Type& A, double D)
 		{
-			if (D == 0.0) return A;
+			if (D == 0.0)
+			{
+				return A;
+			}
 
 			// Divide rotation via rotator
 			FRotator R = A.Rotator();
@@ -590,7 +599,10 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M)
 		{
-			if (M == 0.0) return A;
+			if (M == 0.0)
+			{
+				return A;
+			}
 
 			FRotator R = A.Rotator();
 			R.Pitch = FMath::Fmod(R.Pitch, M);

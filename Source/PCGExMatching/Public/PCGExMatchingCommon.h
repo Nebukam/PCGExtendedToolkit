@@ -42,15 +42,12 @@ enum class EPCGExMatchingDetailsUsage : uint8
 	Sampling = 2,
 };
 
-namespace PCGExMatching
+namespace PCGExMatching::Labels
 {
-	namespace Labels
-	{
-		const FName OutputMatchRuleLabel = TEXT("Match Rule");
-		const FName SourceMatchRulesLabel = TEXT("Match Rules");
-		const FName SourceMatchRulesEdgesLabel = TEXT("Match Rules (Edges)");
-		const FName OutputUnmatchedLabel = TEXT("Unmatched");
-		const FName OutputUnmatchedVtxLabel = TEXT("Unmatched Vtx");
-		const FName OutputUnmatchedEdgesLabel = TEXT("Unmatched Edges");
-	}
+	const FName OutputMatchRuleLabel = TEXT("Match Rule");
+	const FName SourceMatchRulesLabel = TEXT("Match Rules");
+	const FName SourceMatchRulesEdgesLabel = TEXT("Match Rules (Edges)");
+	const FName OutputUnmatchedLabel = TEXT("Unmatched");
+	const FName OutputUnmatchedVtxLabel = TEXT("Unmatched Vtx");
+	const FName OutputUnmatchedEdgesLabel = TEXT("Unmatched Edges");
 }

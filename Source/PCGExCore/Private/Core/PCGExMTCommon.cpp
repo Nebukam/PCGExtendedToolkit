@@ -15,5 +15,4 @@ namespace PCGExMT
 		OutIndices.SetNumUninitialized(Count);
 		for (int i = 0; i < Count; i++) { OutIndices[i] = Start + i; }
 	}
-
 }

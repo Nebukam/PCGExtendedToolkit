@@ -24,7 +24,7 @@ void FPCGExElementsActionsModule::ShutdownModule()
 void FPCGExElementsActionsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-	
+
 	PCGEX_REGISTER_DATA_TYPE(Action, Action)
 }
 #endif

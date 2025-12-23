@@ -60,7 +60,7 @@ namespace PCGExArrayHelpers
 			OutStrings.AddUnique(String);
 		}
 	}
-	
+
 	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset)
 	{
 		OutArray.Reserve(InNum);

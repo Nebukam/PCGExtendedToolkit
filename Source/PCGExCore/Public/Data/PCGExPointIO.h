@@ -153,14 +153,14 @@ namespace PCGExData
 				{
 					T* TypedOut = SharedContext.Get()->ManagedObjects->DuplicateData<T>(TypedIn);
 					if (!TypedOut) { return false; }
-					
+
 					Out = Cast<UPCGBasePointData>(TypedOut);
 				}
 				else
 				{
 					T* TypedOut = SharedContext.Get()->ManagedObjects->New<T>();
 					if (!TypedOut) { return false; }
-					
+
 					Out = Cast<UPCGBasePointData>(TypedOut);
 
 					FPCGInitializeFromDataParams InitializeFromDataParams(In);
@@ -219,10 +219,10 @@ namespace PCGExData
 		FPCGExTaggedData GetTaggedData(const EIOSide Source = EIOSide::In);
 
 		void InitializeMetadataEntries_Unsafe(const bool bConservative = true) const;
-		
+
 		TSharedPtr<IPCGAttributeAccessorKeys> GetInKeys();
 		TSharedPtr<IPCGAttributeAccessorKeys> GetOutKeys(const bool bEnsureValidKeys = false);
-		
+
 		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return FConstPoint(In, Index, IOIndex); }
 		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return FMutablePoint(Out, Index, IOIndex); }
 

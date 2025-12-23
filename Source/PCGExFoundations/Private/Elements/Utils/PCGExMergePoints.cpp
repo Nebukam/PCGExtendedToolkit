@@ -141,7 +141,7 @@ namespace PCGExMergePoints
 
 					for (int i = OutScope.Start; i < OutScope.End; i++) { WritableBuffer->SetVoid(i, Value.GetRaw()); }
 				}
-				
+
 				continue; // This is a value tag, not a simple tag, stop processing here.
 			}
 

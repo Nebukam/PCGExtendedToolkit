@@ -47,7 +47,7 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 	virtual const UPCGExAssetCollection* GetSubCollectionPtr() const override;
 
 	virtual void ClearSubCollection() override;
-	
+
 	// ---------------------------------------------------------------------------------
 	// Lifecycle
 	// ---------------------------------------------------------------------------------
@@ -70,10 +70,11 @@ class PCGEXCOLLECTIONS_API UPCGExActorCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 	PCGEX_ASSET_COLLECTION_BODY(FPCGExActorCollectionEntry)
-
+	
+public:
+	
 	friend struct FPCGExActorCollectionEntry;
 
-public:
 	// ---------------------------------------------------------------------------------
 	// Type System
 	// ---------------------------------------------------------------------------------

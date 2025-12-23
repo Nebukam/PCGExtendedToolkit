@@ -9,7 +9,6 @@
 
 namespace PCGExGraphs
 {
-
 	FGraph::FGraph(const int32 InNumNodes)
 	{
 		int32 StartNodeIndex = 0;

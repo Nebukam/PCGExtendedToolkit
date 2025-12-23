@@ -15,7 +15,7 @@ namespace PCGExClusters
 {
 	class FCluster;
 	using PCGExGraphs::FLink;
-	
+
 	class PCGEXCORE_API FNodeChain : public TSharedFromThis<FNodeChain>
 	{
 	public:

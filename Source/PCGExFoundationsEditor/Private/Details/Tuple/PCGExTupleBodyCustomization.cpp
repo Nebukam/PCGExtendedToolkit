@@ -70,9 +70,9 @@ void FPCGExTupleBodyCustomization::CustomizeChildren(
 		{
 			// Add a direct property row for this field
 			IDetailPropertyRow& Row = *ChildBuilder.AddExternalStructureProperty(
-					MakeShared<FStructOnScope>(InnerStruct, StructMemory),
-					ValueProperty->GetFName()
-				);
+				MakeShared<FStructOnScope>(InnerStruct, StructMemory),
+				ValueProperty->GetFName()
+			);
 			Row.DisplayName(FText::FromName((Composition->GetData() + i)->Name));
 		}
 	}

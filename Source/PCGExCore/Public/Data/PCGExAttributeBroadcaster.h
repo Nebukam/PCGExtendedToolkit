@@ -93,7 +93,7 @@ namespace PCGExData
 		TSharedPtr<IPCGAttributeAccessorKeys> Keys;
 		TUniquePtr<const IPCGAttributeAccessor> InternalAccessor;
 
-		TSharedPtr<PCGExData::IDataValue> DataValue;
+		TSharedPtr<IDataValue> DataValue;
 		T TypedDataValue = T{};
 
 		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
@@ -111,9 +111,9 @@ namespace PCGExData
 
 		bool IsUsable(int32 NumEntries);
 
-		bool Prepare(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
-		bool Prepare(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO);
-		bool Prepare(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+		bool Prepare(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<FPointIO>& InPointIO);
+		bool Prepare(const FName& InName, const TSharedRef<FPointIO>& InPointIO);
+		bool Prepare(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<FPointIO>& InPointIO);
 
 		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr);
 		bool PrepareForSingleFetch(const FName& InName, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr);
@@ -143,25 +143,25 @@ namespace PCGExData
 
 		void Grab(const bool bCaptureMinMax = false);
 
-		T FetchSingle(const PCGExData::FElement& Element, const T& Fallback) const;
-		bool TryFetchSingle(const PCGExData::FElement& Element, T& OutValue) const;
+		T FetchSingle(const FElement& Element, const T& Fallback) const;
+		bool TryFetchSingle(const FElement& Element, T& OutValue) const;
 		virtual EPCGMetadataTypes GetMetadataType() const override;
 	};
 
-	PCGEXCORE_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	PCGEXCORE_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FName& InName, const TSharedRef<FPointIO>& InPointIO, bool bSingleFetch = false);
 
-	PCGEXCORE_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	PCGEXCORE_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<FPointIO>& InPointIO, bool bSingleFetch = false);
 
-	PCGEXCORE_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
-
-	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	PCGEXCORE_API TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<FPointIO>& InPointIO, bool bSingleFetch = false);
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FName& InName, const TSharedRef<FPointIO>& InPointIO, bool bSingleFetch = false);
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch = false);
+	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<FPointIO>& InPointIO, bool bSingleFetch = false);
+
+	template <typename T>
+	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<FPointIO>& InPointIO, bool bSingleFetch = false);
 
 #pragma region externalization
 

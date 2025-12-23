@@ -45,7 +45,7 @@ namespace PCGExFilters
 		Edge,
 		Collection,
 	};
-	
+
 	namespace Labels
 	{
 		const FName OutputFilterLabel = FName("Filter");
@@ -67,7 +67,7 @@ namespace PCGExFilters
 
 		const FName OutputInsideFiltersLabel = FName("Inside");
 		const FName OutputOutsideFiltersLabel = FName("Outside");
-		
+
 		const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
 	}
 }

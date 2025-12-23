@@ -7,7 +7,7 @@
 #include "PCGExH.h"
 
 namespace PCGExGraphs
-{	
+{
 	struct PCGEXCORE_API FLink
 	{
 		int32 Node = -1;
@@ -30,7 +30,6 @@ namespace PCGExGraphs
 		bool operator==(const FLink& Other) const { return Node == Other.Node && Edge == Other.Edge; }
 		FORCEINLINE friend uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
 	};
-	
-	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
 
+	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
 }

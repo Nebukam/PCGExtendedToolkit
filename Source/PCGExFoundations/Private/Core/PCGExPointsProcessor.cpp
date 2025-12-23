@@ -102,13 +102,10 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 			MainBatch->Write();
 			return false;
 		}
-		else
-		{
-			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
-			SetState(NextStateId);
-			return true;
-		}
+		bBatchProcessingEnabled = false;
+		if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
+		SetState(NextStateId);
+		return true;
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsWriting)

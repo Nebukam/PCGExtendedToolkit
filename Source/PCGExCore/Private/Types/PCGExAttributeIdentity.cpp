@@ -251,10 +251,10 @@ namespace PCGExData
 		return NewInfos;
 	}
 
-	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const TSharedPtr<PCGExData::FPointIOCollection>& InCollection, TSet<FName>& OutTypeMismatch, const TSet<FName>* IgnoredAttributes)
+	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const TSharedPtr<FPointIOCollection>& InCollection, TSet<FName>& OutTypeMismatch, const TSet<FName>* IgnoredAttributes)
 	{
 		PCGEX_MAKE_SHARED(NewInfos, FAttributesInfos)
-		for (const TSharedPtr<PCGExData::FPointIO>& IO : InCollection->Pairs)
+		for (const TSharedPtr<FPointIO>& IO : InCollection->Pairs)
 		{
 			TSharedPtr<FAttributesInfos> Infos = Get(IO->GetIn()->Metadata, IgnoredAttributes);
 			NewInfos->Append(Infos, OutTypeMismatch, IgnoredAttributes);

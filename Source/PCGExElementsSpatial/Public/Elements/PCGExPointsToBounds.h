@@ -7,7 +7,6 @@
 #include "PCGExBlendingCommon.h"
 
 
-
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Math/PCGExBestFitPlane.h"

@@ -19,5 +19,4 @@ public:
 		TSharedRef<IPropertyHandle> PropertyHandle,
 		class IDetailChildrenBuilder& ChildBuilder,
 		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-
 };

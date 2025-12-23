@@ -23,7 +23,7 @@ namespace PCGExData
 		FPCGExForwardDetails Details;
 		TSharedPtr<FFacade> SourceDataFacade;
 		TSharedPtr<FFacade> TargetDataFacade;
-		TArray<PCGExData::FAttributeIdentity> Identities;
+		TArray<FAttributeIdentity> Identities;
 		TArray<TSharedPtr<IBuffer>> Readers;
 		TArray<TSharedPtr<IBuffer>> Writers;
 		bool bElementDomainToDataDomain = false;

@@ -139,7 +139,7 @@ bool FPCGExClustersProcessorContext::ProcessClusters(const PCGExCommon::ContextS
 				AdvanceBatch(NextStateId);
 				return false;
 			}
-			else { return true; }
+			return true;
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterProcessing)
@@ -187,12 +187,9 @@ bool FPCGExClustersProcessorContext::ProcessClusters(const PCGExCommon::ContextS
 				for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->Write(); }
 				return false;
 			}
-			else
-			{
-				bBatchProcessingEnabled = false;
-				if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
-				SetState(NextStateId);
-			}
+			bBatchProcessingEnabled = false;
+			if (NextStateId == PCGExCommon::States::State_Done) { Done(); }
+			SetState(NextStateId);
 		}
 
 		PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExClusterMT::MTState_ClusterWriting)

@@ -19,6 +19,7 @@ namespace PCGExFindAllCells
 {
 	class FProcessor;
 }
+
 namespace PCGExMT
 {
 	template <typename T>

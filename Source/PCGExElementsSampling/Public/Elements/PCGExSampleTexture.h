@@ -119,7 +119,7 @@ namespace PCGExSampleTexture
 		virtual ~FSampler() = default;
 
 		explicit FSampler(const FPCGExTextureParamConfig& InConfig, const TSharedPtr<PCGExTexture::FLookup>& InTextureMap, const TSharedRef<PCGExData::FFacade>& InDataFacade);
-		
+
 		bool IsValid() const { return bValid; }
 		virtual bool Sample(const PCGExData::FConstPoint& Point, const FVector2D& UV) const = 0;
 	};

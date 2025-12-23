@@ -73,17 +73,14 @@ enum class EPCGExGlobalVariationRule : uint8
 ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)
 using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
-namespace PCGExCollections
+namespace PCGExCollections::Labels
 {
-	namespace Labels
-	{
-		const FName SourceAssetCollection = TEXT("AttributeSet");
+	const FName SourceAssetCollection = TEXT("AttributeSet");
 
-		const FName SourceCollectionMapLabel = TEXT("Map");
-		const FName OutputCollectionMapLabel = TEXT("Map");
+	const FName SourceCollectionMapLabel = TEXT("Map");
+	const FName OutputCollectionMapLabel = TEXT("Map");
 
-		const FName Tag_CollectionPath = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Path"));
-		const FName Tag_CollectionIdx = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Idx"));
-		const FName Tag_EntryIdx = FName(PCGExCommon::PCGExPrefix + TEXT("CollectionEntry"));
-	}
+	const FName Tag_CollectionPath = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Path"));
+	const FName Tag_CollectionIdx = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Idx"));
+	const FName Tag_EntryIdx = FName(PCGExCommon::PCGExPrefix + TEXT("CollectionEntry"));
 }

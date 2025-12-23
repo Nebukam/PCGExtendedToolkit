@@ -172,7 +172,7 @@ namespace PCGExMath
 		int32 A;
 		int32 B;
 		int32 C;
-		PCGExMath::GetAxesOrder(Order, A, B, C);
+		GetAxesOrder(Order, A, B, C);
 		FVector Temp = Vector;
 		Vector[0] = Temp[A];
 		Vector[1] = Temp[B];

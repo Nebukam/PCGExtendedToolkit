@@ -120,5 +120,4 @@ namespace PCGExData
 		const TSet<int32> Overlap = Entries[InIdx]->IOSet.Intersect(InIndices);
 		return Overlap.Num() > 0;
 	}
-
 }

@@ -4,7 +4,6 @@
 #include "Elements/Meta/PCGExSampleNeighbors.h"
 
 
-
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Elements/Meta/NeighborSamplers/PCGExNeighborSampleFactoryProvider.h"

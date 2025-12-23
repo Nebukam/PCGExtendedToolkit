@@ -10,7 +10,7 @@ TArray<IPCGExEditorModuleInterface*> IPCGExEditorModuleInterface::RegisteredModu
 void IPCGExEditorModuleInterface::StartupModule()
 {
 	RegisteredModules.Add(this);
-	
+
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &IPCGExEditorModuleInterface::RegisterMenuExtensions));
 }
 

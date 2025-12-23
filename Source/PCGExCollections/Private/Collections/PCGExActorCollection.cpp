@@ -95,7 +95,7 @@ void FPCGExActorCollectionEntry::EDITOR_Sanitize()
 }
 #endif
 
-#pragma endregion 
+#pragma endregion
 
 #if WITH_EDITOR
 void UPCGExActorCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)

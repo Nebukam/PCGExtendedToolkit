@@ -180,7 +180,7 @@ namespace PCGExArrayHelpers
 			}
 		}
 	}
-	
+
 	PCGEXCORE_API void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset = 0);
 	PCGEXCORE_API int32 ArrayOfIndices(TArray<int32>& OutArray, const TArrayView<const int8>& Mask, const int32 Offset, const bool bInvert = false);
 	PCGEXCORE_API int32 ArrayOfIndices(TArray<int32>& OutArray, const TBitArray<>& Mask, const int32 Offset, const bool bInvert = false);

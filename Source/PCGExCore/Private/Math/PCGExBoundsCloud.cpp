@@ -76,7 +76,7 @@ namespace PCGExMath
 	FPointBox::FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion)
 		: Matrix(InPoint.GetTransform().ToMatrixNoScale()), InvMatrix(Matrix.Inverse()), Index(InIndex)
 	{
-		const FBox PointBox = PCGExMath::GetLocalBounds(InPoint, BoundsSource);
+		const FBox PointBox = GetLocalBounds(InPoint, BoundsSource);
 		Extents = PointBox.GetExtent();
 		double Size = PointBox.GetExtent().Size();
 		double SanitizedExpansion = Expansion < 0 ? FMath::Max(Expansion, -Size) : Expansion;
@@ -275,7 +275,7 @@ namespace PCGExMath
 
 	bool FBoundsCloud::Sample(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource, TArray<FSample>& OutSample) const
 	{
-		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.GetTransform().GetLocation(), PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
+		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.GetTransform().GetLocation(), GetLocalBounds(Point, BoundsSource).GetExtent());
 		Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox)
 		{
 			FSample& Sample = OutSample.Emplace_GetRef();

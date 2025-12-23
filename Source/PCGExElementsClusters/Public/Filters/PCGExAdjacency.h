@@ -106,5 +106,3 @@ struct FPCGExAdjacencySettings
 	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet = false);
 	int32 GetThreshold(const PCGExClusters::FNode& Node) const;
 };
-
-

@@ -238,7 +238,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 	protected:
 		// Used to read from an attribute as another type
-		TSharedPtr<PCGExData::TAttributeBroadcaster<T>> InternalBroadcaster;
+		TSharedPtr<TAttributeBroadcaster<T>> InternalBroadcaster;
 		bool bSparseBuffer = false;
 
 		TSharedPtr<TArray<T>> InValues;
@@ -401,7 +401,7 @@ extern template class TSingleValueBuffer<_TYPE>;
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
 
-		TSharedPtr<IBuffer> GetReadable(const PCGExData::FAttributeIdentity& Identity, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
+		TSharedPtr<IBuffer> GetReadable(const FAttributeIdentity& Identity, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
 
 		TSharedPtr<IBuffer> GetDefaultReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
 
@@ -433,7 +433,7 @@ extern template class TSingleValueBuffer<_TYPE>;
 		const UPCGBasePointData* GetIn() const;
 		UPCGBasePointData* GetOut() const;
 
-		void CreateReadables(const TArray<PCGExData::FAttributeIdentity>& Identities, const bool bWantsScoped = true);
+		void CreateReadables(const TArray<FAttributeIdentity>& Identities, const bool bWantsScoped = true);
 		void MarkCurrentBuffersReadAsComplete();
 
 		void Flush();

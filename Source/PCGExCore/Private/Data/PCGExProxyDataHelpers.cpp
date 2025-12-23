@@ -192,13 +192,10 @@ namespace PCGExData
 				Proxy->OutAttribute = OutAttribute;
 				return Proxy;
 			}
-			else
-			{
-				auto Proxy = MakeShared<TDirectAttributeProxy<T_REAL>>(InDescriptor.WorkingType);
-				Proxy->InAttribute = InAttribute;
-				Proxy->OutAttribute = OutAttribute;
-				return Proxy;
-			}
+			auto Proxy = MakeShared<TDirectAttributeProxy<T_REAL>>(InDescriptor.WorkingType);
+			Proxy->InAttribute = InAttribute;
+			Proxy->OutAttribute = OutAttribute;
+			return Proxy;
 		}
 
 		template <typename T_CONST>
@@ -396,8 +393,8 @@ template PCGEXCORE_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(co
 		const int32 NumDesiredFields,
 		TArray<TSharedPtr<IBufferProxy>>& OutProxies)
 	{
-		OutProxies.Reset(NumDesiredFields);;
-		const int32 Dimensions = FMath::Min(4, PCGExData::FSubSelectorRegistry::Get(InBaseDescriptor.RealType)->GetNumFields());
+		OutProxies.Reset(NumDesiredFields);
+		const int32 Dimensions = FMath::Min(4, FSubSelectorRegistry::Get(InBaseDescriptor.RealType)->GetNumFields());
 
 		if (Dimensions == -1 &&
 			(!InBaseDescriptor.SubSelection.bIsValid || !InBaseDescriptor.SubSelection.bIsComponentSet))

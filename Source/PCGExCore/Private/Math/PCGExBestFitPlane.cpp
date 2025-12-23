@@ -11,7 +11,6 @@
 
 namespace PCGExMath
 {
-	
 	FBestFitPlane::FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FBestFitPlane::FBestFitPlane);
@@ -173,7 +172,7 @@ namespace PCGExMath
 	FTransform FBestFitPlane::GetTransform(const EPCGExAxisOrder Order) const
 	{
 		int32 Comps[3] = {0, 0, 0};
-		PCGExMath::GetAxesOrder(Order, Comps);
+		GetAxesOrder(Order, Comps);
 
 		FTransform Transform = FTransform(FMatrix(Axis[Comps[0]], Axis[Comps[1]], Axis[Comps[2]], FVector::Zero()));
 		Transform.SetLocation(Centroid);

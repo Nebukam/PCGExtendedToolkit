@@ -131,9 +131,9 @@ struct PCGEXELEMENTSTENSORS_API FPCGExTensorConfigBase
 
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Guide", meta=(PCG_NotOverridable))
 	//FPCGExCurveLookupDetails GuideCurveLookup;
-	
+
 	//PCGExFloatLUT GuideCurveObj = nullptr;
-	
+
 	// Potency Falloff
 
 	/** Per-point internal Weight input type */
@@ -165,9 +165,9 @@ struct PCGEXELEMENTSTENSORS_API FPCGExTensorConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails PotencyFalloffCurveLookup;
-	
+
 	PCGExFloatLUT PotencyFalloffLUT = nullptr;
-	
+
 	/** A multiplier applied to Potency after it's computed. Makes it easy to scale entire tensors up or down, or invert their influence altogether. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency Scale", DisplayPriority=-1))
 	double PotencyScale = 1;
@@ -203,7 +203,7 @@ struct PCGEXELEMENTSTENSORS_API FPCGExTensorConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails WeightFalloffCurveLookup;
-	
+
 	PCGExFloatLUT WeightFalloffLUT = nullptr;
 
 	/** How should overlapping effector influence be flattened (not implemented yet)*/

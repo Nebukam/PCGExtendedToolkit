@@ -216,10 +216,11 @@ class PCGEXCOLLECTIONS_API UPCGExMeshCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 	PCGEX_ASSET_COLLECTION_BODY(FPCGExMeshCollectionEntry)
-
+	
+public:
+	
 	friend struct FPCGExMeshCollectionEntry;
 
-public:
 	// ---------------------------------------------------------------------------------
 	// Type System
 	// ---------------------------------------------------------------------------------

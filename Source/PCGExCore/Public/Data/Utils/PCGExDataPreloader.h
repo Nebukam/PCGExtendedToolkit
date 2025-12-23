@@ -26,7 +26,7 @@ namespace PCGExData
 {
 	class FFacade;
 	class IBuffer;
-	
+
 	namespace States
 	{
 		PCGEX_CTX_STATE(State_PreloadingData)
@@ -49,10 +49,10 @@ namespace PCGExData
 	public:
 		EBufferPreloadType Mode = EBufferPreloadType::RawAttribute;
 		FPCGAttributePropertyInputSelector Selector;
-		PCGExData::FAttributeIdentity Identity;
+		FAttributeIdentity Identity;
 
 		FReadableBufferConfig(const FReadableBufferConfig& Other);
-		explicit FReadableBufferConfig(const PCGExData::FAttributeIdentity& InIdentity, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute);
+		explicit FReadableBufferConfig(const FAttributeIdentity& InIdentity, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute);
 		FReadableBufferConfig(const FName InName, const EPCGMetadataTypes InUnderlyingType, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute);
 		FReadableBufferConfig(const FPCGAttributePropertyInputSelector& InSelector, const EPCGMetadataTypes InUnderlyingType);
 
@@ -80,7 +80,7 @@ namespace PCGExData
 
 		bool Validate(FPCGExContext* InContext) const;
 
-		void Register(FPCGExContext* InContext, const PCGExData::FAttributeIdentity& InIdentity);
+		void Register(FPCGExContext* InContext, const FAttributeIdentity& InIdentity);
 
 		void TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector);
 

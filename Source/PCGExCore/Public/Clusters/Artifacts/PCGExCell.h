@@ -133,7 +133,7 @@ namespace PCGExClusters
 		bool ContainsSignedEdgeHash(const uint64 Hash);
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
-		void BuildWrapperCell(const TSharedRef<PCGExClusters::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
+		void BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
 
 		void Cleanup();
 	};
@@ -184,9 +184,9 @@ namespace PCGExClusters
 
 		uint64 GetCellHash();
 
-		ECellResult BuildFromCluster(const PCGExGraphs::FLink InSeedLink, TSharedRef<PCGExClusters::FCluster> InCluster, const TArray<FVector2D>& ProjectedPositions);
+		ECellResult BuildFromCluster(const PCGExGraphs::FLink InSeedLink, TSharedRef<FCluster> InCluster, const TArray<FVector2D>& ProjectedPositions);
 
-		ECellResult BuildFromCluster(const FVector& SeedPosition, const TSharedRef<PCGExClusters::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const FVector& UpVector = FVector::UpVector, const FPCGExNodeSelectionDetails* Picking = nullptr);
+		ECellResult BuildFromCluster(const FVector& SeedPosition, const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const FVector& UpVector = FVector::UpVector, const FPCGExNodeSelectionDetails* Picking = nullptr);
 
 		ECellResult BuildFromPath(const TArray<FVector2D>& ProjectedPositions);
 

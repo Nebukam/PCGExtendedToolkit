@@ -132,7 +132,7 @@ void FPCGExMaterialOverrideEntryCustomization::CustomizeHeader(
 							return FText::FromString(FString::Printf(TEXT("→ %d"), Index));
 						})
 					.Font(IDetailLayoutBuilder::GetDetailFont())
-					.ColorAndOpacity(FSlateColor(FLinearColor(1,1,1,0.25)))
+					.ColorAndOpacity(FSlateColor(FLinearColor(1, 1, 1, 0.25)))
 				]
 			]
 		]

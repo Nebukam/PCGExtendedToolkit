@@ -13,14 +13,11 @@ enum class EPCGExFuseMethod : uint8
 	Octree = 1 UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology. Requires stable insertion with large values."),
 };
 
-namespace PCGExGraphs
+namespace PCGExGraphs::States
 {
-	namespace States
-	{
-		PCGEX_CTX_STATE(State_PreparingUnion)
-		PCGEX_CTX_STATE(State_ProcessingUnion)
+	PCGEX_CTX_STATE(State_PreparingUnion)
+	PCGEX_CTX_STATE(State_ProcessingUnion)
 
-		PCGEX_CTX_STATE(State_ProcessingPointEdgeIntersections)
-		PCGEX_CTX_STATE(State_ProcessingEdgeEdgeIntersections)
-	}
+	PCGEX_CTX_STATE(State_ProcessingPointEdgeIntersections)
+	PCGEX_CTX_STATE(State_ProcessingEdgeEdgeIntersections)
 }

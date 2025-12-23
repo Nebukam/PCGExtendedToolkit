@@ -121,7 +121,7 @@ template PCGEXCORE_API _TYPE IDataValue::GetValue<_TYPE>();
 	}
 
 	template <typename T>
-	void TDataValue<T>::GetVoid(void* OutValue) const{ *static_cast<T*>(OutValue) = Value; }
+	void TDataValue<T>::GetVoid(void* OutValue) const { *static_cast<T*>(OutValue) = Value; }
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 template class PCGEXCORE_API TDataValue<_TYPE>;
@@ -203,9 +203,9 @@ template class PCGEXCORE_API TDataValue<_TYPE>;
 			PCGExMetaHelpers::ExecuteWithRightType(SourceAttribute->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				const T Value = PCGExData::Helpers::ReadDataValue<T>(static_cast<const FPCGMetadataAttribute<T>*>(SourceAttribute));
+				const T Value = Helpers::ReadDataValue<T>(static_cast<const FPCGMetadataAttribute<T>*>(SourceAttribute));
 
-				PCGExData::FSubSelection SubSelection(Selector);
+				FSubSelection SubSelection(Selector);
 				TSharedPtr<IDataValue> TypedDataValue = nullptr;
 
 				if (SubSelection.bIsValid)

@@ -18,7 +18,7 @@ namespace PCGExData
 	{
 	protected:
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
-		
+
 	public:
 		virtual ~IDataValue() = default;
 		FORCEINLINE EPCGMetadataTypes GetTypeId() const { return Type; }
@@ -37,7 +37,7 @@ namespace PCGExData
 
 		template <typename T>
 		T GetValue();
-		
+
 		FORCEINLINE virtual void GetVoid(void* OutValue) const = 0;
 
 	protected:
@@ -71,9 +71,8 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 
 		virtual double AsDouble() override;
 		virtual FString AsString() override;
-		
+
 		FORCEINLINE virtual void GetVoid(void* OutValue) const override;
-		
 	};
 
 #pragma region externalization

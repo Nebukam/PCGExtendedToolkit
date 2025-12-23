@@ -28,13 +28,13 @@ namespace PCGExData
 	/**
 	 * Function pointer types for sub-selection operations
 	 */
-	
+
 	// Extract field value: double = ExtractField(const void* Value, ESingleField Field)
 	using FExtractFieldFn = double (*)(const void* Value, PCGExTypeOps::ESingleField Field);
-	
+
 	// Inject field value: void InjectField(void* Target, double Value, ESingleField Field)  
 	using FInjectFieldFn = void (*)(void* Target, double Value, PCGExTypeOps::ESingleField Field);
-	
+
 	// Extract axis direction: FVector = ExtractAxis(const void* Rotation, EPCGExAxis Axis)
 	using FExtractAxisFn = FVector (*)(const void* Value, EPCGExAxis Axis);
 
@@ -53,7 +53,7 @@ namespace PCGExData
 	namespace SubSelectionImpl
 	{
 		static FORCEINLINE FVector ExtractAxisDefault(const void* Value, EPCGExAxis Axis) { return FVector::ForwardVector; }
-		
+
 		PCGEXCORE_API FExtractFieldFn GetExtractFieldFn(EPCGMetadataTypes Type);
 		PCGEXCORE_API FInjectFieldFn GetInjectFieldFn(EPCGMetadataTypes Type);
 		PCGEXCORE_API FExtractAxisFn GetExtractAxisFn(EPCGMetadataTypes Type);
@@ -92,7 +92,7 @@ namespace PCGExData
 		//
 		// Cached function pointers - resolved once at initialization
 		//
-		
+
 		// Field operations on RealType
 		FExtractFieldFn ExtractFieldFromReal = nullptr;
 		FInjectFieldFn InjectFieldToReal = nullptr;
@@ -123,7 +123,7 @@ namespace PCGExData
 		//
 		// Constructors
 		//
-		
+
 		FCachedSubSelection() = default;
 
 		/**
@@ -132,8 +132,8 @@ namespace PCGExData
 		 * This resolves all function pointers once. After this call,
 		 * ApplyGet/ApplySet use only cached pointers with no lookups.
 		 */
-		void Initialize(const FSubSelection& Selection, 
-		                EPCGMetadataTypes InRealType, 
+		void Initialize(const FSubSelection& Selection,
+		                EPCGMetadataTypes InRealType,
 		                EPCGMetadataTypes InWorkingType);
 
 		/**
@@ -198,5 +198,4 @@ namespace PCGExData
 		void ApplyGetWithComponent(const void* Source, void* OutValue) const;
 		void ApplySetWithComponent(void* Target, const void* Source) const;
 	};
-
 } // namespace PCGEx

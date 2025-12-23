@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnrealBuildTool;
+using EpicGames.Core;
 
 public class PCGExtendedToolkit : ModuleRules
 {
@@ -62,9 +63,10 @@ public class PCGExtendedToolkit : ModuleRules
 					"PCGExFoundationsEditor"
 				});
 		}
-		
+
 		ScanSubModuleDependencies();
 		GenerateSubModulesHeader();
+		UpdateUpluginFile();
 	}
 
 	private void LoadSubModulesFromConfig()
@@ -242,6 +244,98 @@ public class PCGExtendedToolkit : ModuleRules
 		if (!File.Exists(HeaderPath) || File.ReadAllText(HeaderPath) != newContent)
 		{
 			File.WriteAllText(HeaderPath, newContent);
+		}
+	}
+
+
+	private void UpdateUpluginFile()
+	{
+		string UpluginPath = Path.Combine(ModuleDirectory, "..", "..", "PCGExtendedToolkit.uplugin");
+
+		if (!File.Exists(UpluginPath))
+		{
+			return;
+		}
+
+		string Content = File.ReadAllText(UpluginPath);
+
+		// Find "Modules" array bounds
+		int ModulesStart = Content.IndexOf("\"Modules\"");
+		if (ModulesStart == -1)
+		{
+			return;
+		}
+
+		// Find the opening bracket
+		int ArrayStart = Content.IndexOf('[', ModulesStart);
+		if (ArrayStart == -1)
+		{
+			return;
+		}
+
+		// Find matching closing bracket
+		int BracketCount = 1;
+		int ArrayEnd = ArrayStart + 1;
+		while (ArrayEnd < Content.Length && BracketCount > 0)
+		{
+			if (Content[ArrayEnd] == '[') BracketCount++;
+			else if (Content[ArrayEnd] == ']') BracketCount--;
+			ArrayEnd++;
+		}
+
+		// Build module entries
+		List<string> ModuleEntries = new List<string>();
+
+		ModuleEntries.Add(BuildModuleEntry("PCGExtendedToolkit", false));
+		ModuleEntries.Add(BuildModuleEntry("PCGExtendedToolkitEditor", true));
+
+		foreach (string ModuleName in EnabledSubModules)
+		{
+			bool IsEditor = ModuleName.EndsWith("Editor");
+			ModuleEntries.Add(BuildModuleEntry(ModuleName, IsEditor));
+		}
+
+		string ModulesJson = "[\n" + string.Join(",\n", ModuleEntries) + "\n  ]";
+
+		// Replace just the Modules array
+		string NewContent = Content.Substring(0, ArrayStart) + ModulesJson + Content.Substring(ArrayEnd);
+
+		if (Content != NewContent)
+		{
+			File.WriteAllText(UpluginPath, NewContent);
+		}
+	}
+
+	private string BuildModuleEntry(string ModuleName, bool IsEditor)
+	{
+		if (IsEditor)
+		{
+			return $@"    {{
+      ""Name"": ""{ModuleName}"",
+      ""Type"": ""Editor"",
+      ""LoadingPhase"": ""Default"",
+      ""PlatformAllowList"": [
+        ""Win64"",
+        ""Mac"",
+        ""Linux""
+      ]
+    }}";
+		}
+		else
+		{
+			return $@"    {{
+      ""Name"": ""{ModuleName}"",
+      ""Type"": ""Runtime"",
+      ""LoadingPhase"": ""Default"",
+      ""PlatformAllowList"": [
+        ""Win64"",
+        ""Mac"",
+        ""IOS"",
+        ""Android"",
+        ""Linux"",
+        ""LinuxArm64""
+      ]
+    }}";
 		}
 	}
 }

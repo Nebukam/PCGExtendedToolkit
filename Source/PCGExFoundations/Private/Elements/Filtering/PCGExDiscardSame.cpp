@@ -186,9 +186,9 @@ namespace PCGExDiscardSame
 				const TSharedRef<FProcessor> P = Batch->GetProcessorRef<FProcessor>(Pi);
 				if (P == ThisPtr) { continue; }
 
-				if ((Settings->bTestBounds && P->HashBounds == HashBounds) 
+				if ((Settings->bTestBounds && P->HashBounds == HashBounds)
 					|| (Settings->bTestPositions && P->HashPositions == HashPositions)
-					|| (Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) 
+					|| (Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol))
 					|| (Settings->TestAttributesHash != EPCGExDiscardAttributeHashMode::None && P->CompareHashers(Hashers)))
 				{
 					SameAs.Add(P);

@@ -11,16 +11,12 @@ namespace PCGExData
 	class FPointIO;
 }
 
-namespace PCGExBlending
+namespace PCGExBlending::Helpers
 {
-	namespace Helpers
-	{
-		PCGEXBLENDING_API
-		void MergeBestCandidatesAttributes(
-			const TSharedPtr<PCGExData::FPointIO>& Target,
-			const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
-			const TArray<int32>& BestIndices,
-			const PCGExData::FAttributesInfos& InAttributesInfos);
-	}
-	
+	PCGEXBLENDING_API
+	void MergeBestCandidatesAttributes(
+		const TSharedPtr<PCGExData::FPointIO>& Target,
+		const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
+		const TArray<int32>& BestIndices,
+		const PCGExData::FAttributesInfos& InAttributesInfos);
 }

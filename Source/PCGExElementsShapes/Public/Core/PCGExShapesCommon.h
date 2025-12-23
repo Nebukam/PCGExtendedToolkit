@@ -28,11 +28,8 @@ enum class EPCGExShapePointLookAt : uint8
 	Seed = 1 UMETA(DisplayName = "Seed", ToolTip="Look At Seed"),
 };
 
-namespace PCGExShapes
+namespace PCGExShapes::Labels
 {
-	namespace Labels
-	{
-		const FName OutputShapeBuilderLabel = TEXT("Shape Builder");
-		const FName SourceShapeBuildersLabel = TEXT("Shape Builders");
-	}
+	const FName OutputShapeBuilderLabel = TEXT("Shape Builder");
+	const FName SourceShapeBuildersLabel = TEXT("Shape Builders");
 }

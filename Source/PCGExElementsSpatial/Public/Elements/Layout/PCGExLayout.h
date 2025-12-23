@@ -31,7 +31,7 @@ namespace PCGExLayout
 {
 	const FName SourceBinsLabel = TEXT("Bins");
 	const FName OutputBinsLabel = TEXT("Bins");
-	
+
 	struct FItem
 	{
 		int32 Index = 0;

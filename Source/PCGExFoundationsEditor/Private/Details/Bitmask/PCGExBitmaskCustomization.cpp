@@ -88,7 +88,7 @@ void FPCGExBitmaskCustomization::CustomizeChildren(
 	for (uint32 i = 0; i < NumChildren; ++i)
 	{
 		TSharedPtr<IPropertyHandle> Handle = PropertyHandle->GetChildHandle(i);
-		if (Handle->GetProperty()->GetFName() == FName("Mode")) {continue;}
+		if (Handle->GetProperty()->GetFName() == FName("Mode")) { continue; }
 		if (Handle->GetProperty()->GetFName() == FName("Bitmask")) { BuildGrid(PropertyHandle, ChildBuilder); }
 		else { ChildBuilder.AddProperty(Handle.ToSharedRef()); }
 	}

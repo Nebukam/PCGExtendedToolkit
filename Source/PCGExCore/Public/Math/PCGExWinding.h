@@ -25,7 +25,7 @@ namespace PCGExMath
 {
 	PCGEXCORE_API
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise);
-	
+
 	PCGEXCORE_API
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise);
 

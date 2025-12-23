@@ -236,7 +236,7 @@ namespace PCGExSubdivide
 
 		TArray<int32> WriteIndices;
 		WriteIndices.SetNum(InMetadataEntries.Num());
-		
+
 		for (int i = 0; i < Subdivisions.Num(); i++)
 		{
 			const FSubdivision& Sub = Subdivisions[i];

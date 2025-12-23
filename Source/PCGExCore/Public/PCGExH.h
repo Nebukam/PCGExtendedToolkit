@@ -12,7 +12,7 @@ namespace PCGEx
 		int32 Index;
 		uint64 Key;
 	};
-	
+
 	template <typename, typename = void>
 	struct HasGetTypeHash : std::false_type
 	{
@@ -119,7 +119,7 @@ namespace PCGEx
 			FMath::RoundToInt64(Seed.Y / Tolerance.Y),
 			FMath::RoundToInt64(Seed.Z / Tolerance.Z)));
 	}
-	
+
 #define PCGEX_FNV1A\
 	uint64 Hash = 14695981039346656037ULL;\
 	Hash = (Hash ^ X) * 1099511628211ULL;\

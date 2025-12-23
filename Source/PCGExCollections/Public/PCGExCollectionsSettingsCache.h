@@ -11,7 +11,5 @@
 struct PCGEXCOLLECTIONS_API FPCGExCollectionsSettingsCache
 {
 	PCGEX_SETTING_CACHE_BODY(Collections)
-	
 	bool bDisableCollisionByDefault = true;
-	
 };

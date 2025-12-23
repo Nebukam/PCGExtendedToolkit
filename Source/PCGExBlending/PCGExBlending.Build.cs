@@ -6,7 +6,7 @@ using UnrealBuildTool;
 public class PCGExBlending : ModuleRules
 {
 	public PCGExBlending(ReadOnlyTargetRules Target) : base(Target)
-	{
+	{;
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
 		//IWYUSupport = IWYUSupport.Full;

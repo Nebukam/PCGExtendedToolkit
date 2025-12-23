@@ -24,43 +24,43 @@ void FPCGExClampedBitOpCustomization::CustomizeHeader(
 	TSharedPtr<IPropertyHandle> BitIndexHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExClampedBitOp, BitIndex));
 	TSharedPtr<IPropertyHandle> OpHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExClampedBitOp, Op));
 	TSharedPtr<IPropertyHandle> ValueHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExClampedBitOp, bValue));
-	
+
 	HeaderRow.NameContent()
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.AutoWidth()
+		.Padding(2, 0)
 		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.AutoWidth()
-			.Padding(2, 0)
-			[
-				SNew(STextBlock).Text(FText::FromString(TEXT("Bit : "))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
-			]
-			+ SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.AutoWidth()
-			.MinWidth(50)
-			.Padding(2, 0)
-			[
-				BitIndexHandle->CreatePropertyValueWidget()
-			]
-		].ValueContent()
+			SNew(STextBlock).Text(FText::FromString(TEXT("Bit : "))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
+		]
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.AutoWidth()
+		.MinWidth(50)
+		.Padding(2, 0)
 		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.MinWidth(50)
-			.Padding(2, 0)
-			[
-				OpHandle->CreatePropertyValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			.VAlign(VAlign_Center)
-			.AutoWidth()
-			.Padding(2, 0)
-			[
-				ValueHandle->CreatePropertyValueWidget()
-			]
-		];
+			BitIndexHandle->CreatePropertyValueWidget()
+		]
+	].ValueContent()
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.MinWidth(50)
+		.Padding(2, 0)
+		[
+			OpHandle->CreatePropertyValueWidget()
+		]
+		+ SHorizontalBox::Slot()
+		.VAlign(VAlign_Center)
+		.AutoWidth()
+		.Padding(2, 0)
+		[
+			ValueHandle->CreatePropertyValueWidget()
+		]
+	];
 }
 
 void FPCGExClampedBitOpCustomization::CustomizeChildren(
@@ -68,5 +68,4 @@ void FPCGExClampedBitOpCustomization::CustomizeChildren(
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	
 }

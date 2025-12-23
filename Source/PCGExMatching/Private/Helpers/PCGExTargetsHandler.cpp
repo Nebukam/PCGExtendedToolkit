@@ -77,12 +77,12 @@ namespace PCGExMatching
 
 	void FTargetsHandler::SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails)
 	{
-		DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		DataMatcher = MakeShared<FDataMatcher>();
 		DataMatcher->SetDetails(InDetails);
 		if (!DataMatcher->Init(InContext, TargetFacades, false)) { DataMatcher.Reset(); }
 	}
 
-	bool FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, PCGExMatching::FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
+	bool FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
 	{
 		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate, InMatchingScope, OutIgnoreList); }
 		return true;

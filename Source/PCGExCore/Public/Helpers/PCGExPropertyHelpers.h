@@ -87,7 +87,7 @@ MACRO(FStructProperty, FTransform)
 
 		return false;
 	}
-		
+
 	PCGEXCORE_API void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType);
 
 	PCGEXCORE_API bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr);

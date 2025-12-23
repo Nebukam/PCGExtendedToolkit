@@ -69,7 +69,7 @@ namespace PCGExClusters
 	{
 		PCGEX_CTX_STATE(State_ReadyForNextEdges)
 	}
-	
+
 	namespace Labels
 	{
 		const FName SourceEdgesLabel = TEXT("Edges");
@@ -102,12 +102,11 @@ namespace PCGExClusters
 		const FName Tag_PCGExEdges = FName(PCGExCommon::PCGExPrefix + TEXT("Edges"));
 		const FString TagStr_PCGExEdges = Tag_PCGExEdges.ToString();
 
-		
-		
+
 		const TSet<FName> ProtectedClusterAttributes = {Attr_PCGExEdgeIdx, Attr_PCGExVtxIdx};
-		
+
 		// TODO : Move at the right place
-		
+
 		const FName SourceProbesLabel = TEXT("Probes");
 		const FName OutputProbeLabel = TEXT("Probe");
 

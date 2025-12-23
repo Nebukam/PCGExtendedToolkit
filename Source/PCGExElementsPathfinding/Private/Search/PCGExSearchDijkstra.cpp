@@ -14,9 +14,9 @@
 #include "Utils/PCGExScoredQueue.h"
 
 bool FPCGExSearchOperationDijkstra::ResolveQuery(
-	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, 
-	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, 
-	const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, 
+	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
+	const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics,
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	TSharedPtr<PCGExPathfinding::FSearchAllocations> LocalAllocations = Allocations;

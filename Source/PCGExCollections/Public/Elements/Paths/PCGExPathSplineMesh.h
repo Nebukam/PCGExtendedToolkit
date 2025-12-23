@@ -198,7 +198,7 @@ namespace PCGExPathSplineMesh
 		FSplineMeshSegment()
 		{
 		}
-				
+
 		bool bSetMeshWithSettings = false;
 
 		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;

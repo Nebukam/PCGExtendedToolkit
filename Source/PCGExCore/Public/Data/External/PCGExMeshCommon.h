@@ -15,10 +15,7 @@ enum class EPCGExTriangulationType : uint8
 	NoTriangulation = 42 UMETA(Hidden),
 };
 
-namespace PCGExMesh
+namespace PCGExMesh::Labels
 {
-	namespace Labels
-	{
-		const FName SourceUVImportRulesLabel = TEXT("UV Imports");
-	}
+	const FName SourceUVImportRulesLabel = TEXT("UV Imports");
 }

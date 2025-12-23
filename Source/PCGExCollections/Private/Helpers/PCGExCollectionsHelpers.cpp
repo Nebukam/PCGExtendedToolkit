@@ -63,7 +63,7 @@ namespace PCGExCollections
 			const FName CategoryKey = CategoryGetter->Read(PointIndex);
 			TSharedPtr<PCGExAssetCollection::FCategory>* CategoryPtr = Cache->Categories.Find(CategoryKey);
 
-			if (!CategoryPtr || !(*CategoryPtr).IsValid() || (*CategoryPtr)->IsEmpty())
+			if (!CategoryPtr || !CategoryPtr->IsValid() || (*CategoryPtr)->IsEmpty())
 			{
 				return FPCGExEntryAccessResult{};
 			}
@@ -127,7 +127,7 @@ namespace PCGExCollections
 			const FName CategoryKey = CategoryGetter->Read(PointIndex);
 			TSharedPtr<PCGExAssetCollection::FCategory>* CategoryPtr = Cache->Categories.Find(CategoryKey);
 
-			if (!CategoryPtr || !(*CategoryPtr).IsValid() || (*CategoryPtr)->IsEmpty())
+			if (!CategoryPtr || !CategoryPtr->IsValid() || (*CategoryPtr)->IsEmpty())
 			{
 				return FPCGExEntryAccessResult{};
 			}
@@ -209,7 +209,7 @@ namespace PCGExCollections
 
 		case EPCGExDistribution::Index:
 			{
-				const int32 Index = IndexGetter ? static_cast<int32>(IndexGetter->Read(PointIndex)) : 0;
+				const int32 Index = IndexGetter ? IndexGetter->Read(PointIndex) : 0;
 				return InMicroCache->GetPick(Index, Details.IndexSettings.PickMode);
 			}
 		}
@@ -254,10 +254,10 @@ namespace PCGExCollections
 	void FPickPacker::PackToDataset(const UPCGParamData* InAttributeSet)
 	{
 		FPCGMetadataAttribute<int32>* CollectionIdx = InAttributeSet->Metadata->FindOrCreateAttribute<int32>(
-			PCGExCollections::Labels::Tag_CollectionIdx, 0,
+			Labels::Tag_CollectionIdx, 0,
 			false, true, true);
 		FPCGMetadataAttribute<FSoftObjectPath>* CollectionPath = InAttributeSet->Metadata->FindOrCreateAttribute<FSoftObjectPath>(
-			PCGExCollections::Labels::Tag_CollectionPath, FSoftObjectPath(),
+			Labels::Tag_CollectionPath, FSoftObjectPath(),
 			false, true, true);
 
 		for (const TPair<const UPCGExAssetCollection*, uint32>& Pair : CollectionMap)
@@ -291,8 +291,8 @@ namespace PCGExCollections
 
 		CollectionMap.Reserve(CollectionMap.Num() + NumEntries);
 
-		const FPCGMetadataAttribute<int32>* CollectionIdx = InAttributeSet->Metadata->GetConstTypedAttribute<int32>(PCGExCollections::Labels::Tag_CollectionIdx);
-		const FPCGMetadataAttribute<FSoftObjectPath>* CollectionPath = InAttributeSet->Metadata->GetConstTypedAttribute<FSoftObjectPath>(PCGExCollections::Labels::Tag_CollectionPath);
+		const FPCGMetadataAttribute<int32>* CollectionIdx = InAttributeSet->Metadata->GetConstTypedAttribute<int32>(Labels::Tag_CollectionIdx);
+		const FPCGMetadataAttribute<FSoftObjectPath>* CollectionPath = InAttributeSet->Metadata->GetConstTypedAttribute<FSoftObjectPath>(Labels::Tag_CollectionPath);
 
 		if (!CollectionIdx || !CollectionPath)
 		{
@@ -345,7 +345,7 @@ namespace PCGExCollections
 
 			if (!ParamData) { continue; }
 
-			if (!ParamData->Metadata->HasAttribute(PCGExCollections::Labels::Tag_CollectionIdx) || !ParamData->Metadata->HasAttribute(PCGExCollections::Labels::Tag_CollectionPath))
+			if (!ParamData->Metadata->HasAttribute(Labels::Tag_CollectionIdx) || !ParamData->Metadata->HasAttribute(Labels::Tag_CollectionPath))
 			{
 				continue;
 			}
@@ -359,7 +359,7 @@ namespace PCGExCollections
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPickUnpacker::BuildPartitions);
 
 		FPCGAttributePropertyInputSelector HashSelector;
-		HashSelector.Update(PCGExCollections::Labels::Tag_EntryIdx.ToString());
+		HashSelector.Update(Labels::Tag_EntryIdx.ToString());
 
 		TUniquePtr<const IPCGAttributeAccessor> HashAttributeAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, HashSelector);
 		TUniquePtr<const IPCGAttributeAccessorKeys> HashKeys = PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, HashSelector);

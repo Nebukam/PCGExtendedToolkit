@@ -84,7 +84,7 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 		return;
 	}
 
-	const int NumCustomData = 8;
+	constexpr int NumCustomData = 8;
 	const int32 NumPoints = PointData->GetNumPoints();
 
 	TArray<FTransform> ForwardInstances;
@@ -308,7 +308,7 @@ FPCGTableVisualizerInfo IPCGExSpatialDataVisualization::GetTableVisualizerInfoWi
 		Overrides.CreateAccessorFuncOverride = [PointData]()
 		{
 			FPCGAttributePropertySelector MetadataEntrySelector;
-			MetadataEntrySelector.SetPropertyName(*StaticEnum<EPCGPointNativeProperties>()->GetNameStringByValue((int64)EPCGPointNativeProperties::MetadataEntry));
+			MetadataEntrySelector.SetPropertyName(*StaticEnum<EPCGPointNativeProperties>()->GetNameStringByValue(static_cast<int64>(EPCGPointNativeProperties::MetadataEntry)));
 			return TSharedPtr<const IPCGAttributeAccessor>(PCGAttributeAccessorHelpers::CreateConstAccessor(PointData, MetadataEntrySelector).Release());
 		};
 
@@ -349,7 +349,7 @@ FPCGTableVisualizerInfo IPCGExSpatialDataVisualization::GetTableVisualizerInfoWi
 				return;
 			}
 
-			FBox BoundingBox(EForceInit::ForceInit);
+			FBox BoundingBox(ForceInit);
 			if (Indices.IsEmpty())
 			{
 				BoundingBox = PointData->GetBounds();
@@ -394,12 +394,9 @@ const UPCGBasePointData* IPCGExSpatialDataVisualization::CollapseToDebugBasePoin
 		{
 			return SpatialData->ToPointArrayData(Context);
 		}
-		else
-		{
-			PRAGMA_DISABLE_DEPRECATION_WARNINGS
-			return CollapseToDebugPointData(Context, Data);
-			PRAGMA_ENABLE_DEPRECATION_WARNINGS
-		}
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
+		return CollapseToDebugPointData(Context, Data);
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 	}
 
 	return nullptr;
@@ -411,11 +408,8 @@ FString IPCGExSpatialDataVisualization::GetDomainDisplayNameForInspection(const 
 	{
 		return IPCGDataVisualization::GetDomainDisplayNameForInspection(Data, DomainID);
 	}
-	else
-	{
-		// For sampled points, clearly indicate that it is the default sampled points and not just "points"
-		return TEXT("Default Sampled Points");
-	}
+	// For sampled points, clearly indicate that it is the default sampled points and not just "points"
+	return TEXT("Default Sampled Points");
 }
 
 TArray<FPCGMetadataDomainID> IPCGExSpatialDataVisualization::GetAllSupportedDomainsForInspection(const UPCGData* Data) const

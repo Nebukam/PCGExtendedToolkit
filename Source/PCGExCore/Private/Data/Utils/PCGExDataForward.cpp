@@ -16,7 +16,7 @@ namespace PCGExData
 		if (!Details.bEnabled) { return; }
 
 		Details.Init();
-		PCGExData::FAttributeIdentity::Get(InSourceDataFacade->GetIn()->Metadata, Identities);
+		FAttributeIdentity::Get(InSourceDataFacade->GetIn()->Metadata, Identities);
 		Details.Filter(Identities);
 	}
 
@@ -24,7 +24,7 @@ namespace PCGExData
 		: Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(InTargetDataFacade), bElementDomainToDataDomain(ElementDomainToDataDomain)
 	{
 		Details.Init();
-		PCGExData::FAttributeIdentity::Get(InSourceDataFacade->GetIn()->Metadata, Identities);
+		FAttributeIdentity::Get(InSourceDataFacade->GetIn()->Metadata, Identities);
 		Details.Filter(Identities);
 
 		const int32 NumAttributes = Identities.Num();
@@ -34,7 +34,7 @@ namespace PCGExData
 		// Init forwarded attributes on target		
 		for (int i = 0; i < NumAttributes; i++)
 		{
-			const PCGExData::FAttributeIdentity& Identity = Identities[i];
+			const FAttributeIdentity& Identity = Identities[i];
 
 			PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
@@ -56,7 +56,7 @@ namespace PCGExData
 
 		for (int i = 0; i < NumAttributes; i++)
 		{
-			const PCGExData::FAttributeIdentity& Identity = Identities[i];
+			const FAttributeIdentity& Identity = Identities[i];
 
 			PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
@@ -76,7 +76,7 @@ namespace PCGExData
 
 		if (Details.bPreserveAttributesDefaultValue)
 		{
-			for (const PCGExData::FAttributeIdentity& Identity : Identities)
+			for (const FAttributeIdentity& Identity : Identities)
 			{
 				PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 				{
@@ -85,7 +85,7 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+					const T ForwardValue = Identity.InDataDomain() ? Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					TSharedPtr<TBuffer<T>> Writer = nullptr;
 
@@ -117,7 +117,7 @@ namespace PCGExData
 			return;
 		}
 
-		for (const PCGExData::FAttributeIdentity& Identity : Identities)
+		for (const FAttributeIdentity& Identity : Identities)
 		{
 			PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
@@ -126,13 +126,13 @@ namespace PCGExData
 				const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 				if (!SourceAtt) { return; }
 
-				const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+				const T ForwardValue = Identity.InDataDomain() ? Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 				const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
 
 				InTargetDataFacade->Source->DeleteAttribute(Identifier);
 				FPCGMetadataAttribute<T>* TargetAtt = InTargetDataFacade->Source->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation());
-				if (bElementDomainToDataDomain) { PCGExData::Helpers::SetDataValue(TargetAtt, ForwardValue); }
+				if (bElementDomainToDataDomain) { Helpers::SetDataValue(TargetAtt, ForwardValue); }
 			});
 		}
 	}
@@ -143,7 +143,7 @@ namespace PCGExData
 
 		const UPCGBasePointData* InSourceData = SourceDataFacade->GetIn();
 
-		for (const PCGExData::FAttributeIdentity& Identity : Identities)
+		for (const FAttributeIdentity& Identity : Identities)
 		{
 			PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
@@ -152,7 +152,7 @@ namespace PCGExData
 				const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 				if (!SourceAtt) { return; }
 
-				const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+				const T ForwardValue = Identity.InDataDomain() ? Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 				TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
 				if (Writer->GetUnderlyingDomain() == EDomainType::Elements)
@@ -175,7 +175,7 @@ namespace PCGExData
 
 		const UPCGBasePointData* InSourceData = SourceDataFacade->GetIn();
 
-		for (const PCGExData::FAttributeIdentity& Identity : Identities)
+		for (const FAttributeIdentity& Identity : Identities)
 		{
 			PCGExMetaHelpers::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
 			{
@@ -184,13 +184,13 @@ namespace PCGExData
 				const FPCGMetadataAttribute<T>* SourceAtt = PCGExMetaHelpers::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 				if (!SourceAtt) { return; }
 
-				const T ForwardValue = Identity.InDataDomain() ? PCGExData::Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+				const T ForwardValue = Identity.InDataDomain() ? Helpers::ReadDataValue(SourceAtt) : SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 				const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
 
 				InTargetMetadata->DeleteAttribute(Identifier);
 				FPCGMetadataAttribute<T>* TargetAtt = InTargetMetadata->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation(), true, true);
-				if (bElementDomainToDataDomain) { PCGExData::Helpers::SetDataValue(TargetAtt, ForwardValue); }
+				if (bElementDomainToDataDomain) { Helpers::SetDataValue(TargetAtt, ForwardValue); }
 			});
 		}
 	}

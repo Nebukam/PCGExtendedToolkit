@@ -5,11 +5,8 @@
 
 #include "CoreMinimal.h"
 
-namespace PCGExPickers
+namespace PCGExPickers::Labels
 {
-	namespace Labels
-	{		
-		const FName OutputPickerLabel = TEXT("Picker");
-		const FName SourcePickersLabel = TEXT("Pickers");
-	}
+	const FName OutputPickerLabel = TEXT("Picker");
+	const FName SourcePickersLabel = TEXT("Pickers");
 }

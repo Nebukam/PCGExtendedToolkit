@@ -87,5 +87,4 @@ namespace PCGExData
 		const FProxyDescriptor& InBaseDescriptor,
 		const int32 NumDesiredFields,
 		TArray<TSharedPtr<IBufferProxy>>& OutProxies);
-
 } // namespace PCGExData

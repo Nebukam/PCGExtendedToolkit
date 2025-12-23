@@ -109,7 +109,7 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExClusters::FNode& Node, const T
 	TArray<double> Sizes;
 	Sizes.SetNum(NumAdjacency);
 	double MaxSize = 0;
-	
+
 	for (int i = 0; i < NumAdjacency; i++)
 	{
 		const PCGExClusters::FAdjacencyData& A = Adjacency[i];

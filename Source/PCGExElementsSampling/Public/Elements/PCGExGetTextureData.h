@@ -7,7 +7,6 @@
 #include "PCGExFilterCommon.h"
 
 
-
 #include "Core/PCGExPointsProcessor.h"
 #include "Core/PCGExTexCommon.h"
 #include "Core/PCGExTexParamFactoryProvider.h"

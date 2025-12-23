@@ -49,8 +49,8 @@ class FPCGExAssetCollectionEditor : public FAssetEditorToolkit
 {
 public:
 	FPCGExAssetCollectionEditor();
-	virtual ~FPCGExAssetCollectionEditor();
-	
+	virtual ~FPCGExAssetCollectionEditor() override;
+
 	virtual void InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost);
 	virtual UPCGExAssetCollection* GetEditedCollection() const;
 
@@ -60,7 +60,7 @@ public:
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return FLinearColor::White; }
 
 	TMap<FName, PCGExAssetCollectionEditor::FilterInfos> FilterInfos;
-	
+
 protected:
 	TWeakObjectPtr<UPCGExAssetCollection> EditedCollection;
 	virtual void RegisterPropertyNameMapping(TMap<FName, FName>& Mapping);
@@ -68,7 +68,7 @@ protected:
 	FReply FilterShowAll() const;
 	FReply FilterHideAll() const;
 	FReply ToggleFilter(const PCGExAssetCollectionEditor::FilterInfos Filter) const;
-	
+
 	virtual void CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs);
 	virtual void BuildEditorToolbar(FToolBarBuilder& ToolbarBuilder);
 	virtual void BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder);

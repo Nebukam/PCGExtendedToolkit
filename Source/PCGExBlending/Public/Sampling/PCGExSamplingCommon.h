@@ -73,14 +73,11 @@ enum class EPCGExApplySampledComponentFlags : uint8
 ENUM_CLASS_FLAGS(EPCGExApplySampledComponentFlags)
 using EPCGExApplySampledComponentFlagsBitmask = TEnumAsByte<EPCGExApplySampledComponentFlags>;
 
-namespace PCGExSampling
+namespace PCGExSampling::Labels
 {
-	namespace Labels
-	{
-		const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");
-		const FName SourceActorReferencesLabel = TEXT("ActorReferences");
-		const FName OutputSampledActorsLabel = TEXT("OutSampledActors");
-	}
+	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");
+	const FName SourceActorReferencesLabel = TEXT("ActorReferences");
+	const FName OutputSampledActorsLabel = TEXT("OutSampledActors");
 }
 
 // Declaration & use pair, boolean will be set by name validation

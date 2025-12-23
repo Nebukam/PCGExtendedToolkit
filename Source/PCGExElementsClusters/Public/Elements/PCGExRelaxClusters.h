@@ -19,7 +19,7 @@ class UPCGExRelaxClusterOperation;
 
 namespace PCGExMT
 {
-	template<typename T>
+	template <typename T>
 	class TScopedNumericValue;
 }
 

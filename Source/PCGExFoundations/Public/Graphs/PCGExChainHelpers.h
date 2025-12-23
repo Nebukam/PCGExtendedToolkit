@@ -16,20 +16,17 @@ namespace PCGExGraphs
 	class FGraph;
 }
 
-namespace PCGExClusters
+namespace PCGExClusters::ChainHelpers
 {
-	namespace ChainHelpers
-	{
-		PCGEXFOUNDATIONS_API void Dump(
-			const TSharedRef<PCGExClusters::FNodeChain>& Chain,
-			const TSharedRef<PCGExClusters::FCluster>& Cluster,
-			const TSharedPtr<PCGExGraphs::FGraph>& Graph,
-			const bool bAddMetadata);
+	PCGEXFOUNDATIONS_API void Dump(
+		const TSharedRef<FNodeChain>& Chain,
+		const TSharedRef<FCluster>& Cluster,
+		const TSharedPtr<PCGExGraphs::FGraph>& Graph,
+		const bool bAddMetadata);
 
-		PCGEXFOUNDATIONS_API void DumpReduced(
-			const TSharedRef<PCGExClusters::FNodeChain>& Chain,
-			const TSharedRef<PCGExClusters::FCluster>& Cluster,
-			const TSharedPtr<PCGExGraphs::FGraph>& Graph,
-			const bool bAddMetadata);
-	}
+	PCGEXFOUNDATIONS_API void DumpReduced(
+		const TSharedRef<FNodeChain>& Chain,
+		const TSharedRef<FCluster>& Cluster,
+		const TSharedPtr<PCGExGraphs::FGraph>& Graph,
+		const bool bAddMetadata);
 }

@@ -7,46 +7,43 @@
 #include "Metadata/PCGMetadata.h"
 #include "Types/PCGExAttributeIdentity.h"
 
-namespace PCGExBlending
+namespace PCGExBlending::Helpers
 {
-	namespace Helpers
+	void MergeBestCandidatesAttributes(
+		const TSharedPtr<PCGExData::FPointIO>& Target,
+		const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
+		const TArray<int32>& BestIndices,
+		const PCGExData::FAttributesInfos& InAttributesInfos)
 	{
-		void MergeBestCandidatesAttributes(
-			const TSharedPtr<PCGExData::FPointIO>& Target,
-			const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
-			const TArray<int32>& BestIndices,
-			const PCGExData::FAttributesInfos& InAttributesInfos)
+		UPCGMetadata* OutMetadata = Target->GetOut()->Metadata;
+
+		for (int i = 0; i < BestIndices.Num(); i++)
 		{
-			UPCGMetadata* OutMetadata = Target->GetOut()->Metadata;
+			const TSharedPtr<PCGExData::FPointIO> IO = Collections[i];
 
-			for (int i = 0; i < BestIndices.Num(); i++)
+			if (BestIndices[i] == -1 || !IO) { continue; }
+
+			PCGMetadataEntryKey InKey = IO->GetIn()->GetMetadataEntry(BestIndices[i]);
+			PCGMetadataEntryKey OutKey = Target->GetOut()->GetMetadataEntry(i);
+			UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
+
+			for (const PCGExData::FAttributeIdentity& Identity : InAttributesInfos.Identities)
 			{
-				const TSharedPtr<PCGExData::FPointIO> IO = Collections[i];
-
-				if (BestIndices[i] == -1 || !IO) { continue; }
-
-				PCGMetadataEntryKey InKey = IO->GetIn()->GetMetadataEntry(BestIndices[i]);
-				PCGMetadataEntryKey OutKey = Target->GetOut()->GetMetadataEntry(i);
-				UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
-
-				for (const PCGExData::FAttributeIdentity& Identity : InAttributesInfos.Identities)
+				PCGExMetaHelpers::ExecuteWithRightType(Identity.GetTypeId(), [&](auto DummyValue)
 				{
-					PCGExMetaHelpers::ExecuteWithRightType(Identity.GetTypeId(), [&](auto DummyValue)
+					using T = decltype(DummyValue);
+					const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
+					FPCGMetadataAttribute<T>* OutAttribute = PCGExMetaHelpers::TryGetMutableAttribute<T>(OutMetadata, Identity.Identifier);
+
+					if (!OutAttribute)
 					{
-						using T = decltype(DummyValue);
-						const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
-						FPCGMetadataAttribute<T>* OutAttribute = PCGExMetaHelpers::TryGetMutableAttribute<T>(OutMetadata, Identity.Identifier);
+						OutAttribute = Target->FindOrCreateAttribute<T>(Identity.Identifier, InAttribute->GetValueFromItemKey(PCGDefaultValueKey), InAttribute->AllowsInterpolation());
+					}
 
-						if (!OutAttribute)
-						{
-							OutAttribute = Target->FindOrCreateAttribute<T>(Identity.Identifier, InAttribute->GetValueFromItemKey(PCGDefaultValueKey), InAttribute->AllowsInterpolation());
-						}
+					if (!OutAttribute) { return; }
 
-						if (!OutAttribute) { return; }
-
-						OutAttribute->SetValue(OutKey, InAttribute->GetValueFromItemKey(InKey));
-					});
-				}
+					OutAttribute->SetValue(OutKey, InAttribute->GetValueFromItemKey(InKey));
+				});
 			}
 		}
 	}

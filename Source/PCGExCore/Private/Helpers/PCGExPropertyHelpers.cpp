@@ -7,7 +7,6 @@
 
 namespace PCGExPropertyHelpers
 {
-	
 	void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType)
 	{
 		for (TFieldIterator<FProperty> SourceIt(SourceStructType); SourceIt; ++SourceIt)
@@ -68,5 +67,4 @@ namespace PCGExPropertyHelpers
 
 		return true;
 	}
-
 }

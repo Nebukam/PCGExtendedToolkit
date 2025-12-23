@@ -34,5 +34,4 @@ namespace PCGExPathfinding
 		void Init(const PCGExClusters::FCluster* InCluster);
 		void Reset();
 	};
-
 }

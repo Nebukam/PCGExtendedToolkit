@@ -60,7 +60,7 @@ namespace PCGExData
 	struct PCGEXCORE_API FProxyDescriptor
 	{
 		FPCGAttributePropertyInputSelector Selector;
-		PCGExData::FSubSelection SubSelection;
+		FSubSelection SubSelection;
 
 		EIOSide Side = EIOSide::In;
 		EProxyRole Role = EProxyRole::Read;
@@ -104,7 +104,7 @@ namespace PCGExData
 	protected:
 		// SubSelection support
 		bool bWantsSubSelection = false;
-		PCGExData::FCachedSubSelection CachedSubSelection;
+		FCachedSubSelection CachedSubSelection;
 
 		// Type operations from registry - provides all conversion & blending
 		const PCGExTypeOps::ITypeOpsBase* RealOps = nullptr;
@@ -139,7 +139,7 @@ namespace PCGExData
 		virtual bool EnsureReadable() const { return true; }
 
 		// SubSelection configuration
-		void SetSubSelection(const PCGExData::FSubSelection& InSubSelection);
+		void SetSubSelection(const FSubSelection& InSubSelection);
 
 		// Role-specific initialization
 		virtual void InitForRole(EProxyRole InRole);

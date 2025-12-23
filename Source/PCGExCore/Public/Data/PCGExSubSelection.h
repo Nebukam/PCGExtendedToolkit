@@ -265,6 +265,6 @@ namespace PCGExData
 	}
 
 	PCGEXCORE_API bool TryGetType(const FPCGAttributePropertyInputSelector& InputSelector, const UPCGData* InData, EPCGMetadataTypes& OutType);
-	PCGEXCORE_API bool TryGetTypeAndSource(const FPCGAttributePropertyInputSelector& InputSelector, const TSharedPtr<PCGExData::FFacade>& InDataFacade, EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide);
-	PCGEXCORE_API bool TryGetTypeAndSource(const FName AttributeName, const TSharedPtr<PCGExData::FFacade>& InDataFacade, EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSource);
+	PCGEXCORE_API bool TryGetTypeAndSource(const FPCGAttributePropertyInputSelector& InputSelector, const TSharedPtr<FFacade>& InDataFacade, EPCGMetadataTypes& OutType, EIOSide& InOutSide);
+	PCGEXCORE_API bool TryGetTypeAndSource(const FName AttributeName, const TSharedPtr<FFacade>& InDataFacade, EPCGMetadataTypes& OutType, EIOSide& InOutSource);
 }

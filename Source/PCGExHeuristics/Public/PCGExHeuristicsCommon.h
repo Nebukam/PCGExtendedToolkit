@@ -12,11 +12,8 @@ enum class EPCGExHeuristicScoreMode : uint8
 	HigherIsBetter = 1 UMETA(DisplayName = "Higher is Better", Tooltip="Higher values are considered more desirable."),
 };
 
-namespace PCGExHeuristics
+namespace PCGExHeuristics::Labels
 {
-	namespace Labels
-	{
-		const FName SourceHeuristicsLabel = TEXT("Heuristics");
-		const FName OutputHeuristicsLabel = TEXT("Heuristics");
-	}
+	const FName SourceHeuristicsLabel = TEXT("Heuristics");
+	const FName OutputHeuristicsLabel = TEXT("Heuristics");
 }

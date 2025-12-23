@@ -30,7 +30,6 @@ struct FPCGExRandomRatioFilterConfig
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
-	
 };
 
 
@@ -93,7 +92,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(RandomCompareFilterFactory, "Filter : Random (Ratio)", "Filter using a random value.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

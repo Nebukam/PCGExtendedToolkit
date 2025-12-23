@@ -39,8 +39,8 @@ void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection
 	EditedCollection = InCollection;
 
 	const TArray<UObject*> ObjectsToEdit = {InCollection};
-	const bool bCreateDefaultStandaloneMenu = true;
-	const bool bCreateDefaultToolbar = true;
+	constexpr bool bCreateDefaultStandaloneMenu = true;
+	constexpr bool bCreateDefaultToolbar = true;
 
 	CreateTabs(Tabs);
 
@@ -54,9 +54,9 @@ void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection
 
 	TSharedRef<FTabManager::FStack> MainStack = FTabManager::NewStack();
 	// Add tabs in reverse order so asset comes first
-	for (int i = Tabs.Num()-1; i >= 0 ; i--) { MainStack->AddTab(Tabs[i].Id, ETabState::OpenedTab); }
+	for (int i = Tabs.Num() - 1; i >= 0; i--) { MainStack->AddTab(Tabs[i].Id, ETabState::OpenedTab); }
 	Area->Split(MainStack);
-	
+
 	if (!Tabs.IsEmpty()) { MainStack->SetForegroundTab(Tabs.Last().Id); }
 
 	InitAssetEditor(EToolkitMode::Standalone, InitToolkitHost, FName("PCGExAssetCollectionEditor"), Layout, bCreateDefaultStandaloneMenu, bCreateDefaultToolbar, ObjectsToEdit);
@@ -541,9 +541,9 @@ void FPCGExAssetCollectionEditor::RegisterTabSpawners(const TSharedRef<FTabManag
 					            })
 			            )
 			            .SetDisplayName(FText::FromName(Tab.Label));
-		
+
 		Tab.WeakView = Tab.View;
-		
+
 		// Release shared ptr otherwise editor won't close
 		Tab.View = nullptr;
 		Tab.Header = nullptr;

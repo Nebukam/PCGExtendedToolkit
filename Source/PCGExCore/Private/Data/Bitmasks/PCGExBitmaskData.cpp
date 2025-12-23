@@ -79,7 +79,7 @@ namespace PCGExBitmask
 		Data->Append(InReferences, Angle);
 		for (const TPair<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp_OR>& Pair : InCollections)
 		{
-			if (Pair.Key) { Data->Append(Pair.Key, Angle, PCGExBitmask::GetBitOp(Pair.Value)); }
+			if (Pair.Key) { Data->Append(Pair.Key, Angle, GetBitOp(Pair.Value)); }
 		}
 		return Data;
 	}

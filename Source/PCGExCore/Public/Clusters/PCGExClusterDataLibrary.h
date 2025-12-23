@@ -89,11 +89,11 @@ namespace PCGExClusters
 	class PCGEXCORE_API FClusterDataForwardHandler : public TSharedFromThis<FClusterDataForwardHandler>
 	{
 	protected:
-		TSharedPtr<PCGExClusters::FCluster> Cluster;
+		TSharedPtr<FCluster> Cluster;
 		TSharedPtr<PCGExData::FDataForwardHandler> VtxDataForwardHandler;
 		TSharedPtr<PCGExData::FDataForwardHandler> EdgeDataForwardHandler;
 
 	public:
-		FClusterDataForwardHandler(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler);
+		FClusterDataForwardHandler(const TSharedPtr<FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler);
 	};
 }

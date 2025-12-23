@@ -29,7 +29,7 @@ enum class EPCGExCurveLUTMode : uint8
 namespace PCGExCurves
 {
 	using FInitCurveDataDefaults = std::function<void(FRichCurve& CurveData)>;
-	
+
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinearInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear_Inv.FC_PCGExWeightDistribution_Linear_Inv"));
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
@@ -97,7 +97,7 @@ struct PCGEXCORE_API FPCGExCurveLookupDetails
  */
 class PCGEXCORE_API FPCGExCurveFloatLookup : public TSharedFromThis<FPCGExCurveFloatLookup>
 {
-	friend struct ::FPCGExCurveLookupDetails;
+	friend struct FPCGExCurveLookupDetails;
 
 public:
 	FPCGExCurveFloatLookup() = default;

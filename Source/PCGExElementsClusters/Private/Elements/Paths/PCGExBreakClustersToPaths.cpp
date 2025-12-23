@@ -93,22 +93,16 @@ namespace PCGExBreakClustersToPaths
 				FilterVtxScope(PCGExMT::FScope(0, NumNodes), true);
 				return BuildChains();
 			}
-			else
-			{
-				return BuildChains();
-			}
+			return BuildChains();
 		}
-		else
+		ChainsIO.Reserve(NumEdges);
+		Context->OutputPaths->IncreaseReserve(NumEdges);
+		for (int i = 0; i < NumEdges; ++i)
 		{
-			ChainsIO.Reserve(NumEdges);
-			Context->OutputPaths->IncreaseReserve(NumEdges);
-			for (int i = 0; i < NumEdges; ++i)
-			{
-				ChainsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
-			}
-
-			StartParallelLoopForEdges();
+			ChainsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
+
+		StartParallelLoopForEdges();
 
 		return true;
 	}

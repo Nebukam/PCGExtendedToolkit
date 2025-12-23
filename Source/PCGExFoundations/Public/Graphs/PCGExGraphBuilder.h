@@ -90,5 +90,4 @@ namespace PCGExGraphs
 
 		~FGraphBuilder() = default;
 	};
-
 }

@@ -57,7 +57,7 @@ namespace PCGExMatching
 		using FTargetQuery = std::function<void(const PCGExOctree::FItem&)>;
 
 		TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
-		TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
+		TSharedPtr<FDataMatcher> DataMatcher;
 
 		FTargetsHandler() = default;
 		virtual ~FTargetsHandler() = default;
@@ -75,7 +75,7 @@ namespace PCGExMatching
 		FORCEINLINE const PCGExMath::FDistances* GetDistances() const { return Distances; }
 
 		void SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails);
-		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, PCGExMatching::FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
+		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 
 		void ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const;

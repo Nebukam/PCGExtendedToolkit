@@ -24,7 +24,7 @@ void FPCGExHeuristicsModule::ShutdownModule()
 void FPCGExHeuristicsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-	
+
 	PCGEX_REGISTER_DATA_TYPE(Heuristics, Heuristics)
 }
 #endif

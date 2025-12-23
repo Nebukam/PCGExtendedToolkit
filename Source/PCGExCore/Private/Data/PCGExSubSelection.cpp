@@ -292,28 +292,28 @@ namespace PCGExData
 		return OutType != EPCGMetadataTypes::Unknown;
 	}
 
-	bool TryGetTypeAndSource(const FPCGAttributePropertyInputSelector& InputSelector, const TSharedPtr<PCGExData::FFacade>& InDataFacade, EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide)
+	bool TryGetTypeAndSource(const FPCGAttributePropertyInputSelector& InputSelector, const TSharedPtr<FFacade>& InDataFacade, EPCGMetadataTypes& OutType, EIOSide& InOutSide)
 	{
 		OutType = EPCGMetadataTypes::Unknown;
-		if (InOutSide == PCGExData::EIOSide::In)
+		if (InOutSide == EIOSide::In)
 		{
 			if (!TryGetType(InputSelector, InDataFacade->GetIn(), OutType))
 			{
-				if (TryGetType(InputSelector, InDataFacade->GetOut(), OutType)) { InOutSide = PCGExData::EIOSide::Out; }
+				if (TryGetType(InputSelector, InDataFacade->GetOut(), OutType)) { InOutSide = EIOSide::Out; }
 			}
 		}
 		else
 		{
 			if (!TryGetType(InputSelector, InDataFacade->GetOut(), OutType))
 			{
-				if (TryGetType(InputSelector, InDataFacade->GetIn(), OutType)) { InOutSide = PCGExData::EIOSide::In; }
+				if (TryGetType(InputSelector, InDataFacade->GetIn(), OutType)) { InOutSide = EIOSide::In; }
 			}
 		}
 
 		return OutType != EPCGMetadataTypes::Unknown;
 	}
 
-	bool TryGetTypeAndSource(const FName AttributeName, const TSharedPtr<PCGExData::FFacade>& InDataFacade, EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSource)
+	bool TryGetTypeAndSource(const FName AttributeName, const TSharedPtr<FFacade>& InDataFacade, EPCGMetadataTypes& OutType, EIOSide& InOutSource)
 	{
 		FPCGAttributePropertyInputSelector Selector;
 		Selector.SetAttributeName(AttributeName);

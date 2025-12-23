@@ -26,7 +26,7 @@ void FPCGExElementsClustersModule::ShutdownModule()
 void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-		
+
 	PCGEX_REGISTER_DATA_TYPE(ClusterState, ClusterState)
 	PCGEX_REGISTER_DATA_TYPE(FillControl, FillControl)
 }

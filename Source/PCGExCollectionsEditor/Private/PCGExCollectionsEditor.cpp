@@ -41,7 +41,7 @@ void FPCGExCollectionsEditorModule::StartupModule()
 void FPCGExCollectionsEditorModule::RegisterMenuExtensions()
 {
 	IPCGExEditorModuleInterface::RegisterMenuExtensions();
-	
+
 	FToolMenuOwnerScoped OwnerScoped(this);
 
 	if (UToolMenu* WorldAssetMenu = UToolMenus::Get()->ExtendMenu("ContentBrowser.AssetContextMenu.AssetActionsSubMenu"))

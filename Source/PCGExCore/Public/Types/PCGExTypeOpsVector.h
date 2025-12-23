@@ -127,15 +127,15 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(A.X), GetTypeHash(B.X))),
-				static_cast<double>(HashCombine(GetTypeHash(A.Y), GetTypeHash(B.Y))));
+				HashCombine(GetTypeHash(A.X), GetTypeHash(B.X)),
+				HashCombine(GetTypeHash(A.Y), GetTypeHash(B.Y)));
 		}
 
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.X, B.X)), GetTypeHash(FMath::Max(A.X, B.X)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Y, B.Y)), GetTypeHash(FMath::Max(A.Y, B.Y)))));
+				HashCombine(GetTypeHash(FMath::Min(A.X, B.X)), GetTypeHash(FMath::Max(A.X, B.X))),
+				HashCombine(GetTypeHash(FMath::Min(A.Y, B.Y)), GetTypeHash(FMath::Max(A.Y, B.Y))));
 		}
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M)
@@ -153,7 +153,7 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type Weight(const Type& A, const Type& B, double W) { return W != 0.0 ? (A + B) / W : A; }
 
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
-		
+
 		static FORCEINLINE Type Abs(const Type& A) { return Type(FMath::Abs(A.X), FMath::Abs(A.Y)); }
 		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
 
@@ -188,7 +188,6 @@ namespace PCGExTypeOps
 			default: break;
 			}
 		}
-		
 	};
 
 	// Vector Type Operations - FVector
@@ -306,17 +305,17 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(A.X), GetTypeHash(B.X))),
-				static_cast<double>(HashCombine(GetTypeHash(A.Y), GetTypeHash(B.Y))),
-				static_cast<double>(HashCombine(GetTypeHash(A.Z), GetTypeHash(B.Z))));
+				HashCombine(GetTypeHash(A.X), GetTypeHash(B.X)),
+				HashCombine(GetTypeHash(A.Y), GetTypeHash(B.Y)),
+				HashCombine(GetTypeHash(A.Z), GetTypeHash(B.Z)));
 		}
 
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.X, B.X)), GetTypeHash(FMath::Max(A.X, B.X)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Y, B.Y)), GetTypeHash(FMath::Max(A.Y, B.Y)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Z, B.Z)), GetTypeHash(FMath::Max(A.Z, B.Z)))));
+				HashCombine(GetTypeHash(FMath::Min(A.X, B.X)), GetTypeHash(FMath::Max(A.X, B.X))),
+				HashCombine(GetTypeHash(FMath::Min(A.Y, B.Y)), GetTypeHash(FMath::Max(A.Y, B.Y))),
+				HashCombine(GetTypeHash(FMath::Min(A.Z, B.Z)), GetTypeHash(FMath::Max(A.Z, B.Z))));
 		}
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M)
@@ -338,7 +337,7 @@ namespace PCGExTypeOps
 
 		static FORCEINLINE Type Abs(const Type& A) { return Type(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z)); }
 		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return A * Factor; }
-		
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			const Type& V = *static_cast<const Type*>(Value);
@@ -373,7 +372,6 @@ namespace PCGExTypeOps
 			default: break;
 			}
 		}
-		
 	};
 
 	// Vector Type Operations - FVector4
@@ -512,19 +510,19 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type NaiveHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(A.X), GetTypeHash(B.X))),
-				static_cast<double>(HashCombine(GetTypeHash(A.Y), GetTypeHash(B.Y))),
-				static_cast<double>(HashCombine(GetTypeHash(A.Z), GetTypeHash(B.Z))),
-				static_cast<double>(HashCombine(GetTypeHash(A.W), GetTypeHash(B.W))));
+				HashCombine(GetTypeHash(A.X), GetTypeHash(B.X)),
+				HashCombine(GetTypeHash(A.Y), GetTypeHash(B.Y)),
+				HashCombine(GetTypeHash(A.Z), GetTypeHash(B.Z)),
+				HashCombine(GetTypeHash(A.W), GetTypeHash(B.W)));
 		}
 
 		static FORCEINLINE Type UnsignedHash(const Type& A, const Type& B)
 		{
 			return Type(
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.X, B.X)), GetTypeHash(FMath::Max(A.X, B.X)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Y, B.Y)), GetTypeHash(FMath::Max(A.Y, B.Y)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.Z, B.Z)), GetTypeHash(FMath::Max(A.Z, B.Z)))),
-				static_cast<double>(HashCombine(GetTypeHash(FMath::Min(A.W, B.W)), GetTypeHash(FMath::Max(A.W, B.W)))));
+				HashCombine(GetTypeHash(FMath::Min(A.X, B.X)), GetTypeHash(FMath::Max(A.X, B.X))),
+				HashCombine(GetTypeHash(FMath::Min(A.Y, B.Y)), GetTypeHash(FMath::Max(A.Y, B.Y))),
+				HashCombine(GetTypeHash(FMath::Min(A.Z, B.Z)), GetTypeHash(FMath::Max(A.Z, B.Z))),
+				HashCombine(GetTypeHash(FMath::Min(A.W, B.W)), GetTypeHash(FMath::Max(A.W, B.W))));
 		}
 
 		static FORCEINLINE Type ModSimple(const Type& A, double M)
@@ -546,8 +544,8 @@ namespace PCGExTypeOps
 		static FORCEINLINE Type NormalizeWeight(const Type& A, double TW) { return TW != 0.0 ? A * (1.0 / TW) : A; }
 
 		static FORCEINLINE Type Abs(const Type& A) { return Type(FMath::Abs(A.X), FMath::Abs(A.Y), FMath::Abs(A.Z), FMath::Abs(A.W)); }
-		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return Type(A.X*Factor, A.Y*Factor, A.Z*Factor, A.W*Factor); }
-		
+		static FORCEINLINE Type Factor(const Type& A, const double Factor) { return Type(A.X * Factor, A.Y * Factor, A.Z * Factor, A.W * Factor); }
+
 		static FORCEINLINE double ExtractField(const void* Value, ESingleField Field)
 		{
 			const Type& V = *static_cast<const Type*>(Value);
@@ -595,6 +593,5 @@ namespace PCGExTypeOps
 			default: break;
 			}
 		}
-		
 	};
 }

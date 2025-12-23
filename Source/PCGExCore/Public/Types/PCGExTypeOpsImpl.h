@@ -367,7 +367,7 @@ namespace PCGExTypeOps
 
 	inline EPCGMetadataTypes GetTypeFromIndex(int32 Index)
 	{
-		static const EPCGMetadataTypes Types[] = {
+		static constexpr EPCGMetadataTypes Types[] = {
 			EPCGMetadataTypes::Boolean,
 			EPCGMetadataTypes::Integer32,
 			EPCGMetadataTypes::Integer64,

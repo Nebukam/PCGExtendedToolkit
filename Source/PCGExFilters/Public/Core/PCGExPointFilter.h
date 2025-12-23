@@ -225,10 +225,10 @@ namespace PCGExPointFilter
 		virtual void InitCache();
 	};
 
-	PCGEXFILTERS_API 
+	PCGEXFILTERS_API
 	void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader);
 
-	PCGEXFILTERS_API 
+	PCGEXFILTERS_API
 	void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
 }
 

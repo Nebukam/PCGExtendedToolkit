@@ -156,7 +156,7 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	FPCGExContext* InContext = static_cast<FPCGExContext*>(Context);
 
 	PCGEX_EXECUTION_CHECK_C(InContext)
-	
+
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
 

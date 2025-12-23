@@ -7,7 +7,6 @@
 
 namespace PCGExBlending
 {
-
 	IBlendOperation::IBlendOperation(const EPCGExABBlendingType InMode, const bool bInResetForMulti)
 		: Mode(InMode),
 		  bResetForMulti(bInResetForMulti),
@@ -68,7 +67,7 @@ namespace PCGExBlending
 
 	void IBlendOperation::Accumulate(const void* Source, void* Accumulator, double Weight) const
 	{
-		AccumulateFunc(Accumulator, Source, Weight, Accumulator); 
+		AccumulateFunc(Accumulator, Source, Weight, Accumulator);
 	}
 
 	void IBlendOperation::EndMulti(void* Accumulator, double TotalWeight, int32 Count) const
@@ -76,7 +75,7 @@ namespace PCGExBlending
 		FinalizeFunc(Accumulator, TotalWeight, Count);
 	}
 
-	
+
 	// FBlendOperationFactory implementation
 
 	TSharedPtr<IBlendOperation> FBlendOperationFactory::Create(

@@ -77,7 +77,7 @@ struct FPCGExRandomFilterConfig
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails WeightCurveLookup;
-	
+
 	PCGExFloatLUT WeightLUT = nullptr;
 
 	/** TBD */

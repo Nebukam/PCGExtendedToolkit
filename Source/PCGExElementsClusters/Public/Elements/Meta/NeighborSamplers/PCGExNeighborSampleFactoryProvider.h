@@ -97,11 +97,11 @@ struct PCGEXELEMENTSCLUSTERS_API FPCGExSamplingConfig
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails WeightCurveLookup;
-	
+
 	/** Which type of neighbor to sample */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExClusterElement NeighborSource = EPCGExClusterElement::Vtx;
-	
+
 	void Init();
 };
 

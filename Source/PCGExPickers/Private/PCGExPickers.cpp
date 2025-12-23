@@ -24,7 +24,7 @@ void FPCGExPickersModule::ShutdownModule()
 void FPCGExPickersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-	
+
 	PCGEX_REGISTER_DATA_TYPE(Picker, Picker)
 }
 #endif

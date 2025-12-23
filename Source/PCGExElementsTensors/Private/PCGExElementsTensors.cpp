@@ -24,9 +24,8 @@ void FPCGExElementsTensorsModule::ShutdownModule()
 void FPCGExElementsTensorsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-	
+
 	PCGEX_REGISTER_DATA_TYPE(Tensor, Tensor)
-	
 }
 #endif
 

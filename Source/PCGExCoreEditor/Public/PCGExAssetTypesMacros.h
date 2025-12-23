@@ -16,5 +16,3 @@ class FPCGEx##_SHORTNAME##Actions : public FAssetTypeActions_Base{public:\
 	virtual uint32 GetCategories() override{return _CATEGORIES;}\
 	virtual bool HasActions(const TArray<UObject*>& InObjects) const override{return false;}};\
 FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGEx##_SHORTNAME##Actions>());
-
-

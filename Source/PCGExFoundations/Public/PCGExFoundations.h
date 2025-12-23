@@ -9,14 +9,14 @@
 DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
 
 class FPCGExFoundationsModule final : public IPCGExModuleInterface
-{ 
+{
 	PCGEX_MODULE_BODY
-	
+
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-	
+
 #if WITH_EDITOR
 	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry) override;
 #endif

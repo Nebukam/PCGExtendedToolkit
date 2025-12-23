@@ -18,12 +18,11 @@ PCGEX_IMPLEMENT_MODULE(FPCGExCoreModule, PCGExCore)
 void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-	
+
 	PCGEX_REGISTER_DATA_TYPE(SortRule, SortRule)
-	
+
 	PCGEX_ASSET_TYPE_ACTION_BASIC(
 		Bitmasks, "PCGEx Bitmasks", UPCGExBitmaskCollection,
 		FColor(195, 0, 40), EAssetTypeCategories::Misc)
-	
 }
 #endif

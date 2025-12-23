@@ -5,13 +5,10 @@
 
 #include "CoreMinimal.h"
 
-namespace PCGExActions
+namespace PCGExActions::Labels
 {
-	namespace Labels
-	{
-		const FName SourceConditionsFilterLabel = TEXT("Conditions");
-		const FName SourceActionsLabel = TEXT("Actions");
-		const FName SourceDefaultsLabel = TEXT("Default values");
-		const FName OutputActionLabel = TEXT("Action");
-	}
+	const FName SourceConditionsFilterLabel = TEXT("Conditions");
+	const FName SourceActionsLabel = TEXT("Actions");
+	const FName SourceDefaultsLabel = TEXT("Default values");
+	const FName OutputActionLabel = TEXT("Action");
 }

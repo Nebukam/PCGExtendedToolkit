@@ -67,7 +67,7 @@ void FPCGExBitmaskEntryCustomization::CustomizeChildren(
 		TSharedPtr<IPropertyHandle> Handle = PropertyHandle->GetChildHandle(i);
 		if (Handle->GetProperty()->GetFName() == FName("Identifier") ||
 			Handle->GetProperty()->GetFName() == FName("Direction")) { continue; }
-		
+
 		ChildBuilder.AddProperty(Handle.ToSharedRef()).ShouldAutoExpand(true);
 	}
 }

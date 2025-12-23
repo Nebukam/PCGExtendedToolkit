@@ -59,7 +59,10 @@ namespace PCGExAssetCollection
 
 	void FTypeRegistry::ProcessPendingRegistrations()
 	{
-		if (IsProcessed()) return;
+		if (IsProcessed())
+		{
+			return;
+		}
 		IsProcessed() = true;
 
 		for (auto& Func : GetPendingRegistrations()) { Func(); }
@@ -87,7 +90,10 @@ namespace PCGExAssetCollection
 
 	const FTypeInfo* FTypeRegistry::FindByClass(const UClass* Class) const
 	{
-		if (!Class) return nullptr;
+		if (!Class)
+		{
+			return nullptr;
+		}
 
 		FReadScopeLock Lock(RegistryLock);
 
@@ -111,12 +117,15 @@ namespace PCGExAssetCollection
 
 	const FTypeInfo* FTypeRegistry::FindByEntryStruct(const UScriptStruct* Struct) const
 	{
-		if (!Struct) return nullptr;
+		if (!Struct)
+		{
+			return nullptr;
+		}
 
 		FReadScopeLock Lock(RegistryLock);
 
 		// Direct lookup
-		if (const FTypeId* Id = StructToType.Find(const_cast<UScriptStruct*>(Struct)))
+		if (const FTypeId* Id = StructToType.Find(Struct))
 		{
 			return Types.Find(*Id);
 		}
@@ -126,7 +135,7 @@ namespace PCGExAssetCollection
 		     Current;
 		     Current = Cast<UScriptStruct>(Current->GetSuperStruct()))
 		{
-			if (const FTypeId* Id = StructToType.Find(const_cast<UScriptStruct*>(Current)))
+			if (const FTypeId* Id = StructToType.Find(Current))
 			{
 				return Types.Find(*Id);
 			}
@@ -137,8 +146,14 @@ namespace PCGExAssetCollection
 
 	bool FTypeRegistry::IsA(FTypeId Type, FTypeId BaseType) const
 	{
-		if (Type == BaseType) return true;
-		if (Type == NAME_None || BaseType == NAME_None) return false;
+		if (Type == BaseType)
+		{
+			return true;
+		}
+		if (Type == NAME_None || BaseType == NAME_None)
+		{
+			return false;
+		}
 
 		FReadScopeLock Lock(RegistryLock);
 
@@ -146,10 +161,16 @@ namespace PCGExAssetCollection
 		FTypeId Current = Type;
 		while (Current != NAME_None)
 		{
-			if (Current == BaseType) return true;
+			if (Current == BaseType)
+			{
+				return true;
+			}
 
 			const FTypeInfo* Info = Types.Find(Current);
-			if (!Info) break;
+			if (!Info)
+			{
+				break;
+			}
 
 			Current = Info->ParentType;
 		}
@@ -179,7 +200,10 @@ FPCGExCollectionTypeSet::FPCGExCollectionTypeSet(std::initializer_list<PCGExAsse
 
 bool FPCGExCollectionTypeSet::ContainsOrDerives(PCGExAssetCollection::FTypeId Type) const
 {
-	if (Types.Contains(Type)) return true;
+	if (Types.Contains(Type))
+	{
+		return true;
+	}
 
 	for (const auto& T : Types)
 	{

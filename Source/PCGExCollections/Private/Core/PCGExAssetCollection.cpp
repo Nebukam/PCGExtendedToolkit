@@ -88,13 +88,19 @@ namespace PCGExAssetCollection
 
 	int32 FMicroCache::GetPickRandom(int32 Seed) const
 	{
-		if (Order.IsEmpty()) return -1;
+		if (Order.IsEmpty())
+		{
+			return -1;
+		}
 		return Order[FRandomStream(Seed).RandRange(0, Order.Num() - 1)];
 	}
 
 	int32 FMicroCache::GetPickRandomWeighted(int32 Seed) const
 	{
-		if (Order.IsEmpty()) return -1;
+		if (Order.IsEmpty())
+		{
+			return -1;
+		}
 
 		const int32 Threshold = FRandomStream(Seed).RandRange(0, static_cast<int32>(WeightSum) - 1);
 		int32 Pick = 0;
@@ -395,7 +401,10 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntry(int32 Index, int32 Seed,
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPick(Index, PickMode);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
 
-	if (!Entry) return Result;
+	if (!Entry)
+	{
+		return Result;
+	}
 
 	if (Entry->HasValidSubCollection())
 	{
@@ -414,7 +423,10 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryRandom(int32 Seed) const
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPickRandom(Seed);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
 
-	if (!Entry) return Result;
+	if (!Entry)
+	{
+		return Result;
+	}
 
 	if (Entry->HasValidSubCollection())
 	{
@@ -433,7 +445,10 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryWeightedRandom(int32 Seed
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPickRandomWeighted(Seed);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
 
-	if (!Entry) return Result;
+	if (!Entry)
+	{
+		return Result;
+	}
 
 	if (Entry->HasValidSubCollection())
 	{
@@ -454,7 +469,10 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryAt(int32 Index, uint8 Tag
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
 
-	if (!Entry) return Result;
+	if (!Entry)
+	{
+		return Result;
+	}
 
 	if (Entry->HasValidSubCollection())
 	{
@@ -480,7 +498,10 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntry(int32 Index, int32 Seed,
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPick(Index, PickMode);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
 
-	if (!Entry) return Result;
+	if (!Entry)
+	{
+		return Result;
+	}
 
 	if (Entry->HasValidSubCollection())
 	{
@@ -512,7 +533,10 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryRandom(int32 Seed, uint8 
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPickRandom(Seed);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
 
-	if (!Entry) return Result;
+	if (!Entry)
+	{
+		return Result;
+	}
 
 	if (Entry->HasValidSubCollection())
 	{
@@ -544,7 +568,10 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryWeightedRandom(int32 Seed
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPickRandomWeighted(Seed);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
 
-	if (!Entry) return Result;
+	if (!Entry)
+	{
+		return Result;
+	}
 
 	if (Entry->HasValidSubCollection())
 	{

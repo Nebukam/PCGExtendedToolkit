@@ -17,7 +17,7 @@ namespace PCGExData
 	{
 	}
 
-	FReadableBufferConfig::FReadableBufferConfig(const PCGExData::FAttributeIdentity& InIdentity, EBufferPreloadType InMode)
+	FReadableBufferConfig::FReadableBufferConfig(const FAttributeIdentity& InIdentity, EBufferPreloadType InMode)
 		: Mode(InMode), Identity(InIdentity)
 	{
 	}
@@ -115,7 +115,7 @@ namespace PCGExData
 		return true;
 	}
 
-	void FFacadePreloader::Register(FPCGExContext* InContext, const PCGExData::FAttributeIdentity& InIdentity)
+	void FFacadePreloader::Register(FPCGExContext* InContext, const FAttributeIdentity& InIdentity)
 	{
 		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
 		{
@@ -130,8 +130,8 @@ namespace PCGExData
 		TSharedPtr<FFacade> SourceFacade = GetDataFacade();
 		if (!SourceFacade) { return; }
 
-		PCGExData::FAttributeIdentity Identity;
-		if (PCGExData::FAttributeIdentity::Get(SourceFacade->GetIn(), InSelector, Identity))
+		FAttributeIdentity Identity;
+		if (FAttributeIdentity::Get(SourceFacade->GetIn(), InSelector, Identity))
 		{
 			Register(InContext, Identity);
 		}

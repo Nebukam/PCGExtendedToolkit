@@ -16,10 +16,7 @@ enum class EPCGExSortDirection : uint8
 	Descending = 1 UMETA(DisplayName = "Descending", ToolTip = "Descending", ActionIcon="Descending")
 };
 
-namespace PCGExSorting
+namespace PCGExSorting::Labels
 {
-	namespace Labels
-	{
-		const FName SourceSortingRules = TEXT("SortRules");
-	}
+	const FName SourceSortingRules = TEXT("SortRules");
 }

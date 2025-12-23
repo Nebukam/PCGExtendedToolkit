@@ -10,10 +10,10 @@
 DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
 
 class FPCGExCoreModule final : public IPCGExModuleInterface
-{ 
+{
 	PCGEX_MODULE_BODY
-	
-public:	
+
+public:
 #if WITH_EDITOR
 	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry) override;
 #endif

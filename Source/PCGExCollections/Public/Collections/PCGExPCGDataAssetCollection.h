@@ -120,10 +120,11 @@ class PCGEXCOLLECTIONS_API UPCGExPCGDataAssetCollection : public UPCGExAssetColl
 {
 	GENERATED_BODY()
 	PCGEX_ASSET_COLLECTION_BODY(FPCGExPCGDataAssetCollectionEntry)
-
+	
+public:
+	
 	friend struct FPCGExPCGDataAssetCollectionEntry;
 
-public:
 	// ---------------------------------------------------------------------------------
 	// Type System
 	// ---------------------------------------------------------------------------------

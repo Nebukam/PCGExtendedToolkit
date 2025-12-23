@@ -62,12 +62,12 @@ TSharedRef<SWidget> FPCGExGridEnumCustomization::GenerateEnumButtons(UEnum* Enum
 	Grid->SetSlotPadding(FMargin(2, 2));
 
 	int32 ItemIndex = 0;
-	
+
 	for (int32 i = 0; i < Enum->NumEnums() - 1; ++i)
 	{
 		if (Enum->HasMetaData(TEXT("Hidden"), i)) { continue; }
 		const FString KeyName = Enum->GetNameStringByIndex(i);
-		
+
 		FString IconName = Enum->GetMetaData(TEXT("ActionIcon"), i);
 		if (IconName.IsEmpty())
 		{

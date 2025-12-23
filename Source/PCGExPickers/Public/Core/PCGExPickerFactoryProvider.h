@@ -120,6 +120,6 @@ public:
 
 namespace PCGExPickers
 {
-	PCGEXPICKERS_API 
+	PCGEXPICKERS_API
 	bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks);
 }
