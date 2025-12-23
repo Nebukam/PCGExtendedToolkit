@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <functional>
-
 #include "CoreMinimal.h"
 
 class UPCGMetadata;
@@ -16,6 +14,7 @@ namespace PCGExData
 
 namespace PCGExGraphs
 {
+	struct FEdge;
 	class FGraph;
 
 	namespace Helpers

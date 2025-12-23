@@ -8,7 +8,6 @@
 #include "Clusters/PCGExEdge.h"
 #include "Clusters/PCGExClusterCommon.h"
 #include "Async/ParallelFor.h"
-#include "Data/PCGExDataTags.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGExBufferHelper.h"
 

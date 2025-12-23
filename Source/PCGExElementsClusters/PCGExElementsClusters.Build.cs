@@ -33,11 +33,11 @@ public class PCGExElementsClusters : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore", 
-				"PCGExFoundations", 
 				"PCGExFilters",
 				"PCGExBlending",
 				"PCGExMatching",
 				"PCGExHeuristics",
+				"PCGExFoundations", 
 			}
 		);
 
