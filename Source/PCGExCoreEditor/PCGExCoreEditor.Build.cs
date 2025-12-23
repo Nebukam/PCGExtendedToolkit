@@ -32,6 +32,7 @@ public class PCGExCoreEditor : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PCG",
+				"PCGExCore"
 			}
 		);
 
@@ -50,7 +51,7 @@ public class PCGExCoreEditor : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings"
+				"DeveloperSettings" 
 			}
 		);
 

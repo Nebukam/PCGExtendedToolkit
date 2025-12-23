@@ -5,16 +5,12 @@
 
 #include "CoreMinimal.h"
 
-#if PCGEX_PCGEXCOLLECTIONS_ENABLED
-#include "PCGExCollectionsSettingsCache.h"
-#endif
-
 #include "PCGExCoreSettingsCache.h"
 #include "PCGPin.h"
 
 void UPCGExGlobalSettings::PostLoad()
 {
-	Super::PostLoad();	
+	Super::PostLoad();
 	UpdateSettingsCaches();
 }
 
@@ -28,7 +24,6 @@ void UPCGExGlobalSettings::PostEditChangeProperty(struct FPropertyChangedEvent& 
 
 void UPCGExGlobalSettings::UpdateSettingsCaches() const
 {
-	
 #define PCGEX_PUSH_SETTING(_MODULE, _SETTING) PCGEX_SETTINGS_INST(_MODULE)._SETTING = _SETTING;
 #define PCGEX_PUSH_COLOR(_COLOR) PCGEX_CORE_SETTINGS.ColorsMap.Add(FName(#_COLOR), Color##_COLOR);
 
@@ -44,7 +39,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_SETTING(Core, bBulkInitData)
 	PCGEX_PUSH_SETTING(Core, bUseDelaunator)
 	PCGEX_PUSH_SETTING(Core, bAssertOnEmptyThread)
-	
+
 	PCGEX_PUSH_SETTING(Core, bUseNativeColorsIfPossible)
 	PCGEX_PUSH_SETTING(Core, bToneDownOptionalPins)
 
@@ -56,7 +51,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_SETTING(Core, SmallClusterSize)
 	PCGEX_PUSH_SETTING(Core, PointsDefaultBatchChunkSize)
 	PCGEX_PUSH_SETTING(Core, ClusterDefaultBatchChunkSize)
-	
+
 	// Push colors
 	PCGEX_PUSH_COLOR(Constant)
 	PCGEX_PUSH_COLOR(Debug)
@@ -98,7 +93,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 #pragma endregion
 
 #pragma region Blending
-		
+
 	PCGEX_PUSH_SETTING(Blending, DefaultBooleanBlendMode)
 	PCGEX_PUSH_SETTING(Blending, DefaultFloatBlendMode)
 	PCGEX_PUSH_SETTING(Blending, DefaultDoubleBlendMode)
@@ -114,17 +109,8 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_SETTING(Blending, DefaultNameBlendMode)
 	PCGEX_PUSH_SETTING(Blending, DefaultSoftObjectPathBlendMode)
 	PCGEX_PUSH_SETTING(Blending, DefaultSoftClassPathBlendMode)
-	
-#pragma endregion 
-	
-#pragma region Collections	
-#if PCGEX_PCGEXCOLLECTIONS_ENABLED
-	
-	PCGEX_PUSH_SETTING(Collections, bDisableCollisionByDefault)
-	
-#endif
-	
+
 #pragma endregion
-	
+
 #undef PCGEX_PUSH_SETTING
 }

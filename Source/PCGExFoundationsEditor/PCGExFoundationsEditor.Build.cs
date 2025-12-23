@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExCore : ModuleRules
+public class PCGExFoundationsEditor : ModuleRules
 {
-	public PCGExCore(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExFoundationsEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
@@ -31,6 +31,8 @@ public class PCGExCore : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"PCG",
+				"PCGExCoreEditor",
+				"PCGExFoundations"
 			}
 		);
 

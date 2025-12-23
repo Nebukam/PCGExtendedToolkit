@@ -1,6 +1,7 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
+using System.IO;
 using UnrealBuildTool;
 
 public class PCGExtendedToolkit : ModuleRules
@@ -10,20 +11,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
 
-		ToggleOptionalModule("PCGExCollections");
-		ToggleOptionalModule("PCGExElementsActions");
-		ToggleOptionalModule("PCGExElementsBridges");
-		ToggleOptionalModule("PCGExElementsClusters");
-		ToggleOptionalModule("PCGExElementsPaths");
-		ToggleOptionalModule("PCGExElementsShapes");
-		ToggleOptionalModule("PCGExElementsTensors");
-		ToggleOptionalModule("PCGExElementsTopology");
-		ToggleOptionalModule("PCGExElementsSampling");
-		ToggleOptionalModule("PCGExElementsProbing");
-		ToggleOptionalModule("PCGExElementsMeta");
-		ToggleOptionalModule("PCGExElementsSpatial");
-		ToggleOptionalModule("PCGExElementsPathfinding");
-		ToggleOptionalModule("PCGExElementsPathfindingNavmesh");
+		LoadSubModulesFromConfig();
 
 		PublicIncludePaths.AddRange(
 			new string[]
@@ -64,21 +52,65 @@ public class PCGExtendedToolkit : ModuleRules
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"Settings",
+					"PCGExCoreEditor",
+					"PCGExFoundationsEditor"
 				});
 		}
 	}
 
-	private void ToggleOptionalModule(string ModuleName, bool Enabled = true)
+	private void LoadSubModulesFromConfig()
 	{
-		if (Enabled)
+		string SubModulesConfig = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "SubModules.ini"));
+
+		// Register as external dependency - changes trigger rebuild
+		ExternalDependencies.Add(SubModulesConfig);
+
+		if (!File.Exists(SubModulesConfig))
 		{
-			PublicDependencyModuleNames.Add(ModuleName);
-			PublicDefinitions.Add($"PCGEX_{ModuleName.ToUpper()}_ENABLED=1");
+			return;
 		}
-		else
+
+		foreach (string Line in File.ReadAllLines(SubModulesConfig))
 		{
-			PublicDefinitions.Add($"PCGEX_{ModuleName.ToUpper()}_ENABLED=0");
+			string Trimmed = Line.Trim();
+
+			// Skip empty lines and comments
+			if (string.IsNullOrEmpty(Trimmed) || Trimmed.StartsWith("#") || Trimmed.StartsWith(";"))
+			{
+				continue;
+			}
+
+			// Parse "ModuleName=1" or "ModuleName=0"
+			string[] Parts = Trimmed.Split('=');
+			if (Parts.Length == 2)
+			{
+				string ModuleName = Parts[0].Trim();
+				bool Enabled = Parts[1].Trim() == "1";
+				ToggleOptionalModule(ModuleName, Enabled);
+			}
+		}
+	}
+
+	private void ToggleOptionalModule(string ModuleName, bool Enabled)
+	{
+		if (!Enabled)
+		{
+			return;
+		}
+
+		PublicDependencyModuleNames.Add(ModuleName);
+
+		if (Target.bBuildEditor == true)
+		{
+			// Check for companion editor module
+			string EditorModuleName = ModuleName + "Editor";
+			string EditorModulePath = Path.Combine(ModuleDirectory, "..", EditorModuleName);
+
+			if (Directory.Exists(EditorModulePath))
+			{
+				PrivateDependencyModuleNames.Add(EditorModuleName);
+			}
 		}
 	}
 }

@@ -7,8 +7,6 @@
 #include "Interfaces/IPluginManager.h"
 #include "AssetRegistry/AssetData.h"
 #include "Editor.h"
-#include "ContentBrowserMenuContexts.h"
-#include "PCGExEditorMenuUtils.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExModuleInterface.h"
 #include "PCGGraph.h"
@@ -99,11 +97,14 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	}
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
-
-	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
-
 	PCGExDetailsCustomization::RegisterDetailsCustomization(Style);
-	RegisterDataVisualizations();
+
+	// Register data visualization
+	if (GetDefault<UPCGExGlobalSettings>()->bPersistentDebug)
+	{
+		FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
+		DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());
+	}
 }
 
 #undef PCGEX_ADD_ICON
@@ -114,39 +115,6 @@ void FPCGExtendedToolkitEditorModule::ShutdownModule()
 	Style.Reset();
 }
 
-void FPCGExtendedToolkitEditorModule::RegisterDataVisualizations()
-{
-	if (GetDefault<UPCGExGlobalSettings>()->bPersistentDebug)
-	{
-		FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
-		DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());
-	}
-}
-
-void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
-{
-	FToolMenuOwnerScoped OwnerScoped(this);
-
-	if (UToolMenu* WorldAssetMenu = UToolMenus::Get()->ExtendMenu("ContentBrowser.AssetContextMenu.AssetActionsSubMenu"))
-	{
-		// Use a dynamic section here because we might have plugins registering at a later time
-		FToolMenuSection& Section = WorldAssetMenu->AddDynamicSection(
-			"PCGEx", FNewToolMenuDelegate::CreateLambda(
-				[this](UToolMenu* ToolMenu)
-				{
-					if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu) { return; }
-					if (UContentBrowserAssetContextMenuContext* AssetMenuContext = ToolMenu->Context.FindContext<UContentBrowserAssetContextMenuContext>())
-					{
-						PCGExEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);
-					}
-				}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
-	}
-}
-
-void FPCGExtendedToolkitEditorModule::UnregisterMenuExtensions()
-{
-	UToolMenus::UnregisterOwner(this);
-}
 #undef PCGEX_FOREACH_CUSTOM_DATA_TYPE
 #undef LOCTEXT_NAMESPACE
 

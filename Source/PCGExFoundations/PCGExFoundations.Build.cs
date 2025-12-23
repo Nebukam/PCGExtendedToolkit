@@ -71,7 +71,7 @@ public class PCGExFoundations : ModuleRules
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"Settings",
 				});
 		}
 	}

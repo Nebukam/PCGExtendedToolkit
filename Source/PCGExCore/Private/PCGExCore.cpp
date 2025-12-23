@@ -4,31 +4,22 @@
 #include "PCGExCore.h"
 
 #if WITH_EDITOR
-#include "Data/Registry/PCGDataTypeRegistry.h"
-#include "Sorting/PCGExSortingRuleProvider.h"
+#include "ISettingsModule.h"
+#include "AssetTypeActions_Base.h"
+#include "Data/Bitmasks/PCGExBitmaskCollection.h"
+#include "PCGExCoreEditor/Public/PCGExAssetTypesMacros.h"
 #endif
 
-#define LOCTEXT_NAMESPACE "FPCGExCoreModule"
-
-void FPCGExCoreModule::StartupModule()
-{
-	IPCGExModuleInterface::StartupModule();
-}
-
-void FPCGExCoreModule::ShutdownModule()
-{
-	IPCGExModuleInterface::ShutdownModule();
-}
+IMPLEMENT_MODULE(FPCGExCoreModule, PCGExCore)
 
 #if WITH_EDITOR
 void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
-
-	PCGEX_REGISTER_DATA_TYPE(SortRule, SortRule)
+	
+	PCGEX_ASSET_TYPE_ACTION_BASIC(
+		Bitmasks, "PCGEx Bitmasks", UPCGExBitmaskCollection,
+		FColor(195, 0, 40), EAssetTypeCategories::Misc)
+	
 }
 #endif
-
-#undef LOCTEXT_NAMESPACE
-
-IMPLEMENT_MODULE(FPCGExCoreModule, PCGExCore)

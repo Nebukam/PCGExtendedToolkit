@@ -18,11 +18,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 	virtual void PostLoad() override;
-	
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-		
+
 public:
 	/** World "Up" vector used as default up internally (Custom Z direction) */
 	UPROPERTY(EditAnywhere, config, Category = "Defaults")
@@ -80,10 +80,6 @@ public:
 	/** If enabled, code will assert when attempting to schedule zero task. Requires a debugguer attached to the editor, otherwise will crash.  */
 	UPROPERTY(EditAnywhere, config, Category = "Debug")
 	bool bAssertOnEmptyThread = false;
-
-	/** Disable collision on new entries */
-	UPROPERTY(EditAnywhere, config, Category = "Collections")
-	bool bDisableCollisionByDefault = true;
 
 #pragma region Blendmodes
 
@@ -295,7 +291,6 @@ public:
 
 
 #pragma endregion
-	
+
 	void UpdateSettingsCaches() const;
-	
 };

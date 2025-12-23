@@ -15,7 +15,7 @@
 
 
 USTRUCT(BlueprintType)
-struct FPCGExBitmaskFilterConfig
+struct PCGEXFILTERS_API FPCGExBitmaskFilterConfig
 {
 	GENERATED_BODY()
 

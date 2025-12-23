@@ -5,14 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExModuleInterface.h"
+#include "Modules/ModuleManager.h"
+
+DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
 
 class FPCGExCoreModule final : public IPCGExModuleInterface
 {
-public:
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
-	
+public:	
 #if WITH_EDITOR
 	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry) override;
 #endif
