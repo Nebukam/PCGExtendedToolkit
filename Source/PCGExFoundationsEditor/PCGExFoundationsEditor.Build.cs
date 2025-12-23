@@ -29,8 +29,11 @@ public class PCGExFoundationsEditor : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
+				"UnrealEd",
+				"Settings",
 				"Engine",
 				"PCG",
+				"PCGExCore",
 				"PCGExCoreEditor",
 				"PCGExFoundations"
 			}
@@ -40,18 +43,14 @@ public class PCGExFoundationsEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"RenderCore",
-				"RHI",
-				"GeometryCore",
-				"GeometryFramework",
-				"GeometryAlgorithms",
-				"PhysicsCore",
-				"NavigationSystem",
+				"PropertyPath",
+				"DeveloperSettings",
 				"Slate",
 				"SlateCore",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings"
+				"PropertyEditor",
+				"EditorWidgets",
+				"InputCore",
+				"ToolMenus" 
 			}
 		);
 
@@ -67,8 +66,7 @@ public class PCGExFoundationsEditor : ModuleRules
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-					"UnrealEd",
-					"Settings"
+					
 				});
 		}
 	}

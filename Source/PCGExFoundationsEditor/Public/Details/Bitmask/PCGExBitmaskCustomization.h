@@ -13,7 +13,7 @@ namespace PCGExBitmaskCustomization
 	TSharedRef<SWidget> BitsGrid(TSharedRef<SUniformGridPanel> Grid, TSharedPtr<IPropertyHandle> BitmaskHandle);
 }
 
-class PCGEXCOREEDITOR_API FPCGExBitmaskCustomization : public IPropertyTypeCustomization
+class FPCGExBitmaskCustomization : public IPropertyTypeCustomization
 {
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
@@ -33,13 +33,13 @@ protected:
 	
 };
 
-class PCGEXCOREEDITOR_API FPCGExBitmaskWithOperationCustomization : public FPCGExBitmaskCustomization
+class FPCGExBitmaskWithOperationCustomization : public FPCGExBitmaskCustomization
 {
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 };
 
-class PCGEXCOREEDITOR_API FPCGExBitmaskFilterConfigCustomization : public FPCGExBitmaskCustomization
+class FPCGExBitmaskFilterConfigCustomization : public FPCGExBitmaskCustomization
 {
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();

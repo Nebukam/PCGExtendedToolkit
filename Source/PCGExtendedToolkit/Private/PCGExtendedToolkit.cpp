@@ -4,6 +4,8 @@
 #include "PCGExtendedToolkit.h"
 #include "PCGExVersion.h"
 
+#include "Generated/PCGExSubModules.generated.h"
+
 #if WITH_EDITOR
 #include "PCGExCoreSettingsCache.h"
 #include "ISettingsModule.h"
@@ -17,7 +19,6 @@ void FPCGExtendedToolkitModule::StartupModule()
 
 	// We need this because the registry holds a reference to the collection ::StaticClass
 	// and it cannot be access during initialization so we defer it here.
-
 
 #pragma region Push Pins
 
@@ -71,6 +72,11 @@ void FPCGExtendedToolkitModule::StartupModule()
 #endif
 
 #pragma endregion
+
+	for (const FString& ModuleName : PCGExSubModules::GetEnabledModules())
+	{
+		if (!FModuleManager::Get().IsModuleLoaded(*ModuleName)) { FModuleManager::Get().LoadModule(*ModuleName); }
+	}
 }
 
 void FPCGExtendedToolkitModule::ShutdownModule()

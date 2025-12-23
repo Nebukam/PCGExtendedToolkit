@@ -45,8 +45,6 @@ public class PCGExCore : ModuleRules
 				"GeometryAlgorithms",
 				"PhysicsCore",
 				"NavigationSystem",
-				"Slate",
-				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
 				"DeveloperSettings"
@@ -66,7 +64,10 @@ public class PCGExCore : ModuleRules
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"Settings",
+					"Slate",
+					"SlateCore",
+					"ToolMenus"
 				});
 		}
 	}
