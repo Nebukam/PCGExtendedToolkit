@@ -7,6 +7,7 @@
 #include "PCGExFilterCommon.h"
 #include "Core/PCGExPathProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
+#include "Details/PCGExRoamingAssetCollectionDetails.h"
 #include "Details/PCGExSplineMeshDetails.h"
 #include "Details/PCGExStagingDetails.h"
 #include "Factories/PCGExFactories.h"

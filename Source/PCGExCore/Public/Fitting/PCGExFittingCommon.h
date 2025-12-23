@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFittingCommon.generated.h"
 
 UENUM()
 enum class EPCGExVariationSnapping : uint8

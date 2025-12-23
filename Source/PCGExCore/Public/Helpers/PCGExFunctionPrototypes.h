@@ -9,6 +9,8 @@
 #include "UObject/Object.h"
 #include "UObject/Interface.h"
 #include "UObject/UObjectGlobals.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "PCGExFunctionPrototypes.generated.h"
 

@@ -15,9 +15,7 @@
 // Register the Mesh collection type at startup
 PCGEX_REGISTER_COLLECTION_TYPE(Mesh, UPCGExMeshCollection, FPCGExMeshCollectionEntry, "Mesh Collection", Base)
 
-// =====================================================================================
 // Material Override Collection
-// =====================================================================================
 
 void FPCGExMaterialOverrideCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
@@ -37,9 +35,7 @@ int32 FPCGExMaterialOverrideCollection::GetHighestIndex() const
 	return HighestIndex;
 }
 
-// =====================================================================================
 // Mesh MicroCache - Material variant picking
-// =====================================================================================
 
 namespace PCGExMeshCollection
 {
@@ -73,9 +69,7 @@ namespace PCGExMeshCollection
 	}
 }
 
-// =====================================================================================
 // Mesh Collection Entry
-// =====================================================================================
 
 UPCGExAssetCollection* FPCGExMeshCollectionEntry::GetSubCollectionPtr() const
 {
@@ -324,11 +318,11 @@ void FPCGExMeshCollectionEntry::BuildMicroCache()
 	MicroCache = NewCache;
 }
 
-// =====================================================================================
-// Mesh Collection - Editor Functions
-// =====================================================================================
 
 #if WITH_EDITOR
+
+// Mesh Collection - Editor Functions
+
 void UPCGExMeshCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
 {
 	UPCGExAssetCollection::EDITOR_AddBrowserSelectionInternal(InAssetData);

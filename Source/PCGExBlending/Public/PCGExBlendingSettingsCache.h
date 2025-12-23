@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExSettingsCacheBody.h"
 
+#include "PCGExBlendingSettingsCache.generated.h"
+
 class UPCGPin;
 
 UENUM()

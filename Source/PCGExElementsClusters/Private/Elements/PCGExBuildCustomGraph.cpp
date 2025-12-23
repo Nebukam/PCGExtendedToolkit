@@ -15,6 +15,7 @@
 #include "Graphs/PCGExGraph.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "Graphs/PCGExGraphBuilder.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraphElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

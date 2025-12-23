@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExBitmaskCommon.generated.h"
 
 struct FPCGExSimpleBitmask;
 struct FPCGExBitmaskRef;

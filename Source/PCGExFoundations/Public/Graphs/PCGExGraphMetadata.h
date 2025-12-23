@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGraphMetadata.generated.h"
 
 struct FPCGExPointEdgeIntersectionDetails;
 struct FPCGExEdgeEdgeIntersectionDetails;

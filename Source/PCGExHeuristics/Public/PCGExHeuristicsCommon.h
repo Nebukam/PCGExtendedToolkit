@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExHeuristicsCommon.generated.h"
 
 UENUM()
 enum class EPCGExHeuristicScoreMode : uint8

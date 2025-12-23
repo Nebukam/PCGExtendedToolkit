@@ -18,9 +18,7 @@
 
 class UPCGExMeshCollection;
 
-// =====================================================================================
 // Material Override Structures
-// =====================================================================================
 
 UENUM()
 enum class EPCGExMaterialVariantsMode : uint8
@@ -77,12 +75,9 @@ struct PCGEXCOLLECTIONS_API FPCGExMaterialOverrideSingleEntry
 	TSoftObjectPtr<UMaterialInterface> Material = nullptr;
 };
 
-// =====================================================================================
-// Mesh MicroCache - Handles material variant picking
-// =====================================================================================
-
 namespace PCGExMeshCollection
 {
+	// Mesh MicroCache - Handles material variant picking
 	class PCGEXCOLLECTIONS_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
 		int32 HighestMaterialIndex = -1;
@@ -102,10 +97,7 @@ namespace PCGExMeshCollection
 	};
 }
 
-// =====================================================================================
 // Mesh Collection Entry
-// =====================================================================================
-
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
 struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
 {
@@ -113,18 +105,13 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollec
 
 	FPCGExMeshCollectionEntry() = default;
 
-	// ---------------------------------------------------------------------------------
 	// Type System
-	// ---------------------------------------------------------------------------------
-
 	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
 	{
 		return PCGExAssetCollection::TypeIds::Mesh;
 	}
 
-	// ---------------------------------------------------------------------------------
-	// Mesh-Specific Properties (DO NOT REORDER - Serialization compatibility)
-	// ---------------------------------------------------------------------------------
+	// Mesh-Specific Properties 
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMesh = nullptr;
@@ -153,26 +140,20 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollec
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="ISMDescriptor"))
 	FPCGExStaticMeshComponentDescriptor SMDescriptor;
 
-	// ---------------------------------------------------------------------------------
 	// Subcollection Access
-	// ---------------------------------------------------------------------------------
 
 	virtual UPCGExAssetCollection* GetSubCollectionPtr() const override;
 
 	virtual void ClearSubCollection() override;
 
-	// ---------------------------------------------------------------------------------
 	// Asset & Material Handling
-	// ---------------------------------------------------------------------------------
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const override;
 	void GetMaterialPaths(int32 PickIndex, TSet<FSoftObjectPath>& OutPaths) const;
 	void ApplyMaterials(int32 PickIndex, UStaticMeshComponent* TargetComponent) const;
 	void ApplyMaterials(int32 PickIndex, FPCGSoftISMComponentDescriptor& Descriptor) const;
 
-	// ---------------------------------------------------------------------------------
 	// Lifecycle
-	// ---------------------------------------------------------------------------------
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive) override;
@@ -186,10 +167,7 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollec
 
 	virtual void BuildMicroCache() override;
 
-	// ---------------------------------------------------------------------------------
 	// Typed MicroCache Access
-	// ---------------------------------------------------------------------------------
-
 	PCGExMeshCollection::FMicroCache* GetMeshMicroCache() const
 	{
 		return static_cast<PCGExMeshCollection::FMicroCache*>(MicroCache.Get());
@@ -207,32 +185,23 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollec
 #pragma endregion
 };
 
-// =====================================================================================
 // Mesh Collection
-// =====================================================================================
-
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
 class PCGEXCOLLECTIONS_API UPCGExMeshCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 	PCGEX_ASSET_COLLECTION_BODY(FPCGExMeshCollectionEntry)
-	
+
 public:
-	
 	friend struct FPCGExMeshCollectionEntry;
 
-	// ---------------------------------------------------------------------------------
 	// Type System
-	// ---------------------------------------------------------------------------------
-
 	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
 	{
 		return PCGExAssetCollection::TypeIds::Mesh;
 	}
 
-	// ---------------------------------------------------------------------------------
 	// Mesh-Specific Properties
-	// ---------------------------------------------------------------------------------
 
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExGlobalVariationRule GlobalDescriptorMode = EPCGExGlobalVariationRule::PerEntry;
@@ -243,18 +212,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Global SM Settings"))
 	FPCGExStaticMeshComponentDescriptor GlobalSMDescriptor;
 
-	// ---------------------------------------------------------------------------------
 	// Entries Array
-	// ---------------------------------------------------------------------------------
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	TArray<FPCGExMeshCollectionEntry> Entries;
 
-	// ---------------------------------------------------------------------------------
-	// Editor Functions
-	// ---------------------------------------------------------------------------------
 
 #if WITH_EDITOR
+	// Editor Functions
+
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 
 	UFUNCTION()

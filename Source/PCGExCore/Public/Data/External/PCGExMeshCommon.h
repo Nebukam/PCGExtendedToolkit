@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMeshCommon.generated.h"
 
 UENUM()
 enum class EPCGExTriangulationType : uint8

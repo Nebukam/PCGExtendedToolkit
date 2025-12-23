@@ -5,6 +5,7 @@
 
 #include "PCGExCoreSettingsCache.h"
 #include "Tasks/Task.h"
+#include "Async/Async.h"
 #include "Core/PCGExContext.h"
 #include "PCGExLog.h"
 #include "PCGExSettingsCacheBody.h"

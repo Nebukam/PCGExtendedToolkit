@@ -11,7 +11,6 @@
 
 class UPCGExBitmaskCollection;
 class UPCGParamData;
-class UPCGExAssetCollection;
 
 USTRUCT(BlueprintType)
 struct PCGEXCOLLECTIONS_API FPCGExEntryTypeDetails
@@ -179,26 +178,4 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetAttributeSetDetails
 	/** Name of the attribute on the AttributeSet that contains the asset category, if any. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CategorySourceAttribute = NAME_None;
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXCOLLECTIONS_API FPCGExRoamingAssetCollectionDetails : public FPCGExAssetAttributeSetDetails
-{
-	GENERATED_BODY()
-
-	FPCGExRoamingAssetCollectionDetails() = default;
-
-	explicit FPCGExRoamingAssetCollectionDetails(const TSubclassOf<UPCGExAssetCollection>& InAssetCollectionType);
-
-	UPROPERTY()
-	bool bSupportCustomType = true;
-
-	/** Defines what type of temp collection to build from input attribute set */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, NoClear, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportCustomType", EditConditionHides, HideEditConditionToggle))
-	TSubclassOf<UPCGExAssetCollection> AssetCollectionType;
-
-	bool Validate(FPCGExContext* InContext) const;
-
-	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const bool bBuildStaging = false) const;
-	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const FName InputPin, const bool bBuildStaging) const;
 };

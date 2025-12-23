@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "Engine/OverlapResult.h"
 #include "Components/PrimitiveComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Containers/PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"

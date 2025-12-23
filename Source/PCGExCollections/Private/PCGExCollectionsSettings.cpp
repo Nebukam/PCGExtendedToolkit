@@ -29,4 +29,5 @@ void UPCGExCollectionsSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_SETTING(Collections, bDisableCollisionByDefault)
 
 #undef PCGEX_PUSH_SETTING
+#undef PCGEX_PUSH_COLOR
 }

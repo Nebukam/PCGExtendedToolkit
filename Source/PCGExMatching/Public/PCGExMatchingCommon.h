@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMatchingCommon.generated.h"
 
 struct FPCGPinProperties;
 struct FPCGExMatchingDetails;

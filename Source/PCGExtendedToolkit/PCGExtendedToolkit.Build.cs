@@ -33,7 +33,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
-				"PCGExBlending"
+				"PCGExBlending",
 			}
 		);
 
@@ -69,6 +69,7 @@ public class PCGExtendedToolkit : ModuleRules
 		UpdateUpluginFile();
 	}
 
+	// Read the small config file to know which modules are desirable
 	private void LoadSubModulesFromConfig()
 	{
 		string SubModulesConfig = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "SubModules.ini"));
@@ -247,6 +248,7 @@ public class PCGExtendedToolkit : ModuleRules
 		}
 	}
 
+	#region Uplugin generation
 
 	private void UpdateUpluginFile()
 	{
@@ -259,21 +261,23 @@ public class PCGExtendedToolkit : ModuleRules
 
 		string Content = File.ReadAllText(UpluginPath);
 
-		// Find "Modules" array bounds
+		// Update Modules section (existing code)
+		Content = UpdateModulesSection(Content);
+
+		// Update Plugins section
+		Content = UpdatePluginsSection(Content);
+
+		File.WriteAllText(UpluginPath, Content);
+	}
+
+	private string UpdateModulesSection(string Content)
+	{
 		int ModulesStart = Content.IndexOf("\"Modules\"");
-		if (ModulesStart == -1)
-		{
-			return;
-		}
+		if (ModulesStart == -1) return Content;
 
-		// Find the opening bracket
 		int ArrayStart = Content.IndexOf('[', ModulesStart);
-		if (ArrayStart == -1)
-		{
-			return;
-		}
+		if (ArrayStart == -1) return Content;
 
-		// Find matching closing bracket
 		int BracketCount = 1;
 		int ArrayEnd = ArrayStart + 1;
 		while (ArrayEnd < Content.Length && BracketCount > 0)
@@ -283,13 +287,50 @@ public class PCGExtendedToolkit : ModuleRules
 			ArrayEnd++;
 		}
 
-		// Build module entries
-		List<string> ModuleEntries = new List<string>();
+		HashSet<string> AllModules = new HashSet<string>(EnabledSubModules);
+		foreach (var kvp in ModuleDependencies)
+		{
+			foreach (string Dep in kvp.Value)
+			{
+				if (Dep != "PCGExtendedToolkit" && Dep != "PCGExtendedToolkitEditor")
+				{
+					AllModules.Add(Dep);
+				}
+			}
+		}
 
+		// Check for Editor companions for all non-Editor modules
+		if (Target.bBuildEditor)
+		{
+			HashSet<string> EditorModulesToAdd = new HashSet<string>();
+
+			foreach (string ModuleName in AllModules)
+			{
+				if (ModuleName.EndsWith("Editor"))
+				{
+					continue;
+				}
+
+				string EditorModuleName = ModuleName + "Editor";
+				string EditorModulePath = Path.Combine(ModuleDirectory, "..", EditorModuleName);
+
+				if (Directory.Exists(EditorModulePath) && !AllModules.Contains(EditorModuleName))
+				{
+					EditorModulesToAdd.Add(EditorModuleName);
+				}
+			}
+
+			foreach (string EditorModule in EditorModulesToAdd)
+			{
+				AllModules.Add(EditorModule);
+			}
+		}
+
+		List<string> ModuleEntries = new List<string>();
 		ModuleEntries.Add(BuildModuleEntry("PCGExtendedToolkit", false));
 		ModuleEntries.Add(BuildModuleEntry("PCGExtendedToolkitEditor", true));
 
-		foreach (string ModuleName in EnabledSubModules)
+		foreach (string ModuleName in AllModules.OrderBy(m => m))
 		{
 			bool IsEditor = ModuleName.EndsWith("Editor");
 			ModuleEntries.Add(BuildModuleEntry(ModuleName, IsEditor));
@@ -297,45 +338,83 @@ public class PCGExtendedToolkit : ModuleRules
 
 		string ModulesJson = "[\n" + string.Join(",\n", ModuleEntries) + "\n  ]";
 
-		// Replace just the Modules array
-		string NewContent = Content.Substring(0, ArrayStart) + ModulesJson + Content.Substring(ArrayEnd);
-
-		if (Content != NewContent)
-		{
-			File.WriteAllText(UpluginPath, NewContent);
-		}
+		return Content.Substring(0, ArrayStart) + ModulesJson + Content.Substring(ArrayEnd);
 	}
+
 
 	private string BuildModuleEntry(string ModuleName, bool IsEditor)
 	{
 		if (IsEditor)
 		{
 			return $@"    {{
-      ""Name"": ""{ModuleName}"",
-      ""Type"": ""Editor"",
-      ""LoadingPhase"": ""Default"",
-      ""PlatformAllowList"": [
-        ""Win64"",
-        ""Mac"",
-        ""Linux""
-      ]
+		""Name"": ""{ModuleName}"",
+		""Type"": ""Editor"", ""LoadingPhase"": ""Default"", ""PlatformAllowList"": [ ""Win64"", ""Mac"", ""Linux"" ]
     }}";
 		}
 		else
 		{
 			return $@"    {{
-      ""Name"": ""{ModuleName}"",
-      ""Type"": ""Runtime"",
-      ""LoadingPhase"": ""Default"",
-      ""PlatformAllowList"": [
-        ""Win64"",
-        ""Mac"",
-        ""IOS"",
-        ""Android"",
-        ""Linux"",
-        ""LinuxArm64""
-      ]
-    }}";
+		""Name"": ""{ModuleName}"",
+		""Type"": ""Runtime"", ""LoadingPhase"": ""Default"", ""PlatformAllowList"": [ ""Win64"", ""Mac"", ""IOS"", ""Android"", ""Linux"", ""LinuxArm64"" ]
+	}}";
 		}
 	}
+
+	private string UpdatePluginsSection(string Content)
+	{
+		int PluginsStart = Content.IndexOf("\"Plugins\"");
+		if (PluginsStart == -1) return Content;
+
+		var ArrayStart = Content.IndexOf('[', PluginsStart);
+		if (ArrayStart == -1)
+		{
+			return Content;
+		}
+
+		int BracketCount = 1;
+		int ArrayEnd = ArrayStart + 1;
+		while (ArrayEnd < Content.Length && BracketCount > 0)
+		{
+			if (Content[ArrayEnd] == '[') BracketCount++;
+			else if (Content[ArrayEnd] == ']') BracketCount--;
+			ArrayEnd++;
+		}
+
+		// Always required
+		List<string> pluginEntries = new List<string>();
+		pluginEntries.Add(BuildPluginEntry("PCG"));
+
+		HashSet<string> allModules = new HashSet<string>(EnabledSubModules);
+		foreach (var kvp in ModuleDependencies)
+		{
+			foreach (string dep in kvp.Value)
+			{
+				allModules.Add(dep);
+			}
+		}
+
+		// Conditional: only if a module needs GeometryScripting
+		if (allModules.Overlaps(new[]
+		    {
+			    "PCGExElementsTopology",
+		    }))
+		{
+			pluginEntries.Add(BuildPluginEntry("GeometryScripting"));
+			pluginEntries.Add(BuildPluginEntry("PCGGeometryScriptInterop"));
+		}
+
+		string PluginsJson = "[\n" + string.Join(",\n", pluginEntries) + "\n  ]";
+
+		return Content.Substring(0, ArrayStart) + PluginsJson + Content.Substring(ArrayEnd);
+	}
+
+	private string BuildPluginEntry(string PluginName)
+	{
+		return $@"    {{
+      ""Name"": ""{PluginName}"",
+      ""Enabled"": true
+    }}";
+	}
+
+	#endregion
 }

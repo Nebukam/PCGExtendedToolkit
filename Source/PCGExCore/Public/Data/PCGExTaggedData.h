@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+
 struct FPCGTaggedData;
 class IPCGAttributeAccessorKeys;
 

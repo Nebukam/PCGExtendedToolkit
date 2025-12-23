@@ -6,6 +6,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Misc/ScopeRWLock.h"
 
 class PCGEXCORE_API FPCGExIntTracker final : public TSharedFromThis<FPCGExIntTracker>
 {

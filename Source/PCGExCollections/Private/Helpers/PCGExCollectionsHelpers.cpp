@@ -15,9 +15,7 @@
 
 namespace PCGExCollections
 {
-	// =====================================================================================
 	// Distribution Helper Implementation
-	// =====================================================================================
 
 	FDistributionHelper::FDistributionHelper(UPCGExAssetCollection* InCollection, const FPCGExAssetDistributionDetails& InDetails)
 		: Collection(InCollection), Details(InDetails)
@@ -176,9 +174,7 @@ namespace PCGExCollections
 		return FPCGExEntryAccessResult{};
 	}
 
-	// =====================================================================================
 	// MicroDistribution Helper Implementation
-	// =====================================================================================
 
 	FMicroDistributionHelper::FMicroDistributionHelper(const FPCGExMicroCacheDistributionDetails& InDetails)
 		: Details(InDetails)
@@ -217,9 +213,7 @@ namespace PCGExCollections
 		return -1;
 	}
 
-	// =====================================================================================
 	// Pick Packer Implementation
-	// =====================================================================================
 
 	FPickPacker::FPickPacker(FPCGContext* InContext)
 	{
@@ -268,9 +262,7 @@ namespace PCGExCollections
 		}
 	}
 
-	// =====================================================================================
 	// Pick Unpacker Implementation
-	// =====================================================================================
 
 	FPickUnpacker::~FPickUnpacker()
 	{
@@ -448,9 +440,7 @@ namespace PCGExCollections
 		return Collection->GetEntryAt(EntryIndex);
 	}
 
-	// =====================================================================================
 	// Collection Source Implementation
-	// =====================================================================================
 
 	FCollectionSource::FCollectionSource(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 		: DataFacade(InDataFacade)
@@ -535,10 +525,7 @@ namespace PCGExCollections
 		return true;
 	}
 
-	// =====================================================================================
 	// Utility Functions
-	// =====================================================================================
-
 
 	FSocketHelper::FSocketHelper(const FPCGExSocketOutputDetails* InDetails, const int32 InNumPoints)
 		: PCGExStaging::FSocketHelper(InDetails, InNumPoints)

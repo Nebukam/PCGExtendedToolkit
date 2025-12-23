@@ -437,9 +437,8 @@ protected:
 #pragma endregion
 
 public:
-	// ---------------------------------------------------------------------------------
-	// Properties (DO NOT REORDER - Serialization compatibility)
-	// ---------------------------------------------------------------------------------
+	
+	// Properties
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1, MultiLine))
@@ -473,9 +472,7 @@ public:
 	bool bDoNotIgnoreInvalidEntries = false;
 
 protected:
-	// ---------------------------------------------------------------------------------
 	// Internal - Override in derived classes
-	// ---------------------------------------------------------------------------------
 
 	/** Get entry at raw array index (not cache-adjusted). Must override. */
 	virtual const FPCGExAssetCollectionEntry* GetEntryAtRawIndex(int32 Index) const { return nullptr; }
@@ -487,20 +484,13 @@ protected:
 	template <typename T>
 	bool BuildCacheFromEntries(TArray<T>& InEntries);
 
-	// ---------------------------------------------------------------------------------
-	// Cache State
-	// ---------------------------------------------------------------------------------
-
 	UPROPERTY()
 	bool bCacheNeedsRebuild = true;
 
 	TSharedPtr<PCGExAssetCollection::FCache> Cache;
 };
 
-// =====================================================================================
 // Template Implementation
-// =====================================================================================
-
 template <typename T>
 bool UPCGExAssetCollection::BuildCacheFromEntries(TArray<T>& InEntries)
 {
@@ -527,9 +517,7 @@ bool UPCGExAssetCollection::BuildCacheFromEntries(TArray<T>& InEntries)
 	return true;
 }
 
-// =====================================================================================
-// Simplified Boilerplate Macro
-// =====================================================================================
+// Boilerplate Macro
 
 /**
  * Implements required virtual functions for a collection class.

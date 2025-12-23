@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterCommon.generated.h"
 
 UENUM()
 enum class EPCGExFilterFallback : uint8

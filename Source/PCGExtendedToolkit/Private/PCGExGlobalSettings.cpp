@@ -112,4 +112,5 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 #pragma endregion
 
 #undef PCGEX_PUSH_SETTING
+#undef PCGEX_PUSH_COLOR
 }

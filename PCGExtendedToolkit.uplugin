@@ -17,220 +17,109 @@
   "Installed": false,
   "Modules": [
     {
-      "Name": "PCGExtendedToolkit",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
+		"Name": "PCGExtendedToolkit",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExtendedToolkitEditor",
+		"Type": "Editor", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "Linux" ]
     },
     {
-      "Name": "PCGExtendedToolkitEditor",
-      "Type": "Editor",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "Linux"
-      ]
+		"Name": "PCGExBlending",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExCollections",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExCollectionsEditor",
+		"Type": "Editor", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "Linux" ]
     },
     {
-      "Name": "PCGExCollections",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
+		"Name": "PCGExCore",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExCoreEditor",
+		"Type": "Editor", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "Linux" ]
     },
     {
-      "Name": "PCGExCollectionsEditor",
-      "Type": "Editor",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "Linux"
-      ]
+		"Name": "PCGExElementsActions",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsBridges",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsClusters",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsMeta",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsPathfinding",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsPathfindingNavmesh",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsPaths",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsProbing",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsSampling",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsShapes",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsSpatial",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsTensors",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExElementsTopology",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExFilters",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExFoundations",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
+    {
+		"Name": "PCGExFoundationsEditor",
+		"Type": "Editor", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "Linux" ]
     },
     {
-      "Name": "PCGExElementsBridges",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
+		"Name": "PCGExHeuristics",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
     {
-      "Name": "PCGExElementsClusters",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
+		"Name": "PCGExMatching",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	},
     {
-      "Name": "PCGExElementsProbing",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsPaths",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsSampling",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsMeta",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsSpatial",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsPathfinding",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsPathfindingNavmesh",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsTopology",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsShapes",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsTensors",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
-      "Name": "PCGExElementsActions",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    }
+		"Name": "PCGExPickers",
+		"Type": "Runtime", "LoadingPhase": "Default", "PlatformAllowList": [ "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" ]
+	}
   ],
   "Plugins": [
     {

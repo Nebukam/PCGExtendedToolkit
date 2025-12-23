@@ -7,6 +7,7 @@
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 #include "Core/PCGExPointsProcessor.h"
+#include "Details/PCGExRoamingAssetCollectionDetails.h"
 #include "Details/PCGExSocketOutputDetails.h"
 #include "Details/PCGExStagingDetails.h"
 #include "Fitting/PCGExFitting.h"

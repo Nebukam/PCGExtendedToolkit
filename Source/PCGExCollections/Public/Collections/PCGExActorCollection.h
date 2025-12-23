@@ -24,34 +24,23 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 
 	FPCGExActorCollectionEntry() = default;
 
-	// ---------------------------------------------------------------------------------
 	// Type System
-	// ---------------------------------------------------------------------------------
 
 	virtual PCGExAssetCollection::FTypeId GetTypeId() const override { return PCGExAssetCollection::TypeIds::Actor; }
 
-	// ---------------------------------------------------------------------------------
-	// Actor-Specific Properties (DO NOT REORDER - Serialization compatibility)
-	// ---------------------------------------------------------------------------------
-
+	// Actor-Specific Properties
+	
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftClassPtr<AActor> Actor = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExActorCollection> SubCollection;
 
-	// ---------------------------------------------------------------------------------
-	// Subcollection Access
-	// ---------------------------------------------------------------------------------
-
 	virtual const UPCGExAssetCollection* GetSubCollectionPtr() const override;
 
 	virtual void ClearSubCollection() override;
 
-	// ---------------------------------------------------------------------------------
 	// Lifecycle
-	// ---------------------------------------------------------------------------------
-
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
@@ -61,41 +50,28 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 #endif
 };
 
-// =====================================================================================
 // Actor Collection
-// =====================================================================================
-
 UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")
 class PCGEXCOLLECTIONS_API UPCGExActorCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 	PCGEX_ASSET_COLLECTION_BODY(FPCGExActorCollectionEntry)
-	
+
 public:
-	
 	friend struct FPCGExActorCollectionEntry;
 
-	// ---------------------------------------------------------------------------------
 	// Type System
-	// ---------------------------------------------------------------------------------
-
 	virtual PCGExAssetCollection::FTypeId GetTypeId() const override
 	{
 		return PCGExAssetCollection::TypeIds::Actor;
 	}
 
-	// ---------------------------------------------------------------------------------
 	// Entries Array
-	// ---------------------------------------------------------------------------------
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	TArray<FPCGExActorCollectionEntry> Entries;
 
-	// ---------------------------------------------------------------------------------
-	// Editor Functions
-	// ---------------------------------------------------------------------------------
-
 #if WITH_EDITOR
+	// Editor Functions
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 #endif
 };

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExShapesCommon.generated.h"
 
 UENUM()
 enum class EPCGExShapeOutputMode : uint8

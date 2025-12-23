@@ -7,6 +7,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsSettings.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Core/PCGExTexParamFactoryProvider.h"
 #include "Async/ParallelFor.h"
 #include "Containers/PCGExScopedContainers.h"

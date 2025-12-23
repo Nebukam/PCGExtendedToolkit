@@ -14,9 +14,7 @@
 // Register the PCGDataAsset collection type at startup
 PCGEX_REGISTER_COLLECTION_TYPE(PCGDataAsset, UPCGExPCGDataAssetCollection, FPCGExPCGDataAssetCollectionEntry, "PCG Data Asset Collection", Base)
 
-// =====================================================================================
 // PCGDataAsset MicroCache - Point weight picking
-// =====================================================================================
 
 namespace PCGExPCGDataAssetCollection
 {
@@ -26,9 +24,7 @@ namespace PCGExPCGDataAssetCollection
 	}
 }
 
-// =====================================================================================
 // PCGDataAsset Collection Entry
-// =====================================================================================
 
 UPCGExAssetCollection* FPCGExPCGDataAssetCollectionEntry::GetSubCollectionPtr() const
 {
@@ -125,11 +121,11 @@ void FPCGExPCGDataAssetCollectionEntry::BuildMicroCache()
 	MicroCache = NewCache;
 }
 
-// =====================================================================================
-// PCGDataAsset Collection - Editor Functions
-// =====================================================================================
 
 #if WITH_EDITOR
+
+// PCGDataAsset Collection - Editor Functions
+
 void UPCGExPCGDataAssetCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
 {
 	UPCGExAssetCollection::EDITOR_AddBrowserSelectionInternal(InAssetData);
