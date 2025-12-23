@@ -30,11 +30,11 @@ else{ return {InStyle->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME)), InStyle->GetBrus
 
 #define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) \
 PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
-InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColor(FName(#_NAME)); }); 
+InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColor(FName(#_NAME)); });
 
 #define PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(_MODULE, _NAME, _NATIVE_COLOR) \
 PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
-InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_NAME), _NATIVE_COLOR); }); 
+InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_NAME), _NATIVE_COLOR); });
 
 #define PCGEX_IMPLEMENT_MODULE(_CLASS, _NAME) \
 IMPLEMENT_MODULE(_CLASS, _NAME) \
@@ -50,7 +50,7 @@ class PCGEXCORE_API IPCGExModuleInterface : public IModuleInterface
 {
 public:
 	virtual FString GetModuleName() const { return TEXT(""); }
-	
+
 public:
 	// Static registry
 	static TArray<IPCGExModuleInterface*> RegisteredModules;
