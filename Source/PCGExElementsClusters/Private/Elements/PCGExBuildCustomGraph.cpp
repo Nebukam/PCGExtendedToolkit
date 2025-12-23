@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildCustomGraph.h"
+#include "Elements/PCGExBuildCustomGraph.h"
 
 #include "GameFramework/Actor.h"
 #include "UObject/UObjectGlobals.h"
@@ -13,7 +13,6 @@
 #include "Data/PCGExPointIO.h"
 
 #include "Graphs/PCGExGraph.h"
-#include "Graphs/Union/PCGExUnionProcessor.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "Graphs/PCGExGraphBuilder.h"
 
@@ -280,7 +279,7 @@ namespace PCGExBuildCustomGraph
 			};
 
 			PointIO->GetOutKeys(true); // Generate out keys		
-			InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+			InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), PCGEX_CORE_SETTINGS.ClusterDefaultBatchChunkSize);
 		}
 	};
 }

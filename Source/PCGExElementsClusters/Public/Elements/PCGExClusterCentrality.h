@@ -4,12 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Details/PCGExDetailsNoise.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Core/PCGExClusterFilter.h"
 
 #include "PCGExClusterCentrality.generated.h"
+
+namespace PCGEx
+{
+	class FScoredQueue;
+}
 
 class UPCGExSearchInstancedFactory;
 
@@ -42,7 +45,7 @@ public:
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 	
 	PCGEX_NODE_INFOS(ClusterCentrality, "Cluster : Centrality", "Compute betweenness centrality. Processing time increases exponentially with the number of vtx.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(NeighborSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(NeighborSampler); }
 #endif
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;

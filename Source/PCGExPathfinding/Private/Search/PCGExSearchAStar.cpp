@@ -8,9 +8,15 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExHashLookup.h"
 #include "Core/PCGExPathfinding.h"
+#include "Core/PCGExPathQuery.h"
+#include "Core/PCGExSearchAllocations.h"
 #include "Utils/PCGExScoredQueue.h"
 
-bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
+bool FPCGExSearchOperationAStar::ResolveQuery(
+	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
+	const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics,
+	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	check(InQuery->PickResolution == PCGExPathfinding::EQueryPickResolution::Success)
 

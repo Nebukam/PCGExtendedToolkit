@@ -35,7 +35,7 @@ namespace PCGExPathfinding
 	class FSearchAllocations;
 	class FPathQuery;
 
-	class PCGEXTENDEDTOOLKIT_API FPathQuery : public TSharedFromThis<FPathQuery>
+	class PCGEXELEMENTSPATHFINDING_API FPathQuery : public TSharedFromThis<FPathQuery>
 	{
 	public:
 		FPathQuery(const TSharedRef<PCGExClusters::FCluster>& InCluster, const FNodePick& InSeed, const FNodePick& InGoal, const int32 InQueryIndex);

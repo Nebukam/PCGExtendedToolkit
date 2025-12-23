@@ -1,8 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExClusterCentrality.h"
-
+#include "Elements/PCGExClusterCentrality.h"
 
 #include "PCGExHeuristicsHandler.h"
 #include "PCGParamData.h"
@@ -11,6 +10,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExScopedContainers.h"
 #include "Core/PCGExHeuristicsFactoryProvider.h"
+#include "Core/PCGExPointFilter.h"
 #include "Utils/PCGExScoredQueue.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClusterCentralityElement"
@@ -45,7 +45,6 @@ TArray<FPCGPinProperties> UPCGExClusterCentralitySettings::InputPinProperties() 
 	if (DownsamplingMode == EPCGExCentralityDownsampling::Filters) { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Required) }
 	else { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Advanced) }
 
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::Labels::SourceOverridesSearch)
 	return PinProperties;
 }
 

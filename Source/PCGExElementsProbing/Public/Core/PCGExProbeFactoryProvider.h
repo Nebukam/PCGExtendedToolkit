@@ -25,11 +25,11 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Probe"))
 struct FPCGExDataTypeInfoProbe : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXPROBING_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXELEMENTSPROBING_API)
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXPROBING_API UPCGExProbeFactoryData : public UPCGExFactoryData
+class PCGEXELEMENTSPROBING_API UPCGExProbeFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -41,7 +41,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXPROBING_API UPCGExProbeFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXELEMENTSPROBING_API UPCGExProbeFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

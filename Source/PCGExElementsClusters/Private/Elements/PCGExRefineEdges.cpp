@@ -295,7 +295,7 @@ namespace PCGExRefineEdges
 		Refinement->VtxFilterCache = VtxFilterCache.Get();
 		Refinement->EdgeFilterCache = &EdgeFilterCache;
 
-		const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
+		const int32 PLI = PCGEX_CORE_SETTINGS.GetClusterBatchChunkSize();
 
 		if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
 		{
@@ -410,11 +410,11 @@ namespace PCGExRefineEdges
 				}
 			};
 
-			RestoreEdges->StartSubLoops(This->Cluster->Edges->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			RestoreEdges->StartSubLoops(This->Cluster->Edges->Num(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 		};
 
 
-		InvalidateNodes->StartSubLoops(Cluster->Nodes->Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		InvalidateNodes->StartSubLoops(Cluster->Nodes->Num(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::Sanitize()
@@ -431,7 +431,7 @@ namespace PCGExRefineEdges
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
+			const int32 PLI = PCGEX_CORE_SETTINGS.GetClusterBatchChunkSize();
 			SanitizeTaskGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
@@ -450,7 +450,7 @@ namespace PCGExRefineEdges
 		else
 		{
 			PCGEX_SHARED_THIS_DECL
-			SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(), false, ThisPtr);
+			SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(NumNodes, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize(), false, ThisPtr);
 		}
 	}
 

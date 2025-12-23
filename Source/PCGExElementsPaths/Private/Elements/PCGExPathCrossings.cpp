@@ -381,7 +381,7 @@ namespace PCGExPathCrossings
 			This->CollapseCrossings(Scope);
 		};
 
-		CollapseTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CollapseTask->StartSubLoops(Path->NumEdges, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CollapseCrossings(const PCGExMT::FScope& Scope)
@@ -506,7 +506,7 @@ namespace PCGExPathCrossings
 			This->CrossBlend(Scope);
 		};
 
-		CrossBlendTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CrossBlendTask->StartSubLoops(Path->NumEdges, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 	}
 }
 

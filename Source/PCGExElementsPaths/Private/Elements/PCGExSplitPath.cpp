@@ -90,7 +90,7 @@ namespace PCGExSplitPath
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
 
 		const int32 NumPoints = PointDataFacade->GetNum();
-		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
+		const int32 ChunkSize = PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize();
 
 		PCGEX_ASYNC_GROUP_CHKD(TaskManager, TaskGroup)
 

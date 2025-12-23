@@ -447,7 +447,7 @@ namespace PCGExBevelPath
 			PCGEX_SCOPE_LOOP(i) { This->PrepareSinglePoint(i); }
 		};
 
-		Preparation->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
+		Preparation->StartSubLoops(PointDataFacade->GetNum(), PCGEX_CORE_SETTINGS.PointsDefaultBatchChunkSize);
 
 		return true;
 	}
@@ -669,7 +669,7 @@ namespace PCGExBevelPath
 			}
 		};
 
-		WriteFlagsTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		WriteFlagsTask->StartSubLoops(PointDataFacade->GetNum(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 
 		IProcessor::Write();
 	}

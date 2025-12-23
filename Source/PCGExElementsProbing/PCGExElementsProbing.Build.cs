@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExProbing : ModuleRules
+public class PCGExElementsProbing : ModuleRules
 {
-	public PCGExProbing(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExElementsProbing(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
@@ -32,7 +32,8 @@ public class PCGExProbing : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
-				"PCGExFilters"
+				"PCGExFilters",
+				"PCGExFoundations"
 			}
 		);
 
@@ -51,7 +52,7 @@ public class PCGExProbing : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings", 
+				"DeveloperSettings",
 			}
 		);
 

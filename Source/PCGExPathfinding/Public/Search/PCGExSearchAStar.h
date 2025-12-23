@@ -16,7 +16,11 @@ class FPCGExHeuristicOperation;
 class FPCGExSearchOperationAStar : public FPCGExSearchOperation
 {
 public:
-	virtual bool ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
+	virtual bool ResolveQuery(
+		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, 
+		const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, 
+		const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, 
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
 
 	virtual TSharedPtr<PCGExPathfinding::FSearchAllocations> NewAllocations() const override;
 };

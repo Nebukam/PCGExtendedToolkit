@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExModuleInterface.h"
 
-class FPCGExProbingModule final : public IPCGExModuleInterface
+class FPCGExElementsProbingModule final : public IPCGExModuleInterface
 {
 public:
 	/** IModuleInterface implementation */

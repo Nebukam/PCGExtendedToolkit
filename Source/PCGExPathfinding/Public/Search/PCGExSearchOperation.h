@@ -39,7 +39,11 @@ public:
 	PCGExClusters::FCluster* Cluster = nullptr;
 
 	virtual void PrepareForCluster(PCGExClusters::FCluster* InCluster);
-	virtual bool ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
+	virtual bool ResolveQuery(
+		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+		const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
+		const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics,
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
 
 	virtual TSharedPtr<PCGExPathfinding::FSearchAllocations> NewAllocations() const;
 };

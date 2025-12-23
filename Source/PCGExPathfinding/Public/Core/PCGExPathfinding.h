@@ -145,5 +145,6 @@ namespace PCGExPathfinding
 		bool IsValid() const { return Seed != -1 && Goal != -1; }
 	};
 
+	PCGEXELEMENTSPATHFINDING_API
 	void ProcessGoals(const TSharedPtr<PCGExData::FFacade>& InSeedDataFacade, const UPCGExGoalPicker* GoalPicker, TFunction<void(int32, int32)>&& GoalFunc);
 }

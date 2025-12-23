@@ -175,7 +175,7 @@ namespace PCGExClusterDiffusion
 
 		if (Context->SeedsDataFacade->GetNum() <= 0) { return false; }
 
-		DiffusionInitialization->StartSubLoops(Context->SeedsDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		DiffusionInitialization->StartSubLoops(Context->SeedsDataFacade->GetNum(), PCGEX_CORE_SETTINGS.ClusterDefaultBatchChunkSize);
 
 #undef PCGEX_NEW_DIFFUSION
 

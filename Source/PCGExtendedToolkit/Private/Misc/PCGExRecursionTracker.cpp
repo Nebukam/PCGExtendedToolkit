@@ -21,7 +21,7 @@
 #if WITH_EDITOR
 bool UPCGExRecursionTrackerSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
-	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
+	return PCGEX_CORE_SETTINGS.GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
 }
 
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExRecursionTrackerSettings::GetPreconfiguredInfo() const

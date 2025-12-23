@@ -14,6 +14,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
 
+		ToggleOptionalModule("PCGExCollections");
 		
 		ToggleOptionalModule("PCGExElementsActions");
 		ToggleOptionalModule("PCGExElementsBridges");
@@ -23,11 +24,10 @@ public class PCGExtendedToolkit : ModuleRules
 		ToggleOptionalModule("PCGExElementsTensors");
 		ToggleOptionalModule("PCGExElementsTopology");
 		ToggleOptionalModule("PCGExElementsSampling");
+		ToggleOptionalModule("PCGExElementsProbing");
 		
 		ToggleOptionalModule("PCGExElementsPathfinding");
 		ToggleOptionalModule("PCGExElementsPathfindingNavmesh");
-
-		ToggleOptionalModule("PCGExCollections");
 
 		PublicIncludePaths.AddRange(
 			new string[]

@@ -1,7 +1,7 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExProbing.h"
+#include "PCGExElementsProbing.h"
 
 #if WITH_EDITOR
 #include "ISettingsModule.h"
@@ -9,20 +9,20 @@
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif
 
-#define LOCTEXT_NAMESPACE "FPCGExProbingModule"
+#define LOCTEXT_NAMESPACE "FPCGExElementsProbingModule"
 
-void FPCGExProbingModule::StartupModule()
+void FPCGExElementsProbingModule::StartupModule()
 {
 	IPCGExModuleInterface::StartupModule();
 }
 
-void FPCGExProbingModule::ShutdownModule()
+void FPCGExElementsProbingModule::ShutdownModule()
 {
 	IPCGExModuleInterface::ShutdownModule();
 }
 
 #if WITH_EDITOR
-void FPCGExProbingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExElementsProbingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 	
@@ -32,4 +32,4 @@ void FPCGExProbingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InS
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExProbingModule, PCGExProbing)
+IMPLEMENT_MODULE(FPCGExElementsProbingModule, PCGExElementsProbing)

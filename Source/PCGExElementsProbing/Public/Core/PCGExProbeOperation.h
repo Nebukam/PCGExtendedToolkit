@@ -33,7 +33,7 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXPROBING_API FPCGExProbeConfigBase
+struct PCGEXELEMENTSPROBING_API FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ struct PCGEXPROBING_API FPCGExProbeConfigBase
 /**
  * 
  */
-class PCGEXPROBING_API FPCGExProbeOperation : public FPCGExOperation
+class PCGEXELEMENTSPROBING_API FPCGExProbeOperation : public FPCGExOperation
 {
 public:
 	virtual bool PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO);

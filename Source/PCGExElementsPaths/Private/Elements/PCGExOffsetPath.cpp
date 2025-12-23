@@ -265,7 +265,7 @@ namespace PCGExOffsetPath
 			}
 		};
 
-		FindCrossings->StartSubLoops(DirtyPath->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FindCrossings->StartSubLoops(DirtyPath->NumEdges, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()

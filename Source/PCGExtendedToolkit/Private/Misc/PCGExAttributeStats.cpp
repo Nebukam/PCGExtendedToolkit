@@ -210,7 +210,7 @@ namespace PCGExAttributeStats
 			This->FilterScope(Scope);
 		};
 
-		FilterScope->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FilterScope->StartSubLoops(PointDataFacade->GetNum(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 
 		return true;
 	}

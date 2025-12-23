@@ -201,7 +201,7 @@ namespace PCGExConnectPoints
 			}
 		};
 
-		PrepTask->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		PrepTask->StartSubLoops(NumPoints, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 
 		return true;
 	}

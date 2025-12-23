@@ -169,7 +169,7 @@ namespace PCGExShiftPath
 				This->ProcessPoints(Scope);
 			};
 
-			FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			FilterTask->StartSubLoops(PointDataFacade->GetNum(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 			return true;
 		}
 

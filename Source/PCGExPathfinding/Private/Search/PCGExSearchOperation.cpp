@@ -5,13 +5,18 @@
 #include "Search/PCGExSearchOperation.h"
 
 #include "Core/PCGExPathfinding.h"
+#include "Core/PCGExSearchAllocations.h"
 
 void FPCGExSearchOperation::PrepareForCluster(PCGExClusters::FCluster* InCluster)
 {
 	Cluster = InCluster;
 }
 
-bool FPCGExSearchOperation::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
+bool FPCGExSearchOperation::ResolveQuery(
+	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
+	const TSharedPtr<PCGExHeuristics::FHandler>& Heuristics,
+	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	return false;
 }

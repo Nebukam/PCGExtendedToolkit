@@ -137,7 +137,7 @@ namespace PCGExRelaxClusters
 				This->FilterVtxScope(Scope);
 			};
 
-			VtxTesting->StartSubLoops(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			VtxTesting->StartSubLoops(NumNodes, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 		}
 		else
 		{

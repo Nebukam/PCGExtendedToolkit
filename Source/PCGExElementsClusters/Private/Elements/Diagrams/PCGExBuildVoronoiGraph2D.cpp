@@ -422,7 +422,7 @@ namespace PCGExBuildVoronoiGraph2D
 				}
 			};
 
-			OutputSites->StartSubLoops(DelaunaySitesNum, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			OutputSites->StartSubLoops(DelaunaySitesNum, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 		}
 
 		return true;
