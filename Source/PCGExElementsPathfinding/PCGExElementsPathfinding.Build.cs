@@ -9,6 +9,7 @@ public class PCGExElementsPathfinding : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
+		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(
 			new string[]
@@ -36,6 +37,7 @@ public class PCGExElementsPathfinding : ModuleRules
 				"PCGExMatching",
 				"PCGExHeuristics",
 				"PCGExFoundations",
+				"PCGExElementsClusters",
 			}
 		);
 

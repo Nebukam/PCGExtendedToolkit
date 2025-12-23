@@ -9,6 +9,7 @@ public class PCGExPickers : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
+		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(
 			new string[]

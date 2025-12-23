@@ -9,6 +9,7 @@ public class PCGExMatching : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
+		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(
 			new string[]
