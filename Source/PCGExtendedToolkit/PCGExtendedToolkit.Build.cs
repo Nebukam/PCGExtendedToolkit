@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnrealBuildTool;
 
@@ -14,11 +15,8 @@ public class PCGExtendedToolkit : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
-		
+
 		LoadSubModulesFromConfig();
-		
-		EnabledSubModules.Insert(0, "PCGExFoundations"); // Load Foundations first
-		GenerateSubModulesHeader();
 
 		PublicIncludePaths.AddRange(
 			new string[]
@@ -64,6 +62,9 @@ public class PCGExtendedToolkit : ModuleRules
 					"PCGExFoundationsEditor"
 				});
 		}
+		
+		ScanSubModuleDependencies();
+		GenerateSubModulesHeader();
 	}
 
 	private void LoadSubModulesFromConfig()
@@ -136,12 +137,50 @@ public class PCGExtendedToolkit : ModuleRules
 		}
 	}
 
+	private Dictionary<string, List<string>> ModuleDependencies = new Dictionary<string, List<string>>();
+
+	private void ScanSubModuleDependencies()
+	{
+		foreach (string ModuleName in EnabledSubModules)
+		{
+			if (ModuleName.EndsWith("Editor") && !Target.bBuildEditor)
+			{
+				continue;
+			}
+
+			string BuildCsPath = Path.Combine(ModuleDirectory, "..", ModuleName, ModuleName + ".Build.cs");
+
+			if (!File.Exists(BuildCsPath))
+			{
+				continue;
+			}
+
+			string Content = File.ReadAllText(BuildCsPath);
+			List<string> Dependencies = new List<string>();
+
+			// Match any "PCGEx..." strings in dependency arrays
+			var Matches = System.Text.RegularExpressions.Regex.Matches(
+				Content,
+				@"""(PCGEx\w+)"""
+			);
+
+			foreach (System.Text.RegularExpressions.Match Match in Matches)
+			{
+				string Dep = Match.Groups[1].Value;
+
+				// Don't add self-reference
+				if (Dep != ModuleName && !Dependencies.Contains(Dep))
+				{
+					Dependencies.Add(Dep);
+				}
+			}
+
+			ModuleDependencies[ModuleName] = Dependencies;
+		}
+	}
+
 	private void GenerateSubModulesHeader()
 	{
-		
-		// Create a header file with the list of selected modules
-		// This will be used by the main plugin module to load compiled & selected modules individually.
-		
 		string GeneratedDir = Path.Combine(ModuleDirectory, "Private", "Generated");
 		string HeaderPath = Path.Combine(GeneratedDir, "PCGExSubModules.generated.h");
 
@@ -153,10 +192,11 @@ public class PCGExtendedToolkit : ModuleRules
 		sb.AppendLine();
 		sb.AppendLine("namespace PCGExSubModules");
 		sb.AppendLine("{");
-		sb.AppendLine("\tinline TArray<FString> GetEnabledModules()");
-		sb.AppendLine("\t{");
-		sb.AppendLine("\t\treturn {");
 
+		// Module list
+		sb.AppendLine("\tinline const TArray<FString>& GetEnabledModules()");
+		sb.AppendLine("\t{");
+		sb.AppendLine("\t\tstatic TArray<FString> Modules = {");
 		for (int i = 0; i < EnabledSubModules.Count; i++)
 		{
 			string comma = (i < EnabledSubModules.Count - 1) ? "," : "";
@@ -164,10 +204,38 @@ public class PCGExtendedToolkit : ModuleRules
 		}
 
 		sb.AppendLine("\t\t};");
+		sb.AppendLine("\t\treturn Modules;");
 		sb.AppendLine("\t}");
+		sb.AppendLine();
+
+		// Dependency map
+		sb.AppendLine("\tinline const TMap<FString, TArray<FString>>& GetModuleDependencies()");
+		sb.AppendLine("\t{");
+		sb.AppendLine("\t\tstatic TMap<FString, TArray<FString>> Dependencies = {");
+		int count = 0;
+		foreach (var kvp in ModuleDependencies)
+		{
+			string comma = (count < ModuleDependencies.Count - 1) ? "," : "";
+
+			if (kvp.Value.Count == 0)
+			{
+				sb.AppendLine($"\t\t\t{{ TEXT(\"{kvp.Key}\"), {{}} }}{comma}");
+			}
+			else
+			{
+				string deps = string.Join(", ", kvp.Value.Select(d => $"TEXT(\"{d}\")"));
+				sb.AppendLine($"\t\t\t{{ TEXT(\"{kvp.Key}\"), {{ {deps} }} }}{comma}");
+			}
+
+			count++;
+		}
+
+		sb.AppendLine("\t\t};");
+		sb.AppendLine("\t\treturn Dependencies;");
+		sb.AppendLine("\t}");
+
 		sb.AppendLine("}");
 
-		// Only write if content changed to avoid unnecessary rebuilds
 		Directory.CreateDirectory(GeneratedDir);
 
 		string newContent = sb.ToString();

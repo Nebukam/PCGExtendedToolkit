@@ -3,8 +3,10 @@
 
 #include "PCGExCore.h"
 
+
 #if WITH_EDITOR
-#include "ISettingsModule.h"
+#include "Data/Registry/PCGDataTypeRegistry.h"
+#include "Sorting/PCGExSortingRuleProvider.h"
 #include "AssetTypeActions_Base.h"
 #include "Data/Bitmasks/PCGExBitmaskCollection.h"
 #include "PCGExCoreEditor/Public/PCGExAssetTypesMacros.h"
@@ -16,6 +18,8 @@ PCGEX_IMPLEMENT_MODULE(FPCGExCoreModule, PCGExCore)
 void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	
+	PCGEX_REGISTER_DATA_TYPE(SortRule, SortRule)
 	
 	PCGEX_ASSET_TYPE_ACTION_BASIC(
 		Bitmasks, "PCGEx Bitmasks", UPCGExBitmaskCollection,

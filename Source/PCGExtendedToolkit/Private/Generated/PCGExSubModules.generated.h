@@ -5,10 +5,9 @@
 
 namespace PCGExSubModules
 {
-	inline TArray<FString> GetEnabledModules()
+	inline const TArray<FString>& GetEnabledModules()
 	{
-		return {
-			TEXT("PCGExFoundations"),
+		static TArray<FString> Modules = {
 			TEXT("PCGExCollections"),
 			TEXT("PCGExCollectionsEditor"),
 			TEXT("PCGExElementsBridges"),
@@ -25,5 +24,28 @@ namespace PCGExSubModules
 			TEXT("PCGExElementsTensors"),
 			TEXT("PCGExElementsActions")
 		};
+		return Modules;
+	}
+
+	inline const TMap<FString, TArray<FString>>& GetModuleDependencies()
+	{
+		static TMap<FString, TArray<FString>> Dependencies = {
+			{ TEXT("PCGExCollections"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExCollectionsEditor"), { TEXT("PCGExCoreEditor"), TEXT("PCGExCollections") } },
+			{ TEXT("PCGExElementsBridges"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsClusters"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExBlending"), TEXT("PCGExMatching"), TEXT("PCGExHeuristics"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsProbing"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsPaths"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExMatching"), TEXT("PCGExBlending"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsSampling"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExMatching"), TEXT("PCGExBlending"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsMeta"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExBlending"), TEXT("PCGExPickers"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsSpatial"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExBlending"), TEXT("PCGExMatching"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsPathfinding"), { TEXT("PCGExCore"), TEXT("PCGExBlending"), TEXT("PCGExMatching"), TEXT("PCGExHeuristics"), TEXT("PCGExFoundations"), TEXT("PCGExElementsClusters") } },
+			{ TEXT("PCGExElementsPathfindingNavmesh"), { TEXT("PCGExCore"), TEXT("PCGExBlending"), TEXT("PCGExFoundations"), TEXT("PCGExElementsPathfinding") } },
+			{ TEXT("PCGExElementsTopology"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsShapes"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsTensors"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExHeuristics"), TEXT("PCGExFoundations"), TEXT("PCGExElementsProbing") } },
+			{ TEXT("PCGExElementsActions"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } }
+		};
+		return Dependencies;
 	}
 }

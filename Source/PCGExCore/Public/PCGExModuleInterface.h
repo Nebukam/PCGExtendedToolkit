@@ -21,13 +21,20 @@ const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get())
 .Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(InStyle->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), FVector2D(22.0f)));\
 InStyle->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(InStyle->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), FVector2D(22.0f)));
 
-#define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) \
+#define PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
 PCGEX_REGISTER_PIN_ICON(OUT_##_NAME) \
 PCGEX_REGISTER_PIN_ICON(IN_##_NAME)\
-InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_NODE_COLOR_NAME(_NAME); }); \
 InRegistry.RegisterPinIconsFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>{ \
 if(bIsInput){ return {InStyle->GetBrush(FName("PCGEx.Pin.IN_"#_NAME)), InStyle->GetBrush(FName("PCGEx.Pin.IN_"#_NAME))};}\
 else{ return {InStyle->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME)), InStyle->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME))};}});
+
+#define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) \
+PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
+InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColor(FName(#_NAME)); }); 
+
+#define PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(_MODULE, _NAME, _NATIVE_COLOR) \
+PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
+InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_NAME), _NATIVE_COLOR); }); 
 
 #define PCGEX_IMPLEMENT_MODULE(_CLASS, _NAME) \
 IMPLEMENT_MODULE(_CLASS, _NAME) \
@@ -41,7 +48,7 @@ class FPCGDataTypeRegistry;
 
 class PCGEXCORE_API IPCGExModuleInterface : public IModuleInterface
 {
-protected:
+public:
 	virtual FString GetModuleName() const { return TEXT(""); }
 	
 public:

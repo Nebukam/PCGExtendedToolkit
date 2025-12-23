@@ -2,20 +2,54 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExtendedToolkit.h"
-#include "PCGExVersion.h"
 
-#include "Generated/PCGExSubModules.generated.h"
+#include "PCGExModuleInterface.h"
+#include "PCGExVersion.h"
 
 #if WITH_EDITOR
 #include "PCGExCoreSettingsCache.h"
 #include "ISettingsModule.h"
 #endif
 
+#include "PCGExGlobalSettings.h"
+#include "Generated/PCGExSubModules.generated.h"
+
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 
 void FPCGExtendedToolkitModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	const TMap<FString, TArray<FString>>& Dependencies = PCGExSubModules::GetModuleDependencies();
+	TSet<FString> Loaded;
+
+	// Recursive loader
+	TFunction<void(const FString&)> LoadWithDeps = [&](const FString& ModuleName)
+	{
+		if (Loaded.Contains(ModuleName))
+		{
+			return;
+		}
+
+		// Load dependencies first
+		if (const TArray<FString>* Deps = Dependencies.Find(ModuleName))
+		{
+			for (const FString& Dep : *Deps) { LoadWithDeps(Dep); }
+		}
+
+		// Now load this module
+		if (!FModuleManager::Get().IsModuleLoaded(*ModuleName))
+		{
+			FModuleManager::Get().LoadModule(*ModuleName);
+		}
+		Loaded.Add(ModuleName);
+	};
+
+	// Load all enabled modules (dependencies will be loaded first)
+	for (const FString& ModuleName : PCGExSubModules::GetEnabledModules())
+	{
+		LoadWithDeps(ModuleName);
+	}
+
+	GetDefault<UPCGExGlobalSettings>()->UpdateSettingsCaches();
 
 	// We need this because the registry holds a reference to the collection ::StaticClass
 	// and it cannot be access during initialization so we defer it here.
@@ -72,11 +106,6 @@ void FPCGExtendedToolkitModule::StartupModule()
 #endif
 
 #pragma endregion
-
-	for (const FString& ModuleName : PCGExSubModules::GetEnabledModules())
-	{
-		if (!FModuleManager::Get().IsModuleLoaded(*ModuleName)) { FModuleManager::Get().LoadModule(*ModuleName); }
-	}
 }
 
 void FPCGExtendedToolkitModule::ShutdownModule()

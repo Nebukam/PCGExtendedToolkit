@@ -13,16 +13,19 @@ FLinearColor FPCGExCoreSettingsCache::GetColor(const FName InColor) const
 	return Col ? *Col : FLinearColor::White;
 }
 
-FLinearColor FPCGExCoreSettingsCache::GetOptInColor(const FName InColor) const
+FLinearColor FPCGExCoreSettingsCache::GetColorOptIn(const FName InColor) const
 {
-	if (bUseNativeColorsIfPossible) { return FLinearColor::White; }
-	const FLinearColor* Col = ColorsMap.Find(InColor);
-	return Col ? *Col : FLinearColor::White;
+	return bUseNativeColorsIfPossible ? FLinearColor::White : GetColor(InColor);
 }
 
-FLinearColor FPCGExCoreSettingsCache::GetOptInColor(const FLinearColor InColor) const
+FLinearColor FPCGExCoreSettingsCache::GetColorOptIn(const FLinearColor InColor) const
 {
 	return bUseNativeColorsIfPossible ? FLinearColor::White : InColor;
+}
+
+FLinearColor FPCGExCoreSettingsCache::GetColorOptIn(const FName InColor, const FLinearColor InNative) const
+{
+	return bUseNativeColorsIfPossible ? InNative : GetColor(InColor);
 }
 
 bool FPCGExCoreSettingsCache::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin) const

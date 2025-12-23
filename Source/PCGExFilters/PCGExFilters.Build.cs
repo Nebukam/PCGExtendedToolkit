@@ -53,7 +53,7 @@ public class PCGExFilters : ModuleRules
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				"DeveloperSettings",
+				"DeveloperSettings", 
 			}
 		);
 
@@ -70,7 +70,8 @@ public class PCGExFilters : ModuleRules
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"Settings",
+					"PCGEditor",
 				});
 		}
 	}

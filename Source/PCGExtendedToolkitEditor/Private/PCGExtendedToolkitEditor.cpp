@@ -88,7 +88,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 		PCGEX_REGISTER_PIN_ICON(OUT_RecursionTracker)
 		PCGEX_REGISTER_PIN_ICON(IN_RecursionTracker)
 	}
-
+	
 	FPCGDataTypeRegistry& InRegistry = FPCGModule::GetMutableDataTypeRegistry();
 	for (IPCGExModuleInterface* Module : IPCGExModuleInterface::RegisteredModules)
 	{

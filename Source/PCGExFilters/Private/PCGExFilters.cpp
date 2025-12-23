@@ -3,6 +3,7 @@
 
 #include "PCGExFilters.h"
 
+#include "PCGEditorSettings.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -27,12 +28,12 @@ void FPCGExFiltersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InS
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 	
-	PCGEX_REGISTER_DATA_TYPE(Filter, Filter)
-	PCGEX_REGISTER_DATA_TYPE(FilterPoint, FilterPoint)
-	PCGEX_REGISTER_DATA_TYPE(FilterCollection, FilterCollection)
-	PCGEX_REGISTER_DATA_TYPE(FilterCluster, FilterCluster)
-	PCGEX_REGISTER_DATA_TYPE(FilterVtx, FilterVtx)
-	PCGEX_REGISTER_DATA_TYPE(FilterEdge, FilterEdge)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(Filter, Filter,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterPoint, FilterPoint,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCollection, FilterCollection,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCluster, FilterCluster,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterVtx, FilterVtx,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
+	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterEdge, FilterEdge,  GetDefault<UPCGEditorSettings>()->FilterNodeColor)
 }
 #endif
 

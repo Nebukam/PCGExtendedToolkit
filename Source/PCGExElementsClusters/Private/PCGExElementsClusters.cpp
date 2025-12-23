@@ -3,10 +3,12 @@
 
 #include "PCGExElementsClusters.h"
 
+
 #if WITH_EDITOR
 #include "ISettingsModule.h"
 #include "Core/PCGExClusterStates.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
+#include "Elements/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "FPCGExElementsClustersModule"
@@ -27,6 +29,7 @@ void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyle
 	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
 		
 	PCGEX_REGISTER_DATA_TYPE(ClusterState, ClusterState)
+	PCGEX_REGISTER_DATA_TYPE(FillControl, FillControl)
 }
 #endif
 

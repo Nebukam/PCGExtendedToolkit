@@ -17,8 +17,8 @@ class UPCGPin;
 #define PCGEX_MAP_PIN_IN(_ID) PCGEX_CORE_SETTINGS.InPinInfosMap.Add(FName(TEXT(_ID)), PinIndex);
 
 #define PCGEX_NODE_COLOR_NAME(_COLOR) PCGEX_CORE_SETTINGS.GetColor(FName(#_COLOR))
-#define PCGEX_NODE_COLOR_OPTIN_NAME(_COLOR) PCGEX_CORE_SETTINGS.GetOptInColor(FName(#_COLOR))
-#define PCGEX_NODE_COLOR_OPTIN(_COLOR) PCGEX_CORE_SETTINGS.GetOptInColor(_COLOR)
+#define PCGEX_NODE_COLOR_OPTIN_NAME(_COLOR) PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_COLOR))
+#define PCGEX_NODE_COLOR_OPTIN(_COLOR) PCGEX_CORE_SETTINGS.GetColorOptIn(_COLOR)
 
 struct PCGEXCORE_API FPCGExCoreSettingsCache
 {
@@ -55,8 +55,9 @@ struct PCGEXCORE_API FPCGExCoreSettingsCache
 	TMap<FName, FLinearColor> ColorsMap;
 	
 	FLinearColor GetColor(const FName InColor) const;
-	FLinearColor GetOptInColor(const FName InColor) const;
-	FLinearColor GetOptInColor(const FLinearColor InColor) const;
+	FLinearColor GetColorOptIn(const FName InColor) const;
+	FLinearColor GetColorOptIn(const FLinearColor InColor) const;
+	FLinearColor GetColorOptIn(const FName InColor, const FLinearColor InNative) const;
 	
 	struct FPinInfos
 	{
