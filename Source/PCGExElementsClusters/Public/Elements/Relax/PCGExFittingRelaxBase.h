@@ -4,7 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGElement.h"
 #include "PCGExRelaxClusterOperation.h"
+#include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 
 
