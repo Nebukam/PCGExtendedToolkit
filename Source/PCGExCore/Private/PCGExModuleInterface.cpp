@@ -14,6 +14,7 @@ TArray<IPCGExModuleInterface*> IPCGExModuleInterface::RegisteredModules;
 
 void IPCGExModuleInterface::StartupModule()
 {
+	UE_LOG(LogTemp, Error, TEXT("IPCGExModuleInterface::StartupModule -> %s"), *GetModuleName());
 	RegisteredModules.Add(this);
 }
 
@@ -53,6 +54,8 @@ void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& I
 
 		FString ClassName = Class->GetName();
 
+		UE_LOG(LogTemp, Warning, TEXT("Dynamic Redirect : \"/Script/%s.%s\" -> \"/Script/%s.%s\""), *OldModuleName, *ClassName, *ThisModuleName, *ClassName);
+		
 		Redirects.Emplace(
 			ECoreRedirectFlags::Type_Class,
 			*FString::Printf(TEXT("/Script/%s.%s"), *OldModuleName, *ClassName),
