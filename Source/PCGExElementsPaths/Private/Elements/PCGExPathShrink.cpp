@@ -6,9 +6,8 @@
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Elements/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"

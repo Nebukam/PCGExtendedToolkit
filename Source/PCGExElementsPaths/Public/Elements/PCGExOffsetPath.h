@@ -8,14 +8,16 @@
 #include "Factories/PCGExFactories.h"
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExSettingsMacros.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathIntersectionDetails.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathIntersectionDetails.h"
 #include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExOffsetPath.generated.h"
 
 namespace PCGExPaths
 {
+	class FPathEdgeHalfAngle;
+	class FPath;
 	struct FPathEdgeCrossings;
 }
 

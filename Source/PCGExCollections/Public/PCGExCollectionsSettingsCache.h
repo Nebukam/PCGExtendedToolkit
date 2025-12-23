@@ -8,7 +8,7 @@
 
 #define PCGEX_COLLECTIONS_SETTINGS PCGEX_SETTINGS_INST(Collections)
 
-struct PCGEXCORE_API FPCGExCollectionsSettingsCache
+struct PCGEXCOLLECTIONS_API FPCGExCollectionsSettingsCache
 {
 	PCGEX_SETTING_CACHE_BODY(Collections)
 	

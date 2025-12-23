@@ -29,7 +29,7 @@ enum class EPCGExCustomGraphActorSourceMode : uint8
  * 
  */
 UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Settings", meta=(PCGExNodeLibraryDoc="clusters/build-custom-graph"))
-class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSettings : public UObject
+class PCGEXELEMENTSCLUSTERS_API UPCGExCustomGraphSettings : public UObject
 {
 	GENERATED_BODY()
 

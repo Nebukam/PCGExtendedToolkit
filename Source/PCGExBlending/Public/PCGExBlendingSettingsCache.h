@@ -34,7 +34,7 @@ enum class EPCGExBlendingTypeDefault : uint8
 
 #define PCGEX_BLENDING_SETTINGS PCGEX_SETTINGS_INST(Blending)
 
-struct PCGEXCORE_API FPCGExBlendingSettingsCache
+struct PCGEXBLENDING_API FPCGExBlendingSettingsCache
 {
 	PCGEX_SETTING_CACHE_BODY(Blending)
 	

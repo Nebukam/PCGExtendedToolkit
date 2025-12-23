@@ -2,13 +2,19 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Elements/PCGExPathStitch.h"
+
+#include "PCGExOctree.h"
+#include "Clusters/PCGExClusterCommon.h"
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
-#include "Graph/Pathfinding/PCGExPathfindingEdges.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "Sorting/PCGExPointSorter.h"
+#include "Sorting/PCGExSortingDetails.h"
+#include "Utils/PCGExPointIOMerger.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathStitchElement"
 #define PCGEX_NAMESPACE PathStitch

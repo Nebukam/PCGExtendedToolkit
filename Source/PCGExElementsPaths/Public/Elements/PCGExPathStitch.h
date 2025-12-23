@@ -5,12 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
+#include "Math/PCGExMath.h"
 #include "Sorting/PCGExSortingCommon.h"
+#include "Utils/PCGExCompare.h"
 
-#include "Utils/PCGExPointIOMerger.h"
-
-#include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExPathStitch.generated.h"
+
+class FPCGExPointIOMerger;
 
 UENUM()
 enum class EPCGExStitchMethod : uint8

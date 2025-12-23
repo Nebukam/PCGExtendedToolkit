@@ -6,9 +6,8 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Elements/PCGExPathsHelpers.h"
-
-#include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathInsertElement"
 #define PCGEX_NAMESPACE PathInsert

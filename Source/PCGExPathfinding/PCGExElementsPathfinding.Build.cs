@@ -32,6 +32,7 @@ public class PCGExElementsPathfinding : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExMatching",
 				"PCGExHeuristics",
 				"PCGExFoundations",
 			}

@@ -6,8 +6,8 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSlideElement"
 #define PCGEX_NAMESPACE PathSlide

@@ -12,7 +12,7 @@
 #include "Data/PCGExData.h"
 #include "Math/PCGExMathDistances.h"
 #include "Paths/PCGExPathsCommon.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

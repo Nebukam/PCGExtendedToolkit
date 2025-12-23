@@ -7,6 +7,7 @@
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Elements/PCGExBlendPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling

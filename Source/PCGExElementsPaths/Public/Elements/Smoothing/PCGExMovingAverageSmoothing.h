@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExSmoothingInstancedFactory.h"
 #include "Data/PCGExPointIO.h"
-#include "Factories/PCGExFactoryData.h"
+#include "Math/PCGExMath.h"
 
 #include "PCGExMovingAverageSmoothing.generated.h"
 

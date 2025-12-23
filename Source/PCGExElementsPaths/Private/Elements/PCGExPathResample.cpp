@@ -8,7 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "Data/PCGExData.h"
-#include "Elements/PCGExPath.h"
+#include "Paths/PCGExPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath
