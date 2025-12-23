@@ -24,10 +24,7 @@ void FPCGExtendedToolkitModule::StartupModule()
 	// Recursive loader
 	TFunction<void(const FString&)> LoadWithDeps = [&](const FString& ModuleName)
 	{
-		if (Loaded.Contains(ModuleName))
-		{
-			return;
-		}
+		if (Loaded.Contains(ModuleName)) { return; }
 
 		// Load dependencies first
 		if (const TArray<FString>* Deps = Dependencies.Find(ModuleName))
