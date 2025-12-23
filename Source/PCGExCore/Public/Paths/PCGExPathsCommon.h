@@ -57,6 +57,16 @@ enum class EPCGExSplineMeshAxis : uint8
 	Z       = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
 };
 
+UENUM()
+enum class EPCGExSplinePointType : uint8
+{
+	Linear             = 0 UMETA(DisplayName = "Linear (0)", Tooltip="Linear (0)."),
+	Curve              = 1 UMETA(DisplayName = "Curve (1)", Tooltip="Curve (1)."),
+	Constant           = 2 UMETA(DisplayName = "Constant (2)", Tooltip="Constant (2)."),
+	CurveClamped       = 3 UMETA(DisplayName = "CurveClamped (3)", Tooltip="CurveClamped (3)."),
+	CurveCustomTangent = 4 UMETA(DisplayName = "CurveCustomTangent (4)", Tooltip="CurveCustomTangent (4).")
+};
+
 namespace PCGExPaths
 {
 	namespace Labels

@@ -13,7 +13,7 @@
 class UPCGPin;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="PCGEx", Description="Configure PCG Extended Toolkit settings"))
-class PCGEXCORE_API UPCGExGlobalSettings : public UDeveloperSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 

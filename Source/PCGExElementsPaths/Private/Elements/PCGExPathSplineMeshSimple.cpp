@@ -15,9 +15,7 @@
 #include "Engine/StaticMesh.h"
 #include "Helpers/PCGExAssetLoader.h"
 #include "Helpers/PCGExStreamingHelpers.h"
-
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsHelpers.h"
 #include "Utils/PCGExUniqueNameGenerator.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"

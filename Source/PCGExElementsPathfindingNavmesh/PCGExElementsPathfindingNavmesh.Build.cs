@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExElementsPathfinding : ModuleRules
+public class PCGExElementsPathfindingNavmesh : ModuleRules
 {
-	public PCGExElementsPathfinding(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExElementsPathfindingNavmesh(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
@@ -32,9 +32,9 @@ public class PCGExElementsPathfinding : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
-				"PCGExMatching",
-				"PCGExHeuristics",
+				"PCGExBlending",
 				"PCGExFoundations",
+				"PCGExElementsPathfinding",
 			}
 		);
 

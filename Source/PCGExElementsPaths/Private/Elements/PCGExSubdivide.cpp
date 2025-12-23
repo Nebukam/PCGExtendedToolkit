@@ -11,7 +11,7 @@
 #include "Details/PCGExSettingsDetails.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Paths/PCGExPathsCommon.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

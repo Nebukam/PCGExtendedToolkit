@@ -248,7 +248,7 @@ FORCEINLINE virtual int32 GetSeed() const override { return Data->GetSeed(Index)
 
 #pragma endregion
 
-	struct FScope : PCGExMT::FScope
+	struct PCGEXCORE_API FScope : PCGExMT::FScope
 	{
 		UPCGBasePointData* Data = nullptr;
 

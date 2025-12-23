@@ -11,8 +11,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGSplineData.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineToPathElement"
 #define PCGEX_NAMESPACE SplineToPath

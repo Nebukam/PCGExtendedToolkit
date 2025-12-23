@@ -399,7 +399,7 @@ struct FNewGraphSettingsResult
  * 
  */
 UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Builder")
-class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphBuilder : public UPCGExInstancedFactory
+class PCGEXELEMENTSCLUSTERS_API UPCGExCustomGraphBuilder : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()
 

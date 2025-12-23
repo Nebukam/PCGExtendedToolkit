@@ -116,7 +116,7 @@ void FPCGExtendedToolkitEditorModule::ShutdownModule()
 
 void FPCGExtendedToolkitEditorModule::RegisterDataVisualizations()
 {
-	if (PCGEX_CORE_SETTINGS.bPersistentDebug)
+	if (GetDefault<UPCGExGlobalSettings>()->bPersistentDebug)
 	{
 		FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
 		DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());

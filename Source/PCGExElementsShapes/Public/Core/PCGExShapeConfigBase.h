@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Math/PCGExMathAxis.h"
 

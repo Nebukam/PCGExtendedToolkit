@@ -34,7 +34,7 @@ using EPCGExNativePointPropertiesBitmask = TEnumAsByte<EPCGExPointNativeProperti
 
 namespace PCGExPointArrayDataHelpers
 {
-	class FReadWriteScope
+	class PCGEXCORE_API FReadWriteScope
 	{
 		TArray<int32> ReadIndices;
 		TArray<int32> WriteIndices;

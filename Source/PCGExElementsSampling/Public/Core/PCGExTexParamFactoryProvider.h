@@ -153,7 +153,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(TexParamAttribute, "Texture Param", "A simple texture parameter definition.", FName(Config.TextureIDAttributeName.ToString() +" / "+Config.SampleAttributeName.ToString()))
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(TexParam; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(TexParam); }
 #endif
 	//~End UPCGSettings
 

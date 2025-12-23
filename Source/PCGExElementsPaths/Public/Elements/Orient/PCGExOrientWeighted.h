@@ -7,7 +7,6 @@
 #include "PCGExOrientOperation.h"
 #include "Data/PCGExPointElements.h"
 #include "Factories/PCGExFactoryData.h"
-#include "Elements/FloodFill/FillControls/PCGExFillControlKeepDirection.h"
 #include "PCGExOrientWeighted.generated.h"
 
 class FPCGExOrientWeighted : public FPCGExOrientOperation

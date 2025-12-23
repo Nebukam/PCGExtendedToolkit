@@ -3,6 +3,8 @@
 
 #include "Core/PCGExSearchAllocations.h"
 
+#include "PCGExH.h"
+#include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExHashLookup.h"
 #include "Utils/PCGExScoredQueue.h"
 
@@ -25,5 +27,14 @@ namespace PCGExPathfinding
 
 		TravelStack->Reset();
 		ScoredQueue->Reset();
+	}
+
+	void FSearchAllocations::Init(const PCGExClusters::FCluster* InCluster)
+	{
+		NumNodes = InCluster->Nodes->Num();
+
+		Visited.Init(false, NumNodes);
+		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
+		ScoredQueue = MakeShared<PCGEx::FScoredQueue>(NumNodes);
 	}
 }

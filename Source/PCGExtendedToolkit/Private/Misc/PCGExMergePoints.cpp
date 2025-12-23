@@ -3,12 +3,12 @@
 
 #include "Misc/PCGExMergePoints.h"
 
+#include "Clusters/PCGExClusterCommon.h"
 #include "Data/PCGExDataTags.h"
 #include "Clusters/PCGExEdge.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Graph/Pathfinding/PCGExPathfindingEdges.h"
 #include "Types/PCGExTypes.h"
 #include "Utils/PCGExPointIOMerger.h"
 

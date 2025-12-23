@@ -9,11 +9,10 @@
 #include "Core/PCGExBlendOpsManager.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsHelpers.h"
 
 
 #include "Elements/Smoothing/PCGExMovingAverageSmoothing.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
 #define PCGEX_NAMESPACE Smooth

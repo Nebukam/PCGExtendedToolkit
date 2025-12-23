@@ -9,8 +9,7 @@
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsHelpers.h"
 #include "Tangents/PCGExTangentsAuto.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"

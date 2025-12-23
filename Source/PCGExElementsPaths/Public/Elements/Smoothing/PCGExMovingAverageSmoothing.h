@@ -7,6 +7,7 @@
 #include "PCGExSmoothingInstancedFactory.h"
 #include "Data/PCGExPointIO.h"
 #include "Math/PCGExMath.h"
+#include "Core/PCGExProxyDataBlending.h"
 
 #include "PCGExMovingAverageSmoothing.generated.h"
 

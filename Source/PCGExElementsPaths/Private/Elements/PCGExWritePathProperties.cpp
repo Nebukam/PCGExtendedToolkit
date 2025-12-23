@@ -11,8 +11,8 @@
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Math/PCGExWinding.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsHelpers.h"
 #include "Sampling/PCGExSamplingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"

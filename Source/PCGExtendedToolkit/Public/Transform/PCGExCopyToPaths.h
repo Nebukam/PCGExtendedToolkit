@@ -6,11 +6,12 @@
 #include "CoreMinimal.h"
 
 #include "Core/PCGExPointsProcessor.h"
+#include "Data/PCGSplineStruct.h"
 #include "Details/PCGExAxisDeformDetails.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "Math/PCGExMathAxis.h"
+#include "Paths/PCGExPathsCommon.h"
 
-#include "Paths/PCGExCreateSpline.h"
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
 #include "PCGExCopyToPaths.generated.h"
