@@ -54,7 +54,7 @@ enum class EPCGExGUIDFormat : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
+struct PCGEXFOUNDATIONS_API FPCGExGUIDDetails
 {
 	GENERATED_BODY()
 

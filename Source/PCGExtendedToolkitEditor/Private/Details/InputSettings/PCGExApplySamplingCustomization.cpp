@@ -7,7 +7,6 @@
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
-#include "Misc/PCGExAttributeRemap.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"

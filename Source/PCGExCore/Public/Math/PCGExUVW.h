@@ -115,7 +115,7 @@ protected:
 
 namespace PCGExMath
 {
-	struct FPCGExConstantUVW
+	struct PCGEXCORE_API FPCGExConstantUVW
 	{
 		FPCGExConstantUVW()
 		{

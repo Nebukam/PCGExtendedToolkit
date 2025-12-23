@@ -94,7 +94,7 @@ namespace PCGExWriteStates
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Params", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes/node-flag"))
-class PCGEXFOUNDATIONS_API UPCGExPointStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
+class PCGEXELEMENTSMETA_API UPCGExPointStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
 {
 	GENERATED_BODY()
 

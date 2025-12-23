@@ -36,7 +36,7 @@ enum class EPCGExPointReverseMethod : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSwapAttributePairDetails
+struct PCGEXELEMENTSPATHS_API FPCGExSwapAttributePairDetails
 {
 	GENERATED_BODY()
 

@@ -1,13 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExDiscardSame.h"
-
-
+#include "Elements/Filtering/PCGExDiscardSame.h"
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Misc/PCGExDiscardByPointCount.h"
+#include "Data/Utils/PCGExAttributeHasher.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardSameElement"

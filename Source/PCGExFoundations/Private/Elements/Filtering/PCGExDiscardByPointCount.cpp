@@ -2,7 +2,7 @@
 // * 24/02/25 Omer Salomon Fixed - Made the count condition for discarding to be inclusive on MaxPointCount (to fit the comment).
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExDiscardByPointCount.h"
+#include "Elements/Filtering/PCGExDiscardByPointCount.h"
 
 
 #include "Data/PCGBasePointData.h"

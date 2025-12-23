@@ -14,7 +14,7 @@ USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Partition Rule"))
 struct FPCGExDataTypeInfoPartitionRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXFOUNDATIONS_API)
+	PCG_DECLARE_TYPE_INFO(PCGEXELEMENTSMETA_API)
 };
 
 /**

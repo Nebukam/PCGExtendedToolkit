@@ -4,11 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExAttributeHash.h"
 #include "PCGExFilterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
+#include "Data/Utils/PCGExAttributeHasher.h"
 
 #include "PCGExDiscardSame.generated.h"
+
+namespace PCGEx
+{
+	class FAttributeHasher;
+}
 
 UENUM()
 enum class EPCGExDiscardSameMode : uint8

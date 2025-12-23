@@ -45,31 +45,6 @@ void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 }
 #endif
 
-void FPCGExRemapDetails::Init()
-{
-	RemapLUT = RemapCurveLookup.MakeLookup(bUseLocalCurve, LocalScoreCurve, RemapCurve);
-}
-
-double FPCGExRemapDetails::GetRemappedValue(const double Value, const double Step) const
-{
-	switch (Snapping)
-	{
-	default: case EPCGExVariationSnapping::None: return PCGExMath::TruncateDbl(RemapLUT->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale, TruncateOutput) * PostTruncateScale + Offset;
-	case EPCGExVariationSnapping::SnapOffset:
-		{
-			double V = PCGExMath::TruncateDbl(RemapLUT->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale, TruncateOutput) * PostTruncateScale;
-			PCGExMath::Snap(V, Step);
-			return V + Offset;
-		}
-	case EPCGExVariationSnapping::SnapResult:
-		{
-			double V = PCGExMath::TruncateDbl(RemapLUT->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale, TruncateOutput) * PostTruncateScale + Offset;
-			PCGExMath::Snap(V, Step);
-			return V;
-		}
-	}
-}
-
 void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 {
 	FPCGExPointsProcessorContext::RegisterAssetDependencies();

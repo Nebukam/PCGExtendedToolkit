@@ -6,7 +6,8 @@
 #include "CoreMinimal.h"
 #include "Utils/PCGExCompare.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Elements/Constants/PCGExConstantEnum.h"
+#include "Details/PCGExEnumCommon.h"
+#include "Elements/ControlFlow/PCGControlFlow.h"
 
 #include "PCGExBranchOnDataAttribute.generated.h"
 
@@ -19,7 +20,7 @@ enum class EPCGExControlFlowSelectionMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBranchOnDataPin
+struct FPCGExBranchOnDataPin
 {
 	GENERATED_BODY()
 

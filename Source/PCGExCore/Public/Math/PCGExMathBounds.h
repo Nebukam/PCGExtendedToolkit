@@ -56,7 +56,6 @@ namespace PCGExMath
 	}
 
 	PCGEXCORE_API FBox GetLocalBounds(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource Source);
-
 	PCGEXCORE_API FBox GetLocalBounds(const PCGExData::FProxyPoint& Point, const EPCGExPointBoundsSource Source);
 
 	static void SanitizeBounds(FBox& InBox)
@@ -69,8 +68,6 @@ namespace PCGExMath
 	}
 
 	PCGEXCORE_API FBox GetBounds(const TArrayView<FVector> InPositions);
-
 	PCGEXCORE_API FBox GetBounds(const TConstPCGValueRange<FTransform>& InTransforms);
-
 	PCGEXCORE_API FBox GetBounds(const UPCGBasePointData* InPointData, const EPCGExPointBoundsSource Source);
 }

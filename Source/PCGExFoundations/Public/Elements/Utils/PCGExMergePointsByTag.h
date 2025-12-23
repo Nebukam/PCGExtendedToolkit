@@ -5,10 +5,9 @@
 
 #include "CoreMinimal.h"
 
-
 #include "Core/PCGExPointsProcessor.h"
-#include "PCGExSortPoints.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
+#include "Sorting/PCGExSortingCommon.h"
 #include "Utils/PCGExPointIOMerger.h"
 
 #include "PCGExMergePointsByTag.generated.h"

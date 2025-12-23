@@ -1,11 +1,10 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExMergePoints.h"
+#include "Elements/Utils/PCGExMergePoints.h"
 
 #include "Clusters/PCGExClusterCommon.h"
 #include "Data/PCGExDataTags.h"
-#include "Clusters/PCGExEdge.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
+#include "Details/PCGExBoundsCommon.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "PCGExFindPointOnBoundsClusters.generated.h"
 

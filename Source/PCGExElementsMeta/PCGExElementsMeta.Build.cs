@@ -34,6 +34,8 @@ public class PCGExElementsMeta : ModuleRules
 				"PCG",
 				"PCGExCore",
 				"PCGExFilters",
+				"PCGExBlending",
+				"PCGExPickers",
 				"PCGExFoundations",
 			}
 		);

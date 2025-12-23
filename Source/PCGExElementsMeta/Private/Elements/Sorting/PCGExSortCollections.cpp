@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExSortCollections.h"
+#include "Elements/Sorting/PCGExSortCollections.h"
 #include "PCGModule.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Sorting/PCGExPointSorter.h"

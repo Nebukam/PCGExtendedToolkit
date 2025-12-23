@@ -49,7 +49,13 @@ public class PCGExCore : ModuleRules
 			}
 		);
 
-
+		PrivateIncludePaths.AddRange(
+			new string[]
+			{
+				"ThirdParty/Delaunator/include"
+			}
+		);
+		
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{

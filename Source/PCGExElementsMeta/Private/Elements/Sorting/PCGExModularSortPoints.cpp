@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Misc/PCGExModularSortPoints.h"
+#include "Elements/Sorting/PCGExModularSortPoints.h"
 
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"
 #define PCGEX_NAMESPACE ModularSortPoints

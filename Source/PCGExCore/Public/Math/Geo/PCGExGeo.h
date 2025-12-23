@@ -45,17 +45,18 @@ namespace PCGExMath
 
 		static double S_SQ(const FVector& P) { return P.X * P.X + P.Y * P.Y + P.Z * P.Z; };
 
-		bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere);
-		bool FindSphereFrom4Points(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FSphere& OutSphere);
-		void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter);
+		
+		PCGEXCORE_API bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere);
+		PCGEXCORE_API bool FindSphereFrom4Points(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FSphere& OutSphere);
+		PCGEXCORE_API void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter);
 
-		void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid);
-		void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid);
-		void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge);
-		void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge);
+		PCGEXCORE_API void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid);
+		PCGEXCORE_API void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid);
+		PCGEXCORE_API void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge);
+		PCGEXCORE_API void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge);
 
-		FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C);
-		bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C);
+		PCGEXCORE_API FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C);
+		PCGEXCORE_API bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C);
 
 		/**
 		 *	 Leave <---.Apex-----> Arrive (Direction)
@@ -133,9 +134,9 @@ namespace PCGExMath
 			FVector GetLocationOnArc(const double Alpha) const;
 		};
 
-		bool IsPointInPolygon(const FVector2D& Point, const TArray<FVector2D>& Polygon);
-		bool IsPointInPolygon(const FVector& Point, const TArray<FVector2D>& Polygon);
+		PCGEXCORE_API bool IsPointInPolygon(const FVector2D& Point, const TArray<FVector2D>& Polygon);
+		PCGEXCORE_API bool IsPointInPolygon(const FVector& Point, const TArray<FVector2D>& Polygon);
 
-		bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const TArray<FVector2D>& Polygon);
+		PCGEXCORE_API bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const TArray<FVector2D>& Polygon);
 	}
 }

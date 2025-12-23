@@ -7,6 +7,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExBoundsCommon.h"
 #include "Math/PCGExMathAxis.h"
 
 #include "PCGExFindPointOnBounds.generated.h"
@@ -98,8 +99,6 @@ protected:
 
 namespace PCGExFindPointOnBounds
 {
-	PCGEXTENDEDTOOLKIT_API void MergeBestCandidatesAttributes(const TSharedPtr<PCGExData::FPointIO>& Target, const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections, const TArray<int32>& BestIndices, const PCGExData::FAttributesInfos& InAttributesInfos);
-
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFindPointOnBoundsContext, UPCGExFindPointOnBoundsSettings>
 	{
 		mutable FRWLock BestIndexLock;

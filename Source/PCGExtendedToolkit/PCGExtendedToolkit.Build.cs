@@ -1,11 +1,7 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using UnrealBuildTool;
-using EpicGames.Core;
 
 public class PCGExtendedToolkit : ModuleRules
 {
@@ -15,7 +11,6 @@ public class PCGExtendedToolkit : ModuleRules
 		bUseUnity = true;
 
 		ToggleOptionalModule("PCGExCollections");
-		
 		ToggleOptionalModule("PCGExElementsActions");
 		ToggleOptionalModule("PCGExElementsBridges");
 		ToggleOptionalModule("PCGExElementsClusters");
@@ -27,7 +22,6 @@ public class PCGExtendedToolkit : ModuleRules
 		ToggleOptionalModule("PCGExElementsProbing");
 		ToggleOptionalModule("PCGExElementsMeta");
 		ToggleOptionalModule("PCGExElementsSpatial");
-		
 		ToggleOptionalModule("PCGExElementsPathfinding");
 		ToggleOptionalModule("PCGExElementsPathfindingNavmesh");
 
@@ -37,15 +31,6 @@ public class PCGExtendedToolkit : ModuleRules
 			}
 		);
 
-
-		PrivateIncludePaths.AddRange(
-			new string[]
-			{
-				"ThirdParty/Delaunator/include"
-			}
-		);
-
-
 		PublicDependencyModuleNames.AddRange(
 			new[]
 			{
@@ -54,7 +39,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
-				"PCGExFoundations",
+				"PCGExBlending"
 			}
 		);
 
@@ -62,20 +47,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"RenderCore",
-				"RHI",
-				"GeometryCore",
-				"GeometryFramework",
-				"GeometryAlgorithms",
-				"PhysicsCore",
-				"NavigationSystem",
-				"Slate",
-				"SlateCore",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings",
-				"PCGExCore",
-				"PCGExFoundations"
+				"DeveloperSettings"
 			}
 		);
 

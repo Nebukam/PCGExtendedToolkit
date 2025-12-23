@@ -9,17 +9,13 @@
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
+#include "Details/PCGExEnumCommon.h"
 #include "Elements/ControlFlow/PCGControlFlow.h"
 #include "PCGExConstantEnum.generated.h"
 
 struct FPCGExBitmask;
 
-UENUM()
-enum class EPCGExEnumConstantSourceType : uint8
-{
-	Picker   = 0 UMETA(DisplayName="Picker", Tooltip="Browse through Blueprint enums."),
-	Selector = 1 UMETA(DisplayName="Selector", ToolTip="Browse through CPP enums."),
-};
+
 
 UENUM(BlueprintType)
 enum class EPCGExEnumConstantOutputType : uint8

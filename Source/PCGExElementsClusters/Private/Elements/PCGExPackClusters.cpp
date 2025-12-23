@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Elements/Clusters/PCGExPackClusters.h"
+#include "Elements/PCGExPackClusters.h"
 
 
 #include "Data/PCGExAttributeBroadcaster.h"

@@ -36,6 +36,7 @@ public class PCGExElementsClusters : ModuleRules
 				"PCGExFoundations", 
 				"PCGExFilters",
 				"PCGExBlending",
+				"PCGExMatching",
 				"PCGExHeuristics",
 			}
 		);

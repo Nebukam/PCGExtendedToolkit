@@ -527,7 +527,7 @@ namespace PCGExData
 
 	namespace PCGExPointIO
 	{
-		int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide = EIOSide::In);
+		PCGEXCORE_API int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide = EIOSide::In);
 
 		PCGEXCORE_API const UPCGBasePointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source);
 

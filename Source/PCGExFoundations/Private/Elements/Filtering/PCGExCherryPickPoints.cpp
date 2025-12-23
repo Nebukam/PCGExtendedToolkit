@@ -1,14 +1,13 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExCherryPickPoints.h"
+#include "Elements/Filtering/PCGExCherryPickPoints.h"
 
 
 #include "Core/PCGExPickerFactoryProvider.h"
 #include "Factories/PCGExFactories.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Misc/PCGExDiscardByPointCount.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
 #define PCGEX_NAMESPACE CherryPickPoints

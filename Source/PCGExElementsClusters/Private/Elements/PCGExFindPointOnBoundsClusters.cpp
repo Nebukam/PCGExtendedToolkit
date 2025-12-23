@@ -7,6 +7,7 @@
 #include "Utils/PCGExPointIOMerger.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clusters/PCGExCluster.h"
+#include "Helpers/PCGExBlendingHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsClusters"
@@ -90,7 +91,7 @@ bool FPCGExFindPointOnBoundsClustersElement::AdvanceWork(FPCGExContext* InContex
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{
 		TSharedPtr<PCGExData::FPointIOCollection> Collection = Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx ? Context->MainPoints : Context->MainEdges;
-		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(Context->MergedOut, Context->IOMergeSources, Context->BestIndices, *Context->MergedAttributesInfos);
+		PCGExBlending::Helpers::MergeBestCandidatesAttributes(Context->MergedOut, Context->IOMergeSources, Context->BestIndices, *Context->MergedAttributesInfos);
 
 		(void)Context->MergedOut->StageOutput(Context);
 	}

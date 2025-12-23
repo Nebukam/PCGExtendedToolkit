@@ -2,13 +2,13 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Misc/PCGExSortPoints.h"
+#include "Elements/Sorting/PCGExSortPoints.h"
 
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Misc/PCGExModularSortPoints.h"
+#include "Elements/Sorting/PCGExModularSortPoints.h"
 #include "Sorting/PCGExPointSorter.h"
 
 

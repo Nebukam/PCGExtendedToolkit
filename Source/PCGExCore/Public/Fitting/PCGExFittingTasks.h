@@ -17,7 +17,7 @@ namespace PCGExFitting
 {
 	namespace Tasks
 	{
-		class FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
+		class PCGEXCORE_API FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
 		{
 		public:
 			FTransformPointIO(const int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO, FPCGExTransformDetails* InTransformDetails, bool bAllocate = false);
