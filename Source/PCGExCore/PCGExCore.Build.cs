@@ -41,16 +41,9 @@ public class PCGExCore : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"RenderCore",
-				"RHI",
 				"GeometryCore",
 				"GeometryFramework",
-				"GeometryAlgorithms",
-				"PhysicsCore",
-				"NavigationSystem",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings"
+				"GeometryAlgorithms"
 			}
 		);
 

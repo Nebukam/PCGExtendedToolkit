@@ -50,12 +50,6 @@ public class PCGExElementsSampling : ModuleRules
 				"GeometryFramework",
 				"GeometryAlgorithms",
 				"PhysicsCore",
-				"NavigationSystem",
-				"Slate",
-				"SlateCore",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings"
 			}
 		);
 
@@ -72,7 +66,8 @@ public class PCGExElementsSampling : ModuleRules
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"Slate",
+					"SlateCore",
 				});
 		}
 	}

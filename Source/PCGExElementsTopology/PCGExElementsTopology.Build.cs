@@ -49,13 +49,6 @@ public class PCGExElementsTopology : ModuleRules
 				"GeometryCore",
 				"GeometryFramework",
 				"GeometryAlgorithms",
-				"PhysicsCore",
-				"NavigationSystem",
-				"Slate",
-				"SlateCore",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings"
 			}
 		);
 
@@ -72,7 +65,8 @@ public class PCGExElementsTopology : ModuleRules
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"Slate",
+					"SlateCore",
 				});
 		}
 	}

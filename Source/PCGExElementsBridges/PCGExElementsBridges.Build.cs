@@ -42,18 +42,7 @@ public class PCGExElementsBridges : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"RenderCore",
-				"RHI",
-				"GeometryCore",
-				"GeometryFramework",
-				"GeometryAlgorithms",
-				"PhysicsCore",
-				"NavigationSystem",
-				"Slate",
-				"SlateCore",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings"
+				
 			}
 		);
 

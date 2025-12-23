@@ -42,18 +42,6 @@ public class PCGExElementsShapes : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"RenderCore",
-				"RHI",
-				"GeometryCore",
-				"GeometryFramework",
-				"GeometryAlgorithms",
-				"PhysicsCore",
-				"NavigationSystem",
-				"Slate",
-				"SlateCore",
-				"GameplayTags",
-				"PropertyPath",
-				"DeveloperSettings"
 			}
 		);
 
@@ -70,7 +58,9 @@ public class PCGExElementsShapes : ModuleRules
 				new string[]
 				{
 					"UnrealEd",
-					"Settings"
+					"Settings",
+					"Slate",
+					"SlateCore",
 				});
 		}
 	}

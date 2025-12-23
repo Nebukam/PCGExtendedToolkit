@@ -3,6 +3,7 @@
 
 #include "PCGExModuleInterface.h"
 
+#include "PCGExLog.h"
 #include "UObject/CoreRedirects.h"
 
 #if WITH_EDITOR
@@ -54,7 +55,7 @@ void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& I
 
 		FString ClassName = Class->GetName();
 
-		UE_LOG(LogTemp, Warning, TEXT("Dynamic Redirect : \"/Script/%s.%s\" -> \"/Script/%s.%s\""), *OldModuleName, *ClassName, *ThisModuleName, *ClassName);
+		//UE_LOG(LogPCGEx, Warning, TEXT("Dynamic Redirect : \"/Script/%s.%s\" -> \"/Script/%s.%s\""), *OldModuleName, *ClassName, *ThisModuleName, *ClassName);
 		
 		Redirects.Emplace(
 			ECoreRedirectFlags::Type_Class,
@@ -65,7 +66,7 @@ void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& I
 	if (Redirects.Num() > 0)
 	{
 		FCoreRedirects::AddRedirectList(Redirects, *ThisModuleName);
-		UE_LOG(LogTemp, Log, TEXT("%s: Registered %d class redirects"), *ThisModuleName, Redirects.Num());
+		UE_LOG(LogPCGEx, Log, TEXT("%s: Registered %d class redirects"), *ThisModuleName, Redirects.Num());
 	}
 	
 #endif
