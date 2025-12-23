@@ -14,9 +14,9 @@ public class PCGExtendedToolkit : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
-
+		
 		LoadSubModulesFromConfig();
-
+		
 		EnabledSubModules.Insert(0, "PCGExFoundations"); // Load Foundations first
 		GenerateSubModulesHeader();
 

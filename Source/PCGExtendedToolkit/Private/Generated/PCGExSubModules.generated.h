@@ -11,19 +11,19 @@ namespace PCGExSubModules
 			TEXT("PCGExFoundations"),
 			TEXT("PCGExCollections"),
 			TEXT("PCGExCollectionsEditor"),
-			TEXT("PCGExElementsActions"),
 			TEXT("PCGExElementsBridges"),
 			TEXT("PCGExElementsClusters"),
-			TEXT("PCGExElementsPaths"),
-			TEXT("PCGExElementsShapes"),
-			TEXT("PCGExElementsTensors"),
-			TEXT("PCGExElementsTopology"),
-			TEXT("PCGExElementsSampling"),
 			TEXT("PCGExElementsProbing"),
+			TEXT("PCGExElementsPaths"),
+			TEXT("PCGExElementsSampling"),
 			TEXT("PCGExElementsMeta"),
 			TEXT("PCGExElementsSpatial"),
 			TEXT("PCGExElementsPathfinding"),
-			TEXT("PCGExElementsPathfindingNavmesh")
+			TEXT("PCGExElementsPathfindingNavmesh"),
+			TEXT("PCGExElementsTopology"),
+			TEXT("PCGExElementsShapes"),
+			TEXT("PCGExElementsTensors"),
+			TEXT("PCGExElementsActions")
 		};
 	}
 }

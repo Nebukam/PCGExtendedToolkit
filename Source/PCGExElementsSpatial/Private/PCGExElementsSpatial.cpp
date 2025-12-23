@@ -6,7 +6,7 @@
 #include "ISettingsModule.h"
 #endif
 
-#define LOCTEXT_NAMESPACE "FPCGExElementsTransformModule"
+#define LOCTEXT_NAMESPACE "FPCGExElementsSpatialModule"
 
 void FPCGExElementsSpatialModule::StartupModule()
 {
@@ -20,4 +20,4 @@ void FPCGExElementsSpatialModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExElementsSpatialModule, PCGExElementsTransform)
+IMPLEMENT_MODULE(FPCGExElementsSpatialModule, PCGExElementsSpatial)
