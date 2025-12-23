@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
-#include "Elements/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExBlendPath.generated.h"
 

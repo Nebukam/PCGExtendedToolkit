@@ -10,7 +10,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Elements/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsCommon.h"
 #include "Elements/PCGExPathsHelpers.h"
 
 

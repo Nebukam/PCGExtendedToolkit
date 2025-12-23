@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExMeshToClusters.h"
+#include "Elements/PCGExMeshToClusters.h"
 
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"

@@ -62,6 +62,7 @@ public class PCGExCore : ModuleRules
 				{
 					"Slate",
 					"SlateCore",
+					"ToolMenus",
 				}
 			);
 

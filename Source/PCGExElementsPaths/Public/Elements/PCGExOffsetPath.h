@@ -10,7 +10,7 @@
 #include "Details/PCGExSettingsMacros.h"
 #include "Elements/PCGExPath.h"
 #include "Elements/PCGExPathIntersectionDetails.h"
-#include "Elements/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExOffsetPath.generated.h"
 

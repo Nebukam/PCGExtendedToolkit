@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathfinding.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Paths/PCGExPath.h"
 #include "AI/Navigation/NavigationTypes.h"
+#include "Core/PCGExPathfinding.h"
 #include "Paths/PCGExPathsCommon.h"
 
 UENUM()

@@ -8,8 +8,8 @@
 #include "Details/PCGExSettingsMacros.h"
 #include "Math/PCGExMath.h"
 #include "Math/PCGExMathAxis.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsCommon.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExPathSolidify.generated.h"
 

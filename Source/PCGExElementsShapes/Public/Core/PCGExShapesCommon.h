@@ -28,13 +28,6 @@ enum class EPCGExShapePointLookAt : uint8
 	Seed = 1 UMETA(DisplayName = "Seed", ToolTip="Look At Seed"),
 };
 
-UENUM(BlueprintType)
-enum class EPCGExResolutionMode : uint8
-{
-	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Points-per-meter"),
-	Fixed    = 1 UMETA(DisplayName = "Count", ToolTip="Fixed number of points"),
-};
-
 namespace PCGExShapes
 {
 	namespace Labels

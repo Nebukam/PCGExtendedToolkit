@@ -8,8 +8,8 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Math/PCGExMathAxis.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathIntersectionDetails.h"
+#include "Paths/PCGExPath.h"
+#include "Paths/PCGExPathIntersectionDetails.h"
 #include "PCGExPathCrossings.generated.h"
 
 class UPCGExSubPointsBlendInstancedFactory;

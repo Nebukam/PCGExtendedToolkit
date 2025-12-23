@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPathProcessor.h"
-#include "Elements/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsCommon.h"
 #include "Sampling/PCGExSamplingCommon.h"
 
 #include "PCGExAttributeRolling.generated.h"

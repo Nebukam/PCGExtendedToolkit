@@ -7,8 +7,8 @@
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Math/PCGExMathDistances.h"
-#include "Elements/PCGExPath.h"
 #include "Elements/PCGExPathShift.h"
+#include "Paths/PCGExPath.h"
 #include "Sampling/PCGExSamplingUnionData.h"
 
 

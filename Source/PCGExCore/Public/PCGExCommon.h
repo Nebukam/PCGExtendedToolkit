@@ -51,6 +51,13 @@ enum class EPCGExTransformMode : uint8
 	Relative = 1 UMETA(DisplayName = "Relative", ToolTip="Relative to source transform."),
 };
 
+UENUM(BlueprintType)
+enum class EPCGExResolutionMode : uint8
+{
+	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Points-per-meter"),
+	Fixed    = 1 UMETA(DisplayName = "Count", ToolTip="Fixed number of points"),
+};
+
 namespace PCGExCommon
 {
 	using ContextState = FName;

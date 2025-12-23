@@ -7,7 +7,6 @@
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Blenders/PCGExMetadataBlender.h"
-#include "Core/PCGExShapesCommon.h"
 #include "Details/PCGExInputShorthandsDetails.h"
 #include "Math/PCGExMath.h"
 

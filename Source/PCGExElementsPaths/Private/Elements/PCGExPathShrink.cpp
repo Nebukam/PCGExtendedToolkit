@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsCommon.h"
 #include "Elements/PCGExPathsHelpers.h"
 
 

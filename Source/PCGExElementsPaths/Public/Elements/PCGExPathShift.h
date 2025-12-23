@@ -8,7 +8,7 @@
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Math/PCGExMath.h"
-#include "Elements/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExPathShift.generated.h"
 

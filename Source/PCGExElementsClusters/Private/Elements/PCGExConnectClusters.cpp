@@ -1,14 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExConnectClusters.h"
-
+#include "Elements/PCGExConnectClusters.h"
 
 #include "Data/PCGExDataTags.h"
 #include "Core/PCGExPointFilter.h"
 #include "Utils/PCGExPointIOMerger.h"
-
-
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"

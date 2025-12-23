@@ -5,7 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Misc/PCGExFindPointOnBounds.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "PCGExFindPointOnBoundsClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/find-point-on-bounds"))

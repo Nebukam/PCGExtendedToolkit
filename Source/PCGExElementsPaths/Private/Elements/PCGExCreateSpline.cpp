@@ -11,8 +11,7 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Elements/PCGExPath.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
 #define PCGEX_NAMESPACE CreateSpline

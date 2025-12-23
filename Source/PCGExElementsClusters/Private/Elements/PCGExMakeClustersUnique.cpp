@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExMakeClustersUnique.h"
+#include "Elements/PCGExMakeClustersUnique.h"
 
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Data/PCGExPointIO.h"

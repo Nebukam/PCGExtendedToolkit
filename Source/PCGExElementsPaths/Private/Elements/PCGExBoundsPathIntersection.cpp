@@ -12,8 +12,8 @@
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Helpers/PCGExTargetsHandler.h"
-#include "Elements/PCGExPathsCommon.h"
-#include "Elements/PCGExPathsHelpers.h"
+#include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"

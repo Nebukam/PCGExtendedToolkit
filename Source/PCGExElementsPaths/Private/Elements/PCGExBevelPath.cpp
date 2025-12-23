@@ -11,7 +11,7 @@
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Math/Geo/PCGExGeo.h"
-#include "Elements/PCGExPath.h"
+#include "Paths/PCGExPath.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
