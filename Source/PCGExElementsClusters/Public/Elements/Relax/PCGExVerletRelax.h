@@ -7,6 +7,7 @@
 #include "PCGExRelaxClusterOperation.h"
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Elements/Meta/NeighborSamplers/PCGExNeighborSampleAttribute.h"
 #include "PCGExVerletRelax.generated.h"
 
 UENUM()

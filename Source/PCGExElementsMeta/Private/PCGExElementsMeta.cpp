@@ -4,7 +4,6 @@
 #include "PCGExElementsMeta.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #include "Elements/Partition/PCGExModularPartitionByValues.h"
 #include "AssetTypeActions_Base.h"

@@ -7,7 +7,6 @@
 #include "PCGExCommon.h"
 #include "Core/PCGExAssetCollection.h"
 #include "Helpers/PCGExSocketHelpers.h"
-#include "Sampling/PCGExSamplingCommon.h"
 
 namespace PCGExData
 {

@@ -10,7 +10,6 @@
 #include "Curves/RichCurve.h"
 
 #include "Factories/PCGExFactoryProvider.h"
-#include "PCGExProxyDataBlending.h"
 #include "Metadata/PCGDefaultValueInterface.h"
 #include "Utils/PCGExCurveLookup.h"
 #include "Utils/PCGExDefaultValueContainer.h"

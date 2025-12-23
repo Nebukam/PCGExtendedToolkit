@@ -6,7 +6,6 @@
 #include "PCGExH.h"
 #include "Clusters/PCGExEdge.h"
 #include "Graphs/PCGExSubGraph.h"
-#include "Helpers/PCGExMetaHelpers.h"
 
 namespace PCGExGraphs
 {

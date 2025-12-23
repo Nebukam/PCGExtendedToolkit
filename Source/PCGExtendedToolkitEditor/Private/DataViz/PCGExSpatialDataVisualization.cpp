@@ -6,7 +6,6 @@
 #include "PCGContext.h"
 #include "PCGData.h"
 #include "PCGDebug.h"
-#include "PCGEditorCommon.h"
 #include "PCGPoint.h"
 #include "PCGSettings.h"
 #include "Data/PCGPointArrayData.h"
@@ -21,7 +20,6 @@
 #include "AdvancedPreviewScene.h"
 #include "EditorViewportClient.h"
 #include "Components/InstancedStaticMeshComponent.h"
-#include "Engine/AssetManager.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSpatialDataVisualization"
 
@@ -49,7 +47,9 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplay(FPCGContext* Context, c
 		return;
 	}
 
-	ExecuteDebugDisplayHelper(Data, SettingsInterface->DebugSettings, Context, TargetActor, SettingsInterface->GetSettings()->GetSettingsCrc(), [](UInstancedStaticMeshComponent*) {});
+	ExecuteDebugDisplayHelper(Data, SettingsInterface->DebugSettings, Context, TargetActor, SettingsInterface->GetSettings()->GetSettingsCrc(), [](UInstancedStaticMeshComponent*)
+	{
+	});
 }
 
 void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
@@ -65,7 +65,7 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 	if (!Mesh)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(LOCTEXT("UnableToLoadMesh", "Debug display was unable to load mesh '{0}'."),
-			FText::FromString(DebugSettings.PointMesh.ToString())));
+			           FText::FromString(DebugSettings.PointMesh.ToString())));
 		return;
 	}
 
@@ -167,13 +167,13 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 	Params[0].Descriptor.bAffectDynamicIndirectLightingWhileHidden = false;
 	Params[0].Descriptor.bCastContactShadow = false;
 	Params[0].Descriptor.bCastDynamicShadow = false;
-	Params[0].Descriptor.bCastShadow = false;	
+	Params[0].Descriptor.bCastShadow = false;
 	Params[0].Descriptor.bCastStaticShadow = false;
 	Params[0].Descriptor.bGenerateOverlapEvents = false;
 	Params[0].Descriptor.bIncludeInHLOD = false;
 	Params[0].Descriptor.bReceivesDecals = false;
 	Params[0].Descriptor.bVisibleInRayTracing = false;
-	
+
 	// If the root actor we're binding to is movable, then the ISMC should be movable by default
 	USceneComponent* SceneComponent = TargetActor ? TargetActor->GetRootComponent() : nullptr;
 	if (SceneComponent)
@@ -198,7 +198,7 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 		}
 
 		UInstancedStaticMeshComponent* ISMC = nullptr;
-		
+
 		if (TargetActor && SourceComponent)
 		{
 			ISMC = UPCGActorHelpers::GetOrCreateISMC(TargetActor, SourceComponent, Params[Direction], Context);
@@ -247,7 +247,7 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 			const FVector4& Color = ValueRanges.ColorRange[PointIndex];
 			const FVector Extents = PCGPointHelpers::GetExtents(ValueRanges.BoundsMinRange[PointIndex], ValueRanges.BoundsMaxRange[PointIndex]);
 			InstanceCustomData.Add(ValueRanges.DensityRange[PointIndex]);
-			
+
 			InstanceCustomData.Add(Extents[0]);
 			InstanceCustomData.Add(Extents[1]);
 			InstanceCustomData.Add(Extents[2]);
@@ -290,15 +290,15 @@ FPCGTableVisualizerInfo IPCGExSpatialDataVisualization::GetTableVisualizerInfoWi
 
 	const EPCGPointNativeProperties AllocatedProperties = PointData->GetAllocatedProperties();
 
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Position, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform) });
-	AddPropertyEnumColumnInfo<FRotator>(Info, PointData, EPCGPointProperties::Rotation, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform) });
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Scale, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform) });
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMin, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::BoundsMin) });
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMax, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::BoundsMax) });
-	AddPropertyEnumColumnInfo<FLinearColor>(Info, PointData, EPCGPointProperties::Color, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Color) });
-	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Density, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Density) });
-	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Steepness, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Steepness) });
-	AddPropertyEnumColumnInfo<int32>(Info, PointData, EPCGPointProperties::Seed, { .bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Seed) });
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Position, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform)});
+	AddPropertyEnumColumnInfo<FRotator>(Info, PointData, EPCGPointProperties::Rotation, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform)});
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Scale, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform)});
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMin, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::BoundsMin)});
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMax, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::BoundsMax)});
+	AddPropertyEnumColumnInfo<FLinearColor>(Info, PointData, EPCGPointProperties::Color, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Color)});
+	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Density, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Density)});
+	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Steepness, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Steepness)});
+	AddPropertyEnumColumnInfo<int32>(Info, PointData, EPCGPointProperties::Seed, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Seed)});
 
 	const IConsoleVariable* CVarShowAdvancedAttributesFields = IConsoleManager::Get().FindConsoleVariable(TEXT("pcg.graph.ShowAdvancedAttributes"));
 	if (CVarShowAdvancedAttributesFields && CVarShowAdvancedAttributesFields->GetBool())
@@ -313,24 +313,24 @@ FPCGTableVisualizerInfo IPCGExSpatialDataVisualization::GetTableVisualizerInfoWi
 		};
 
 		Overrides.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::MetadataEntry);
-		
+
 		AddTypedColumnInfo<int64>(Info, PointData, FPCGAttributePropertySelector{}, Overrides);
 
 		Overrides.LabelOverride = TEXT_MetadataEntryParent;
 		Overrides.CreateAccessorFuncOverride = [PointData]()
 		{
 			return MakeShared<FPCGCustomPointPropertyAccessor<int64, TConstPCGValueRange<int64>>>(PointData, [Metadata = PointData->ConstMetadata()](int32 Index, int64& OutValue, const TConstPCGValueRange<int64>& MetaDataEntryRange)
-			{
-				if (Metadata)
-				{
-					OutValue = Metadata->GetParentKey(MetaDataEntryRange[Index]);
-					return true;
-				}
-				return false;
-			},
-			PointData->GetConstMetadataEntryValueRange());
+			                                                                                      {
+				                                                                                      if (Metadata)
+				                                                                                      {
+					                                                                                      OutValue = Metadata->GetParentKey(MetaDataEntryRange[Index]);
+					                                                                                      return true;
+				                                                                                      }
+				                                                                                      return false;
+			                                                                                      },
+			                                                                                      PointData->GetConstMetadataEntryValueRange());
 		};
-		
+
 		AddTypedColumnInfo<int64>(Info, PointData, FPCGAttributePropertySelector{}, Overrides);
 	}
 
@@ -387,7 +387,7 @@ const UPCGPointData* IPCGExSpatialDataVisualization::CollapseToDebugPointData(FP
 }
 
 const UPCGBasePointData* IPCGExSpatialDataVisualization::CollapseToDebugBasePointData(FPCGContext* Context, const UPCGData* Data) const
-{	
+{
 	if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Data))
 	{
 		if (CVarPCGEnablePointArrayData.GetValueOnAnyThread())
@@ -396,9 +396,9 @@ const UPCGBasePointData* IPCGExSpatialDataVisualization::CollapseToDebugBasePoin
 		}
 		else
 		{
-PRAGMA_DISABLE_DEPRECATION_WARNINGS
+			PRAGMA_DISABLE_DEPRECATION_WARNINGS
 			return CollapseToDebugPointData(Context, Data);
-PRAGMA_ENABLE_DEPRECATION_WARNINGS
+			PRAGMA_ENABLE_DEPRECATION_WARNINGS
 		}
 	}
 

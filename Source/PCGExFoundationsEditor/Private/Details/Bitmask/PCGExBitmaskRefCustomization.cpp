@@ -3,7 +3,6 @@
 
 #include "Details/Bitmask/PCGExBitmaskRefCustomization.h"
 #include "DetailWidgetRow.h"
-#include "IDetailChildrenBuilder.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "Data/Bitmasks/PCGExBitmaskCollection.h"

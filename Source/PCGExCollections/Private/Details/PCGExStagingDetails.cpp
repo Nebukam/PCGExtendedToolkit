@@ -9,7 +9,6 @@
 #include "UObject/Package.h"
 #include "Core/PCGExAssetCollection.h"
 #include "Core/PCGExCollectionHelpers.h"
-#include "Details/PCGExDistancesDetails.h"
 #include "Details/PCGExSettingsDetails.h"
 
 FPCGExEntryTypeDetails::FPCGExEntryTypeDetails()

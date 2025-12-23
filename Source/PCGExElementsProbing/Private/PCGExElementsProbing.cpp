@@ -4,7 +4,6 @@
 #include "PCGExElementsProbing.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExProbeFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

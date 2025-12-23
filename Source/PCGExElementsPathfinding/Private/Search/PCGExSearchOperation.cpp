@@ -3,8 +3,6 @@
 
 
 #include "Search/PCGExSearchOperation.h"
-
-#include "Core/PCGExPathfinding.h"
 #include "Core/PCGExSearchAllocations.h"
 
 void FPCGExSearchOperation::PrepareForCluster(PCGExClusters::FCluster* InCluster)

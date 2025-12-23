@@ -4,7 +4,6 @@
 #include "PCGExPickers.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExPickerFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

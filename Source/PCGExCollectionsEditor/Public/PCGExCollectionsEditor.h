@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEditorModuleInterface.h"
-#include "PCGExModuleInterface.h"
 
 class FPCGExCollectionsEditorModule final : public IPCGExEditorModuleInterface
 {

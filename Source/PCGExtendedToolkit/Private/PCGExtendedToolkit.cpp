@@ -3,12 +3,10 @@
 
 #include "PCGExtendedToolkit.h"
 
-#include "PCGExModuleInterface.h"
 #include "PCGExVersion.h"
 
 #if WITH_EDITOR
 #include "PCGExCoreSettingsCache.h"
-#include "ISettingsModule.h"
 #endif
 
 #include "PCGExGlobalSettings.h"

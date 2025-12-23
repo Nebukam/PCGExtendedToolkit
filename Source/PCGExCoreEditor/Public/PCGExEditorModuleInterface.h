@@ -6,9 +6,6 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-#include "Styling/SlateStyle.h"
-#include "Styling/SlateStyleRegistry.h"
-
 class FPCGDataTypeRegistry;
 
 class PCGEXCOREEDITOR_API IPCGExEditorModuleInterface : public IModuleInterface

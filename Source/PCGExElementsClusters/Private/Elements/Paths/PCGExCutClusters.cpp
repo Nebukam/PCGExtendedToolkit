@@ -5,7 +5,6 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExDistancesDetails.h"
 #include "Clusters/PCGExCluster.h"
 #include "Graphs/PCGExGraph.h"
 #include "Core/PCGExClusterFilter.h"

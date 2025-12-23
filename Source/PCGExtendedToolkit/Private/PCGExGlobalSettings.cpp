@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCoreSettingsCache.h"
-#include "PCGPin.h"
 
 void UPCGExGlobalSettings::PostLoad()
 {

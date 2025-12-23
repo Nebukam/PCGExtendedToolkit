@@ -4,7 +4,6 @@
 #include "PCGExElementsSampling.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExTexParamFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

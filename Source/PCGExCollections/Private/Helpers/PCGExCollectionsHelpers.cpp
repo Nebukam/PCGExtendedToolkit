@@ -9,7 +9,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Engine/StaticMeshSocket.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"

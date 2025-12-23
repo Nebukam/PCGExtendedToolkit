@@ -7,9 +7,7 @@
 #include "Core/PCGExClusterFilter.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
-#if WITH_EDITOR
-#include "ISettingsModule.h"
-#endif
+
 
 #define LOCTEXT_NAMESPACE "FPCGExFiltersModule"
 

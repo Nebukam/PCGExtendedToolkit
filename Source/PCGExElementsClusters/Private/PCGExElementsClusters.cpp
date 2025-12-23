@@ -5,7 +5,6 @@
 
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExClusterStates.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #include "Elements/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"

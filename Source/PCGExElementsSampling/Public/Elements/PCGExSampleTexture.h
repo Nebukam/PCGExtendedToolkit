@@ -6,9 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExFilterCommon.h"
 
-#include "PCGExSampleNearestPoint.h"
-
-
 #include "Core/PCGExPointsProcessor.h"
 #include "Core/PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExAttributeBroadcaster.h"

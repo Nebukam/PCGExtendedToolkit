@@ -4,7 +4,6 @@
 #include "PCGExHeuristics.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExHeuristicsFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

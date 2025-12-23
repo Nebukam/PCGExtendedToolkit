@@ -4,7 +4,6 @@
 #include "PCGExBlending.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExBlendOpFactory.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

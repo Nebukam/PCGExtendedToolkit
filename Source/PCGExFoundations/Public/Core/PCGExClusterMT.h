@@ -5,7 +5,6 @@
 #include "PCGExVersion.h"
 #include "PCGExCommon.h"
 #include "Clusters/PCGExEdgeDirectionDetails.h"
-#include "Compute/PCGDataDescription.h"
 #include "Core/PCGExContext.h"
 #include "Graphs/PCGExGraphDetails.h"
 #include "Math/PCGExProjectionDetails.h"

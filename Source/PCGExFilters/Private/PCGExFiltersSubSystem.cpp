@@ -4,7 +4,6 @@
 #include "PCGExFiltersSubSystem.h"
 
 #include "Filters/Points/PCGExConstantFilter.h"
-#include "Helpers/PCGAsync.h"
 
 #if WITH_EDITOR
 #include "Editor.h"

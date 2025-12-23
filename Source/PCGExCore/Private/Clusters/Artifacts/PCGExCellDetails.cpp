@@ -3,7 +3,6 @@
 
 #include "Clusters/Artifacts/PCGExCellDetails.h"
 
-#include "GeomTools.h"
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"

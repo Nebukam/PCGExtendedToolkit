@@ -5,18 +5,13 @@
 
 #include "Clusters/Artifacts/PCGExCellDetails.h"
 
-#include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointElements.h"
-#include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClusterCommon.h"
 #include "Math/PCGExMath.h"
 #include "Math/PCGExMathAxis.h"
 #include "Math/Geo/PCGExGeo.h"
-#include "Paths/PCGExPathsHelpers.h"
 #include "Paths/PCGExPathsCommon.h"
 
 namespace PCGExClusters

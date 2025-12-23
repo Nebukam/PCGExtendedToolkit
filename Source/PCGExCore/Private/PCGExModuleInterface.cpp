@@ -8,7 +8,6 @@
 
 #if WITH_EDITOR
 #include "Editor.h"
-#include "ContentBrowserMenuContexts.h"
 #endif
 
 TArray<IPCGExModuleInterface*> IPCGExModuleInterface::RegisteredModules;

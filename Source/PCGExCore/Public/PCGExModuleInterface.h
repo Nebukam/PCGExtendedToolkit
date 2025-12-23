@@ -8,7 +8,6 @@
 
 #if WITH_EDITOR
 #include "Styling/SlateStyle.h"
-#include "Styling/SlateStyleRegistry.h"
 #include "PCGExCoreSettingsCache.h"
 #endif
 

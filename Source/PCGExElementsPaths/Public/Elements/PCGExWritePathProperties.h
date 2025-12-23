@@ -7,8 +7,6 @@
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExIntersectionDetails.h"
 #include "Math/PCGExProjectionDetails.h"
-
-#include "Sampling/PCGExApplySamplingDetails.h"
 #include "Sampling/PCGExSamplingCommon.h"
 #include "PCGExWritePathProperties.generated.h"
 

@@ -4,7 +4,6 @@
 #include "PCGExMatching.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExMatchRuleFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

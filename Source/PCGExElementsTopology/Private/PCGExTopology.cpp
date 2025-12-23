@@ -5,7 +5,6 @@
 
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshRepairFunctions.h"
-#include "GeometryScript/PolygonFunctions.h"
 
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"

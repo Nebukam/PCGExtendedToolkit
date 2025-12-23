@@ -3,7 +3,6 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"

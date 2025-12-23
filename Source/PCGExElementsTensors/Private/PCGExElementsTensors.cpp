@@ -4,7 +4,6 @@
 #include "PCGExElementsTensors.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExTensorFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

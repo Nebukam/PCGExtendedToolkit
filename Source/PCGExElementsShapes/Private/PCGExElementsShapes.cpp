@@ -4,7 +4,6 @@
 #include "PCGExElementsShapes.h"
 
 #if WITH_EDITOR
-#include "ISettingsModule.h"
 #include "Core/PCGExShapeBuilderFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #endif

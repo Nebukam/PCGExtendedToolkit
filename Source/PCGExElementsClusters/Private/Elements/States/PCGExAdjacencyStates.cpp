@@ -8,7 +8,6 @@
 #include "Containers/PCGExManagedObjects.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Data/Bitmasks/PCGExBitmaskData.h"
-#include "Filters/PCGExAdjacency.h"
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExAdjacencyStateFactoryData::CreateFilter() const
 {

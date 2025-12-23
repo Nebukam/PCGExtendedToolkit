@@ -4,11 +4,8 @@
 #include "Filters/PCGExAdjacency.h"
 
 #include "Core/PCGExContext.h"
-#include "Data/Bitmasks/PCGExBitmaskDetails.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
-#include "Data/Bitmasks/PCGExBitmaskCollection.h"
-#include "Math/PCGExMath.h"
 
 bool FPCGExAdjacencySettings::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet)
 {

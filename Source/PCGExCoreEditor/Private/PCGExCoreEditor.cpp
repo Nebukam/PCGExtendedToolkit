@@ -2,9 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExCoreEditor.h"
-#if WITH_EDITOR
-#include "ISettingsModule.h"
-#endif
 
 #define LOCTEXT_NAMESPACE "FPCGExCoreEditorModule"
 

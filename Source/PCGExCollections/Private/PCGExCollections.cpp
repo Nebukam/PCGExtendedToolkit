@@ -2,9 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExCollections.h"
-#if WITH_EDITOR
-#include "ISettingsModule.h"
-#endif
 
 #include "Core/PCGExAssetCollectionTypes.h"
 

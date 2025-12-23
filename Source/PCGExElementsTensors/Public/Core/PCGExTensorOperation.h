@@ -8,7 +8,6 @@
 #include "Factories/PCGExOperation.h"
 #include "PCGExTensor.h"
 #include "Elements/PCGExExtrudeTensors.h"
-#include "Paths/PCGExPath.h"
 
 namespace PCGExMath
 {

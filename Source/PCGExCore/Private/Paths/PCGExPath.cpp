@@ -3,8 +3,6 @@
 
 #include "Paths/PCGExPath.h"
 
-#include "Data/PCGSplineData.h"
-#include "Data/PCGSplineStruct.h"
 #include "GeomTools.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
