@@ -34,7 +34,8 @@ public class PCGExElementsProbing : ModuleRules
 				"PCG",
 				"PCGExCore",
 				"PCGExFilters",
-				"PCGExFoundations"
+				"PCGExFoundations",
+				"PCGExGraphs"
 			}
 		);
 

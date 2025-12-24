@@ -4,6 +4,9 @@
 #include "PCGExModuleInterface.h"
 
 #include "PCGExLog.h"
+#include "CoreMinimal.h"
+#include "UObject/UObjectIterator.h"
+#include "UObject/Class.h"
 #include "UObject/CoreRedirects.h"
 
 #if WITH_EDITOR

@@ -13,9 +13,13 @@
 #include "Details/PCGExIntersectionDetails.h"
 
 
-#include "Graphs/Union/PCGExIntersections.h"
 
 #include "PCGExFusePoints.generated.h"
+
+namespace PCGExGraphs
+{
+	class FUnionGraph;
+}
 
 UENUM()
 enum class EPCGExFusedPointOutput : uint8

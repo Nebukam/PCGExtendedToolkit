@@ -18,18 +18,7 @@ public class PCGExtendedToolkit : ModuleRules
 	private const string EditorSuffix = "Editor";
 
 	private static readonly string[] BaseDependencies = { "PCGExCore", "PCGExBlending" };
-	private static readonly string[] BaseEditorDependencies = { "PCGExCoreEditor", "PCGExFoundationsEditor" };
-
-	/// <summary>
-	/// Declares which plugins are required when specific modules are enabled.
-	/// Key: module name, Value: list of required plugin names
-	/// </summary>
-	private static readonly Dictionary<string, string[]> ModulePluginRequirements = new()
-	{
-		{ "PCGExElementsTopology", new[] { "GeometryScripting", "PCGGeometryScriptInterop" } },
-		// Add more as needed:
-		// { "PCGExSomeModule", new[] { "SomePlugin", "AnotherPlugin" } },
-	};
+	private static readonly string[] BaseEditorDependencies = { "PCGExCoreEditor" };
 
 	private readonly Dictionary<string, List<string>> _moduleDependencies = new();
 
@@ -43,6 +32,12 @@ public class PCGExtendedToolkit : ModuleRules
 		FileReference upluginFile = new FileReference(Path.Combine(PluginDirectory, $"{PluginName}.uplugin"));
 		ExternalDependencies.Add(upluginFile.FullName);
 
+		string pluginsDepsPath = Path.Combine(PluginDirectory, "Config", "PluginsDeps.ini");
+		if (File.Exists(pluginsDepsPath))
+		{
+			ExternalDependencies.Add(pluginsDepsPath);
+		}
+
 		PluginDescriptor descriptor = PluginDescriptor.FromFile(upluginFile);
 		var declaredModules = new HashSet<string>(descriptor.Modules.Select(m => m.Name));
 		var enabledPlugins = new HashSet<string>(
@@ -51,7 +46,8 @@ public class PCGExtendedToolkit : ModuleRules
 				.Select(p => p.Name)
 		);
 
-		ValidatePluginRequirements(declaredModules, enabledPlugins);
+		var modulePluginRequirements = LoadPluginsDeps(pluginsDepsPath);
+		ValidatePluginRequirements(declaredModules, enabledPlugins, modulePluginRequirements);
 
 		foreach (ModuleDescriptor module in descriptor.Modules)
 		{
@@ -62,11 +58,53 @@ public class PCGExtendedToolkit : ModuleRules
 		GenerateSubModulesHeader();
 	}
 
-	private void ValidatePluginRequirements(HashSet<string> declaredModules, HashSet<string> enabledPlugins)
+	private Dictionary<string, List<string>> LoadPluginsDeps(string filePath)
+	{
+		var deps = new Dictionary<string, List<string>>();
+
+		if (!File.Exists(filePath))
+		{
+			Logger.LogInformation("[{Plugin}] PluginsDeps.ini not found - skipping plugin requirement validation", PluginName);
+			return deps;
+		}
+
+		string currentModule = null;
+
+		foreach (string line in File.ReadAllLines(filePath))
+		{
+			string trimmed = line.Trim();
+			if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#") || trimmed.StartsWith(";"))
+				continue;
+
+			// Section header: [ModuleName]
+			if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+			{
+				currentModule = trimmed.Substring(1, trimmed.Length - 2);
+				if (!deps.ContainsKey(currentModule))
+				{
+					deps[currentModule] = new List<string>();
+				}
+				continue;
+			}
+
+			// Plugin name under current section
+			if (currentModule != null && !string.IsNullOrEmpty(trimmed))
+			{
+				deps[currentModule].Add(trimmed);
+			}
+		}
+
+		return deps;
+	}
+
+	private void ValidatePluginRequirements(
+		HashSet<string> declaredModules,
+		HashSet<string> enabledPlugins,
+		Dictionary<string, List<string>> modulePluginRequirements)
 	{
 		var errors = new List<string>();
 
-		foreach (var (moduleName, requiredPlugins) in ModulePluginRequirements)
+		foreach (var (moduleName, requiredPlugins) in modulePluginRequirements)
 		{
 			if (!declaredModules.Contains(moduleName)) continue;
 

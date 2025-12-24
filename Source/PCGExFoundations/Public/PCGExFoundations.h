@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExModuleInterface.h"
 
-DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
+
 
 class FPCGExFoundationsModule final : public IPCGExModuleInterface
 {

@@ -5,7 +5,7 @@
   "FriendlyName": "PCGExtendedToolkit",
   "Description": "A rather large toolset that expand on existing PCG capabilities in unique ways.",
   "Category": "PCG",
-  "CreatedBy": "Timoth\u00e9 Lapetite",
+  "CreatedBy": "Timothé Lapetite",
   "CreatedByURL": "https://github.com/Nebukam/PCGExtendedToolkit",
   "DocsURL": "https://pcgex.gitbook.io/pcgex",
   "FabURL": "com.epicgames.launcher://ue/Fab/product/a5061972-6875-4052-a7fd-7c33f6531ec3",
@@ -301,6 +301,19 @@
         "Win64",
         "Mac",
         "Linux"
+      ]
+    },
+    {
+      "Name": "PCGExGraphs",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
       ]
     },
     {

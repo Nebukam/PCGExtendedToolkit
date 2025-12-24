@@ -27,7 +27,7 @@ enum class EPCGExBasicEdgeRadius : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExBasicEdgeSolidificationDetails
+struct PCGEXGRAPHS_API FPCGExBasicEdgeSolidificationDetails
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ struct PCGEXFOUNDATIONS_API FPCGExBasicEdgeSolidificationDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExGraphBuilderDetails
+struct PCGEXGRAPHS_API FPCGExGraphBuilderDetails
 {
 	GENERATED_BODY()
 

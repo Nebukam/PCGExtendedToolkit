@@ -14,19 +14,6 @@
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Details/PCGExFuseDetails.h"
 
-#include "PCGExIntersections.generated.h"
-
-#define PCGEX_FOREACH_FIELD_INTERSECTION(MACRO)\
-MACRO(IsIntersection, bool, false)\
-MACRO(CutType, int32, CutTypeValueMapping[EPCGExCutType::Undefined])\
-MACRO(Normal, FVector, FVector::ZeroVector)\
-MACRO(BoundIndex, int32, -1)
-
-namespace PCGExMatching
-{
-	class FTargetsHandler;
-}
-
 struct FPCGExEdgeEdgeIntersectionDetails;
 struct FPCGExPointEdgeIntersectionDetails;
 
@@ -44,11 +31,6 @@ namespace PCGExData
 
 enum class EPCGExCutType : uint8;
 
-namespace PCGExSampling
-{
-	class FTargetsHandler;
-}
-
 namespace PCGExMath
 {
 	struct FCut;
@@ -60,74 +42,6 @@ namespace PCGExMT
 	class TScopedArray;
 }
 
-USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExBoxIntersectionDetails
-{
-	GENERATED_BODY()
-
-	FPCGExBoxIntersectionDetails();
-
-	/** Bounds type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
-
-	/** If enabled, flag newly created intersection points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIsIntersection = true;
-
-	/** Name of the attribute to write point intersection boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="IsIntersection", PCG_Overridable, EditCondition="bWriteIsIntersection" ))
-	FName IsIntersectionAttributeName = FName("IsIntersection");
-
-	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteCutType = true;
-
-	/** Name of the attribute to write point toward inside boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="CutType", PCG_Overridable, EditCondition="bWriteCutType" ))
-	FName CutTypeAttributeName = FName("CutType");
-
-	/** Pick which value will be written for each cut type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize, meta=( ReadOnlyKeys, DisplayName=" └─ Mapping", EditCondition="bWriteCutType", HideEditConditionToggle))
-	TMap<EPCGExCutType, int32> CutTypeValueMapping;
-
-	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteNormal = false;
-
-	/** Name of the attribute to write point intersection normal to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Normal", PCG_Overridable, EditCondition="bWriteNormal" ))
-	FName NormalAttributeName = FName("Normal");
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteBoundIndex = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="BoundIndex", PCG_Overridable, EditCondition="bWriteBoundIndex" ))
-	FName BoundIndexAttributeName = FName("BoundIndex");
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
-	FPCGExForwardDetails IntersectionForwarding;
-
-	bool Validate(const FPCGContext* InContext) const;
-
-#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Writer;
-	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_DECL)
-#undef PCGEX_LOCAL_DETAIL_DECL
-
-	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExMatching::FTargetsHandler>& TargetsHandler);
-
-	bool WillWriteAny() const;
-
-	void Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const;
-	void SetIntersection(const int32 PointIndex, const PCGExMath::FCut& InCut) const;
-
-private:
-	TArray<TSharedPtr<PCGExData::FDataForwardHandler>> IntersectionForwardHandlers;
-};
-
 namespace PCGExGraphs
 {
 	class FEdgeProxy;
@@ -137,7 +51,7 @@ namespace PCGExGraphs
 
 #pragma region Compound Graph
 
-	class PCGEXFOUNDATIONS_API FUnionNode : public TSharedFromThis<FUnionNode>
+	class PCGEXGRAPHS_API FUnionNode : public TSharedFromThis<FUnionNode>
 	{
 	protected:
 		mutable FRWLock AdjacencyLock;
@@ -160,7 +74,7 @@ namespace PCGExGraphs
 
 	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->Bounds;}, { return A->Index == B->Index; })
 
-	class PCGEXFOUNDATIONS_API FUnionGraph : public TSharedFromThis<FUnionGraph>
+	class PCGEXGRAPHS_API FUnionGraph : public TSharedFromThis<FUnionGraph>
 	{
 		int32 NumCollapsedEdges = 0;
 
@@ -213,7 +127,7 @@ namespace PCGExGraphs
 
 #pragma endregion
 
-	class PCGEXFOUNDATIONS_API FIntersectionCache : public TSharedFromThis<FIntersectionCache>
+	class PCGEXGRAPHS_API FIntersectionCache : public TSharedFromThis<FIntersectionCache>
 	{
 	public:
 		TConstPCGValueRange<FTransform> NodeTransforms;
@@ -237,7 +151,7 @@ namespace PCGExGraphs
 		void BuildCache();
 	};
 
-	class PCGEXFOUNDATIONS_API FEdgeProxy : public TSharedFromThis<FEdgeProxy>
+	class PCGEXGRAPHS_API FEdgeProxy : public TSharedFromThis<FEdgeProxy>
 	{
 	public:
 		virtual ~FEdgeProxy() = default;
@@ -254,7 +168,7 @@ namespace PCGExGraphs
 
 #pragma region Point Edge intersections
 
-	struct PCGEXFOUNDATIONS_API FPESplit
+	struct PCGEXGRAPHS_API FPESplit
 	{
 		int32 Index = -1;
 		double Time = -1;
@@ -263,7 +177,7 @@ namespace PCGExGraphs
 		bool operator==(const FPESplit& Other) const { return Index == Other.Index; }
 	};
 
-	class PCGEXFOUNDATIONS_API FPointEdgeProxy : public FEdgeProxy
+	class PCGEXGRAPHS_API FPointEdgeProxy : public FEdgeProxy
 	{
 	public:
 		TArray<FPESplit, TInlineAllocator<8>> CollinearPoints;
@@ -275,7 +189,7 @@ namespace PCGExGraphs
 		virtual bool IsEmpty() const override { return CollinearPoints.IsEmpty(); }
 	};
 
-	class PCGEXFOUNDATIONS_API FPointEdgeIntersections : public FIntersectionCache
+	class PCGEXGRAPHS_API FPointEdgeIntersections : public FIntersectionCache
 	{
 	public:
 		const FPCGExPointEdgeIntersectionDetails* Details;
@@ -299,7 +213,7 @@ namespace PCGExGraphs
 
 #pragma region Edge Edge intersections
 
-	struct PCGEXFOUNDATIONS_API FEESplit
+	struct PCGEXGRAPHS_API FEESplit
 	{
 		FEESplit() = default;
 
@@ -312,7 +226,7 @@ namespace PCGExGraphs
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(A, B); }
 	};
 
-	struct PCGEXFOUNDATIONS_API FEECrossing
+	struct PCGEXGRAPHS_API FEECrossing
 	{
 		int32 Index = -1;
 		FEESplit Split;
@@ -327,7 +241,7 @@ namespace PCGExGraphs
 		bool operator==(const FEECrossing& Other) const { return Index == Other.Index; }
 	};
 
-	class PCGEXFOUNDATIONS_API FEdgeEdgeProxy : public FEdgeProxy
+	class PCGEXGRAPHS_API FEdgeEdgeProxy : public FEdgeProxy
 	{
 	public:
 		TArray<FEECrossing> Crossings;
@@ -336,7 +250,7 @@ namespace PCGExGraphs
 		virtual bool IsEmpty() const override { return Crossings.IsEmpty(); }
 	};
 
-	class PCGEXFOUNDATIONS_API FEdgeEdgeIntersections : public FIntersectionCache
+	class PCGEXGRAPHS_API FEdgeEdgeIntersections : public FIntersectionCache
 	{
 	public:
 		const FPCGExEdgeEdgeIntersectionDetails* Details;

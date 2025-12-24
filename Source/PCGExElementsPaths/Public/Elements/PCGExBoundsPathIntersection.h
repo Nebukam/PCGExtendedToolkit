@@ -7,11 +7,10 @@
 #include "Core/PCGExPathProcessor.h"
 
 #include "Core/PCGExPointsProcessor.h"
+#include "Details/PCGExBoxIntersectionDetails.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "Math/PCGExBoundsCloud.h"
 
-
-#include "Graphs/Union/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
 
 class UPCGExSubPointsBlendInstancedFactory;

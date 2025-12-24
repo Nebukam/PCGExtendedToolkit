@@ -7,7 +7,7 @@
 #include "PCGExEditorModuleInterface.h"
 #include "Modules/ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
+
 
 class FPCGExCoreEditorModule final : public IPCGExEditorModuleInterface
 {

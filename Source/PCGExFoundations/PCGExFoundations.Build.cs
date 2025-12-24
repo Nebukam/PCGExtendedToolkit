@@ -36,7 +36,6 @@ public class PCGExFoundations : ModuleRules
 				"PCGExBlending",
 				"PCGExFilters",
 				"PCGExPickers",
-				"PCGExHeuristics",
 				"PCGExMatching",
 			}
 		);

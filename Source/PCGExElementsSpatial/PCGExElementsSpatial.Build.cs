@@ -36,6 +36,7 @@ public class PCGExElementsSpatial : ModuleRules
 				"PCGExFilters",
 				"PCGExBlending",
 				"PCGExMatching",
+				"PCGExGraphs",
 				"PCGExFoundations",
 			}
 		);

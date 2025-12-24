@@ -32,7 +32,7 @@ namespace PCGExGraphs
 	struct FGraphMetadataDetails;
 	class FGraph;
 
-	class PCGEXFOUNDATIONS_API FGraphBuilder : public TSharedFromThis<FGraphBuilder>
+	class PCGEXGRAPHS_API FGraphBuilder : public TSharedFromThis<FGraphBuilder>
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> TaskManager;
