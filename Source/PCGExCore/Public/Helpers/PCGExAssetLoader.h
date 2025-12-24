@@ -71,10 +71,6 @@ namespace PCGEx
 
 		virtual void End(const bool bBuildMap = false);
 
-		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
-		{
-		}
-
 	protected:
 		virtual void PrepareLoading();
 	};
@@ -92,15 +88,6 @@ namespace PCGEx
 
 		virtual bool IsEmpty() override { return AssetsMap.IsEmpty(); }
 		TObjectPtr<T>* GetAsset(const PCGExValueHash Key) { return AssetsMap.Find(Key); }
-
-		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override
-		{
-			for (const TPair<PCGExValueHash, TObjectPtr<T>>& Pair : AssetsMap)
-			{
-				TObjectPtr<UObject> Obj = Pair.Value;
-				Collector.AddReferencedObject(Obj);
-			}
-		}
 
 		virtual void End(const bool bBuildMap = false) override
 		{

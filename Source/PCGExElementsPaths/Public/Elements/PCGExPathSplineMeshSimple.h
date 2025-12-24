@@ -187,8 +187,6 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
-
-	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
 };
 
 class FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement

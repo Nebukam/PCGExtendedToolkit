@@ -16,6 +16,7 @@
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Components/PCGExDynamicMeshComponent.h"
+#include "Data/Descriptors/PCGExDynamicMeshDescriptor.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
+#include "Data/Descriptors/PCGExDynamicMeshDescriptor.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "GeometryScript/MeshRepairFunctions.h"
@@ -90,8 +91,8 @@ struct PCGEXELEMENTSTOPOLOGY_API FPCGExTopologyUVDetails
 
 	void Prepare(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
-	void Write(const TArray<int32>& TriangleIDs, FDynamicMesh3& InMesh) const;
-	void Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, FDynamicMesh3& InMesh) const;
+	void Write(const TArray<int32>& TriangleIDs, UE::Geometry::FDynamicMesh3& InMesh) const;
+	void Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, UE::Geometry::FDynamicMesh3& InMesh) const;
 };
 
 USTRUCT(BlueprintType)

@@ -104,7 +104,6 @@ namespace PCGExSocketStaging
 		FilterScope(Scope);
 
 		int16 MaterialPick = 0;
-		const FPCGExAssetCollectionEntry* Entry = nullptr;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -112,9 +111,12 @@ namespace PCGExSocketStaging
 
 			const uint64 Hash = EntryHashGetter->Read(Index);
 			if (FPCGExEntryAccessResult Result = Context->CollectionPickDatasetUnpacker->ResolveEntry(Hash, MaterialPick);
-				!Result.IsValid()) { continue; }
+				Result.IsValid())
+			{
+				SocketHelper->Add(Index, PCGExStaging::GetSimplifiedEntryHash(Hash), Result.Entry);
+			}
 
-			SocketHelper->Add(Index, PCGExStaging::GetSimplifiedEntryHash(Hash), Entry);
+			
 		}
 	}
 

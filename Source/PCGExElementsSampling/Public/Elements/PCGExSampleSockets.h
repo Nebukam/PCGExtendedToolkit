@@ -76,8 +76,6 @@ struct FPCGExSampleSocketsContext final : FPCGExPointsProcessorContext
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
-
-	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
 };
 
 class FPCGExSampleSocketsElement final : public FPCGExPointsProcessorElement

@@ -17,6 +17,7 @@
 #include "Helpers/PCGExStreamingHelpers.h"
 #include "Paths/PCGExPathsHelpers.h"
 #include "Utils/PCGExUniqueNameGenerator.h"
+#include "Materials/MaterialInterface.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -47,14 +48,6 @@ UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(const FOb
 	: Super(ObjectInitializer)
 {
 	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
-}
-
-void FPCGExPathSplineMeshSimpleContext::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
-{
-	if (StaticMeshLoader) { StaticMeshLoader->AddExtraStructReferencedObjects(Collector); }
-	if (StaticMesh) { Collector.AddReferencedObject(StaticMesh); }
-
-	FPCGExPathProcessorContext::AddExtraStructReferencedObjects(Collector);
 }
 
 bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const

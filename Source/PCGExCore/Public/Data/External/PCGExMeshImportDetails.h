@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Types/PCGExAttributeIdentity.h"
 
 #include "PCGExMeshImportDetails.generated.h"
 
 struct FPCGExContext;
-struct FPCGAttributeIdentifier;
 
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExGeoMeshImportDetails
