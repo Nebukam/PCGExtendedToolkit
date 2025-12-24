@@ -18,10 +18,10 @@ public:
 	// Static registry
 	static TArray<IPCGExEditorModuleInterface*> RegisteredModules;
 
-	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
+	
 	virtual void RegisterMenuExtensions();
 	virtual void UnregisterMenuExtensions();
+	
 };

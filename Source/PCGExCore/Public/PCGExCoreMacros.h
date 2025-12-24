@@ -61,7 +61,7 @@ if(!SharedContext.Get()){ return _RET; }
 
 #pragma endregion
 
-// FString A = ShouldCache() ? TEXT("♻️ ") : TEXT("");
+#pragma region Node infos
 
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT("PCGEx"#_SHORTNAME)); } \
@@ -82,6 +82,8 @@ virtual FName GetPointFilterPin() const override { return _LABEL; } \
 virtual FString GetPointFilterTooltip() const override { return TEXT(_TOOLTIP); } \
 virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return _TYPE; } \
 virtual bool RequiresPointFilters() const override { return _REQUIRED; }
+
+#pragma endregion
 
 #define PCGEX_INITIALIZE_ELEMENT(_NAME)\
 FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared<FPCGEx##_NAME##Element>();}
@@ -104,11 +106,16 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 
 #define PCGEX_GET_OPTION_STATE(_OPTION, _DEFAULT)\
 switch (_OPTION){ \
-default: case EPCGExOptionState::Default: return PCGEX_CORE_SETTINGS._DEFAULT; \
-case EPCGExOptionState::Enabled: return true; \
-case EPCGExOptionState::Disabled: return false; }
+	default: \
+	case EPCGExOptionState::Default: return PCGEX_CORE_SETTINGS._DEFAULT; \
+	case EPCGExOptionState::Enabled: return true; \
+	case EPCGExOptionState::Disabled: return false; \
+}
 
-#define PCGEX_TYPED_CONTEXT_AND_SETTINGS(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(ExecutionContext); const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>(); check(Settings);
+#define PCGEX_TYPED_CONTEXT_AND_SETTINGS(_NAME) \
+	FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(ExecutionContext); \
+	const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>(); \
+	check(Settings);
 
 
 #if WITH_EDITOR

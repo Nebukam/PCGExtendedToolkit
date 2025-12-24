@@ -1,30 +1,61 @@
 // Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using UnrealBuildTool;
-using EpicGames.Core;
 
 public class PCGExtendedToolkit : ModuleRules
 {
-	private List<string> EnabledSubModules = new List<string>();
+	private static class Constants
+	{
+		public const string PluginName = "PCGExtendedToolkit";
+		public const string PluginEditorName = PluginName + EditorSuffix;
+		public const string ModulePrefix = "PCGEx";
+		public const string EditorSuffix = "Editor";
+	}
+
+	private static class Platforms
+	{
+		public static readonly string[] Editor = { "Win64", "Mac", "Linux" };
+		public static readonly string[] Runtime = { "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" };
+	}
+
+	private readonly SubModuleRegistry _subModuleRegistry;
 
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
 
-		LoadSubModulesFromConfig();
+		ConfigureBaseDependencies();
 
-		PublicIncludePaths.AddRange(
-			new string[]
-			{
-			}
-		);
+		_subModuleRegistry = new SubModuleRegistry(ModuleDirectory, Target.bBuildEditor, Logger);
+		
+		string configPath = _subModuleRegistry.ConfigFilePath;
+		ExternalDependencies.Add(configPath);
 
+		var config = SubModuleConfig.Load(configPath, Logger);
+		
+		foreach (string moduleName in config.EnabledModules)
+		{
+			RegisterModule(moduleName);
+		}
+
+		RegisterBuildFilesAsExternalDependencies();
+		GenerateSubModulesHeader();
+		
+		var upluginUpdater = new UpluginUpdater(ModuleDirectory, Target.bBuildEditor, Logger);
+		upluginUpdater.Update(_subModuleRegistry);
+	}
+
+	private void ConfigureBaseDependencies()
+	{
 		PublicDependencyModuleNames.AddRange(
 			new[]
 			{
@@ -37,317 +68,586 @@ public class PCGExtendedToolkit : ModuleRules
 			}
 		);
 
-
 		PrivateDependencyModuleNames.AddRange(
-			new string[]
+			new[]
 			{
 				"DeveloperSettings"
 			}
 		);
 
-
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-			}
-		);
-
-		if (Target.bBuildEditor == true)
+		if (Target.bBuildEditor)
 		{
 			PrivateDependencyModuleNames.AddRange(
-				new string[]
+				new[]
 				{
 					"UnrealEd",
 					"Settings",
 					"PCGExCoreEditor",
 					"PCGExFoundationsEditor"
-				});
-		}
-
-		ScanSubModuleDependencies();
-		UpdateUpluginFile();
-	}
-
-	// Read the small config file to know which modules are desirable
-	private void LoadSubModulesFromConfig()
-	{
-		string SubModulesConfig = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "SubModules.ini"));
-
-		// Register as external dependency - changes trigger rebuild
-		ExternalDependencies.Add(SubModulesConfig);
-
-		if (!File.Exists(SubModulesConfig))
-		{
-			return;
-		}
-
-		foreach (string Line in File.ReadAllLines(SubModulesConfig))
-		{
-			string Trimmed = Line.Trim();
-
-			// Skip empty lines and comments
-			if (string.IsNullOrEmpty(Trimmed) || Trimmed.StartsWith("#") || Trimmed.StartsWith(";"))
-			{
-				continue;
-			}
-
-			// Parse "ModuleName=1" or "ModuleName=0"
-			string[] Parts = Trimmed.Split('=');
-			if (Parts.Length == 2)
-			{
-				string ModuleName = Parts[0].Trim();
-				bool Enabled = Parts[1].Trim() == "1";
-				ToggleOptionalModule(ModuleName, Enabled);
-			}
-		}
-	}
-
-	private void ToggleOptionalModule(string ModuleName, bool Enabled)
-	{
-		if (!Enabled)
-		{
-			return;
-		}
-
-		PublicDependencyModuleNames.Add(ModuleName);
-
-		// Track enabled PCGEx modules (excluding umbrella modules)
-		if (ModuleName.StartsWith("PCGEx") &&
-		    ModuleName != "PCGExtendedToolkit" &&
-		    ModuleName != "PCGExtendedToolkitEditor")
-		{
-			EnabledSubModules.Add(ModuleName);
-		}
-
-		if (Target.bBuildEditor == true)
-		{
-			// Check for companion editor module
-			string EditorModuleName = ModuleName + "Editor";
-			string EditorModulePath = Path.Combine(ModuleDirectory, "..", EditorModuleName);
-
-			if (Directory.Exists(EditorModulePath))
-			{
-				PrivateDependencyModuleNames.Add(EditorModuleName);
-
-				// Track editor modules too
-				if (EditorModuleName.StartsWith("PCGEx") &&
-				    EditorModuleName != "PCGExtendedToolkitEditor")
-				{
-					EnabledSubModules.Add(EditorModuleName);
 				}
-			}
-		}
-	}
-
-	private Dictionary<string, List<string>> ModuleDependencies = new Dictionary<string, List<string>>();
-
-	private void ScanSubModuleDependencies()
-	{
-		foreach (string ModuleName in EnabledSubModules)
-		{
-			if (ModuleName.EndsWith("Editor") && !Target.bBuildEditor)
-			{
-				continue;
-			}
-
-			string BuildCsPath = Path.Combine(ModuleDirectory, "..", ModuleName, ModuleName + ".Build.cs");
-
-			if (!File.Exists(BuildCsPath))
-			{
-				continue;
-			}
-
-			string Content = File.ReadAllText(BuildCsPath);
-			List<string> Dependencies = new List<string>();
-
-			// Match any "PCGEx..." strings in dependency arrays
-			var Matches = System.Text.RegularExpressions.Regex.Matches(
-				Content,
-				@"""(PCGEx\w+)"""
 			);
-
-			foreach (System.Text.RegularExpressions.Match Match in Matches)
-			{
-				string Dep = Match.Groups[1].Value;
-
-				// Don't add self-reference
-				if (Dep != ModuleName && !Dependencies.Contains(Dep))
-				{
-					Dependencies.Add(Dep);
-				}
-			}
-
-			ModuleDependencies[ModuleName] = Dependencies;
 		}
 	}
 
-	#region Uplugin generation
-
-	private void UpdateUpluginFile()
+	private void RegisterModule(string moduleName)
 	{
-		string UpluginPath = Path.Combine(ModuleDirectory, "..", "..", "PCGExtendedToolkit.uplugin");
-
-		if (!File.Exists(UpluginPath))
+		if (!ModuleNameValidator.IsValid(moduleName))
 		{
+			Logger.LogWarning("[{PluginName}] Invalid module name '{ModuleName}' - skipping", Constants.PluginName, moduleName);
 			return;
 		}
 
-		string Content = File.ReadAllText(UpluginPath);
+		PublicDependencyModuleNames.Add(moduleName);
+		_subModuleRegistry.RegisterModule(moduleName);
 
-		// Update Modules section (existing code)
-		Content = UpdateModulesSection(Content);
-
-		// Update Plugins section
-		Content = UpdatePluginsSection(Content);
-
-		File.WriteAllText(UpluginPath, Content);
-	}
-
-	private string UpdateModulesSection(string Content)
-	{
-		int ModulesStart = Content.IndexOf("\"Modules\"");
-		if (ModulesStart == -1) return Content;
-
-		int ArrayStart = Content.IndexOf('[', ModulesStart);
-		if (ArrayStart == -1) return Content;
-
-		int BracketCount = 1;
-		int ArrayEnd = ArrayStart + 1;
-		while (ArrayEnd < Content.Length && BracketCount > 0)
-		{
-			if (Content[ArrayEnd] == '[') BracketCount++;
-			else if (Content[ArrayEnd] == ']') BracketCount--;
-			ArrayEnd++;
-		}
-
-		HashSet<string> AllModules = new HashSet<string>(EnabledSubModules);
-		foreach (var kvp in ModuleDependencies)
-		{
-			foreach (string Dep in kvp.Value)
-			{
-				if (Dep != "PCGExtendedToolkit" && Dep != "PCGExtendedToolkitEditor")
-				{
-					AllModules.Add(Dep);
-				}
-			}
-		}
-
-		// Check for Editor companions for all non-Editor modules
 		if (Target.bBuildEditor)
 		{
-			HashSet<string> EditorModulesToAdd = new HashSet<string>();
-
-			foreach (string ModuleName in AllModules)
-			{
-				if (ModuleName.EndsWith("Editor"))
-				{
-					continue;
-				}
-
-				string EditorModuleName = ModuleName + "Editor";
-				string EditorModulePath = Path.Combine(ModuleDirectory, "..", EditorModuleName);
-
-				if (Directory.Exists(EditorModulePath) && !AllModules.Contains(EditorModuleName))
-				{
-					EditorModulesToAdd.Add(EditorModuleName);
-				}
-			}
-
-			foreach (string EditorModule in EditorModulesToAdd)
-			{
-				AllModules.Add(EditorModule);
-			}
-		}
-
-		List<string> ModuleEntries = new List<string>();
-		ModuleEntries.Add(BuildModuleEntry("PCGExtendedToolkit", false));
-		ModuleEntries.Add(BuildModuleEntry("PCGExtendedToolkitEditor", true));
-
-		foreach (string ModuleName in AllModules.OrderBy(m => m))
-		{
-			bool IsEditor = ModuleName.EndsWith("Editor");
-			ModuleEntries.Add(BuildModuleEntry(ModuleName, IsEditor));
-		}
-
-		string ModulesJson = "[\n" + string.Join(",\n", ModuleEntries) + "\n  ]";
-
-		return Content.Substring(0, ArrayStart) + ModulesJson + Content.Substring(ArrayEnd);
-	}
-
-
-	private string BuildModuleEntry(string ModuleName, bool IsEditor)
-	{
-		if (IsEditor)
-		{
-			return $@"    {{
-		""Name"": ""{ModuleName}"",
-		""Type"": ""Editor"", ""LoadingPhase"": ""Default"", ""PlatformAllowList"": [ ""Win64"", ""Mac"", ""Linux"" ]
-    }}";
-		}
-		else
-		{
-			return $@"    {{
-		""Name"": ""{ModuleName}"",
-		""Type"": ""Runtime"", ""LoadingPhase"": ""Default"", ""PlatformAllowList"": [ ""Win64"", ""Mac"", ""IOS"", ""Android"", ""Linux"", ""LinuxArm64"" ]
-	}}";
+			TryRegisterEditorCompanion(moduleName);
 		}
 	}
 
-	private string UpdatePluginsSection(string Content)
+	private void TryRegisterEditorCompanion(string moduleName)
 	{
-		int PluginsStart = Content.IndexOf("\"Plugins\"");
-		if (PluginsStart == -1) return Content;
+		string editorModuleName = moduleName + Constants.EditorSuffix;
+		string editorModulePath = Path.Combine(ModuleDirectory, "..", editorModuleName);
 
-		var ArrayStart = Content.IndexOf('[', PluginsStart);
-		if (ArrayStart == -1)
+		if (Directory.Exists(editorModulePath))
 		{
-			return Content;
+			PrivateDependencyModuleNames.Add(editorModuleName);
+			_subModuleRegistry.RegisterModule(editorModuleName);
 		}
+	}
 
-		int BracketCount = 1;
-		int ArrayEnd = ArrayStart + 1;
-		while (ArrayEnd < Content.Length && BracketCount > 0)
+	private void RegisterBuildFilesAsExternalDependencies()
+	{
+		foreach (string buildFilePath in _subModuleRegistry.GetAllBuildFilePaths())
 		{
-			if (Content[ArrayEnd] == '[') BracketCount++;
-			else if (Content[ArrayEnd] == ']') BracketCount--;
-			ArrayEnd++;
-		}
-
-		// Always required
-		List<string> pluginEntries = new List<string>();
-		pluginEntries.Add(BuildPluginEntry("PCG"));
-
-		HashSet<string> allModules = new HashSet<string>(EnabledSubModules);
-		foreach (var kvp in ModuleDependencies)
-		{
-			foreach (string dep in kvp.Value)
+			if (File.Exists(buildFilePath))
 			{
-				allModules.Add(dep);
+				ExternalDependencies.Add(buildFilePath);
+			}
+		}
+	}
+
+	private void GenerateSubModulesHeader()
+	{
+		string generatedDir = Path.Combine(ModuleDirectory, "Private", "Generated");
+		string headerPath = Path.Combine(generatedDir, "PCGExSubModules.generated.h");
+
+		var enabledModules = _subModuleRegistry.EnabledModules.OrderBy(m => m, StringComparer.Ordinal).ToList();
+		var dependencies = _subModuleRegistry.Dependencies;
+
+		var sb = new StringBuilder();
+		sb.AppendLine("// Auto-generated by PCGExtendedToolkit.Build.cs - DO NOT EDIT");
+		sb.AppendLine("#pragma once");
+		sb.AppendLine();
+		sb.AppendLine("#include \"CoreMinimal.h\"");
+		sb.AppendLine();
+		sb.AppendLine("namespace PCGExSubModules");
+		sb.AppendLine("{");
+
+		// Module list
+		sb.AppendLine("\tinline const TArray<FString>& GetEnabledModules()");
+		sb.AppendLine("\t{");
+		sb.AppendLine("\t\tstatic TArray<FString> Modules = {");
+
+		for (int i = 0; i < enabledModules.Count; i++)
+		{
+			string comma = (i < enabledModules.Count - 1) ? "," : "";
+			sb.AppendLine($"\t\t\tTEXT(\"{enabledModules[i]}\"){comma}");
+		}
+
+		sb.AppendLine("\t\t};");
+		sb.AppendLine("\t\treturn Modules;");
+		sb.AppendLine("\t}");
+		sb.AppendLine();
+
+		// Dependency map
+		sb.AppendLine("\tinline const TMap<FString, TArray<FString>>& GetModuleDependencies()");
+		sb.AppendLine("\t{");
+		sb.AppendLine("\t\tstatic TMap<FString, TArray<FString>> Dependencies = {");
+
+		var sortedDeps = dependencies.OrderBy(kvp => kvp.Key, StringComparer.Ordinal).ToList();
+		for (int i = 0; i < sortedDeps.Count; i++)
+		{
+			var kvp = sortedDeps[i];
+			string comma = (i < sortedDeps.Count - 1) ? "," : "";
+
+			if (kvp.Value.Count == 0)
+			{
+				sb.AppendLine($"\t\t\t{{ TEXT(\"{kvp.Key}\"), {{}} }}{comma}");
+			}
+			else
+			{
+				string deps = string.Join(", ", kvp.Value.Select(d => $"TEXT(\"{d}\")"));
+				sb.AppendLine($"\t\t\t{{ TEXT(\"{kvp.Key}\"), {{ {deps} }} }}{comma}");
 			}
 		}
 
-		// Conditional: only if a module needs GeometryScripting
-		if (allModules.Overlaps(new[]
-		    {
-			    "PCGExElementsTopology",
-		    }))
+		sb.AppendLine("\t\t};");
+		sb.AppendLine("\t\treturn Dependencies;");
+		sb.AppendLine("\t}");
+
+		sb.AppendLine("}");
+
+		Directory.CreateDirectory(generatedDir);
+
+		string newContent = sb.ToString();
+		if (!File.Exists(headerPath) || File.ReadAllText(headerPath) != newContent)
 		{
-			pluginEntries.Add(BuildPluginEntry("GeometryScripting"));
-			pluginEntries.Add(BuildPluginEntry("PCGGeometryScriptInterop"));
+			File.WriteAllText(headerPath, newContent);
 		}
-
-		string PluginsJson = "[\n" + string.Join(",\n", pluginEntries) + "\n  ]";
-
-		return Content.Substring(0, ArrayStart) + PluginsJson + Content.Substring(ArrayEnd);
 	}
-
-	private string BuildPluginEntry(string PluginName)
-	{
-		return $@"    {{
-      ""Name"": ""{PluginName}"",
-      ""Enabled"": true
-    }}";
-	}
-
-	#endregion
 }
+
+#region Module Name Validation
+
+internal static class ModuleNameValidator
+{
+	private static readonly Regex ValidPattern = new Regex(
+		@"^[a-zA-Z][a-zA-Z0-9_]*$",
+		RegexOptions.Compiled
+	);
+
+	public static bool IsValid(string moduleName)
+	{
+		if (string.IsNullOrWhiteSpace(moduleName))
+		{
+			return false;
+		}
+
+		// Block path traversal
+		if (moduleName.Contains("..") || moduleName.Contains("/") || moduleName.Contains("\\"))
+		{
+			return false;
+		}
+
+		return ValidPattern.IsMatch(moduleName);
+	}
+}
+
+#endregion
+
+#region SubModule Configuration
+
+internal class SubModuleConfig
+{
+	public IReadOnlyList<string> EnabledModules => _enabledModules;
+	private readonly List<string> _enabledModules = new List<string>();
+
+	private SubModuleConfig() { }
+
+	public static SubModuleConfig Load(string configPath, ILogger logger)
+	{
+		var config = new SubModuleConfig();
+
+		if (!File.Exists(configPath))
+		{
+			logger.LogInformation("[PCGExtendedToolkit] No SubModules.ini found at '{ConfigPath}' - using defaults", configPath);
+			return config;
+		}
+
+		try
+		{
+			config.ParseFile(configPath);
+		}
+		catch (Exception ex)
+		{
+			logger.LogWarning("[PCGExtendedToolkit] Failed to read config: {Message}", ex.Message);
+		}
+
+		return config;
+	}
+
+	private void ParseFile(string configPath)
+	{
+		foreach (string line in File.ReadAllLines(configPath))
+		{
+			string trimmed = line.Trim();
+
+			if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#") || trimmed.StartsWith(";"))
+			{
+				continue;
+			}
+
+			string[] parts = trimmed.Split('=');
+			if (parts.Length == 2 && parts[1].Trim() == "1")
+			{
+				_enabledModules.Add(parts[0].Trim());
+			}
+		}
+	}
+}
+
+#endregion
+
+#region SubModule Registry
+
+internal class SubModuleRegistry
+{
+	private readonly string _moduleDirectory;
+	private readonly bool _buildEditor;
+	private readonly ILogger _logger;
+	
+	private readonly HashSet<string> _enabledSubModules = new HashSet<string>();
+	private readonly Dictionary<string, List<string>> _moduleDependencies = new Dictionary<string, List<string>>();
+
+	// Only match PCGEx modules inside dependency array blocks
+	private static readonly Regex DependencyBlockPattern = new Regex(
+		@"(?:Public|Private)DependencyModuleNames\s*\.\s*AddRange\s*\(\s*new\s*(?:string)?\s*\[\s*\]\s*\{([^}]*)\}",
+		RegexOptions.Compiled | RegexOptions.Singleline
+	);
+
+	private static readonly Regex ModuleNamePattern = new Regex(
+		@"""(PCGEx\w+)""",
+		RegexOptions.Compiled
+	);
+
+	public string ConfigFilePath => Path.GetFullPath(Path.Combine(_moduleDirectory, "..", "..", "SubModules.ini"));
+
+	public SubModuleRegistry(string moduleDirectory, bool buildEditor, ILogger logger)
+	{
+		_moduleDirectory = moduleDirectory;
+		_buildEditor = buildEditor;
+		_logger = logger;
+	}
+
+	public void RegisterModule(string moduleName)
+	{
+		if (!IsPCGExModule(moduleName) || IsUmbrellaModule(moduleName))
+		{
+			return;
+		}
+
+		if (_enabledSubModules.Add(moduleName))
+		{
+			ScanDependencies(moduleName);
+		}
+	}
+
+	public IReadOnlyCollection<string> EnabledModules => _enabledSubModules;
+	public IReadOnlyDictionary<string, List<string>> Dependencies => _moduleDependencies;
+
+	public HashSet<string> GetAllModulesWithDependencies()
+	{
+		var all = new HashSet<string>(_enabledSubModules);
+
+		foreach (var deps in _moduleDependencies.Values)
+		{
+			foreach (string dep in deps)
+			{
+				if (!IsUmbrellaModule(dep))
+				{
+					all.Add(dep);
+				}
+			}
+		}
+
+		if (_buildEditor)
+		{
+			AddMissingEditorCompanions(all);
+		}
+
+		return all;
+	}
+
+	public IEnumerable<string> GetAllBuildFilePaths()
+	{
+		return _enabledSubModules.Select(m => GetBuildFilePath(m));
+	}
+
+	private void ScanDependencies(string moduleName)
+	{
+		if (moduleName.EndsWith("Editor") && !_buildEditor)
+		{
+			return;
+		}
+
+		string buildPath = GetBuildFilePath(moduleName);
+		if (!File.Exists(buildPath))
+		{
+			return;
+		}
+
+		try
+		{
+			string content = File.ReadAllText(buildPath);
+			var deps = ExtractDependencies(content, moduleName);
+			_moduleDependencies[moduleName] = deps;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning("[PCGExtendedToolkit] Failed to scan '{ModuleName}': {Message}", moduleName, ex.Message);
+			_moduleDependencies[moduleName] = new List<string>();
+		}
+	}
+
+	private List<string> ExtractDependencies(string content, string selfName)
+	{
+		var deps = new List<string>();
+
+		foreach (Match blockMatch in DependencyBlockPattern.Matches(content))
+		{
+			string arrayContent = blockMatch.Groups[1].Value;
+			
+			foreach (Match nameMatch in ModuleNamePattern.Matches(arrayContent))
+			{
+				string dep = nameMatch.Groups[1].Value;
+				if (dep != selfName && !deps.Contains(dep))
+				{
+					deps.Add(dep);
+				}
+			}
+		}
+
+		return deps;
+	}
+
+	private string GetBuildFilePath(string moduleName)
+	{
+		return Path.Combine(_moduleDirectory, "..", moduleName, moduleName + ".Build.cs");
+	}
+
+	private void AddMissingEditorCompanions(HashSet<string> modules)
+	{
+		var toAdd = new List<string>();
+
+		foreach (string name in modules)
+		{
+			if (name.EndsWith("Editor")) continue;
+
+			string editorName = name + "Editor";
+			string editorPath = Path.Combine(_moduleDirectory, "..", editorName);
+
+			if (Directory.Exists(editorPath) && !modules.Contains(editorName))
+			{
+				toAdd.Add(editorName);
+			}
+		}
+
+		foreach (string name in toAdd)
+		{
+			modules.Add(name);
+		}
+	}
+
+	private static bool IsPCGExModule(string name) => name.StartsWith("PCGEx");
+	private static bool IsUmbrellaModule(string name) => 
+		name == "PCGExtendedToolkit" || name == "PCGExtendedToolkitEditor";
+}
+
+#endregion
+
+#region Uplugin Updater
+
+internal class UpluginUpdater
+{
+	private readonly string _upluginPath;
+	private readonly string _moduleDirectory;
+	private readonly bool _buildEditor;
+	private readonly ILogger _logger;
+
+	private static readonly string[] GeometryScriptingModules = { "PCGExElementsTopology" };
+
+	public UpluginUpdater(string moduleDirectory, bool buildEditor, ILogger logger)
+	{
+		_moduleDirectory = moduleDirectory;
+		_buildEditor = buildEditor;
+		_logger = logger;
+		_upluginPath = Path.Combine(moduleDirectory, "..", "..", "PCGExtendedToolkit.uplugin");
+	}
+
+	public void Update(SubModuleRegistry registry)
+	{
+		if (!File.Exists(_upluginPath))
+		{
+			_logger.LogWarning("[PCGExtendedToolkit] Uplugin not found: {Path}", _upluginPath);
+			return;
+		}
+
+		try
+		{
+			string content = File.ReadAllText(_upluginPath);
+			var allModules = registry.GetAllModulesWithDependencies();
+
+			content = ReplaceJsonArray(content, "Modules", BuildModulesArray(allModules));
+			content = ReplaceJsonArray(content, "Plugins", BuildPluginsArray(allModules));
+
+			WriteAtomically(content);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError("[PCGExtendedToolkit] Failed to update uplugin: {Message}", ex.Message);
+		}
+	}
+
+	private string BuildModulesArray(HashSet<string> allModules)
+	{
+		var entries = new List<string>();
+
+		// Umbrella modules first
+		entries.Add(BuildModuleEntry("PCGExtendedToolkit", isEditor: false));
+		entries.Add(BuildModuleEntry("PCGExtendedToolkitEditor", isEditor: true));
+
+		// Rest sorted for deterministic output
+		foreach (string name in allModules.OrderBy(m => m, StringComparer.Ordinal))
+		{
+			entries.Add(BuildModuleEntry(name, name.EndsWith("Editor")));
+		}
+
+		return "[\n" + string.Join(",\n", entries) + "\n\t]";
+	}
+
+	private string BuildModuleEntry(string name, bool isEditor)
+	{
+		string[] platforms = isEditor ? Platforms.Editor : Platforms.Runtime;
+		string platformList = string.Join(", ", platforms.Select(p => $"\"{p}\""));
+		string type = isEditor ? "Editor" : "Runtime";
+
+		return $"\t\t{{\n" +
+		       $"\t\t\t\"Name\": \"{name}\",\n" +
+		       $"\t\t\t\"Type\": \"{type}\",\n" +
+		       $"\t\t\t\"LoadingPhase\": \"Default\",\n" +
+		       $"\t\t\t\"PlatformAllowList\": [ {platformList} ]\n" +
+		       $"\t\t}}";
+	}
+
+	private string BuildPluginsArray(HashSet<string> allModules)
+	{
+		var entries = new List<string>();
+
+		entries.Add(BuildPluginEntry("PCG"));
+
+		if (allModules.Overlaps(GeometryScriptingModules))
+		{
+			entries.Add(BuildPluginEntry("GeometryScripting"));
+			entries.Add(BuildPluginEntry("PCGGeometryScriptInterop"));
+		}
+
+		return "[\n" + string.Join(",\n", entries) + "\n\t]";
+	}
+
+	private string BuildPluginEntry(string name)
+	{
+		return $"\t\t{{\n" +
+		       $"\t\t\t\"Name\": \"{name}\",\n" +
+		       $"\t\t\t\"Enabled\": true\n" +
+		       $"\t\t}}";
+	}
+
+	/// <summary>
+	/// Replaces a JSON array in the content, properly handling nested brackets and string literals.
+	/// </summary>
+	private string ReplaceJsonArray(string content, string arrayName, string newArrayContent)
+	{
+		string searchKey = $"\"{arrayName}\"";
+		int keyIndex = content.IndexOf(searchKey);
+		if (keyIndex == -1) return content;
+
+		int arrayStart = content.IndexOf('[', keyIndex);
+		if (arrayStart == -1) return content;
+
+		int arrayEnd = FindMatchingBracket(content, arrayStart);
+		if (arrayEnd == -1) return content;
+
+		return content.Substring(0, arrayStart) + newArrayContent + content.Substring(arrayEnd + 1);
+	}
+
+	/// <summary>
+	/// Finds the matching closing bracket, correctly handling string literals and escape sequences.
+	/// </summary>
+	private int FindMatchingBracket(string content, int openBracketIndex)
+	{
+		int depth = 0;
+		bool inString = false;
+		bool escaped = false;
+
+		for (int i = openBracketIndex; i < content.Length; i++)
+		{
+			char c = content[i];
+
+			if (escaped)
+			{
+				escaped = false;
+				continue;
+			}
+
+			if (c == '\\' && inString)
+			{
+				escaped = true;
+				continue;
+			}
+
+			if (c == '"')
+			{
+				inString = !inString;
+				continue;
+			}
+
+			if (inString) continue;
+
+			if (c == '[')
+			{
+				depth++;
+			}
+			else if (c == ']')
+			{
+				depth--;
+				if (depth == 0)
+				{
+					return i;
+				}
+			}
+		}
+
+		_logger.LogWarning("[PCGExtendedToolkit] Malformed JSON: unmatched bracket");
+		return -1;
+	}
+
+	private void WriteAtomically(string content)
+	{
+		// Use random suffix to avoid conflicts with parallel builds
+		string tempPath = _upluginPath + ".tmp." + Guid.NewGuid().ToString("N").Substring(0, 8);
+
+		try
+		{
+			File.WriteAllText(tempPath, content);
+			
+			// .NET Framework doesn't have File.Move overwrite, so delete first
+			if (File.Exists(_upluginPath))
+			{
+				File.Delete(_upluginPath);
+			}
+			File.Move(tempPath, _upluginPath);
+		}
+		catch
+		{
+			// Clean up temp file on failure
+			TryDeleteFile(tempPath);
+			throw;
+		}
+	}
+
+	private static void TryDeleteFile(string path)
+	{
+		try
+		{
+			if (File.Exists(path))
+			{
+				File.Delete(path);
+			}
+		}
+		catch
+		{
+			// Best effort cleanup
+		}
+	}
+
+	private static class Platforms
+	{
+		public static readonly string[] Editor = { "Win64", "Mac", "Linux" };
+		public static readonly string[] Runtime = { "Win64", "Mac", "IOS", "Android", "Linux", "LinuxArm64" };
+	}
+}
+
+#endregion

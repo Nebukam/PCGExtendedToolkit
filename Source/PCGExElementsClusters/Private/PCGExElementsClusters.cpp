@@ -6,8 +6,12 @@
 
 
 #if WITH_EDITOR
+
+#if PCGEX_ENGINE_VERSION > 506
+#include "Data/Registry/PCGDataTypeRegistry.h" // PCGEX_PCG_DATA_REGISTRY
+#endif
+
 #include "Core/PCGExClusterStates.h"
-#include "Data/Registry/PCGDataTypeRegistry.h"
 #include "Elements/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 #endif
 

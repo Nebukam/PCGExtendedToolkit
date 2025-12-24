@@ -16,6 +16,10 @@ void IPCGExModuleInterface::StartupModule()
 {
 	UE_LOG(LogPCGEx, Log, TEXT("IPCGExModuleInterface::StartupModule >> %s"), *GetModuleName());
 	RegisteredModules.Add(this);
+
+#if PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED
+	RegisterRedirectors();
+#endif
 }
 
 void IPCGExModuleInterface::ShutdownModule()
@@ -27,11 +31,8 @@ void IPCGExModuleInterface::ShutdownModule()
 #endif
 }
 
-#if WITH_EDITOR
-void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
+void IPCGExModuleInterface::RegisterRedirectors()
 {
-#if PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED
-
 	// Since we moved nodes from the old PCGExtendedToolkit module to their own submodules
 	// we need to register redirects.
 	// Thankfully, those can be disabled once migration is completed.
@@ -67,8 +68,11 @@ void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& I
 		FCoreRedirects::AddRedirectList(Redirects, *ThisModuleName);
 		UE_LOG(LogPCGEx, Log, TEXT("%s: Registered %d class redirects"), *ThisModuleName, Redirects.Num());
 	}
+}
 
-#endif
+#if WITH_EDITOR
+void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
+{
 }
 
 void IPCGExModuleInterface::RegisterMenuExtensions()

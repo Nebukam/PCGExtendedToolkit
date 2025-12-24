@@ -8,8 +8,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Materials/MaterialInterface.h"
 
-
-#include "PCGExSampleNearestPoint.h"
+#include "Factories/PCGExFactories.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/External/PCGExMesh.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"

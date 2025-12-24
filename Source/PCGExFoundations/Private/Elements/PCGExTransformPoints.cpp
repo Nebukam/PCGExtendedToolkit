@@ -61,6 +61,8 @@ namespace PCGExTransformPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTransformPoints::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)

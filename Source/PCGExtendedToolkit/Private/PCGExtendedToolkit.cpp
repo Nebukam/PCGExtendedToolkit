@@ -2,19 +2,47 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExtendedToolkit.h"
-
 #include "PCGExVersion.h"
+#include "Generated/PCGExSubModules.generated.h"
 
 #if WITH_EDITOR
 #include "PCGExCoreSettingsCache.h"
 #endif
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExModuleInterface.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 
 void FPCGExtendedToolkitModule::StartupModule()
 {
+	const TMap<FString, TArray<FString>>& Dependencies = PCGExSubModules::GetModuleDependencies();
+	TSet<FString> Loaded;
+
+	// Recursive loader
+	TFunction<void(const FString&)> LoadWithDeps = [&](const FString& ModuleName)
+	{
+		if (Loaded.Contains(ModuleName)) { return; }
+
+		// Load dependencies first
+		if (const TArray<FString>* Deps = Dependencies.Find(ModuleName))
+		{
+			for (const FString& Dep : *Deps) { LoadWithDeps(Dep); }
+		}
+
+		// Now load this module
+		if (!FModuleManager::Get().IsModuleLoaded(*ModuleName))
+		{
+			FModuleManager::Get().LoadModule(*ModuleName);
+		}
+		Loaded.Add(ModuleName);
+	};
+
+	// Load all enabled modules (dependencies will be loaded first)
+	for (const FString& ModuleName : PCGExSubModules::GetEnabledModules())
+	{
+		LoadWithDeps(ModuleName);
+	}
 	
 	GetDefault<UPCGExGlobalSettings>()->UpdateSettingsCaches();
 

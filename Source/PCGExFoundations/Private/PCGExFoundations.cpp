@@ -5,7 +5,11 @@
 
 
 #if WITH_EDITOR
-#include "Data/Registry/PCGDataTypeRegistry.h"
+
+#if PCGEX_ENGINE_VERSION > 506
+#include "Data/Registry/PCGDataTypeRegistry.h" // PCGEX_PCG_DATA_REGISTRY
+#endif
+
 #include "Core/PCGExPointStates.h"
 #endif
 

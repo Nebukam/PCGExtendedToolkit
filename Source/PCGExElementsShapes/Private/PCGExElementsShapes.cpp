@@ -5,8 +5,12 @@
 
 
 #if WITH_EDITOR
+
+#if PCGEX_ENGINE_VERSION > 506
+#include "Data/Registry/PCGDataTypeRegistry.h" // PCGEX_PCG_DATA_REGISTRY
+#endif
+
 #include "Core/PCGExShapeBuilderFactoryProvider.h"
-#include "Data/Registry/PCGDataTypeRegistry.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "FPCGExElementsShapesModule"

@@ -9,9 +9,6 @@ public class PCGExCore : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
-
-		// Change to =0 once migration is complete
-		PublicDefinitions.Add($"PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED=1");
 		
 		PublicIncludePaths.AddRange(
 			new string[]
