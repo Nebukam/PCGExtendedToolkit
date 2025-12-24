@@ -4,6 +4,7 @@
 #include "PCGExElementsClusters.h"
 
 
+
 #if WITH_EDITOR
 #include "Core/PCGExClusterStates.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -23,9 +24,9 @@ void FPCGExElementsClustersModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
 	PCGEX_REGISTER_PIN_ICON(IN_Vtx)
 	PCGEX_REGISTER_PIN_ICON(OUT_Vtx)
@@ -33,6 +34,7 @@ void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyle
 	PCGEX_REGISTER_PIN_ICON(IN_Edges)
 	PCGEX_REGISTER_PIN_ICON(OUT_Edges)
 	
+	PCGEX_START_PCG_REGISTRATION	
 	PCGEX_REGISTER_DATA_TYPE(ClusterState, ClusterState)
 	PCGEX_REGISTER_DATA_TYPE(FillControl, FillControl)
 }

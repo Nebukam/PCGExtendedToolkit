@@ -3,6 +3,7 @@
 
 #include "PCGExFilters.h"
 
+
 #if WITH_EDITOR
 #include "PCGEditorSettings.h"
 #include "Core/PCGExClusterFilter.h"
@@ -24,10 +25,11 @@ void FPCGExFiltersModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExFiltersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExFiltersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(Filter, Filter, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
 	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterPoint, FilterPoint, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
 	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCollection, FilterCollection, GetDefault<UPCGEditorSettings>()->FilterNodeColor)

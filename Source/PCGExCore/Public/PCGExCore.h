@@ -15,6 +15,6 @@ class FPCGExCoreModule final : public IPCGExModuleInterface
 
 public:
 #if WITH_EDITOR
-	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry) override;
+	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle) override;
 #endif
 };

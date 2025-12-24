@@ -28,7 +28,7 @@ void IPCGExModuleInterface::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void IPCGExModuleInterface::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
 #if PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED
 

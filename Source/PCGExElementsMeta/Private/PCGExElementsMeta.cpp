@@ -3,6 +3,7 @@
 
 #include "PCGExElementsMeta.h"
 
+
 #if WITH_EDITOR
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #include "Elements/Partition/PCGExModularPartitionByValues.h"
@@ -24,10 +25,11 @@ void FPCGExElementsMetaModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExElementsMetaModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExElementsMetaModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION	
 	PCGEX_REGISTER_DATA_TYPE(PartitionRule, PartitionRule)
 
 	PCGEX_ASSET_TYPE_ACTION_BASIC(

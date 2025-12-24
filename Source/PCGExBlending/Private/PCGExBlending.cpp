@@ -3,6 +3,7 @@
 
 #include "PCGExBlending.h"
 
+
 #if WITH_EDITOR
 #include "Core/PCGExBlendOpFactory.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -21,10 +22,11 @@ void FPCGExBlendingModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExBlendingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExBlendingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION	
 	PCGEX_REGISTER_DATA_TYPE(BlendOp, BlendOp)
 }
 #endif

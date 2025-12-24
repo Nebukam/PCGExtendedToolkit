@@ -3,6 +3,7 @@
 
 #include "PCGExPickers.h"
 
+
 #if WITH_EDITOR
 #include "Core/PCGExPickerFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -21,10 +22,11 @@ void FPCGExPickersModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExPickersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExPickersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(Picker, Picker)
 }
 #endif

@@ -3,6 +3,7 @@
 
 #include "PCGExElementsShapes.h"
 
+
 #if WITH_EDITOR
 #include "Core/PCGExShapeBuilderFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -21,10 +22,11 @@ void FPCGExElementsShapesModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExElementsShapesModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExElementsShapesModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(Shape, Shape)
 }
 #endif

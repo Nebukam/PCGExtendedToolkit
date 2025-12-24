@@ -18,8 +18,6 @@
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FPCGExCollectionsEditorModule, PCGExCollectionsEditor)
-
 void FPCGExCollectionsEditorModule::StartupModule()
 {
 	IPCGExEditorModuleInterface::StartupModule();
@@ -59,3 +57,5 @@ void FPCGExCollectionsEditorModule::RegisterMenuExtensions()
 				}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
 	}
 }
+
+PCGEX_IMPLEMENT_MODULE(FPCGExCollectionsEditorModule, PCGExCollectionsEditor)

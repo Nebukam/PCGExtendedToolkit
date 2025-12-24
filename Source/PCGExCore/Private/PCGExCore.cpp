@@ -4,6 +4,7 @@
 #include "PCGExCore.h"
 
 
+
 #if WITH_EDITOR
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #include "Sorting/PCGExSortingRuleProvider.h"
@@ -15,10 +16,11 @@
 PCGEX_IMPLEMENT_MODULE(FPCGExCoreModule, PCGExCore)
 
 #if WITH_EDITOR
-void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION	
 	PCGEX_REGISTER_DATA_TYPE(SortRule, SortRule)
 
 	PCGEX_REGISTER_PIN_ICON(OUT_Special)

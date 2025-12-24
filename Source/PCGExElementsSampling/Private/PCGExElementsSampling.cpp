@@ -3,6 +3,7 @@
 
 #include "PCGExElementsSampling.h"
 
+
 #if WITH_EDITOR
 #include "Core/PCGExTexParamFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -21,10 +22,11 @@ void FPCGExElementsSamplingModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExElementsSamplingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExElementsSamplingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(TexParam, TexParam)
 }
 #endif

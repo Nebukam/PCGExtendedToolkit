@@ -3,6 +3,7 @@
 
 #include "PCGExHeuristics.h"
 
+
 #if WITH_EDITOR
 #include "Core/PCGExHeuristicsFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -21,10 +22,11 @@ void FPCGExHeuristicsModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExHeuristicsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExHeuristicsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(Heuristics, Heuristics)
 }
 #endif

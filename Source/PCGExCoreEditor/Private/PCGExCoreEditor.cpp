@@ -5,17 +5,16 @@
 
 #define LOCTEXT_NAMESPACE "FPCGExCoreEditorModule"
 
+#undef LOCTEXT_NAMESPACE
+
+PCGEX_IMPLEMENT_MODULE(FPCGExCoreEditorModule, PCGExCoreEditor)
+
 void FPCGExCoreEditorModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	IPCGExEditorModuleInterface::StartupModule();
 }
 
 void FPCGExCoreEditorModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module
+	IPCGExEditorModuleInterface::ShutdownModule();
 }
-
-#undef LOCTEXT_NAMESPACE
-
-IMPLEMENT_MODULE(FPCGExCoreEditorModule, PCGExCoreEditor)

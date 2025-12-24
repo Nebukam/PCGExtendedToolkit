@@ -3,6 +3,7 @@
 
 #include "PCGExMatching.h"
 
+
 #if WITH_EDITOR
 #include "Core/PCGExMatchRuleFactoryProvider.h"
 #include "Data/Registry/PCGDataTypeRegistry.h"
@@ -21,10 +22,11 @@ void FPCGExMatchingModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExMatchingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExMatchingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(MatchRule, MatchRule)
 }
 #endif

@@ -4,13 +4,14 @@
 #include "PCGExEditorModuleInterface.h"
 #include "Styling/SlateStyle.h"
 #include "Editor.h"
+#include "PCGExCoreEditor.h"
 
 TArray<IPCGExEditorModuleInterface*> IPCGExEditorModuleInterface::RegisteredModules;
 
 void IPCGExEditorModuleInterface::StartupModule()
 {
 	RegisteredModules.Add(this);
-
+	UE_LOG(LogPCGEx, Log, TEXT("IPCGExEditorModuleInterface::StartupModule >> %s"), *GetModuleName());
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &IPCGExEditorModuleInterface::RegisterMenuExtensions));
 }
 

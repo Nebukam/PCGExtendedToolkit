@@ -4,12 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExEditorModuleInterface.h"
 #include "Modules/ModuleManager.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
 
-class FPCGExCoreEditorModule final : public IModuleInterface
+class FPCGExCoreEditorModule final : public IPCGExEditorModuleInterface
 {
+	
+	PCGEX_MODULE_BODY
+	
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;

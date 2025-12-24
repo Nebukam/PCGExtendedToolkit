@@ -3,6 +3,7 @@
 
 #include "PCGExFoundations.h"
 
+
 #if WITH_EDITOR
 #include "Data/Registry/PCGDataTypeRegistry.h"
 #include "Core/PCGExPointStates.h"
@@ -21,9 +22,11 @@ void FPCGExFoundationsModule::ShutdownModule()
 }
 
 #if WITH_EDITOR
-void FPCGExFoundationsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry)
+void FPCGExFoundationsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle, InRegistry);
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
+	
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(PointState, PointState)
 }
 #endif

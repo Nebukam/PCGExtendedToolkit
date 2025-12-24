@@ -4,13 +4,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExModuleInterface.h" // Boilerplate
 #include "Modules/ModuleManager.h"
 
 class FPCGDataTypeRegistry;
 
 class PCGEXCOREEDITOR_API IPCGExEditorModuleInterface : public IModuleInterface
 {
+	
 public:
+	virtual FString GetModuleName() const { return TEXT(""); }
+	
 	// Static registry
 	static TArray<IPCGExEditorModuleInterface*> RegisteredModules;
 

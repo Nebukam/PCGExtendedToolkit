@@ -11,6 +11,8 @@
 #include "PCGExCoreSettingsCache.h"
 #endif
 
+#define PCGEX_START_PCG_REGISTRATION FPCGDataTypeRegistry& PCGDataTypeRegistry = FPCGModule::GetMutableDataTypeRegistry();
+
 #define PCGEX_ADD_CLASS_ICON(_NAME) \
 InStyle->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), FVector2D(16.0f)));\
 InStyle->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), FVector2D(128.0f)));
@@ -23,17 +25,17 @@ InStyle->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(InStyle->RootToCon
 #define PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
 PCGEX_REGISTER_PIN_ICON(OUT_##_NAME) \
 PCGEX_REGISTER_PIN_ICON(IN_##_NAME)\
-InRegistry.RegisterPinIconsFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>{ \
+PCGDataTypeRegistry.RegisterPinIconsFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>{ \
 if(bIsInput){ return {InStyle->GetBrush(FName("PCGEx.Pin.IN_"#_NAME)), InStyle->GetBrush(FName("PCGEx.Pin.IN_"#_NAME))};}\
 else{ return {InStyle->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME)), InStyle->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME))};}});
 
 #define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) \
 PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
-InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColor(FName(#_NAME)); });
+PCGDataTypeRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColor(FName(#_NAME)); });
 
 #define PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(_MODULE, _NAME, _NATIVE_COLOR) \
 PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
-InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_NAME), _NATIVE_COLOR); });
+PCGDataTypeRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_NAME), _NATIVE_COLOR); });
 
 #define PCGEX_IMPLEMENT_MODULE(_CLASS, _NAME) \
 IMPLEMENT_MODULE(_CLASS, _NAME) \
@@ -59,7 +61,7 @@ public:
 	virtual void ShutdownModule() override;
 
 #if WITH_EDITOR
-	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle, FPCGDataTypeRegistry& InRegistry);
+	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle);
 
 	void RegisterMenuExtensions();
 	void UnregisterMenuExtensions();

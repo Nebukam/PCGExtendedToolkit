@@ -15,9 +15,6 @@
 #include "Details/InputSettings/PCGExInputShorthandsCustomization.h"
 #include "Details/Tuple/PCGExTupleBodyCustomization.h"
 
-
-IMPLEMENT_MODULE(FPCGExFoundationsEditorModule, PCGExFoundationsEditor)
-
 void FPCGExFoundationsEditorModule::StartupModule()
 {
 	IPCGExEditorModuleInterface::StartupModule();
@@ -65,3 +62,5 @@ void FPCGExFoundationsEditorModule::StartupModule()
 	PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorDirection", FPCGExInputShorthandDirectionCustomization)
 	PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorRotator", FPCGExInputShorthandRotatorCustomization)
 }
+
+PCGEX_IMPLEMENT_MODULE(FPCGExFoundationsEditorModule, PCGExFoundationsEditor)
