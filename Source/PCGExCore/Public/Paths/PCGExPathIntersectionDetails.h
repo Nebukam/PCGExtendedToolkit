@@ -130,7 +130,7 @@ struct PCGEXCORE_API FPCGExPathIntersectionDetails
 	double MaxDot = 1;
 
 	/** Strictness of the intersection detection. Different modes allow for some edge cases to be considered intersection. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExIntersectionStrictness"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExCore.EPCGExIntersectionStrictness"))
 	uint8 Strictness = static_cast<uint8>(EPCGExIntersectionStrictness::Strict);
 
 	bool bWantsDotCheck = false;

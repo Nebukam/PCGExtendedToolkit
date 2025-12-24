@@ -59,7 +59,7 @@ public:
 	EPCGExIndexSafety Wrapping = EPCGExIndexSafety::Tile;
 
 	/** Which components should be one minus'd */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExBlending.EPCGExApplySampledComponentFlags"))
 	uint8 OneMinus = 0;
 
 	/** Whether to read the transform from an attribute on the edge or a constant. */

@@ -20,7 +20,8 @@ namespace PCGExDetails
 
 		PCGEX_VALIDATE_NAME_C(Context, Name)
 
-		Buffer = InDataFacade->GetReadable<T>(Name, PCGExData::EIOSide::In, bSupportScoped);
+		Buffer = InDataFacade->GetBroadcaster<T>(Name, bSupportScoped, bCaptureMinMax);
+		//Buffer = InDataFacade->GetReadable<T>(Name, PCGExData::EIOSide::In, bSupportScoped);
 
 		if (!Buffer)
 		{

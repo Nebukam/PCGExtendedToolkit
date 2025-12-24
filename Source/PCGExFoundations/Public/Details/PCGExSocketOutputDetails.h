@@ -56,7 +56,7 @@ struct PCGEXFOUNDATIONS_API FPCGExSocketOutputDetails
 	FName AssetPathAttributeName = "AssetPath";
 
 	/** Which scale components from the sampled transform should be applied to the point.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExBlending.EPCGExApplySampledComponentFlags"))
 	uint8 TransformScale = 7; //static_cast<uint8>(EPCGExApplySampledComponentFlags::All);
 
 	/** Meta filter settings for socket points, as they naturally inherit from the original points. */
@@ -64,7 +64,7 @@ struct PCGEXFOUNDATIONS_API FPCGExSocketOutputDetails
 	FPCGExCarryOverDetails CarryOverDetails;
 
 
-	bool Init(FPCGExContext* InContext) const;
+	bool Init(FPCGExContext* InContext);
 
 	TArray<int32> TrScaComponents;
 };

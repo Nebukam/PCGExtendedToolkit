@@ -28,7 +28,7 @@ struct PCGEXFILTERS_API FPCGExBitmaskFilterConfig
 	FName FlagsAttribute = FName("Flags");
 
 	/** Type of flag comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag64"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitflagComparison Comparison = EPCGExBitflagComparison::MatchPartial;
 
 	/** Type of Mask */

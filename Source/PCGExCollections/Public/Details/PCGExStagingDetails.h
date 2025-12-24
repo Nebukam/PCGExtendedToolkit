@@ -90,7 +90,7 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetTaggingDetails : public FPCGExComponentTa
 
 	FPCGExAssetTaggingDetails() = default;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAssetTagInheritance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExCollections.EPCGExAssetTagInheritance"))
 	uint8 GrabTags = static_cast<uint8>(EPCGExAssetTagInheritance::Asset);
 
 	bool IsEnabled() const { return GrabTags != 0; }
@@ -121,7 +121,7 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetDistributionDetails
 
 	PCGEX_SETTING_VALUE_DECL(Category, FName);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExCore.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
 
 	/** Distribution type */
@@ -144,7 +144,7 @@ struct PCGEXCOLLECTIONS_API FPCGExMicroCacheDistributionDetails
 
 	FPCGExMicroCacheDistributionDetails() = default;
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExCore.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
 
 	/** Distribution type */

@@ -88,7 +88,7 @@ public:
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
 
 	/** Which scale components from the sampled transform should be applied to the point.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExBlending.EPCGExApplySampledComponentFlags"))
 	uint8 TransformScale = static_cast<uint8>(EPCGExApplySampledComponentFlags::All);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
