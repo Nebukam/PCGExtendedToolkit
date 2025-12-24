@@ -4,36 +4,19 @@
 
 #include "Details/PCGExDetailsCustomization.h"
 
-#include "AssetToolsModule.h"
-#include "IDetailChildrenBuilder.h"
-#include "Details/PCGExDetailsInputShorthands.h"
-#include "Details/Collections/PCGExActorCollectionActions.h"
-#include "Details/Actions/PCGExActorDataPackerActions.h"
-#include "Details/Bitmask/PCGExBitmaskActions.h"
-#include "Details/Bitmask/PCGExBitmaskCustomization.h"
-#include "Details/Bitmask/PCGExBitmaskEntryCustomization.h"
-#include "Details/Bitmask/PCGExBitmaskRefCustomization.h"
-#include "Details/Bitmask/PCGExClampedBitCustomization.h"
-#include "Details/Bitmask/PCGExClampedBitOpCustomization.h"
-#include "Details/Collections/PCGExAssetEntryCustomization.h"
-#include "Details/Collections/PCGExFittingVariationsCustomization.h"
-#include "Details/Collections/PCGExMaterialPicksCustomization.h"
-#include "Details/Collections/PCGExMeshCollectionActions.h"
-#include "Details/Collections/PCGExAssetGrammarCustomization.h"
-#include "Details/Enums/PCGExGridEnumCustomization.h"
-#include "Details/Enums/PCGExInlineEnumCustomization.h"
-#include "Details/InputSettings/PCGExApplySamplingCustomization.h"
-#include "Details/InputSettings/PCGExClampDetailsCustomization.h"
-#include "Details/InputSettings/PCGExCompareShorthandsCustomization.h"
-#include "Details/InputSettings/PCGExInputShorthandsCustomization.h"
-#include "Details/Tuple/PCGExTupleBodyCustomization.h"
-
+#include "PCGExCoreEditor/Public/PCGExAssetTypesMacros.h"
+#include "PCGExCoreEditor/Public/Details/Enums/PCGExGridEnumCustomization.h"
+#include "PCGExCoreEditor/Public/Details/Enums/PCGExInlineEnumCustomization.h"
 
 namespace PCGExDetailsCustomization
 {
 	void RegisterDetailsCustomization(const TSharedPtr<FSlateStyleSet>& Style)
 	{
-		// I know this is cursed
+#pragma region Editor UI Icon
+
+		// Currently registers blindly all the icons available, whether used or not.
+		// Ultimately should be moved per-module but it's not that big of a deal to store them here anyway; they're just IDs.
+
 		FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
 
 #define PCGEX_ADD_ACTION_ICON(_NAME, _SIZE) AppStyle.Set("PCGEx.ActionIcon." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Editor_" #_NAME), TEXT(".svg")), _SIZE));
@@ -184,64 +167,14 @@ namespace PCGExDetailsCustomization
 #undef PCGEX_ADD_ACTION_ICON
 #undef PCGEX_ADD_ACTION_ICON_WIDE
 
-		/////////
+#pragma endregion
 
-		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExMeshCollectionActions>());
-		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorCollectionActions>());
-		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorDataPackerActions>());
-		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExBitmaskActions>());
+#pragma region Inlined Enums registration
 
-		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		// Same as icons, this should be moved to their owning modules
+		// But no harm done if the the enum doesn't exists.
 
-#define PCGEX_REGISTER_CUSTO(_NAME, _CLASS) PropertyModule.RegisterCustomPropertyTypeLayout(_NAME, FOnGetPropertyTypeCustomizationInstance::CreateStatic(&_CLASS::MakeInstance));
-
-		PCGEX_REGISTER_CUSTO("PCGExTupleBody", FPCGExTupleBodyCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExFittingVariations", FPCGExFittingVariationsCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideEntry", FPCGExMaterialOverrideEntryCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideSingleEntry", FPCGExMaterialOverrideSingleEntryCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideCollection", FPCGExMaterialOverrideCollectionCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExMeshCollectionEntry", FPCGExMeshEntryCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExActorCollectionEntry", FPCGExActorEntryCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExAssetGrammarDetails", FPCGExAssetGrammarCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExBitmask", FPCGExBitmaskCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExBitmaskWithOperation", FPCGExBitmaskWithOperationCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExClampedBit", FPCGExClampedBitCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExClampedBitOp", FPCGExClampedBitOpCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExBitmaskFilterConfig", FPCGExBitmaskFilterConfigCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExClampDetails", FPCGExClampDetailsCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExBitmaskRef", FPCGExBitmaskRefCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExBitmaskCollectionEntry", FPCGExBitmaskEntryCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExApplySamplingDetails", FPCGExApplySamplingCustomization)
-
-		PCGEX_REGISTER_CUSTO("PCGExCompareSelectorDouble", FPCGExCompareShorthandCustomization)
-
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameBoolean", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameFloat", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameDouble", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameDoubleAbs", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameDouble01", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameString", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameName", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameInteger32", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameInteger32Abs", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameInteger3201", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameVector", FPCGExInputShorthandVectorCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameDirection", FPCGExInputShorthandDirectionCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameRotator", FPCGExInputShorthandRotatorCustomization)
-
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorBoolean", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorFloat", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorDouble", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorDoubleAbs", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorDouble01", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorString", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorName", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorInteger32", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorInteger32Abs", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorInteger3201", FPCGExInputShorthandCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorVector", FPCGExInputShorthandVectorCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorDirection", FPCGExInputShorthandDirectionCustomization)
-		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorRotator", FPCGExInputShorthandRotatorCustomization)
+		PCGEX_REGISTER_CUSTO_START
 
 #define PCGEX_FOREACH_INLINE_ENUM(MACRO)\
 MACRO(EPCGExInputValueType)\
@@ -300,5 +233,7 @@ PropertyModule.RegisterCustomPropertyTypeLayout(#_ENUM,FOnGetPropertyTypeCustomi
 
 #undef PCGEX_DECL_GRID_ENUM
 #undef PCGEX_FOREACH_GRID_ENUM
+
+#pragma endregion
 	}
 }

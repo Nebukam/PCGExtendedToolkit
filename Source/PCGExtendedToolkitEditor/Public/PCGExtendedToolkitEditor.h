@@ -18,8 +18,4 @@ public:
 
 protected:
 	TSharedPtr<FSlateStyleSet> Style;
-
-	void RegisterDataVisualizations();
-	void RegisterMenuExtensions();
-	void UnregisterMenuExtensions();
 };
