@@ -17,6 +17,7 @@
 #include "Helpers/PCGExStreamingHelpers.h"
 #include "Paths/PCGExPathsHelpers.h"
 #include "Utils/PCGExUniqueNameGenerator.h"
+#include "Materials/MaterialInterface.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

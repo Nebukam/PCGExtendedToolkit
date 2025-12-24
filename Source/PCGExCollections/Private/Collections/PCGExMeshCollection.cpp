@@ -7,10 +7,10 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
-
 #include "PCGExCollectionsSettingsCache.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Helpers/PCGExPropertyHelpers.h"
+#include "Components/StaticMeshComponent.h"
 
 // Register the Mesh collection type at startup
 PCGEX_REGISTER_COLLECTION_TYPE(Mesh, UPCGExMeshCollection, FPCGExMeshCollectionEntry, "Mesh Collection", Base)
