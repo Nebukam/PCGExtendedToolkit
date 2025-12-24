@@ -6,6 +6,7 @@
 import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -26,10 +27,17 @@ plugin_root = (
     else script_dir.parent
 )
 
+# Project root is typically two levels up from plugin (Plugins/PCGExtendedToolkit/)
+project_root = plugin_root.parent.parent
+
 PATHS = {
     "uplugin": plugin_root / f"{PLUGIN_NAME}.uplugin",
     "modules_dir": plugin_root / "Source",
-    "submodules_config": plugin_root / "Config" / "SubModulesConfig.ini",
+    "binaries": plugin_root / "Binaries",
+    "intermediate": plugin_root / "Intermediate",
+    # Project-level config takes priority, falls back to plugin config
+    "project_submodules_config": project_root / "Config" / "PCGExSubModulesConfig.ini",
+    "plugin_submodules_config": plugin_root / "Config" / "PCGExSubModulesConfig.ini",
     "plugins_deps": plugin_root / "Config" / "PluginsDeps.ini",
 }
 
@@ -77,11 +85,18 @@ def find_closest_match(name: str, candidates: list[str], max_distance: int = 3) 
 # =============================================================================
 
 
-def parse_submodules_config(file_path: Path) -> list[str]:
-    if not file_path.exists():
-        print(f"SubModulesConfig.ini not found at: {file_path}", file=sys.stderr)
-        sys.exit(1)
+def resolve_submodules_config_path() -> tuple[Path, bool] | None:
+    """Returns (path, is_project_level) or None if not found."""
+    # Check project-level config first
+    if PATHS["project_submodules_config"].exists():
+        return (PATHS["project_submodules_config"], True)
+    # Fall back to plugin config
+    if PATHS["plugin_submodules_config"].exists():
+        return (PATHS["plugin_submodules_config"], False)
+    return None
 
+
+def parse_submodules_config(file_path: Path) -> list[str]:
     modules = []
     content = file_path.read_text(encoding="utf-8")
 
@@ -239,13 +254,13 @@ def resolve_all_modules(requested_modules: list[str]) -> set[str]:
 # =============================================================================
 
 
-def load_existing_uplugin() -> dict:
+def load_existing_uplugin() -> str:
     uplugin_path = PATHS["uplugin"]
     if not uplugin_path.exists():
         print(f".uplugin not found at: {uplugin_path}", file=sys.stderr)
         sys.exit(1)
 
-    return json.loads(uplugin_path.read_text(encoding="utf-8"))
+    return uplugin_path.read_text(encoding="utf-8")
 
 
 def build_module_entry(name: str) -> dict:
@@ -305,6 +320,36 @@ def generate_uplugin(existing_uplugin: dict, modules: set[str], plugins: set[str
 
 
 # =============================================================================
+# Build Artifact Cleanup
+# =============================================================================
+
+
+def delete_folder(folder_path: Path) -> bool:
+    if not folder_path.exists():
+        return False
+
+    shutil.rmtree(folder_path)
+    return True
+
+
+def clean_build_artifacts():
+    print("\n[CLEANUP] .uplugin changed - invalidating build artifacts...")
+
+    cleaned = False
+
+    if delete_folder(PATHS["binaries"]):
+        print(f"  Deleted: {PATHS['binaries']}")
+        cleaned = True
+
+    if delete_folder(PATHS["intermediate"]):
+        print(f"  Deleted: {PATHS['intermediate']}")
+        cleaned = True
+
+    if not cleaned:
+        print("  No build artifacts to clean.")
+
+
+# =============================================================================
 # Main
 # =============================================================================
 
@@ -312,20 +357,34 @@ def generate_uplugin(existing_uplugin: dict, modules: set[str], plugins: set[str
 def main():
     print(f"Generating {PLUGIN_NAME}.uplugin...")
     print(f"Plugin root: {plugin_root}")
+    print(f"Project root: {project_root}")
+
+    # Resolve config path (project-level or plugin-level)
+    config_info = resolve_submodules_config_path()
+    if not config_info:
+        print("PCGExSubModulesConfig.ini not found.", file=sys.stderr)
+        print("Searched:", file=sys.stderr)
+        print(f"  - {PATHS['project_submodules_config']}", file=sys.stderr)
+        print(f"  - {PATHS['plugin_submodules_config']}", file=sys.stderr)
+        sys.exit(1)
+
+    config_path, is_project_level = config_info
+    config_source = "project" if is_project_level else "plugin"
+    print(f"Using {config_source}-level config: {config_path}")
 
     # Get available modules for validation and suggestions
     available_modules = get_available_modules()
     print(f"Available modules on disk: {len(available_modules)}")
 
     # Parse configs
-    requested_modules = parse_submodules_config(PATHS["submodules_config"])
+    requested_modules = parse_submodules_config(config_path)
     print(f"Requested modules: {len(requested_modules)}")
 
     # Validate requested modules
     valid, invalid = validate_requested_modules(requested_modules, available_modules)
 
     if invalid:
-        print(f"\n[WARNING] Invalid module names in SubModulesConfig.ini:", file=sys.stderr)
+        print("\n[WARNING] Invalid module names in PCGExSubModulesConfig.ini:", file=sys.stderr)
         for item in invalid:
             name = item["name"]
             suggestion = item["suggestion"]
@@ -346,15 +405,27 @@ def main():
     required_plugins = resolve_required_plugins(all_modules, plugins_deps)
     print(f"Required plugins: {', '.join(sorted(required_plugins))}")
 
-    # Load existing uplugin and generate new one
-    existing_uplugin = load_existing_uplugin()
+    # Load existing uplugin content (as string for comparison)
+    existing_content = load_existing_uplugin()
+    existing_uplugin = json.loads(existing_content)
+
+    # Generate new uplugin
     new_uplugin = generate_uplugin(existing_uplugin, all_modules, required_plugins)
+    new_content = json.dumps(new_uplugin, indent=2, ensure_ascii=False)
 
-    # Write output
-    output = json.dumps(new_uplugin, indent=2)
-    PATHS["uplugin"].write_text(output, encoding="utf-8")
+    # Check if content changed
+    has_changed = existing_content != new_content
 
-    print(f"\nGenerated {PATHS['uplugin']}")
+    if has_changed:
+        # Clean build artifacts before writing new uplugin
+        clean_build_artifacts()
+
+        # Write new uplugin
+        PATHS["uplugin"].write_text(new_content, encoding="utf-8")
+        print(f"\nGenerated {PATHS['uplugin']}")
+    else:
+        print("\n.uplugin unchanged - skipping write.")
+
     print(f"  Modules: {len(new_uplugin['Modules'])}")
     print(f"  Plugins: {len(new_uplugin['Plugins'])}")
 
