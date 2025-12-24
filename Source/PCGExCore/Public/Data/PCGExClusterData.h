@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExPointData.h"
+#include "Factories/PCGExFactories.h" // 5.6
 #include "PCGExClusterData.generated.h"
 
 namespace PCGExData

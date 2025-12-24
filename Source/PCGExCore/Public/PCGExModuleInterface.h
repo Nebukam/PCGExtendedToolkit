@@ -26,7 +26,7 @@ InStyle->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(InStyle->RootToCon
 #pragma region PCG Registry macros
 // Macro swap between 5.6 / 5.7 since type registry didn't exist in 5.6
 
-#if PCGEX_ENGINE_VERSION < 506
+#if PCGEX_ENGINE_VERSION < 507
 
 #define PCGEX_START_PCG_REGISTRATION
 
