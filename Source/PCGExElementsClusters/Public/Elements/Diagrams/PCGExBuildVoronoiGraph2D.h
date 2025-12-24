@@ -10,6 +10,7 @@
 #include "Math/PCGExProjectionDetails.h"
 #include "Math/Geo/PCGExGeo.h"
 #include "Math/Geo/PCGExVoronoi.h"
+#include "Utils/PCGValueRange.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
 
