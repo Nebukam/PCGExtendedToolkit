@@ -23,9 +23,9 @@ class UPCGExMeshCollection;
 UENUM()
 enum class EPCGExMaterialVariantsMode : uint8
 {
-	None   = 0 UMETA(DisplayName = "None", ToolTip="No variants."),
-	Single = 1 UMETA(DisplayName = "Single Slot", ToolTip="Single-slot variants."),
-	Multi  = 2 UMETA(DisplayName = "Multi Slots", ToolTip="Multi-slot variants."),
+	None   = 0 UMETA(DisplayName = "None", ToolTip="No variants.", ActionIcon="STF_None"),
+	Single = 1 UMETA(DisplayName = "Single Slot", ToolTip="Single-slot variants, for when there is only a single material slot override.", ActionIcon="SingleMat"),
+	Multi  = 2 UMETA(DisplayName = "Multi Slots", ToolTip="Multi-slot variants, more admin, for when there is multiple material slots for the entry.", ActionIcon="MultiMat"),
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Entry")
