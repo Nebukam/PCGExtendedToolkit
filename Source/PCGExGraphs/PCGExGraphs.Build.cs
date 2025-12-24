@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExElementsPathfinding : ModuleRules
+public class PCGExGraphs : ModuleRules
 {
-	public PCGExElementsPathfinding(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExGraphs(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
@@ -34,10 +34,10 @@ public class PCGExElementsPathfinding : ModuleRules
 				"PCG",
 				"PCGExCore",
 				"PCGExBlending",
-				"PCGExMatching",
+				"PCGExFilters",
 				"PCGExHeuristics",
+				"PCGExMatching",
 				"PCGExFoundations",
-				"PCGExGraphs",
 			}
 		);
 
@@ -45,7 +45,8 @@ public class PCGExElementsPathfinding : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				
+				"GeometryCore",
+				"GeometryFramework",
 			}
 		);
 

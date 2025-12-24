@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_CLASS(LogPCGEx, Log, All)
+
 
 class FPCGExtendedToolkitModule final : public IModuleInterface
 {

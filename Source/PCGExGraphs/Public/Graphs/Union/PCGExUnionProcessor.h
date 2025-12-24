@@ -31,7 +31,7 @@ namespace PCGExGraphs
 	class FUnionGraph;
 	class FGraphBuilder;
 
-	class PCGEXFOUNDATIONS_API FUnionProcessor : public TSharedFromThis<FUnionProcessor>
+	class PCGEXGRAPHS_API FUnionProcessor : public TSharedFromThis<FUnionProcessor>
 	{
 		bool bCompilingFinalGraph = false;
 

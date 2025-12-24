@@ -18,13 +18,13 @@ namespace PCGExGraphs
 
 namespace PCGExClusters::ChainHelpers
 {
-	PCGEXFOUNDATIONS_API void Dump(
+	PCGEXGRAPHS_API void Dump(
 		const TSharedRef<FNodeChain>& Chain,
 		const TSharedRef<FCluster>& Cluster,
 		const TSharedPtr<PCGExGraphs::FGraph>& Graph,
 		const bool bAddMetadata);
 
-	PCGEXFOUNDATIONS_API void DumpReduced(
+	PCGEXGRAPHS_API void DumpReduced(
 		const TSharedRef<FNodeChain>& Chain,
 		const TSharedRef<FCluster>& Cluster,
 		const TSharedPtr<PCGExGraphs::FGraph>& Graph,

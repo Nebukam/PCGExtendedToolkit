@@ -30,14 +30,6 @@ TArray<FPCGPinProperties> UPCGExSampleSocketsSettings::OutputPinProperties() con
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleSockets)
 
-void FPCGExSampleSocketsContext::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
-{
-	if (StaticMeshLoader) { StaticMeshLoader->AddExtraStructReferencedObjects(Collector); }
-	if (StaticMesh) { Collector.AddReferencedObject(StaticMesh); }
-
-	FPCGExPointsProcessorContext::AddExtraStructReferencedObjects(Collector);
-}
-
 bool FPCGExSampleSocketsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

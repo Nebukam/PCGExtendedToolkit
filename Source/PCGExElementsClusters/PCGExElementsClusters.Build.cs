@@ -38,6 +38,7 @@ public class PCGExElementsClusters : ModuleRules
 				"PCGExMatching",
 				"PCGExHeuristics",
 				"PCGExFoundations", 
+				"PCGExGraphs", 
 			}
 		);
 

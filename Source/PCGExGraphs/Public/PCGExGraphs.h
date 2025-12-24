@@ -5,16 +5,15 @@
 
 #include "CoreMinimal.h"
 #include "PCGExModuleInterface.h"
-#include "Modules/ModuleManager.h"
 
 
 
-class FPCGExCoreModule final : public IPCGExModuleInterface
+class FPCGExGraphsModule final : public IPCGExModuleInterface
 {
 	PCGEX_MODULE_BODY
 
 public:
-#if WITH_EDITOR
-	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle) override;
-#endif
+	/** IModuleInterface implementation */
+	virtual void StartupModule() override;
+	virtual void ShutdownModule() override;
 };

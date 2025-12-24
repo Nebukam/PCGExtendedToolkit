@@ -19,10 +19,10 @@ namespace PCGExGraphs
 
 	namespace Helpers
 	{
-		PCGEXFOUNDATIONS_API
+		PCGEXGRAPHS_API
 		bool BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO, const TMap<uint32, int32>& EndpointsLookup, TArray<FEdge>& OutEdges, const bool bStopOnError = false);
 
-		PCGEXFOUNDATIONS_API
+		PCGEXGRAPHS_API
 		bool BuildEndpointsLookup(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TMap<uint32, int32>& OutIndices, TArray<int32>& OutAdjacency);
 	}
 }

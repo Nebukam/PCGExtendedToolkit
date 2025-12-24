@@ -7,6 +7,9 @@ public class PCGExCore : ModuleRules
 {
 	public PCGExCore(ReadOnlyTargetRules Target) : base(Target)
 	{
+		// Set this to 0 once migration is complete
+		PublicDefinitions.Add("PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED=1");
+		
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;
 		

@@ -4,8 +4,8 @@
 #include "Elements/PCGExToggleTopology.h"
 
 #include "PCGGraph.h"
-#include "PCGManagedResource.h"
 #include "PCGModule.h"
+#include "PCGManagedResource.h"
 #include "PCGPin.h"
 #include "Components/PCGExDynamicMeshComponent.h"
 

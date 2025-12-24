@@ -3,8 +3,6 @@
 
 #pragma once
 
-#define PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED 1
-
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 #include "PCGExVersion.h"

@@ -69,7 +69,7 @@ namespace PCGExClusterMT
 
 	class IBatch;
 
-	class PCGEXFOUNDATIONS_API IProcessor : public TSharedFromThis<IProcessor>
+	class PCGEXGRAPHS_API IProcessor : public TSharedFromThis<IProcessor>
 	{
 		friend class IBatch;
 
@@ -215,7 +215,7 @@ namespace PCGExClusterMT
 		const TSettings* GetSettings() { return Settings; }
 	};
 
-	class PCGEXFOUNDATIONS_API IBatch : public TSharedFromThis<IBatch>
+	class PCGEXGRAPHS_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
 		mutable FRWLock BatchLock;
@@ -348,5 +348,5 @@ namespace PCGExClusterMT
 		}
 	};
 
-	PCGEXFOUNDATIONS_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
+	PCGEXGRAPHS_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
 }

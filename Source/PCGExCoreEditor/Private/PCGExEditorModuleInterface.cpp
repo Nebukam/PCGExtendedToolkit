@@ -4,7 +4,7 @@
 #include "PCGExEditorModuleInterface.h"
 #include "Styling/SlateStyle.h"
 #include "Editor.h"
-#include "PCGExCoreEditor.h"
+#include "PCGExLog.h"
 
 TArray<IPCGExEditorModuleInterface*> IPCGExEditorModuleInterface::RegisteredModules;
 

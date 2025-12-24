@@ -9,9 +9,7 @@
 #include "Async/ParallelFor.h"
 #include "Clusters/PCGExClusterCommon.h"
 #include "Data/PCGExData.h"
-
-
-#include "Graphs/Union/PCGExIntersections.h"
+#include "PCGExGraphs/Public/Graphs/Union/PCGExIntersections.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 #define PCGEX_NAMESPACE FusePoints

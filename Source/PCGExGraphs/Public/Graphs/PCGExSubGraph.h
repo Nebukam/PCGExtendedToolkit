@@ -38,7 +38,7 @@ namespace PCGExGraphs
 	struct FGraphMetadataDetails;
 	class FGraph;
 
-	class PCGEXFOUNDATIONS_API FSubGraph : public TSharedFromThis<FSubGraph>
+	class PCGEXGRAPHS_API FSubGraph : public TSharedFromThis<FSubGraph>
 	{
 	public:
 		TWeakPtr<FGraph> WeakParentGraph;
