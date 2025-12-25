@@ -43,9 +43,9 @@ namespace PCGExMatching
 	class FTargetsHandler;
 }
 
-namespace PCGExMath
+namespace PCGExMath::OBB
 {
-	class FBoundsCloud;
+	class FCollection;
 }
 
 class UPCGExBlendOpFactory;
@@ -174,7 +174,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Transform", PCG_Overridable, EditCondition="bWriteTransform"))
 	FName TransformAttributeName = FName("WeightedTransform");
 
-
 	/** Write the sampled transform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLookAtTransform = false;
@@ -187,11 +186,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Align"))
 	EPCGExAxisAlign LookAtAxisAlign = EPCGExAxisAlign::Forward;
 
-	/** Up vector source.*/
+	/** Up vector source. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Use Up from..."))
 	EPCGExSampleSource LookAtUpSelection = EPCGExSampleSource::Constant;
 
-	/** The attribute or property on selected source to use as Up vector for the look at transform.*/
+	/** The attribute to use for Up vector. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector (Attr)", EditCondition="LookAtUpSelection != EPCGExSampleSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtUpSource;
 
@@ -209,15 +208,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("WeightedDistance");
 
-	/** Whether to output normalized distance or not*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Normalized", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
+	/** If enabled, output normalized distance instead of actual distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Normalize", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	bool bOutputNormalizedDistance = false;
 
-	/** Whether to do a OneMinus on the normalized distance value */
+	/** Whether to output 1 - normalized distance instead of just normalized distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" │ └─ OneMinus", EditCondition="bWriteDistance && bOutputNormalizedDistance", EditConditionHides, HideEditConditionToggle))
 	bool bOutputOneMinusDistance = false;
 
-	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
+	/** Scale factor applied to the distance output */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	double DistanceScale = 1;
 
@@ -319,7 +318,7 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
-	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;
+	TArray<TSharedPtr<PCGExMath::OBB::FCollection>> Collections;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
 	TSharedPtr<PCGExSorting::FSorter> Sorter;

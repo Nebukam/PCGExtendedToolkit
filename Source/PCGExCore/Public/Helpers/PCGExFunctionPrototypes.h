@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-// Most helpers here are Copyright Epic Games, Inc. All Rights Reserved, cherry picked for 5.3
+
 
 #pragma once
 

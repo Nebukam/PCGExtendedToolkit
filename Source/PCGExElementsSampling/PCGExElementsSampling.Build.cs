@@ -46,6 +46,7 @@ public class PCGExElementsSampling : ModuleRules
 			{
 				"RenderCore",
 				"RHI",
+				"PCGExCore",
 				"GeometryCore",
 				"GeometryFramework",
 				"GeometryAlgorithms",
