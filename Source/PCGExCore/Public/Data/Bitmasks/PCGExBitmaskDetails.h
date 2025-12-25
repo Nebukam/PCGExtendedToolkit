@@ -165,14 +165,14 @@ struct PCGEXCORE_API FPCGExBitmaskWithOperation
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 Bitmask = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides))
+	EPCGExBitOp Op = EPCGExBitOp::OR;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
 	TArray<FPCGExClampedBitOp> Mutations;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	TArray<FPCGExBitmaskRef> Compositions;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExBitmaskMode::Individual", EditConditionHides))
-	EPCGExBitOp Op = EPCGExBitOp::OR;
 
 #pragma region DEPRECATED
 

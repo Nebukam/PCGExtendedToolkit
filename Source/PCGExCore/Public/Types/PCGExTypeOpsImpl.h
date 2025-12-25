@@ -10,6 +10,7 @@
 #include "PCGExTypeOpsRotation.h"
 #include "PCGExTypeOpsString.h"
 #include "PCGExTypeTraits.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 namespace PCGExTypeOps
 {
@@ -61,84 +62,12 @@ namespace PCGExTypeOps
 
 		virtual void ConvertTo(const void* SrcValue, EPCGMetadataTypes TargetType, void* OutValue) const override
 		{
-			const T& Src = *static_cast<const T*>(SrcValue);
-
-			switch (TargetType)
-			{
-			case EPCGMetadataTypes::Boolean: *static_cast<bool*>(OutValue) = TypeOps::template ConvertTo<bool>(Src);
-				break;
-			case EPCGMetadataTypes::Integer32: *static_cast<int32*>(OutValue) = TypeOps::template ConvertTo<int32>(Src);
-				break;
-			case EPCGMetadataTypes::Integer64: *static_cast<int64*>(OutValue) = TypeOps::template ConvertTo<int64>(Src);
-				break;
-			case EPCGMetadataTypes::Float: *static_cast<float*>(OutValue) = TypeOps::template ConvertTo<float>(Src);
-				break;
-			case EPCGMetadataTypes::Double: *static_cast<double*>(OutValue) = TypeOps::template ConvertTo<double>(Src);
-				break;
-			case EPCGMetadataTypes::Vector2: *static_cast<FVector2D*>(OutValue) = TypeOps::template ConvertTo<FVector2D>(Src);
-				break;
-			case EPCGMetadataTypes::Vector: *static_cast<FVector*>(OutValue) = TypeOps::template ConvertTo<FVector>(Src);
-				break;
-			case EPCGMetadataTypes::Vector4: *static_cast<FVector4*>(OutValue) = TypeOps::template ConvertTo<FVector4>(Src);
-				break;
-			case EPCGMetadataTypes::Quaternion: *static_cast<FQuat*>(OutValue) = TypeOps::template ConvertTo<FQuat>(Src);
-				break;
-			case EPCGMetadataTypes::Rotator: *static_cast<FRotator*>(OutValue) = TypeOps::template ConvertTo<FRotator>(Src);
-				break;
-			case EPCGMetadataTypes::Transform: *static_cast<FTransform*>(OutValue) = TypeOps::template ConvertTo<FTransform>(Src);
-				break;
-			case EPCGMetadataTypes::String: *static_cast<FString*>(OutValue) = TypeOps::template ConvertTo<FString>(Src);
-				break;
-			case EPCGMetadataTypes::Name: *static_cast<FName*>(OutValue) = TypeOps::template ConvertTo<FName>(Src);
-				break;
-			case EPCGMetadataTypes::SoftObjectPath: *static_cast<FSoftObjectPath*>(OutValue) = TypeOps::template ConvertTo<FSoftObjectPath>(Src);
-				break;
-			case EPCGMetadataTypes::SoftClassPath: *static_cast<FSoftClassPath*>(OutValue) = TypeOps::template ConvertTo<FSoftClassPath>(Src);
-				break;
-			default: SetDefault(OutValue);
-				break;
-			}
+			FConversionTable::Convert(Traits::Type, SrcValue, TargetType, OutValue);
 		}
 
 		virtual void ConvertFrom(EPCGMetadataTypes SrcType, const void* SrcValue, void* OutValue) const override
 		{
-			T& Dst = *static_cast<T*>(OutValue);
-
-			switch (SrcType)
-			{
-			case EPCGMetadataTypes::Boolean: Dst = TypeOps::template ConvertFrom<bool>(*static_cast<const bool*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Integer32: Dst = TypeOps::template ConvertFrom<int32>(*static_cast<const int32*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Integer64: Dst = TypeOps::template ConvertFrom<int64>(*static_cast<const int64*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Float: Dst = TypeOps::template ConvertFrom<float>(*static_cast<const float*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Double: Dst = TypeOps::template ConvertFrom<double>(*static_cast<const double*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Vector2: Dst = TypeOps::template ConvertFrom<FVector2D>(*static_cast<const FVector2D*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Vector: Dst = TypeOps::template ConvertFrom<FVector>(*static_cast<const FVector*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Vector4: Dst = TypeOps::template ConvertFrom<FVector4>(*static_cast<const FVector4*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Quaternion: Dst = TypeOps::template ConvertFrom<FQuat>(*static_cast<const FQuat*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Rotator: Dst = TypeOps::template ConvertFrom<FRotator>(*static_cast<const FRotator*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Transform: Dst = TypeOps::template ConvertFrom<FTransform>(*static_cast<const FTransform*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::String: Dst = TypeOps::template ConvertFrom<FString>(*static_cast<const FString*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Name: Dst = TypeOps::template ConvertFrom<FName>(*static_cast<const FName*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::SoftObjectPath: Dst = TypeOps::template ConvertFrom<FSoftObjectPath>(*static_cast<const FSoftObjectPath*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::SoftClassPath: Dst = TypeOps::template ConvertFrom<FSoftClassPath>(*static_cast<const FSoftClassPath*>(SrcValue));
-				break;
-			default: Dst = T();
-				break;
-			}
+			FConversionTable::Convert(SrcType, SrcValue, Traits::Type, OutValue);
 		}
 
 		//Blend Operations
@@ -312,84 +241,14 @@ namespace PCGExTypeOps
 		{
 			static FConvertFn GetFunction(int32 ToIndex)
 			{
-				static const FConvertFn Functions[15] = {
-					GetConvertFunction<TFrom, bool>(),            // 0: Boolean
-					GetConvertFunction<TFrom, int32>(),           // 1: Integer32
-					GetConvertFunction<TFrom, int64>(),           // 2: Integer64
-					GetConvertFunction<TFrom, float>(),           // 3: Float
-					GetConvertFunction<TFrom, double>(),          // 4: Double
-					GetConvertFunction<TFrom, FVector2D>(),       // 5: Vector2
-					GetConvertFunction<TFrom, FVector>(),         // 6: Vector
-					GetConvertFunction<TFrom, FVector4>(),        // 7: Vector4
-					GetConvertFunction<TFrom, FQuat>(),           // 8: Quaternion
-					GetConvertFunction<TFrom, FRotator>(),        // 9: Rotator
-					GetConvertFunction<TFrom, FTransform>(),      // 10: Transform
-					GetConvertFunction<TFrom, FString>(),         // 11: String
-					GetConvertFunction<TFrom, FName>(),           // 12: Name
-					GetConvertFunction<TFrom, FSoftObjectPath>(), // 13: SoftObjectPath
-					GetConvertFunction<TFrom, FSoftClassPath>()   // 14: SoftClassPath
-				};
+#define PCGEX_TPL(_TYPE, _NAME, ...) GetConvertFunction<TFrom, _TYPE>(),
+				static const FConvertFn Functions[PCGExTypes::TypesAllocations] = {PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)};
+#undef PCGEX_TPL
 
-				if (ToIndex >= 0 && ToIndex < 15)
-				{
-					return Functions[ToIndex];
-				}
-				return nullptr;
+				check(ToIndex >= 0 && ToIndex < 15)
+				return Functions[ToIndex];
 			}
 		};
-	}
-
-	// FTypeOpsRegistry Implementation Helpers
-
-	// Type index mapping
-	inline int32 GetTypeIndex(EPCGMetadataTypes Type)
-	{
-		switch (Type)
-		{
-		case EPCGMetadataTypes::Boolean: return 0;
-		case EPCGMetadataTypes::Integer32: return 1;
-		case EPCGMetadataTypes::Integer64: return 2;
-		case EPCGMetadataTypes::Float: return 3;
-		case EPCGMetadataTypes::Double: return 4;
-		case EPCGMetadataTypes::Vector2: return 5;
-		case EPCGMetadataTypes::Vector: return 6;
-		case EPCGMetadataTypes::Vector4: return 7;
-		case EPCGMetadataTypes::Quaternion: return 8;
-		case EPCGMetadataTypes::Rotator: return 9;
-		case EPCGMetadataTypes::Transform: return 10;
-		case EPCGMetadataTypes::String: return 11;
-		case EPCGMetadataTypes::Name: return 12;
-		case EPCGMetadataTypes::SoftObjectPath: return 13;
-		case EPCGMetadataTypes::SoftClassPath: return 14;
-		default: return -1;
-		}
-	}
-
-	inline EPCGMetadataTypes GetTypeFromIndex(int32 Index)
-	{
-		static constexpr EPCGMetadataTypes Types[] = {
-			EPCGMetadataTypes::Boolean,
-			EPCGMetadataTypes::Integer32,
-			EPCGMetadataTypes::Integer64,
-			EPCGMetadataTypes::Float,
-			EPCGMetadataTypes::Double,
-			EPCGMetadataTypes::Vector2,
-			EPCGMetadataTypes::Vector,
-			EPCGMetadataTypes::Vector4,
-			EPCGMetadataTypes::Quaternion,
-			EPCGMetadataTypes::Rotator,
-			EPCGMetadataTypes::Transform,
-			EPCGMetadataTypes::String,
-			EPCGMetadataTypes::Name,
-			EPCGMetadataTypes::SoftObjectPath,
-			EPCGMetadataTypes::SoftClassPath
-		};
-
-		if (Index >= 0 && Index < 15)
-		{
-			return Types[Index];
-		}
-		return EPCGMetadataTypes::Unknown;
 	}
 
 	// FTypeOpsRegistry Template Implementations

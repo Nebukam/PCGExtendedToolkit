@@ -4,6 +4,7 @@
 #include "Elements//PCGExTopologyPointSurface.h"
 
 #include "PCGComponent.h"
+#include "UDynamicMesh.h"
 #include "Data/PCGDynamicMeshData.h" // Redundant but required for build on Linux 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -151,7 +152,7 @@ namespace PCGExTopologyPointSurface
 
 			int8 bHasInvalidVertices = false;
 
-			InternalMesh->EditMesh([&](FDynamicMesh3& InMesh)
+			InternalMesh->EditMesh([&](UE::Geometry::FDynamicMesh3& InMesh)
 			{
 				FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
 

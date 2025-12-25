@@ -13,7 +13,7 @@ struct FPCGContext;
 struct FPCGDebugVisualizationSettings;
 
 /** Default implementation for spatial data. Collapses to a PointData representation. */
-class PCGEXTENDEDTOOLKITEDITOR_API IPCGExSpatialDataVisualization : public IPCGDataVisualization
+class IPCGExSpatialDataVisualization : public IPCGDataVisualization
 {
 public:
 	// ~Begin IPCGDataVisualization interface
@@ -24,7 +24,7 @@ public:
 	virtual FPCGMetadataDomainID GetDefaultDomainForInspection(const UPCGData* Data) const override { return PCGMetadataDomainID::Elements; }
 	virtual FString GetDomainDisplayNameForInspection(const UPCGData* Data, const FPCGMetadataDomainID& DomainID) const override;
 	virtual TArray<FPCGMetadataDomainID> GetAllSupportedDomainsForInspection(const UPCGData* Data) const override;
-	virtual FPCGSetupSceneFunc GetViewportSetupFunc(const UPCGData* Data) const override;
+	virtual FPCGSetupSceneFunc GetViewportSetupFunc(const UPCGSettingsInterface* SettingsInterface, const UPCGData* Data) const override;
 	// ~End IPCGDataVisualization interface
 
 	UE_DEPRECATED(5.6, "Implement CollapseToDebugBasePointData instead")

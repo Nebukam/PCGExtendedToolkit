@@ -39,6 +39,7 @@ namespace PCGExBlending
 
 		TSharedPtr<PCGExData::FFacade> TargetFacade;
 		TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> Operations;
+		TArray<FPCGExBlendOperation*> CachedOperations;
 
 		bool bUsedForMultiBlendOnly = false;
 

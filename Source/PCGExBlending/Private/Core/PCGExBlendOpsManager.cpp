@@ -101,6 +101,7 @@ namespace PCGExBlending
 		check(WeightFacade)
 
 		Operations->Reserve(InFactories.Num());
+		CachedOperations.Reserve(InFactories.Num());
 
 		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : InFactories)
 		{
@@ -131,6 +132,8 @@ namespace PCGExBlending
 			{
 				return false; // FAIL
 			}
+			
+			CachedOperations.Add(Op.Get());
 		}
 
 		return true;
@@ -138,17 +141,17 @@ namespace PCGExBlending
 
 	void FBlendOpsManager::BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex) const
 	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->BlendAutoWeight(SourceIndex, TargetIndex); }
+		for (const auto Op : CachedOperations) { Op->BlendAutoWeight(SourceIndex, TargetIndex); }
 	}
 
 	void FBlendOpsManager::Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight) const
 	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, TargetIndex, InWeight); }
+		for (const auto Op : CachedOperations) { Op->Blend(SourceIndex, TargetIndex, InWeight); }
 	}
 
 	void FBlendOpsManager::Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double InWeight) const
 	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceAIndex, SourceBIndex, TargetIndex, InWeight); }
+		for (const auto Op : CachedOperations) { Op->Blend(SourceAIndex, SourceBIndex, TargetIndex, InWeight); }
 	}
 
 	void FBlendOpsManager::InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops)
@@ -169,23 +172,23 @@ namespace PCGExBlending
 
 	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		for (int i = 0; i < Operations->Num(); i++) { Trackers[i] = (*(Operations->GetData() + i))->BeginMultiBlend(TargetIndex); }
+		for (const auto Op : CachedOperations) {Trackers[Op->OpIdx] = Op->BeginMultiBlend(TargetIndex); }
 	}
 
 	void FBlendOpsManager::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->MultiBlend(SourceIndex, TargetIndex, InWeight, Trackers[i]); }
+		for (const auto Op : CachedOperations) {Op->MultiBlend(SourceIndex, TargetIndex, InWeight, Trackers[Op->OpIdx]); }
 	}
 
 	void FBlendOpsManager::EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->EndMultiBlend(TargetIndex, Trackers[i]); }
+		for (const auto Op : CachedOperations) { Op->EndMultiBlend(TargetIndex, Trackers[Op->OpIdx]); }
 	}
 
 	void FBlendOpsManager::Cleanup(FPCGExContext* InContext)
 	{
 		TSet<TSharedPtr<PCGExData::IBuffer>> DisabledBuffers;
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->CompleteWork(DisabledBuffers); }
+		for (const auto Op : CachedOperations) {Op->CompleteWork(DisabledBuffers); }
 
 		for (const TSharedPtr<PCGExData::IBuffer>& Buffer : DisabledBuffers)
 		{

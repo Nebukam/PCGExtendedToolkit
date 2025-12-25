@@ -115,6 +115,8 @@ namespace PCGExSocketStaging
 			{
 				SocketHelper->Add(Index, PCGExStaging::GetSimplifiedEntryHash(Hash), Result.Entry);
 			}
+
+			
 		}
 	}
 

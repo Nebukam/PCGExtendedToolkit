@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/Descriptors/PCGExDynamicMeshDescriptor.h"
-
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInterface.h"
 

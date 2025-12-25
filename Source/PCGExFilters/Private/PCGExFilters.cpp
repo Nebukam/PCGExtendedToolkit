@@ -3,6 +3,7 @@
 
 #include "PCGExFilters.h"
 
+
 #if WITH_EDITOR
 
 #if PCGEX_ENGINE_VERSION > 506
@@ -40,7 +41,6 @@ void FPCGExFiltersModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InS
 	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterCluster, FilterCluster, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
 	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterVtx, FilterVtx, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
 	PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(FilterEdge, FilterEdge, GetDefault<UPCGEditorSettings>()->FilterNodeColor)
-	
 	PCGEX_REGISTER_DATA_TYPE(PointState, PointState)
 }
 #endif

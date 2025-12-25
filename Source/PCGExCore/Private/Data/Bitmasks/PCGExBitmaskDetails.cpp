@@ -135,14 +135,9 @@ int64 FPCGExBitmaskWithOperation::Get() const
 
 void FPCGExBitmaskWithOperation::Mutate(int64& Flags) const
 {
-	if (Mode == EPCGExBitmaskMode::Individual)
-	{
-		for (const FPCGExClampedBitOp& Bit : Mutations) { Bit.Mutate(Flags); }
-		PCGExBitmask::Mutate(Compositions, Flags);
-		return;
-	}
-
 	PCGExBitmask::Mutate(Op, Flags, Get());
+	if (Mode == EPCGExBitmaskMode::Individual) { for (const FPCGExClampedBitOp& Bit : Mutations) { Bit.Mutate(Flags); } }
+	else { PCGExBitmask::Mutate(Compositions, Flags); }
 }
 
 void FPCGExBitmaskWithOperation::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const

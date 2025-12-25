@@ -17,7 +17,4 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-#if WITH_EDITOR
-	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle) override;
-#endif
 };

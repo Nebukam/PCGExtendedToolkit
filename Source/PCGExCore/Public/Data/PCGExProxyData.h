@@ -204,16 +204,10 @@ namespace PCGExData
 			PCGExTypes::FScopedTypedValue WorkingValue(WorkingType);
 			GetVoid(Index, WorkingValue.GetRaw());
 
-			if (RequestedType == WorkingType)
-			{
-				return WorkingValue.As<T>();
-			}
+			if (RequestedType == WorkingType) { return WorkingValue.As<T>(); }
 
 			T Result{};
-			if (WorkingOps)
-			{
-				WorkingOps->ConvertTo(WorkingValue.GetRaw(), RequestedType, &Result);
-			}
+			PCGExTypeOps::FConversionTable::Convert(WorkingType, WorkingValue.GetRaw(), RequestedType, &Result);
 			return Result;
 		}
 		else
@@ -231,16 +225,10 @@ namespace PCGExData
 			PCGExTypes::FScopedTypedValue WorkingValue(WorkingType);
 			GetVoid(Index, WorkingValue.GetRaw());
 
-			if (RequestedType == WorkingType)
-			{
-				return *reinterpret_cast<const T*>(WorkingValue.GetRaw());
-			}
+			if (RequestedType == WorkingType) { return *reinterpret_cast<const T*>(WorkingValue.GetRaw()); }
 
 			T Result{};
-			if (WorkingOps)
-			{
-				WorkingOps->ConvertTo(WorkingValue.GetRaw(), RequestedType, &Result);
-			}
+			PCGExTypeOps::FConversionTable::Convert(WorkingType, WorkingValue.GetRaw(), RequestedType, &Result);
 			return Result;
 		}
 	}
@@ -259,10 +247,7 @@ namespace PCGExData
 
 		// Need conversion - use scoped value for working type
 		PCGExTypes::FScopedTypedValue WorkingValue(WorkingType);
-		if (WorkingOps)
-		{
-			WorkingOps->ConvertFrom(ValueType, &Value, WorkingValue.GetRaw());
-		}
+		PCGExTypeOps::FConversionTable::Convert(ValueType, &Value, WorkingType, WorkingValue.GetRaw());
 		SetVoid(Index, WorkingValue.GetRaw());
 	}
 
@@ -282,7 +267,7 @@ namespace PCGExData
 		}
 
 		T Result{};
-		if (WorkingOps) { WorkingOps->ConvertTo(WorkingValue.GetRaw(), RequestedType, &Result); }
+		PCGExTypeOps::FConversionTable::Convert(WorkingType, WorkingValue.GetRaw(), RequestedType, &Result);
 		return Result;
 	}
 

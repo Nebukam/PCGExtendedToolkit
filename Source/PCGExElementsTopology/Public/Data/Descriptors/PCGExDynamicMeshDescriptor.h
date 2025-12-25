@@ -8,8 +8,6 @@
 #include "Components/DynamicMeshComponent.h"
 #include "SceneTypes.h"
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
-#include "PhysicsEngine/BodyInstance.h"
-#include "VT/RuntimeVirtualTextureEnum.h"
 #include "Engine/EngineTypes.h"
 
 #include "PCGExDynamicMeshDescriptor.generated.h"

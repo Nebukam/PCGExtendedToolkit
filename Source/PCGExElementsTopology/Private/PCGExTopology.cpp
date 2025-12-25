@@ -11,6 +11,7 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
+#include "DynamicMesh/DynamicMeshAttributeSet.h"
 #include "Paths/PCGExPath.h"
 
 void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const
@@ -64,7 +65,7 @@ void FPCGExTopologyUVDetails::RegisterBuffersDependencies(FPCGExContext* InConte
 	}
 }
 
-void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, FDynamicMesh3& InMesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, UE::Geometry::FDynamicMesh3& InMesh) const
 {
 	if (!NumChannels) { return; }
 
@@ -91,7 +92,7 @@ void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, FDynamicMe
 	}
 }
 
-void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, FDynamicMesh3& InMesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, UE::Geometry::FDynamicMesh3& InMesh) const
 {
 	if (!NumChannels) { return; }
 

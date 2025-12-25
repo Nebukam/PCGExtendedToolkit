@@ -129,7 +129,6 @@ namespace PCGExTypeOps
 
 	/**
 	 * Global registry for type operations.
-	 * Provides O(1) lookup of type ops by EPCGMetadataTypes enum.
 	 */
 	class PCGEXCORE_API FTypeOpsRegistry
 	{
@@ -146,9 +145,6 @@ namespace PCGExTypeOps
 		// Type ID conversion
 		template <typename T>
 		static EPCGMetadataTypes GetTypeId();
-
-		static EPCGMetadataTypes GetTypeIdFromIndex(int32 Index);
-		static int32 GetIndexFromTypeId(EPCGMetadataTypes Type);
 
 		// Initialize the registry (called automatically)
 		static void Initialize();
@@ -171,18 +167,27 @@ namespace PCGExTypeOps
 	{
 	public:
 		// Convert between any two supported types
-		static void Convert(
+		FORCEINLINE static void Convert(
 			EPCGMetadataTypes FromType, const void* FromValue,
-			EPCGMetadataTypes ToType, void* ToValue);
+			EPCGMetadataTypes ToType, void* ToValue)
+		{
+			if (!bInitialized) { Initialize(); }
+			Table[static_cast<int32>(FromType)][static_cast<int32>(ToType)](FromValue, ToValue);
+		}
 
 		// Get the conversion function pointer for a specific pair
-		static FConvertFn GetConversionFn(EPCGMetadataTypes FromType, EPCGMetadataTypes ToType);
+		FORCEINLINE static FConvertFn GetConversionFn(EPCGMetadataTypes FromType, EPCGMetadataTypes ToType)
+		{
+			if (!bInitialized) { Initialize(); }		
+			return Table[static_cast<int32>(FromType)][static_cast<int32>(ToType)];
+		}
 
 		// Initialize the table (called automatically)
 		static void Initialize();
 
+		
 	private:
-		static FConvertFn Table[14][14];
+		static FConvertFn Table[PCGExTypes::TypesAllocations][PCGExTypes::TypesAllocations];
 		static bool bInitialized;
 	};
 

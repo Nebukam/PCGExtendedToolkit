@@ -89,8 +89,6 @@ namespace PCGExFlagNodes
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
-		virtual void CompleteWork() override;
-		virtual void Write() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -109,5 +107,6 @@ namespace PCGExFlagNodes
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
+		virtual void CompleteWork() override;
 	};
 }
