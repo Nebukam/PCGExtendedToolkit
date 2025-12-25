@@ -10,7 +10,8 @@
 #include "Data/PCGPointData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Math/PCGExMathBounds.h"
+#include "Math/OBB/PCGExOBB.h"
+#include "Math/OBB/PCGExOBBTests.h"
 #include "Sorting/PCGExPointSorter.h"
 #include "Sorting/PCGExSortingDetails.h"
 
@@ -224,7 +225,10 @@ namespace PCGExSelfPruning
 							if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
 							else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
 
-							if (!PCGExMath::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return; }
+							// Use new OBB system for precise SAT overlap test
+							const PCGExMath::OBB::FOBB OBB_A = PCGExMath::OBB::Factory::FromTransform(Transform, BoxA, Index);
+							const PCGExMath::OBB::FOBB OBB_B = PCGExMath::OBB::Factory::FromTransform(Transforms[OtherIndex], BoxB, OtherIndex);
+							if (!PCGExMath::OBB::SATOverlap(OBB_A, OBB_B)) { return; }
 						}
 
 						Candidate.Overlaps++;
@@ -282,7 +286,10 @@ namespace PCGExSelfPruning
 							if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
 							else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
 
-							if (!PCGExMath::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return true; }
+							// Use new OBB system for precise SAT overlap test
+							const PCGExMath::OBB::FOBB OBB_A = PCGExMath::OBB::Factory::FromTransform(Transform, BoxA, Index);
+							const PCGExMath::OBB::FOBB OBB_B = PCGExMath::OBB::Factory::FromTransform(Transforms[OtherIndex], BoxB, OtherIndex);
+							if (!PCGExMath::OBB::SATOverlap(OBB_A, OBB_B)) { return true; }
 						}
 
 						Mask[Index] = false;
