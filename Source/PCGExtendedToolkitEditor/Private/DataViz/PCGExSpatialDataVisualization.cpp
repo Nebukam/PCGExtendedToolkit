@@ -2,6 +2,7 @@
 
 #include "DataViz/PCGExSpatialDataVisualization.h"
 
+#include "UObject/UObjectGlobals.h"
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGData.h"
@@ -20,6 +21,7 @@
 #include "AdvancedPreviewScene.h"
 #include "EditorViewportClient.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/AssetManager.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSpatialDataVisualization"
 
@@ -47,9 +49,10 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplay(FPCGContext* Context, c
 		return;
 	}
 
-	ExecuteDebugDisplayHelper(Data, SettingsInterface->DebugSettings, Context, TargetActor, SettingsInterface->GetSettings()->GetSettingsCrc(), [](UInstancedStaticMeshComponent*)
-	{
-	});
+	ExecuteDebugDisplayHelper(
+		Data, SettingsInterface->DebugSettings, Context, TargetActor, SettingsInterface->GetSettings()->GetSettingsCrc(), [](UInstancedStaticMeshComponent*)
+		{
+		});
 }
 
 void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
@@ -64,8 +67,9 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 
 	if (!Mesh)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(LOCTEXT("UnableToLoadMesh", "Debug display was unable to load mesh '{0}'."),
-			           FText::FromString(DebugSettings.PointMesh.ToString())));
+		PCGE_LOG_C(
+			Error, GraphAndLog, Context, FText::Format(LOCTEXT("UnableToLoadMesh", "Debug display was unable to load mesh '{0}'."),
+				FText::FromString(DebugSettings.PointMesh.ToString())));
 		return;
 	}
 
@@ -112,7 +116,6 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 	}
 
 	const FConstPCGPointValueRanges ValueRanges(PointData);
-	bool bFoundNonNormalizedInstances = false;
 
 	for (int i = 0; i < NumDesiredInstances; ++i)
 	{
@@ -136,18 +139,6 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 		{
 			InstanceTransform.SetScale3D(FVector(PointScale));
 		}
-
-		// If any instances have non-normalized rotations, normalize them to avoid crashing, but emit a warning.
-		if (!InstanceTransform.IsRotationNormalized())
-		{
-			InstanceTransform.NormalizeRotation();
-			bFoundNonNormalizedInstances = true;
-		}
-	}
-
-	if (bFoundNonNormalizedInstances)
-	{
-		PCGE_LOG_C(Warning, GraphAndLog, Context, LOCTEXT("UnnormalizedRotation", "PCGSpatialDataVisualization: Encountered one or more transforms with unnormalized rotation. Rotations will be normalized for visualization."));
 	}
 
 	FPCGISMComponentBuilderParams Params[2];
@@ -288,51 +279,15 @@ FPCGTableVisualizerInfo IPCGExSpatialDataVisualization::GetTableVisualizerInfoWi
 	AddColumnInfo(Info, PointData, FPCGAttributePropertySelector::CreateExtraPropertySelector(EPCGExtraProperties::Index));
 	Info.SortingColumn = Info.ColumnInfos.Last().Id;
 
-	const EPCGPointNativeProperties AllocatedProperties = PointData->GetAllocatedProperties();
-
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Position, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform)});
-	AddPropertyEnumColumnInfo<FRotator>(Info, PointData, EPCGPointProperties::Rotation, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform)});
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Scale, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Transform)});
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMin, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::BoundsMin)});
-	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMax, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::BoundsMax)});
-	AddPropertyEnumColumnInfo<FLinearColor>(Info, PointData, EPCGPointProperties::Color, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Color)});
-	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Density, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Density)});
-	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Steepness, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Steepness)});
-	AddPropertyEnumColumnInfo<int32>(Info, PointData, EPCGPointProperties::Seed, {.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::Seed)});
-
-	const IConsoleVariable* CVarShowAdvancedAttributesFields = IConsoleManager::Get().FindConsoleVariable(TEXT("pcg.graph.ShowAdvancedAttributes"));
-	if (CVarShowAdvancedAttributesFields && CVarShowAdvancedAttributesFields->GetBool())
-	{
-		FColumnInfoOverrides Overrides;
-		Overrides.LabelOverride = TEXT_MetadataEntry;
-		Overrides.CreateAccessorFuncOverride = [PointData]()
-		{
-			FPCGAttributePropertySelector MetadataEntrySelector;
-			MetadataEntrySelector.SetPropertyName(*StaticEnum<EPCGPointNativeProperties>()->GetNameStringByValue(static_cast<int64>(EPCGPointNativeProperties::MetadataEntry)));
-			return TSharedPtr<const IPCGAttributeAccessor>(PCGAttributeAccessorHelpers::CreateConstAccessor(PointData, MetadataEntrySelector).Release());
-		};
-
-		Overrides.bIsConstantValueCompressed = !(AllocatedProperties & EPCGPointNativeProperties::MetadataEntry);
-
-		AddTypedColumnInfo<int64>(Info, PointData, FPCGAttributePropertySelector{}, Overrides);
-
-		Overrides.LabelOverride = TEXT_MetadataEntryParent;
-		Overrides.CreateAccessorFuncOverride = [PointData]()
-		{
-			return MakeShared<FPCGCustomPointPropertyAccessor<int64, TConstPCGValueRange<int64>>>(PointData, [Metadata = PointData->ConstMetadata()](int32 Index, int64& OutValue, const TConstPCGValueRange<int64>& MetaDataEntryRange)
-			                                                                                      {
-				                                                                                      if (Metadata)
-				                                                                                      {
-					                                                                                      OutValue = Metadata->GetParentKey(MetaDataEntryRange[Index]);
-					                                                                                      return true;
-				                                                                                      }
-				                                                                                      return false;
-			                                                                                      },
-			                                                                                      PointData->GetConstMetadataEntryValueRange());
-		};
-
-		AddTypedColumnInfo<int64>(Info, PointData, FPCGAttributePropertySelector{}, Overrides);
-	}
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Position);
+	AddPropertyEnumColumnInfo<FRotator>(Info, PointData, EPCGPointProperties::Rotation);
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::Scale);
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMin);
+	AddPropertyEnumColumnInfo<FVector>(Info, PointData, EPCGPointProperties::BoundsMax);
+	AddPropertyEnumColumnInfo<FLinearColor>(Info, PointData, EPCGPointProperties::Color);
+	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Density);
+	AddPropertyEnumColumnInfo<float>(Info, PointData, EPCGPointProperties::Steepness);
+	AddPropertyEnumColumnInfo<int32>(Info, PointData, EPCGPointProperties::Seed);
 
 	// Add Metadata Columns
 	CreateMetadataColumnInfos(PointData, Info, PCGMetadataDomainID::Elements);
@@ -417,7 +372,7 @@ TArray<FPCGMetadataDomainID> IPCGExSpatialDataVisualization::GetAllSupportedDoma
 	return GetDefault<UPCGBasePointData>()->GetAllSupportedMetadataDomainIDs();
 }
 
-FPCGSetupSceneFunc IPCGExSpatialDataVisualization::GetViewportSetupFunc(const UPCGSettingsInterface* SettingsInterface, const UPCGData* Data) const
+FPCGSetupSceneFunc IPCGExSpatialDataVisualization::GetViewportSetupFunc(const UPCGData* Data) const
 {
 	return [this, WeakData=TWeakObjectPtr<const UPCGData>(Data)](FPCGSceneSetupParams& InOutParams)
 	{
@@ -434,38 +389,46 @@ FPCGSetupSceneFunc IPCGExSpatialDataVisualization::GetViewportSetupFunc(const UP
 		bool bInitializedBounds = false;
 
 		ExecuteDebugDisplayHelper(
-			WeakData.Get(),
-			FPCGDebugVisualizationSettings(),
-			nullptr,
-			nullptr,
-			FPCGCrc(),
-			[&InOutParams, &bInitializedBounds, &BoundsMin, &BoundsMax](UInstancedStaticMeshComponent* ISMC)
-			{
-				check(ISMC);
-
-				InOutParams.ManagedResources.Add(ISMC);
-				InOutParams.Scene->AddComponent(ISMC, FTransform::Identity);
-
-				const FVector CurrentBoundsMin = ISMC->Bounds.Origin - ISMC->Bounds.BoxExtent;
-				const FVector CurrentBoundsMax = ISMC->Bounds.Origin + ISMC->Bounds.BoxExtent;
-
-				if (!bInitializedBounds)
+				WeakData.Get(),
+				FPCGDebugVisualizationSettings(),
+				nullptr,
+				nullptr,
+				FPCGCrc(),
+				[&InOutParams, &bInitializedBounds, &BoundsMin, &BoundsMax](UInstancedStaticMeshComponent* ISMC)
 				{
-					BoundsMin = CurrentBoundsMin;
-					BoundsMax = CurrentBoundsMax;
-					bInitializedBounds = true;
+					check(ISMC);
+
+					InOutParams.ManagedResources.Add(ISMC);
+					InOutParams.Scene->AddComponent(ISMC, FTransform::Identity);
+
+					const FVector CurrentBoundsMin = ISMC->Bounds.Origin - ISMC->Bounds.BoxExtent;
+					const FVector CurrentBoundsMax = ISMC->Bounds.Origin + ISMC->Bounds.BoxExtent;
+
+					if (!bInitializedBounds)
+					{
+						BoundsMin = CurrentBoundsMin;
+						BoundsMax = CurrentBoundsMax;
+						bInitializedBounds = true;
+					}
+					else
+					{
+						BoundsMin = BoundsMin.ComponentMin(CurrentBoundsMin);
+						BoundsMax = BoundsMax.ComponentMax(CurrentBoundsMax);
+					}
 				}
-				else
-				{
-					BoundsMin = BoundsMin.ComponentMin(CurrentBoundsMin);
-					BoundsMax = BoundsMax.ComponentMax(CurrentBoundsMax);
-				}
-			}
-		);
+			);
 
 		if (bInitializedBounds)
 		{
-			InOutParams.FocusBounds = FBoxSphereBounds(FBox(BoundsMin, BoundsMax));
+			const FBoxSphereBounds Bounds = FBoxSphereBounds(FBox(BoundsMin, BoundsMax));
+			InOutParams.Scene->SetFloorOffset(-Bounds.Origin.Z + Bounds.BoxExtent.Z);
+
+			InOutParams.EditorViewportClient->SetViewLocation(Bounds.Origin);
+
+			if (Bounds.SphereRadius > 0.0f)
+			{
+				InOutParams.EditorViewportClient->SetViewLocationForOrbiting(Bounds.Origin, Bounds.SphereRadius * 2.0f);
+			}
 		}
 	};
 }
