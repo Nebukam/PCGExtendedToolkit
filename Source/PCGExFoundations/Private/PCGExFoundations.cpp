@@ -25,16 +25,6 @@ void FPCGExFoundationsModule::ShutdownModule()
 	IPCGExModuleInterface::ShutdownModule();
 }
 
-#if WITH_EDITOR
-void FPCGExFoundationsModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
-{
-	IPCGExModuleInterface::RegisterToEditor(InStyle);
-	
-	PCGEX_START_PCG_REGISTRATION
-	PCGEX_REGISTER_DATA_TYPE(PointState, PointState)
-}
-#endif
-
 #undef LOCTEXT_NAMESPACE
 
 PCGEX_IMPLEMENT_MODULE(FPCGExFoundationsModule, PCGExFoundations)

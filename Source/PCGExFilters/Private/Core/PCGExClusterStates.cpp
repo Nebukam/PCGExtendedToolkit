@@ -61,20 +61,17 @@ namespace PCGExClusterStates
 
 	bool FState::Test(const int32 Index) const
 	{
-		const bool bResult = Manager->Test(Index);
-		return bResult;
+		return Manager->Test(Index);
 	}
 
 	bool FState::Test(const PCGExClusters::FNode& Node) const
 	{
-		const bool bResult = Manager->Test(Node);
-		return bResult;
+		return Manager->Test(Node);
 	}
 
 	bool FState::Test(const PCGExGraphs::FEdge& Edge) const
 	{
-		const bool bResult = Manager->Test(Edge);
-		return bResult;
+		return Manager->Test(Edge);
 	}
 
 	void FState::ProcessFlags(const bool bSuccess, int64& InFlags, const int32 Index) const

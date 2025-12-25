@@ -204,10 +204,7 @@ namespace PCGExData
 		else if (RealType != WorkingType)
 		{
 			// Use direct conversion function
-			if (RealToWorking)
-			{
-				RealToWorking(&RealValue, OutValue);
-			}
+			RealToWorking(&RealValue, OutValue);
 		}
 		else
 		{
@@ -231,7 +228,7 @@ namespace PCGExData
 		{
 			// Use direct conversion function
 			T_REAL RealValue{};
-			if (WorkingToReal) { WorkingToReal(Value, &RealValue); }
+			WorkingToReal(Value, &RealValue);
 			Buffer->SetValue(Index, RealValue);
 		}
 		else
@@ -254,10 +251,7 @@ namespace PCGExData
 		}
 		else if (RealType != WorkingType)
 		{
-			if (RealToWorking)
-			{
-				RealToWorking(&RealValue, OutValue);
-			}
+			RealToWorking(&RealValue, OutValue);
 		}
 		else
 		{
@@ -385,10 +379,7 @@ namespace PCGExData
 		{
 			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
 			GetPropertyValue(Index, PropValue.GetRaw());
-			if (RealToWorking)
-			{
-				RealToWorking(PropValue.GetRaw(), OutValue);
-			}
+			RealToWorking(PropValue.GetRaw(), OutValue);
 		}
 		else
 		{
@@ -408,10 +399,7 @@ namespace PCGExData
 		else if (PropertyRealType != WorkingType)
 		{
 			PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
-			if (WorkingToReal)
-			{
-				WorkingToReal(Value, PropValue.GetRaw());
-			}
+			WorkingToReal(Value, PropValue.GetRaw());
 			SetPropertyValue(Index, PropValue.GetRaw());
 		}
 		else
@@ -436,7 +424,7 @@ namespace PCGExData
 	{
 		PCGExTypes::FScopedTypedValue PropValue(PropertyRealType);
 		GetPropertyValue(Index, PropValue.GetRaw());
-		return RealOps ? RealOps->ComputeHash(PropValue.GetRaw()) : 0;
+		return RealOps->ComputeHash(PropValue.GetRaw());
 	}
 
 #pragma endregion
@@ -532,10 +520,7 @@ namespace PCGExData
 		}
 		else if (RealType != WorkingType)
 		{
-			if (RealOps)
-			{
-				RealOps->ConvertTo(&Constant, WorkingType, OutValue);
-			}
+			RealToWorking(&Constant, OutValue);
 		}
 		else
 		{
@@ -590,10 +575,7 @@ namespace PCGExData
 		}
 		else if (RealType != WorkingType)
 		{
-			if (RealToWorking)
-			{
-				RealToWorking(&RealValue, OutValue);
-			}
+			RealToWorking(&RealValue, OutValue);
 		}
 		else
 		{
@@ -614,10 +596,7 @@ namespace PCGExData
 		}
 		else if (RealType != WorkingType)
 		{
-			if (RealToWorking)
-			{
-				RealToWorking(&RealValue, OutValue);
-			}
+			RealToWorking(&RealValue, OutValue);
 		}
 		else
 		{
@@ -641,10 +620,7 @@ namespace PCGExData
 		else if (RealType != WorkingType)
 		{
 			T_REAL RealValue{};
-			if (WorkingToReal)
-			{
-				WorkingToReal(Value, &RealValue);
-			}
+			WorkingToReal(Value, &RealValue);
 			OutAttribute->SetValue(MetadataEntry, RealValue);
 		}
 		else
@@ -689,10 +665,7 @@ namespace PCGExData
 		}
 		else if (RealType != WorkingType)
 		{
-			if (RealToWorking)
-			{
-				RealToWorking(&RealValue, OutValue);
-			}
+			RealToWorking(&RealValue, OutValue);
 		}
 		else
 		{
@@ -713,10 +686,7 @@ namespace PCGExData
 		}
 		else if (RealType != WorkingType)
 		{
-			if (RealToWorking)
-			{
-				RealToWorking(&RealValue, OutValue);
-			}
+			RealToWorking(&RealValue, OutValue);
 		}
 		else
 		{
@@ -738,10 +708,7 @@ namespace PCGExData
 		else if (RealType != WorkingType)
 		{
 			T_REAL RealValue{};
-			if (WorkingToReal)
-			{
-				WorkingToReal(Value, &RealValue);
-			}
+			WorkingToReal(Value, &RealValue);
 			OutAttribute->SetDefaultValue(RealValue);
 		}
 		else

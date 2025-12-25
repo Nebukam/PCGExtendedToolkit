@@ -51,8 +51,7 @@ bool FPCGExFlagNodesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
-			NewBatch->bRequiresWriteStep = true;
-			NewBatch->bWriteVtxDataFacade = true;
+			
 		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -100,14 +99,6 @@ namespace PCGExFlagNodes
 		}
 	}
 
-	void FProcessor::CompleteWork()
-	{
-	}
-
-	void FProcessor::Write()
-	{
-	}
-
 	//////// BATCH
 
 	FBatch::~FBatch()
@@ -139,6 +130,11 @@ namespace PCGExFlagNodes
 		PCGEX_TYPED_PROCESSOR
 		TypedProcessor->StateFlags = StateFlags;
 		return true;
+	}
+
+	void FBatch::CompleteWork()
+	{
+		VtxDataFacade->WriteFastest(TaskManager);
 	}
 }
 
