@@ -56,6 +56,8 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_SETTING(Core, PointsDefaultBatchChunkSize)
 	PCGEX_PUSH_SETTING(Core, ClusterDefaultBatchChunkSize)
 
+#if WITH_EDITOR
+	
 	// Push colors
 	PCGEX_PUSH_COLOR(Constant)
 	PCGEX_PUSH_COLOR(Debug)
@@ -94,7 +96,9 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_COLOR(Tensor)
 	PCGEX_PUSH_COLOR(SortRule)
 	PCGEX_PUSH_COLOR(PartitionRule)
-
+	
+#endif
+	
 #pragma endregion
 
 #pragma region Blending
