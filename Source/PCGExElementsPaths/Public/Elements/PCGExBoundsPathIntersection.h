@@ -119,7 +119,7 @@ namespace PCGExBoundsPathIntersection
 
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
-		TArray<TSharedPtr<PCGExMath::FIntersections>> Intersections;
+		TArray<TSharedPtr<PCGExMath::OBB::FIntersections>> Intersections;
 
 		TArray<int32> StartIndices;
 		FPCGExBoxIntersectionDetails Details;

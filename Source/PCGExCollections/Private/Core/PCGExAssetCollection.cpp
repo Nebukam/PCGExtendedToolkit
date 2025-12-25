@@ -7,6 +7,7 @@
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
+#include "Algo/RemoveIf.h"
 #include "Engine/World.h"
 #include "Helpers/PCGExArrayHelpers.h"
 
@@ -366,15 +367,7 @@ void FPCGExAssetCollectionEntry::BuildMicroCache()
 
 void FPCGExAssetCollectionEntry::ClearManagedSockets()
 {
-	int32 WriteIndex = 0;
-	for (int32 i = 0; i < Staging.Sockets.Num(); i++)
-	{
-		if (!Staging.Sockets[i].bManaged)
-		{
-			Staging.Sockets[WriteIndex++] = Staging.Sockets[i];
-		}
-	}
-	Staging.Sockets.SetNum(WriteIndex);
+	Staging.Sockets.SetNum(Algo::RemoveIf(Staging.Sockets, [](const FPCGExSocket& Socket) { return Socket.bManaged; }));
 }
 
 #pragma endregion

@@ -57,7 +57,7 @@ namespace PCGExData
 		PCGEXCORE_API FExtractFieldFn GetExtractFieldFn(EPCGMetadataTypes Type);
 		PCGEXCORE_API FInjectFieldFn GetInjectFieldFn(EPCGMetadataTypes Type);
 		PCGEXCORE_API FExtractAxisFn GetExtractAxisFn(EPCGMetadataTypes Type);
-	} // namespace SubSelectionImpl
+	}
 
 	/**
 	 * FCachedSubSelection - Pre-resolved sub-selection operations
@@ -198,4 +198,4 @@ namespace PCGExData
 		void ApplyGetWithComponent(const void* Source, void* OutValue) const;
 		void ApplySetWithComponent(void* Target, const void* Source) const;
 	};
-} // namespace PCGEx
+}

@@ -8,69 +8,9 @@
 
 namespace PCGExMath
 {
-	FCut::FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx, const EPCGExCutType InType)
-		: Position(InPosition), Normal(InNormal), BoxIndex(InBoxIndex), Idx(InIdx), Type(InType)
-	{
-	}
-
 	FSample::FSample(const FVector& InDistances, const int32 InBoxIndex, const bool IsInside)
 		: Distances(InDistances), BoxIndex(InBoxIndex), bIsInside(IsInside)
 	{
-	}
-
-	FIntersections::FIntersections(const FVector& InStartPosition, const FVector& InEndPosition)
-		: StartPosition(InStartPosition), EndPosition(InEndPosition)
-	{
-	}
-
-	bool FIntersections::IsEmpty() const
-	{
-		return Cuts.IsEmpty();
-	}
-
-	void FIntersections::Sort()
-	{
-		// TODO : Cache distances 
-		Cuts.Sort([&](const FCut& A, const FCut& B)
-		{
-			const double DistToA = FVector::DistSquared(StartPosition, A.Position);
-			const double DistToB = FVector::DistSquared(StartPosition, B.Position);
-			if (DistToA == DistToB) { return A.Idx < B.Idx; }
-			return DistToA < DistToB;
-		});
-	}
-
-	void FIntersections::SortAndDedupe()
-	{
-		Sort();
-
-		if (Cuts.IsEmpty() || Cuts.Num() < 2) { return; }
-
-		FVector LastPos = Cuts[0].Position;
-
-		for (int i = 1; i < Cuts.Num(); i++)
-		{
-			FVector Pos = (Cuts.GetData() + i)->Position;
-			if (Pos == LastPos)
-			{
-				Cuts.RemoveAt(i);
-				i--;
-			}
-			LastPos = Pos;
-		}
-	}
-
-	FBoxCenterAndExtent FIntersections::GetBoxCenterAndExtent() const
-	{
-		FBox Box = FBox(ForceInit);
-		Box += StartPosition;
-		Box += EndPosition;
-		return FBoxCenterAndExtent(Box);
-	}
-
-	void FIntersections::Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx, const EPCGExCutType Type)
-	{
-		Cuts.Emplace(Position, Normal, Index, Idx, Type);
 	}
 
 	FPointBox::FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion)
@@ -104,7 +44,7 @@ namespace PCGExMath
 		Sample(Point.GetTransform().GetLocation(), OutSample);
 	}
 
-	bool FPointBox::ProcessIntersections(FIntersections* InIntersections, const int32 Idx) const
+	bool FPointBox::ProcessIntersections(OBB::FIntersections* InIntersections, const int32 Idx) const
 	{
 		FVector OutIntersection1 = FVector::ZeroVector;
 		FVector OutIntersection2 = FVector::ZeroVector;
@@ -112,30 +52,30 @@ namespace PCGExMath
 		FVector OutHitNormal2 = FVector::ZeroVector;
 		bool bIsIntersection2Valid = false;
 		bool bInverseDir = false;
-		if (SegmentIntersection(InIntersections->StartPosition, InIntersections->EndPosition, OutIntersection1, OutIntersection2, bIsIntersection2Valid, OutHitNormal1, OutHitNormal2, bInverseDir))
+		if (SegmentIntersection(InIntersections->Start, InIntersections->End, OutIntersection1, OutIntersection2, bIsIntersection2Valid, OutHitNormal1, OutHitNormal2, bInverseDir))
 		{
 			if (bInverseDir)
 			{
 				if (bIsIntersection2Valid)
 				{
-					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::Exit);
-					InIntersections->Insert(OutIntersection2, OutHitNormal2, Index, Idx, EPCGExCutType::Entry);
+					InIntersections->Add(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::Exit);
+					InIntersections->Add(OutIntersection2, OutHitNormal2, Index, Idx, EPCGExCutType::Entry);
 				}
 				else
 				{
-					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::ExitNoEntry);
+					InIntersections->Add(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::ExitNoEntry);
 				}
 			}
 			else
 			{
 				if (bIsIntersection2Valid)
 				{
-					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::Entry);
-					InIntersections->Insert(OutIntersection2, OutHitNormal2, Index, Idx, EPCGExCutType::Exit);
+					InIntersections->Add(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::Entry);
+					InIntersections->Add(OutIntersection2, OutHitNormal2, Index, Idx, EPCGExCutType::Exit);
 				}
 				else
 				{
-					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::EntryNoExit);
+					InIntersections->Add(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::EntryNoExit);
 				}
 			}
 
@@ -236,9 +176,9 @@ namespace PCGExMath
 		}
 	}
 
-	bool FBoundsCloud::FindIntersections(FIntersections* InIntersections) const
+	bool FBoundsCloud::FindIntersections(OBB::FIntersections* InIntersections) const
 	{
-		const FBoxCenterAndExtent BCAE = InIntersections->GetBoxCenterAndExtent();
+		const FBoxCenterAndExtent BCAE = InIntersections->GetBounds();
 		Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox) { NearbyBox->ProcessIntersections(InIntersections, Idx); });
 		return !InIntersections->Cuts.IsEmpty();
 	}

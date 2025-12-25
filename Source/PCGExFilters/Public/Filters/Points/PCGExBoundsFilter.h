@@ -8,27 +8,29 @@
 #include "UObject/Object.h"
 
 #include "Core/PCGExPointFilter.h"
-
-
 #include "Math/PCGExBoundsCloud.h"
 
-
 #include "PCGExBoundsFilter.generated.h"
+
+namespace PCGExMath::OBB
+{
+	class FCollection;
+}
 
 UENUM()
 enum class EPCGExBoundsCheckType : uint8
 {
-	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Intersects"),
-	IsInside             = 1 UMETA(DisplayName = "Is Inside", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside"),
-	IsInsideOrOn         = 2 UMETA(DisplayName = "Is Inside or On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Is Inside or On"),
-	IsInsideOrIntersects = 3 UMETA(DisplayName = "Is Inside or Intersects", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Is Inside or Intersects"),
+	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="Point's OBB overlaps target OBBs"),
+	IsInside             = 1 UMETA(DisplayName = "Is Inside", Tooltip="Point center is inside target OBBs"),
+	IsInsideOrOn         = 2 UMETA(DisplayName = "Is Inside or On", Tooltip="Point center is inside or on boundary of target OBBs"),
+	IsInsideOrIntersects = 3 UMETA(DisplayName = "Is Inside or Intersects", Tooltip="Point center inside OR point's OBB overlaps target OBBs."),
 };
 
 UENUM()
 enum class EPCGExBoundsFilterCompareMode : uint8
 {
-	PerPointBounds   = 0 UMETA(DisplayName = "Per Point Bounds", Tooltip="..."),
-	CollectionBounds = 1 UMETA(DisplayName = "Collection Bounds", Tooltip="..."),
+	PerPointBounds   = 0 UMETA(DisplayName = "Per Point Bounds", Tooltip="Test each point individually"),
+	CollectionBounds = 1 UMETA(DisplayName = "Collection Bounds", Tooltip="Test using collection's combined bounds"),
 };
 
 USTRUCT(BlueprintType)
@@ -36,27 +38,25 @@ struct FPCGExBoundsFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExBoundsFilterConfig()
-	{
-	}
+	FPCGExBoundsFilterConfig() {}
 
-	/** Bounds to use on input points. */
+	/** How to compare bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBoundsFilterCompareMode Mode = EPCGExBoundsFilterCompareMode::PerPointBounds;
 
-	/** Bounds to use on input points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
-
-	/** Bounds to use on input bounds. */
+	/** Bounds to use on target bounds data. (Those are the bounds connected to the filter) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
 
-	/** */
+	/** Type of bounds check to perform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Intersects;
 
-	/** Defines against what type of shape (extrapolated from target bounds) is tested against. */
+	/** Bounds to use on input points (the points being filtered). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CheckType == EPCGExBoundsCheckType::Intersects || CheckType == EPCGExBoundsCheckType::IsInsideOrIntersects", EditConditionHides))
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+	
+	/** Shape type for testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBoxCheckMode TestMode = EPCGExBoxCheckMode::Box;
 
@@ -64,21 +64,20 @@ struct FPCGExBoundsFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestMode == EPCGExBoxCheckMode::ExpandedBox || TestMode == EPCGExBoxCheckMode::ExpandedSphere", EditConditionHides))
 	double Expansion = 10;
 
-	/** If enabled, invert the result of the test */
+	/** If enabled, invert the result of the test. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	/** If enabled, a collection will never be tested against itself */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/** If enabled, a collection will never be tested against itself. */
 	bool bIgnoreSelf = false;
 
-	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
+	/** If enabled, uses collection bounds as a single proxy point instead of per-point testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bCheckAgainstDataBounds = false;
 };
 
 /**
- * 
+ * Factory for bounds-based point filters.
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
 class UPCGExBoundsFilterFactory : public UPCGExPointFilterFactoryData
@@ -90,7 +89,7 @@ public:
 	FPCGExBoundsFilterConfig Config;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
-	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;
+	TArray<TSharedPtr<PCGExMath::OBB::FCollection>> Collections;
 
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override { return true; }
@@ -111,31 +110,32 @@ namespace PCGExPointFilter
 		explicit FBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
 			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Clouds = &TypedFilterFactory->Clouds;
-			bIgnoreSelf = TypedFilterFactory->Config.bIgnoreSelf;
 		}
 
 		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
-		const TArray<TSharedPtr<PCGExMath::FBoundsCloud>>* Clouds = nullptr;
-
-		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
-		bool bIgnoreSelf = false;
-		bool bCheckAgainstDataBounds = false;
-
-		using BoundCheckProxyCallback = std::function<bool(const PCGExData::FProxyPoint&)>;
-		BoundCheckProxyCallback BoundCheckProxy;
-
-		using BoundCheckCallback = std::function<bool(const PCGExData::FConstPoint&)>;
-		BoundCheckCallback BoundCheck;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool Test(const PCGExData::FProxyPoint& Point) const override { return BoundCheckProxy(Point); }
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 
-		virtual ~FBoundsFilter() override
-		{
-		}
+		virtual ~FBoundsFilter() override = default;
+
+	private:
+		// Cached config
+		const TArray<TSharedPtr<PCGExMath::OBB::FCollection>>* Collections = nullptr;
+		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+		EPCGExBoundsCheckType CheckType = EPCGExBoundsCheckType::Intersects;
+		EPCGExBoxCheckMode CheckMode = EPCGExBoxCheckMode::Box;
+		float Expansion = 0.0f;
+		bool bInvert = false;
+		bool bIgnoreSelf = false;
+		bool bCheckAgainstDataBounds = false;
+		bool bCollectionTestResult = false;
+		bool bUseCollectionBounds = false;
+
+		// Core test implementation
+		bool TestPoint(const FVector& Position, const FTransform& Transform, const FBox& LocalBox) const;
 	};
 }
 
@@ -147,7 +147,6 @@ class UPCGExBoundsFilterProviderSettings : public UPCGExFilterProviderSettings
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BoundsFilterFactory, "Filter : Inclusion (Bounds)", "Creates a filter definition that compares dot value of two vectors.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
@@ -157,10 +156,9 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	//~End UPCGSettings
 
 public:
-	/** Filter Config.*/
+	/** Filter Config. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExBoundsFilterConfig Config;
 

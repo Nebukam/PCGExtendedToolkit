@@ -58,7 +58,7 @@ namespace PCGExData
 				break;
 			}
 		}
-	} // namespace SubSelectionFunctions
+	}
 
 	/**
 	 * TSubSelectorOpsImpl<T> - Per-type implementation of ISubSelectorOps
@@ -295,4 +295,4 @@ namespace PCGExData
 	{
 		return &TSubSelectorOpsImpl<T>::GetInstance();
 	}
-} // namespace PCGEx
+}

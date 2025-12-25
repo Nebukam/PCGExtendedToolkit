@@ -7,6 +7,7 @@
 #include "PCGExOctree.h"
 #include "Math/PCGExMathBounds.h"
 #include "PCGExMath.h"
+#include "OBB/PCGExOBBIntersections.h"
 
 #include "PCGExBoundsCloud.generated.h"
 
@@ -21,30 +22,8 @@ enum class EPCGExBoxCheckMode : uint8
 	ExpandedSphere = 3 UMETA(DisplayName = "Expanded Sphere", Tooltip="A Sphere which radius is defined by the bound' extents size, expanded by an amount"),
 };
 
-UENUM()
-enum class EPCGExCutType : uint8
-{
-	Undefined   = 0 UMETA(DisplayName = "Undefined"),
-	Entry       = 1 UMETA(DisplayName = "Entry"),
-	EntryNoExit = 2 UMETA(DisplayName = "Entry (no exit)"),
-	Exit        = 3 UMETA(DisplayName = "Exit"),
-	ExitNoEntry = 4 UMETA(DisplayName = "Exit (no entry)"),
-};
-
 namespace PCGExMath
 {
-	struct PCGEXCORE_API FCut
-	{
-		FVector Position = FVector::ZeroVector;
-		FVector Normal = FVector::ZeroVector;
-		int32 BoxIndex = -1;
-		int32 Idx = -1;
-		EPCGExCutType Type = EPCGExCutType::Undefined;
-
-		FCut() = default;
-		FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx, const EPCGExCutType InType = EPCGExCutType::Undefined);
-	};
-
 	struct PCGEXCORE_API FSample
 	{
 		FVector Distances = FVector::ZeroVector;
@@ -55,24 +34,6 @@ namespace PCGExMath
 
 		FSample() = default;
 		FSample(const FVector& InDistances, const int32 InBoxIndex, const bool IsInside);
-	};
-
-	struct PCGEXCORE_API FIntersections
-	{
-		TArray<FCut> Cuts;
-		FVector StartPosition = FVector::ZeroVector;
-		FVector EndPosition = FVector::ZeroVector;
-
-		FIntersections(const FVector& InStartPosition, const FVector& InEndPosition);
-
-		bool IsEmpty() const;
-
-		void Sort();
-		void SortAndDedupe();
-
-		FBoxCenterAndExtent GetBoxCenterAndExtent() const;
-
-		void Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx = -1, const EPCGExCutType Type = EPCGExCutType::Undefined);
 	};
 
 	struct PCGEXCORE_API FPointBox
@@ -282,7 +243,7 @@ namespace PCGExMath
 
 #pragma region Intersections
 
-		bool ProcessIntersections(FIntersections* InIntersections, const int32 Idx = -1) const;
+		bool ProcessIntersections(OBB::FIntersections* InIntersections, const int32 Idx = -1) const;
 		bool SegmentIntersection(const FVector& Start, const FVector& End, FVector& OutIntersection1, FVector& OutIntersection2, bool& bIsI2Valid, FVector& OutHitNormal1, FVector& OutHitNormal2, bool& bInverseDir) const;
 
 
@@ -308,7 +269,7 @@ namespace PCGExMath
 
 		~FBoundsCloud() = default;
 
-		bool FindIntersections(FIntersections* InIntersections) const;
+		bool FindIntersections(OBB::FIntersections* InIntersections) const;
 
 #pragma region Position checks
 

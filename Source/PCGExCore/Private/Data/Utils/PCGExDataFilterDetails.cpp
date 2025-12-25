@@ -3,6 +3,7 @@
 
 #include "Data/Utils/PCGExDataFilterDetails.h"
 
+#include "Algo/RemoveIf.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGExArrayHelpers.h"
@@ -126,10 +127,12 @@ void FPCGExCarryOverDetails::Prune(TSet<FString>& InValues) const
 void FPCGExCarryOverDetails::Prune(TArray<FString>& InValues) const
 {
 	if (Tags.FilterMode == EPCGExAttributeFilter::All) { return; }
-
-	int32 WriteIndex = 0;
-	for (int32 i = 0; i < InValues.Num(); i++) { if (Tags.Test(InValues[i])) { InValues[WriteIndex++] = InValues[i]; } }
-	InValues.SetNum(WriteIndex);
+	InValues.SetNum(Algo::StableRemoveIf(
+		InValues,
+		[&](const FString& Value)
+		{
+			return Tags.Test(Value);
+		}));
 }
 
 void FPCGExCarryOverDetails::Prune(const PCGExData::FPointIO* PointIO) const
@@ -141,10 +144,12 @@ void FPCGExCarryOverDetails::Prune(const PCGExData::FPointIO* PointIO) const
 void FPCGExCarryOverDetails::Prune(TArray<PCGExData::FAttributeIdentity>& Identities) const
 {
 	if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return; }
-
-	int32 WriteIndex = 0;
-	for (int32 i = 0; i < Identities.Num(); i++) { if (Attributes.Test(Identities[i].Identifier.Name.ToString())) { Identities[WriteIndex++] = Identities[i]; } }
-	Identities.SetNum(WriteIndex);
+	Identities.SetNum(Algo::StableRemoveIf(
+		Identities,
+		[&](const PCGExData::FAttributeIdentity& Identity)
+		{
+			return Attributes.Test(Identity.Identifier.Name.ToString());
+		}));
 }
 
 void FPCGExCarryOverDetails::Prune(PCGExData::FTags* InTags) const

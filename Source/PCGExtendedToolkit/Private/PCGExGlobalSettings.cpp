@@ -98,7 +98,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_COLOR(PartitionRule)
 	
 #endif
-
+	
 #pragma endregion
 
 #pragma region Blending
