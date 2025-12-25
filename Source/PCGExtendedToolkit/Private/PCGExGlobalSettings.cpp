@@ -86,6 +86,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_COLOR(HeuristicsAttribute)
 	PCGEX_PUSH_COLOR(HeuristicsFeedback)
 	PCGEX_PUSH_COLOR(Probe)
+	PCGEX_CORE_SETTINGS.ColorsMap.Add(FName("PointState"), ColorClusterState);
 	PCGEX_PUSH_COLOR(ClusterState)
 	PCGEX_PUSH_COLOR(Picker)
 	PCGEX_PUSH_COLOR(TexParam)
