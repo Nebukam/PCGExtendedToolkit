@@ -10,6 +10,7 @@
 #include "PCGExTypeOpsRotation.h"
 #include "PCGExTypeOpsString.h"
 #include "PCGExTypeTraits.h"
+#include "Details/PCGExMacros.h"
 
 namespace PCGExTypeOps
 {
@@ -63,82 +64,28 @@ namespace PCGExTypeOps
 		{
 			const T& Src = *static_cast<const T*>(SrcValue);
 
+#define PCGEX_TPL(_TYPE, _NAME, ...) case EPCGMetadataTypes::_NAME: *static_cast<_TYPE*>(OutValue) = TypeOps::template ConvertTo<_TYPE>(Src); break;
 			switch (TargetType)
 			{
-			case EPCGMetadataTypes::Boolean: *static_cast<bool*>(OutValue) = TypeOps::template ConvertTo<bool>(Src);
-				break;
-			case EPCGMetadataTypes::Integer32: *static_cast<int32*>(OutValue) = TypeOps::template ConvertTo<int32>(Src);
-				break;
-			case EPCGMetadataTypes::Integer64: *static_cast<int64*>(OutValue) = TypeOps::template ConvertTo<int64>(Src);
-				break;
-			case EPCGMetadataTypes::Float: *static_cast<float*>(OutValue) = TypeOps::template ConvertTo<float>(Src);
-				break;
-			case EPCGMetadataTypes::Double: *static_cast<double*>(OutValue) = TypeOps::template ConvertTo<double>(Src);
-				break;
-			case EPCGMetadataTypes::Vector2: *static_cast<FVector2D*>(OutValue) = TypeOps::template ConvertTo<FVector2D>(Src);
-				break;
-			case EPCGMetadataTypes::Vector: *static_cast<FVector*>(OutValue) = TypeOps::template ConvertTo<FVector>(Src);
-				break;
-			case EPCGMetadataTypes::Vector4: *static_cast<FVector4*>(OutValue) = TypeOps::template ConvertTo<FVector4>(Src);
-				break;
-			case EPCGMetadataTypes::Quaternion: *static_cast<FQuat*>(OutValue) = TypeOps::template ConvertTo<FQuat>(Src);
-				break;
-			case EPCGMetadataTypes::Rotator: *static_cast<FRotator*>(OutValue) = TypeOps::template ConvertTo<FRotator>(Src);
-				break;
-			case EPCGMetadataTypes::Transform: *static_cast<FTransform*>(OutValue) = TypeOps::template ConvertTo<FTransform>(Src);
-				break;
-			case EPCGMetadataTypes::String: *static_cast<FString*>(OutValue) = TypeOps::template ConvertTo<FString>(Src);
-				break;
-			case EPCGMetadataTypes::Name: *static_cast<FName*>(OutValue) = TypeOps::template ConvertTo<FName>(Src);
-				break;
-			case EPCGMetadataTypes::SoftObjectPath: *static_cast<FSoftObjectPath*>(OutValue) = TypeOps::template ConvertTo<FSoftObjectPath>(Src);
-				break;
-			case EPCGMetadataTypes::SoftClassPath: *static_cast<FSoftClassPath*>(OutValue) = TypeOps::template ConvertTo<FSoftClassPath>(Src);
-				break;
+				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 			default: SetDefault(OutValue);
 				break;
-			}
+			}			
+#undef PCGEX_TPL
 		}
 
 		virtual void ConvertFrom(EPCGMetadataTypes SrcType, const void* SrcValue, void* OutValue) const override
 		{
 			T& Dst = *static_cast<T*>(OutValue);
 
+#define PCGEX_TPL(_TYPE, _NAME, ...) case EPCGMetadataTypes::_NAME: Dst = TypeOps::template ConvertFrom<_TYPE>(*static_cast<const _TYPE*>(SrcValue)); break;
 			switch (SrcType)
 			{
-			case EPCGMetadataTypes::Boolean: Dst = TypeOps::template ConvertFrom<bool>(*static_cast<const bool*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Integer32: Dst = TypeOps::template ConvertFrom<int32>(*static_cast<const int32*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Integer64: Dst = TypeOps::template ConvertFrom<int64>(*static_cast<const int64*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Float: Dst = TypeOps::template ConvertFrom<float>(*static_cast<const float*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Double: Dst = TypeOps::template ConvertFrom<double>(*static_cast<const double*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Vector2: Dst = TypeOps::template ConvertFrom<FVector2D>(*static_cast<const FVector2D*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Vector: Dst = TypeOps::template ConvertFrom<FVector>(*static_cast<const FVector*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Vector4: Dst = TypeOps::template ConvertFrom<FVector4>(*static_cast<const FVector4*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Quaternion: Dst = TypeOps::template ConvertFrom<FQuat>(*static_cast<const FQuat*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Rotator: Dst = TypeOps::template ConvertFrom<FRotator>(*static_cast<const FRotator*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Transform: Dst = TypeOps::template ConvertFrom<FTransform>(*static_cast<const FTransform*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::String: Dst = TypeOps::template ConvertFrom<FString>(*static_cast<const FString*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::Name: Dst = TypeOps::template ConvertFrom<FName>(*static_cast<const FName*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::SoftObjectPath: Dst = TypeOps::template ConvertFrom<FSoftObjectPath>(*static_cast<const FSoftObjectPath*>(SrcValue));
-				break;
-			case EPCGMetadataTypes::SoftClassPath: Dst = TypeOps::template ConvertFrom<FSoftClassPath>(*static_cast<const FSoftClassPath*>(SrcValue));
-				break;
+				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 			default: Dst = T();
 				break;
 			}
+#undef PCGEX_TPL
 		}
 
 		//Blend Operations
