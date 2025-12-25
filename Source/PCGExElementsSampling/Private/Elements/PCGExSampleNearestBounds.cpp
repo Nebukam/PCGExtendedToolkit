@@ -103,14 +103,11 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	{
-		PCGExAsyncHelpers::FBatchScope CollectionBuildingTasks(Context->NumMaxTargets);
-
+		PCGExAsyncHelpers::FAsyncExecutionScope CollectionBuildingTasks(Context->NumMaxTargets);
 		Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
 		{
 			// Build OBB collection from facade data
-			const TSharedPtr<PCGExData::FFacade> Facade = Preloader.GetDataFacade();
-
-
+			auto Facade = Preloader.GetDataFacade();
 			auto Collection = MakeShared<PCGExMath::OBB::FCollection>();
 			Collection->CloudIndex = Context->Collections.Num();
 			Context->Collections.Add(Collection);
@@ -119,19 +116,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 				[CtxHandle = Context->GetOrCreateHandle(), Collection, Facade, BoundsSource = Settings->BoundsSource]()
 				{
 					PCGEX_SHARED_CONTEXT_VOID(CtxHandle);
-
-					const int32 NumPoints = Facade->GetNum();
-					Collection->Reserve(NumPoints);
-
-					for (int32 i = 0; i < NumPoints; i++)
-					{
-						const PCGExData::FConstPoint Point = Facade->Source->GetInPoint(i);
-						const FTransform Transform = Point.GetTransform();
-						const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource);
-						Collection->Add(Transform, LocalBox, i);
-					}
-
-					Collection->BuildOctree();
+					Collection->BuildFrom(Facade->Source, BoundsSource);
 				});
 
 			PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);

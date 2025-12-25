@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGExMath.h"
+#include "PCGExMathBounds.generated.h"
 
 class UPCGBasePointData;
 
@@ -24,6 +25,15 @@ namespace PCGExData
 	template <typename T>
 	class TBuffer;
 }
+
+UENUM()
+enum class EPCGExBoxCheckMode : uint8
+{
+	Box            = 0 UMETA(DisplayName = "Box", Tooltip="A box"),
+	ExpandedBox    = 1 UMETA(DisplayName = "Expanded Box", Tooltip="A box expanded by an amount"),
+	Sphere         = 2 UMETA(DisplayName = "Sphere", Tooltip="Sphere which radius is defined by the bounds' extents size"),
+	ExpandedSphere = 3 UMETA(DisplayName = "Expanded Sphere", Tooltip="A Sphere which radius is defined by the bound' extents size, expanded by an amount"),
+};
 
 namespace PCGExMath
 {

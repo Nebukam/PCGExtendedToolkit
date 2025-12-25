@@ -9,6 +9,11 @@
 #include "PCGExOBBIntersections.h"
 #include "PCGExOctree.h"
 
+namespace PCGExData
+{
+	class FPointIO;
+}
+
 namespace PCGExMath::OBB
 {
 	/**
@@ -44,6 +49,8 @@ namespace PCGExMath::OBB
 		void BuildOctree();
 
 		void Reset();
+		
+		void BuildFrom(const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExPointBoundsSource BoundsSource);
 
 		FORCEINLINE int32 Num() const { return Bounds.Num(); }
 		FORCEINLINE bool IsEmpty() const { return Bounds.IsEmpty(); }

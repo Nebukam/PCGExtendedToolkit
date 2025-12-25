@@ -9,21 +9,21 @@
 
 namespace PCGExAsyncHelpers
 {
-	struct FBatchScope
+	struct FAsyncExecutionScope
 	{
 		FGraphEventArray Tasks;
 
 		// No copy
-		FBatchScope(const FBatchScope&) = delete;
-		FBatchScope& operator=(const FBatchScope&) = delete;
+		FAsyncExecutionScope(const FAsyncExecutionScope&) = delete;
+		FAsyncExecutionScope& operator=(const FAsyncExecutionScope&) = delete;
     
 		// No move (moving while tasks reference this could be dangerous)
-		FBatchScope(FBatchScope&&) = delete;
-		FBatchScope& operator=(FBatchScope&&) = delete;
+		FAsyncExecutionScope(FAsyncExecutionScope&&) = delete;
+		FAsyncExecutionScope& operator=(FAsyncExecutionScope&&) = delete;
 
-		explicit FBatchScope(int32 Reserve = 0) { Tasks.Reserve(Reserve); }
+		explicit FAsyncExecutionScope(int32 Reserve = 0) { Tasks.Reserve(Reserve); }
     
-		~FBatchScope()
+		~FAsyncExecutionScope()
 		{
 			if (Tasks.Num() > 0)
 			{
