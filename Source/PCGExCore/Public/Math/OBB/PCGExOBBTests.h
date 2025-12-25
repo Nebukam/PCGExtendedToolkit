@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOBB.h"
-#include "Math/PCGExBoundsCloud.h"
+#include "Math/PCGExMathBounds.h"
 
 namespace PCGExMath::OBB
 {

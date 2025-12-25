@@ -8,7 +8,7 @@
 #include "UObject/Object.h"
 
 #include "Core/PCGExPointFilter.h"
-#include "Math/PCGExBoundsCloud.h"
+#include "Math/PCGExMathBounds.h"
 
 #include "PCGExBoundsFilter.generated.h"
 

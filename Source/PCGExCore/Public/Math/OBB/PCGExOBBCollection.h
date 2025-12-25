@@ -4,10 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "PCGExOBB.h"
 #include "PCGExOBBTests.h"
 #include "PCGExOBBIntersections.h"
 #include "PCGExOctree.h"
+#include "Math/PCGExMathBounds.h"
 
 namespace PCGExData
 {

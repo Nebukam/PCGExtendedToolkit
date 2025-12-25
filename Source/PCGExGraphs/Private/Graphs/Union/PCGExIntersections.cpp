@@ -7,7 +7,6 @@
 #include "Details/PCGExIntersectionDetails.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExMetadataBlender.h"
-#include "Math/PCGExBoundsCloud.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExEdge.h"
 #include "Data/PCGExData.h"
@@ -15,6 +14,7 @@
 #include "Data/Utils/PCGExDataForward.h"
 #include "Graphs/PCGExGraph.h"
 #include "Graphs/PCGExGraphMetadata.h"
+#include "Math/PCGExMath.h"
 
 namespace PCGExGraphs
 {
