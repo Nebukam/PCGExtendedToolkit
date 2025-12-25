@@ -115,7 +115,7 @@ namespace PCGExMath::OBB
 	// OBB Factory - single place for OBB construction
 	namespace Factory
 	{
-		inline PCGEXCORE_API FOBB FromTransform(const FTransform& Transform, const FBox& LocalBox, int32 Index)
+		FORCEINLINE FOBB FromTransform(const FTransform& Transform, const FBox& LocalBox, int32 Index)
 		{
 			const FVector LocalCenter = LocalBox.GetCenter();
 			const FQuat Rotation = Transform.GetRotation();
@@ -128,7 +128,7 @@ namespace PCGExMath::OBB
 			);
 		}
 
-		inline PCGEXCORE_API FOBB FromTransform(const FTransform& Transform, const FVector& HalfExtents, int32 Index)
+		FORCEINLINE FOBB FromTransform(const FTransform& Transform, const FVector& HalfExtents, int32 Index)
 		{
 			return FOBB(
 				FBounds(Transform.GetLocation(), HalfExtents, Index),
@@ -136,7 +136,7 @@ namespace PCGExMath::OBB
 			);
 		}
 
-		inline PCGEXCORE_API FOBB FromAABB(const FBox& WorldBox, int32 Index)
+		FORCEINLINE FOBB FromAABB(const FBox& WorldBox, int32 Index)
 		{
 			return FOBB(
 				FBounds(WorldBox.GetCenter(), WorldBox.GetExtent(), Index),
@@ -144,7 +144,7 @@ namespace PCGExMath::OBB
 			);
 		}
 
-		inline PCGEXCORE_API FOBB Expanded(const FOBB& Source, float Expansion)
+		FORCEINLINE FOBB Expanded(const FOBB& Source, float Expansion)
 		{
 			FBounds NewBounds = Source.Bounds;
 			NewBounds.HalfExtents += FVector(Expansion);

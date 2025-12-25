@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOBB.h"
-
+#include "Math/GenericOctree.h"
 
 #include "PCGExOBBIntersections.generated.h"
 
