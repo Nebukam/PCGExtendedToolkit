@@ -207,7 +207,7 @@ namespace PCGExBoundsPathIntersection
 
 			TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->Source->GetIn()->GetConstTransformValueRange();
 
-			const TSharedPtr<PCGExMath::FIntersections> LocalIntersections = MakeShared<PCGExMath::FIntersections>(InTransforms[Index].GetLocation(), InTransforms[NextIndex].GetLocation());
+			const TSharedPtr<PCGExMath::OBB::FIntersections> LocalIntersections = MakeShared<PCGExMath::OBB::FIntersections>(InTransforms[Index].GetLocation(), InTransforms[NextIndex].GetLocation());
 
 			// For each cloud...
 			Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 InTargetIndex)
@@ -231,7 +231,7 @@ namespace PCGExBoundsPathIntersection
 		{
 			StartIndices[i] = WriteIndex++;
 
-			TSharedPtr<PCGExMath::FIntersections> LocalIntersection = Intersections[i];
+			TSharedPtr<PCGExMath::OBB::FIntersections> LocalIntersection = Intersections[i];
 
 			if (!LocalIntersection) { continue; }
 
@@ -283,7 +283,7 @@ namespace PCGExBoundsPathIntersection
 			OutMetadataEntries[WriteIndex] = ParentKey;
 			WriteIndex++;
 
-			TSharedPtr<PCGExMath::FIntersections> LocalIntersection = Intersections[i];
+			TSharedPtr<PCGExMath::OBB::FIntersections> LocalIntersection = Intersections[i];
 
 			if (!LocalIntersection) { continue; }
 
@@ -328,7 +328,7 @@ namespace PCGExBoundsPathIntersection
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			TSharedPtr<PCGExMath::FIntersections> LocalIntersection = Intersections[Index];
+			TSharedPtr<PCGExMath::OBB::FIntersections> LocalIntersection = Intersections[Index];
 			if (!LocalIntersection) { continue; }
 
 			int32 NextIndex = Index + 1;
@@ -347,7 +347,7 @@ namespace PCGExBoundsPathIntersection
 			const int32 CutsNum = LocalIntersection->Cuts.Num();
 			for (int j = 0; j < CutsNum; j++)
 			{
-				const PCGExMath::FCut& Cut = LocalIntersection->Cuts[j];
+				const PCGExMath::OBB::FCut& Cut = LocalIntersection->Cuts[j];
 				const int32 CutIndex = StartIndex + j + 1;
 
 				Metrics.Add(Cut.Position);

@@ -319,4 +319,4 @@ namespace PCGExData
 		Selector.SetAttributeName(AttributeName);
 		return TryGetTypeAndSource(Selector, InDataFacade, OutType, InOutSource);
 	}
-} // namespace PCGEx
+}

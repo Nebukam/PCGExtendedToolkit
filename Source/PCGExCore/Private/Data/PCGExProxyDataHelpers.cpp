@@ -246,7 +246,7 @@ namespace PCGExData
 
 			return Proxy;
 		}
-	} // namespace Internal
+	}
 
 	template <typename T>
 	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant, EPCGMetadataTypes InWorkingType)

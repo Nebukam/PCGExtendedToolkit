@@ -61,7 +61,7 @@ void FPCGExBoxIntersectionDetails::Mark(const TSharedRef<PCGExData::FPointIO>& I
 #undef PCGEX_LOCAL_DETAIL_MARK
 }
 
-void FPCGExBoxIntersectionDetails::SetIntersection(const int32 PointIndex, const PCGExMath::FCut& InCut) const
+void FPCGExBoxIntersectionDetails::SetIntersection(const int32 PointIndex, const PCGExMath::OBB::FCut& InCut) const
 {
 	check(InCut.Idx != -1)
 	if (const TSharedPtr<PCGExData::FDataForwardHandler>& IntersectionForwardHandler = IntersectionForwardHandlers[InCut.Idx])

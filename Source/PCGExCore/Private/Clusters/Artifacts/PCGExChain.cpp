@@ -3,6 +3,7 @@
 
 #include "Clusters/Artifacts/PCGExChain.h"
 
+#include "Algo/RemoveIf.h"
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExCluster.h"
 
@@ -228,17 +229,14 @@ namespace PCGExClusters
 		TSet<uint64> UniqueHashSet;
 		UniqueHashSet.Reserve(Chains.Num());
 
-		int32 WriteIndex = 0;
-		for (int i = 0; i < Chains.Num(); i++)
-		{
-			const TSharedPtr<FNodeChain>& Chain = Chains[i];
-
-			bool bAlreadySet = false;
-			UniqueHashSet.Add(Chain->UniqueHash, &bAlreadySet);
-
-			if (!bAlreadySet) { Chains[WriteIndex++] = Chain; }
-		}
-
-		Chains.SetNum(WriteIndex);
+		Chains.SetNum(Algo::StableRemoveIf(
+			Chains,
+			[&UniqueHashSet](const TSharedPtr<FNodeChain>& Chain)
+			{
+				bool bAlreadySet = false;
+				UniqueHashSet.Add(Chain->UniqueHash, &bAlreadySet);
+				return bAlreadySet; // remove duplicates
+			}
+		));
 	}
 }

@@ -326,4 +326,4 @@ namespace PCGExData
 		static constexpr bool bSupportsComponentExtraction = false;
 		static constexpr int32 NumFields = 1;
 	};
-} // namespace PCGEx
+}

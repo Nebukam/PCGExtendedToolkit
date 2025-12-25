@@ -64,7 +64,7 @@ namespace PCGExData
 				Type == EPCGMetadataTypes::Rotator ||
 				Type == EPCGMetadataTypes::Transform;
 		}
-	} // namespace SubSelectionImpl
+	}
 
 	void FCachedSubSelection::Initialize(
 		const FSubSelection& Selection,
@@ -320,4 +320,4 @@ namespace PCGExData
 			if (InjectComponent) { InjectComponent(Target, Component, ComponentBuffer, ComponentType); }
 		}
 	}
-} // namespace PCGEx
+}

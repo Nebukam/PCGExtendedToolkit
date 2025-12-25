@@ -429,4 +429,4 @@ namespace PCGExData
 #undef PCGEX_TPL
 
 #pragma endregion
-} // namespace PCGExData
+}

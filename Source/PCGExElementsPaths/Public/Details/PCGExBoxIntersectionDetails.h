@@ -90,7 +90,7 @@ struct PCGEXELEMENTSPATHS_API FPCGExBoxIntersectionDetails
 	bool WillWriteAny() const;
 
 	void Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const;
-	void SetIntersection(const int32 PointIndex, const PCGExMath::FCut& InCut) const;
+	void SetIntersection(const int32 PointIndex, const PCGExMath::OBB::FCut& InCut) const;
 
 private:
 	TArray<TSharedPtr<PCGExData::FDataForwardHandler>> IntersectionForwardHandlers;
