@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
 #include "UObject/SoftObjectPath.h"
 #include "Details/PCGExMacros.h"
 
@@ -68,12 +69,12 @@ namespace PCGExData
 	// Constant proxy creation
 	//
 	template <typename T>
-	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant);
+	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant, EPCGMetadataTypes InWorkingType);
 
 #pragma region externalization GetConstantProxyBuffer
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-	extern template TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(const _TYPE& Constant);
+	extern template TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(const _TYPE& Constant, EPCGMetadataTypes InWorkingType);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
