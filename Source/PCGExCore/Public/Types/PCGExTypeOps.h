@@ -27,9 +27,7 @@ namespace PCGExTypeOps
 	/**
 	 * Single field selection identifiers
 	 */
-	PCGEXCORE_API
-
-	enum class ESingleField : uint8
+	enum class PCGEXCORE_API ESingleField : uint8
 	{
 		X             = 0,
 		Y             = 1,
@@ -44,9 +42,7 @@ namespace PCGExTypeOps
 	/**
 	 * Transform component parts
 	 */
-	PCGEXCORE_API
-
-	enum class ETransformPart : uint8
+	enum class PCGEXCORE_API ETransformPart : uint8
 	{
 		Position = 0,
 		Rotation = 1,
