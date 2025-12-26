@@ -10,6 +10,7 @@
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Sorting/PCGExSortingDetails.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"
 #define PCGEX_NAMESPACE ModularSortPoints
