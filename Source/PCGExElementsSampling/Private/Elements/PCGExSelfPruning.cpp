@@ -127,7 +127,6 @@ namespace PCGExSelfPruning
 			PCGEX_SHARED_CONTEXT(Context->GetOrCreateHandle())
 			if (Sorter->Init(Context))
 			{
-				// Use cached sorting for large point sets - eliminates virtual calls during comparison
 				if (TSharedPtr<PCGExSorting::FSortCache> Cache = Sorter->BuildCache(NumPoints))
 				{
 					Order.Sort([&](const int32 A, const int32 B) { return Cache->Compare(A, B); });
