@@ -72,8 +72,7 @@ namespace PCGExSorting
 
 	/**
 	 * Pre-cached sorting values for high-performance bulk sorting.
-	 * Eliminates virtual calls and type conversions during comparison by caching all values upfront.
-	 * 
+	 *  
 	 * Usage:
 	 *   auto Cache = Sorter->BuildCache(NumPoints);
 	 *   Order.Sort([&](int32 A, int32 B) { return Cache->Compare(A, B); });
