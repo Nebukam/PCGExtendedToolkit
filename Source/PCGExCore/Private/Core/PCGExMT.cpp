@@ -663,8 +663,13 @@ namespace PCGExMT
 			AssertEmptyThread();
 			return;
 		}
-
-		const int32 SanitizedChunk = FMath::Max(1, ChunkSize);
+		
+		const int32 SanitizedChunk =
+			FMath::Max(
+			ChunkSize > 128
+				? FMath::Max(ChunkSize, FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 2))
+				: FMath::Max(1, ChunkSize),
+				FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 4));
 
 		if (bForceSingleThreaded)
 		{
