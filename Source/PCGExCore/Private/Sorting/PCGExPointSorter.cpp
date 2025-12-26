@@ -218,4 +218,69 @@ namespace PCGExSorting
 		if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
 		return Result < 0;
 	}
+
+	TSharedPtr<FSortCache> FSorter::BuildCache(int32 NumElements) const
+	{
+		return FSortCache::Build(*this, NumElements);
+	}
+
+#pragma region FSortCache
+
+	TSharedPtr<FSortCache> FSortCache::Build(const FSorter& Sorter, int32 InNumElements)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FSortCache::Build);
+		
+		if (InNumElements <= 0 || Sorter.RuleHandlers.IsEmpty())
+		{
+			return nullptr;
+		}
+
+		TSharedPtr<FSortCache> Cache = MakeShared<FSortCache>();
+		Cache->NumElements = InNumElements;
+		Cache->bDescending = (Sorter.SortDirection == EPCGExSortDirection::Descending);
+
+		const int32 NumRules = Sorter.RuleHandlers.Num();
+		Cache->Rules.SetNum(NumRules);
+
+		// Collect buffer pointers for fast access in parallel loop
+		TArray<PCGExData::IBufferProxy*> Buffers;
+		Buffers.SetNum(NumRules);
+
+		// Initialize rule caches and collect buffers
+		for (int32 RuleIdx = 0; RuleIdx < NumRules; RuleIdx++)
+		{
+			const TSharedPtr<FRuleHandler>& Handler = Sorter.RuleHandlers[RuleIdx];
+			FRuleCache& RuleCache = Cache->Rules[RuleIdx];
+
+			RuleCache.Tolerance = Handler->Tolerance;
+			RuleCache.bInvertRule = Handler->bInvertRule;
+			RuleCache.Values.SetNumUninitialized(InNumElements);
+
+			Buffers[RuleIdx] = Handler->Buffer.Get();
+		}
+
+		// Get raw pointers to value arrays for capture
+		TArray<double*> ValueArrays;
+		ValueArrays.SetNum(NumRules);
+		for (int32 RuleIdx = 0; RuleIdx < NumRules; RuleIdx++)
+		{
+			ValueArrays[RuleIdx] = Cache->Rules[RuleIdx].Values.GetData();
+		}
+
+		// Single parallel pass - process all rules for each point
+		//const int32 MinBatchSize = FMath::Max(1024, InNumElements / (FPlatformMisc::NumberOfCoresIncludingHyperthreads() * 4));
+
+		PCGEX_PARALLEL_FOR(
+			InNumElements,
+			for (int32 RuleIdx = 0; RuleIdx < NumRules; RuleIdx++)
+			{
+			if (PCGExData::IBufferProxy* Buffer = Buffers[RuleIdx]) { ValueArrays[RuleIdx][i] = Buffer->ReadAsDouble(i); }
+			else { ValueArrays[RuleIdx][i] = 0.0; }
+			}
+		)
+
+		return Cache;
+	}
+
+#pragma endregion
 }
