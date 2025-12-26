@@ -157,13 +157,6 @@ namespace PCGExGraph
 				return ClosestNode.Index;
 			}
 
-			// Write lock ends
-		}
-
-		{
-			// Write lock start
-			FWriteScopeLock WriteScopeLock(UnionLock);
-
 			const TSharedPtr<FUnionNode> Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 			Octree->AddElement(Node.Get());
 			NodesUnion->NewEntry_Unsafe(Point);
@@ -236,19 +229,28 @@ namespace PCGExGraph
 
 		const uint64 H = PCGEx::H64U(Start, End);
 
-		if (const int32* ExistingEdge = EdgesMapShards.Find(H))
+		auto UpdateExistingUnion = [&](const int32* ExistingEdge)
 		{
 			EdgeUnion = EdgesUnion->Entries[*ExistingEdge];
-
-			// Abstract tracking to get valid union data
-			if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); }
+			if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); } // Abstract tracking to get valid union data
 			else { EdgeUnion->Add(Edge); }
+		};
+		
+		if (const int32* ExistingEdge = EdgesMapShards.Find(H))
+		{
+			UpdateExistingUnion(ExistingEdge);
 			return;
 		}
 
 		{
 			FWriteScopeLock WriteLockEdges(EdgesLock);
 
+			if (const int32* ExistingEdge = EdgesMapShards.Find(H))
+			{
+				UpdateExistingUnion(ExistingEdge);
+				return;
+			}
+			
 			EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
 			EdgesMapShards.Add(H, Edges.Emplace(Edges.Num(), Start, End));
 		}
