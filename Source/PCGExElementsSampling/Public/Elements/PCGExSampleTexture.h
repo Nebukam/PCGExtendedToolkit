@@ -7,6 +7,7 @@
 #include "PCGExFilterCommon.h"
 
 #include "Core/PCGExPointsProcessor.h"
+#include "Core/PCGExTexCommon.h"
 #include "Core/PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
@@ -142,7 +143,7 @@ namespace PCGExSampleTexture
 			FVector4 SampledValue = FVector4::Zero();
 			float SampledDensity = 1;
 
-			if (const UPCGBaseTextureData* Tex = this->TextureMap->TryGetTextureData(this->IDGetter->FetchSingle(Point, TEXT(""))); !Tex || !Tex->SamplePointLocal(UV, SampledValue, SampledDensity))
+			if (const UPCGBaseTextureData* Tex = TextureMap->TryGetTextureData(IDGetter->FetchSingle(Point, TEXT(""))); !Tex || !Tex->SamplePointLocal(UV, SampledValue, SampledDensity))
 			{
 				return false;
 			}

@@ -8,7 +8,7 @@ public class PCGExElementsSpatial : ModuleRules
 	public PCGExElementsSpatial(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = true;
+		bUseUnity = false;
 		//IWYUSupport = IWYUSupport.Full;
 		
 		PublicIncludePaths.AddRange(

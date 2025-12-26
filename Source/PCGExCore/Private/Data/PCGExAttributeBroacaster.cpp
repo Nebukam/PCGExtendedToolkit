@@ -13,6 +13,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Types/PCGExTypeOpsImpl.h"
+#include "Data/PCGExTaggedData.h"
 
 namespace PCGExData
 {

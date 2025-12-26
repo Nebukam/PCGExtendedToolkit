@@ -25,7 +25,7 @@ public class PCGExtendedToolkit : ModuleRules
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = true;
+		bUseUnity = false;
 
 		ConfigureBaseDependencies();
 
