@@ -88,8 +88,6 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-	void RegisterRedirectors();
-
 #if WITH_EDITOR
 	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle);
 

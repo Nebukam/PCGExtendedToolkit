@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExModuleInterface.h"
+#include "PCGExLegacyModuleInterface.h"
 #include "Modules/ModuleManager.h"
 
 
 
-class FPCGExCoreModule final : public IPCGExModuleInterface
+class FPCGExCoreModule final : public IPCGExLegacyModuleInterface
 {
 	PCGEX_MODULE_BODY
 

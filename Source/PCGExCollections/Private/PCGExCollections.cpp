@@ -12,12 +12,12 @@ void FPCGExCollectionsModule::StartupModule()
 	// We need this because the registry holds a reference to the collection ::StaticClass
 	// and it cannot be access during initialization so we defer it here.
 	PCGExAssetCollection::FTypeRegistry::ProcessPendingRegistrations();
-	IPCGExModuleInterface::StartupModule();
+	IPCGExLegacyModuleInterface::StartupModule();
 }
 
 void FPCGExCollectionsModule::ShutdownModule()
 {
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExLegacyModuleInterface::ShutdownModule();
 }
 
 #undef LOCTEXT_NAMESPACE

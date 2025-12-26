@@ -1,0 +1,88 @@
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Factories/PCGExFactories.h"
+#include "Core/PCGExPathProcessor.h"
+#include "Details/PCGExCCDetails.h"
+#include "Details/PCGExInputShorthandsDetails.h"
+#include "Details/PCGExSettingsMacros.h"
+#include "Paths/PCGExPath.h"
+
+#include "PCGExCavalierOffset.generated.h"
+
+namespace PCGExPaths
+{
+	class FPathEdgeHalfAngle;
+	class FPath;
+	struct FPathEdgeCrossings;
+}
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/offset"))
+class UPCGExCavalierOffsetSettings : public UPCGExPathProcessorSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS(PathOffset, "Cavalier : Offset", "Applies a cavalier offset to paths.");
+#endif
+
+protected:
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings
+
+	//~Begin UPCGExPointsProcessorSettings
+public:
+	//PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)
+	//~End UPCGExPointsProcessorSettings
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExCCOffsetOptions OffsetOptions;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExInputShorthandNameDouble Offset = FPCGExInputShorthandNameDouble(FName("@Data.Offset"), 10, false);
+	
+	PCGEX_SETTING_VALUE_DECL(Offset, double)
+
+};
+
+struct FPCGExCavalierOffsetContext final : FPCGExPathProcessorContext
+{
+	friend class FPCGExCavalierOffsetElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
+};
+
+class FPCGExCavalierOffsetElement final : public FPCGExPathProcessorElement
+{
+protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(CavalierOffset)
+
+	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
+};
+
+namespace PCGExCavalierOffset
+{
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCavalierOffsetContext, UPCGExCavalierOffsetSettings>
+	{
+		double OffsetValue = 1;
+
+	public:
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
+		{
+		}
+
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
+	};
+}

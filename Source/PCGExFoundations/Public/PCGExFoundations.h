@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExModuleInterface.h"
+#include "PCGExLegacyModuleInterface.h"
 
-
-
-class FPCGExFoundationsModule final : public IPCGExModuleInterface
+class FPCGExFoundationsModule final : public IPCGExLegacyModuleInterface
 {
 	PCGEX_MODULE_BODY
 
@@ -16,5 +14,4 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
 };

@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExModuleInterface.h"
+#include "PCGExLegacyModuleInterface.h"
 
-class FPCGExElementsTensorsModule final : public IPCGExModuleInterface
+class FPCGExElementsTensorsModule final : public IPCGExLegacyModuleInterface
 {
 	PCGEX_MODULE_BODY
 

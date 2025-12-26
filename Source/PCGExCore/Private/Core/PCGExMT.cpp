@@ -20,6 +20,19 @@
 
 namespace PCGExMT
 {
+	int32 GetSanitizedBatchSize(const int32 NumIterations, const int32 DesiredBatchSize)
+	{
+		const int32 NumCores = FPlatformMisc::NumberOfCores();
+		const int32 MaxChunkSize = FMath::DivideAndRoundUp(NumIterations, NumCores * 4);
+		const int32 MinChunkSize = FMath::DivideAndRoundUp(NumIterations, NumCores * 2);
+
+		const int32 BaseChunk = (DesiredBatchSize > 128)
+			                        ? FMath::Max(DesiredBatchSize, MinChunkSize)
+			                        : FMath::Max(1, DesiredBatchSize);
+
+		return FMath::Clamp(BaseChunk, 1, MaxChunkSize);
+	}
+
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 NumIterations, const int32 RangeSize)
 	{
 		OutSubRanges.Empty();
@@ -663,13 +676,8 @@ namespace PCGExMT
 			AssertEmptyThread();
 			return;
 		}
-		
-		const int32 SanitizedChunk =
-			FMath::Max(
-			ChunkSize > 128
-				? FMath::Max(ChunkSize, FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 2))
-				: FMath::Max(1, ChunkSize),
-				FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 4));
+
+		const int32 SanitizedChunk = GetSanitizedBatchSize(NumIterations, ChunkSize);
 
 		if (bForceSingleThreaded)
 		{
