@@ -354,9 +354,7 @@ namespace PCGExGraphs
 		FindEdgeEdgeGroup->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 		{
 			PCGEX_ASYNC_THIS
-			
-			TRACE_CPUPROFILER_EVENT_SCOPE(FindOverlappingEdges);
-			
+
 			int32& EENum_Ref = This->EENum;
 			TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
 
