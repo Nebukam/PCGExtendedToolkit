@@ -325,8 +325,8 @@ namespace PCGExTypeOps
 		}
 
 		// Blend operations - Quaternions require special handling
-		static FORCEINLINE Type Add(const Type& A, const Type& B) { return (A * B).GetNormalized(); }
-		static FORCEINLINE Type Sub(const Type& A, const Type& B) { return (A * B.Inverse()).GetNormalized(); }
+		static FORCEINLINE Type Add(const Type& A, const Type& B) { return FTypeOps<FRotator>::Add(A.Rotator(), B.Rotator()).Quaternion(); }
+		static FORCEINLINE Type Sub(const Type& A, const Type& B) { return FTypeOps<FRotator>::Sub(A.Rotator(), B.Rotator()).Quaternion(); }
 		static FORCEINLINE Type Mult(const Type& A, const Type& B) { return (A * B).GetNormalized(); }
 
 		static FORCEINLINE Type Div(const Type& A, double D)

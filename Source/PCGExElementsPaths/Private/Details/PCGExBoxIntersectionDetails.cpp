@@ -6,10 +6,10 @@
 #include "Async/ParallelFor.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExMetadataBlender.h"
-#include "Math/PCGExBoundsCloud.h"
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Helpers/PCGExTargetsHandler.h"
+#include "Math/OBB/PCGExOBBIntersections.h"
 
 
 FPCGExBoxIntersectionDetails::FPCGExBoxIntersectionDetails()

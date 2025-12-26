@@ -286,7 +286,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindEdgeMetadata_Unsafe(E.IOIndex);
 				if (const FGraphEdgeMetadata* RootEdgeMeta = EdgeMeta ? ParentGraph->FindEdgeMetadata_Unsafe(EdgeMeta->RootIndex) : nullptr)
 				{
-					if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(RootEdgeMeta->RootIndex); UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints, Trackers); }
+					if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(RootEdgeMeta->RootIndex); UnionBlender && UnionData)
+					{
+						UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints, Trackers);
+					}
 
 					// TODO : Add Sub-edge edge (is the result of a subdivision + merge)
 

@@ -251,18 +251,25 @@ namespace PCGExMT
 		explicit FTaskGroup(const FName InName);
 
 		template <typename T, typename... Args>
-		void StartRanges(const int32 MaxItems, const int32 ChunkSize, const bool bPrepareOnly, Args&&... InArgs)
+		void StartRanges(const int32 NumIterations, const int32 ChunkSize, const bool bPrepareOnly, Args&&... InArgs)
 		{
 			if (!IsAvailable()) { return; }
 
-			if (!MaxItems)
+			if (!NumIterations)
 			{
 				AssertEmptyThread();
 				return;
 			}
 
+			const int32 SanitizedChunk =
+				FMath::Max(
+					ChunkSize > 128
+						? FMath::Max(ChunkSize, FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 2))
+						: FMath::Max(1, ChunkSize),
+					FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 4));
+
 			TArray<FScope> Loops;
-			const int32 NumLoops = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
+			const int32 NumLoops = SubLoopScopes(Loops, NumIterations, FMath::Max(1, SanitizedChunk));
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 

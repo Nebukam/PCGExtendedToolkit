@@ -167,22 +167,10 @@ namespace PCGExGraphs
 
 	void FUnionProcessor::InternalStartExecution()
 	{
-		if (GraphBuilder->Graph->Edges.Num() <= 1)
-		{
-			CompileFinalGraph(); // Nothing to be found
-		}
-		else if (bDoPointEdge)
-		{
-			FindPointEdgeIntersections();
-		}
-		else if (bDoEdgeEdge)
-		{
-			FindEdgeEdgeIntersections();
-		}
-		else
-		{
-			CompileFinalGraph();
-		}
+		if (GraphBuilder->Graph->Edges.Num() <= 1) { CompileFinalGraph(); } // Nothing to be found
+		else if (bDoPointEdge) { FindPointEdgeIntersections(); }
+		else if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
+		else { CompileFinalGraph(); }
 	}
 
 	bool FUnionProcessor::Execute()
@@ -192,10 +180,7 @@ namespace PCGExGraphs
 		PCGEX_ON_ASYNC_STATE_READY(States::State_ProcessingPointEdgeIntersections)
 		{
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
-			else
-			{
-				CompileFinalGraph();
-			}
+			else { CompileFinalGraph(); }
 			return false;
 		}
 

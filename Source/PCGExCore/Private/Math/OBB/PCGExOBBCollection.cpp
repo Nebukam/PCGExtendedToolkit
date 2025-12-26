@@ -3,6 +3,8 @@
 
 #include "Math/OBB/PCGExOBBCollection.h"
 
+#include "Data/PCGExPointIO.h"
+
 namespace PCGExMath::OBB
 {
 	void FCollection::Reserve(int32 Count)
@@ -50,6 +52,22 @@ namespace PCGExMath::OBB
 		Orientations.Reset();
 		Octree.Reset();
 		WorldBounds = FBox(ForceInit);
+	}
+
+	void FCollection::BuildFrom(const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExPointBoundsSource BoundsSource)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMath::OBB::FCollection::BuildFrom);
+		
+		const int32 NumPoints = InIO->GetNum();
+		Reserve(NumPoints);
+
+		for (int32 i = 0; i < NumPoints; i++)
+		{
+			const PCGExData::FConstPoint Point = InIO->GetInPoint(i);
+			Add(Point.GetTransform(), GetLocalBounds(Point, BoundsSource), i);
+		}
+
+		BuildOctree();
 	}
 
 	bool FCollection::IsPointInside(const FVector& Point, const EPCGExBoxCheckMode Mode, const float Expansion) const

@@ -27,11 +27,6 @@
 #endif
 #pragma endregion
 
-namespace PCGExMath
-{
-	class FBoundsCloud;
-}
-
 struct FPCGExContext;
 
 namespace PCGExMT
@@ -339,7 +334,6 @@ extern template class TSingleValueBuffer<_TYPE>;
 	class PCGEXCORE_API FFacade : public TSharedFromThis<FFacade>
 	{
 		mutable FRWLock BufferLock;
-		mutable FRWLock CloudLock;
 
 	public:
 		int32 Idx = -1;
@@ -347,7 +341,6 @@ extern template class TSingleValueBuffer<_TYPE>;
 		TSharedRef<FPointIO> Source;
 		TArray<TSharedPtr<IBuffer>> Buffers;
 		TMap<uint64, TSharedPtr<IBuffer>> BufferMap;
-		TSharedPtr<PCGExMath::FBoundsCloud> Cloud;
 
 		TMap<FName, FName> WritableRemap; // TODO : Manage remapping in the facade directly to remove the need for dummy attributes
 
@@ -426,8 +419,6 @@ extern template class TSingleValueBuffer<_TYPE>;
 
 		template <typename T>
 		const FPCGMetadataAttribute<T>* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const;
-
-		TSharedPtr<PCGExMath::FBoundsCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
 
 		const UPCGBasePointData* GetData(const EIOSide InSide) const;
 		const UPCGBasePointData* GetIn() const;

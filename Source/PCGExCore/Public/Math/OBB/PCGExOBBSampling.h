@@ -17,7 +17,7 @@ namespace PCGExMath::OBB
 		int32 BoxIndex = -1;
 		bool bIsInside = false;
 
-		FSample() = default;
+		FORCEINLINE FSample(){};
 	};
 
 	// Sampling functions

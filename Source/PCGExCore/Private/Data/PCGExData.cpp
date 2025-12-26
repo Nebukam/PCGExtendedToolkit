@@ -14,7 +14,6 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Math/PCGExBoundsCloud.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Types/PCGExAttributeIdentity.h"
@@ -959,26 +958,13 @@ template PCGEXCORE_API const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAtt
 	}
 
 	FPCGMetadataAttributeBase* FFacade::FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const
-
 	{
 		return Source->FindMutableAttribute(InIdentifier, InSide);
 	}
 
 	const FPCGMetadataAttributeBase* FFacade::FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const
-
 	{
 		return Source->FindConstAttribute(InIdentifier, InSide);
-	}
-
-	TSharedPtr<PCGExMath::FBoundsCloud> FFacade::GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion)
-	{
-		FWriteScopeLock WriteScopeLock(CloudLock);
-
-		if (Cloud) { return Cloud; }
-
-		Cloud = MakeShared<PCGExMath::FBoundsCloud>(GetIn(), BoundsSource, Expansion);
-		Cloud->Idx = Idx;
-		return Cloud;
 	}
 
 	const UPCGBasePointData* FFacade::GetData(const EIOSide InSide) const { return Source->GetData(InSide); }

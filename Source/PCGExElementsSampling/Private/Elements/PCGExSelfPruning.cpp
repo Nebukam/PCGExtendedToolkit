@@ -3,14 +3,13 @@
 
 #include "Elements/PCGExSelfPruning.h"
 
-
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Math/PCGExMathBounds.h"
+#include "Math/OBB/PCGExOBBTests.h"
 #include "Sorting/PCGExPointSorter.h"
 #include "Sorting/PCGExSortingDetails.h"
 
@@ -113,13 +112,30 @@ namespace PCGExSelfPruning
 		Priority.SetNumUninitialized(NumPoints);
 		BoxSecondary.Init(FBox(NoInit), NumPoints);
 
+		// Allocate OBB arrays only when precise testing is enabled
+		if (Settings->bPreciseTest)
+		{
+			PrimaryOBBs.SetNumUninitialized(NumPoints);
+			SecondaryOBBs.SetNumUninitialized(NumPoints);
+		}
+
 		if (Settings->Mode == EPCGExSelfPruningMode::Prune)
 		{
 			TSharedPtr<PCGExSorting::FSorter> Sorter = MakeShared<PCGExSorting::FSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::Labels::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 
 			PCGEX_SHARED_CONTEXT(Context->GetOrCreateHandle())
-			if (Sorter->Init(Context)) { Order.Sort([&](const int32 A, const int32 B) { return Sorter->Sort(A, B); }); }
+			if (Sorter->Init(Context))
+			{
+				if (TSharedPtr<PCGExSorting::FSortCache> Cache = Sorter->BuildCache(NumPoints))
+				{
+					Order.Sort([&](const int32 A, const int32 B) { return Cache->Compare(A, B); });
+				}
+				else
+				{
+					Order.Sort([&](const int32 A, const int32 B) { return Sorter->Sort(A, B); });
+				}
+			}
 
 			if (Settings->bRandomize)
 			{
@@ -134,7 +150,9 @@ namespace PCGExSelfPruning
 
 		for (int32 i = 0; i < NumPoints; i++) { Priority[Order[i]] = i; }
 
-		bForceSingleThreadedProcessRange = Settings->Mode == EPCGExSelfPruningMode::Prune;
+		// Only force single-threaded for Prune mode (Mask is shared state)
+		// WriteResult mode can run in parallel since each candidate's overlap count is independent
+		bForceSingleThreadedProcessRange = (Settings->Mode == EPCGExSelfPruningMode::Prune);
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
@@ -156,14 +174,70 @@ namespace PCGExSelfPruning
 			Candidate.Overlaps = 0;
 		}
 
+		// Build BoxSecondary (world AABBs for octree pre-filtering)
 		switch (Settings->SecondaryMode)
 		{
-		case EPCGExSelfPruningExpandOrder::Before: PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).ExpandBy(SecondaryExpansion->Read(Index)).TransformBy(Transforms[Index]); }
+		case EPCGExSelfPruningExpandOrder::Before:
+			PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).ExpandBy(SecondaryExpansion->Read(Index)).TransformBy(Transforms[Index]); }
 			break;
-		case EPCGExSelfPruningExpandOrder::After: PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]).ExpandBy(SecondaryExpansion->Read(Index)); }
+		case EPCGExSelfPruningExpandOrder::After:
+			PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]).ExpandBy(SecondaryExpansion->Read(Index)); }
 			break;
-		default: case EPCGExSelfPruningExpandOrder::None: PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]); }
+		default:
+		case EPCGExSelfPruningExpandOrder::None:
+			PCGEX_SCOPE_LOOP(Index) { BoxSecondary[Index] = InData->GetLocalBounds(Index).TransformBy(Transforms[Index]); }
 			break;
+		}
+
+		// Build pre-computed OBBs for precise testing
+		if (Settings->bPreciseTest)
+		{
+			// Build Secondary OBBs
+			// Note: Both Before and After modes expand the local box for the OBB test
+			// (the Before/After distinction only affects the world AABB in BoxSecondary)
+			if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::None)
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					SecondaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
+						Transforms[Index],
+						InData->GetLocalBounds(Index),
+						Index);
+				}
+			}
+			else
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					SecondaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
+						Transforms[Index],
+						InData->GetLocalBounds(Index).ExpandBy(SecondaryExpansion->Read(Index)),
+						Index);
+				}
+			}
+
+			// Build Primary OBBs
+			// Note: Both Before and After modes expand the local box for the OBB test
+			if (Settings->PrimaryMode == EPCGExSelfPruningExpandOrder::None)
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					PrimaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
+						Transforms[Index],
+						InData->GetLocalBounds(Index),
+						Index);
+				}
+			}
+			else
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					PrimaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
+						Transforms[Index],
+						InData->GetLocalBounds(Index).ExpandBy(PrimaryExpansion->Read(Index)),
+						Index);
+				}
+			}
 		}
 	}
 
@@ -220,11 +294,8 @@ namespace PCGExSelfPruning
 					{
 						if (Settings->bPreciseTest)
 						{
-							FBox BoxB = InData->GetLocalBounds(OtherIndex);
-							if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
-							else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
-
-							if (!PCGExMath::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return; }
+							// Use pre-built OBBs instead of constructing them each time
+							if (!PCGExMath::OBB::SATOverlap(PrimaryOBBs[Index], SecondaryOBBs[OtherIndex])) { return; }
 						}
 
 						Candidate.Overlaps++;
@@ -278,11 +349,8 @@ namespace PCGExSelfPruning
 					{
 						if (Settings->bPreciseTest)
 						{
-							FBox BoxB = InData->GetLocalBounds(OtherIndex);
-							if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::Before) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
-							else if (Settings->SecondaryMode == EPCGExSelfPruningExpandOrder::After) { BoxB = BoxB.ExpandBy(SecondaryExpansion->Read(OtherIndex)); }
-
-							if (!PCGExMath::IntersectOBB_OBB(BoxA, Transform, BoxB, Transforms[OtherIndex])) { return true; }
+							// Use pre-built OBBs instead of constructing them each time
+							if (!PCGExMath::OBB::SATOverlap(PrimaryOBBs[Index], SecondaryOBBs[OtherIndex])) { return true; }
 						}
 
 						Mask[Index] = false;

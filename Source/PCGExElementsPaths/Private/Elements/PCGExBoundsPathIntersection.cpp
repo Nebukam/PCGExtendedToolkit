@@ -8,10 +8,13 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExAsyncHelpers.h"
 #include "Helpers/PCGExDataMatcher.h"
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Helpers/PCGExTargetsHandler.h"
+#include "Math/OBB/PCGExOBBCollection.h"
+#include "Math/PCGExMathBounds.h"
 #include "Paths/PCGExPathsCommon.h"
 #include "Paths/PCGExPathsHelpers.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -78,12 +81,26 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
 	{
-		TSharedPtr<PCGExMath::FBoundsCloud> Cloud = Preloader.GetDataFacade()->GetCloud(Settings->OutputSettings.BoundsSource);
-		Cloud->Idx = Context->Clouds.Add(Cloud);
-		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-	});
+		PCGExAsyncHelpers::FAsyncExecutionScope CollectionBuildingTasks(Context->NumMaxTargets);
+		Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+		{
+			// Build OBB collection from facade data
+			auto Facade = Preloader.GetDataFacade();
+			auto Collection = MakeShared<PCGExMath::OBB::FCollection>();
+			Collection->CloudIndex = Context->Collections.Num();
+			Context->Collections.Add(Collection);
+
+			CollectionBuildingTasks.Execute(
+				[CtxHandle = Context->GetOrCreateHandle(), Collection, Facade, BoundsSource = Settings->OutputSettings.BoundsSource]()
+				{
+					PCGEX_SHARED_CONTEXT_VOID(CtxHandle);
+					Collection->BuildFrom(Facade->Source, BoundsSource);
+				});
+
+			PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+		});
+	}
 
 	return true;
 }
@@ -209,10 +226,10 @@ namespace PCGExBoundsPathIntersection
 
 			const TSharedPtr<PCGExMath::OBB::FIntersections> LocalIntersections = MakeShared<PCGExMath::OBB::FIntersections>(InTransforms[Index].GetLocation(), InTransforms[NextIndex].GetLocation());
 
-			// For each cloud...
+			// For each collection...
 			Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 InTargetIndex)
 			{
-				Context->Clouds[InTargetIndex]->FindIntersections(LocalIntersections.Get());
+				Context->Collections[InTargetIndex]->FindIntersections(*LocalIntersections);
 			}, &IgnoreList);
 
 			if (!LocalIntersections->IsEmpty())

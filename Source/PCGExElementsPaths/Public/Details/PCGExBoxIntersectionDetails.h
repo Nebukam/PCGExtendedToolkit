@@ -8,7 +8,7 @@
 #include "Data/PCGExPointElements.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Details/PCGExFuseDetails.h"
-#include "Math/PCGExBoundsCloud.h"
+#include "Math/OBB/PCGExOBBIntersections.h"
 
 #include "PCGExBoxIntersectionDetails.generated.h"
 
@@ -20,6 +20,11 @@ MACRO(BoundIndex, int32, -1)
 
 namespace PCGExMath
 {
+	namespace OBB
+	{
+		struct FCut;
+	}
+
 	struct FCut;
 }
 

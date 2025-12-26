@@ -22,6 +22,8 @@ namespace PCGExData
 
 namespace PCGExSorting
 {
+	class FSortCache;
+
 	class PCGEXCORE_API FRuleHandler : public TSharedFromThis<FRuleHandler>
 	{
 	public:
@@ -42,6 +44,8 @@ namespace PCGExSorting
 
 	class PCGEXCORE_API FSorter : public TSharedFromThis<FSorter>
 	{
+		friend class FSortCache;
+
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;
 		TArray<TSharedPtr<FRuleHandler>> RuleHandlers;
@@ -61,6 +65,65 @@ namespace PCGExSorting
 		bool Sort(const int32 A, const int32 B);
 		bool Sort(const PCGExData::FElement A, const PCGExData::FElement B);
 		bool SortData(const int32 A, const int32 B);
+
+		/** Build a pre-cached sorter for fast bulk sorting. Use when sorting large arrays. */
+		TSharedPtr<FSortCache> BuildCache(int32 NumElements) const;
+	};
+
+	/**
+	 * Pre-cached sorting values for high-performance bulk sorting.
+	 *  
+	 * Usage:
+	 *   auto Cache = Sorter->BuildCache(NumPoints);
+	 *   Order.Sort([&](int32 A, int32 B) { return Cache->Compare(A, B); });
+	 */
+	class PCGEXCORE_API FSortCache
+	{
+	public:
+		struct FRuleCache
+		{
+			TArray<double> Values;
+			double Tolerance = DBL_COMPARE_TOLERANCE;
+			bool bInvertRule = false;
+		};
+
+	private:
+		TArray<FRuleCache> Rules;
+		bool bDescending = false;
+		int32 NumElements = 0;
+
+	public:
+		FSortCache() = default;
+
+		/** Build cache from a sorter. Populates values in parallel. */
+		static TSharedPtr<FSortCache> Build(const FSorter& Sorter, int32 InNumElements);
+
+		/** Get number of cached elements */
+		FORCEINLINE int32 Num() const { return NumElements; }
+
+		/** Get number of rules */
+		FORCEINLINE int32 NumRules() const { return Rules.Num(); }
+
+		/** Fast comparison using cached values. No virtual calls. */
+		FORCEINLINE bool Compare(const int32 A, const int32 B) const
+		{
+			int32 Result = 0;
+
+			for (const FRuleCache& Rule : Rules)
+			{
+				const double ValueA = Rule.Values[A];
+				const double ValueB = Rule.Values[B];
+
+				if (FMath::IsNearlyEqual(ValueA, ValueB, Rule.Tolerance)) { continue; }
+				Result = ValueA < ValueB ? -1 : 1;
+				if (Rule.bInvertRule) { Result = -Result; }
+				break;
+			}
+
+			if (bDescending) { Result = -Result; }
+
+			return Result < 0;
+		}
 	};
 }
 

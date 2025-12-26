@@ -8,7 +8,7 @@ public class PCGExFoundationsEditor : ModuleRules
 	public PCGExFoundationsEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = true;
+		bUseUnity = false;
 
 		PublicIncludePaths.AddRange(
 			new string[]

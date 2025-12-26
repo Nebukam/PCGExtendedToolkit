@@ -7,6 +7,7 @@
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 #include "Math/PCGExMathMean.h"
+#include "Math/OBB/PCGExOBB.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExSettingsMacros.h"
@@ -166,6 +167,10 @@ namespace PCGExSelfPruning
 		TArray<int32> Priority;
 		TArray<FCandidateInfos> Candidates;
 		TArray<FBox> BoxSecondary;
+
+		// Pre-built OBBs for precise testing (only allocated when bPreciseTest is true)
+		TArray<PCGExMath::OBB::FOBB> PrimaryOBBs;
+		TArray<PCGExMath::OBB::FOBB> SecondaryOBBs;
 
 		int32 LastCandidatesCount = 0;
 

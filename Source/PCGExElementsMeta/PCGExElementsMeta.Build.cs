@@ -8,7 +8,7 @@ public class PCGExElementsMeta : ModuleRules
 	public PCGExElementsMeta(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = true;
+		bUseUnity = false;
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(

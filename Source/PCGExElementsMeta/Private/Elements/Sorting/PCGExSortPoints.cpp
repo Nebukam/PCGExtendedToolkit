@@ -99,8 +99,19 @@ namespace PCGExSortPoints
 			return false;
 		}
 
+		const int32 NumPoints = PointDataFacade->GetNum();
 		TArray<int32> Order;
-		PCGExArrayHelpers::ArrayOfIndices(Order, PointDataFacade->GetNum());
+		PCGExArrayHelpers::ArrayOfIndices(Order, NumPoints);
+		
+		if (TSharedPtr<PCGExSorting::FSortCache> Cache = Sorter->BuildCache(NumPoints))
+		{
+			Order.Sort([&](const int32 A, const int32 B) { return Cache->Compare(A, B); });
+		}
+		else
+		{
+			Order.Sort([&](const int32 A, const int32 B) { return Sorter->Sort(A, B); });
+		}
+		
 		Order.Sort([&](const int32 A, const int32 B) { return Sorter->Sort(A, B); });
 
 		PointDataFacade->Source->InheritPoints(Order, 0);

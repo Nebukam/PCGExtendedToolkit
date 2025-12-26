@@ -153,6 +153,7 @@ namespace PCGExData
 	void IBufferProxy::InitForRole(EProxyRole InRole)
 	{
 		// Default: no-op. Override in property proxies.
+		
 	}
 
 	// Converting read implementations - Now using FScopedTypedValue for safety
@@ -164,17 +165,11 @@ namespace PCGExData
 		constexpr EPCGMetadataTypes TargetType = PCGExTypes::TTraits<_TYPE>::Type; \
 		if (TargetType == WorkingType) \
 		{ \
-			if constexpr (TypeTraits::TIsComplexType<_TYPE>) \
-			{ \
-				return WorkingValue.As<_TYPE>(); \
-			} \
-			else \
-			{ \
-				return *reinterpret_cast<const _TYPE*>(WorkingValue.GetRaw()); \
-			} \
+			if constexpr (TypeTraits::TIsComplexType<_TYPE>) { return WorkingValue.As<_TYPE>(); }\
+			else { return *reinterpret_cast<const _TYPE*>(WorkingValue.GetRaw()); }\
 		} \
 		_TYPE Result{}; \
-		if (WorkingOps) { WorkingOps->ConvertTo(WorkingValue.GetRaw(), TargetType, &Result); } \
+		PCGExTypeOps::FConversionTable::Convert(WorkingType, WorkingValue.GetRaw(), TargetType, &Result);\
 		return Result; \
 	}
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ_IMPL)

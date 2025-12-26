@@ -7,7 +7,6 @@
 #include "Details/PCGExIntersectionDetails.h"
 #include "Data/PCGExPointIO.h"
 #include "Blenders/PCGExMetadataBlender.h"
-#include "Math/PCGExBoundsCloud.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExEdge.h"
 #include "Data/PCGExData.h"
@@ -15,6 +14,7 @@
 #include "Data/Utils/PCGExDataForward.h"
 #include "Graphs/PCGExGraph.h"
 #include "Graphs/PCGExGraphMetadata.h"
+#include "Math/PCGExMath.h"
 
 namespace PCGExGraphs
 {
@@ -136,7 +136,6 @@ namespace PCGExGraphs
 		}
 
 		{
-			// Write lock starts
 			FWriteScopeLock WriteScopeLock(UnionLock);
 			PCGExMath::FClosestPosition ClosestNode(Origin);
 
@@ -158,13 +157,7 @@ namespace PCGExGraphs
 				return ClosestNode.Index;
 			}
 
-			// Write lock ends
-		}
-
-		{
-			// Write lock start
-			FWriteScopeLock WriteScopeLock(UnionLock);
-
+			// Still holding the lock — safe to insert
 			const TSharedPtr<FUnionNode> Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 			Octree->AddElement(Node.Get());
 			NodesUnion->NewEntry_Unsafe(Point);
@@ -237,19 +230,28 @@ namespace PCGExGraphs
 
 		const uint64 H = PCGEx::H64U(Start, End);
 
-		if (const int32* ExistingEdge = EdgesMapShards.Find(H))
+		auto UpdateExistingUnion = [&](const int32* ExistingEdge)
 		{
 			EdgeUnion = EdgesUnion->Entries[*ExistingEdge];
-
-			// Abstract tracking to get valid union data
-			if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); }
+			if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); } // Abstract tracking to get valid union data
 			else { EdgeUnion->Add(Edge); }
+		};
+		
+		if (const int32* ExistingEdge = EdgesMapShards.Find(H))
+		{
+			UpdateExistingUnion(ExistingEdge);
 			return;
 		}
 
 		{
 			FWriteScopeLock WriteLockEdges(EdgesLock);
 
+			if (const int32* ExistingEdge = EdgesMapShards.Find(H))
+			{
+				UpdateExistingUnion(ExistingEdge);
+				return;
+			}
+			
 			EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
 			EdgesMapShards.Add(H, Edges.Emplace(Edges.Num(), Start, End));
 		}

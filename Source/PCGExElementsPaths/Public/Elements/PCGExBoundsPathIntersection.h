@@ -9,7 +9,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBoxIntersectionDetails.h"
 #include "Details/PCGExMatchingDetails.h"
-#include "Math/PCGExBoundsCloud.h"
+#include "Math/OBB/PCGExOBBIntersections.h"
 
 #include "PCGExBoundsPathIntersection.generated.h"
 
@@ -20,6 +20,11 @@ class UPCGExBlendOpFactory;
 namespace PCGExSampling
 {
 	class FTargetsHandler;
+}
+
+namespace PCGExMath::OBB
+{
+	class FCollection;
 }
 
 /**
@@ -95,7 +100,7 @@ struct FPCGExBoundsPathIntersectionContext final : FPCGExPathProcessorContext
 	TSharedPtr<PCGExMatching::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
-	TArray<TSharedPtr<PCGExMath::FBoundsCloud>> Clouds;
+	TArray<TSharedPtr<PCGExMath::OBB::FCollection>> Collections;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL

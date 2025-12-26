@@ -8,7 +8,7 @@ public class PCGExCoreEditor : ModuleRules
 	public PCGExCoreEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = true;
+		bUseUnity = false;
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(

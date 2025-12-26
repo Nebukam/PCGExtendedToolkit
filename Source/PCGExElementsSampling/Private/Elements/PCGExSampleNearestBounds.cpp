@@ -13,10 +13,13 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExAsyncHelpers.h"
 #include "Helpers/PCGExDataMatcher.h"
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Helpers/PCGExTargetsHandler.h"
-#include "Math/PCGExBoundsCloud.h"
+#include "Math/OBB/PCGExOBBCollection.h"
+#include "Math/OBB/PCGExOBBSampling.h"
+#include "Math/PCGExMathBounds.h"
 #include "Math/PCGExMathDistances.h"
 #include "Sampling/PCGExSamplingHelpers.h"
 #include "Sampling/PCGExSamplingUnionData.h"
@@ -99,11 +102,26 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 
-	Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
 	{
-		Context->Clouds.Add(Preloader.GetDataFacade()->GetCloud(Settings->BoundsSource));
-		PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-	});
+		PCGExAsyncHelpers::FAsyncExecutionScope CollectionBuildingTasks(Context->NumMaxTargets);
+		Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+		{
+			// Build OBB collection from facade data
+			auto Facade = Preloader.GetDataFacade();
+			auto Collection = MakeShared<PCGExMath::OBB::FCollection>();
+			Collection->CloudIndex = Context->Collections.Num();
+			Context->Collections.Add(Collection);
+
+			CollectionBuildingTasks.Execute(
+				[CtxHandle = Context->GetOrCreateHandle(), Collection, Facade, BoundsSource = Settings->BoundsSource]()
+				{
+					PCGEX_SHARED_CONTEXT_VOID(CtxHandle);
+					Collection->BuildFrom(Facade->Source, BoundsSource);
+				});
+
+			PCGExBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+		});
+	}
 
 	Context->WeightCurve = Settings->WeightCurveLookup.MakeLookup(
 		Settings->bUseLocalCurve, Settings->LocalWeightRemap, Settings->WeightRemap,
@@ -309,7 +327,7 @@ namespace PCGExSampleNearestBounds
 		Union->Reserve(Context->TargetsHandler->Num());
 		Union->WeightRange = -2; // Don't remap
 
-		PCGExMath::FSample CloudSample;
+		PCGExMath::OBB::FSample OBBSample;
 
 		double DefaultDet = 0;
 
@@ -343,27 +361,27 @@ namespace PCGExSampleNearestBounds
 
 			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 
-			auto SampleSingle = [&](const PCGExData::FElement& Current, const PCGExMath::FPointBox* NearbyBox)
+			auto SampleSingle = [&](const PCGExData::FElement& Current, const PCGExMath::OBB::FOBB& NearbyOBB)
 			{
 				double DetCandidate = Det;
 				bool bReplaceWithCurrent = Union->IsEmpty();
 
 				switch (Settings->SampleMethod)
 				{
-				case EPCGExBoundsSampleMethod::BestCandidate: DetCandidate = NearbyBox->Index;
+				case EPCGExBoundsSampleMethod::BestCandidate: DetCandidate = NearbyOBB.GetIndex();
 					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(Current, SinglePick); }
 					else { bReplaceWithCurrent = true; }
 					break;
-				default: case EPCGExBoundsSampleMethod::ClosestBounds: DetCandidate = CloudSample.Distances.SizeSquared();
+				default: case EPCGExBoundsSampleMethod::ClosestBounds: DetCandidate = OBBSample.Distances.SizeSquared();
 					bReplaceWithCurrent = DetCandidate < Det;
 					break;
-				case EPCGExBoundsSampleMethod::FarthestBounds: DetCandidate = CloudSample.Distances.SizeSquared();
+				case EPCGExBoundsSampleMethod::FarthestBounds: DetCandidate = OBBSample.Distances.SizeSquared();
 					bReplaceWithCurrent = DetCandidate > Det;
 					break;
-				case EPCGExBoundsSampleMethod::SmallestBounds: DetCandidate = NearbyBox->RadiusSquared;
+				case EPCGExBoundsSampleMethod::SmallestBounds: DetCandidate = NearbyOBB.Bounds.GetRadiusSq();
 					bReplaceWithCurrent = DetCandidate < Det;
 					break;
-				case EPCGExBoundsSampleMethod::LargestBounds: DetCandidate = NearbyBox->RadiusSquared;
+				case EPCGExBoundsSampleMethod::LargestBounds: DetCandidate = NearbyOBB.Bounds.GetRadiusSq();
 					bReplaceWithCurrent = DetCandidate > Det;
 					break;
 				}
@@ -373,20 +391,25 @@ namespace PCGExSampleNearestBounds
 					SinglePick = Current;
 					Det = DetCandidate;
 					Union->Reset();
-					Union->AddWeighted_Unsafe(Current, CloudSample.Weight);
+					Union->AddWeighted_Unsafe(Current, OBBSample.Weight);
 				}
 			};
 
 			Context->TargetsHandler->FindTargetsWithBoundsTest(BCAE, [&](const PCGExOctree::FItem& Target)
 			{
-				Context->Clouds[Target.Index]->GetOctree()->FindElementsWithBoundsTest(BCAE, [&](const PCGExMath::FPointBox* NearbyBox)
-				{
-					NearbyBox->Sample(Origin, CloudSample);
-					if (!CloudSample.bIsInside) { return; }
+				const TSharedPtr<PCGExMath::OBB::FCollection>& Collection = Context->Collections[Target.Index];
+				PCGExOctree::FItemOctree* CollectionOctree = Collection->GetOctree();
+				check(CollectionOctree)
 
-					const PCGExData::FElement Current(NearbyBox->Index, Target.Index);
-					if (bSingleSample) { SampleSingle(Current, NearbyBox); }
-					else { Union->AddWeighted_Unsafe(Current, CloudSample.Weight); }
+				CollectionOctree->FindElementsWithBoundsTest(BCAE, [&](const PCGExOctree::FItem& NearbyItem)
+				{
+					const PCGExMath::OBB::FOBB NearbyOBB = Collection->GetOBB(NearbyItem.Index);
+					PCGExMath::OBB::Sample(NearbyOBB, Origin, OBBSample);
+					if (!OBBSample.bIsInside) { return; }
+
+					const PCGExData::FElement Current(NearbyOBB.GetIndex(), Target.Index);
+					if (bSingleSample) { SampleSingle(Current, NearbyOBB); }
+					else { Union->AddWeighted_Unsafe(Current, OBBSample.Weight); }
 				});
 			}, &IgnoreList);
 
