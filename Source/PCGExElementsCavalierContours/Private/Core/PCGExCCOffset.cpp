@@ -1278,7 +1278,10 @@ namespace PCGExCavalier::Offset
 					const FVertex& EndV2 = RawOffset.GetVertexWrapped(EndSegIdx + 1);
 					FSegSplitResult EndSplit = SegSplitAtPoint(EndV, EndV2, EndPt, PosEqualEps);
 					UpdatedEndBulge = EndSplit.UpdatedStart.Bulge;
-					EndSource = EndV.Source;
+					
+					// Use EndV2's source if EndPt is at the segment's end vertex position,
+					// otherwise use EndV's source (the segment start vertex)
+					EndSource = EndPt.Equals(EndV2.GetPosition(), PosEqualEps) ? EndV2.Source : EndV.Source;
 				}
 
 				FPolylineSlice Slice;
