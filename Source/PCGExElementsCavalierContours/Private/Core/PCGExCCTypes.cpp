@@ -17,7 +17,6 @@ namespace PCGExCavalier
 		const int32 InNumVertices = InTransforms.Num();
 
 		Reserve(InNumVertices);
-
 		for (int i = 0; i < InNumVertices; i++) { AddPoint(InProjectionDetails.Project(InTransforms[i], i)); }
 	}
 }

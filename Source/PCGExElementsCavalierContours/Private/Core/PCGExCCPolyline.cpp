@@ -204,7 +204,7 @@ namespace PCGExCavalier
 			{
 				// Arc segment winding contribution
 				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
-				if (!Arc.bValid){ continue; }
+				if (!Arc.bValid) { continue; }
 
 				const bool bIsCW = V1.Bulge < 0.0;
 				const double DistToCenter = FVector2D::Distance(Point, Arc.Center);
@@ -525,31 +525,28 @@ namespace PCGExCavalier
 	// FContourUtils
 
 
-	FPolyline FContourUtils::CreateFromInputPoints(const TArray<FInputPoint>& Points, bool bClosed)
+	FPolyline FContourUtils::CreateFromInputPoints(const TArray<FInputPoint>& Points, const bool bClosed, const bool bAddFuzziness)
 	{
-		if (Points.IsEmpty())
-		{
-			return FPolyline(bClosed);
-		}
+		if (Points.IsEmpty()) { return FPolyline(bClosed); }
 
 		// Determine primary path ID from first point
 		const int32 PrimaryPathId = Points[0].PathId;
 		FPolyline Result(bClosed, PrimaryPathId);
 		Result.Reserve(Points.Num() * 2); // Extra for potential corner arcs
-
+		
 		for (int32 i = 0; i < Points.Num(); ++i)
 		{
 			const FInputPoint& Current = Points[i];
-			const FVector2D CurrentPos = Current.GetPosition2D();
-
+			const FVector2D CurrentPos = Current.GetPosition2D(bAddFuzziness);
+			
 			if (Current.bIsCorner && Current.CornerRadius > 0.0)
 			{
 				// Process corner with fillet
 				const FInputPoint& Prev = Points[(i - 1 + Points.Num()) % Points.Num()];
 				const FInputPoint& Next = Points[(i + 1) % Points.Num()];
 
-				const FVector2D PrevPos = Prev.GetPosition2D();
-				const FVector2D NextPos = Next.GetPosition2D();
+				const FVector2D PrevPos = Prev.GetPosition2D(bAddFuzziness);
+				const FVector2D NextPos = Next.GetPosition2D(bAddFuzziness);
 
 				const FVector2D ToPrev = (PrevPos - CurrentPos).GetSafeNormal();
 				const FVector2D ToNext = (NextPos - CurrentPos).GetSafeNormal();
@@ -586,9 +583,9 @@ namespace PCGExCavalier
 		return Result;
 	}
 
-	FPolyline FContourUtils::CreateFromRootPath(const FRootPath& RootPath)
+	FPolyline FContourUtils::CreateFromRootPath(const FRootPath& RootPath, const bool bAddFuzziness)
 	{
-		return CreateFromInputPoints(RootPath.Points, RootPath.bIsClosed);
+		return CreateFromInputPoints(RootPath.Points, RootPath.bIsClosed, bAddFuzziness);
 	}
 
 	FContourResult3D FContourUtils::ConvertTo3D(
@@ -628,7 +625,7 @@ namespace PCGExCavalier
 		TArray<double> PathDistances;
 		PathDistances.SetNum(N);
 		PathDistances[0] = 0.0;
-		
+
 		// Compute cumulative path distances
 		for (int32 i = 1; i < N; ++i)
 		{
@@ -636,7 +633,7 @@ namespace PCGExCavalier
 			const FVector2D Curr = Polyline2D.GetVertex(i).GetPosition();
 			PathDistances[i] = PathDistances[i - 1] + FVector2D::Distance(Prev, Curr);
 		}
-		
+
 		for (int32 i = 0; i < N; ++i)
 		{
 			const FVertex& V = Polyline2D.GetVertex(i);
@@ -698,7 +695,7 @@ namespace PCGExCavalier
 				{
 					// Interpolate using path distance (cumulative distance along polyline)
 					double DistToPrev, DistToNext;
-					
+
 					if (PrevValid < InvalidIdx)
 					{
 						DistToPrev = PathDistances[InvalidIdx] - PathDistances[PrevValid];
@@ -706,9 +703,9 @@ namespace PCGExCavalier
 					else
 					{
 						// Wrapped around (for closed polylines)
-						DistToPrev = PathDistances[InvalidIdx] + (PathDistances[N-1] - PathDistances[PrevValid]);
+						DistToPrev = PathDistances[InvalidIdx] + (PathDistances[N - 1] - PathDistances[PrevValid]);
 					}
-					
+
 					if (NextValid > InvalidIdx)
 					{
 						DistToNext = PathDistances[NextValid] - PathDistances[InvalidIdx];
@@ -716,9 +713,9 @@ namespace PCGExCavalier
 					else
 					{
 						// Wrapped around (for closed polylines)
-						DistToNext = (PathDistances[N-1] - PathDistances[InvalidIdx]) + PathDistances[NextValid];
+						DistToNext = (PathDistances[N - 1] - PathDistances[InvalidIdx]) + PathDistances[NextValid];
 					}
-					
+
 					const double TotalDist = DistToPrev + DistToNext;
 					double Alpha = (TotalDist > 1e-9) ? DistToPrev / TotalDist : 0.5;
 

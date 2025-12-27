@@ -199,10 +199,13 @@ namespace PCGExCavalier
 		FVector GetPosition() const { return Transform.GetLocation(); }
 
 		/** Get 2D position (XY) */
-		FVector2D GetPosition2D() const
+		FVector2D GetPosition2D(const bool bAddFuzziness) const
 		{
 			const FVector Loc = Transform.GetLocation();
-			return FVector2D(Loc.X, Loc.Y);
+			if (!bAddFuzziness) { return FVector2D(Loc.X, Loc.Y); }
+
+			FRandomStream RandomStream(PointIndex);
+			return FVector2D(Loc.X + RandomStream.FRandRange(-0.001, 0.001), Loc.Y + RandomStream.FRandRange(-0.001, 0.001));
 		}
 
 		/** Get Z value */

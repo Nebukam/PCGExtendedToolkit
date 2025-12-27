@@ -84,7 +84,7 @@ namespace PCGExCavalierOffset
 		PCGExCavalier::FRootPath RootPath(PointDataFacade->Source, ProjectionDetails);
 
 		// Create polyline from root path
-		PCGExCavalier::FPolyline Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(RootPath);
+		PCGExCavalier::FPolyline Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(RootPath, Settings->bAddFuzzinessToPositions);
 
 		// Build lookup map for 3D conversion
 		RootPaths.Add(RootPath.PathId, MoveTemp(RootPath));
