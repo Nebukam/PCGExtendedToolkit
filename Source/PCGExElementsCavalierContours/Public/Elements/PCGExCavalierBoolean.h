@@ -6,8 +6,10 @@
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
 #include "Core/PCGExPathProcessor.h"
+#include "Core/PCGExCCBoolean.h"
+#include "Core/PCGExCCPolyline.h"
 #include "Details/PCGExCCDetails.h"
-#include "Details/PCGExInputShorthandsDetails.h"
+#include "Details/PCGExMatchingDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Paths/PCGExPath.h"
 
@@ -16,6 +18,11 @@
 namespace PCGExCavalier
 {
 	class FPolyline;
+}
+
+namespace PCGExMatching
+{
+	class FDataMatcher;
 }
 
 /**
@@ -29,7 +36,8 @@ class UPCGExCavalierBooleanSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathOffset, "Cavalier : Boolean", "Does a cavalier boolean operation on paths.");
+	PCGEX_NODE_INFOS(CavalierBoolean, "Cavalier : Boolean", "Performs boolean operations on closed paths.");
+	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 
 protected:
@@ -37,35 +45,93 @@ protected:
 	//~End UPCGSettings
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	//PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)
+	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 	//~End UPCGExPointsProcessorSettings
 	
-	/** Projection settings. */
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Default);
+
+	/** Projection settings for 2D operations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
+	/** The boolean operation to perform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCCBooleanOp Operation = EPCGExCCBooleanOp::Union;
-	
-	/** When enabled, add a very small floating point value to positions in order to mitigate arithmetic edge cases that can sometimes happen. */
+
+	/** Boolean operation options */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExContourBooleanOptions BooleanOptions;
+
+	/** Tessellate arcs in results */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bTessellateArcs = true;
+
+	/** Arc tessellation settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bTessellateArcs"))
+	FPCGExCCArcTessellationSettings TessellationSettings;
+
+	/** Blend transforms from source paths for output vertices */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bBlendTransforms = true;
+
+	/** Add small random offset to mitigate degenerate geometry issues */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bAddFuzzinessToPositions = false;
+
+	/** Skip paths that aren't closed (required for boolean ops) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bSkipOpenPaths = true;
+
+	/** If enabled, output negative space (holes) as separate paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	bool bOutputNegativeSpace = false;
+
+	/** Tag to apply to negative space outputs */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bOutputNegativeSpace"))
+	FString NegativeSpaceTag = TEXT("Hole");
 	
+	bool NeedsOperands() const;
 };
 
 struct FPCGExCavalierBooleanContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExCavalierBooleanElement;
 
+	// Source data for 3D reconstruction
 	TMap<int32, PCGExCavalier::FRootPath> RootPaths;
-	TArray<PCGExCavalier::FPolyline> RootPolylines;
-	
-protected:
-	TArray<PCGExCavalier::FRootPath> TempRootPaths;
-	//PCGEX_ELEMENT_BATCH_POINT_DECL
+
+	// Polylines built from main input
+	TArray<PCGExCavalier::FPolyline> MainPolylines;
+
+	// Polylines built from operands input
+	TArray<PCGExCavalier::FPolyline> OperandPolylines;
+
+	// Maps polyline index to its source FPointIO
+	TArray<TSharedPtr<PCGExData::FPointIO>> MainPolylinesSourceIO;
+	TArray<TSharedPtr<PCGExData::FPointIO>> OperandPolylinesSourceIO;
+
+	// Operands input collection
+	TSharedPtr<PCGExData::FPointIOCollection> OperandsCollection;
+
+	// Data matcher for paired mode
+	TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
+
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+
+	int32 NextPathId = 0;
+	FCriticalSection PathIdLock;
+
+	int32 AllocatePathId()
+	{
+		FScopeLock Lock(&PathIdLock);
+		return NextPathId++;
+	}
 };
 
 class FPCGExCavalierBooleanElement final : public FPCGExPathProcessorElement
@@ -75,4 +141,41 @@ protected:
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
+
+private:
+	// Build polylines from an input collection
+	void BuildPolylinesFromCollection(
+		FPCGExCavalierBooleanContext* Context,
+		const UPCGExCavalierBooleanSettings* Settings,
+		PCGExData::FPointIOCollection* Collection,
+		TArray<PCGExCavalier::FPolyline>& OutPolylines,
+		TArray<TSharedPtr<PCGExData::FPointIO>>& OutSourceIOs) const;
+
+	// Execute boolean operation in CombineAll mode
+	TArray<PCGExCavalier::FPolyline> ExecuteCombineAll(
+		FPCGExCavalierBooleanContext* Context,
+		const UPCGExCavalierBooleanSettings* Settings) const;
+
+	// Execute boolean operation in Matched mode
+	TArray<PCGExCavalier::FPolyline> ExecuteMatched(
+		FPCGExCavalierBooleanContext* Context,
+		const UPCGExCavalierBooleanSettings* Settings) const;
+
+	// Helper for multi-polyline operations
+	PCGExCavalier::BooleanOps::FBooleanResult PerformMultiBoolean(
+		const TArray<PCGExCavalier::FPolyline>& Polylines,
+		EPCGExCCBooleanOp Operation,
+		const FPCGExContourBooleanOptions& Options) const;
+
+	// Output a result polyline
+	void OutputPolyline(
+		FPCGExCavalierBooleanContext* Context,
+		const UPCGExCavalierBooleanSettings* Settings,
+		PCGExCavalier::FPolyline& Polyline,
+		bool bIsNegativeSpace) const;
+
+	// Find source IO for a polyline based on contributing paths
+	TSharedPtr<PCGExData::FPointIO> FindSourceIO(
+		FPCGExCavalierBooleanContext* Context,
+		const PCGExCavalier::FPolyline& Polyline) const;
 };

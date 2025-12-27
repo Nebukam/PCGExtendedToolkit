@@ -5,6 +5,7 @@
 #include "Core/PCGExCCBoolean.h"
 
 #include "Core/PCGExCCCommon.h"
+#include "Details/PCGExCCDetails.h"
 #include "Core/PCGExCCPolyline.h"
 #include "Core/PCGExCCSegmentIntersect.h"
 
@@ -558,7 +559,7 @@ namespace PCGExCavalier::BooleanOps
 		const FBooleanOperand& Operand1,
 		const FBooleanOperand& Operand2,
 		EPCGExCCBooleanOp Operation,
-		const FContourBooleanOptions& Options)
+		const FPCGExContourBooleanOptions& Options)
 	{
 		FBooleanResult Result;
 
@@ -775,7 +776,7 @@ namespace PCGExCavalier::BooleanOps
 		const FPolyline& Pline1,
 		const FPolyline& Pline2,
 		EPCGExCCBooleanOp Operation,
-		const FContourBooleanOptions& Options)
+		const FPCGExContourBooleanOptions& Options)
 	{
 		// Use polylines' primary path IDs, defaulting to 0 and 1
 		const int32 PathId1 = Pline1.GetPrimaryPathId() != INDEX_NONE ? Pline1.GetPrimaryPathId() : 0;
@@ -790,7 +791,7 @@ namespace PCGExCavalier::BooleanOps
 
 	FBooleanResult UnionAll(
 		const TArray<FBooleanOperand>& Operands,
-		const FContourBooleanOptions& Options)
+		const FPCGExContourBooleanOptions& Options)
 	{
 		FBooleanResult Result;
 
@@ -861,7 +862,7 @@ namespace PCGExCavalier::BooleanOps
 
 	FBooleanResult IntersectAll(
 		const TArray<FBooleanOperand>& Operands,
-		const FContourBooleanOptions& Options)
+		const FPCGExContourBooleanOptions& Options)
 	{
 		FBooleanResult Result;
 

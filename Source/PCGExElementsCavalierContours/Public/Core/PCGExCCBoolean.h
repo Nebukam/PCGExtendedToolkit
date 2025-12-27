@@ -9,46 +9,19 @@
 #include "PCGExCCPolyline.h"
 #include "PCGExCCBoolean.generated.h"
 
-/**
- * Options for boolean operations
- */
-USTRUCT(BlueprintType)
-struct PCGEXELEMENTSCAVALIERCONTOURS_API FContourBooleanOptions
-{
-	GENERATED_BODY()
-
-	/** Epsilon for position equality tests */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boolean", AdvancedDisplay)
-	double PositionEqualEpsilon = 1e-5;
-
-	/** Minimum area threshold for valid result polylines (filters collapsed regions) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boolean", AdvancedDisplay)
-	double CollapsedAreaEpsilon = 1e-10;
-};
-
+struct FPCGExContourBooleanOptions;
 /**
  * Result status of a boolean operation
  */
 UENUM(BlueprintType)
 enum class EBooleanResultInfo : uint8
 {
-	/** Operation completed with intersections found and processed */
-	Intersected UMETA(DisplayName = "Intersected"),
-
-	/** Polylines completely overlap */
-	Overlapping UMETA(DisplayName = "Overlapping"),
-
-	/** Polyline 1 is completely inside polyline 2 */
-	Pline1InsidePline2 UMETA(DisplayName = "Pline1 Inside Pline2"),
-
-	/** Polyline 2 is completely inside polyline 1 */
-	Pline2InsidePline1 UMETA(DisplayName = "Pline2 Inside Pline1"),
-
-	/** Polylines are disjoint (no overlap or intersection) */
-	Disjoint UMETA(DisplayName = "Disjoint"),
-
-	/** Invalid input (open polyline or insufficient vertices) */
-	InvalidInput UMETA(DisplayName = "Invalid Input")
+	Intersected UMETA(DisplayName = "Intersected", ToolTip="Operation completed with intersections found and processed"),
+	Overlapping UMETA(DisplayName = "Overlapping", ToolTip="Polylines completely overlap"),
+	Pline1InsidePline2 UMETA(DisplayName = "Pline1 Inside Pline2", ToolTip="Polyline 1 is completely inside polyline 2"),
+	Pline2InsidePline1 UMETA(DisplayName = "Pline2 Inside Pline1", ToolTip="Polyline 2 is completely inside polyline 1"),
+	Disjoint UMETA(DisplayName = "Disjoint", ToolTip="Polylines are disjoint (no overlap or intersection)"),
+	InvalidInput UMETA(DisplayName = "Invalid Input", ToolTip="Invalid input (open polyline or insufficient vertices)")
 };
 
 namespace PCGExCavalier::BooleanOps
@@ -102,22 +75,13 @@ namespace PCGExCavalier::BooleanOps
 		TSet<int32> AllContributingPathIds;
 
 		/** Returns true if the result contains any polylines */
-		bool HasResult() const
-		{
-			return PositivePolylines.Num() > 0 || NegativePolylines.Num() > 0;
-		}
+		bool HasResult() const { return PositivePolylines.Num() > 0 || NegativePolylines.Num() > 0; }
 
 		/** Returns total number of resulting polylines */
-		int32 TotalPolylineCount() const
-		{
-			return PositivePolylines.Num() + NegativePolylines.Num();
-		}
+		int32 TotalPolylineCount() const { return PositivePolylines.Num() + NegativePolylines.Num(); }
 
 		/** Returns true if the operation was successful (not invalid input) */
-		bool IsValid() const
-		{
-			return ResultInfo != EBooleanResultInfo::InvalidInput;
-		}
+		bool IsValid() const { return ResultInfo != EBooleanResultInfo::InvalidInput; }
 
 		/** Get all polylines (positive and negative) */
 		TArray<const FPolyline*> GetAllPolylines() const
@@ -140,58 +104,58 @@ namespace PCGExCavalier::BooleanOps
 
 
 	/**
-		 * Perform boolean operation between two polylines with path tracking.
-		 * Both polylines should be closed.
-		 * 
-		 * @param Operand1 First polyline with its source path ID
-		 * @param Operand2 Second polyline with its source path ID
-		 * @param Operation Boolean operation type
-		 * @param Options Boolean options
-		 * @return Boolean result with path tracking
-		 */
+	 * Perform boolean operation between two polylines with path tracking.
+	 * Both polylines should be closed.
+	 * 
+	 * @param Operand1 First polyline with its source path ID
+	 * @param Operand2 Second polyline with its source path ID
+	 * @param Operation Boolean operation type
+	 * @param Options Boolean options
+	 * @return Boolean result with path tracking
+	 */
 	PCGEXELEMENTSCAVALIERCONTOURS_API
 	FBooleanResult PerformBoolean(
 		const FBooleanOperand& Operand1, const FBooleanOperand& Operand2,
-		EPCGExCCBooleanOp Operation, const FContourBooleanOptions& Options);
+		EPCGExCCBooleanOp Operation, const FPCGExContourBooleanOptions& Options);
 
 	/**
-		 * Perform boolean operation between two polylines (legacy version).
-		 * Both polylines should be closed.
-		 * Uses polyline's PrimaryPathId for source tracking.
-		 * 
-		 * @param Pline1 The first polyline
-		 * @param Pline2 The other polyline
-		 * @param Operation Boolean operation type
-		 * @param Options Boolean options
-		 * @return Boolean result containing positive and negative space polylines
-		 */
+	 * Perform boolean operation between two polylines (legacy version).
+	 * Both polylines should be closed.
+	 * Uses polyline's PrimaryPathId for source tracking.
+	 * 
+	 * @param Pline1 The first polyline
+	 * @param Pline2 The other polyline
+	 * @param Operation Boolean operation type
+	 * @param Options Boolean options
+	 * @return Boolean result containing positive and negative space polylines
+	 */
 	PCGEXELEMENTSCAVALIERCONTOURS_API
 	FBooleanResult PerformBoolean(
 		const FPolyline& Pline1, const FPolyline& Pline2,
-		EPCGExCCBooleanOp Operation, const FContourBooleanOptions& Options);
+		EPCGExCCBooleanOp Operation, const FPCGExContourBooleanOptions& Options);
 
 
 	/**
-		 * Perform boolean union of multiple polylines.
-		 * 
-		 * @param Operands Array of polylines with their source path IDs
-		 * @param Options Boolean options
-		 * @return Union result with path tracking
-		 */
+	 * Perform boolean union of multiple polylines.
+	 * 
+	 * @param Operands Array of polylines with their source path IDs
+	 * @param Options Boolean options
+	 * @return Union result with path tracking
+	 */
 	PCGEXELEMENTSCAVALIERCONTOURS_API
 	FBooleanResult UnionAll(
 		const TArray<FBooleanOperand>& Operands,
-		const FContourBooleanOptions& Options);
+		const FPCGExContourBooleanOptions& Options);
 
 	/**
-		 * Perform boolean intersection of multiple polylines.
-		 * 
-		 * @param Operands Array of polylines with their source path IDs
-		 * @param Options Boolean options
-		 * @return Intersection result with path tracking
-		 */
+	 * Perform boolean intersection of multiple polylines.
+	 * 
+	 * @param Operands Array of polylines with their source path IDs
+	 * @param Options Boolean options
+	 * @return Intersection result with path tracking
+	 */
 	PCGEXELEMENTSCAVALIERCONTOURS_API
 	FBooleanResult IntersectAll(
 		const TArray<FBooleanOperand>& Operands,
-		const FContourBooleanOptions& Options);
+		const FPCGExContourBooleanOptions& Options);
 }

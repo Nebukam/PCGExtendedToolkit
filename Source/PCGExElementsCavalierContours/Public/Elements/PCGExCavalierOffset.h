@@ -69,7 +69,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bBlendTransforms = true;
 	
-	/** When enabled, add a very small floating point value to positions in order to mitigate arithmetic edge cases that can sometimes happen. */
+	/** Add small random offset to mitigate degenerate geometry issues */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bAddFuzzinessToPositions = false;
 	

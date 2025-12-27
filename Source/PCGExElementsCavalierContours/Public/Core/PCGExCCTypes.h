@@ -21,11 +21,8 @@ namespace PCGExData
 UENUM(BlueprintType)
 enum class EPCGExCCArcTessellationMode : uint8
 {
-	/** Fixed number of subdivisions per arc */
-	FixedCount UMETA(DisplayName = "Fixed Count"),
-
-	/** Compute subdivisions based on arc length and target segment distance */
-	DistanceBased UMETA(DisplayName = "Distance Based")
+	FixedCount UMETA(DisplayName = "Fixed Count", ToolTip = "Fixed number of subdivisions per arc"),
+	DistanceBased UMETA(DisplayName = "Distance Based", ToolTip = "Compute subdivisions based on arc length and target segment distance"),
 };
 
 /**
@@ -45,10 +42,10 @@ enum class EPCGExCCOrientation : uint8
 UENUM(BlueprintType)
 enum class EPCGExCCBooleanOp : uint8
 {
-	Union UMETA(DisplayName = "Union", ToolTip = "Union of the paths"),
-	Intersection UMETA(DisplayName = "Intersection", ToolTip = "Intersection of the paths"),
-	Difference UMETA(DisplayName = "Difference", ToolTip = "Difference (substraction) of the paths"),
-	Xor UMETA(DisplayName = "XOR", ToolTip="Exclusive OR between paths")
+	Union        = 0 UMETA(DisplayName = "Union", ToolTip = "Union of the paths"),
+	Intersection = 1 UMETA(DisplayName = "Intersection", ToolTip = "Intersection of the paths"),
+	Difference   = 2 UMETA(DisplayName = "Difference", ToolTip = "Difference (substraction) of the paths"),
+	Xor          = 3 UMETA(DisplayName = "XOR", ToolTip = "Exclusive OR between paths")
 };
 
 namespace PCGExCavalier

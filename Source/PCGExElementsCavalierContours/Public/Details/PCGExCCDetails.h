@@ -74,3 +74,20 @@ struct PCGEXELEMENTSCAVALIERCONTOURS_API FPCGExCCOffsetOptions
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Offset", AdvancedDisplay)
 	double OffsetDistanceEpsilon = 1e-4;
 };
+
+/**
+ * Options for boolean operations
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSCAVALIERCONTOURS_API FPCGExContourBooleanOptions
+{
+	GENERATED_BODY()
+
+	/** Epsilon for position equality tests */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boolean", AdvancedDisplay)
+	double PositionEqualEpsilon = 1e-5;
+
+	/** Minimum area threshold for valid result polylines (filters collapsed regions) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boolean", AdvancedDisplay)
+	double CollapsedAreaEpsilon = 1e-10;
+};

@@ -20,6 +20,7 @@ public class PCGExElementsCavalierContours : ModuleRules
 				"PCGExCore",
 				"PCGExBlending",
 				"PCGExFilters",
+				"PCGExMatching",
 				"PCGExFoundations",
 			}
 		);
