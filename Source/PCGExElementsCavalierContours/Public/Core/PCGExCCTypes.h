@@ -199,7 +199,7 @@ namespace PCGExCavalier
 		FVector GetPosition() const { return Transform.GetLocation(); }
 
 		/** Get 2D position (XY) */
-		FVector2D GetPosition2D(const bool bAddFuzziness) const
+		FVector2D GetPosition2D(const bool bAddFuzziness = false) const
 		{
 			const FVector Loc = Transform.GetLocation();
 			if (!bAddFuzziness) { return FVector2D(Loc.X, Loc.Y); }

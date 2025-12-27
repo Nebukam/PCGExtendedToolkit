@@ -533,12 +533,12 @@ namespace PCGExCavalier
 		const int32 PrimaryPathId = Points[0].PathId;
 		FPolyline Result(bClosed, PrimaryPathId);
 		Result.Reserve(Points.Num() * 2); // Extra for potential corner arcs
-		
+
 		for (int32 i = 0; i < Points.Num(); ++i)
 		{
 			const FInputPoint& Current = Points[i];
 			const FVector2D CurrentPos = Current.GetPosition2D(bAddFuzziness);
-			
+
 			if (Current.bIsCorner && Current.CornerRadius > 0.0)
 			{
 				// Process corner with fillet
@@ -597,10 +597,7 @@ namespace PCGExCavalier
 		Result.ContributingPathIds = Polyline2D.GetContributingPathIds();
 
 		const int32 N = Polyline2D.VertexCount();
-		if (N == 0)
-		{
-			return Result;
-		}
+		if (N == 0) { return Result; }
 
 		Result.Positions.Reserve(N);
 		Result.Transforms.Reserve(N);
@@ -718,6 +715,8 @@ namespace PCGExCavalier
 
 					const double TotalDist = DistToPrev + DistToNext;
 					double Alpha = (TotalDist > 1e-9) ? DistToPrev / TotalDist : 0.5;
+					
+					// UE_LOG(LogTemp, Warning, TEXT("%f / %f | %f | %d -> %d"), DistToPrev, TotalDist, Alpha, PrevValid, NextValid);
 
 					const FTransform& PrevTransform = Result.Transforms[PrevValid];
 					const FTransform& NextTransform = Result.Transforms[NextValid];
