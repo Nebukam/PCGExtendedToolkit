@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Math/RandomStream.h"
 #include "PCGExCCTypes.generated.h"
 
 struct FPCGExGeo2DProjectionDetails;
