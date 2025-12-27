@@ -48,6 +48,10 @@ public:
 	//PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCCOffsetOptions OffsetOptions;
@@ -86,6 +90,7 @@ namespace PCGExCavalierOffset
 	{
 		double OffsetValue = 1;
 		TMap<int32, PCGExCavalier::FRootPath> RootPaths;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

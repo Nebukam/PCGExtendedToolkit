@@ -12,7 +12,6 @@ struct FPCGExCCArcTessellationSettings;
 
 namespace PCGExCavalier
 {
-
 	/**
 	 * A 2D polyline consisting of vertices connected by line segments or arcs.
 	 * 
@@ -45,14 +44,12 @@ namespace PCGExCavalier
 
 				bool Overlaps(const FBox& Other) const
 				{
-					return !(MaxX < Other.MinX || MinX > Other.MaxX ||
-						MaxY < Other.MinY || MinY > Other.MaxY);
+					return !(MaxX < Other.MinX || MinX > Other.MaxX || MaxY < Other.MinY || MinY > Other.MaxY);
 				}
 
 				bool Overlaps(double QMinX, double QMinY, double QMaxX, double QMaxY) const
 				{
-					return !(MaxX < QMinX || MinX > QMaxX ||
-						MaxY < QMinY || MinY > QMaxY);
+					return !(MaxX < QMinX || MinX > QMaxX || MaxY < QMinY || MinY > QMaxY);
 				}
 			};
 
@@ -64,10 +61,7 @@ namespace PCGExCavalier
 			{
 				for (int32 i = 0; i < Boxes.Num(); ++i)
 				{
-					if (Boxes[i].Overlaps(MinX, MinY, MaxX, MaxY))
-					{
-						Visit(i);
-					}
+					if (Boxes[i].Overlaps(MinX, MinY, MaxX, MaxY)) { Visit(i); }
 				}
 			}
 
@@ -99,7 +93,7 @@ namespace PCGExCavalier
 
 		FPolyline(bool bInClosed, int32 InPrimaryPathId)
 			: bClosed(bInClosed)
-			, PrimaryPathId(InPrimaryPathId)
+			  , PrimaryPathId(InPrimaryPathId)
 		{
 			if (InPrimaryPathId != InvalidIndex)
 			{
@@ -107,9 +101,7 @@ namespace PCGExCavalier
 			}
 		}
 
-		//=========================================================================
 		// Path Tracking
-		//=========================================================================
 
 		/** Get the primary path ID (for single-source polylines) */
 		int32 GetPrimaryPathId() const { return PrimaryPathId; }
@@ -173,9 +165,7 @@ namespace PCGExCavalier
 			}
 		}
 
-		//=========================================================================
 		// Basic Properties
-		//=========================================================================
 
 		bool IsClosed() const { return bClosed; }
 		void SetClosed(bool bInClosed) { bClosed = bInClosed; }
@@ -191,9 +181,7 @@ namespace PCGExCavalier
 			return bClosed ? N : N - 1;
 		}
 
-		//=========================================================================
 		// Vertex Access
-		//=========================================================================
 
 		const FVertex& GetVertex(int32 Index) const { return Vertices[Index]; }
 		FVertex& GetVertex(int32 Index) { return Vertices[Index]; }
@@ -229,17 +217,12 @@ namespace PCGExCavalier
 			return ((Index - Offset) % N + N) % N;
 		}
 
-		//=========================================================================
 		// Vertex Manipulation
-		//=========================================================================
 
 		void AddVertex(const FVertex& Vertex)
 		{
 			Vertices.Add(Vertex);
-			if (Vertex.HasValidPath())
-			{
-				ContributingPathIds.Add(Vertex.GetPathId());
-			}
+			if (Vertex.HasValidPath()) { ContributingPathIds.Add(Vertex.GetPathId()); }
 		}
 
 		void AddVertex(const FVector2D& Position, double Bulge = 0.0)
@@ -251,10 +234,7 @@ namespace PCGExCavalier
 		{
 			FVertex V(Position, Bulge, Source);
 			Vertices.Add(V);
-			if (Source.HasValidPath())
-			{
-				ContributingPathIds.Add(Source.PathId);
-			}
+			if (Source.HasValidPath()) { ContributingPathIds.Add(Source.PathId); }
 		}
 
 		void AddVertex(const FVector2D& Position, double Bulge, int32 PathId, int32 PointIndex)
@@ -271,19 +251,13 @@ namespace PCGExCavalier
 		{
 			FVertex V(X, Y, Bulge, Source);
 			Vertices.Add(V);
-			if (Source.HasValidPath())
-			{
-				ContributingPathIds.Add(Source.PathId);
-			}
+			if (Source.HasValidPath()) { ContributingPathIds.Add(Source.PathId); }
 		}
 
 		void SetVertex(int32 Index, const FVertex& Vertex)
 		{
 			Vertices[Index] = Vertex;
-			if (Vertex.HasValidPath())
-			{
-				ContributingPathIds.Add(Vertex.GetPathId());
-			}
+			if (Vertex.HasValidPath()) { ContributingPathIds.Add(Vertex.GetPathId()); }
 		}
 
 		void RemoveVertex(int32 Index)
@@ -293,18 +267,12 @@ namespace PCGExCavalier
 
 		void RemoveLastVertex()
 		{
-			if (!Vertices.IsEmpty())
-			{
-				Vertices.RemoveAt(Vertices.Num() - 1);
-			}
+			if (!Vertices.IsEmpty()) { Vertices.RemoveAt(Vertices.Num() - 1); }
 		}
 
 		void SetLastVertexBulge(double NewBulge)
 		{
-			if (!Vertices.IsEmpty())
-			{
-				Vertices.Last().Bulge = NewBulge;
-			}
+			if (!Vertices.IsEmpty()) { Vertices.Last().Bulge = NewBulge; }
 		}
 
 		void Reserve(int32 Count)
@@ -334,9 +302,7 @@ namespace PCGExCavalier
 			}
 		}
 
-		//=========================================================================
 		// Segment Iteration
-		//=========================================================================
 
 		/** Iterate over all segments */
 		void ForEachSegment(FSegmentVisitor Visitor) const
@@ -366,9 +332,7 @@ namespace PCGExCavalier
 			}
 		}
 
-		//=========================================================================
 		// Geometric Properties
-		//=========================================================================
 
 		/** Compute the signed area of a closed polyline */
 		double Area() const;
@@ -391,9 +355,7 @@ namespace PCGExCavalier
 			return WindingNumber(Point) != 0;
 		}
 
-		//=========================================================================
 		// Transformations
-		//=========================================================================
 
 		/** Reverse the direction of the polyline */
 		void Reverse();
@@ -410,16 +372,14 @@ namespace PCGExCavalier
 		/** Tessellate all arcs into line segments */
 		FPolyline Tessellated(const FPCGExCCArcTessellationSettings& Settings) const;
 
-		//=========================================================================
 		// Spatial Index
-		//=========================================================================
 
 		/** Create an AABB spatial index for all segments */
 		FApproxAABBIndex CreateApproxAABBIndex() const;
 
-		//=========================================================================
+		
 		// Closest Point Queries
-		//=========================================================================
+		
 
 		/** Find the closest point on the polyline to the given point */
 		FVector2D ClosestPoint(const FVector2D& Point, double* OutDistance = nullptr) const;

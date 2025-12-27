@@ -12,18 +12,17 @@ namespace PCGExCavalier
 	{
 		namespace Internal
 		{
-			//=============================================================================
 			// Helper: Check if parametric t represents a false intersect
-			//=============================================================================
+
 
 			inline bool IsFalseIntersect(double T)
 			{
 				return T < 0.0 || T > 1.0;
 			}
 
-			//=============================================================================
+
 			// Helper: Bulge for connection arc
-			//=============================================================================
+
 
 			double BulgeForConnection(
 				const FVector2D& ArcCenter,
@@ -36,15 +35,15 @@ namespace PCGExCavalier
 				return Math::BulgeFromAngle(Math::DeltaAngleSigned(A1, A2, !bIsCCW));
 			}
 
-			//=============================================================================
+
 			// Segment Split Result and Function
 			// Splits a segment at a point and computes proper bulge values
-			//=============================================================================
+
 
 			struct FSegSplitResult
 			{
-				FVertex UpdatedStart;  // Same position as segment start but with updated bulge
-				FVertex SplitVertex;   // Position at split point with bulge to maintain curve to next vertex
+				FVertex UpdatedStart; // Same position as segment start but with updated bulge
+				FVertex SplitVertex;  // Position at split point with bulge to maintain curve to next vertex
 			};
 
 			FSegSplitResult SegSplitAtPoint(
@@ -108,12 +107,14 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+
 			// Create Raw Offset Segments
-			//=============================================================================
+
 
 			TArray<FRawOffsetSeg> CreateRawOffsetSegments(const FPolyline& Polyline, double Offset)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCavalier::Offset::Internal::CreateRawOffsetSegments);
+
 				TArray<FRawOffsetSeg> Result;
 				const int32 N = Polyline.VertexCount();
 				const int32 SegCount = Polyline.IsClosed() ? N : N - 1;
@@ -182,9 +183,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+
 			// Connect Using Arc
-			//=============================================================================
+
 
 			void ConnectUsingArc(
 				const FRawOffsetSeg& S1,
@@ -201,9 +202,9 @@ namespace PCGExCavalier
 				Result.AddOrReplaceVertex(FVertex(EP, S2.V1.Bulge, S2.V1.Source), PosEqualEps);
 			}
 
-			//=============================================================================
+
 			// Line-Line Join
-			//=============================================================================
+
 
 			void LineLineJoin(
 				const FRawOffsetSeg& S1,
@@ -263,9 +264,9 @@ namespace PCGExCavalier
 				}
 			}
 
-			//=============================================================================
+
 			// Line-Arc Join
-			//=============================================================================
+
 
 			void LineArcJoin(
 				const FRawOffsetSeg& S1,
@@ -307,7 +308,7 @@ namespace PCGExCavalier
 						const double A = Math::Angle(Arc.Center, Intersect);
 						const double ArcEndAngle = Math::Angle(Arc.Center, U2.GetPosition());
 						const double Theta = Math::DeltaAngle(A, ArcEndAngle);
-						
+
 						if ((Theta > 0.0) == (U1.Bulge > 0.0))
 						{
 							Result.AddOrReplaceVertex(FVertex(Intersect, Math::BulgeFromAngle(Theta), S1.V2.Source), PosEqualEps);
@@ -345,7 +346,7 @@ namespace PCGExCavalier
 					// Two intersections - use closest to original corner
 					const double Dist1 = Math::DistanceSquared(Intr.Point1, S1.OrigV2Pos);
 					const double Dist2 = Math::DistanceSquared(Intr.Point2, S1.OrigV2Pos);
-					
+
 					if (Dist1 < Dist2)
 					{
 						if (!ProcessIntersect(Intr.T1, Intr.Point1))
@@ -365,9 +366,9 @@ namespace PCGExCavalier
 				}
 			}
 
-			//=============================================================================
+
 			// Arc-Line Join
-			//=============================================================================
+
 
 			void ArcLineJoin(
 				const FRawOffsetSeg& S1,
@@ -446,7 +447,7 @@ namespace PCGExCavalier
 					const FVector2D OrigPoint = S2.bCollapsedArc ? U1 : S1.OrigV2Pos;
 					const double Dist1 = Math::DistanceSquared(Intr.Point1, OrigPoint);
 					const double Dist2 = Math::DistanceSquared(Intr.Point2, OrigPoint);
-					
+
 					if (Dist1 < Dist2)
 					{
 						if (!ProcessIntersect(Intr.T1, Intr.Point1))
@@ -464,9 +465,9 @@ namespace PCGExCavalier
 				}
 			}
 
-			//=============================================================================
+
 			// Arc-Arc Join
-			//=============================================================================
+
 
 			void ArcArcJoin(
 				const FRawOffsetSeg& S1,
@@ -533,7 +534,7 @@ namespace PCGExCavalier
 					const double A2 = Math::Angle(Arc2.Center, Intersect);
 					const double Arc2EndAngle = Math::Angle(Arc2.Center, U2.GetPosition());
 					const double Theta = Math::DeltaAngle(A2, Arc2EndAngle);
-					
+
 					if ((Theta > 0.0) == (U1.Bulge > 0.0))
 					{
 						Result.AddOrReplaceVertex(FVertex(Intersect, Math::BulgeFromAngle(Theta), S1.V2.Source), PosEqualEps);
@@ -558,7 +559,7 @@ namespace PCGExCavalier
 				{
 					const bool bIntr1Valid = BothArcsSweepPoint(Intr.Point1);
 					const bool bIntr2Valid = BothArcsSweepPoint(Intr.Point2);
-					
+
 					if (bIntr1Valid == bIntr2Valid)
 					{
 						// Both or neither valid - use closest to original corner
@@ -573,9 +574,9 @@ namespace PCGExCavalier
 				}
 			}
 
-			//=============================================================================
+
 			// Join Segments
-			//=============================================================================
+
 
 			void JoinSegments(
 				const FRawOffsetSeg& S1,
@@ -605,9 +606,9 @@ namespace PCGExCavalier
 				}
 			}
 
-			//=============================================================================
+
 			// Create Raw Offset Polyline
-			//=============================================================================
+
 
 			FPolyline CreateRawOffsetPolyline(
 				const FPolyline& OriginalPolyline,
@@ -615,6 +616,8 @@ namespace PCGExCavalier
 				double Offset,
 				double PosEqualEps)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCavalier::Offset::Internal::CreateRawOffsetPolyline);
+
 				if (Segments.IsEmpty())
 				{
 					return FPolyline(OriginalPolyline.IsClosed(), OriginalPolyline.GetPrimaryPathId());
@@ -673,7 +676,7 @@ namespace PCGExCavalier
 					{
 						const FVector2D UpdatedFirstPos = ClosingResult.LastVertex().GetPosition();
 						FVertex& FirstV = Result.GetVertex(0);
-						
+
 						if (FirstV.IsLine())
 						{
 							// Just update position
@@ -730,9 +733,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+
 			// Self-Intersection Detection
-			//=============================================================================
+
 
 			TArray<FBasicIntersect> FindAllSelfIntersections(
 				const FPolyline& Polyline,
@@ -759,8 +762,10 @@ namespace PCGExCavalier
 					{
 						const double ChordLen = FVector2D::Distance(V1.GetPosition(), V2.GetPosition());
 						const double Sagitta = FMath::Abs(V1.Bulge) * ChordLen * 0.5;
-						MinX -= Sagitta; MinY -= Sagitta;
-						MaxX += Sagitta; MaxY += Sagitta;
+						MinX -= Sagitta;
+						MinY -= Sagitta;
+						MaxX += Sagitta;
+						MaxY += Sagitta;
 					}
 
 					Index.Query(MinX, MinY, MaxX, MaxY, [&](int32 j)
@@ -801,9 +806,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+
 			// Find Intersects Between Two Polylines
-			//=============================================================================
+
 
 			TArray<FBasicIntersect> FindIntersectsBetween(
 				const FPolyline& Pline1,
@@ -829,8 +834,10 @@ namespace PCGExCavalier
 					{
 						const double ChordLen = FVector2D::Distance(U1.GetPosition(), U2.GetPosition());
 						const double Sagitta = FMath::Abs(U1.Bulge) * ChordLen * 0.5;
-						MinX -= Sagitta; MinY -= Sagitta;
-						MaxX += Sagitta; MaxY += Sagitta;
+						MinX -= Sagitta;
+						MinY -= Sagitta;
+						MaxX += Sagitta;
+						MaxY += Sagitta;
 					}
 
 					Index1.Query(MinX, MinY, MaxX, MaxY, [&](int32 j)
@@ -855,9 +862,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+
 			// Point Validation
-			//=============================================================================
+
 
 			bool PointValidForOffset(
 				const FPolyline& OriginalPolyline,
@@ -890,9 +897,9 @@ namespace PCGExCavalier
 				return bValid;
 			}
 
-			//=============================================================================
+
 			// Create Slices
-			//=============================================================================
+
 
 			// Helper: Add circle-polyline intersections to lookup
 			void AddCirclePolylineIntersections(
@@ -904,7 +911,7 @@ namespace PCGExCavalier
 				double PosEqualEps)
 			{
 				const double QueryExpand = CircleRadius + PosEqualEps;
-				
+
 				Index.Query(
 					CircleCenter.X - QueryExpand, CircleCenter.Y - QueryExpand,
 					CircleCenter.X + QueryExpand, CircleCenter.Y + QueryExpand,
@@ -918,8 +925,9 @@ namespace PCGExCavalier
 							// Line-circle intersection
 							const Math::FLineCircleIntersect Intr = Math::LineCircleIntersection(
 								V1.GetPosition(), V2.GetPosition(), CircleCenter, CircleRadius, PosEqualEps);
-							
-							auto IsValidT = [PosEqualEps](double T) -> bool {
+
+							auto IsValidT = [PosEqualEps](double T) -> bool
+							{
 								return T > PosEqualEps && T < 1.0 - PosEqualEps;
 							};
 
@@ -946,10 +954,11 @@ namespace PCGExCavalier
 								const Math::FCircleCircleIntersect Intr = Math::CircleCircleIntersection(
 									Arc.Center, Arc.Radius, CircleCenter, CircleRadius, PosEqualEps);
 
-								auto IsValidArcIntr = [&](const FVector2D& Pt) -> bool {
+								auto IsValidArcIntr = [&](const FVector2D& Pt) -> bool
+								{
 									if (V1.GetPosition().Equals(Pt, PosEqualEps)) return false;
 									return Math::PointWithinArcSweep(Arc.Center, V1.GetPosition(), V2.GetPosition(),
-										V1.Bulge < 0.0, Pt, PosEqualEps);
+									                                 V1.Bulge < 0.0, Pt, PosEqualEps);
 								};
 
 								if (Intr.Count >= 1)
@@ -977,25 +986,27 @@ namespace PCGExCavalier
 				double PosEqualEps,
 				double OffsetTolerance)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCavalier::Offset::Internal::CreateSlices);
+
 				TArray<FPolylineSlice> Result;
 				if (RawOffset.VertexCount() < 2) return Result;
 
 				const FPolyline::FApproxAABBIndex RawIndex = RawOffset.CreateApproxAABBIndex();
-				
+
 				TArray<FBasicIntersect> SelfIntrs = FindAllSelfIntersections(RawOffset, RawIndex, PosEqualEps);
 				TArray<FBasicIntersect> DualIntrs = FindIntersectsBetween(RawOffset, DualRawOffset, RawIndex, PosEqualEps);
 
 				// Build lookup: segment -> intersection points
 				TMap<int32, TArray<FVector2D>> IntersectsLookup;
-				
+
 				// For open polylines, add intersections with circles at original endpoints
 				if (!Original.IsClosed())
 				{
 					const double CircleRadius = FMath::Abs(Offset);
 					AddCirclePolylineIntersections(RawOffset, RawIndex, Original.GetVertex(0).GetPosition(),
-						CircleRadius, IntersectsLookup, PosEqualEps);
+					                               CircleRadius, IntersectsLookup, PosEqualEps);
 					AddCirclePolylineIntersections(RawOffset, RawIndex, Original.LastVertex().GetPosition(),
-						CircleRadius, IntersectsLookup, PosEqualEps);
+					                               CircleRadius, IntersectsLookup, PosEqualEps);
 				}
 
 				for (const FBasicIntersect& SI : SelfIntrs)
@@ -1015,7 +1026,7 @@ namespace PCGExCavalier
 					{
 						FPolylineSlice Slice;
 						Slice.StartIndex = 0;
-						
+
 						if (Original.IsClosed())
 						{
 							// For closed polylines: traverse all segments, end point = start point
@@ -1047,7 +1058,7 @@ namespace PCGExCavalier
 					{
 						return Math::DistanceSquared(A, StartPos) < Math::DistanceSquared(B, StartPos);
 					});
-					
+
 					// Remove duplicate/near-duplicate intersections
 					TArray<FVector2D>& IntrList = Pair.Value;
 					for (int32 i = IntrList.Num() - 1; i > 0; --i)
@@ -1077,8 +1088,10 @@ namespace PCGExCavalier
 					{
 						const double ChordLen = FVector2D::Distance(V1.GetPosition(), V2.GetPosition());
 						const double Sagitta = FMath::Abs(V1.Bulge) * ChordLen * 0.5;
-						MinX -= Sagitta; MinY -= Sagitta;
-						MaxX += Sagitta; MaxY += Sagitta;
+						MinX -= Sagitta;
+						MinY -= Sagitta;
+						MaxX += Sagitta;
+						MaxY += Sagitta;
 					}
 
 					bool bHasIntersect = false;
@@ -1103,7 +1116,7 @@ namespace PCGExCavalier
 					const int32 NN = RawOffset.VertexCount();
 					const FVertex& StartV = RawOffset.GetVertex(StartIdx);
 					const FVertex& StartV2 = RawOffset.GetVertexWrapped(StartIdx + 1);
-					
+
 					// Compute proper start vertex with correct bulge
 					const bool bStartAtSegEnd = StartV2.GetPosition().Equals(StartPt, PosEqualEps);
 					FVertex UpdatedStartV;
@@ -1189,7 +1202,7 @@ namespace PCGExCavalier
 						TraverseCount += N;
 					}
 					if (TraverseCount < 0) return;
-					
+
 					// Handle same-segment wrap
 					if (TraverseCount == 0 && Original.IsClosed() && !StartPt.Equals(EndPt, PosEqualEps))
 					{
@@ -1199,7 +1212,7 @@ namespace PCGExCavalier
 							TraverseCount = N;
 						}
 					}
-					
+
 					if (TraverseCount == 0 && StartPt.Equals(EndPt, PosEqualEps)) return;
 
 					// Full validation
@@ -1211,10 +1224,10 @@ namespace PCGExCavalier
 					// Compute updated start vertex with proper bulge using SegSplitAtPoint
 					const FVertex& StartV = RawOffset.GetVertex(StartIdx);
 					const FVertex& StartV2 = RawOffset.GetVertexWrapped(StartIdx + 1);
-					
+
 					// Check if start point is at segment end (next vertex position)
 					const bool bStartAtSegEnd = StartV2.GetPosition().Equals(StartPt, PosEqualEps);
-					
+
 					FVertex UpdatedStart;
 					if (bStartAtSegEnd)
 					{
@@ -1299,7 +1312,11 @@ namespace PCGExCavalier
 					int32 NextSegIdx = INDEX_NONE;
 					for (int32 Idx : SortedSegIndices)
 					{
-						if (Idx > SegIdx) { NextSegIdx = Idx; break; }
+						if (Idx > SegIdx)
+						{
+							NextSegIdx = Idx;
+							break;
+						}
 					}
 
 					if (NextSegIdx != INDEX_NONE)
@@ -1325,9 +1342,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+
 			// Stitch Slices
-			//=============================================================================
+
 
 			TArray<FPolyline> StitchSlices(
 				const FPolyline& RawOffset,
@@ -1337,6 +1354,8 @@ namespace PCGExCavalier
 				double JoinEps,
 				double PosEqualEps)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCavalier::Offset::Internal::StitchSlices);
+
 				TArray<FPolyline> Results;
 				if (Slices.IsEmpty()) return Results;
 
@@ -1347,16 +1366,13 @@ namespace PCGExCavalier
 				{
 					const FPolylineSlice& Slice = Slices[0];
 					FPolyline Pline(false, SourcePathId);
-					
+
 					// Add all slice vertices
 					Pline.AddOrReplaceVertex(Slice.UpdatedStart, PosEqualEps);
 					for (int32 i = 1; i <= Slice.EndIndexOffset; ++i)
 					{
 						FVertex V = RawOffset.GetVertex((Slice.StartIndex + i) % N);
-						if (i == Slice.EndIndexOffset)
-						{
-							V = V.WithBulge(Slice.UpdatedEndBulge);
-						}
+						if (i == Slice.EndIndexOffset) { V = V.WithBulge(Slice.UpdatedEndBulge); }
 						Pline.AddOrReplaceVertex(V, PosEqualEps);
 					}
 					Pline.AddOrReplaceVertex(FVertex(Slice.EndPoint, 0.0, Slice.EndSource), PosEqualEps);
@@ -1373,10 +1389,7 @@ namespace PCGExCavalier
 						}
 					}
 
-					if (Pline.VertexCount() >= 2)
-					{
-						Results.Add(MoveTemp(Pline));
-					}
+					if (Pline.VertexCount() >= 2) { Results.Add(MoveTemp(Pline)); }
 					return Results;
 				}
 
@@ -1398,10 +1411,7 @@ namespace PCGExCavalier
 						const FPolylineSlice& Slice = Slices[CurrentIdx];
 
 						// Remove last if it overlaps with slice start
-						if (Pline.VertexCount() > 0)
-						{
-							Pline.RemoveLastVertex();
-						}
+						if (Pline.VertexCount() > 0) { Pline.RemoveLastVertex(); }
 
 						// Add slice vertices
 						Pline.AddOrReplaceVertex(Slice.UpdatedStart, PosEqualEps);
@@ -1409,10 +1419,7 @@ namespace PCGExCavalier
 						{
 							FVertex V = RawOffset.GetVertex((Slice.StartIndex + i) % N);
 							// Use updated end bulge for the last vertex before EndPoint
-							if (i == Slice.EndIndexOffset)
-							{
-								V = V.WithBulge(Slice.UpdatedEndBulge);
-							}
+							if (i == Slice.EndIndexOffset) { V = V.WithBulge(Slice.UpdatedEndBulge); }
 							Pline.AddOrReplaceVertex(V, PosEqualEps);
 						}
 						Pline.AddOrReplaceVertex(FVertex(Slice.EndPoint, 0.0, Slice.EndSource), PosEqualEps);
@@ -1433,9 +1440,9 @@ namespace PCGExCavalier
 							if (Visited[i]) continue;
 							if (!Slices[i].UpdatedStart.GetPosition().Equals(Slice.EndPoint, JoinEps)) continue;
 
-							const int32 Dist = (Slices[i].StartIndex >= Slice.StartIndex) 
-								? Slices[i].StartIndex - Slice.StartIndex 
-								: N - Slice.StartIndex + Slices[i].StartIndex;
+							const int32 Dist = (Slices[i].StartIndex >= Slice.StartIndex)
+								                   ? Slices[i].StartIndex - Slice.StartIndex
+								                   : N - Slice.StartIndex + Slices[i].StartIndex;
 							if (Dist < BestDist)
 							{
 								BestDist = Dist;
@@ -1458,9 +1465,9 @@ namespace PCGExCavalier
 			}
 		}
 
-		//=============================================================================
+
 		// Public API
-		//=============================================================================
+
 
 		FPolyline RawParallelOffset(const FPolyline& Polyline, double Offset, double PosEqualEps)
 		{
@@ -1474,6 +1481,8 @@ namespace PCGExCavalier
 
 		TArray<FPolyline> ParallelOffset(const FPolyline& Polyline, double Offset, const FPCGExCCOffsetOptions& Options)
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCavalier::ParallelOffset);
+
 			TArray<FPolyline> Results;
 			if (Polyline.VertexCount() < 2) return Results;
 

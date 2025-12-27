@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCCCommon.h"
 #include "PCGExCCTypes.h"
 #include "PCGExCCPolyline.h"
 #include "Details/PCGExCCDetails.h"
@@ -18,28 +19,6 @@ namespace PCGExCavalier
 		 */
 		namespace Internal
 		{
-			/** Basic intersection point during offset */
-			struct FBasicIntersect
-			{
-				int32 StartIndex1;
-				int32 StartIndex2;
-				FVector2D Point;
-
-				FBasicIntersect()
-					: StartIndex1(0)
-					, StartIndex2(0)
-					, Point(FVector2D::ZeroVector)
-				{
-				}
-
-				FBasicIntersect(int32 InIdx1, int32 InIdx2, const FVector2D& InPoint)
-					: StartIndex1(InIdx1)
-					, StartIndex2(InIdx2)
-					, Point(InPoint)
-				{
-				}
-			};
-
 			/** Slice of polyline between self-intersection points */
 			struct FPolylineSlice
 			{
@@ -48,7 +27,7 @@ namespace PCGExCavalier
 				FVertex UpdatedStart;
 				double UpdatedEndBulge = 0.0;
 				FVector2D EndPoint = FVector2D::ZeroVector;
-				FVertexSource EndSource;  // Source info for the end point
+				FVertexSource EndSource; // Source info for the end point
 
 				FVector2D GetStartPoint() const { return UpdatedStart.GetPosition(); }
 				int32 VertexCount() const { return EndIndexOffset + 2; }
@@ -124,7 +103,7 @@ namespace PCGExCavalier
 
 			/** Find all self-intersections in a polyline */
 			PCGEXELEMENTSCAVALIERCONTOURS_API
-			TArray<FBasicIntersect> FindAllSelfIntersections(
+			TArray<PCGExCavalier::FBasicIntersect> FindAllSelfIntersections(
 				const FPolyline& Polyline,
 				const FPolyline::FApproxAABBIndex& Index,
 				double PosEqualEps);
@@ -142,7 +121,7 @@ namespace PCGExCavalier
 
 			/** Find intersections between two polylines */
 			PCGEXELEMENTSCAVALIERCONTOURS_API
-			TArray<FBasicIntersect> FindIntersectsBetween(
+			TArray<PCGExCavalier::FBasicIntersect> FindIntersectsBetween(
 				const FPolyline& Pline1,
 				const FPolyline& Pline2,
 				const FPolyline::FApproxAABBIndex& Index1,

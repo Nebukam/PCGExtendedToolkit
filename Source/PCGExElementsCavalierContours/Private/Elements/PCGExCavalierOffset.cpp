@@ -8,7 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Helpers/PCGExArrayHelpers.h"
+#include "Math/PCGExBestFitPlane.h"
 #include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCavalierOffsetElement"
@@ -68,30 +68,21 @@ namespace PCGExCavalierOffset
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
+
+		ProjectionDetails = Settings->ProjectionDetails;
+		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
+		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+
+
 		Settings->Offset.TryReadDataValue(PointDataFacade->Source, OffsetValue);
 
-		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
-		const int32 InNumVertices = InTransforms.Num();
-
-		const bool bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->Source);
-
-		// Create a root path with proper indexing
-		// Use a unique PathId if you have multiple paths, or 0 for single path workflows
-		const int32 PathId = 0; // Or: PointDataFacade->Source->GetUniqueID()
-
-		PCGExCavalier::FRootPath RootPath(PathId, bClosedLoop);
-		RootPath.Reserve(InNumVertices);
-
-		for (const FTransform& InTransform : InTransforms)
-		{
-			RootPath.AddPoint(InTransform); // Automatically sets PathId and PointIndex
-		}
+		PCGExCavalier::FRootPath RootPath(PointDataFacade->Source, ProjectionDetails);
 
 		// Create polyline from root path
 		PCGExCavalier::FPolyline Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(RootPath);
 
 		// Build lookup map for 3D conversion
-		RootPaths.Add(PathId, MoveTemp(RootPath));
+		RootPaths.Add(RootPath.PathId, MoveTemp(RootPath));
 
 		// Run offset
 		TArray<PCGExCavalier::FPolyline> OutputLines = PCGExCavalier::Offset::ParallelOffset(Polyline, OffsetValue, Settings->OffsetOptions);
@@ -120,15 +111,16 @@ namespace PCGExCavalierOffset
 		// Convert back to 3D with proper Z and transform interpolation
 		PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(Polyline, RootPaths);
 
-		TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(
-			PointDataFacade->Source, PCGExData::EIOInit::New);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
+		if (!PathIO) { return; }
+
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), OutNumVertices, EPCGPointNativeProperties::Transform);
 
 		TPCGValueRange<FTransform> OutTransforms = PathIO->GetOut()->GetTransformValueRange();
 		for (int32 i = 0; i < OutNumVertices; i++)
 		{
 			// Full transform with proper Z, rotation, and scale from source
-			OutTransforms[i] = Result3D.Transforms[i];
+			OutTransforms[i] = ProjectionDetails.Restore(Result3D.Transforms[i], Result3D.GetPointIndex(i));
 		}
 
 		PCGExPaths::Helpers::SetClosedLoop(PathIO, Polyline.IsClosed());

@@ -71,13 +71,13 @@ namespace PCGExCavalier
 
 			FBooleanOperand(const FPolyline* InPolyline, int32 InPathId)
 				: Polyline(InPolyline)
-				, PathId(InPathId)
+				  , PathId(InPathId)
 			{
 			}
 
 			FBooleanOperand(const FPolyline& InPolyline, int32 InPathId)
 				: Polyline(&InPolyline)
-				, PathId(InPathId)
+				  , PathId(InPathId)
 			{
 			}
 
@@ -125,14 +125,9 @@ namespace PCGExCavalier
 			TArray<const FPolyline*> GetAllPolylines() const
 			{
 				TArray<const FPolyline*> Result;
-				for (const FPolyline& P : PositivePolylines)
-				{
-					Result.Add(&P);
-				}
-				for (const FPolyline& P : NegativePolylines)
-				{
-					Result.Add(&P);
-				}
+				Result.Reserve(PositivePolylines.Num() + NegativePolylines.Num());
+				for (const FPolyline& P : PositivePolylines) { Result.Add(&P); }
+				for (const FPolyline& P : NegativePolylines) { Result.Add(&P); }
 				return Result;
 			}
 
@@ -140,14 +135,8 @@ namespace PCGExCavalier
 			void CollectContributingPathIds()
 			{
 				AllContributingPathIds.Empty();
-				for (const FPolyline& P : PositivePolylines)
-				{
-					AllContributingPathIds.Append(P.GetContributingPathIds());
-				}
-				for (const FPolyline& P : NegativePolylines)
-				{
-					AllContributingPathIds.Append(P.GetContributingPathIds());
-				}
+				for (const FPolyline& P : PositivePolylines) { AllContributingPathIds.Append(P.GetContributingPathIds()); }
+				for (const FPolyline& P : NegativePolylines) { AllContributingPathIds.Append(P.GetContributingPathIds()); }
 			}
 		};
 
@@ -164,10 +153,8 @@ namespace PCGExCavalier
 		 */
 		PCGEXELEMENTSCAVALIERCONTOURS_API
 		FBooleanResult PerformBoolean(
-			const FBooleanOperand& Operand1,
-			const FBooleanOperand& Operand2,
-			EPCGExCCBooleanOp Operation,
-			const FContourBooleanOptions& Options);
+			const FBooleanOperand& Operand1, const FBooleanOperand& Operand2,
+			EPCGExCCBooleanOp Operation, const FContourBooleanOptions& Options);
 
 		/**
 		 * Perform boolean operation between two polylines (legacy version).
@@ -182,10 +169,8 @@ namespace PCGExCavalier
 		 */
 		PCGEXELEMENTSCAVALIERCONTOURS_API
 		FBooleanResult PerformBoolean(
-			const FPolyline& Pline1,
-			const FPolyline& Pline2,
-			EPCGExCCBooleanOp Operation,
-			const FContourBooleanOptions& Options);
+			const FPolyline& Pline1, const FPolyline& Pline2,
+			EPCGExCCBooleanOp Operation, const FContourBooleanOptions& Options);
 
 
 		/**

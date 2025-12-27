@@ -3,42 +3,11 @@
 // Originally ported from cavalier_contours by jbuckmccready (https://github.com/jbuckmccready/cavalier_contours)
 
 #include "Core/PCGExCCSegmentIntersect.h"
+#include "Core/PCGExCCMath.h"
 
 namespace PCGExCavalier
 {
-	namespace
-	{
-		/** Check if a point lies within an arc's angular sweep */
-		bool PointOnArcSweep(
-			const FVector2D& Center,
-			const FVector2D& ArcStart,
-			const FVector2D& ArcEnd,
-			bool bIsCW,
-			const FVector2D& Point,
-			double Eps)
-		{
-			return Math::PointWithinArcSweep(Center, ArcStart, ArcEnd, bIsCW, Point, Eps);
-		}
-
-		/** Substitute endpoint if intersection is very close to it */
-		FVector2D SubstituteEndpoint(
-			const FVector2D& IntersectPt,
-			const FVector2D& P1, const FVector2D& P2,
-			const FVector2D& Q1, const FVector2D& Q2,
-			double Eps)
-		{
-			// Check against all four endpoints
-			if (IntersectPt.Equals(P1, Eps)) return P1;
-			if (IntersectPt.Equals(P2, Eps)) return P2;
-			if (IntersectPt.Equals(Q1, Eps)) return Q1;
-			if (IntersectPt.Equals(Q2, Eps)) return Q2;
-			return IntersectPt;
-		}
-	}
-
-	//=============================================================================
 	// Line-Line Intersection
-	//=============================================================================
 
 	FPlineSegIntersect LineLineIntersect(
 		const FVector2D& P1, const FVector2D& P2,
@@ -56,16 +25,16 @@ namespace PCGExCavalier
 				const FVector2D D2 = Q2 - Q1;
 
 				const double T1 = D1.SizeSquared() > PosEqualEps * PosEqualEps
-					? FVector2D::DotProduct(Intr.Point - P1, D1) / D1.SizeSquared()
-					: 0.5;
+					                  ? FVector2D::DotProduct(Intr.Point - P1, D1) / D1.SizeSquared()
+					                  : 0.5;
 				const double T2 = D2.SizeSquared() > PosEqualEps * PosEqualEps
-					? FVector2D::DotProduct(Intr.Point - Q1, D2) / D2.SizeSquared()
-					: 0.5;
+					                  ? FVector2D::DotProduct(Intr.Point - Q1, D2) / D2.SizeSquared()
+					                  : 0.5;
 
 				if (T1 >= -PosEqualEps && T1 <= 1.0 + PosEqualEps &&
 					T2 >= -PosEqualEps && T2 <= 1.0 + PosEqualEps)
 				{
-					FVector2D FinalPt = SubstituteEndpoint(Intr.Point, P1, P2, Q1, Q2, PosEqualEps);
+					FVector2D FinalPt = Math::SubstituteEndpoint(Intr.Point, P1, P2, Q1, Q2, PosEqualEps);
 
 					// Check if it's a tangent (endpoint) intersection
 					bool bIsTangent = FinalPt.Equals(P1, PosEqualEps) || FinalPt.Equals(P2, PosEqualEps) ||
@@ -104,8 +73,8 @@ namespace PCGExCavalier
 					FVector2D Pt1 = P1 + D * OverlapStart;
 					FVector2D Pt2 = P1 + D * OverlapEnd;
 
-					Pt1 = SubstituteEndpoint(Pt1, P1, P2, Q1, Q2, PosEqualEps);
-					Pt2 = SubstituteEndpoint(Pt2, P1, P2, Q1, Q2, PosEqualEps);
+					Pt1 = Math::SubstituteEndpoint(Pt1, P1, P2, Q1, Q2, PosEqualEps);
+					Pt2 = Math::SubstituteEndpoint(Pt2, P1, P2, Q1, Q2, PosEqualEps);
 
 					return FPlineSegIntersect(EPlineSegIntersectType::OverlappingLines, Pt1, Pt2);
 				}
@@ -113,7 +82,7 @@ namespace PCGExCavalier
 				{
 					// Single point overlap (tangent)
 					FVector2D Pt = P1 + D * OverlapStart;
-					Pt = SubstituteEndpoint(Pt, P1, P2, Q1, Q2, PosEqualEps);
+					Pt = Math::SubstituteEndpoint(Pt, P1, P2, Q1, Q2, PosEqualEps);
 					return FPlineSegIntersect(EPlineSegIntersectType::TangentIntersect, Pt);
 				}
 			}
@@ -126,9 +95,9 @@ namespace PCGExCavalier
 		return FPlineSegIntersect();
 	}
 
-	//=============================================================================
+
 	// Line-Arc Intersection
-	//=============================================================================
+
 
 	FPlineSegIntersect LineArcIntersect(
 		const FVector2D& LineStart, const FVector2D& LineEnd,
@@ -160,20 +129,18 @@ namespace PCGExCavalier
 				return false;
 
 			// Check if on arc sweep
-			return PointOnArcSweep(Arc.Center, ArcStart.GetPosition(), ArcEnd.GetPosition(), bArcIsCW, Pt, PosEqualEps);
+			return Math::PointOnArcSweep(Arc.Center, ArcStart.GetPosition(), ArcEnd.GetPosition(), bArcIsCW, Pt, PosEqualEps);
 		};
 
 		if (CircleIntr.Count >= 1 && CheckPoint(CircleIntr.Point1, CircleIntr.T1))
 		{
-			FVector2D Pt = SubstituteEndpoint(CircleIntr.Point1, LineStart, LineEnd,
-				ArcStart.GetPosition(), ArcEnd.GetPosition(), PosEqualEps);
+			FVector2D Pt = Math::SubstituteEndpoint(CircleIntr.Point1, LineStart, LineEnd, ArcStart.GetPosition(), ArcEnd.GetPosition(), PosEqualEps);
 			ValidPoints.Add(Pt);
 		}
 
 		if (CircleIntr.Count >= 2 && CheckPoint(CircleIntr.Point2, CircleIntr.T2))
 		{
-			FVector2D Pt = SubstituteEndpoint(CircleIntr.Point2, LineStart, LineEnd,
-				ArcStart.GetPosition(), ArcEnd.GetPosition(), PosEqualEps);
+			FVector2D Pt = Math::SubstituteEndpoint(CircleIntr.Point2, LineStart, LineEnd, ArcStart.GetPosition(), ArcEnd.GetPosition(), PosEqualEps);
 
 			// Avoid duplicates
 			if (ValidPoints.IsEmpty() || !ValidPoints[0].Equals(Pt, PosEqualEps))
@@ -211,9 +178,9 @@ namespace PCGExCavalier
 		}
 	}
 
-	//=============================================================================
+
 	// Arc-Arc Intersection
-	//=============================================================================
+
 
 	FPlineSegIntersect ArcArcIntersect(
 		const FVertex& Arc1Start, const FVertex& Arc1End,
@@ -229,17 +196,17 @@ namespace PCGExCavalier
 			if (!Arc1.bValid && !Arc2.bValid)
 			{
 				return LineLineIntersect(Arc1Start.GetPosition(), Arc1End.GetPosition(),
-					Arc2Start.GetPosition(), Arc2End.GetPosition(), PosEqualEps);
+				                         Arc2Start.GetPosition(), Arc2End.GetPosition(), PosEqualEps);
 			}
 			else if (!Arc1.bValid)
 			{
 				return LineArcIntersect(Arc1Start.GetPosition(), Arc1End.GetPosition(),
-					Arc2Start, Arc2End, PosEqualEps);
+				                        Arc2Start, Arc2End, PosEqualEps);
 			}
 			else
 			{
 				return LineArcIntersect(Arc2Start.GetPosition(), Arc2End.GetPosition(),
-					Arc1Start, Arc1End, PosEqualEps);
+				                        Arc1Start, Arc1End, PosEqualEps);
 			}
 		}
 
@@ -254,23 +221,19 @@ namespace PCGExCavalier
 			// Check if arc endpoints lie on each other's sweeps
 			TArray<FVector2D> OverlapPoints;
 
-			if (PointOnArcSweep(Arc1.Center, Arc1Start.GetPosition(), Arc1End.GetPosition(), bArc1IsCW,
-				Arc2Start.GetPosition(), PosEqualEps))
+			if (Math::PointOnArcSweep(Arc1.Center, Arc1Start.GetPosition(), Arc1End.GetPosition(), bArc1IsCW, Arc2Start.GetPosition(), PosEqualEps))
 			{
 				OverlapPoints.AddUnique(Arc2Start.GetPosition());
 			}
-			if (PointOnArcSweep(Arc1.Center, Arc1Start.GetPosition(), Arc1End.GetPosition(), bArc1IsCW,
-				Arc2End.GetPosition(), PosEqualEps))
+			if (Math::PointOnArcSweep(Arc1.Center, Arc1Start.GetPosition(), Arc1End.GetPosition(), bArc1IsCW, Arc2End.GetPosition(), PosEqualEps))
 			{
 				OverlapPoints.AddUnique(Arc2End.GetPosition());
 			}
-			if (PointOnArcSweep(Arc2.Center, Arc2Start.GetPosition(), Arc2End.GetPosition(), bArc2IsCW,
-				Arc1Start.GetPosition(), PosEqualEps))
+			if (Math::PointOnArcSweep(Arc2.Center, Arc2Start.GetPosition(), Arc2End.GetPosition(), bArc2IsCW, Arc1Start.GetPosition(), PosEqualEps))
 			{
 				OverlapPoints.AddUnique(Arc1Start.GetPosition());
 			}
-			if (PointOnArcSweep(Arc2.Center, Arc2Start.GetPosition(), Arc2End.GetPosition(), bArc2IsCW,
-				Arc1End.GetPosition(), PosEqualEps))
+			if (Math::PointOnArcSweep(Arc2.Center, Arc2Start.GetPosition(), Arc2End.GetPosition(), bArc2IsCW, Arc1End.GetPosition(), PosEqualEps))
 			{
 				OverlapPoints.AddUnique(Arc1End.GetPosition());
 			}
@@ -278,7 +241,7 @@ namespace PCGExCavalier
 			if (OverlapPoints.Num() >= 2)
 			{
 				return FPlineSegIntersect(EPlineSegIntersectType::OverlappingArcs,
-					OverlapPoints[0], OverlapPoints[1]);
+				                          OverlapPoints[0], OverlapPoints[1]);
 			}
 			else if (OverlapPoints.Num() == 1)
 			{
@@ -304,26 +267,20 @@ namespace PCGExCavalier
 
 		auto CheckPoint = [&](const FVector2D& Pt) -> bool
 		{
-			bool bOnArc1 = PointOnArcSweep(Arc1.Center, Arc1Start.GetPosition(), Arc1End.GetPosition(),
-				bArc1IsCW, Pt, PosEqualEps);
-			bool bOnArc2 = PointOnArcSweep(Arc2.Center, Arc2Start.GetPosition(), Arc2End.GetPosition(),
-				bArc2IsCW, Pt, PosEqualEps);
+			bool bOnArc1 = Math::PointOnArcSweep(Arc1.Center, Arc1Start.GetPosition(), Arc1End.GetPosition(), bArc1IsCW, Pt, PosEqualEps);
+			bool bOnArc2 = Math::PointOnArcSweep(Arc2.Center, Arc2Start.GetPosition(), Arc2End.GetPosition(), bArc2IsCW, Pt, PosEqualEps);
 			return bOnArc1 && bOnArc2;
 		};
 
 		if (CircleIntr.Count >= 1 && CheckPoint(CircleIntr.Point1))
 		{
-			FVector2D Pt = SubstituteEndpoint(CircleIntr.Point1,
-				Arc1Start.GetPosition(), Arc1End.GetPosition(),
-				Arc2Start.GetPosition(), Arc2End.GetPosition(), PosEqualEps);
+			FVector2D Pt = Math::SubstituteEndpoint(CircleIntr.Point1, Arc1Start.GetPosition(), Arc1End.GetPosition(), Arc2Start.GetPosition(), Arc2End.GetPosition(), PosEqualEps);
 			ValidPoints.Add(Pt);
 		}
 
 		if (CircleIntr.Count >= 2 && CheckPoint(CircleIntr.Point2))
 		{
-			FVector2D Pt = SubstituteEndpoint(CircleIntr.Point2,
-				Arc1Start.GetPosition(), Arc1End.GetPosition(),
-				Arc2Start.GetPosition(), Arc2End.GetPosition(), PosEqualEps);
+			FVector2D Pt = Math::SubstituteEndpoint(CircleIntr.Point2, Arc1Start.GetPosition(), Arc1End.GetPosition(), Arc2Start.GetPosition(), Arc2End.GetPosition(), PosEqualEps);
 
 			if (ValidPoints.IsEmpty() || !ValidPoints[0].Equals(Pt, PosEqualEps))
 			{
@@ -359,9 +316,9 @@ namespace PCGExCavalier
 		}
 	}
 
-	//=============================================================================
+
 	// Main Segment Intersection
-	//=============================================================================
+
 
 	FPlineSegIntersect PlineSegmentIntersect(
 		const FVertex& V1, const FVertex& V2,
@@ -374,7 +331,7 @@ namespace PCGExCavalier
 		if (bV1IsLine && bU1IsLine)
 		{
 			return LineLineIntersect(V1.GetPosition(), V2.GetPosition(),
-				U1.GetPosition(), U2.GetPosition(), PosEqualEps);
+			                         U1.GetPosition(), U2.GetPosition(), PosEqualEps);
 		}
 		else if (bV1IsLine && !bU1IsLine)
 		{

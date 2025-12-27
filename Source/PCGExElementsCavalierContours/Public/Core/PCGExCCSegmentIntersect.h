@@ -6,7 +6,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCCTypes.h"
-#include "PCGExCCMath.h"
 
 namespace PCGExCavalier
 {
@@ -52,14 +51,14 @@ namespace PCGExCavalier
 
 		FPlineSegIntersect(EPlineSegIntersectType InType, const FVector2D& InPoint1)
 			: Type(InType)
-			, Point1(InPoint1)
+			  , Point1(InPoint1)
 		{
 		}
 
 		FPlineSegIntersect(EPlineSegIntersectType InType, const FVector2D& InPoint1, const FVector2D& InPoint2)
 			: Type(InType)
-			, Point1(InPoint1)
-			, Point2(InPoint2)
+			  , Point1(InPoint1)
+			  , Point2(InPoint2)
 		{
 		}
 

@@ -3,6 +3,8 @@
 // Originally ported from cavalier_contours by jbuckmccready (https://github.com/jbuckmccready/cavalier_contours) - Boolean Operations
 
 #include "Core/PCGExCCBoolean.h"
+
+#include "Core/PCGExCCCommon.h"
 #include "Core/PCGExCCPolyline.h"
 #include "Core/PCGExCCSegmentIntersect.h"
 
@@ -12,24 +14,6 @@ namespace PCGExCavalier
 	{
 		namespace Internal
 		{
-			/** Basic intersection point between two polylines */
-			struct FBasicIntersect
-			{
-				int32 StartIndex1; // Segment start index on polyline 1
-				int32 StartIndex2; // Segment start index on polyline 2
-				FVector2D Point;
-
-				FBasicIntersect()
-					: StartIndex1(0), StartIndex2(0), Point(FVector2D::ZeroVector)
-				{
-				}
-
-				FBasicIntersect(int32 InIdx1, int32 InIdx2, const FVector2D& InPoint)
-					: StartIndex1(InIdx1), StartIndex2(InIdx2), Point(InPoint)
-				{
-				}
-			};
-
 			/** Overlapping segment intersection between two polylines */
 			struct FOverlappingIntersect
 			{
@@ -97,9 +81,9 @@ namespace PCGExCavalier
 				int32 StartOfPline2Slices = 0;
 			};
 
-			//=============================================================================
+			
 			// Find all intersections between two polylines
-			//=============================================================================
+			
 
 			FIntersectsCollection FindAllIntersects(
 				const FPolyline& Pline1,
@@ -181,9 +165,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+			
 			// Process polylines for boolean operation
-			//=============================================================================
+			
 
 			FProcessedBoolean ProcessForBoolean(
 				const FPolyline& Pline1,
@@ -203,9 +187,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+			
 			// Create slices from polyline between intersection points
-			//=============================================================================
+			
 
 			void CreateSlicesFromPline(
 				const FPolyline& Pline,
@@ -325,9 +309,9 @@ namespace PCGExCavalier
 				}
 			}
 
-			//=============================================================================
+			
 			// Prune slices based on boolean operation type
-			//=============================================================================
+			
 
 			FPrunedSlices PruneSlices(
 				const FPolyline& Pline1,
@@ -425,9 +409,9 @@ namespace PCGExCavalier
 				return Result;
 			}
 
-			//=============================================================================
+			
 			// Extend polyline from slice vertices
-			//=============================================================================
+			
 
 			void ExtendPolylineFromSlice(
 				FPolyline& Pline,
@@ -479,9 +463,9 @@ namespace PCGExCavalier
 				Pline.AddOrReplaceVertex(EndV, PosEqualEps);
 			}
 
-			//=============================================================================
+			
 			// Stitch slices into closed polylines
-			//=============================================================================
+			
 
 			TArray<FPolyline> StitchSlicesIntoClosedPolylines(
 				const FPrunedSlices& PrunedSlices,
@@ -595,9 +579,9 @@ namespace PCGExCavalier
 			}
 		}
 
-		//=============================================================================
+		
 		// Main Boolean Operation with path tracking
-		//=============================================================================
+		
 
 		FBooleanResult PerformBoolean(
 			const FBooleanOperand& Operand1,

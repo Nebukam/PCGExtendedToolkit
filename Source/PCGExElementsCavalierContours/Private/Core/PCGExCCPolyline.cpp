@@ -8,9 +8,9 @@
 
 namespace PCGExCavalier
 {
-	//=============================================================================
+	
 	// FPolyline - Geometric Properties
-	//=============================================================================
+	
 
 	double FPolyline::Area() const
 	{
@@ -261,9 +261,9 @@ namespace PCGExCavalier
 		return Winding;
 	}
 
-	//=============================================================================
+	
 	// FPolyline - Transformations
-	//=============================================================================
+	
 
 	void FPolyline::Reverse()
 	{
@@ -399,9 +399,9 @@ namespace PCGExCavalier
 		return Result;
 	}
 
-	//=============================================================================
+	
 	// FPolyline - Spatial Index
-	//=============================================================================
+	
 
 	FPolyline::FApproxAABBIndex FPolyline::CreateApproxAABBIndex() const
 	{
@@ -471,9 +471,9 @@ namespace PCGExCavalier
 		return Index;
 	}
 
-	//=============================================================================
+	
 	// FPolyline - Closest Point
-	//=============================================================================
+	
 
 	FVector2D FPolyline::ClosestPoint(const FVector2D& Point, double* OutDistance) const
 	{
@@ -515,9 +515,9 @@ namespace PCGExCavalier
 		return ClosestPt;
 	}
 
-	//=============================================================================
+	
 	// FContourUtils
-	//=============================================================================
+	
 
 	FPolyline FContourUtils::CreateFromInputPoints(const TArray<FInputPoint>& Points, bool bClosed)
 	{

@@ -7,6 +7,13 @@
 #include "CoreMinimal.h"
 #include "PCGExCCTypes.generated.h"
 
+struct FPCGExGeo2DProjectionDetails;
+
+namespace PCGExData
+{
+	class FPointIO;
+}
+
 /**
  * Arc tessellation mode for converting arcs to line segments
  */
@@ -83,7 +90,7 @@ namespace PCGExCavalier
 
 		FVertexSource(int32 InPathId, int32 InPointIndex)
 			: PathId(InPathId)
-			, PointIndex(InPointIndex)
+			  , PointIndex(InPointIndex)
 		{
 		}
 
@@ -155,30 +162,30 @@ namespace PCGExCavalier
 		/** Construct with path and point index, position only */
 		FInputPoint(int32 InPathId, int32 InPointIndex, const FVector& InPosition, bool InIsCorner = false, double InRadius = 0.0)
 			: PathId(InPathId)
-			, PointIndex(InPointIndex)
-			, Transform(FTransform(InPosition))
-			, bIsCorner(InIsCorner)
-			, CornerRadius(InRadius)
+			  , PointIndex(InPointIndex)
+			  , Transform(FTransform(InPosition))
+			  , bIsCorner(InIsCorner)
+			  , CornerRadius(InRadius)
 		{
 		}
 
 		/** Construct with path and point index, full transform */
 		FInputPoint(int32 InPathId, int32 InPointIndex, const FTransform& InTransform, bool InIsCorner = false, double InRadius = 0.0)
 			: PathId(InPathId)
-			, PointIndex(InPointIndex)
-			, Transform(InTransform)
-			, bIsCorner(InIsCorner)
-			, CornerRadius(InRadius)
+			  , PointIndex(InPointIndex)
+			  , Transform(InTransform)
+			  , bIsCorner(InIsCorner)
+			  , CornerRadius(InRadius)
 		{
 		}
 
 		/** Legacy constructor - uses SourceIndex as PointIndex, default PathId = 0 */
 		explicit FInputPoint(int32 InSourceIndex, const FVector& InPosition, bool InIsCorner = false, double InRadius = 0.0)
 			: PathId(0) // Default to path 0 for legacy code
-			, PointIndex(InSourceIndex)
-			, Transform(FTransform(InPosition))
-			, bIsCorner(InIsCorner)
-			, CornerRadius(InRadius)
+			  , PointIndex(InSourceIndex)
+			  , Transform(FTransform(InPosition))
+			  , bIsCorner(InIsCorner)
+			  , CornerRadius(InRadius)
 		{
 		}
 
@@ -239,43 +246,43 @@ namespace PCGExCavalier
 
 		FVertex(double InX, double InY, double InBulge = 0.0)
 			: Position(InX, InY)
-			, Bulge(InBulge)
-			, Source()
+			  , Bulge(InBulge)
+			  , Source()
 		{
 		}
 
 		FVertex(double InX, double InY, double InBulge, const FVertexSource& InSource)
 			: Position(InX, InY)
-			, Bulge(InBulge)
-			, Source(InSource)
+			  , Bulge(InBulge)
+			  , Source(InSource)
 		{
 		}
 
 		FVertex(double InX, double InY, double InBulge, int32 InPathId, int32 InPointIndex)
 			: Position(InX, InY)
-			, Bulge(InBulge)
-			, Source(InPathId, InPointIndex)
+			  , Bulge(InBulge)
+			  , Source(InPathId, InPointIndex)
 		{
 		}
 
 		FVertex(const FVector2D& InPosition, double InBulge = 0.0)
 			: Position(InPosition)
-			, Bulge(InBulge)
-			, Source()
+			  , Bulge(InBulge)
+			  , Source()
 		{
 		}
 
 		FVertex(const FVector2D& InPosition, double InBulge, const FVertexSource& InSource)
 			: Position(InPosition)
-			, Bulge(InBulge)
-			, Source(InSource)
+			  , Bulge(InBulge)
+			  , Source(InSource)
 		{
 		}
 
 		FVertex(const FVector2D& InPosition, double InBulge, int32 InPathId, int32 InPointIndex)
 			: Position(InPosition)
-			, Bulge(InBulge)
-			, Source(InPathId, InPointIndex)
+			  , Bulge(InBulge)
+			  , Source(InPathId, InPointIndex)
 		{
 		}
 
@@ -361,9 +368,9 @@ namespace PCGExCavalier
 			return Position.Equals(OtherPos, Epsilon);
 		}
 
-		//=========================================================================
+
 		// Legacy compatibility - RootIndex as alias for PointIndex
-		//=========================================================================
+
 
 		/** @deprecated Use Source.PointIndex or GetPointIndex() instead */
 		int32 GetRootIndex() const { return Source.PointIndex; }
@@ -397,11 +404,12 @@ namespace PCGExCavalier
 		FRootPath() = default;
 
 		FRootPath(int32 InPathId, bool InClosed = true)
-			: PathId(InPathId)
-			, bIsClosed(InClosed)
+			: PathId(InPathId), bIsClosed(InClosed)
 		{
 		}
 
+		FRootPath(const TSharedPtr<PCGExData::FPointIO> InIO, const FPCGExGeo2DProjectionDetails& InProjectionDetails);
+		
 		/** Add a point to this path, automatically setting its PathId and PointIndex */
 		void AddPoint(const FVector& Position, bool bIsCorner = false, double CornerRadius = 0.0)
 		{

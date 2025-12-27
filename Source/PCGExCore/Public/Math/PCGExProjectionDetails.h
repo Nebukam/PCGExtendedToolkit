@@ -76,6 +76,8 @@ struct PCGEXCORE_API FPCGExGeo2DProjectionDetails
 	~FPCGExGeo2DProjectionDetails() = default;
 	FQuat GetQuat(const int32 PointIndex) const;
 
+	FTransform Project(const FTransform& InTransform, const int32 PointIndex) const;
+	void ProjectInPlace(FTransform& InTransform, const int32 PointIndex) const;
 	FVector Project(const FVector& InPosition, const int32 PointIndex) const;
 	FVector Project(const FVector& InPosition) const;
 	FVector ProjectFlat(const FVector& InPosition) const;
@@ -92,6 +94,9 @@ struct PCGEXCORE_API FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const;
 	void Project(const TConstPCGValueRange<FTransform>& InTransforms, std::vector<double>& OutPositions) const;
 
+	FTransform Restore(const FTransform& InTransform, const int32 PointIndex) const;
+	void RestoreInPlace(FTransform& InTransform, const int32 PointIndex) const;
+	
 protected:
 	FVector WorldUp = FVector::UpVector;
 	FVector WorldFwd = FVector::ForwardVector;
