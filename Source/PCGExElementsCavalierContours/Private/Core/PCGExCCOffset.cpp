@@ -894,6 +894,80 @@ namespace PCGExCavalier
 			// Create Slices
 			//=============================================================================
 
+			// Helper: Add circle-polyline intersections to lookup
+			void AddCirclePolylineIntersections(
+				const FPolyline& Pline,
+				const FPolyline::FApproxAABBIndex& Index,
+				const FVector2D& CircleCenter,
+				double CircleRadius,
+				TMap<int32, TArray<FVector2D>>& IntersectsLookup,
+				double PosEqualEps)
+			{
+				const double QueryExpand = CircleRadius + PosEqualEps;
+				
+				Index.Query(
+					CircleCenter.X - QueryExpand, CircleCenter.Y - QueryExpand,
+					CircleCenter.X + QueryExpand, CircleCenter.Y + QueryExpand,
+					[&](int32 SegIdx)
+					{
+						const FVertex& V1 = Pline.GetVertex(SegIdx);
+						const FVertex& V2 = Pline.GetVertexWrapped(SegIdx + 1);
+
+						if (V1.IsLine())
+						{
+							// Line-circle intersection
+							const Math::FLineCircleIntersect Intr = Math::LineCircleIntersection(
+								V1.GetPosition(), V2.GetPosition(), CircleCenter, CircleRadius, PosEqualEps);
+							
+							auto IsValidT = [PosEqualEps](double T) -> bool {
+								return T > PosEqualEps && T < 1.0 - PosEqualEps;
+							};
+
+							if (Intr.Count >= 1)
+							{
+								if (IsValidT(Intr.T1))
+								{
+									const FVector2D Pt = V1.GetPosition() + (V2.GetPosition() - V1.GetPosition()) * Intr.T1;
+									IntersectsLookup.FindOrAdd(SegIdx).Add(Pt);
+								}
+								if (Intr.Count == 2 && IsValidT(Intr.T2))
+								{
+									const FVector2D Pt = V1.GetPosition() + (V2.GetPosition() - V1.GetPosition()) * Intr.T2;
+									IntersectsLookup.FindOrAdd(SegIdx).Add(Pt);
+								}
+							}
+						}
+						else
+						{
+							// Arc-circle intersection (circle-circle)
+							const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
+							if (Arc.bValid)
+							{
+								const Math::FCircleCircleIntersect Intr = Math::CircleCircleIntersection(
+									Arc.Center, Arc.Radius, CircleCenter, CircleRadius, PosEqualEps);
+
+								auto IsValidArcIntr = [&](const FVector2D& Pt) -> bool {
+									if (V1.GetPosition().Equals(Pt, PosEqualEps)) return false;
+									return Math::PointWithinArcSweep(Arc.Center, V1.GetPosition(), V2.GetPosition(),
+										V1.Bulge < 0.0, Pt, PosEqualEps);
+								};
+
+								if (Intr.Count >= 1)
+								{
+									if (IsValidArcIntr(Intr.Point1))
+									{
+										IntersectsLookup.FindOrAdd(SegIdx).Add(Intr.Point1);
+									}
+									if (Intr.Count == 2 && IsValidArcIntr(Intr.Point2))
+									{
+										IntersectsLookup.FindOrAdd(SegIdx).Add(Intr.Point2);
+									}
+								}
+							}
+						}
+					});
+			}
+
 			TArray<FPolylineSlice> CreateSlices(
 				const FPolyline& Original,
 				const FPolyline& RawOffset,
@@ -914,6 +988,16 @@ namespace PCGExCavalier
 				// Build lookup: segment -> intersection points
 				TMap<int32, TArray<FVector2D>> IntersectsLookup;
 				
+				// For open polylines, add intersections with circles at original endpoints
+				if (!Original.IsClosed())
+				{
+					const double CircleRadius = FMath::Abs(Offset);
+					AddCirclePolylineIntersections(RawOffset, RawIndex, Original.GetVertex(0).GetPosition(),
+						CircleRadius, IntersectsLookup, PosEqualEps);
+					AddCirclePolylineIntersections(RawOffset, RawIndex, Original.LastVertex().GetPosition(),
+						CircleRadius, IntersectsLookup, PosEqualEps);
+				}
+
 				for (const FBasicIntersect& SI : SelfIntrs)
 				{
 					IntersectsLookup.FindOrAdd(SI.StartIndex1).Add(SI.Point);
@@ -953,7 +1037,7 @@ namespace PCGExCavalier
 					return Result;
 				}
 
-				// Sort intersections by distance from segment start
+				// Sort intersections by distance from segment start and deduplicate
 				for (auto& Pair : IntersectsLookup)
 				{
 					const FVector2D StartPos = RawOffset.GetVertex(Pair.Key).GetPosition();
@@ -961,6 +1045,16 @@ namespace PCGExCavalier
 					{
 						return Math::DistanceSquared(A, StartPos) < Math::DistanceSquared(B, StartPos);
 					});
+					
+					// Remove duplicate/near-duplicate intersections
+					TArray<FVector2D>& IntrList = Pair.Value;
+					for (int32 i = IntrList.Num() - 1; i > 0; --i)
+					{
+						if (IntrList[i].Equals(IntrList[i - 1], PosEqualEps))
+						{
+							IntrList.RemoveAt(i);
+						}
+					}
 				}
 
 				TArray<int32> SortedSegIndices;
@@ -1175,15 +1269,24 @@ namespace PCGExCavalier
 					Result.Add(Slice);
 				};
 
-				// Create slices
-				for (int32 SegIdx : SortedSegIndices)
+				// For open polylines, build first slice from vertex 0 to first intersection
+				if (!Original.IsClosed() && !SortedSegIndices.IsEmpty())
 				{
+					const int32 FirstIntrIdx = SortedSegIndices[0];
+					const FVector2D& FirstIntr = IntersectsLookup[FirstIntrIdx][0];
+					TryAddSlice(RawOffset.GetVertex(0).GetPosition(), 0, FirstIntr, FirstIntrIdx);
+				}
+
+				// Create slices
+				for (int32 i = 0; i < SortedSegIndices.Num(); ++i)
+				{
+					const int32 SegIdx = SortedSegIndices[i];
 					const TArray<FVector2D>& IntrList = IntersectsLookup[SegIdx];
 
 					// Slices between consecutive intersections on same segment
-					for (int32 i = 0; i < IntrList.Num() - 1; ++i)
+					for (int32 j = 0; j < IntrList.Num() - 1; ++j)
 					{
-						TryAddSlice(IntrList[i], SegIdx, IntrList[i + 1], SegIdx);
+						TryAddSlice(IntrList[j], SegIdx, IntrList[j + 1], SegIdx);
 					}
 
 					// Slice to next segment with intersections
@@ -1192,14 +1295,24 @@ namespace PCGExCavalier
 					{
 						if (Idx > SegIdx) { NextSegIdx = Idx; break; }
 					}
-					if (NextSegIdx == INDEX_NONE && Original.IsClosed() && !SortedSegIndices.IsEmpty())
-					{
-						NextSegIdx = SortedSegIndices[0];
-					}
 
 					if (NextSegIdx != INDEX_NONE)
 					{
 						TryAddSlice(IntrList.Last(), SegIdx, IntersectsLookup[NextSegIdx][0], NextSegIdx);
+					}
+					else if (Original.IsClosed() && !SortedSegIndices.IsEmpty())
+					{
+						// Wrap around for closed polylines
+						NextSegIdx = SortedSegIndices[0];
+						TryAddSlice(IntrList.Last(), SegIdx, IntersectsLookup[NextSegIdx][0], NextSegIdx);
+					}
+					else
+					{
+						// Open polyline - add final slice from last intersection to end
+						// The last segment index for an open polyline is VertexCount - 2
+						const int32 LastSegIdx = RawOffset.VertexCount() - 2;
+						TryAddSlice(IntrList.Last(), SegIdx, RawOffset.LastVertex().GetPosition(), LastSegIdx);
+						break; // Done with open polyline
 					}
 				}
 
