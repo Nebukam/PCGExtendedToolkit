@@ -48,6 +48,7 @@ namespace PCGExCavalier
 				FVertex UpdatedStart;
 				double UpdatedEndBulge = 0.0;
 				FVector2D EndPoint = FVector2D::ZeroVector;
+				FVertexSource EndSource;  // Source info for the end point
 
 				FVector2D GetStartPoint() const { return UpdatedStart.GetPosition(); }
 				int32 VertexCount() const { return EndIndexOffset + 2; }

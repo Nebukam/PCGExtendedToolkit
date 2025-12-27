@@ -1023,6 +1023,7 @@ namespace PCGExCavalier
 							Slice.UpdatedStart = RawOffset.GetVertex(0);
 							Slice.UpdatedEndBulge = RawOffset.LastVertex().Bulge;
 							Slice.EndPoint = RawOffset.GetVertex(0).GetPosition(); // Loop back to start!
+							Slice.EndSource = RawOffset.LastVertex().Source;
 						}
 						else
 						{
@@ -1031,6 +1032,7 @@ namespace PCGExCavalier
 							Slice.UpdatedStart = RawOffset.GetVertex(0);
 							Slice.UpdatedEndBulge = RawOffset.GetVertex(RawOffset.VertexCount() - 2).Bulge;
 							Slice.EndPoint = RawOffset.LastVertex().GetPosition();
+							Slice.EndSource = RawOffset.LastVertex().Source;
 						}
 						Result.Add(Slice);
 					}
@@ -1244,11 +1246,13 @@ namespace PCGExCavalier
 						}
 					}
 
-					// Compute end bulge
+					// Compute end bulge and source
 					double UpdatedEndBulge;
+					FVertexSource EndSource;
 					if (TraverseCount == 0)
 					{
 						UpdatedEndBulge = UpdatedStart.Bulge;
+						EndSource = UpdatedStart.Source;
 					}
 					else
 					{
@@ -1257,6 +1261,7 @@ namespace PCGExCavalier
 						const FVertex& EndV2 = RawOffset.GetVertexWrapped(EndSegIdx + 1);
 						FSegSplitResult EndSplit = SegSplitAtPoint(EndV, EndV2, EndPt, PosEqualEps);
 						UpdatedEndBulge = EndSplit.UpdatedStart.Bulge;
+						EndSource = EndV.Source;
 					}
 
 					FPolylineSlice Slice;
@@ -1265,6 +1270,7 @@ namespace PCGExCavalier
 					Slice.UpdatedStart = UpdatedStart;
 					Slice.EndPoint = EndPt;
 					Slice.UpdatedEndBulge = UpdatedEndBulge;
+					Slice.EndSource = EndSource;
 
 					Result.Add(Slice);
 				};
@@ -1353,7 +1359,7 @@ namespace PCGExCavalier
 						}
 						Pline.AddOrReplaceVertex(V, PosEqualEps);
 					}
-					Pline.AddOrReplaceVertex(FVertex(Slice.EndPoint, 0.0, Slice.UpdatedStart.Source), PosEqualEps);
+					Pline.AddOrReplaceVertex(FVertex(Slice.EndPoint, 0.0, Slice.EndSource), PosEqualEps);
 
 					// Check if should be closed
 					if (bIsClosed && Pline.VertexCount() >= 2)
@@ -1409,7 +1415,7 @@ namespace PCGExCavalier
 							}
 							Pline.AddOrReplaceVertex(V, PosEqualEps);
 						}
-						Pline.AddOrReplaceVertex(FVertex(Slice.EndPoint, 0.0, Slice.UpdatedStart.Source), PosEqualEps);
+						Pline.AddOrReplaceVertex(FVertex(Slice.EndPoint, 0.0, Slice.EndSource), PosEqualEps);
 
 						// Check for cycle completion
 						if (Slice.EndPoint.Equals(InitialStart, JoinEps) && Pline.VertexCount() >= 3)
