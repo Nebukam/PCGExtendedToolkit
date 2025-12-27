@@ -57,7 +57,20 @@ namespace PCGExCavalier::BooleanOps
 			bool bIsOverlapping;
 			int32 SourcePathId; // Path ID of the source polyline
 
+			// Original start point (UpdatedStart position)
 			FVector2D GetStartPoint() const { return UpdatedStart.GetPosition(); }
+
+			// Where this slice actually STARTS when traversing (accounts for inversion)
+			FVector2D GetTraversalStartPoint() const
+			{
+				return bInvertedDirection ? EndPoint : UpdatedStart.GetPosition();
+			}
+
+			// Where this slice actually ENDS when traversing (accounts for inversion)
+			FVector2D GetTraversalEndPoint() const
+			{
+				return bInvertedDirection ? UpdatedStart.GetPosition() : EndPoint;
+			}
 		};
 
 		/** Result of processing polylines for boolean operations */
@@ -71,6 +84,11 @@ namespace PCGExCavalier::BooleanOps
 			{
 				return Intersects.Num() > 0;
 			}
+			
+			bool OpposingDirections() const
+			{
+				return Pline1Orientation != Pline2Orientation;
+			}
 		};
 
 		/** Pruned slices ready for stitching */
@@ -79,6 +97,65 @@ namespace PCGExCavalier::BooleanOps
 			TArray<FBooleanSlice> Slices;
 			int32 StartOfPline2Slices = 0;
 		};
+
+
+		// Compute the midpoint of a segment (handles both lines and arcs)
+		// This follows the actual geometry, not just a linear average
+
+
+		FVector2D SegmentMidpoint(const FVertex& V1, const FVertex& V2)
+		{
+			if (V1.IsLine())
+			{
+				// Linear midpoint for line segments
+				return (V1.GetPosition() + V2.GetPosition()) * 0.5;
+			}
+
+			// Arc segment - compute point on arc at midpoint angle
+			const FVector2D P1 = V1.GetPosition();
+			const FVector2D P2 = V2.GetPosition();
+			
+			// Get arc center and radius
+			const double Bulge = V1.Bulge;
+			const FVector2D Chord = P2 - P1;
+			const double ChordLen = Chord.Size();
+			
+			if (ChordLen < UE_DOUBLE_KINDA_SMALL_NUMBER)
+			{
+				return P1;
+			}
+			
+			// Perpendicular to chord
+			const FVector2D ChordPerp(-Chord.Y, Chord.X);
+			const FVector2D ChordMid = (P1 + P2) * 0.5;
+			
+			// Distance from chord midpoint to arc center
+			const double H = ((1.0 / Bulge) - Bulge) * ChordLen * 0.25;
+			
+			const FVector2D Center = ChordMid + ChordPerp.GetSafeNormal() * H;
+			const double Radius = FMath::Abs(ChordLen / (2.0 * FMath::Sin(2.0 * FMath::Atan(FMath::Abs(Bulge)))));
+			
+			// Compute angles
+			const double Angle1 = FMath::Atan2(P1.Y - Center.Y, P1.X - Center.X);
+			const double Angle2 = FMath::Atan2(P2.Y - Center.Y, P2.X - Center.X);
+			
+			// Compute angle delta based on arc direction
+			double AngleDelta = Angle2 - Angle1;
+			if (Bulge > 0)
+			{
+				// CCW arc
+				if (AngleDelta < 0) { AngleDelta += UE_DOUBLE_TWO_PI; }
+			}
+			else
+			{
+				// CW arc
+				if (AngleDelta > 0) { AngleDelta -= UE_DOUBLE_TWO_PI; }
+			}
+			
+			const double MidAngle = Angle1 + AngleDelta * 0.5;
+			
+			return Center + FVector2D(FMath::Cos(MidAngle), FMath::Sin(MidAngle)) * Radius;
+		}
 
 
 		// Find all intersections between two polylines
@@ -92,7 +169,6 @@ namespace PCGExCavalier::BooleanOps
 			FIntersectsCollection Result;
 
 			const int32 N1 = Pline1.SegmentCount();
-			const int32 N2 = Pline2.SegmentCount();
 
 			// Build spatial index for pline2
 			FPolyline::FApproxAABBIndex Index2 = Pline2.CreateApproxAABBIndex();
@@ -207,16 +283,18 @@ namespace PCGExCavalier::BooleanOps
 				IntersectsBySegment.FindOrAdd(SegIdx).Add(&Intr);
 			}
 
-			// Sort intersects on each segment by parameter
+			// Sort intersects on each segment by parameter (distance from segment start)
 			for (auto& Pair : IntersectsBySegment)
 			{
 				const int32 SegIdx = Pair.Key;
 				const FVector2D SegStart = Pline.GetVertex(SegIdx).GetPosition();
 
-				Pair.Value.Sort([&SegStart](const FBasicIntersect& A, const FBasicIntersect& B)
-				{
-					return Math::DistanceSquared(SegStart, A.Point) < Math::DistanceSquared(SegStart, B.Point);
-				});
+				Algo::Sort(
+					Pair.Value,
+					[&SegStart](const FBasicIntersect* A, const FBasicIntersect* B)
+					{
+						return Math::DistanceSquared(SegStart, A->Point) < Math::DistanceSquared(SegStart, B->Point);
+					});
 			}
 
 			// Flatten all intersection points in order around the polyline
@@ -326,23 +404,32 @@ namespace PCGExCavalier::BooleanOps
 			CreateSlicesFromPline(Pline2, BoolInfo.Intersects, false, Pline2PathId, Pline2Slices, PosEqualEps);
 
 			// Determine which slices to keep based on operation
+			// Uses the midpoint of the FIRST SEGMENT of the slice for the in/out test
 			auto KeepSlice = [&](const FBooleanSlice& Slice) -> bool
 			{
-				// Get slice midpoint
 				const FPolyline& SourcePline = Slice.bSourceIsPline1 ? Pline1 : Pline2;
 				const FPolyline& OtherPline = Slice.bSourceIsPline1 ? Pline2 : Pline1;
 
-				// Compute midpoint of slice
-				FVector2D MidPt = (Slice.GetStartPoint() + Slice.EndPoint) * 0.5;
-
-				// If slice has vertices in between, use one of them
-				if (Slice.EndIndexOffset > 1)
+				// Compute midpoint of the FIRST SEGMENT of the slice
+				// This is critical - we need a point that's definitely on the slice path
+				const FVertex& StartV = Slice.UpdatedStart;
+				const int32 NextIdx = (Slice.StartIndex + 1) % SourcePline.VertexCount();
+				const FVertex& NextV = SourcePline.GetVertex(NextIdx);
+				
+				FVector2D MidPt;
+				if (Slice.EndIndexOffset == 0)
 				{
-					const int32 MidIdx = (Slice.StartIndex + Slice.EndIndexOffset / 2) % SourcePline.VertexCount();
-					MidPt = SourcePline.GetVertex(MidIdx).GetPosition();
+					// Single segment slice - use midpoint between start and end
+					MidPt = SegmentMidpoint(StartV, FVertex(Slice.EndPoint, 0.0));
+				}
+				else
+				{
+					// Multi-segment slice - use midpoint of first segment
+					MidPt = SegmentMidpoint(StartV, NextV);
 				}
 
-				const bool bMidPtInOther = OtherPline.WindingNumber(MidPt) != 0;
+				const int32 WindingNum = OtherPline.WindingNumber(MidPt);
+				const bool bMidPtInOther = WindingNum != 0;
 
 				switch (Operation)
 				{
@@ -361,7 +448,7 @@ namespace PCGExCavalier::BooleanOps
 							// Keep pline1 slices outside pline2
 							return !bMidPtInOther;
 						}
-						// Keep pline2 slices inside pline1 (inverted)
+						// Keep pline2 slices inside pline1 (these will be inverted)
 						return bMidPtInOther;
 					}
 
@@ -408,18 +495,32 @@ namespace PCGExCavalier::BooleanOps
 
 			if (Slice.bInvertedDirection)
 			{
-				// Add vertices in reverse order
-				for (int32 i = Slice.EndIndexOffset; i >= 0; --i)
+				// Inverted direction: traverse from EndPoint back to UpdatedStart
+				// EndPoint becomes our starting point, UpdatedStart becomes our ending point
+
+				// Add end point as start (with negated end bulge)
+				FVertex StartV(Slice.EndPoint, -Slice.UpdatedEndBulge);
+				StartV.Source = FVertexSource::FromPath(Slice.SourcePathId);
+				Pline.AddOrReplaceVertex(StartV, PosEqualEps);
+
+				// Add intermediate vertices in reverse order with negated bulges
+				// Walk backwards from (StartIndex + EndIndexOffset) to (StartIndex + 1)
+				for (int32 i = Slice.EndIndexOffset; i >= 1; --i)
 				{
 					const int32 Idx = (Slice.StartIndex + i) % N;
+					const int32 BulgeIdx = (Slice.StartIndex + i - 1 + N) % N; // Bulge from previous vertex
 					const FVertex& V = SourcePline.GetVertex(Idx);
+					const FVertex& BulgeV = SourcePline.GetVertex(BulgeIdx);
 
-					// Adjust bulge for reversed direction
-					FVertex AdjustedV = V.WithBulge(-V.Bulge);
+					FVertex AdjustedV = V.WithBulge(-BulgeV.Bulge);
 					AdjustedV.Source = FVertexSource(Slice.SourcePathId, V.Source.PointIndex);
-
 					Pline.AddOrReplaceVertex(AdjustedV, PosEqualEps);
 				}
+
+				// Add updated start position as final vertex (with negated start bulge, then zero for open end)
+				FVertex EndV = Slice.UpdatedStart.WithBulge(0.0);
+				EndV.Source = FVertexSource(Slice.SourcePathId, Slice.UpdatedStart.Source.PointIndex);
+				Pline.AddOrReplaceVertex(EndV, PosEqualEps);
 			}
 			else
 			{
@@ -438,12 +539,12 @@ namespace PCGExCavalier::BooleanOps
 					AdjustedV.Source = FVertexSource(Slice.SourcePathId, V.Source.PointIndex);
 					Pline.AddOrReplaceVertex(AdjustedV, PosEqualEps);
 				}
-			}
 
-			// Add end point
-			FVertex EndV(Slice.EndPoint, Slice.UpdatedEndBulge);
-			EndV.Source = FVertexSource::FromPath(Slice.SourcePathId);
-			Pline.AddOrReplaceVertex(EndV, PosEqualEps);
+				// Add end point
+				FVertex EndV(Slice.EndPoint, Slice.UpdatedEndBulge);
+				EndV.Source = FVertexSource::FromPath(Slice.SourcePathId);
+				Pline.AddOrReplaceVertex(EndV, PosEqualEps);
+			}
 		}
 
 
@@ -467,6 +568,33 @@ namespace PCGExCavalier::BooleanOps
 			TArray<bool> VisitedSliceIdx;
 			VisitedSliceIdx.SetNumZeroed(PrunedSlices.Slices.Num());
 
+			// Helper to determine if a slice index is from pline1
+			auto IsFromPline1 = [&PrunedSlices](int32 Idx) -> bool
+			{
+				return Idx < PrunedSlices.StartOfPline2Slices;
+			};
+
+			// Stitch selector: prefer connecting to slices from the OTHER polyline
+			// This ensures proper alternation between pline1 and pline2 slices
+			auto SelectBestConnection = [&](int32 CurrentIdx, const TArray<int32>& Candidates) -> int32
+			{
+				if (Candidates.IsEmpty()) { return INDEX_NONE; }
+
+				const bool bCurrentFromPline1 = IsFromPline1(CurrentIdx);
+
+				// First pass: look for slice from the OTHER polyline
+				for (int32 Idx : Candidates)
+				{
+					if (IsFromPline1(Idx) != bCurrentFromPline1)
+					{
+						return Idx;
+					}
+				}
+
+				// Second pass: just take the first available
+				return Candidates[0];
+			};
+
 			for (int32 BeginningSliceIdx = 0; BeginningSliceIdx < PrunedSlices.Slices.Num(); ++BeginningSliceIdx)
 			{
 				if (VisitedSliceIdx[BeginningSliceIdx]) { continue; }
@@ -482,32 +610,41 @@ namespace PCGExCavalier::BooleanOps
 				ExtendPolylineFromSlice(CurrentPline, PrunedSlices.Slices[CurrentSliceIdx], Pline1, Pline2, PosEqualEps);
 
 				// Continue stitching until we loop back
-				while (true)
+				int32 LoopGuard = 0;
+				const int32 MaxLoops = PrunedSlices.Slices.Num() + 1;
+
+				while (LoopGuard++ < MaxLoops)
 				{
 					const FBooleanSlice& CurrentSlice = PrunedSlices.Slices[CurrentSliceIdx];
-					const FVector2D SearchPoint = CurrentSlice.EndPoint;
+					const FVector2D SearchPoint = CurrentSlice.GetTraversalEndPoint();
 
-					// Find connecting slice
-					int32 ConnectedSliceIdx = INDEX_NONE;
-					double MinDistSq = PosEqualEps * PosEqualEps * 4.0; // Allow some tolerance
+					// Find all connecting slices within tolerance
+					TArray<int32> CandidateSlices;
+					const double ToleranceSq = PosEqualEps * PosEqualEps * 4.0;
 
 					for (int32 j = 0; j < PrunedSlices.Slices.Num(); ++j)
 					{
-						if (j == CurrentSliceIdx){ continue; }
+						// Skip current slice
+						if (j == CurrentSliceIdx) { continue; }
+
+						// Skip already visited slices EXCEPT the beginning slice (to detect loop closure)
+						if (VisitedSliceIdx[j] && j != BeginningSliceIdx) { continue; }
 
 						const FBooleanSlice& CandidateSlice = PrunedSlices.Slices[j];
-						const double DistSq = Math::DistanceSquared(SearchPoint, CandidateSlice.GetStartPoint());
+						const FVector2D CandidateStart = CandidateSlice.GetTraversalStartPoint();
 
-						if (DistSq < MinDistSq)
+						const double DistSq = Math::DistanceSquared(SearchPoint, CandidateStart);
+
+						if (DistSq < ToleranceSq)
 						{
-							MinDistSq = DistSq;
-							ConnectedSliceIdx = j;
+							CandidateSlices.Add(j);
 						}
 					}
 
-					if (ConnectedSliceIdx == INDEX_NONE) { break; }
+					if (CandidateSlices.IsEmpty()) { break; }
 
-					if (ConnectedSliceIdx == BeginningSliceIdx)
+					// Check if beginning slice is among candidates (loop closure)
+					if (CandidateSlices.Contains(BeginningSliceIdx))
 					{
 						// Connected back to beginning - close and add
 						if (CurrentPline.VertexCount() >= 3)
@@ -538,6 +675,10 @@ namespace PCGExCavalier::BooleanOps
 						}
 						break;
 					}
+
+					// Select best connection using stitch selector
+					const int32 ConnectedSliceIdx = SelectBestConnection(CurrentSliceIdx, CandidateSlices);
+					if (ConnectedSliceIdx == INDEX_NONE) { break; }
 
 					// Stitch connected slice
 					CurrentPline.RemoveLastVertex();
@@ -618,12 +759,24 @@ namespace PCGExCavalier::BooleanOps
 			{
 				if (IsPline1InPline2())
 				{
+					// Pline1 is inside Pline2
+					// If they have opposing directions, Pline1 represents a hole
 					Result.PositivePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
+					if (BooleanInfo.OpposingDirections())
+					{
+						Result.NegativePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
+					}
 					Result.ResultInfo = EBooleanResultInfo::Pline1InsidePline2;
 				}
 				else if (IsPline2InPline1())
 				{
+					// Pline2 is inside Pline1
+					// If they have opposing directions, Pline2 represents a hole
 					Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
+					if (BooleanInfo.OpposingDirections())
+					{
+						Result.NegativePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
+					}
 					Result.ResultInfo = EBooleanResultInfo::Pline2InsidePline1;
 				}
 				else
@@ -692,16 +845,19 @@ namespace PCGExCavalier::BooleanOps
 			{
 				if (IsPline1InPline2())
 				{
+					// Pline1 completely inside Pline2 - nothing remains
 					Result.ResultInfo = EBooleanResultInfo::Pline1InsidePline2;
 				}
 				else if (IsPline2InPline1())
 				{
+					// Pline2 inside Pline1 - creates a hole
 					Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
 					Result.NegativePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
 					Result.ResultInfo = EBooleanResultInfo::Pline2InsidePline1;
 				}
 				else
 				{
+					// Disjoint - just return Pline1
 					Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
 					Result.ResultInfo = EBooleanResultInfo::Disjoint;
 				}

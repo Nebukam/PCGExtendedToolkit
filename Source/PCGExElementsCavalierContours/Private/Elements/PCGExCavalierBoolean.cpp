@@ -552,15 +552,23 @@ PCGExCavalier::BooleanOps::FBooleanResult FPCGExCavalierBooleanElement::PerformM
 	case EPCGExCCBooleanOp::Union:
 	case EPCGExCCBooleanOp::Xor:
 		{
-			// Tree reduction - can be parallelized
+			// Fixed tree reduction with disjoint handling and infinite loop prevention
 			TArray<FPolyline> Current = Polylines;
+			
+			// Maximum iterations to prevent infinite loop (safety limit)
+			const int32 MaxIterations = Polylines.Num() * 2;
+			int32 IterationCount = 0;
 
-			while (Current.Num() > 1)
+			while (Current.Num() > 1 && IterationCount < MaxIterations)
 			{
+				++IterationCount;
+				
 				TArray<FPolyline> NextLevel;
-
 				NextLevel.Reserve((Current.Num() + 1) / 2);
 
+				// Track if any actual merging occurred this iteration
+				bool bAnyMerged = false;
+				
 				for (int32 i = 0; i < Current.Num(); i += 2)
 				{
 					if (i + 1 < Current.Num())
@@ -570,12 +578,28 @@ PCGExCavalier::BooleanOps::FBooleanResult FPCGExCavalierBooleanElement::PerformM
 							MakeOperand(Current[i + 1]),
 							Operation, Options);
 
+						// Check if we actually merged (got fewer polylines than we input)
+						if (Partial.PositivePolylines.Num() < 2)
+						{
+							bAnyMerged = true;
+						}
+
 						NextLevel.Append(MoveTemp(Partial.PositivePolylines));
 					}
 					else
 					{
 						NextLevel.Add(MoveTemp(Current[i]));
 					}
+				}
+
+				// If no merging occurred in this iteration and count didn't decrease,
+				// all remaining polylines are disjoint - stop processing
+				if (!bAnyMerged && NextLevel.Num() >= Current.Num())
+				{
+					// All polylines are disjoint, return them all
+					Result.PositivePolylines = MoveTemp(NextLevel);
+					Result.ResultInfo = EBooleanResultInfo::Disjoint;
+					return Result;
 				}
 
 				Current = MoveTemp(NextLevel);

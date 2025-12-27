@@ -28,7 +28,7 @@ namespace PCGExMatching
 /**
  * 
  */
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/cavalier-contours/cavalier-boolean"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/cavalier-contours/cavalier-boolean"))
 class UPCGExCavalierBooleanSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
