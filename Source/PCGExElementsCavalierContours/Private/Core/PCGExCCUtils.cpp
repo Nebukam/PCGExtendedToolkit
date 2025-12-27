@@ -166,7 +166,10 @@ namespace PCGExCavalier
 		void InterpolateMissingSources(FPolyline& Polyline)
 		{
 			const int32 N = Polyline.VertexCount();
-			if (N < 2) return;
+			if (N < 2)
+			{
+				return;
+			}
 
 			// First pass: identify vertices needing interpolation
 			TArray<int32> InvalidIndices;
@@ -178,7 +181,10 @@ namespace PCGExCavalier
 				}
 			}
 
-			if (InvalidIndices.IsEmpty()) return;
+			if (InvalidIndices.IsEmpty())
+			{
+				return;
+			}
 
 			// Second pass: interpolate from neighbors
 			for (int32 InvalidIdx : InvalidIndices)
@@ -191,10 +197,13 @@ namespace PCGExCavalier
 				for (int32 Offset = 1; Offset < N; ++Offset)
 				{
 					const int32 Idx = Polyline.IsClosed()
-						? (InvalidIdx - Offset + N) % N
-						: InvalidIdx - Offset;
+						                  ? (InvalidIdx - Offset + N) % N
+						                  : InvalidIdx - Offset;
 
-					if (Idx < 0) break;
+					if (Idx < 0)
+					{
+						break;
+					}
 
 					if (Polyline.GetVertex(Idx).HasValidPath())
 					{
@@ -207,10 +216,13 @@ namespace PCGExCavalier
 				for (int32 Offset = 1; Offset < N; ++Offset)
 				{
 					const int32 Idx = Polyline.IsClosed()
-						? (InvalidIdx + Offset) % N
-						: InvalidIdx + Offset;
+						                  ? (InvalidIdx + Offset) % N
+						                  : InvalidIdx + Offset;
 
-					if (Idx >= N) break;
+					if (Idx >= N)
+					{
+						break;
+					}
 
 					if (Polyline.GetVertex(Idx).HasValidPath())
 					{

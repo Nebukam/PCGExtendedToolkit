@@ -124,7 +124,7 @@ struct PCGEXCORE_API FPCGExInputShorthandNameInteger32Abs : public FPCGExInputSh
 
 	PCGEX_SHORTHAND_NAME_CTR(Integer32Abs, int32)
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=1, UIMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0))
 	int32 Constant = 0;
 };
 
@@ -136,7 +136,7 @@ struct PCGEXCORE_API FPCGExInputShorthandNameInteger3201 : public FPCGExInputSho
 
 	PCGEX_SHORTHAND_NAME_CTR(Integer3201, int32)
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=1, UIMax=1))
 	int32 Constant = 0;
 };
 

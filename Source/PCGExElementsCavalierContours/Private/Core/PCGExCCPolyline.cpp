@@ -8,9 +8,8 @@
 
 namespace PCGExCavalier
 {
-	
 	// FPolyline - Geometric Properties
-	
+
 
 	double FPolyline::Area() const
 	{
@@ -149,7 +148,7 @@ namespace PCGExCavalier
 		{
 			return EPCGExCCOrientation::CounterClockwise;
 		}
-		else if (A < 0.0)
+		if (A < 0.0)
 		{
 			return EPCGExCCOrientation::Clockwise;
 		}
@@ -205,10 +204,7 @@ namespace PCGExCavalier
 			{
 				// Arc segment winding contribution
 				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
-				if (!Arc.bValid)
-				{
-					continue;
-				}
+				if (!Arc.bValid){ continue; }
 
 				const bool bIsCW = V1.Bulge < 0.0;
 				const double DistToCenter = FVector2D::Distance(Point, Arc.Center);
@@ -261,9 +257,9 @@ namespace PCGExCavalier
 		return Winding;
 	}
 
-	
+
 	// FPolyline - Transformations
-	
+
 
 	void FPolyline::Reverse()
 	{
@@ -383,8 +379,9 @@ namespace PCGExCavalier
 							StartDir.X * SinA + StartDir.Y * CosA);
 						const FVector2D Pt = Arc.Center + RotatedDir * Arc.Radius;
 
-						// Tessellated vertices inherit source from arc start
-						Result.AddVertex(Pt, 0.0, V1.Source);
+						// Tessellated vertices use invalid source to trigger interpolation
+						// This ensures smooth Z transition along the arc
+						Result.AddVertex(Pt, 0.0, FVertexSource::Invalid());
 					}
 				}
 			}
@@ -399,9 +396,9 @@ namespace PCGExCavalier
 		return Result;
 	}
 
-	
+
 	// FPolyline - Spatial Index
-	
+
 
 	FPolyline::FApproxAABBIndex FPolyline::CreateApproxAABBIndex() const
 	{
@@ -471,21 +468,27 @@ namespace PCGExCavalier
 		return Index;
 	}
 
-	
+
 	// FPolyline - Closest Point
-	
+
 
 	FVector2D FPolyline::ClosestPoint(const FVector2D& Point, double* OutDistance) const
 	{
 		if (Vertices.IsEmpty())
 		{
-			if (OutDistance) *OutDistance = TNumericLimits<double>::Max();
+			if (OutDistance)
+			{
+				*OutDistance = TNumericLimits<double>::Max();
+			}
 			return FVector2D::ZeroVector;
 		}
 
 		if (Vertices.Num() == 1)
 		{
-			if (OutDistance) *OutDistance = FVector2D::Distance(Point, Vertices[0].GetPosition());
+			if (OutDistance)
+			{
+				*OutDistance = FVector2D::Distance(Point, Vertices[0].GetPosition());
+			}
 			return Vertices[0].GetPosition();
 		}
 
@@ -511,13 +514,16 @@ namespace PCGExCavalier
 			}
 		}
 
-		if (OutDistance) *OutDistance = FMath::Sqrt(MinDistSq);
+		if (OutDistance)
+		{
+			*OutDistance = FMath::Sqrt(MinDistSq);
+		}
 		return ClosestPt;
 	}
 
-	
+
 	// FContourUtils
-	
+
 
 	FPolyline FContourUtils::CreateFromInputPoints(const TArray<FInputPoint>& Points, bool bClosed)
 	{
@@ -606,19 +612,31 @@ namespace PCGExCavalier
 		// Helper to get transform from source
 		auto GetSourceTransform = [&RootPaths](const FVertexSource& Source) -> const FTransform*
 		{
-			if (!Source.IsValid()) return nullptr;
+			if (!Source.IsValid()) { return nullptr; }
 
 			const FRootPath* Path = RootPaths.Find(Source.PathId);
-			if (!Path) return nullptr;
+			if (!Path) { return nullptr; }
 
-			if (Source.PointIndex < 0 || Source.PointIndex >= Path->Points.Num())
-				return nullptr;
+			if (Source.PointIndex < 0 || Source.PointIndex >= Path->Points.Num()) { return nullptr; }
+
 
 			return &Path->Points[Source.PointIndex].Transform;
 		};
 
-		// First pass: fill in vertices with valid sources
+		// First pass: fill in vertices with valid sources and compute path distances
 		TArray<int32> InvalidIndices;
+		TArray<double> PathDistances;
+		PathDistances.SetNum(N);
+		PathDistances[0] = 0.0;
+		
+		// Compute cumulative path distances
+		for (int32 i = 1; i < N; ++i)
+		{
+			const FVector2D Prev = Polyline2D.GetVertex(i - 1).GetPosition();
+			const FVector2D Curr = Polyline2D.GetVertex(i).GetPosition();
+			PathDistances[i] = PathDistances[i - 1] + FVector2D::Distance(Prev, Curr);
+		}
+		
 		for (int32 i = 0; i < N; ++i)
 		{
 			const FVertex& V = Polyline2D.GetVertex(i);
@@ -645,7 +663,7 @@ namespace PCGExCavalier
 			}
 		}
 
-		// Second pass: interpolate for vertices without valid sources
+		// Second pass: interpolate for vertices without valid sources using PATH distance
 		if (!InvalidIndices.IsEmpty() && N > 1)
 		{
 			for (int32 InvalidIdx : InvalidIndices)
@@ -678,20 +696,31 @@ namespace PCGExCavalier
 
 				if (PrevValid != InvalidIndex && NextValid != InvalidIndex)
 				{
-					// Interpolate between prev and next
-					const FVector2D CurrentPos = Polyline2D.GetVertex(InvalidIdx).GetPosition();
-					const FVector2D PrevPos = Polyline2D.GetVertex(PrevValid).GetPosition();
-					const FVector2D NextPos = Polyline2D.GetVertex(NextValid).GetPosition();
-
-					const double DistToPrev = FVector2D::Distance(CurrentPos, PrevPos);
-					const double DistToNext = FVector2D::Distance(CurrentPos, NextPos);
-					const double TotalDist = DistToPrev + DistToNext;
-
-					double Alpha = 0.5;
-					if (TotalDist > 1e-9)
+					// Interpolate using path distance (cumulative distance along polyline)
+					double DistToPrev, DistToNext;
+					
+					if (PrevValid < InvalidIdx)
 					{
-						Alpha = DistToPrev / TotalDist;
+						DistToPrev = PathDistances[InvalidIdx] - PathDistances[PrevValid];
 					}
+					else
+					{
+						// Wrapped around (for closed polylines)
+						DistToPrev = PathDistances[InvalidIdx] + (PathDistances[N-1] - PathDistances[PrevValid]);
+					}
+					
+					if (NextValid > InvalidIdx)
+					{
+						DistToNext = PathDistances[NextValid] - PathDistances[InvalidIdx];
+					}
+					else
+					{
+						// Wrapped around (for closed polylines)
+						DistToNext = (PathDistances[N-1] - PathDistances[InvalidIdx]) + PathDistances[NextValid];
+					}
+					
+					const double TotalDist = DistToPrev + DistToNext;
+					double Alpha = (TotalDist > 1e-9) ? DistToPrev / TotalDist : 0.5;
 
 					const FTransform& PrevTransform = Result.Transforms[PrevValid];
 					const FTransform& NextTransform = Result.Transforms[NextValid];
@@ -745,18 +774,12 @@ namespace PCGExCavalier
 		{
 			// Group points by PathId
 			TMap<int32, TArray<const FInputPoint*>> PointsByPath;
-			for (const FInputPoint& Pt : SourcePoints)
-			{
-				PointsByPath.FindOrAdd(Pt.PathId).Add(&Pt);
-			}
+			for (const FInputPoint& Pt : SourcePoints) { PointsByPath.FindOrAdd(Pt.PathId).Add(&Pt); }
 
 			for (auto& Pair : PointsByPath)
 			{
 				FRootPath Path(Pair.Key, bClosed);
-				for (const FInputPoint* Pt : Pair.Value)
-				{
-					Path.Points.Add(*Pt);
-				}
+				for (const FInputPoint* Pt : Pair.Value) { Path.Points.Add(*Pt); }
 				RootPaths.Add(Pair.Key, MoveTemp(Path));
 			}
 		}

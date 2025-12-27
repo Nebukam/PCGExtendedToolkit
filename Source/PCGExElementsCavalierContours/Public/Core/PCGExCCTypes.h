@@ -409,7 +409,7 @@ namespace PCGExCavalier
 		}
 
 		FRootPath(const TSharedPtr<PCGExData::FPointIO> InIO, const FPCGExGeo2DProjectionDetails& InProjectionDetails);
-		
+
 		/** Add a point to this path, automatically setting its PathId and PointIndex */
 		void AddPoint(const FVector& Position, bool bIsCorner = false, double CornerRadius = 0.0)
 		{

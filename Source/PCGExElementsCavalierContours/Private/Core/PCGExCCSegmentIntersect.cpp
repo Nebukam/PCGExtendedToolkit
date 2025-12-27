@@ -63,7 +63,10 @@ namespace PCGExCavalier
 				double T_Q1 = FVector2D::DotProduct(Q1 - P1, D) / LenSq;
 				double T_Q2 = FVector2D::DotProduct(Q2 - P1, D) / LenSq;
 
-				if (T_Q1 > T_Q2) Swap(T_Q1, T_Q2);
+				if (T_Q1 > T_Q2)
+				{
+					Swap(T_Q1, T_Q2);
+				}
 
 				const double OverlapStart = FMath::Max(0.0, T_Q1);
 				const double OverlapEnd = FMath::Min(1.0, T_Q2);
@@ -78,7 +81,7 @@ namespace PCGExCavalier
 
 					return FPlineSegIntersect(EPlineSegIntersectType::OverlappingLines, Pt1, Pt2);
 				}
-				else if (FMath::Abs(OverlapEnd - OverlapStart) < PosEqualEps)
+				if (FMath::Abs(OverlapEnd - OverlapStart) < PosEqualEps)
 				{
 					// Single point overlap (tangent)
 					FVector2D Pt = P1 + D * OverlapStart;
@@ -126,7 +129,9 @@ namespace PCGExCavalier
 		{
 			// Check if on line segment
 			if (T < -PosEqualEps || T > 1.0 + PosEqualEps)
+			{
 				return false;
+			}
 
 			// Check if on arc sweep
 			return Math::PointOnArcSweep(Arc.Center, ArcStart.GetPosition(), ArcEnd.GetPosition(), bArcIsCW, Pt, PosEqualEps);
@@ -153,7 +158,7 @@ namespace PCGExCavalier
 		{
 			return FPlineSegIntersect();
 		}
-		else if (ValidPoints.Num() == 1)
+		if (ValidPoints.Num() == 1)
 		{
 			// Check if tangent
 			bool bIsTangent = ValidPoints[0].Equals(LineStart, PosEqualEps) ||
@@ -165,17 +170,14 @@ namespace PCGExCavalier
 				bIsTangent ? EPlineSegIntersectType::TangentIntersect : EPlineSegIntersectType::OneIntersect,
 				ValidPoints[0]);
 		}
-		else
+		// Order by distance from arc start
+		if (Math::DistanceSquared(ArcStart.GetPosition(), ValidPoints[0]) >
+			Math::DistanceSquared(ArcStart.GetPosition(), ValidPoints[1]))
 		{
-			// Order by distance from arc start
-			if (Math::DistanceSquared(ArcStart.GetPosition(), ValidPoints[0]) >
-				Math::DistanceSquared(ArcStart.GetPosition(), ValidPoints[1]))
-			{
-				Swap(ValidPoints[0], ValidPoints[1]);
-			}
-
-			return FPlineSegIntersect(EPlineSegIntersectType::TwoIntersects, ValidPoints[0], ValidPoints[1]);
+			Swap(ValidPoints[0], ValidPoints[1]);
 		}
+
+		return FPlineSegIntersect(EPlineSegIntersectType::TwoIntersects, ValidPoints[0], ValidPoints[1]);
 	}
 
 
@@ -198,16 +200,13 @@ namespace PCGExCavalier
 				return LineLineIntersect(Arc1Start.GetPosition(), Arc1End.GetPosition(),
 				                         Arc2Start.GetPosition(), Arc2End.GetPosition(), PosEqualEps);
 			}
-			else if (!Arc1.bValid)
+			if (!Arc1.bValid)
 			{
 				return LineArcIntersect(Arc1Start.GetPosition(), Arc1End.GetPosition(),
 				                        Arc2Start, Arc2End, PosEqualEps);
 			}
-			else
-			{
-				return LineArcIntersect(Arc2Start.GetPosition(), Arc2End.GetPosition(),
-				                        Arc1Start, Arc1End, PosEqualEps);
-			}
+			return LineArcIntersect(Arc2Start.GetPosition(), Arc2End.GetPosition(),
+			                        Arc1Start, Arc1End, PosEqualEps);
 		}
 
 		// Check for concentric arcs
@@ -243,7 +242,7 @@ namespace PCGExCavalier
 				return FPlineSegIntersect(EPlineSegIntersectType::OverlappingArcs,
 				                          OverlapPoints[0], OverlapPoints[1]);
 			}
-			else if (OverlapPoints.Num() == 1)
+			if (OverlapPoints.Num() == 1)
 			{
 				return FPlineSegIntersect(EPlineSegIntersectType::TangentIntersect, OverlapPoints[0]);
 			}
@@ -292,7 +291,7 @@ namespace PCGExCavalier
 		{
 			return FPlineSegIntersect();
 		}
-		else if (ValidPoints.Num() == 1)
+		if (ValidPoints.Num() == 1)
 		{
 			bool bIsTangent = ValidPoints[0].Equals(Arc1Start.GetPosition(), PosEqualEps) ||
 				ValidPoints[0].Equals(Arc1End.GetPosition(), PosEqualEps) ||
@@ -303,17 +302,14 @@ namespace PCGExCavalier
 				bIsTangent ? EPlineSegIntersectType::TangentIntersect : EPlineSegIntersectType::OneIntersect,
 				ValidPoints[0]);
 		}
-		else
+		// Order by distance from arc1 start
+		if (Math::DistanceSquared(Arc1Start.GetPosition(), ValidPoints[0]) >
+			Math::DistanceSquared(Arc1Start.GetPosition(), ValidPoints[1]))
 		{
-			// Order by distance from arc1 start
-			if (Math::DistanceSquared(Arc1Start.GetPosition(), ValidPoints[0]) >
-				Math::DistanceSquared(Arc1Start.GetPosition(), ValidPoints[1]))
-			{
-				Swap(ValidPoints[0], ValidPoints[1]);
-			}
-
-			return FPlineSegIntersect(EPlineSegIntersectType::TwoIntersects, ValidPoints[0], ValidPoints[1]);
+			Swap(ValidPoints[0], ValidPoints[1]);
 		}
+
+		return FPlineSegIntersect(EPlineSegIntersectType::TwoIntersects, ValidPoints[0], ValidPoints[1]);
 	}
 
 
@@ -333,11 +329,11 @@ namespace PCGExCavalier
 			return LineLineIntersect(V1.GetPosition(), V2.GetPosition(),
 			                         U1.GetPosition(), U2.GetPosition(), PosEqualEps);
 		}
-		else if (bV1IsLine && !bU1IsLine)
+		if (bV1IsLine && !bU1IsLine)
 		{
 			return LineArcIntersect(V1.GetPosition(), V2.GetPosition(), U1, U2, PosEqualEps);
 		}
-		else if (!bV1IsLine && bU1IsLine)
+		if (!bV1IsLine && bU1IsLine)
 		{
 			// Swap order and adjust result
 			FPlineSegIntersect Result = LineArcIntersect(U1.GetPosition(), U2.GetPosition(), V1, V2, PosEqualEps);
@@ -354,9 +350,6 @@ namespace PCGExCavalier
 
 			return Result;
 		}
-		else
-		{
-			return ArcArcIntersect(V1, V2, U1, U2, PosEqualEps);
-		}
+		return ArcArcIntersect(V1, V2, U1, U2, PosEqualEps);
 	}
 }

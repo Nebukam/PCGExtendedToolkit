@@ -350,10 +350,22 @@ namespace PCGExCavalier
 			double Eps)
 		{
 			// Check against all four endpoints
-			if (IntersectPt.Equals(P1, Eps)) return P1;
-			if (IntersectPt.Equals(P2, Eps)) return P2;
-			if (IntersectPt.Equals(Q1, Eps)) return Q1;
-			if (IntersectPt.Equals(Q2, Eps)) return Q2;
+			if (IntersectPt.Equals(P1, Eps))
+			{
+				return P1;
+			}
+			if (IntersectPt.Equals(P2, Eps))
+			{
+				return P2;
+			}
+			if (IntersectPt.Equals(Q1, Eps))
+			{
+				return Q1;
+			}
+			if (IntersectPt.Equals(Q2, Eps))
+			{
+				return Q2;
+			}
 			return IntersectPt;
 		}
 	}

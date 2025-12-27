@@ -177,7 +177,10 @@ namespace PCGExCavalier
 		int32 SegmentCount() const
 		{
 			const int32 N = Vertices.Num();
-			if (N < 2) return 0;
+			if (N < 2)
+			{
+				return 0;
+			}
 			return bClosed ? N : N - 1;
 		}
 
@@ -308,7 +311,10 @@ namespace PCGExCavalier
 		void ForEachSegment(FSegmentVisitor Visitor) const
 		{
 			const int32 N = Vertices.Num();
-			if (N < 2) return;
+			if (N < 2)
+			{
+				return;
+			}
 
 			const int32 SegCount = bClosed ? N : N - 1;
 			for (int32 i = 0; i < SegCount; ++i)
@@ -322,7 +328,10 @@ namespace PCGExCavalier
 		void ForEachSegmentIndexed(FSegmentVisitorIndexed Visitor) const
 		{
 			const int32 N = Vertices.Num();
-			if (N < 2) return;
+			if (N < 2)
+			{
+				return;
+			}
 
 			const int32 SegCount = bClosed ? N : N - 1;
 			for (int32 i = 0; i < SegCount; ++i)
@@ -377,9 +386,9 @@ namespace PCGExCavalier
 		/** Create an AABB spatial index for all segments */
 		FApproxAABBIndex CreateApproxAABBIndex() const;
 
-		
+
 		// Closest Point Queries
-		
+
 
 		/** Find the closest point on the polyline to the given point */
 		FVector2D ClosestPoint(const FVector2D& Point, double* OutDistance = nullptr) const;

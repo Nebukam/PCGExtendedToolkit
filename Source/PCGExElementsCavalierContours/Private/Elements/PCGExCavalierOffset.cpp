@@ -74,7 +74,12 @@ namespace PCGExCavalierOffset
 		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 
+		bool bDual = true;
+		Settings->DualOffset.TryReadDataValue(PointDataFacade->Source, bDual);
 		Settings->Offset.TryReadDataValue(PointDataFacade->Source, OffsetValue);
+		Settings->Iterations.TryReadDataValue(PointDataFacade->Source, NumIterations);
+
+		NumIterations = FMath::Max(1, NumIterations);
 
 		PCGExCavalier::FRootPath RootPath(PointDataFacade->Source, ProjectionDetails);
 
@@ -85,18 +90,42 @@ namespace PCGExCavalierOffset
 		RootPaths.Add(RootPath.PathId, MoveTemp(RootPath));
 
 		// Run offset
-		TArray<PCGExCavalier::FPolyline> OutputLines = PCGExCavalier::Offset::ParallelOffset(Polyline, OffsetValue, Settings->OffsetOptions);
-
-		for (PCGExCavalier::FPolyline& Line : OutputLines)
+		for (int i = 0; i < NumIterations; i++)
 		{
-			if (Settings->bTessellateArcs)
+			TArray<PCGExCavalier::FPolyline> OutputLines = PCGExCavalier::Offset::ParallelOffset(Polyline, OffsetValue * (i + 1), Settings->OffsetOptions);
+
+			for (PCGExCavalier::FPolyline& Line : OutputLines)
 			{
-				PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
-				OutputPolyline(TessellatedLine);
+				if (Settings->bTessellateArcs)
+				{
+					PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
+					OutputPolyline(TessellatedLine);
+				}
+				else
+				{
+					OutputPolyline(Line);
+				}
 			}
-			else
+		}
+
+		if (bDual)
+		{
+			for (int i = 0; i < NumIterations; i++)
 			{
-				OutputPolyline(Line);
+				TArray<PCGExCavalier::FPolyline> OutputLines = PCGExCavalier::Offset::ParallelOffset(Polyline, OffsetValue * -1 * (i + 1), Settings->OffsetOptions);
+
+				for (PCGExCavalier::FPolyline& Line : OutputLines)
+				{
+					if (Settings->bTessellateArcs)
+					{
+						PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
+						OutputPolyline(TessellatedLine);
+					}
+					else
+					{
+						OutputPolyline(Line);
+					}
+				}
 			}
 		}
 
