@@ -293,10 +293,7 @@ namespace PCGExAttributeRolling
 				{
 					// Don't skip that one roll
 				}
-				else
-				{
-					continue;
-				}
+				else{ continue; }
 			}
 
 			if (SourceIndex != -1 && BlendOpsManager)

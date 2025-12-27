@@ -6,7 +6,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Elements/PCGExPathCrossings.h"
 #include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"

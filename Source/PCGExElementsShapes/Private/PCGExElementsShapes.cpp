@@ -17,12 +17,12 @@
 
 void FPCGExElementsShapesModule::StartupModule()
 {
-	IPCGExModuleInterface::StartupModule();
+	IPCGExLegacyModuleInterface::StartupModule();
 }
 
 void FPCGExElementsShapesModule::ShutdownModule()
 {
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExLegacyModuleInterface::ShutdownModule();
 }
 
 #if WITH_EDITOR

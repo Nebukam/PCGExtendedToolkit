@@ -17,12 +17,12 @@
 
 void FPCGExGraphsModule::StartupModule()
 {
-	IPCGExModuleInterface::StartupModule();
+	IPCGExLegacyModuleInterface::StartupModule();
 }
 
 void FPCGExGraphsModule::ShutdownModule()
 {
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExLegacyModuleInterface::ShutdownModule();
 }
 
 #undef LOCTEXT_NAMESPACE

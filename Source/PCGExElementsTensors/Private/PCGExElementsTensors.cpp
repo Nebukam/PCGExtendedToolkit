@@ -17,12 +17,12 @@
 
 void FPCGExElementsTensorsModule::StartupModule()
 {
-	IPCGExModuleInterface::StartupModule();
+	IPCGExLegacyModuleInterface::StartupModule();
 }
 
 void FPCGExElementsTensorsModule::ShutdownModule()
 {
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExLegacyModuleInterface::ShutdownModule();
 }
 
 #if WITH_EDITOR

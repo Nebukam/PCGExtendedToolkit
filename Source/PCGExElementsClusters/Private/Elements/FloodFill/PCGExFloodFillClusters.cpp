@@ -162,10 +162,7 @@ namespace PCGExClusterDiffusion
 				if (ClosestIndex < 0) { continue; }
 
 				const PCGExClusters::FNode* SeedNode = &Nodes[ClosestIndex];
-				if (!This->Settings->Seeds.SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation) || FPlatformAtomics::InterlockedCompareExchange(&This->Seeded[ClosestIndex], 1, 0) == 1)
-				{
-					continue;
-				}
+				if (!This->Settings->Seeds.SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation) || FPlatformAtomics::InterlockedCompareExchange(&This->Seeded[ClosestIndex], 1, 0) == 1){ continue; }
 
 				TSharedPtr<PCGExFloodFill::FDiffusion> NewDiffusion = MakeShared<PCGExFloodFill::FDiffusion>(This->FillControlsHandler, This->Cluster, SeedNode);
 				NewDiffusion->Index = Index;

@@ -111,6 +111,24 @@ FQuat FPCGExGeo2DProjectionDetails::GetQuat(const int32 PointIndex) const
 	return NormalGetter ? PCGEX_READ_QUAT(PointIndex) : ProjectionQuat;
 }
 
+FTransform FPCGExGeo2DProjectionDetails::Project(const FTransform& InTransform, const int32 PointIndex) const
+{
+	const FQuat QInv = GetQuat(PointIndex).Inverse();
+
+	return FTransform(
+		QInv * InTransform.GetRotation(),
+		QInv.RotateVector(InTransform.GetLocation()),
+		InTransform.GetScale3D()
+	);
+}
+
+void FPCGExGeo2DProjectionDetails::ProjectInPlace(FTransform& InTransform, const int32 PointIndex) const
+{
+	const FQuat QInv = GetQuat(PointIndex).Inverse();
+	InTransform.SetRotation(QInv * InTransform.GetRotation());
+	InTransform.SetLocation(QInv.RotateVector(InTransform.GetLocation()));
+}
+
 FVector FPCGExGeo2DProjectionDetails::Project(const FVector& InPosition, const int32 PointIndex) const
 {
 	return GetQuat(PointIndex).UnrotateVector(InPosition);
@@ -230,4 +248,22 @@ void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>
 		OutPositions[ii] = PP.X;
 		OutPositions[ii+1] = PP.Y;
 	)
+}
+
+FTransform FPCGExGeo2DProjectionDetails::Restore(const FTransform& InTransform, const int32 PointIndex) const
+{
+	const FQuat Q = GetQuat(PointIndex);
+
+	return FTransform(
+		Q * InTransform.GetRotation(),
+		Q.RotateVector(InTransform.GetLocation()),
+		InTransform.GetScale3D()
+	);
+}
+
+void FPCGExGeo2DProjectionDetails::RestoreInPlace(FTransform& InTransform, const int32 PointIndex) const
+{
+	const FQuat Q = GetQuat(PointIndex);
+	InTransform.SetRotation(Q * InTransform.GetRotation());
+	InTransform.SetLocation(Q.RotateVector(InTransform.GetLocation()));
 }

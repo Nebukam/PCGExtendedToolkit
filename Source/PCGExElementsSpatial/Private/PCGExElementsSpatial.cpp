@@ -7,12 +7,12 @@
 
 void FPCGExElementsSpatialModule::StartupModule()
 {
-	IPCGExModuleInterface::StartupModule();
+	IPCGExLegacyModuleInterface::StartupModule();
 }
 
 void FPCGExElementsSpatialModule::ShutdownModule()
 {
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExLegacyModuleInterface::ShutdownModule();
 }
 
 #undef LOCTEXT_NAMESPACE

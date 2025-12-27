@@ -18,12 +18,12 @@
 
 void FPCGExElementsActionsModule::StartupModule()
 {
-	IPCGExModuleInterface::StartupModule();
+	IPCGExLegacyModuleInterface::StartupModule();
 }
 
 void FPCGExElementsActionsModule::ShutdownModule()
 {
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExLegacyModuleInterface::ShutdownModule();
 }
 
 #if WITH_EDITOR

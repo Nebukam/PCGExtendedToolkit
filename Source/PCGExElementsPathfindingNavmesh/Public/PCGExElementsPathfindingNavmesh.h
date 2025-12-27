@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExModuleInterface.h"
+#include "PCGExLegacyModuleInterface.h"
 
-class FPCGExElementsPathfindingNavmeshModule final : public IPCGExModuleInterface
+class FPCGExElementsPathfindingNavmeshModule final : public IPCGExLegacyModuleInterface
 {
 	PCGEX_MODULE_BODY
 

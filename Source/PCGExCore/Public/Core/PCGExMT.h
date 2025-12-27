@@ -29,6 +29,9 @@ struct FPCGExContext;
 namespace PCGExMT
 {
 	PCGEXCORE_API
+	int32 GetSanitizedBatchSize(const int32 NumIterations, const int32 DesiredBatchSize);
+	
+	PCGEXCORE_API
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 NumIterations, const int32 RangeSize);
 
 	enum class EAsyncHandleState : uint8
@@ -261,15 +264,8 @@ namespace PCGExMT
 				return;
 			}
 
-			const int32 SanitizedChunk =
-				FMath::Max(
-					ChunkSize > 128
-						? FMath::Max(ChunkSize, FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 2))
-						: FMath::Max(1, ChunkSize),
-					FMath::DivideAndRoundUp(NumIterations, FPlatformMisc::NumberOfCores() * 4));
-
 			TArray<FScope> Loops;
-			const int32 NumLoops = SubLoopScopes(Loops, NumIterations, FMath::Max(1, SanitizedChunk));
+			const int32 NumLoops = SubLoopScopes(Loops, NumIterations, FMath::Max(1, GetSanitizedBatchSize(NumIterations, ChunkSize)));
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
