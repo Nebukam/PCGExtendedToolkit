@@ -78,7 +78,7 @@ namespace PCGExCavalier
 		bool bClosed = false;
 
 		/** Primary path ID for single-source polylines (e.g., from input or offset) */
-		int32 PrimaryPathId = InvalidIndex;
+		int32 PrimaryPathId = INDEX_NONE;
 
 		/** All path IDs that contributed to this polyline (for boolean results) */
 		TSet<int32> ContributingPathIds;
@@ -95,7 +95,7 @@ namespace PCGExCavalier
 			: bClosed(bInClosed)
 			  , PrimaryPathId(InPrimaryPathId)
 		{
-			if (InPrimaryPathId != InvalidIndex)
+			if (InPrimaryPathId != INDEX_NONE)
 			{
 				ContributingPathIds.Add(InPrimaryPathId);
 			}
@@ -110,7 +110,7 @@ namespace PCGExCavalier
 		void SetPrimaryPathId(int32 PathId)
 		{
 			PrimaryPathId = PathId;
-			if (PathId != InvalidIndex)
+			if (PathId != INDEX_NONE)
 			{
 				ContributingPathIds.Add(PathId);
 			}
@@ -122,7 +122,7 @@ namespace PCGExCavalier
 		/** Add a contributing path ID */
 		void AddContributingPath(int32 PathId)
 		{
-			if (PathId != InvalidIndex)
+			if (PathId != INDEX_NONE)
 			{
 				ContributingPathIds.Add(PathId);
 			}
@@ -149,7 +149,7 @@ namespace PCGExCavalier
 		/** Clear all path tracking information */
 		void ClearPathTracking()
 		{
-			PrimaryPathId = InvalidIndex;
+			PrimaryPathId = INDEX_NONE;
 			ContributingPathIds.Empty();
 		}
 
@@ -471,7 +471,7 @@ namespace PCGExCavalier
 		 * @param RootPaths Map of PathId -> RootPath for looking up source transforms
 		 * @return 3D contour result with positions, transforms, and source info
 		 */
-		static FContourResult3D ConvertTo3D(const FPolyline& Polyline2D, const TMap<int32, FRootPath>& RootPaths);
+		static FContourResult3D ConvertTo3D(const FPolyline& Polyline2D, const TMap<int32, FRootPath>& RootPaths, const bool bBlendTransforms = false);
 
 		/**
 		 * Convert a 2D polyline back to 3D using a single source path (legacy).
@@ -480,6 +480,6 @@ namespace PCGExCavalier
 		 * @param bClosed Whether the result is closed
 		 * @return 3D contour result
 		 */
-		static FContourResult3D ConvertTo3D(const FPolyline& Polyline2D, const TArray<FInputPoint>& SourcePoints, bool bClosed);
+		static FContourResult3D ConvertTo3D(const FPolyline& Polyline2D, const TArray<FInputPoint>& SourcePoints, bool bClosed, const bool bBlendTransforms = false);
 	};
 }

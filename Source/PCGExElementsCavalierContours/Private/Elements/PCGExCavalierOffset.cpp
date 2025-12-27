@@ -138,7 +138,7 @@ namespace PCGExCavalierOffset
 		if (OutNumVertices < 2) { return; }
 
 		// Convert back to 3D with proper Z and transform interpolation
-		PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(Polyline, RootPaths);
+		PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(Polyline, RootPaths, Settings->bBlendTransforms);
 
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }

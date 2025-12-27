@@ -590,7 +590,8 @@ namespace PCGExCavalier
 
 	FContourResult3D FContourUtils::ConvertTo3D(
 		const FPolyline& Polyline2D,
-		const TMap<int32, FRootPath>& RootPaths)
+		const TMap<int32, FRootPath>& RootPaths,
+		const bool bBlendTransforms)
 	{
 		FContourResult3D Result;
 		const int32 N = Polyline2D.VertexCount();
@@ -633,7 +634,6 @@ namespace PCGExCavalier
 					LastSeenPointIndex.Add(V.Source.PathId, V.Source.PointIndex);
 				}
 			}
-
 
 			if (bIsAnchor && SourceTransform)
 			{
@@ -702,7 +702,7 @@ namespace PCGExCavalier
 			}
 
 
-			if (PrevValid != -1 && NextValid != -1)
+			if (PrevValid != INDEX_NONE && NextValid != INDEX_NONE)
 			{
 				double d1 = PathDistances[InvalidIdx] - PathDistances[PrevValid];
 				double d2 = PathDistances[NextValid] - PathDistances[InvalidIdx];
@@ -719,10 +719,39 @@ namespace PCGExCavalier
 
 				// Interpolate full transform for orientation/scale consistency
 
-				FTransform Interpolated = FTransform::Identity;
-				Interpolated.Blend(Result.Transforms[PrevValid], Result.Transforms[NextValid], Alpha);
-				Interpolated.SetLocation(Result.Positions[InvalidIdx]);
-				Result.Transforms[InvalidIdx] = Interpolated;
+				if (bBlendTransforms)
+				{
+					FTransform Interpolated = FTransform::Identity;
+					Interpolated.Blend(Result.Transforms[PrevValid], Result.Transforms[NextValid], Alpha);
+					Interpolated.SetLocation(Result.Positions[InvalidIdx]);
+					Result.Transforms[InvalidIdx] = Interpolated;
+				}
+				else
+				{
+					FTransform Copy = Result.Transforms[NextValid];
+					Copy.SetLocation(Result.Positions[InvalidIdx]);
+					Result.Transforms[InvalidIdx] = Copy;
+				}
+			}
+			else if (PrevValid != INDEX_NONE)
+			{
+				// Only have prev - use it directly
+				const double Z = Result.Transforms[PrevValid].GetLocation().Z;
+				Result.Positions[InvalidIdx].Z = Z;
+
+				FTransform Copy = Result.Transforms[PrevValid];
+				Copy.SetLocation(Result.Positions[InvalidIdx]);
+				Result.Transforms[InvalidIdx] = Copy;
+			}
+			else if (NextValid != INDEX_NONE)
+			{
+				// Only have next - use it directly
+				const double Z = Result.Transforms[NextValid].GetLocation().Z;
+				Result.Positions[InvalidIdx].Z = Z;
+
+				FTransform Copy = Result.Transforms[NextValid];
+				Copy.SetLocation(Result.Positions[InvalidIdx]);
+				Result.Transforms[InvalidIdx] = Copy;
 			}
 		}
 
@@ -732,7 +761,7 @@ namespace PCGExCavalier
 	FContourResult3D FContourUtils::ConvertTo3D(
 		const FPolyline& Polyline2D,
 		const TArray<FInputPoint>& SourcePoints,
-		bool bClosed)
+		bool bClosed, const bool bBlendTransforms)
 	{
 		// Build temporary root paths map for legacy API
 		TMap<int32, FRootPath> RootPaths;
@@ -751,6 +780,6 @@ namespace PCGExCavalier
 			}
 		}
 
-		return ConvertTo3D(Polyline2D, RootPaths);
+		return ConvertTo3D(Polyline2D, RootPaths, bBlendTransforms);
 	}
 }

@@ -64,8 +64,6 @@ enum class EPCGExCCBooleanOp : uint8
 
 namespace PCGExCavalier
 {
-	/** Invalid/unset index sentinel */
-	constexpr int32 InvalidIndex = INDEX_NONE;
 
 	/**
 	 * Tracks the origin of a vertex back to its root path and point.
@@ -78,13 +76,13 @@ namespace PCGExCavalier
 		 * Unique identifier of the root path this vertex originated from.
 		 * Each input path should have a unique PathId assigned by the caller.
 		 */
-		int32 PathId = InvalidIndex;
+		int32 PathId = INDEX_NONE;
 
 		/** 
 		 * Index of the point within the root path.
 		 * This corresponds to the FInputPoint's position in its source array.
 		 */
-		int32 PointIndex = InvalidIndex;
+		int32 PointIndex = INDEX_NONE;
 
 		FVertexSource() = default;
 
@@ -97,19 +95,19 @@ namespace PCGExCavalier
 		/** Returns true if both PathId and PointIndex are valid */
 		bool IsValid() const
 		{
-			return PathId != InvalidIndex && PointIndex != InvalidIndex;
+			return PathId != INDEX_NONE && PointIndex != INDEX_NONE;
 		}
 
 		/** Returns true if PathId is valid (vertex belongs to a known path) */
 		bool HasValidPath() const
 		{
-			return PathId != InvalidIndex;
+			return PathId != INDEX_NONE;
 		}
 
 		/** Returns true if PointIndex is valid (can be traced to specific point) */
 		bool HasValidPoint() const
 		{
-			return PointIndex != InvalidIndex;
+			return PointIndex != INDEX_NONE;
 		}
 
 		/** Create an invalid source */
@@ -121,7 +119,7 @@ namespace PCGExCavalier
 		/** Create a source with only PathId (point unknown) */
 		static FVertexSource FromPath(int32 InPathId)
 		{
-			return FVertexSource(InPathId, InvalidIndex);
+			return FVertexSource(InPathId, INDEX_NONE);
 		}
 
 		bool operator==(const FVertexSource& Other) const
@@ -143,10 +141,10 @@ namespace PCGExCavalier
 	struct PCGEXELEMENTSCAVALIERCONTOURS_API FInputPoint
 	{
 		/** Unique identifier of the root path this point belongs to */
-		int32 PathId = InvalidIndex;
+		int32 PathId = INDEX_NONE;
 
 		/** Index within the root path's point array */
-		int32 PointIndex = InvalidIndex;
+		int32 PointIndex = INDEX_NONE;
 
 		/** Original transform (full 3D information for reconstruction) */
 		FTransform Transform = FTransform::Identity;
@@ -379,7 +377,7 @@ namespace PCGExCavalier
 		int32 GetRootIndex() const { return Source.PointIndex; }
 
 		/** @deprecated Use HasValidSource() or Source.IsValid() instead */
-		bool HasValidRootIndex() const { return Source.PointIndex != InvalidIndex; }
+		bool HasValidRootIndex() const { return Source.PointIndex != INDEX_NONE; }
 
 		/** @deprecated Use WithSource() or WithPointIndex() instead */
 		FVertex WithRootIndex(int32 NewRootIndex) const
@@ -396,7 +394,7 @@ namespace PCGExCavalier
 	struct PCGEXELEMENTSCAVALIERCONTOURS_API FRootPath
 	{
 		/** Unique identifier for this path */
-		int32 PathId = InvalidIndex;
+		int32 PathId = INDEX_NONE;
 
 		/** The points that make up this path */
 		TArray<FInputPoint> Points;

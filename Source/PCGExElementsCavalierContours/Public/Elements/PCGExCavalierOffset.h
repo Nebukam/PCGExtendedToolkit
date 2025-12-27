@@ -72,6 +72,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bTessellateArcs"))
 	FPCGExCCArcTessellationSettings TessellationSettings;
 	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bBlendTransforms = true;
+	
 	/** When enabled, add a very small floating point value to positions in order to mitigate arithmetic edge cases that can sometimes happen. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bAddFuzzinessToPositions = false;

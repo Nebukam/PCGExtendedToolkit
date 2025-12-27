@@ -778,8 +778,8 @@ namespace PCGExCavalier::BooleanOps
 		const FContourBooleanOptions& Options)
 	{
 		// Use polylines' primary path IDs, defaulting to 0 and 1
-		const int32 PathId1 = Pline1.GetPrimaryPathId() != InvalidIndex ? Pline1.GetPrimaryPathId() : 0;
-		const int32 PathId2 = Pline2.GetPrimaryPathId() != InvalidIndex ? Pline2.GetPrimaryPathId() : 1;
+		const int32 PathId1 = Pline1.GetPrimaryPathId() != INDEX_NONE ? Pline1.GetPrimaryPathId() : 0;
+		const int32 PathId2 = Pline2.GetPrimaryPathId() != INDEX_NONE ? Pline2.GetPrimaryPathId() : 1;
 
 		return PerformBoolean(
 			FBooleanOperand(Pline1, PathId1),

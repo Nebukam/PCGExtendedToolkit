@@ -63,7 +63,7 @@ namespace PCGExCavalier::BooleanOps
 		const FPolyline* Polyline = nullptr;
 
 		/** The path ID to use for source tracking */
-		int32 PathId = InvalidIndex;
+		int32 PathId = INDEX_NONE;
 
 		FBooleanOperand() = default;
 
