@@ -593,165 +593,136 @@ namespace PCGExCavalier
 		const TMap<int32, FRootPath>& RootPaths)
 	{
 		FContourResult3D Result;
-		Result.bIsClosed = Polyline2D.IsClosed();
-		Result.ContributingPathIds = Polyline2D.GetContributingPathIds();
-
 		const int32 N = Polyline2D.VertexCount();
+
 		if (N == 0) { return Result; }
 
 		Result.Positions.Reserve(N);
 		Result.Transforms.Reserve(N);
-		Result.Sources.Reserve(N);
 
-		// Helper to get transform from source
-		auto GetSourceTransform = [&RootPaths](const FVertexSource& Source) -> const FTransform*
+		TSet<int32> InvalidIndices;
+		TMap<int32, int32> LastSeenPointIndex; // PathId -> PointIndex tracking
+
+		// Helper to get source transform
+		auto GetSourceTransform = [&](const FVertexSource& Source) -> const FTransform*
 		{
-			if (!Source.IsValid()) { return nullptr; }
-
+			if (!Source.HasValidPoint()) { return nullptr; }
 			const FRootPath* Path = RootPaths.Find(Source.PathId);
-			if (!Path) { return nullptr; }
-
-			if (Source.PointIndex < 0 || Source.PointIndex >= Path->Points.Num()) { return nullptr; }
-
-
-			return &Path->Points[Source.PointIndex].Transform;
+			return (Path && Path->Points.IsValidIndex(Source.PointIndex)) ? &Path->Points[Source.PointIndex].Transform : nullptr;
 		};
 
-		// First pass: fill in vertices with valid sources and compute path distances
-		TArray<int32> InvalidIndices;
-		TArray<double> PathDistances;
-		PathDistances.SetNum(N);
-		PathDistances[0] = 0.0;
 
-		// Compute cumulative path distances
-		for (int32 i = 1; i < N; ++i)
-		{
-			const FVector2D Prev = Polyline2D.GetVertex(i - 1).GetPosition();
-			const FVector2D Curr = Polyline2D.GetVertex(i).GetPosition();
-			PathDistances[i] = PathDistances[i - 1] + FVector2D::Distance(Prev, Curr);
-		}
+		// First Pass: Identify unique anchors and mark "splits" or "intersections" as invalid
 
 		for (int32 i = 0; i < N; ++i)
 		{
 			const FVertex& V = Polyline2D.GetVertex(i);
 			Result.Sources.Add(V.Source);
-
+			bool bIsAnchor = false;
 			const FTransform* SourceTransform = GetSourceTransform(V.Source);
+
 			if (SourceTransform)
 			{
-				// Direct lookup
-				const FVector SourcePos = SourceTransform->GetLocation();
-				const FVector Pos3D(V.GetX(), V.GetY(), SourcePos.Z);
-				Result.Positions.Add(Pos3D);
+				// Only treat as an anchor if it's the first time we see this PointIndex in a sequence
+				// or if it's the very first/last vertex of the polyline.
 
-				FTransform OutTransform = *SourceTransform;
-				OutTransform.SetLocation(Pos3D);
-				Result.Transforms.Add(OutTransform);
+				int32* LastIdx = LastSeenPointIndex.Find(V.Source.PathId);
+				if (!LastIdx || *LastIdx != V.Source.PointIndex || i == 0 || i == N - 1)
+				{
+					bIsAnchor = true;
+					LastSeenPointIndex.Add(V.Source.PathId, V.Source.PointIndex);
+				}
+			}
+
+
+			if (bIsAnchor && SourceTransform)
+			{
+				const FVector Pos = FVector(V.GetX(), V.GetY(), SourceTransform->GetLocation().Z);
+				Result.Positions.Add(Pos);
+
+				FTransform NewTransform = *SourceTransform;
+				NewTransform.SetLocation(Pos);
+				Result.Transforms.Add(NewTransform);
 			}
 			else
 			{
-				// Placeholder - will interpolate
+				// Mark as invalid to trigger interpolation in the second pass
 				Result.Positions.Add(FVector(V.GetX(), V.GetY(), 0.0));
 				Result.Transforms.Add(FTransform(FVector(V.GetX(), V.GetY(), 0.0)));
 				InvalidIndices.Add(i);
 			}
 		}
 
-		// Second pass: interpolate for vertices without valid sources using PATH distance
-		if (!InvalidIndices.IsEmpty() && N > 1)
+
+		if (InvalidIndices.Num() == N) { return Result; } // No anchors found
+
+		// Precompute distances for interpolation
+		TArray<double> PathDistances;
+
+		PathDistances.SetNumUninitialized(N);
+		double CurrentTotalDist = 0.0;
+		PathDistances[0] = 0.0;
+
+		for (int32 i = 0; i < N - 1; ++i)
 		{
-			for (int32 InvalidIdx : InvalidIndices)
+			CurrentTotalDist += FVector2D::Distance(Polyline2D.GetVertex(i).GetPosition(), Polyline2D.GetVertex(i + 1).GetPosition());
+			PathDistances[i + 1] = CurrentTotalDist;
+		}
+
+
+		const double TotalPolyLength = CurrentTotalDist + (Polyline2D.IsClosed() ? FVector2D::Distance(Polyline2D.GetVertex(N - 1).GetPosition(), Polyline2D.GetVertex(0).GetPosition()) : 0.0);
+
+		// Second Pass: Interpolate Z and Transforms for all InvalidIndices
+		for (int32 InvalidIdx : InvalidIndices)
+		{
+			int32 PrevValid = -1;
+			int32 NextValid = -1;
+
+			// Find neighbors
+			for (int32 j = 1; j < N; ++j)
 			{
-				// Find nearest valid vertices before and after
-				int32 PrevValid = InvalidIndex;
-				int32 NextValid = InvalidIndex;
+				int32 idx = (InvalidIdx - j + N) % N;
 
-				// Search backward
-				for (int32 Offset = 1; Offset < N; ++Offset)
+				if (!InvalidIndices.Contains(idx))
 				{
-					const int32 Idx = (InvalidIdx - Offset + N) % N;
-					if (GetSourceTransform(Polyline2D.GetVertex(Idx).Source))
-					{
-						PrevValid = Idx;
-						break;
-					}
+					PrevValid = idx;
+					break;
 				}
+			}
 
-				// Search forward
-				for (int32 Offset = 1; Offset < N; ++Offset)
+			for (int32 j = 1; j < N; ++j)
+			{
+				int32 idx = (InvalidIdx + j) % N;
+
+				if (!InvalidIndices.Contains(idx))
 				{
-					const int32 Idx = (InvalidIdx + Offset) % N;
-					if (GetSourceTransform(Polyline2D.GetVertex(Idx).Source))
-					{
-						NextValid = Idx;
-						break;
-					}
+					NextValid = idx;
+					break;
 				}
+			}
 
-				if (PrevValid != InvalidIndex && NextValid != InvalidIndex)
-				{
-					// Interpolate using path distance (cumulative distance along polyline)
-					double DistToPrev, DistToNext;
 
-					if (PrevValid < InvalidIdx)
-					{
-						DistToPrev = PathDistances[InvalidIdx] - PathDistances[PrevValid];
-					}
-					else
-					{
-						// Wrapped around (for closed polylines)
-						DistToPrev = PathDistances[InvalidIdx] + (PathDistances[N - 1] - PathDistances[PrevValid]);
-					}
+			if (PrevValid != -1 && NextValid != -1)
+			{
+				double d1 = PathDistances[InvalidIdx] - PathDistances[PrevValid];
+				double d2 = PathDistances[NextValid] - PathDistances[InvalidIdx];
 
-					if (NextValid > InvalidIdx)
-					{
-						DistToNext = PathDistances[NextValid] - PathDistances[InvalidIdx];
-					}
-					else
-					{
-						// Wrapped around (for closed polylines)
-						DistToNext = (PathDistances[N - 1] - PathDistances[InvalidIdx]) + PathDistances[NextValid];
-					}
+				if (PrevValid > InvalidIdx) d1 += TotalPolyLength;
+				if (NextValid < InvalidIdx) d2 += TotalPolyLength;
 
-					const double TotalDist = DistToPrev + DistToNext;
-					double Alpha = (TotalDist > 1e-9) ? DistToPrev / TotalDist : 0.5;
-					
-					// UE_LOG(LogTemp, Warning, TEXT("%f / %f | %f | %d -> %d"), DistToPrev, TotalDist, Alpha, PrevValid, NextValid);
+				const double Alpha = d1 / (d1 + d2);
 
-					const FTransform& PrevTransform = Result.Transforms[PrevValid];
-					const FTransform& NextTransform = Result.Transforms[NextValid];
+				// Interpolate Z
+				const double Z = FMath::Lerp(Result.Transforms[PrevValid].GetLocation().Z, Result.Transforms[NextValid].GetLocation().Z, Alpha);
 
-					// Interpolate Z
-					const double Z = FMath::Lerp(PrevTransform.GetLocation().Z, NextTransform.GetLocation().Z, Alpha);
-					Result.Positions[InvalidIdx].Z = Z;
+				Result.Positions[InvalidIdx].Z = Z;
 
-					// Interpolate transform
-					FTransform Interp;
-					Interp.Blend(PrevTransform, NextTransform, Alpha);
-					Interp.SetLocation(Result.Positions[InvalidIdx]);
-					Result.Transforms[InvalidIdx] = Interp;
-				}
-				else if (PrevValid != InvalidIndex)
-				{
-					// Only have prev - use it directly
-					const double Z = Result.Transforms[PrevValid].GetLocation().Z;
-					Result.Positions[InvalidIdx].Z = Z;
+				// Interpolate full transform for orientation/scale consistency
 
-					FTransform Copy = Result.Transforms[PrevValid];
-					Copy.SetLocation(Result.Positions[InvalidIdx]);
-					Result.Transforms[InvalidIdx] = Copy;
-				}
-				else if (NextValid != InvalidIndex)
-				{
-					// Only have next - use it directly
-					const double Z = Result.Transforms[NextValid].GetLocation().Z;
-					Result.Positions[InvalidIdx].Z = Z;
-
-					FTransform Copy = Result.Transforms[NextValid];
-					Copy.SetLocation(Result.Positions[InvalidIdx]);
-					Result.Transforms[InvalidIdx] = Copy;
-				}
-				// else: no valid sources, keep default Z=0
+				FTransform Interpolated = FTransform::Identity;
+				Interpolated.Blend(Result.Transforms[PrevValid], Result.Transforms[NextValid], Alpha);
+				Interpolated.SetLocation(Result.Positions[InvalidIdx]);
+				Result.Transforms[InvalidIdx] = Interpolated;
 			}
 		}
 
