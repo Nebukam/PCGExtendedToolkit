@@ -2,315 +2,249 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 // Originally ported from cavalier_contours by jbuckmccready (https://github.com/jbuckmccready/cavalier_contours)
 
-#include "Core/PCGExCCOffset.h"
 #include "Core/PCGExCCPolyline.h"
-
-//~ FContourUtils Implementation
+#include "Core/PCGExCCMath.h"
 
 namespace PCGExCavalier
 {
-	FContourResult3D FContourUtils::ConvertTo3D(
-		const FPolyline& Polyline2D,
-		const TArray<FInputPoint>& SourcePoints,
-		bool bClosed)
+	// Note: FContourUtils implementations are in PCGExCCPolyline.cpp
+	// This file contains additional utility functions
+
+	namespace Utils
 	{
-		FContourResult3D Result;
-		Result.bIsClosed = bClosed;
-
-		const int32 NumVerts = Polyline2D.VertexCount();
-		if (NumVerts == 0 || SourcePoints.Num() == 0)
+		/**
+		 * Helper to create a map of root paths from an array of input points
+		 */
+		TMap<int32, FRootPath> CreateRootPathsMap(const TArray<FInputPoint>& Points, bool bClosed)
 		{
-			return Result;
-		}
+			TMap<int32, FRootPath> Result;
 
-		Result.Positions.Reserve(NumVerts);
-		Result.Transforms.Reserve(NumVerts);
-
-		// Create a lookup for finding the nearest source points for Z interpolation
-		// This is a simplified implementation - ideally we would track correspondence
-		// through the tessellation process
-
-		for (int32 i = 0; i < NumVerts; ++i)
-		{
-			const FVertex& V = Polyline2D.GetVertex(i);
-			const FVector2D Pos2D = V.GetPosition();
-
-			// Find the two nearest source points for interpolation
-			double MinDist1 = TNumericLimits<double>::Max();
-			double MinDist2 = TNumericLimits<double>::Max();
-			int32 NearestIdx1 = 0;
-			int32 NearestIdx2 = 0;
-
-			for (int32 j = 0; j < SourcePoints.Num(); ++j)
+			if (Points.IsEmpty())
 			{
-				const FVector2D SourcePos2D(SourcePoints[j].Position.X, SourcePoints[j].Position.Y);
-				const double Dist = FVector2D::Distance(Pos2D, SourcePos2D);
+				return Result;
+			}
 
-				if (Dist < MinDist1)
+			// Group points by PathId
+			TMap<int32, TArray<const FInputPoint*>> PointsByPath;
+			for (const FInputPoint& Pt : Points)
+			{
+				PointsByPath.FindOrAdd(Pt.PathId).Add(&Pt);
+			}
+
+			for (auto& Pair : PointsByPath)
+			{
+				FRootPath Path(Pair.Key, bClosed);
+				Path.Points.Reserve(Pair.Value.Num());
+
+				for (const FInputPoint* Pt : Pair.Value)
 				{
-					MinDist2 = MinDist1;
-					NearestIdx2 = NearestIdx1;
-					MinDist1 = Dist;
-					NearestIdx1 = j;
+					Path.Points.Add(*Pt);
 				}
-				else if (Dist < MinDist2)
+
+				Result.Add(Pair.Key, MoveTemp(Path));
+			}
+
+			return Result;
+		}
+
+		/**
+		 * Validate that all vertices in a polyline have valid sources
+		 */
+		bool ValidateVertexSources(const FPolyline& Polyline, TArray<int32>* OutInvalidIndices = nullptr)
+		{
+			bool bAllValid = true;
+
+			for (int32 i = 0; i < Polyline.VertexCount(); ++i)
+			{
+				if (!Polyline.GetVertex(i).HasValidSource())
 				{
-					MinDist2 = Dist;
-					NearestIdx2 = j;
+					bAllValid = false;
+					if (OutInvalidIndices)
+					{
+						OutInvalidIndices->Add(i);
+					}
 				}
 			}
 
-			// Interpolate Z based on distance to nearest points
-			double Z;
-			if (MinDist1 < Math::FuzzyEpsilon)
-			{
-				// Exactly at a source point
-				Z = SourcePoints[NearestIdx1].Position.Z;
-			}
-			else if (MinDist2 < Math::FuzzyEpsilon || SourcePoints.Num() == 1)
-			{
-				// Only one valid source point
-				Z = SourcePoints[NearestIdx1].Position.Z;
-			}
-			else
-			{
-				// Linear interpolation based on inverse distance weighting
-				const double W1 = 1.0 / MinDist1;
-				const double W2 = 1.0 / MinDist2;
-				const double TotalW = W1 + W2;
-				Z = (SourcePoints[NearestIdx1].Position.Z * W1 + SourcePoints[NearestIdx2].Position.Z * W2) / TotalW;
-			}
-
-			const FVector Pos3D(Pos2D.X, Pos2D.Y, Z);
-			Result.Positions.Add(Pos3D);
-			Result.Transforms.Add(FTransform(Pos3D));
+			return bAllValid;
 		}
 
-		return Result;
-	}
-
-	TArray<FTransform> FContourUtils::ToTransforms(
-		const FPolyline& Polyline2D,
-		const TArray<double>& SourceZValues,
-		bool bClosed)
-	{
-		TArray<FTransform> Result;
-
-		const int32 NumVerts = Polyline2D.VertexCount();
-		if (NumVerts == 0)
+		/**
+		 * Remap vertex sources to a new path ID
+		 */
+		void RemapVertexSources(FPolyline& Polyline, int32 OldPathId, int32 NewPathId)
 		{
+			for (int32 i = 0; i < Polyline.VertexCount(); ++i)
+			{
+				FVertex& V = Polyline.GetVertex(i);
+				if (V.GetPathId() == OldPathId)
+				{
+					V.Source.PathId = NewPathId;
+				}
+			}
+
+			// Update path tracking
+			if (Polyline.GetPrimaryPathId() == OldPathId)
+			{
+				Polyline.SetPrimaryPathId(NewPathId);
+			}
+		}
+
+		/**
+		 * Merge sources from multiple paths into a single result
+		 */
+		TSet<int32> CollectAllPathIds(const TArray<FPolyline>& Polylines)
+		{
+			TSet<int32> Result;
+
+			for (const FPolyline& Pline : Polylines)
+			{
+				Result.Append(Pline.GetContributingPathIds());
+
+				for (int32 i = 0; i < Pline.VertexCount(); ++i)
+				{
+					if (Pline.GetVertex(i).HasValidPath())
+					{
+						Result.Add(Pline.GetVertex(i).GetPathId());
+					}
+				}
+			}
+
 			return Result;
 		}
 
-		Result.Reserve(NumVerts);
-
-		// Simple linear interpolation along the polyline
-		const double TotalLength = Polyline2D.PathLength();
-		double AccumulatedLength = 0.0;
-		const int32 NumSourceZ = SourceZValues.Num();
-
-		for (int32 i = 0; i < NumVerts; ++i)
+		/**
+		 * Compute statistics about source coverage
+		 */
+		struct FSourceStats
 		{
-			const FVertex& V = Polyline2D.GetVertex(i);
-			const FVector2D Pos2D = V.GetPosition();
+			int32 TotalVertices = 0;
+			int32 ValidSources = 0;
+			int32 ValidPaths = 0;
+			int32 ValidPoints = 0;
+			TMap<int32, int32> VerticesPerPath;
 
-			// Compute parametric position along the polyline
-			double T = 0.0;
-			if (TotalLength > Math::FuzzyEpsilon && i > 0)
+			double GetCoverageRatio() const
 			{
-				// Add distance from previous vertex
-				const FVertex& PrevV = Polyline2D.GetVertex(i - 1);
-				AccumulatedLength += Math::SegmentArcLength(PrevV, V);
-				T = FMath::Clamp(AccumulatedLength / TotalLength, 0.0, 1.0);
+				return TotalVertices > 0 ? static_cast<double>(ValidSources) / TotalVertices : 0.0;
+			}
+		};
+
+		FSourceStats ComputeSourceStats(const FPolyline& Polyline)
+		{
+			FSourceStats Stats;
+			Stats.TotalVertices = Polyline.VertexCount();
+
+			for (int32 i = 0; i < Polyline.VertexCount(); ++i)
+			{
+				const FVertex& V = Polyline.GetVertex(i);
+
+				if (V.HasValidSource())
+				{
+					Stats.ValidSources++;
+				}
+
+				if (V.HasValidPath())
+				{
+					Stats.ValidPaths++;
+					Stats.VerticesPerPath.FindOrAdd(V.GetPathId())++;
+				}
+
+				if (V.Source.HasValidPoint())
+				{
+					Stats.ValidPoints++;
+				}
 			}
 
-			// Interpolate Z from source values
-			double Z;
-			if (NumSourceZ == 0)
-			{
-				Z = 0.0;
-			}
-			else if (NumSourceZ == 1)
-			{
-				Z = SourceZValues[0];
-			}
-			else
-			{
-				// Linear interpolation between source Z values
-				const double SourceT = T * (NumSourceZ - 1);
-				const int32 LowIdx = FMath::FloorToInt(SourceT);
-				const int32 HighIdx = FMath::Min(LowIdx + 1, NumSourceZ - 1);
-				const double Frac = SourceT - LowIdx;
-				Z = FMath::Lerp(SourceZValues[LowIdx], SourceZValues[HighIdx], Frac);
-			}
-
-			Result.Add(FTransform(FVector(Pos2D.X, Pos2D.Y, Z)));
+			return Stats;
 		}
 
-		return Result;
-	}
-
-	FPolyline FContourUtils::ProcessCorners(
-		const TArray<FInputPoint>& Points,
-		bool bClosed)
-	{
-		FPolyline Result(bClosed);
-
-		if (Points.Num() < 2)
+		/**
+		 * Interpolate source information for vertices without valid sources.
+		 * Uses neighboring vertices to estimate missing path IDs.
+		 */
+		void InterpolateMissingSources(FPolyline& Polyline)
 		{
-			// Not enough points for a polyline
-			for (const FInputPoint& P : Points)
+			const int32 N = Polyline.VertexCount();
+			if (N < 2) return;
+
+			// First pass: identify vertices needing interpolation
+			TArray<int32> InvalidIndices;
+			for (int32 i = 0; i < N; ++i)
 			{
-				Result.AddVertex(P.Position.X, P.Position.Y, 0.0);
-			}
-			return Result;
-		}
-
-		Result.Reserve(Points.Num() * 2); // Reserve extra for potential corner arcs
-
-		for (int32 i = 0; i < Points.Num(); ++i)
-		{
-			const FInputPoint& Current = Points[i];
-
-			if (!Current.bIsCorner || Current.CornerRadius <= Math::FuzzyEpsilon)
-			{
-				// Regular point or no radius - just add as line vertex
-				Result.AddVertex(Current.Position.X, Current.Position.Y, 0.0);
-				continue;
+				if (!Polyline.GetVertex(i).HasValidPath())
+				{
+					InvalidIndices.Add(i);
+				}
 			}
 
-			// Get previous and next points for corner calculation
-			const int32 PrevIdx = (i == 0) ? (bClosed ? Points.Num() - 1 : i) : i - 1;
-			const int32 NextIdx = (i == Points.Num() - 1) ? (bClosed ? 0 : i) : i + 1;
+			if (InvalidIndices.IsEmpty()) return;
 
-			// Skip if at endpoint of open polyline
-			if (!bClosed && (i == 0 || i == Points.Num() - 1))
+			// Second pass: interpolate from neighbors
+			for (int32 InvalidIdx : InvalidIndices)
 			{
-				Result.AddVertex(Current.Position.X, Current.Position.Y, 0.0);
-				continue;
-			}
+				// Search for nearest valid neighbors
+				int32 PrevValidIdx = INDEX_NONE;
+				int32 NextValidIdx = INDEX_NONE;
 
-			const FVector2D PrevPos(Points[PrevIdx].Position.X, Points[PrevIdx].Position.Y);
-			const FVector2D CurrPos(Current.Position.X, Current.Position.Y);
-			const FVector2D NextPos(Points[NextIdx].Position.X, Points[NextIdx].Position.Y);
+				// Search backward
+				for (int32 Offset = 1; Offset < N; ++Offset)
+				{
+					const int32 Idx = Polyline.IsClosed()
+						? (InvalidIdx - Offset + N) % N
+						: InvalidIdx - Offset;
 
-			// Vectors to previous and next points
-			FVector2D ToPrev = PrevPos - CurrPos;
-			FVector2D ToNext = NextPos - CurrPos;
-			const double LenPrev = ToPrev.Size();
-			const double LenNext = ToNext.Size();
+					if (Idx < 0) break;
 
-			if (LenPrev < Math::FuzzyEpsilon || LenNext < Math::FuzzyEpsilon)
-			{
-				// Degenerate case
-				Result.AddVertex(Current.Position.X, Current.Position.Y, 0.0);
-				continue;
-			}
+					if (Polyline.GetVertex(Idx).HasValidPath())
+					{
+						PrevValidIdx = Idx;
+						break;
+					}
+				}
 
-			ToPrev /= LenPrev;
-			ToNext /= LenNext;
+				// Search forward
+				for (int32 Offset = 1; Offset < N; ++Offset)
+				{
+					const int32 Idx = Polyline.IsClosed()
+						? (InvalidIdx + Offset) % N
+						: InvalidIdx + Offset;
 
-			// Calculate corner angle
-			const double Dot = FVector2D::DotProduct(ToPrev, ToNext);
-			const double CrossZ = Math::PerpDot(ToPrev, ToNext);
+					if (Idx >= N) break;
 
-			// Clamp dot product to valid range
-			const double ClampedDot = FMath::Clamp(Dot, -1.0, 1.0);
-			const double HalfAngle = FMath::Acos(ClampedDot) / 2.0;
+					if (Polyline.GetVertex(Idx).HasValidPath())
+					{
+						NextValidIdx = Idx;
+						break;
+					}
+				}
 
-			if (FMath::Abs(HalfAngle) < Math::FuzzyEpsilon ||
-				FMath::Abs(HalfAngle - PI / 2.0) < Math::FuzzyEpsilon)
-			{
-				// Straight line or 180 degree turn - no fillet possible
-				Result.AddVertex(Current.Position.X, Current.Position.Y, 0.0);
-				continue;
-			}
+				// Apply interpolation
+				FVertex& V = Polyline.GetVertex(InvalidIdx);
 
-			// Calculate fillet parameters
-			const double Radius = Current.CornerRadius;
-			const double TanHalfAngle = FMath::Tan(HalfAngle);
-			double TangentLength = Radius / TanHalfAngle;
+				if (PrevValidIdx != INDEX_NONE && NextValidIdx != INDEX_NONE)
+				{
+					// Use the more common path between neighbors
+					const int32 PrevPath = Polyline.GetVertex(PrevValidIdx).GetPathId();
+					const int32 NextPath = Polyline.GetVertex(NextValidIdx).GetPathId();
 
-			// Clamp tangent length to available space
-			const double MaxTangent = FMath::Min(LenPrev, LenNext) * 0.4; // Use 40% max of available length
-			if (TangentLength > MaxTangent)
-			{
-				TangentLength = MaxTangent;
-			}
+					// Choose based on distance
+					const double DistToPrev = FVector2D::Distance(
+						V.GetPosition(), Polyline.GetVertex(PrevValidIdx).GetPosition());
+					const double DistToNext = FVector2D::Distance(
+						V.GetPosition(), Polyline.GetVertex(NextValidIdx).GetPosition());
 
-			// Calculate arc start and end points
-			const FVector2D ArcStart = CurrPos + ToPrev * TangentLength;
-			const FVector2D ArcEnd = CurrPos + ToNext * TangentLength;
-
-			// Determine if arc is clockwise or counter-clockwise based on turn direction
-			const bool bIsRightTurn = CrossZ < 0.0;
-
-			// Calculate bulge for the arc
-			// For a fillet, the arc sweep is (PI - angle between vectors)
-			// Bulge = tan(sweep_angle / 4)
-			const double FullAngle = FMath::Acos(ClampedDot);
-			const double SweepAngle = PI - FullAngle;
-			double Bulge = FMath::Tan(SweepAngle / 4.0);
-
-			// Negate bulge for clockwise arcs
-			if (bIsRightTurn)
-			{
-				Bulge = -Bulge;
-			}
-
-			// Add arc start point with bulge, then arc end point
-			Result.AddVertex(ArcStart.X, ArcStart.Y, Bulge);
-			// Note: We'll add the arc end point but the next segment will handle it
-			// or if it's the only corner point needed
-			if (i == Points.Num() - 1 || !Points[NextIdx].bIsCorner)
-			{
-				Result.AddVertex(ArcEnd.X, ArcEnd.Y, 0.0);
+					V.Source = FVertexSource::FromPath(DistToPrev <= DistToNext ? PrevPath : NextPath);
+				}
+				else if (PrevValidIdx != INDEX_NONE)
+				{
+					V.Source = FVertexSource::FromPath(Polyline.GetVertex(PrevValidIdx).GetPathId());
+				}
+				else if (NextValidIdx != INDEX_NONE)
+				{
+					V.Source = FVertexSource::FromPath(Polyline.GetVertex(NextValidIdx).GetPathId());
+				}
 			}
 		}
-
-		return Result;
-	}
-
-	TArray<FContourResult3D> FContourUtils::ComputeOffsetContours(
-		const TArray<FInputPoint>& InputPoints,
-		bool bClosed,
-		double OffsetDistance,
-		const FPCGExCCArcTessellationSettings& TessellationSettings,
-		const FPCGExCCOffsetOptions& OffsetOptions)
-	{
-		TArray<FContourResult3D> Results;
-
-		if (InputPoints.Num() < 2)
-		{
-			return Results;
-		}
-
-		// Step 1: Process corners to create the initial polyline with arcs
-		FPolyline Polyline = ProcessCorners(InputPoints, bClosed);
-
-		if (Polyline.VertexCount() < 2)
-		{
-			return Results;
-		}
-
-		// Step 2: Compute parallel offset(s)
-		TArray<FPolyline> OffsetPolylines = PCGExCavalier::Offset::ParallelOffset(Polyline, OffsetDistance, OffsetOptions);
-
-		// Step 3: Tessellate each offset polyline and convert to 3D
-		for (const FPolyline& OffsetPline : OffsetPolylines)
-		{
-			// Tessellate arcs to line segments
-			FPolyline Tessellated = OffsetPline.Tessellated(TessellationSettings);
-
-			// Convert to 3D with Z interpolation
-			FContourResult3D Result3D = ConvertTo3D(Tessellated, InputPoints, OffsetPline.IsClosed());
-
-			if (Result3D.Positions.Num() > 0)
-			{
-				Results.Add(MoveTemp(Result3D));
-			}
-		}
-
-		return Results;
 	}
 }

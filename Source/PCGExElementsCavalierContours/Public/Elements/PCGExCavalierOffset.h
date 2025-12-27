@@ -13,6 +13,11 @@
 
 #include "PCGExCavalierOffset.generated.h"
 
+namespace PCGExCavalier
+{
+	class FPolyline;
+}
+
 namespace PCGExPaths
 {
 	class FPathEdgeHalfAngle;
@@ -50,8 +55,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandNameDouble Offset = FPCGExInputShorthandNameDouble(FName("@Data.Offset"), 10, false);
 	
-	PCGEX_SETTING_VALUE_DECL(Offset, double)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTessellateArcs = true;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bTessellateArcs"))
+	FPCGExCCArcTessellationSettings TessellationSettings;
 };
 
 struct FPCGExCavalierOffsetContext final : FPCGExPathProcessorContext
@@ -76,7 +85,8 @@ namespace PCGExCavalierOffset
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCavalierOffsetContext, UPCGExCavalierOffsetSettings>
 	{
 		double OffsetValue = 1;
-
+		TMap<int32, PCGExCavalier::FRootPath> RootPaths;
+		
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)
@@ -84,5 +94,6 @@ namespace PCGExCavalierOffset
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
+		void OutputPolyline(PCGExCavalier::FPolyline& Polyline);
 	};
 }

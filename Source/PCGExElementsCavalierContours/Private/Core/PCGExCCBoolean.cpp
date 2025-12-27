@@ -4,6 +4,7 @@
 
 #include "Core/PCGExCCBoolean.h"
 #include "Core/PCGExCCPolyline.h"
+#include "Core/PCGExCCSegmentIntersect.h"
 
 namespace PCGExCavalier
 {
@@ -60,25 +61,6 @@ namespace PCGExCavalier
 				}
 			};
 
-			/** Segment intersection type */
-			enum class ESegIntersectType
-			{
-				None,
-				OnePoint,
-				TwoPoints,
-				Tangent,
-				OverlappingLines,
-				OverlappingArcs
-			};
-
-			/** Result of segment-segment intersection */
-			struct FSegIntersectResult
-			{
-				ESegIntersectType Type = ESegIntersectType::None;
-				FVector2D Point1;
-				FVector2D Point2;
-			};
-
 			/** Open polyline slice for boolean operations */
 			struct FBooleanSlice
 			{
@@ -90,43 +72,21 @@ namespace PCGExCavalier
 				bool bInvertedDirection;
 				bool bSourceIsPline1;
 				bool bIsOverlapping;
+				int32 SourcePathId; // Path ID of the source polyline
 
 				FVector2D GetStartPoint() const { return UpdatedStart.GetPosition(); }
-			};
-
-			/** Overlapping slice between polylines */
-			struct FOverlappingSlice
-			{
-				TPair<int32, int32> StartIndexes; // (pline1, pline2)
-				TPair<int32, int32> EndIndexes;
-				FVertex UpdatedStart;
-				double UpdatedEndBulge;
-				FVector2D EndPoint;
-				bool bIsLoop;
-				bool bOpposingDirections;
 			};
 
 			/** Result of processing polylines for boolean operations */
 			struct FProcessedBoolean
 			{
-				TArray<FOverlappingSlice> OverlappingSlices;
 				TArray<FBasicIntersect> Intersects;
 				EPCGExCCOrientation Pline1Orientation;
 				EPCGExCCOrientation Pline2Orientation;
 
-				bool IsCompletelyOverlapping() const
-				{
-					return OverlappingSlices.Num() == 1 && OverlappingSlices[0].bIsLoop;
-				}
-
-				bool HasOpposingDirections() const
-				{
-					return Pline1Orientation != Pline2Orientation;
-				}
-
 				bool HasAnyIntersects() const
 				{
-					return Intersects.Num() > 0 || OverlappingSlices.Num() > 0;
+					return Intersects.Num() > 0;
 				}
 			};
 
@@ -134,393 +94,95 @@ namespace PCGExCavalier
 			struct FPrunedSlices
 			{
 				TArray<FBooleanSlice> Slices;
-				int32 StartOfPline2Slices;
-				int32 StartOfPline1OverlappingSlices;
-				int32 StartOfPline2OverlappingSlices;
+				int32 StartOfPline2Slices = 0;
 			};
 
 			//=============================================================================
-			// Segment Intersection
+			// Find all intersections between two polylines
 			//=============================================================================
 
-			/** Compute intersection between two polyline segments */
-			FSegIntersectResult ComputeSegmentIntersection(
-				const FVertex& V1, const FVertex& V2,
-				const FVertex& U1, const FVertex& U2,
-				double PosEqualEps)
-			{
-				FSegIntersectResult Result;
-
-				const FVector2D V1Pos = V1.GetPosition();
-				const FVector2D V2Pos = V2.GetPosition();
-				const FVector2D U1Pos = U1.GetPosition();
-				const FVector2D U2Pos = U2.GetPosition();
-
-				const bool bV1IsLine = V1.IsLine(PosEqualEps);
-				const bool bU1IsLine = U1.IsLine(PosEqualEps);
-
-				if (bV1IsLine && bU1IsLine)
-				{
-					// Line-Line intersection
-					const Math::FLineLineIntersect Intr = Math::LineLineIntersection(
-						V1Pos, V2Pos, U1Pos, U2Pos, PosEqualEps);
-
-					switch (Intr.Type)
-					{
-					case Math::ELineLineIntersectType::True:
-						Result.Type = ESegIntersectType::OnePoint;
-						Result.Point1 = Intr.Point;
-						break;
-					case Math::ELineLineIntersectType::Overlapping:
-						{
-							// Compute overlap region
-							double T1Start = 0.0, T1End = 1.0;
-							double T2Start = Math::DistanceSquared(V1Pos, U1Pos) < PosEqualEps * PosEqualEps ? 0.0 : FVector2D::DotProduct(U1Pos - V1Pos, V2Pos - V1Pos) / FVector2D::DotProduct(V2Pos - V1Pos, V2Pos - V1Pos);
-							double T2End = Math::DistanceSquared(V1Pos, U2Pos) < PosEqualEps * PosEqualEps ? 0.0 : FVector2D::DotProduct(U2Pos - V1Pos, V2Pos - V1Pos) / FVector2D::DotProduct(V2Pos - V1Pos, V2Pos - V1Pos);
-
-							if (T2Start > T2End) Swap(T2Start, T2End);
-
-							const double OverlapStart = FMath::Max(T1Start, T2Start);
-							const double OverlapEnd = FMath::Min(T1End, T2End);
-
-							if (OverlapEnd > OverlapStart + PosEqualEps)
-							{
-								Result.Type = ESegIntersectType::OverlappingLines;
-								Result.Point1 = Math::PointFromParametric(V1Pos, V2Pos, OverlapStart);
-								Result.Point2 = Math::PointFromParametric(V1Pos, V2Pos, OverlapEnd);
-							}
-						}
-						break;
-					default:
-						break;
-					}
-				}
-				else if (bV1IsLine && !bU1IsLine)
-				{
-					// Line-Arc intersection
-					const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(U1, U2);
-					if (Arc.bValid)
-					{
-						const Math::FLineCircleIntersect Intr = Math::LineCircleIntersection(
-							V1Pos, V2Pos, Arc.Center, Arc.Radius, PosEqualEps);
-
-						TArray<FVector2D> ValidPoints;
-
-						auto IsValidIntersect = [&](const FVector2D& Pt, double T) -> bool
-						{
-							if (T < -PosEqualEps || T > 1.0 + PosEqualEps) return false;
-							return Math::PointWithinArcSweep(Arc.Center, U1Pos, U2Pos, U1.Bulge < 0.0, Pt, PosEqualEps);
-						};
-
-						if (Intr.Count >= 1 && IsValidIntersect(Intr.Point1, Intr.T1))
-							ValidPoints.Add(Intr.Point1);
-						if (Intr.Count >= 2 && IsValidIntersect(Intr.Point2, Intr.T2))
-							ValidPoints.Add(Intr.Point2);
-
-						if (ValidPoints.Num() == 1)
-						{
-							Result.Type = ESegIntersectType::OnePoint;
-							Result.Point1 = ValidPoints[0];
-						}
-						else if (ValidPoints.Num() == 2)
-						{
-							Result.Type = ESegIntersectType::TwoPoints;
-							// Order by distance from U1
-							if (Math::DistanceSquared(U1Pos, ValidPoints[0]) >
-								Math::DistanceSquared(U1Pos, ValidPoints[1]))
-							{
-								Swap(ValidPoints[0], ValidPoints[1]);
-							}
-							Result.Point1 = ValidPoints[0];
-							Result.Point2 = ValidPoints[1];
-						}
-					}
-				}
-				else if (!bV1IsLine && bU1IsLine)
-				{
-					// Arc-Line intersection (swap and call recursively)
-					FSegIntersectResult Swapped = ComputeSegmentIntersection(U1, U2, V1, V2, PosEqualEps);
-					Result = Swapped;
-				}
-				else
-				{
-					// Arc-Arc intersection
-					const Math::FArcGeometry Arc1 = Math::ComputeArcRadiusAndCenter(V1, V2);
-					const Math::FArcGeometry Arc2 = Math::ComputeArcRadiusAndCenter(U1, U2);
-
-					if (Arc1.bValid && Arc2.bValid)
-					{
-						// Check if arcs are concentric and overlapping
-						if (Arc1.Center.Equals(Arc2.Center, PosEqualEps) &&
-							FMath::Abs(Arc1.Radius - Arc2.Radius) < PosEqualEps)
-						{
-							// Potentially overlapping arcs - check sweep overlap
-							// This is simplified; full implementation would compute arc overlap region
-							Result.Type = ESegIntersectType::OverlappingArcs;
-							Result.Point1 = V1Pos;
-							Result.Point2 = V2Pos;
-						}
-						else
-						{
-							const Math::FCircleCircleIntersect Intr = Math::CircleCircleIntersection(
-								Arc1.Center, Arc1.Radius, Arc2.Center, Arc2.Radius, PosEqualEps);
-
-							TArray<FVector2D> ValidPoints;
-
-							auto IsValid = [&](const FVector2D& Pt) -> bool
-							{
-								return Math::PointWithinArcSweep(Arc1.Center, V1Pos, V2Pos, V1.Bulge < 0.0, Pt, PosEqualEps)
-									&& Math::PointWithinArcSweep(Arc2.Center, U1Pos, U2Pos, U1.Bulge < 0.0, Pt, PosEqualEps);
-							};
-
-							if (Intr.Count >= 1 && IsValid(Intr.Point1))
-								ValidPoints.Add(Intr.Point1);
-							if (Intr.Count >= 2 && IsValid(Intr.Point2))
-								ValidPoints.Add(Intr.Point2);
-
-							if (ValidPoints.Num() == 1)
-							{
-								Result.Type = ESegIntersectType::OnePoint;
-								Result.Point1 = ValidPoints[0];
-							}
-							else if (ValidPoints.Num() == 2)
-							{
-								Result.Type = ESegIntersectType::TwoPoints;
-								if (Math::DistanceSquared(U1Pos, ValidPoints[0]) >
-									Math::DistanceSquared(U1Pos, ValidPoints[1]))
-								{
-									Swap(ValidPoints[0], ValidPoints[1]);
-								}
-								Result.Point1 = ValidPoints[0];
-								Result.Point2 = ValidPoints[1];
-							}
-						}
-					}
-				}
-
-				return Result;
-			}
-
-			//=============================================================================
-			// Find All Intersections
-			//=============================================================================
-
-			FIntersectsCollection FindIntersects(
+			FIntersectsCollection FindAllIntersects(
 				const FPolyline& Pline1,
 				const FPolyline& Pline2,
 				double PosEqualEps)
 			{
 				FIntersectsCollection Result;
 
-				if (Pline1.VertexCount() < 2 || Pline2.VertexCount() < 2)
+				const int32 N1 = Pline1.SegmentCount();
+				const int32 N2 = Pline2.SegmentCount();
+
+				// Build spatial index for pline2
+				FPolyline::FApproxAABBIndex Index2 = Pline2.CreateApproxAABBIndex();
+
+				for (int32 i = 0; i < N1; ++i)
 				{
-					return Result;
-				}
+					const FVertex& V1 = Pline1.GetVertex(i);
+					const FVertex& V2 = Pline1.GetVertexWrapped(i + 1);
 
-				const int32 VC1 = Pline1.VertexCount();
-				const int32 VC2 = Pline2.VertexCount();
-				const int32 Open1LastIdx = Pline1.IsClosed() ? -1 : VC1 - 2;
-				const int32 Open2LastIdx = Pline2.IsClosed() ? -1 : VC2 - 2;
+					// Compute AABB for segment
+					double MinX = FMath::Min(V1.GetX(), V2.GetX());
+					double MinY = FMath::Min(V1.GetY(), V2.GetY());
+					double MaxX = FMath::Max(V1.GetX(), V2.GetX());
+					double MaxY = FMath::Max(V1.GetY(), V2.GetY());
 
-				TSet<int32> PossibleDuplicates1;
-				TSet<int32> PossibleDuplicates2;
-
-				// Iterate all segment pairs
-				Pline1.ForEachSegment([&](const FVertex& V1, const FVertex& V2)
-				{
-					const int32 I1 = &V1 - &Pline1.GetVertex(0);
-
-					Pline2.ForEachSegment([&](const FVertex& U1, const FVertex& U2)
+					// Expand for arc
+					if (!V1.IsLine())
 					{
-						const int32 I2 = &U1 - &Pline2.GetVertex(0);
+						const double ChordLen = FVector2D::Distance(V1.GetPosition(), V2.GetPosition());
+						const double Sagitta = FMath::Abs(V1.Bulge) * ChordLen * 0.5;
+						MinX -= Sagitta;
+						MinY -= Sagitta;
+						MaxX += Sagitta;
+						MaxY += Sagitta;
+					}
 
-						const FSegIntersectResult Intr = ComputeSegmentIntersection(V1, V2, U1, U2, PosEqualEps);
+					// Query potential intersecting segments
+					Index2.Query(MinX, MinY, MaxX, MaxY, [&](int32 j)
+					{
+						const FVertex& U1 = Pline2.GetVertex(j);
+						const FVertex& U2 = Pline2.GetVertexWrapped(j + 1);
 
-						auto ShouldSkipAtEnd = [&](const FVector2D& Point) -> bool
-						{
-							// Skip intersect at end of segment (will be found at start of next segment)
-							const bool bAtV2 = V2.GetPosition().Equals(Point, PosEqualEps);
-							const bool bAtU2 = U2.GetPosition().Equals(Point, PosEqualEps);
-
-							if (bAtV2 && (Pline1.IsClosed() || I1 != Open1LastIdx))
-								return true;
-							if (bAtU2 && (Pline2.IsClosed() || I2 != Open2LastIdx))
-								return true;
-							return false;
-						};
+						FPlineSegIntersect Intr = PlineSegmentIntersect(V1, V2, U1, U2, PosEqualEps);
 
 						switch (Intr.Type)
 						{
-						case ESegIntersectType::OnePoint:
-						case ESegIntersectType::Tangent:
-							if (!ShouldSkipAtEnd(Intr.Point1))
+						case EPlineSegIntersectType::OneIntersect:
+						case EPlineSegIntersectType::TangentIntersect:
+							Result.BasicIntersects.Add(FBasicIntersect(i, j, Intr.Point1));
+							break;
+
+						case EPlineSegIntersectType::TwoIntersects:
+							// Order by distance from V1
 							{
-								Result.BasicIntersects.Add(FBasicIntersect(I1, I2, Intr.Point1));
+								FVector2D P1 = Intr.Point1;
+								FVector2D P2 = Intr.Point2;
+								if (Math::DistanceSquared(V1.GetPosition(), P1) >
+									Math::DistanceSquared(V1.GetPosition(), P2))
+								{
+									Swap(P1, P2);
+								}
+								Result.BasicIntersects.Add(FBasicIntersect(i, j, P1));
+								Result.BasicIntersects.Add(FBasicIntersect(i, j, P2));
 							}
 							break;
 
-						case ESegIntersectType::TwoPoints:
-							if (!ShouldSkipAtEnd(Intr.Point1))
-							{
-								Result.BasicIntersects.Add(FBasicIntersect(I1, I2, Intr.Point1));
-							}
-							if (!ShouldSkipAtEnd(Intr.Point2))
-							{
-								Result.BasicIntersects.Add(FBasicIntersect(I1, I2, Intr.Point2));
-							}
-							break;
-
-						case ESegIntersectType::OverlappingLines:
-						case ESegIntersectType::OverlappingArcs:
-							Result.OverlappingIntersects.Add(FOverlappingIntersect(I1, I2, Intr.Point1, Intr.Point2));
-
-							// Track possible duplicates
-							if (V2.GetPosition().Equals(Intr.Point1, PosEqualEps) ||
-								V2.GetPosition().Equals(Intr.Point2, PosEqualEps))
-							{
-								PossibleDuplicates1.Add(Pline1.NextWrappingIndex(I1));
-							}
-							if (U2.GetPosition().Equals(Intr.Point1, PosEqualEps) ||
-								U2.GetPosition().Equals(Intr.Point2, PosEqualEps))
-							{
-								PossibleDuplicates2.Add(Pline2.NextWrappingIndex(I2));
-							}
+						case EPlineSegIntersectType::OverlappingLines:
+						case EPlineSegIntersectType::OverlappingArcs:
+							Result.OverlappingIntersects.Add(
+								FOverlappingIntersect(i, j, Intr.Point1, Intr.Point2));
 							break;
 
 						default:
 							break;
 						}
 					});
-				});
-
-				// Remove duplicate basic intersects caused by overlapping
-				if (PossibleDuplicates1.Num() > 0 || PossibleDuplicates2.Num() > 0)
-				{
-					TArray<FBasicIntersect> Filtered;
-					Filtered.Reserve(Result.BasicIntersects.Num());
-
-					for (const FBasicIntersect& Intr : Result.BasicIntersects)
-					{
-						bool bSkip = false;
-
-						if (PossibleDuplicates1.Contains(Intr.StartIndex1))
-						{
-							if (Intr.Point.Equals(Pline1.GetVertex(Intr.StartIndex1).GetPosition(), PosEqualEps))
-							{
-								bSkip = true;
-							}
-						}
-						if (!bSkip && PossibleDuplicates2.Contains(Intr.StartIndex2))
-						{
-							if (Intr.Point.Equals(Pline2.GetVertex(Intr.StartIndex2).GetPosition(), PosEqualEps))
-							{
-								bSkip = true;
-							}
-						}
-
-						if (!bSkip)
-						{
-							Filtered.Add(Intr);
-						}
-					}
-
-					Result.BasicIntersects = MoveTemp(Filtered);
 				}
 
 				return Result;
 			}
 
 			//=============================================================================
-			// Segment Splitting
-			//=============================================================================
-
-			struct FSplitResult
-			{
-				FVertex UpdatedStart;
-				FVertex SplitVertex;
-			};
-
-			FSplitResult SplitSegmentAtPoint(
-				const FVertex& V1,
-				const FVertex& V2,
-				const FVector2D& SplitPoint,
-				double PosEqualEps)
-			{
-				FSplitResult Result;
-
-				if (V1.IsLine(PosEqualEps))
-				{
-					// Line segment
-					Result.UpdatedStart = V1;
-					Result.SplitVertex = FVertex(SplitPoint, 0.0);
-					return Result;
-				}
-
-				const FVector2D V1Pos = V1.GetPosition();
-				const FVector2D V2Pos = V2.GetPosition();
-
-				// Check degenerate cases
-				if (V1Pos.Equals(V2Pos, PosEqualEps) || V1Pos.Equals(SplitPoint, PosEqualEps))
-				{
-					Result.UpdatedStart = FVertex(SplitPoint, 0.0);
-					Result.SplitVertex = FVertex(SplitPoint, V1.Bulge);
-					return Result;
-				}
-
-				if (V2Pos.Equals(SplitPoint, PosEqualEps))
-				{
-					Result.UpdatedStart = V1;
-					Result.SplitVertex = FVertex(V2Pos, 0.0);
-					return Result;
-				}
-
-				// Arc segment - compute new bulges
-				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
-				if (!Arc.bValid)
-				{
-					Result.UpdatedStart = V1;
-					Result.SplitVertex = FVertex(SplitPoint, 0.0);
-					return Result;
-				}
-
-				const double PointAngle = Math::Angle(Arc.Center, SplitPoint);
-				const double StartAngle = Math::Angle(Arc.Center, V1Pos);
-				const double EndAngle = Math::Angle(Arc.Center, V2Pos);
-
-				const double Theta1 = Math::DeltaAngleSigned(StartAngle, PointAngle, V1.Bulge < 0.0);
-				const double Bulge1 = Math::BulgeFromAngle(Theta1);
-
-				const double Theta2 = Math::DeltaAngleSigned(PointAngle, EndAngle, V1.Bulge < 0.0);
-				const double Bulge2 = Math::BulgeFromAngle(Theta2);
-
-				Result.UpdatedStart = FVertex(V1Pos, Bulge1);
-				Result.SplitVertex = FVertex(SplitPoint, Bulge2);
-
-				return Result;
-			}
-
-			//=============================================================================
-			// Slice Point for tracking intersects
-			//=============================================================================
-
-			struct FSlicePoint
-			{
-				FVector2D Position;
-				bool bIsStartOfOverlappingSlice;
-
-				FSlicePoint()
-					: Position(FVector2D::ZeroVector), bIsStartOfOverlappingSlice(false)
-				{
-				}
-
-				FSlicePoint(const FVector2D& Pos, bool bOverlapStart)
-					: Position(Pos), bIsStartOfOverlappingSlice(bOverlapStart)
-				{
-				}
-			};
-
-			//=============================================================================
-			// Process Polylines for Boolean Operations
+			// Process polylines for boolean operation
 			//=============================================================================
 
 			FProcessedBoolean ProcessForBoolean(
@@ -530,314 +192,233 @@ namespace PCGExCavalier
 			{
 				FProcessedBoolean Result;
 
-				// Find all intersections
-				FIntersectsCollection Intrs = FindIntersects(Pline1, Pline2, PosEqualEps);
-				Result.Intersects = MoveTemp(Intrs.BasicIntersects);
-
-				// Convert overlapping intersects to overlapping slices
-				// (Simplified - full implementation would join adjacent overlapping segments)
-				for (const FOverlappingIntersect& OvIntr : Intrs.OverlappingIntersects)
-				{
-					FOverlappingSlice Slice;
-					Slice.StartIndexes = TPair<int32, int32>(OvIntr.StartIndex1, OvIntr.StartIndex2);
-					Slice.EndIndexes = Slice.StartIndexes;
-					Slice.UpdatedStart = FVertex(OvIntr.Point1, 0.0);
-					Slice.UpdatedEndBulge = 0.0;
-					Slice.EndPoint = OvIntr.Point2;
-					Slice.bIsLoop = false;
-					Slice.bOpposingDirections = false;
-					Result.OverlappingSlices.Add(Slice);
-				}
-
 				Result.Pline1Orientation = Pline1.Orientation();
 				Result.Pline2Orientation = Pline2.Orientation();
+
+				FIntersectsCollection Intersects = FindAllIntersects(Pline1, Pline2, PosEqualEps);
+
+				// Convert to basic intersects (simplified - full impl handles overlapping)
+				Result.Intersects = MoveTemp(Intersects.BasicIntersects);
 
 				return Result;
 			}
 
 			//=============================================================================
-			// Slice Polyline at Intersects
+			// Create slices from polyline between intersection points
 			//=============================================================================
 
-			void SliceAtIntersects(
+			void CreateSlicesFromPline(
 				const FPolyline& Pline,
-				const FProcessedBoolean& BooleanInfo,
-				bool bUseSecondIndex,
-				TFunctionRef<bool(const FVector2D&)> PointOnSlicePredicate,
+				const TArray<FBasicIntersect>& Intersects,
+				bool bIsPline1,
+				int32 PathId,
 				TArray<FBooleanSlice>& OutSlices,
 				double PosEqualEps)
 			{
-				// Build lookup of intersects by segment index
-				TMap<int32, TArray<FSlicePoint>> IntersectsLookup;
+				// Group intersects by segment index
+				TMap<int32, TArray<const FBasicIntersect*>> IntersectsBySegment;
 
-				if (bUseSecondIndex)
+				for (const FBasicIntersect& Intr : Intersects)
 				{
-					for (const FBasicIntersect& Intr : BooleanInfo.Intersects)
-					{
-						IntersectsLookup.FindOrAdd(Intr.StartIndex2).Add(FSlicePoint(Intr.Point, false));
-					}
-
-					for (const FOverlappingSlice& OvSlice : BooleanInfo.OverlappingSlices)
-					{
-						FVector2D SP = OvSlice.UpdatedStart.GetPosition();
-						FVector2D EP = OvSlice.EndPoint;
-						int32 SPIdx = OvSlice.StartIndexes.Value;
-						int32 EPIdx = OvSlice.EndIndexes.Value;
-
-						const int32 SPIdxNext = Pline.NextWrappingIndex(SPIdx);
-						if (SP.Equals(Pline.GetVertex(SPIdxNext).GetPosition(), PosEqualEps))
-							SPIdx = SPIdxNext;
-						const int32 EPIdxNext = Pline.NextWrappingIndex(EPIdx);
-						if (EP.Equals(Pline.GetVertex(EPIdxNext).GetPosition(), PosEqualEps))
-							EPIdx = EPIdxNext;
-
-						IntersectsLookup.FindOrAdd(SPIdx).Add(FSlicePoint(SP, true));
-						IntersectsLookup.FindOrAdd(EPIdx).Add(FSlicePoint(EP, false));
-					}
-				}
-				else
-				{
-					for (const FBasicIntersect& Intr : BooleanInfo.Intersects)
-					{
-						IntersectsLookup.FindOrAdd(Intr.StartIndex1).Add(FSlicePoint(Intr.Point, false));
-					}
-
-					for (const FOverlappingSlice& OvSlice : BooleanInfo.OverlappingSlices)
-					{
-						FVector2D SP = OvSlice.UpdatedStart.GetPosition();
-						FVector2D EP = OvSlice.EndPoint;
-						int32 SPIdx = OvSlice.StartIndexes.Key;
-						int32 EPIdx = OvSlice.EndIndexes.Key;
-
-						const int32 SPIdxNext = Pline.NextWrappingIndex(SPIdx);
-						if (SP.Equals(Pline.GetVertex(SPIdxNext).GetPosition(), PosEqualEps))
-							SPIdx = SPIdxNext;
-						const int32 EPIdxNext = Pline.NextWrappingIndex(EPIdx);
-						if (EP.Equals(Pline.GetVertex(EPIdxNext).GetPosition(), PosEqualEps))
-							EPIdx = EPIdxNext;
-
-						const bool bSPIsSliceStart = !OvSlice.bOpposingDirections;
-						IntersectsLookup.FindOrAdd(SPIdx).Add(FSlicePoint(SP, bSPIsSliceStart));
-						IntersectsLookup.FindOrAdd(EPIdx).Add(FSlicePoint(EP, !bSPIsSliceStart));
-					}
+					const int32 SegIdx = bIsPline1 ? Intr.StartIndex1 : Intr.StartIndex2;
+					IntersectsBySegment.FindOrAdd(SegIdx).Add(&Intr);
 				}
 
-				// Sort intersects by distance from segment start
-				for (auto& Pair : IntersectsLookup)
+				// Sort intersects on each segment by parameter
+				for (auto& Pair : IntersectsBySegment)
 				{
-					const FVector2D StartPos = Pline.GetVertex(Pair.Key).GetPosition();
-					Pair.Value.Sort([&StartPos](const FSlicePoint& A, const FSlicePoint& B)
+					const int32 SegIdx = Pair.Key;
+					const FVector2D SegStart = Pline.GetVertex(SegIdx).GetPosition();
+
+					Pair.Value.Sort([&SegStart](const FBasicIntersect& A, const FBasicIntersect& B)
 					{
-						return Math::DistanceSquared(A.Position, StartPos) <
-							Math::DistanceSquared(B.Position, StartPos);
+						return Math::DistanceSquared(SegStart, A.Point) < Math::DistanceSquared(SegStart, B.Point);
 					});
 				}
 
-				// Create slices from intersects
-				for (const auto& Pair : IntersectsLookup)
+				// Flatten all intersection points in order around the polyline
+				struct FIntrOnPline
 				{
-					const int32 StartIndex = Pair.Key;
-					const TArray<FSlicePoint>& IntrList = Pair.Value;
-					const int32 NextIndex = Pline.NextWrappingIndex(StartIndex);
-					const FVertex StartVertex = Pline.GetVertex(StartIndex);
-					const FVertex EndVertex = Pline.GetVertex(NextIndex);
+					int32 SegIndex;
+					FVector2D Point;
+					int32 OrigIntrIndex;
+				};
+				TArray<FIntrOnPline> OrderedIntrs;
 
-					// Handle multiple intersects on same segment
-					if (IntrList.Num() > 1)
+				for (int32 i = 0; i < Pline.SegmentCount(); ++i)
+				{
+					TArray<const FBasicIntersect*>* SegIntrs = IntersectsBySegment.Find(i);
+					if (SegIntrs)
 					{
-						FSplitResult FirstSplit = SplitSegmentAtPoint(StartVertex, EndVertex, IntrList[0].Position, PosEqualEps);
-						FVertex PrevVertex = FirstSplit.SplitVertex;
-
-						for (int32 i = 1; i < IntrList.Num(); ++i)
+						for (const FBasicIntersect* Intr : *SegIntrs)
 						{
-							FSplitResult Split = SplitSegmentAtPoint(PrevVertex, EndVertex, IntrList[i].Position, PosEqualEps);
-							PrevVertex = Split.SplitVertex;
+							FIntrOnPline Entry;
+							Entry.SegIndex = i;
+							Entry.Point = Intr->Point;
+							Entry.OrigIntrIndex = OrderedIntrs.Num();
+							OrderedIntrs.Add(Entry);
+						}
+					}
+				}
 
-							if (IntrList[i - 1].bIsStartOfOverlappingSlice)
-								continue;
+				if (OrderedIntrs.IsEmpty())
+				{
+					return;
+				}
 
-							if (Split.UpdatedStart.GetPosition().Equals(Split.SplitVertex.GetPosition(), PosEqualEps))
-								continue;
+				// Create slices between consecutive intersection points
+				for (int32 i = 0; i < OrderedIntrs.Num(); ++i)
+				{
+					const FIntrOnPline& Start = OrderedIntrs[i];
+					const FIntrOnPline& End = OrderedIntrs[(i + 1) % OrderedIntrs.Num()];
 
-							const FVector2D Midpoint = Math::SegmentMidpoint(Split.UpdatedStart, Split.SplitVertex);
-							if (!PointOnSlicePredicate(Midpoint))
-								continue;
+					FBooleanSlice Slice;
+					Slice.bSourceIsPline1 = bIsPline1;
+					Slice.bInvertedDirection = false;
+					Slice.bIsOverlapping = false;
+					Slice.SourcePathId = PathId;
 
-							FBooleanSlice Slice;
-							Slice.StartIndex = StartIndex;
+					// Update start vertex with intersection point
+					const FVertex& OrigStartV = Pline.GetVertex(Start.SegIndex);
+					Slice.StartIndex = Start.SegIndex;
+					Slice.UpdatedStart = FVertex(Start.Point, OrigStartV.Bulge, OrigStartV.Source);
+
+					// Compute end
+					Slice.EndPoint = End.Point;
+
+					// Compute end index offset (wrapping distance)
+					if (Start.SegIndex == End.SegIndex)
+					{
+						// Same segment - check if we wrap around
+						const double StartDist = Math::DistanceSquared(
+							Pline.GetVertex(Start.SegIndex).GetPosition(), Start.Point);
+						const double EndDist = Math::DistanceSquared(
+							Pline.GetVertex(Start.SegIndex).GetPosition(), End.Point);
+
+						if (EndDist > StartDist + PosEqualEps * PosEqualEps)
+						{
 							Slice.EndIndexOffset = 0;
-							Slice.UpdatedStart = Split.UpdatedStart;
-							Slice.UpdatedEndBulge = Split.SplitVertex.Bulge;
-							Slice.EndPoint = Split.SplitVertex.GetPosition();
-							Slice.bInvertedDirection = false;
-							Slice.bSourceIsPline1 = !bUseSecondIndex;
-							Slice.bIsOverlapping = false;
-							OutSlices.Add(Slice);
 						}
-					}
-
-					// Handle slice from last intersect to next intersect
-					const FSlicePoint& LastIntr = IntrList.Last();
-
-					if (LastIntr.bIsStartOfOverlappingSlice)
-						continue;
-
-					FSplitResult SliceStartSplit = SplitSegmentAtPoint(StartVertex, EndVertex, LastIntr.Position, PosEqualEps);
-					FVertex SliceStartVertex = SliceStartSplit.SplitVertex;
-
-					int32 Index = NextIndex;
-					int32 LoopCount = 0;
-					const int32 MaxLoopCount = Pline.VertexCount();
-
-					while (LoopCount <= MaxLoopCount)
-					{
-						++LoopCount;
-
-						if (const TArray<FSlicePoint>* NextIntrList = IntersectsLookup.Find(Index))
+						else
 						{
-							const FVector2D IntersectPoint = (*NextIntrList)[0].Position;
-
-							int32 VertexOffset = 0;
-							int32 TempIdx = StartIndex;
-							while (TempIdx != Index)
-							{
-								TempIdx = Pline.NextWrappingIndex(TempIdx);
-								++VertexOffset;
-							}
-
-							FBooleanSlice Slice;
-							Slice.StartIndex = StartIndex;
-							Slice.EndIndexOffset = VertexOffset;
-							Slice.UpdatedStart = SliceStartVertex;
-							Slice.EndPoint = IntersectPoint;
-							Slice.bInvertedDirection = false;
-							Slice.bSourceIsPline1 = !bUseSecondIndex;
-							Slice.bIsOverlapping = false;
-
-							const FVertex SegStart = Pline.GetVertex(Index);
-							const FVertex SegEnd = Pline.GetVertex(Pline.NextWrappingIndex(Index));
-							FSplitResult EndSplit = SplitSegmentAtPoint(SegStart, SegEnd, IntersectPoint, PosEqualEps);
-							Slice.UpdatedEndBulge = EndSplit.UpdatedStart.Bulge;
-
-							const FVertex NextV = Pline.GetVertex(Pline.NextWrappingIndex(Slice.StartIndex));
-							const FVector2D Midpoint = Math::SegmentMidpoint(Slice.UpdatedStart, NextV);
-
-							if (PointOnSlicePredicate(Midpoint))
-							{
-								OutSlices.Add(Slice);
-							}
-
-							break;
+							Slice.EndIndexOffset = Pline.VertexCount();
 						}
-
-						Index = Pline.NextWrappingIndex(Index);
 					}
+					else
+					{
+						int32 Offset = End.SegIndex - Start.SegIndex;
+						if (Offset < 0) Offset += Pline.VertexCount();
+						Slice.EndIndexOffset = Offset;
+					}
+
+					// Compute bulge for segment ending at intersection
+					const int32 EndSegIdx = (Start.SegIndex + Slice.EndIndexOffset) % Pline.VertexCount();
+					Slice.UpdatedEndBulge = Pline.GetVertex(EndSegIdx).Bulge;
+
+					// If intersection is at segment end, may need to adjust bulge
+					if (End.Point.Equals(Pline.GetVertexWrapped(EndSegIdx + 1).GetPosition(), PosEqualEps))
+					{
+						Slice.UpdatedEndBulge = Pline.GetVertex(EndSegIdx).Bulge;
+					}
+
+					OutSlices.Add(Slice);
 				}
 			}
 
 			//=============================================================================
-			// Prune Slices Based on Boolean Operation
+			// Prune slices based on boolean operation type
 			//=============================================================================
 
 			FPrunedSlices PruneSlices(
 				const FPolyline& Pline1,
 				const FPolyline& Pline2,
-				const FProcessedBoolean& BooleanInfo,
+				int32 Pline1PathId,
+				int32 Pline2PathId,
+				const FProcessedBoolean& BoolInfo,
 				EPCGExCCBooleanOp Operation,
 				double PosEqualEps)
 			{
 				FPrunedSlices Result;
 
-				auto PointInPline1 = [&Pline1](const FVector2D& Pt) -> bool
+				// Create slices for both polylines
+				TArray<FBooleanSlice> Pline1Slices;
+				TArray<FBooleanSlice> Pline2Slices;
+
+				CreateSlicesFromPline(Pline1, BoolInfo.Intersects, true, Pline1PathId, Pline1Slices, PosEqualEps);
+				CreateSlicesFromPline(Pline2, BoolInfo.Intersects, false, Pline2PathId, Pline2Slices, PosEqualEps);
+
+				// Determine which slices to keep based on operation
+				auto KeepSlice = [&](const FBooleanSlice& Slice) -> bool
 				{
-					return Pline1.WindingNumber(Pt) != 0;
+					// Get slice midpoint
+					const FPolyline& SourcePline = Slice.bSourceIsPline1 ? Pline1 : Pline2;
+					const FPolyline& OtherPline = Slice.bSourceIsPline1 ? Pline2 : Pline1;
+
+					// Compute midpoint of slice
+					FVector2D MidPt = (Slice.GetStartPoint() + Slice.EndPoint) * 0.5;
+
+					// If slice has vertices in between, use one of them
+					if (Slice.EndIndexOffset > 1)
+					{
+						const int32 MidIdx = (Slice.StartIndex + Slice.EndIndexOffset / 2) % SourcePline.VertexCount();
+						MidPt = SourcePline.GetVertex(MidIdx).GetPosition();
+					}
+
+					const bool bMidPtInOther = OtherPline.WindingNumber(MidPt) != 0;
+
+					switch (Operation)
+					{
+					case EPCGExCCBooleanOp::Union:
+						// Keep slices outside the other polyline
+						return !bMidPtInOther;
+
+					case EPCGExCCBooleanOp::Intersection:
+						// Keep slices inside the other polyline
+						return bMidPtInOther;
+
+					case EPCGExCCBooleanOp::Difference:
+						if (Slice.bSourceIsPline1)
+						{
+							// Keep pline1 slices outside pline2
+							return !bMidPtInOther;
+						}
+						else
+						{
+							// Keep pline2 slices inside pline1 (inverted)
+							return bMidPtInOther;
+						}
+
+					case EPCGExCCBooleanOp::Xor:
+						// Keep all slices (will be processed in two passes)
+						return true;
+
+					default:
+						return true;
+					}
 				};
 
-				auto PointInPline2 = [&Pline2](const FVector2D& Pt) -> bool
+				// Filter slices
+				for (const FBooleanSlice& Slice : Pline1Slices)
 				{
-					return Pline2.WindingNumber(Pt) != 0;
-				};
-
-				// Slice pline1
-				switch (Operation)
-				{
-				case EPCGExCCBooleanOp::Union:
-					SliceAtIntersects(Pline1, BooleanInfo, false,
-					                  [&](const FVector2D& Pt) { return !PointInPline2(Pt); },
-					                  Result.Slices, PosEqualEps);
-					break;
-				case EPCGExCCBooleanOp::Intersection:
-					SliceAtIntersects(Pline1, BooleanInfo, false,
-					                  PointInPline2,
-					                  Result.Slices, PosEqualEps);
-					break;
-				case EPCGExCCBooleanOp::Difference:
-				case EPCGExCCBooleanOp::Xor:
-					SliceAtIntersects(Pline1, BooleanInfo, false,
-					                  [&](const FVector2D& Pt) { return !PointInPline2(Pt); },
-					                  Result.Slices, PosEqualEps);
-					break;
+					if (KeepSlice(Slice))
+					{
+						Result.Slices.Add(Slice);
+					}
 				}
 
 				Result.StartOfPline2Slices = Result.Slices.Num();
 
-				// Slice pline2
-				switch (Operation)
+				for (FBooleanSlice Slice : Pline2Slices)
 				{
-				case EPCGExCCBooleanOp::Union:
-				case EPCGExCCBooleanOp::Xor:
-					SliceAtIntersects(Pline2, BooleanInfo, true,
-					                  [&](const FVector2D& Pt) { return !PointInPline1(Pt); },
-					                  Result.Slices, PosEqualEps);
-					break;
-				case EPCGExCCBooleanOp::Intersection:
-				case EPCGExCCBooleanOp::Difference:
-					SliceAtIntersects(Pline2, BooleanInfo, true,
-					                  PointInPline1,
-					                  Result.Slices, PosEqualEps);
-					break;
-				}
-
-				Result.StartOfPline1OverlappingSlices = Result.Slices.Num();
-
-				// Add overlapping slices from pline1
-				for (const FOverlappingSlice& OvSlice : BooleanInfo.OverlappingSlices)
-				{
-					FBooleanSlice Slice;
-					Slice.StartIndex = OvSlice.StartIndexes.Value;
-					Slice.UpdatedStart = OvSlice.UpdatedStart;
-					Slice.UpdatedEndBulge = OvSlice.UpdatedEndBulge;
-					Slice.EndPoint = OvSlice.EndPoint;
-					Slice.bInvertedDirection = OvSlice.bOpposingDirections;
-					Slice.bSourceIsPline1 = false;
-					Slice.bIsOverlapping = true;
-					Result.Slices.Add(Slice);
-				}
-
-				Result.StartOfPline2OverlappingSlices = Result.Slices.Num();
-
-				// Add overlapping slices from pline2
-				for (const FOverlappingSlice& OvSlice : BooleanInfo.OverlappingSlices)
-				{
-					FBooleanSlice Slice;
-					Slice.StartIndex = OvSlice.StartIndexes.Value;
-					Slice.UpdatedStart = OvSlice.UpdatedStart;
-					Slice.UpdatedEndBulge = OvSlice.UpdatedEndBulge;
-					Slice.EndPoint = OvSlice.EndPoint;
-					Slice.bInvertedDirection = false;
-					Slice.bSourceIsPline1 = false;
-					Slice.bIsOverlapping = true;
-					Result.Slices.Add(Slice);
-				}
-
-				// Invert pline1 slice directions if needed
-				const bool bSetOpposingDirection = (Operation == EPCGExCCBooleanOp::Difference ||
-					Operation == EPCGExCCBooleanOp::Xor);
-				if (bSetOpposingDirection != BooleanInfo.HasOpposingDirections())
-				{
-					for (int32 i = 0; i < Result.StartOfPline2Slices; ++i)
+					// For difference, invert pline2 slices
+					if (Operation == EPCGExCCBooleanOp::Difference)
 					{
-						Result.Slices[i].bInvertedDirection = true;
+						Slice.bInvertedDirection = true;
+					}
+
+					if (KeepSlice(Slice))
+					{
+						Result.Slices.Add(Slice);
 					}
 				}
 
@@ -845,274 +426,129 @@ namespace PCGExCavalier
 			}
 
 			//=============================================================================
-			// Stitch Selector Interface
+			// Extend polyline from slice vertices
 			//=============================================================================
 
-			/** Select next slice to stitch for OR/AND operations */
-			int32 SelectOrAndStitch(
-				int32 CurrentSliceIdx,
-				const TArray<int32>& AvailableIdx,
-				const FPrunedSlices& PrunedSlices)
-			{
-				const bool bIsPline1Idx = CurrentSliceIdx < PrunedSlices.StartOfPline2Slices
-					|| (CurrentSliceIdx >= PrunedSlices.StartOfPline1OverlappingSlices
-						&& CurrentSliceIdx < PrunedSlices.StartOfPline2OverlappingSlices);
-
-				if (bIsPline1Idx)
-				{
-					// Try non-overlapping pline2
-					for (int32 Idx : AvailableIdx)
-					{
-						if (Idx >= PrunedSlices.StartOfPline2Slices && Idx < PrunedSlices.StartOfPline1OverlappingSlices)
-							return Idx;
-					}
-					// Try non-overlapping pline1
-					for (int32 Idx : AvailableIdx)
-					{
-						if (Idx < PrunedSlices.StartOfPline2Slices)
-							return Idx;
-					}
-				}
-				else
-				{
-					// Try non-overlapping pline1
-					for (int32 Idx : AvailableIdx)
-					{
-						if (Idx < PrunedSlices.StartOfPline2Slices)
-							return Idx;
-					}
-					// Try non-overlapping pline2
-					for (int32 Idx : AvailableIdx)
-					{
-						if (Idx >= PrunedSlices.StartOfPline2Slices && Idx < PrunedSlices.StartOfPline1OverlappingSlices)
-							return Idx;
-					}
-				}
-
-				return AvailableIdx.Num() > 0 ? AvailableIdx[0] : INDEX_NONE;
-			}
-
-			/** Select next slice to stitch for NOT/XOR operations */
-			int32 SelectNotXorStitch(
-				int32 CurrentSliceIdx,
-				const TArray<int32>& AvailableIdx,
-				const FPrunedSlices& PrunedSlices)
-			{
-				auto IdxForPline1 = [&]() -> int32
-				{
-					for (int32 Idx : AvailableIdx)
-					{
-						if (Idx < PrunedSlices.StartOfPline2Slices)
-							return Idx;
-					}
-					return INDEX_NONE;
-				};
-
-				auto IdxForPline2 = [&]() -> int32
-				{
-					for (int32 Idx : AvailableIdx)
-					{
-						if (Idx >= PrunedSlices.StartOfPline2Slices && Idx < PrunedSlices.StartOfPline1OverlappingSlices)
-							return Idx;
-					}
-					return INDEX_NONE;
-				};
-
-				if (CurrentSliceIdx >= PrunedSlices.StartOfPline1OverlappingSlices)
-				{
-					// Current is overlapping
-					if (CurrentSliceIdx < PrunedSlices.StartOfPline2OverlappingSlices)
-					{
-						// From pline1 - try pline2 then pline1
-						int32 Result = IdxForPline2();
-						if (Result == INDEX_NONE) Result = IdxForPline1();
-						return Result;
-					}
-					else
-					{
-						// From pline2 - try pline1 then pline2
-						int32 Result = IdxForPline1();
-						if (Result == INDEX_NONE) Result = IdxForPline2();
-						return Result;
-					}
-				}
-
-				// Current is not overlapping
-				if (CurrentSliceIdx < PrunedSlices.StartOfPline2Slices)
-				{
-					// From pline1 - prefer pline2
-					int32 Result = IdxForPline2();
-					if (Result == INDEX_NONE && AvailableIdx.Num() > 0)
-						Result = AvailableIdx[0];
-					return Result;
-				}
-				else
-				{
-					// From pline2 - prefer pline1
-					int32 Result = IdxForPline1();
-					if (Result == INDEX_NONE && AvailableIdx.Num() > 0)
-						Result = AvailableIdx[0];
-					return Result;
-				}
-			}
-
-			//=============================================================================
-			// Build Polyline from Slice
-			//=============================================================================
-
-			FPolyline BuildPolylineFromSlice(
+			void ExtendPolylineFromSlice(
+				FPolyline& Pline,
 				const FBooleanSlice& Slice,
 				const FPolyline& Pline1,
 				const FPolyline& Pline2,
 				double PosEqualEps)
 			{
-				const FPolyline& Source = Slice.bSourceIsPline1 ? Pline1 : Pline2;
-				FPolyline Result(false);
+				const FPolyline& SourcePline = Slice.bSourceIsPline1 ? Pline1 : Pline2;
+				const int32 N = SourcePline.VertexCount();
 
 				if (Slice.bInvertedDirection)
 				{
-					// Build in reverse
-					Result.AddVertex(FVertex(Slice.EndPoint, 0.0));
-
+					// Add vertices in reverse order
 					for (int32 i = Slice.EndIndexOffset; i >= 0; --i)
 					{
-						int32 Idx = Slice.StartIndex;
-						for (int32 j = 0; j < i; ++j)
-							Idx = Source.NextWrappingIndex(Idx);
+						const int32 Idx = (Slice.StartIndex + i) % N;
+						const FVertex& V = SourcePline.GetVertex(Idx);
 
-						const FVertex& V = Source.GetVertex(Idx);
-						const int32 PrevIdx = Source.PrevWrappingIndex(Idx);
-						const double NegatedBulge = -Source.GetVertex(PrevIdx).Bulge;
-						Result.AddVertex(FVertex(V.GetPosition(), NegatedBulge));
-					}
+						// Adjust bulge for reversed direction
+						FVertex AdjustedV = V.WithBulge(-V.Bulge);
+						AdjustedV.Source = FVertexSource(Slice.SourcePathId, V.Source.PointIndex);
 
-					// Update start vertex bulge
-					if (Result.VertexCount() > 0)
-					{
-						FVertex& Last = const_cast<FVertex&>(Result.GetVertex(Result.VertexCount() - 1));
-						Last = FVertex(Last.GetPosition(), -Slice.UpdatedStart.Bulge);
+						Pline.AddOrReplaceVertex(AdjustedV, PosEqualEps);
 					}
 				}
 				else
 				{
-					Result.AddVertex(Slice.UpdatedStart);
+					// Add start vertex with updated position
+					FVertex StartV = Slice.UpdatedStart;
+					StartV.Source = FVertexSource(Slice.SourcePathId, StartV.Source.PointIndex);
+					Pline.AddOrReplaceVertex(StartV, PosEqualEps);
 
+					// Add intermediate vertices
 					for (int32 i = 1; i <= Slice.EndIndexOffset; ++i)
 					{
-						int32 Idx = Slice.StartIndex;
-						for (int32 j = 0; j < i; ++j)
-							Idx = Source.NextWrappingIndex(Idx);
-						Result.AddVertex(Source.GetVertex(Idx));
-					}
+						const int32 Idx = (Slice.StartIndex + i) % N;
+						const FVertex& V = SourcePline.GetVertex(Idx);
 
-					// Set end bulge
-					if (Result.VertexCount() > 0)
-					{
-						FVertex& Last = const_cast<FVertex&>(Result.GetVertex(Result.VertexCount() - 1));
-						Last = FVertex(Last.GetPosition(), Slice.UpdatedEndBulge);
-					}
-
-					Result.AddVertex(FVertex(Slice.EndPoint, 0.0));
-				}
-
-				return Result;
-			}
-
-			void ExtendPolylineFromSlice(
-				FPolyline& Target,
-				const FBooleanSlice& Slice,
-				const FPolyline& Pline1,
-				const FPolyline& Pline2,
-				double PosEqualEps)
-			{
-				FPolyline SlicePline = BuildPolylineFromSlice(Slice, Pline1, Pline2, PosEqualEps);
-
-				// Remove duplicate start point
-				if (Target.VertexCount() > 0 && SlicePline.VertexCount() > 0)
-				{
-					if (Target.GetVertex(Target.VertexCount() - 1).GetPosition().Equals(
-						SlicePline.GetVertex(0).GetPosition(), PosEqualEps))
-					{
-						Target.RemoveLastVertex();
+						FVertex AdjustedV = V;
+						AdjustedV.Source = FVertexSource(Slice.SourcePathId, V.Source.PointIndex);
+						Pline.AddOrReplaceVertex(AdjustedV, PosEqualEps);
 					}
 				}
 
-				// Append vertices
-				for (int32 i = 0; i < SlicePline.VertexCount(); ++i)
-				{
-					Target.AddVertex(SlicePline.GetVertex(i));
-				}
+				// Add end point
+				FVertex EndV(Slice.EndPoint, Slice.UpdatedEndBulge);
+				EndV.Source = FVertexSource::FromPath(Slice.SourcePathId);
+				Pline.AddOrReplaceVertex(EndV, PosEqualEps);
 			}
 
 			//=============================================================================
-			// Stitch Slices Into Closed Polylines
+			// Stitch slices into closed polylines
 			//=============================================================================
 
 			TArray<FPolyline> StitchSlicesIntoClosedPolylines(
 				const FPrunedSlices& PrunedSlices,
 				const FPolyline& Pline1,
 				const FPolyline& Pline2,
+				int32 Pline1PathId,
+				int32 Pline2PathId,
 				EPCGExCCBooleanOp Operation,
 				double PosEqualEps,
 				double CollapsedAreaEps)
 			{
 				TArray<FPolyline> Results;
 
-				if (PrunedSlices.Slices.Num() == 0)
+				if (PrunedSlices.Slices.IsEmpty())
+				{
 					return Results;
-
-				const bool bUseNotXorSelector = (Operation == EPCGExCCBooleanOp::Difference ||
-					Operation == EPCGExCCBooleanOp::Xor);
+				}
 
 				TArray<bool> VisitedSliceIdx;
 				VisitedSliceIdx.SetNumZeroed(PrunedSlices.Slices.Num());
 
-				for (int32 i = 0; i < PrunedSlices.Slices.Num(); ++i)
+				for (int32 BeginningSliceIdx = 0; BeginningSliceIdx < PrunedSlices.Slices.Num(); ++BeginningSliceIdx)
 				{
-					if (VisitedSliceIdx[i])
-						continue;
-
-					VisitedSliceIdx[i] = true;
-
-					const FBooleanSlice& StartSlice = PrunedSlices.Slices[i];
-					FPolyline CurrentPline = BuildPolylineFromSlice(StartSlice, Pline1, Pline2, PosEqualEps);
-
-					const int32 BeginningSliceIdx = i;
-					int32 CurrentSliceIdx = i;
-					int32 LoopCount = 0;
-					const int32 MaxLoopCount = PrunedSlices.Slices.Num();
-
-					while (LoopCount <= MaxLoopCount)
+					if (VisitedSliceIdx[BeginningSliceIdx])
 					{
-						++LoopCount;
+						continue;
+					}
 
-						// Find slices whose start connects to current end
-						const FVector2D EndPoint = CurrentPline.GetVertex(CurrentPline.VertexCount() - 1).GetPosition();
-						TArray<int32> QueryResults;
+					FPolyline CurrentPline(false);
+					CurrentPline.AddContributingPath(Pline1PathId);
+					CurrentPline.AddContributingPath(Pline2PathId);
+
+					int32 CurrentSliceIdx = BeginningSliceIdx;
+					VisitedSliceIdx[CurrentSliceIdx] = true;
+
+					// Start with first slice
+					ExtendPolylineFromSlice(CurrentPline, PrunedSlices.Slices[CurrentSliceIdx],
+					                        Pline1, Pline2, PosEqualEps);
+
+					// Continue stitching until we loop back
+					while (true)
+					{
+						const FBooleanSlice& CurrentSlice = PrunedSlices.Slices[CurrentSliceIdx];
+						const FVector2D SearchPoint = CurrentSlice.EndPoint;
+
+						// Find connecting slice
+						int32 ConnectedSliceIdx = INDEX_NONE;
+						double MinDistSq = PosEqualEps * PosEqualEps * 4.0; // Allow some tolerance
 
 						for (int32 j = 0; j < PrunedSlices.Slices.Num(); ++j)
 						{
-							if (j == BeginningSliceIdx || !VisitedSliceIdx[j])
-							{
-								const FBooleanSlice& Slice = PrunedSlices.Slices[j];
-								const FVector2D SliceStart = Slice.bInvertedDirection ? Slice.EndPoint : Slice.GetStartPoint();
+							if (j == CurrentSliceIdx) continue;
 
-								if (EndPoint.Equals(SliceStart, PosEqualEps))
-								{
-									QueryResults.Add(j);
-								}
+							const FBooleanSlice& CandidateSlice = PrunedSlices.Slices[j];
+							const double DistSq = Math::DistanceSquared(SearchPoint, CandidateSlice.GetStartPoint());
+
+							if (DistSq < MinDistSq)
+							{
+								MinDistSq = DistSq;
+								ConnectedSliceIdx = j;
 							}
 						}
 
-						if (QueryResults.Num() == 0)
-							break;
-
-						int32 ConnectedSliceIdx = bUseNotXorSelector
-							                          ? SelectNotXorStitch(CurrentSliceIdx, QueryResults, PrunedSlices)
-							                          : SelectOrAndStitch(CurrentSliceIdx, QueryResults, PrunedSlices);
-
 						if (ConnectedSliceIdx == INDEX_NONE)
+						{
 							break;
+						}
 
 						if (ConnectedSliceIdx == BeginningSliceIdx)
 						{
@@ -1121,13 +557,16 @@ namespace PCGExCavalier
 							{
 								// Check if start connects to end
 								if (CurrentPline.GetVertex(0).GetPosition().Equals(
-									CurrentPline.GetVertex(CurrentPline.VertexCount() - 1).GetPosition(), PosEqualEps))
+									CurrentPline.LastVertex().GetPosition(), PosEqualEps))
 								{
 									CurrentPline.RemoveLastVertex();
 								}
 
 								// Close polyline
 								FPolyline ClosedPline(true);
+								ClosedPline.AddContributingPath(Pline1PathId);
+								ClosedPline.AddContributingPath(Pline2PathId);
+
 								for (int32 v = 0; v < CurrentPline.VertexCount(); ++v)
 								{
 									ClosedPline.AddVertex(CurrentPline.GetVertex(v));
@@ -1136,6 +575,7 @@ namespace PCGExCavalier
 								// Check area threshold
 								if (CollapsedAreaEps <= 0.0 || FMath::Abs(ClosedPline.Area()) >= CollapsedAreaEps)
 								{
+									ClosedPline.CollectPathIdsFromVertices();
 									Results.Add(MoveTemp(ClosedPline));
 								}
 							}
@@ -1144,7 +584,8 @@ namespace PCGExCavalier
 
 						// Stitch connected slice
 						CurrentPline.RemoveLastVertex();
-						ExtendPolylineFromSlice(CurrentPline, PrunedSlices.Slices[ConnectedSliceIdx], Pline1, Pline2, PosEqualEps);
+						ExtendPolylineFromSlice(CurrentPline, PrunedSlices.Slices[ConnectedSliceIdx],
+						                        Pline1, Pline2, PosEqualEps);
 						VisitedSliceIdx[ConnectedSliceIdx] = true;
 						CurrentSliceIdx = ConnectedSliceIdx;
 					}
@@ -1155,27 +596,32 @@ namespace PCGExCavalier
 		}
 
 		//=============================================================================
-		// Main Boolean Operation
+		// Main Boolean Operation with path tracking
 		//=============================================================================
 
 		FBooleanResult PerformBoolean(
-			const FPolyline& Pline1,
-			const FPolyline& Pline2,
+			const FBooleanOperand& Operand1,
+			const FBooleanOperand& Operand2,
 			EPCGExCCBooleanOp Operation,
 			const FContourBooleanOptions& Options)
 		{
 			FBooleanResult Result;
 
 			// Validate input
-			if (Pline1.VertexCount() < 2 || !Pline1.IsClosed() ||
-				Pline2.VertexCount() < 2 || !Pline2.IsClosed())
+			if (!Operand1.IsValid() || !Operand2.IsValid() ||
+				!Operand1.Polyline->IsClosed() || !Operand2.Polyline->IsClosed())
 			{
 				Result.ResultInfo = EBooleanResultInfo::InvalidInput;
 				return Result;
 			}
 
+			const FPolyline& Pline1 = *Operand1.Polyline;
+			const FPolyline& Pline2 = *Operand2.Polyline;
+			const int32 PathId1 = Operand1.PathId;
+			const int32 PathId2 = Operand2.PathId;
+
 			const double PosEqualEps = Options.PositionEqualEpsilon;
-			const double CollapsedAreaEps = 1e-10;
+			const double CollapsedAreaEps = Options.CollapsedAreaEpsilon;
 
 			// Process polylines for boolean
 			Internal::FProcessedBoolean BooleanInfo = Internal::ProcessForBoolean(Pline1, Pline2, PosEqualEps);
@@ -1191,39 +637,53 @@ namespace PCGExCavalier
 				return Pline1.WindingNumber(Pline2.GetVertex(0).GetPosition()) != 0;
 			};
 
+			// Create result polyline with source tracking
+			auto CreateTrackedCopy = [](const FPolyline& Source, int32 PathId) -> FPolyline
+			{
+				FPolyline Copy(Source.IsClosed(), PathId);
+				Copy.Reserve(Source.VertexCount());
+				for (int32 i = 0; i < Source.VertexCount(); ++i)
+				{
+					FVertex V = Source.GetVertex(i);
+					if (!V.HasValidPath())
+					{
+						V.Source = FVertexSource::FromPath(PathId);
+					}
+					Copy.AddVertex(V);
+				}
+				return Copy;
+			};
+
 			// Handle each operation
 			switch (Operation)
 			{
 			case EPCGExCCBooleanOp::Union:
-				if (BooleanInfo.IsCompletelyOverlapping())
-				{
-					Result.PositivePolylines.Add(Pline2);
-					Result.ResultInfo = EBooleanResultInfo::Overlapping;
-				}
-				else if (!BooleanInfo.HasAnyIntersects())
+				if (!BooleanInfo.HasAnyIntersects())
 				{
 					if (IsPline1InPline2())
 					{
-						Result.PositivePolylines.Add(Pline2);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
 						Result.ResultInfo = EBooleanResultInfo::Pline1InsidePline2;
 					}
 					else if (IsPline2InPline1())
 					{
-						Result.PositivePolylines.Add(Pline1);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
 						Result.ResultInfo = EBooleanResultInfo::Pline2InsidePline1;
 					}
 					else
 					{
-						Result.PositivePolylines.Add(Pline1);
-						Result.PositivePolylines.Add(Pline2);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
 						Result.ResultInfo = EBooleanResultInfo::Disjoint;
 					}
 				}
 				else
 				{
-					Internal::FPrunedSlices Pruned = Internal::PruneSlices(Pline1, Pline2, BooleanInfo, Operation, PosEqualEps);
-					TArray<FPolyline> Remaining = StitchSlicesIntoClosedPolylines(
-						Pruned, Pline1, Pline2, Operation, PosEqualEps, CollapsedAreaEps);
+					Internal::FPrunedSlices Pruned = Internal::PruneSlices(
+						Pline1, Pline2, PathId1, PathId2, BooleanInfo, Operation, PosEqualEps);
+
+					TArray<FPolyline> Remaining = Internal::StitchSlicesIntoClosedPolylines(
+						Pruned, Pline1, Pline2, PathId1, PathId2, Operation, PosEqualEps, CollapsedAreaEps);
 
 					for (FPolyline& Pline : Remaining)
 					{
@@ -1242,21 +702,16 @@ namespace PCGExCavalier
 				break;
 
 			case EPCGExCCBooleanOp::Intersection:
-				if (BooleanInfo.IsCompletelyOverlapping())
-				{
-					Result.PositivePolylines.Add(Pline2);
-					Result.ResultInfo = EBooleanResultInfo::Overlapping;
-				}
-				else if (!BooleanInfo.HasAnyIntersects())
+				if (!BooleanInfo.HasAnyIntersects())
 				{
 					if (IsPline1InPline2())
 					{
-						Result.PositivePolylines.Add(Pline1);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
 						Result.ResultInfo = EBooleanResultInfo::Pline1InsidePline2;
 					}
 					else if (IsPline2InPline1())
 					{
-						Result.PositivePolylines.Add(Pline2);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
 						Result.ResultInfo = EBooleanResultInfo::Pline2InsidePline1;
 					}
 					else
@@ -1266,19 +721,18 @@ namespace PCGExCavalier
 				}
 				else
 				{
-					Internal::FPrunedSlices Pruned = Internal::PruneSlices(Pline1, Pline2, BooleanInfo, Operation, PosEqualEps);
-					Result.PositivePolylines = StitchSlicesIntoClosedPolylines(
-						Pruned, Pline1, Pline2, Operation, PosEqualEps, CollapsedAreaEps);
+					Internal::FPrunedSlices Pruned = Internal::PruneSlices(
+						Pline1, Pline2, PathId1, PathId2, BooleanInfo, Operation, PosEqualEps);
+
+					Result.PositivePolylines = Internal::StitchSlicesIntoClosedPolylines(
+						Pruned, Pline1, Pline2, PathId1, PathId2, Operation, PosEqualEps, CollapsedAreaEps);
+
 					Result.ResultInfo = EBooleanResultInfo::Intersected;
 				}
 				break;
 
 			case EPCGExCCBooleanOp::Difference:
-				if (BooleanInfo.IsCompletelyOverlapping())
-				{
-					Result.ResultInfo = EBooleanResultInfo::Overlapping;
-				}
-				else if (!BooleanInfo.HasAnyIntersects())
+				if (!BooleanInfo.HasAnyIntersects())
 				{
 					if (IsPline1InPline2())
 					{
@@ -1286,63 +740,66 @@ namespace PCGExCavalier
 					}
 					else if (IsPline2InPline1())
 					{
-						Result.PositivePolylines.Add(Pline1);
-						Result.NegativePolylines.Add(Pline2);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
+						Result.NegativePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
 						Result.ResultInfo = EBooleanResultInfo::Pline2InsidePline1;
 					}
 					else
 					{
-						Result.PositivePolylines.Add(Pline1);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
 						Result.ResultInfo = EBooleanResultInfo::Disjoint;
 					}
 				}
 				else
 				{
-					Internal::FPrunedSlices Pruned = Internal::PruneSlices(Pline1, Pline2, BooleanInfo, Operation, PosEqualEps);
-					Result.PositivePolylines = StitchSlicesIntoClosedPolylines(
-						Pruned, Pline1, Pline2, Operation, PosEqualEps, CollapsedAreaEps);
+					Internal::FPrunedSlices Pruned = Internal::PruneSlices(
+						Pline1, Pline2, PathId1, PathId2, BooleanInfo, Operation, PosEqualEps);
+
+					Result.PositivePolylines = Internal::StitchSlicesIntoClosedPolylines(
+						Pruned, Pline1, Pline2, PathId1, PathId2, Operation, PosEqualEps, CollapsedAreaEps);
+
 					Result.ResultInfo = EBooleanResultInfo::Intersected;
 				}
 				break;
 
 			case EPCGExCCBooleanOp::Xor:
-				if (BooleanInfo.IsCompletelyOverlapping())
-				{
-					Result.ResultInfo = EBooleanResultInfo::Overlapping;
-				}
-				else if (!BooleanInfo.HasAnyIntersects())
+				if (!BooleanInfo.HasAnyIntersects())
 				{
 					if (IsPline1InPline2())
 					{
-						Result.PositivePolylines.Add(Pline2);
-						Result.NegativePolylines.Add(Pline1);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
+						Result.NegativePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
 						Result.ResultInfo = EBooleanResultInfo::Pline1InsidePline2;
 					}
 					else if (IsPline2InPline1())
 					{
-						Result.PositivePolylines.Add(Pline1);
-						Result.NegativePolylines.Add(Pline2);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
+						Result.NegativePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
 						Result.ResultInfo = EBooleanResultInfo::Pline2InsidePline1;
 					}
 					else
 					{
-						Result.PositivePolylines.Add(Pline1);
-						Result.PositivePolylines.Add(Pline2);
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline1, PathId1));
+						Result.PositivePolylines.Add(CreateTrackedCopy(Pline2, PathId2));
 						Result.ResultInfo = EBooleanResultInfo::Disjoint;
 					}
 				}
 				else
 				{
-					// XOR = (Pline1 NOT Pline2) UNION (Pline2 NOT Pline1)
-					Internal::FPrunedSlices Pruned1 = Internal::PruneSlices(Pline1, Pline2, BooleanInfo, EPCGExCCBooleanOp::Difference, PosEqualEps);
-					TArray<FPolyline> Remaining1 = StitchSlicesIntoClosedPolylines(
-						Pruned1, Pline1, Pline2, EPCGExCCBooleanOp::Difference, PosEqualEps, CollapsedAreaEps);
+					// XOR = (Pline1 - Pline2) UNION (Pline2 - Pline1)
+					Internal::FPrunedSlices Pruned1 = Internal::PruneSlices(
+						Pline1, Pline2, PathId1, PathId2, BooleanInfo, EPCGExCCBooleanOp::Difference, PosEqualEps);
 
-					// Swap and do second pass (Pline2 NOT Pline1)
+					TArray<FPolyline> Remaining1 = Internal::StitchSlicesIntoClosedPolylines(
+						Pruned1, Pline1, Pline2, PathId1, PathId2, EPCGExCCBooleanOp::Difference, PosEqualEps, CollapsedAreaEps);
+
+					// Swap and do second pass
 					Internal::FProcessedBoolean BooleanInfo2 = Internal::ProcessForBoolean(Pline2, Pline1, PosEqualEps);
-					Internal::FPrunedSlices Pruned2 = PruneSlices(Pline2, Pline1, BooleanInfo2, EPCGExCCBooleanOp::Difference, PosEqualEps);
-					TArray<FPolyline> Remaining2 = StitchSlicesIntoClosedPolylines(
-						Pruned2, Pline2, Pline1, EPCGExCCBooleanOp::Difference, PosEqualEps, CollapsedAreaEps);
+					Internal::FPrunedSlices Pruned2 = Internal::PruneSlices(
+						Pline2, Pline1, PathId2, PathId1, BooleanInfo2, EPCGExCCBooleanOp::Difference, PosEqualEps);
+
+					TArray<FPolyline> Remaining2 = Internal::StitchSlicesIntoClosedPolylines(
+						Pruned2, Pline2, Pline1, PathId2, PathId1, EPCGExCCBooleanOp::Difference, PosEqualEps, CollapsedAreaEps);
 
 					Result.PositivePolylines.Append(MoveTemp(Remaining1));
 					Result.PositivePolylines.Append(MoveTemp(Remaining2));
@@ -1350,6 +807,168 @@ namespace PCGExCavalier
 				}
 				break;
 			}
+
+			// Collect all contributing path IDs
+			Result.AllContributingPathIds.Add(PathId1);
+			Result.AllContributingPathIds.Add(PathId2);
+			Result.CollectContributingPathIds();
+
+			return Result;
+		}
+
+		FBooleanResult PerformBoolean(
+			const FPolyline& Pline1,
+			const FPolyline& Pline2,
+			EPCGExCCBooleanOp Operation,
+			const FContourBooleanOptions& Options)
+		{
+			// Use polylines' primary path IDs, defaulting to 0 and 1
+			const int32 PathId1 = Pline1.GetPrimaryPathId() != InvalidIndex ? Pline1.GetPrimaryPathId() : 0;
+			const int32 PathId2 = Pline2.GetPrimaryPathId() != InvalidIndex ? Pline2.GetPrimaryPathId() : 1;
+
+			return PerformBoolean(
+				FBooleanOperand(Pline1, PathId1),
+				FBooleanOperand(Pline2, PathId2),
+				Operation,
+				Options);
+		}
+
+		FBooleanResult UnionAll(
+			const TArray<FBooleanOperand>& Operands,
+			const FContourBooleanOptions& Options)
+		{
+			FBooleanResult Result;
+
+			if (Operands.IsEmpty())
+			{
+				Result.ResultInfo = EBooleanResultInfo::InvalidInput;
+				return Result;
+			}
+
+			if (Operands.Num() == 1)
+			{
+				if (Operands[0].IsValid())
+				{
+					FPolyline Copy = *Operands[0].Polyline;
+					Copy.SetPrimaryPathId(Operands[0].PathId);
+					Result.PositivePolylines.Add(MoveTemp(Copy));
+					Result.AllContributingPathIds.Add(Operands[0].PathId);
+					Result.ResultInfo = EBooleanResultInfo::Disjoint;
+				}
+				else
+				{
+					Result.ResultInfo = EBooleanResultInfo::InvalidInput;
+				}
+				return Result;
+			}
+
+			// Start with first operand
+			FBooleanResult Current;
+			FPolyline FirstCopy = *Operands[0].Polyline;
+			FirstCopy.SetPrimaryPathId(Operands[0].PathId);
+			Current.PositivePolylines.Add(MoveTemp(FirstCopy));
+			Current.AllContributingPathIds.Add(Operands[0].PathId);
+
+			// Union with each subsequent operand
+			for (int32 i = 1; i < Operands.Num(); ++i)
+			{
+				if (!Operands[i].IsValid()) continue;
+
+				TArray<FPolyline> NextPositive;
+				TArray<FPolyline> NextNegative;
+
+				for (const FPolyline& Positive : Current.PositivePolylines)
+				{
+					FBooleanResult PartialResult = PerformBoolean(
+						FBooleanOperand(Positive, Positive.GetPrimaryPathId()),
+						Operands[i],
+						EPCGExCCBooleanOp::Union,
+						Options);
+
+					NextPositive.Append(MoveTemp(PartialResult.PositivePolylines));
+					NextNegative.Append(MoveTemp(PartialResult.NegativePolylines));
+				}
+
+				Current.PositivePolylines = MoveTemp(NextPositive);
+				Current.NegativePolylines.Append(MoveTemp(NextNegative));
+				Current.AllContributingPathIds.Add(Operands[i].PathId);
+			}
+
+			Result = MoveTemp(Current);
+			Result.ResultInfo = Result.HasResult() ? EBooleanResultInfo::Intersected : EBooleanResultInfo::Disjoint;
+			Result.CollectContributingPathIds();
+
+			return Result;
+		}
+
+		FBooleanResult IntersectAll(
+			const TArray<FBooleanOperand>& Operands,
+			const FContourBooleanOptions& Options)
+		{
+			FBooleanResult Result;
+
+			if (Operands.IsEmpty())
+			{
+				Result.ResultInfo = EBooleanResultInfo::InvalidInput;
+				return Result;
+			}
+
+			if (Operands.Num() == 1)
+			{
+				if (Operands[0].IsValid())
+				{
+					FPolyline Copy = *Operands[0].Polyline;
+					Copy.SetPrimaryPathId(Operands[0].PathId);
+					Result.PositivePolylines.Add(MoveTemp(Copy));
+					Result.AllContributingPathIds.Add(Operands[0].PathId);
+					Result.ResultInfo = EBooleanResultInfo::Disjoint;
+				}
+				else
+				{
+					Result.ResultInfo = EBooleanResultInfo::InvalidInput;
+				}
+				return Result;
+			}
+
+			// Start with first operand
+			FBooleanResult Current;
+			FPolyline FirstCopy = *Operands[0].Polyline;
+			FirstCopy.SetPrimaryPathId(Operands[0].PathId);
+			Current.PositivePolylines.Add(MoveTemp(FirstCopy));
+			Current.AllContributingPathIds.Add(Operands[0].PathId);
+
+			// Intersect with each subsequent operand
+			for (int32 i = 1; i < Operands.Num(); ++i)
+			{
+				if (!Operands[i].IsValid()) continue;
+
+				TArray<FPolyline> NextPositive;
+
+				for (const FPolyline& Positive : Current.PositivePolylines)
+				{
+					FBooleanResult PartialResult = PerformBoolean(
+						FBooleanOperand(Positive, Positive.GetPrimaryPathId()),
+						Operands[i],
+						EPCGExCCBooleanOp::Intersection,
+						Options);
+
+					NextPositive.Append(MoveTemp(PartialResult.PositivePolylines));
+				}
+
+				Current.PositivePolylines = MoveTemp(NextPositive);
+				Current.AllContributingPathIds.Add(Operands[i].PathId);
+
+				// Early exit if no intersection
+				if (Current.PositivePolylines.IsEmpty())
+				{
+					Result.ResultInfo = EBooleanResultInfo::Disjoint;
+					return Result;
+				}
+			}
+
+			Result = MoveTemp(Current);
+			Result.ResultInfo = Result.HasResult() ? EBooleanResultInfo::Intersected : EBooleanResultInfo::Disjoint;
+			Result.CollectContributingPathIds();
 
 			return Result;
 		}

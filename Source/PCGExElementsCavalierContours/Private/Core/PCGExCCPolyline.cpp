@@ -3,440 +3,175 @@
 // Originally ported from cavalier_contours by jbuckmccready (https://github.com/jbuckmccready/cavalier_contours)
 
 #include "Core/PCGExCCPolyline.h"
+#include "Core/PCGExCCMath.h"
+#include "Details/PCGExCCDetails.h"
 
 namespace PCGExCavalier
 {
-	//~ FContourPolyline Factory Methods
-
-	FPolyline FPolyline::FromPoints(const TArray<FVector2D>& Points, bool bClosed)
-	{
-		FPolyline Result(bClosed);
-		Result.Vertices.Reserve(Points.Num());
-
-		for (const FVector2D& Point : Points)
-		{
-			Result.AddVertex(Point.X, Point.Y, 0.0);
-		}
-
-		return Result;
-	}
-
-	FPolyline FPolyline::FromVectors(const TArray<FVector>& Vectors, bool bClosed)
-	{
-		FPolyline Result(bClosed);
-		Result.Vertices.Reserve(Vectors.Num());
-
-		for (const FVector& Vec : Vectors)
-		{
-			Result.AddVertex(Vec.X, Vec.Y, 0.0);
-		}
-
-		return Result;
-	}
-
-	FPolyline FPolyline::FromTransforms(const TConstPCGValueRange<FTransform>& Transforms, bool bClosed)
-	{
-		FPolyline Result(bClosed);
-		Result.Vertices.Reserve(Transforms.Num());
-
-		for (const FTransform& Transform : Transforms)
-		{
-			const FVector Loc = Transform.GetLocation();
-			Result.AddVertex(Loc.X, Loc.Y, 0.0);
-		}
-
-		return Result;
-	}
-
-	FPolyline FPolyline::FromInputPoints(const TArray<FInputPoint>& Points, bool bClosed)
-	{
-		return FContourUtils::ProcessCorners(Points, bClosed);
-	}
-
-	//~ FContourPolyline Basic Accessors
-
-	int32 FPolyline::SegmentCount() const
-	{
-		const int32 VC = Vertices.Num();
-		if (VC < 2)
-		{
-			return 0;
-		}
-		return bIsClosed ? VC : VC - 1;
-	}
-
-	const FVertex& FPolyline::GetVertexWrapped(int32 Index) const
-	{
-		const int32 VC = Vertices.Num();
-		check(VC > 0);
-		const int32 WrappedIndex = ((Index % VC) + VC) % VC;
-		return Vertices[WrappedIndex];
-	}
-
-	//~ FContourPolyline Vertex Manipulation
-
-	void FPolyline::AddVertex(const FVertex& Vertex)
-	{
-		Vertices.Add(Vertex);
-	}
-
-	void FPolyline::AddVertex(double X, double Y, double Bulge)
-	{
-		Vertices.Add(FVertex(X, Y, Bulge));
-	}
-
-	void FPolyline::AddOrReplaceVertex(const FVertex& Vertex, double PosEqualEps)
-	{
-		if (Vertices.Num() > 0)
-		{
-			FVertex& Last = Vertices.Last();
-			if (FMath::Abs(Last.X - Vertex.X) < PosEqualEps &&
-				FMath::Abs(Last.Y - Vertex.Y) < PosEqualEps)
-			{
-				// Replace bulge only
-				Last.Bulge = Vertex.Bulge;
-				return;
-			}
-		}
-		Vertices.Add(Vertex);
-	}
-
-	void FPolyline::SetLastVertex(const FVertex& Vertex)
-	{
-		check(Vertices.Num() > 0);
-		Vertices.Last() = Vertex;
-	}
-
-	FVertex FPolyline::RemoveLastVertex()
-	{
-		check(Vertices.Num() > 0);
-		return Vertices.Pop();
-	}
-
-	void FPolyline::Clear()
-	{
-		Vertices.Empty();
-	}
-
-	//~ FContourPolyline Index Utilities
-
-	int32 FPolyline::NextWrappingIndex(int32 Index) const
-	{
-		const int32 Next = Index + 1;
-		return (Next >= Vertices.Num()) ? 0 : Next;
-	}
-
-	int32 FPolyline::PrevWrappingIndex(int32 Index) const
-	{
-		return (Index == 0) ? Vertices.Num() - 1 : Index - 1;
-	}
-
-	//~ FContourPolyline Geometric Properties
-
-	double FPolyline::PathLength() const
-	{
-		double Total = 0.0;
-
-		ForEachSegment([&Total](const FVertex& V1, const FVertex& V2)
-		{
-			Total += Math::SegmentArcLength(V1, V2);
-		});
-
-		return Total;
-	}
+	//=============================================================================
+	// FPolyline - Geometric Properties
+	//=============================================================================
 
 	double FPolyline::Area() const
 	{
-		if (!bIsClosed || Vertices.Num() < 3)
+		if (!bClosed || Vertices.Num() < 3)
 		{
 			return 0.0;
 		}
 
-		double DoubleTotalArea = 0.0;
+		double Sum = 0.0;
+		const int32 N = Vertices.Num();
 
-		ForEachSegment([&DoubleTotalArea](const FVertex& V1, const FVertex& V2)
+		for (int32 i = 0; i < N; ++i)
 		{
-			// Shoelace formula contribution
-			DoubleTotalArea += V1.X * V2.Y - V1.Y * V2.X;
+			const FVertex& V1 = Vertices[i];
+			const FVertex& V2 = Vertices[(i + 1) % N];
 
+			// Shoelace formula for polygon area
+			Sum += (V1.GetX() * V2.GetY()) - (V2.GetX() * V1.GetY());
+
+			// Add arc segment area if present
 			if (!V1.IsLine())
 			{
-				// Add arc segment area
-				const double B = FMath::Abs(V1.Bulge);
-				const double SweepAngle = Math::AngleFromBulge(B);
-				const FVector2D ChordVec = V2.GetPosition() - V1.GetPosition();
-				const double TriangleBase = ChordVec.Size();
-				const double Radius = TriangleBase * ((B * B + 1.0) / (4.0 * B));
-				const double Sagitta = B * TriangleBase / 2.0;
-				const double TriangleHeight = Radius - Sagitta;
-				const double DoubleSectorArea = SweepAngle * Radius * Radius;
-				const double DoubleTriangleArea = TriangleBase * TriangleHeight;
-				double DoubleArcArea = DoubleSectorArea - DoubleTriangleArea;
-
-				if (V1.Bulge < 0.0)
+				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
+				if (Arc.bValid)
 				{
-					DoubleArcArea = -DoubleArcArea;
+					// Arc segment area = (1/2) * r^2 * (theta - sin(theta))
+					// where theta is the sweep angle
+					const double SweepAngle = 4.0 * FMath::Atan(FMath::Abs(V1.Bulge));
+					const double ChordArea = 0.5 * Arc.Radius * Arc.Radius * (SweepAngle - FMath::Sin(SweepAngle));
+					Sum += (V1.Bulge > 0.0) ? ChordArea : -ChordArea;
 				}
-
-				DoubleTotalArea += DoubleArcArea;
 			}
-		});
+		}
 
-		return DoubleTotalArea / 2.0;
+		return Sum * 0.5;
+	}
+
+	double FPolyline::PathLength() const
+	{
+		if (Vertices.Num() < 2)
+		{
+			return 0.0;
+		}
+
+		double Length = 0.0;
+		const int32 N = Vertices.Num();
+		const int32 SegCount = bClosed ? N : N - 1;
+
+		for (int32 i = 0; i < SegCount; ++i)
+		{
+			const FVertex& V1 = Vertices[i];
+			const FVertex& V2 = Vertices[(i + 1) % N];
+
+			if (V1.IsLine())
+			{
+				Length += FVector2D::Distance(V1.GetPosition(), V2.GetPosition());
+			}
+			else
+			{
+				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
+				if (Arc.bValid)
+				{
+					const double SweepAngle = 4.0 * FMath::Atan(FMath::Abs(V1.Bulge));
+					Length += Arc.Radius * SweepAngle;
+				}
+			}
+		}
+
+		return Length;
+	}
+
+	FBox2D FPolyline::BoundingBox() const
+	{
+		if (Vertices.IsEmpty())
+		{
+			return FBox2D(FVector2D::ZeroVector, FVector2D::ZeroVector);
+		}
+
+		FVector2D Min = Vertices[0].GetPosition();
+		FVector2D Max = Min;
+
+		const int32 N = Vertices.Num();
+		const int32 SegCount = bClosed ? N : N - 1;
+
+		for (int32 i = 0; i < SegCount; ++i)
+		{
+			const FVertex& V1 = Vertices[i];
+			const FVertex& V2 = Vertices[(i + 1) % N];
+
+			// Expand for line endpoint
+			Min = FVector2D(FMath::Min(Min.X, V2.GetX()), FMath::Min(Min.Y, V2.GetY()));
+			Max = FVector2D(FMath::Max(Max.X, V2.GetX()), FMath::Max(Max.Y, V2.GetY()));
+
+			// Expand for arc extremes if present
+			if (!V1.IsLine())
+			{
+				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
+				if (Arc.bValid)
+				{
+					// Check arc extremes
+					const bool bCCW = V1.Bulge > 0.0;
+					const FVector2D P1 = V1.GetPosition();
+					const FVector2D P2 = V2.GetPosition();
+
+					// Check if arc crosses cardinal directions
+					auto CheckExtreme = [&](const FVector2D& Dir)
+					{
+						const FVector2D ExtremePt = Arc.Center + Dir * Arc.Radius;
+						if (Math::PointWithinArcSweep(Arc.Center, P1, P2, !bCCW, ExtremePt, 1e-9))
+						{
+							Min = FVector2D(FMath::Min(Min.X, ExtremePt.X), FMath::Min(Min.Y, ExtremePt.Y));
+							Max = FVector2D(FMath::Max(Max.X, ExtremePt.X), FMath::Max(Max.Y, ExtremePt.Y));
+						}
+					};
+
+					CheckExtreme(FVector2D(1, 0));  // Right
+					CheckExtreme(FVector2D(-1, 0)); // Left
+					CheckExtreme(FVector2D(0, 1));  // Top
+					CheckExtreme(FVector2D(0, -1)); // Bottom
+				}
+			}
+		}
+
+		return FBox2D(Min, Max);
 	}
 
 	EPCGExCCOrientation FPolyline::Orientation() const
 	{
-		if (!bIsClosed)
+		if (!bClosed)
 		{
 			return EPCGExCCOrientation::Open;
 		}
 
-		return Area() < 0.0 ? EPCGExCCOrientation::Clockwise : EPCGExCCOrientation::CounterClockwise;
+		const double A = Area();
+		if (A > 0.0)
+		{
+			return EPCGExCCOrientation::CounterClockwise;
+		}
+		else if (A < 0.0)
+		{
+			return EPCGExCCOrientation::Clockwise;
+		}
+
+		return EPCGExCCOrientation::Open; // Degenerate case
 	}
-
-	bool FPolyline::GetExtents(FBox2D& OutBox) const
-	{
-		if (Vertices.Num() < 2)
-		{
-			return false;
-		}
-
-		OutBox = FBox2D(FVector2D(Vertices[0].X, Vertices[0].Y), FVector2D(Vertices[0].X, Vertices[0].Y));
-
-		ForEachSegment([&OutBox](const FVertex& V1, const FVertex& V2)
-		{
-			if (V1.IsLine())
-			{
-				// Just check endpoint
-				OutBox += FVector2D(V2.X, V2.Y);
-			}
-			else
-			{
-				// Arc - need to check if it crosses axis-aligned extremes
-				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
-				if (!Arc.bValid)
-				{
-					OutBox += FVector2D(V2.X, V2.Y);
-					return;
-				}
-
-				const double StartAngle = Math::Angle(Arc.Center, V1.GetPosition());
-				const double EndAngle = Math::Angle(Arc.Center, V2.GetPosition());
-				const double SweepAngle = Math::DeltaAngleSigned(StartAngle, EndAngle, V1.Bulge < 0.0);
-
-				auto CrossesAngle = [StartAngle, SweepAngle](double TestAngle) -> bool
-				{
-					return Math::AngleIsWithinSweep(TestAngle, StartAngle, SweepAngle);
-				};
-
-				// Check for axis crossings
-				if (CrossesAngle(PI))
-				{
-					OutBox.Min.X = FMath::Min(OutBox.Min.X, Arc.Center.X - Arc.Radius);
-				}
-				if (CrossesAngle(PI * 1.5))
-				{
-					OutBox.Min.Y = FMath::Min(OutBox.Min.Y, Arc.Center.Y - Arc.Radius);
-				}
-				if (CrossesAngle(0.0))
-				{
-					OutBox.Max.X = FMath::Max(OutBox.Max.X, Arc.Center.X + Arc.Radius);
-				}
-				if (CrossesAngle(PI * 0.5))
-				{
-					OutBox.Max.Y = FMath::Max(OutBox.Max.Y, Arc.Center.Y + Arc.Radius);
-				}
-
-				// Always include endpoints
-				OutBox += FVector2D(V1.X, V1.Y);
-				OutBox += FVector2D(V2.X, V2.Y);
-			}
-		});
-
-		return true;
-	}
-
-	//~ FContourPolyline Segment Iteration
-
-	void FPolyline::ForEachSegment(FSegmentVisitor Visitor) const
-	{
-		const int32 VC = Vertices.Num();
-		if (VC < 2)
-		{
-			return;
-		}
-
-		const int32 SegCount = bIsClosed ? VC : VC - 1;
-
-		for (int32 i = 0; i < SegCount; ++i)
-		{
-			const int32 NextI = (i + 1) % VC;
-			Visitor(Vertices[i], Vertices[NextI]);
-		}
-	}
-
-	//~ FContourPolyline Transformations
-
-	FPolyline FPolyline::Inverted() const
-	{
-		FPolyline Result(bIsClosed);
-		Result.Vertices.Reserve(Vertices.Num());
-
-		if (Vertices.Num() == 0)
-		{
-			return Result;
-		}
-
-		// Last vertex becomes first with zero bulge
-		Result.AddVertex(Vertices.Last().X, Vertices.Last().Y, 0.0);
-
-		// Iterate in reverse, taking bulge from previous (now next) vertex
-		for (int32 i = Vertices.Num() - 2; i >= 0; --i)
-		{
-			const FVertex& V = Vertices[i];
-			Result.AddVertex(V.X, V.Y, -Vertices[i + 1].Bulge);
-		}
-
-		// Handle closed polyline - first vertex's bulge goes to last
-		if (bIsClosed && Vertices.Num() > 0)
-		{
-			Result.Vertices.Last().Bulge = -Vertices[0].Bulge;
-		}
-
-		return Result;
-	}
-
-	void FPolyline::Invert()
-	{
-		*this = Inverted();
-	}
-
-	FPolyline FPolyline::WithRedundantVerticesRemoved(double PosEqualEps) const
-	{
-		FPolyline Result(bIsClosed);
-
-		if (Vertices.Num() < 2)
-		{
-			Result.Vertices = Vertices;
-			return Result;
-		}
-
-		Result.Vertices.Reserve(Vertices.Num());
-
-		for (const FVertex& V : Vertices)
-		{
-			Result.AddOrReplaceVertex(V, PosEqualEps);
-		}
-
-		// Handle closed polyline - check if last equals first
-		if (bIsClosed && Result.Vertices.Num() >= 2)
-		{
-			const FVertex& First = Result.Vertices[0];
-			const FVertex& Last = Result.Vertices.Last();
-			if (FMath::Abs(Last.X - First.X) < PosEqualEps &&
-				FMath::Abs(Last.Y - First.Y) < PosEqualEps)
-			{
-				Result.Vertices.Pop();
-			}
-		}
-
-		return Result;
-	}
-
-	bool FPolyline::RemoveRedundantVertices(double PosEqualEps)
-	{
-		const int32 OrigCount = Vertices.Num();
-		*this = WithRedundantVerticesRemoved(PosEqualEps);
-		return Vertices.Num() < OrigCount;
-	}
-
-	//~ FContourPolyline Arc Tessellation
-
-	FPolyline FPolyline::Tessellated(const FPCGExCCArcTessellationSettings& Settings) const
-	{
-		FPolyline Result(bIsClosed);
-
-		if (Vertices.Num() < 2)
-		{
-			Result.Vertices = Vertices;
-			return Result;
-		}
-
-		// Estimate output size (rough approximation)
-		Result.Vertices.Reserve(Vertices.Num() * 2);
-
-		ForEachSegment([&Result, &Settings](const FVertex& V1, const FVertex& V2)
-		{
-			// Add start vertex (as line, bulge = 0)
-			if (Result.Vertices.Num() == 0 ||
-				!Result.Vertices.Last().GetPosition().Equals(V1.GetPosition(), Math::FuzzyEpsilon))
-			{
-				Result.AddVertex(V1.X, V1.Y, 0.0);
-			}
-
-			if (V1.IsLine())
-			{
-				// Line segment - nothing more to add, endpoint will be added by next segment
-				return;
-			}
-
-			// Arc segment - tessellate
-			const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
-			if (!Arc.bValid)
-			{
-				return;
-			}
-
-			const double ArcLength = Math::SegmentArcLength(V1, V2);
-			const int32 SegmentCount = Settings.CalculateSegmentCount(ArcLength);
-
-			const double StartAngle = Math::Angle(Arc.Center, V1.GetPosition());
-			const double EndAngle = Math::Angle(Arc.Center, V2.GetPosition());
-			const double SweepAngle = Math::DeltaAngleSigned(StartAngle, EndAngle, V1.Bulge < 0.0);
-
-			// Add intermediate points
-			for (int32 i = 1; i < SegmentCount; ++i)
-			{
-				const double T = static_cast<double>(i) / static_cast<double>(SegmentCount);
-				const double PointAngle = StartAngle + T * SweepAngle;
-				const FVector2D Point = Math::PointOnCircle(Arc.Radius, Arc.Center, PointAngle);
-				Result.AddVertex(Point.X, Point.Y, 0.0);
-			}
-		});
-
-		// Add final vertex for open polylines
-		if (!bIsClosed && Vertices.Num() > 0)
-		{
-			const FVertex& Last = Vertices.Last();
-			if (Result.Vertices.Num() == 0 ||
-				!Result.Vertices.Last().GetPosition().Equals(Last.GetPosition(), Math::FuzzyEpsilon))
-			{
-				Result.AddVertex(Last.X, Last.Y, 0.0);
-			}
-		}
-
-		return Result;
-	}
-
-	void FPolyline::Tessellate(const FPCGExCCArcTessellationSettings& Settings)
-	{
-		*this = Tessellated(Settings);
-	}
-
-	//~ FContourPolyline Point Containment
 
 	int32 FPolyline::WindingNumber(const FVector2D& Point) const
 	{
-		if (!bIsClosed || Vertices.Num() < 3)
+		if (!bClosed || Vertices.Num() < 2)
 		{
 			return 0;
 		}
 
 		int32 Winding = 0;
+		const int32 N = Vertices.Num();
 
-		ForEachSegment([&Winding, &Point](const FVertex& V1, const FVertex& V2)
+		for (int32 i = 0; i < N; ++i)
 		{
+			const FVertex& V1 = Vertices[i];
+			const FVertex& V2 = Vertices[(i + 1) % N];
+
 			const FVector2D P1 = V1.GetPosition();
 			const FVector2D P2 = V2.GetPosition();
 
@@ -447,6 +182,7 @@ namespace PCGExCavalier
 				{
 					if (P2.Y > Point.Y)
 					{
+						// Upward crossing
 						if (Math::IsLeft(P1, P2, Point))
 						{
 							++Winding;
@@ -457,6 +193,7 @@ namespace PCGExCavalier
 				{
 					if (P2.Y <= Point.Y)
 					{
+						// Downward crossing
 						if (!Math::IsLeft(P1, P2, Point))
 						{
 							--Winding;
@@ -466,145 +203,564 @@ namespace PCGExCavalier
 			}
 			else
 			{
-				// Arc segment - need more complex handling
+				// Arc segment winding contribution
 				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
 				if (!Arc.bValid)
 				{
-					return;
+					continue;
 				}
 
+				const bool bIsCW = V1.Bulge < 0.0;
 				const double DistToCenter = FVector2D::Distance(Point, Arc.Center);
 
-				// Check if point could intersect arc
+				// Check if point is inside the arc's circle
 				if (DistToCenter > Arc.Radius + Math::FuzzyEpsilon)
 				{
-					// Point is outside arc circle, treat as if endpoints connect directly
-					// (simplified - full implementation would trace arc crossings)
+					// Point outside circle - treat as line for crossing test
 					if (P1.Y <= Point.Y)
 					{
-						if (P2.Y > Point.Y)
+						if (P2.Y > Point.Y && Math::IsLeft(P1, P2, Point))
 						{
-							if (Math::IsLeft(P1, P2, Point))
-							{
-								++Winding;
-							}
+							++Winding;
 						}
 					}
 					else
 					{
-						if (P2.Y <= Point.Y)
+						if (P2.Y <= Point.Y && !Math::IsLeft(P1, P2, Point))
 						{
-							if (!Math::IsLeft(P1, P2, Point))
-							{
-								--Winding;
-							}
+							--Winding;
 						}
 					}
 				}
 				else
 				{
-					// Point might intersect arc - use horizontal ray test with arc
-					// This is simplified; full implementation would compute actual arc/ray intersections
+					// Point inside or on circle - check arc sweep
 					const double StartAngle = Math::Angle(Arc.Center, P1);
 					const double EndAngle = Math::Angle(Arc.Center, P2);
 					const double PointAngle = Math::Angle(Arc.Center, Point);
-					const bool bIsCCW = V1.Bulge > 0.0;
 
-					// Check if horizontal ray from point crosses arc
-					// Simplified: just use chord approximation
-					if (P1.Y <= Point.Y)
+					const bool bPointInSweep = Math::PointWithinArcSweep(
+						Arc.Center, P1, P2, bIsCW, Point, Math::FuzzyEpsilon);
+
+					if (bPointInSweep)
 					{
-						if (P2.Y > Point.Y)
+						// Use crossing number based on arc direction
+						if (bIsCW)
 						{
-							if (Math::IsLeft(P1, P2, Point) == bIsCCW)
-							{
-								++Winding;
-							}
+							--Winding;
 						}
-					}
-					else
-					{
-						if (P2.Y <= Point.Y)
+						else
 						{
-							if (Math::IsLeft(P1, P2, Point) != bIsCCW)
-							{
-								--Winding;
-							}
+							++Winding;
 						}
 					}
 				}
 			}
-		});
+		}
 
 		return Winding;
 	}
 
-	bool FPolyline::ContainsPoint(const FVector2D& Point) const
+	//=============================================================================
+	// FPolyline - Transformations
+	//=============================================================================
+
+	void FPolyline::Reverse()
 	{
-		return WindingNumber(Point) != 0;
+		if (Vertices.Num() < 2)
+		{
+			return;
+		}
+
+		// Reverse vertex order
+		Algo::Reverse(Vertices);
+
+		// Shift bulge values (each segment now starts from what was its end)
+		// For closed polylines, first bulge goes to last position
+		// Also negate bulges since arc direction reverses
+		TArray<double> NewBulges;
+		NewBulges.SetNum(Vertices.Num());
+
+		for (int32 i = 0; i < Vertices.Num(); ++i)
+		{
+			const int32 OrigIdx = (Vertices.Num() - 1 - i);
+			const int32 BulgeSourceIdx = bClosed ? ((OrigIdx - 1 + Vertices.Num()) % Vertices.Num()) : (OrigIdx - 1);
+
+			if (BulgeSourceIdx >= 0 && BulgeSourceIdx < Vertices.Num())
+			{
+				NewBulges[i] = -Vertices[BulgeSourceIdx].Bulge;
+			}
+			else
+			{
+				NewBulges[i] = 0.0;
+			}
+		}
+
+		for (int32 i = 0; i < Vertices.Num(); ++i)
+		{
+			Vertices[i].Bulge = NewBulges[i];
+		}
+
+		// For open polylines, last vertex bulge should be 0
+		if (!bClosed && !Vertices.IsEmpty())
+		{
+			Vertices.Last().Bulge = 0.0;
+		}
 	}
 
-	//~ FContourPolyline Closest Point
-
-	FVector2D FPolyline::ClosestPoint(const FVector2D& Point, int32* OutSegmentIndex, double* OutDistance) const
+	FPolyline FPolyline::Reversed() const
 	{
-		if (Vertices.Num() == 0)
+		FPolyline Result = *this;
+		Result.Reverse();
+		return Result;
+	}
+
+	void FPolyline::InvertOrientation()
+	{
+		Reverse();
+	}
+
+	FPolyline FPolyline::InvertedOrientation() const
+	{
+		return Reversed();
+	}
+
+	FPolyline FPolyline::Tessellated(const FPCGExCCArcTessellationSettings& Settings) const
+	{
+		if (Vertices.Num() < 2)
 		{
-			if (OutSegmentIndex) *OutSegmentIndex = -1;
+			return *this;
+		}
+
+		FPolyline Result(bClosed, PrimaryPathId);
+		Result.AddContributingPaths(ContributingPathIds);
+
+		const int32 N = Vertices.Num();
+		const int32 SegCount = bClosed ? N : N - 1;
+
+		for (int32 i = 0; i < SegCount; ++i)
+		{
+			const FVertex& V1 = Vertices[i];
+			const FVertex& V2 = Vertices[(i + 1) % N];
+
+			// Add start vertex (with zero bulge since we're tessellating)
+			Result.AddVertex(V1.GetPosition(), 0.0, V1.Source);
+
+			// Tessellate arc if present
+			if (!V1.IsLine())
+			{
+				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
+				if (Arc.bValid)
+				{
+					const double SweepAngle = 4.0 * FMath::Atan(FMath::Abs(V1.Bulge));
+
+					// Determine number of subdivisions
+					int32 Subdivisions;
+					if (Settings.Mode == EPCGExCCArcTessellationMode::FixedCount)
+					{
+						Subdivisions = FMath::Max(1, Settings.FixedSegmentCount);
+					}
+					else
+					{
+						const double ArcLen = Arc.Radius * SweepAngle;
+						Subdivisions = FMath::Clamp(
+							FMath::CeilToInt32(ArcLen / Settings.TargetSegmentLength),
+							Settings.MinSegmentCount,
+							Settings.MaxSegmentCount);
+					}
+
+					// Generate intermediate arc points
+					const FVector2D StartDir = (V1.GetPosition() - Arc.Center).GetSafeNormal();
+					const double DeltaAngle = (V1.Bulge > 0.0 ? 1.0 : -1.0) * SweepAngle / Subdivisions;
+
+					for (int32 j = 1; j < Subdivisions; ++j)
+					{
+						const double Angle = j * DeltaAngle;
+						const double CosA = FMath::Cos(Angle);
+						const double SinA = FMath::Sin(Angle);
+						const FVector2D RotatedDir(
+							StartDir.X * CosA - StartDir.Y * SinA,
+							StartDir.X * SinA + StartDir.Y * CosA);
+						const FVector2D Pt = Arc.Center + RotatedDir * Arc.Radius;
+
+						// Tessellated vertices inherit source from arc start
+						Result.AddVertex(Pt, 0.0, V1.Source);
+					}
+				}
+			}
+		}
+
+		// Add final vertex for open polylines
+		if (!bClosed && !Vertices.IsEmpty())
+		{
+			Result.AddVertex(Vertices.Last().GetPosition(), 0.0, Vertices.Last().Source);
+		}
+
+		return Result;
+	}
+
+	//=============================================================================
+	// FPolyline - Spatial Index
+	//=============================================================================
+
+	FPolyline::FApproxAABBIndex FPolyline::CreateApproxAABBIndex() const
+	{
+		FApproxAABBIndex Index;
+		const int32 N = Vertices.Num();
+		const int32 SegCount = bClosed ? N : N - 1;
+
+		Index.Boxes.Reserve(SegCount);
+
+		for (int32 i = 0; i < SegCount; ++i)
+		{
+			const FVertex& V1 = Vertices[i];
+			const FVertex& V2 = Vertices[(i + 1) % N];
+
+			FApproxAABBIndex::FBox Box;
+
+			if (V1.IsLine())
+			{
+				// Simple line segment bounds
+				Box.MinX = FMath::Min(V1.GetX(), V2.GetX());
+				Box.MinY = FMath::Min(V1.GetY(), V2.GetY());
+				Box.MaxX = FMath::Max(V1.GetX(), V2.GetX());
+				Box.MaxY = FMath::Max(V1.GetY(), V2.GetY());
+			}
+			else
+			{
+				// Arc bounds - use midpoint for approximation
+				const Math::FArcGeometry Arc = Math::ComputeArcRadiusAndCenter(V1, V2);
+				if (Arc.bValid)
+				{
+					// Get arc midpoint
+					const FVector2D MidPt = Math::SegmentMidpoint(V1, V2);
+
+					// Start with endpoints
+					Box.MinX = FMath::Min(V1.GetX(), V2.GetX());
+					Box.MinY = FMath::Min(V1.GetY(), V2.GetY());
+					Box.MaxX = FMath::Max(V1.GetX(), V2.GetX());
+					Box.MaxY = FMath::Max(V1.GetY(), V2.GetY());
+
+					// Expand for midpoint
+					Box.MinX = FMath::Min(Box.MinX, MidPt.X);
+					Box.MinY = FMath::Min(Box.MinY, MidPt.Y);
+					Box.MaxX = FMath::Max(Box.MaxX, MidPt.X);
+					Box.MaxY = FMath::Max(Box.MaxY, MidPt.Y);
+
+					// Expand by sagitta for safety
+					const double ChordLen = FVector2D::Distance(V1.GetPosition(), V2.GetPosition());
+					const double Sagitta = FMath::Abs(V1.Bulge) * ChordLen * 0.5;
+					Box.MinX -= Sagitta;
+					Box.MinY -= Sagitta;
+					Box.MaxX += Sagitta;
+					Box.MaxY += Sagitta;
+				}
+				else
+				{
+					// Fallback to line bounds
+					Box.MinX = FMath::Min(V1.GetX(), V2.GetX());
+					Box.MinY = FMath::Min(V1.GetY(), V2.GetY());
+					Box.MaxX = FMath::Max(V1.GetX(), V2.GetX());
+					Box.MaxY = FMath::Max(V1.GetY(), V2.GetY());
+				}
+			}
+
+			Index.Boxes.Add(Box);
+		}
+
+		return Index;
+	}
+
+	//=============================================================================
+	// FPolyline - Closest Point
+	//=============================================================================
+
+	FVector2D FPolyline::ClosestPoint(const FVector2D& Point, double* OutDistance) const
+	{
+		if (Vertices.IsEmpty())
+		{
 			if (OutDistance) *OutDistance = TNumericLimits<double>::Max();
 			return FVector2D::ZeroVector;
 		}
 
 		if (Vertices.Num() == 1)
 		{
-			const FVector2D Result = Vertices[0].GetPosition();
-			if (OutSegmentIndex) *OutSegmentIndex = 0;
-			if (OutDistance) *OutDistance = FVector2D::Distance(Point, Result);
-			return Result;
+			if (OutDistance) *OutDistance = FVector2D::Distance(Point, Vertices[0].GetPosition());
+			return Vertices[0].GetPosition();
 		}
 
-		FVector2D ClosestPt = FVector2D::ZeroVector;
-		double MinDistSq = TNumericLimits<double>::Max();
-		int32 ClosestSegIdx = 0;
-		int32 CurrentSegIdx = 0;
+		FVector2D ClosestPt = Vertices[0].GetPosition();
+		double MinDistSq = FVector2D::DistSquared(Point, ClosestPt);
 
-		ForEachSegment([&](const FVertex& V1, const FVertex& V2)
+		const int32 N = Vertices.Num();
+		const int32 SegCount = bClosed ? N : N - 1;
+
+		for (int32 i = 0; i < SegCount; ++i)
 		{
-			const FVector2D SegClosest = Math::SegmentClosestPoint(V1, V2, Point);
-			const double DistSq = Math::DistanceSquared(Point, SegClosest);
+			const FVertex& V1 = Vertices[i];
+			const FVertex& V2 = Vertices[(i + 1) % N];
 
+			// SegmentClosestPoint handles both line and arc segments
+			const FVector2D SegClosest = Math::SegmentClosestPoint(V1, V2, Point);
+
+			const double DistSq = FVector2D::DistSquared(Point, SegClosest);
 			if (DistSq < MinDistSq)
 			{
 				MinDistSq = DistSq;
 				ClosestPt = SegClosest;
-				ClosestSegIdx = CurrentSegIdx;
 			}
+		}
 
-			++CurrentSegIdx;
-		});
-
-		if (OutSegmentIndex) *OutSegmentIndex = ClosestSegIdx;
 		if (OutDistance) *OutDistance = FMath::Sqrt(MinDistSq);
 		return ClosestPt;
 	}
 
-	//~ FContourPolyline Comparison
+	//=============================================================================
+	// FContourUtils
+	//=============================================================================
 
-	bool FPolyline::FuzzyEquals(const FPolyline& Other, double Epsilon) const
+	FPolyline FContourUtils::CreateFromInputPoints(const TArray<FInputPoint>& Points, bool bClosed)
 	{
-		if (bIsClosed != Other.bIsClosed || Vertices.Num() != Other.Vertices.Num())
+		if (Points.IsEmpty())
 		{
-			return false;
+			return FPolyline(bClosed);
 		}
 
-		for (int32 i = 0; i < Vertices.Num(); ++i)
+		// Determine primary path ID from first point
+		const int32 PrimaryPathId = Points[0].PathId;
+		FPolyline Result(bClosed, PrimaryPathId);
+		Result.Reserve(Points.Num() * 2); // Extra for potential corner arcs
+
+		for (int32 i = 0; i < Points.Num(); ++i)
 		{
-			if (!Vertices[i].FuzzyEquals(Other.Vertices[i], Epsilon))
+			const FInputPoint& Current = Points[i];
+			const FVector2D CurrentPos = Current.GetPosition2D();
+
+			if (Current.bIsCorner && Current.CornerRadius > 0.0)
 			{
-				return false;
+				// Process corner with fillet
+				const FInputPoint& Prev = Points[(i - 1 + Points.Num()) % Points.Num()];
+				const FInputPoint& Next = Points[(i + 1) % Points.Num()];
+
+				const FVector2D PrevPos = Prev.GetPosition2D();
+				const FVector2D NextPos = Next.GetPosition2D();
+
+				const FVector2D ToPrev = (PrevPos - CurrentPos).GetSafeNormal();
+				const FVector2D ToNext = (NextPos - CurrentPos).GetSafeNormal();
+
+				// Calculate fillet
+				const double CrossZ = ToPrev.X * ToNext.Y - ToPrev.Y * ToNext.X;
+				if (FMath::Abs(CrossZ) > 1e-9) // Not collinear
+				{
+					const double DotProd = FVector2D::DotProduct(ToPrev, ToNext);
+					const double HalfAngle = FMath::Acos(FMath::Clamp(DotProd, -1.0, 1.0)) * 0.5;
+					const double TanHalf = FMath::Tan(HalfAngle);
+
+					if (TanHalf > 1e-9)
+					{
+						const double TangentLen = Current.CornerRadius / TanHalf;
+						const FVector2D ArcStart = CurrentPos + ToPrev * TangentLen;
+						const FVector2D ArcEnd = CurrentPos + ToNext * TangentLen;
+
+						// Compute bulge from half angle
+						const double Bulge = (CrossZ > 0.0 ? 1.0 : -1.0) * FMath::Tan(HalfAngle * 0.5);
+
+						// Add fillet arc - inherits source from corner point
+						Result.AddVertex(ArcStart, Bulge, Current.GetSource());
+						Result.AddVertex(ArcEnd, 0.0, Current.GetSource());
+						continue;
+					}
+				}
+			}
+
+			// Regular point (or fallback for failed corner)
+			Result.AddVertex(CurrentPos, 0.0, Current.GetSource());
+		}
+
+		return Result;
+	}
+
+	FPolyline FContourUtils::CreateFromRootPath(const FRootPath& RootPath)
+	{
+		return CreateFromInputPoints(RootPath.Points, RootPath.bIsClosed);
+	}
+
+	FContourResult3D FContourUtils::ConvertTo3D(
+		const FPolyline& Polyline2D,
+		const TMap<int32, FRootPath>& RootPaths)
+	{
+		FContourResult3D Result;
+		Result.bIsClosed = Polyline2D.IsClosed();
+		Result.ContributingPathIds = Polyline2D.GetContributingPathIds();
+
+		const int32 N = Polyline2D.VertexCount();
+		if (N == 0)
+		{
+			return Result;
+		}
+
+		Result.Positions.Reserve(N);
+		Result.Transforms.Reserve(N);
+		Result.Sources.Reserve(N);
+
+		// Helper to get transform from source
+		auto GetSourceTransform = [&RootPaths](const FVertexSource& Source) -> const FTransform*
+		{
+			if (!Source.IsValid()) return nullptr;
+
+			const FRootPath* Path = RootPaths.Find(Source.PathId);
+			if (!Path) return nullptr;
+
+			if (Source.PointIndex < 0 || Source.PointIndex >= Path->Points.Num())
+				return nullptr;
+
+			return &Path->Points[Source.PointIndex].Transform;
+		};
+
+		// First pass: fill in vertices with valid sources
+		TArray<int32> InvalidIndices;
+		for (int32 i = 0; i < N; ++i)
+		{
+			const FVertex& V = Polyline2D.GetVertex(i);
+			Result.Sources.Add(V.Source);
+
+			const FTransform* SourceTransform = GetSourceTransform(V.Source);
+			if (SourceTransform)
+			{
+				// Direct lookup
+				const FVector SourcePos = SourceTransform->GetLocation();
+				const FVector Pos3D(V.GetX(), V.GetY(), SourcePos.Z);
+				Result.Positions.Add(Pos3D);
+
+				FTransform OutTransform = *SourceTransform;
+				OutTransform.SetLocation(Pos3D);
+				Result.Transforms.Add(OutTransform);
+			}
+			else
+			{
+				// Placeholder - will interpolate
+				Result.Positions.Add(FVector(V.GetX(), V.GetY(), 0.0));
+				Result.Transforms.Add(FTransform(FVector(V.GetX(), V.GetY(), 0.0)));
+				InvalidIndices.Add(i);
 			}
 		}
 
-		return true;
+		// Second pass: interpolate for vertices without valid sources
+		if (!InvalidIndices.IsEmpty() && N > 1)
+		{
+			for (int32 InvalidIdx : InvalidIndices)
+			{
+				// Find nearest valid vertices before and after
+				int32 PrevValid = InvalidIndex;
+				int32 NextValid = InvalidIndex;
+
+				// Search backward
+				for (int32 Offset = 1; Offset < N; ++Offset)
+				{
+					const int32 Idx = (InvalidIdx - Offset + N) % N;
+					if (GetSourceTransform(Polyline2D.GetVertex(Idx).Source))
+					{
+						PrevValid = Idx;
+						break;
+					}
+				}
+
+				// Search forward
+				for (int32 Offset = 1; Offset < N; ++Offset)
+				{
+					const int32 Idx = (InvalidIdx + Offset) % N;
+					if (GetSourceTransform(Polyline2D.GetVertex(Idx).Source))
+					{
+						NextValid = Idx;
+						break;
+					}
+				}
+
+				if (PrevValid != InvalidIndex && NextValid != InvalidIndex)
+				{
+					// Interpolate between prev and next
+					const FVector2D CurrentPos = Polyline2D.GetVertex(InvalidIdx).GetPosition();
+					const FVector2D PrevPos = Polyline2D.GetVertex(PrevValid).GetPosition();
+					const FVector2D NextPos = Polyline2D.GetVertex(NextValid).GetPosition();
+
+					const double DistToPrev = FVector2D::Distance(CurrentPos, PrevPos);
+					const double DistToNext = FVector2D::Distance(CurrentPos, NextPos);
+					const double TotalDist = DistToPrev + DistToNext;
+
+					double Alpha = 0.5;
+					if (TotalDist > 1e-9)
+					{
+						Alpha = DistToPrev / TotalDist;
+					}
+
+					const FTransform& PrevTransform = Result.Transforms[PrevValid];
+					const FTransform& NextTransform = Result.Transforms[NextValid];
+
+					// Interpolate Z
+					const double Z = FMath::Lerp(PrevTransform.GetLocation().Z, NextTransform.GetLocation().Z, Alpha);
+					Result.Positions[InvalidIdx].Z = Z;
+
+					// Interpolate transform
+					FTransform Interp;
+					Interp.Blend(PrevTransform, NextTransform, Alpha);
+					Interp.SetLocation(Result.Positions[InvalidIdx]);
+					Result.Transforms[InvalidIdx] = Interp;
+				}
+				else if (PrevValid != InvalidIndex)
+				{
+					// Only have prev - use it directly
+					const double Z = Result.Transforms[PrevValid].GetLocation().Z;
+					Result.Positions[InvalidIdx].Z = Z;
+
+					FTransform Copy = Result.Transforms[PrevValid];
+					Copy.SetLocation(Result.Positions[InvalidIdx]);
+					Result.Transforms[InvalidIdx] = Copy;
+				}
+				else if (NextValid != InvalidIndex)
+				{
+					// Only have next - use it directly
+					const double Z = Result.Transforms[NextValid].GetLocation().Z;
+					Result.Positions[InvalidIdx].Z = Z;
+
+					FTransform Copy = Result.Transforms[NextValid];
+					Copy.SetLocation(Result.Positions[InvalidIdx]);
+					Result.Transforms[InvalidIdx] = Copy;
+				}
+				// else: no valid sources, keep default Z=0
+			}
+		}
+
+		return Result;
+	}
+
+	FContourResult3D FContourUtils::ConvertTo3D(
+		const FPolyline& Polyline2D,
+		const TArray<FInputPoint>& SourcePoints,
+		bool bClosed)
+	{
+		// Build temporary root paths map for legacy API
+		TMap<int32, FRootPath> RootPaths;
+
+		if (!SourcePoints.IsEmpty())
+		{
+			// Group points by PathId
+			TMap<int32, TArray<const FInputPoint*>> PointsByPath;
+			for (const FInputPoint& Pt : SourcePoints)
+			{
+				PointsByPath.FindOrAdd(Pt.PathId).Add(&Pt);
+			}
+
+			for (auto& Pair : PointsByPath)
+			{
+				FRootPath Path(Pair.Key, bClosed);
+				for (const FInputPoint* Pt : Pair.Value)
+				{
+					Path.Points.Add(*Pt);
+				}
+				RootPaths.Add(Pair.Key, MoveTemp(Path));
+			}
+		}
+
+		return ConvertTo3D(Polyline2D, RootPaths);
 	}
 }

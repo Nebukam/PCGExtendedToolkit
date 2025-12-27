@@ -75,35 +75,63 @@ namespace PCGExCavalierOffset
 
 		const bool bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->Source);
 
-		TArray<PCGExCavalier::FInputPoint> InputPoints;
-		InputPoints.Reserve(InNumVertices);
+		// Create a root path with proper indexing
+		// Use a unique PathId if you have multiple paths, or 0 for single path workflows
+		const int32 PathId = 0; // Or: PointDataFacade->Source->GetUniqueID()
+
+		PCGExCavalier::FRootPath RootPath(PathId, bClosedLoop);
+		RootPath.Reserve(InNumVertices);
 
 		for (const FTransform& InTransform : InTransforms)
 		{
-			InputPoints.Emplace(InTransform);
+			RootPath.AddPoint(InTransform); // Automatically sets PathId and PointIndex
 		}
 
-		PCGExCavalier::FPolyline Polyline = PCGExCavalier::FPolyline::FromInputPoints(InputPoints, bClosedLoop);
+		// Create polyline from root path
+		PCGExCavalier::FPolyline Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(RootPath);
+
+		// Build lookup map for 3D conversion
+		RootPaths.Add(PathId, MoveTemp(RootPath));
+
+		// Run offset
 		TArray<PCGExCavalier::FPolyline> OutputLines = PCGExCavalier::Offset::ParallelOffset(Polyline, OffsetValue, Settings->OffsetOptions);
 
 		for (PCGExCavalier::FPolyline& Line : OutputLines)
 		{
-			const int32 OutNumVertices = Line.GetVertices().Num();
-
-			if (OutNumVertices < 2) { continue; }
-
-			TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
-			PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), OutNumVertices, EPCGPointNativeProperties::Transform);
-
-			TPCGValueRange<FTransform> OutTransforms = PathIO->GetOut()->GetTransformValueRange();
-			for (int i = 0; i < OutNumVertices; i++)
+			if (Settings->bTessellateArcs)
 			{
-				FTransform& OutTransform = OutTransforms[i];
-				OutTransform.SetLocation(FVector(Line.GetVertices()[i].X, Line.GetVertices()[i].Y, 0));
+				PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
+				OutputPolyline(TessellatedLine);
+			}
+			else
+			{
+				OutputPolyline(Line);
 			}
 		}
 
 		return true;
+	}
+
+	void FProcessor::OutputPolyline(PCGExCavalier::FPolyline& Polyline)
+	{
+		const int32 OutNumVertices = Polyline.VertexCount();
+		if (OutNumVertices < 2) { return; }
+
+		// Convert back to 3D with proper Z and transform interpolation
+		PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(Polyline, RootPaths);
+
+		TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(
+			PointDataFacade->Source, PCGExData::EIOInit::New);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), OutNumVertices, EPCGPointNativeProperties::Transform);
+
+		TPCGValueRange<FTransform> OutTransforms = PathIO->GetOut()->GetTransformValueRange();
+		for (int32 i = 0; i < OutNumVertices; i++)
+		{
+			// Full transform with proper Z, rotation, and scale from source
+			OutTransforms[i] = Result3D.Transforms[i];
+		}
+
+		PCGExPaths::Helpers::SetClosedLoop(PathIO, Polyline.IsClosed());
 	}
 }
 
