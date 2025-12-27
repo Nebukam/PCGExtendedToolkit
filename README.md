@@ -77,5 +77,6 @@ This software is provided under the MIT License. It is freely available for use 
 - [@MaximeDup](https://github.com/MaximeDup) & [@EmSeta](https://github.com/EmSeta) for helping with the macOS version
 - And of course the contributors, but they have their own special place on the sidebar <3
 
-### Third party
+### Third party & Credits
 - This plugin includes [delaunator-cpp](https://github.com/delfrrr/delaunator-cpp)
+- The `PCGExElementsCavalierContours` module includes a C++ modified port of the [cavalier_contours](https://github.com/jbuckmccready/cavalier_contours) Rust library created by jbuckmccready

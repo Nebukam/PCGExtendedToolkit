@@ -6,6 +6,8 @@
 #include "Core/PCGExCCOffset.h"
 #include "Core/PCGExCCPolyline.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Math/PCGExBestFitPlane.h"
@@ -96,15 +98,18 @@ namespace PCGExCavalierOffset
 
 			for (PCGExCavalier::FPolyline& Line : OutputLines)
 			{
+				TSharedPtr<PCGExData::FPointIO> IO = nullptr;
 				if (Settings->bTessellateArcs)
 				{
 					PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
-					OutputPolyline(TessellatedLine);
+					IO = OutputPolyline(TessellatedLine);
 				}
 				else
 				{
-					OutputPolyline(Line);
+					IO = OutputPolyline(Line);
 				}
+
+				ProcessOutput(IO, i, false);
 			}
 		}
 
@@ -116,15 +121,18 @@ namespace PCGExCavalierOffset
 
 				for (PCGExCavalier::FPolyline& Line : OutputLines)
 				{
+					TSharedPtr<PCGExData::FPointIO> IO = nullptr;
 					if (Settings->bTessellateArcs)
 					{
 						PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
-						OutputPolyline(TessellatedLine);
+						IO = OutputPolyline(TessellatedLine);
 					}
 					else
 					{
-						OutputPolyline(Line);
+						IO = OutputPolyline(Line);
 					}
+
+					ProcessOutput(IO, i, true);
 				}
 			}
 		}
@@ -132,27 +140,53 @@ namespace PCGExCavalierOffset
 		return true;
 	}
 
-	void FProcessor::OutputPolyline(PCGExCavalier::FPolyline& Polyline)
+	TSharedPtr<PCGExData::FPointIO> FProcessor::OutputPolyline(PCGExCavalier::FPolyline& Polyline)
 	{
 		const int32 OutNumVertices = Polyline.VertexCount();
-		if (OutNumVertices < 2) { return; }
+		if (OutNumVertices < 2) { return nullptr; }
 
 		// Convert back to 3D with proper Z and transform interpolation
 		PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(Polyline, RootPaths, Settings->bBlendTransforms);
 
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
-		if (!PathIO) { return; }
+		if (!PathIO) { return nullptr; }
 
-		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), OutNumVertices, EPCGPointNativeProperties::Transform);
+		EPCGPointNativeProperties Allocations = PointDataFacade->GetAllocations() | EPCGPointNativeProperties::Transform;
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), OutNumVertices, Allocations);
+		TArray<int32>& IdxMapping = PathIO->GetIdxMapping(OutNumVertices);
 
 		TPCGValueRange<FTransform> OutTransforms = PathIO->GetOut()->GetTransformValueRange();
+		int32 LastValidIndex = -1;
 		for (int32 i = 0; i < OutNumVertices; i++)
 		{
+			const int32 OriginalIndex = Result3D.GetPointIndex(i);
+			if (OriginalIndex != INDEX_NONE)
+			{
+				LastValidIndex = OriginalIndex;
+				IdxMapping[i] = OriginalIndex;
+			}
+			else
+			{
+				IdxMapping[i] = LastValidIndex;
+			}
+
 			// Full transform with proper Z, rotation, and scale from source
-			OutTransforms[i] = ProjectionDetails.Restore(Result3D.Transforms[i], Result3D.GetPointIndex(i));
+			OutTransforms[i] = ProjectionDetails.Restore(Result3D.Transforms[i], OriginalIndex);
 		}
 
+		EnumRemoveFlags(Allocations, EPCGPointNativeProperties::Transform);
+		PathIO->ConsumeIdxMapping(Allocations);
+
 		PCGExPaths::Helpers::SetClosedLoop(PathIO, Polyline.IsClosed());
+		return PathIO;
+	}
+
+	void FProcessor::ProcessOutput(const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Iteration, const bool bDual) const
+	{
+		if (!IO) { return; }
+		if (Settings->bWriteIteration) { PCGExData::Helpers::SetDataValue(IO->GetOut(), Settings->IterationAttributeName, Iteration); }
+		if (Settings->bTagIteration) { IO->Tags->Set(Settings->IterationTag, Iteration); }
+		if (Settings->bTagDual && bDual) { IO->Tags->AddRaw(Settings->DualTag); }
 	}
 }
 

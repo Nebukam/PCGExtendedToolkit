@@ -18,17 +18,10 @@ namespace PCGExCavalier
 	class FPolyline;
 }
 
-namespace PCGExPaths
-{
-	class FPathEdgeHalfAngle;
-	class FPath;
-	struct FPathEdgeCrossings;
-}
-
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/offset"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/cavalier-contours/cavalier-offset"))
 class UPCGExCavalierOffsetSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -80,6 +73,30 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bAddFuzzinessToPositions = false;
 	
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
+	bool bWriteIteration = false;
+
+	/** Write the iteration index to a data attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bWriteIteration"))
+	FString IterationAttributeName = TEXT("@Data.Iteration");
+	
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
+	bool bTagIteration = false;
+
+	/** Write the iteration index to a tag */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIteration"))
+	FString IterationTag = TEXT("OffsetNum");
+	
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
+	bool bTagDual = false;
+
+	/** Write this tag on the dual offsets */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIteration"))
+	FString DualTag = TEXT("Dual");
+	
 };
 
 struct FPCGExCavalierOffsetContext final : FPCGExPathProcessorContext
@@ -116,6 +133,7 @@ namespace PCGExCavalierOffset
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		void OutputPolyline(PCGExCavalier::FPolyline& Polyline);
+		TSharedPtr<PCGExData::FPointIO> OutputPolyline(PCGExCavalier::FPolyline& Polyline);
+		void ProcessOutput(const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Iteration, const bool bDual) const;
 	};
 }

@@ -21,19 +21,19 @@ struct PCGEXELEMENTSCAVALIERCONTOURS_API FPCGExCCArcTessellationSettings
 	EPCGExCCArcTessellationMode Mode = EPCGExCCArcTessellationMode::DistanceBased;
 
 	/** Number of segments per arc (used when Mode is FixedCount) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::FixedCount", ClampMin = "1", ClampMax = "256"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::FixedCount", ClampMin = "1", ClampMax = "1024", EditConditionHide))
 	int32 FixedSegmentCount = 8;
 
 	/** Target maximum distance between points on arc (used when Mode is DistanceBased) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::DistanceBased", ClampMin = "0.001"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::DistanceBased", ClampMin = "0.001", EditConditionHide))
 	double TargetSegmentLength = 1.0;
 
 	/** Minimum number of segments per arc (used when Mode is DistanceBased) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::DistanceBased", ClampMin = "1"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::DistanceBased", ClampMin = "1", EditConditionHide))
 	int32 MinSegmentCount = 2;
 
 	/** Maximum number of segments per arc (used when Mode is DistanceBased) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::DistanceBased", ClampMin = "1"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tessellation", meta = (EditCondition = "Mode == EPCGExCCArcTessellationMode::DistanceBased", ClampMin = "1", EditConditionHide))
 	int32 MaxSegmentCount = 128;
 
 	/** Calculate number of segments for a given arc length */

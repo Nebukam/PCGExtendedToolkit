@@ -34,14 +34,9 @@ enum class EPCGExCCArcTessellationMode : uint8
 UENUM(BlueprintType)
 enum class EPCGExCCOrientation : uint8
 {
-	/** Polyline is open */
-	Open UMETA(DisplayName = "Open"),
-
-	/** Polyline is closed and directionally clockwise */
-	Clockwise UMETA(DisplayName = "Clockwise"),
-
-	/** Polyline is closed and directionally counter-clockwise */
-	CounterClockwise UMETA(DisplayName = "Counter Clockwise")
+	Open UMETA(DisplayName = "Open", ToolTip="Open path"),
+	Clockwise UMETA(DisplayName = "Clockwise", ToolTip="Closed & Clockwise path"),
+	CounterClockwise UMETA(DisplayName = "Counter Clockwise", ToolTip="Closed & Clockwise path"),
 };
 
 /**
@@ -50,22 +45,14 @@ enum class EPCGExCCOrientation : uint8
 UENUM(BlueprintType)
 enum class EPCGExCCBooleanOp : uint8
 {
-	/** Union of the polylines */
-	Union UMETA(DisplayName = "Union"),
-
-	/** Intersection of the polylines */
-	Intersection UMETA(DisplayName = "Intersection"),
-
-	/** Difference (subtraction) of polylines */
-	Difference UMETA(DisplayName = "Difference"),
-
-	/** Exclusive OR between polylines */
-	Xor UMETA(DisplayName = "XOR")
+	Union UMETA(DisplayName = "Union", ToolTip = "Union of the paths"),
+	Intersection UMETA(DisplayName = "Intersection", ToolTip = "Intersection of the paths"),
+	Difference UMETA(DisplayName = "Difference", ToolTip = "Difference (substraction) of the paths"),
+	Xor UMETA(DisplayName = "XOR", ToolTip="Exclusive OR between paths")
 };
 
 namespace PCGExCavalier
 {
-
 	/**
 	 * Tracks the origin of a vertex back to its root path and point.
 	 * Used for mapping output vertices back to their source data after
