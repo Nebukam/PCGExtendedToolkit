@@ -63,10 +63,7 @@ namespace PCGExCavalier::ShapeOffset
 		TArray<FOffsetLoop> CWOffsetLoops;
 		CreateOffsetLoopsWithIndex(Offset, Options, CCWOffsetLoops, CWOffsetLoops);
 
-		if (CCWOffsetLoops.IsEmpty() && CWOffsetLoops.IsEmpty())
-		{
-			return FShape::Empty();
-		}
+		if (CCWOffsetLoops.IsEmpty() && CWOffsetLoops.IsEmpty()) { return FShape::Empty(); }
 
 		// Step 2: Find intersections between offset loops
 		TArray<FSlicePointSet> SlicePointSets;
@@ -74,14 +71,10 @@ namespace PCGExCavalier::ShapeOffset
 
 		// Step 3: Create valid slices from intersection points
 		TArray<FDissectedSlice> SlicesData;
-		CreateValidSlicesFromIntersects(
-			CCWOffsetLoops, CWOffsetLoops,
-			SlicePointSets, Offset, Options, SlicesData);
+		CreateValidSlicesFromIntersects(CCWOffsetLoops, CWOffsetLoops, SlicePointSets, Offset, Options, SlicesData);
 
 		// Step 4: Stitch slices together
-		return StitchSlicesTogether(
-			SlicesData, CCWOffsetLoops, CWOffsetLoops,
-			Options.PosEqualEps, Options.SliceJoinEps);
+		return StitchSlicesTogether(SlicesData, CCWOffsetLoops, CWOffsetLoops, Options.PosEqualEps, Options.SliceJoinEps);
 	}
 
 	void FShape::CreateOffsetLoopsWithIndex(
@@ -94,75 +87,41 @@ namespace PCGExCavalier::ShapeOffset
 		OffsetOpts.PositionEqualEpsilon = Options.PosEqualEps;
 		OffsetOpts.OffsetDistanceEpsilon = Options.OffsetDistEps;
 		OffsetOpts.SliceJoinEpsilon = Options.SliceJoinEps;
-		OffsetOpts.bHandleSelfIntersects = false; // Shape handles intersects differently
 
-		int32 ParentIdx = 0;
+		// FIX: Set this to TRUE. Individual loops must be self-resolved 
+		// before inter-loop intersections are calculated.
+		OffsetOpts.bHandleSelfIntersects = true;
 
-		// Process CCW polylines (positive area / outer boundaries)
-		for (int32 i = 0; i < CCWPolylines.Num(); ++i)
+		auto ProcessPolylineList = [&](const TArray<FIndexedPolyline>& SourceList, const TArray<int32>& IdList, int32& StartParentIdx)
 		{
-			const FIndexedPolyline& IPline = CCWPolylines[i];
-			const int32 PathId = i < CCWPathIds.Num() ? CCWPathIds[i] : i;
-
-			TArray<FPolyline> OffsetResults = Offset::ParallelOffset(IPline.Polyline, Offset, OffsetOpts);
-
-			for (FPolyline& OffsetPline : OffsetResults)
+			for (int32 i = 0; i < SourceList.Num(); ++i)
 			{
-				const double Area = OffsetPline.Area();
+				const int32 PathId = i < IdList.Num() ? IdList[i] : StartParentIdx;
 
-				// Check if orientation inverted (collapsed narrow input)
-				// Skip if inversion happened (CCW became CW while offsetting inward)
-				if (Offset > 0.0 && Area < 0.0)
-				{
-					continue;
-				}
+				// Generate offset for single polyline
+				TArray<FPolyline> OffsetResults = Offset::ParallelOffset(SourceList[i].Polyline, Offset, OffsetOpts);
 
-				OffsetPline.SetPrimaryPathId(PathId);
+				for (FPolyline& OffsetPline : OffsetResults)
+				{
+					const double Area = OffsetPline.Area();
+					// Skip collapsed loops where orientation flipped incorrectly
+					if ((Offset > 0.0 && Area < 0.0 && SourceList[i].Polyline.Area() > 0.0) ||
+						(Offset < 0.0 && Area > 0.0 && SourceList[i].Polyline.Area() < 0.0))
+					{
+						continue;
+					}
 
-				if (Area < 0.0)
-				{
-					OutCWOffsetLoops.Add(FOffsetLoop(ParentIdx, PathId, MoveTemp(OffsetPline)));
+					OffsetPline.SetPrimaryPathId(PathId);
+					if (Area < 0.0) { OutCWOffsetLoops.Add(FOffsetLoop(StartParentIdx, PathId, MoveTemp(OffsetPline))); }
+					else { OutCCWOffsetLoops.Add(FOffsetLoop(StartParentIdx, PathId, MoveTemp(OffsetPline))); }
 				}
-				else
-				{
-					OutCCWOffsetLoops.Add(FOffsetLoop(ParentIdx, PathId, MoveTemp(OffsetPline)));
-				}
+				StartParentIdx++;
 			}
-			++ParentIdx;
-		}
+		};
 
-		// Process CW polylines (negative area / holes)
-		for (int32 i = 0; i < CWPolylines.Num(); ++i)
-		{
-			const FIndexedPolyline& IPline = CWPolylines[i];
-			const int32 PathId = i < CWPathIds.Num() ? CWPathIds[i] : CCWPolylines.Num() + i;
-
-			TArray<FPolyline> OffsetResults = Offset::ParallelOffset(IPline.Polyline, Offset, OffsetOpts);
-
-			for (FPolyline& OffsetPline : OffsetResults)
-			{
-				const double Area = OffsetPline.Area();
-
-				// Check if orientation inverted (collapsed narrow input)
-				// Skip if inversion happened (CW became CCW while offsetting inward)
-				if (Offset < 0.0 && Area > 0.0)
-				{
-					continue;
-				}
-
-				OffsetPline.SetPrimaryPathId(PathId);
-
-				if (Area < 0.0)
-				{
-					OutCWOffsetLoops.Add(FOffsetLoop(ParentIdx, PathId, MoveTemp(OffsetPline)));
-				}
-				else
-				{
-					OutCCWOffsetLoops.Add(FOffsetLoop(ParentIdx, PathId, MoveTemp(OffsetPline)));
-				}
-			}
-			++ParentIdx;
-		}
+		int32 GlobalParentIdx = 0;
+		ProcessPolylineList(CCWPolylines, CCWPathIds, GlobalParentIdx);
+		ProcessPolylineList(CWPolylines, CWPathIds, GlobalParentIdx);
 	}
 
 	void FShape::FindIntersectsBetweenOffsetLoops(
@@ -386,83 +345,71 @@ namespace PCGExCavalier::ShapeOffset
 	{
 		const FPolyline& LoopPline = OffsetLoop.Polyline;
 		const int32 VertCount = LoopPline.VertexCount();
+		// In Rust, vertex_count() on a view is (EndIndexOffset + 1)
+		const int32 NumPoints = Slice.EndIndexOffset + 1;
 
-		// Compute midpoint of slice to test
-		FVector2D MidPt1;
-		TOptional<FVector2D> MidPt2;
-
-		const int32 SliceVertCount = Slice.EndIndexOffset + 1;  // Number of vertices in slice
-
-		if (SliceVertCount > 3)
+		// Helper to retrieve vertices as if the slice were its own polyline
+		auto GetViewVertex = [&](int32 ViewIdx) -> FVertex
 		{
-			// Use segment midpoint from index 1 to 2 (avoids intersection-created segments at start/end)
-			const int32 Idx1 = (Slice.StartIndex + 1) % VertCount;
-			const int32 Idx2 = (Slice.StartIndex + 2) % VertCount;
-			MidPt1 = Math::SegmentMidpoint(LoopPline.GetVertex(Idx1), LoopPline.GetVertex(Idx2));
+			if (ViewIdx == 0) return Slice.UpdatedStart;
+			if (ViewIdx == Slice.EndIndexOffset) return FVertex(Slice.EndPoint, 0.0);
+
+			const int32 RealIdx = (Slice.StartIndex + ViewIdx) % VertCount;
+			return LoopPline.GetVertex(RealIdx);
+		};
+
+		FVector2D Midpoint1;
+		TOptional<FVector2D> Midpoint2;
+
+		// Replicate Rust logic: Avoid intersection points at start/end if possible
+		if (NumPoints > 3)
+		{
+			// Use segment from index 1 to 2
+			const FVertex V1 = GetViewVertex(1);
+			const FVertex V2 = GetViewVertex(2);
+			Midpoint1 = Math::ArcMidpoint(V1.GetPosition(), V2.GetPosition(), V1.Bulge);
 		}
-		else if (SliceVertCount == 3)
+		else if (NumPoints == 3)
 		{
-			// Test both segment midpoints
-			const int32 Idx0 = Slice.StartIndex;
-			const int32 Idx1 = (Slice.StartIndex + 1) % VertCount;
-			const int32 Idx2 = (Slice.StartIndex + 2) % VertCount;
-			MidPt1 = Math::SegmentMidpoint(LoopPline.GetVertex(Idx0), LoopPline.GetVertex(Idx1));
-			MidPt2 = Math::SegmentMidpoint(LoopPline.GetVertex(Idx1), LoopPline.GetVertex(Idx2));
+			// Exactly 2 segments: test both midpoints
+			const FVertex V0 = GetViewVertex(0);
+			const FVertex V1 = GetViewVertex(1);
+			const FVertex V2 = GetViewVertex(2);
+			Midpoint1 = Math::ArcMidpoint(V0.GetPosition(), V1.GetPosition(), V0.Bulge);
+			Midpoint2 = Math::ArcMidpoint(V1.GetPosition(), V2.GetPosition(), V1.Bulge);
 		}
 		else
 		{
-			// Only 2 vertices - use the segment midpoint
-			// The bulge on UpdatedStart defines the arc from start to end
-			MidPt1 = Math::SegmentMidpoint(Slice.UpdatedStart, FVertex(Slice.EndPoint, 0.0));
+			// Only 1 segment: use its midpoint
+			const FVertex V0 = GetViewVertex(0);
+			const FVertex V1 = GetViewVertex(1);
+			Midpoint1 = Math::ArcMidpoint(V0.GetPosition(), V1.GetPosition(), V0.Bulge);
 		}
 
+		const int32 TotalInputLoops = CCWPolylines.Num() + CWPolylines.Num();
 		const int32 ParentIdx = OffsetLoop.ParentLoopIdx;
 		const double AbsOffset = FMath::Abs(Offset);
 
-		// Check against all input polylines (skipping parent)
-		for (int32 i = 0; i < CCWPolylines.Num(); ++i)
+		// Filter out parent_idx as per Rust logic
+		for (int32 i = 0; i < TotalInputLoops; ++i)
 		{
 			if (i == ParentIdx) continue;
 
-			if (!Offset::Internal::PointValidForOffset(
-				CCWPolylines[i].Polyline,
-				CCWPolylines[i].SpatialIndex,
-				AbsOffset, MidPt1,
-				Options.PosEqualEps, Options.OffsetDistEps))
-			{
-				return false;
-			}
-    
-			// Check second midpoint if present
-			if (MidPt2.IsSet() && !Offset::Internal::PointValidForOffset(
-				CCWPolylines[i].Polyline,
-				CCWPolylines[i].SpatialIndex,
-				AbsOffset, MidPt2.GetValue(),
-				Options.PosEqualEps, Options.OffsetDistEps))
-			{
-				return false;
-			}
-		}
+			const FIndexedPolyline& Target = (i < CCWPolylines.Num())
+				                                 ? CCWPolylines[i]
+				                                 : CWPolylines[i - CCWPolylines.Num()];
 
-		for (int32 i = 0; i < CWPolylines.Num(); ++i)
-		{
-			const int32 AdjustedIdx = CCWPolylines.Num() + i;
-			if (AdjustedIdx == ParentIdx) continue;
-
+			// Check first midpoint
 			if (!Offset::Internal::PointValidForOffset(
-				CWPolylines[i].Polyline,
-				CWPolylines[i].SpatialIndex,
-				AbsOffset, MidPt1,
+				Target.Polyline, Target.SpatialIndex, AbsOffset, Midpoint1,
 				Options.PosEqualEps, Options.OffsetDistEps))
 			{
 				return false;
 			}
-    
-			// Check second midpoint if present
-			if (MidPt2.IsSet() && !Offset::Internal::PointValidForOffset(
-				CWPolylines[i].Polyline,
-				CWPolylines[i].SpatialIndex,
-				AbsOffset, MidPt2.GetValue(),
+
+			// Check second midpoint if it exists
+			if (Midpoint2.IsSet() && !Offset::Internal::PointValidForOffset(
+				Target.Polyline, Target.SpatialIndex, AbsOffset, Midpoint2.GetValue(),
 				Options.PosEqualEps, Options.OffsetDistEps))
 			{
 				return false;

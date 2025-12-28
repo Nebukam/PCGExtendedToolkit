@@ -115,6 +115,25 @@ namespace PCGExCavalier
 			return FVector2D((P0.X + P1.X) / 2.0, (P0.Y + P1.Y) / 2.0);
 		}
 
+		/** 
+		 * Calculates the midpoint of an arc defined by two points and a bulge. 
+		 * 
+		 */
+		FORCEINLINE FVector2D ArcMidpoint(const FVector2D& P1, const FVector2D& P2, double Bulge)
+		{
+			if (FMath::IsNearlyZero(Bulge, 1e-8)) { return (P1 + P2) * 0.5; }
+
+			const FVector2D Chord = P2 - P1;
+			const double Dist = Chord.Size();
+			if (FMath::IsNearlyZero(Dist)) { return P1; }
+
+			const FVector2D ChordMid = (P1 + P2) * 0.5;
+			const FVector2D Perp = FVector2D(-Chord.Y, Chord.X) / Dist;
+			const double Sagitta = (Dist * 0.5) * Bulge;
+
+			return ChordMid + (Perp * Sagitta);
+		}
+
 		/**
 		 * Point on circle at given angle
 		 */
