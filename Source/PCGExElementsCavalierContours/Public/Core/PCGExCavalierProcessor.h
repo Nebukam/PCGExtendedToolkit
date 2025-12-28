@@ -45,7 +45,7 @@ public:
 
 	/** If enabled, output negative space (holes) as separate paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
-	bool bOutputNegativeSpace = false;
+	bool bOutputNegativeSpace = true;
 
 	/** Tag to apply to negative space outputs */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bOutputNegativeSpace"))

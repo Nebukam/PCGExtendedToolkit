@@ -23,7 +23,7 @@ namespace PCGExCavalier
  * Applies parallel offset to a set of polylines that form a shape (outer boundaries with holes).
  * Unlike the regular Offset node, this handles interactions between multiple polylines.
  */
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/cavalier-contours/cavalier-parallel-offset"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/cavalier-contours/cavalier-parallel-offset"))
 class UPCGExCavalierParallelOffsetSettings : public UPCGExCavalierProcessorSettings
 {
 	GENERATED_BODY()
@@ -31,7 +31,7 @@ class UPCGExCavalierParallelOffsetSettings : public UPCGExCavalierProcessorSetti
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(CavalierParallelOffset, "Cavalier : Parallel Offset (Shape)", "Applies parallel offset to a shape composed of multiple polylines (supports holes).");
+	PCGEX_NODE_INFOS(CavalierParallelOffset, "Cavalier : Offset (Shape)", "Applies parallel offset to a shape composed of multiple polylines (supports holes).");
 #endif
 
 protected:
