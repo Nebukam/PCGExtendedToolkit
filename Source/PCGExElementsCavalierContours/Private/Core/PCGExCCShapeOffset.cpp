@@ -196,6 +196,98 @@ namespace PCGExCavalier::ShapeOffset
 	{
 		const int32 TotalLoops = CCWOffsetLoops.Num() + CWOffsetLoops.Num();
 
+		// Dissection point structure
+		struct FDissectionPoint
+		{
+			int32 SegIdx;
+			FVector2D Pos;
+		};
+
+		// 1. Build a map of all intersection points for each loop
+		TMap<int32, TArray<FDissectionPoint>> LoopPointsMap;
+		for (const FSlicePointSet& Set : SlicePointSets)
+		{
+			for (const FBasicIntersect& Intr : Set.SlicePoints)
+			{
+				// Add to Loop1
+				FDissectionPoint& DP1 = LoopPointsMap.FindOrAdd(Set.LoopIdx1).AddDefaulted_GetRef();
+				DP1.SegIdx = Intr.StartIndex1;
+				DP1.Pos = Intr.Point;
+
+				// Add to Loop2
+				FDissectionPoint& DP2 = LoopPointsMap.FindOrAdd(Set.LoopIdx2).AddDefaulted_GetRef();
+				DP2.SegIdx = Intr.StartIndex2;
+				DP2.Pos = Intr.Point;
+			}
+		}
+
+		for (int32 LoopIdx = 0; LoopIdx < TotalLoops; ++LoopIdx)
+		{
+			const FOffsetLoop& CurrLoop = GetLoop(LoopIdx, CCWOffsetLoops, CWOffsetLoops);
+			const FPolyline& LoopPline = CurrLoop.Polyline;
+			const int32 VertCount = LoopPline.VertexCount();
+
+			TArray<FDissectionPoint>* Points = LoopPointsMap.Find(LoopIdx);
+			if (!Points || Points->Num() == 0)
+			{
+				// NO INTERSECTIONS: Test the whole loop as a single slice
+				FDissectedSlice Slice(LoopIdx, 0, VertCount, LoopPline.GetVertex(0));
+				Slice.EndPoint = LoopPline.GetVertex(0).GetPosition();
+				if (IsSliceValid(Slice, CurrLoop, Offset, Options)) { OutSlicesData.Add(MoveTemp(Slice)); }
+				continue;
+			}
+
+			// 2. SORT and DEDUPLICATE points along the loop direction
+			Points->Sort([&LoopPline](const FDissectionPoint& A, const FDissectionPoint& B)
+			{
+				if (A.SegIdx != B.SegIdx) return A.SegIdx < B.SegIdx;
+				return FVector2D::DistSquared(LoopPline.GetVertex(A.SegIdx).GetPosition(), A.Pos) <
+					FVector2D::DistSquared(LoopPline.GetVertex(B.SegIdx).GetPosition(), B.Pos);
+			});
+
+			for (int32 i = Points->Num() - 1; i > 0; --i)
+			{
+				if (FVector2D::DistSquared((*Points)[i].Pos, (*Points)[i - 1].Pos) < FMath::Square(Options.PosEqualEps))
+					Points->RemoveAt(i);
+			}
+
+			// 3. SHRED: Create slices between consecutive intersection points
+			auto CreateSlice = [&](const FDissectionPoint& Start, const FDissectionPoint& End)
+			{
+				FDissectedSlice Slice;
+				Slice.SourceIdx = LoopIdx;
+				Slice.StartIndex = Start.SegIdx;
+				Slice.UpdatedStart = FVertex(Start.Pos, LoopPline.GetVertex(Start.SegIdx).Bulge);
+				Slice.EndPoint = End.Pos;
+
+				int32 Span = End.SegIdx - Start.SegIdx;
+				if (Span < 0) Span += VertCount;
+				Slice.EndIndexOffset = Span;
+
+				if (IsSliceValid(Slice, CurrLoop, Offset, Options)) { OutSlicesData.Add(MoveTemp(Slice)); }
+			};
+
+			// Internal slices
+			for (int32 i = 0; i < Points->Num() - 1; ++i)
+			{
+				CreateSlice((*Points)[i], (*Points)[i + 1]);
+			}
+			// Wrap-around slice (from last intersection back to the first)
+			CreateSlice(Points->Last(), (*Points)[0]);
+		}
+	}
+
+	/*
+	void FShape::CreateValidSlicesFromIntersects(
+		const TArray<FOffsetLoop>& CCWOffsetLoops,
+		const TArray<FOffsetLoop>& CWOffsetLoops,
+		const TArray<FSlicePointSet>& SlicePointSets,
+		double Offset,
+		const FShapeOffsetOptions& Options,
+		TArray<FDissectedSlice>& OutSlicesData) const
+	{
+		const int32 TotalLoops = CCWOffsetLoops.Num() + CWOffsetLoops.Num();
+
 		// Build lookup: loop index -> list of slice point set indices
 		TMap<int32, TArray<int32>> SlicePointsLookup;
 		for (int32 SetIdx = 0; SetIdx < SlicePointSets.Num(); ++SetIdx)
@@ -336,6 +428,7 @@ namespace PCGExCavalier::ShapeOffset
 			}
 		}
 	}
+	*/
 
 	bool FShape::IsSliceValid(
 		const FDissectedSlice& Slice,
@@ -418,7 +511,7 @@ namespace PCGExCavalier::ShapeOffset
 
 		return true;
 	}
-
+	
 	FShape FShape::StitchSlicesTogether(
 		TArray<FDissectedSlice>& SlicesData,
 		const TArray<FOffsetLoop>& CCWOffsetLoops,
@@ -466,6 +559,29 @@ namespace PCGExCavalier::ShapeOffset
 					CurrentPline.AddOrReplaceVertex(SourcePline.GetVertex(Idx), PosEqualEps);
 				}
 
+				// IMPORTANT: If the slice ends at a custom EndPoint (not a vertex), 
+				// we must set the bulge on the last added vertex to point to that EndPoint.
+				if (CurrSlice.EndIndexOffset >= 0) {
+					FVertex LastV = CurrentPline.LastVertex();
+    
+					// Recalculate bulge from LastV.Pos to CurrSlice.EndPoint 
+					// to ensure it follows the original arc curvature.
+					if (!SourcePline.GetVertexWrapped(CurrSlice.StartIndex + CurrSlice.EndIndexOffset).IsLine()) {
+						const FVertex& OrigV = SourcePline.GetVertexWrapped(CurrSlice.StartIndex + CurrSlice.EndIndexOffset);
+						const FVertex& OrigVNext = SourcePline.GetVertexWrapped(CurrSlice.StartIndex + CurrSlice.EndIndexOffset + 1);
+        
+						auto Split = Offset::Internal::SegSplitAtPoint(OrigV, OrigVNext, LastV.GetPosition(), PosEqualEps);
+						auto FinalSplit = Offset::Internal::SegSplitAtPoint(Split.SplitVertex, OrigVNext, CurrSlice.EndPoint, PosEqualEps);
+        
+						LastV.Bulge = FinalSplit.UpdatedStart.Bulge;
+						CurrentPline.RemoveLastVertex();
+						CurrentPline.AddVertex(LastV);
+					}
+    
+					// Finally, add the EndPoint to close the slice
+					CurrentPline.AddOrReplaceVertex(FVertex(CurrSlice.EndPoint, 0.0), PosEqualEps);
+				}
+				
 				// Find connecting slice
 				const FVector2D EndPoint = CurrSlice.EndPoint;
 				int32 ConnectedSliceIdx = INDEX_NONE;

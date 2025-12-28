@@ -121,14 +121,20 @@ namespace PCGExCavalier
 		 */
 		FORCEINLINE FVector2D ArcMidpoint(const FVector2D& P1, const FVector2D& P2, double Bulge)
 		{
-			if (FMath::IsNearlyZero(Bulge, 1e-8)) { return (P1 + P2) * 0.5; }
+			// 1. Linear midpoint for straight lines (or near-zero arcs)
+			const FVector2D ChordMid = (P1 + P2) * 0.5;
+			if (FMath::IsNearlyZero(Bulge, 1e-8)) { return ChordMid; }
 
 			const FVector2D Chord = P2 - P1;
 			const double Dist = Chord.Size();
 			if (FMath::IsNearlyZero(Dist)) { return P1; }
 
-			const FVector2D ChordMid = (P1 + P2) * 0.5;
+			// 2. Perpendicular vector to the chord
+			// Positive bulge curves to the left of the direction P1 -> P2
 			const FVector2D Perp = FVector2D(-Chord.Y, Chord.X) / Dist;
+
+			// 3. Sagitta (distance from chord midpoint to arc midpoint)
+			// Formula: s = (ChordLength / 2) * Bulge
 			const double Sagitta = (Dist * 0.5) * Bulge;
 
 			return ChordMid + (Perp * Sagitta);
