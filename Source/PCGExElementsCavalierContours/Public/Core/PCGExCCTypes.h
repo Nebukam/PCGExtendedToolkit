@@ -5,13 +5,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Math/RandomStream.h"
 #include "PCGExCCTypes.generated.h"
 
 struct FPCGExGeo2DProjectionDetails;
 
 namespace PCGExData
 {
+	class FFacade;
 	class FPointIO;
 }
 
@@ -182,13 +182,10 @@ namespace PCGExCavalier
 		FVector GetPosition() const { return Transform.GetLocation(); }
 
 		/** Get 2D position (XY) */
-		FVector2D GetPosition2D(const bool bAddFuzziness = false) const
+		FVector2D GetPosition2D() const
 		{
 			const FVector Loc = Transform.GetLocation();
-			if (!bAddFuzziness) { return FVector2D(Loc.X, Loc.Y); }
-
-			FRandomStream RandomStream(PointIndex);
-			return FVector2D(Loc.X + RandomStream.FRandRange(-0.001, 0.001), Loc.Y + RandomStream.FRandRange(-0.001, 0.001));
+			return FVector2D(Loc.X, Loc.Y);
 		}
 
 		/** Get Z value */
@@ -387,14 +384,10 @@ namespace PCGExCavalier
 		/** Whether this path is closed */
 		bool bIsClosed = true;
 
+		TSharedPtr<PCGExData::FFacade> PathFacade = nullptr;
+
 		FRootPath() = default;
-
-		FRootPath(int32 InPathId, bool InClosed = true)
-			: PathId(InPathId), bIsClosed(InClosed)
-		{
-		}
-
-		FRootPath(const TSharedPtr<PCGExData::FPointIO> InIO, const FPCGExGeo2DProjectionDetails& InProjectionDetails);
+		FRootPath(const int32 InPathId, const TSharedPtr<PCGExData::FFacade>& InFacade, const FPCGExGeo2DProjectionDetails& InProjectionDetails);
 
 		/** Add a point to this path, automatically setting its PathId and PointIndex */
 		void AddPoint(const FVector& Position, bool bIsCorner = false, double CornerRadius = 0.0)

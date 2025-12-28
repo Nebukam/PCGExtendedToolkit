@@ -525,7 +525,7 @@ namespace PCGExCavalier
 	// FContourUtils
 
 
-	FPolyline FContourUtils::CreateFromInputPoints(const TArray<FInputPoint>& Points, const bool bClosed, const bool bAddFuzziness)
+	FPolyline FContourUtils::CreateFromInputPoints(const TArray<FInputPoint>& Points, const bool bClosed)
 	{
 		if (Points.IsEmpty()) { return FPolyline(bClosed); }
 
@@ -537,7 +537,7 @@ namespace PCGExCavalier
 		for (int32 i = 0; i < Points.Num(); ++i)
 		{
 			const FInputPoint& Current = Points[i];
-			const FVector2D CurrentPos = Current.GetPosition2D(bAddFuzziness);
+			const FVector2D CurrentPos = Current.GetPosition2D();
 
 			if (Current.bIsCorner && Current.CornerRadius > 0.0)
 			{
@@ -545,8 +545,8 @@ namespace PCGExCavalier
 				const FInputPoint& Prev = Points[(i - 1 + Points.Num()) % Points.Num()];
 				const FInputPoint& Next = Points[(i + 1) % Points.Num()];
 
-				const FVector2D PrevPos = Prev.GetPosition2D(bAddFuzziness);
-				const FVector2D NextPos = Next.GetPosition2D(bAddFuzziness);
+				const FVector2D PrevPos = Prev.GetPosition2D();
+				const FVector2D NextPos = Next.GetPosition2D();
 
 				const FVector2D ToPrev = (PrevPos - CurrentPos).GetSafeNormal();
 				const FVector2D ToNext = (NextPos - CurrentPos).GetSafeNormal();
@@ -583,9 +583,9 @@ namespace PCGExCavalier
 		return Result;
 	}
 
-	FPolyline FContourUtils::CreateFromRootPath(const FRootPath& RootPath, const bool bAddFuzziness)
+	FPolyline FContourUtils::CreateFromRootPath(const FRootPath& RootPath)
 	{
-		return CreateFromInputPoints(RootPath.Points, RootPath.bIsClosed, bAddFuzziness);
+		return CreateFromInputPoints(RootPath.Points, RootPath.bIsClosed);
 	}
 
 	FContourResult3D FContourUtils::ConvertTo3D(
@@ -634,6 +634,7 @@ namespace PCGExCavalier
 					LastSeenPointIndex.Add(V.Source.PathId, V.Source.PointIndex);
 				}
 			}
+
 
 			if (bIsAnchor && SourceTransform)
 			{
@@ -702,7 +703,7 @@ namespace PCGExCavalier
 			}
 
 
-			if (PrevValid != INDEX_NONE && NextValid != INDEX_NONE)
+			if (PrevValid != -1 && NextValid != -1)
 			{
 				double d1 = PathDistances[InvalidIdx] - PathDistances[PrevValid];
 				double d2 = PathDistances[NextValid] - PathDistances[InvalidIdx];
@@ -719,67 +720,13 @@ namespace PCGExCavalier
 
 				// Interpolate full transform for orientation/scale consistency
 
-				if (bBlendTransforms)
-				{
-					FTransform Interpolated = FTransform::Identity;
-					Interpolated.Blend(Result.Transforms[PrevValid], Result.Transforms[NextValid], Alpha);
-					Interpolated.SetLocation(Result.Positions[InvalidIdx]);
-					Result.Transforms[InvalidIdx] = Interpolated;
-				}
-				else
-				{
-					FTransform Copy = Result.Transforms[NextValid];
-					Copy.SetLocation(Result.Positions[InvalidIdx]);
-					Result.Transforms[InvalidIdx] = Copy;
-				}
-			}
-			else if (PrevValid != INDEX_NONE)
-			{
-				// Only have prev - use it directly
-				const double Z = Result.Transforms[PrevValid].GetLocation().Z;
-				Result.Positions[InvalidIdx].Z = Z;
-
-				FTransform Copy = Result.Transforms[PrevValid];
-				Copy.SetLocation(Result.Positions[InvalidIdx]);
-				Result.Transforms[InvalidIdx] = Copy;
-			}
-			else if (NextValid != INDEX_NONE)
-			{
-				// Only have next - use it directly
-				const double Z = Result.Transforms[NextValid].GetLocation().Z;
-				Result.Positions[InvalidIdx].Z = Z;
-
-				FTransform Copy = Result.Transforms[NextValid];
-				Copy.SetLocation(Result.Positions[InvalidIdx]);
-				Result.Transforms[InvalidIdx] = Copy;
+				FTransform Interpolated = FTransform::Identity;
+				Interpolated.Blend(Result.Transforms[PrevValid], Result.Transforms[NextValid], Alpha);
+				Interpolated.SetLocation(Result.Positions[InvalidIdx]);
+				Result.Transforms[InvalidIdx] = Interpolated;
 			}
 		}
 
 		return Result;
-	}
-
-	FContourResult3D FContourUtils::ConvertTo3D(
-		const FPolyline& Polyline2D,
-		const TArray<FInputPoint>& SourcePoints,
-		bool bClosed, const bool bBlendTransforms)
-	{
-		// Build temporary root paths map for legacy API
-		TMap<int32, FRootPath> RootPaths;
-
-		if (!SourcePoints.IsEmpty())
-		{
-			// Group points by PathId
-			TMap<int32, TArray<const FInputPoint*>> PointsByPath;
-			for (const FInputPoint& Pt : SourcePoints) { PointsByPath.FindOrAdd(Pt.PathId).Add(&Pt); }
-
-			for (auto& Pair : PointsByPath)
-			{
-				FRootPath Path(Pair.Key, bClosed);
-				for (const FInputPoint* Pt : Pair.Value) { Path.Points.Add(*Pt); }
-				RootPaths.Add(Pair.Key, MoveTemp(Path));
-			}
-		}
-
-		return ConvertTo3D(Polyline2D, RootPaths, bBlendTransforms);
 	}
 }

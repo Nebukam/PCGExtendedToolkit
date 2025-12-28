@@ -24,7 +24,7 @@ namespace PCGExCavalier::ShapeOffset
 	{
 		/** Index of the parent loop in the original input shape */
 		int32 ParentLoopIdx = INDEX_NONE;
-		
+
 		/** The path ID of the parent loop (for source tracking) */
 		int32 ParentPathId = INDEX_NONE;
 
@@ -38,8 +38,8 @@ namespace PCGExCavalier::ShapeOffset
 
 		FOffsetLoop(int32 InParentIdx, int32 InPathId, FPolyline&& InPolyline)
 			: ParentLoopIdx(InParentIdx)
-			, ParentPathId(InPathId)
-			, Polyline(MoveTemp(InPolyline))
+			  , ParentPathId(InPathId)
+			  , Polyline(MoveTemp(InPolyline))
 		{
 			SpatialIndex.Build(Polyline);
 		}
@@ -92,8 +92,8 @@ namespace PCGExCavalier::ShapeOffset
 
 		explicit FShapeOffsetOptions(const FPCGExCCOffsetOptions& OffsetOptions)
 			: PosEqualEps(OffsetOptions.PositionEqualEpsilon)
-			, OffsetDistEps(OffsetOptions.OffsetDistanceEpsilon)
-			, SliceJoinEps(OffsetOptions.SliceJoinEpsilon)
+			  , OffsetDistEps(OffsetOptions.OffsetDistanceEpsilon)
+			  , SliceJoinEps(OffsetOptions.SliceJoinEpsilon)
 		{
 		}
 	};
@@ -164,16 +164,7 @@ namespace PCGExCavalier::ShapeOffset
 
 		FShape() = default;
 
-		/**
-		 * Create a shape from an array of polylines.
-		 * Polylines are automatically sorted by orientation.
-		 */
 		static FShape FromPolylines(const TArray<FPolyline>& Polylines);
-
-		/**
-		 * Create a shape from an array of polylines with associated path IDs.
-		 */
-		static FShape FromPolylines(const TArray<FPolyline>& Polylines, const TArray<int32>& PathIds);
 
 		/** Create an empty shape */
 		static FShape Empty() { return FShape(); }
@@ -264,24 +255,16 @@ namespace PCGExCavalier::ShapeOffset
 	 * Perform parallel offset on a set of polylines that form a shape (outer boundaries with holes).
 	 * 
 	 * @param Polylines Input polylines (CCW = outer, CW = holes)
-	 * @param PathIds Path IDs corresponding to each polyline
 	 * @param Offset The offset distance
 	 * @param Options Offset options
 	 * @return Array of resulting offset polylines
 	 */
 	PCGEXELEMENTSCAVALIERCONTOURS_API
-	TArray<FPolyline> ParallelOffsetShape(
-		const TArray<FPolyline>& Polylines,
-		const TArray<int32>& PathIds,
-		double Offset,
-		const FShapeOffsetOptions& Options);
+	TArray<FPolyline> ParallelOffsetShape(const TArray<FPolyline>& Polylines, double Offset, const FShapeOffsetOptions& Options);
 
 	/**
 	 * Perform parallel offset on a set of polylines (simpler interface).
 	 */
 	PCGEXELEMENTSCAVALIERCONTOURS_API
-	TArray<FPolyline> ParallelOffsetShape(
-		const TArray<FPolyline>& Polylines,
-		double Offset,
-		const FPCGExCCOffsetOptions& Options = FPCGExCCOffsetOptions());
+	TArray<FPolyline> ParallelOffsetShape(const TArray<FPolyline>& Polylines, double Offset, const FPCGExCCOffsetOptions& Options = FPCGExCCOffsetOptions());
 }

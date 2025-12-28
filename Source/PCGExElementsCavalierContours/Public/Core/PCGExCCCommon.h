@@ -11,6 +11,11 @@
 
 namespace PCGExCavalier
 {
+	namespace Labels
+	{
+		const FName SourceOperandsLabel = TEXT("Operands");
+	}
+	
 	/** Basic intersection point during offset */
 	struct FBasicIntersect
 	{

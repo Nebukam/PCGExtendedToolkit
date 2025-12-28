@@ -9,29 +9,18 @@ namespace PCGExCavalier::ShapeOffset
 {
 	FShape FShape::FromPolylines(const TArray<FPolyline>& Polylines)
 	{
-		TArray<int32> PathIds;
-		PathIds.Reserve(Polylines.Num());
-		for (int32 i = 0; i < Polylines.Num(); ++i)
-		{
-			const int32 PathId = Polylines[i].GetPrimaryPathId();
-			PathIds.Add(PathId != INDEX_NONE ? PathId : i);
-		}
-		return FromPolylines(Polylines, PathIds);
-	}
-
-	FShape FShape::FromPolylines(const TArray<FPolyline>& Polylines, const TArray<int32>& PathIds)
-	{
 		FShape Result;
 
 		for (int32 i = 0; i < Polylines.Num(); ++i)
 		{
 			const FPolyline& Pline = Polylines[i];
-			
+
 			// Skip empty or invalid polylines
 			if (Pline.VertexCount() < 3) continue;
 
 			const double Area = Pline.Area();
-			const int32 PathId = i < PathIds.Num() ? PathIds[i] : i;
+			const int32 PrimaryPathId = Pline.GetPrimaryPathId();
+			const int32 PathId = PrimaryPathId != INDEX_NONE ? PrimaryPathId : i;
 
 			if (Area >= 0.0)
 			{
@@ -293,7 +282,7 @@ namespace PCGExCavalier::ShapeOffset
 				SortedIntrs.Sort([&LoopPline](const FDissectionPoint& A, const FDissectionPoint& B)
 				{
 					if (A.SegIdx != B.SegIdx) return A.SegIdx < B.SegIdx;
-					
+
 					const FVector2D SegStart = LoopPline.GetVertex(A.SegIdx).GetPosition();
 					const double DistA = Math::DistanceSquared(A.Pos, SegStart);
 					const double DistB = Math::DistanceSquared(B.Pos, SegStart);
@@ -337,7 +326,7 @@ namespace PCGExCavalier::ShapeOffset
 							const FVector2D SegStart = LoopPline.GetVertex(Pt1.SegIdx).GetPosition();
 							const double StartDist = Math::DistanceSquared(SegStart, Pt1.Pos);
 							const double EndDist = Math::DistanceSquared(SegStart, Pt2.Pos);
-							
+
 							if (EndDist > StartDist + Options.PosEqualEps * Options.PosEqualEps)
 							{
 								Slice.EndIndexOffset = 0;
@@ -349,9 +338,9 @@ namespace PCGExCavalier::ShapeOffset
 						}
 						else
 						{
-							int32 Offset = Pt2.SegIdx - Pt1.SegIdx;
-							if (Offset < 0) Offset += VertCount;
-							Slice.EndIndexOffset = Offset;
+							int32 EndOffset = Pt2.SegIdx - Pt1.SegIdx;
+							if (EndOffset < 0) EndOffset += VertCount;
+							Slice.EndIndexOffset = EndOffset;
 						}
 
 						// Update start vertex
@@ -582,28 +571,17 @@ namespace PCGExCavalier::ShapeOffset
 		return CWIndex < CWPathIds.Num() ? CWPathIds[CWIndex] : INDEX_NONE;
 	}
 
-	TArray<FPolyline> ParallelOffsetShape(
-		const TArray<FPolyline>& Polylines,
-		const TArray<int32>& PathIds,
-		double Offset,
-		const FShapeOffsetOptions& Options)
+	TArray<FPolyline> ParallelOffsetShape(const TArray<FPolyline>& Polylines, double Offset, const FShapeOffsetOptions& Options)
 	{
 		if (Polylines.IsEmpty()) return TArray<FPolyline>();
 
-		FShape Shape = FShape::FromPolylines(Polylines, PathIds);
+		FShape Shape = FShape::FromPolylines(Polylines);
 		FShape Result = Shape.ParallelOffset(Offset, Options);
 		return Result.GetAllPolylines();
 	}
 
-	TArray<FPolyline> ParallelOffsetShape(
-		const TArray<FPolyline>& Polylines,
-		double Offset,
-		const FPCGExCCOffsetOptions& Options)
+	TArray<FPolyline> ParallelOffsetShape(const TArray<FPolyline>& Polylines, double Offset, const FPCGExCCOffsetOptions& Options)
 	{
-		return ParallelOffsetShape(
-			Polylines,
-			TArray<int32>(),
-			Offset,
-			FShapeOffsetOptions(Options));
+		return ParallelOffsetShape(Polylines, Offset, FShapeOffsetOptions(Options));
 	}
 }

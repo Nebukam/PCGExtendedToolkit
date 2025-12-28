@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Factories/PCGExFactories.h"
-#include "Core/PCGExPathProcessor.h"
+#include "Core/PCGExCavalierProcessor.h"
 #include "Core/PCGExCCShapeOffset.h"
 #include "Details/PCGExCCDetails.h"
 #include "Details/PCGExInputShorthandsDetails.h"
@@ -24,7 +24,7 @@ namespace PCGExCavalier
  * Unlike the regular Offset node, this handles interactions between multiple polylines.
  */
 UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/cavalier-contours/cavalier-parallel-offset"))
-class UPCGExCavalierParallelOffsetSettings : public UPCGExPathProcessorSettings
+class UPCGExCavalierParallelOffsetSettings : public UPCGExCavalierProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -62,26 +62,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandNameInteger32Abs Iterations = FPCGExInputShorthandNameInteger32Abs(FName("@Data.Iterations"), 1, false);
 
-	/** If enabled, tessellate arcs in the output. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bTessellateArcs = true;
-
-	/** Arc tessellation settings. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bTessellateArcs"))
-	FPCGExCCArcTessellationSettings TessellationSettings;
-
-	/** If enabled, blend transforms from source paths for output vertices. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bBlendTransforms = true;
-
-	/** Add small random offset to mitigate degenerate geometry issues. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bAddFuzzinessToPositions = false;
-
-	/** Skip open paths (shape offset requires closed paths). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bSkipOpenPaths = true;
-
 	/** If enabled, write the iteration index to a data attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bWriteIteration = false;
@@ -117,37 +97,16 @@ public:
 	/** Tag to apply to hole (CW) boundaries. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagOrientation"))
 	FString HoleTag = TEXT("Hole");
+
+	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
 };
 
-struct FPCGExCavalierParallelOffsetContext final : FPCGExPathProcessorContext
+struct FPCGExCavalierParallelOffsetContext final : FPCGExCavalierProcessorContext
 {
 	friend class FPCGExCavalierParallelOffsetElement;
-
-	// Source data for 3D reconstruction
-	TMap<int32, PCGExCavalier::FRootPath> RootPaths;
-
-	// Input polylines grouped as a shape
-	TArray<PCGExCavalier::FPolyline> InputPolylines;
-
-	// Path IDs for input polylines
-	TArray<int32> InputPathIds;
-
-	// Maps polyline path ID to its source FPointIO
-	TMap<int32, TSharedPtr<PCGExData::FPointIO>> SourceIOs;
-
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
-
-	int32 NextPathId = 0;
-	FCriticalSection PathIdLock;
-
-	int32 AllocatePathId()
-	{
-		FScopeLock Lock(&PathIdLock);
-		return NextPathId++;
-	}
 };
 
-class FPCGExCavalierParallelOffsetElement final : public FPCGExPathProcessorElement
+class FPCGExCavalierParallelOffsetElement final : public FPCGExCavalierProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CavalierParallelOffset)
@@ -156,17 +115,6 @@ protected:
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 private:
-	// Build polylines from input collection
-	void BuildPolylinesFromCollection(
-		FPCGExCavalierParallelOffsetContext* Context,
-		const UPCGExCavalierParallelOffsetSettings* Settings) const;
-
-	// Output a result polyline
-	TSharedPtr<PCGExData::FPointIO> OutputPolyline(
-		FPCGExCavalierParallelOffsetContext* Context,
-		const UPCGExCavalierParallelOffsetSettings* Settings,
-		PCGExCavalier::FPolyline& Polyline) const;
-
 	// Process and tag output
 	void ProcessOutput(
 		FPCGExCavalierParallelOffsetContext* Context,

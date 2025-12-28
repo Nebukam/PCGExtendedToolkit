@@ -7,13 +7,10 @@
 #include "Core/PCGExCCPolyline.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Helpers/PCGExAsyncHelpers.h"
 #include "Helpers/PCGExDataMatcher.h"
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
-#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCavalierBooleanElement"
 #define PCGEX_NAMESPACE CavalierBoolean
@@ -30,12 +27,6 @@ TArray<FPCGPreConfiguredSettingsInfo> UPCGExCavalierBooleanSettings::GetPreconfi
 TArray<FPCGPinProperties> UPCGExCavalierBooleanSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	// Add operands pin for Difference or when using matched mode
-	if (NeedsOperands())
-	{
-		PCGEX_PIN_POINTS(FName("Operands"), "Secondary paths to use as operands in the boolean operation.", Required)
-	}
 
 	// Add matching rules input when in matched mode
 	if (DataMatching.IsEnabled())
@@ -70,63 +61,21 @@ void UPCGExCavalierBooleanSettings::ApplyPreconfiguredSettings(const FPCGPreConf
 	}
 }
 
+FPCGExGeo2DProjectionDetails UPCGExCavalierBooleanSettings::GetProjectionDetails() const
+{
+	return ProjectionDetails;
+}
+
 bool UPCGExCavalierBooleanSettings::NeedsOperands() const
 {
-	return Operation == EPCGExCCBooleanOp::Difference || DataMatching.IsEnabled();
+	return Operation == EPCGExCCBooleanOp::Difference || DataMatching.IsEnabled() || Super::NeedsOperands();
 }
 
 bool FPCGExCavalierBooleanElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCavalierProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(CavalierBoolean)
-
-	// Initialize projection
-	Context->ProjectionDetails = Settings->ProjectionDetails;
-
-	// Check for operands input
-	if (Settings->NeedsOperands())
-	{
-		Context->OperandsCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, FName("Operands"), PCGExData::EIOInit::NoInit, true);
-
-		if (Context->OperandsCollection->IsEmpty())
-		{
-			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Operands input is required for this operation mode."));
-			return false;
-		}
-	}
-
-	// Reserve space
-	const int32 NumMain = Context->MainPoints->Num();
-	const int32 NumOperands = Context->OperandsCollection ? Context->OperandsCollection->Num() : 0;
-	const int32 TotalInputs = NumMain + NumOperands;
-
-	Context->RootPaths.Reserve(TotalInputs);
-	Context->MainPolylines.Reserve(NumMain);
-	Context->MainPolylinesSourceIO.Reserve(NumMain);
-
-	if (Context->OperandsCollection)
-	{
-		Context->OperandPolylines.Reserve(NumOperands);
-		Context->OperandPolylinesSourceIO.Reserve(NumOperands);
-	}
-
-	// Build polylines from main input (parallel)
-	BuildPolylinesFromCollection(
-		Context, Settings,
-		Context->MainPoints.Get(),
-		Context->MainPolylines,
-		Context->MainPolylinesSourceIO);
-
-	// Build polylines from operands input (parallel)
-	if (Context->OperandsCollection)
-	{
-		BuildPolylinesFromCollection(
-			Context, Settings,
-			Context->OperandsCollection.Get(),
-			Context->OperandPolylines,
-			Context->OperandPolylinesSourceIO);
-	}
 
 	// Initialize data matcher for matched mode
 	if (Settings->DataMatching.IsEnabled() &&
@@ -136,18 +85,7 @@ bool FPCGExCavalierBooleanElement::Boot(FPCGExContext* InContext) const
 		Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 		Context->DataMatcher->SetDetails(&Settings->DataMatching);
 
-		// Collect operand facades for matching
-		TArray<TSharedPtr<PCGExData::FFacade>> OperandFacades;
-		OperandFacades.Reserve(Context->OperandPolylinesSourceIO.Num());
-		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->OperandPolylinesSourceIO)
-		{
-			if (IO)
-			{
-				OperandFacades.Add(MakeShared<PCGExData::FFacade>(IO.ToSharedRef()));
-			}
-		}
-
-		if (!Context->DataMatcher->Init(Context, OperandFacades, false))
+		if (!Context->DataMatcher->Init(Context, Context->OperandsFacades, false))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Failed to initialize data matcher."));
 			Context->DataMatcher.Reset();
@@ -161,97 +99,6 @@ bool FPCGExCavalierBooleanElement::Boot(FPCGExContext* InContext) const
 	}
 
 	return true;
-}
-
-void FPCGExCavalierBooleanElement::BuildPolylinesFromCollection(
-	FPCGExCavalierBooleanContext* Context,
-	const UPCGExCavalierBooleanSettings* Settings,
-	PCGExData::FPointIOCollection* Collection,
-	TArray<PCGExCavalier::FPolyline>& OutPolylines,
-	TArray<TSharedPtr<PCGExData::FPointIO>>& OutSourceIOs) const
-{
-	if (!Collection) return;
-
-	const int32 NumInputs = Collection->Num();
-	if (NumInputs == 0) return;
-
-	// Thread-safe containers for parallel building
-	FCriticalSection Lock;
-
-	struct FBuildResult
-	{
-		PCGExCavalier::FRootPath RootPath;
-		PCGExCavalier::FPolyline Polyline;
-		TSharedPtr<PCGExData::FPointIO> SourceIO;
-		bool bValid = false;
-	};
-
-	TArray<FBuildResult> Results;
-	Results.SetNum(NumInputs);
-
-	{
-		PCGExAsyncHelpers::FAsyncExecutionScope BuildScope(NumInputs);
-
-		for (int32 i = 0; i < NumInputs; ++i)
-		{
-			const TSharedPtr<PCGExData::FPointIO>& IO = (*Collection)[i];
-
-			BuildScope.Execute([&, IO, i]()
-			{
-				FBuildResult& Result = Results[i];
-
-				// Skip paths with insufficient points
-				if (IO->GetNum() < 3) return;
-
-				// Check if closed (required for boolean ops)
-				const bool bIsClosed = PCGExPaths::Helpers::GetClosedLoop(IO->GetIn());
-				if (!bIsClosed && Settings->bSkipOpenPaths) return;
-
-				// Allocate unique path ID
-				const int32 PathId = Context->AllocatePathId();
-
-				// Initialize projection for this path
-				FPCGExGeo2DProjectionDetails LocalProjection = Context->ProjectionDetails;
-				if (LocalProjection.Method == EPCGExProjectionMethod::Normal)
-				{
-					TSharedPtr<PCGExData::FFacade> Facade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-					if (!LocalProjection.Init(Facade)) { return; }
-				}
-				else
-				{
-					LocalProjection.Init(PCGExMath::FBestFitPlane(IO->GetIn()->GetConstTransformValueRange()));
-				}
-
-				// Build root path
-				Result.RootPath = PCGExCavalier::FRootPath(PathId, true);
-				Result.RootPath.Reserve(IO->GetNum());
-
-				TConstPCGValueRange<FTransform> Transforms = IO->GetIn()->GetConstTransformValueRange();
-				for (int32 j = 0; j < IO->GetNum(); ++j)
-				{
-					Result.RootPath.AddPoint(LocalProjection.Project(Transforms[j], j));
-				}
-
-				// Convert to polyline
-				Result.Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(Result.RootPath, Settings->bAddFuzzinessToPositions);
-				Result.Polyline.SetClosed(true);
-
-				Result.SourceIO = IO;
-				Result.bValid = true;
-			});
-		}
-	}
-
-	// Collect results (single-threaded)
-	for (FBuildResult& Result : Results)
-	{
-		if (!Result.bValid) continue;
-
-		const int32 PathId = Result.RootPath.PathId;
-		Context->RootPaths.Add(PathId, MoveTemp(Result.RootPath));
-		OutPolylines.Add(MoveTemp(Result.Polyline));
-		OutSourceIOs.Add(Result.SourceIO);
-	}
 }
 
 bool FPCGExCavalierBooleanElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -273,12 +120,12 @@ bool FPCGExCavalierBooleanElement::AdvanceWork(FPCGExContext* InContext, const U
 		{
 			if (Settings->bTessellateArcs)
 			{
-				PCGExCavalier::FPolyline Tessellated = ResultPline.Tessellated(Settings->TessellationSettings);
-				OutputPolyline(Context, Settings, Tessellated, false);
+				PCGExCavalier::FPolyline Tessellated = ResultPline.Tessellated(Settings->ArcTessellationSettings);
+				Context->OutputPolyline(Tessellated, false, Context->ProjectionDetails);
 			}
 			else
 			{
-				OutputPolyline(Context, Settings, ResultPline, false);
+				Context->OutputPolyline(ResultPline, false, Context->ProjectionDetails);
 			}
 		}
 
@@ -367,7 +214,7 @@ TArray<PCGExCavalier::FPolyline> FPCGExCavalierBooleanElement::ExecuteCombineAll
 					{
 						for (FPolyline& NegPline : DiffResult.NegativePolylines)
 						{
-							OutputPolyline(Context, Settings, NegPline, true);
+							Context->OutputPolyline(NegPline, true, Context->ProjectionDetails);
 						}
 					}
 				}
@@ -390,7 +237,7 @@ TArray<PCGExCavalier::FPolyline> FPCGExCavalierBooleanElement::ExecuteCombineAll
 		{
 			for (FPolyline& NegPline : Result.NegativePolylines)
 			{
-				OutputPolyline(Context, Settings, NegPline, true);
+				Context->OutputPolyline(NegPline, true, Context->ProjectionDetails);
 			}
 		}
 	}
@@ -420,24 +267,20 @@ TArray<PCGExCavalier::FPolyline> FPCGExCavalierBooleanElement::ExecuteMatched(
 	for (int32 MainIdx = 0; MainIdx < Context->MainPolylines.Num(); ++MainIdx)
 	{
 		const FPolyline& MainPline = Context->MainPolylines[MainIdx];
-		const TSharedPtr<PCGExData::FPointIO>& MainIO = Context->MainPolylinesSourceIO[MainIdx];
+		const TSharedPtr<PCGExData::FFacade>& MainFacade = Context->MainFacades[MainIdx];
 
-		if (!MainIO) continue;
+		if (!MainFacade) continue;
 
 		// Find matching operands using the data matcher
-		PCGExMatching::FScope MatchingScope(Context->OperandPolylinesSourceIO.Num(), false);
+		PCGExMatching::FScope MatchingScope(Context->OperandsFacades.Num(), false);
 		TArray<int32> MatchedIndices;
 
-		Context->DataMatcher->GetMatchingTargets(MainIO, MatchingScope, MatchedIndices);
+		Context->DataMatcher->GetMatchingTargets(MainFacade->Source, MatchingScope, MatchedIndices);
 
 		if (MatchedIndices.IsEmpty())
 		{
 			// No matches, output main unchanged (or handle unmatched)
-			if (Context->DataMatcher->HandleUnmatchedOutput(
-				MakeShared<PCGExData::FFacade>(MainIO.ToSharedRef()), true))
-			{
-				Results.Add(MainPline);
-			}
+			if (Context->DataMatcher->HandleUnmatchedOutput(MainFacade, true)) { Results.Add(MainPline); }
 			continue;
 		}
 
@@ -489,7 +332,7 @@ TArray<PCGExCavalier::FPolyline> FPCGExCavalierBooleanElement::ExecuteMatched(
 					{
 						for (FPolyline& NegPline : DiffResult.NegativePolylines)
 						{
-							OutputPolyline(Context, Settings, NegPline, true);
+							Context->OutputPolyline(NegPline, true, Context->ProjectionDetails);
 						}
 					}
 				}
@@ -510,7 +353,7 @@ TArray<PCGExCavalier::FPolyline> FPCGExCavalierBooleanElement::ExecuteMatched(
 			{
 				for (FPolyline& NegPline : Result.NegativePolylines)
 				{
-					OutputPolyline(Context, Settings, NegPline, true);
+					Context->OutputPolyline(NegPline, true, Context->ProjectionDetails);
 				}
 			}
 		}
@@ -554,7 +397,7 @@ PCGExCavalier::BooleanOps::FBooleanResult FPCGExCavalierBooleanElement::PerformM
 		{
 			// Fixed tree reduction with disjoint handling and infinite loop prevention
 			TArray<FPolyline> Current = Polylines;
-			
+
 			// Maximum iterations to prevent infinite loop (safety limit)
 			const int32 MaxIterations = Polylines.Num() * 2;
 			int32 IterationCount = 0;
@@ -562,13 +405,13 @@ PCGExCavalier::BooleanOps::FBooleanResult FPCGExCavalierBooleanElement::PerformM
 			while (Current.Num() > 1 && IterationCount < MaxIterations)
 			{
 				++IterationCount;
-				
+
 				TArray<FPolyline> NextLevel;
 				NextLevel.Reserve((Current.Num() + 1) / 2);
 
 				// Track if any actual merging occurred this iteration
 				bool bAnyMerged = false;
-				
+
 				for (int32 i = 0; i < Current.Num(); i += 2)
 				{
 					if (i + 1 < Current.Num())
@@ -684,103 +527,6 @@ PCGExCavalier::BooleanOps::FBooleanResult FPCGExCavalierBooleanElement::PerformM
 	}
 
 	return Result;
-}
-
-void FPCGExCavalierBooleanElement::OutputPolyline(
-	FPCGExCavalierBooleanContext* Context,
-	const UPCGExCavalierBooleanSettings* Settings,
-	PCGExCavalier::FPolyline& Polyline,
-	bool bIsNegativeSpace) const
-{
-	const int32 NumVertices = Polyline.VertexCount();
-	if (NumVertices < 3) return;
-
-	// Convert back to 3D using source tracking
-	PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(
-		Polyline, Context->RootPaths, Settings->bBlendTransforms);
-
-	// Find a source IO for metadata inheritance
-	TSharedPtr<PCGExData::FPointIO> SourceIO = FindSourceIO(Context, Polyline);
-
-	// Create output
-	const TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(
-		SourceIO, PCGExData::EIOInit::New);
-
-	if (!PathIO) return;
-
-	EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::Transform;
-	if (SourceIO)
-	{
-		const TSharedPtr<PCGExData::FFacade> SourceFacade = MakeShared<PCGExData::FFacade>(SourceIO.ToSharedRef());
-		Allocations |= SourceFacade->GetAllocations();
-	}
-
-	PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), NumVertices, Allocations);
-	//TArray<int32>& IdxMapping = PathIO->GetIdxMapping(NumVertices);
-
-	TPCGValueRange<FTransform> OutTransforms = PathIO->GetOut()->GetTransformValueRange();
-	for (int32 i = 0; i < NumVertices; ++i)
-	{
-		const int32 OriginalIndex = Result3D.GetPointIndex(i);
-		//IdxMapping[i] = FMath::Max(0, OriginalIndex); // Ensure valid index for mapping
-
-		// Full transform with proper Z, rotation, and scale from source
-		OutTransforms[i] = Context->ProjectionDetails.Restore(Result3D.Transforms[i], OriginalIndex);
-	}
-
-	EnumRemoveFlags(Allocations, EPCGPointNativeProperties::Transform);
-	//PathIO->ConsumeIdxMapping(Allocations);
-
-	PCGExPaths::Helpers::SetClosedLoop(PathIO, Polyline.IsClosed());
-
-	// Tag negative space outputs
-	if (bIsNegativeSpace && Settings->bOutputNegativeSpace)
-	{
-		PathIO->Tags->AddRaw(Settings->NegativeSpaceTag);
-	}
-}
-
-TSharedPtr<PCGExData::FPointIO> FPCGExCavalierBooleanElement::FindSourceIO(
-	FPCGExCavalierBooleanContext* Context,
-	const PCGExCavalier::FPolyline& Polyline) const
-{
-	const TSet<int32>& ContributingIds = Polyline.GetContributingPathIds();
-
-	// Try to find a source IO from the contributing paths
-	for (int32 PathId : ContributingIds)
-	{
-		// Check main polylines
-		for (int32 i = 0; i < Context->MainPolylines.Num(); ++i)
-		{
-			if (Context->MainPolylines[i].GetPrimaryPathId() == PathId)
-			{
-				if (Context->MainPolylinesSourceIO.IsValidIndex(i) && Context->MainPolylinesSourceIO[i])
-				{
-					return Context->MainPolylinesSourceIO[i];
-				}
-			}
-		}
-
-		// Check operand polylines
-		for (int32 i = 0; i < Context->OperandPolylines.Num(); ++i)
-		{
-			if (Context->OperandPolylines[i].GetPrimaryPathId() == PathId)
-			{
-				if (Context->OperandPolylinesSourceIO.IsValidIndex(i) && Context->OperandPolylinesSourceIO[i])
-				{
-					return Context->OperandPolylinesSourceIO[i];
-				}
-			}
-		}
-	}
-
-	// Fallback: use first main polyline source if available
-	if (!Context->MainPolylinesSourceIO.IsEmpty() && Context->MainPolylinesSourceIO[0])
-	{
-		return Context->MainPolylinesSourceIO[0];
-	}
-
-	return nullptr;
 }
 
 #undef LOCTEXT_NAMESPACE
