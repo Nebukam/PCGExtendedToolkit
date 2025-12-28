@@ -9,6 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "GeometryCollection/Facades/CollectionPositionTargetFacade.h"
 #include "Helpers/PCGExAsyncHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Paths/PCGExPath.h"
@@ -96,21 +97,25 @@ TSharedPtr<PCGExData::FPointIO> FPCGExCavalierProcessorContext::OutputPolyline(
 	const TSharedPtr<PCGExData::FPointIO> PathIO = MainPoints->Emplace_GetRef(SourceFacade->Source, PCGExData::EIOInit::New);
 	if (!PathIO) { return nullptr; }
 
-	// Convert back to 3D using source tracking
+	// Convert back to 3D using source tracking	
+	//PCGExCavalier::Utils::InterpolateMissingSources(Polyline);
 	PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(Polyline, RootPathsMapOverride ? *RootPathsMapOverride : RootPathsMap, Settings->bBlendTransforms);
 
 	EPCGPointNativeProperties Allocations = SourceFacade->GetAllocations() | EPCGPointNativeProperties::Transform;
 	PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), NumVertices, Allocations);
 	//TArray<int32>& IdxMapping = PathIO->GetIdxMapping(NumVertices);
 
+	int32 SafeIndex = 0;
 	TPCGValueRange<FTransform> OutTransforms = PathIO->GetOut()->GetTransformValueRange();
 	for (int32 i = 0; i < NumVertices; ++i)
 	{
-		const int32 OriginalIndex = Result3D.GetPointIndex(i);
-		//IdxMapping[i] = FMath::Max(0, OriginalIndex); // Ensure valid index for mapping
+		const int32 SourceIndex = Result3D.GetPointIndex(i);
+		if (SourceIndex != INDEX_NONE) { SafeIndex = SourceIndex; }
+
+		//IdxMapping[i] = FMath::Max(0, SafeIndex); // Ensure valid index for mapping
 
 		// Full transform with proper Z, rotation, and scale from source
-		OutTransforms[i] = InProjectionDetails.Restore(Result3D.Transforms[i], OriginalIndex);
+		OutTransforms[i] = InProjectionDetails.Restore(Result3D.Transforms[i], SourceIndex);
 	}
 
 	EnumRemoveFlags(Allocations, EPCGPointNativeProperties::Transform);
@@ -255,7 +260,7 @@ void FPCGExCavalierProcessorElement::BuildRootPathsFromCollection(
 
 				// Convert to polyline
 				Result.Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(Result.RootPath);
-				Result.Polyline.SetClosed(true);
+				Result.Polyline.SetClosed(bIsClosed);
 				Result.Polyline.SetPrimaryPathId(Result.RootPath.PathId);
 				Result.Facade = Facade;
 				Result.bValid = true;
