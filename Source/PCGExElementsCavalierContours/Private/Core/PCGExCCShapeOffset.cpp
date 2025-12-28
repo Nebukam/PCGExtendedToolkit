@@ -194,9 +194,9 @@ namespace PCGExCavalier::ShapeOffset
 
 			for (int32 j = i + 1; j < TotalLoops; ++j)
 			{
-				const uint64 PairKey = MakePairKey(i, j);
-				if (VisitedPairs.Contains(PairKey)) continue;
-				VisitedPairs.Add(PairKey);
+				bool bAlreadyInSet = false;
+				VisitedPairs.Add(MakePairKey(i, j), &bAlreadyInSet);
+				if (bAlreadyInSet) continue;
 
 				const FOffsetLoop& Loop2 = GetLoop(j, CCWOffsetLoops, CWOffsetLoops);
 				const FBox2D Bounds2 = Loop2.GetBounds();
@@ -388,15 +388,32 @@ namespace PCGExCavalier::ShapeOffset
 		const int32 VertCount = LoopPline.VertexCount();
 
 		// Compute midpoint of slice to test
-		FVector2D MidPt;
-		if (Slice.EndIndexOffset > 1)
+		FVector2D MidPt1;
+		TOptional<FVector2D> MidPt2;
+
+		const int32 SliceVertCount = Slice.EndIndexOffset + 1;  // Number of vertices in slice
+
+		if (SliceVertCount > 3)
 		{
-			const int32 MidIdx = (Slice.StartIndex + Slice.EndIndexOffset / 2) % VertCount;
-			MidPt = LoopPline.GetVertex(MidIdx).GetPosition();
+			// Use segment midpoint from index 1 to 2 (avoids intersection-created segments at start/end)
+			const int32 Idx1 = (Slice.StartIndex + 1) % VertCount;
+			const int32 Idx2 = (Slice.StartIndex + 2) % VertCount;
+			MidPt1 = Math::SegmentMidpoint(LoopPline.GetVertex(Idx1), LoopPline.GetVertex(Idx2));
+		}
+		else if (SliceVertCount == 3)
+		{
+			// Test both segment midpoints
+			const int32 Idx0 = Slice.StartIndex;
+			const int32 Idx1 = (Slice.StartIndex + 1) % VertCount;
+			const int32 Idx2 = (Slice.StartIndex + 2) % VertCount;
+			MidPt1 = Math::SegmentMidpoint(LoopPline.GetVertex(Idx0), LoopPline.GetVertex(Idx1));
+			MidPt2 = Math::SegmentMidpoint(LoopPline.GetVertex(Idx1), LoopPline.GetVertex(Idx2));
 		}
 		else
 		{
-			MidPt = (Slice.GetStartPoint() + Slice.EndPoint) * 0.5;
+			// Only 2 vertices - use the segment midpoint
+			// The bulge on UpdatedStart defines the arc from start to end
+			MidPt1 = Math::SegmentMidpoint(Slice.UpdatedStart, FVertex(Slice.EndPoint, 0.0));
 		}
 
 		const int32 ParentIdx = OffsetLoop.ParentLoopIdx;
@@ -410,7 +427,17 @@ namespace PCGExCavalier::ShapeOffset
 			if (!Offset::Internal::PointValidForOffset(
 				CCWPolylines[i].Polyline,
 				CCWPolylines[i].SpatialIndex,
-				AbsOffset, MidPt,
+				AbsOffset, MidPt1,
+				Options.PosEqualEps, Options.OffsetDistEps))
+			{
+				return false;
+			}
+    
+			// Check second midpoint if present
+			if (MidPt2.IsSet() && !Offset::Internal::PointValidForOffset(
+				CCWPolylines[i].Polyline,
+				CCWPolylines[i].SpatialIndex,
+				AbsOffset, MidPt2.GetValue(),
 				Options.PosEqualEps, Options.OffsetDistEps))
 			{
 				return false;
@@ -425,7 +452,17 @@ namespace PCGExCavalier::ShapeOffset
 			if (!Offset::Internal::PointValidForOffset(
 				CWPolylines[i].Polyline,
 				CWPolylines[i].SpatialIndex,
-				AbsOffset, MidPt,
+				AbsOffset, MidPt1,
+				Options.PosEqualEps, Options.OffsetDistEps))
+			{
+				return false;
+			}
+    
+			// Check second midpoint if present
+			if (MidPt2.IsSet() && !Offset::Internal::PointValidForOffset(
+				CWPolylines[i].Polyline,
+				CWPolylines[i].SpatialIndex,
+				AbsOffset, MidPt2.GetValue(),
 				Options.PosEqualEps, Options.OffsetDistEps))
 			{
 				return false;

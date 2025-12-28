@@ -71,7 +71,7 @@ class UPCGExReversePointOrderSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ReversePointOrder, "Change Winding", "Simply reverse the order of points or change winding of paths.");
+	PCGEX_NODE_INFOS(ReversePointOrder, "Reverse Order", "Simply reverse the order of points or change winding of paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Generic; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
 #endif

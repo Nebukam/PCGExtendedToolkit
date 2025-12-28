@@ -390,66 +390,64 @@ PCGExCavalier::BooleanOps::FBooleanResult FPCGExCavalierBooleanElement::PerformM
 		return FBooleanOperand(&P, P.GetPrimaryPathId());
 	};
 
+	// Helper to check if two polylines' bounding boxes overlap (potential intersection)
+	auto BoundsOverlap = [](const FPolyline& A, const FPolyline& B) -> bool
+	{
+		const FBox2D BoxA = A.BoundingBox();
+		const FBox2D BoxB = B.BoundingBox();
+		return BoxA.Intersect(BoxB);
+	};
+
 	switch (Operation)
 	{
 	case EPCGExCCBooleanOp::Union:
 	case EPCGExCCBooleanOp::Xor:
 		{
-			// Fixed tree reduction with disjoint handling and infinite loop prevention
-			TArray<FPolyline> Current = Polylines;
+			// Greedy merge: repeatedly find ANY pair that actually merges
+			// (not just adjacent indices) until no more merges possible
+			TArray<FPolyline> Working = Polylines;
 
-			// Maximum iterations to prevent infinite loop (safety limit)
-			const int32 MaxIterations = Polylines.Num() * 2;
+			const int32 MaxIterations = Polylines.Num() * Polylines.Num();
 			int32 IterationCount = 0;
+			bool bMadeProgress = true;
 
-			while (Current.Num() > 1 && IterationCount < MaxIterations)
+			while (bMadeProgress && Working.Num() > 1 && IterationCount < MaxIterations)
 			{
 				++IterationCount;
+				bMadeProgress = false;
 
-				TArray<FPolyline> NextLevel;
-				NextLevel.Reserve((Current.Num() + 1) / 2);
-
-				// Track if any actual merging occurred this iteration
-				bool bAnyMerged = false;
-
-				for (int32 i = 0; i < Current.Num(); i += 2)
+				// Try ALL pairs, not just adjacent indices
+				for (int32 i = 0; i < Working.Num() && !bMadeProgress; ++i)
 				{
-					if (i + 1 < Current.Num())
+					for (int32 j = i + 1; j < Working.Num() && !bMadeProgress; ++j)
 					{
 						FBooleanResult Partial = PerformBoolean(
-							MakeOperand(Current[i]),
-							MakeOperand(Current[i + 1]),
+							MakeOperand(Working[i]),
+							MakeOperand(Working[j]),
 							Operation, Options);
 
-						// Check if we actually merged (got fewer polylines than we input)
-						if (Partial.PositivePolylines.Num() < 2)
+						// FIX: Check ResultInfo, not polyline count!
+						// Disjoint = no relationship, shapes don't interact
+						// Any other result = shapes were related and processed
+						if (Partial.ResultInfo != EBooleanResultInfo::Disjoint)
 						{
-							bAnyMerged = true;
+							// Remove originals (higher index first)
+							Working.RemoveAt(j);
+							Working.RemoveAt(i);
+
+							// Add result(s)
+							Working.Append(MoveTemp(Partial.PositivePolylines));
+
+							bMadeProgress = true;
 						}
-
-						NextLevel.Append(MoveTemp(Partial.PositivePolylines));
-					}
-					else
-					{
-						NextLevel.Add(MoveTemp(Current[i]));
 					}
 				}
-
-				// If no merging occurred in this iteration and count didn't decrease,
-				// all remaining polylines are disjoint - stop processing
-				if (!bAnyMerged && NextLevel.Num() >= Current.Num())
-				{
-					// All polylines are disjoint, return them all
-					Result.PositivePolylines = MoveTemp(NextLevel);
-					Result.ResultInfo = EBooleanResultInfo::Disjoint;
-					return Result;
-				}
-
-				Current = MoveTemp(NextLevel);
 			}
 
-			Result.PositivePolylines = MoveTemp(Current);
-			Result.ResultInfo = EBooleanResultInfo::Intersected;
+			Result.PositivePolylines = MoveTemp(Working);
+			Result.ResultInfo = Working.Num() < Polylines.Num()
+				                    ? EBooleanResultInfo::Intersected
+				                    : EBooleanResultInfo::Disjoint;
 		}
 		break;
 
@@ -496,8 +494,7 @@ PCGExCavalier::BooleanOps::FBooleanResult FPCGExCavalierBooleanElement::PerformM
 
 	case EPCGExCCBooleanOp::Difference:
 		{
-			// This should be handled specially - difference is not associative
-			// Just do sequential subtraction: ((A - B) - C) - D ...
+			// Sequential subtraction: ((A - B) - C) - D ...
 			TArray<FPolyline> Current;
 			Current.Add(Polylines[0]);
 

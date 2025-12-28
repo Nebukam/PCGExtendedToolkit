@@ -80,6 +80,17 @@ namespace PCGExCavalier::Offset
 		{
 			if (CachedSegments.IsEmpty()) return;
 
+			/*
+			const int32 NumSegments = CachedSegments.Num();
+			for (int i = 0; i < NumSegments; ++i)
+			{
+				const FCachedSegment& Seg = CachedSegments[i];
+				if (Seg.Overlaps(MinX, MinY, MaxX, MaxY))
+				{
+					Visit(i);
+				}
+			}
+			*/
 			// Compute cell range
 			const int32 CellMinX = FMath::Clamp(static_cast<int32>((MinX - WorldMinX) * InvCellWidth), 0, GridSizeX - 1);
 			const int32 CellMinY = FMath::Clamp(static_cast<int32>((MinY - WorldMinY) * InvCellHeight), 0, GridSizeY - 1);

@@ -195,8 +195,8 @@ namespace PCGExCavalier::BooleanOps
 					MaxY += Sagitta;
 				}
 
-				// Query potential intersecting segments
-				Index2.Query(MinX, MinY, MaxX, MaxY, [&](int32 j)
+				// Query potential intersecting segments (expand by epsilon for boundary intersects)
+				Index2.Query(MinX - PosEqualEps, MinY - PosEqualEps, MaxX + PosEqualEps, MaxY + PosEqualEps, [&](int32 j)
 				{
 					const FVertex& U1 = Pline2.GetVertex(j);
 					const FVertex& U2 = Pline2.GetVertexWrapped(j + 1);
@@ -245,9 +245,9 @@ namespace PCGExCavalier::BooleanOps
 
 
 		FProcessedBoolean ProcessForBoolean(
-			const FPolyline& Pline1,
-			const FPolyline& Pline2,
-			double PosEqualEps)
+	const FPolyline& Pline1,
+	const FPolyline& Pline2,
+	double PosEqualEps)
 		{
 			FProcessedBoolean Result;
 
@@ -256,8 +256,16 @@ namespace PCGExCavalier::BooleanOps
 
 			FIntersectsCollection Intersects = FindAllIntersects(Pline1, Pline2, PosEqualEps);
 
-			// Convert to basic intersects (simplified - full impl handles overlapping)
+			// Start with basic intersects
 			Result.Intersects = MoveTemp(Intersects.BasicIntersects);
+
+			// Convert overlapping intersects to basic intersects by adding both endpoints
+			// This matches the Rust implementation (cavalier_contours shape_algorithms_mod.rs lines 419-433)
+			for (const FOverlappingIntersect& Overlap : Intersects.OverlappingIntersects)
+			{
+				Result.Intersects.Add(FBasicIntersect(Overlap.StartIndex1, Overlap.StartIndex2, Overlap.Point1));
+				Result.Intersects.Add(FBasicIntersect(Overlap.StartIndex1, Overlap.StartIndex2, Overlap.Point2));
+			}
 
 			return Result;
 		}
