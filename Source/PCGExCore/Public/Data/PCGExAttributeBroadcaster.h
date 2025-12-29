@@ -85,7 +85,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class TAttributeBroadcaster : public IAttributeBroadcaster
+	class PCGEXCORE_API TAttributeBroadcaster : public IAttributeBroadcaster
 	{
 	protected:
 		using Traits = PCGExTypes::TTraits<T>;
@@ -99,7 +99,7 @@ namespace PCGExData
 		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
 
 	public:
-		TAttributeBroadcaster() = default;
+		FORCEINLINE TAttributeBroadcaster() = default;
 
 		virtual FName GetName() const override;
 
@@ -166,7 +166,6 @@ namespace PCGExData
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-extern template class TAttributeBroadcaster<_TYPE>; \
 extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch); \
 extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch); \
 extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch);

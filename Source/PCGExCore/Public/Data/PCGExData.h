@@ -150,7 +150,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 #undef PCGEX_TPL
 
 	template <typename T>
-	class TBuffer : public IBuffer
+	class PCGEXCORE_API TBuffer : public IBuffer
 	{
 		friend class FFacade;
 
@@ -227,7 +227,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 	using TBuffer<T>::bCacheValueHashes;
 
 	template <typename T>
-	class TArrayBuffer : public TBuffer<T>
+	class PCGEXCORE_API TArrayBuffer : public TBuffer<T>
 	{
 		PCGEX_USING_TBUFFER
 
@@ -282,7 +282,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 	};
 
 	template <typename T>
-	class TSingleValueBuffer : public TBuffer<T>
+	class PCGEXCORE_API TSingleValueBuffer : public TBuffer<T>
 	{
 		PCGEX_USING_TBUFFER
 
@@ -325,7 +325,7 @@ extern template class TBuffer<_TYPE>;\
 extern template class TArrayBuffer<_TYPE>;\
 extern template class TSingleValueBuffer<_TYPE>;
 
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+	//PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
 
