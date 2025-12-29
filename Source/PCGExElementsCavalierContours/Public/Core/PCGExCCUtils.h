@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 // Originally ported from cavalier_contours by jbuckmccready (https://github.com/jbuckmccready/cavalier_contours)
 
+#pragma once
+
 #include "Core/PCGExCCPolyline.h"
 #include "Core/PCGExCCMath.h"
 
