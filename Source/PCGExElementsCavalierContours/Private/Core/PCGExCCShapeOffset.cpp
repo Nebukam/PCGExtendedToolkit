@@ -139,7 +139,7 @@ namespace PCGExCavalier::ShapeOffset
 		const int32 TotalLoops = CCWOffsetLoops.Num() + CWOffsetLoops.Num();
 		if (TotalLoops < 2) return;
 
-		// Track visited pairs to avoid duplicates - using the proper way for open/closed handling
+		// Track visited pairs to avoid duplicates
 		TSet<uint64> VisitedPairs;
 
 		auto MakePairKey = [](int32 I, int32 J) -> uint64
@@ -170,7 +170,7 @@ namespace PCGExCavalier::ShapeOffset
 				// Quick AABB rejection
 				if (!Bounds1.Intersect(Bounds2)) continue;
 
-				// Find intersections between the two loops - crucial: ensure we pass spatial index properly
+				// Find intersections between the two loops
 				IntersectionBuffer.Reset();
 
 				Offset::Internal::FindIntersectsBetween(
@@ -180,16 +180,25 @@ namespace PCGExCavalier::ShapeOffset
 
 				if (IntersectionBuffer.Num() == 0) continue;
 
-				// Store intersection data - ensure we're not losing any intersections
-				FSlicePointSet& Set = OutSlicePointSets.AddDefaulted_GetRef();
-				Set.LoopIdx1 = i;
-				Set.LoopIdx2 = j;
-				Set.SlicePoints.Reserve(IntersectionBuffer.Num());
-
-				for (int32 k = 0; k < IntersectionBuffer.Num(); ++k)
+				// Add a safety check to prevent malformed intersection data
+				if (IntersectionBuffer.Num() > 0)
 				{
-					// Make sure we're copying the intersection properly
-					Set.SlicePoints.Add(IntersectionBuffer[k]);
+					// Store intersection data - ensure we're not losing any intersections
+					FSlicePointSet& Set = OutSlicePointSets.AddDefaulted_GetRef();
+					Set.LoopIdx1 = i;
+					Set.LoopIdx2 = j;
+					Set.SlicePoints.Reserve(IntersectionBuffer.Num());
+
+					for (int32 k = 0; k < IntersectionBuffer.Num(); ++k)
+					{
+						// Make sure we're copying the intersection properly
+						// Add validation to prevent invalid intersections
+						const FBasicIntersect& Intr = IntersectionBuffer[k];
+						if (Intr.Point.X != 0 || Intr.Point.Y != 0) // Skip zero points if they exist
+						{
+							Set.SlicePoints.Add(Intr);
+						}
+					}
 				}
 			}
 		}
@@ -205,7 +214,7 @@ namespace PCGExCavalier::ShapeOffset
 	{
 		const int32 TotalLoops = CCWOffsetLoops.Num() + CWOffsetLoops.Num();
 
-		// Dissection point structure - ensure it's properly defined
+		// Dissection point structure
 		struct FDissectionPoint
 		{
 			int32 SegIdx;
@@ -215,28 +224,32 @@ namespace PCGExCavalier::ShapeOffset
 		// 1. Build a map of all intersection points for each loop
 		TMap<int32, TArray<FDissectionPoint>> LoopPointsMap;
 
-		// Properly handle all slice point sets
+		// Properly handle all slice point sets with better validation
 		for (const FSlicePointSet& Set : SlicePointSets)
 		{
-			// Only process valid indices
+			// Only process valid indices with bounds checking
 			if (Set.LoopIdx1 < TotalLoops && Set.LoopIdx2 < TotalLoops)
 			{
 				for (const FBasicIntersect& Intr : Set.SlicePoints)
 				{
-					// Add to Loop1 - ensure valid index
-					if (Set.LoopIdx1 < TotalLoops)
+					// Validate intersection point coordinates
+					if (FMath::IsFinite(Intr.Point.X) && FMath::IsFinite(Intr.Point.Y))
 					{
-						FDissectionPoint& DP1 = LoopPointsMap.FindOrAdd(Set.LoopIdx1).AddDefaulted_GetRef();
-						DP1.SegIdx = Intr.StartIndex1;
-						DP1.Pos = Intr.Point;
-					}
+						// Add to Loop1 - ensure valid index
+						if (Set.LoopIdx1 < TotalLoops)
+						{
+							FDissectionPoint& DP1 = LoopPointsMap.FindOrAdd(Set.LoopIdx1).AddDefaulted_GetRef();
+							DP1.SegIdx = Intr.StartIndex1;
+							DP1.Pos = Intr.Point;
+						}
 
-					// Add to Loop2 - ensure valid index  
-					if (Set.LoopIdx2 < TotalLoops)
-					{
-						FDissectionPoint& DP2 = LoopPointsMap.FindOrAdd(Set.LoopIdx2).AddDefaulted_GetRef();
-						DP2.SegIdx = Intr.StartIndex2;
-						DP2.Pos = Intr.Point;
+						// Add to Loop2 - ensure valid index  
+						if (Set.LoopIdx2 < TotalLoops)
+						{
+							FDissectionPoint& DP2 = LoopPointsMap.FindOrAdd(Set.LoopIdx2).AddDefaulted_GetRef();
+							DP2.SegIdx = Intr.StartIndex2;
+							DP2.Pos = Intr.Point;
+						}
 					}
 				}
 			}
@@ -279,7 +292,7 @@ namespace PCGExCavalier::ShapeOffset
 					Points->RemoveAt(i);
 			}
 
-			// Handle special case for single point
+			// Handle special case for single point - but be careful
 			if (Points->Num() == 1)
 			{
 				// For a single intersection point on a loop, treat as whole loop if valid
@@ -295,6 +308,10 @@ namespace PCGExCavalier::ShapeOffset
 			// 3. Create slices between consecutive intersection points
 			auto CreateSlice = [&](const FDissectionPoint& Start, const FDissectionPoint& End)
 			{
+				// Validate that we have a reasonable slice
+				if (Start.Pos.Equals(End.Pos, Options.PosEqualEps))
+					return; // Skip zero-length slices
+
 				FDissectedSlice Slice;
 				Slice.SourceIdx = LoopIdx;
 				Slice.StartIndex = Start.SegIdx;
@@ -305,7 +322,8 @@ namespace PCGExCavalier::ShapeOffset
 				if (Span < 0) Span += VertCount;
 				Slice.EndIndexOffset = Span;
 
-				if (IsSliceValid(Slice, CurrLoop, Offset, Options))
+				// Additional safety check for slice length
+				if (Slice.EndIndexOffset >= 0 && IsSliceValid(Slice, CurrLoop, Offset, Options))
 				{
 					OutSlicesData.Add(MoveTemp(Slice));
 				}
@@ -428,7 +446,7 @@ namespace PCGExCavalier::ShapeOffset
 		VisitedSlices.SetNumZeroed(SlicesData.Num());
 
 		const double JoinEpsSq = SliceJoinEps * SliceJoinEps;
-		const int32 MaxLoopCount = SlicesData.Num() * 2; // Double the limit to be safe
+		const int32 MaxLoopCount = SlicesData.Num() * 10; // Much higher limit to prevent premature termination
 
 		for (int32 SliceIdx = 0; SliceIdx < SlicesData.Num(); ++SliceIdx)
 		{
@@ -439,6 +457,9 @@ namespace PCGExCavalier::ShapeOffset
 			int32 LoopCount = 0;
 			FPolyline CurrentPline(false);
 
+			// Track if we're building a closed loop or open
+			bool bIsClosedLoop = false;
+
 			while (LoopCount < MaxLoopCount)
 			{
 				++LoopCount;
@@ -448,7 +469,7 @@ namespace PCGExCavalier::ShapeOffset
 				const FPolyline& SourcePline = SourceLoop.Polyline;
 				const int32 N = SourcePline.VertexCount();
 
-				// Add vertices from this slice properly - don't add duplicate
+				// Add vertices from this slice properly - don't add duplicates at the start
 				if (CurrentPline.VertexCount() == 0)
 				{
 					CurrentPline.AddOrReplaceVertex(CurrSlice.UpdatedStart, PosEqualEps);
@@ -456,7 +477,7 @@ namespace PCGExCavalier::ShapeOffset
 				}
 				else
 				{
-					// Only add the start point if it's not already there (for proper stitching)
+					// Only add if it's not already the last vertex
 					const FVector2D LastPos = CurrentPline.LastVertex().GetPosition();
 					if (!LastPos.Equals(CurrSlice.UpdatedStart.GetPosition(), PosEqualEps))
 					{
@@ -471,10 +492,17 @@ namespace PCGExCavalier::ShapeOffset
 					CurrentPline.AddOrReplaceVertex(SourcePline.GetVertex(Idx), PosEqualEps);
 				}
 
-				// Add the endpoint as a final vertex
-				CurrentPline.AddOrReplaceVertex(FVertex(CurrSlice.EndPoint, 0.0), PosEqualEps);
+				// Add the endpoint as a final vertex - don't add if it's already there
+				if (CurrentPline.VertexCount() > 0)
+				{
+					const FVector2D LastPos = CurrentPline.LastVertex().GetPosition();
+					if (!LastPos.Equals(CurrSlice.EndPoint, PosEqualEps))
+					{
+						CurrentPline.AddOrReplaceVertex(FVertex(CurrSlice.EndPoint, 0.0), PosEqualEps);
+					}
+				}
 
-				// Find connecting slice
+				// Find connecting slice - more robust connection logic
 				const FVector2D EndPoint = CurrSlice.EndPoint;
 				int32 ConnectedSliceIdx = INDEX_NONE;
 				double MinDistSq = JoinEpsSq * 4.0;
@@ -487,7 +515,7 @@ namespace PCGExCavalier::ShapeOffset
 					if (DistSq < MinDistSq)
 					{
 						// Prefer slices from the same source for better stitching
-						if (SlicesData[j].SourceIdx == CurrSlice.SourceIdx || DistSq < JoinEpsSq)
+						if (SlicesData[j].SourceIdx == CurrSlice.SourceIdx || DistSq < JoinEpsSq * 2.0)
 						{
 							MinDistSq = DistSq;
 							ConnectedSliceIdx = j;
@@ -504,11 +532,18 @@ namespace PCGExCavalier::ShapeOffset
 						const FVector2D FirstPos = CurrentPline.GetVertex(0).GetPosition();
 						const FVector2D LastPos = CurrentPline.LastVertex().GetPosition();
 
-						// Properly check for closure based on position equality - only close if first and last are equal
+						// Proper closure logic - only close when first and last match exactly
+						bool bShouldClose = false;
 						if (FirstPos.Equals(LastPos, PosEqualEps))
+						{
+							bShouldClose = true;
+						}
+
+						if (bShouldClose)
 						{
 							CurrentPline.RemoveLastVertex();
 							CurrentPline.SetClosed(true);
+							bIsClosedLoop = true;
 						}
 
 						// Classify by orientation
@@ -527,18 +562,7 @@ namespace PCGExCavalier::ShapeOffset
 					break;
 				}
 
-				// Remove the duplicate vertex before continuing to next slice - more careful approach
-				if (CurrentPline.VertexCount() > 0)
-				{
-					const FVector2D LastPos = CurrentPline.LastVertex().GetPosition();
-					const FVector2D NextStartPos = SlicesData[ConnectedSliceIdx].GetStartPoint();
-					if (LastPos.Equals(NextStartPos, PosEqualEps))
-					{
-						// Don't remove if it's a proper connection point
-						// The vertex should already be there from the previous slice's end
-					}
-				}
-
+				// Continue to next slice
 				CurrentIndex = ConnectedSliceIdx;
 				VisitedSlices[CurrentIndex] = true;
 			}
