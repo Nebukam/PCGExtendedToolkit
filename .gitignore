@@ -1,8 +1,8 @@
-
 Binaries/*
 Build/*
 Intermediate/*
 Plugins/*/Intermediate/*
+*.generated.h
 
 # Cache files for the editor to use
 DerivedDataCache/*
