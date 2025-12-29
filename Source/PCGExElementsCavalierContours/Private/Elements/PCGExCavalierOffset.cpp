@@ -5,24 +5,28 @@
 
 #include "Core/PCGExCCOffset.h"
 #include "Core/PCGExCCPolyline.h"
+#include "Core/PCGExCCUtils.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExSettingsDetails.h"
 #include "Math/PCGExBestFitPlane.h"
-#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCavalierOffsetElement"
 #define PCGEX_NAMESPACE CavalierOffset
 
 PCGEX_INITIALIZE_ELEMENT(CavalierOffset)
 
+FPCGExGeo2DProjectionDetails UPCGExCavalierOffsetSettings::GetProjectionDetails() const
+{
+	return ProjectionDetails;
+}
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(CavalierOffset)
 
 bool FPCGExCavalierOffsetElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCavalierProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(CavalierOffset)
 
@@ -62,6 +66,12 @@ bool FPCGExCavalierOffsetElement::AdvanceWork(FPCGExContext* InContext, const UP
 	return Context->TryComplete();
 }
 
+bool FPCGExCavalierOffsetElement::WantsRootPathsFromMainInput() const
+{
+	// Individual FProcessor have their own
+	return false;
+}
+
 namespace PCGExCavalierOffset
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -83,13 +93,14 @@ namespace PCGExCavalierOffset
 
 		NumIterations = FMath::Max(1, NumIterations);
 
-		PCGExCavalier::FRootPath RootPath(PointDataFacade->Source, ProjectionDetails);
+		PCGExCavalier::FRootPath RootPath(0, PointDataFacade, ProjectionDetails);
 
 		// Create polyline from root path
-		PCGExCavalier::FPolyline Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(RootPath, Settings->bAddFuzzinessToPositions);
+		PCGExCavalier::FPolyline Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(RootPath);
+		if (Settings->bAddFuzzinessToPositions) { PCGExCavalier::Utils::AddFuzzinessToPositions(Polyline); }
 
 		// Build lookup map for 3D conversion
-		RootPaths.Add(RootPath.PathId, MoveTemp(RootPath));
+		RootPathsMap.Add(RootPath.PathId, MoveTemp(RootPath));
 
 		// Run offset
 		for (int i = 0; i < NumIterations; i++)
@@ -98,18 +109,7 @@ namespace PCGExCavalierOffset
 
 			for (PCGExCavalier::FPolyline& Line : OutputLines)
 			{
-				TSharedPtr<PCGExData::FPointIO> IO = nullptr;
-				if (Settings->bTessellateArcs)
-				{
-					PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
-					IO = OutputPolyline(TessellatedLine);
-				}
-				else
-				{
-					IO = OutputPolyline(Line);
-				}
-
-				ProcessOutput(IO, i, false);
+				ProcessOutput(Context->OutputPolyline(Line, false, ProjectionDetails, &RootPathsMap), i, false);
 			}
 		}
 
@@ -121,18 +121,7 @@ namespace PCGExCavalierOffset
 
 				for (PCGExCavalier::FPolyline& Line : OutputLines)
 				{
-					TSharedPtr<PCGExData::FPointIO> IO = nullptr;
-					if (Settings->bTessellateArcs)
-					{
-						PCGExCavalier::FPolyline TessellatedLine = Line.Tessellated(Settings->TessellationSettings);
-						IO = OutputPolyline(TessellatedLine);
-					}
-					else
-					{
-						IO = OutputPolyline(Line);
-					}
-
-					ProcessOutput(IO, i, true);
+					ProcessOutput(Context->OutputPolyline(Line, false, ProjectionDetails, &RootPathsMap), i, true);
 				}
 			}
 		}
@@ -140,52 +129,17 @@ namespace PCGExCavalierOffset
 		return true;
 	}
 
-	TSharedPtr<PCGExData::FPointIO> FProcessor::OutputPolyline(PCGExCavalier::FPolyline& Polyline)
-	{
-		const int32 OutNumVertices = Polyline.VertexCount();
-		if (OutNumVertices < 2) { return nullptr; }
-
-		// Convert back to 3D with proper Z and transform interpolation
-		PCGExCavalier::FContourResult3D Result3D = PCGExCavalier::FContourUtils::ConvertTo3D(Polyline, RootPaths, Settings->bBlendTransforms);
-
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
-		if (!PathIO) { return nullptr; }
-
-		EPCGPointNativeProperties Allocations = PointDataFacade->GetAllocations() | EPCGPointNativeProperties::Transform;
-		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), OutNumVertices, Allocations);
-		TArray<int32>& IdxMapping = PathIO->GetIdxMapping(OutNumVertices);
-
-		TPCGValueRange<FTransform> OutTransforms = PathIO->GetOut()->GetTransformValueRange();
-		int32 LastValidIndex = -1;
-		for (int32 i = 0; i < OutNumVertices; i++)
-		{
-			const int32 OriginalIndex = Result3D.GetPointIndex(i);
-			if (OriginalIndex != INDEX_NONE)
-			{
-				LastValidIndex = OriginalIndex;
-				IdxMapping[i] = OriginalIndex;
-			}
-			else
-			{
-				IdxMapping[i] = LastValidIndex;
-			}
-
-			// Full transform with proper Z, rotation, and scale from source
-			OutTransforms[i] = ProjectionDetails.Restore(Result3D.Transforms[i], OriginalIndex);
-		}
-
-		EnumRemoveFlags(Allocations, EPCGPointNativeProperties::Transform);
-		PathIO->ConsumeIdxMapping(Allocations);
-
-		PCGExPaths::Helpers::SetClosedLoop(PathIO, Polyline.IsClosed());
-		return PathIO;
-	}
-
 	void FProcessor::ProcessOutput(const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Iteration, const bool bDual) const
 	{
 		if (!IO) { return; }
+
+		// Write iteration attribute
 		if (Settings->bWriteIteration) { PCGExData::Helpers::SetDataValue(IO->GetOut(), Settings->IterationAttributeName, Iteration); }
+
+		// Tag with iteration number
 		if (Settings->bTagIteration) { IO->Tags->Set(Settings->IterationTag, Iteration); }
+
+		// Tag dual offsets
 		if (Settings->bTagDual && bDual) { IO->Tags->AddRaw(Settings->DualTag); }
 	}
 }

@@ -456,14 +456,14 @@ namespace PCGExCavalier
 		 * @param bClosed Whether to create a closed polyline
 		 * @return Processed polyline with corners converted to arcs
 		 */
-		static FPolyline CreateFromInputPoints(const TArray<FInputPoint>& Points, const bool bClosed, const bool bAddFuzziness = false);
+		static FPolyline CreateFromInputPoints(const TArray<FInputPoint>& Points, const bool bClosed);
 
 		/**
 		 * Create a polyline from a root path.
 		 * @param RootPath The root path containing points
 		 * @return Processed polyline with corners converted to arcs
 		 */
-		static FPolyline CreateFromRootPath(const FRootPath& RootPath, const bool bAddFuzziness = false);
+		static FPolyline CreateFromRootPath(const FRootPath& RootPath);
 
 		/**
 		 * Convert a 2D polyline back to 3D using source tracking.
@@ -473,13 +473,5 @@ namespace PCGExCavalier
 		 */
 		static FContourResult3D ConvertTo3D(const FPolyline& Polyline2D, const TMap<int32, FRootPath>& RootPaths, const bool bBlendTransforms = false);
 
-		/**
-		 * Convert a 2D polyline back to 3D using a single source path (legacy).
-		 * @param Polyline2D The 2D polyline to convert
-		 * @param SourcePoints The original input points
-		 * @param bClosed Whether the result is closed
-		 * @return 3D contour result
-		 */
-		static FContourResult3D ConvertTo3D(const FPolyline& Polyline2D, const TArray<FInputPoint>& SourcePoints, bool bClosed, const bool bBlendTransforms = false);
 	};
 }

@@ -8,9 +8,8 @@
 
 namespace PCGExCavalier::Offset
 {
-	
 	// FGridSpatialIndex Implementation
-	
+
 
 	void FGridSpatialIndex::Build(const FPolyline& Polyline, double PosEqualEps)
 	{
@@ -92,10 +91,10 @@ namespace PCGExCavalier::Offset
 			// Target average of 4-8 segments per cell
 			const double TargetCellCount = FMath::Max(1.0, static_cast<double>(SegCount) / 6.0);
 			const double CellsPerAxis = FMath::Sqrt(TargetCellCount);
-			
+
 			GridSizeX = FMath::Clamp(FMath::CeilToInt32(CellsPerAxis * WorldWidth / FMath::Max(WorldWidth, WorldHeight)), 1, 256);
 			GridSizeY = FMath::Clamp(FMath::CeilToInt32(CellsPerAxis * WorldHeight / FMath::Max(WorldWidth, WorldHeight)), 1, 256);
-			
+
 			CellWidth = WorldWidth / GridSizeX;
 			CellHeight = WorldHeight / GridSizeY;
 		}
@@ -131,9 +130,9 @@ namespace PCGExCavalier::Offset
 		}
 	}
 
-	
+
 	// Internal Helper Functions
-	
+
 
 	namespace Internal
 	{
@@ -155,9 +154,9 @@ namespace PCGExCavalier::Offset
 			return Math::BulgeFromAngle(Math::DeltaAngleSigned(A1, A2, !bIsCCW));
 		}
 
-		
+
 		// Segment Split
-		
+
 
 		FSegSplitResult SegSplitAtPoint(
 			const FVertex& V1,
@@ -217,9 +216,9 @@ namespace PCGExCavalier::Offset
 			return Result;
 		}
 
-		
+
 		// Create Raw Offset Segments
-		
+
 
 		void CreateRawOffsetSegments(const FPolyline& Polyline, double Offset, TArray<FRawOffsetSeg>& OutSegments)
 		{
@@ -284,9 +283,9 @@ namespace PCGExCavalier::Offset
 			}
 		}
 
-		
+
 		// Segment Joining Functions
-		
+
 
 		FORCEINLINE void ConnectUsingArc(
 			const FRawOffsetSeg& S1,
@@ -678,9 +677,9 @@ namespace PCGExCavalier::Offset
 			}
 		}
 
-		
+
 		// Create Raw Offset Polyline
-		
+
 
 		FPolyline CreateRawOffsetPolyline(
 			const FPolyline& OriginalPolyline,
@@ -791,9 +790,9 @@ namespace PCGExCavalier::Offset
 			return Result;
 		}
 
-		
+
 		// Self-Intersection Detection (Optimized)
-		
+
 
 		void FindAllSelfIntersections(
 			const FPolyline& Polyline,
@@ -829,7 +828,7 @@ namespace PCGExCavalier::Offset
 				Index.Query(Seg.MinX, Seg.MinY, Seg.MaxX, Seg.MaxY, [&](int32 j)
 				{
 					if (j == i) return;
-					
+
 					if (Polyline.IsClosed())
 					{
 						if (j == (i + 1) % N || j == (i - 1 + N) % N) return;
@@ -861,9 +860,9 @@ namespace PCGExCavalier::Offset
 			}
 		}
 
-		
+
 		// Find Intersects Between Two Polylines
-		
+
 
 		void FindIntersectsBetween(
 			const FPolyline& Pline1,
@@ -898,29 +897,44 @@ namespace PCGExCavalier::Offset
 					MaxY += Sagitta;
 				}
 
-				Index1.Query(MinX, MinY, MaxX, MaxY, [&](int32 j)
+				// Expand query by epsilon for boundary intersects (matches Rust implementation)
+				Index1.Query(MinX - PosEqualEps, MinY - PosEqualEps, MaxX + PosEqualEps, MaxY + PosEqualEps, [&](int32 j)
 				{
 					const FVertex& V1 = Pline1.GetVertex(j);
 					const FVertex& V2 = Pline1.GetVertexWrapped(j + 1);
 
 					const FPlineSegIntersect Intr = PlineSegmentIntersect(V1, V2, U1, U2, PosEqualEps);
 
-					if (Intr.Type == EPlineSegIntersectType::OneIntersect || Intr.Type == EPlineSegIntersectType::TangentIntersect)
+					switch (Intr.Type)
 					{
+					case EPlineSegIntersectType::OneIntersect:
+					case EPlineSegIntersectType::TangentIntersect:
 						OutIntersections.Add(j, i, Intr.Point1);
-					}
-					else if (Intr.Type == EPlineSegIntersectType::TwoIntersects)
-					{
+						break;
+
+					case EPlineSegIntersectType::TwoIntersects:
 						OutIntersections.Add(j, i, Intr.Point1);
 						OutIntersections.Add(j, i, Intr.Point2);
+						break;
+
+					// FIX: Handle overlapping segments by adding both endpoints as slice points
+					// This matches Rust implementation (shape_algorithms_mod.rs lines 419-433)
+					case EPlineSegIntersectType::OverlappingLines:
+					case EPlineSegIntersectType::OverlappingArcs:
+						OutIntersections.Add(j, i, Intr.Point1);
+						OutIntersections.Add(j, i, Intr.Point2);
+						break;
+
+					default:
+						break;
 					}
 				});
 			}
 		}
 
-		
+
 		// Point Validation
-		
+
 
 		bool PointValidForOffset(
 			const FPolyline& OriginalPolyline,
@@ -941,7 +955,7 @@ namespace PCGExCavalier::Offset
 				[&](int32 SegIdx)
 				{
 					if (!bValid) return;
-					
+
 					const FVertex& V1 = OriginalPolyline.GetVertex(SegIdx);
 					const FVertex& V2 = OriginalPolyline.GetVertexWrapped(SegIdx + 1);
 					const FVector2D ClosestPt = Math::SegmentClosestPoint(V1, V2, Point);
@@ -954,9 +968,9 @@ namespace PCGExCavalier::Offset
 			return bValid;
 		}
 
-		
+
 		// Create Slices
-		
+
 
 		// Helper: Add circle-polyline intersections to lookup
 		void AddCirclePolylineIntersections(
@@ -1298,7 +1312,7 @@ namespace PCGExCavalier::Offset
 					const FVertex& EndV2 = RawOffset.GetVertexWrapped(EndSegIdx + 1);
 					FSegSplitResult EndSplit = SegSplitAtPoint(EndV, EndV2, EndPt, PosEqualEps);
 					UpdatedEndBulge = EndSplit.UpdatedStart.Bulge;
-					
+
 					EndSource = EndPt.Equals(EndV2.GetPosition(), PosEqualEps) ? EndV2.Source : EndV.Source;
 				}
 
@@ -1360,9 +1374,9 @@ namespace PCGExCavalier::Offset
 			}
 		}
 
-		
+
 		// Stitch Slices
-		
+
 
 		void StitchSlices(
 			const FPolyline& RawOffset,
@@ -1393,7 +1407,7 @@ namespace PCGExCavalier::Offset
 					if (i == Slice.EndIndexOffset) V = V.WithBulge(Slice.UpdatedEndBulge);
 					Pline.AddOrReplaceVertex(V, PosEqualEps);
 				}
-				
+
 				Pline.AddOrReplaceVertex(FVertex(Slice.EndPoint, 0.0, Slice.EndSource), PosEqualEps);
 
 				if (bIsClosed && Pline.VertexCount() >= 2)
@@ -1464,7 +1478,7 @@ namespace PCGExCavalier::Offset
 					}
 
 					if (NextIdx == INDEX_NONE) break;
-					
+
 					Visited[NextIdx] = true;
 					CurrentIdx = NextIdx;
 				}
@@ -1477,9 +1491,9 @@ namespace PCGExCavalier::Offset
 		}
 	}
 
-	
+
 	// Public API
-	
+
 
 	FPolyline RawParallelOffset(const FPolyline& Polyline, double Offset, double PosEqualEps)
 	{
@@ -1487,7 +1501,7 @@ namespace PCGExCavalier::Offset
 		{
 			return FPolyline(Polyline.IsClosed(), Polyline.GetPrimaryPathId());
 		}
-		
+
 		TArray<Internal::FRawOffsetSeg> Segments;
 		Internal::CreateRawOffsetSegments(Polyline, Offset, Segments);
 		return Internal::CreateRawOffsetPolyline(Polyline, Segments, Offset, PosEqualEps);
@@ -1503,7 +1517,7 @@ namespace PCGExCavalier::Offset
 		// Create raw offset segments (reused for both offsets)
 		TArray<Internal::FRawOffsetSeg> Segments;
 		Internal::CreateRawOffsetSegments(Polyline, Offset, Segments);
-		
+
 		FPolyline RawOffset = Internal::CreateRawOffsetPolyline(Polyline, Segments, Offset, Options.PositionEqualEpsilon);
 		if (RawOffset.VertexCount() < 2) return Results;
 
