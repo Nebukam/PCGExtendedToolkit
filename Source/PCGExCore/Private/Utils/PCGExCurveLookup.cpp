@@ -15,7 +15,7 @@ PCGExFloatLUT FPCGExCurveLookupDetails::MakeLookup(
 	if (!InUseLocalCurve)
 	{
 		InitFn(RuntimeCurve.EditorCurveData);
-		NewLUT->ExternalCurveHandle = PCGExHelpers::LoadBlocking_AnyThread(InExternalCurve);
+		NewLUT->ExternalCurveHandle = PCGExHelpers::LoadBlocking_AnyThreadTpl(InExternalCurve);
 		RuntimeCurve.ExternalCurve = InExternalCurve.Get();
 	}
 	NewLUT->Init(RuntimeCurve, Mode, Samples);

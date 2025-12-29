@@ -155,7 +155,7 @@ namespace PCGExMesh
 	FGeoStaticMesh::FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh)
 	{
 		if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
-		if (!InSoftStaticMesh.Get()) { MeshHandle = PCGExHelpers::LoadBlocking_AnyThread(InSoftStaticMesh); }
+		if (!InSoftStaticMesh.Get()) { MeshHandle = PCGExHelpers::LoadBlocking_AnyThreadTpl(InSoftStaticMesh); }
 
 		StaticMesh = InSoftStaticMesh.Get();
 		if (!StaticMesh) { return; }

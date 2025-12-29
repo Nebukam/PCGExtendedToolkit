@@ -82,7 +82,7 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetStagingData
 	T* LoadSync() const
 	{
 		TSoftObjectPtr<T> SoftObjectPtr = TSoftObjectPtr<T>(Path);
-		PCGExHelpers::LoadBlocking_AnyThread<T>(SoftObjectPtr);
+		PCGExHelpers::LoadBlocking_AnyThreadTpl<T>(SoftObjectPtr);
 		return SoftObjectPtr.Get();
 	}
 

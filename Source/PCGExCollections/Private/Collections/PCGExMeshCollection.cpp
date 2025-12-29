@@ -239,7 +239,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 
 	Staging.Path = StaticMesh.ToSoftObjectPath();
 
-	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
+	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThreadTpl(StaticMesh);
 
 	if (const UStaticMesh* M = StaticMesh.Get())
 	{

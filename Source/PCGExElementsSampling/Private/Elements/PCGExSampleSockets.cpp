@@ -48,7 +48,7 @@ bool FPCGExSampleSocketsElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		PCGExHelpers::LoadBlocking_AnyThread(Settings->StaticMesh, Context);
+		PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->StaticMesh, Context);
 		Context->StaticMesh = Settings->StaticMesh.Get();
 		if (!Context->StaticMesh)
 		{

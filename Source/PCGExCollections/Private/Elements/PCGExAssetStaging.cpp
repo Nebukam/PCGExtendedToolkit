@@ -64,7 +64,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection, Context);
+		PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->AssetCollection, Context);
 		Context->MainCollection = Settings->AssetCollection.Get();
 		if (!Context->MainCollection)
 		{

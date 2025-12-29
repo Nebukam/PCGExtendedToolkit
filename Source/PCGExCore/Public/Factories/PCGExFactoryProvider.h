@@ -101,5 +101,6 @@ protected:
 
 public:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FactoryProvider)
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 };
