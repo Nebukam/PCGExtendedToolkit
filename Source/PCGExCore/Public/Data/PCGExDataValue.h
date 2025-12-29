@@ -38,7 +38,7 @@ namespace PCGExData
 		template <typename T>
 		T GetValue();
 
-		FORCEINLINE virtual void GetVoid(void* OutValue) const = 0;
+		virtual void GetVoid(void* OutValue) const = 0;
 
 	protected:
 		TOptional<double> CachedDouble;
@@ -56,7 +56,7 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 #pragma endregion
 
 	template <typename T>
-	class TDataValue : public IDataValue
+	class PCGEXCORE_API TDataValue : public IDataValue
 	{
 	public:
 		T Value;
@@ -72,14 +72,15 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 		virtual double AsDouble() override;
 		virtual FString AsString() override;
 
-		FORCEINLINE virtual void GetVoid(void* OutValue) const override;
+		virtual void GetVoid(void* OutValue) const override;
 	};
 
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 extern template class TDataValue<_TYPE>;
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+	
+	//PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
 
