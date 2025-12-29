@@ -35,7 +35,7 @@ namespace PCGExHelpers
 	TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const FSoftObjectPath& Path, FPCGExContext* InContext = nullptr);
 
 	template <typename T>
-	static TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, FPCGExContext* InContext = nullptr)
+	static TSharedPtr<FStreamableHandle> LoadBlocking_AnyThreadTpl(const TSoftObjectPtr<T>& SoftObjectPtr, FPCGExContext* InContext = nullptr)
 	{
 		return LoadBlocking_AnyThread(SoftObjectPtr.ToSoftObjectPath(), InContext);
 	}

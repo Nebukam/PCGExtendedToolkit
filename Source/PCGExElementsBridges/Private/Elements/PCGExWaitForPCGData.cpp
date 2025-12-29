@@ -104,7 +104,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(WaitForPCGData)
 void UPCGExWaitForPCGDataSettings::GetTargetGraphPins(TArray<FPCGPinProperties>& OutPins) const
 {
 	OutPins.Empty();
-	PCGExHelpers::LoadBlocking_AnyThread(TemplateGraph);
+	PCGExHelpers::LoadBlocking_AnyThreadTpl(TemplateGraph);
 	if (const UPCGGraph* PinPropertiesSource = TemplateGraph.Get())
 	{
 		TArray<FPCGPinProperties> FoundPins = PinPropertiesSource->GetOutputNode()->OutputPinProperties();

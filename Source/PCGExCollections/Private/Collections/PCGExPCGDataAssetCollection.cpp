@@ -60,7 +60,7 @@ void FPCGExPCGDataAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollectio
 	Staging.Path = DataAsset.ToSoftObjectPath();
 
 	// Load the data asset to compute bounds
-	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(DataAsset);
+	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThreadTpl(DataAsset);
 
 	if (const UPCGDataAsset* Asset = DataAsset.Get())
 	{
