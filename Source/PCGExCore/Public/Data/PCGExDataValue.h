@@ -72,7 +72,7 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 		virtual double AsDouble() override;
 		virtual FString AsString() override;
 
-		FORCEINLINE virtual void GetVoid(void* OutValue) const override;
+		virtual void GetVoid(void* OutValue) const override;
 	};
 
 #pragma region externalization
