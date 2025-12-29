@@ -38,7 +38,7 @@ namespace PCGExData
 		template <typename T>
 		T GetValue();
 
-		FORCEINLINE virtual void GetVoid(void* OutValue) const = 0;
+		virtual void GetVoid(void* OutValue) const = 0;
 
 	protected:
 		TOptional<double> CachedDouble;
