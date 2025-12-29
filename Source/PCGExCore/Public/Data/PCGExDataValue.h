@@ -56,7 +56,7 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 #pragma endregion
 
 	template <typename T>
-	class TDataValue : public IDataValue
+	class PCGEXCORE_API TDataValue : public IDataValue
 	{
 	public:
 		T Value;
@@ -79,7 +79,8 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 extern template class TDataValue<_TYPE>;
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+	
+	//PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
 
