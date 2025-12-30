@@ -187,7 +187,7 @@ namespace PCGExData
 		return false;
 	}
 
-	FPCGExTaggedData FPointIO::GetTaggedData(const EIOSide Source) { return FPCGExTaggedData(GetData(Source), Tags, GetInKeys()); }
+	FPCGExTaggedData FPointIO::GetTaggedData(const EIOSide Source, const int32 InIdx) { return FPCGExTaggedData(GetData(Source), InIdx == INDEX_NONE ? IOIndex : InIdx, Tags, GetInKeys()); }
 
 	void FPointIO::InitializeMetadataEntries_Unsafe(const bool bConservative) const
 	{

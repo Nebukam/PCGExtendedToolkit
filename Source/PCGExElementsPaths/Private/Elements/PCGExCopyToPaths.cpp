@@ -175,7 +175,7 @@ namespace PCGExCopyToPaths
 		AxisTransform = PCGExMath::GetIdentity(Settings->AxisOrder);
 
 		PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum);
-		if (Context->DataMatcher->GetMatchingTargets(PointDataFacade->Source, MatchingScope, Deformers) <= 0)
+		if (Context->DataMatcher->GetMatchingSourcesIndices(PointDataFacade->Source->GetTaggedData(), MatchingScope, Deformers) <= 0)
 		{
 			(void)Context->DataMatcher->HandleUnmatchedOutput(PointDataFacade, true);
 			return false;

@@ -10,9 +10,9 @@
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoMatchRule, UPCGExMatchRuleFactoryData)
 
-bool FPCGExMatchRuleOperation::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InTargets)
+bool FPCGExMatchRuleOperation::PrepareForMatchableSources(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InMatchableSources)
 {
-	Targets = InTargets;
+	MatchableSources = InMatchableSources;
 	return true;
 }
 

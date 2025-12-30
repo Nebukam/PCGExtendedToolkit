@@ -216,7 +216,7 @@ namespace PCGExData
 			return Source == EIOSide::In ? In->GetNumPoints() : Out->GetNumPoints();
 		}
 
-		FPCGExTaggedData GetTaggedData(const EIOSide Source = EIOSide::In);
+		FPCGExTaggedData GetTaggedData(const EIOSide Source = EIOSide::In, const int32 InIdx = INDEX_NONE);
 
 		void InitializeMetadataEntries_Unsafe(const bool bConservative = true) const;
 

@@ -275,7 +275,7 @@ TArray<PCGExCavalier::FPolyline> FPCGExCavalierBooleanElement::ExecuteMatched(
 		PCGExMatching::FScope MatchingScope(Context->OperandsFacades.Num(), false);
 		TArray<int32> MatchedIndices;
 
-		Context->DataMatcher->GetMatchingTargets(MainFacade->Source, MatchingScope, MatchedIndices);
+		Context->DataMatcher->GetMatchingSourcesIndices(MainFacade->Source->GetTaggedData(), MatchingScope, MatchedIndices);
 
 		if (MatchedIndices.IsEmpty())
 		{

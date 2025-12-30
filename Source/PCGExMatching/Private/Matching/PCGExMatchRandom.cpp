@@ -17,16 +17,16 @@ FPCGExMatchRandomConfig::FPCGExMatchRandomConfig()
 	ThresholdAttribute.Update("@Data.Threshold");
 }
 
-bool FPCGExMatchRandom::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InTargets)
+bool FPCGExMatchRandom::PrepareForMatchableSources(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InMatchableSources)
 {
-	if (!FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets)) { return false; }
+	if (!FPCGExMatchRuleOperation::PrepareForMatchableSources(InContext, InMatchableSources)) { return false; }
 
-	TArray<FPCGExTaggedData>& TargetsRef = *InTargets.Get();
+	TArray<FPCGExTaggedData>& MatchableSourcesRef = *InMatchableSources.Get();
 
 	if (Config.ThresholdInput == EPCGExInputValueType::Attribute)
 	{
-		ThresholdGetters.Reserve(TargetsRef.Num());
-		for (const FPCGExTaggedData& TaggedData : TargetsRef)
+		ThresholdGetters.Reserve(MatchableSourcesRef.Num());
+		for (const FPCGExTaggedData& TaggedData : MatchableSourcesRef)
 		{
 			TSharedPtr<PCGExData::TAttributeBroadcaster<double>> Getter = MakeShared<PCGExData::TAttributeBroadcaster<double>>();
 
@@ -43,10 +43,10 @@ bool FPCGExMatchRandom::PrepareForTargets(FPCGExContext* InContext, const TShare
 	return true;
 }
 
-bool FPCGExMatchRandom::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FScope& InMatchingScope) const
+bool FPCGExMatchRandom::Test(const PCGExData::FConstPoint& InTargetElement, const FPCGExTaggedData& InCandidate, const PCGExMatching::FScope& InMatchingScope) const
 {
 	const double LocalThreshold = ThresholdGetters.IsEmpty() ? Config.Threshold : ThresholdGetters[InTargetElement.IO]->FetchSingle(InTargetElement, Config.Threshold);
-	const float RandomValue = FRandomStream(PCGExRandomHelpers::GetRandomStreamFromPoint(Config.RandomSeed + InTargetElement.IO, PointIO->IOIndex)).GetFraction();
+	const float RandomValue = FRandomStream(PCGExRandomHelpers::GetRandomStreamFromPoint(Config.RandomSeed + InTargetElement.IO, InCandidate.Index)).GetFraction();
 	return Config.bInvertThreshold ? RandomValue <= LocalThreshold : RandomValue >= LocalThreshold;
 }
 

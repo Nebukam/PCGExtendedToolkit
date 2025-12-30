@@ -138,6 +138,19 @@
       ]
     },
     {
+      "Name": "PCGExElementsClipper2",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
       "Name": "PCGExElementsClusters",
       "Type": "Runtime",
       "LoadingPhase": "Default",

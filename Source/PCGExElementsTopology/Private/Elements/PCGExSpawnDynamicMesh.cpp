@@ -92,6 +92,8 @@ bool FPCGExSpawnDynamicMeshElement::AdvanceWork(FPCGExContext* InContext, const 
 		InContext->OutputData.TaggedData.Emplace(Input);
 		Context->AddNotifyActor(TargetActor);
 	}
+	
+	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
 	return Context->TryComplete(true);
 }

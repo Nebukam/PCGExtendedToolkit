@@ -20,16 +20,16 @@ void FPCGExMatchTagToAttrConfig::Init()
 	FPCGExMatchRuleConfigBase::Init();
 }
 
-bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InTargets)
+bool FPCGExMatchTagToAttr::PrepareForMatchableSources(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InMatchableSources)
 {
-	if (!FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets)) { return false; }
+	if (!FPCGExMatchRuleOperation::PrepareForMatchableSources(InContext, InMatchableSources)) { return false; }
 
-	TArray<FPCGExTaggedData>& TargetsRef = *InTargets.Get();
+	TArray<FPCGExTaggedData>& MatchableSourcesRef = *InMatchableSources.Get();
 
-	TagNameGetters.Reserve(TargetsRef.Num());
+	TagNameGetters.Reserve(MatchableSourcesRef.Num());
 	if (Config.TagNameInput == EPCGExInputValueType::Attribute)
 	{
-		for (const FPCGExTaggedData& TaggedData : TargetsRef)
+		for (const FPCGExTaggedData& TaggedData : MatchableSourcesRef)
 		{
 			TSharedPtr<PCGExData::TAttributeBroadcaster<FString>> Getter = MakeShared<PCGExData::TAttributeBroadcaster<FString>>();
 
@@ -47,8 +47,8 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 
 	switch (Config.ValueType)
 	{
-	case EPCGExComparisonDataType::Numeric: NumGetters.Reserve(TargetsRef.Num());
-		for (const FPCGExTaggedData& TaggedData : TargetsRef)
+	case EPCGExComparisonDataType::Numeric: NumGetters.Reserve(MatchableSourcesRef.Num());
+		for (const FPCGExTaggedData& TaggedData : MatchableSourcesRef)
 		{
 			TSharedPtr<PCGExData::TAttributeBroadcaster<double>> Getter = MakeShared<PCGExData::TAttributeBroadcaster<double>>();
 
@@ -61,8 +61,8 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 			NumGetters.Add(Getter);
 		}
 		break;
-	case EPCGExComparisonDataType::String: StrGetters.Reserve(TargetsRef.Num());
-		for (const FPCGExTaggedData& TaggedData : TargetsRef)
+	case EPCGExComparisonDataType::String: StrGetters.Reserve(MatchableSourcesRef.Num());
+		for (const FPCGExTaggedData& TaggedData : MatchableSourcesRef)
 		{
 			TSharedPtr<PCGExData::TAttributeBroadcaster<FString>> Getter = MakeShared<PCGExData::TAttributeBroadcaster<FString>>();
 
@@ -80,18 +80,18 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 	return true;
 }
 
-bool FPCGExMatchTagToAttr::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FScope& InMatchingScope) const
+bool FPCGExMatchTagToAttr::Test(const PCGExData::FConstPoint& InTargetElement, const FPCGExTaggedData& InCandidate, const PCGExMatching::FScope& InMatchingScope) const
 {
 	const FString TestTagName = TagNameGetters.IsEmpty() ? Config.TagName : TagNameGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
 
 	if (!Config.bDoValueMatch)
 	{
-		return PCGExCompare::HasMatchingTags(PointIO->Tags, TestTagName, Config.NameMatch);
+		return PCGExCompare::HasMatchingTags(InCandidate.GetTags(), TestTagName, Config.NameMatch);
 	}
 
 
 	TArray<TSharedPtr<PCGExData::IDataValue>> TagValues;
-	if (!PCGExCompare::GetMatchingValueTags(PointIO->Tags, TestTagName, Config.NameMatch, TagValues)) { return false; }
+	if (!PCGExCompare::GetMatchingValueTags(InCandidate.GetTags(), TestTagName, Config.NameMatch, TagValues)) { return false; }
 
 	if (Config.ValueType == EPCGExComparisonDataType::Numeric)
 	{

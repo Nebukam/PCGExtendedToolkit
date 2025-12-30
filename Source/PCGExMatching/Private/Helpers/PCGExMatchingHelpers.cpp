@@ -5,6 +5,7 @@
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Core/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExMatchingDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
 
 namespace PCGExMatching::Helpers
 {
@@ -46,5 +47,29 @@ namespace PCGExMatching::Helpers
 			PCGEX_PIN_TOOLTIP("Data that couldn't be matched to any target, and couldn't be processed.")
 			Pin.PinStatus = bShowAsAdvanced ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
 		}
+	}
+
+	void GetMatchingSourcePartitions(TSharedPtr<FDataMatcher>& Matcher, const TArray<TSharedPtr<PCGExData::FFacade>>& Facades, TArray<TArray<int32>>& OutPartitions, bool bExclusive)
+	{
+		// TODO : Partition facades assuming the matcher contains those same facades.
+		// This is primarily aimed to help clipper2 module to create sub-groups of paths
+		// as well as MergeByTags to deprecate existing API and support non-exclusive groups.
+		// Having a way to flag "exclusive" data  (some that can only belong to a single group) would be neat
+		// TODO : Merge matcher API so they support FPCGExTaggedData instead
+		/*
+		const int32 NumSources = Matcher->GetNumSources();
+		OutPartitions.Reserve(NumSources);
+		
+		if (bExclusive)
+		{
+			TSet<int32> ExcludedIndices;
+			ExcludedIndices.Reserve(NumSources);
+		
+			for (int i = 0; i < NumSources; ++i)
+			{
+				Matcher->GetMatchingSourcesIndices();
+			}
+		}
+		*/
 	}
 }

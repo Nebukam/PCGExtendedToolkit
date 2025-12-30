@@ -60,12 +60,12 @@ struct PCGEXMATCHING_API FPCGExMatchRuleConfigBase
 class PCGEXMATCHING_API FPCGExMatchRuleOperation : public FPCGExOperation
 {
 public:
-	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InTargets);
+	virtual bool PrepareForMatchableSources(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InMatchableSources);
 
-	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FScope& InMatchingScope) const PCGEX_NOT_IMPLEMENTED_RET(Test, false);
+	virtual bool Test(const PCGExData::FConstPoint& InMatchableSourceElement, const FPCGExTaggedData& InCandidate, const PCGExMatching::FScope& InMatchingScope) const PCGEX_NOT_IMPLEMENTED_RET(Test, false);
 
 protected:
-	TSharedPtr<TArray<FPCGExTaggedData>> Targets;
+	TSharedPtr<TArray<FPCGExTaggedData>> MatchableSources;
 };
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Match Rule"))
