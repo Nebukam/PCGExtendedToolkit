@@ -47,9 +47,11 @@ namespace PCGExMatching
 	protected:
 		const FPCGExMatchingDetails* Details = nullptr;
 
-		TSharedPtr<TArray<FPCGExTaggedData>> Targets;
-		TSharedPtr<TArray<PCGExData::FConstPoint>> Elements;
-		TMap<const UPCGData*, int32> TargetsMap;
+		int32 NumSources = 0;
+
+		TSharedPtr<TArray<FPCGExTaggedData>> MatchableSources;
+		TSharedPtr<TArray<PCGExData::FConstPoint>> MatchableSourceFirstElements;
+		TMap<const UPCGData*, int32> MatchableSourcesMap;
 		TArray<TSharedPtr<FPCGExMatchRuleOperation>> Operations;
 
 		TArray<TSharedPtr<FPCGExMatchRuleOperation>> RequiredOperations;
@@ -60,26 +62,28 @@ namespace PCGExMatching
 
 		FDataMatcher();
 
+		FORCEINLINE int32 GetNumSources() const { return NumSources; }
 		bool FindIndex(const UPCGData* InData, int32& OutIndex) const;
 
 		void SetDetails(const FPCGExMatchingDetails* InDetails);
 
-		bool Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InTargetData, const TArray<TSharedPtr<PCGExData::FTags>>& InTags, const bool bThrowError);
-		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError);
-		bool Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError);
-		bool Init(FPCGExContext* InContext, const TArray<FPCGExTaggedData>& InTargetDatas, const bool bThrowError);
-		bool Init(FPCGExContext* InContext, const TSharedPtr<FDataMatcher>& InOtherMatcher, const FName InFactoriesLabel, const bool bThrowError);
+		bool Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InMatchableSources, const TArray<TSharedPtr<PCGExData::FTags>>& InTags, const bool bThrowError);
+		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InMatchableSources, const bool bThrowError);
+		bool Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InMatchableSources, const bool bThrowError);
+		bool Init(FPCGExContext* InContext, const TArray<FPCGExTaggedData>& InMatchableSources, const bool bThrowError);
+		bool Init(FPCGExContext* InContext, const TSharedPtr<FDataMatcher>& InOtherDataMatcher, const FName InFactoriesLabel, const bool bThrowError);
 
-		bool Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope) const;
-		bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope) const;
+		bool Test(const UPCGData* InMatchableSource, const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope) const;
+		bool Test(const PCGExData::FConstPoint& InInMatchableElement, const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope) const;
 
-		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
-		int32 GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches) const;
+		bool PopulateIgnoreList(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
+
+		int32 GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources = nullptr) const;
 
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 
 	protected:
-		int32 GetMatchLimitFor(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
+		int32 GetMatchLimitFor(const FPCGExTaggedData& InDataCandidate) const;
 		void RegisterTaggedData(FPCGExContext* InContext, const FPCGExTaggedData& InTaggedData);
 		bool InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel);
 	};

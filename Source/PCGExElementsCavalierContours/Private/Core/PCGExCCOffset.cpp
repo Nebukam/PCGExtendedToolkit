@@ -1334,6 +1334,7 @@ namespace PCGExCavalier::Offset
 				const FVector2D& FirstIntr = IntersectsLookup[FirstIntrIdx][0];
 				TryAddSlice(RawOffset.GetVertex(0).GetPosition(), 0, FirstIntr, FirstIntrIdx);
 			}
+			
 
 			// Create slices
 			for (int32 i = 0; i < SortedSegIndices.Num(); ++i)

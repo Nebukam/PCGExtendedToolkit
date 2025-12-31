@@ -19,6 +19,7 @@
 #include "Search/PCGExSearchOperation.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
+#include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
@@ -103,6 +104,8 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	SeedForwardHandler->Forward(Query->Seed.Point.Index, PathDataFacade);
 	GoalForwardHandler->Forward(Query->Goal.Point.Index, PathDataFacade);
 
+	PCGExPaths::Helpers::SetClosedLoop(PathIO, false);
+
 	PathDataFacade->WriteFastest(GetTaskManager());
 }
 
@@ -151,8 +154,14 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
 
+
+	auto ValidIdentity = [](const PCGExData::FAttributeIdentity& Identity) { return Identity.Identifier != PCGExPaths::Labels::ClosedLoopIdentifier; };
+
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
+	Context->SeedForwardHandler->ValidateIdentities(ValidIdentity);
+
 	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
+	Context->GoalForwardHandler->ValidateIdentities(ValidIdentity);
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;

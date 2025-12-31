@@ -18,18 +18,18 @@ void FPCGExMatchByIndexConfig::Init()
 	FPCGExMatchRuleConfigBase::Init();
 }
 
-bool FPCGExMatchByIndex::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InTargets)
+bool FPCGExMatchByIndex::PrepareForMatchableSources(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InMatchableSources)
 {
-	if (!FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets)) { return false; }
+	if (!FPCGExMatchRuleOperation::PrepareForMatchableSources(InContext, InMatchableSources)) { return false; }
 
-	TArray<FPCGExTaggedData>& TargetsRef = *InTargets.Get();
+	TArray<FPCGExTaggedData>& MatchableSourcesRef = *InMatchableSources.Get();
 
 	bIsIndex = Config.IndexAttribute.GetSelection() == EPCGAttributePropertySelection::ExtraProperty && Config.IndexAttribute.GetExtraProperty() == EPCGExtraProperties::Index;
 
 	if (!bIsIndex && Config.Source == EPCGExMatchByIndexSource::Target)
 	{
-		IndexGetters.Reserve(TargetsRef.Num());
-		for (const FPCGExTaggedData& TaggedData : TargetsRef)
+		IndexGetters.Reserve(MatchableSourcesRef.Num());
+		for (const FPCGExTaggedData& TaggedData : MatchableSourcesRef)
 		{
 			TSharedPtr<PCGExData::TAttributeBroadcaster<int32>> Getter = MakeShared<PCGExData::TAttributeBroadcaster<int32>>();
 
@@ -46,7 +46,7 @@ bool FPCGExMatchByIndex::PrepareForTargets(FPCGExContext* InContext, const TShar
 	return true;
 }
 
-bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FScope& InMatchingScope) const
+bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, const FPCGExTaggedData& InCandidate, const PCGExMatching::FScope& InMatchingScope) const
 {
 	int32 IndexValue = -1;
 	int32 OtherIndex = -1;
@@ -56,16 +56,16 @@ bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, con
 		if (bIsIndex) { IndexValue = InTargetElement.Data ? InTargetElement.Index : InTargetElement.IO; }
 		else { IndexValue = IndexGetters[InTargetElement.IO]->FetchSingle(InTargetElement, -1); }
 
-		OtherIndex = PointIO->IOIndex;
+		OtherIndex = InCandidate.Index;
 
 		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InMatchingScope.GetNumCandidates() - 1, Config.IndexSafety);
 	}
 	else
 	{
-		if (!PCGExData::Helpers::TryReadDataValue<int32>(PointIO, Config.IndexAttribute, IndexValue)) { return false; }
+		if (!PCGExData::Helpers::TryReadDataValue<int32>(Context, InCandidate.Data, Config.IndexAttribute, IndexValue)) { return false; }
 		OtherIndex = InTargetElement.Data ? InTargetElement.Index : InTargetElement.IO;
 
-		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InTargetElement.Data ? InTargetElement.Data->GetNumPoints() - 1 : Targets->Num() - 1, Config.IndexSafety);
+		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InTargetElement.Data ? InTargetElement.Data->GetNumPoints() - 1 : MatchableSources->Num() - 1, Config.IndexSafety);
 	}
 
 	if (IndexValue == -1 || OtherIndex == -1) { return false; }

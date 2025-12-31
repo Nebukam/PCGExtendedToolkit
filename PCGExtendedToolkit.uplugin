@@ -125,7 +125,7 @@
       ]
     },
     {
-      "Name": "PCGExElementsCavalierContours",
+      "Name": "PCGExElementsClipper2",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [

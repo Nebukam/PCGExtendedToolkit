@@ -10,17 +10,23 @@
 #define LOCTEXT_NAMESPACE "PCGExMatchCopyTags"
 #define PCGEX_NAMESPACE MatchCopyTags
 
-bool FPCGExMatchCopyTags::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InTargets)
+bool FPCGExMatchCopyTags::PrepareForMatchableSources(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InMatchableSources)
 {
-	return FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets);
+	return FPCGExMatchRuleOperation::PrepareForMatchableSources(InContext, InMatchableSources);
 }
 
-bool FPCGExMatchCopyTags::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FScope& InMatchingScope) const
+bool FPCGExMatchCopyTags::Test(const PCGExData::FConstPoint& InTargetElement, const FPCGExTaggedData& InCandidate, const PCGExMatching::FScope& InMatchingScope) const
 {
 	if (InTargetElement.Data) { return true; }
 
-	FPCGExTaggedData* TaggedData = Targets->GetData() + InTargetElement.IO;
-	if (const TSharedPtr<PCGExData::FTags> Tags = TaggedData->GetTags()) { PointIO->Tags->Append(Tags.ToSharedRef()); }
+	const FPCGExTaggedData* TaggedData = MatchableSources->GetData() + InTargetElement.IO;
+
+	if (const TSharedPtr<PCGExData::FTags> Tags = TaggedData->GetTags();
+		const TSharedPtr<PCGExData::FTags> CandidateTags = InCandidate.GetTags())
+	{
+		CandidateTags->Append(Tags.ToSharedRef());
+	}
+	
 	return true;
 }
 

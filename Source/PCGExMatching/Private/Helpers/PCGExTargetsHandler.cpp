@@ -84,7 +84,7 @@ namespace PCGExMatching
 
 	bool FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
 	{
-		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate, InMatchingScope, OutIgnoreList); }
+		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate->GetTaggedData(), InMatchingScope, OutIgnoreList); }
 		return true;
 	}
 
