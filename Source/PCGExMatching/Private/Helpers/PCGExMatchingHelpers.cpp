@@ -4,6 +4,8 @@
 
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Core/PCGExMatchRuleFactoryProvider.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "Helpers/PCGExDataMatcher.h"
 
@@ -49,27 +51,52 @@ namespace PCGExMatching::Helpers
 		}
 	}
 
-	void GetMatchingSourcePartitions(TSharedPtr<FDataMatcher>& Matcher, const TArray<TSharedPtr<PCGExData::FFacade>>& Facades, TArray<TArray<int32>>& OutPartitions, bool bExclusive)
+	int32 GetMatchingSourcePartitions(TSharedPtr<FDataMatcher>& Matcher, const TArray<TSharedPtr<PCGExData::FFacade>>& Facades, TArray<TArray<int32>>& OutPartitions, bool bExclusive, const TSet<int32>* OnceIndices)
 	{
+		// NOTE : Uses Idx insted of IOIndex
 		// TODO : Partition facades assuming the matcher contains those same facades.
 		// This is primarily aimed to help clipper2 module to create sub-groups of paths
 		// as well as MergeByTags to deprecate existing API and support non-exclusive groups.
 		// Having a way to flag "exclusive" data  (some that can only belong to a single group) would be neat
-		// TODO : Merge matcher API so they support FPCGExTaggedData instead
-		/*
+
 		const int32 NumSources = Matcher->GetNumSources();
+		check(NumSources == Facades.Num())
 		OutPartitions.Reserve(NumSources);
-		
+
 		if (bExclusive)
 		{
-			TSet<int32> ExcludedIndices;
-			ExcludedIndices.Reserve(NumSources);
-		
+			TSet<int32> DistributedIndices;
+			DistributedIndices.Reserve(NumSources);
+
 			for (int i = 0; i < NumSources; ++i)
 			{
-				Matcher->GetMatchingSourcesIndices();
+				bool bIsAlreadyInSet = false;
+				DistributedIndices.Add(i, &bIsAlreadyInSet);
+
+				if (bIsAlreadyInSet) { continue; }
+
+				TArray<int32>& Partition = OutPartitions.Emplace_GetRef();
+
+				FScope Scope = FScope(NumSources, true);
+				Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition, &DistributedIndices);
+				Partition.AddUnique(i);
 			}
+			
+			return OutPartitions.Num();
 		}
-		*/
+		
+		TSet<int32> DistributedIndices;
+		DistributedIndices.Reserve(NumSources);
+
+		for (int i = 0; i < NumSources; ++i)
+		{			
+			TArray<int32>& Partition = OutPartitions.Emplace_GetRef();
+
+			FScope Scope = FScope(NumSources, true);
+			Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition);
+			Partition.AddUnique(i);
+		}
+			
+		return OutPartitions.Num();
 	}
 }

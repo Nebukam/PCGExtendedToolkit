@@ -158,14 +158,14 @@ bool FPCGExAttributesToTagsElement::AdvanceWork(FPCGExContext* InContext, const 
 
 namespace PCGExAttributesToTags
 {
-	void FProcessor::Tag(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const
+	void FProcessor::Hoist(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const
 	{
 		const PCGExData::FConstPoint Point = PointDataFacade->GetInPoint(Index);
 		if (OutputSet) { InDetails.Tag(Point, OutputSet->Metadata); }
 		else
 		{
 			if (Settings->Action == EPCGExAttributeToTagsAction::AddTags) { InDetails.Tag(Point, PointDataFacade->Source); }
-			else { InDetails.Tag(Point, PointDataFacade->Source->GetOut()->MutableMetadata()); }
+			else { InDetails.Tag(Point, const_cast<UPCGData*>(PointDataFacade->Source->InitializationData.Get())->MutableMetadata()); }
 		}
 	}
 
@@ -175,7 +175,16 @@ namespace PCGExAttributesToTags
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Action == EPCGExAttributeToTagsAction::Attribute ? PCGExData::EIOInit::NoInit : Settings->Action == EPCGExAttributeToTagsAction::Data ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
+		if (Settings->Action == EPCGExAttributeToTagsAction::Attribute)
+		{
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::NoInit)
+		}
+		else if (Settings->Action == EPCGExAttributeToTagsAction::Data)
+		{
+			// Since we're doing transactional work, InitializationData needs to be swapped with a duplicate
+			PointDataFacade->Source->InitializationData = Context->ManagedObjects->DuplicateData<UPCGData>(PointDataFacade->Source->InitializationData);
+			if (!PointDataFacade->Source->InitializationData) { return false; }
+		}
 
 		FRandomStream RandomSource(BatchIndex);
 
@@ -202,11 +211,11 @@ namespace PCGExAttributesToTags
 
 			switch (Settings->Selection)
 			{
-			case EPCGExCollectionEntrySelection::FirstIndex: Tag(Details, 0);
+			case EPCGExCollectionEntrySelection::FirstIndex: Hoist(Details, 0);
 				break;
-			case EPCGExCollectionEntrySelection::LastIndex: Tag(Details, PointDataFacade->GetNum() - 1);
+			case EPCGExCollectionEntrySelection::LastIndex: Hoist(Details, PointDataFacade->GetNum() - 1);
 				break;
-			case EPCGExCollectionEntrySelection::RandomIndex: Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
+			case EPCGExCollectionEntrySelection::RandomIndex: Hoist(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
 				break;
 			case EPCGExCollectionEntrySelection::Picker:
 			case EPCGExCollectionEntrySelection::PickerFirst:
@@ -220,11 +229,11 @@ namespace PCGExAttributesToTags
 
 			switch (Settings->Selection)
 			{
-			case EPCGExCollectionEntrySelection::FirstIndex: Tag(Details, 0);
+			case EPCGExCollectionEntrySelection::FirstIndex: Hoist(Details, 0);
 				break;
-			case EPCGExCollectionEntrySelection::LastIndex: Tag(Details, PointDataFacade->GetNum() - 1);
+			case EPCGExCollectionEntrySelection::LastIndex: Hoist(Details, PointDataFacade->GetNum() - 1);
 				break;
-			case EPCGExCollectionEntrySelection::RandomIndex: Tag(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
+			case EPCGExCollectionEntrySelection::RandomIndex: Hoist(Details, RandomSource.RandRange(0, PointDataFacade->GetNum() - 1));
 				break;
 			case EPCGExCollectionEntrySelection::Picker:
 			case EPCGExCollectionEntrySelection::PickerFirst:
@@ -254,7 +263,7 @@ namespace PCGExAttributesToTags
 		{
 			for (const int32 i : UniqueIndicesTemp)
 			{
-				if (i != -1) { Tag(InDetails, i); }
+				if (i != -1) { Hoist(InDetails, i); }
 			}
 		}
 		if (Settings->Selection == EPCGExCollectionEntrySelection::PickerFirst)
@@ -263,7 +272,7 @@ namespace PCGExAttributesToTags
 			{
 				if (UniqueIndicesTemp[i] != -1)
 				{
-					Tag(InDetails, UniqueIndicesTemp[i]);
+					Hoist(InDetails, UniqueIndicesTemp[i]);
 					return;
 				}
 			}
@@ -274,7 +283,7 @@ namespace PCGExAttributesToTags
 			{
 				if (UniqueIndicesTemp[i] != -1)
 				{
-					Tag(InDetails, UniqueIndicesTemp[i]);
+					Hoist(InDetails, UniqueIndicesTemp[i]);
 					return;
 				}
 			}

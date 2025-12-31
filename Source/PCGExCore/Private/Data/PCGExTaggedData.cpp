@@ -12,8 +12,8 @@ FPCGExTaggedData::FPCGExTaggedData(const UPCGData* InData, const int32 InIdx, co
 {
 }
 
-FPCGExTaggedData::FPCGExTaggedData(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bFetchKeys, const int32 InIdx)
-	: Data(InData->GetIn()), Index(InIdx == INDEX_NONE ? InData->IOIndex : InIdx), Tags(InData->Tags), Keys(bFetchKeys ? InData->GetInKeys() : nullptr)
+FPCGExTaggedData::FPCGExTaggedData(const TSharedPtr<PCGExData::FPointIO>& InData, const int32 InIdx)
+	: Data(InData->GetIn()), Index(InIdx == INDEX_NONE ? InData->IOIndex : InIdx), Tags(InData->Tags), Keys(InData->GetInKeys())
 {
 }
 

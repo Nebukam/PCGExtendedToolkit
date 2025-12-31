@@ -25,7 +25,7 @@ struct PCGEXCORE_API FPCGExTaggedData
 
 	FPCGExTaggedData() = default;
 	FPCGExTaggedData(const UPCGData* InData, const int32 InIdx, const TSharedPtr<PCGExData::FTags>& InTags, const TSharedPtr<IPCGAttributeAccessorKeys>& InKeys);
-	explicit FPCGExTaggedData(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bFetchKeys = true, const int32 InIdx = -1);
+	explicit FPCGExTaggedData(const TSharedPtr<PCGExData::FPointIO>& InData, const int32 InIdx = -1);
 	
 	TSharedPtr<PCGExData::FTags> GetTags() const;
 	void Dump(FPCGTaggedData& InOut) const;

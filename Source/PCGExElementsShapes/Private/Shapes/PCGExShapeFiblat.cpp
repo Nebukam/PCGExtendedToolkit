@@ -32,7 +32,20 @@ void FPCGExShapeFiblatBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 
 	if (Config.ResolutionMode == EPCGExResolutionMode::Distance)
 	{
-		Fiblat->NumPoints = Fiblat->Radius / GetResolution(Seed);
+		const double Spacing = GetResolution(Seed) * 100;
+		const double Radius = Fiblat->Radius;
+
+		// Estimate number of points based on surface area and desired spacing
+		if (Spacing > 0)
+		{
+			const double SurfaceArea = 4.0 * PI * Radius * Radius;
+			const double AreaPerPoint = Spacing * Spacing;
+			Fiblat->NumPoints = FMath::Max(1, static_cast<int32>(SurfaceArea / AreaPerPoint));
+		}
+		else
+		{
+			Fiblat->NumPoints = 100; // fallback
+		}
 	}
 	else { Fiblat->NumPoints = GetResolution(Seed); }
 

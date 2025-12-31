@@ -3,17 +3,35 @@
 
 #include "Core/PCGExClipper2Processor.h"
 
+#include "Core/PCGExClipper2Common.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "GeometryCollection/Facades/CollectionPositionTargetFacade.h"
 #include "Helpers/PCGExAsyncHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2ProcessorElement"
+
+namespace PCGExClipper2
+{
+	FOpData::FOpData(const int32 InReserve)
+	{
+		Facades = MakeShared<TArray<TSharedPtr<PCGExData::FFacade>>>();
+		AddReserve(InReserve);
+	}
+
+	void FOpData::AddReserve(const int32 InReserve)
+	{
+		const int32 Reserve = Paths.Num() + InReserve;
+		Facades->Reserve(Reserve);
+		Paths.Reserve(Reserve);
+		IsClosedLoop.Reserve(Reserve);
+		Projections.Reserve(Reserve);
+	}
+}
 
 UPCGExClipper2ProcessorSettings::UPCGExClipper2ProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -22,7 +40,7 @@ UPCGExClipper2ProcessorSettings::UPCGExClipper2ProcessorSettings(const FObjectIn
 
 bool UPCGExClipper2ProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExCavalier::Labels::SourceOperandsLabel) { return NeedsOperands(); }
+	if (InPin->Properties.Label == PCGExClipper2::Labels::SourceOperandsLabel) { return NeedsOperands(); }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -30,8 +48,8 @@ TArray<FPCGPinProperties> UPCGExClipper2ProcessorSettings::InputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	if (NeedsOperands()) { PCGEX_PIN_POINTS(PCGExCavalier::Labels::SourceOperandsLabel, "Operands", Required) }
-	else { PCGEX_PIN_POINTS(PCGExCavalier::Labels::SourceOperandsLabel, "Operands", Advanced) }
+	if (NeedsOperands()) { PCGEX_PIN_POINTS(PCGExClipper2::Labels::SourceOperandsLabel, "Operands", Required) }
+	else { PCGEX_PIN_POINTS(PCGExClipper2::Labels::SourceOperandsLabel, "Operands", Advanced) }
 
 	return PinProperties;
 }
@@ -46,42 +64,10 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2ProcessorSettings::GetProjectionDetai
 	return FPCGExGeo2DProjectionDetails();
 }
 
-TSharedPtr<PCGExData::FFacade> FPCGExClipper2ProcessorContext::FindSourceFacade(const PCGExCavalier::FPolyline& Polyline, const TMap<int32, PCGExCavalier::FRootPath>* RootPathsMapOverride) const
-{
-	const TSet<int32>& ContributingIds = Polyline.GetContributingPathIds();
-
-	// Try to find a source IO from the contributing paths
-	if (RootPathsMapOverride)
-	{
-		for (const int32 PathId : ContributingIds)
-		{
-			if (const PCGExCavalier::FRootPath* RootPath = RootPathsMapOverride->Find(PathId)) { return RootPath->PathFacade; }
-		}
-	}
-	else
-	{
-		for (const int32 PathId : ContributingIds)
-		{
-			if (const PCGExCavalier::FRootPath* RootPath = RootPathsMap.Find(PathId)) { return RootPath->PathFacade; }
-		}
-	}
-
-
-	// Fallback: use first main polyline source if available
-	if (!MainFacades.IsEmpty() && MainFacades[0]) { return MainFacades[0]; }
-
-	return nullptr;
-}
-
-TSharedPtr<PCGExData::FPointIO> FPCGExClipper2ProcessorContext::OutputPolyline(
-	PCGExCavalier::FPolyline& Polyline, bool bIsNegativeSpace,
-	const FPCGExGeo2DProjectionDetails& InProjectionDetails,
-	const TMap<int32, PCGExCavalier::FRootPath>* RootPathsMapOverride) const
+void FPCGExClipper2ProcessorContext::OutputPaths64(PCGExClipper2Lib::Paths64& InPaths, TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths) const
 {
 	const UPCGExClipper2ProcessorSettings* Settings = GetInputSettings<UPCGExClipper2ProcessorSettings>();
 	check(Settings);
-
-	return PathIO;
 }
 
 bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
@@ -96,7 +82,7 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 	// Check for operands input
 	if (Settings->NeedsOperands())
 	{
-		Context->OperandsCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGExCavalier::Labels::SourceOperandsLabel, PCGExData::EIOInit::NoInit, false);
+		Context->OperandsCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGExClipper2::Labels::SourceOperandsLabel, PCGExData::EIOInit::NoInit, false);
 
 		if (Context->OperandsCollection->IsEmpty())
 		{
@@ -105,24 +91,24 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	if (WantsRootPathsFromMainInput())
-	{
-		// Build polylines from main input (parallel)
-		BuildRootPathsFromCollection(Context, Settings, Context->MainPoints, Context->MainPolylines, Context->MainFacades);
+	const int32 TotalInputNum = Context->MainPoints->Num() + (Context->OperandsCollection ? Context->OperandsCollection->Num() : 0);
+	Context->AllOpData->AddReserve(TotalInputNum);
 
-		if (Context->MainPolylines.IsEmpty())
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid paths found in main input."));
-			return false;
-		}
+
+	BuildDataFromCollection(Context, Settings, Context->MainPoints, Context->MainOpDataPartitions);
+
+	if (Context->MainOpDataPartitions.IsEmpty())
+	{
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid paths found in main input."));
+		return false;
 	}
 
 	if (Context->OperandsCollection)
 	{
 		// Build polylines from operands input (parallel)
-		BuildRootPathsFromCollection(Context, Settings, Context->OperandsCollection, Context->OperandPolylines, Context->OperandsFacades);
+		BuildDataFromCollection(Context, Settings, Context->OperandsCollection, Context->OperandsOpDataPartitions);
 
-		if (Context->OperandPolylines.IsEmpty())
+		if (Context->OperandsOpDataPartitions.IsEmpty())
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid operands found in operands input."));
 			return false;
@@ -149,40 +135,40 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExClipper2ProcessorElement::WantsRootPathsFromMainInput() const
+bool FPCGExClipper2ProcessorElement::WantsDataFromMainInput() const
 {
 	return true;
 }
 
-void FPCGExClipper2ProcessorElement::BuildRootPathsFromCollection(
+void FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 	FPCGExClipper2ProcessorContext* Context,
 	const UPCGExClipper2ProcessorSettings* Settings,
 	const TSharedPtr<PCGExData::FPointIOCollection>& Collection,
-	TArray<PCGExCavalier::FPolyline>& OutPolylines,
-	TArray<TSharedPtr<PCGExData::FFacade>>& OutSourceFacades) const
+	TArray<TArray<int32>>& OutData) const
 {
 	if (!Collection) return;
 
 	const int32 NumInputs = Collection->Num();
 	if (NumInputs == 0) return;
 
-	Context->RootPathsMap.Reserve(Context->RootPathsMap.Num() + NumInputs);
-	OutPolylines.Reserve(OutPolylines.Num() + NumInputs);
-	OutSourceFacades.Reserve(OutSourceFacades.Num() + NumInputs);
+	auto Data = MakeShared<TSharedPtr<PCGExClipper2::FOpData>>();
 
 	// Thread-safe containers for parallel building
 	FCriticalSection Lock;
 
 	struct FBuildResult
 	{
-		PCGExCavalier::FRootPath RootPath;
-		PCGExCavalier::FPolyline Polyline;
-		TSharedPtr<PCGExData::FFacade> Facade;
 		bool bValid = false;
+		PCGExClipper2Lib::Path64 Path64;
+		TSharedPtr<PCGExData::FFacade> Facade;
+		bool bIsClosedLoop = false;
+		FPCGExGeo2DProjectionDetails Projection;
 	};
 
 	TArray<FBuildResult> Results;
 	Results.SetNum(NumInputs);
+
+	Context->AllOpData->AddReserve(NumInputs);
 
 	{
 		PCGExAsyncHelpers::FAsyncExecutionScope BuildScope(NumInputs);
@@ -203,35 +189,57 @@ void FPCGExClipper2ProcessorElement::BuildRootPathsFromCollection(
 				TSharedPtr<PCGExData::FFacade> Facade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 
 				// Allocate unique path ID
-				Facade->Idx = Context->AllocateSourceIdx();
+				const int32 Idx = Context->AllocateSourceIdx();
+				Facade->Idx = Idx;
 
 				// Initialize projection for this path
 				FPCGExGeo2DProjectionDetails LocalProjection = Context->ProjectionDetails;
 				if (LocalProjection.Method == EPCGExProjectionMethod::Normal) { if (!LocalProjection.Init(Facade)) { return; } }
 				else { LocalProjection.Init(PCGExMath::FBestFitPlane(IO->GetIn()->GetConstTransformValueRange())); }
 
-				// Build root path
-				Result.RootPath = PCGExCavalier::FRootPath(Facade->Idx, Facade, LocalProjection);
+				const int32 Scale = Settings->Precision;
+
+				TConstPCGValueRange<FTransform> InTransforms = IO->GetIn()->GetConstTransformValueRange();
+
+				// Build path with Z value mapped to source ID
+				const int32 NumPoints = InTransforms.Num();
+				Result.Path64.reserve(NumPoints);
+				for (int32 j = 0; j < NumPoints; j++)
+				{
+					FVector Location = LocalProjection.Project(InTransforms[j].GetLocation(), j);
+					Result.Path64.emplace_back(
+						static_cast<int64_t>(Location.X * Scale),
+						static_cast<int64_t>(Location.Y * Scale),
+						static_cast<int64_t>(PCGEx::H64(j, Idx)) // Pack point index << source index
+					);
+				}
 
 				// Convert to polyline
-				Result.Polyline = PCGExCavalier::FContourUtils::CreateFromRootPath(Result.RootPath);
-				Result.Polyline.SetClosed(bIsClosed);
-				Result.Polyline.SetPrimaryPathId(Result.RootPath.PathId);
-				Result.Facade = Facade;
 				Result.bValid = true;
+				Result.Facade = Facade;
+				Result.Projection = LocalProjection;
+				Result.bIsClosedLoop = PCGExPaths::Helpers::GetClosedLoop(IO);
 			});
 		}
 	}
+
+	
+	// TODO : Partition as per data matching
+	
+	TArray<int32>& OutIndices = OutData.Emplace_GetRef();
+	OutIndices.Reserve(Results.Num());
 
 	// Collect results (single-threaded)
 	for (FBuildResult& Result : Results)
 	{
 		if (!Result.bValid) continue;
 
-		const int32 PathId = Result.RootPath.PathId;
-		Context->RootPathsMap.Add(PathId, MoveTemp(Result.RootPath));
-		OutPolylines.Add(MoveTemp(Result.Polyline));
-		OutSourceFacades.Add(Result.Facade);
+		OutIndices.Add(Result.Facade->Idx);
+
+		Context->AllOpData->Facades->Add(Result.Facade);
+		Context->AllOpData->Paths.Add(MoveTemp(Result.Path64));
+		Context->AllOpData->Projections.Add(MoveTemp(Result.Projection));
+		Context->AllOpData->IsClosedLoop.Add(Result.bIsClosedLoop);
 	}
 }
 

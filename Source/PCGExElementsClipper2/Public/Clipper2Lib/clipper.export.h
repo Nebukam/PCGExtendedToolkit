@@ -167,90 +167,82 @@ namespace PCGExClipper2Lib
         return *reinterpret_cast<T1*>(&value);
     }
 
-
-#ifdef _WIN32
-#define EXTERN_DLL_EXPORT extern "C" __declspec(dllexport)
-#else
-#define EXTERN_DLL_EXPORT extern "C"
-#endif
-
-
     //////////////////////////////////////////////////////
     // EXPORTED FUNCTION DECLARATIONS
     //////////////////////////////////////////////////////
 
-    EXTERN_DLL_EXPORT const char* Version();
+    FORCEINLINE const char* Version();
 
-    EXTERN_DLL_EXPORT void DisposeArray64(int64_t*& p)
+    FORCEINLINE void DisposeArray64(int64_t*& p)
     {
         delete[] p;
     }
 
-    EXTERN_DLL_EXPORT void DisposeArrayD(double*& p)
+    FORCEINLINE void DisposeArrayD(double*& p)
     {
         delete[] p;
     }
 
-    EXTERN_DLL_EXPORT int BooleanOp64(uint8_t cliptype,
+    FORCEINLINE int BooleanOp64(uint8_t cliptype,
                                       uint8_t fillrule, const CPaths64 subjects,
                                       const CPaths64 subjects_open, const CPaths64 clips,
                                       CPaths64& solution, CPaths64& solution_open,
                                       bool preserve_collinear = true, bool reverse_solution = false);
 
-    EXTERN_DLL_EXPORT int BooleanOp_PolyTree64(uint8_t cliptype,
+    FORCEINLINE int BooleanOp_PolyTree64(uint8_t cliptype,
                                                uint8_t fillrule, const CPaths64 subjects,
                                                const CPaths64 subjects_open, const CPaths64 clips,
                                                CPolyTree64& sol_tree, CPaths64& solution_open,
                                                bool preserve_collinear = true, bool reverse_solution = false);
 
-    EXTERN_DLL_EXPORT int BooleanOpD(uint8_t cliptype,
+    FORCEINLINE int BooleanOpD(uint8_t cliptype,
                                      uint8_t fillrule, const CPathsD subjects,
                                      const CPathsD subjects_open, const CPathsD clips,
                                      CPathsD& solution, CPathsD& solution_open, int precision = 2,
                                      bool preserve_collinear = true, bool reverse_solution = false);
 
-    EXTERN_DLL_EXPORT int BooleanOp_PolyTreeD(uint8_t cliptype,
+    FORCEINLINE int BooleanOp_PolyTreeD(uint8_t cliptype,
                                               uint8_t fillrule, const CPathsD subjects,
                                               const CPathsD subjects_open, const CPathsD clips,
                                               CPolyTreeD& solution, CPathsD& solution_open, int precision = 2,
                                               bool preserve_collinear = true, bool reverse_solution = false);
 
-    EXTERN_DLL_EXPORT CPaths64 InflatePaths64(const CPaths64 paths,
+    FORCEINLINE CPaths64 InflatePaths64(const CPaths64 paths,
                                               double delta, uint8_t jointype, uint8_t endtype,
                                               double miter_limit = 2.0, double arc_tolerance = 0.0,
                                               bool reverse_solution = false);
 
-    EXTERN_DLL_EXPORT CPathsD InflatePathsD(const CPathsD paths,
+    FORCEINLINE CPathsD InflatePathsD(const CPathsD paths,
                                             double delta, uint8_t jointype, uint8_t endtype,
                                             int precision = 2, double miter_limit = 2.0,
                                             double arc_tolerance = 0.0, bool reverse_solution = false);
 
-    EXTERN_DLL_EXPORT CPaths64 InflatePath64(const CPath64 path,
+    FORCEINLINE CPaths64 InflatePath64(const CPath64 path,
                                              double delta, uint8_t jointype, uint8_t endtype,
                                              double miter_limit = 2.0, double arc_tolerance = 0.0,
                                              bool reverse_solution = false);
 
-    EXTERN_DLL_EXPORT CPathsD InflatePathD(const CPathD path,
+    FORCEINLINE CPathsD InflatePathD(const CPathD path,
                                            double delta, uint8_t jointype, uint8_t endtype,
                                            int precision = 2, double miter_limit = 2.0,
                                            double arc_tolerance = 0.0, bool reverse_solution = false);
 
     // RectClip & RectClipLines:
-    EXTERN_DLL_EXPORT CPaths64 RectClip64(const CRect64& rect,
+    FORCEINLINE CPaths64 RectClip64(const CRect64& rect,
                                           const CPaths64 paths);
-    EXTERN_DLL_EXPORT CPathsD RectClipD(const CRectD& rect,
+    FORCEINLINE CPathsD RectClipD(const CRectD& rect,
                                         const CPathsD paths, int precision = 2);
-    EXTERN_DLL_EXPORT CPaths64 RectClipLines64(const CRect64& rect,
+    FORCEINLINE CPaths64 RectClipLines64(const CRect64& rect,
                                                const CPaths64 paths);
-    EXTERN_DLL_EXPORT CPathsD RectClipLinesD(const CRectD& rect,
+    FORCEINLINE CPathsD RectClipLinesD(const CRectD& rect,
                                              const CPathsD paths, int precision = 2);
 
     //////////////////////////////////////////////////////
     // INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////
 
-    ZCallback64 dllCallback64 = nullptr;
-    ZCallbackD dllCallbackD = nullptr;
+    inline ZCallback64 dllCallback64 = nullptr;
+    inline ZCallbackD dllCallbackD = nullptr;
 
     constexpr int EXPORT_VERTEX_DIMENSIONALITY = 3;
 
@@ -325,7 +317,7 @@ namespace PCGExClipper2Lib
         return result;
     }
 
-    CPathsD CreateCPathsDFromPathsD(const PathsD& paths)
+    FORCEINLINE CPathsD CreateCPathsDFromPathsD(const PathsD& paths)
     {
         if (!paths.size()) return nullptr;
         size_t cnt, array_len;
@@ -349,7 +341,7 @@ namespace PCGExClipper2Lib
         return result;
     }
 
-    CPathsD CreateCPathsDFromPaths64(const Paths64& paths, double scale)
+    FORCEINLINE CPathsD CreateCPathsDFromPaths64(const Paths64& paths, double scale)
     {
         if (!paths.size()) return nullptr;
         size_t cnt, array_len;
@@ -524,12 +516,12 @@ namespace PCGExClipper2Lib
     // EXPORTED FUNCTION DEFINITIONS
     //////////////////////////////////////////////////////
 
-    EXTERN_DLL_EXPORT const char* Version()
+    FORCEINLINE const char* Version()
     {
         return CLIPPER2_VERSION;
     }
 
-    EXTERN_DLL_EXPORT int BooleanOp64(uint8_t cliptype,
+    FORCEINLINE int BooleanOp64(uint8_t cliptype,
                                       uint8_t fillrule, const CPaths64 subjects,
                                       const CPaths64 subjects_open, const CPaths64 clips,
                                       CPaths64& solution, CPaths64& solution_open,
@@ -557,7 +549,7 @@ namespace PCGExClipper2Lib
         return 0; //success !!
     }
 
-    EXTERN_DLL_EXPORT int BooleanOp_PolyTree64(uint8_t cliptype,
+    FORCEINLINE int BooleanOp_PolyTree64(uint8_t cliptype,
                                                uint8_t fillrule, const CPaths64 subjects,
                                                const CPaths64 subjects_open, const CPaths64 clips,
                                                CPolyTree64& sol_tree, CPaths64& solution_open,
@@ -586,7 +578,7 @@ namespace PCGExClipper2Lib
         return 0; //success !!
     }
 
-    EXTERN_DLL_EXPORT int BooleanOpD(uint8_t cliptype,
+    FORCEINLINE int BooleanOpD(uint8_t cliptype,
                                      uint8_t fillrule, const CPathsD subjects,
                                      const CPathsD subjects_open, const CPathsD clips,
                                      CPathsD& solution, CPathsD& solution_open, int precision,
@@ -617,7 +609,7 @@ namespace PCGExClipper2Lib
         return 0;
     }
 
-    EXTERN_DLL_EXPORT int BooleanOp_PolyTreeD(uint8_t cliptype,
+    FORCEINLINE int BooleanOp_PolyTreeD(uint8_t cliptype,
                                               uint8_t fillrule, const CPathsD subjects,
                                               const CPathsD subjects_open, const CPathsD clips,
                                               CPolyTreeD& solution, CPathsD& solution_open, int precision,
@@ -650,7 +642,7 @@ namespace PCGExClipper2Lib
         return 0; //success !!
     }
 
-    EXTERN_DLL_EXPORT CPaths64 InflatePaths64(const CPaths64 paths,
+    FORCEINLINE CPaths64 InflatePaths64(const CPaths64 paths,
                                               double delta, uint8_t jointype, uint8_t endtype, double miter_limit,
                                               double arc_tolerance, bool reverse_solution)
     {
@@ -664,7 +656,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsFromPathsT(result);
     }
 
-    EXTERN_DLL_EXPORT CPathsD InflatePathsD(const CPathsD paths,
+    FORCEINLINE CPathsD InflatePathsD(const CPathsD paths,
                                             double delta, uint8_t jointype, uint8_t endtype,
                                             int precision, double miter_limit,
                                             double arc_tolerance, bool reverse_solution)
@@ -681,7 +673,7 @@ namespace PCGExClipper2Lib
     }
 
 
-    EXTERN_DLL_EXPORT CPaths64 InflatePath64(const CPath64 path,
+    FORCEINLINE CPaths64 InflatePath64(const CPath64 path,
                                              double delta, uint8_t jointype, uint8_t endtype, double miter_limit,
                                              double arc_tolerance, bool reverse_solution)
     {
@@ -695,7 +687,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsFromPathsT(result);
     }
 
-    EXTERN_DLL_EXPORT CPathsD InflatePathD(const CPathD path,
+    FORCEINLINE CPathsD InflatePathD(const CPathD path,
                                            double delta, uint8_t jointype, uint8_t endtype,
                                            int precision, double miter_limit,
                                            double arc_tolerance, bool reverse_solution)
@@ -712,7 +704,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsDFromPaths64(result, 1 / scale);
     }
 
-    EXTERN_DLL_EXPORT CPaths64 RectClip64(const CRect64& rect, const CPaths64 paths)
+    FORCEINLINE CPaths64 RectClip64(const CRect64& rect, const CPaths64 paths)
     {
         if (CRectIsEmpty(rect) || !paths) return nullptr;
         Rect64 r64 = CRectToRect(rect);
@@ -722,7 +714,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsFromPathsT(result);
     }
 
-    EXTERN_DLL_EXPORT CPathsD RectClipD(const CRectD& rect, const CPathsD paths, int precision)
+    FORCEINLINE CPathsD RectClipD(const CRectD& rect, const CPathsD paths, int precision)
     {
         if (CRectIsEmpty(rect) || !paths) return nullptr;
         if (precision < -8 || precision > 8) return nullptr;
@@ -737,7 +729,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsDFromPaths64(result, 1 / scale);
     }
 
-    EXTERN_DLL_EXPORT CPaths64 RectClipLines64(const CRect64& rect,
+    FORCEINLINE CPaths64 RectClipLines64(const CRect64& rect,
                                                const CPaths64 paths)
     {
         if (CRectIsEmpty(rect) || !paths) return nullptr;
@@ -748,7 +740,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsFromPathsT(result);
     }
 
-    EXTERN_DLL_EXPORT CPathsD RectClipLinesD(const CRectD& rect,
+    FORCEINLINE CPathsD RectClipLinesD(const CRectD& rect,
                                              const CPathsD paths, int precision)
     {
         if (CRectIsEmpty(rect) || !paths) return nullptr;
@@ -762,7 +754,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsDFromPaths64(result, 1 / scale);
     }
 
-    EXTERN_DLL_EXPORT CPaths64 MinkowskiSum64(const CPath64& cpattern, const CPath64& cpath, bool is_closed)
+    FORCEINLINE CPaths64 MinkowskiSum64(const CPath64& cpattern, const CPath64& cpath, bool is_closed)
     {
         Path64 path = ConvertCPathToPathT(cpath);
         Path64 pattern = ConvertCPathToPathT(cpattern);
@@ -770,7 +762,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsFromPathsT(solution);
     }
 
-    EXTERN_DLL_EXPORT CPaths64 MinkowskiDiff64(const CPath64& cpattern, const CPath64& cpath, bool is_closed)
+    FORCEINLINE CPaths64 MinkowskiDiff64(const CPath64& cpattern, const CPath64& cpath, bool is_closed)
     {
         Path64 path = ConvertCPathToPathT(cpath);
         Path64 pattern = ConvertCPathToPathT(cpattern);
@@ -778,7 +770,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsFromPathsT(solution);
     }
 
-    EXTERN_DLL_EXPORT CPaths64 Triangulate64(const CPaths64 paths, bool use_delaunay)
+    FORCEINLINE CPaths64 Triangulate64(const CPaths64 paths, bool use_delaunay)
     {
         Paths64 pp = ConvertCPathsToPathsT(paths);
         Paths64 sol;
@@ -786,7 +778,7 @@ namespace PCGExClipper2Lib
         return CreateCPathsFromPathsT(sol);
     }
 
-    EXTERN_DLL_EXPORT CPathsD TriangulateD(const CPathsD paths, int decimal_precison, bool use_delaunay)
+    FORCEINLINE CPathsD TriangulateD(const CPathsD paths, int decimal_precison, bool use_delaunay)
     {
         if (decimal_precison < -8 || decimal_precison > 8) return nullptr;
         const double scale = std::pow(10, decimal_precison);
@@ -799,12 +791,12 @@ namespace PCGExClipper2Lib
     typedef void (*DLLZCallback64)(const Point64& e1bot, const Point64& e1top, const Point64& e2bot, const Point64& e2top, Point64& pt);
     typedef void (*DLLZCallbackD)(const PointD& e1bot, const PointD& e1top, const PointD& e2bot, const PointD& e2top, PointD& pt);
 
-    EXTERN_DLL_EXPORT void SetZCallback64(DLLZCallback64 callback)
+    FORCEINLINE void SetZCallback64(DLLZCallback64 callback)
     {
         dllCallback64 = callback;
     }
 
-    EXTERN_DLL_EXPORT void SetZCallbackD(DLLZCallbackD callback)
+    FORCEINLINE void SetZCallbackD(DLLZCallbackD callback)
     {
         dllCallbackD = callback;
     }

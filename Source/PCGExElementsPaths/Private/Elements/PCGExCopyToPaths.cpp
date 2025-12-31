@@ -77,6 +77,8 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 	{
 	};
 
+	int32 DeformerIndex = 0;
+
 	for (int i = 0; i < Targets.Num(); ++i)
 	{
 		FPCGTaggedData& TaggedData = Targets[i];
@@ -93,7 +95,7 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 			Context->LocalDeformers.Add(SplineStruct);
 
 			Context->Deformers.Add(SplineStruct.Get());
-			(void)Context->DeformersData.Emplace_GetRef(PointData, PointIO->Tags, PointIO->GetInKeys());
+			(void)Context->DeformersData.Emplace_GetRef(PointIO, DeformerIndex++);
 
 			OnDataRegistered(PointIO->GetIn());
 
@@ -106,7 +108,7 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 
 			Context->Deformers.Add(&SplineData->SplineStruct);
 			const TSharedPtr<PCGExData::FTags> Tags = MakeShared<PCGExData::FTags>(TaggedData.Tags);
-			(void)Context->DeformersData.Emplace_GetRef(SplineData, Tags, nullptr);
+			(void)Context->DeformersData.Emplace_GetRef(SplineData, DeformerIndex++, Tags, nullptr);
 
 			OnDataRegistered(SplineData);
 		}
@@ -139,17 +141,18 @@ bool FPCGExCopyToPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any dataset to generate splines."));
 		}
