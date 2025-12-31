@@ -127,6 +127,9 @@ namespace PCGExCopyClustersToPoints
 
 		const bool bSameAnyChecks = Context->MainDataMatcher == Context->EdgeDataMatcher;
 
+		FPCGExTaggedData EdgesAsCandidate = EdgeDataFacade->Source->GetTaggedData();
+		FPCGExTaggedData VtxAsCandidate = VtxDataFacade->Source->GetTaggedData();
+
 		PCGEX_SCOPE_LOOP(i)
 		{
 			EdgesDupes[i] = nullptr;
@@ -141,15 +144,15 @@ namespace PCGExCopyClustersToPoints
 				break;
 			case EPCGExClusterComponentTagMatchMode::Both:
 			case EPCGExClusterComponentTagMatchMode::Edges:
-			case EPCGExClusterComponentTagMatchMode::Separated: if (!Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope)) { continue; }
+			case EPCGExClusterComponentTagMatchMode::Separated: if (!Context->EdgeDataMatcher->Test(TargetPoint, EdgesAsCandidate, MatchScope)) { continue; }
 				break;
 			case EPCGExClusterComponentTagMatchMode::Any: if (bSameAnyChecks)
 				{
-					if (Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope)) { continue; }
+					if (Context->EdgeDataMatcher->Test(TargetPoint, EdgesAsCandidate, MatchScope)) { continue; }
 				}
 				else
 				{
-					if (Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, InfiniteScope) || Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope))
+					if (Context->MainDataMatcher->Test(TargetPoint, VtxAsCandidate, InfiniteScope) || Context->EdgeDataMatcher->Test(TargetPoint, EdgesAsCandidate, MatchScope))
 					{
 						continue;
 					}
@@ -231,6 +234,8 @@ namespace PCGExCopyClustersToPoints
 
 		PCGExMatching::FScope MatchScope = PCGExMatching::FScope(Context->InitialMainPointsNum);
 
+		FPCGExTaggedData VtxAsCandidate = VtxDataFacade->Source->GetTaggedData();
+
 		for (int i = 0; i < NumTargets; i++)
 		{
 			VtxDupes[i] = nullptr;
@@ -242,7 +247,7 @@ namespace PCGExCopyClustersToPoints
 			{
 			case EPCGExClusterComponentTagMatchMode::Vtx:
 			case EPCGExClusterComponentTagMatchMode::Both:
-			case EPCGExClusterComponentTagMatchMode::Separated: if (!Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, MatchScope)) { continue; }
+			case EPCGExClusterComponentTagMatchMode::Separated: if (!Context->MainDataMatcher->Test(TargetPoint, VtxAsCandidate, MatchScope)) { continue; }
 				break;
 			case EPCGExClusterComponentTagMatchMode::Edges:
 			case EPCGExClusterComponentTagMatchMode::Any:

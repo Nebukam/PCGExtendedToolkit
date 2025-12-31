@@ -42,13 +42,18 @@ TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(c
 	return bEnabled ? GetHandler(InSourceDataFacade, InTargetDataFacade, bForwardToDataDomain) : nullptr;
 }
 
-bool FPCGExAttributeToTagDetails::Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade)
+bool FPCGExAttributeToTagDetails::Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const TSet<FName>* IgnoreAttributes)
 {
 	PCGExMetaHelpers::AppendUniqueSelectorsFromCommaSeparatedList(CommaSeparatedAttributeSelectors, Attributes);
 
 	Getters.Reserve(Attributes.Num());
 	for (FPCGAttributePropertyInputSelector& Selector : Attributes)
 	{
+		if (IgnoreAttributes)
+		{
+			if (IgnoreAttributes->Contains(Selector.GetAttributeName())) { continue; }
+		}
+		
 		const TSharedPtr<PCGExData::IAttributeBroadcaster>& Getter = PCGExData::MakeBroadcaster(Selector, InSourceFacade->Source, true);
 		if (!Getter)
 		{
@@ -124,6 +129,7 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, U
 				if (!TypedGetter) { return; }
 
 				const FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(Getter->GetName(), PCGMetadataDomainID::Data);
+				UE_LOG(LogTemp, Warning, TEXT("Name : %s"), *Getter->GetName().ToString());
 				InMetadata->DeleteAttribute(Identifier);
 				InMetadata->FindOrCreateAttribute<T>(Identifier, TypedGetter->FetchSingle(TagSource, T{}));
 			});

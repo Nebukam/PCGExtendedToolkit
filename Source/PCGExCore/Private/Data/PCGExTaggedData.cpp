@@ -5,9 +5,15 @@
 
 #include "PCGData.h"
 #include "Data/PCGExDataTags.h"
+#include "Data/PCGExPointIO.h"
 
-FPCGExTaggedData::FPCGExTaggedData(const UPCGData* InData, const TSharedPtr<PCGExData::FTags>& InTags, const TSharedPtr<IPCGAttributeAccessorKeys>& InKeys)
-	: Data(InData), Tags(InTags), Keys(InKeys)
+FPCGExTaggedData::FPCGExTaggedData(const UPCGData* InData, const int32 InIdx, const TSharedPtr<PCGExData::FTags>& InTags, const TSharedPtr<IPCGAttributeAccessorKeys>& InKeys)
+	: Data(InData), Index(InIdx), Tags(InTags), Keys(InKeys)
+{
+}
+
+FPCGExTaggedData::FPCGExTaggedData(const TSharedPtr<PCGExData::FPointIO>& InData, const int32 InIdx)
+	: Data(InData->GetIn()), Index(InIdx == INDEX_NONE ? InData->IOIndex : InIdx), Tags(InData->Tags), Keys(InData->GetInKeys())
 {
 }
 

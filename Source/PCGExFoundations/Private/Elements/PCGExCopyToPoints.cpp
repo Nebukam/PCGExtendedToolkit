@@ -104,11 +104,13 @@ namespace PCGExCopyToPoints
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		int32 Copies = 0;
+		FPCGExTaggedData AsCandidate = PointDataFacade->Source->GetTaggedData();
+		
 		PCGEX_SCOPE_LOOP(i)
 		{
 			Dupes[i] = nullptr;
 
-			if (!Context->DataMatcher->Test(Context->TargetsDataFacade->GetInPoint(i), PointDataFacade->Source, MatchScope)) { continue; }
+			if (!Context->DataMatcher->Test(Context->TargetsDataFacade->GetInPoint(i), AsCandidate, MatchScope)) { continue; }
 
 			Copies++;
 

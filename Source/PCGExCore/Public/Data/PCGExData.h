@@ -336,9 +336,10 @@ extern template class TSingleValueBuffer<_TYPE>;
 		mutable FRWLock BufferLock;
 
 	public:
-		int32 Idx = -1;
 
 		TSharedRef<FPointIO> Source;
+		int32 Idx = -1;
+		
 		TArray<TSharedPtr<IBuffer>> Buffers;
 		TMap<uint64, TSharedPtr<IBuffer>> BufferMap;
 

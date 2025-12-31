@@ -714,7 +714,7 @@ template class PCGEXCORE_API TSingleValueBuffer<_TYPE>;
 	}
 
 	FFacade::FFacade(const TSharedRef<FPointIO>& InSource)
-		: Source(InSource)
+		: Source(InSource), Idx(InSource->IOIndex)
 	{
 	}
 

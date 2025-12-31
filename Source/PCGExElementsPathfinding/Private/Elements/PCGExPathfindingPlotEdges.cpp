@@ -300,7 +300,7 @@ namespace PCGExPathfindingPlotEdges
 		if (Context->bMatchForEdges)
 		{
 			PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true);
-			Context->EdgeDataMatcher->PopulateIgnoreList(EdgeDataFacade->Source, MatchingScope, IgnoreList);
+			Context->EdgeDataMatcher->PopulateIgnoreList(EdgeDataFacade->Source->GetTaggedData(), MatchingScope, IgnoreList);
 		}
 
 		if (VtxIgnoreList)
@@ -388,7 +388,8 @@ namespace PCGExPathfindingPlotEdges
 
 		VtxDataForwardHandler = Context->VtxDataForwarding.TryGetHandler(VtxDataFacade, false);
 
-		if (PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true); Context->bMatchForVtx && !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true); 
+			Context->bMatchForVtx && !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source->GetTaggedData(), MatchingScope, IgnoreList))
 		{
 			bUnmatched = true;
 		}

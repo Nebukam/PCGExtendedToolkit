@@ -164,7 +164,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 			if (bBuildEdgeOctree) { Path->BuildEdgeOctree(); }
 			TempPolyPaths[Index] = Path;
 			TSharedPtr<PCGExData::FTags> Tags = MakeShared<PCGExData::FTags>(TempTargets[Index].Tags);
-			TempTaggedData[Index] = FPCGExTaggedData(Data, Tags, nullptr);
+			TempTaggedData[Index] = FPCGExTaggedData(Data, Index, Tags, nullptr);
 		}
 	};
 

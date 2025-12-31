@@ -20,17 +20,17 @@ void FPCGExMatchSharedTagConfig::Init()
 	FPCGExMatchRuleConfigBase::Init();
 }
 
-bool FPCGExMatchSharedTag::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InTargets)
+bool FPCGExMatchSharedTag::PrepareForMatchableSources(FPCGExContext* InContext, const TSharedPtr<TArray<FPCGExTaggedData>>& InMatchableSources)
 {
-	if (!FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets)) { return false; }
+	if (!FPCGExMatchRuleOperation::PrepareForMatchableSources(InContext, InMatchableSources)) { return false; }
 
-	TArray<FPCGExTaggedData>& TargetsRef = *InTargets.Get();
+	TArray<FPCGExTaggedData>& MatchableSourcesRef = *InMatchableSources.Get();
 
-	TagNameGetters.Reserve(TargetsRef.Num());
-	Tags.Reserve(TargetsRef.Num());
+	TagNameGetters.Reserve(MatchableSourcesRef.Num());
+	Tags.Reserve(MatchableSourcesRef.Num());
 	if (Config.TagNameInput == EPCGExInputValueType::Attribute)
 	{
-		for (const FPCGExTaggedData& TaggedData : TargetsRef)
+		for (const FPCGExTaggedData& TaggedData : MatchableSourcesRef)
 		{
 			TSharedPtr<PCGExData::TAttributeBroadcaster<FString>> Getter = MakeShared<PCGExData::TAttributeBroadcaster<FString>>();
 
@@ -48,7 +48,7 @@ bool FPCGExMatchSharedTag::PrepareForTargets(FPCGExContext* InContext, const TSh
 	return true;
 }
 
-bool FPCGExMatchSharedTag::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FScope& InMatchingScope) const
+bool FPCGExMatchSharedTag::Test(const PCGExData::FConstPoint& InTargetElement, const FPCGExTaggedData& InCandidate, const PCGExMatching::FScope& InMatchingScope) const
 {
 	FString TestTagName = TagNameGetters.IsEmpty() ? Config.TagName : TagNameGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
 	bool bDoValueMatch = Config.bDoValueMatch;
@@ -60,7 +60,7 @@ bool FPCGExMatchSharedTag::Test(const PCGExData::FConstPoint& InTargetElement, c
 	if (!TargetTags) { return false; }
 
 	TSharedPtr<PCGExData::IDataValue> TargetValue = TargetTags->GetValue(TestTagName);
-	TSharedPtr<PCGExData::IDataValue> SourceValue = PointIO->Tags->GetValue(TestTagName);
+	TSharedPtr<PCGExData::IDataValue> SourceValue = InCandidate.GetTags()->GetValue(TestTagName);
 
 	if (bDoValueMatch)
 	{
@@ -71,7 +71,7 @@ bool FPCGExMatchSharedTag::Test(const PCGExData::FConstPoint& InTargetElement, c
 	if (TargetValue && SourceValue) { return true; }
 	if (TargetValue || SourceValue) { return false; }
 
-	return TargetTags->RawTags.Contains(TestTagName) && PointIO->Tags->RawTags.Contains(TestTagName);
+	return TargetTags->RawTags.Contains(TestTagName) && InCandidate.GetTags()->RawTags.Contains(TestTagName);
 }
 
 bool UPCGExMatchSharedTagFactory::WantsPoints()
