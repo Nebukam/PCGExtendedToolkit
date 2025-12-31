@@ -3,6 +3,8 @@
 
 #include "Data/Utils/PCGExDataForward.h"
 
+#include "Algo/RemoveIf.h"
+#include "Algo/Unique.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
@@ -48,6 +50,11 @@ namespace PCGExData
 				Writers.Add(Writer);
 			});
 		}
+	}
+
+	void FDataForwardHandler::ValidateIdentities(FValidateFn&& Fn)
+	{
+		Identities.SetNum(Algo::RemoveIf(Identities, [&Fn](const FAttributeIdentity& Identity) { return Fn(Identity); }));
 	}
 
 	void FDataForwardHandler::Forward(const int32 SourceIndex, const int32 TargetIndex)

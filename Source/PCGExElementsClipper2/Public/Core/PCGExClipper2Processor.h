@@ -60,7 +60,10 @@ public:
 	 * Clipper2 Uses int64 under the hood to preserve extreme precision, so we scale floating point values then back. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1), AdvancedDisplay)
 	int32 Precision = 10;
-
+	
+	/** Cleanup */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
+	bool bSimplifyPaths = true;
 	
 	virtual bool NeedsOperands() const;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const;
@@ -77,9 +80,10 @@ struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> OperandsCollection;
 
 	TSharedPtr<PCGExClipper2::FOpData> AllOpData;
+	
 	TArray<TArray<int32>> MainOpDataPartitions;
 	TArray<TArray<int32>> OperandsOpDataPartitions;
-
+	
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	
 	void OutputPaths64(PCGExClipper2Lib::Paths64& InPaths, TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths) const;
@@ -94,7 +98,7 @@ protected:
 	
 	virtual bool WantsDataFromMainInput() const;
 
-	void BuildDataFromCollection(
+	int32 BuildDataFromCollection(
 		FPCGExClipper2ProcessorContext* Context,
 		const UPCGExClipper2ProcessorSettings* Settings,
 		const TSharedPtr<PCGExData::FPointIOCollection>& Collection,

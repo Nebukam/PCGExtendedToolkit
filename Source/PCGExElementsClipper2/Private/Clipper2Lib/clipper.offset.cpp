@@ -8,6 +8,7 @@
 *******************************************************************************/
 
 #include "Clipper2Lib/clipper.offset.h"
+#include "Math/UnrealMathUtility.h"
 #include "Clipper2Lib/clipper.h"
 
 namespace PCGExClipper2Lib

@@ -95,9 +95,13 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 	Context->AllOpData->AddReserve(TotalInputNum);
 
 
-	BuildDataFromCollection(Context, Settings, Context->MainPoints, Context->MainOpDataPartitions);
+	int32 NumInputs = BuildDataFromCollection(Context, Settings, Context->MainPoints, Context->MainOpDataPartitions);
+	if (NumInputs != Context->MainPoints->Num())
+	{
+		PCGEX_LOG_INVALID_INPUT(Context, FTEXT("Some inputs have less than 2 points and won't be processed."))
+	}
 
-	if (Context->MainOpDataPartitions.IsEmpty())
+	if (!NumInputs)
 	{
 		PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid paths found in main input."));
 		return false;
@@ -106,9 +110,13 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 	if (Context->OperandsCollection)
 	{
 		// Build polylines from operands input (parallel)
-		BuildDataFromCollection(Context, Settings, Context->OperandsCollection, Context->OperandsOpDataPartitions);
+		NumInputs = BuildDataFromCollection(Context, Settings, Context->OperandsCollection, Context->OperandsOpDataPartitions);
+		if (NumInputs != Context->OperandsCollection->Num())
+		{
+			PCGEX_LOG_INVALID_INPUT(Context, FTEXT("Some operands have less than 2 points and won't be processed."))
+		}
 
-		if (Context->OperandsOpDataPartitions.IsEmpty())
+		if (!NumInputs)
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid operands found in operands input."));
 			return false;
@@ -140,16 +148,16 @@ bool FPCGExClipper2ProcessorElement::WantsDataFromMainInput() const
 	return true;
 }
 
-void FPCGExClipper2ProcessorElement::BuildDataFromCollection(
+int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 	FPCGExClipper2ProcessorContext* Context,
 	const UPCGExClipper2ProcessorSettings* Settings,
 	const TSharedPtr<PCGExData::FPointIOCollection>& Collection,
 	TArray<TArray<int32>>& OutData) const
 {
-	if (!Collection) return;
+	if (!Collection) { return 0; }
 
 	const int32 NumInputs = Collection->Num();
-	if (NumInputs == 0) return;
+	if (NumInputs == 0) { return 0; }
 
 	auto Data = MakeShared<TSharedPtr<PCGExClipper2::FOpData>>();
 
@@ -180,7 +188,7 @@ void FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 				FBuildResult& Result = Results[i];
 
 				// Skip paths with insufficient points
-				if (IO->GetNum() < 3) { return; }
+				if (IO->GetNum() < 2) { return; }
 
 				// Check if closed (required for boolean ops)
 				const bool bIsClosed = PCGExPaths::Helpers::GetClosedLoop(IO->GetIn());
@@ -223,16 +231,17 @@ void FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 		}
 	}
 
-	
+
 	// TODO : Partition as per data matching
-	
+
+	int32 TotalDataNum = 0;
 	TArray<int32>& OutIndices = OutData.Emplace_GetRef();
 	OutIndices.Reserve(Results.Num());
 
 	// Collect results (single-threaded)
 	for (FBuildResult& Result : Results)
 	{
-		if (!Result.bValid) continue;
+		if (!Result.bValid) { continue; }
 
 		OutIndices.Add(Result.Facade->Idx);
 
@@ -240,7 +249,11 @@ void FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 		Context->AllOpData->Paths.Add(MoveTemp(Result.Path64));
 		Context->AllOpData->Projections.Add(MoveTemp(Result.Projection));
 		Context->AllOpData->IsClosedLoop.Add(Result.bIsClosedLoop);
+
+		TotalDataNum++;
 	}
+
+	return TotalDataNum;
 }
 
 #undef LOCTEXT_NAMESPACE

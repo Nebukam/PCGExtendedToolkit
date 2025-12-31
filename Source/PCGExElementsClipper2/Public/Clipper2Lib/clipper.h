@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "Math/UnrealMathUtility.h"
 #include "Clipper2Lib/clipper.core.h"
 #include "Clipper2Lib/clipper.engine.h"
 #include "Clipper2Lib/clipper.offset.h"

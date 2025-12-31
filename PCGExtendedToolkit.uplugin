@@ -125,19 +125,6 @@
       ]
     },
     {
-      "Name": "PCGExElementsCavalierContours",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "PlatformAllowList": [
-        "Win64",
-        "Mac",
-        "IOS",
-        "Android",
-        "Linux",
-        "LinuxArm64"
-      ]
-    },
-    {
       "Name": "PCGExElementsClipper2",
       "Type": "Runtime",
       "LoadingPhase": "Default",
