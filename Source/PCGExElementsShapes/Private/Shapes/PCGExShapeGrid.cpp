@@ -10,6 +10,7 @@
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsHelpers.h"
 #include "Async/ParallelFor.h"
+#include "Sampling/PCGExSamplingCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderGrid"
 #define PCGEX_NAMESPACE CreateBuilderGrid
@@ -17,6 +18,8 @@
 bool FPCGExShapeGridBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {
 	if (!FPCGExShapeBuilderOperation::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
+
+
 	return true;
 }
 
@@ -29,40 +32,46 @@ void FPCGExShapeGridBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	const FVector Res = GetResolutionVector(Seed);
 	const FVector Size = Grid->Fit.GetSize();
 
+	auto ApplyClamp = [&]()
+	{
+		Grid->Count.X = Config.AxisClampDetailsX.GetClampedValue(Grid->Count.X);
+		Grid->Count.Y = Config.AxisClampDetailsY.GetClampedValue(Grid->Count.Y);
+		Grid->Count.Z = Config.AxisClampDetailsZ.GetClampedValue(Grid->Count.Z);
+	};
+
+	EPCGExTruncateMode Truncate[3] = {Config.TruncateX, Config.TruncateY, Config.TruncateZ};
+
 	if (Config.ResolutionMode == EPCGExResolutionMode::Fixed)
 	{
-		Grid->Count.X = FMath::Max(1, FMath::FloorToInt32(Res.X));
-		Grid->Count.Y = FMath::Max(1, FMath::FloorToInt32(Res.Y));
-		Grid->Count.Z = FMath::Max(1, FMath::FloorToInt32(Res.Z));
+		for (int i = 0; i < 3; i++) { Grid->Count[i] = FMath::Max(1, PCGExMath::TruncateDbl(Res[i], Truncate[i])); }
 
-		Grid->Extents.X = (Size.X / Grid->Count.X) * 0.5;
-		Grid->Extents.Y = (Size.Y / Grid->Count.Y) * 0.5;
-		Grid->Extents.Z = (Size.Z / Grid->Count.Z) * 0.5;
+		ApplyClamp();
+
+		for (int i = 0; i < 3; i++) { Grid->Extents[i] = (Size[i] / Grid->Count[i]) * 0.5; }
 	}
 	else
 	{
-		Grid->Count.X = FMath::Max(1, FMath::FloorToInt32(Size.X / Res.X));
-		Grid->Count.Y = FMath::Max(1, FMath::FloorToInt32(Size.Y / Res.Y));
-		Grid->Count.Z = FMath::Max(1, FMath::FloorToInt32(Size.Z / Res.Z));
+		for (int i = 0; i < 3; i++) { Grid->Count[i] = FMath::Max(1, PCGExMath::TruncateDbl(Size[i] / Res[i], Truncate[i])); }
 
-		if (Config.bAdjustFit)
-		{
-			Grid->Extents.X = (Size.X / Grid->Count.X) * 0.5;
-			Grid->Extents.Y = (Size.Y / Grid->Count.Y) * 0.5;
-			Grid->Extents.Z = (Size.Z / Grid->Count.Z) * 0.5;
-		}
-		else
-		{
-			Grid->Extents = Res * 0.5;
-		}
+		ApplyClamp();
+
+		for (int i = 0; i < 3; i++) { Grid->Extents[i] = Res[i] * 0.5; }
 	}
 
-	Grid->Offset.X = Grid->Extents.X + (Size.X - (Grid->Count.X * (Grid->Extents.X * 2))) * 0.5;
-	Grid->Offset.Y = Grid->Extents.Y + (Size.Y - (Grid->Count.Y * (Grid->Extents.Y * 2))) * 0.5;
-	Grid->Offset.Z = Grid->Extents.Z + (Size.Z - (Grid->Count.Z * (Grid->Extents.Z * 2))) * 0.5;
+	const EPCGExApplySampledComponentFlags FitFlags = static_cast<EPCGExApplySampledComponentFlags>(Config.AdjustFit);
+
+#define PCGEX_ADJUST_FIT(_AXIS) \
+if (EnumHasAnyFlags(FitFlags, EPCGExApplySampledComponentFlags::_AXIS)) { Grid->Extents._AXIS = (Size._AXIS / Grid->Count._AXIS) * 0.5; }
+
+	PCGEX_ADJUST_FIT(X)
+	PCGEX_ADJUST_FIT(Y)
+	PCGEX_ADJUST_FIT(Z)
+
+#undef PCGEX_FIT
+
+	for (int i = 0; i < 3; i++) { Grid->Offset[i] = Grid->Extents[i] + (Size[i] - (Grid->Count[i] * (Grid->Extents[i] * 2))) * 0.5; }
 
 	Grid->bClosedLoop = false;
-
 	Grid->NumPoints = Grid->Count.X * Grid->Count.Y * Grid->Count.Z;
 
 	ValidateShape(Grid);
@@ -90,7 +99,7 @@ void FPCGExShapeGridBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> In
 
 	PCGEX_PARALLEL_FOR(
 		Scope.Count,
-		
+
 		const int32 WriteIndex = Scope.Start + i;
 
 		OutBoundsMin[WriteIndex] = MinBounds;
@@ -102,10 +111,10 @@ void FPCGExShapeGridBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> In
 
 		FVector Target;
 		FVector Point = FVector(
-				Corner.X + (X * XStep),
-				Corner.Y + (Y * YStep),
-				Corner.Z + (Z * ZStep))
-			+ Grid->Offset;
+			Corner.X + (X * XStep),
+			Corner.Y + (Y * YStep),
+			Corner.Z + (Z * ZStep))
+		+ Grid->Offset;
 
 		if (Config.PointsLookAt == EPCGExShapePointLookAt::None)
 		{
@@ -115,21 +124,20 @@ void FPCGExShapeGridBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> In
 		{
 			switch (Config.PointsLookAt)
 			{
-			case EPCGExShapePointLookAt::Seed:
-				Target = Center;
+				case EPCGExShapePointLookAt::Seed:
+					Target = Center;
 				break;
-			case EPCGExShapePointLookAt::None:
-				Target = Point + FVector(0, 0, 1);
+				case EPCGExShapePointLookAt::None:
+					Target = Point + FVector(0, 0, 1);
 				break;
-			default:
-				Target = Point;
+				default:
+					Target = Point;
 				break;
 			}
 
 			OutTransforms[WriteIndex] = FTransform(
 				PCGExMath::MakeLookAtTransform(Point - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),
-				Point,
-				FVector::OneVector
+				Point, FVector::OneVector
 			);
 		}
 	)

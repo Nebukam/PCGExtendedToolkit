@@ -7,6 +7,8 @@
 #include "Core/PCGExShape.h"
 #include "Core/PCGExShapeBuilderFactoryProvider.h"
 #include "Core/PCGExShapeBuilderOperation.h"
+#include "Details/PCGExClampDetails.h"
+#include "Math/PCGExMath.h"
 
 #include "PCGExShapeGrid.generated.h"
 
@@ -19,10 +21,31 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 		: FPCGExShapeConfigBase(true)
 	{
 	}
+
+	/** Adjust extents so they fill the selected axis.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExBlending.EPCGExApplySampledComponentFlags"))
+	uint8 AdjustFit = 7;
+
+	/** How */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="X - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	EPCGExTruncateMode TruncateX = EPCGExTruncateMode::None;
 	
-	/** Whether to adjust the cell size for the best fit */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ResolutionMode==EPCGExResolutionMode::Distance"))
-	bool bAdjustFit = true;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="X - Clamp Count"))
+	FPCGExClampDetails AxisClampDetailsX;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Y - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	EPCGExTruncateMode TruncateY = EPCGExTruncateMode::None;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="Y - Clamp Count"))
+	FPCGExClampDetails AxisClampDetailsY;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Z - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	EPCGExTruncateMode TruncateZ = EPCGExTruncateMode::None;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="Z - Clamp Count"))
+	FPCGExClampDetails AxisClampDetailsZ;
 };
 
 namespace PCGExShapes
@@ -55,6 +78,8 @@ public:
 	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, bool bOwnsData = false) override;
 
 protected:
+	TSharedPtr<PCGExDetails::TSettingValue<double>> Resolution;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> ResolutionVector;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
