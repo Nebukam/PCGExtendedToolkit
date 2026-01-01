@@ -40,7 +40,9 @@ protected:
 	virtual void ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape);
 
 	double GetResolution(const PCGExData::FConstPoint& Seed) const;
+	FVector GetResolutionVector(const PCGExData::FConstPoint& Seed) const;
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> Resolution;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> ResolutionVector;
 	TSharedPtr<PCGExData::FFacade> SeedFacade;
 };

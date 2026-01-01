@@ -84,12 +84,12 @@ void FPCGExShapeFiblatBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 
 	const int32 Count = Fiblat->NumPoints;
 
-	ParallelFor(Count, [&](int32 i)
-	{
+	PCGEX_PARALLEL_FOR(
+		Count,
+	
 		const FVector P = Center + (Fiblat->ComputeFibLatPoint(i, Count) * Extents);
-
 		OutTransforms[Scope.Start + i] = FTransform(PCGExMath::MakeLookAtTransform(P - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(), P, FVector::OneVector);
-	});
+	)
 }
 
 PCGEX_SHAPE_BUILDER_BOILERPLATE(Fiblat)

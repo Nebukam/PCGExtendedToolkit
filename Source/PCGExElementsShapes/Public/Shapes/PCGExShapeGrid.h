@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/PCGExPointsProcessor.h"
 #include "Core/PCGExShape.h"
 #include "Core/PCGExShapeBuilderFactoryProvider.h"
 #include "Core/PCGExShapeBuilderOperation.h"
-#include "Core/PCGExShapeConfigBase.h"
 
 #include "PCGExShapeGrid.generated.h"
 
@@ -18,13 +16,13 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 	GENERATED_BODY()
 
 	FPCGExShapeGridConfig()
-		: FPCGExShapeConfigBase()
+		: FPCGExShapeConfigBase(true)
 	{
 	}
-
-	/** Start angle source. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	//bool StartAngleInput = EPCGExInputValueType::Constant;
+	
+	/** Whether to adjust the cell size for the best fit */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ResolutionMode==EPCGExResolutionMode::Distance"))
+	bool bAdjustFit = true;
 };
 
 namespace PCGExShapes
@@ -32,10 +30,10 @@ namespace PCGExShapes
 	class FGrid : public FShape
 	{
 	public:
-		double Radius = 1;
-		double StartAngle = 0;
-		double EndAngle = TWO_PI;
-		double AngleRange = TWO_PI;
+		FIntVector3 Count = FIntVector3(5);
+		FVector Extents = FVector(10.0);
+		FVector Offset = FVector(0);
+		bool bClosedLoop = false;
 
 		explicit FGrid(const PCGExData::FConstPoint& InPointRef)
 			: FShape(InPointRef)
@@ -54,13 +52,10 @@ public:
 
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
 	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) override;
-	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, const bool bIsolated = false) override;
+	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, bool bOwnsData = false) override;
 
 protected:
-	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAngle;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> EndAngle;
 };
-
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExShapeGridFactory : public UPCGExShapeBuilderFactoryData
@@ -74,7 +69,7 @@ public:
 	virtual TSharedPtr<FPCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-grid"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-grid"))
 class UPCGExCreateShapeGridSettings : public UPCGExShapeBuilderFactoryProviderSettings
 {
 	GENERATED_BODY()
@@ -82,7 +77,7 @@ class UPCGExCreateShapeGridSettings : public UPCGExShapeBuilderFactoryProviderSe
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ShapeBuilderGrid, "Shape : Grid", "Create a grid of points.", FName("Grid"))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ShapeBuilderGrid, "Shape : Grid", "Create points in a 3D grid shape.", FName("Grid"))
 
 #endif
 	//~End UPCGSettings
