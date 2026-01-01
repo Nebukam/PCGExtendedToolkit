@@ -97,7 +97,6 @@ namespace PCGExRelaxClusters
 		RelaxOperation->PrimaryDataFacade = VtxDataFacade;
 		RelaxOperation->SecondaryDataFacade = EdgeDataFacade;
 
-		if (!RelaxOperation->PrepareForCluster(ExecutionContext, Cluster)) { return false; }
 
 		PrimaryBuffer = MakeShared<TArray<FTransform>>();
 		SecondaryBuffer = MakeShared<TArray<FTransform>>();
@@ -115,6 +114,8 @@ namespace PCGExRelaxClusters
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
+				
+		if (!RelaxOperation->PrepareForCluster(ExecutionContext, Cluster)) { return false; }
 
 		Iterations = Settings->Iterations;
 
