@@ -141,18 +141,19 @@ bool FPCGExPathSplineMeshElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
@@ -303,14 +304,15 @@ namespace PCGExPathSplineMesh
 			FSplineMeshSegment Segment;
 			ON_SCOPE_EXIT { Segments[Index] = Segment; };
 
-			FPCGExEntryAccessResult Entry;
+			FPCGExEntryAccessResult Result;
 			const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 
 			const int32 Seed = PCGExRandomHelpers::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
-			if (bUseTags) { Entry = Helper->GetEntry(Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags); }
-			else { Entry = Helper->GetEntry(Index, Seed); }
+			if (bUseTags) { Result = Helper->GetEntry(Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags); }
+			else { Result = Helper->GetEntry(Index, Seed); }
 
+			MeshEntry = static_cast<const FPCGExMeshCollectionEntry*>(Result.Entry);
 			Segment.MeshEntry = MeshEntry;
 
 			if (!MeshEntry)
