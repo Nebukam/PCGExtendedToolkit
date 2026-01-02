@@ -9,6 +9,9 @@
 
 #pragma once
 
+#ifndef PCGEX_CLIPPER_H_CORE
+#define PCGEX_CLIPPER_H_CORE
+
 #define PCGEX_CLIPPER2_HI_PRECISION 0
 
 #include "Clipper2Lib/clipper.version.h"
@@ -1133,4 +1136,6 @@ namespace PCGExClipper2Lib
         return (val == 0) ? PointInPolygonResult::IsOutside : PointInPolygonResult::IsInside;
     }
 } // namespace
+#endif
+
 

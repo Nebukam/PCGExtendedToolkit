@@ -252,7 +252,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 					break;
 				}
 
-				Transforms[EdgeIndex] = FTransform(EdgeRot, FMath::Lerp(B, A, Settings->bWriteEdgePosition ? Settings->EdgePositionLerp : BlendWeightEnd), TargetScale);
+				Transforms[EdgeIndex] = FTransform(EdgeRot, FMath::Lerp(A, B, Settings->bWriteEdgePosition ? Settings->EdgePositionLerp : BlendWeightEnd), TargetScale);
 
 				BoundsMin[EdgeIndex] = TargetBoundsMin;
 				BoundsMax[EdgeIndex] = TargetBoundsMax;
@@ -261,7 +261,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 			}
 			else if (Settings->bWriteEdgePosition)
 			{
-				Transforms[EdgeIndex].SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
+				Transforms[EdgeIndex].SetLocation(FMath::Lerp(A, B, Settings->EdgePositionLerp));
 				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EndpointsWeights);
 			}
 			else

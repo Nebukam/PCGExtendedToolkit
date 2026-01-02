@@ -9,6 +9,9 @@
 
 #pragma once
 
+#ifndef PCGEX_CLIPPER_H_RECTCLIP
+#define PCGEX_CLIPPER_H_RECTCLIP
+
 #include "Clipper2Lib/clipper.core.h"
 #include <queue>
 
@@ -93,3 +96,5 @@ namespace PCGExClipper2Lib
         Paths64 Execute(const Paths64& paths);
     };
 } // Clipper2Lib namespace
+
+#endif

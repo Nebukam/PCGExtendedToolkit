@@ -9,6 +9,9 @@
 
 #pragma once
 
+#ifndef PCGEX_CLIPPER_H
+#define PCGEX_CLIPPER_H
+
 #include "Math/UnrealMathUtility.h"
 #include "Clipper2Lib/clipper.core.h"
 #include "Clipper2Lib/clipper.engine.h"
@@ -782,4 +785,6 @@ namespace PCGExClipper2Lib
         return result;
     }
 } // end Clipper2Lib namespace
+
+#endif
 

@@ -10,6 +10,9 @@
 
 #pragma once
 
+#ifndef PCGEX_CLIPPER_H_TRIANGULATION
+#define PCGEX_CLIPPER_H_TRIANGULATION
+
 #include <stack>
 #include "Clipper2Lib/clipper.core.h"
 
@@ -27,3 +30,5 @@ namespace PCGExClipper2Lib
     TriangulateResult Triangulate(const Paths64& pp, Paths64& solution, bool useDelaunay = true);
     TriangulateResult Triangulate(const PathsD& pp, int decPlaces, PathsD& solution, bool useDelaunay = true);
 } // Clipper2Lib namespace
+
+#endif
