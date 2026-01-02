@@ -129,7 +129,6 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, U
 				if (!TypedGetter) { return; }
 
 				const FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(Getter->GetName(), PCGMetadataDomainID::Data);
-				UE_LOG(LogTemp, Warning, TEXT("Name : %s"), *Getter->GetName().ToString());
 				InMetadata->DeleteAttribute(Identifier);
 				InMetadata->FindOrCreateAttribute<T>(Identifier, TypedGetter->FetchSingle(TagSource, T{}));
 			});
