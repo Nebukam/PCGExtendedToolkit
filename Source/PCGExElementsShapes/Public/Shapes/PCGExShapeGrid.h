@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/PCGExPointsProcessor.h"
 #include "Core/PCGExShape.h"
 #include "Core/PCGExShapeBuilderFactoryProvider.h"
 #include "Core/PCGExShapeBuilderOperation.h"
-#include "Core/PCGExShapeConfigBase.h"
+#include "Details/PCGExClampDetails.h"
+#include "Math/PCGExMath.h"
 
 #include "PCGExShapeGrid.generated.h"
 
@@ -18,13 +18,34 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 	GENERATED_BODY()
 
 	FPCGExShapeGridConfig()
-		: FPCGExShapeConfigBase()
+		: FPCGExShapeConfigBase(true)
 	{
 	}
 
-	/** Start angle source. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	//bool StartAngleInput = EPCGExInputValueType::Constant;
+	/** Adjust extents so they fill the selected axis.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExBlending.EPCGExApplySampledComponentFlags"))
+	uint8 AdjustFit = 7;
+
+	/** How */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="X - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	EPCGExTruncateMode TruncateX = EPCGExTruncateMode::None;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="X - Clamp Count"))
+	FPCGExClampDetails AxisClampDetailsX;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Y - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	EPCGExTruncateMode TruncateY = EPCGExTruncateMode::None;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="Y - Clamp Count"))
+	FPCGExClampDetails AxisClampDetailsY;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Z - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
+	EPCGExTruncateMode TruncateZ = EPCGExTruncateMode::None;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="Z - Clamp Count"))
+	FPCGExClampDetails AxisClampDetailsZ;
 };
 
 namespace PCGExShapes
@@ -32,10 +53,10 @@ namespace PCGExShapes
 	class FGrid : public FShape
 	{
 	public:
-		double Radius = 1;
-		double StartAngle = 0;
-		double EndAngle = TWO_PI;
-		double AngleRange = TWO_PI;
+		FIntVector3 Count = FIntVector3(5);
+		FVector Extents = FVector(10.0);
+		FVector Offset = FVector(0);
+		bool bClosedLoop = false;
 
 		explicit FGrid(const PCGExData::FConstPoint& InPointRef)
 			: FShape(InPointRef)
@@ -54,13 +75,12 @@ public:
 
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
 	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) override;
-	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, const bool bIsolated = false) override;
+	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, bool bOwnsData = false) override;
 
 protected:
-	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAngle;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> EndAngle;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> Resolution;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> ResolutionVector;
 };
-
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExShapeGridFactory : public UPCGExShapeBuilderFactoryData
@@ -74,7 +94,7 @@ public:
 	virtual TSharedPtr<FPCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-grid"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-grid"))
 class UPCGExCreateShapeGridSettings : public UPCGExShapeBuilderFactoryProviderSettings
 {
 	GENERATED_BODY()
@@ -82,7 +102,7 @@ class UPCGExCreateShapeGridSettings : public UPCGExShapeBuilderFactoryProviderSe
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ShapeBuilderGrid, "Shape : Grid", "Create a grid of points.", FName("Grid"))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ShapeBuilderGrid, "Shape : 3D Grid", "Create points in a 3D grid shape.", FName("Grid"))
 
 #endif
 	//~End UPCGSettings

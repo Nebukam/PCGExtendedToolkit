@@ -9,6 +9,9 @@
 
 #pragma once
 
+#ifndef PCGEX_CLIPPER_H_OFFSET
+#define PCGEX_CLIPPER_H_OFFSET
+
 #include "clipper.core.h"
 #include "clipper.engine.h"
 #include <optional>
@@ -139,3 +142,5 @@ namespace PCGExClipper2Lib
         void SetDeltaCallback(DeltaCallback64 cb) { deltaCallback64_ = cb; }
     };
 }
+
+#endif

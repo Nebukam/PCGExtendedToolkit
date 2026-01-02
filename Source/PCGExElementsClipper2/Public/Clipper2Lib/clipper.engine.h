@@ -9,6 +9,9 @@
 
 #pragma once
 
+#ifndef PCGEX_CLIPPER_H_ENGINE
+#define PCGEX_CLIPPER_H_ENGINE
+
 #include "Clipper2Lib/clipper.core.h"
 #include <queue>
 #include <functional>
@@ -705,3 +708,4 @@ namespace PCGExClipper2Lib
     };
 } // namespace
 
+#endif

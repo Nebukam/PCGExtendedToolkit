@@ -9,6 +9,9 @@
 
 #pragma once
 
+#ifndef PCGEX_CLIPPER_H_MINKOWSKI
+#define PCGEX_CLIPPER_H_MINKOWSKI
+
 #include "Clipper2Lib/clipper.core.h"
 
 namespace PCGExClipper2Lib
@@ -109,4 +112,7 @@ namespace PCGExClipper2Lib
         return ScalePaths<double, int64_t>(tmp, 1 / scale, error_code);
     }
 } // Clipper2Lib namespace
+
+#endif
+
 

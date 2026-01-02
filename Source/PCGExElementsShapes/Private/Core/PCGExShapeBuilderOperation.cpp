@@ -13,8 +13,16 @@ bool FPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 {
 	SeedFacade = InSeedDataFacade;
 
-	Resolution = BaseConfig.GetValueSettingResolution();
-	if (!Resolution->Init(InSeedDataFacade)) { return false; }
+	if (BaseConfig.bThreeDimensions)
+	{
+		ResolutionVector = BaseConfig.GetValueSettingResolutionVector();
+		if (!ResolutionVector->Init(InSeedDataFacade)) { return false; }
+	}
+	else
+	{
+		Resolution = BaseConfig.GetValueSettingResolution();
+		if (!Resolution->Init(InSeedDataFacade)) { return false; }
+	}
 
 	if (!BaseConfig.Fitting.Init(InContext, InSeedDataFacade)) { return false; }
 
@@ -33,6 +41,18 @@ void FPCGExShapeBuilderOperation::ValidateShape(const TSharedPtr<PCGExShapes::FS
 
 double FPCGExShapeBuilderOperation::GetResolution(const PCGExData::FConstPoint& Seed) const
 {
-	if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)); }
-	return FMath::Abs(Resolution->Read(Seed.Index));
+	const double Res = Resolution->Read(Seed.Index);
+	if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Res); }
+	return FMath::Abs(Res);
+}
+
+FVector FPCGExShapeBuilderOperation::GetResolutionVector(const PCGExData::FConstPoint& Seed) const
+{
+	const FVector Res = ResolutionVector->Read(Seed.Index);
+	if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance)
+	{
+		return FVector(FMath::Abs(Res.X), FMath::Abs(Res.Y), FMath::Abs(Res.Z));
+	}
+
+	return FVector(FMath::Abs(Res.X), FMath::Abs(Res.Y), FMath::Abs(Res.Z));
 }

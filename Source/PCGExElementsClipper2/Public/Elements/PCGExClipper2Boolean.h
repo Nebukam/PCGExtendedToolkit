@@ -19,7 +19,7 @@ namespace PCGExClipper2
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/Clipper2-contours/Clipper2-offset"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-offset"))
 class UPCGExClipper2BooleanSettings : public UPCGExClipper2ProcessorSettings
 {
 	GENERATED_BODY()

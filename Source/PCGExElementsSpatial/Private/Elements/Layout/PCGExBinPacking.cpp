@@ -113,15 +113,16 @@ bool FPCGExBinPackingElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         return Context->ValidIOIndices.Contains(Entry->IOIndex);
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         TArray<FPCGExSortRuleConfig> OutRules;
-			                                         Settings->GetSortingRules(Context, OutRules);
-			                                         NewBatch->bPrefetchData = !OutRules.IsEmpty();
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				return Context->ValidIOIndices.Contains(Entry->IOIndex);
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				TArray<FPCGExSortRuleConfig> OutRules;
+				Settings->GetSortingRules(Context, OutRules);
+				NewBatch->bPrefetchData = !OutRules.IsEmpty();
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
