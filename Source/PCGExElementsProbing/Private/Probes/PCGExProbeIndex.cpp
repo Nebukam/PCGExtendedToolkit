@@ -9,11 +9,11 @@
 PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigIndex, Index, int32, IndexInput, IndexAttribute, IndexConstant)
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
-bool FPCGExProbeIndex::RequiresOctree() { return false; }
+bool FPCGExProbeIndex::IsDirectProbe() const { return true; }
 
-bool FPCGExProbeIndex::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeIndex::Prepare(FPCGExContext* InContext)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::Prepare(InContext)) { return false; }
 
 	MaxIndex = PointIO->GetNum() - 1;
 
@@ -25,21 +25,21 @@ bool FPCGExProbeIndex::PrepareForPoints(FPCGExContext* InContext, const TSharedP
 	case EPCGExIndexSafety::Yoyo:		MACRO(EPCGExIndexSafety::Yoyo, _VALUE) break;	}
 
 #define PCGEX_TARGET_CONNECT_TARGET(_MODE, _VALUE)\
-	TryCreateEdge = [&](const int32 Index, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) {\
+	TryCreateEdge = [&](const int32 Index, TSet<uint64>* OutEdges, const TArray<int8>& Accepts) {\
 	const int32 Value = PCGExMath::SanitizeIndex<int32, _MODE>(_VALUE, MaxIndex);\
-	if (Value != -1 && Value != Index&& AcceptConnections[Value]) { OutEdges->Add(PCGEx::H64U(Index, Value)); }};
+	if (Value != -1 && Value != Index&& Accepts[Value]) { OutEdges->Add(PCGEx::H64U(Index, Value)); }};
 
 #define PCGEX_TARGET_CONNECT_ONEWAY(_MODE, _VALUE)\
-	TryCreateEdge = [&](const int32 Index, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) {\
+	TryCreateEdge = [&](const int32 Index, TSet<uint64>* OutEdges, const TArray<int8>& Accepts) {\
 	const int32 Value = PCGExMath::SanitizeIndex<int32, _MODE>(Index + _VALUE, MaxIndex);\
-	if (Value != -1 && Value != Index && AcceptConnections[Value]) { OutEdges->Add(PCGEx::H64U(Index, Value)); }};
+	if (Value != -1 && Value != Index && Accepts[Value]) { OutEdges->Add(PCGEx::H64U(Index, Value)); }};
 
 #define PCGEX_TARGET_CONNECT_TWOWAY(_MODE, _VALUE)\
-	TryCreateEdge = [&](const int32 Index, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) {\
+	TryCreateEdge = [&](const int32 Index, TSet<uint64>* OutEdges, const TArray<int8>& Accepts) {\
 	const int32 A = PCGExMath::SanitizeIndex<int32, _MODE>(Index + _VALUE, MaxIndex);\
-	if (A != -1 && A != Index && AcceptConnections[A]) { OutEdges->Add(PCGEx::H64U(Index, A)); }\
+	if (A != -1 && A != Index && Accepts[A]) { OutEdges->Add(PCGEx::H64U(Index, A)); }\
 	const int32 B = PCGExMath::SanitizeIndex<int32, _MODE>(Index - _VALUE, MaxIndex);\
-	if (B != -1 && B != Index && AcceptConnections[B]) { OutEdges->Add(PCGEx::H64U(Index, B)); } };
+	if (B != -1 && B != Index && Accepts[B]) { OutEdges->Add(PCGEx::H64U(Index, B)); } };
 
 #define PCGEX_TARGET_CONNECT_SWITCH(_VALUE)\
 	switch (Config.Mode){\
@@ -51,7 +51,7 @@ bool FPCGExProbeIndex::PrepareForPoints(FPCGExContext* InContext, const TSharedP
 	if (!TargetCache->Init(PrimaryDataFacade)) { return false; }
 
 	PCGEX_TARGET_CONNECT_SWITCH(TargetCache->Read(Index))
-
+	
 #undef PCGEX_FOREACH_SANITIZEINDEX
 #undef PCGEX_TARGET_CONNECT_TARGET
 #undef PCGEX_TARGET_CONNECT_ONEWAY

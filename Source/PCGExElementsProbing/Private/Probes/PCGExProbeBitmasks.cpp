@@ -52,11 +52,11 @@ TSharedPtr<PCGExMT::FScopedContainer> FPCGExProbeBitmasks::GetScopedContainer(co
 	return ScopedContainer;
 }
 
-bool FPCGExProbeBitmasks::RequiresChainProcessing() { return false; }
+bool FPCGExProbeBitmasks::RequiresChainProcessing() const { return false; }
 
-bool FPCGExProbeBitmasks::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeBitmasks::Prepare(FPCGExContext* InContext)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::Prepare(InContext)) { return false; }
 
 	/*
 	bUseBestDot = Config.Favor == EPCGExProbeBitmasksPriorization::Dot;
@@ -72,7 +72,7 @@ bool FPCGExProbeBitmasks::PrepareForPoints(FPCGExContext* InContext, const TShar
 
 #define PCGEX_GET_DIRECTION (Direction->Read(Index) * DirectionMultiplier).GetSafeNormal()
 
-void FPCGExProbeBitmasks::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeBitmasks::ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
 	const int32 DirCount = BitmaskData->Directions.Num();
 	if (DirCount == 0) { return; }
@@ -90,6 +90,7 @@ void FPCGExProbeBitmasks::ProcessCandidates(const int32 Index, const FTransform&
 	// precompute world dirs
 	if (Config.bTransformDirection)
 	{
+		const FTransform& WorkingTransform = *(WorkingTransforms->GetData() + Index);
 		const TArray<FVector>& Directions = BitmaskData->Directions;
 		for (int32 d = 0; d < DirCount; ++d) { WorkingDirs[d] = WorkingTransform.TransformVectorNoScale(Directions[d]); }
 	}

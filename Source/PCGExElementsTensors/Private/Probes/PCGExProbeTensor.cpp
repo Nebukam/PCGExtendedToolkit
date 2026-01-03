@@ -36,13 +36,13 @@ PCGExFactories::EPreparationResult UPCGExProbeFactoryTensor::Prepare(FPCGExConte
 	return Result;
 }
 
-bool FPCGExProbeTensor::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
+bool FPCGExProbeTensor::RequiresChainProcessing() const { return Config.bDoChainedProcessing; }
 
-bool FPCGExProbeTensor::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeTensor::Prepare(FPCGExContext* InContext)
 {
 	if (!TensorFactories) { return false; }
 
-	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::Prepare(InContext)) { return false; }
 
 	bUseBestDot = (Config.Favor == EPCGExProbeDirectionPriorization::Dot);
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
@@ -54,7 +54,7 @@ bool FPCGExProbeTensor::PrepareForPoints(FPCGExContext* InContext, const TShared
 	return true;
 }
 
-void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeTensor::ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
@@ -63,7 +63,7 @@ void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FTransform& W
 	int32 BestCandidateIndex = -1;
 
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, *(WorkingTransforms->GetData() + Index), bSuccess);
 
 	if (!bSuccess) { return; }
 
@@ -118,18 +118,18 @@ void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FTransform& W
 	}
 }
 
-void FPCGExProbeTensor::PrepareBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeTensor::PrepareBestCandidate(const int32 Index, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
 {
 	InBestCandidate.BestIndex = -1;
 	InBestCandidate.BestPrimaryValue = -1;
 	InBestCandidate.BestSecondaryValue = MAX_dbl;
 }
 
-void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FTransform& WorkingTransform, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
 {
 	const double R = GetSearchRadius(Index);
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, *(WorkingTransforms->GetData() + Index), bSuccess);
 
 	if (!bSuccess) { return; }
 
@@ -169,7 +169,7 @@ void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FTransf
 	}
 }
 
-void FPCGExProbeTensor::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeTensor::ProcessBestCandidate(const int32 Index, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
 	if (InBestCandidate.BestIndex == -1) { return; }
 

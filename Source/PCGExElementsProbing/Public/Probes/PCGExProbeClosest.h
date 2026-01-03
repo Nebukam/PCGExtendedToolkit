@@ -51,8 +51,8 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 class FPCGExProbeClosest : public FPCGExProbeOperation
 {
 public:
-	virtual bool PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
-	virtual void ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container) override;
+	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual void ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container) override;
 
 	FPCGExProbeConfigClosest Config;
 
