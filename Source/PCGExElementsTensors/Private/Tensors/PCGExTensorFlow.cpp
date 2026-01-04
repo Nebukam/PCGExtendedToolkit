@@ -27,9 +27,10 @@ PCGExTensor::FTensorSample FPCGExTensorFlow::Sample(const int32 InSeedIndex, con
 	auto ProcessNeighbor = [&](const PCGExOctree::FItem& InEffector)
 	{
 		PCGExTensor::FEffectorMetrics Metrics;
-		if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
-
-		Samples.Emplace_GetRef(Effectors->ReadTransform(InEffector.Index).GetRotation().RotateVector(Metrics.Guide), Metrics.Potency, Metrics.Weight);
+		if (const auto* E = ComputeFactor(InPosition, InEffector.Index, Metrics))
+		{
+			Samples.Emplace_GetRef(Effectors->GetRotation(InEffector.Index).RotateVector(Metrics.Guide), Metrics.Potency, Metrics.Weight);
+		}
 	};
 
 	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
@@ -63,7 +64,7 @@ namespace PCGExTensor
 		return true;
 	}
 
-	void FFlowEffectorsArray::PrepareSinglePoint(const int32 Index)
+	void FFlowEffectorsArray::PrepareSinglePoint(const int32 Index, const FTransform& InTransform, FPackedEffector& OutPackedEffector)
 	{
 		// Force forward-facing transform
 		// As that's the direction we use during tensor sampling
@@ -76,17 +77,16 @@ namespace PCGExTensor
 		{
 			if (Config.DirectionTransform == EPCGExTransformMode::Absolute)
 			{
-				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, DirectionBuffer->Read(Index) * DirectionMultiplier));
+				Rotations[Index] = PCGExMath::MakeDirection(EPCGExAxis::Forward, DirectionBuffer->Read(Index) * DirectionMultiplier);
 			}
 			else
 			{
-				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, Transforms[Index].TransformVectorNoScale(DirectionBuffer->Read(Index) * DirectionMultiplier)));
+				Rotations[Index] = PCGExMath::MakeDirection(EPCGExAxis::Forward, InTransform.TransformVectorNoScale(DirectionBuffer->Read(Index) * DirectionMultiplier));
 			}
 		}
-
 		else if (Config.DirectionConstant != EPCGExAxis::Forward)
 		{
-			Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, PCGExMath::GetDirection(Transforms[Index].GetRotation(), Config.DirectionConstant)));
+			Rotations[Index] = PCGExMath::MakeDirection(EPCGExAxis::Forward, PCGExMath::GetDirection(Rotations[Index], Config.DirectionConstant));
 		}
 	}
 }

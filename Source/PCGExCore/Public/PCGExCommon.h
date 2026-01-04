@@ -26,7 +26,7 @@ enum class EPCGExOptionState : uint8
 	Disabled = 2 UMETA(DisplayName = "Disabled", Tooltip="Option is disabled, if supported.", ActionIcon="Disabled")
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExPointBoundsSource : uint8
 {
 	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds", ActionIcon="ScaledBounds"),
@@ -35,7 +35,7 @@ enum class EPCGExPointBoundsSource : uint8
 	Center        = 3 UMETA(DisplayName = "Center", ToolTip="A tiny size 1 box.", ActionIcon="Center")
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExDistance : uint8
 {
 	Center       = 0 UMETA(DisplayName = "Center", ToolTip="Center", ActionIcon="Dist_Center"),
@@ -44,7 +44,15 @@ enum class EPCGExDistance : uint8
 	None         = 3 UMETA(Hidden, DisplayName = "None", ToolTip="Used for union blending with full weight."),
 };
 
-UENUM()
+UENUM(BlueprintType)
+enum class EPCGExDistanceType : uint8
+{
+	Euclidian       = 0 UMETA(DisplayName = "Euclidian", ToolTip="Euclidian distance"),
+	Manhattan       = 1 UMETA(DisplayName = "Manhattan", ToolTip="Manhattan distance"),
+	Chebyshev       = 2 UMETA(DisplayName = "Chebyshev", ToolTip="Chebyshev distance"),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExTransformMode : uint8
 {
 	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores source transform."),

@@ -147,7 +147,7 @@ bool FPCGExFuseDetails::IsWithinToleranceComponentWise(const PCGExData::FConstPo
 	return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, SourcePoint.Index);
 }
 
-const PCGExMath::FDistances* FPCGExFuseDetails::GetDistances() const
+const PCGExMath::IDistances* FPCGExFuseDetails::GetDistances() const
 {
 	return PCGExMath::GetDistances(SourceDistance, TargetDistance);
 }

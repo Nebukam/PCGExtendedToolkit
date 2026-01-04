@@ -38,7 +38,7 @@ namespace PCGExData
 		const TArray<const UPCGBasePointData*>& Sources,
 		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 		const FPoint& Target,
-		const PCGExMath::FDistances* InDistanceDetails,
+		const PCGExMath::IDistances* InDistances,
 		TArray<FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
@@ -54,7 +54,7 @@ namespace PCGExData
 			if (IOIdx == -1) { continue; }
 
 			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(Element.Index, 0, IOIdx);
-			const double Dist = InDistanceDetails->GetDistSquared(FConstPoint(Sources[P.IO], P), Target);
+			const double Dist = InDistances->GetDistSquared(FConstPoint(Sources[P.IO], P), Target);
 			P.Weight = Dist;
 
 			MaxWeight = FMath::Max(MaxWeight, Dist);

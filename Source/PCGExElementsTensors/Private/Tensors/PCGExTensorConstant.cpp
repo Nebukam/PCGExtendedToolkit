@@ -34,7 +34,6 @@ PCGEX_TENSOR_BOILERPLATE(
 	NewFactory->Config.Weight = 1;
 	NewFactory->Config.TensorWeight = TensorWeight;
 	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
-
 	},
 	{})
 

@@ -11,7 +11,7 @@
 
 namespace PCGExMath
 {
-	class FDistances;
+	class IDistances;
 }
 
 namespace PCGExDetails
@@ -41,13 +41,17 @@ public:
 	virtual bool PrepareForData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
 	template <bool bFast = false>
-	bool ComputeFactor(const FVector& InPosition, const int32 InEffectorIndex, PCGExTensor::FEffectorMetrics& OutMetrics) const
+	const PCGExTensor::FPackedEffector* ComputeFactor(
+		const FVector& InPosition,
+		const int32 InEffectorIndex,
+		PCGExTensor::FEffectorMetrics& OutMetrics) const
 	{
-		const FVector Center = Effectors->ReadTransform(InEffectorIndex).GetLocation();
-		const double RadiusSquared = Effectors->ReadRadius(InEffectorIndex);
-		const double DistSquared = FVector::DistSquared(InPosition, Center);
+		auto* E = Effectors->GetPackedEffectorPtr(InEffectorIndex);
 
-		if (FVector::DistSquared(InPosition, Center) > RadiusSquared) { return false; }
+		const double RadiusSquared = E->RadiusSquared;
+		const double DistSquared = FVector::DistSquared(InPosition, E->Location);
+
+		if (DistSquared > RadiusSquared) { return nullptr; }
 
 		const double OutFactor = DistSquared / RadiusSquared;
 		OutMetrics.Factor = OutFactor;
@@ -55,14 +59,18 @@ public:
 		if constexpr (bFast) { OutMetrics.Guide = FVector::ForwardVector; }
 		else { OutMetrics.Guide = BaseConfig.LocalGuideCurve.GetValue(OutFactor); }
 
-		OutMetrics.Potency = Effectors->ReadPotency(InEffectorIndex) * PotencyFalloffLUT->Eval(OutFactor);
-		OutMetrics.Weight = Effectors->ReadWeight(InEffectorIndex) * WeightFalloffLUT->Eval(OutFactor);
+		OutMetrics.Potency = E->Potency * PotencyFalloffLUT->Eval(OutFactor);
+		OutMetrics.Weight = E->Weight * WeightFalloffLUT->Eval(OutFactor);
 
-		return true;
+		return E;
 	}
 
 	template <bool bFast = false>
-	bool ComputeFactor(const FVector& InPosition, const FPCGSplineStruct& InEffector, const double Radius, FTransform& OutTransform, PCGExTensor::FEffectorMetrics& OutMetrics) const
+	bool ComputeFactor(
+		const FVector& InPosition,
+		const FPCGSplineStruct& InEffector,
+		const double Radius, FTransform& OutTransform,
+		PCGExTensor::FEffectorMetrics& OutMetrics) const
 	{
 		OutTransform = PCGExPaths::Helpers::GetClosestTransform(InEffector, InPosition, true);
 
@@ -93,5 +101,5 @@ class PCGEXELEMENTSTENSORS_API PCGExTensorPointOperation : public PCGExTensorOpe
 {
 public:
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
-	TSharedPtr<PCGExMath::FDistances> DistanceDetails;
+	TSharedPtr<PCGExMath::IDistances> DistanceDetails;
 };

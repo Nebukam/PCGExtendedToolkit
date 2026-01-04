@@ -20,6 +20,11 @@ MACRO(Distance, double, 0)\
 MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)
 
+namespace PCGExMath
+{
+	class IDistances;
+}
+
 UENUM()
 enum class EPCGExSampleInsidePathOutput : uint8
 {
@@ -92,6 +97,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	double InclusionOffset = 0;
 
+	/** Distance type.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
+	EPCGExDistanceType DistanceType = EPCGExDistanceType::Euclidian;
+	
 #pragma region Sampling Range
 
 	/** Type of Range Min */
@@ -254,6 +263,7 @@ namespace PCGExSampleInsidePath
 		double NumSampled = 0;
 		int8 bAnySuccess = 0;
 
+		const PCGExMath::IDistances* Distances;
 		TSharedPtr<PCGExBlending::FUnionOpsManager> UnionBlendOpsManager;
 		TSharedPtr<PCGExBlending::IUnionBlender> DataBlender;
 

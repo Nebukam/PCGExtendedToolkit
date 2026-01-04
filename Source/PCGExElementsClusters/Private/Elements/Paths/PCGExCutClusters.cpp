@@ -275,7 +275,7 @@ namespace PCGExCutEdges
 		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 
 		const UPCGBasePointData* InVtxPointData = VtxDataFacade->GetIn();
-		const PCGExMath::FDistances* Distances = PCGExMath::GetDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
+		const PCGExMath::IDistances* Distances = PCGExMath::GetDistances(Settings->NodeDistanceSettings, Settings->NodeDistanceSettings);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

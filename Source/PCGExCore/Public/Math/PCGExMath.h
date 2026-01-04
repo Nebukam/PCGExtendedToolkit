@@ -270,6 +270,30 @@ namespace PCGExMath
 
 #pragma endregion
 
+#pragma region Distances
+
+	FORCEINLINE double DistanceManhattan(const FVector2D& A, const FVector2D& B)
+	{
+		return FMath::Abs(A.X - B.X) + FMath::Abs(A.Y - B.Y);
+	}
+
+	FORCEINLINE double DistanceManhattan(const FVector& A, const FVector& B)
+	{
+		return FMath::Abs(A.X - B.X) + FMath::Abs(A.Y - B.Y) + FMath::Abs(A.Z - B.Z);
+	}
+
+	FORCEINLINE double DistanceChebyshev(const FVector2D& A, const FVector2D& B)
+	{
+		return FMath::Max(FMath::Abs(A.X - B.X), FMath::Abs(A.Y - B.Y));
+	}
+
+	FORCEINLINE double DistanceChebyshev(const FVector& A, const FVector& B)
+	{
+		return FMath::Max3(FMath::Abs(A.X - B.X), FMath::Abs(A.Y - B.Y), FMath::Abs(A.Z - B.Z));
+	}
+
+#pragma endregion
+
 	template <typename T>
 	FORCEINLINE void ReverseRange(TArray<T>& InArray, int32 Start, int32 End)
 	{

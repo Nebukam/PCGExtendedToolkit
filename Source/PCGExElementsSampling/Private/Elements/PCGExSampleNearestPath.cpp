@@ -15,6 +15,7 @@
 #include "Helpers/PCGExDataMatcher.h"
 #include "Helpers/PCGExMatchingHelpers.h"
 #include "Helpers/PCGExTargetsHandler.h"
+#include "Math/PCGExMathDistances.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
 #include "Paths/PCGExPathsHelpers.h"
@@ -358,6 +359,8 @@ namespace PCGExSampleNearestPath
 		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
 		TArray<PCGEx::FOpStats> Trackers;
 		DataBlender->InitTrackers(Trackers);
+		
+		const PCGExMath::IDistances* Distances = Context->TargetsHandler->GetDistances();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
 		Union->Reserve(Context->TargetsHandler->Num());
@@ -458,8 +461,8 @@ namespace PCGExSampleNearestPath
 
 				const int32 NumInsideIncrement = bIsInside && (!bOnlyIncrementInsideNumIfClosed || bClosedLoop);
 				const FVector SampleLocation = FMath::Lerp(InPath->GetPos(A.Index), InPath->GetPos(B.Index), Lerp);
-				const FVector ModifiedOrigin = Context->TargetsHandler->GetSourceCenter(Point, Origin, SampleLocation);
-				const double DistSquared = FVector::DistSquared(ModifiedOrigin, SampleLocation);
+				const FVector ModifiedOrigin = Distances->GetSourceCenter(Point, Origin, SampleLocation);
+				const double DistSquared = Distances->GetDistSquared(ModifiedOrigin, SampleLocation);
 
 				if (RangeMax > 0
 					&& (DistSquared < RangeMin || DistSquared > RangeMax)

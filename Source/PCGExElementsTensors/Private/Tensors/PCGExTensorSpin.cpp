@@ -35,7 +35,7 @@ namespace PCGExTensor
 		return true;
 	}
 
-	void FSpinEffectorsArray::PrepareSinglePoint(const int32 Index)
+	void FSpinEffectorsArray::PrepareSinglePoint(const int32 Index, const FTransform& InTransform, FPackedEffector& OutPackedEffector)
 	{
 		// Force forward-facing transform
 		// As that's the direction we use during tensor sampling
@@ -48,16 +48,16 @@ namespace PCGExTensor
 		{
 			if (Config.AxisTransform == EPCGExTransformMode::Absolute)
 			{
-				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, AxisBuffer->Read(Index)));
+				Rotations[Index] = PCGExMath::MakeDirection(EPCGExAxis::Forward, AxisBuffer->Read(Index));
 			}
 			else
 			{
-				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, Transforms[Index].TransformVectorNoScale(AxisBuffer->Read(Index))));
+				Rotations[Index] = PCGExMath::MakeDirection(EPCGExAxis::Forward, InTransform.TransformVectorNoScale(AxisBuffer->Read(Index)));
 			}
 		}
 		else if (Config.AxisConstant != EPCGExAxis::Forward)
 		{
-			Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, PCGExMath::GetDirection(Transforms[Index].GetRotation(), Config.AxisConstant)));
+			Rotations[Index] = PCGExMath::MakeDirection(EPCGExAxis::Forward, PCGExMath::GetDirection(Rotations[Index], Config.AxisConstant));
 		}
 	}
 }
@@ -78,13 +78,13 @@ PCGExTensor::FTensorSample FPCGExTensorSpin::Sample(const int32 InSeedIndex, con
 	auto ProcessNeighbor = [&](const PCGExOctree::FItem& InItem)
 	{
 		PCGExTensor::FEffectorMetrics Metrics;
-		if (!ComputeFactor(InPosition, InItem.Index, Metrics)) { return; }
-
-		const FTransform& Transform = Effectors->ReadTransform(InItem.Index);
-		Samples.Emplace_GetRef(
-			FVector::CrossProduct((Transform.GetLocation() - InPosition).GetSafeNormal(), Transform.GetRotation().RotateVector(Metrics.Guide)).GetSafeNormal(),
-			Effectors->ReadPotency(InItem.Index) * PotencyFalloffLUT->Eval(Metrics.Factor),
-			Effectors->ReadWeight(InItem.Index) * WeightFalloffLUT->Eval(Metrics.Factor));
+		if (const auto* E = ComputeFactor(InPosition, InItem.Index, Metrics))
+		{
+			Samples.Emplace_GetRef(
+				FVector::CrossProduct((E->Location - InPosition).GetSafeNormal(), Effectors->GetRotation(InItem.Index).RotateVector(Metrics.Guide)).GetSafeNormal(),
+				E->Potency * PotencyFalloffLUT->Eval(Metrics.Factor),
+				E->Weight * WeightFalloffLUT->Eval(Metrics.Factor));
+		}
 	};
 
 	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

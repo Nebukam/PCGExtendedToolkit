@@ -36,6 +36,7 @@ public class PCGExElementsMeta : ModuleRules
 				"PCGExFilters",
 				"PCGExBlending",
 				"PCGExPickers",
+				"PCGExNoise3D",
 				"PCGExFoundations",
 			}
 		);

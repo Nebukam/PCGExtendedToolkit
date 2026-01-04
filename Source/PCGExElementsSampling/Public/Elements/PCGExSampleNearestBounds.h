@@ -33,6 +33,11 @@ MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
 
+namespace PCGExMath
+{
+	class IDistances;
+}
+
 namespace PCGExSorting
 {
 	class FSorter;
@@ -120,6 +125,10 @@ public:
 	/** Source bounds.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+	
+	/** Distance type.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
+	EPCGExDistanceType DistanceType = EPCGExDistanceType::Euclidian;
 
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
@@ -347,6 +356,7 @@ namespace PCGExSampleNearestBounds
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestBoundsContext, UPCGExSampleNearestBoundsSettings>
 	{
 		TSet<const UPCGData*> IgnoreList;
+		const PCGExMath::IDistances* Distances;
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
 
 		TArray<int8> SamplingMask;

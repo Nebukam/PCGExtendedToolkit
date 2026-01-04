@@ -231,9 +231,11 @@ namespace PCGExSampleInsidePath
 			bOnlyIncrementInsideNumIfClosed = false;
 		}
 
+		Distances = PCGExMath::GetDistances(EPCGExDistance::Center, EPCGExDistance::Center, false, Settings->DistanceType);
+		
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, PCGExMath::GetDistances());
+			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, Distances);
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
@@ -310,7 +312,7 @@ namespace PCGExSampleInsidePath
 			const int32 EdgeIndex = Path->GetClosestEdge(SampleLocation, Alpha);
 
 			const FVector PathLocation = FMath::Lerp(Path->GetPos(EdgeIndex), Path->GetPos(EdgeIndex + 1), Alpha);
-			const double DistSquared = FVector::DistSquared(PathLocation, SampleLocation);
+			const double DistSquared = Distances->GetDistSquared(PathLocation, SampleLocation);
 
 			if (RangeMax > 0 && (DistSquared < RangeMinSquared || DistSquared > RangeMaxSquared))
 			{

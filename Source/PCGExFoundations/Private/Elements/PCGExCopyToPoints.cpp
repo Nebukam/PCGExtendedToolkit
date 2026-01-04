@@ -105,7 +105,7 @@ namespace PCGExCopyToPoints
 	{
 		int32 Copies = 0;
 		FPCGExTaggedData AsCandidate = PointDataFacade->Source->GetTaggedData();
-		
+
 		PCGEX_SCOPE_LOOP(i)
 		{
 			Dupes[i] = nullptr;

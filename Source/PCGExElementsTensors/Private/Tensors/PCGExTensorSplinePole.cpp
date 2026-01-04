@@ -43,10 +43,10 @@ PCGExFactories::EPreparationResult UPCGExTensorSplinePoleFactory::Prepare(FPCGEx
 PCGEX_TENSOR_BOILERPLATE(
 	SplinePole,
 	{
-	NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
+		NewFactory->Config.Potency *=NewFactory->Config.PotencyScale;
 	},
 	{
-	NewOperation->Splines = &Splines;
+		NewOperation->Splines = &Splines;
 	})
 
 #undef LOCTEXT_NAMESPACE

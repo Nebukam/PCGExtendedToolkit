@@ -22,7 +22,7 @@ namespace PCGExSampling
 			const TArray<const UPCGBasePointData*>& Sources,
 			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 			const PCGExData::FPoint& Target,
-			const PCGExMath::FDistances* InDistanceDetails,
+			const PCGExMath::IDistances* InDistances,
 			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
 
 		FORCEINLINE void AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight)

@@ -224,13 +224,19 @@ namespace PCGExTensor
 	const FName SourceEffectorsLabel = TEXT("Effectors");
 	const FName SourceTensorConfigSourceLabel = TEXT("Parent Tensor");
 
+	struct FPackedEffector
+	{
+		FVector Location = FVector::ZeroVector;
+		float RadiusSquared = 1;
+		float Potency = 1;
+		float Weight = 1;
+	};
+
 	class FEffectorsArray : public TSharedFromThis<FEffectorsArray>
 	{
 	protected:
-		TArray<FTransform> Transforms;
-		TArray<double> Radiuses;
-		TArray<double> Potencies;
-		TArray<double> Weights;
+		TArray<FPackedEffector> PackedEffectors;
+		TArray<FQuat> Rotations;
 
 		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
@@ -241,15 +247,14 @@ namespace PCGExTensor
 		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory);
 
 	protected:
-		virtual void PrepareSinglePoint(const int32 Index);
+		virtual void PrepareSinglePoint(const int32 Index, const FTransform& InTransform, FPackedEffector& OutPackedEffector);
 
 	public:
 		FORCEINLINE const PCGExOctree::FItemOctree* GetOctree() const { return Octree.Get(); }
+		FORCEINLINE const FPackedEffector& GetPackedEffector(const int32 Index) const { return PackedEffectors[Index]; }
+		FORCEINLINE const FPackedEffector* GetPackedEffectorPtr(const int32 Index) const { return (PackedEffectors.GetData() + Index); }
+		FORCEINLINE const FQuat& GetRotation(const int32 Index) const { return Rotations[Index]; }
 
-		const FTransform& ReadTransform(const int32 Index) const { return Transforms[Index]; }
-		double ReadRadius(const int32 Index) const { return Radiuses[Index]; }
-		double ReadPotency(const int32 Index) const { return Potencies[Index]; }
-		double ReadWeight(const int32 Index) const { return Weights[Index]; }
 	};
 
 	struct FTensorSample
@@ -304,7 +309,7 @@ namespace PCGExTensor
 	struct FEffectorSamples
 	{
 		FTensorSample TensorSample = FTensorSample();
-		TArray<FEffectorSample> Samples;
+		TArray<FEffectorSample, TInlineAllocator<8>> Samples;
 
 		double TotalPotency = 0;
 

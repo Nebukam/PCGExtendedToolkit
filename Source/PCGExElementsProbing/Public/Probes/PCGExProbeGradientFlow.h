@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include <functional>
-
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Core/PCGExProbeFactoryProvider.h"
 #include "Core/PCGExProbeOperation.h"
-#include "Math/PCGExMath.h"
 
 #include "PCGExProbeGradientFlow.generated.h"
 
@@ -43,14 +40,14 @@ struct FPCGExProbeConfigGradientFlow : public FPCGExProbeConfigBase
 	}
 
 	// If true, only connect to higher values (flow uphill)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(PCG_Overridable))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	bool bUphillOnly = false;
 
 	// If true, only connect to the steepest neighbor
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(PCG_Overridable))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	bool bSteepestOnly = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(PCG_Overridable))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector FlowAttribute;
 };
 
