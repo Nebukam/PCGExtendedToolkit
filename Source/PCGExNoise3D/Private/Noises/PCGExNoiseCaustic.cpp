@@ -61,15 +61,12 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryCaustic::CreateOperation(
 	PCGEX_FACTORY_NEW_OPERATION(NoiseCaustic)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->WaveLayers = Config.WaveLayers;
 	NewOperation->Wavelength = Config.Wavelength;
 	NewOperation->Time = Config.Time;
 	NewOperation->AnimationSpeed = Config.AnimationSpeed;
 	NewOperation->Intensity = Config.Intensity;
 	NewOperation->Focus = Config.Focus;
-	NewOperation->bInvert = Config.bInvert;
 	NewOperation->Octaves = 1;
 
 	return NewOperation;

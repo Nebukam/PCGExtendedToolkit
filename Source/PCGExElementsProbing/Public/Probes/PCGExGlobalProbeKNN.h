@@ -12,7 +12,7 @@
 #include "Details/PCGExInputShorthandsDetails.h"
 #include "Math/PCGExMath.h"
 
-#include "PCGExProbeKNN.generated.h"
+#include "PCGExGlobalProbeKNN.generated.h"
 
 namespace PCGExProbing
 {
@@ -81,7 +81,7 @@ class UPCGExProbeKNNProviderSettings : public UPCGExProbeFactoryProviderSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ProbeKNN, "Probe : KNN", "K-Nearest Neighbors")
+	PCGEX_NODE_INFOS(ProbeKNN, "G-Probe : KNN", "K-Nearest Neighbors")
 #endif
 	//~End UPCGSettings
 

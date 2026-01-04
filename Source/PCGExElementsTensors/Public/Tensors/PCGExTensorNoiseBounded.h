@@ -7,8 +7,8 @@
 #include "Core/PCGExTensor.h"
 #include "Core/PCGExTensorFactoryProvider.h"
 #include "Core/PCGExTensorOperation.h"
+#include "PCGExTensorNoiseBounded.generated.h"
 
-#include "PCGExTensorNoise.generated.h"
 
 namespace PCGExNoise3D
 {
@@ -16,11 +16,11 @@ namespace PCGExNoise3D
 }
 
 USTRUCT(BlueprintType)
-struct FPCGExTensorNoiseConfig : public FPCGExTensorConfigBase
+struct FPCGExTensorNoiseBoundedConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorNoiseConfig()
+	FPCGExTensorNoiseBoundedConfig()
 		: FPCGExTensorConfigBase()
 	{
 	}
@@ -33,10 +33,10 @@ struct FPCGExTensorNoiseConfig : public FPCGExTensorConfigBase
 /**
  * 
  */
-class FPCGExTensorNoise : public PCGExTensorOperation
+class FPCGExTensorNoiseBounded : public PCGExTensorPointOperation
 {
 public:
-	FPCGExTensorNoiseConfig Config;	
+	FPCGExTensorNoiseBoundedConfig Config;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
 	
@@ -45,62 +45,58 @@ public:
 	virtual PCGExTensor::FTensorSample Sample(int32 InSeedIndex, const FTransform& InProbe) const override;
 };
 
+namespace PCGExTensor
+{
+	class FNoiseBoundedEffectorsArray : public FEffectorsArray
+	{
+	public:
+		FPCGExTensorNoiseBoundedConfig Config;
+		TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
+		TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
+
+		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory) override;
+	};
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class UPCGExTensorNoiseFactory : public UPCGExTensorFactoryData
+class UPCGExTensorNoiseBoundedFactory : public UPCGExTensorPointFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	FPCGExTensorNoiseConfig Config;
-	
+	FPCGExTensorNoiseBoundedConfig Config;
+
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
 
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
-	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext) override;
+	virtual TSharedPtr<PCGExTensor::FEffectorsArray> GetEffectorsArray() const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-noise"))
-class UPCGExCreateTensorNoiseSettings : public UPCGExTensorFactoryProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-inertia-constant"))
+class UPCGExCreateTensorNoiseBoundedSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TensorNoise, "Tensor : Noise", "A tensor that uses 3D noises as direction.")
+	PCGEX_NODE_INFOS(TensorNoiseBounded, "Tensor : Noise (Bounded)", "A tensor that uses 3D noises as direction, within effector bounds")
 
 #endif
 	//~End UPCGSettings
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 public:
 	
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double TensorWeight = 1;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double Potency = 1;
-	
-	/** If enabled normalize the sampled noise direction. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bNormalizeNoiseSampling = true;
-	
-	/** Tensor mutations settings. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Sampling Mutations"))
-	FPCGExTensorSamplingMutationsDetails Mutations;
-		
 	/** Tensor properties */
-	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
-	FPCGExTensorNoiseConfig Config;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExTensorNoiseBoundedConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

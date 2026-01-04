@@ -142,15 +142,12 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactorySpots::CreateOperation(FP
 	PCGEX_FACTORY_NEW_OPERATION(NoiseSpots)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->Shape = Config.Shape;
 	NewOperation->SpotRadius = Config.SpotRadius;
 	NewOperation->RadiusVariation = Config.RadiusVariation;
 	NewOperation->Jitter = Config.Jitter;
 	NewOperation->bInvertSpots = Config.bInvertSpots;
 	NewOperation->ValueVariation = Config.ValueVariation;
-	NewOperation->bInvert = Config.bInvert;
 	NewOperation->Octaves = 1;
 
 	return NewOperation;

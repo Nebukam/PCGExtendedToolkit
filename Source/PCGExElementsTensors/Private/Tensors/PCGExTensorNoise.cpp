@@ -22,7 +22,23 @@ PCGExTensor::FTensorSample FPCGExTensorNoise::Sample(const int32 InSeedIndex, co
 {
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	Samples.Emplace_GetRef(NoiseGenerator->GetVector(InProbe.GetLocation()).GetSafeNormal(), Config.Potency, Config.Weight);
+	const FVector InPosition = InProbe.GetLocation();
+	
+	FVector Noise = NoiseGenerator->GetVector(InPosition);
+	if (Config.bNormalizeNoiseSampling){Noise.Normalize();}
+
+	if (NoiseMaskGenerator)
+	{
+		if (const double Mask = NoiseMaskGenerator->GetDouble(InPosition);
+			!FMath::IsNearlyZero(Mask))
+		{
+			Samples.Emplace_GetRef(Noise, Config.Potency* Mask, Config.Weight* Mask);
+		}
+	}
+	else
+	{
+		Samples.Emplace_GetRef(Noise, Config.Potency, Config.Weight);
+	}
 
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
@@ -36,11 +52,15 @@ PCGEX_TENSOR_BOILERPLATE(
 	NewFactory->Config.Weight = 1;
 	NewFactory->Config.TensorWeight = TensorWeight;
 	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
+	NewFactory->Config.bNormalizeNoiseSampling = bNormalizeNoiseSampling;
 	NewFactory->NoiseGenerator = MakeShared<PCGExNoise3D::FNoiseGenerator>();
 	if (!NewFactory->NoiseGenerator->Init(InContext)) { return nullptr; }
+	NewFactory->NoiseMaskGenerator = MakeShared<PCGExNoise3D::FNoiseGenerator>();
+	if (!NewFactory->NoiseMaskGenerator->Init(InContext, PCGExNoise3D::Labels::SourceNoise3DMaskLabel, false)) { NewFactory->NoiseMaskGenerator = nullptr; }
 	},
 	{
-		NewOperation->NoiseGenerator = NoiseGenerator;
+	NewOperation->NoiseGenerator = NoiseGenerator;
+	NewOperation->NoiseMaskGenerator = NoiseMaskGenerator;
 	})
 
 PCGExFactories::EPreparationResult UPCGExTensorNoiseFactory::InitInternalData(FPCGExContext* InContext)
@@ -64,6 +84,7 @@ TArray<FPCGPinProperties> UPCGExCreateTensorNoiseSettings::InputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExNoise3D::Labels::SourceNoise3DLabel, "Noise nodes", Required, FPCGExDataTypeInfoNoise3D::AsId())
+	PCGEX_PIN_FACTORIES(PCGExNoise3D::Labels::SourceNoise3DMaskLabel, "Additional layer of noise used as influence over the first. Optional.", Normal, FPCGExDataTypeInfoNoise3D::AsId())
 	return PinProperties;
 }
 

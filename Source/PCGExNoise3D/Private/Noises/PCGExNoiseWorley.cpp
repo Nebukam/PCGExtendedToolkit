@@ -111,12 +111,9 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryWorley::CreateOperation(F
 	PCGEX_FACTORY_NEW_OPERATION(NoiseWorley)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->DistanceFunction = Config.DistanceFunction;
 	NewOperation->ReturnType = Config.ReturnType;
 	NewOperation->Jitter = Config.Jitter;
-	NewOperation->bInvert = Config.bInvert;
 
 	return NewOperation;
 }

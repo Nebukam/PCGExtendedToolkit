@@ -215,15 +215,12 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryFBM::CreateOperation(FPCG
 	PCGEX_FACTORY_NEW_OPERATION(NoiseFBM)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
 	NewOperation->Octaves = Config.Octaves;
 	NewOperation->Lacunarity = Config.Lacunarity;
 	NewOperation->Persistence = Config.Persistence;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->Variant = Config.Variant;
 	NewOperation->RidgeOffset = Config.RidgeOffset;
 	NewOperation->WarpStrength = Config.WarpStrength;
-	NewOperation->bInvert = Config.bInvert;
 
 	return NewOperation;
 }

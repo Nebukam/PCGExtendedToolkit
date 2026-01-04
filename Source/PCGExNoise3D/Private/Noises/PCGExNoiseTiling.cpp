@@ -87,15 +87,12 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryTiling::CreateOperation(F
 	PCGEX_FACTORY_NEW_OPERATION(NoiseTiling)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
 	NewOperation->Octaves = Config.Octaves;
 	NewOperation->Lacunarity = Config.Lacunarity;
 	NewOperation->Persistence = Config.Persistence;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->PeriodX = Config.PeriodX;
 	NewOperation->PeriodY = Config.PeriodY;
 	NewOperation->PeriodZ = Config.PeriodZ;
-	NewOperation->bInvert = Config.bInvert;
 
 	return NewOperation;
 }

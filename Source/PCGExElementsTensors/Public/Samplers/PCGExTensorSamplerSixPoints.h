@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExTensorSampler.h"
+#include "Core/PCGExTensorSampler.h"
 
 #include "PCGExTensorSamplerSixPoints.generated.h"
 

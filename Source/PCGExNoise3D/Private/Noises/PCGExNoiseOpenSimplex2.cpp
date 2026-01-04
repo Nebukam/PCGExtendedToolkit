@@ -96,12 +96,9 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryOpenSimplex2::CreateOpera
 	PCGEX_FACTORY_NEW_OPERATION(NoiseOpenSimplex2)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
 	NewOperation->Octaves = Config.Octaves;
 	NewOperation->Lacunarity = Config.Lacunarity;
 	NewOperation->Persistence = Config.Persistence;
-	NewOperation->Seed = Config.Seed;
-	NewOperation->bInvert = Config.bInvert;
 
 	return NewOperation;
 }

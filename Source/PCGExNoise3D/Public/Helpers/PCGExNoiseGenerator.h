@@ -28,6 +28,12 @@ namespace PCGExNoise3D
 		
 		double TotalWeight = 0.0;
 
+		/** How GenerateInPlace combines initial value with noise */
+		EPCGExNoiseInPlaceMode InPlaceMode = EPCGExNoiseInPlaceMode::Composite;
+		
+		/** Blend mode used for BlendResult in-place mode */
+		EPCGExNoiseBlendMode InPlaceBlendMode = EPCGExNoiseBlendMode::Blend;
+
 	public:
 		FNoiseGenerator() = default;
 
@@ -38,6 +44,7 @@ namespace PCGExNoise3D
 		 * @return true if at least one operation was created
 		 */
 		bool Init(FPCGExContext* InContext, bool bThrowError = true);
+		bool Init(FPCGExContext* InContext, const FName SourceLabel, bool bThrowError = true);
 
 		/**
 		 * Get number of operations
@@ -48,6 +55,25 @@ namespace PCGExNoise3D
 		 * Check if generator has any operations
 		 */
 		bool IsValid() const { return Operations.Num() > 0; }
+
+		/**
+		 * Get total weight of all operations
+		 */
+		double GetTotalWeight() const { return TotalWeight; }
+
+		/**
+		 * Set how GenerateInPlace combines initial value with noise
+		 * @param Mode The in-place combination mode
+		 * @param BlendMode Blend mode used when Mode is BlendResult (ignored otherwise)
+		 */
+		void SetInPlaceMode(EPCGExNoiseInPlaceMode Mode, EPCGExNoiseBlendMode BlendMode = EPCGExNoiseBlendMode::Blend)
+		{
+			InPlaceMode = Mode;
+			InPlaceBlendMode = BlendMode;
+		}
+
+		EPCGExNoiseInPlaceMode GetInPlaceMode() const { return InPlaceMode; }
+		EPCGExNoiseBlendMode GetInPlaceBlendMode() const { return InPlaceBlendMode; }
 
 		//
 		// Single-point generation
@@ -66,6 +92,26 @@ namespace PCGExNoise3D
 		void Generate(TArrayView<const FVector> Positions, TArrayView<FVector2D> OutResults) const;
 		void Generate(TArrayView<const FVector> Positions, TArrayView<FVector> OutResults) const;
 		void Generate(TArrayView<const FVector> Positions, TArrayView<FVector4> OutResults) const;
+
+		//
+		// In-place generation (blends noise with existing values)
+		// InitialWeight: weight of initial value (default 1.0, as if it came from an operation with weight 1)
+		//
+
+		void GenerateInPlace(const FVector& Position, double& InOutResult, double InitialWeight = 1.0) const;
+		void GenerateInPlace(const FVector& Position, FVector2D& InOutResult, double InitialWeight = 1.0) const;
+		void GenerateInPlace(const FVector& Position, FVector& InOutResult, double InitialWeight = 1.0) const;
+		void GenerateInPlace(const FVector& Position, FVector4& InOutResult, double InitialWeight = 1.0) const;
+
+		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<double> InOutResults, double InitialWeight = 1.0) const;
+		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<FVector2D> InOutResults, double InitialWeight = 1.0) const;
+		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<FVector> InOutResults, double InitialWeight = 1.0) const;
+		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<FVector4> InOutResults, double InitialWeight = 1.0) const;
+
+		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<double> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
+		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<FVector2D> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
+		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<FVector> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
+		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<FVector4> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
 
 		//
 		// Parallel batch generation

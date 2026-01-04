@@ -50,6 +50,10 @@ namespace PCGExTensor
 
 		// Fwd settings
 		SamplerInstance->Radius = Config.SamplerSettings.Radius;
+		SamplerInstance->MinStepFraction = Config.SamplerSettings.MinStepFraction;
+		SamplerInstance->MaxStepFraction = Config.SamplerSettings.MaxStepFraction;
+		SamplerInstance->ErrorTolerance = Config.SamplerSettings.ErrorTolerance;
+		SamplerInstance->MaxSubSteps = Config.SamplerSettings.MaxSubSteps;
 
 		return SamplerInstance->PrepareForData(InContext);
 	}

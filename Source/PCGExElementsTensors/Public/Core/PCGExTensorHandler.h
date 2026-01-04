@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Core/Samplers/PCGExTensorSampler.h"
+#include "Core/PCGExTensorSampler.h"
 #include "Details/PCGExSettingsDetails.h"
 
 #include "PCGExTensorHandler.generated.h"
@@ -32,9 +32,30 @@ struct PCGEXELEMENTSTENSORS_API FPCGExTensorSamplerDetails
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta = (PCG_Overridable))
 	TSubclassOf<UPCGExTensorSampler> Sampler = UPCGExTensorSampler::StaticClass();
 
-	/** Sampling radius. Whether it has any effect depends on the selected sampler. */
+	/** Sampling radius. 
+	 * NOTE : Whether it has any effect depends on the selected sampler. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double Radius = 0;
+	double Radius = 1;
+	
+	/** Minimum step size as fraction of base radius 
+	 * NOTE : Whether it has any effect depends on the selected sampler. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.01, ClampMax=1.0))
+	double MinStepFraction = 0.1;
+
+	/** Maximum step size as fraction of base radius 
+	 NOTE : Whether it has any effect depends on the selected sampler. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.1, ClampMax=2.0))
+	double MaxStepFraction = 1.0;
+
+	/** Error tolerance for step size adaptation 
+	 * NOTE : Whether it has any effect depends on the selected sampler. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001, ClampMax=0.5))
+	double ErrorTolerance = 0.01;
+
+	/** Maximum sub-steps per sample 
+	 * NOTE : Whether it has any effect depends on the selected sampler. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1, ClampMax=16))
+	int32 MaxSubSteps = 4;
 };
 
 

@@ -28,11 +28,16 @@ void UPCGExNoise3DFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* InCon
 	NewFactory->ConfigBase = NewFactory->Config;
 
 #define PCGEX_FORWARD_NOISE3D_CONFIG \
+	NewOperation->Frequency = Config.Frequency; \
+	NewOperation->Seed = Config.Seed; \
+	NewOperation->bInvert = Config.bInvert; \
 	NewOperation->BlendMode = Config.BlendMode; \
 	NewOperation->WeightFactor = Config.WeightFactor; \
 	NewOperation->RemapLUT = Config.RemapLUT; \
 	NewOperation->bApplyTransform = Config.bApplyTransform; \
-	NewOperation->Transform = Config.Transform;
+	NewOperation->Transform = Config.Transform; \
+	NewOperation->Contrast = Config.Contrast; \
+	NewOperation->ContrastCurve = Config.ContrastCurve; 
 
 class FPCGExNoise3DOperation;
 
@@ -99,8 +104,21 @@ struct PCGEXNOISE3D_API FPCGExNoise3DConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.000001"))
 	double Frequency = 0.01;
 
+	/** Contrast adjustment (1.0 = no change, >1 = more contrast, <1 = less) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Constrast", meta=(PCG_Overridable, DisplayPriority=-1))
+	double Contrast = 1.0;
+
+	/** Contrast curve type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Constrast", meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="Contrast != 1.0"))
+	EPCGExContrastCurve ContrastCurve = EPCGExContrastCurve::Power;
+	
 	void Init();
 };
+
+
+
+
+
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXNOISE3D_API UPCGExNoise3DFactoryData : public UPCGExFactoryData

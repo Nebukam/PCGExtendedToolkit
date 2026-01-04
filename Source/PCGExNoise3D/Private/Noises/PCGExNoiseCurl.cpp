@@ -165,14 +165,11 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryCurl::CreateOperation(FPC
 	PCGEX_FACTORY_NEW_OPERATION(NoiseCurl)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
 	NewOperation->Octaves = Config.Octaves;
 	NewOperation->Lacunarity = Config.Lacunarity;
 	NewOperation->Persistence = Config.Persistence;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->Epsilon = Config.Epsilon;
 	NewOperation->CurlScale = Config.CurlScale;
-	NewOperation->bInvert = Config.bInvert;
 
 	return NewOperation;
 }

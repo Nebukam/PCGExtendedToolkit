@@ -287,7 +287,7 @@ namespace PCGExData
 		static constexpr bool bSupportsFieldExtraction = true; // Via components
 		static constexpr bool bSupportsAxisExtraction = true;  // Via rotation component
 		static constexpr bool bSupportsComponentExtraction = true;
-		static constexpr int32 NumFields = 9; // 3 pos + 3 rot + 3 scale
+		static constexpr int32 NumFields = 3; // 3 pos + 3 rot + 3 scale
 	};
 
 	// String types - no sub-selection

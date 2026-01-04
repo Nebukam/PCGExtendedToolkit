@@ -26,6 +26,29 @@ enum class EPCGExNoiseBlendMode : uint8
 	First UMETA(DisplayName = "First Valid", ToolTip="Take the first non-zero value"),
 };
 
+/**
+ * How initial values are handled in GenerateInPlace methods
+ */
+UENUM(BlueprintType)
+enum class EPCGExNoiseInPlaceMode : uint8
+{
+	Composite UMETA(DisplayName = "Composite", ToolTip="Initial value is a base layer; operations blend on top"),
+	BlendResult UMETA(DisplayName = "Blend Result", ToolTip="Blend final noise result against initial value"),
+	Additive UMETA(DisplayName = "Additive", ToolTip="Add noise to initial value"),
+	Multiplicative UMETA(DisplayName = "Multiplicative", ToolTip="Multiply initial by noise (0-1 range)"),
+};
+
+/**
+ * Contrast curve types for noise adjustment
+ */
+UENUM(BlueprintType)
+enum class EPCGExContrastCurve : uint8
+{
+	Power UMETA(DisplayName = "Power", ToolTip = "Power curve - simple and predictable"),
+	SCurve UMETA(DisplayName = "S-Curve (Sigmoid)", ToolTip = "Smooth S-curve using tanh - never clips"),
+	Gain UMETA(DisplayName = "Gain", ToolTip = "Attempt function S-curve - symmetrical, subtle"),
+};
+
 
 namespace PCGExNoise3D
 {
@@ -33,5 +56,6 @@ namespace PCGExNoise3D
 	{
 		const FName OutputNoise3DLabel = FName("Noise");
 		const FName SourceNoise3DLabel = FName("Noises");
+		const FName SourceNoise3DMaskLabel = FName("Masks");
 	}
 }

@@ -8,7 +8,7 @@
 #include "Core/PCGExProbeFactoryProvider.h"
 #include "Core/PCGExProbeOperation.h"
 
-#include "PCGExProbeGradientFlow.generated.h"
+#include "PCGExGlobalProbeGradientFlow.generated.h"
 
 namespace PCGExProbing
 {
@@ -89,7 +89,7 @@ class UPCGExProbeGradientFlowProviderSettings : public UPCGExProbeFactoryProvide
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ProbeGradientFlow, "Probe : Gradient Flow", "K-Nearest Neighbors")
+	PCGEX_NODE_INFOS(ProbeGradientFlow, "G-Probe : Gradient Flow", "K-Nearest Neighbors")
 #endif
 	//~End UPCGSettings
 

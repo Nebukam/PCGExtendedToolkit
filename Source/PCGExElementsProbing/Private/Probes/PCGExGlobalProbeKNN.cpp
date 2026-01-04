@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Probes/PCGExProbeKNN.h"
+#include "Probes/PCGExGlobalProbeKNN.h"
 
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"

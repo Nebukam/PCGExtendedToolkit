@@ -113,14 +113,11 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryMarble::CreateOperation(F
 	PCGEX_FACTORY_NEW_OPERATION(NoiseMarble)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->Direction = Config.Direction;
 	NewOperation->VeinFrequency = Config.VeinFrequency;
 	NewOperation->TurbulenceStrength = Config.TurbulenceStrength;
 	NewOperation->TurbulenceOctaves = Config.TurbulenceOctaves;
 	NewOperation->VeinSharpness = Config.VeinSharpness;
-	NewOperation->bInvert = Config.bInvert;
 	NewOperation->Octaves = 1; // Marble uses internal turbulence
 
 	return NewOperation;

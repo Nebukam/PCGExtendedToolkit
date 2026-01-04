@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Core/Samplers/PCGExTensorSampler.h"
+#include "Core/PCGExTensorSampler.h"
 
 #include "Core/PCGExTensorOperation.h"
 
