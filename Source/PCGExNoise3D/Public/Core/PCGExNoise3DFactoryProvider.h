@@ -59,39 +59,45 @@ struct PCGEXNOISE3D_API FPCGExNoise3DConfigBase
 	}
 
 	/** The weight factor for this Noise3D (used when combining multiple noise sources). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	double WeightFactor = 1;
 
 	/** Blend mode when stacked against other noises */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExNoiseBlendMode BlendMode = EPCGExNoiseBlendMode::Blend;
 
 	/** Invert the noise output. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	bool bInvert = false;
 
 	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable))
 	bool bUseLocalCurve = false;
 
 	/** Curve the value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Remap Curve", EditCondition = "bUseLocalCurve", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta = (PCG_NotOverridable, DisplayName="Remap Curve", EditCondition = "bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
 	FRuntimeFloatCurve LocalRemapCurve;
 
 	/** Curve the value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Remap Curve", EditCondition="!bUseLocalCurve", EditConditionHides, DisplayPriority=-1, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Remap Curve", EditCondition="!bUseLocalCurve", EditConditionHides, HideEditConditionToggle))
 	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGExCurves::WeightDistributionLinear);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails RemapCurveLookup;
 
 	PCGExFloatLUT RemapLUT = nullptr;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	int32 Seed = 1337;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bApplyTransform = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyTransform"))
 	FTransform Transform = FTransform::Identity;
+		
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.000001"))
+	double Frequency = 0.01;
 
 	void Init();
 };

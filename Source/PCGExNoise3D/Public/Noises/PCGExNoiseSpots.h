@@ -29,12 +29,6 @@ struct FPCGExNoiseConfigSpots : public FPCGExNoise3DConfigBase
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0001"))
-	double Frequency = 1.0;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	int32 Seed = 1337;
-
 	/** Shape of the spots */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSpotsShape Shape = EPCGExSpotsShape::SoftCircle;
