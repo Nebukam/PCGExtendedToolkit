@@ -11,15 +11,15 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Anisotropic, {}, {})
 
-bool FPCGExProbeAnisotropic::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeAnisotropic::Prepare(FPCGExContext* InContext)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::Prepare(InContext)) { return false; }
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 	return true;
 }
 
-void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
-{
+void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
+{	
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
 
@@ -36,6 +36,8 @@ void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FTransfo
 	}
 	else
 	{
+		const FTransform& WorkingTransform = *(WorkingTransforms->GetData() + Index);
+		
 		for (int d = 0; d < 16; d++)
 		{
 			D[d] = WorkingTransform.TransformVectorNoScale(Directions[d]);

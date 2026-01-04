@@ -63,12 +63,12 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 class FPCGExProbeIndex : public FPCGExProbeOperation
 {
 public:
-	virtual bool RequiresOctree() override;
-	virtual bool PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
+	virtual bool IsDirectProbe() const override;
+	virtual bool Prepare(FPCGExContext* InContext) override;
 
-	virtual void ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections, PCGExMT::FScopedContainer* Container) override
+	virtual void ProcessNode(const int32 Index, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container) override
 	{
-		TryCreateEdge(Index, OutEdges, AcceptConnections);
+		TryCreateEdge(Index, OutEdges, *AcceptConnections);
 	}
 
 	FPCGExProbeConfigIndex Config;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExOctree.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Factories/PCGExOperation.h"
 #include "Details/PCGExSettingsMacros.h"
@@ -72,18 +73,28 @@ struct PCGEXELEMENTSPROBING_API FPCGExProbeConfigBase
 class PCGEXELEMENTSPROBING_API FPCGExProbeOperation : public FPCGExOperation
 {
 public:
-	virtual bool PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO);
-	virtual bool RequiresOctree();
-	virtual bool RequiresChainProcessing();
-	virtual void ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container);
+	virtual bool Prepare(FPCGExContext* InContext);
+	virtual bool IsDirectProbe() const;
+	virtual bool RequiresChainProcessing() const;
+	virtual void ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container);
 
-	virtual void PrepareBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container);
-	virtual void ProcessCandidateChained(const int32 Index, const FTransform& WorkingTransform, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container);
-	virtual void ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container);
+	virtual bool IsGlobalProbe() const;
+	virtual bool WantsOctree() const;
 
-	virtual void ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections, PCGExMT::FScopedContainer* Container);
+	virtual void PrepareBestCandidate(const int32 Index, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container);
+	virtual void ProcessCandidateChained(const int32 Index, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container);
+	virtual void ProcessBestCandidate(const int32 Index, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container);
+
+	virtual void ProcessNode(const int32 Index, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container);
+
+	virtual void ProcessAll(TSet<uint64>& OutEdges) const;
 
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
+	const PCGExOctree::FItemOctree* Octree = nullptr;
+	const TArray<FTransform>* WorkingTransforms = nullptr;
+	const TArray<FVector>* WorkingPositions = nullptr;
+	const TArray<int8>* CanGenerate = nullptr;
+	const TArray<int8>* AcceptConnections = nullptr;
 
 	double SearchRadiusOffset = 0;
 	double GetSearchRadius(const int32 Index) const;

@@ -356,6 +356,19 @@
       ]
     },
     {
+      "Name": "PCGExNoise3D",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
       "Name": "PCGExPickers",
       "Type": "Runtime",
       "LoadingPhase": "Default",

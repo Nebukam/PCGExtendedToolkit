@@ -11,7 +11,7 @@ namespace PCGExSampling
 		const TArray<const UPCGBasePointData*>& Sources,
 		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 		const PCGExData::FPoint& Target,
-		const PCGExMath::FDistances* InDistanceDetails,
+		const PCGExMath::IDistances* InDistances,
 		TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();

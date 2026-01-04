@@ -6,7 +6,7 @@
 
 #include "Math/PCGExMathDistances.h"
 
-const PCGExMath::FDistances* FPCGExDistanceDetails::MakeDistances() const
+const PCGExMath::IDistances* FPCGExDistanceDetails::MakeDistances() const
 {
-	return PCGExMath::GetDistances(Source, Target);
+	return PCGExMath::GetDistances(Source, Target, bOverlapIsZero, Type);
 }

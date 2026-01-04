@@ -12,11 +12,11 @@
 PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigDirection, Direction, FVector, DirectionInput, DirectionAttribute, DirectionConstant)
 PCGEX_CREATE_PROBE_FACTORY(Direction, {}, {})
 
-bool FPCGExProbeDirection::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
+bool FPCGExProbeDirection::RequiresChainProcessing() const { return Config.bDoChainedProcessing; }
 
-bool FPCGExProbeDirection::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeDirection::Prepare(FPCGExContext* InContext)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::Prepare(InContext)) { return false; }
 
 	bUseBestDot = Config.Favor == EPCGExProbeDirectionPriorization::Dot;
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
@@ -30,7 +30,7 @@ bool FPCGExProbeDirection::PrepareForPoints(FPCGExContext* InContext, const TSha
 
 #define PCGEX_GET_DIRECTION (Direction->Read(Index) * DirectionMultiplier).GetSafeNormal()
 
-void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeDirection::ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
@@ -38,6 +38,7 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform
 	double BestDist = MAX_dbl;
 	int32 BestCandidateIndex = -1;
 
+	const FTransform& WorkingTransform = *(WorkingTransforms->GetData() + Index);
 	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(PCGEX_GET_DIRECTION) : PCGEX_GET_DIRECTION;
 
 	const int32 MaxIndex = Candidates.Num() - 1;
@@ -91,16 +92,18 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform
 	}
 }
 
-void FPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeDirection::PrepareBestCandidate(const int32 Index, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
 {
 	InBestCandidate.BestIndex = -1;
 	InBestCandidate.BestPrimaryValue = -1;
 	InBestCandidate.BestSecondaryValue = MAX_dbl;
 }
 
-void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTransform& WorkingTransform, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
 {
 	const double R = GetSearchRadius(Index);
+	
+	const FTransform& WorkingTransform = *(WorkingTransforms->GetData() + Index);
 	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(PCGEX_GET_DIRECTION) : PCGEX_GET_DIRECTION;
 
 	if (Candidate.Distance > R) { return; }
@@ -141,7 +144,7 @@ void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTra
 
 #undef PCGEX_GET_DIRECTION
 
-void FPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeDirection::ProcessBestCandidate(const int32 Index, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
 	if (InBestCandidate.BestIndex == -1) { return; }
 

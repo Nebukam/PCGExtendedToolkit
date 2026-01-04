@@ -96,6 +96,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_COLOR(Tensor)
 	PCGEX_PUSH_COLOR(SortRule)
 	PCGEX_PUSH_COLOR(PartitionRule)
+	PCGEX_PUSH_COLOR(Noise3D)
 	
 #endif
 	

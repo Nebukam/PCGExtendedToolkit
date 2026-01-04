@@ -25,9 +25,10 @@ PCGExTensor::FTensorSample FPCGExTensorPole::Sample(const int32 InSeedIndex, con
 	auto ProcessNeighbor = [&](const PCGExOctree::FItem& InEffector)
 	{
 		PCGExTensor::FEffectorMetrics Metrics;
-		if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
-
-		Samples.Emplace_GetRef(FRotationMatrix::MakeFromX((InPosition - Effectors->ReadTransform(InEffector.Index).GetLocation()).GetSafeNormal()).ToQuat().RotateVector(Metrics.Guide), Metrics.Potency, Metrics.Weight);
+		if (const auto* E = ComputeFactor(InPosition, InEffector.Index, Metrics))
+		{
+			Samples.Emplace_GetRef(FRotationMatrix::MakeFromX((InPosition - E->Location).GetSafeNormal()).ToQuat().RotateVector(Metrics.Guide), Metrics.Potency, Metrics.Weight);
+		}
 	};
 
 	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);

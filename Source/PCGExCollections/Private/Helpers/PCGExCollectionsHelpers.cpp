@@ -206,7 +206,8 @@ namespace PCGExCollections
 		case EPCGExDistribution::Index:
 			{
 				const int32 Index = IndexGetter ? IndexGetter->Read(PointIndex) : 0;
-				return InMicroCache->GetPick(Index, Details.IndexSettings.PickMode);
+				const int32 Sanitized = PCGExMath::SanitizeIndex(Index,InMicroCache->Num()-1, Details.IndexSettings.IndexSafety);
+				return InMicroCache->GetPick(Sanitized, Details.IndexSettings.PickMode);
 			}
 		}
 

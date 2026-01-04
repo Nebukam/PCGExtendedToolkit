@@ -107,7 +107,7 @@ namespace PCGExBlending
 
 #pragma endregion
 
-	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const PCGExMath::FDistances* InDistanceDetails)
+	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const PCGExMath::IDistances* InDistanceDetails)
 		: CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails), DistanceDetails(InDistanceDetails)
 	{
 		BlendingDetails->GetPointPropertyBlendingParams(PropertyParams);

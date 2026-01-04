@@ -129,7 +129,7 @@ if(!SharedContext.Get()){ return _RET; }
 /// NODE METADATA & INFO
 /// Macros for defining PCG node names, titles, and tooltips
 
-
+#if WITH_EDITOR
 // Standard node info definition with name, title, and tooltip
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT("PCGEx"#_SHORTNAME)); } \
@@ -153,6 +153,11 @@ virtual FString GetPointFilterTooltip() const override { return TEXT(_TOOLTIP); 
 virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return _TYPE; } \
 virtual bool RequiresPointFilters() const override { return _REQUIRED; }
 
+#else
+#define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)
+#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)
+#define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED)
+#endif
 
 /// CONTEXT & SETTINGS ACCESS
 /// Macros for retrieving and validating PCG context and settings objects

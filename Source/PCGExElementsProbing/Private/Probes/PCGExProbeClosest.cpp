@@ -13,9 +13,9 @@
 PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigClosest, MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
 PCGEX_CREATE_PROBE_FACTORY(Closest, {}, {})
 
-bool FPCGExProbeClosest::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeClosest::Prepare(FPCGExContext* InContext)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::Prepare(InContext)) { return false; }
 
 	MaxConnections = Config.GetValueSettingMaxConnections();
 	if (!MaxConnections->Init(PrimaryDataFacade)) { return false; }
@@ -25,7 +25,7 @@ bool FPCGExProbeClosest::PrepareForPoints(FPCGExContext* InContext, const TShare
 	return true;
 }
 
-void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
+void FPCGExProbeClosest::ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
 	bool bIsAlreadyConnected;
 	const int32 MaxIterations = FMath::Min(MaxConnections->Read(Index), Candidates.Num());

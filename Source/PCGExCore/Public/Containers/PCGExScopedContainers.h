@@ -278,7 +278,7 @@ namespace PCGExMT
 		{
 			int32 Reserve = 0;
 			for (int i = 0; i < Sets.Num(); i++) { Reserve += Sets[i]->Num(); }
-			InTarget.Reserve(Reserve);
+			InTarget.Reserve(InTarget.Num() + Reserve);
 
 			for (int i = 0; i < Sets.Num(); i++)
 			{

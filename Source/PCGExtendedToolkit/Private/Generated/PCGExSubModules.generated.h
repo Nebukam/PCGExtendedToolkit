@@ -32,6 +32,7 @@ namespace PCGExSubModules
 			TEXT("PCGExGraphs"),
 			TEXT("PCGExHeuristics"),
 			TEXT("PCGExMatching"),
+			TEXT("PCGExNoise3D"),
 			TEXT("PCGExPickers")
 		};
 		return Modules;
@@ -49,7 +50,7 @@ namespace PCGExSubModules
 			{ TEXT("PCGExElementsBridges"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } },
 			{ TEXT("PCGExElementsClipper2"), { TEXT("PCGExCore"), TEXT("PCGExBlending"), TEXT("PCGExFilters"), TEXT("PCGExMatching"), TEXT("PCGExFoundations") } },
 			{ TEXT("PCGExElementsClusters"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExBlending"), TEXT("PCGExMatching"), TEXT("PCGExHeuristics"), TEXT("PCGExFoundations"), TEXT("PCGExGraphs") } },
-			{ TEXT("PCGExElementsMeta"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExBlending"), TEXT("PCGExPickers"), TEXT("PCGExFoundations") } },
+			{ TEXT("PCGExElementsMeta"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExBlending"), TEXT("PCGExPickers"), TEXT("PCGExNoise3D"), TEXT("PCGExFoundations") } },
 			{ TEXT("PCGExElementsPathfinding"), { TEXT("PCGExCore"), TEXT("PCGExBlending"), TEXT("PCGExMatching"), TEXT("PCGExHeuristics"), TEXT("PCGExFoundations"), TEXT("PCGExGraphs") } },
 			{ TEXT("PCGExElementsPathfindingNavmesh"), { TEXT("PCGExCore"), TEXT("PCGExBlending"), TEXT("PCGExFoundations"), TEXT("PCGExElementsPathfinding") } },
 			{ TEXT("PCGExElementsPaths"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExMatching"), TEXT("PCGExBlending"), TEXT("PCGExFoundations") } },
@@ -57,7 +58,7 @@ namespace PCGExSubModules
 			{ TEXT("PCGExElementsSampling"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExMatching"), TEXT("PCGExBlending"), TEXT("PCGExFoundations") } },
 			{ TEXT("PCGExElementsShapes"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations") } },
 			{ TEXT("PCGExElementsSpatial"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExBlending"), TEXT("PCGExMatching"), TEXT("PCGExGraphs"), TEXT("PCGExFoundations") } },
-			{ TEXT("PCGExElementsTensors"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExHeuristics"), TEXT("PCGExFoundations"), TEXT("PCGExElementsProbing") } },
+			{ TEXT("PCGExElementsTensors"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExHeuristics"), TEXT("PCGExNoise3D"), TEXT("PCGExFoundations"), TEXT("PCGExElementsProbing") } },
 			{ TEXT("PCGExElementsTopology"), { TEXT("PCGExCore"), TEXT("PCGExFilters"), TEXT("PCGExFoundations"), TEXT("PCGExGraphs") } },
 			{ TEXT("PCGExFilters"), { TEXT("PCGExCore"), TEXT("PCGExMatching"), TEXT("PCGExPickers") } },
 			{ TEXT("PCGExFoundations"), { TEXT("PCGExCore"), TEXT("PCGExBlending"), TEXT("PCGExFilters"), TEXT("PCGExPickers"), TEXT("PCGExMatching") } },
@@ -65,6 +66,7 @@ namespace PCGExSubModules
 			{ TEXT("PCGExGraphs"), { TEXT("PCGExCore"), TEXT("PCGExBlending"), TEXT("PCGExFilters"), TEXT("PCGExHeuristics"), TEXT("PCGExMatching"), TEXT("PCGExFoundations") } },
 			{ TEXT("PCGExHeuristics"), { TEXT("PCGExCore") } },
 			{ TEXT("PCGExMatching"), { TEXT("PCGExCore") } },
+			{ TEXT("PCGExNoise3D"), { TEXT("PCGExCore") } },
 			{ TEXT("PCGExPickers"), { TEXT("PCGExCore") } }
 		};
 		return Dependencies;

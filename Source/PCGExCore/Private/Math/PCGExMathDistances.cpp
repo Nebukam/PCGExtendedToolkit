@@ -1,134 +1,94 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Math/PCGExMathDistances.h"
-
-#include "Data/PCGExPointElements.h"
+#include "Math/PCGExMathDistancesImpl.h"
 
 namespace PCGExMath
 {
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	FVector TDistances<Source, Target>::GetSourceCenter(const PCGExData::FPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
-	{
-		return GetSpatializedCenter<Source>(FromPoint, FromCenter, ToCenter);
-	}
+#define PCGEX_FOREACH_DISTANCE_PAIR(MACRO) \
+    MACRO(EPCGExDistance::Center, EPCGExDistance::Center) \
+    MACRO(EPCGExDistance::Center, EPCGExDistance::SphereBounds) \
+    MACRO(EPCGExDistance::Center, EPCGExDistance::BoxBounds) \
+    MACRO(EPCGExDistance::Center, EPCGExDistance::None) \
+    MACRO(EPCGExDistance::SphereBounds, EPCGExDistance::Center) \
+    MACRO(EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds) \
+    MACRO(EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds) \
+    MACRO(EPCGExDistance::SphereBounds, EPCGExDistance::None) \
+    MACRO(EPCGExDistance::BoxBounds, EPCGExDistance::Center) \
+    MACRO(EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds) \
+    MACRO(EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds) \
+    MACRO(EPCGExDistance::BoxBounds, EPCGExDistance::None) \
+    MACRO(EPCGExDistance::None, EPCGExDistance::Center) \
+    MACRO(EPCGExDistance::None, EPCGExDistance::SphereBounds) \
+    MACRO(EPCGExDistance::None, EPCGExDistance::BoxBounds) \
+    MACRO(EPCGExDistance::None, EPCGExDistance::None)
 
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	FVector TDistances<Source, Target>::GetTargetCenter(const PCGExData::FPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
-	{
-		return GetSpatializedCenter<Target>(FromPoint, FromCenter, ToCenter);
-	}
-
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	void TDistances<Source, Target>::GetCenters(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
-	{
-		const FVector TargetOrigin = TargetPoint.GetLocation();
-		OutSource = GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
-		OutTarget = GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
-	}
-
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const
-	{
-		const FVector TargetOrigin = TargetPoint.GetLocation();
-		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
-		return FVector::DistSquared(OutSource, GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
-	}
-
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDist(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const
-	{
-		const FVector TargetOrigin = TargetPoint.GetLocation();
-		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
-		return FVector::Dist(OutSource, GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
-	}
-
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint, bool& bOverlap) const
-	{
-		const FVector TargetOrigin = TargetPoint.GetLocation();
-		const FVector SourceOrigin = SourcePoint.GetLocation();
-		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
-		const FVector OutTarget = GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
-
-		bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
-		return FVector::DistSquared(OutSource, OutTarget);
-	}
-
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDist(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint, bool& bOverlap) const
-	{
-		const FVector TargetOrigin = TargetPoint.GetLocation();
-		const FVector SourceOrigin = SourcePoint.GetLocation();
-		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
-		const FVector OutTarget = GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
-
-		bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
-		return FVector::Dist(OutSource, OutTarget);
-	}
-
-	template class PCGEXCORE_API TDistances<EPCGExDistance::Center, EPCGExDistance::Center>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::Center, EPCGExDistance::None>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::None>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::None>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::None, EPCGExDistance::Center>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::None, EPCGExDistance::SphereBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::None, EPCGExDistance::BoxBounds>;
-	template class PCGEXCORE_API TDistances<EPCGExDistance::None, EPCGExDistance::None>;
-
-
-	const FDistances* GetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
+	const IDistances* GetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero, const EPCGExDistanceType Type)
 	{
 		// Static cache for each combination
-		static TMap<TTuple<EPCGExDistance, EPCGExDistance, bool>, TSharedPtr<FDistances>> Cache;
+		static TMap<TTuple<EPCGExDistance, EPCGExDistance, EPCGExDistanceType, bool>, TSharedPtr<IDistances>> Cache;
 
-		const TTuple<EPCGExDistance, EPCGExDistance, bool> Key(Source, Target, bOverlapIsZero);
+		const TTuple<EPCGExDistance, EPCGExDistance, EPCGExDistanceType, bool> Key(Source, Target, Type, bOverlapIsZero);
 
 		// Check if already cached
-		if (const TSharedPtr<FDistances>* Found = Cache.Find(Key)) { return Found->Get(); }
+		if (const TSharedPtr<IDistances>* Found = Cache.Find(Key))
+		{
+			return Found->Get();
+		}
 
 		// Create new instance based on parameters
-		TSharedPtr<FDistances> NewDistances;
+		TSharedPtr<IDistances> NewDistances;
 
-		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+		switch (Type)
 		{
-			NewDistances = MakeShared<TDistances<EPCGExDistance::None, EPCGExDistance::None>>();
-		}
-		else if (Source == EPCGExDistance::Center)
-		{
-			if (Target == EPCGExDistance::Center) { NewDistances = MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::Center>>(bOverlapIsZero); }
-			else if (Target == EPCGExDistance::SphereBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			else if (Target == EPCGExDistance::BoxBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
-		}
-		else if (Source == EPCGExDistance::SphereBounds)
-		{
-			if (Target == EPCGExDistance::Center) { NewDistances = MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
-			else if (Target == EPCGExDistance::SphereBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			else if (Target == EPCGExDistance::BoxBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
-		}
-		else if (Source == EPCGExDistance::BoxBounds)
-		{
-			if (Target == EPCGExDistance::Center) { NewDistances = MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>>(bOverlapIsZero); }
-			else if (Target == EPCGExDistance::SphereBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>>(bOverlapIsZero); }
-			else if (Target == EPCGExDistance::BoxBounds) { NewDistances = MakeShared<TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>>(bOverlapIsZero); }
+		default:
+		case EPCGExDistanceType::Euclidian:
+			if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+			{
+				NewDistances = MakeShared<TEuclideanDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
+			}
+#define PCGEX_DIST_TPL(_FROM, _TO) \
+    else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TEuclideanDistances<_FROM, _TO>>(bOverlapIsZero); }
+			PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
+#undef PCGEX_DIST_TPL
+			break;
+
+		case EPCGExDistanceType::Manhattan:
+			if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+			{
+				NewDistances = MakeShared<TManhattanDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
+			}
+#define PCGEX_DIST_TPL(_FROM, _TO) \
+    else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TManhattanDistances<_FROM, _TO>>(bOverlapIsZero); }
+			PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
+#undef PCGEX_DIST_TPL
+			break;
+
+		case EPCGExDistanceType::Chebyshev:
+			if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+			{
+				NewDistances = MakeShared<TChebyshevDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
+			}
+#define PCGEX_DIST_TPL(_FROM, _TO) \
+    else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TChebyshevDistances<_FROM, _TO>>(bOverlapIsZero); }
+			PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
+#undef PCGEX_DIST_TPL
+			break;
 		}
 
 		// Cache and return
-		if (NewDistances) { Cache.Add(Key, NewDistances); }
+		if (NewDistances)
+		{
+			Cache.Add(Key, NewDistances);
+		}
 
 		return NewDistances.Get();
 	}
 
-	const FDistances* GetNoneDistances()
+#undef PCGEX_FOREACH_DISTANCE_PAIR
+
+	const IDistances* GetNoneDistances()
 	{
 		return GetDistances(EPCGExDistance::None, EPCGExDistance::None);
 	}

@@ -289,7 +289,7 @@ namespace PCGExSampleNearestSpline
 		TArray<PCGExPolyPath::FSample> Samples;
 		Samples.Reserve(Context->NumTargets);
 
-		const PCGExMath::FDistances* DistanceDetails = PCGExMath::GetDistances(Settings->DistanceSettings, Settings->DistanceSettings);
+		const PCGExMath::IDistances* Distances = PCGExMath::GetDistances(Settings->DistanceSettings, Settings->DistanceSettings);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -327,8 +327,8 @@ namespace PCGExSampleNearestSpline
 			auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const int32 NumSegments, const FPCGSplineStruct& InSpline)
 			{
 				const FVector SampleLocation = Transform.GetLocation();
-				const FVector ModifiedOrigin = DistanceDetails->GetSourceCenter(Point, Origin, SampleLocation);
-				const double Dist = FVector::Dist(ModifiedOrigin, SampleLocation);
+				const FVector ModifiedOrigin = Distances->GetSourceCenter(Point, Origin, SampleLocation);
+				const double Dist = Distances->GetDist(ModifiedOrigin, SampleLocation);
 
 				double LocalRangeMin = BaseRangeMin;
 				double LocalRangeMax = BaseRangeMax;

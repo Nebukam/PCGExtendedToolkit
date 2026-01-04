@@ -10,7 +10,7 @@
 
 namespace PCGExMath
 {
-	class FDistances;
+	class IDistances;
 }
 
 namespace PCGEx
@@ -74,7 +74,7 @@ namespace PCGExData
 			const TArray<const UPCGBasePointData*>& Sources,
 			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 			const FPoint& Target,
-			const PCGExMath::FDistances* InDistanceDetails,
+			const PCGExMath::IDistances* InDistances,
 			TArray<FWeightedPoint>& OutWeightedPoints) const;
 
 		virtual void Reserve(const int32 InSetReserve, const int32 InElementReserve);

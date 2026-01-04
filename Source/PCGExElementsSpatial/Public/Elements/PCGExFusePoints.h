@@ -90,7 +90,7 @@ private:
 struct FPCGExFusePointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
-	const PCGExMath::FDistances* Distances = nullptr;
+	const PCGExMath::IDistances* Distances = nullptr;
 	FPCGExCarryOverDetails CarryOverDetails;
 
 protected:

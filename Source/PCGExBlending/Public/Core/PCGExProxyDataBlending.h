@@ -19,7 +19,7 @@ enum class EPCGExABBlendingType : uint8;
 
 namespace PCGExMath
 {
-	class FDistances;
+	class IDistances;
 }
 
 namespace PCGEx
@@ -167,7 +167,7 @@ namespace PCGExBlending
 		TSharedPtr<PCGExData::FFacade> CurrentTargetData;
 		TSharedPtr<PCGEx::FIndexLookup> IOLookup;
 		TArray<const UPCGBasePointData*> SourcesData;
-		const PCGExMath::FDistances* Distances = nullptr;
+		const PCGExMath::IDistances* Distances = nullptr;
 	};
 
 	//

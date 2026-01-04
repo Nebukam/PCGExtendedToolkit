@@ -12,7 +12,7 @@
 
 namespace PCGExBlending
 {
-	FUnionOpsManager::FUnionOpsManager(const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* InBlendingFactories, const PCGExMath::FDistances* InDistances)
+	FUnionOpsManager::FUnionOpsManager(const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* InBlendingFactories, const PCGExMath::IDistances* InDistances)
 		: BlendingFactories(InBlendingFactories), Distances(InDistances)
 	{
 	}

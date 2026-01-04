@@ -52,6 +52,7 @@ namespace PCGExFactories
 		IndexPicker,
 		FillControls,
 		MatchRule,
+		Noise3D,
 	};
 
 	enum class EPreparationResult : uint8

@@ -98,22 +98,31 @@ namespace PCGExConnectPoints
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
 	{
+				
 		TSharedPtr<PCGExPointFilter::FManager> GeneratorsFilter;
 		TSharedPtr<PCGExPointFilter::FManager> ConnectableFilter;
 
 		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
-		TArray<TSharedPtr<FPCGExProbeOperation>> RadiusSources;
-
-		TArray<TSharedPtr<FPCGExProbeOperation>> DirectOperations;
-		TArray<TSharedPtr<FPCGExProbeOperation>> ChainedOperations;
-		TArray<TSharedPtr<FPCGExProbeOperation>> SharedOperations;
+		TArray<TSharedPtr<FPCGExProbeOperation>> AllOperations;
+		
+		TArray<FPCGExProbeOperation*> RadiusSources;
+		TArray<FPCGExProbeOperation*> DirectOperations;
+		TArray<FPCGExProbeOperation*> ChainedOperations;
+		TArray<FPCGExProbeOperation*> SharedOperations;		
+		TArray<FPCGExProbeOperation*> GlobalOperations;
 
 		int32 NumRadiusSources = 0;
 		int32 NumDirectOps = 0;
 		int32 NumChainedOps = 0;
 		int32 NumSharedOps = 0;
+		int32 NumGlobalOps = 0;
 
+		bool bOnlyGlobalOps = false;
+		bool bWantsOctree = false;
+		
+		int8 NumCompletions = 2;
+		
 		bool bUseVariableRadius = false;
 		double SharedSearchRadius = 0;
 
@@ -122,8 +131,11 @@ namespace PCGExConnectPoints
 		TUniquePtr<PCGExOctree::FItemOctree> Octree;
 
 		TArray<FTransform> WorkingTransforms;
+		TArray<FVector> WorkingPositions;
 
+		mutable FRWLock UniqueEdgesLock;
 		TSharedPtr<PCGExMT::TScopedSet<uint64>> ScopedEdges;
+		TSet<uint64> UniqueEdges;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
@@ -139,13 +151,17 @@ namespace PCGExConnectPoints
 
 		virtual ~FProcessor() override;
 
+		void AppendEdges(const TSet<uint64>& InUniqueEdges);
+		
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void OnPreparationComplete();
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
+		
+		void AdvanceCompletion();
+		
 		virtual void CompleteWork() override;
-		virtual void Write() override;
 		virtual void Output() override;
 
 		virtual void Cleanup() override;

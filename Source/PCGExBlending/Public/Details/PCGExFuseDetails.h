@@ -14,7 +14,7 @@ struct FPCGExContext;
 
 namespace PCGExMath
 {
-	class FDistances;
+	class IDistances;
 }
 
 namespace PCGExData
@@ -109,7 +109,7 @@ struct PCGEXBLENDING_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod == EPCGExFuseMethod::Voxel", EditConditionHides))
 	FVector VoxelGridOffset = FVector::ZeroVector;
 
-	const PCGExMath::FDistances* Distances;
+	const PCGExMath::IDistances* Distances;
 
 	/** Check this box if you're fusing over a very large radius and want to ensure insertion order to avoid snapping to different points. NOTE : Will make things considerably slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Stabilize Insertion Order"))
@@ -127,5 +127,5 @@ struct PCGEXBLENDING_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 	bool IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
 	bool IsWithinToleranceComponentWise(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
 
-	const PCGExMath::FDistances* GetDistances() const;
+	const PCGExMath::IDistances* GetDistances() const;
 };

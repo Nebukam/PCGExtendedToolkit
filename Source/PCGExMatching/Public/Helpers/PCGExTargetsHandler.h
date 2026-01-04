@@ -24,7 +24,7 @@ namespace PCGExMatching
 
 namespace PCGExMath
 {
-	class FDistances;
+	class IDistances;
 }
 
 namespace PCGExData
@@ -46,7 +46,7 @@ namespace PCGExMatching
 		TArray<const PCGPointOctree::FPointOctree*> TargetOctrees;
 		int32 MaxNumTargets = 0;
 
-		const PCGExMath::FDistances* Distances = nullptr;
+		const PCGExMath::IDistances* Distances = nullptr;
 
 	public:
 		using FInitData = std::function<FBox(const TSharedPtr<PCGExData::FPointIO>&, const int32)>;
@@ -72,7 +72,7 @@ namespace PCGExMatching
 
 		void SetDistances(const FPCGExDistanceDetails& InDetails);
 		void SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero);
-		FORCEINLINE const PCGExMath::FDistances* GetDistances() const { return Distances; }
+		FORCEINLINE const PCGExMath::IDistances* GetDistances() const { return Distances; }
 
 		void SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails);
 		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
