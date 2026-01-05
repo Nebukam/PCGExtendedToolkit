@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExClipper2Processor.h"
-#include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Paths/PCGExPath.h"
 
 #include "PCGExClipper2Boolean.generated.h"
@@ -52,10 +51,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Operation != EPCGExClipper2BooleanOp::Difference"))
 	bool bUseOperandsPin = false;
-
-	/** Filter in/out which attributes get carried over from inputs to outputs. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExCarryOverDetails CarryOver;
 
 	virtual bool NeedsOperands() const override;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;

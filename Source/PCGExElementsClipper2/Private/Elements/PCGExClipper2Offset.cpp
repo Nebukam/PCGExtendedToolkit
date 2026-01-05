@@ -19,33 +19,6 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2OffsetSettings::GetProjectionDetails(
 	return ProjectionDetails;
 }
 
-namespace
-{
-	PCGExClipper2Lib::JoinType ConvertJoinType(EPCGExClipper2JoinType InType)
-	{
-		switch (InType)
-		{
-		case EPCGExClipper2JoinType::Square: return PCGExClipper2Lib::JoinType::Square;
-		case EPCGExClipper2JoinType::Round: return PCGExClipper2Lib::JoinType::Round;
-		case EPCGExClipper2JoinType::Bevel: return PCGExClipper2Lib::JoinType::Bevel;
-		case EPCGExClipper2JoinType::Miter: return PCGExClipper2Lib::JoinType::Miter;
-		default: return PCGExClipper2Lib::JoinType::Round;
-		}
-	}
-
-	PCGExClipper2Lib::EndType ConvertEndType(EPCGExClipper2EndType InType)
-	{
-		switch (InType)
-		{
-		case EPCGExClipper2EndType::Polygon: return PCGExClipper2Lib::EndType::Polygon;
-		case EPCGExClipper2EndType::Joined: return PCGExClipper2Lib::EndType::Joined;
-		case EPCGExClipper2EndType::Butt: return PCGExClipper2Lib::EndType::Butt;
-		case EPCGExClipper2EndType::Square: return PCGExClipper2Lib::EndType::Square;
-		case EPCGExClipper2EndType::Round: return PCGExClipper2Lib::EndType::Round;
-		default: return PCGExClipper2Lib::EndType::Round;
-		}
-	}
-}
 
 void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
 {
@@ -54,8 +27,8 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 	if (!Group->IsValid()) { return; }
 
 	const double Scale = static_cast<double>(Settings->Precision);
-	const PCGExClipper2Lib::JoinType JoinType = ConvertJoinType(Settings->JoinType);
-	const PCGExClipper2Lib::EndType EndType = ConvertEndType(Settings->EndType);
+	const PCGExClipper2Lib::JoinType JoinType = PCGExClipper2::ConvertJoinType(Settings->JoinType);
+	const PCGExClipper2Lib::EndType EndType = PCGExClipper2::ConvertEndType(Settings->EndType);
 
 	if (Group->SubjectPaths.empty() && Group->OpenSubjectPaths.empty()) { return; }
 
@@ -110,7 +83,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 
 		// Generate positive offset
 		{
-			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, 0.0, true, false);
+			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, Settings->GetArcTolerance(), Settings->bPreserveCollinear, false);
 			ClipperOffset.SetZCallback(Group->CreateZCallback());
 
 			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PCGExClipper2Lib::EndType::Joined); }
@@ -123,7 +96,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
 				// Use Unproject mode since offset changes positions
-				OutputPaths64(PositiveOffsetPaths, Group, nullptr, nullptr, OutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
+				OutputPaths64(PositiveOffsetPaths, Group, OutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
 
 				if (Settings->bTagIteration)
 				{
@@ -138,7 +111,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 		// Generate negative (dual) offset if enabled
 		if (bDualOffset)
 		{
-			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, 0.0, true, false);
+			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, Settings->GetArcTolerance(), Settings->bPreserveCollinear, false);
 			ClipperOffset.SetZCallback(Group->CreateZCallback());
 			
 			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PCGExClipper2Lib::EndType::Joined); }
@@ -151,7 +124,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> DualOutputPaths;
 				// Use Unproject mode since offset changes positions
-				OutputPaths64(NegativeOffsetPaths, Group, nullptr, nullptr, DualOutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
+				OutputPaths64(NegativeOffsetPaths, Group, DualOutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
 
 				for (const TSharedPtr<PCGExData::FPointIO>& Output : DualOutputPaths)
 				{

@@ -52,7 +52,7 @@ public:
 
 	/** Join type for corners */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExClipper2JoinType JoinType = EPCGExClipper2JoinType::Round;
+	EPCGExClipper2JoinType JoinType = EPCGExClipper2JoinType::Miter;
 
 	/** End type for open paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "Clipper2Lib/clipper.h"
 #include "Core/PCGExPathProcessor.h"
+#include "Data/Utils/PCGExDataFilterDetails.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "Math/PCGExProjectionDetails.h"
 
@@ -44,6 +46,31 @@ enum class EPCGExGroupingPolicy : uint8
 
 namespace PCGExClipper2
 {
+	static PCGExClipper2Lib::JoinType ConvertJoinType(EPCGExClipper2JoinType InType)
+	{
+		switch (InType)
+		{
+		case EPCGExClipper2JoinType::Square: return PCGExClipper2Lib::JoinType::Square;
+		case EPCGExClipper2JoinType::Round: return PCGExClipper2Lib::JoinType::Round;
+		case EPCGExClipper2JoinType::Bevel: return PCGExClipper2Lib::JoinType::Bevel;
+		case EPCGExClipper2JoinType::Miter: return PCGExClipper2Lib::JoinType::Miter;
+		default: return PCGExClipper2Lib::JoinType::Round;
+		}
+	}
+
+	static PCGExClipper2Lib::EndType ConvertEndType(EPCGExClipper2EndType InType)
+	{
+		switch (InType)
+		{
+		case EPCGExClipper2EndType::Polygon: return PCGExClipper2Lib::EndType::Polygon;
+		case EPCGExClipper2EndType::Joined: return PCGExClipper2Lib::EndType::Joined;
+		case EPCGExClipper2EndType::Butt: return PCGExClipper2Lib::EndType::Butt;
+		case EPCGExClipper2EndType::Square: return PCGExClipper2Lib::EndType::Square;
+		case EPCGExClipper2EndType::Round: return PCGExClipper2Lib::EndType::Round;
+		default: return PCGExClipper2Lib::EndType::Round;
+		}
+	}
+
 	// Special marker for intersection points - uses high bit pattern that's unlikely in normal usage
 	constexpr uint32 INTERSECTION_MARKER = 0xFFFFFFFF;
 
@@ -106,7 +133,7 @@ namespace PCGExClipper2
 		// Cached paths for quick access (references into AllOpData->Paths)
 		PCGExClipper2Lib::Paths64 SubjectPaths;
 		PCGExClipper2Lib::Paths64 OpenSubjectPaths;
-		
+
 		PCGExClipper2Lib::Paths64 OperandPaths;
 		PCGExClipper2Lib::Paths64 OpenOperandPaths;
 
@@ -118,7 +145,7 @@ namespace PCGExClipper2
 		mutable FCriticalSection IntersectionLock;
 
 		FProcessingGroup() = default;
-		
+
 		// Prepare cached paths from AllOpData
 		void Prepare(const TSharedPtr<FOpData>& AllOpData);
 		void PreProcess(const UPCGExClipper2ProcessorSettings* InSettings);
@@ -186,6 +213,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	bool bSimplifyPaths = true;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
+	bool bPreserveCollinear = true;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
+	double ArcTolerance = 5.0;
+
+	FORCEINLINE double GetArcTolerance() const { return ArcTolerance * static_cast<double>(Precision); }
+
+	/** Filter in/out which attributes get carried over from inputs to outputs. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExCarryOverDetails CarryOverDetails;
+
+
 	/** How should data be grouped when data matching is disabled */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Grouping", meta = (PCG_Overridable, EditCondition="UsesDataMatching()"))
 	EPCGExGroupingPolicy MainInputGroupingPolicy = EPCGExGroupingPolicy::Consolidate;
@@ -221,6 +263,9 @@ struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 	// Unified processing groups
 	TArray<TSharedPtr<PCGExClipper2::FProcessingGroup>> ProcessingGroups;
 
+	FPCGExCarryOverDetails CarryOverDetails;
+	FPCGExBlendingDetails BlendingDetails;
+
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	/**
@@ -228,16 +273,12 @@ struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 	 * 
 	 * @param InPaths - The Clipper2 output paths to convert
 	 * @param Group - The processing group containing source info and intersection blend data
-	 * @param InBlendingDetails - Optional blending configuration for metadata
-	 * @param InCarryOverDetails - Optional carry-over configuration
 	 * @param OutPaths - Output array of point IO objects
 	 * @param TransformMode - How to compute output transforms (FromSource for booleans, Unproject for offset/inflate)
 	 */
 	void OutputPaths64(
 		PCGExClipper2Lib::Paths64& InPaths,
 		const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
-		const FPCGExBlendingDetails* InBlendingDetails,
-		const FPCGExCarryOverDetails* InCarryOverDetails,
 		TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
 		PCGExClipper2::ETransformRestoration TransformMode = PCGExClipper2::ETransformRestoration::FromSource);
 

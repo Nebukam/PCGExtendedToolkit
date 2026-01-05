@@ -80,6 +80,7 @@ namespace PCGExClipper2
 		{
 			PCGExClipper2Lib::Paths64 Union;
 			PCGExClipper2Lib::Clipper64 Clipper;
+			Clipper.SetZCallback(CreateZCallback());
 			Clipper.AddSubject(SubjectPaths);
 			Clipper.AddOpenSubject(OpenSubjectPaths);
 			Clipper.Execute(PCGExClipper2Lib::ClipType::Union, PCGExClipper2Lib::FillRule::NonZero, Union);
@@ -90,6 +91,7 @@ namespace PCGExClipper2
 		{
 			PCGExClipper2Lib::Paths64 Union;
 			PCGExClipper2Lib::Clipper64 Clipper;
+			Clipper.SetZCallback(CreateZCallback());
 			Clipper.AddSubject(OperandPaths);
 			Clipper.AddOpenSubject(OpenOperandPaths);
 			Clipper.Execute(PCGExClipper2Lib::ClipType::Union, PCGExClipper2Lib::FillRule::NonZero, Union);
@@ -221,8 +223,6 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2ProcessorSettings::GetProjectionDetai
 void FPCGExClipper2ProcessorContext::OutputPaths64(
 	PCGExClipper2Lib::Paths64& InPaths,
 	const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
-	const FPCGExBlendingDetails* InBlendingDetails,
-	const FPCGExCarryOverDetails* InCarryOverDetails,
 	TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
 	PCGExClipper2::ETransformRestoration TransformMode)
 {
@@ -309,12 +309,15 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 		const int32 NumPoints = static_cast<int32>(Path.size());
 		UPCGBasePointData* OutPoints = NewPointIO->GetOut();
+
+		if (!OutPoints) { return; }
+		
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPoints, Allocations);
 
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
 		// Check if we need blending
-		const bool bNeedsBlending = InBlendingDetails && SourceCounts.Num() > 1;
+		const bool bNeedsBlending = SourceCounts.Num() > 1;
 
 		TSharedPtr<PCGExData::FFacade> OutputFacade;
 		TSharedPtr<PCGExBlending::FUnionBlender> Blender;
@@ -324,7 +327,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		{
 			OutputFacade = MakeShared<PCGExData::FFacade>(NewPointIO.ToSharedRef());
 
-			Blender = MakeShared<PCGExBlending::FUnionBlender>(InBlendingDetails, InCarryOverDetails, PCGExMath::GetDistances());
+			Blender = MakeShared<PCGExBlending::FUnionBlender>(&BlendingDetails, &CarryOverDetails, PCGExMath::GetDistances());
 
 			// Pass callback that returns Facade->Idx (which equals array index)
 			Blender->AddSources(BlendSources, nullptr, [](const TSharedPtr<PCGExData::FFacade>& InFacade) { return InFacade->Idx; });
@@ -597,6 +600,14 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Processor)
+
+	Context->CarryOverDetails = Settings->CarryOverDetails;
+	Context->CarryOverDetails.Init();
+
+	// Setup default blending details
+	Context->BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Weight);
+	Context->BlendingDetails.PropertiesOverrides.bOverridePosition = true;
+	Context->BlendingDetails.PropertiesOverrides.PositionBlending = EPCGExBlendingType::None; // Position is set by source transforms
 
 	// Initialize AllOpData early
 	Context->AllOpData = MakeShared<PCGExClipper2::FOpData>(0);

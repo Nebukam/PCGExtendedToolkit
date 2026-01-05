@@ -72,12 +72,7 @@ void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProc
 	// Convert results back to PCGEx data with blending
 	TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
 
-	// Setup blending details for boolean ops
-	FPCGExBlendingDetails BlendingDetails(EPCGExBlendingType::Average);
-	BlendingDetails.PropertiesOverrides.bOverridePosition = true;
-	BlendingDetails.PropertiesOverrides.PositionBlending = EPCGExBlendingType::None; // Position is set by source transforms
-
-	OutputPaths64(ResultPaths, Group, &BlendingDetails, &Settings->CarryOver, OutputPaths);
+	OutputPaths64(ResultPaths, Group, OutputPaths);
 }
 
 #undef LOCTEXT_NAMESPACE

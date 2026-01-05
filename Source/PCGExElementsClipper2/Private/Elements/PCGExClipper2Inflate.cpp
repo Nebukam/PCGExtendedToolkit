@@ -20,34 +20,6 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2InflateSettings::GetProjectionDetails
 	return ProjectionDetails;
 }
 
-namespace PCGExClipper2
-{
-	PCGExClipper2Lib::JoinType ConvertJoinType(EPCGExClipper2JoinType InType)
-	{
-		switch (InType)
-		{
-		case EPCGExClipper2JoinType::Square: return PCGExClipper2Lib::JoinType::Square;
-		case EPCGExClipper2JoinType::Round: return PCGExClipper2Lib::JoinType::Round;
-		case EPCGExClipper2JoinType::Bevel: return PCGExClipper2Lib::JoinType::Bevel;
-		case EPCGExClipper2JoinType::Miter: return PCGExClipper2Lib::JoinType::Miter;
-		default: return PCGExClipper2Lib::JoinType::Round;
-		}
-	}
-
-	PCGExClipper2Lib::EndType ConvertEndType(EPCGExClipper2EndType InType)
-	{
-		switch (InType)
-		{
-		case EPCGExClipper2EndType::Polygon: return PCGExClipper2Lib::EndType::Polygon;
-		case EPCGExClipper2EndType::Joined: return PCGExClipper2Lib::EndType::Joined;
-		case EPCGExClipper2EndType::Butt: return PCGExClipper2Lib::EndType::Butt;
-		case EPCGExClipper2EndType::Square: return PCGExClipper2Lib::EndType::Square;
-		case EPCGExClipper2EndType::Round: return PCGExClipper2Lib::EndType::Round;
-		default: return PCGExClipper2Lib::EndType::Round;
-		}
-	}
-}
-
 void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
 {
 	const UPCGExClipper2InflateSettings* Settings = GetInputSettings<UPCGExClipper2InflateSettings>();
@@ -78,7 +50,7 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 		const double IterationMultiplier = static_cast<double>(Iteration + 1);
 
 		// Create ClipperOffset with ZCallback for tracking
-		PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, 0.0, true, false);
+		PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, Settings->GetArcTolerance(), Settings->bPreserveCollinear, false);
 		ClipperOffset.SetZCallback(Group->CreateZCallback());
 
 		// Add paths
@@ -124,7 +96,7 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 		TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
 
 		// Use Unproject mode since inflate changes positions
-		OutputPaths64(InflatedPaths, Group, nullptr, nullptr, OutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
+		OutputPaths64(InflatedPaths, Group, OutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
 
 		// Tag with iteration number if requested
 		if (Settings->bTagIteration)
