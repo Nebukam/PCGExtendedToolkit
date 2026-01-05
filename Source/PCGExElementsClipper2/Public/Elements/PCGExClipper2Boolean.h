@@ -27,7 +27,7 @@ enum class EPCGExClipper2BooleanOp : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-offset"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-boolean"))
 class UPCGExClipper2BooleanSettings : public UPCGExClipper2ProcessorSettings
 {
 	GENERATED_BODY()
@@ -35,7 +35,7 @@ class UPCGExClipper2BooleanSettings : public UPCGExClipper2ProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathOffset, "Clipper2 : Boolean", "Does a Clipper2 Boolean operation.");
+	PCGEX_NODE_INFOS(Clipper2Boolean, "Clipper2 : Boolean", "Does a Clipper2 Boolean operation.");
 #endif
 
 protected:
@@ -59,13 +59,14 @@ public:
 
 	virtual bool NeedsOperands() const override;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
+	virtual PCGExClipper2::EMainGroupingPolicy GetGroupingPolicy() const override;
 };
 
 struct FPCGExClipper2BooleanContext final : FPCGExClipper2ProcessorContext
 {
 	friend class FPCGExClipper2BooleanElement;
 
-	virtual void Process(const TArray<int32>& Subjects, const TArray<int32>* Operands = nullptr) override;
+	virtual void Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group) override;
 };
 
 class FPCGExClipper2BooleanElement final : public FPCGExClipper2ProcessorElement

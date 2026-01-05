@@ -4,6 +4,8 @@
 #include "Elements/PCGExClipper2Boolean.h"
 
 #include "Data/PCGExPointIO.h"
+#include "Clipper2Lib/clipper.h"
+#include "Details/PCGExBlendingDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2BooleanElement"
 #define PCGEX_NAMESPACE Clipper2Boolean
@@ -20,11 +22,71 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2BooleanSettings::GetProjectionDetails
 	return ProjectionDetails;
 }
 
-void FPCGExClipper2BooleanContext::Process(const TArray<int32>& Subjects, const TArray<int32>* Operands)
+PCGExClipper2::EMainGroupingPolicy UPCGExClipper2BooleanSettings::GetGroupingPolicy() const
 {
-	// TODO : Implement
-	// Subjects vs Operands
-	// Subjects path64 can be retrieve via AllOpData->Paths[Subjects[i]]
+	return PCGExClipper2::EMainGroupingPolicy::Consolidate;
+}
+
+void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
+{
+	const UPCGExClipper2BooleanSettings* Settings = GetInputSettings<UPCGExClipper2BooleanSettings>();
+
+	if (!Group->IsValid()) { return; }
+
+	// Create clipper and set up ZCallback for intersection tracking
+	PCGExClipper2Lib::Clipper64 Clipper;
+	Clipper.SetZCallback(Group->CreateZCallback());
+
+	// Add subject paths
+	Clipper.AddSubject(Group->SubjectPaths);
+
+	// Add operand paths as clips if available
+	if (!Group->OperandPaths.empty())
+	{
+		Clipper.AddClip(Group->OperandPaths);
+	}
+
+	// Determine clip type
+	PCGExClipper2Lib::ClipType ClipType;
+	switch (Settings->Operation)
+	{
+	case EPCGExClipper2BooleanOp::Intersection:
+		ClipType = PCGExClipper2Lib::ClipType::Intersection;
+		break;
+	case EPCGExClipper2BooleanOp::Union:
+		ClipType = PCGExClipper2Lib::ClipType::Union;
+		break;
+	case EPCGExClipper2BooleanOp::Difference:
+		ClipType = PCGExClipper2Lib::ClipType::Difference;
+		break;
+	case EPCGExClipper2BooleanOp::Xor:
+		ClipType = PCGExClipper2Lib::ClipType::Xor;
+		break;
+	default:
+		ClipType = PCGExClipper2Lib::ClipType::Union;
+		break;
+	}
+
+	// Execute the boolean operation
+	PCGExClipper2Lib::Paths64 ResultPaths;
+	const PCGExClipper2Lib::FillRule FillRule = PCGExClipper2Lib::FillRule::NonZero;
+
+	if (!Clipper.Execute(ClipType, FillRule, ResultPaths))
+	{
+		return;
+	}
+
+	if (ResultPaths.empty()) { return; }
+
+	// Convert results back to PCGEx data with blending
+	TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
+
+	// Setup blending details for boolean ops
+	FPCGExBlendingDetails BlendingDetails(EPCGExBlendingType::Average);
+	BlendingDetails.PropertiesOverrides.bOverridePosition = true;
+	BlendingDetails.PropertiesOverrides.PositionBlending = EPCGExBlendingType::None; // Position is set by source transforms
+
+	OutputPaths64(ResultPaths, Group, &BlendingDetails, &Settings->CarryOver, OutputPaths);
 }
 
 #undef LOCTEXT_NAMESPACE
