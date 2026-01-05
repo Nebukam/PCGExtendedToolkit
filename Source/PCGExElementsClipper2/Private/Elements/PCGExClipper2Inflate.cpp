@@ -58,34 +58,19 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 	const PCGExClipper2Lib::JoinType JoinType = PCGExClipper2::ConvertJoinType(Settings->JoinType);
 	const PCGExClipper2Lib::EndType EndType = PCGExClipper2::ConvertEndType(Settings->EndType);
 
-	// Determine which paths to process
-	PCGExClipper2Lib::Paths64 PathsToInflate;
+	if (Group->SubjectPaths.empty() && Group->OpenSubjectPaths.empty()) { return; }
 
-	if (Settings->bUnionBeforeInflate && Group->SubjectPaths.size() > 1)
-	{
-		// Union all paths first - note: this loses per-point Z info for merged vertices
-		PathsToInflate = PCGExClipper2Lib::Union(Group->SubjectPaths, PCGExClipper2Lib::FillRule::NonZero);
-	}
-	else
-	{
-		PathsToInflate = Group->SubjectPaths;
-	}
-
-	if (PathsToInflate.empty()) { return; }
-
+	// Get settings values
 	int32 NumIterations = 1;
-	double DefaultOffset = 10;
+	const double DefaultOffset = 10;
 
-	for (const int32 SubjectIdx : Group->SubjectIndices)
-	{
-		NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0));
-	}
+	// Read max iterations from subjects
+	for (const int32 SubjectIdx : Group->SubjectIndices) { NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0)); }
 
 	// Capture values by copy for lambda safety
 	// Since Facade->Idx == ArrayIndex, we can use SourceIdx from Z directly as array index
 	const TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> OffsetValuesCopy = OffsetValues;
 	const int32 NumFacades = AllOpData->Facades.Num();
-	const double DefaultOffsetValue = DefaultOffset;
 
 	// Process iterations
 	for (int32 Iteration = 0; Iteration < NumIterations; Iteration++)
@@ -97,13 +82,14 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 		ClipperOffset.SetZCallback(Group->CreateZCallback());
 
 		// Add paths
-		ClipperOffset.AddPaths(PathsToInflate, JoinType, EndType);
+		if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PCGExClipper2Lib::EndType::Joined); }
+		if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndType); }
 
 		// Execute with per-point delta callback
 		PCGExClipper2Lib::Paths64 InflatedPaths;
 
 		ClipperOffset.Execute(
-			[Scale, &OffsetValuesCopy, NumFacades, DefaultOffsetValue, IterationMultiplier](
+			[Scale, &OffsetValuesCopy, NumFacades, DefaultOffset, IterationMultiplier](
 			const PCGExClipper2Lib::Path64& Path, const PCGExClipper2Lib::PathD& PathNormals,
 			size_t CurrIdx, size_t PrevIdx) -> double
 			{
@@ -116,13 +102,13 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 
 				if (ArrayIdx < 0 || ArrayIdx >= NumFacades || ArrayIdx >= OffsetValuesCopy.Num())
 				{
-					return DefaultOffsetValue * Scale * IterationMultiplier;
+					return DefaultOffset * Scale * IterationMultiplier;
 				}
 
 				const TSharedPtr<PCGExDetails::TSettingValue<double>>& OffsetReader = OffsetValuesCopy[ArrayIdx];
 				if (!OffsetReader)
 				{
-					return DefaultOffsetValue * Scale * IterationMultiplier;
+					return DefaultOffset * Scale * IterationMultiplier;
 				}
 
 				// Read the offset for this specific point
@@ -137,8 +123,8 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 		// Output the inflated paths
 		TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
 
-		// For inflate, we inherit from source - no blending needed
-		OutputPaths64(InflatedPaths, Group, nullptr, nullptr, OutputPaths);
+		// Use Unproject mode since inflate changes positions
+		OutputPaths64(InflatedPaths, Group, nullptr, nullptr, OutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
 
 		// Tag with iteration number if requested
 		if (Settings->bTagIteration)

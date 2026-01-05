@@ -59,7 +59,6 @@ public:
 
 	virtual bool NeedsOperands() const override;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
-	virtual PCGExClipper2::EMainGroupingPolicy GetGroupingPolicy() const override;
 };
 
 struct FPCGExClipper2BooleanContext final : FPCGExClipper2ProcessorContext

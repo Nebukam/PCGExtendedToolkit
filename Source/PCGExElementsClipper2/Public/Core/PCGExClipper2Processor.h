@@ -11,6 +11,7 @@
 
 #include "PCGExClipper2Processor.generated.h"
 
+class UPCGExClipper2ProcessorSettings;
 struct FPCGExBlendingDetails;
 struct FPCGExCarryOverDetails;
 
@@ -34,18 +35,27 @@ enum class EPCGExClipper2EndType : uint8
 	Round   = 4 UMETA(DisplayName = "Round", ToolTip="Round ends"),
 };
 
+UENUM(BlueprintType)
+enum class EPCGExGroupingPolicy : uint8
+{
+	Split       = 0 UMETA(DisplayName = "Split", ToolTip="Split inputs into separate groups"),
+	Consolidate = 1 UMETA(DisplayName = "Consolidate", ToolTip="Add all inputs into a single group"),
+};
+
 namespace PCGExClipper2
 {
-	
 	// Special marker for intersection points - uses high bit pattern that's unlikely in normal usage
 	constexpr uint32 INTERSECTION_MARKER = 0xFFFFFFFF;
 
-	enum class EMainGroupingPolicy : uint8
+	/** Controls how output transforms are computed */
+	enum class ETransformRestoration : uint8
 	{
-		Split,
-		Consolidate
+		/** Restore original transforms from source points (for booleans where positions don't change) */
+		FromSource,
+		/** Unproject Clipper2 coordinates back to 3D (for offset/inflate where positions change) */
+		Unproject
 	};
-	
+
 	// Intersection blend info - stores the 4 contributing source points
 	struct FIntersectionBlendInfo
 	{
@@ -74,11 +84,13 @@ namespace PCGExClipper2
 		TArray<bool> IsClosedLoop;
 		TArray<FPCGExGeo2DProjectionDetails> Projections;
 
+		// Per-path, per-point projected Z values (for unprojection during offset/inflate)
+		TArray<TArray<double>> ProjectedZValues;
+
 		explicit FOpData(const int32 InReserve);
 		void AddReserve(const int32 InReserve);
 
 		int32 Num() const { return Facades.Num(); }
-
 	};
 
 	/**
@@ -93,7 +105,10 @@ namespace PCGExClipper2
 
 		// Cached paths for quick access (references into AllOpData->Paths)
 		PCGExClipper2Lib::Paths64 SubjectPaths;
+		PCGExClipper2Lib::Paths64 OpenSubjectPaths;
+		
 		PCGExClipper2Lib::Paths64 OperandPaths;
+		PCGExClipper2Lib::Paths64 OpenOperandPaths;
 
 		// Combined source indices for blending
 		TArray<int32> AllSourceIndices;
@@ -103,9 +118,10 @@ namespace PCGExClipper2
 		mutable FCriticalSection IntersectionLock;
 
 		FProcessingGroup() = default;
-
+		
 		// Prepare cached paths from AllOpData
 		void Prepare(const TSharedPtr<FOpData>& AllOpData);
+		void PreProcess(const UPCGExClipper2ProcessorSettings* InSettings);
 
 		// Check if this group is valid for processing
 		bool IsValid() const { return !SubjectPaths.empty(); }
@@ -153,19 +169,26 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="NeedsOperands()", EditConditionHides))
 	FPCGExMatchingDetails OperandsDataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Default);
 
-	/** Skip paths that aren't closed */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
-	bool bSkipOpenPaths = false;
-
 	/** Decimal precision 
 	 * Clipper2 Uses int64 under the hood to preserve extreme precision, so we scale floating point values then back. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1), AdvancedDisplay)
-	int32 Precision = 10;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable, ClampMin=1))
+	int32 Precision = 100;
+
+	/** If enabled, performs a union of all paths in the group before proceeding to the operation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
+	bool bUnionGroupBeforeOperation = false;
+
+	/** If enabled, performs a union of all paths in the operand group before proceeding to the operation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
+	bool bUnionOperandsBeforeOperation = false;
 
 	/** Cleanup */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	bool bSimplifyPaths = true;
 
+	/** How should data be grouped when data matching is disabled */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Grouping", meta = (PCG_Overridable, EditCondition="UsesDataMatching()"))
+	EPCGExGroupingPolicy MainInputGroupingPolicy = EPCGExGroupingPolicy::Consolidate;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagHoles = false;
@@ -174,19 +197,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagHoles"))
 	FString HoleTag = TEXT("Hole");
 
+	/** Skip paths that aren't closed */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
+	bool bSkipOpenPaths = false;
+
+	UFUNCTION()
+	virtual bool UsesDataMatching() const;
+
 	UFUNCTION()
 	virtual bool NeedsOperands() const;
+
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const;
-	virtual PCGExClipper2::EMainGroupingPolicy GetGroupingPolicy() const;
 };
 
 struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 {
 	friend class FPCGExClipper2ProcessorElement;
-
-	std::atomic<int32> NextSourceId = 0;
-
-	int32 AllocateSourceIdx() { return NextSourceId.fetch_add(1); }
 
 	TSharedPtr<PCGExData::FPointIOCollection> OperandsCollection;
 
@@ -199,20 +225,21 @@ struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 
 	/**
 	 * Convert Clipper2 Paths64 results back to PCGEx point data with metadata blending.
-	 * Uses original transforms from source points and handles intersection blending.
 	 * 
 	 * @param InPaths - The Clipper2 output paths to convert
 	 * @param Group - The processing group containing source info and intersection blend data
 	 * @param InBlendingDetails - Optional blending configuration for metadata
 	 * @param InCarryOverDetails - Optional carry-over configuration
 	 * @param OutPaths - Output array of point IO objects
+	 * @param TransformMode - How to compute output transforms (FromSource for booleans, Unproject for offset/inflate)
 	 */
 	void OutputPaths64(
 		PCGExClipper2Lib::Paths64& InPaths,
 		const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
 		const FPCGExBlendingDetails* InBlendingDetails,
 		const FPCGExCarryOverDetails* InCarryOverDetails,
-		TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths);
+		TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
+		PCGExClipper2::ETransformRestoration TransformMode = PCGExClipper2::ETransformRestoration::FromSource);
 
 	/**
 	 * Process a single group. Derived classes must implement this.
@@ -225,8 +252,8 @@ class FPCGExClipper2ProcessorElement : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Clipper2Processor)
-	
-	
+
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 

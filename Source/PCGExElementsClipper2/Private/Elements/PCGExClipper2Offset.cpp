@@ -57,40 +57,25 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 	const PCGExClipper2Lib::JoinType JoinType = ConvertJoinType(Settings->JoinType);
 	const PCGExClipper2Lib::EndType EndType = ConvertEndType(Settings->EndType);
 
-	// Determine which paths to process
-	PCGExClipper2Lib::Paths64 PathsToOffset;
+	if (Group->SubjectPaths.empty() && Group->OpenSubjectPaths.empty()) { return; }
 
-	if (Settings->bUnionBeforeOffset && Group->SubjectPaths.size() > 1)
-	{
-		// Union all paths first - note: this loses per-point Z info for merged vertices
-		PathsToOffset = PCGExClipper2Lib::Union(Group->SubjectPaths, PCGExClipper2Lib::FillRule::NonZero);
-	}
-	else
-	{
-		PathsToOffset = Group->SubjectPaths;
-	}
-
-	if (PathsToOffset.empty()) { return; }
-
-	bool bDualOffset = Settings->DualOffset;
+	// Get settings values - use defaults from settings, override from first subject if available
+	bool bDualOffset = Settings->bDualOffset;
 	int32 NumIterations = 1;
-	double DefaultOffset = 10;
+	const double DefaultOffset = 10;
 
-	for (const int32 SubjectIdx : Group->SubjectIndices)
-	{
-		NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0));
-	}
+	// Read values from subjects (take max iterations across all)
+	for (const int32 SubjectIdx : Group->SubjectIndices) { NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0)); }
 
 	// Capture values by copy for lambda safety
 	// Since Facade->Idx == ArrayIndex, we can use SourceIdx from Z directly as array index
 	const TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> OffsetValuesCopy = OffsetValues;
 	const int32 NumFacades = AllOpData->Facades.Num();
-	const double DefaultOffsetValue = DefaultOffset;
 
 	// Helper lambda to create the delta callback with a sign multiplier
-	auto CreateDeltaCallback = [Scale, &OffsetValuesCopy, NumFacades, DefaultOffsetValue](double SignMultiplier, double IterationMultiplier) -> PCGExClipper2Lib::DeltaCallback64
+	auto CreateDeltaCallback = [Scale, &OffsetValuesCopy, NumFacades, DefaultOffset](double SignMultiplier, double IterationMultiplier) -> PCGExClipper2Lib::DeltaCallback64
 	{
-		return [Scale, &OffsetValuesCopy, NumFacades, DefaultOffsetValue, SignMultiplier, IterationMultiplier](
+		return [Scale, &OffsetValuesCopy, NumFacades, DefaultOffset, SignMultiplier, IterationMultiplier](
 			const PCGExClipper2Lib::Path64& Path, const PCGExClipper2Lib::PathD& PathNormals,
 			size_t CurrIdx, size_t PrevIdx) -> double
 		{
@@ -100,16 +85,16 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 
 			// SourceIdx is now directly the array index (Facade->Idx == ArrayIndex)
 			const int32 ArrayIdx = static_cast<int32>(SourceIdx);
-			
+
 			if (ArrayIdx < 0 || ArrayIdx >= NumFacades || ArrayIdx >= OffsetValuesCopy.Num())
 			{
-				return DefaultOffsetValue * Scale * IterationMultiplier * SignMultiplier;
+				return DefaultOffset * Scale * IterationMultiplier * SignMultiplier;
 			}
 
 			const TSharedPtr<PCGExDetails::TSettingValue<double>>& OffsetReader = OffsetValuesCopy[ArrayIdx];
 			if (!OffsetReader)
 			{
-				return DefaultOffsetValue * Scale * IterationMultiplier * SignMultiplier;
+				return DefaultOffset * Scale * IterationMultiplier * SignMultiplier;
 			}
 
 			// Read the offset for this specific point
@@ -127,7 +112,9 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 		{
 			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, 0.0, true, false);
 			ClipperOffset.SetZCallback(Group->CreateZCallback());
-			ClipperOffset.AddPaths(PathsToOffset, JoinType, EndType);
+
+			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PCGExClipper2Lib::EndType::Joined); }
+			if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndType); }
 
 			PCGExClipper2Lib::Paths64 PositiveOffsetPaths;
 			ClipperOffset.Execute(CreateDeltaCallback(1.0, IterationMultiplier), PositiveOffsetPaths);
@@ -135,7 +122,8 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			if (!PositiveOffsetPaths.empty())
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-				OutputPaths64(PositiveOffsetPaths, Group, nullptr, nullptr, OutputPaths);
+				// Use Unproject mode since offset changes positions
+				OutputPaths64(PositiveOffsetPaths, Group, nullptr, nullptr, OutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
 
 				if (Settings->bTagIteration)
 				{
@@ -152,7 +140,9 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 		{
 			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, 0.0, true, false);
 			ClipperOffset.SetZCallback(Group->CreateZCallback());
-			ClipperOffset.AddPaths(PathsToOffset, JoinType, EndType);
+			
+			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PCGExClipper2Lib::EndType::Joined); }
+			if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndType); }
 
 			PCGExClipper2Lib::Paths64 NegativeOffsetPaths;
 			ClipperOffset.Execute(CreateDeltaCallback(-1.0, IterationMultiplier), NegativeOffsetPaths);
@@ -160,7 +150,8 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			if (!NegativeOffsetPaths.empty())
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> DualOutputPaths;
-				OutputPaths64(NegativeOffsetPaths, Group, nullptr, nullptr, DualOutputPaths);
+				// Use Unproject mode since offset changes positions
+				OutputPaths64(NegativeOffsetPaths, Group, nullptr, nullptr, DualOutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
 
 				for (const TSharedPtr<PCGExData::FPointIO>& Output : DualOutputPaths)
 				{

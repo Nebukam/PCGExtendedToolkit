@@ -22,11 +22,6 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2BooleanSettings::GetProjectionDetails
 	return ProjectionDetails;
 }
 
-PCGExClipper2::EMainGroupingPolicy UPCGExClipper2BooleanSettings::GetGroupingPolicy() const
-{
-	return PCGExClipper2::EMainGroupingPolicy::Consolidate;
-}
-
 void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
 {
 	const UPCGExClipper2BooleanSettings* Settings = GetInputSettings<UPCGExClipper2BooleanSettings>();
@@ -38,13 +33,12 @@ void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProc
 	Clipper.SetZCallback(Group->CreateZCallback());
 
 	// Add subject paths
-	Clipper.AddSubject(Group->SubjectPaths);
+	if (!Group->SubjectPaths.empty()) { Clipper.AddSubject(Group->SubjectPaths); }
+	if (!Group->OpenSubjectPaths.empty()) { Clipper.AddOpenSubject(Group->OpenSubjectPaths); }
 
 	// Add operand paths as clips if available
-	if (!Group->OperandPaths.empty())
-	{
-		Clipper.AddClip(Group->OperandPaths);
-	}
+	if (!Group->OperandPaths.empty()) { Clipper.AddClip(Group->OperandPaths); }
+	if (!Group->OpenOperandPaths.empty()) { Clipper.AddClip(Group->OpenOperandPaths); }
 
 	// Determine clip type
 	PCGExClipper2Lib::ClipType ClipType;
@@ -71,10 +65,7 @@ void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProc
 	PCGExClipper2Lib::Paths64 ResultPaths;
 	const PCGExClipper2Lib::FillRule FillRule = PCGExClipper2Lib::FillRule::NonZero;
 
-	if (!Clipper.Execute(ClipType, FillRule, ResultPaths))
-	{
-		return;
-	}
+	if (!Clipper.Execute(ClipType, FillRule, ResultPaths)) { return; }
 
 	if (ResultPaths.empty()) { return; }
 

@@ -40,7 +40,7 @@ public:
 
 	/** If enabled, generates both positive and negative offsets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool DualOffset = false;
+	bool bDualOffset = false;
 
 	/** Offset amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -49,10 +49,6 @@ public:
 	/** Number of iterations to apply */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandNameInteger32Abs Iterations = FPCGExInputShorthandNameInteger32Abs(FName("@Data.Iterations"), 1, false);
-
-	/** If enabled, performs a union of all paths in the group before offsetting */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bUnionBeforeOffset = false;
 
 	/** Join type for corners */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

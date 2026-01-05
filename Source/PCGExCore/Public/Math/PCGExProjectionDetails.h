@@ -94,8 +94,10 @@ struct PCGEXCORE_API FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const;
 	void Project(const TConstPCGValueRange<FTransform>& InTransforms, std::vector<double>& OutPositions) const;
 
-	FTransform Restore(const FTransform& InTransform, const int32 PointIndex) const;
-	void RestoreInPlace(FTransform& InTransform, const int32 PointIndex) const;
+	FTransform Unproject(const FTransform& InTransform, const int32 PointIndex) const;
+	FVector Unproject(const FVector& InPosition, const int32 PointIndex) const;
+	void UnprojectInPlace(FTransform& InTransform, const int32 PointIndex) const;
+	void UnprojectInPlace(FVector& InPosition, const int32 PointIndex) const;
 	
 protected:
 	FVector WorldUp = FVector::UpVector;
