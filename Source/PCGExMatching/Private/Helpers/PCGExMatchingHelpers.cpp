@@ -11,10 +11,10 @@
 
 namespace PCGExMatching::Helpers
 {
-	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
+	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties, const FName InPrimaryLabel)
 	{
 		{
-			FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(Labels::SourceMatchRulesLabel, FPCGExDataTypeInfoMatchRule::AsId());
+			FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(InPrimaryLabel.IsNone() ? Labels::SourceMatchRulesLabel : InPrimaryLabel, FPCGExDataTypeInfoMatchRule::AsId());
 			PCGEX_PIN_TOOLTIP("Matching rules to determine which target data can be paired with each input. If target only accept a single data, individual target points will be evaluated.")
 			Pin.PinStatus = InDetails.Mode != EPCGExMapMatchMode::Disabled ? EPCGPinStatus::Required : EPCGPinStatus::Advanced;
 		}
@@ -51,10 +51,9 @@ namespace PCGExMatching::Helpers
 		}
 	}
 
-	int32 GetMatchingSourcePartitions(TSharedPtr<FDataMatcher>& Matcher, const TArray<TSharedPtr<PCGExData::FFacade>>& Facades, TArray<TArray<int32>>& OutPartitions, bool bExclusive, const TSet<int32>* OnceIndices)
+	int32 GetMatchingSourcePartitions(const TSharedPtr<FDataMatcher>& Matcher, const TArray<TSharedPtr<PCGExData::FFacade>>& Facades, TArray<TArray<int32>>& OutPartitions, bool bExclusive, const TSet<int32>* OnceIndices)
 	{
 		// NOTE : Uses Idx insted of IOIndex
-		// TODO : Partition facades assuming the matcher contains those same facades.
 		// This is primarily aimed to help clipper2 module to create sub-groups of paths
 		// as well as MergeByTags to deprecate existing API and support non-exclusive groups.
 		// Having a way to flag "exclusive" data  (some that can only belong to a single group) would be neat
@@ -81,22 +80,22 @@ namespace PCGExMatching::Helpers
 				Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition, &DistributedIndices);
 				Partition.AddUnique(i);
 			}
-			
+
 			return OutPartitions.Num();
 		}
-		
+
 		TSet<int32> DistributedIndices;
 		DistributedIndices.Reserve(NumSources);
 
 		for (int i = 0; i < NumSources; ++i)
-		{			
+		{
 			TArray<int32>& Partition = OutPartitions.Emplace_GetRef();
 
 			FScope Scope = FScope(NumSources, true);
 			Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition);
 			Partition.AddUnique(i);
 		}
-			
+
 		return OutPartitions.Num();
 	}
 }

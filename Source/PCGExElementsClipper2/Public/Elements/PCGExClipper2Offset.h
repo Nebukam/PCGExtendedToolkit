@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Factories/PCGExFactories.h"
 #include "Core/PCGExClipper2Processor.h"
 #include "Details/PCGExInputShorthandsDetails.h"
 #include "Paths/PCGExPath.h"
@@ -34,11 +33,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	//PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)
-	//~End UPCGExPointsProcessorSettings
-
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -52,7 +47,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandNameInteger32Abs Iterations = FPCGExInputShorthandNameInteger32Abs(FName("@Data.Iterations"), 1, false);
 
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bWriteIteration = false;
 
@@ -82,17 +77,17 @@ public:
 struct FPCGExClipper2OffsetContext final : FPCGExClipper2ProcessorContext
 {
 	friend class FPCGExClipper2OffsetElement;
-
-protected:
-	//PCGEX_ELEMENT_BATCH_POINT_DECL
+	
+	TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> OffsetValues;
+	
+	virtual void Process(const TArray<int32>& Subjects, const TArray<int32>* Operands = nullptr) override;
 };
 
 class FPCGExClipper2OffsetElement final : public FPCGExClipper2ProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Clipper2Offset)
-
-	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
+	
+	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	
 };

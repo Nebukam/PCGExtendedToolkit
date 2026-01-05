@@ -5,6 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExSettingsDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2InflateElement"
 #define PCGEX_NAMESPACE Clipper2Inflate
@@ -16,33 +17,31 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2InflateSettings::GetProjectionDetails
 	return ProjectionDetails;
 }
 
-bool FPCGExClipper2InflateElement::Boot(FPCGExContext* InContext) const
+void FPCGExClipper2InflateContext::Process(const TArray<int32>& Subjects, const TArray<int32>* Operands)
 {
-	if (!FPCGExClipper2ProcessorElement::Boot(InContext)) { return false; }
-
-	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Inflate)
-
-	return true;
+	// TODO : Implement
+	// Note : we may want to optionally do a union of all incoming paths; with our without fill (if processing paths only not as a polygons)
+	for (int32 SIdx : Subjects)
+	{
+		auto OffsetValue = OffsetValues[SIdx];
+		// OffsetValue->Read(PointIndex); -> value offset of the point at index PointIndex originating from Main SIdx
+	}
 }
 
-bool FPCGExClipper2InflateElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+bool FPCGExClipper2InflateElement::PostBoot(FPCGExContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExClipper2InflateElement::Execute);
-
 	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Inflate)
 
-	PCGEX_EXECUTION_CHECK
+	Context->OffsetValues.Reserve(Context->AllOpData->Num());
 
-	PCGEX_ON_INITIAL_EXECUTION
+	for (const TSharedPtr<PCGExData::FFacade>& Facade : *Context->AllOpData->Facades.Get())
 	{
-		// TODO : Offset main paths
+		auto OffsetSetting = Settings->Offset.GetValueSetting();
+		if (!OffsetSetting->Init(Facade)) { return false; }
+		Context->OffsetValues.Add(OffsetSetting);
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
-
-	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
-
-	return Context->TryComplete();
+	return FPCGExClipper2ProcessorElement::PostBoot(InContext);
 }
 
 #undef LOCTEXT_NAMESPACE

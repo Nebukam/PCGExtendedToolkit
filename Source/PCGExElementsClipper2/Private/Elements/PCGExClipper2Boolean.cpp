@@ -3,7 +3,6 @@
 
 #include "Elements/PCGExClipper2Boolean.h"
 
-#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2BooleanElement"
@@ -11,38 +10,21 @@
 
 PCGEX_INITIALIZE_ELEMENT(Clipper2Boolean)
 
+bool UPCGExClipper2BooleanSettings::NeedsOperands() const
+{
+	return bUseOperandsPin || Operation == EPCGExClipper2BooleanOp::Difference;
+}
+
 FPCGExGeo2DProjectionDetails UPCGExClipper2BooleanSettings::GetProjectionDetails() const
 {
 	return ProjectionDetails;
 }
 
-bool FPCGExClipper2BooleanElement::Boot(FPCGExContext* InContext) const
+void FPCGExClipper2BooleanContext::Process(const TArray<int32>& Subjects, const TArray<int32>* Operands)
 {
-	if (!FPCGExClipper2ProcessorElement::Boot(InContext)) { return false; }
-
-	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Boolean)
-
-	return true;
-}
-
-bool FPCGExClipper2BooleanElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExClipper2BooleanElement::Execute);
-
-	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Boolean)
-
-	PCGEX_EXECUTION_CHECK
-
-	PCGEX_ON_INITIAL_EXECUTION
-	{
-		// TODO : Offset main paths
-	}
-
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
-
-	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
-
-	return Context->TryComplete();
+	// TODO : Implement
+	// Subjects vs Operands
+	// Subjects path64 can be retrieve via AllOpData->Paths[Subjects[i]]
 }
 
 #undef LOCTEXT_NAMESPACE
