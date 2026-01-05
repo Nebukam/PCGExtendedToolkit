@@ -187,7 +187,7 @@ bool FPCGExClipper2OffsetElement::PostBoot(FPCGExContext* InContext) const
 
 	for (int32 i = 0; i < NumFacades; i++)
 	{
-		const TSharedPtr<PCGExData::FFacade>& Facade = (*Context->AllOpData->Facades)[i];
+		const TSharedPtr<PCGExData::FFacade>& Facade = Context->AllOpData->Facades[i];
 
 		auto DualSetting = Settings->DualOffset.GetValueSetting();
 		if (DualSetting->Init(Facade)) { Context->DualOffsetValues[i] = DualSetting; }

@@ -8,7 +8,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
-#include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGExAsyncHelpers.h"
 #include "Helpers/PCGExDataMatcher.h"
 #include "Helpers/PCGExMatchingHelpers.h"
@@ -29,14 +28,13 @@ namespace PCGExClipper2
 
 	FOpData::FOpData(const int32 InReserve)
 	{
-		Facades = MakeShared<TArray<TSharedPtr<PCGExData::FFacade>>>();
 		AddReserve(InReserve);
 	}
 
 	void FOpData::AddReserve(const int32 InReserve)
 	{
 		const int32 Reserve = Paths.Num() + InReserve;
-		Facades->Reserve(Reserve);
+		Facades.Reserve(Reserve);
 		Paths.Reserve(Reserve);
 		IsClosedLoop.Reserve(Reserve);
 		Projections.Reserve(Reserve);
@@ -57,20 +55,14 @@ namespace PCGExClipper2
 		SubjectPaths.reserve(SubjectIndices.Num());
 		for (const int32 Idx : SubjectIndices)
 		{
-			if (Idx < AllOpData->Paths.Num())
-			{
-				SubjectPaths.push_back(AllOpData->Paths[Idx]);
-			}
+			if (Idx < AllOpData->Paths.Num()) { SubjectPaths.push_back(AllOpData->Paths[Idx]); }
 		}
 
 		// Cache operand paths
 		OperandPaths.reserve(OperandIndices.Num());
 		for (const int32 Idx : OperandIndices)
 		{
-			if (Idx < AllOpData->Paths.Num())
-			{
-				OperandPaths.push_back(AllOpData->Paths[Idx]);
-			}
+			if (Idx < AllOpData->Paths.Num()) { OperandPaths.push_back(AllOpData->Paths[Idx]); }
 		}
 
 		// Build combined source indices
@@ -215,12 +207,15 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	TArray<TSharedRef<PCGExData::FFacade>> BlendSources;
 	BlendSources.Reserve(Group->AllSourceIndices.Num());
 
+	EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::None;
+
 	int32 MaxIOIndex = 0;
 	for (const int32 SrcIdx : Group->AllSourceIndices)
 	{
-		if (SrcIdx < AllOpData->Facades->Num())
+		if (SrcIdx < AllOpData->Facades.Num())
 		{
-			const TSharedPtr<PCGExData::FFacade>& Facade = (*AllOpData->Facades)[SrcIdx];
+			const TSharedPtr<PCGExData::FFacade>& Facade = AllOpData->Facades[SrcIdx];
+			Allocations |= Facade->GetAllocations();
 			BlendSources.Add(Facade.ToSharedRef());
 			MaxIOIndex = FMath::Max(MaxIOIndex, Facade->Idx);
 		}
@@ -275,10 +270,10 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		// Create new output point data from template
 		TSharedPtr<PCGExData::FPointIO> NewPointIO;
 
-		if (DominantSourceIdx != INDEX_NONE && DominantSourceIdx < AllOpData->Facades->Num())
+		if (DominantSourceIdx != INDEX_NONE && DominantSourceIdx < AllOpData->Facades.Num())
 		{
-			const TSharedPtr<PCGExData::FFacade>& TemplateFacade = (*AllOpData->Facades)[DominantSourceIdx];
-			NewPointIO = MainPoints->Emplace_GetRef(TemplateFacade->Source->GetIn(), PCGExData::EIOInit::New);
+			const TSharedPtr<PCGExData::FFacade>& TemplateFacade = AllOpData->Facades[DominantSourceIdx];
+			NewPointIO = MainPoints->Emplace_GetRef(TemplateFacade->Source, PCGExData::EIOInit::New);
 		}
 
 		if (!NewPointIO)
@@ -288,7 +283,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 		const int32 NumPoints = static_cast<int32>(Path.size());
 		UPCGBasePointData* OutPoints = NewPointIO->GetOut();
-		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPoints, OutPoints->GetAllocatedProperties());
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPoints, Allocations);
 
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
@@ -304,7 +299,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 			OutputFacade = MakeShared<PCGExData::FFacade>(NewPointIO.ToSharedRef());
 
 			Blender = MakeShared<PCGExBlending::FUnionBlender>(InBlendingDetails, InCarryOverDetails, PCGExMath::GetDistances());
-			Blender->AddSources(BlendSources);
+			Blender->AddSources(BlendSources, nullptr, [](const TSharedPtr<PCGExData::FFacade>& InFacade) { return InFacade->Idx; });
 
 			UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
 			UnionMetadata->SetNum(NumPoints);
@@ -338,9 +333,9 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 					auto GetSourceTransform = [this](uint32 PtIdx, uint32 SrcIdx, FTransform& OutT) -> bool
 					{
 						const int32 LocalIdx = AllOpData->FindSourceIndex(SrcIdx);
-						if (LocalIdx == INDEX_NONE || LocalIdx >= AllOpData->Facades->Num()) { return false; }
+						if (LocalIdx == INDEX_NONE || LocalIdx >= AllOpData->Facades.Num()) { return false; }
 
-						const TSharedPtr<PCGExData::FFacade>& SrcFacade = (*AllOpData->Facades)[LocalIdx];
+						const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[LocalIdx];
 						const int32 NumPts = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
 						if (static_cast<int32>(PtIdx) >= NumPts) { return false; }
 
@@ -357,16 +352,10 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 					// Interpolate along each edge
 					FTransform E1Interp = E1Bot;
-					if (bHasE1Bot && bHasE1Top)
-					{
-						E1Interp.Blend(E1Bot, E1Top, BlendInfo->E1Alpha);
-					}
+					if (bHasE1Bot && bHasE1Top) { E1Interp.Blend(E1Bot, E1Top, BlendInfo->E1Alpha); }
 
 					FTransform E2Interp = E2Bot;
-					if (bHasE2Bot && bHasE2Top)
-					{
-						E2Interp.Blend(E2Bot, E2Top, BlendInfo->E2Alpha);
-					}
+					if (bHasE2Bot && bHasE2Top) { E2Interp.Blend(E2Bot, E2Top, BlendInfo->E2Alpha); }
 
 					// Average the two edge interpolations
 					OutTransform.Blend(E1Interp, E2Interp, 0.5);
@@ -379,11 +368,15 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 						auto AddToUnion = [&](uint32 PtIdx, uint32 SrcIdx)
 						{
 							const int32 LocalIdx = AllOpData->FindSourceIndex(SrcIdx);
+
 							if (LocalIdx == INDEX_NONE || LocalIdx >= BlendSources.Num()) { return; }
-							const int32 IOIdx = IOLookup->Get(BlendSources[LocalIdx]->Idx);
-							if (IOIdx == INDEX_NONE) { return; }
-							const int32 NumPts = BlendSources[LocalIdx]->Source->GetNum(PCGExData::EIOSide::In);
+
+							const TSharedRef<PCGExData::FFacade> SourceFacade = BlendSources[LocalIdx];
+							const int32 IOIdx = SourceFacade->Idx;
+							const int32 NumPts = SourceFacade->Source->GetNum(PCGExData::EIOSide::In);
+
 							if (static_cast<int32>(PtIdx) >= NumPts) { return; }
+
 							Union->Add_Unsafe(static_cast<int32>(PtIdx), IOIdx);
 						};
 
@@ -399,9 +392,9 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 				// Regular point - get transform directly from source
 				const int32 SourceLocalIdx = AllOpData->FindSourceIndex(SourceFacadeIdx);
 
-				if (SourceLocalIdx != INDEX_NONE && SourceLocalIdx < AllOpData->Facades->Num())
+				if (SourceLocalIdx != INDEX_NONE && SourceLocalIdx < AllOpData->Facades.Num())
 				{
-					const TSharedPtr<PCGExData::FFacade>& SrcFacade = (*AllOpData->Facades)[SourceLocalIdx];
+					const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[SourceLocalIdx];
 					const int32 SrcNumPoints = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
 
 					if (static_cast<int32>(OriginalPointIdx) < SrcNumPoints)
@@ -650,10 +643,10 @@ int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 	{
 		if (!Result.bValid) { continue; }
 
-		const int32 ArrayIndex = Context->AllOpData->Facades->Num();
+		const int32 ArrayIndex = Context->AllOpData->Facades.Num();
 		OutIndices.Add(ArrayIndex);
 
-		Context->AllOpData->Facades->Add(Result.Facade);
+		Context->AllOpData->Facades.Add(Result.Facade);
 		Context->AllOpData->Paths.Add(MoveTemp(Result.Path64));
 		Context->AllOpData->Projections.Add(MoveTemp(Result.Projection));
 		Context->AllOpData->IsClosedLoop.Add(Result.bIsClosedLoop);
@@ -671,7 +664,7 @@ void FPCGExClipper2ProcessorElement::BuildProcessingGroups(
 	const TArray<int32>& MainIndices,
 	const TArray<int32>& OperandIndices) const
 {
-	const TArray<TSharedPtr<PCGExData::FFacade>>& AllFacades = *Context->AllOpData->Facades;
+	const TArray<TSharedPtr<PCGExData::FFacade>>& AllFacades = Context->AllOpData->Facades;
 
 	// Collect main facades for matching
 	TArray<TSharedPtr<PCGExData::FFacade>> MainFacades;
@@ -811,17 +804,11 @@ void FPCGExClipper2ProcessorElement::BuildProcessingGroups(
 		TSharedPtr<PCGExClipper2::FProcessingGroup> Group = MakeShared<PCGExClipper2::FProcessingGroup>();
 		Group->SubjectIndices = MoveTemp(MainPartitions[i]);
 
-		if (i < OperandPartitions.Num())
-		{
-			Group->OperandIndices = MoveTemp(OperandPartitions[i]);
-		}
+		if (i < OperandPartitions.Num()) { Group->OperandIndices = MoveTemp(OperandPartitions[i]); }
 
 		Group->Prepare(Context->AllOpData);
 
-		if (Group->IsValid())
-		{
-			Context->ProcessingGroups.Add(Group);
-		}
+		if (Group->IsValid()) { Context->ProcessingGroups.Add(Group); }
 	}
 }
 

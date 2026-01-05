@@ -69,7 +69,7 @@ namespace PCGExClipper2
 	class FOpData : public TSharedFromThis<FOpData>
 	{
 	public:
-		TSharedPtr<TArray<TSharedPtr<PCGExData::FFacade>>> Facades;
+		TArray<TSharedPtr<PCGExData::FFacade>> Facades;
 		TArray<PCGExClipper2Lib::Path64> Paths;
 		TArray<bool> IsClosedLoop;
 		TArray<FPCGExGeo2DProjectionDetails> Projections;
@@ -80,7 +80,7 @@ namespace PCGExClipper2
 		explicit FOpData(const int32 InReserve);
 		void AddReserve(const int32 InReserve);
 
-		int32 Num() const { return Facades->Num(); }
+		int32 Num() const { return Facades.Num(); }
 
 		// Find index in Facades array by Facade->Idx (uses map for O(1) lookup)
 		FORCEINLINE int32 FindSourceIndex(const int32 FacadeIdx) const

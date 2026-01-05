@@ -159,7 +159,7 @@ bool FPCGExClipper2InflateElement::PostBoot(FPCGExContext* InContext) const
 
 	for (int32 i = 0; i < NumFacades; i++)
 	{
-		const TSharedPtr<PCGExData::FFacade>& Facade = (*Context->AllOpData->Facades)[i];
+		const TSharedPtr<PCGExData::FFacade>& Facade = Context->AllOpData->Facades[i];
 
 		auto OffsetSetting = Settings->Offset.GetValueSetting();
 		if (OffsetSetting->Init(Facade)) { Context->OffsetValues[i] = OffsetSetting; }
