@@ -14,10 +14,47 @@
 
 PCGEX_INITIALIZE_ELEMENT(Clipper2Offset)
 
+#if WITH_EDITOR
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExClipper2OffsetSettings::GetPreconfiguredInfo() const
+{
+	const TSet<EPCGExClipper2OffsetType> ValuesToSkip = {};
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExClipper2OffsetType>(ValuesToSkip, FTEXT("Clipper2 Offset : {0}"));
+}
+#endif
+
+void UPCGExClipper2OffsetSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	Super::ApplyPreconfiguredSettings(PreconfigureInfo);
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExClipper2OffsetType>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			OffsetType = static_cast<EPCGExClipper2OffsetType>(PreconfigureInfo.PreconfiguredIndex);
+		}
+	}
+}
+
 FPCGExGeo2DProjectionDetails UPCGExClipper2OffsetSettings::GetProjectionDetails() const
 {
 	return ProjectionDetails;
 }
+
+bool UPCGExClipper2OffsetSettings::SupportOpenMainPaths() const
+{
+	return Super::SupportOpenMainPaths() && OffsetType == EPCGExClipper2OffsetType::Inflate;
+}
+
+#if WITH_EDITOR
+FString UPCGExClipper2OffsetSettings::GetDisplayName() const
+{
+	switch (OffsetType)
+	{
+	default:
+	case EPCGExClipper2OffsetType::Offset: return TEXT("PCGEx | Clipper2 : Offset");
+	case EPCGExClipper2OffsetType::Inflate: return TEXT("PCGEx | Clipper2 : Inflate");
+	}
+}
+#endif
 
 
 void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
@@ -33,7 +70,9 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 	if (Group->SubjectPaths.empty() && Group->OpenSubjectPaths.empty()) { return; }
 
 	// Get settings values - use defaults from settings, override from first subject if available
-	bool bDualOffset = Settings->bDualOffset;
+	bool bDualOffset = Settings->bDualOffset && Settings->OffsetType == EPCGExClipper2OffsetType::Offset;
+	PCGExClipper2Lib::EndType PolygonEndType = Settings->OffsetType == EPCGExClipper2OffsetType::Inflate ? PCGExClipper2Lib::EndType::Joined : PCGExClipper2Lib::EndType::Polygon;
+
 	int32 NumIterations = 1;
 	const double DefaultOffset = 10;
 
@@ -86,11 +125,11 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, Settings->GetArcTolerance(), Settings->bPreserveCollinear, false);
 			ClipperOffset.SetZCallback(Group->CreateZCallback());
 
-			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PCGExClipper2Lib::EndType::Joined); }
+			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PolygonEndType); }
 			if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndType); }
 
 			PCGExClipper2Lib::Paths64 PositiveOffsetPaths;
-			ClipperOffset.Execute(CreateDeltaCallback(1.0, IterationMultiplier), PositiveOffsetPaths);
+			ClipperOffset.Execute(CreateDeltaCallback(1.0 * Settings->OffsetScale, IterationMultiplier), PositiveOffsetPaths);
 
 			if (!PositiveOffsetPaths.empty())
 			{
@@ -113,12 +152,12 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 		{
 			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, Settings->GetArcTolerance(), Settings->bPreserveCollinear, false);
 			ClipperOffset.SetZCallback(Group->CreateZCallback());
-			
-			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PCGExClipper2Lib::EndType::Joined); }
+
+			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PolygonEndType); }
 			if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndType); }
 
 			PCGExClipper2Lib::Paths64 NegativeOffsetPaths;
-			ClipperOffset.Execute(CreateDeltaCallback(-1.0, IterationMultiplier), NegativeOffsetPaths);
+			ClipperOffset.Execute(CreateDeltaCallback(-1.0 * Settings->OffsetScale, IterationMultiplier), NegativeOffsetPaths);
 
 			if (!NegativeOffsetPaths.empty())
 			{

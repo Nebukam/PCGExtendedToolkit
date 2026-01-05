@@ -5,22 +5,63 @@
 
 #include "Data/PCGExPointIO.h"
 #include "Clipper2Lib/clipper.h"
-#include "Details/PCGExBlendingDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2BooleanElement"
 #define PCGEX_NAMESPACE Clipper2Boolean
+
+#if WITH_EDITOR
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExClipper2BooleanSettings::GetPreconfiguredInfo() const
+{
+	const TSet<EPCGExClipper2BooleanOp> ValuesToSkip = {};
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExClipper2BooleanOp>(ValuesToSkip, FTEXT("Clipper2 Boolean : {0}"));
+}
+#endif
+
+void UPCGExClipper2BooleanSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	Super::ApplyPreconfiguredSettings(PreconfigureInfo);
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExClipper2BooleanOp>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			Operation = static_cast<EPCGExClipper2BooleanOp>(PreconfigureInfo.PreconfiguredIndex);
+		}
+	}
+}
 
 PCGEX_INITIALIZE_ELEMENT(Clipper2Boolean)
 
 bool UPCGExClipper2BooleanSettings::NeedsOperands() const
 {
-	return bUseOperandsPin || Operation == EPCGExClipper2BooleanOp::Difference;
+	return
+		bUseOperandsPin ||
+		Operation == EPCGExClipper2BooleanOp::Difference ||
+		Operation == EPCGExClipper2BooleanOp::Intersection;
 }
 
 FPCGExGeo2DProjectionDetails UPCGExClipper2BooleanSettings::GetProjectionDetails() const
 {
 	return ProjectionDetails;
 }
+
+bool UPCGExClipper2BooleanSettings::SupportOpenOperandPaths() const
+{
+	return false;
+}
+
+#if WITH_EDITOR
+FString UPCGExClipper2BooleanSettings::GetDisplayName() const
+{
+	switch (Operation)
+	{
+	case EPCGExClipper2BooleanOp::Intersection: return TEXT("PCGEx | Clipper2 : Intersection");
+	default:
+	case EPCGExClipper2BooleanOp::Union: return TEXT("PCGEx | Clipper2 : Union");
+	case EPCGExClipper2BooleanOp::Difference: return TEXT("PCGEx | Clipper2 : Difference");
+	case EPCGExClipper2BooleanOp::Xor: return TEXT("PCGEx | Clipper2 : Xor");
+	}
+}
+#endif
 
 void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
 {

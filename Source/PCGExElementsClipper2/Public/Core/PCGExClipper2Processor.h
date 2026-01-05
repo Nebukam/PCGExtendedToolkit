@@ -201,14 +201,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable, ClampMin=1))
 	int32 Precision = 100;
 
-	/** If enabled, performs a union of all paths in the group before proceeding to the operation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
-	bool bUnionGroupBeforeOperation = false;
-
-	/** If enabled, performs a union of all paths in the operand group before proceeding to the operation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
-	bool bUnionOperandsBeforeOperation = false;
-
 	/** Cleanup */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	bool bSimplifyPaths = true;
@@ -229,7 +221,7 @@ public:
 
 
 	/** How should data be grouped when data matching is disabled */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Grouping", meta = (PCG_Overridable, EditCondition="UsesDataMatching()"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Grouping", meta = (PCG_Overridable, EditCondition="!UsesDataMatching()"))
 	EPCGExGroupingPolicy MainInputGroupingPolicy = EPCGExGroupingPolicy::Consolidate;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
@@ -243,6 +235,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
 	bool bSkipOpenPaths = false;
 
+
+	/** (DEBUG) If enabled, performs a union of all paths in the group before proceeding to the operation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
+	bool bUnionGroupBeforeOperation = false;
+
+	/** (DEBUG) If enabled, performs a union of all paths in the operand group before proceeding to the operation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
+	bool bUnionOperandsBeforeOperation = false;
+
 	UFUNCTION()
 	virtual bool UsesDataMatching() const;
 
@@ -250,6 +251,8 @@ public:
 	virtual bool NeedsOperands() const;
 
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const;
+	virtual bool SupportOpenMainPaths() const;
+	virtual bool SupportOpenOperandPaths() const;
 };
 
 struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
@@ -302,7 +305,7 @@ protected:
 		FPCGExClipper2ProcessorContext* Context,
 		const UPCGExClipper2ProcessorSettings* Settings,
 		const TSharedPtr<PCGExData::FPointIOCollection>& Collection,
-		TArray<int32>& OutIndices) const;
+		bool bSupportOpenPaths, TArray<int32>& OutIndices) const;
 
 	void BuildProcessingGroups(
 		FPCGExClipper2ProcessorContext* Context,

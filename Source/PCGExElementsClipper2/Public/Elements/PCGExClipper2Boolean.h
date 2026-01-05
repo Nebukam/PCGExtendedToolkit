@@ -17,10 +17,10 @@ namespace PCGExClipper2
 UENUM(BlueprintType)
 enum class EPCGExClipper2BooleanOp : uint8
 {
-	Intersection = 0 UMETA(DisplayName = "Intersection", ToolTip="TBD"),
-	Union        = 1 UMETA(DisplayName = "Union", ToolTip="TBD"),
-	Difference   = 2 UMETA(DisplayName = "Difference", ToolTip="TBD"),
-	Xor          = 3 UMETA(DisplayName = "XOR", ToolTip="TBD"),
+	Intersection = 0 UMETA(DisplayName = "Intersection", ToolTip="TBD", SearchHints = "Intersection"),
+	Union        = 1 UMETA(DisplayName = "Union", ToolTip="TBD", SearchHints = "Union"),
+	Difference   = 2 UMETA(DisplayName = "Difference", ToolTip="TBD", SearchHints = "Difference"),
+	Xor          = 3 UMETA(DisplayName = "XOR", ToolTip="TBD", SearchHints = "XOR"),
 };
 
 /**
@@ -34,8 +34,11 @@ class UPCGExClipper2BooleanSettings : public UPCGExClipper2ProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Clipper2Boolean, "Clipper2 : Boolean", "Does a Clipper2 Boolean operation.");
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Clipper2Boolean, "Clipper2 : Boolean", "Does a Clipper2 Boolean operation.", FName(GetDisplayName()));
+	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
+	
+	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -44,7 +47,7 @@ protected:
 public:
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExClipper2BooleanOp Operation = EPCGExClipper2BooleanOp::Union;
@@ -54,6 +57,12 @@ public:
 
 	virtual bool NeedsOperands() const override;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
+	
+	virtual bool SupportOpenOperandPaths() const override;
+	
+#if WITH_EDITOR
+	FString GetDisplayName() const;
+#endif
 };
 
 struct FPCGExClipper2BooleanContext final : FPCGExClipper2ProcessorContext

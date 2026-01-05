@@ -16,9 +16,9 @@
 #include "Paths/PCGExPathsHelpers.h"
 #include "Blenders/PCGExUnionBlender.h"
 #include "Clipper2Lib/clipper.h"
-#include "Containers/PCGExIndexLookup.h"
 #include "Core/PCGExUnionData.h"
 #include "Math/PCGExMathDistances.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2ProcessorElement"
 
@@ -220,12 +220,47 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2ProcessorSettings::GetProjectionDetai
 	return FPCGExGeo2DProjectionDetails();
 }
 
+bool UPCGExClipper2ProcessorSettings::SupportOpenMainPaths() const
+{
+	return !bSkipOpenPaths;
+}
+
+bool UPCGExClipper2ProcessorSettings::SupportOpenOperandPaths() const
+{
+	return SupportOpenMainPaths();
+}
+
+/*
+class FOutputPaths64 final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites2D)
+
+		FOutputPaths64(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FProcessor>& InProcessor)
+			: FTask(), PointIO(InPointIO), Processor(InProcessor)
+		{
+		}
+
+		TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<FProcessor> Processor;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
+
+			
+		}
+	};
+	*/
+
 void FPCGExClipper2ProcessorContext::OutputPaths64(
 	PCGExClipper2Lib::Paths64& InPaths,
 	const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
 	TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
 	PCGExClipper2::ETransformRestoration TransformMode)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExClipper2ProcessorContext::OutputPaths64)
+
 	const UPCGExClipper2ProcessorSettings* Settings = GetInputSettings<UPCGExClipper2ProcessorSettings>();
 
 	if (InPaths.empty()) { return; }
@@ -311,34 +346,27 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		UPCGBasePointData* OutPoints = NewPointIO->GetOut();
 
 		if (!OutPoints) { return; }
-		
+
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPoints, Allocations);
 
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
-
-		// Check if we need blending
-		const bool bNeedsBlending = SourceCounts.Num() > 1;
 
 		TSharedPtr<PCGExData::FFacade> OutputFacade;
 		TSharedPtr<PCGExBlending::FUnionBlender> Blender;
 		TSharedPtr<PCGExData::FUnionMetadata> UnionMetadata;
 
-		if (bNeedsBlending)
+		OutputFacade = MakeShared<PCGExData::FFacade>(NewPointIO.ToSharedRef());
+
+		Blender = MakeShared<PCGExBlending::FUnionBlender>(&BlendingDetails, &CarryOverDetails, PCGExMath::GetDistances());
+		Blender->AddSources(BlendSources, nullptr, [](const TSharedPtr<PCGExData::FFacade>& InFacade) { return InFacade->Idx; });
+		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
+		UnionMetadata->SetNum(NumPoints);
+
+		if (!Blender->Init(this, OutputFacade, UnionMetadata, false))
 		{
-			OutputFacade = MakeShared<PCGExData::FFacade>(NewPointIO.ToSharedRef());
-
-			Blender = MakeShared<PCGExBlending::FUnionBlender>(&BlendingDetails, &CarryOverDetails, PCGExMath::GetDistances());
-
-			// Pass callback that returns Facade->Idx (which equals array index)
-			Blender->AddSources(BlendSources, nullptr, [](const TSharedPtr<PCGExData::FFacade>& InFacade) { return InFacade->Idx; });
-
-			UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
-			UnionMetadata->SetNum(NumPoints);
-
-			if (!Blender->Init(this, OutputFacade, UnionMetadata, false))
-			{
-				Blender.Reset();
-			}
+			PCGE_LOG_C(Error, GraphAndLog, this, FTEXT("Error while initializing data blending"));
+			Blender.Reset();
+			return;
 		}
 
 		// Helper to get projected Z from source
@@ -361,118 +389,117 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 			return &AllOpData->Projections[ArrayIdx];
 		};
 
-		// TODO : Parallel for
 		// Process each point in the path
-		for (int32 i = 0; i < NumPoints; i++)
-		{
-			const PCGExClipper2Lib::Point64& Pt = Path[i];
-			FTransform& OutTransform = OutTransforms[i];
-
-			// Decode source info from Z
-			uint32 OriginalPointIdx, SourceIdx;
-			PCGEx::H64(static_cast<uint64>(Pt.z), OriginalPointIdx, SourceIdx);
-
-			const bool bIsIntersection = (OriginalPointIdx == PCGExClipper2::INTERSECTION_MARKER);
-
-			if (bIsIntersection)
+		ParallelFor(
+			NumPoints,
+			[&](const int32 i)
 			{
-				// This is an intersection point - get blend info and interpolate transform
-				const PCGExClipper2::FIntersectionBlendInfo* BlendInfo = Group->GetIntersectionBlendInfo(Pt.x, Pt.y);
+				const PCGExClipper2Lib::Point64& Pt = Path[i];
+				FTransform& OutTransform = OutTransforms[i];
 
-				if (BlendInfo)
+				// Decode source info from Z
+				uint32 OriginalPointIdx, SourceIdx;
+				PCGEx::H64(static_cast<uint64>(Pt.z), OriginalPointIdx, SourceIdx);
+
+				const bool bIsIntersection = (OriginalPointIdx == PCGExClipper2::INTERSECTION_MARKER);
+
+				if (bIsIntersection)
 				{
-					if (TransformMode == PCGExClipper2::ETransformRestoration::Unproject)
+					// This is an intersection point - get blend info and interpolate transform
+					const PCGExClipper2::FIntersectionBlendInfo* BlendInfo = Group->GetIntersectionBlendInfo(Pt.x, Pt.y);
+
+					if (BlendInfo)
 					{
-						// For unproject mode: interpolate projected Z from the 4 source points
-						const double Z1Bot = GetProjectedZ(BlendInfo->E1BotSourceIdx, BlendInfo->E1BotPointIdx);
-						const double Z1Top = GetProjectedZ(BlendInfo->E1TopSourceIdx, BlendInfo->E1TopPointIdx);
-						const double Z2Bot = GetProjectedZ(BlendInfo->E2BotSourceIdx, BlendInfo->E2BotPointIdx);
-						const double Z2Top = GetProjectedZ(BlendInfo->E2TopSourceIdx, BlendInfo->E2TopPointIdx);
-
-						// Interpolate Z along each edge, then average
-						const double Z1 = FMath::Lerp(Z1Bot, Z1Top, BlendInfo->E1Alpha);
-						const double Z2 = FMath::Lerp(Z2Bot, Z2Top, BlendInfo->E2Alpha);
-						const double ProjectedZ = (Z1 + Z2) * 0.5;
-
-						// Get projection from first valid source
-						const FPCGExGeo2DProjectionDetails* Projection = GetProjection(BlendInfo->E1BotSourceIdx);
-						if (!Projection) { Projection = GetProjection(BlendInfo->E2BotSourceIdx); }
-
-						// Build projected position and unproject
-						FVector UnprojectedPos(
-							static_cast<double>(Pt.x) * InvScale,
-							static_cast<double>(Pt.y) * InvScale,
-							ProjectedZ
-						);
-
-						if (Projection) { Projection->UnprojectInPlace(UnprojectedPos, 0); }
-
-						// Interpolate rotation/scale from source transforms
-						auto GetSourceTransform = [this](uint32 PtIdx, uint32 SrcIdx, FTransform& OutT) -> bool
+						if (TransformMode == PCGExClipper2::ETransformRestoration::Unproject)
 						{
-							const int32 ArrayIdx = static_cast<int32>(SrcIdx);
-							if (ArrayIdx < 0 || ArrayIdx >= AllOpData->Facades.Num()) { return false; }
+							// For unproject mode: interpolate projected Z from the 4 source points
+							const double Z1Bot = GetProjectedZ(BlendInfo->E1BotSourceIdx, BlendInfo->E1BotPointIdx);
+							const double Z1Top = GetProjectedZ(BlendInfo->E1TopSourceIdx, BlendInfo->E1TopPointIdx);
+							const double Z2Bot = GetProjectedZ(BlendInfo->E2BotSourceIdx, BlendInfo->E2BotPointIdx);
+							const double Z2Top = GetProjectedZ(BlendInfo->E2TopSourceIdx, BlendInfo->E2TopPointIdx);
 
-							const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[ArrayIdx];
-							const int32 NumPts = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
-							if (static_cast<int32>(PtIdx) >= NumPts) { return false; }
+							// Interpolate Z along each edge, then average
+							const double Z1 = FMath::Lerp(Z1Bot, Z1Top, BlendInfo->E1Alpha);
+							const double Z2 = FMath::Lerp(Z2Bot, Z2Top, BlendInfo->E2Alpha);
+							const double ProjectedZ = (Z1 + Z2) * 0.5;
 
-							TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
-							OutT = SrcTransforms[PtIdx];
-							return true;
-						};
+							// Get projection from first valid source
+							const FPCGExGeo2DProjectionDetails* Projection = GetProjection(BlendInfo->E1BotSourceIdx);
+							if (!Projection) { Projection = GetProjection(BlendInfo->E2BotSourceIdx); }
 
-						FTransform E1Bot, E1Top, E2Bot, E2Top;
-						bool bHasE1Bot = GetSourceTransform(BlendInfo->E1BotPointIdx, BlendInfo->E1BotSourceIdx, E1Bot);
-						bool bHasE1Top = GetSourceTransform(BlendInfo->E1TopPointIdx, BlendInfo->E1TopSourceIdx, E1Top);
-						bool bHasE2Bot = GetSourceTransform(BlendInfo->E2BotPointIdx, BlendInfo->E2BotSourceIdx, E2Bot);
-						bool bHasE2Top = GetSourceTransform(BlendInfo->E2TopPointIdx, BlendInfo->E2TopSourceIdx, E2Top);
+							// Build projected position and unproject
+							FVector UnprojectedPos(
+								static_cast<double>(Pt.x) * InvScale,
+								static_cast<double>(Pt.y) * InvScale,
+								ProjectedZ
+							);
 
-						// Interpolate for rotation/scale
-						FTransform E1Interp = E1Bot;
-						if (bHasE1Bot && bHasE1Top) { E1Interp.Blend(E1Bot, E1Top, BlendInfo->E1Alpha); }
+							if (Projection) { Projection->UnprojectInPlace(UnprojectedPos, 0); }
 
-						FTransform E2Interp = E2Bot;
-						if (bHasE2Bot && bHasE2Top) { E2Interp.Blend(E2Bot, E2Top, BlendInfo->E2Alpha); }
+							// Interpolate rotation/scale from source transforms
+							auto GetSourceTransform = [this](uint32 PtIdx, uint32 SrcIdx, FTransform& OutT) -> bool
+							{
+								const int32 ArrayIdx = static_cast<int32>(SrcIdx);
+								if (ArrayIdx < 0 || ArrayIdx >= AllOpData->Facades.Num()) { return false; }
 
-						OutTransform.Blend(E1Interp, E2Interp, 0.5);
-						OutTransform.SetLocation(UnprojectedPos);
-					}
-					else
-					{
-						// FromSource mode: use original approach - interpolate transforms directly
-						auto GetSourceTransform = [this](uint32 PtIdx, uint32 SrcIdx, FTransform& OutT) -> bool
+								const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[ArrayIdx];
+								const int32 NumPts = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+								if (static_cast<int32>(PtIdx) >= NumPts) { return false; }
+
+								TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
+								OutT = SrcTransforms[PtIdx];
+								return true;
+							};
+
+							FTransform E1Bot, E1Top, E2Bot, E2Top;
+							bool bHasE1Bot = GetSourceTransform(BlendInfo->E1BotPointIdx, BlendInfo->E1BotSourceIdx, E1Bot);
+							bool bHasE1Top = GetSourceTransform(BlendInfo->E1TopPointIdx, BlendInfo->E1TopSourceIdx, E1Top);
+							bool bHasE2Bot = GetSourceTransform(BlendInfo->E2BotPointIdx, BlendInfo->E2BotSourceIdx, E2Bot);
+							bool bHasE2Top = GetSourceTransform(BlendInfo->E2TopPointIdx, BlendInfo->E2TopSourceIdx, E2Top);
+
+							// Interpolate for rotation/scale
+							FTransform E1Interp = E1Bot;
+							if (bHasE1Bot && bHasE1Top) { E1Interp.Blend(E1Bot, E1Top, BlendInfo->E1Alpha); }
+
+							FTransform E2Interp = E2Bot;
+							if (bHasE2Bot && bHasE2Top) { E2Interp.Blend(E2Bot, E2Top, BlendInfo->E2Alpha); }
+
+							OutTransform.Blend(E1Interp, E2Interp, 0.5);
+							OutTransform.SetLocation(UnprojectedPos);
+						}
+						else
 						{
-							const int32 ArrayIdx = static_cast<int32>(SrcIdx);
-							if (ArrayIdx < 0 || ArrayIdx >= AllOpData->Facades.Num()) { return false; }
+							// FromSource mode: use original approach - interpolate transforms directly
+							auto GetSourceTransform = [this](uint32 PtIdx, uint32 SrcIdx, FTransform& OutT) -> bool
+							{
+								const int32 ArrayIdx = static_cast<int32>(SrcIdx);
+								if (ArrayIdx < 0 || ArrayIdx >= AllOpData->Facades.Num()) { return false; }
 
-							const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[ArrayIdx];
-							const int32 NumPts = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
-							if (static_cast<int32>(PtIdx) >= NumPts) { return false; }
+								const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[ArrayIdx];
+								const int32 NumPts = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+								if (static_cast<int32>(PtIdx) >= NumPts) { return false; }
 
-							TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
-							OutT = SrcTransforms[PtIdx];
-							return true;
-						};
+								TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
+								OutT = SrcTransforms[PtIdx];
+								return true;
+							};
 
-						FTransform E1Bot, E1Top, E2Bot, E2Top;
-						bool bHasE1Bot = GetSourceTransform(BlendInfo->E1BotPointIdx, BlendInfo->E1BotSourceIdx, E1Bot);
-						bool bHasE1Top = GetSourceTransform(BlendInfo->E1TopPointIdx, BlendInfo->E1TopSourceIdx, E1Top);
-						bool bHasE2Bot = GetSourceTransform(BlendInfo->E2BotPointIdx, BlendInfo->E2BotSourceIdx, E2Bot);
-						bool bHasE2Top = GetSourceTransform(BlendInfo->E2TopPointIdx, BlendInfo->E2TopSourceIdx, E2Top);
+							FTransform E1Bot, E1Top, E2Bot, E2Top;
+							bool bHasE1Bot = GetSourceTransform(BlendInfo->E1BotPointIdx, BlendInfo->E1BotSourceIdx, E1Bot);
+							bool bHasE1Top = GetSourceTransform(BlendInfo->E1TopPointIdx, BlendInfo->E1TopSourceIdx, E1Top);
+							bool bHasE2Bot = GetSourceTransform(BlendInfo->E2BotPointIdx, BlendInfo->E2BotSourceIdx, E2Bot);
+							bool bHasE2Top = GetSourceTransform(BlendInfo->E2TopPointIdx, BlendInfo->E2TopSourceIdx, E2Top);
 
-						FTransform E1Interp = E1Bot;
-						if (bHasE1Bot && bHasE1Top) { E1Interp.Blend(E1Bot, E1Top, BlendInfo->E1Alpha); }
+							FTransform E1Interp = E1Bot;
+							if (bHasE1Bot && bHasE1Top) { E1Interp.Blend(E1Bot, E1Top, BlendInfo->E1Alpha); }
 
-						FTransform E2Interp = E2Bot;
-						if (bHasE2Bot && bHasE2Top) { E2Interp.Blend(E2Bot, E2Top, BlendInfo->E2Alpha); }
+							FTransform E2Interp = E2Bot;
+							if (bHasE2Bot && bHasE2Top) { E2Interp.Blend(E2Bot, E2Top, BlendInfo->E2Alpha); }
 
-						OutTransform.Blend(E1Interp, E2Interp, 0.5);
-					}
+							OutTransform.Blend(E1Interp, E2Interp, 0.5);
+						}
 
-					// Add all 4 vertices to union for metadata blending
-					if (Blender && UnionMetadata)
-					{
+						// Add all 4 vertices to union for metadata blending
 						TSharedPtr<PCGExData::IUnionData> Union = UnionMetadata->NewEntryAt_Unsafe(i);
 
 						auto AddToUnion = [&](uint32 PtIdx, uint32 SrcIdx)
@@ -494,61 +521,58 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 						AddToUnion(BlendInfo->E2TopPointIdx, BlendInfo->E2TopSourceIdx);
 					}
 				}
-			}
-			else
-			{
-				// Regular point
-				const int32 SourceArrayIdx = static_cast<int32>(SourceIdx);
-
-				if (TransformMode == PCGExClipper2::ETransformRestoration::Unproject)
-				{
-					// Unproject mode: use Clipper2 X/Y + stored projected Z
-					const double ProjectedZ = GetProjectedZ(SourceIdx, OriginalPointIdx);
-					const FPCGExGeo2DProjectionDetails* Projection = GetProjection(SourceIdx);
-
-					FVector UnprojectedPos(
-						static_cast<double>(Pt.x) * InvScale,
-						static_cast<double>(Pt.y) * InvScale,
-						ProjectedZ
-					);
-
-					if (Projection) { Projection->UnprojectInPlace(UnprojectedPos, OriginalPointIdx); }
-
-					// Get rotation/scale from source
-					if (SourceArrayIdx >= 0 && SourceArrayIdx < AllOpData->Facades.Num())
-					{
-						const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[SourceArrayIdx];
-						const int32 SrcNumPoints = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
-
-						if (static_cast<int32>(OriginalPointIdx) < SrcNumPoints)
-						{
-							TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
-							OutTransform = SrcTransforms[OriginalPointIdx];
-						}
-					}
-
-					// Override position with unprojected position
-					OutTransform.SetLocation(UnprojectedPos);
-				}
 				else
 				{
-					// FromSource mode: restore original transform
-					if (SourceArrayIdx >= 0 && SourceArrayIdx < AllOpData->Facades.Num())
-					{
-						const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[SourceArrayIdx];
-						const int32 SrcNumPoints = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+					// Regular point
+					const int32 SourceArrayIdx = static_cast<int32>(SourceIdx);
 
-						if (static_cast<int32>(OriginalPointIdx) < SrcNumPoints)
+					if (TransformMode == PCGExClipper2::ETransformRestoration::Unproject)
+					{
+						// Unproject mode: use Clipper2 X/Y + stored projected Z
+						const double ProjectedZ = GetProjectedZ(SourceIdx, OriginalPointIdx);
+						const FPCGExGeo2DProjectionDetails* Projection = GetProjection(SourceIdx);
+
+						FVector UnprojectedPos(
+							static_cast<double>(Pt.x) * InvScale,
+							static_cast<double>(Pt.y) * InvScale,
+							ProjectedZ
+						);
+
+						if (Projection) { Projection->UnprojectInPlace(UnprojectedPos, OriginalPointIdx); }
+
+						// Get rotation/scale from source
+						if (SourceArrayIdx >= 0 && SourceArrayIdx < AllOpData->Facades.Num())
 						{
-							TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
-							OutTransform = SrcTransforms[OriginalPointIdx];
+							const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[SourceArrayIdx];
+							const int32 SrcNumPoints = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+
+							if (static_cast<int32>(OriginalPointIdx) < SrcNumPoints)
+							{
+								TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
+								OutTransform = SrcTransforms[OriginalPointIdx];
+							}
+						}
+
+						// Override position with unprojected position
+						OutTransform.SetLocation(UnprojectedPos);
+					}
+					else
+					{
+						// FromSource mode: restore original transform
+						if (SourceArrayIdx >= 0 && SourceArrayIdx < AllOpData->Facades.Num())
+						{
+							const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[SourceArrayIdx];
+							const int32 SrcNumPoints = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+
+							if (static_cast<int32>(OriginalPointIdx) < SrcNumPoints)
+							{
+								TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
+								OutTransform = SrcTransforms[OriginalPointIdx];
+							}
 						}
 					}
-				}
 
-				// Add to union for blending
-				if (Blender && UnionMetadata)
-				{
+					// Add to union for blending
 					TSharedPtr<PCGExData::IUnionData> Union = UnionMetadata->NewEntryAt_Unsafe(i);
 
 					if (SourceArrayIdx >= 0 && SourceArrayIdx < AllOpData->Facades.Num())
@@ -560,12 +584,12 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 						Union->Add_Unsafe(Pt1, SrcFacade->Idx);
 					}
 				}
-			}
-		}
+			}, NumPoints < 128);
 
-		// Perform blending
-		if (Blender && UnionMetadata)
 		{
+			// Perform blending
+			TRACE_CPUPROFILER_EVENT_SCOPE(OutputPaths64::Blending)
+
 			TArray<PCGExData::FWeightedPoint> WeightedPoints;
 			TArray<PCGEx::FOpStats> Trackers;
 			Blender->InitTrackers(Trackers);
@@ -617,12 +641,7 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 
 	// Build main data
 	TArray<int32> MainIndices;
-	int32 NumInputs = BuildDataFromCollection(Context, Settings, Context->MainPoints, MainIndices);
-
-	if (NumInputs != Context->MainPoints->Num())
-	{
-		PCGEX_LOG_INVALID_INPUT(Context, FTEXT("Some inputs have less than 2 points and won't be processed."))
-	}
+	int32 NumInputs = BuildDataFromCollection(Context, Settings, Context->MainPoints, Settings->SupportOpenMainPaths(), MainIndices);
 
 	if (!NumInputs)
 	{
@@ -642,7 +661,7 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 			return false;
 		}
 
-		NumInputs = BuildDataFromCollection(Context, Settings, Context->OperandsCollection, OperandIndices);
+		NumInputs = BuildDataFromCollection(Context, Settings, Context->OperandsCollection, Settings->SupportOpenOperandPaths(), OperandIndices);
 
 		if (NumInputs != Context->OperandsCollection->Num())
 		{
@@ -712,7 +731,7 @@ int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 	FPCGExClipper2ProcessorContext* Context,
 	const UPCGExClipper2ProcessorSettings* Settings,
 	const TSharedPtr<PCGExData::FPointIOCollection>& Collection,
-	TArray<int32>& OutIndices) const
+	const bool bSupportOpenPaths, TArray<int32>& OutIndices) const
 {
 	if (!Collection) { return 0; }
 
@@ -744,12 +763,17 @@ int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 			{
 				FBuildResult& Result = Results[i];
 
-				// Skip paths with insufficient points
-				if (IO->GetNum() < 2) { return; }
 
 				// Check if closed (required for boolean ops)
 				const bool bIsClosed = PCGExPaths::Helpers::GetClosedLoop(IO->GetIn());
-				if (!bIsClosed && Settings->bSkipOpenPaths) return;
+				if (!bIsClosed && !bSupportOpenPaths) { return; }
+
+				// Skip paths with insufficient points
+				if (IO->GetNum() < 2)
+				{
+					PCGEX_LOG_INVALID_INPUT(Context, FTEXT("Some inputs have less than 2 points and won't be processed."))
+					return;
+				}
 
 				TSharedPtr<PCGExData::FFacade> Facade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 
