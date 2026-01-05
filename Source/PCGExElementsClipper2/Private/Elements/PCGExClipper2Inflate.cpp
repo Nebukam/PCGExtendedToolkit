@@ -7,6 +7,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Clipper2Lib/clipper.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTags.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClipper2InflateElement"
@@ -72,18 +73,19 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 
 	if (PathsToInflate.empty()) { return; }
 
-	// Get iteration count from first subject
-	const int32 FirstSubjectIdx = Group->SubjectIndices.IsEmpty() ? 0 : Group->SubjectIndices[0];
-
 	int32 NumIterations = 1;
-	if (FirstSubjectIdx < IterationValues.Num() && IterationValues[FirstSubjectIdx])
+	double DefaultOffset = 10;
+
+	for (const int32 SubjectIdx : Group->SubjectIndices)
 	{
-		NumIterations = FMath::Max(1, IterationValues[FirstSubjectIdx]->Read(0));
+		NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0));
 	}
 
-	// Capture context for the delta callback
-	const TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>>& OffsetValuesRef = OffsetValues;
-	const TSharedPtr<PCGExClipper2::FOpData>& AllOpDataRef = AllOpData;
+	// Capture values by copy for lambda safety
+	// Since Facade->Idx == ArrayIndex, we can use SourceIdx from Z directly as array index
+	const TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> OffsetValuesCopy = OffsetValues;
+	const int32 NumFacades = AllOpData->Facades.Num();
+	const double DefaultOffsetValue = DefaultOffset;
 
 	// Process iterations
 	for (int32 Iteration = 0; Iteration < NumIterations; Iteration++)
@@ -101,24 +103,26 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 		PCGExClipper2Lib::Paths64 InflatedPaths;
 
 		ClipperOffset.Execute(
-			[&](const PCGExClipper2Lib::Path64& Path, const PCGExClipper2Lib::PathD& PathNormals,
-			    size_t CurrIdx, size_t PrevIdx) -> double
+			[Scale, &OffsetValuesCopy, NumFacades, DefaultOffsetValue, IterationMultiplier](
+			const PCGExClipper2Lib::Path64& Path, const PCGExClipper2Lib::PathD& PathNormals,
+			size_t CurrIdx, size_t PrevIdx) -> double
 			{
 				// Decode source info from current point's Z value
-				uint32 PointIdx, SourceFacadeIdx;
-				PCGEx::H64(static_cast<uint64>(Path[CurrIdx].z), PointIdx, SourceFacadeIdx);
+				uint32 PointIdx, SourceIdx;
+				PCGEx::H64(static_cast<uint64>(Path[CurrIdx].z), PointIdx, SourceIdx);
 
-				// Find the offset value reader for this source
-				const int32 OffsetArrayIdx = AllOpDataRef->FindSourceIndex(SourceFacadeIdx);
-				if (OffsetArrayIdx == INDEX_NONE || OffsetArrayIdx >= OffsetValuesRef.Num())
+				// SourceIdx is now directly the array index (Facade->Idx == ArrayIndex)
+				const int32 ArrayIdx = static_cast<int32>(SourceIdx);
+
+				if (ArrayIdx < 0 || ArrayIdx >= NumFacades || ArrayIdx >= OffsetValuesCopy.Num())
 				{
-					return 10.0 * Scale * IterationMultiplier; // Default fallback
+					return DefaultOffsetValue * Scale * IterationMultiplier;
 				}
 
-				const TSharedPtr<PCGExDetails::TSettingValue<double>>& OffsetReader = OffsetValuesRef[OffsetArrayIdx];
+				const TSharedPtr<PCGExDetails::TSettingValue<double>>& OffsetReader = OffsetValuesCopy[ArrayIdx];
 				if (!OffsetReader)
 				{
-					return 10.0 * Scale * IterationMultiplier;
+					return DefaultOffsetValue * Scale * IterationMultiplier;
 				}
 
 				// Read the offset for this specific point
@@ -145,7 +149,14 @@ void FPCGExClipper2InflateContext::Process(const TSharedPtr<PCGExClipper2::FProc
 			}
 		}
 
-		// TODO: Write iteration attribute if bWriteIteration is true
+		// Write iteration attribute if bWriteIteration is true
+		if (Settings->bWriteIteration)
+		{
+			for (const TSharedPtr<PCGExData::FPointIO>& Output : OutputPaths)
+			{
+				PCGExData::Helpers::SetDataValue(Output->GetOut(), Settings->IterationAttributeName, Iteration);
+			}
+		}
 	}
 }
 

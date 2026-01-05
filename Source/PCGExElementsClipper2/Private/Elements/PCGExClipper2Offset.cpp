@@ -72,48 +72,44 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 
 	if (PathsToOffset.empty()) { return; }
 
-	// Get values from first subject
-	const int32 FirstSubjectIdx = Group->SubjectIndices.IsEmpty() ? 0 : Group->SubjectIndices[0];
-
-	bool bDualOffset = true;
+	bool bDualOffset = Settings->DualOffset;
 	int32 NumIterations = 1;
+	double DefaultOffset = 10;
 
-	if (FirstSubjectIdx < DualOffsetValues.Num() && DualOffsetValues[FirstSubjectIdx])
+	for (const int32 SubjectIdx : Group->SubjectIndices)
 	{
-		bDualOffset = DualOffsetValues[FirstSubjectIdx]->Read(0);
+		NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0));
 	}
 
-	if (FirstSubjectIdx < IterationValues.Num() && IterationValues[FirstSubjectIdx])
-	{
-		NumIterations = FMath::Max(1, IterationValues[FirstSubjectIdx]->Read(0));
-	}
-
-	// Capture context for the delta callback
-	const TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>>& OffsetValuesRef = OffsetValues;
-	const TSharedPtr<PCGExClipper2::FOpData>& AllOpDataRef = AllOpData;
+	// Capture values by copy for lambda safety
+	// Since Facade->Idx == ArrayIndex, we can use SourceIdx from Z directly as array index
+	const TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> OffsetValuesCopy = OffsetValues;
+	const int32 NumFacades = AllOpData->Facades.Num();
+	const double DefaultOffsetValue = DefaultOffset;
 
 	// Helper lambda to create the delta callback with a sign multiplier
-	auto CreateDeltaCallback = [&](double SignMultiplier, double IterationMultiplier) -> PCGExClipper2Lib::DeltaCallback64
+	auto CreateDeltaCallback = [Scale, &OffsetValuesCopy, NumFacades, DefaultOffsetValue](double SignMultiplier, double IterationMultiplier) -> PCGExClipper2Lib::DeltaCallback64
 	{
-		return [&, SignMultiplier, IterationMultiplier](
+		return [Scale, &OffsetValuesCopy, NumFacades, DefaultOffsetValue, SignMultiplier, IterationMultiplier](
 			const PCGExClipper2Lib::Path64& Path, const PCGExClipper2Lib::PathD& PathNormals,
 			size_t CurrIdx, size_t PrevIdx) -> double
 		{
 			// Decode source info from current point's Z value
-			uint32 PointIdx, SourceFacadeIdx;
-			PCGEx::H64(static_cast<uint64>(Path[CurrIdx].z), PointIdx, SourceFacadeIdx);
+			uint32 PointIdx, SourceIdx;
+			PCGEx::H64(static_cast<uint64>(Path[CurrIdx].z), PointIdx, SourceIdx);
 
-			// Find the offset value reader for this source
-			const int32 OffsetArrayIdx = AllOpDataRef->FindSourceIndex(SourceFacadeIdx);
-			if (OffsetArrayIdx == INDEX_NONE || OffsetArrayIdx >= OffsetValuesRef.Num())
+			// SourceIdx is now directly the array index (Facade->Idx == ArrayIndex)
+			const int32 ArrayIdx = static_cast<int32>(SourceIdx);
+			
+			if (ArrayIdx < 0 || ArrayIdx >= NumFacades || ArrayIdx >= OffsetValuesCopy.Num())
 			{
-				return 10.0 * Scale * IterationMultiplier * SignMultiplier; // Default fallback
+				return DefaultOffsetValue * Scale * IterationMultiplier * SignMultiplier;
 			}
 
-			const TSharedPtr<PCGExDetails::TSettingValue<double>>& OffsetReader = OffsetValuesRef[OffsetArrayIdx];
+			const TSharedPtr<PCGExDetails::TSettingValue<double>>& OffsetReader = OffsetValuesCopy[ArrayIdx];
 			if (!OffsetReader)
 			{
-				return 10.0 * Scale * IterationMultiplier * SignMultiplier;
+				return DefaultOffsetValue * Scale * IterationMultiplier * SignMultiplier;
 			}
 
 			// Read the offset for this specific point
@@ -181,16 +177,12 @@ bool FPCGExClipper2OffsetElement::PostBoot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Offset)
 
 	const int32 NumFacades = Context->AllOpData->Num();
-	Context->DualOffsetValues.SetNum(NumFacades);
 	Context->OffsetValues.SetNum(NumFacades);
 	Context->IterationValues.SetNum(NumFacades);
 
 	for (int32 i = 0; i < NumFacades; i++)
 	{
 		const TSharedPtr<PCGExData::FFacade>& Facade = Context->AllOpData->Facades[i];
-
-		auto DualSetting = Settings->DualOffset.GetValueSetting();
-		if (DualSetting->Init(Facade)) { Context->DualOffsetValues[i] = DualSetting; }
 
 		auto OffsetSetting = Settings->Offset.GetValueSetting();
 		if (OffsetSetting->Init(Facade)) { Context->OffsetValues[i] = OffsetSetting; }

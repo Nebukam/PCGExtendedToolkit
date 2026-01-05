@@ -74,23 +74,11 @@ namespace PCGExClipper2
 		TArray<bool> IsClosedLoop;
 		TArray<FPCGExGeo2DProjectionDetails> Projections;
 
-		// Map from Facade->Idx to array index for quick lookup
-		TMap<int32, int32> FacadeIdxToArrayIndex;
-
 		explicit FOpData(const int32 InReserve);
 		void AddReserve(const int32 InReserve);
 
 		int32 Num() const { return Facades.Num(); }
 
-		// Find index in Facades array by Facade->Idx (uses map for O(1) lookup)
-		FORCEINLINE int32 FindSourceIndex(const int32 FacadeIdx) const
-		{
-			const int32* Found = FacadeIdxToArrayIndex.Find(FacadeIdx);
-			return Found ? *Found : INDEX_NONE;
-		}
-
-		// Register a facade in the lookup
-		void RegisterFacade(const TSharedPtr<PCGExData::FFacade>& Facade, int32 ArrayIndex);
 	};
 
 	/**

@@ -40,7 +40,7 @@ public:
 
 	/** If enabled, generates both positive and negative offsets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInputShorthandNameBoolean DualOffset = FPCGExInputShorthandNameBoolean(FName("@Data.DualOffset"), true, false);
+	bool DualOffset = false;
 
 	/** Offset amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -97,7 +97,6 @@ struct FPCGExClipper2OffsetContext final : FPCGExClipper2ProcessorContext
 {
 	friend class FPCGExClipper2OffsetElement;
 
-	TArray<TSharedPtr<PCGExDetails::TSettingValue<bool>>> DualOffsetValues;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> OffsetValues;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<int32>>> IterationValues;
 
