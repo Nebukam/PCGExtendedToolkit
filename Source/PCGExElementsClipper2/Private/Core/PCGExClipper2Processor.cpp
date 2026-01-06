@@ -266,6 +266,20 @@ class FOutputPaths64 final : public PCGExMT::FTask
 	};
 	*/
 
+TSharedPtr<PCGExData::FTags> FPCGExClipper2ProcessorContext::GatherTags(const TArray<int8>& VisitedSources)
+{
+	auto OutTags = MakeShared<PCGExData::FTags>();
+
+	for (int i = 0; i < VisitedSources.Num(); i++)
+	{
+		if (!VisitedSources[i]) { continue; }
+		const TSharedPtr<PCGExData::FFacade> Facade = AllOpData->Facades[i];
+		OutTags->Append(Facade->Source->Tags.ToSharedRef());
+	}
+
+	return OutTags;
+}
+
 void FPCGExClipper2ProcessorContext::OutputPaths64(
 	PCGExClipper2Lib::Paths64& InPaths,
 	const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
@@ -280,6 +294,9 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	if (InPaths.empty()) { return; }
 
 	const double InvScale = 1.0 / static_cast<double>(Settings->Precision);
+
+	TArray<int8> VisitedSources;
+	VisitedSources.Init(0, AllOpData->Num());
 
 	// Build sources list for blending
 	TArray<TSharedRef<PCGExData::FFacade>> BlendSources;
@@ -540,6 +557,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 				{
 					// Regular point
 					const int32 SourceArrayIdx = static_cast<int32>(SourceIdx);
+					FPlatformAtomics::InterlockedExchange(&VisitedSources[SourceIdx], 1);
 
 					if (TransformMode == PCGExClipper2::ETransformRestoration::Unproject)
 					{
@@ -625,8 +643,10 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 		if (!bClosedPaths && Settings->OpenPathsOutput == EPCGExClipper2OpenPathOutput::OutputPin) { NewPointIO->OutputPin = FName("Open Paths"); }
 
+		TSharedPtr<PCGExData::FTags> GatheredTags = GatherTags(VisitedSources);
+		NewPointIO->Tags->Append(GatheredTags.ToSharedRef());
+		
 		CarryOverDetails.Prune(NewPointIO->Tags.Get());
-		NewPointIO->Tags->Append(Group->GroupTags.ToSharedRef());
 
 		OutPaths.Add(NewPointIO);
 	}
