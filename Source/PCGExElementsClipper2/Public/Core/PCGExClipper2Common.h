@@ -10,5 +10,6 @@ namespace PCGExClipper2
 	namespace Labels
 	{
 		const FName SourceOperandsLabel = FName("Operands");
+		const FName SourceOperandsMatchRulesLabel = TEXT("Match Rules (Ops)");
 	}
 }

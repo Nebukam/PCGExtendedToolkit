@@ -97,15 +97,16 @@ struct PCGEXCORE_API FPCGExCarryOverDetails
 	}
 
 	/** If enabled, will preserve the initial attribute default value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bPreserveAttributesDefaultValue = false;
 
 	/** Attributes to carry over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails Attributes = FPCGExNameFiltersDetails(false);
 
-	/** If enabled, will convert data domain attributes to elements domain ones. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Data domain to Elements"))
+	/** If enabled, will convert data domain attributes to elements domain ones.
+	 * Note : This is not used by all nodes. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" └─ Data domain to Elements"))
 	bool bDataDomainToElements = true;
 
 	/** Tags to carry over. */
@@ -113,7 +114,7 @@ struct PCGEXCORE_API FPCGExCarryOverDetails
 	FPCGExNameFiltersDetails Tags = FPCGExNameFiltersDetails(false);
 
 	/** If enabled, will test full tag with its value ('Tag:Value'), otherwise only test the left part ignoring the right `:Value` ('Tag'). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Flatten tag value"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" └─ Flatten tag value"))
 	bool bTestTagsWithValues = false;
 
 	void Init();

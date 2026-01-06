@@ -61,19 +61,20 @@ bool FPCGExBuildDelaunayGraph2DElement::AdvanceWork(FPCGExContext* InContext, co
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 3)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 3)
+				{
+					bHasInvalidInputs = true;
+					return false;
+				}
 
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         NewBatch->bRequiresWriteStep = true;
-		                                         }))
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}

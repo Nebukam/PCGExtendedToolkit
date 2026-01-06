@@ -4,9 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Factories/PCGExFactories.h"
 #include "Core/PCGExClipper2Processor.h"
-#include "Details/PCGExInputShorthandsDetails.h"
 #include "Paths/PCGExPath.h"
 
 #include "PCGExClipper2Boolean.generated.h"
@@ -16,10 +14,19 @@ namespace PCGExClipper2
 	class FPolyline;
 }
 
+UENUM(BlueprintType)
+enum class EPCGExClipper2BooleanOp : uint8
+{
+	Intersection = 0 UMETA(DisplayName = "Intersection", ToolTip="TBD", SearchHints = "Intersection"),
+	Union        = 1 UMETA(DisplayName = "Union", ToolTip="TBD", SearchHints = "Union"),
+	Difference   = 2 UMETA(DisplayName = "Difference", ToolTip="TBD", SearchHints = "Difference"),
+	Xor          = 3 UMETA(DisplayName = "XOR", ToolTip="TBD", SearchHints = "XOR"),
+};
+
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-offset"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-boolean"))
 class UPCGExClipper2BooleanSettings : public UPCGExClipper2ProcessorSettings
 {
 	GENERATED_BODY()
@@ -27,72 +34,51 @@ class UPCGExClipper2BooleanSettings : public UPCGExClipper2ProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathOffset, "Clipper2 : Boolean", "Does a Clipper2 Boolean operation.");
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Clipper2Boolean, "Clipper2 : Boolean", "Does a Clipper2 Boolean operation.", FName(GetDisplayName()));
+	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
+	
+	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	//PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)
-	//~End UPCGExPointsProcessorSettings
-
+	
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInputShorthandNameBoolean DualOffset = FPCGExInputShorthandNameBoolean(FName("@Data.DualOffset"), true, false);
+	EPCGExClipper2BooleanOp Operation = EPCGExClipper2BooleanOp::Union;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInputShorthandNameDouble Offset = FPCGExInputShorthandNameDouble(FName("@Data.Offset"), 10, false);
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInputShorthandNameInteger32Abs Iterations = FPCGExInputShorthandNameInteger32Abs(FName("@Data.Iterations"), 1, false);
-
+	EPCGExClipper2FillRule FillRule = EPCGExClipper2FillRule::NonZero;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bWriteIteration = false;
-
-	/** Write the iteration index to a data attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bWriteIteration"))
-	FString IterationAttributeName = TEXT("@Data.Iteration");
-
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagIteration = false;
-
-	/** Write the iteration index to a tag */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIteration"))
-	FString IterationTag = TEXT("OffsetNum");
-
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagDual = false;
-
-	/** Write this tag on the dual offsets */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIteration"))
-	FString DualTag = TEXT("Dual");
-
+	/** Display operand pin as a separate pin */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_NotOverridable, EditCondition="Operation!=EPCGExClipper2BooleanOp::Union && Operation!=EPCGExClipper2BooleanOp::Difference"))
+	bool bUseOperandPin = false;
+	
+	virtual bool WantsOperands() const override;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
+	
+	virtual bool SupportOpenOperandPaths() const override;
+	
+#if WITH_EDITOR
+	FString GetDisplayName() const;
+#endif
 };
 
 struct FPCGExClipper2BooleanContext final : FPCGExClipper2ProcessorContext
 {
 	friend class FPCGExClipper2BooleanElement;
 
-protected:
-	//PCGEX_ELEMENT_BATCH_POINT_DECL
+	virtual void Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group) override;
 };
 
 class FPCGExClipper2BooleanElement final : public FPCGExClipper2ProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Clipper2Boolean)
-
-	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
-	
 };

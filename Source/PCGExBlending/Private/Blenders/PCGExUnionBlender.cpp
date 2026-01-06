@@ -117,10 +117,12 @@ namespace PCGExBlending
 	{
 	}
 
-	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet)
+	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet, FGetSourceIdx GetSourceIdxFn)
 	{
+		if (!GetSourceIdxFn) { GetSourceIdxFn = [](const TSharedPtr<PCGExData::FFacade>& InFacade) { return InFacade->Source->IOIndex; }; }
+
 		int32 MaxIndex = 0;
-		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { MaxIndex = FMath::Max(Src->Source->IOIndex, MaxIndex); }
+		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { MaxIndex = FMath::Max(GetSourceIdxFn(Src), MaxIndex); }
 		IOLookup = MakeShared<PCGEx::FIndexLookup>(MaxIndex + 1);
 
 		const int32 NumSources = InSources.Num();
@@ -133,7 +135,7 @@ namespace PCGExBlending
 
 			Sources.Add(Facade);
 			SourcesData[i] = Facade->GetIn();
-			IOLookup->Set(Facade->Source->IOIndex, i);
+			IOLookup->Set(GetSourceIdxFn(Facade), i);
 
 			EnumAddFlags(AllocatedProperties, Facade->GetAllocations());
 
@@ -235,6 +237,7 @@ namespace PCGExBlending
 
 	int32 FUnionBlender::ComputeWeights(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
+		if (!InUnionData.IsValid()) { return 0; }
 		const PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
 		return InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints);
 	}
