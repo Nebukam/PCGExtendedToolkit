@@ -69,7 +69,7 @@ public:
 
 ////
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="clusters/connect-points/probe-gradient-flow"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExProbeFactoryGradientFlow : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()
@@ -81,7 +81,7 @@ public:
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/connect-points/g-probe-gradient-flow"))
 class UPCGExProbeGradientFlowProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
