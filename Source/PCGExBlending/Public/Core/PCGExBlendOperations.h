@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBlendingCommon.h"
+#include "PCGExOpStats.h"
 #include "Helpers/PCGExMetaHelpers.h"
 #include "Types/PCGExTypeOpsImpl.h"
 
@@ -49,12 +50,36 @@ namespace PCGExBlending
 		virtual ~IBlendOperation() = default;
 
 		// Core blend: Out = Blend(A, B, Weight)
-		void Blend(const void* A, const void* B, double Weight, void* Out) const;
+		FORCEINLINE void Blend(const void* A, const void* B, double Weight, void* Out) const { BlendFunc(A, B, Weight, Out); }
 
 		// Multi-blend operations for accumulation patterns
-		void BeginMulti(void* Accumulator, const void* InitialValue, PCGEx::FOpStats& OutTracker) const;
-		void Accumulate(const void* Source, void* Accumulator, double Weight) const;
-		void EndMulti(void* Accumulator, double TotalWeight, int32 Count) const;
+		FORCEINLINE void BeginMulti(void* Accumulator, const void* InitialValue, PCGEx::FOpStats& OutTracker) const
+		{
+			// These modes require the first operation to be a copy of the first blended value
+			// before they can be properly blended -- this should be handled by the blend op?
+			if (bInitWithSource) { OutTracker.Count = -1; }
+			else if (bConsiderOriginalValue)
+			{
+				// Some BlendModes can leverage this
+				if (bResetForMulti) { InitDefault(Accumulator); }
+				else
+				{
+					// Otherwise, bump up original count so EndBlend can account for pre-existing value as "one blend step"
+					OutTracker.Count = 1;
+					OutTracker.TotalWeight = 1;
+				}
+			}
+			/*
+			if (InitialValue)
+			{
+				// Copy initial value
+				CopyValue(InitialValue, Accumulator);
+			}
+			*/
+		}
+
+		FORCEINLINE void Accumulate(const void* Source, void* Accumulator, double Weight) const { AccumulateFunc(Accumulator, Source, Weight, Accumulator); }
+		FORCEINLINE void EndMulti(void* Accumulator, double TotalWeight, int32 Count) const { FinalizeFunc(Accumulator, TotalWeight, Count); }
 
 		// Division helper (for external averaging)
 		virtual void Div(void* Value, double Divisor) const = 0;

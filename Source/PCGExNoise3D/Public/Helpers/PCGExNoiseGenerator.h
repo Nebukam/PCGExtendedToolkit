@@ -94,26 +94,6 @@ namespace PCGExNoise3D
 		void Generate(TArrayView<const FVector> Positions, TArrayView<FVector4> OutResults) const;
 
 		//
-		// In-place generation (blends noise with existing values)
-		// InitialWeight: weight of initial value (default 1.0, as if it came from an operation with weight 1)
-		//
-
-		void GenerateInPlace(const FVector& Position, double& InOutResult, double InitialWeight = 1.0) const;
-		void GenerateInPlace(const FVector& Position, FVector2D& InOutResult, double InitialWeight = 1.0) const;
-		void GenerateInPlace(const FVector& Position, FVector& InOutResult, double InitialWeight = 1.0) const;
-		void GenerateInPlace(const FVector& Position, FVector4& InOutResult, double InitialWeight = 1.0) const;
-
-		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<double> InOutResults, double InitialWeight = 1.0) const;
-		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<FVector2D> InOutResults, double InitialWeight = 1.0) const;
-		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<FVector> InOutResults, double InitialWeight = 1.0) const;
-		void GenerateInPlace(TArrayView<const FVector> Positions, TArrayView<FVector4> InOutResults, double InitialWeight = 1.0) const;
-
-		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<double> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
-		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<FVector2D> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
-		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<FVector> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
-		void GenerateInPlaceParallel(TArrayView<const FVector> Positions, TArrayView<FVector4> InOutResults, double InitialWeight = 1.0, int32 MinBatchSize = 256) const;
-
-		//
 		// Parallel batch generation
 		//
 

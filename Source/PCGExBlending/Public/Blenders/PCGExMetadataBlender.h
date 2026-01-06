@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExProxyDataBlending.h"
 #include "Data/PCGExDataCommon.h"
+#include "Data/PCGExProxyData.h"
 
 struct FPCGAttributeIdentifier;
 struct FPCGExBlendingDetails;
@@ -29,7 +30,12 @@ namespace PCGExBlending
 		void SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In, bool bUseAsSecondarySource = false);
 		void SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
-		bool Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet = nullptr, const bool bWantsDirectAccess = false, const PCGExData::EIOSide BSide = PCGExData::EIOSide::Out);
+		bool Init(
+			FPCGExContext* InContext,
+			const FPCGExBlendingDetails& InBlendingDetails,
+			const TSet<FName>* IgnoreAttributeSet = nullptr,
+			const PCGExData::EProxyFlags InProxyFlags = PCGExData::EProxyFlags::None,
+			const PCGExData::EIOSide BSide = PCGExData::EIOSide::Out);
 
 		virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const override;
 		virtual void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double Weight) const override;

@@ -87,11 +87,7 @@ namespace PCGExBlendAttributes
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			if (!PointFilterCache[Index]) { continue; }
-			BlendOpsManager->BlendAutoWeight(Index, Index);
-		}
+		BlendOpsManager->BlendAutoWeight(Scope, Scope.GetConstView(PointFilterCache));
 	}
 
 	void FProcessor::CompleteWork()

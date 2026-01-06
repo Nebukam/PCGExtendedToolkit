@@ -7,6 +7,7 @@
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExProxyDataImpl.h"
 #include "Data/PCGExSubSelectionOps.h"
 
 namespace PCGExData
@@ -156,6 +157,22 @@ namespace PCGExData
 	namespace Internal
 	{
 		template <typename T_REAL>
+		TSharedPtr<IBufferProxy> CreateRawProxy(
+			FPCGExContext* InContext,
+			const FProxyDescriptor& InDescriptor,
+			const TSharedPtr<FFacade>& InDataFacade)
+		{
+			TSharedPtr<TArray<T_REAL>> Buffer = MakeShared<TArray<T_REAL>>();
+
+			if (InDescriptor.Role == EProxyRole::Read) { Buffer->Init(T_REAL{}, InDataFacade->GetNum(EIOSide::In)); }
+			else { Buffer->Init(T_REAL{}, InDataFacade->GetNum(EIOSide::Out)); }
+
+			auto Proxy = MakeShared<TRawBufferProxy<T_REAL>>(InDescriptor.WorkingType);
+			Proxy->Buffer = Buffer;
+			return Proxy;
+		}
+
+		template <typename T_REAL>
 		TSharedPtr<IBufferProxy> CreateAttributeProxy(
 			FPCGExContext* InContext,
 			const FProxyDescriptor& InDescriptor,
@@ -286,7 +303,7 @@ template PCGEXCORE_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(co
 		}
 		else
 		{
-			if (InDescriptor.bIsConstant || InDescriptor.Side == EIOSide::In)
+			if (InDescriptor.HasFlag(EProxyFlags::Constant) || InDescriptor.Side == EIOSide::In)
 			{
 				PointData = const_cast<UPCGBasePointData*>(InDataFacade->GetIn());
 			}
@@ -302,8 +319,21 @@ template PCGEXCORE_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(co
 			}
 		}
 
+		// Handle raw proxy
+		if (InDescriptor.HasFlag(EProxyFlags::Raw))
+		{
+			PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				OutProxy = Internal::CreateRawProxy<T>(InContext, InDescriptor, InDataFacade);
+			});
+
+			if (OutProxy) { OutProxy->SetSubSelection(InDescriptor.SubSelection); }
+			return OutProxy;
+		}
+
 		// Handle constant proxy
-		if (InDescriptor.bIsConstant)
+		if (InDescriptor.HasFlag(EProxyFlags::Constant))
 		{
 			const PCGMetadataEntryKey Key =
 				InDataFacade->GetIn()->IsEmpty()
@@ -334,7 +364,7 @@ template PCGEXCORE_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(co
 		// Handle attribute proxy
 		if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
-			if (InDescriptor.bWantsDirect)
+			if (InDescriptor.HasFlag(EProxyFlags::Direct))
 			{
 				// Direct attribute access
 				const FPCGAttributeIdentifier Identifier = PCGExMetaHelpers::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn());

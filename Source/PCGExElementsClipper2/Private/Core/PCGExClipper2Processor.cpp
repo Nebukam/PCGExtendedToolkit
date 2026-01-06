@@ -48,7 +48,7 @@ namespace PCGExClipper2
 	void FProcessingGroup::Prepare(const TSharedPtr<FOpData>& AllOpData)
 	{
 		GroupTags = MakeShared<PCGExData::FTags>();
-		
+
 		// Cache subject paths
 		SubjectPaths.reserve(SubjectIndices.Num());
 		OpenSubjectPaths.reserve(SubjectIndices.Num());
@@ -56,7 +56,7 @@ namespace PCGExClipper2
 		{
 			if (AllOpData->IsClosedLoop[Idx]) { SubjectPaths.push_back(AllOpData->Paths[Idx]); }
 			else { OpenSubjectPaths.push_back(AllOpData->Paths[Idx]); }
-			
+
 			GroupTags->Append(AllOpData->Facades[Idx]->Source->Tags.ToSharedRef());
 		}
 
@@ -70,7 +70,7 @@ namespace PCGExClipper2
 				if (AllOpData->IsClosedLoop[Idx]) { OperandPaths.push_back(AllOpData->Paths[Idx]); }
 				else { OpenOperandPaths.push_back(AllOpData->Paths[Idx]); }
 			}
-			
+
 			GroupTags->Append(AllOpData->Facades[Idx]->Source->Tags.ToSharedRef());
 		}
 
@@ -286,7 +286,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	BlendSources.Reserve(Group->AllSourceIndices.Num());
 
 	EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::None;
-	
+
 	for (const int32 SrcIdx : Group->AllSourceIndices)
 	{
 		if (SrcIdx < AllOpData->Facades.Num())
@@ -362,6 +362,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		if (!OutPoints) { return; }
 
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPoints, Allocations);
+		NewPointIO->GetOutKeys(true); // Force valid entry keys for metadata -- TODO : Only do this if there are attributes to carry over
 
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
@@ -376,7 +377,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
 		UnionMetadata->SetNum(NumPoints);
 
-		if (!Blender->Init(this, OutputFacade, UnionMetadata, false))
+		if (!Blender->Init(this, OutputFacade, UnionMetadata, PCGExData::EProxyFlags::Direct)) // might want to switch to cache here?
 		{
 			PCGE_LOG_C(Error, GraphAndLog, this, FTEXT("Error while initializing data blending"));
 			Blender.Reset();
@@ -626,7 +627,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 		CarryOverDetails.Prune(NewPointIO->Tags.Get());
 		NewPointIO->Tags->Append(Group->GroupTags.ToSharedRef());
-		
+
 		OutPaths.Add(NewPointIO);
 	}
 }

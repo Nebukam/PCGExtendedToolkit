@@ -58,7 +58,7 @@ namespace PCGExSorting
 			TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
 
 			PCGExData::FProxyDescriptor Descriptor(DataFacade);
-			Descriptor.bWantsDirect = true;
+			Descriptor.AddFlags(PCGExData::EProxyFlags::Direct);
 
 			if (Descriptor.CaptureStrict(InContext, RuleHandler->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
 
@@ -92,7 +92,7 @@ namespace PCGExSorting
 			{
 				TSharedPtr<PCGExData::FFacade> InFacade = InDataFacades[f];
 				PCGExData::FProxyDescriptor Descriptor(InFacade);
-				Descriptor.bWantsDirect = true;
+				Descriptor.AddFlags(PCGExData::EProxyFlags::Direct);
 
 				TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
 
@@ -230,7 +230,7 @@ namespace PCGExSorting
 	TSharedPtr<FSortCache> FSortCache::Build(const FSorter& Sorter, int32 InNumElements)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FSortCache::Build);
-		
+
 		if (InNumElements <= 0 || Sorter.RuleHandlers.IsEmpty())
 		{
 			return nullptr;

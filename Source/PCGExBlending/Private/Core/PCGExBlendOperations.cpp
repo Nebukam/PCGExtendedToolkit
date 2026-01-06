@@ -29,53 +29,6 @@ namespace PCGExBlending
 	{
 	}
 
-	void IBlendOperation::Blend(const void* A, const void* B, double Weight, void* Out) const
-	{
-		BlendFunc(A, B, Weight, Out);
-	}
-
-	void IBlendOperation::BeginMulti(void* Accumulator, const void* InitialValue, PCGEx::FOpStats& OutTracker) const
-	{
-		if (bInitWithSource)
-		{
-			// These modes require the first operation to be a copy of the first blended value
-			// before they can be properly blended -- this should be handled by the blend op?
-			OutTracker.Count = -1;
-		}
-		else if (bConsiderOriginalValue)
-		{
-			// Some BlendModes can leverage this
-			if (bResetForMulti)
-			{
-				InitDefault(Accumulator);
-			}
-			else
-			{
-				// Otherwise, bump up original count so EndBlend can account for pre-existing value as "one blend step"
-				OutTracker.Count = 1;
-				OutTracker.TotalWeight = 1;
-			}
-		}
-		/*
-		if (InitialValue)
-		{
-			// Copy initial value
-			CopyValue(InitialValue, Accumulator);
-		}
-		*/
-	}
-
-	void IBlendOperation::Accumulate(const void* Source, void* Accumulator, double Weight) const
-	{
-		AccumulateFunc(Accumulator, Source, Weight, Accumulator);
-	}
-
-	void IBlendOperation::EndMulti(void* Accumulator, double TotalWeight, int32 Count) const
-	{
-		FinalizeFunc(Accumulator, TotalWeight, Count);
-	}
-
-
 	// FBlendOperationFactory implementation
 
 	TSharedPtr<IBlendOperation> FBlendOperationFactory::Create(

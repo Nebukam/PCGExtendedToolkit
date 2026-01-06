@@ -38,11 +38,18 @@ namespace PCGExMT
 		}
 
 		template <typename T>
-		FORCEINLINE TArrayView<T> GetView(TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
+		FORCEINLINE TArrayView<T> GetView(TArray<T>& InArray) const
+		{
+			return TArrayView<T>(InArray.GetData() + Start, Count);
+		}
 
 		template <typename T>
-		FORCEINLINE TArrayView<const T> GetView(const TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
+		FORCEINLINE TArrayView<const T> GetConstView(const TArray<T>& InArray) const
+		{
+			return TArrayView<const T>(InArray.GetData() + Start, Count);
+		}
 	};
+
 }
 
 #pragma region MT MACROS

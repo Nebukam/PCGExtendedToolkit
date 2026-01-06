@@ -27,7 +27,7 @@ namespace PCGEx
 		bool bDirectFetch = !RequiresCompilation();
 
 		PCGExData::FProxyDescriptor Descriptor(DataFacade, PCGExData::EProxyRole::Read);
-		Descriptor.bWantsDirect = bDirectFetch;
+		if (bDirectFetch) { Descriptor.AddFlags(PCGExData::EProxyFlags::Direct); }
 
 		if (!Descriptor.CaptureStrict(InContext, Config.SourceAttribute, PCGExData::EIOSide::In, true))
 		{

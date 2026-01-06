@@ -4,7 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/PCGExNoise3DCommon.h"
+#include "PCGExBlendingCommon.h"
+#include "PCGExFilterCommon.h"
+#include "Factories/PCGExFactories.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "UObject/Object.h"
 #include "Details/PCGExAttributesDetails.h"
@@ -12,6 +14,11 @@
 #include "Utils/PCGExCurveLookup.h"
 
 #include "PCGExUberNoise.generated.h"
+
+namespace PCGExBlending
+{
+	class FProxyDataBlender;
+}
 
 namespace PCGExNoise3D
 {
@@ -49,6 +56,8 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
 #endif
 
+	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -61,24 +70,20 @@ public:
 	EPCGExUberNoiseMode Mode = EPCGExUberNoiseMode::New;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::New", ClampMin=1, ClampMax=4))
-	int32 Dimensions = 3;
+	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Double;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeSourceToTargetDetails Attributes;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
-	EPCGExNoiseInPlaceMode NoiseInPlaceMode = EPCGExNoiseInPlaceMode::Composite;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
-	EPCGExNoiseBlendMode NoiseBlendMode = EPCGExNoiseBlendMode::Add;
-
+	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Add;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
 	FPCGExInputShorthandSelectorDouble SourceValueWeight = FPCGExInputShorthandSelectorDouble();
 
 	/* If enabled, will auto-cast integer to double. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
 	bool bAutoCastIntegerToDouble = false;
-
 
 #if WITH_EDITOR
 	FString GetDisplayName() const;
@@ -93,7 +98,7 @@ struct FPCGExUberNoiseContext final : FPCGExPointsProcessorContext
 	friend class FPCGExUberNoiseElement;
 
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator;
-
+	
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -112,12 +117,9 @@ namespace PCGExUberNoise
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExUberNoiseContext, UPCGExUberNoiseSettings>
 	{
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
-		int32 Dimensions = 0;
+		int32 NumFields = 0;
 
-		TArray<TSharedPtr<PCGExData::IBufferProxy>> InputProxies;
-		TArray<TSharedPtr<PCGExData::IBufferProxy>> OutputProxies;
-
-		TSharedPtr<PCGExData::IBufferProxy> NewOutProxy;
+		TSharedPtr<PCGExBlending::FProxyDataBlender> Blender;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

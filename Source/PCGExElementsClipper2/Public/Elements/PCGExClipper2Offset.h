@@ -67,13 +67,11 @@ public:
 	EPCGExClipper2EndType EndTypeOpen = EPCGExClipper2EndType::Round;
 
 	
-
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteIteration = false;
 
 	/** Write the iteration index to a data attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteIteration"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteIteration"))
 	FString IterationAttributeName = TEXT("Iteration");
 
 
@@ -81,17 +79,16 @@ public:
 	bool bTagIteration = false;
 
 	/** Write the iteration index to a tag */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(EditCondition="bTagIteration"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(PCG_Overridable, EditCondition="bTagIteration"))
 	FString IterationTag = TEXT("OffsetNum");
-
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagDual = false;
 
 	/** Write this tag on the dual (negative) offsets */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(EditCondition="bTagDual"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(PCG_Overridable, EditCondition="bTagDual"))
 	FString DualTag = TEXT("Dual");
-
+	
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
 	virtual bool SupportOpenMainPaths() const override;
 

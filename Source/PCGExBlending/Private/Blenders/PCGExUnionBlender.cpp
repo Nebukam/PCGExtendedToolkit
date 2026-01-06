@@ -30,7 +30,7 @@ namespace PCGExBlending
 	{
 	}
 
-	bool FUnionBlender::FMultiSourceBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetData, const bool bWantsDirectAccess)
+	bool FUnionBlender::FMultiSourceBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetData, const PCGExData::EProxyFlags InProxyFlags)
 	{
 		check(InTargetData);
 
@@ -74,10 +74,10 @@ namespace PCGExBlending
 				TSharedPtr<FProxyDataBlender> SubBlender = CreateProxyBlender(WorkingType, Param.Blending);
 				SubBlenders[i] = SubBlender;
 
-				if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess)) { return false; }
+				if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, InProxyFlags)) { return false; }
 			}
 
-			if (!MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess)) { return false; }
+			if (!MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, InProxyFlags)) { return false; }
 		}
 		else if (Param.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
 		{
@@ -91,10 +91,10 @@ namespace PCGExBlending
 				TSharedPtr<FProxyDataBlender> SubBlender = CreateProxyBlender(WorkingType, Param.Blending);
 				SubBlenders[i] = SubBlender;
 
-				if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess)) { return false; }
+				if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, InProxyFlags)) { return false; }
 			}
 
-			if (!MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess)) { return false; }
+			if (!MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, InProxyFlags)) { return false; }
 		}
 		else
 		{
@@ -199,7 +199,7 @@ namespace PCGExBlending
 		}
 	}
 
-	bool FUnionBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const bool bWantsDirectAccess)
+	bool FUnionBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const PCGExData::EProxyFlags InProxyFlags)
 	{
 		CurrentTargetData = TargetData;
 
@@ -223,16 +223,16 @@ namespace PCGExBlending
 		// Initialize all blending operations
 		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : Blenders)
 		{
-			if (!MultiAttribute->Init(InContext, CurrentTargetData, bWantsDirectAccess)) { return false; }
+			if (!MultiAttribute->Init(InContext, CurrentTargetData, InProxyFlags)) { return false; }
 		}
 
 		return true;
 	}
 
-	bool FUnionBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const bool bWantsDirectAccess)
+	bool FUnionBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const PCGExData::EProxyFlags InProxyFlags)
 	{
 		CurrentUnionMetadata = InUnionMetadata;
-		return Init(InContext, TargetData, bWantsDirectAccess);
+		return Init(InContext, TargetData, InProxyFlags);
 	}
 
 	int32 FUnionBlender::ComputeWeights(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
