@@ -61,7 +61,7 @@ public:
 
 ////
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="clusters/connect-points/probe-knn"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExProbeFactoryKNN : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()
@@ -73,7 +73,7 @@ public:
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/connect-points/g-probe-knn"))
 class UPCGExProbeKNNProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
