@@ -309,6 +309,8 @@ struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
+	TSharedPtr<PCGExData::FTags> GatherTags(const TArray<int8>& VisitedSources);
+	
 	/**
 	 * Convert Clipper2 Paths64 results back to PCGEx point data with metadata blending.
 	 * 
