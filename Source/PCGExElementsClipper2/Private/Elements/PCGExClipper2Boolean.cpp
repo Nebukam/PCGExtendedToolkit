@@ -31,12 +31,9 @@ void UPCGExClipper2BooleanSettings::ApplyPreconfiguredSettings(const FPCGPreConf
 
 PCGEX_INITIALIZE_ELEMENT(Clipper2Boolean)
 
-bool UPCGExClipper2BooleanSettings::NeedsOperands() const
+bool UPCGExClipper2BooleanSettings::WantsOperands() const
 {
-	return
-		bUseOperandsPin ||
-		Operation == EPCGExClipper2BooleanOp::Difference ||
-		Operation == EPCGExClipper2BooleanOp::Intersection;
+	return Operation != EPCGExClipper2BooleanOp::Union;
 }
 
 FPCGExGeo2DProjectionDetails UPCGExClipper2BooleanSettings::GetProjectionDetails() const
@@ -103,17 +100,22 @@ void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProc
 	}
 
 	// Execute the boolean operation
-	PCGExClipper2Lib::Paths64 ResultPaths;
-	const PCGExClipper2Lib::FillRule FillRule = PCGExClipper2Lib::FillRule::NonZero;
+	PCGExClipper2Lib::Paths64 ClosedResults;
+	PCGExClipper2Lib::Paths64 OpenResults;
 
-	if (!Clipper.Execute(ClipType, FillRule, ResultPaths)) { return; }
+	if (!Clipper.Execute(ClipType, PCGExClipper2::ConvertFillRule(Settings->FillRule), ClosedResults, OpenResults)) { return; }
 
-	if (ResultPaths.empty()) { return; }
+	if (!ClosedResults.empty())
+	{
+		TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
+		OutputPaths64(ClosedResults, Group, OutputPaths, true);
+	}
 
-	// Convert results back to PCGEx data with blending
-	TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-
-	OutputPaths64(ResultPaths, Group, OutputPaths);
+	if (Settings->OpenPathsOutput != EPCGExClipper2OpenPathOutput::Ignore && !OpenResults.empty())
+	{
+		TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
+		OutputPaths64(OpenResults, Group, OutputPaths, false);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -179,7 +179,7 @@ UPCGExClipper2ProcessorSettings::UPCGExClipper2ProcessorSettings(const FObjectIn
 
 bool UPCGExClipper2ProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExClipper2::Labels::SourceOperandsLabel) { return NeedsOperands(); }
+	if (InPin->Properties.Label == PCGExClipper2::Labels::SourceOperandsLabel) { return WantsOperands(); }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -188,7 +188,7 @@ TArray<FPCGPinProperties> UPCGExClipper2ProcessorSettings::InputPinProperties() 
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGExMatching::Helpers::DeclareMatchingRulesInputs(MainDataMatching, PinProperties);
 
-	if (NeedsOperands())
+	if (WantsOperands())
 	{
 		PCGEX_PIN_POINTS(PCGExClipper2::Labels::SourceOperandsLabel, "Operands", Required)
 		PCGExMatching::Helpers::DeclareMatchingRulesInputs(OperandsDataMatching, PinProperties, PCGExClipper2::Labels::SourceOperandsMatchRulesLabel);
@@ -205,12 +205,19 @@ TArray<FPCGPinProperties> UPCGExClipper2ProcessorSettings::InputPinProperties() 
 	return PinProperties;
 }
 
-bool UPCGExClipper2ProcessorSettings::UsesDataMatching() const
+TArray<FPCGPinProperties> UPCGExClipper2ProcessorSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if (OpenPathsOutput == EPCGExClipper2OpenPathOutput::OutputPin) { PCGEX_PIN_POINTS(FName("Open Paths"), "Open paths", Normal) }
+	return PinProperties;
+}
+
+bool UPCGExClipper2ProcessorSettings::WantsDataMatching() const
 {
 	return MainDataMatching.IsEnabled();
 }
 
-bool UPCGExClipper2ProcessorSettings::NeedsOperands() const
+bool UPCGExClipper2ProcessorSettings::WantsOperands() const
 {
 	return false;
 }
@@ -257,6 +264,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	PCGExClipper2Lib::Paths64& InPaths,
 	const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
 	TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
+	const bool bClosedPaths,
 	PCGExClipper2::ETransformRestoration TransformMode)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExClipper2ProcessorContext::OutputPaths64)
@@ -606,8 +614,9 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		// Tag as hole if applicable
 		if (bIsHole && Settings->bTagHoles) { NewPointIO->Tags->AddRaw(Settings->HoleTag); }
 
-		// Mark as closed loop
-		PCGExPaths::Helpers::SetClosedLoop(NewPointIO, true);
+		PCGExPaths::Helpers::SetClosedLoop(NewPointIO, bClosedPaths);
+
+		if (!bClosedPaths && Settings->OpenPathsOutput == EPCGExClipper2OpenPathOutput::OutputPin) { NewPointIO->OutputPin = FName("Open Paths"); }
 
 		OutPaths.Add(NewPointIO);
 	}
@@ -629,9 +638,7 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 	Context->CarryOverDetails.Init();
 
 	// Setup default blending details
-	Context->BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Weight);
-	Context->BlendingDetails.PropertiesOverrides.bOverridePosition = true;
-	Context->BlendingDetails.PropertiesOverrides.PositionBlending = EPCGExBlendingType::None; // Position is set by source transforms
+	Context->BlendingDetails = Settings->BlendingDetails;
 
 	// Initialize AllOpData early
 	Context->AllOpData = MakeShared<PCGExClipper2::FOpData>(0);
@@ -651,7 +658,7 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 
 	// Build operand data if needed
 	TArray<int32> OperandIndices;
-	if (Settings->NeedsOperands())
+	if (Settings->WantsOperands())
 	{
 		Context->OperandsCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGExClipper2::Labels::SourceOperandsLabel, PCGExData::EIOInit::NoInit, false);
 
@@ -662,11 +669,6 @@ bool FPCGExClipper2ProcessorElement::Boot(FPCGExContext* InContext) const
 		}
 
 		NumInputs = BuildDataFromCollection(Context, Settings, Context->OperandsCollection, Settings->SupportOpenOperandPaths(), OperandIndices);
-
-		if (NumInputs != Context->OperandsCollection->Num())
-		{
-			PCGEX_LOG_INVALID_INPUT(Context, FTEXT("Some operands have less than 2 points and won't be processed."))
-		}
 
 		if (!NumInputs)
 		{

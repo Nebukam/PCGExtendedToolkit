@@ -37,11 +37,29 @@ enum class EPCGExClipper2EndType : uint8
 	Round   = 4 UMETA(DisplayName = "Round", ToolTip="Round ends"),
 };
 
+
+UENUM(BlueprintType)
+enum class EPCGExClipper2FillRule : uint8
+{
+	EvenOdd  = 0 UMETA(DisplayName = "Even Odd", ToolTip="..."),
+	NonZero  = 1 UMETA(DisplayName = "Non Zero", ToolTip="..."),
+	Positive = 2 UMETA(DisplayName = "Positive", ToolTip="..."),
+	Negative = 3 UMETA(DisplayName = "Negative", ToolTip="..."),
+};
+
 UENUM(BlueprintType)
 enum class EPCGExGroupingPolicy : uint8
 {
 	Split       = 0 UMETA(DisplayName = "Split", ToolTip="Split inputs into separate groups"),
 	Consolidate = 1 UMETA(DisplayName = "Consolidate", ToolTip="Add all inputs into a single group"),
+};
+
+UENUM()
+enum class EPCGExClipper2OpenPathOutput : uint8
+{
+	Ignore    = 0 UMETA(DisplayName = "Ignore", ToolTip="Do not output open paths"),
+	Output    = 1 UMETA(DisplayName = "Output", ToolTip="Output on the main pin"),
+	OutputPin = 2 UMETA(DisplayName = "Output (Pin)", ToolTip="Output on a separate pin"),
 };
 
 namespace PCGExClipper2
@@ -68,6 +86,18 @@ namespace PCGExClipper2
 		case EPCGExClipper2EndType::Square: return PCGExClipper2Lib::EndType::Square;
 		case EPCGExClipper2EndType::Round: return PCGExClipper2Lib::EndType::Round;
 		default: return PCGExClipper2Lib::EndType::Round;
+		}
+	}
+
+	static PCGExClipper2Lib::FillRule ConvertFillRule(EPCGExClipper2FillRule InRule)
+	{
+		switch (InRule)
+		{
+		case EPCGExClipper2FillRule::EvenOdd: return PCGExClipper2Lib::FillRule::EvenOdd;
+		default:
+		case EPCGExClipper2FillRule::NonZero: return PCGExClipper2Lib::FillRule::NonZero;
+		case EPCGExClipper2FillRule::Positive: return PCGExClipper2Lib::FillRule::Positive;
+		case EPCGExClipper2FillRule::Negative: return PCGExClipper2Lib::FillRule::Negative;
 		}
 	}
 
@@ -184,16 +214,21 @@ public:
 protected:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 public:
 	/** If enabled, lets you to create sub-groups to operate on. If disabled, data is processed individually. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExMatchingDetails MainDataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Default);
 
+	/** How should data be grouped when data matching is disabled */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!WantsDataMatching()"))
+	EPCGExGroupingPolicy MainInputGroupingPolicy = EPCGExGroupingPolicy::Consolidate;
+	
 	/** If enabled, lets you to pick which are matched with which main data.
 	 * Note that the match is done against every single data within a group and then consolidated;
 	 * this means if you have a [A,B,C] group, ABC will be executed against operands for A, B and C individually. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="NeedsOperands()", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="WantsOperands()", EditConditionHides))
 	FPCGExMatchingDetails OperandsDataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Default);
 
 	/** Decimal precision 
@@ -214,27 +249,29 @@ public:
 	double ArcTolerance = 5.0;
 
 	FORCEINLINE double GetArcTolerance() const { return ArcTolerance * static_cast<double>(Precision); }
-
+	
 	/** Filter in/out which attributes get carried over from inputs to outputs. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	FPCGExCarryOverDetails CarryOverDetails;
 
+	/** Filter in/out which attributes get carried over from inputs to outputs. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Weight, EPCGExBlendingType::None);
 
-	/** How should data be grouped when data matching is disabled */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Grouping", meta = (PCG_Overridable, EditCondition="!UsesDataMatching()"))
-	EPCGExGroupingPolicy MainInputGroupingPolicy = EPCGExGroupingPolicy::Consolidate;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_NotOverridable))
+	EPCGExClipper2OpenPathOutput OpenPathsOutput = EPCGExClipper2OpenPathOutput::Output;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagHoles = false;
 
 	/** Write this tag on paths that are holes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagHoles"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(EditCondition="bTagHoles"))
 	FString HoleTag = TEXT("Hole");
 
 	/** Skip paths that aren't closed */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
 	bool bSkipOpenPaths = false;
-
 
 	/** (DEBUG) If enabled, performs a union of all paths in the group before proceeding to the operation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
@@ -245,10 +282,10 @@ public:
 	bool bUnionOperandsBeforeOperation = false;
 
 	UFUNCTION()
-	virtual bool UsesDataMatching() const;
+	virtual bool WantsDataMatching() const;
 
 	UFUNCTION()
-	virtual bool NeedsOperands() const;
+	virtual bool WantsOperands() const;
 
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const;
 	virtual bool SupportOpenMainPaths() const;
@@ -277,12 +314,14 @@ struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 	 * @param InPaths - The Clipper2 output paths to convert
 	 * @param Group - The processing group containing source info and intersection blend data
 	 * @param OutPaths - Output array of point IO objects
+	 * @param bClosedPaths
 	 * @param TransformMode - How to compute output transforms (FromSource for booleans, Unproject for offset/inflate)
 	 */
 	void OutputPaths64(
 		PCGExClipper2Lib::Paths64& InPaths,
 		const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
 		TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
+		bool bClosedPaths,
 		PCGExClipper2::ETransformRestoration TransformMode = PCGExClipper2::ETransformRestoration::FromSource);
 
 	/**

@@ -135,7 +135,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
 				// Use Unproject mode since offset changes positions
-				OutputPaths64(PositiveOffsetPaths, Group, OutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
+				OutputPaths64(PositiveOffsetPaths, Group, OutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
 
 				if (Settings->bTagIteration)
 				{
@@ -163,7 +163,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> DualOutputPaths;
 				// Use Unproject mode since offset changes positions
-				OutputPaths64(NegativeOffsetPaths, Group, DualOutputPaths, PCGExClipper2::ETransformRestoration::Unproject);
+				OutputPaths64(NegativeOffsetPaths, Group, DualOutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
 
 				for (const TSharedPtr<PCGExData::FPointIO>& Output : DualOutputPaths)
 				{
