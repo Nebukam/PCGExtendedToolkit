@@ -15,6 +15,16 @@ namespace PCGExClipper2
 	class FPolyline;
 }
 
+UENUM(BlueprintType)
+enum class EPCGExClipper2OffsetIterationCount : uint8
+{
+	First   = 0 UMETA(DisplayName = "First"),
+	Last    = 1 UMETA(DisplayName = "Last"),
+	Average = 2 UMETA(DisplayName = "Average"),
+	Min     = 3 UMETA(DisplayName = "Min"),
+	Max     = 4 UMETA(DisplayName = "Max")
+};
+
 /**
  * 
  */
@@ -39,9 +49,17 @@ public:
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
 	/** Number of iterations to apply */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Iterations", meta = (PCG_Overridable))
 	FPCGExInputShorthandNameInteger32Abs Iterations = FPCGExInputShorthandNameInteger32Abs(FName("@Data.Iterations"), 1, false);
+
+	/** How to determine final iteration count when iteration attribute from multiple source differ */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Iterations", meta = (PCG_Overridable, DisplayName=" ├─ Consolidation"))
+	EPCGExClipper2OffsetIterationCount IterationConsolidation = EPCGExClipper2OffsetIterationCount::Max;
 	
+	/** Minimum guaranteed iterations */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Iterations", meta = (PCG_Overridable, DisplayName=" └─ Min Iterations", ClampMin=0))
+	int32 MinIterations = 1;
+
 	/** Offset amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorDouble Offset = FPCGExInputShorthandSelectorDouble(FName("Offset"), 10, false);
@@ -57,16 +75,16 @@ public:
 	/** Miter limit (only used with Miter join type) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Miter limit", ClampMin=1.0))
 	double MiterLimit = 2.0;
-	
+
 	/** End type for closed paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExClipper2EndType EndTypeClosed = EPCGExClipper2EndType::Polygon;
-	
+
 	/** End type for open paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bSkipOpenPaths", EditConditionHides))
 	EPCGExClipper2EndType EndTypeOpen = EPCGExClipper2EndType::Round;
 
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteIteration = false;
 
@@ -81,17 +99,16 @@ public:
 	/** Write the iteration index to a tag */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(PCG_Overridable, EditCondition="bTagIteration"))
 	FString IterationTag = TEXT("OffsetNum");
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagDual = false;
 
 	/** Write this tag on the dual (negative) offsets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(PCG_Overridable, EditCondition="bTagDual"))
 	FString DualTag = TEXT("Dual");
-	
+
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
 	virtual bool SupportOpenMainPaths() const override;
-
 };
 
 struct FPCGExClipper2OffsetContext final : FPCGExClipper2ProcessorContext

@@ -42,7 +42,32 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 	const double DefaultOffset = 10;
 
 	// Read values from subjects (take max iterations across all)
-	for (const int32 SubjectIdx : Group->SubjectIndices) { NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0)); }
+	switch (Settings->IterationConsolidation)
+	{
+	case EPCGExClipper2OffsetIterationCount::First:
+		NumIterations = FMath::Max(1, IterationValues[Group->SubjectIndices[0]]->Read(0));
+		break;
+	case EPCGExClipper2OffsetIterationCount::Last:
+		NumIterations = FMath::Max(1, IterationValues[Group->SubjectIndices.Last()]->Read(0));
+		break;
+	case EPCGExClipper2OffsetIterationCount::Average:
+		{
+			for (const int32 SubjectIdx : Group->SubjectIndices) { NumIterations += FMath::Max(1, IterationValues[SubjectIdx]->Read(0)); }
+			NumIterations /= Group->SubjectIndices.Num();
+		}
+		break;
+	case EPCGExClipper2OffsetIterationCount::Min:
+		for (const int32 SubjectIdx : Group->SubjectIndices) { NumIterations = FMath::Min(NumIterations, IterationValues[SubjectIdx]->Read(0)); }
+		break;
+	default:
+	case EPCGExClipper2OffsetIterationCount::Max:
+		for (const int32 SubjectIdx : Group->SubjectIndices) { NumIterations = FMath::Max(NumIterations, IterationValues[SubjectIdx]->Read(0)); }
+		break;
+	}
+
+	NumIterations = FMath::Max(Settings->MinIterations, NumIterations);
+
+	if (!NumIterations) { return; }
 
 	// Capture values by copy for lambda safety
 	// Since Facade->Idx == ArrayIndex, we can use SourceIdx from Z directly as array index
@@ -127,10 +152,12 @@ bool FPCGExClipper2OffsetElement::PostBoot(FPCGExContext* InContext) const
 		const TSharedPtr<PCGExData::FFacade>& Facade = Context->AllOpData->Facades[i];
 
 		auto OffsetSetting = Settings->Offset.GetValueSetting();
-		if (OffsetSetting->Init(Facade)) { Context->OffsetValues[i] = OffsetSetting; }
+		if (!OffsetSetting->Init(Facade)) { return false; }
+		Context->OffsetValues[i] = OffsetSetting;
 
 		auto IterationSetting = Settings->Iterations.GetValueSetting();
-		if (IterationSetting->Init(Facade)) { Context->IterationValues[i] = IterationSetting; }
+		if (!IterationSetting->Init(Facade)) { return false; }
+		Context->IterationValues[i] = IterationSetting;
 	}
 
 	return FPCGExClipper2ProcessorElement::PostBoot(InContext);

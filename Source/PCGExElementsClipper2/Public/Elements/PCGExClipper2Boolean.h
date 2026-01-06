@@ -57,7 +57,7 @@ public:
 	EPCGExClipper2FillRule FillRule = EPCGExClipper2FillRule::NonZero;
 	
 	/** Display operand pin as a separate pin */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_NotOverridable, EditCondition="Operation!=EPCGExClipper2BooleanOp::Union && Operation!=EPCGExClipper2BooleanOp::Difference"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_NotOverridable, EditCondition="Operation!=EPCGExClipper2BooleanOp::Union", EditConditionHides))
 	bool bUseOperandPin = false;
 	
 	virtual bool WantsOperands() const override;
