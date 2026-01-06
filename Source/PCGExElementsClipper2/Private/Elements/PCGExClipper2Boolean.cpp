@@ -33,7 +33,7 @@ PCGEX_INITIALIZE_ELEMENT(Clipper2Boolean)
 
 bool UPCGExClipper2BooleanSettings::WantsOperands() const
 {
-	return Operation != EPCGExClipper2BooleanOp::Union;
+	return Operation != EPCGExClipper2BooleanOp::Union && (bUseOperandPin || Operation == EPCGExClipper2BooleanOp::Difference);
 }
 
 FPCGExGeo2DProjectionDetails UPCGExClipper2BooleanSettings::GetProjectionDetails() const

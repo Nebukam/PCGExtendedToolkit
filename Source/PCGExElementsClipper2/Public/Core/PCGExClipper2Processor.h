@@ -31,7 +31,7 @@ UENUM(BlueprintType)
 enum class EPCGExClipper2EndType : uint8
 {
 	Polygon = 0 UMETA(DisplayName = "Polygon", ToolTip="Closed polygon (ignores path open/closed state)"),
-	Joined  = 1 UMETA(DisplayName = "Joined", ToolTip="Joined ends"),
+	Joined  = 1 UMETA(DisplayName = "Joined", ToolTip="Joined ends (creates thin paths with double-sided offsets)"),
 	Butt    = 2 UMETA(DisplayName = "Butt", ToolTip="Butt ends"),
 	Square  = 3 UMETA(DisplayName = "Square", ToolTip="Square ends"),
 	Round   = 4 UMETA(DisplayName = "Round", ToolTip="Round ends"),
@@ -181,7 +181,7 @@ namespace PCGExClipper2
 		void PreProcess(const UPCGExClipper2ProcessorSettings* InSettings);
 
 		// Check if this group is valid for processing
-		bool IsValid() const { return !SubjectPaths.empty(); }
+		bool IsValid() const { return !SubjectPaths.empty() || !OpenSubjectPaths.empty(); }
 
 		// Add intersection blend info (thread-safe)
 		void AddIntersectionBlendInfo(int64_t X, int64_t Y, const FIntersectionBlendInfo& Info);
@@ -218,18 +218,22 @@ protected:
 
 public:
 	/** If enabled, lets you to create sub-groups to operate on. If disabled, data is processed individually. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing")
 	FPCGExMatchingDetails MainDataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Default);
 
 	/** How should data be grouped when data matching is disabled */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!WantsDataMatching()"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_Overridable, EditCondition="!WantsDataMatching()"))
 	EPCGExGroupingPolicy MainInputGroupingPolicy = EPCGExGroupingPolicy::Consolidate;
-	
+
 	/** If enabled, lets you to pick which are matched with which main data.
 	 * Note that the match is done against every single data within a group and then consolidated;
 	 * this means if you have a [A,B,C] group, ABC will be executed against operands for A, B and C individually. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="WantsOperands()", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta=(EditCondition="WantsOperands()", EditConditionHides))
 	FPCGExMatchingDetails OperandsDataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Default);
+
+	/** Skip paths that aren't closed */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_Overridable))
+	bool bSkipOpenPaths = false;
 
 	/** Decimal precision 
 	 * Clipper2 Uses int64 under the hood to preserve extreme precision, so we scale floating point values then back. */
@@ -249,7 +253,7 @@ public:
 	double ArcTolerance = 5.0;
 
 	FORCEINLINE double GetArcTolerance() const { return ArcTolerance * static_cast<double>(Precision); }
-	
+
 	/** Filter in/out which attributes get carried over from inputs to outputs. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	FPCGExCarryOverDetails CarryOverDetails;
@@ -261,17 +265,13 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_NotOverridable))
 	EPCGExClipper2OpenPathOutput OpenPathsOutput = EPCGExClipper2OpenPathOutput::Output;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagHoles = false;
 
 	/** Write this tag on paths that are holes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(EditCondition="bTagHoles"))
 	FString HoleTag = TEXT("Hole");
-
-	/** Skip paths that aren't closed */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
-	bool bSkipOpenPaths = false;
 
 	/** (DEBUG) If enabled, performs a union of all paths in the group before proceeding to the operation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)

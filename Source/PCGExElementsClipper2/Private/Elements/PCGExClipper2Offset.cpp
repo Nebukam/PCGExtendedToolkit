@@ -14,25 +14,6 @@
 
 PCGEX_INITIALIZE_ELEMENT(Clipper2Offset)
 
-#if WITH_EDITOR
-TArray<FPCGPreConfiguredSettingsInfo> UPCGExClipper2OffsetSettings::GetPreconfiguredInfo() const
-{
-	const TSet<EPCGExClipper2OffsetType> ValuesToSkip = {};
-	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExClipper2OffsetType>(ValuesToSkip, FTEXT("Clipper2 Offset : {0}"));
-}
-#endif
-
-void UPCGExClipper2OffsetSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
-{
-	Super::ApplyPreconfiguredSettings(PreconfigureInfo);
-	if (const UEnum* EnumPtr = StaticEnum<EPCGExClipper2OffsetType>())
-	{
-		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
-		{
-			OffsetType = static_cast<EPCGExClipper2OffsetType>(PreconfigureInfo.PreconfiguredIndex);
-		}
-	}
-}
 
 FPCGExGeo2DProjectionDetails UPCGExClipper2OffsetSettings::GetProjectionDetails() const
 {
@@ -41,21 +22,8 @@ FPCGExGeo2DProjectionDetails UPCGExClipper2OffsetSettings::GetProjectionDetails(
 
 bool UPCGExClipper2OffsetSettings::SupportOpenMainPaths() const
 {
-	return Super::SupportOpenMainPaths() && OffsetType == EPCGExClipper2OffsetType::Inflate;
+	return Super::SupportOpenMainPaths(); // && OffsetType == EPCGExClipper2OffsetType::Inflate;
 }
-
-#if WITH_EDITOR
-FString UPCGExClipper2OffsetSettings::GetDisplayName() const
-{
-	switch (OffsetType)
-	{
-	default:
-	case EPCGExClipper2OffsetType::Offset: return TEXT("PCGEx | Clipper2 : Offset");
-	case EPCGExClipper2OffsetType::Inflate: return TEXT("PCGEx | Clipper2 : Inflate");
-	}
-}
-#endif
-
 
 void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
 {
@@ -65,13 +33,10 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 
 	const double Scale = static_cast<double>(Settings->Precision);
 	const PCGExClipper2Lib::JoinType JoinType = PCGExClipper2::ConvertJoinType(Settings->JoinType);
-	const PCGExClipper2Lib::EndType EndType = PCGExClipper2::ConvertEndType(Settings->EndType);
+	const PCGExClipper2Lib::EndType EndTypeClosed = PCGExClipper2::ConvertEndType(Settings->EndTypeClosed);
+	const PCGExClipper2Lib::EndType EndTypeOpen = PCGExClipper2::ConvertEndType(Settings->EndTypeOpen);
 
 	if (Group->SubjectPaths.empty() && Group->OpenSubjectPaths.empty()) { return; }
-
-	// Get settings values - use defaults from settings, override from first subject if available
-	bool bDualOffset = Settings->bDualOffset && Settings->OffsetType == EPCGExClipper2OffsetType::Offset;
-	PCGExClipper2Lib::EndType PolygonEndType = Settings->OffsetType == EPCGExClipper2OffsetType::Inflate ? PCGExClipper2Lib::EndType::Joined : PCGExClipper2Lib::EndType::Polygon;
 
 	int32 NumIterations = 1;
 	const double DefaultOffset = 10;
@@ -125,17 +90,17 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, Settings->GetArcTolerance(), Settings->bPreserveCollinear, false);
 			ClipperOffset.SetZCallback(Group->CreateZCallback());
 
-			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PolygonEndType); }
-			if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndType); }
+			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, EndTypeClosed); }
+			if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndTypeOpen); }
 
-			PCGExClipper2Lib::Paths64 PositiveOffsetPaths;
-			ClipperOffset.Execute(CreateDeltaCallback(1.0 * Settings->OffsetScale, IterationMultiplier), PositiveOffsetPaths);
+			PCGExClipper2Lib::Paths64 ResultPaths;
+			ClipperOffset.Execute(CreateDeltaCallback(1.0 * Settings->OffsetScale, IterationMultiplier), ResultPaths);
 
-			if (!PositiveOffsetPaths.empty())
+			if (!ResultPaths.empty())
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
 				// Use Unproject mode since offset changes positions
-				OutputPaths64(PositiveOffsetPaths, Group, OutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
+				OutputPaths64(ResultPaths, Group, OutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
 
 				if (Settings->bTagIteration)
 				{
@@ -143,32 +108,6 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 					{
 						Output->Tags->Set<int32>(Settings->IterationTag, Iteration);
 					}
-				}
-			}
-		}
-
-		// Generate negative (dual) offset if enabled
-		if (bDualOffset)
-		{
-			PCGExClipper2Lib::ClipperOffset ClipperOffset(Settings->MiterLimit, Settings->GetArcTolerance(), Settings->bPreserveCollinear, false);
-			ClipperOffset.SetZCallback(Group->CreateZCallback());
-
-			if (!Group->SubjectPaths.empty()) { ClipperOffset.AddPaths(Group->SubjectPaths, JoinType, PolygonEndType); }
-			if (!Group->OpenSubjectPaths.empty()) { ClipperOffset.AddPaths(Group->OpenSubjectPaths, JoinType, EndType); }
-
-			PCGExClipper2Lib::Paths64 NegativeOffsetPaths;
-			ClipperOffset.Execute(CreateDeltaCallback(-1.0 * Settings->OffsetScale, IterationMultiplier), NegativeOffsetPaths);
-
-			if (!NegativeOffsetPaths.empty())
-			{
-				TArray<TSharedPtr<PCGExData::FPointIO>> DualOutputPaths;
-				// Use Unproject mode since offset changes positions
-				OutputPaths64(NegativeOffsetPaths, Group, DualOutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
-
-				for (const TSharedPtr<PCGExData::FPointIO>& Output : DualOutputPaths)
-				{
-					if (Settings->bTagDual) { Output->Tags->AddRaw(Settings->DualTag); }
-					if (Settings->bTagIteration) { Output->Tags->Set<int32>(Settings->IterationTag, Iteration); }
 				}
 			}
 		}

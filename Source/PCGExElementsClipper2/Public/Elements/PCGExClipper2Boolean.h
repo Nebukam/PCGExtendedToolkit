@@ -45,6 +45,7 @@ protected:
 	//~End UPCGSettings
 
 public:
+	
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
@@ -54,6 +55,10 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExClipper2FillRule FillRule = EPCGExClipper2FillRule::NonZero;
+	
+	/** Display operand pin as a separate pin */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_NotOverridable, EditCondition="Operation!=EPCGExClipper2BooleanOp::Union && Operation!=EPCGExClipper2BooleanOp::Difference"))
+	bool bUseOperandPin = false;
 	
 	virtual bool WantsOperands() const override;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;

@@ -15,13 +15,6 @@ namespace PCGExClipper2
 	class FPolyline;
 }
 
-UENUM(BlueprintType)
-enum class EPCGExClipper2OffsetType : uint8
-{
-	Offset  = 0 UMETA(DisplayName = "Offset", SearchHints = "Offset"),
-	Inflate = 1 UMETA(DisplayName = "Inflate", SearchHints = "Inflate")
-};
-
 /**
  * 
  */
@@ -33,11 +26,8 @@ class UPCGExClipper2OffsetSettings : public UPCGExClipper2ProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Clipper2Offset, "Clipper2 : Offset", "Does a Clipper2 offset operation with optional dual (inward+outward) offset.", FName(GetDisplayName()));
-	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
+	PCGEX_NODE_INFOS(Clipper2Offset, "Clipper2 : Offset", "Does a Clipper2 offset operation with optional dual (inward+outward) offset.");
 #endif
-
-	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -46,16 +36,12 @@ protected:
 public:
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
-	/**  */
+	/** Number of iterations to apply */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExClipper2OffsetType OffsetType = EPCGExClipper2OffsetType::Offset;
-
-	/** If enabled, generates both positive and negative offsets */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OffsetType == EPCGExClipper2OffsetType::Offset"))
-	bool bDualOffset = false;
-
+	FPCGExInputShorthandNameInteger32Abs Iterations = FPCGExInputShorthandNameInteger32Abs(FName("@Data.Iterations"), 1, false);
+	
 	/** Offset amount */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorDouble Offset = FPCGExInputShorthandSelectorDouble(FName("Offset"), 10, false);
@@ -64,21 +50,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Scale"))
 	double OffsetScale = 1.0;
 
-	/** Number of iterations to apply */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInputShorthandNameInteger32Abs Iterations = FPCGExInputShorthandNameInteger32Abs(FName("@Data.Iterations"), 1, false);
-
 	/** Join type for corners */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExClipper2JoinType JoinType = EPCGExClipper2JoinType::Round;
 
+	/** Miter limit (only used with Miter join type) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Miter limit", ClampMin=1.0))
+	double MiterLimit = 2.0;
+	
+	/** End type for closed paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExClipper2EndType EndTypeClosed = EPCGExClipper2EndType::Polygon;
+	
 	/** End type for open paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExClipper2EndType EndType = EPCGExClipper2EndType::Round;
+	EPCGExClipper2EndType EndTypeOpen = EPCGExClipper2EndType::Round;
 
-	/** Miter limit (only used with Miter join type) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1.0))
-	double MiterLimit = 2.0;
+	
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -107,9 +95,6 @@ public:
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
 	virtual bool SupportOpenMainPaths() const override;
 
-#if WITH_EDITOR
-	FString GetDisplayName() const;
-#endif
 };
 
 struct FPCGExClipper2OffsetContext final : FPCGExClipper2ProcessorContext
