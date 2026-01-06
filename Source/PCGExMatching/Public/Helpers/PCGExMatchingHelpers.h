@@ -22,14 +22,14 @@ struct FPCGExMatchingDetails;
 namespace PCGExMatching::Helpers
 {
 	PCGEXMATCHING_API
-	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties, const FName InPrimaryLabel = NAME_None);
 
 	PCGEXMATCHING_API
 	void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
 	PCGEXMATCHING_API
 	int32 GetMatchingSourcePartitions(
-		TSharedPtr<FDataMatcher>& Matcher,
+		const TSharedPtr<FDataMatcher>& Matcher,
 		const TArray<TSharedPtr<PCGExData::FFacade>>& Facades,
 		TArray<TArray<int32>>& OutPartitions,
 		bool bExclusive,

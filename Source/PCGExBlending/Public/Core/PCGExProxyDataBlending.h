@@ -5,11 +5,16 @@
 
 #include "PCGExOpStats.h"
 #include "PCGExVersion.h"
+#include "Data/PCGExProxyData.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 
 #if PCGEX_ENGINE_VERSION > 506
 #include "PCGPointPropertiesTraits.h"
 #else
+namespace PCGExMT
+{
+	struct FScope;
+}
 #include "PCGCommon.h"
 #endif
 
@@ -42,6 +47,11 @@ namespace PCGExData
 	class IUnionData;
 
 	struct FProxyDescriptor;
+}
+
+namespace PCGExMT
+{
+	struct FScope;
 }
 
 namespace PCGExBlending
@@ -201,7 +211,13 @@ namespace PCGExBlending
 		}
 
 		// Target = SourceA|SourceB
-		void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight);
+		void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight) const;
+
+		// 1:1 Range blending
+		void BlendScope(const PCGExMT::FScope& Scope, const double Weight) const;
+		void BlendScope(const PCGExMT::FScope& Scope, TArrayView<const double> Weights) const;
+		void BlendScope(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask, const double Weight) const;
+		void BlendScope(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask, TArrayView<const double> Weights) const;
 
 		// Multi-blend operations
 		PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex);
@@ -221,7 +237,7 @@ namespace PCGExBlending
 			const TSharedPtr<PCGExData::FFacade> InTargetFacade,
 			const TSharedPtr<PCGExData::FFacade> InSourceFacade,
 			PCGExData::EIOSide InSide,
-			bool bWantsDirectAccess = false);
+			PCGExData::EProxyFlags InProxyFlags = PCGExData::EProxyFlags::None);
 
 		// Type-safe set (converts to working type)
 		//template <typename T>

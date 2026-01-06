@@ -173,9 +173,11 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		// Unsafe read from input
 		virtual const T& Read(const int32 Index) const = 0;
+		virtual const void Read(const int32 Start, TArrayView<T> OutResults) const = 0;
 
 		// Unsafe read from output
 		virtual const T& GetValue(const int32 Index) = 0;
+		virtual const void GetValues(const int32 Start, TArrayView<T> OutResults) = 0;
 
 		// Unsafe read value hash from input
 		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
@@ -255,7 +257,11 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual bool ReadsFromOutput() override;
 
 		virtual const T& Read(const int32 Index) const override;
+		virtual const void Read(const int32 Start, TArrayView<T> OutResults) const override;
+
 		virtual const T& GetValue(const int32 Index) override;
+		virtual const void GetValues(const int32 Start, TArrayView<T> OutResults) override;
+		
 		virtual void SetValue(const int32 Index, const T& Value) override;
 		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
 
@@ -307,7 +313,11 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual bool ReadsFromOutput() override;
 
 		virtual const T& Read(const int32 Index) const override;
+		virtual const void Read(const int32 Start, TArrayView<T> OutResults) const override;
+
 		virtual const T& GetValue(const int32 Index) override;
+		virtual const void GetValues(const int32 Start, TArrayView<T> OutResults) override;
+		
 		virtual void SetValue(const int32 Index, const T& Value) override;
 
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) override;
@@ -336,10 +346,9 @@ extern template class TSingleValueBuffer<_TYPE>;
 		mutable FRWLock BufferLock;
 
 	public:
-
 		TSharedRef<FPointIO> Source;
 		int32 Idx = -1;
-		
+
 		TArray<TSharedPtr<IBuffer>> Buffers;
 		TMap<uint64, TSharedPtr<IBuffer>> BufferMap;
 

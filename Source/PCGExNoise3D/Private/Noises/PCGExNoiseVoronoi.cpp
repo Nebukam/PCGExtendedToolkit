@@ -94,12 +94,9 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryVoronoi::CreateOperation(
 	PCGEX_FACTORY_NEW_OPERATION(NoiseVoronoi)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->OutputMode = Config.OutputType;
 	NewOperation->Jitter = Config.Jitter;
 	NewOperation->Smoothness = Config.Smoothness;
-	NewOperation->bInvert = Config.bInvert;
 	NewOperation->Octaves = 1;
 
 	return NewOperation;

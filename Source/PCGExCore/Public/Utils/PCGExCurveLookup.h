@@ -112,6 +112,20 @@ public:
 		return EvalLUT(InTime);
 	}
 
+	FORCEINLINE void EvalInPlace(TArrayView<double> InTimes) const
+	{
+		const int32 NumSamples = InTimes.Num();
+		if (Mode == EPCGExCurveLUTMode::Direct)
+		{
+			if (CurvePtr) { for (double& InTime : InTimes) { InTime = CurvePtr->Eval(static_cast<float>(InTime)); } }
+			else { for (double& InTime : InTimes) { InTime = 0; } }
+		}
+		else
+		{
+			for (double& InTime : InTimes) { InTime = EvalLUT(InTime); }
+		}
+	}
+
 	FORCEINLINE bool IsValid() const { return CurvePtr != nullptr; }
 	FORCEINLINE bool UsesLUT() const { return Mode != EPCGExCurveLUTMode::Direct && LUT.Num() > 0; }
 	FORCEINLINE float GetMinTime() const { return TimeMin; }

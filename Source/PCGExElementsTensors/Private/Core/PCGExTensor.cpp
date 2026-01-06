@@ -16,6 +16,8 @@ PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FT
 {
 	if (bInvert) { InSample.DirectionAndSize *= -1; }
 
+	if (bScaleDirectionAndSize) { InSample.DirectionAndSize *= Scale; }
+
 	if (bBidirectional)
 	{
 		if (FVector::DotProduct(PCGExMath::GetDirection(InProbe.GetRotation(), BidirectionalAxisReference), InSample.DirectionAndSize.GetSafeNormal()) < 0)
@@ -93,8 +95,10 @@ namespace PCGExTensor
 		PCGExArrayHelpers::InitArray(Rotations, NumEffectors);
 
 		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
-		TConstPCGValueRange<float> InSteepness = InPoints->GetConstSteepnessValueRange();
-
+		
+		TArray<FVector> TempExtents;
+		TempExtents.SetNumUninitialized(NumEffectors);
+		
 		// Pack per-point data
 		PCGEX_PARALLEL_FOR(
 			NumEffectors,
@@ -109,14 +113,21 @@ namespace PCGExTensor
 
 			PCGExData::FConstPoint Point(InPoints, i);
 			FVector Extents = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetExtent();
+			TempExtents[i] = Extents;
 
 			PackedEffector.RadiusSquared = Extents.SquaredLength();
 
 			PrepareSinglePoint(i, Transform, PackedEffector);
-
-			const float Steepness = InSteepness[i];
-			Octree->AddElement(PCGExOctree::FItem(i, FBoxSphereBounds(FBox((2 - Steepness) * (Extents * -1), (2 - Steepness) * Extents).TransformBy(Transform)))); // Fetch to max
 		)
+		
+		// Build octree outside of parallel for :x
+		TConstPCGValueRange<float> InSteepness = InPoints->GetConstSteepnessValueRange();
+		for (int i = 0; i < NumEffectors; i++)
+		{
+			const float Steepness = 2 - InSteepness[i];
+			const FVector& Extents = TempExtents[i];
+			Octree->AddElement(PCGExOctree::FItem(i, FBoxSphereBounds(FBox(Steepness * (-Extents), Steepness * Extents).TransformBy(InTransforms[i])))); // Fetch to max
+		}
 
 		//for (const FPackedEffector& E : PackedEffectors) { MaxEffectorRadius = FMath::Max(MaxEffectorRadius, E.RadiusSquared); }
 		//MaxEffectorRadius = FMath::Sqrt(MaxEffectorRadius);

@@ -39,7 +39,7 @@ namespace PCGExBlending
 
 	// FProxyDataBlender implementation
 
-	void FProxyDataBlender::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight)
+	void FProxyDataBlender::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight) const
 	{
 		if (!Operation || !A || !C) { return; }
 
@@ -51,8 +51,89 @@ namespace PCGExBlending
 		A->GetVoid(SourceIndexA, ValA.GetRaw());
 		B->GetVoid(SourceIndexB, ValB.GetRaw());
 
-		Operation->Blend(ValA.GetRaw(), ValB.GetRaw(), Weight, ValC.GetRaw()); // Blend
-		C->SetVoid(TargetIndex, ValC.GetRaw());                                // Write result
+		Operation->Blend(ValA.GetRaw(), ValB.GetRaw(), Weight, ValC.GetRaw());
+		C->SetVoid(TargetIndex, ValC.GetRaw());
+	}
+
+	void FProxyDataBlender::BlendScope(const PCGExMT::FScope& Scope, const double Weight) const
+	{
+		if (!Operation || !A || !C) { return; }
+
+		// Use FScopedTypedValue for safe working buffers
+		PCGExTypes::FScopedTypedValue ValA(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValB(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValC(UnderlyingType);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			A->GetVoid(Index, ValA.GetRaw());
+			B->GetVoid(Index, ValB.GetRaw());
+
+			Operation->Blend(ValA.GetRaw(), ValB.GetRaw(), Weight, ValC.GetRaw());
+			C->SetVoid(Index, ValC.GetRaw());
+		}
+	}
+
+	void FProxyDataBlender::BlendScope(const PCGExMT::FScope& Scope, TArrayView<const double> Weights) const
+	{
+		if (!Operation || !A || !C) { return; }
+
+		// Use FScopedTypedValue for safe working buffers
+		PCGExTypes::FScopedTypedValue ValA(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValB(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValC(UnderlyingType);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			A->GetVoid(Index, ValA.GetRaw());
+			B->GetVoid(Index, ValB.GetRaw());
+
+			Operation->Blend(ValA.GetRaw(), ValB.GetRaw(), Weights[Index - Scope.Start], ValC.GetRaw());
+			C->SetVoid(Index, ValC.GetRaw());
+		}
+	}
+
+	void FProxyDataBlender::BlendScope(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask, const double Weight) const
+	{
+		if (!Operation || !A || !C) { return; }
+
+		// Use FScopedTypedValue for safe working buffers
+		PCGExTypes::FScopedTypedValue ValA(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValB(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValC(UnderlyingType);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			if (!Mask[Index - Scope.Start]) { continue; }
+
+			A->GetVoid(Index, ValA.GetRaw());
+			B->GetVoid(Index, ValB.GetRaw());
+
+			Operation->Blend(ValA.GetRaw(), ValB.GetRaw(), Weight, ValC.GetRaw());
+			C->SetVoid(Index, ValC.GetRaw());
+		}
+	}
+
+	void FProxyDataBlender::BlendScope(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask, TArrayView<const double> Weights) const
+	{
+		if (!Operation || !A || !C) { return; }
+
+		// Use FScopedTypedValue for safe working buffers
+		PCGExTypes::FScopedTypedValue ValA(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValB(UnderlyingType);
+		PCGExTypes::FScopedTypedValue ValC(UnderlyingType);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const int32 i = Index - Scope.Start;
+			if (!Mask[i]) { continue; }
+
+			A->GetVoid(Index, ValA.GetRaw());
+			B->GetVoid(Index, ValB.GetRaw());
+
+			Operation->Blend(ValA.GetRaw(), ValB.GetRaw(), Weights[i], ValC.GetRaw());
+			C->SetVoid(Index, ValC.GetRaw());
+		}
 	}
 
 	PCGEx::FOpStats FProxyDataBlender::BeginMultiBlend(const int32 TargetIndex)
@@ -137,7 +218,7 @@ namespace PCGExBlending
 		const TSharedPtr<PCGExData::FFacade> InTargetFacade,
 		const TSharedPtr<PCGExData::FFacade> InSourceFacade,
 		const PCGExData::EIOSide InSide,
-		const bool bWantsDirectAccess)
+		const PCGExData::EProxyFlags InProxyFlags)
 	{
 		// Setup proxy descriptors
 		PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade, PCGExData::EProxyRole::Read);
@@ -165,9 +246,9 @@ namespace PCGExBlending
 		Desc_C.Side = PCGExData::EIOSide::Out;
 		Desc_C.Role = PCGExData::EProxyRole::Write;
 
-		Desc_A.bWantsDirect = bWantsDirectAccess;
-		Desc_B.bWantsDirect = bWantsDirectAccess;
-		Desc_C.bWantsDirect = bWantsDirectAccess;
+		Desc_A.AddFlags(InProxyFlags);
+		Desc_B.AddFlags(InProxyFlags);
+		Desc_C.AddFlags(InProxyFlags);
 
 		// Set type info
 		UnderlyingType = Desc_A.WorkingType;

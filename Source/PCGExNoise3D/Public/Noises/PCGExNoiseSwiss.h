@@ -19,9 +19,6 @@ struct FPCGExNoiseConfigSwiss : public FPCGExNoise3DConfigBase
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0001"))
-	double Frequency = 1.0;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "1", ClampMax = "16"))
 	int32 Octaves = 6;
 
@@ -30,9 +27,6 @@ struct FPCGExNoiseConfigSwiss : public FPCGExNoise3DConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0", ClampMax = "1.0"))
 	double Persistence = 0.5;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	int32 Seed = 1337;
 
 	/** How much derivatives affect erosion (0 = standard fBm) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0", ClampMax = "2.0"))

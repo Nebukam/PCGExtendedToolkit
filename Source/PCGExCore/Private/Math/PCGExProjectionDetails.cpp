@@ -250,7 +250,7 @@ void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>
 	)
 }
 
-FTransform FPCGExGeo2DProjectionDetails::Restore(const FTransform& InTransform, const int32 PointIndex) const
+FTransform FPCGExGeo2DProjectionDetails::Unproject(const FTransform& InTransform, const int32 PointIndex) const
 {
 	const FQuat Q = GetQuat(PointIndex);
 
@@ -261,9 +261,19 @@ FTransform FPCGExGeo2DProjectionDetails::Restore(const FTransform& InTransform, 
 	);
 }
 
-void FPCGExGeo2DProjectionDetails::RestoreInPlace(FTransform& InTransform, const int32 PointIndex) const
+FVector FPCGExGeo2DProjectionDetails::Unproject(const FVector& InPosition, const int32 PointIndex) const
+{
+	return GetQuat(PointIndex).RotateVector(InPosition);
+}
+
+void FPCGExGeo2DProjectionDetails::UnprojectInPlace(FTransform& InTransform, const int32 PointIndex) const
 {
 	const FQuat Q = GetQuat(PointIndex);
 	InTransform.SetRotation(Q * InTransform.GetRotation());
 	InTransform.SetLocation(Q.RotateVector(InTransform.GetLocation()));
+}
+
+void FPCGExGeo2DProjectionDetails::UnprojectInPlace(FVector& InPosition, const int32 PointIndex) const
+{
+	InPosition = GetQuat(PointIndex).RotateVector(InPosition);
 }

@@ -138,14 +138,11 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactorySwiss::CreateOperation(FP
 	PCGEX_FACTORY_NEW_OPERATION(NoiseSwiss)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
 	NewOperation->Octaves = Config.Octaves;
 	NewOperation->Lacunarity = Config.Lacunarity;
 	NewOperation->Persistence = Config.Persistence;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->ErosionStrength = Config.ErosionStrength;
 	NewOperation->WarpFactor = Config.WarpFactor;
-	NewOperation->bInvert = Config.bInvert;
 
 	return NewOperation;
 }

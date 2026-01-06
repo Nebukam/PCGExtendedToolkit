@@ -492,7 +492,7 @@ namespace PCGExPathCrossings
 
 		TypedBlender->AddSources(UnionSources, &ProtectedAttributes);
 
-		if (!TypedBlender->Init(Context, PointDataFacade, true))
+		if (!TypedBlender->Init(Context, PointDataFacade, PCGExData::EProxyFlags::Direct))
 		{
 			// TODO : Log error
 			bIsProcessorValid = false;

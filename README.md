@@ -80,5 +80,4 @@ This software is provided under the MIT License. It is freely available for use 
 
 ### Third party & Credits
 - This plugin includes [delaunator-cpp](https://github.com/delfrrr/delaunator-cpp)
-- The `PCGExElementsClipper` module includes a C++ modified port of the [Clipper2](https://github.com/AngusJohnson/Clipper2) (2.0.1) library created by Angus Johnson
-- The `PCGExElementsCavalierContours` module includes a C++ modified port of the [cavalier_contours](https://github.com/jbuckmccready/cavalier_contours) Rust library created by jbuckmccready
+- The `PCGExElementsClipper2` module includes a C++ modified port of the [Clipper2](https://github.com/AngusJohnson/Clipper2) (2.0.1) library created by Angus Johnson

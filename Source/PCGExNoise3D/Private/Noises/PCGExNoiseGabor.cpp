@@ -86,13 +86,10 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryGabor::CreateOperation(FP
 	PCGEX_FACTORY_NEW_OPERATION(NoiseGabor)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
-	NewOperation->Seed = Config.Seed;
 	NewOperation->Direction = Config.Direction.GetSafeNormal();
 	NewOperation->Bandwidth = Config.Bandwidth;
 	NewOperation->ImpulsesPerCell = Config.ImpulsesPerCell;
 	NewOperation->KernelRadius = Config.KernelRadius;
-	NewOperation->bInvert = Config.bInvert;
 	NewOperation->Octaves = 1;
 
 	return NewOperation;

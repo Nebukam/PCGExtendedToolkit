@@ -154,7 +154,21 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 	const T& TArrayBuffer<T>::Read(const int32 Index) const { return *(InValues->GetData() + Index); }
 
 	template <typename T>
+	const void TArrayBuffer<T>::Read(const int32 Start, TArrayView<T> OutResults) const
+	{
+		const int32 Count = OutResults.Num();
+		for (int i = 0; i < Count; i++) { OutResults[i] = *(InValues->GetData() + (Start + i)); }
+	}
+
+	template <typename T>
 	const T& TArrayBuffer<T>::GetValue(const int32 Index) { return *(OutValues->GetData() + Index); }
+
+	template <typename T>
+	const void TArrayBuffer<T>::GetValues(const int32 Start, TArrayView<T> OutResults)
+	{
+		const int32 Count = OutResults.Num();
+		for (int i = 0; i < Count; i++) { OutResults[i] = *(OutValues->GetData() + (Start + i)); }
+	}
 
 	template <typename T>
 	void TArrayBuffer<T>::SetValue(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
@@ -503,10 +517,25 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
+	const void TSingleValueBuffer<T>::Read(const int32 Start, TArrayView<T> OutResults) const
+	{
+		const int32 Count = OutResults.Num();
+		for (int i = 0; i < Count; i++) { OutResults[i] = InValue; }
+	}
+
+	template <typename T>
 	const T& TSingleValueBuffer<T>::GetValue(const int32 Index)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
 		return OutValue;
+	}
+
+	template <typename T>
+	const void TSingleValueBuffer<T>::GetValues(const int32 Start, TArrayView<T> OutResults)
+	{
+		FReadScopeLock ReadScopeLock(BufferLock);
+		const int32 Count = OutResults.Num();
+		for (int i = 0; i < Count; i++) { OutResults[i] = OutValue; }
 	}
 
 	template <typename T>

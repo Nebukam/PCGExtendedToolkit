@@ -205,6 +205,10 @@ public:
 	virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight);
 	virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight);
 
+	virtual void BlendScope(const PCGExMT::FScope& Scope);
+	virtual void BlendScope(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask);
+	virtual void BlendScope(const PCGExMT::FScope& Scope, const double InWeight);
+	
 	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex);
 	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker);
 	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker);

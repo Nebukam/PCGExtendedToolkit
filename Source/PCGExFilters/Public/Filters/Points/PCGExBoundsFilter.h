@@ -20,10 +20,10 @@ namespace PCGExMath::OBB
 UENUM()
 enum class EPCGExBoundsCheckType : uint8
 {
-	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="Point's OBB overlaps target OBBs"),
-	IsInside             = 1 UMETA(DisplayName = "Is Inside", Tooltip="Point center is inside target OBBs"),
-	IsInsideOrOn         = 2 UMETA(DisplayName = "Is Inside or On", Tooltip="Point center is inside or on boundary of target OBBs"),
-	IsInsideOrIntersects = 3 UMETA(DisplayName = "Is Inside or Intersects", Tooltip="Point center inside OR point's OBB overlaps target OBBs."),
+	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="Point's OBB overlaps target OBBs", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Intersects"),
+	IsInside             = 1 UMETA(DisplayName = "Is Inside", Tooltip="Point center is inside target OBBs", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside"),
+	IsInsideOrOn         = 2 UMETA(DisplayName = "Is Inside or On", Tooltip="Point center is inside or on boundary of target OBBs", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside or On"),
+	IsInsideOrIntersects = 3 UMETA(DisplayName = "Is Inside or Intersects", Tooltip="Point center inside OR point's OBB overlaps target OBBs.", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside Intersects"),
 };
 
 UENUM()

@@ -19,12 +19,6 @@ struct FPCGExNoiseConfigCaustic : public FPCGExNoise3DConfigBase
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0001"))
-	double Frequency = 1.0;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	int32 Seed = 1337;
-
 	/** Number of overlapping wave layers */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "1", ClampMax = "8"))
 	int32 WaveLayers = 3;

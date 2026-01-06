@@ -19,12 +19,6 @@ struct FPCGExNoiseConfigGabor : public FPCGExNoise3DConfigBase
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0001"))
-	double Frequency = 1.0;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	int32 Seed = 1337;
-
 	/** Direction of the gabor kernel (will be normalized) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FVector Direction = FVector(1, 0, 0);

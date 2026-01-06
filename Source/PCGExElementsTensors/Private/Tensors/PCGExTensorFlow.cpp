@@ -34,7 +34,6 @@ PCGExTensor::FTensorSample FPCGExTensorFlow::Sample(const int32 InSeedIndex, con
 	};
 
 	Effectors->GetOctree()->FindElementsWithBoundsTest(BCAE, ProcessNeighbor);
-
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 

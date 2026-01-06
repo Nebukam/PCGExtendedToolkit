@@ -132,7 +132,7 @@ namespace PCGExBlending
 			{
 				return false; // FAIL
 			}
-			
+
 			CachedOperations.Add(Op.Get());
 		}
 
@@ -154,6 +154,16 @@ namespace PCGExBlending
 		for (const auto Op : CachedOperations) { Op->Blend(SourceAIndex, SourceBIndex, TargetIndex, InWeight); }
 	}
 
+	void FBlendOpsManager::BlendAutoWeight(const PCGExMT::FScope& Scope) const
+	{
+		for (const auto Op : CachedOperations) { Op->BlendScope(Scope); }
+	}
+
+	void FBlendOpsManager::BlendAutoWeight(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask) const
+	{
+		for (const auto Op : CachedOperations) { Op->BlendScope(Scope, Mask); }
+	}
+
 	void FBlendOpsManager::InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops)
 	{
 		ScopedTrackers = MakeShared<PCGExMT::TScopedArray<PCGEx::FOpStats>>(Loops);
@@ -172,12 +182,12 @@ namespace PCGExBlending
 
 	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		for (const auto Op : CachedOperations) {Trackers[Op->OpIdx] = Op->BeginMultiBlend(TargetIndex); }
+		for (const auto Op : CachedOperations) { Trackers[Op->OpIdx] = Op->BeginMultiBlend(TargetIndex); }
 	}
 
 	void FBlendOpsManager::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		for (const auto Op : CachedOperations) {Op->MultiBlend(SourceIndex, TargetIndex, InWeight, Trackers[Op->OpIdx]); }
+		for (const auto Op : CachedOperations) { Op->MultiBlend(SourceIndex, TargetIndex, InWeight, Trackers[Op->OpIdx]); }
 	}
 
 	void FBlendOpsManager::EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const
@@ -188,7 +198,7 @@ namespace PCGExBlending
 	void FBlendOpsManager::Cleanup(FPCGExContext* InContext)
 	{
 		TSet<TSharedPtr<PCGExData::IBuffer>> DisabledBuffers;
-		for (const auto Op : CachedOperations) {Op->CompleteWork(DisabledBuffers); }
+		for (const auto Op : CachedOperations) { Op->CompleteWork(DisabledBuffers); }
 
 		for (const TSharedPtr<PCGExData::IBuffer>& Buffer : DisabledBuffers)
 		{

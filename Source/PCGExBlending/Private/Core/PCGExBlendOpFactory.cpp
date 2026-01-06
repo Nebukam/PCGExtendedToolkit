@@ -11,6 +11,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "GeometryCollection/Facades/CollectionPositionTargetFacade.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
 #define PCGEX_NAMESPACE CreateAttributeBlend
@@ -72,8 +73,15 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 	// Build main source descriptor
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade, PCGExData::EProxyRole::Read);
-	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
-	if (!A.Capture(InContext, Config.OperandA, A.bIsConstant ? PCGExData::EIOSide::In : SideA)) { return false; }
+	if (A.DataFacade.Pin() != Source_A_Facade)
+	{
+		A.AddFlags(PCGExData::EProxyFlags::Constant);
+		if (!A.Capture(InContext, Config.OperandA, PCGExData::EIOSide::In)) { return false; }
+	}
+	else
+	{
+		if (!A.Capture(InContext, Config.OperandA, SideA)) { return false; }
+	}
 
 	// Build secondary source descriptor
 	bool bSkipSourceB = false;
@@ -87,8 +95,15 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	else
 	{
 		B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade, PCGExData::EProxyRole::Read);
-		B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
-		if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; }
+		if (B.DataFacade.Pin() != Source_B_Facade)
+		{
+			B.AddFlags(PCGExData::EProxyFlags::Constant);
+			if (!B.Capture(InContext, Config.OperandB, PCGExData::EIOSide::In)) { return false; }
+		}
+		else
+		{
+			if (!B.Capture(InContext, Config.OperandB, SideB)) { return false; }
+		}
 	}
 
 	Config.OperandA = A.Selector;
@@ -105,12 +120,13 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	}
 	if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
-		const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGExMetaHelpers::GetAttributeIdentifier(Config.OutputTo, TargetFacade->GetOut()));
-		if (OutAttribute)
+		if (const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGExMetaHelpers::GetAttributeIdentifier(Config.OutputTo, TargetFacade->GetOut())))
 		{
 			RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
 
-			if ((Config.OutputType == EPCGExOperandAuthority::A && RealTypeC != A.RealType) || (Config.OutputType == EPCGExOperandAuthority::B && RealTypeC != B.RealType) || (Config.OutputType == EPCGExOperandAuthority::Custom && RealTypeC != Config.CustomType))
+			if ((Config.OutputType == EPCGExOperandAuthority::A && RealTypeC != A.RealType)
+				|| (Config.OutputType == EPCGExOperandAuthority::B && RealTypeC != B.RealType)
+				|| (Config.OutputType == EPCGExOperandAuthority::Custom && RealTypeC != Config.CustomType))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("An output attribute existing type will differ from its desired type."));
 			}
@@ -213,6 +229,31 @@ void FPCGExBlendOperation::Blend(const int32 SourceIndex, const int32 TargetInde
 void FPCGExBlendOperation::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight)
 {
 	Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreLUT->Eval(InWeight));
+}
+
+void FPCGExBlendOperation::BlendScope(const PCGExMT::FScope& Scope)
+{
+	TArray<double> Weights;
+	Weights.SetNumUninitialized(Scope.Count);
+	Weight->ReadScope(Scope.Start, Weights);
+	Config.Weighting.ScoreLUT->EvalInPlace(Weights);
+
+	Blender->BlendScope(Scope, Weights);
+}
+
+void FPCGExBlendOperation::BlendScope(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask)
+{
+	TArray<double> Weights;
+	Weights.SetNumUninitialized(Scope.Count);
+	Weight->ReadScope(Scope.Start, Weights);
+	Config.Weighting.ScoreLUT->EvalInPlace(Weights);
+	
+	Blender->BlendScope(Scope, Mask, Weights);
+}
+
+void FPCGExBlendOperation::BlendScope(const PCGExMT::FScope& Scope, const double InWeight)
+{
+	Blender->BlendScope(Scope, Config.Weighting.ScoreLUT->Eval(InWeight));
 }
 
 PCGEx::FOpStats FPCGExBlendOperation::BeginMultiBlend(const int32 TargetIndex)

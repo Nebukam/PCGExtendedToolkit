@@ -23,9 +23,6 @@ TSharedPtr<FPCGExNoise3DOperation> UPCGExNoise3DFactoryWhite::CreateOperation(FP
 	PCGEX_FACTORY_NEW_OPERATION(NoiseWhite)
 	PCGEX_FORWARD_NOISE3D_CONFIG
 
-	NewOperation->Frequency = Config.Frequency;
-	NewOperation->Seed = Config.Seed;
-	NewOperation->bInvert = Config.bInvert;
 	NewOperation->Octaves = 1; // White noise doesn't use octaves
 
 	return NewOperation;

@@ -11,15 +11,11 @@
 
 namespace PCGExNoise3D
 {
-	bool FNoiseGenerator::Init(FPCGExContext* InContext, const bool bThrowError)
+	bool FNoiseGenerator::Init(FPCGExContext* InContext, const FName SourceLabel, bool bThrowError)
 	{
 		TArray<TObjectPtr<const UPCGExNoise3DFactoryData>> Factories;
-		if (!PCGExFactories::GetInputFactories(InContext, PCGExNoise3D::Labels::SourceNoise3DLabel, Factories, {PCGExFactories::EType::Noise3D}))
+		if (!PCGExFactories::GetInputFactories(InContext, SourceLabel, Factories, {PCGExFactories::EType::Noise3D}, bThrowError))
 		{
-			if (bThrowError)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No noise factories found"));
-			}
 			return false;
 		}
 
@@ -28,6 +24,7 @@ namespace PCGExNoise3D
 		OperationsPtr.Reserve(Num);
 		Weights.Reserve(Num);
 		BlendModes.Reserve(Num);
+		BlendFactors.Reserve(Num);
 		TotalWeight = 0.0;
 
 		for (const TObjectPtr<const UPCGExNoise3DFactoryData>& Factory : Factories)
@@ -35,66 +32,77 @@ namespace PCGExNoise3D
 			TSharedPtr<FPCGExNoise3DOperation> Operation = Factory->CreateOperation(InContext);
 			if (!Operation) { continue; }
 
-			const double Weight = FMath::Max(0.0, Factory->ConfigBase.WeightFactor);
+			const double Weight = FMath::Max(SMALL_NUMBER, Factory->ConfigBase.WeightFactor);
+			TotalWeight += Weight;
 
 			Operations.Add(Operation);
 			OperationsPtr.Add(Operation.Get());
 			Weights.Add(Weight);
 			BlendModes.Add(Operation->BlendMode);
-			TotalWeight += Weight;
-		}
 
-		InvTotalWeight = TotalWeight > SMALL_NUMBER ? 1.0 / TotalWeight : 1.0;
+			// Precompute blend factor: this operation's weight relative to accumulated total
+			BlendFactors.Add(Weight / TotalWeight);
+		}
 
 		return Operations.Num() > 0;
 	}
 
-	//
-	// Blend helpers
-	//
-
-	FORCEINLINE double FNoiseGenerator::BlendValues(const EPCGExNoiseBlendMode BlendMode, const double A, const double B, const double WeightA, const double WeightB) const
+	bool FNoiseGenerator::Init(FPCGExContext* InContext, const bool bThrowError)
 	{
-		// Normalize to [0,1] for blend operations that expect it
-		const double An = A * 0.5 + 0.5;
-		const double Bn = B * 0.5 + 0.5 * WeightB;
-		double Result;
+		return Init(InContext, PCGExNoise3D::Labels::SourceNoise3DLabel, bThrowError);
+	}
 
+	//
+	// Single-value blend implementation
+	//
+
+	FORCEINLINE double FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const double A, const double B, const double BlendFactor) const
+	{
 		switch (BlendMode)
 		{
 		case EPCGExNoiseBlendMode::Blend:
-			Result = (A * WeightA + B * WeightB) * InvTotalWeight;
-			return Result;
+			// Most common case - simple weighted lerp, no normalization needed
+			return A + (B - A) * BlendFactor;
 
 		case EPCGExNoiseBlendMode::Add:
-			Result = FMath::Clamp(A + B * WeightB, -1.0, 1.0);
-			return Result;
-
-		case EPCGExNoiseBlendMode::Multiply:
-			Result = An * Bn;
-			return Result * 2.0 - 1.0;
-
-		case EPCGExNoiseBlendMode::Min:
-			return FMath::Min(A, B);
-
-		case EPCGExNoiseBlendMode::Max:
-			return FMath::Max(A, B);
+			return FMath::Lerp(A, FMath::Clamp(A + B, -1.0, 1.0), BlendFactor);
 
 		case EPCGExNoiseBlendMode::Subtract:
-			Result = FMath::Clamp(A - B * WeightB, -1.0, 1.0);
-			return Result;
+			return FMath::Lerp(A, FMath::Clamp(A - B, -1.0, 1.0), BlendFactor);
+
+		case EPCGExNoiseBlendMode::Multiply:
+			{
+				const double An = A * 0.5 + 0.5;
+				const double Bn = B * 0.5 + 0.5;
+				return FMath::Lerp(A, (An * Bn) * 2.0 - 1.0, BlendFactor);
+			}
+
+		case EPCGExNoiseBlendMode::Min:
+			return FMath::Lerp(A, FMath::Min(A, B), BlendFactor);
+
+		case EPCGExNoiseBlendMode::Max:
+			return FMath::Lerp(A, FMath::Max(A, B), BlendFactor);
 
 		case EPCGExNoiseBlendMode::Screen:
-			Result = ScreenBlend(An, Bn);
-			return Result * 2.0 - 1.0;
+			{
+				const double An = A * 0.5 + 0.5;
+				const double Bn = B * 0.5 + 0.5;
+				return FMath::Lerp(A, ScreenBlend(An, Bn) * 2.0 - 1.0, BlendFactor);
+			}
 
 		case EPCGExNoiseBlendMode::Overlay:
-			Result = OverlayBlend(An, Bn);
-			return Result * 2.0 - 1.0;
+			{
+				const double An = A * 0.5 + 0.5;
+				const double Bn = B * 0.5 + 0.5;
+				return FMath::Lerp(A, OverlayBlend(An, Bn) * 2.0 - 1.0, BlendFactor);
+			}
 
 		case EPCGExNoiseBlendMode::SoftLight:
-			Result = SoftLightBlend(An, Bn);
-			return Result * 2.0 - 1.0;
+			{
+				const double An = A * 0.5 + 0.5;
+				const double Bn = B * 0.5 + 0.5;
+				return FMath::Lerp(A, SoftLightBlend(An, Bn) * 2.0 - 1.0, BlendFactor);
+			}
 
 		case EPCGExNoiseBlendMode::First:
 			return FMath::Abs(A) > SMALL_NUMBER ? A : B;
@@ -104,31 +112,235 @@ namespace PCGExNoise3D
 		}
 	}
 
-	FORCEINLINE FVector2D FNoiseGenerator::BlendValues(const EPCGExNoiseBlendMode BlendMode, const FVector2D& A, const FVector2D& B, const double WeightA, const double WeightB) const
+	FORCEINLINE FVector2D FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector2D& A, const FVector2D& B, const double BlendFactor) const
 	{
 		return FVector2D(
-			BlendValues(BlendMode, A.X, B.X, WeightA, WeightB),
-			BlendValues(BlendMode, A.Y, B.Y, WeightA, WeightB)
+			BlendSingle(BlendMode, A.X, B.X, BlendFactor),
+			BlendSingle(BlendMode, A.Y, B.Y, BlendFactor)
 		);
 	}
 
-	FORCEINLINE FVector FNoiseGenerator::BlendValues(const EPCGExNoiseBlendMode BlendMode, const FVector& A, const FVector& B, const double WeightA, const double WeightB) const
+	FORCEINLINE FVector FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector& A, const FVector& B, const double BlendFactor) const
 	{
 		return FVector(
-			BlendValues(BlendMode, A.X, B.X, WeightA, WeightB),
-			BlendValues(BlendMode, A.Y, B.Y, WeightA, WeightB),
-			BlendValues(BlendMode, A.Z, B.Z, WeightA, WeightB)
+			BlendSingle(BlendMode, A.X, B.X, BlendFactor),
+			BlendSingle(BlendMode, A.Y, B.Y, BlendFactor),
+			BlendSingle(BlendMode, A.Z, B.Z, BlendFactor)
 		);
 	}
 
-	FORCEINLINE FVector4 FNoiseGenerator::BlendValues(const EPCGExNoiseBlendMode BlendMode, const FVector4& A, const FVector4& B, const double WeightA, const double WeightB) const
+	FORCEINLINE FVector4 FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector4& A, const FVector4& B, const double BlendFactor) const
 	{
 		return FVector4(
-			BlendValues(BlendMode, A.X, B.X, WeightA, WeightB),
-			BlendValues(BlendMode, A.Y, B.Y, WeightA, WeightB),
-			BlendValues(BlendMode, A.Z, B.Z, WeightA, WeightB),
-			BlendValues(BlendMode, A.W, B.W, WeightA, WeightB)
+			BlendSingle(BlendMode, A.X, B.X, BlendFactor),
+			BlendSingle(BlendMode, A.Y, B.Y, BlendFactor),
+			BlendSingle(BlendMode, A.Z, B.Z, BlendFactor),
+			BlendSingle(BlendMode, A.W, B.W, BlendFactor)
 		);
+	}
+
+	//
+	// Batch blend - switch OUTSIDE the inner loop for better branch prediction
+	//
+
+	void FNoiseGenerator::BlendBatch(const EPCGExNoiseBlendMode BlendMode, double* RESTRICT Out, const double* RESTRICT In, const int32 Count, const double BlendFactor) const
+	{
+		switch (BlendMode)
+		{
+		case EPCGExNoiseBlendMode::Blend:
+			// Hot path - most common blend mode, no normalization needed
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = Out[i] + (In[i] - Out[i]) * BlendFactor;
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Add:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = FMath::Lerp(Out[i], FMath::Clamp(Out[i] + In[i], -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Subtract:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = FMath::Lerp(Out[i], FMath::Clamp(Out[i] - In[i], -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Multiply:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				const double An = Out[i] * 0.5 + 0.5;
+				const double Bn = In[i] * 0.5 + 0.5;
+				Out[i] = FMath::Lerp(Out[i], (An * Bn) * 2.0 - 1.0, BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Min:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = FMath::Lerp(Out[i], FMath::Min(Out[i], In[i]), BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Max:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = FMath::Lerp(Out[i], FMath::Max(Out[i], In[i]), BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Screen:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				const double An = Out[i] * 0.5 + 0.5;
+				const double Bn = In[i] * 0.5 + 0.5;
+				Out[i] = FMath::Lerp(Out[i], ScreenBlend(An, Bn) * 2.0 - 1.0, BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Overlay:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				const double An = Out[i] * 0.5 + 0.5;
+				const double Bn = In[i] * 0.5 + 0.5;
+				Out[i] = FMath::Lerp(Out[i], OverlayBlend(An, Bn) * 2.0 - 1.0, BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::SoftLight:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				const double An = Out[i] * 0.5 + 0.5;
+				const double Bn = In[i] * 0.5 + 0.5;
+				Out[i] = FMath::Lerp(Out[i], SoftLightBlend(An, Bn) * 2.0 - 1.0, BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::First:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				if (FMath::Abs(Out[i]) <= SMALL_NUMBER) { Out[i] = In[i]; }
+			}
+			break;
+		}
+	}
+
+	void FNoiseGenerator::BlendBatch(const EPCGExNoiseBlendMode BlendMode, FVector2D* RESTRICT Out, const FVector2D* RESTRICT In, const int32 Count, const double BlendFactor) const
+	{
+		switch (BlendMode)
+		{
+		case EPCGExNoiseBlendMode::Blend:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = Out[i] + (In[i] - Out[i]) * BlendFactor;
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Add:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i].X = FMath::Lerp(Out[i].X, FMath::Clamp(Out[i].X + In[i].X, -1.0, 1.0), BlendFactor);
+				Out[i].Y = FMath::Lerp(Out[i].Y, FMath::Clamp(Out[i].Y + In[i].Y, -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Subtract:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i].X = FMath::Lerp(Out[i].X, FMath::Clamp(Out[i].X - In[i].X, -1.0, 1.0), BlendFactor);
+				Out[i].Y = FMath::Lerp(Out[i].Y, FMath::Clamp(Out[i].Y - In[i].Y, -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		default:
+			// Fall back to per-element for complex blend modes
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = BlendSingle(BlendMode, Out[i], In[i], BlendFactor);
+			}
+			break;
+		}
+	}
+
+	void FNoiseGenerator::BlendBatch(const EPCGExNoiseBlendMode BlendMode, FVector* RESTRICT Out, const FVector* RESTRICT In, const int32 Count, const double BlendFactor) const
+	{
+		switch (BlendMode)
+		{
+		case EPCGExNoiseBlendMode::Blend:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = Out[i] + (In[i] - Out[i]) * BlendFactor;
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Add:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i].X = FMath::Lerp(Out[i].X, FMath::Clamp(Out[i].X + In[i].X, -1.0, 1.0), BlendFactor);
+				Out[i].Y = FMath::Lerp(Out[i].Y, FMath::Clamp(Out[i].Y + In[i].Y, -1.0, 1.0), BlendFactor);
+				Out[i].Z = FMath::Lerp(Out[i].Z, FMath::Clamp(Out[i].Z + In[i].Z, -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Subtract:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i].X = FMath::Lerp(Out[i].X, FMath::Clamp(Out[i].X - In[i].X, -1.0, 1.0), BlendFactor);
+				Out[i].Y = FMath::Lerp(Out[i].Y, FMath::Clamp(Out[i].Y - In[i].Y, -1.0, 1.0), BlendFactor);
+				Out[i].Z = FMath::Lerp(Out[i].Z, FMath::Clamp(Out[i].Z - In[i].Z, -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		default:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = BlendSingle(BlendMode, Out[i], In[i], BlendFactor);
+			}
+			break;
+		}
+	}
+
+	void FNoiseGenerator::BlendBatch(const EPCGExNoiseBlendMode BlendMode, FVector4* RESTRICT Out, const FVector4* RESTRICT In, const int32 Count, const double BlendFactor) const
+	{
+		switch (BlendMode)
+		{
+		case EPCGExNoiseBlendMode::Blend:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = Out[i] + (In[i] - Out[i]) * BlendFactor;
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Add:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i].X = FMath::Lerp(Out[i].X, FMath::Clamp(Out[i].X + In[i].X, -1.0, 1.0), BlendFactor);
+				Out[i].Y = FMath::Lerp(Out[i].Y, FMath::Clamp(Out[i].Y + In[i].Y, -1.0, 1.0), BlendFactor);
+				Out[i].Z = FMath::Lerp(Out[i].Z, FMath::Clamp(Out[i].Z + In[i].Z, -1.0, 1.0), BlendFactor);
+				Out[i].W = FMath::Lerp(Out[i].W, FMath::Clamp(Out[i].W + In[i].W, -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		case EPCGExNoiseBlendMode::Subtract:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i].X = FMath::Lerp(Out[i].X, FMath::Clamp(Out[i].X - In[i].X, -1.0, 1.0), BlendFactor);
+				Out[i].Y = FMath::Lerp(Out[i].Y, FMath::Clamp(Out[i].Y - In[i].Y, -1.0, 1.0), BlendFactor);
+				Out[i].Z = FMath::Lerp(Out[i].Z, FMath::Clamp(Out[i].Z - In[i].Z, -1.0, 1.0), BlendFactor);
+				Out[i].W = FMath::Lerp(Out[i].W, FMath::Clamp(Out[i].W - In[i].W, -1.0, 1.0), BlendFactor);
+			}
+			break;
+
+		default:
+			for (int32 i = 0; i < Count; ++i)
+			{
+				Out[i] = BlendSingle(BlendMode, Out[i], In[i], BlendFactor);
+			}
+			break;
+		}
 	}
 
 	//
@@ -140,13 +352,11 @@ namespace PCGExNoise3D
 		if (Operations.IsEmpty()) { return 0.0; }
 
 		double Result = OperationsPtr[0]->GetDouble(Position);
-		double AccumWeight = Weights[0];
 
 		for (int32 i = 1; i < Operations.Num(); ++i)
 		{
 			const double Value = OperationsPtr[i]->GetDouble(Position);
-			Result = BlendValues(BlendModes[i], Result, Value, AccumWeight, Weights[i]);
-			AccumWeight += Weights[i];
+			Result = BlendSingle(BlendModes[i], Result, Value, BlendFactors[i]);
 		}
 
 		return Result;
@@ -157,13 +367,11 @@ namespace PCGExNoise3D
 		if (Operations.IsEmpty()) { return FVector2D::ZeroVector; }
 
 		FVector2D Result = OperationsPtr[0]->GetVector2D(Position);
-		double AccumWeight = Weights[0];
 
 		for (int32 i = 1; i < Operations.Num(); ++i)
 		{
 			const FVector2D Value = OperationsPtr[i]->GetVector2D(Position);
-			Result = BlendValues(BlendModes[i], Result, Value, AccumWeight, Weights[i]);
-			AccumWeight += Weights[i];
+			Result = BlendSingle(BlendModes[i], Result, Value, BlendFactors[i]);
 		}
 
 		return Result;
@@ -174,13 +382,11 @@ namespace PCGExNoise3D
 		if (Operations.IsEmpty()) { return FVector::ZeroVector; }
 
 		FVector Result = OperationsPtr[0]->GetVector(Position);
-		double AccumWeight = Weights[0];
 
 		for (int32 i = 1; i < Operations.Num(); ++i)
 		{
 			const FVector Value = OperationsPtr[i]->GetVector(Position);
-			Result = BlendValues(BlendModes[i], Result, Value, AccumWeight, Weights[i]);
-			AccumWeight += Weights[i];
+			Result = BlendSingle(BlendModes[i], Result, Value, BlendFactors[i]);
 		}
 
 		return Result;
@@ -191,13 +397,11 @@ namespace PCGExNoise3D
 		if (Operations.IsEmpty()) { return FVector4::Zero(); }
 
 		FVector4 Result = OperationsPtr[0]->GetVector4(Position);
-		double AccumWeight = Weights[0];
 
 		for (int32 i = 1; i < Operations.Num(); ++i)
 		{
 			const FVector4 Value = OperationsPtr[i]->GetVector4(Position);
-			Result = BlendValues(BlendModes[i], Result, Value, AccumWeight, Weights[i]);
-			AccumWeight += Weights[i];
+			Result = BlendSingle(BlendModes[i], Result, Value, BlendFactors[i]);
 		}
 
 		return Result;
@@ -209,6 +413,8 @@ namespace PCGExNoise3D
 
 	void FNoiseGenerator::Generate(const TArrayView<const FVector> Positions, TArrayView<double> OutResults) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FNoiseGenerator::GenerateDouble);
+
 		check(Positions.Num() == OutResults.Num());
 
 		if (Operations.IsEmpty())
@@ -232,25 +438,19 @@ namespace PCGExNoise3D
 
 		// First operation
 		OperationsPtr[0]->Generate(Positions, OutResults);
-		double AccumWeight = Weights[0];
 
-		// Blend subsequent operations
+		// Blend subsequent operations - switch is outside inner loop
 		for (int32 OpIdx = 1; OpIdx < Operations.Num(); ++OpIdx)
 		{
 			OperationsPtr[OpIdx]->Generate(Positions, TempBuffer);
-			const double OpWeight = Weights[OpIdx];
-			const EPCGExNoiseBlendMode BlendMode = BlendModes[OpIdx];
-
-			for (int32 i = 0; i < Count; ++i)
-			{
-				OutResults[i] = BlendValues(BlendMode, OutResults[i], TempBuffer[i], AccumWeight, OpWeight);
-			}
-			AccumWeight += OpWeight;
+			BlendBatch(BlendModes[OpIdx], OutResults.GetData(), TempBuffer.GetData(), Count, BlendFactors[OpIdx]);
 		}
 	}
 
 	void FNoiseGenerator::Generate(const TArrayView<const FVector> Positions, TArrayView<FVector2D> OutResults) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FNoiseGenerator::GenerateVector2);
+
 		check(Positions.Num() == OutResults.Num());
 
 		if (Operations.IsEmpty())
@@ -271,24 +471,18 @@ namespace PCGExNoise3D
 		TempBuffer.SetNumUninitialized(Count);
 
 		OperationsPtr[0]->Generate(Positions, OutResults);
-		double AccumWeight = Weights[0];
 
 		for (int32 OpIdx = 1; OpIdx < Operations.Num(); ++OpIdx)
 		{
 			OperationsPtr[OpIdx]->Generate(Positions, TempBuffer);
-			const double OpWeight = Weights[OpIdx];
-			const EPCGExNoiseBlendMode BlendMode = BlendModes[OpIdx];
-
-			for (int32 i = 0; i < Count; ++i)
-			{
-				OutResults[i] = BlendValues(BlendMode, OutResults[i], TempBuffer[i], AccumWeight, OpWeight);
-			}
-			AccumWeight += OpWeight;
+			BlendBatch(BlendModes[OpIdx], OutResults.GetData(), TempBuffer.GetData(), Count, BlendFactors[OpIdx]);
 		}
 	}
 
 	void FNoiseGenerator::Generate(const TArrayView<const FVector> Positions, TArrayView<FVector> OutResults) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FNoiseGenerator::GenerateVector);
+
 		check(Positions.Num() == OutResults.Num());
 
 		if (Operations.IsEmpty())
@@ -309,24 +503,18 @@ namespace PCGExNoise3D
 		TempBuffer.SetNumUninitialized(Count);
 
 		OperationsPtr[0]->Generate(Positions, OutResults);
-		double AccumWeight = Weights[0];
 
 		for (int32 OpIdx = 1; OpIdx < Operations.Num(); ++OpIdx)
 		{
 			OperationsPtr[OpIdx]->Generate(Positions, TempBuffer);
-			const double OpWeight = Weights[OpIdx];
-			const EPCGExNoiseBlendMode BlendMode = BlendModes[OpIdx];
-
-			for (int32 i = 0; i < Count; ++i)
-			{
-				OutResults[i] = BlendValues(BlendMode, OutResults[i], TempBuffer[i], AccumWeight, OpWeight);
-			}
-			AccumWeight += OpWeight;
+			BlendBatch(BlendModes[OpIdx], OutResults.GetData(), TempBuffer.GetData(), Count, BlendFactors[OpIdx]);
 		}
 	}
 
 	void FNoiseGenerator::Generate(const TArrayView<const FVector> Positions, TArrayView<FVector4> OutResults) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FNoiseGenerator::GenerateVector4);
+
 		check(Positions.Num() == OutResults.Num());
 
 		if (Operations.IsEmpty())
@@ -347,19 +535,11 @@ namespace PCGExNoise3D
 		TempBuffer.SetNumUninitialized(Count);
 
 		OperationsPtr[0]->Generate(Positions, OutResults);
-		double AccumWeight = Weights[0];
 
 		for (int32 OpIdx = 1; OpIdx < Operations.Num(); ++OpIdx)
 		{
 			OperationsPtr[OpIdx]->Generate(Positions, TempBuffer);
-			const double OpWeight = Weights[OpIdx];
-			const EPCGExNoiseBlendMode BlendMode = BlendModes[OpIdx];
-
-			for (int32 i = 0; i < Count; ++i)
-			{
-				OutResults[i] = BlendValues(BlendMode, OutResults[i], TempBuffer[i], AccumWeight, OpWeight);
-			}
-			AccumWeight += OpWeight;
+			BlendBatch(BlendModes[OpIdx], OutResults.GetData(), TempBuffer.GetData(), Count, BlendFactors[OpIdx]);
 		}
 	}
 

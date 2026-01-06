@@ -78,6 +78,9 @@ void FPCGExtendedToolkitModule::StartupModule()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Probe, "PCGEx Probe");
 	PCGEX_MAP_PIN_OUT("Probe")
+	
+	PCGEX_EMPLACE_PIN_OUT(OUT_Noise3D, "PCGEx Noise");
+	PCGEX_MAP_PIN_OUT("Noise")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_SortRule, "PCGEx Sort Rule");
 	PCGEX_MAP_PIN_OUT("SortRule")
@@ -222,6 +225,10 @@ void FPCGExtendedToolkitModule::StartupModule()
 
 	PCGEX_EMPLACE_PIN_IN(IN_FillControl, "PCGEx Fill Controls, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Fill Controls")
+	
+	PCGEX_EMPLACE_PIN_IN(IN_Noise3D, "PCGEx Noises, supports multiple inputs.");
+	PCGEX_MAP_PIN_IN("Noises")
+	PCGEX_MAP_PIN_IN("Masks")
 
 	PCGEX_EMPLACE_PIN_IN(IN_MatchRule, "PCGEx Data Match Rules, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Match Rules")

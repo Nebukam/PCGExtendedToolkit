@@ -129,6 +129,12 @@ namespace PCGExConnectPoints
 			else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 		}
 
+		CanGenerate.SetNumUninitialized(NumPoints);
+		AcceptConnections.SetNumUninitialized(NumPoints);
+
+		PCGExArrayHelpers::InitArray(WorkingTransforms, NumPoints);
+		PCGExArrayHelpers::InitArray(WorkingPositions, NumPoints);
+		
 		AllOperations.Reserve(Context->ProbeFactories.Num());
 
 		for (const UPCGExProbeFactoryData* Factory : Context->ProbeFactories)
@@ -137,6 +143,11 @@ namespace PCGExConnectPoints
 			NewOperation->BindContext(ExecutionContext);
 			NewOperation->PrimaryDataFacade = PointDataFacade;
 
+			NewOperation->WorkingTransforms = &WorkingTransforms;
+			NewOperation->WorkingPositions = &WorkingPositions;
+			NewOperation->CanGenerate = &CanGenerate;
+			NewOperation->AcceptConnections = &AcceptConnections;
+			
 			if (!NewOperation->Prepare(Context)) { continue; }
 
 			AllOperations.Add(NewOperation);
@@ -178,20 +189,6 @@ namespace PCGExConnectPoints
 
 		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New)) { return false; }
 		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-
-		CanGenerate.SetNumUninitialized(NumPoints);
-		AcceptConnections.SetNumUninitialized(NumPoints);
-
-		PCGExArrayHelpers::InitArray(WorkingTransforms, NumPoints);
-		PCGExArrayHelpers::InitArray(WorkingPositions, NumPoints);
-
-		for (const TSharedPtr<FPCGExProbeOperation>& Op : AllOperations)
-		{
-			Op->WorkingTransforms = &WorkingTransforms;
-			Op->WorkingPositions = &WorkingPositions;
-			Op->CanGenerate = &CanGenerate;
-			Op->AcceptConnections = &AcceptConnections;
-		}
 
 		if (!Context->GeneratorsFiltersFactories.IsEmpty())
 		{
@@ -346,7 +343,6 @@ namespace PCGExConnectPoints
 		TArray<PCGExProbing::FCandidate> Candidates;
 		TArray<PCGExProbing::FBestCandidate> BestCandidates;
 
-		FTransform CandidateTransform = FTransform::Identity;
 		FVector Origin = FVector::ZeroVector;
 		int32 CurrentIndex = 0;
 

@@ -40,12 +40,17 @@ public:
 	/** Whether to invert output */
 	bool bInvert = false;
 
-	/** Whether or not this operation want transformed inputs */
+	/** Contrast adjustment (1.0 = no change, >1 = more contrast, <1 = less) */
+	double Contrast = 1.0;
+
+	/** Contrast curve type */
+	EPCGExContrastCurve ContrastCurve = EPCGExContrastCurve::Power;
+
+	/** Whether or not this operation wants transformed inputs */
 	bool bApplyTransform = false;
 	
 	/** Transform applied to inputs */
 	FTransform Transform = FTransform::Identity;
-	
 	
 	EPCGExNoiseBlendMode BlendMode = EPCGExNoiseBlendMode::Blend;
 
@@ -114,15 +119,10 @@ protected:
 	virtual double GenerateRaw(const FVector& Position) const { return 0.0; }
 
 	/**
-	 * Apply remapping and inversion
+	 * Apply post-processing: invert, remap curve, contrast
+	 * Order: Invert → RemapCurve → Contrast
 	 */
-	FORCEINLINE double ApplyRemap(double Value) const
-	{
-		if (bInvert) { Value = -Value; }
-		if (RemapLUT) { Value = RemapLUT->Eval(Value * 0.5 + 0.5) * 2.0 - 1.0; }
-		return Value;
-	}
-	
+	FORCEINLINE double ApplyRemap(double Value) const;
 
 	/**
 	 * Generate fractal noise with configured octaves

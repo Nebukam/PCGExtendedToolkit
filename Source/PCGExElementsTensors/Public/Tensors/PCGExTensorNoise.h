@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/PCGExNoise3DCommon.h"
 #include "Core/PCGExTensor.h"
 #include "Core/PCGExTensorFactoryProvider.h"
 #include "Core/PCGExTensorOperation.h"
@@ -25,6 +24,10 @@ struct FPCGExTensorNoiseConfig : public FPCGExTensorConfigBase
 		: FPCGExTensorConfigBase()
 	{
 	}
+	
+	/** If enabled normalize the sampled noise direction. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bNormalizeNoiseSampling = true;
 };
 
 /**
@@ -33,8 +36,9 @@ struct FPCGExTensorNoiseConfig : public FPCGExTensorConfigBase
 class FPCGExTensorNoise : public PCGExTensorOperation
 {
 public:
-	FPCGExTensorNoiseConfig Config;
+	FPCGExTensorNoiseConfig Config;	
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
+	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
 	
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
@@ -50,11 +54,9 @@ class UPCGExTensorNoiseFactory : public UPCGExTensorFactoryData
 public:
 	UPROPERTY()
 	FPCGExTensorNoiseConfig Config;
-
-	UPROPERTY()
-	FVector Noise = FVector::OneVector;
 	
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
+	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
 
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
@@ -70,7 +72,7 @@ class UPCGExCreateTensorNoiseSettings : public UPCGExTensorFactoryProviderSettin
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TensorNoise, "Tensor : Noise", "A tensor that has a constant value in the field. Note that this tensor will prevent sampling from failing.")
+	PCGEX_NODE_INFOS(TensorNoise, "Tensor : Noise", "A tensor that uses 3D noises as direction.")
 
 #endif
 	//~End UPCGSettings
@@ -87,11 +89,15 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Potency = 1;
-
+	
+	/** If enabled normalize the sampled noise direction. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bNormalizeNoiseSampling = true;
+	
 	/** Tensor mutations settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Sampling Mutations"))
 	FPCGExTensorSamplingMutationsDetails Mutations;
-
+		
 	/** Tensor properties */
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	FPCGExTensorNoiseConfig Config;

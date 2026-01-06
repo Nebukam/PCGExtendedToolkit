@@ -34,6 +34,23 @@ double FPCGExNoise3DOperation::GenerateFractal(const FVector& Position) const
 	return Sum * FractalBounding;
 }
 
+FORCEINLINE double FPCGExNoise3DOperation::ApplyRemap(double Value) const
+{
+	// Step 1: Invert
+	if (bInvert) { Value = -Value; }
+	
+	// Step 2: Remap curve
+	if (RemapLUT) { Value = RemapLUT->Eval(Value * 0.5 + 0.5) * 2.0 - 1.0; }
+	
+	// Step 3: Contrast
+	if (!FMath::IsNearlyEqual(Contrast, 1.0, SMALL_NUMBER))
+	{
+		Value = PCGExNoise3D::Math::ApplyContrast(Value, Contrast, static_cast<int32>(ContrastCurve));
+	}
+	
+	return Value;
+}
+
 double FPCGExNoise3DOperation::GetDouble(const FVector& Position) const
 {
 	return ApplyRemap(GenerateFractal(TransformPosition(Position)));

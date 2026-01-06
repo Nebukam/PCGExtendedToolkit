@@ -58,7 +58,14 @@ namespace PCGExMatching
 		MatchMode = Details->Mode;
 	}
 
-	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InMatchableSources, const TArray<TSharedPtr<PCGExData::FTags>>& InTags, const bool bThrowError)
+
+#define PCGEX_MATCH_SOURCE_LABEL InSourceLabel.IsNone() ? Labels::SourceMatchRulesLabel : InSourceLabel
+
+	bool FDataMatcher::Init(
+		FPCGExContext* InContext,
+		const TArray<const UPCGData*>& InMatchableSources,
+		const TArray<TSharedPtr<PCGExData::FTags>>& InTags,
+		const bool bThrowError, const FName InFactoriesLabel)
 	{
 		check(Details)
 
@@ -66,32 +73,41 @@ namespace PCGExMatching
 
 		MatchableSources->Reserve(InMatchableSources.Num());
 		for (int i = 0; i < InMatchableSources.Num(); i++) { RegisterTaggedData(InContext, FPCGExTaggedData(InMatchableSources[i], i, InTags[i], nullptr)); }
-		return InitInternal(InContext, Labels::SourceMatchRulesLabel);
+		return InitInternal(InContext, InFactoriesLabel);
 	}
 
-	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InMatchableSources, const bool bThrowError)
+	bool FDataMatcher::Init(
+		FPCGExContext* InContext,
+		const TArray<TSharedRef<PCGExData::FFacade>>& InMatchableSources,
+		const bool bThrowError, const FName InFactoriesLabel)
 	{
 		check(Details)
 
 		MatchableSources->Reserve(InMatchableSources.Num());
 
 		for (int i = 0; i < InMatchableSources.Num(); i++) { RegisterTaggedData(InContext, InMatchableSources[i]->Source->GetTaggedData(PCGExData::EIOSide::In, i)); }
-		return InitInternal(InContext, Labels::SourceMatchRulesLabel);
+		return InitInternal(InContext, InFactoriesLabel);
 	}
 
-	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InMatchableSources, const bool bThrowError)
+	bool FDataMatcher::Init(
+		FPCGExContext* InContext,
+		const TArray<TSharedPtr<PCGExData::FFacade>>& InMatchableSources,
+		const bool bThrowError, const FName InFactoriesLabel)
 	{
 		MatchableSources->Reserve(InMatchableSources.Num());
 
 		for (int i = 0; i < InMatchableSources.Num(); i++) { RegisterTaggedData(InContext, InMatchableSources[i]->Source->GetTaggedData(PCGExData::EIOSide::In, i)); }
-		return InitInternal(InContext, Labels::SourceMatchRulesLabel);
+		return InitInternal(InContext, InFactoriesLabel);
 	}
 
-	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<FPCGExTaggedData>& InMatchableSources, const bool bThrowError)
+	bool FDataMatcher::Init(
+		FPCGExContext* InContext,
+		const TArray<FPCGExTaggedData>& InMatchableSources,
+		const bool bThrowError, const FName InFactoriesLabel)
 	{
 		MatchableSources->Reserve(InMatchableSources.Num());
 		for (const FPCGExTaggedData& TaggedData : InMatchableSources) { RegisterTaggedData(InContext, TaggedData); }
-		return InitInternal(InContext, Labels::SourceMatchRulesLabel);
+		return InitInternal(InContext, InFactoriesLabel);
 	}
 
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TSharedPtr<FDataMatcher>& InOtherDataMatcher, const FName InFactoriesLabel, const bool bThrowError)
@@ -255,6 +271,7 @@ namespace PCGExMatching
 
 		return MatchableSources->Num() != NumIgnored;
 	}
+
 	int32 FDataMatcher::GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources) const
 	{
 		TArray<FPCGExTaggedData>& MatchableSourcesRef = *MatchableSources.Get();
@@ -267,7 +284,7 @@ namespace PCGExMatching
 				for (int i = 0; i < NumSources; i++)
 				{
 					if (InExcludedSources->Contains(i)) { continue; }
-					OutMatches.Add(i);
+					OutMatches.AddUnique(i);
 				}
 
 				return OutMatches.Num();
@@ -276,7 +293,7 @@ namespace PCGExMatching
 			for (int i = 0; i < MatchableSourcesRef.Num(); i++)
 			{
 				if (InExcludedSources->Contains(i)) { continue; }
-				if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.Add(i); }
+				if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.AddUnique(i); }
 			}
 
 			return OutMatches.Num();
@@ -290,7 +307,7 @@ namespace PCGExMatching
 
 		for (int i = 0; i < MatchableSourcesRef.Num(); i++)
 		{
-			if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.Add(i); }
+			if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.AddUnique(i); }
 		}
 
 		return OutMatches.Num();
@@ -361,7 +378,9 @@ namespace PCGExMatching
 		}
 
 		TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>> Factories;
-		if (!PCGExFactories::GetInputFactories(InContext, InFactoriesLabel, Factories, {PCGExFactories::EType::MatchRule}))
+		if (!PCGExFactories::GetInputFactories(
+			InContext, InFactoriesLabel.IsNone() ? Labels::SourceMatchRulesLabel : InFactoriesLabel,
+			Factories, {PCGExFactories::EType::MatchRule}))
 		{
 			MatchMode = EPCGExMapMatchMode::Disabled;
 			return false;
