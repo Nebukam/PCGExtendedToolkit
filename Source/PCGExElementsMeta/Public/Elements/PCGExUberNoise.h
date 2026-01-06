@@ -43,7 +43,7 @@ enum class EPCGExUberNoiseMode : uint8
 	Mutate = 1 UMETA(DisplayName = "Mutate", ToolTip="Mutate an existing attribute")
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/attribute-remap"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/uber-noise"))
 class UPCGExUberNoiseSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
