@@ -1,0 +1,134 @@
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Core/PCGExNoise3DCommon.h"
+#include "Core/PCGExPointsProcessor.h"
+#include "UObject/Object.h"
+#include "Details/PCGExAttributesDetails.h"
+#include "Details/PCGExInputShorthandsDetails.h"
+#include "Utils/PCGExCurveLookup.h"
+
+#include "PCGExUberNoise.generated.h"
+
+namespace PCGExNoise3D
+{
+	class FNoiseGenerator;
+}
+
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedNumericValue;
+}
+
+namespace PCGExData
+{
+	class IBufferProxy;
+}
+
+UENUM()
+enum class EPCGExUberNoiseMode : uint8
+{
+	New    = 0 UMETA(DisplayName = "New", ToolTip="Create new value"),
+	Mutate = 1 UMETA(DisplayName = "Mutate", ToolTip="Mutate an existing attribute")
+};
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/attribute-remap"))
+class UPCGExUberNoiseSettings : public UPCGExPointsProcessorSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(UberNoise, "Uber Noise", "Generate noise or mutate existing attribute using noises.", FName(GetDisplayName()));
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
+#endif
+
+protected:
+	virtual FPCGElementPtr CreateElement() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	//~End UPCGSettings
+
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExUberNoiseMode Mode = EPCGExUberNoiseMode::New;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::New", ClampMin=1, ClampMax=4))
+	int32 Dimensions = 3;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExAttributeSourceToTargetDetails Attributes;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
+	EPCGExNoiseInPlaceMode NoiseInPlaceMode = EPCGExNoiseInPlaceMode::Composite;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
+	EPCGExNoiseBlendMode NoiseBlendMode = EPCGExNoiseBlendMode::Add;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
+	FPCGExInputShorthandSelectorDouble SourceValueWeight = FPCGExInputShorthandSelectorDouble();
+
+	/* If enabled, will auto-cast integer to double. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
+	bool bAutoCastIntegerToDouble = false;
+
+
+#if WITH_EDITOR
+	FString GetDisplayName() const;
+#endif
+
+private:
+	friend class FPCGExUberNoiseElement;
+};
+
+struct FPCGExUberNoiseContext final : FPCGExPointsProcessorContext
+{
+	friend class FPCGExUberNoiseElement;
+
+	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
+};
+
+class FPCGExUberNoiseElement final : public FPCGExPointsProcessorElement
+{
+protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(UberNoise)
+
+	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
+};
+
+namespace PCGExUberNoise
+{
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExUberNoiseContext, UPCGExUberNoiseSettings>
+	{
+		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+		int32 Dimensions = 0;
+
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> InputProxies;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> OutputProxies;
+
+		TSharedPtr<PCGExData::IBufferProxy> NewOutProxy;
+
+	public:
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
+	};
+}

@@ -5,6 +5,7 @@
 #include "Details/PCGExCompareShorthandsDetails.h"
 
 #include "Data/PCGExDataHelpers.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Details/PCGExSettingsDetails.h"
 
 
@@ -24,3 +25,8 @@ FString FPCGExCompareSelectorDouble::GetDisplayNamePostfix() const
 	return DisplayName;
 }
 #endif
+
+void FPCGExCompareSelectorDouble::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	if (Input == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Attribute); }
+}

@@ -102,7 +102,7 @@ bool FPCGExAttributeRemapElement::AdvanceWork(FPCGExContext* InContext, const UP
 				NewBatch->bSkipCompletion = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to remap."));
+			return Context->CancelExecution(TEXT("Could not find any data to remap."));
 		}
 	}
 

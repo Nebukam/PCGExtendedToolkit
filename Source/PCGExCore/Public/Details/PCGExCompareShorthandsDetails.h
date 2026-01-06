@@ -25,7 +25,7 @@ struct PCGEXCORE_API FPCGExCompareSelectorDouble
 	FPCGExCompareSelectorDouble() = default;
 	explicit FPCGExCompareSelectorDouble(const FString& DefaultName) { Attribute.Update(DefaultName); }
 
-	FPCGExCompareSelectorDouble(const FString& DefaultName, const bool DefaultValue)
+	FPCGExCompareSelectorDouble(const FString& DefaultName, const double DefaultValue)
 		: FPCGExCompareSelectorDouble(DefaultName)
 	{
 		Constant = DefaultValue;
@@ -56,4 +56,6 @@ struct PCGEXCORE_API FPCGExCompareSelectorDouble
 #if WITH_EDITOR
 	FString GetDisplayNamePostfix() const;
 #endif
+
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 };

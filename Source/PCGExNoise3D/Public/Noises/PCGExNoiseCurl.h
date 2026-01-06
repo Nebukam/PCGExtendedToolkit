@@ -50,6 +50,8 @@ public:
 	virtual ~FPCGExNoiseCurl() override = default;
 
 	// Override vector outputs for curl field
+	virtual double GetDouble(const FVector& Position) const override;
+	virtual FVector2D GetVector2D(const FVector& Position) const override;
 	virtual FVector GetVector(const FVector& Position) const override;
 	virtual FVector4 GetVector4(const FVector& Position) const override;
 

@@ -47,6 +47,8 @@ namespace PCGExClipper2
 
 	void FProcessingGroup::Prepare(const TSharedPtr<FOpData>& AllOpData)
 	{
+		GroupTags = MakeShared<PCGExData::FTags>();
+		
 		// Cache subject paths
 		SubjectPaths.reserve(SubjectIndices.Num());
 		OpenSubjectPaths.reserve(SubjectIndices.Num());
@@ -54,6 +56,8 @@ namespace PCGExClipper2
 		{
 			if (AllOpData->IsClosedLoop[Idx]) { SubjectPaths.push_back(AllOpData->Paths[Idx]); }
 			else { OpenSubjectPaths.push_back(AllOpData->Paths[Idx]); }
+			
+			GroupTags->Append(AllOpData->Facades[Idx]->Source->Tags.ToSharedRef());
 		}
 
 		// Cache operand paths
@@ -66,6 +70,8 @@ namespace PCGExClipper2
 				if (AllOpData->IsClosedLoop[Idx]) { OperandPaths.push_back(AllOpData->Paths[Idx]); }
 				else { OpenOperandPaths.push_back(AllOpData->Paths[Idx]); }
 			}
+			
+			GroupTags->Append(AllOpData->Facades[Idx]->Source->Tags.ToSharedRef());
 		}
 
 		// Build combined source indices
@@ -280,7 +286,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	BlendSources.Reserve(Group->AllSourceIndices.Num());
 
 	EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::None;
-
+	
 	for (const int32 SrcIdx : Group->AllSourceIndices)
 	{
 		if (SrcIdx < AllOpData->Facades.Num())
@@ -618,6 +624,9 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 		if (!bClosedPaths && Settings->OpenPathsOutput == EPCGExClipper2OpenPathOutput::OutputPin) { NewPointIO->OutputPin = FName("Open Paths"); }
 
+		CarryOverDetails.Prune(NewPointIO->Tags.Get());
+		NewPointIO->Tags->Append(Group->GroupTags.ToSharedRef());
+		
 		OutPaths.Add(NewPointIO);
 	}
 }
@@ -1001,6 +1010,7 @@ void FPCGExClipper2ProcessorElement::BuildProcessingGroups(
 		if (i < OperandPartitions.Num()) { Group->OperandIndices = MoveTemp(OperandPartitions[i]); }
 
 		Group->Prepare(Context->AllOpData);
+		Context->CarryOverDetails.Prune(Group->GroupTags.Get());
 
 		if (Group->IsValid()) { Context->ProcessingGroups.Add(Group); }
 	}

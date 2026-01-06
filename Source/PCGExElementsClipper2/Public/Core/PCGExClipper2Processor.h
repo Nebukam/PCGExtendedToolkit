@@ -166,9 +166,10 @@ namespace PCGExClipper2
 
 		PCGExClipper2Lib::Paths64 OperandPaths;
 		PCGExClipper2Lib::Paths64 OpenOperandPaths;
-
+		
 		// Combined source indices for blending
 		TArray<int32> AllSourceIndices;
+		TSharedPtr<PCGExData::FTags> GroupTags;
 
 		// Intersection blend info map: keyed by encoded (x,y) position
 		TMap<uint64, FIntersectionBlendInfo> IntersectionBlendInfos;

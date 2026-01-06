@@ -63,7 +63,7 @@ public:
 	EPCGExClipper2EndType EndTypeClosed = EPCGExClipper2EndType::Polygon;
 	
 	/** End type for open paths */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bSkipOpenPaths", EditConditionHides))
 	EPCGExClipper2EndType EndTypeOpen = EPCGExClipper2EndType::Round;
 
 	
