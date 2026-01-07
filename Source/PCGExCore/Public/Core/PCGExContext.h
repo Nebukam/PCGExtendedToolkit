@@ -51,11 +51,16 @@ protected:
 
 	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
 	const IPCGExElement* ElementHandle = nullptr;
+	int32 LoopIndex = INDEX_NONE;
+	int32 TopLoopIndex = INDEX_NONE;
 
 public:
 	TWeakPtr<PCGEx::FWorkHandle> GetWorkHandle() { return WorkHandle; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
+	int32 GetLoopIndex() const { return LoopIndex; }
+	bool IsExecutingInsideLoop() const { return TopLoopIndex != INDEX_NONE; }
+	
 	// TODO : bool toggle for hoarder execution 
 
 	bool bScopedAttributeGet = false;

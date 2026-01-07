@@ -47,6 +47,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState ScopedAttributeGet = EPCGExOptionState::Default;
 
+	/** Forces the execution over a single frame.
+	 * Not safe on all nodes, some nodes will override this internally. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="GetExecutionPolicy() != EPCGExExecutionPolicy::Ignored"))
+	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
+
+	UFUNCTION()
+	virtual EPCGExExecutionPolicy GetExecutionPolicy() const { return ExecutionPolicy; }
+
 	/** Flatten the output of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
 	bool bFlattenOutput = false;
