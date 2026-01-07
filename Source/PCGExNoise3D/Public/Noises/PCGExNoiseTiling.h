@@ -68,7 +68,10 @@ private:
 	}
 
 	/** Hash with periodic wrapping */
-	FORCEINLINE int32 HashPeriodic(int32 X, int32 Y, int32 Z, int32 PX, int32 PY, int32 PZ) const;
+	FORCEINLINE int32 HashPeriodic(int32 X, int32 Y, int32 Z, int32 PX, int32 PY, int32 PZ) const
+	{
+		return PCGExNoise3D::Math::Hash3D(Mod(X + Seed, PX), Mod(Y, PY), Mod(Z, PZ));
+	}
 };
 
 ////

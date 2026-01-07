@@ -28,7 +28,6 @@ struct FPCGExNoiseConfigOpenSimplex2 : public FPCGExNoise3DConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0", ClampMax = "1.0"))
 	double Persistence = 0.5;
-
 };
 
 /**
@@ -37,6 +36,22 @@ struct FPCGExNoiseConfigOpenSimplex2 : public FPCGExNoise3DConfigBase
  */
 class PCGEXNOISE3D_API FPCGExNoiseOpenSimplex2 : public FPCGExNoise3DOperation
 {
+	// OpenSimplex2 gradients (24 gradients on edges of a rhombic dodecahedron)
+	constexpr double STRETCH_3D = -1.0 / 6.0;
+	constexpr double SQUISH_3D = 1.0 / 3.0;
+	constexpr double NORM_3D = 103.0;
+
+	const int8 Gradients3D[] = {
+		-11, 4, 4, -4, 11, 4, -4, 4, 11,
+		11, 4, 4, 4, 11, 4, 4, 4, 11,
+		-11, -4, 4, -4, -11, 4, -4, -4, 11,
+		11, -4, 4, 4, -11, 4, 4, -4, 11,
+		-11, 4, -4, -4, 11, -4, -4, 4, -11,
+		11, 4, -4, 4, 11, -4, 4, 4, -11,
+		-11, -4, -4, -4, -11, -4, -4, -4, -11,
+		11, -4, -4, 4, -11, -4, 4, -4, -11,
+	};
+
 public:
 	virtual ~FPCGExNoiseOpenSimplex2() override = default;
 
@@ -44,7 +59,19 @@ protected:
 	virtual double GenerateRaw(const FVector& Position) const override;
 
 private:
-	FORCEINLINE double Contrib(int32 XSV, int32 YSV, int32 ZSV, double DX, double DY, double DZ) const;
+	FORCEINLINE double Contrib(int32 XSV, int32 YSV, int32 ZSV, double DX, double DY, double DZ) const
+	{
+		double Attn = 2.0 / 3.0 - DX * DX - DY * DY - DZ * DZ;
+		if (Attn <= 0) { return 0; }
+
+		const int32 GI = PCGExNoise3D::Math::Hash3DSeed(XSV, YSV, ZSV, Seed) % 24 * 3;
+		const double GX = Gradients3D[GI];
+		const double GY = Gradients3D[GI + 1];
+		const double GZ = Gradients3D[GI + 2];
+
+		Attn *= Attn;
+		return Attn * Attn * (GX * DX + GY * DY + GZ * DZ);
+	}
 };
 
 ////

@@ -7,11 +7,6 @@
 
 using namespace PCGExNoise3D::Math;
 
-FORCEINLINE int32 FPCGExNoiseTiling::HashPeriodic(const int32 X, const int32 Y, const int32 Z, const int32 PX, const int32 PY, const int32 PZ) const
-{
-	return Hash3D(Mod(X + Seed, PX), Mod(Y, PY), Mod(Z, PZ));
-}
-
 double FPCGExNoiseTiling::GenerateRaw(const FVector& Position) const
 {
 	const int32 X0 = FastFloor(Position.X);

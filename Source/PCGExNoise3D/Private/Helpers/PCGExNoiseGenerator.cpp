@@ -56,7 +56,7 @@ namespace PCGExNoise3D
 	// Single-value blend implementation
 	//
 
-	FORCEINLINE double FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const double A, const double B, const double BlendFactor) const
+	double FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const double A, const double B, const double BlendFactor) const
 	{
 		switch (BlendMode)
 		{
@@ -112,7 +112,7 @@ namespace PCGExNoise3D
 		}
 	}
 
-	FORCEINLINE FVector2D FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector2D& A, const FVector2D& B, const double BlendFactor) const
+	FVector2D FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector2D& A, const FVector2D& B, const double BlendFactor) const
 	{
 		return FVector2D(
 			BlendSingle(BlendMode, A.X, B.X, BlendFactor),
@@ -120,7 +120,7 @@ namespace PCGExNoise3D
 		);
 	}
 
-	FORCEINLINE FVector FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector& A, const FVector& B, const double BlendFactor) const
+	FVector FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector& A, const FVector& B, const double BlendFactor) const
 	{
 		return FVector(
 			BlendSingle(BlendMode, A.X, B.X, BlendFactor),
@@ -129,7 +129,7 @@ namespace PCGExNoise3D
 		);
 	}
 
-	FORCEINLINE FVector4 FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector4& A, const FVector4& B, const double BlendFactor) const
+	FVector4 FNoiseGenerator::BlendSingle(const EPCGExNoiseBlendMode BlendMode, const FVector4& A, const FVector4& B, const double BlendFactor) const
 	{
 		return FVector4(
 			BlendSingle(BlendMode, A.X, B.X, BlendFactor),
