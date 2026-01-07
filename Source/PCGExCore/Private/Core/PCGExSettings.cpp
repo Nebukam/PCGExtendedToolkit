@@ -18,6 +18,17 @@ bool UPCGExSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, 
 {
 	return PCGEX_CORE_SETTINGS.GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
 }
+
+void UPCGExSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (FProperty* Property = PropertyChangedEvent.Property)
+	{
+		const bool bIsInstanced = Property->HasAnyPropertyFlags(CPF_InstancedReference | CPF_ContainsInstancedReference);
+		if (bIsInstanced) { DirtyCache(); }
+	}
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
 #endif
 
 bool UPCGExSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
