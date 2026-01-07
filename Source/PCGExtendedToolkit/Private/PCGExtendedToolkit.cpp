@@ -57,7 +57,7 @@ void FPCGExtendedToolkitModule::StartupModule()
 
 #pragma region OUT
 
-#if PCGEX_ENGINE_VERSION < 506
+#if PCGEX_ENGINE_VERSION < 507
 	// Register pins as extra icons on 5.6
 	
 	// Out pin map
@@ -143,7 +143,7 @@ void FPCGExtendedToolkitModule::StartupModule()
 
 #pragma region IN
 
-#if PCGEX_ENGINE_VERSION < 506
+#if PCGEX_ENGINE_VERSION < 507
 	// Register pins as extra icons on 5.6
 	
 	// In pin map
@@ -173,7 +173,7 @@ void FPCGExtendedToolkitModule::StartupModule()
 	for (int f = 0; f < 42; f++)
 	{
 		FString SI = FString::Printf(TEXT("%d"), f + 0);
-		InPinInfosMap.Add(FName(TEXT("→ ") + SI), PinIndex);
+		PCGEX_CORE_SETTINGS.OutPinInfosMap.Add(FName(TEXT("→ ") + SI), PinIndex);
 	}
 
 	PCGEX_EMPLACE_PIN_IN(IN_FilterEdge, "Expects PCGEx Filers or Edge Filters, supports multiple inputs.");
