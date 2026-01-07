@@ -7,23 +7,6 @@
 
 using namespace PCGExNoise3D::Math;
 
-FORCEINLINE double FPCGExNoiseWorley::CalcDistance(const FVector& A, const FVector& B) const
-{
-	switch (DistanceFunction)
-	{
-	case EPCGExWorleyDistanceFunc::Euclidean:
-		return DistanceEuclidean(A, B);
-	case EPCGExWorleyDistanceFunc::EuclideanSq:
-		return DistanceEuclideanSq(A, B);
-	case EPCGExWorleyDistanceFunc::Manhattan:
-		return DistanceManhattan(A, B);
-	case EPCGExWorleyDistanceFunc::Chebyshev:
-		return DistanceChebyshev(A, B);
-	default:
-		return DistanceEuclidean(A, B);
-	}
-}
-
 double FPCGExNoiseWorley::GenerateRaw(const FVector& Position) const
 {
 	const int32 CellX = FastFloor(Position.X);

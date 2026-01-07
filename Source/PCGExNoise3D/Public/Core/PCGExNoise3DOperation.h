@@ -7,6 +7,7 @@
 #include "PCGExNoise3DCommon.h"
 #include "UObject/Object.h"
 #include "Factories/PCGExOperation.h"
+#include "Helpers/PCGExNoise3DMath.h"
 #include "Utils/PCGExCurveLookup.h"
 
 /**
@@ -48,10 +49,10 @@ public:
 
 	/** Whether or not this operation wants transformed inputs */
 	bool bApplyTransform = false;
-	
+
 	/** Transform applied to inputs */
 	FTransform Transform = FTransform::Identity;
-	
+
 	EPCGExNoiseBlendMode BlendMode = EPCGExNoiseBlendMode::Blend;
 
 	virtual ~FPCGExNoise3DOperation() = default;
@@ -105,7 +106,7 @@ protected:
 	//
 	// Internal helpers
 	//
-	
+
 	/** Transform world position to noise space */
 	FORCEINLINE FVector TransformPosition(const FVector& Position) const
 	{
@@ -120,9 +121,17 @@ protected:
 
 	/**
 	 * Apply post-processing: invert, remap curve, contrast
-	 * Order: Invert → RemapCurve → Contrast
 	 */
-	FORCEINLINE double ApplyRemap(double Value) const;
+	FORCEINLINE double ApplyRemap(double Value) const
+	{
+		if (bInvert) { Value = -Value; }
+		if (RemapLUT) { Value = RemapLUT->Eval(Value * 0.5 + 0.5) * 2.0 - 1.0; }
+		if (!FMath::IsNearlyEqual(Contrast, 1.0, SMALL_NUMBER))
+		{
+			Value = PCGExNoise3D::Math::ApplyContrast(Value, Contrast, static_cast<int32>(ContrastCurve));
+		}
+		return Value;
+	}
 
 	/**
 	 * Generate fractal noise with configured octaves

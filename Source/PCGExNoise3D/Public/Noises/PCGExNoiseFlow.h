@@ -55,7 +55,25 @@ protected:
 
 private:
 	/** Get rotated gradient based on time */
-	FORCEINLINE FVector GetRotatedGradient(int32 Hash, double T) const;
+	FORCEINLINE FVector GetRotatedGradient(int32 Hash, double T) const
+	{
+		// Get base gradient
+		const FVector BaseGrad = PCGExNoise3D::Math::GetGrad3(Hash);
+
+		// Get unique rotation rate for this cell
+		const double Rate = (PCGExNoise3D::Math::HashToDouble(Hash) * 0.5 + 0.5) * RotationSpeed;
+		const double Angle = T * Rate * 2.0 * PI;
+
+		// Rotate in XY plane (could extend to full 3D rotation)
+		const double CosA = FMath::Cos(Angle);
+		const double SinA = FMath::Sin(Angle);
+
+		return FVector(
+			BaseGrad.X * CosA - BaseGrad.Y * SinA,
+			BaseGrad.X * SinA + BaseGrad.Y * CosA,
+			BaseGrad.Z
+		);
+	}
 };
 
 ////

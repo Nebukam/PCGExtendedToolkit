@@ -107,10 +107,10 @@ namespace PCGExNoise3D
 		// Single-value blend (used for single-point generation)
 		//
 
-		FORCEINLINE double BlendSingle(EPCGExNoiseBlendMode BlendMode, double A, double B, double BlendFactor) const;
-		FORCEINLINE FVector2D BlendSingle(EPCGExNoiseBlendMode BlendMode, const FVector2D& A, const FVector2D& B, double BlendFactor) const;
-		FORCEINLINE FVector BlendSingle(EPCGExNoiseBlendMode BlendMode, const FVector& A, const FVector& B, double BlendFactor) const;
-		FORCEINLINE FVector4 BlendSingle(EPCGExNoiseBlendMode BlendMode, const FVector4& A, const FVector4& B, double BlendFactor) const;
+		double BlendSingle(EPCGExNoiseBlendMode BlendMode, double A, double B, double BlendFactor) const;
+		FVector2D BlendSingle(EPCGExNoiseBlendMode BlendMode, const FVector2D& A, const FVector2D& B, double BlendFactor) const;
+		FVector BlendSingle(EPCGExNoiseBlendMode BlendMode, const FVector& A, const FVector& B, double BlendFactor) const;
+		FVector4 BlendSingle(EPCGExNoiseBlendMode BlendMode, const FVector4& A, const FVector4& B, double BlendFactor) const;
 
 		//
 		// Batch blend helpers (switch outside loop)
