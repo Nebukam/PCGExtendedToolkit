@@ -188,7 +188,7 @@ namespace PCGExUberNoise
 #define PCGEX_LOOP_NOISE(_TYPE) \
 	{\
 		TArray<_TYPE>& NoiseBuffer = *StaticCastSharedPtr<PCGExData::TRawBufferProxy<_TYPE>>(Blender->A)->Buffer.Get(); \
-		Context->NoiseGenerator->Generate(Positions, TArrayView(NoiseBuffer.GetData() + Scope.Start, Scope.Count)); \
+		Context->NoiseGenerator->Generate(Positions, TArrayView<_TYPE>(NoiseBuffer.GetData() + Scope.Start, Scope.Count)); \
 		Blender->BlendScope(Scope, Scope.GetConstView<int8>(PointFilterCache), 1); \
 	}
 
