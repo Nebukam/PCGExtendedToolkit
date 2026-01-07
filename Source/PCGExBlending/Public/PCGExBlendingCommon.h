@@ -141,6 +141,31 @@ enum class EPCGExBlendingInterface : uint8
 	Monolithic = 1 UMETA(DisplayName = "Monolithic", ToolTip="Blend attributes & properties using monolithic settings. Best if you want to grab everything, or only select things to leave out."),
 };
 
+UENUM()
+enum class EPCGExOperandSource : uint8
+{
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Use a constant, user-defined value.", ActionIcon="Constant"),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Read the value from the input data.", ActionIcon="Attribute"),
+};
+
+UENUM()
+enum class EPCGExOperandAuthority : uint8
+{
+	A      = 0 UMETA(DisplayName = "Operand A", ToolTip="Type of operand A will drive the output type, thus converting operand B to the same type for the operation."),
+	B      = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
+	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Select a specific type to output the result to."),
+	Auto   = 3 UMETA(DisplayName = "Auto", ToolTip="Takes an informed guess based on settings & existing data. Usually works well, but not fool-proof."),
+};
+
+UENUM()
+enum class EPCGExBlendOpOutputMode : uint8
+{
+	SameAsA   = 0 UMETA(DisplayName = "Same as A", ToolTip="Will write the output value to Operand A' selector."),
+	SameAsB   = 1 UMETA(DisplayName = "Same as B", ToolTip="Will write the output value to Operand B' selector. (Will default to A if B is not set)"),
+	New       = 2 UMETA(DisplayName = "New", ToolTip="Will write the output value to new selector."),
+	Transient = 3 UMETA(DisplayName = "New (Transient)", ToolTip="Will write the output value to a new selector that will only exist for the duration of the blend, but can be referenced by other blend ops."),
+};
+
 namespace PCGExBlending
 {
 	namespace Labels
