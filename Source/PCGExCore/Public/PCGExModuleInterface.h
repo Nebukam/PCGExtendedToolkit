@@ -24,25 +24,22 @@ InStyle->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(InStyle->RootToCon
 #pragma region PCG Registry macros
 // Macro swap between 5.6 / 5.7 since type registry didn't exist in 5.6
 
-#if PCGEX_ENGINE_VERSION < 507
-
-#define PCGEX_START_PCG_REGISTRATION
-
-#define PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
+#define PCGEX_REGISTER_PIN_ICON_BASE(_NAME)\
 PCGEX_REGISTER_PIN_ICON(OUT_##_NAME) \
 PCGEX_REGISTER_PIN_ICON(IN_##_NAME)
 
-#define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) 
+#if PCGEX_ENGINE_VERSION < 507
 
-#define PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(_MODULE, _NAME, _NATIVE_COLOR)
+#define PCGEX_START_PCG_REGISTRATION
+#define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) PCGEX_REGISTER_PIN_ICON_BASE(_NAME)
+#define PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(_MODULE, _NAME, _NATIVE_COLOR) PCGEX_REGISTER_PIN_ICON_BASE(_NAME) 
 
 #else
 
 #define PCGEX_START_PCG_REGISTRATION FPCGDataTypeRegistry& PCGDataTypeRegistry = FPCGModule::GetMutableDataTypeRegistry();
 
 #define PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
-PCGEX_REGISTER_PIN_ICON(OUT_##_NAME) \
-PCGEX_REGISTER_PIN_ICON(IN_##_NAME)\
+PCGEX_REGISTER_PIN_ICON_BASE(_NAME) \
 PCGDataTypeRegistry.RegisterPinIconsFunction(FPCGExDataTypeInfo##_NAME::AsId(),\
 	[&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>\
 	{ \
@@ -50,21 +47,15 @@ PCGDataTypeRegistry.RegisterPinIconsFunction(FPCGExDataTypeInfo##_NAME::AsId(),\
 		else{ return {InStyle->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME)), InStyle->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME))};} \
 	});
 
+#define PCGEX_START_PCG_REGISTER_PIN(_NAME, _RET) PCGDataTypeRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return _RET; });
+
 #define PCGEX_REGISTER_DATA_TYPE(_MODULE, _NAME) \
 PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
-PCGDataTypeRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), \
-	[&](const FPCGDataTypeIdentifier&) \
-	{ \
-		return PCGEX_CORE_SETTINGS.GetColor(FName(#_NAME)); \
-	});
+PCGEX_START_PCG_REGISTER_PIN(_NAME, PCGEX_CORE_SETTINGS.GetColor(FName(#_NAME)))
 
 #define PCGEX_REGISTER_DATA_TYPE_NATIVE_COLOR(_MODULE, _NAME, _NATIVE_COLOR) \
 PCGEX_REGISTER_DATA_TYPE_INTERNAL(_MODULE, _NAME) \
-PCGDataTypeRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), \
-	[&](const FPCGDataTypeIdentifier&) \
-	{ \
-		return PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_NAME), _NATIVE_COLOR); \
-	});
+PCGEX_START_PCG_REGISTER_PIN(_NAME, PCGEX_CORE_SETTINGS.GetColorOptIn(FName(#_NAME), _NATIVE_COLOR))
 #endif
 #pragma endregion
 

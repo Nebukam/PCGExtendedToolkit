@@ -7,33 +7,6 @@
 
 using namespace PCGExNoise3D::Math;
 
-FORCEINLINE double FPCGExNoiseGabor::GaborKernel(const FVector& Offset, const double K, const double A) const
-{
-	const double R2 = Offset.SizeSquared();
-	if (R2 > KernelRadius * KernelRadius) { return 0.0; }
-
-	// Gaussian envelope
-	const double Gaussian = FMath::Exp(-PI * A * A * R2);
-
-	// Sinusoidal carrier
-	const double Phase = 2.0 * PI * K * FVector::DotProduct(Direction, Offset);
-
-	return Gaussian * FMath::Cos(Phase);
-}
-
-FORCEINLINE FVector FPCGExNoiseGabor::RandomImpulse(const int32 CellX, const int32 CellY, const int32 CellZ, const int32 Idx) const
-{
-	const uint32 H1 = Hash32(CellX + Seed, CellY + Idx, CellZ);
-	const uint32 H2 = Hash32(CellX + Idx, CellY + Seed, CellZ);
-	const uint32 H3 = Hash32(CellX, CellY, CellZ + Seed + Idx);
-
-	return FVector(
-		Hash32ToDouble01(H1),
-		Hash32ToDouble01(H2),
-		Hash32ToDouble01(H3)
-	);
-}
-
 double FPCGExNoiseGabor::GenerateRaw(const FVector& Position) const
 {
 	const int32 CellX = FastFloor(Position.X);

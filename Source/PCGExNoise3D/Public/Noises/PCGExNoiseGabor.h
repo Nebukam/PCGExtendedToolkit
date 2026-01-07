@@ -15,7 +15,8 @@ struct FPCGExNoiseConfigGabor : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigGabor() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigGabor()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
 
@@ -54,8 +55,32 @@ protected:
 	virtual double GenerateRaw(const FVector& Position) const override;
 
 private:
-	FORCEINLINE double GaborKernel(const FVector& Offset, double K, double A) const;
-	FORCEINLINE FVector RandomImpulse(int32 CellX, int32 CellY, int32 CellZ, int32 Idx) const;
+	FORCEINLINE double GaborKernel(const FVector& Offset, double K, double A) const
+	{
+		const double R2 = Offset.SizeSquared();
+		if (R2 > KernelRadius * KernelRadius) { return 0.0; }
+
+		// Gaussian envelope
+		const double Gaussian = FMath::Exp(-PI * A * A * R2);
+
+		// Sinusoidal carrier
+		const double Phase = 2.0 * PI * K * FVector::DotProduct(Direction, Offset);
+
+		return Gaussian * FMath::Cos(Phase);
+	}
+
+	FORCEINLINE FVector RandomImpulse(int32 CellX, int32 CellY, int32 CellZ, int32 Idx) const
+	{
+		const uint32 H1 = PCGExNoise3D::Math::Hash32(CellX + Seed, CellY + Idx, CellZ);
+		const uint32 H2 = PCGExNoise3D::Math::Hash32(CellX + Idx, CellY + Seed, CellZ);
+		const uint32 H3 = PCGExNoise3D::Math::Hash32(CellX, CellY, CellZ + Seed + Idx);
+
+		return FVector(
+			PCGExNoise3D::Math::Hash32ToDouble01(H1),
+			PCGExNoise3D::Math::Hash32ToDouble01(H2),
+			PCGExNoise3D::Math::Hash32ToDouble01(H3)
+		);
+	}
 };
 
 ////

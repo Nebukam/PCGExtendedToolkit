@@ -58,7 +58,12 @@ protected:
 
 private:
 	/** Smooth minimum for blending cells */
-	FORCEINLINE double SmoothMin(double A, double B, double K) const;
+	FORCEINLINE double SmoothMin(double A, double B, double K) const
+	{
+		if (K <= 0.0) { return FMath::Min(A, B); }
+		const double H = FMath::Max(K - FMath::Abs(A - B), 0.0) / K;
+		return FMath::Min(A, B) - H * H * K * 0.25;
+	}
 };
 
 ////

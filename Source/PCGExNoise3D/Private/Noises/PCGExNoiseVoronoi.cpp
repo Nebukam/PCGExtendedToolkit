@@ -7,13 +7,6 @@
 
 using namespace PCGExNoise3D::Math;
 
-FORCEINLINE double FPCGExNoiseVoronoi::SmoothMin(const double A, const double B, const double K) const
-{
-	if (K <= 0.0) { return FMath::Min(A, B); }
-	const double H = FMath::Max(K - FMath::Abs(A - B), 0.0) / K;
-	return FMath::Min(A, B) - H * H * K * 0.25;
-}
-
 double FPCGExNoiseVoronoi::GenerateRaw(const FVector& Position) const
 {
 	const int32 CellX = FastFloor(Position.X);

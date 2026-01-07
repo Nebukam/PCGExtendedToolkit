@@ -6,39 +6,7 @@
 #include "Containers/PCGExManagedObjects.h"
 
 using namespace PCGExNoise3D::Math;
-
-// OpenSimplex2 gradients (24 gradients on edges of a rhombic dodecahedron)
-namespace
-{
-	constexpr double STRETCH_3D = -1.0 / 6.0;
-	constexpr double SQUISH_3D = 1.0 / 3.0;
-	constexpr double NORM_3D = 103.0;
-
-	const int8 Gradients3D[] = {
-		-11, 4, 4, -4, 11, 4, -4, 4, 11,
-		11, 4, 4, 4, 11, 4, 4, 4, 11,
-		-11, -4, 4, -4, -11, 4, -4, -4, 11,
-		11, -4, 4, 4, -11, 4, 4, -4, 11,
-		-11, 4, -4, -4, 11, -4, -4, 4, -11,
-		11, 4, -4, 4, 11, -4, 4, 4, -11,
-		-11, -4, -4, -4, -11, -4, -4, -4, -11,
-		11, -4, -4, 4, -11, -4, 4, -4, -11,
-	};
-}
-
-FORCEINLINE double FPCGExNoiseOpenSimplex2::Contrib(const int32 XSV, const int32 YSV, const int32 ZSV, const double DX, const double DY, const double DZ) const
-{
-	double Attn = 2.0 / 3.0 - DX * DX - DY * DY - DZ * DZ;
-	if (Attn <= 0) { return 0; }
-
-	const int32 GI = Hash3DSeed(XSV, YSV, ZSV, Seed) % 24 * 3;
-	const double GX = Gradients3D[GI];
-	const double GY = Gradients3D[GI + 1];
-	const double GZ = Gradients3D[GI + 2];
-
-	Attn *= Attn;
-	return Attn * Attn * (GX * DX + GY * DY + GZ * DZ);
-}
+using namespace PCGExOpenSimplex2;
 
 double FPCGExNoiseOpenSimplex2::GenerateRaw(const FVector& Position) const
 {
