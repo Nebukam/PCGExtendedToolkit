@@ -39,8 +39,8 @@ namespace PCGExData
 UENUM()
 enum class EPCGExUberNoiseMode : uint8
 {
-	New    = 0 UMETA(DisplayName = "New", ToolTip="Create new value"),
-	Mutate = 1 UMETA(DisplayName = "Mutate", ToolTip="Mutate an existing attribute")
+	New    = 0 UMETA(DisplayName = "New Attribute", ToolTip="Create new attribute"),
+	Mutate = 1 UMETA(DisplayName = "Mutate Attribute", ToolTip="Blend noise with an existing attribute")
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/uber-noise"))
@@ -69,21 +69,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExUberNoiseMode Mode = EPCGExUberNoiseMode::New;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::New", ClampMin=1, ClampMax=4))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::New", EditConditionHides))
 	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Double;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeSourceToTargetDetails Attributes;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate", EditConditionHides))
 	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Add;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate"))
-	FPCGExInputShorthandSelectorDouble SourceValueWeight = FPCGExInputShorthandSelectorDouble();
-
-	/* If enabled, will auto-cast integer to double. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
-	bool bAutoCastIntegerToDouble = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate", EditConditionHides))
+	FPCGExInputShorthandSelectorDouble SourceValueWeight = FPCGExInputShorthandSelectorDouble(FName("Weight"), 1, false);
 
 #if WITH_EDITOR
 	FString GetDisplayName() const;
@@ -120,6 +116,8 @@ namespace PCGExUberNoise
 		int32 NumFields = 0;
 
 		TSharedPtr<PCGExBlending::FProxyDataBlender> Blender;
+		TSharedPtr<PCGExData::IBufferProxy> NoiseBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightBuffer;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
