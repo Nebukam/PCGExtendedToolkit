@@ -91,8 +91,7 @@ namespace PCGExData
 	 * type-erased methods for applying the selection.
 	 * 
 	 * The actual operations are delegated to ISubSelectorOps instances via
-	 * FSubSelectorRegistry, eliminating the need for template instantiations
-	 * at the call site.
+	 * FSubSelectorRegistry
 	 * 
 	 * Usage:
 	 *   FSubSelection Sub(Selector);  // Parse selection from attribute path
