@@ -64,6 +64,9 @@ namespace PCGExEditor
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
 {
+	
+	FModuleManager::Get().LoadModuleChecked<IModuleInterface>("PCG");
+	
 	// I know this is cursed
 	FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
 
