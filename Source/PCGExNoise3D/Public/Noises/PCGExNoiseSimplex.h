@@ -47,7 +47,13 @@ protected:
 
 private:
 	/** Contribution from a simplex corner */
-	FORCEINLINE double Contrib(int32 Hash, double X, double Y, double Z) const;
+	FORCEINLINE double Contrib(int32 Hash, double X, double Y, double Z) const
+	{
+		const double T = 0.6 - X * X - Y * Y - Z * Z;
+		if (T < 0.0) { return 0.0; }
+		const double T2 = T * T;
+		return T2 * T2 * PCGExNoise3D::Math::GradDot3(Hash, X, Y, Z);
+	}
 };
 
 ////

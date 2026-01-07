@@ -7,26 +7,6 @@
 
 using namespace PCGExNoise3D::Math;
 
-FORCEINLINE FVector FPCGExNoiseFlow::GetRotatedGradient(const int32 Hash, const double T) const
-{
-	// Get base gradient
-	const FVector BaseGrad = GetGrad3(Hash);
-
-	// Get unique rotation rate for this cell
-	const double Rate = (HashToDouble(Hash) * 0.5 + 0.5) * RotationSpeed;
-	const double Angle = T * Rate * 2.0 * PI;
-
-	// Rotate in XY plane (could extend to full 3D rotation)
-	const double CosA = FMath::Cos(Angle);
-	const double SinA = FMath::Sin(Angle);
-
-	return FVector(
-		BaseGrad.X * CosA - BaseGrad.Y * SinA,
-		BaseGrad.X * SinA + BaseGrad.Y * CosA,
-		BaseGrad.Z
-	);
-}
-
 double FPCGExNoiseFlow::GenerateRaw(const FVector& Position) const
 {
 	const int32 X0 = FastFloor(Position.X);

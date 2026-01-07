@@ -69,7 +69,22 @@ protected:
 	virtual double GenerateRaw(const FVector& Position) const override;
 
 private:
-	FORCEINLINE double CalcDistance(const FVector& A, const FVector& B) const;
+	FORCEINLINE double CalcDistance(const FVector& A, const FVector& B) const
+	{
+		switch (DistanceFunction)
+		{
+		case EPCGExWorleyDistanceFunc::Euclidean:
+			return PCGExNoise3D::Math::DistanceEuclidean(A, B);
+		case EPCGExWorleyDistanceFunc::EuclideanSq:
+			return PCGExNoise3D::Math::DistanceEuclideanSq(A, B);
+		case EPCGExWorleyDistanceFunc::Manhattan:
+			return PCGExNoise3D::Math::DistanceManhattan(A, B);
+		case EPCGExWorleyDistanceFunc::Chebyshev:
+			return PCGExNoise3D::Math::DistanceChebyshev(A, B);
+		default:
+			return PCGExNoise3D::Math::DistanceEuclidean(A, B);
+		}
+	}
 };
 
 ////

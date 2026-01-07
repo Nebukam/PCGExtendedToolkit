@@ -7,14 +7,6 @@
 
 using namespace PCGExNoise3D::Math;
 
-FORCEINLINE double FPCGExNoiseSimplex::Contrib(const int32 Hash, const double X, const double Y, const double Z) const
-{
-	const double T = 0.6 - X * X - Y * Y - Z * Z;
-	if (T < 0.0) { return 0.0; }
-	const double T2 = T * T;
-	return T2 * T2 * GradDot3(Hash, X, Y, Z);
-}
-
 double FPCGExNoiseSimplex::GenerateRaw(const FVector& Position) const
 {
 	// Skew input space to determine which simplex cell we're in
