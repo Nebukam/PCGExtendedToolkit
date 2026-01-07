@@ -10,6 +10,25 @@
 
 #include "PCGExNoiseOpenSimplex2.generated.h"
 
+namespace PCGExOpenSimplex2
+{
+	// OpenSimplex2 gradients (24 gradients on edges of a rhombic dodecahedron)
+	constexpr double STRETCH_3D = -0.1666666667; // -1.0 / 6.0;
+	constexpr double SQUISH_3D = 0.3333333333; // 1.0 / 3.0;
+	constexpr double NORM_3D = 103.0;
+
+	const int8 Gradients3D[] = {
+		-11, 4, 4, -4, 11, 4, -4, 4, 11,
+		11, 4, 4, 4, 11, 4, 4, 4, 11,
+		-11, -4, 4, -4, -11, 4, -4, -4, 11,
+		11, -4, 4, 4, -11, 4, 4, -4, 11,
+		-11, 4, -4, -4, 11, -4, -4, 4, -11,
+		11, 4, -4, 4, 11, -4, 4, 4, -11,
+		-11, -4, -4, -4, -11, -4, -4, -4, -11,
+		11, -4, -4, 4, -11, -4, 4, -4, -11,
+	};
+}
+
 USTRUCT(BlueprintType)
 struct FPCGExNoiseConfigOpenSimplex2 : public FPCGExNoise3DConfigBase
 {
@@ -36,22 +55,6 @@ struct FPCGExNoiseConfigOpenSimplex2 : public FPCGExNoise3DConfigBase
  */
 class PCGEXNOISE3D_API FPCGExNoiseOpenSimplex2 : public FPCGExNoise3DOperation
 {
-	// OpenSimplex2 gradients (24 gradients on edges of a rhombic dodecahedron)
-	constexpr double STRETCH_3D = -1.0 / 6.0;
-	constexpr double SQUISH_3D = 1.0 / 3.0;
-	constexpr double NORM_3D = 103.0;
-
-	const int8 Gradients3D[] = {
-		-11, 4, 4, -4, 11, 4, -4, 4, 11,
-		11, 4, 4, 4, 11, 4, 4, 4, 11,
-		-11, -4, 4, -4, -11, 4, -4, -4, 11,
-		11, -4, 4, 4, -11, 4, 4, -4, 11,
-		-11, 4, -4, -4, 11, -4, -4, 4, -11,
-		11, 4, -4, 4, 11, -4, 4, 4, -11,
-		-11, -4, -4, -4, -11, -4, -4, -4, -11,
-		11, -4, -4, 4, -11, -4, 4, -4, -11,
-	};
-
 public:
 	virtual ~FPCGExNoiseOpenSimplex2() override = default;
 
@@ -65,9 +68,9 @@ private:
 		if (Attn <= 0) { return 0; }
 
 		const int32 GI = PCGExNoise3D::Math::Hash3DSeed(XSV, YSV, ZSV, Seed) % 24 * 3;
-		const double GX = Gradients3D[GI];
-		const double GY = Gradients3D[GI + 1];
-		const double GZ = Gradients3D[GI + 2];
+		const double GX = PCGExOpenSimplex2::Gradients3D[GI];
+		const double GY = PCGExOpenSimplex2::Gradients3D[GI + 1];
+		const double GZ = PCGExOpenSimplex2::Gradients3D[GI + 2];
 
 		Attn *= Attn;
 		return Attn * Attn * (GX * DX + GY * DY + GZ * DZ);

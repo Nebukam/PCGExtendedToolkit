@@ -6,6 +6,7 @@
 #include "Containers/PCGExManagedObjects.h"
 
 using namespace PCGExNoise3D::Math;
+using namespace PCGExOpenSimplex2;
 
 double FPCGExNoiseOpenSimplex2::GenerateRaw(const FVector& Position) const
 {
