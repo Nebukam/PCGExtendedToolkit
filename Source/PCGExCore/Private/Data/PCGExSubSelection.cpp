@@ -220,7 +220,7 @@ namespace PCGExData
 		// Apply the sub-selection to get an intermediate value
 		alignas(16) uint8 IntermediateBuffer[96];
 		EPCGMetadataTypes IntermediateType = EPCGMetadataTypes::Unknown;
-
+		
 		ApplyGet(SourceType, Source, IntermediateBuffer, IntermediateType);
 
 		// Convert from intermediate to working type if needed
