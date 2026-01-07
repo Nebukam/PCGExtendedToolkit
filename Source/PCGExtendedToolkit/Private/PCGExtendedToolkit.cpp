@@ -16,6 +16,9 @@
 
 void FPCGExtendedToolkitModule::StartupModule()
 {
+	
+	FModuleManager::Get().LoadModuleChecked<IModuleInterface>("PCG");
+	
 	const TMap<FString, TArray<FString>>& Dependencies = PCGExSubModules::GetModuleDependencies();
 	TSet<FString> Loaded;
 
