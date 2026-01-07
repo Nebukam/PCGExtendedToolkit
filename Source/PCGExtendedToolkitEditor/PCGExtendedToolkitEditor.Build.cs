@@ -17,32 +17,29 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"Engine",
 				"Projects",
 				"PlacementMode",
-				"GeometryScriptingCore",
 				"RenderCore",
 				"RHI",
 				"PCG",
 				"PCGEditor",
-				"PCGGeometryScriptInterop",
-				"PCGExtendedToolkit"
+				"PCGExtendedToolkit",
+				
+				// Core
+				"PCGExCore",
+				"PCGExCoreEditor",
+				
+				// Foundations
+				"PCGExFoundations",
+				"PCGExFoundationsEditor"
 			}
 		);
 
 		PrivateDependencyModuleNames.AddRange(
 			new[]
 			{
-				"GeometryCore",
-				"GeometryFramework",
-				
-				"GeometryAlgorithms",
-				
-				
-				"PhysicsCore",
-				"NavigationSystem",
 				"Slate",
 				"SlateCore",
 				"GameplayTags",
 				"PropertyPath",
-				
 				"AppFramework",
 				"ApplicationCore",
 				"AssetDefinition",
