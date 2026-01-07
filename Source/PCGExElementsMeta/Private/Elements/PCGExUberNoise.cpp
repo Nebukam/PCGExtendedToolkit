@@ -189,7 +189,7 @@ namespace PCGExUberNoise
 	{\
 		TArray<_TYPE>& NoiseBuffer = *StaticCastSharedPtr<PCGExData::TRawBufferProxy<_TYPE>>(Blender->A)->Buffer.Get(); \
 		Context->NoiseGenerator->Generate(Positions, TArrayView(NoiseBuffer.GetData() + Scope.Start, Scope.Count)); \
-		Blender->BlendScope(Scope, Scope.GetConstView(PointFilterCache), 1); \
+		Blender->BlendScope(Scope, Scope.GetConstView<int8>(PointFilterCache), 1); \
 	}
 
 		switch (Blender->A->RealType)

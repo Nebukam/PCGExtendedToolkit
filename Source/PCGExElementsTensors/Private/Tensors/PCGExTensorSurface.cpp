@@ -440,7 +440,11 @@ TArray<FPCGPinProperties> UPCGExCreateTensorSurfaceSettings::InputPinProperties(
 
 	// PCG Surfaces pin (optional, default source)
 	{
+#if PCGEX_ENGINE_VERSION < 507
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExTensorSurface::SourcePCGSurfacesLabel, EPCGDataType::Surface);
+#else
 		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExTensorSurface::SourcePCGSurfacesLabel, FPCGDataTypeInfoSurface::AsId());
+#endif
 		PCGEX_PIN_TOOLTIP("PCG Surface data such as landscapes (optional, used by default if connected)")
 		PCGEX_PIN_STATUS(Normal)
 	}
