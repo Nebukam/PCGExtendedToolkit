@@ -53,6 +53,7 @@ A lot of simple yet powerful utility nodes ranging from complex sorting, complex
 
 #### *And so much more -- PCGEx has 180+ nodes!*
 
+
 # Interops
 PCGEx has a few additional interops plugins to interfaces with "other things":
 
@@ -63,7 +64,7 @@ PCGEx has a few additional interops plugins to interfaces with "other things":
 
 ### [Contributing](https://github.com/Nebukam/PCGExtendedToolkit/blob/main/CONTRIBUTING.md)
 ### Disclaimer
-This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*). **The contents of this project are entirely original, comprising no AI-generated materials, including but not limited to code and assets.**
+This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*).
 
 ### Supporters
 -Check out the [Supporters](https://pcgex.gitbook.io/pcgex/supporters) page on gitbook!
@@ -77,5 +78,6 @@ This software is provided under the MIT License. It is freely available for use 
 - [@MaximeDup](https://github.com/MaximeDup) & [@EmSeta](https://github.com/EmSeta) for helping with the macOS version
 - And of course the contributors, but they have their own special place on the sidebar <3
 
-### Third party
+### Third party & Credits
 - This plugin includes [delaunator-cpp](https://github.com/delfrrr/delaunator-cpp)
+- The `PCGExElementsClipper2` module includes a C++ modified port of the [Clipper2](https://github.com/AngusJohnson/Clipper2) (2.0.1) library created by Angus Johnson
