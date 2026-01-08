@@ -61,6 +61,7 @@ public:
 #endif
 
 	virtual int32 GetDefaultPriority() const { return 0; }
+	virtual EPCGExExecutionPolicy GetExecutionPolicy() const override { return EPCGExExecutionPolicy::Ignored; }
 
 protected:
 	UPROPERTY()

@@ -3,9 +3,12 @@
 
 #include "Core/PCGExElement.h"
 
+#include "PCGExCoreSettingsCache.h"
 #include "Core/PCGExContext.h"
 #include "Factories/PCGExInstancedFactory.h"
 #include "Core/PCGExSettings.h"
+#include "Details/PCGExWaitMacros.h"
+#include "Helpers/PCGAsync.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGSettingsHelpers.h"
 
@@ -161,11 +164,47 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	check(InSettings);
 
 	if (InContext->IsInitialExecution()) { InitializeData(InContext, InSettings); }
-	return AdvanceWork(InContext, InSettings);
+
+	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();;
+	const EPCGExExecutionPolicy LocalPolicy = DesiredPolicy == EPCGExExecutionPolicy::Default ? PCGEX_CORE_SETTINGS.ExecutionPolicy : DesiredPolicy;
+
+	if (!IsInGameThread()
+		|| LocalPolicy == EPCGExExecutionPolicy::Ignored
+		|| LocalPolicy == EPCGExExecutionPolicy::Default
+		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButLoop && InContext->LoopIndex != INDEX_NONE)
+		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButTopLoop && InContext->IsExecutingInsideLoop()))
+	{
+		return AdvanceWork(InContext, InSettings);
+	}
+
+	PCGEX_ASYNC_WAIT_CHKD_ADV(!AdvanceWork(InContext, InSettings))
+	return true;
 }
 
 void IPCGExElement::InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
+	const FPCGStack* Stack = InContext->GetStack();
+	if (!ensure(Stack))
+	{
+		PCGE_LOG_C(Error, LogOnly, InContext, LOCTEXT("ContextHasNoExecutionStack", "The execution context is malformed and has no call stack."));
+		return;
+	}
+
+	const TArray<FPCGStackFrame>& StackFrames = Stack->GetStackFrames();
+
+	if (StackFrames.Num() >= 2)
+	{
+		InContext->LoopIndex = StackFrames.Last(1).LoopIndex;
+	}
+
+	for (const FPCGStackFrame& Frame : StackFrames)
+	{
+		if (Frame.LoopIndex != INDEX_NONE)
+		{
+			InContext->TopLoopIndex = Frame.LoopIndex;
+			break;
+		}
+	}
 }
 
 bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const

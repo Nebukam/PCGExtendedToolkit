@@ -16,6 +16,7 @@
 #include "Core/PCGExProxyDataBlending.h"
 #include "Data/PCGExProxyDataImpl.h"
 #include "Data/PCGExSubSelectionOps.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGExNoiseGenerator.h"
 
@@ -104,68 +105,80 @@ namespace PCGExUberNoise
 
 		EPCGExABBlendingType BlendMode = Settings->BlendMode;
 
-		PCGExData::FProxyDescriptor OutDescriptor;
-		OutDescriptor.DataFacade = PointDataFacade;
-		OutDescriptor.Role = PCGExData::EProxyRole::Write;
+		PCGExData::FProxyDescriptor A;
+		PCGExData::FProxyDescriptor C;
+		C.DataFacade = PointDataFacade;
+		C.Side = PCGExData::EIOSide::Out;
+		C.Role = PCGExData::EProxyRole::Write;
+
+		EPCGMetadataTypes NoiseType = EPCGMetadataTypes::Unknown;
 
 		const bool bIsNewOutput = Settings->Mode == EPCGExUberNoiseMode::New;
+
 		if (bIsNewOutput)
 		{
-			OutDescriptor.RealType = Settings->OutputType;
+			// We don't care about InDescriptor
+
+			C.RealType = Settings->OutputType;
 			BlendMode = EPCGExABBlendingType::CopySource;
-		}
 
-		if (!OutDescriptor.Capture(Context, Settings->Attributes.GetTargetSelector(), PCGExData::EIOSide::Out, !bIsNewOutput))
-		{
-			// If new, blender will initialize the buffer
-			if (!bIsNewOutput) { return false; }
-
-			// Fill-in working type
-			OutDescriptor.RealType = Settings->OutputType;
-			NumFields = PCGExData::FSubSelectorRegistry::Get(OutDescriptor.RealType)->GetNumFields();
-
-			switch (NumFields)
+			if (!C.Capture(Context, Settings->Attributes.GetTargetSelector(), PCGExData::EIOSide::Out, false))
 			{
-			default:
-			case 1: OutDescriptor.WorkingType = EPCGMetadataTypes::Double;
-				break;
-			case 2: OutDescriptor.WorkingType = EPCGMetadataTypes::Vector2;
-				break;
-			case 3: OutDescriptor.WorkingType = EPCGMetadataTypes::Vector;
-				break;
-			case 4: OutDescriptor.WorkingType = EPCGMetadataTypes::Vector4;
-				break;
+				C.WorkingType = C.RealType = Settings->OutputType;
 			}
 		}
 		else
 		{
-			NumFields = PCGExData::FSubSelectorRegistry::Get(OutDescriptor.WorkingType)->GetNumFields();
+			WeightBuffer = Settings->SourceValueWeight.GetValueSetting();
+			if (!WeightBuffer->Init(PointDataFacade)) { return false; }
+
+			A.DataFacade = PointDataFacade;
+			A.Role = PCGExData::EProxyRole::Read;
+
+			if (!A.CaptureStrict(Context, Settings->Attributes.GetSourceSelector(), PCGExData::EIOSide::In, true))
+			{
+				return false;
+			}
+
+			if (Settings->Attributes.bOutputToDifferentName)
+			{
+				if (!C.Capture(Context, Settings->Attributes.GetTargetSelector(), PCGExData::EIOSide::Out, false))
+				{
+					if (C.RealType == EPCGMetadataTypes::Unknown) { C.RealType = A.WorkingType; }
+					if (C.WorkingType == EPCGMetadataTypes::Unknown) { C.WorkingType = A.WorkingType; }
+				}
+			}
+			else
+			{
+				C = A;
+			}
 		}
 
-		if (NumFields < 1 || NumFields > 4) { PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid number of fields.")); }
+		C.Side = PCGExData::EIOSide::Out;
+		C.Role = PCGExData::EProxyRole::Write;
 
-		PCGExData::FProxyDescriptor NoiseDescriptor;
-		NoiseDescriptor.DataFacade = PointDataFacade;
-		NoiseDescriptor.Role = PCGExData::EProxyRole::Read;
-
-		switch (NumFields)
+		NoiseType = PCGExNoise3D::GetNoise3DType(PCGExData::FSubSelectorRegistry::Get(C.WorkingType)->GetNumFields());
+		if (NoiseType == EPCGMetadataTypes::Unknown)
 		{
-		default:
-		case 1: NoiseDescriptor.RealType = EPCGMetadataTypes::Double;
-			break;
-		case 2: NoiseDescriptor.RealType = EPCGMetadataTypes::Vector2;
-			break;
-		case 3: NoiseDescriptor.RealType = EPCGMetadataTypes::Vector;
-			break;
-		case 4: NoiseDescriptor.RealType = EPCGMetadataTypes::Vector4;
-			break;
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Could not infer noise type."));
+			return false;
 		}
 
-		NoiseDescriptor.WorkingType = OutDescriptor.WorkingType;
-		NoiseDescriptor.AddFlags(PCGExData::EProxyFlags::Raw);
+		PCGExData::FProxyDescriptor N = C;
+		N.Role = PCGExData::EProxyRole::Read;
+		N.RealType = NoiseType;
+		N.WorkingType = NoiseType;
+		N.AddFlags(PCGExData::EProxyFlags::Raw);
 
-		Blender = PCGExBlending::CreateProxyBlender(Context, EPCGExABBlendingType::Add, NoiseDescriptor, OutDescriptor);
+		A.WorkingType = NoiseType;
+		N.WorkingType = NoiseType;
+
+		if (bIsNewOutput) { Blender = PCGExBlending::CreateProxyBlender(Context, BlendMode, N, C); }
+		else { Blender = PCGExBlending::CreateProxyBlender(Context, BlendMode, A, N, C); }
+
 		if (!Blender) { return false; }
+
+		NoiseBuffer = bIsNewOutput ? Blender->A : Blender->B;
 
 		StartParallelLoopForPoints();
 
@@ -185,14 +198,25 @@ namespace PCGExUberNoise
 		PCGExArrayHelpers::InitArray(Positions, Scope.Count);
 		for (int i = 0; i < Scope.Count; i++) { Positions[i] = InTransforms[Scope.Start + i].GetLocation(); }
 
+		TArray<double> Weights;
+		if (WeightBuffer)
+		{
+			Weights.SetNumUninitialized(Scope.Count);
+			WeightBuffer->ReadScope(Scope.Start, Weights);
+		}
+		else
+		{
+			Weights.Init(1, Scope.Count);
+		}
+
 #define PCGEX_LOOP_NOISE(_TYPE) \
 	{\
-		TArray<_TYPE>& NoiseBuffer = *StaticCastSharedPtr<PCGExData::TRawBufferProxy<_TYPE>>(Blender->A)->Buffer.Get(); \
-		Context->NoiseGenerator->Generate(Positions, TArrayView<_TYPE>(NoiseBuffer.GetData() + Scope.Start, Scope.Count)); \
-		Blender->BlendScope(Scope, Scope.GetConstView<int8>(PointFilterCache), 1); \
+		TArray<_TYPE>& TypedNoiseBuffer = *StaticCastSharedPtr<PCGExData::TRawBufferProxy<_TYPE>>(NoiseBuffer)->Buffer.Get(); \
+		Context->NoiseGenerator->Generate(Positions, TArrayView<_TYPE>(TypedNoiseBuffer.GetData() + Scope.Start, Scope.Count)); \
+		Blender->BlendScope(Scope, Scope.GetConstView<int8>(PointFilterCache), Weights); \
 	}
 
-		switch (Blender->A->RealType)
+		switch (NoiseBuffer->RealType)
 		{
 		default: /* no-op */ break;
 		case EPCGMetadataTypes::Double: PCGEX_LOOP_NOISE(double)

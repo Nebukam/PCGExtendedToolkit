@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
 #include "UObject/Object.h"
 
 #include "PCGExNoise3DCommon.generated.h"
@@ -57,5 +58,17 @@ namespace PCGExNoise3D
 		const FName OutputNoise3DLabel = FName("Noise");
 		const FName SourceNoise3DLabel = FName("Noises");
 		const FName SourceNoise3DMaskLabel = FName("Masks");
+	}
+
+	FORCEINLINE EPCGMetadataTypes GetNoise3DType(const int32 NumFields)
+	{
+		switch (NumFields)
+		{
+		case 1: return EPCGMetadataTypes::Double;
+		case 2: return EPCGMetadataTypes::Vector2;
+		case 3: return EPCGMetadataTypes::Vector;
+		case 4: return EPCGMetadataTypes::Vector4;
+		default: return EPCGMetadataTypes::Unknown;
+		}
 	}
 }
