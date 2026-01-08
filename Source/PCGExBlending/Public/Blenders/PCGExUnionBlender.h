@@ -32,7 +32,7 @@ namespace PCGExBlending
 
 namespace PCGExBlending
 {
-	using FGetSourceIdx = std::function<int32(const TSharedPtr<PCGExData::FFacade>& InFacade)>;
+	using FGetSourceIdx = std::function<int32(const TSharedRef<PCGExData::FFacade>& InFacade)>;
 	
 	class PCGEXBLENDING_API FUnionBlender final : public IUnionBlender
 	{

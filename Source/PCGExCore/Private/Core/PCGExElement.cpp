@@ -168,7 +168,8 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();;
 	const EPCGExExecutionPolicy LocalPolicy = DesiredPolicy == EPCGExExecutionPolicy::Default ? PCGEX_CORE_SETTINGS.ExecutionPolicy : DesiredPolicy;
 
-	if (LocalPolicy == EPCGExExecutionPolicy::Ignored
+	if (!IsInGameThread()
+		|| LocalPolicy == EPCGExExecutionPolicy::Ignored
 		|| LocalPolicy == EPCGExExecutionPolicy::Default
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButLoop && InContext->LoopIndex != INDEX_NONE)
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButTopLoop && InContext->IsExecutingInsideLoop()))
@@ -176,19 +177,7 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 		return AdvanceWork(InContext, InSettings);
 	}
 
-	FPCGAsync::AsyncProcessingOneToOneRangeEx(
-		&Context->AsyncState,
-		1,
-		/*InitializeFunc=*/[]()
-		{
-		},
-		[&](int32 StartReadIndex, int32 StartWriteIndex, int32 Count)
-		{
-			PCGEX_ASYNC_WAIT_CHKD_ADV(!AdvanceWork(InContext, InSettings))
-			return 1;
-		},
-		/*bTimeSliceEnabled=*/false);
-
+	PCGEX_ASYNC_WAIT_CHKD_ADV(!AdvanceWork(InContext, InSettings))
 	return true;
 }
 

@@ -48,7 +48,8 @@ public:
 	EPCGExOptionState ScopedAttributeGet = EPCGExOptionState::Default;
 
 	/** Forces the execution over a single frame.
-	 * Not safe on all nodes, some nodes will override this internally. */
+	 * Not safe on all nodes, some nodes will override this internally.
+	 * ONLY CHANGE THIS IF YOU KNOW WHAT YOU'RE DOING */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="GetExecutionPolicy() != EPCGExExecutionPolicy::Ignored"))
 	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
 

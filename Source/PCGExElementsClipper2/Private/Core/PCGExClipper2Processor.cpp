@@ -390,7 +390,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		OutputFacade = MakeShared<PCGExData::FFacade>(NewPointIO.ToSharedRef());
 
 		Blender = MakeShared<PCGExBlending::FUnionBlender>(&BlendingDetails, &CarryOverDetails, PCGExMath::GetDistances());
-		Blender->AddSources(BlendSources, nullptr, [](const TSharedPtr<PCGExData::FFacade>& InFacade) { return InFacade->Idx; });
+		Blender->AddSources(BlendSources, nullptr, [](const TSharedRef<PCGExData::FFacade>& InFacade) { return InFacade->Idx; });
 		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
 		UnionMetadata->SetNum(NumPoints);
 
