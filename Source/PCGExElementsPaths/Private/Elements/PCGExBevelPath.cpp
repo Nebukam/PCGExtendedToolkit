@@ -128,72 +128,333 @@ namespace PCGExBevelPath
 		const UPCGBasePointData* InPoints = InProcessor->PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
 
-		ArriveIdx = Index - 1 < 0 ? InTransforms.Num() - 1 : Index - 1;
-		LeaveIdx = Index + 1 == InTransforms.Num() ? 0 : Index + 1;
+		const int32 PointCount = InTransforms.Num();
+		ArriveIdx = InProcessor->WrapIndex(Index - 1);
+		LeaveIdx = InProcessor->WrapIndex(Index + 1);
 
+		// Handle open paths - should not happen as endpoints are filtered, but safety check
+		if (ArriveIdx < 0) { ArriveIdx = 0; }
+		if (LeaveIdx < 0) { LeaveIdx = PointCount - 1; }
 
 		Corner = InTransforms[InIndex].GetLocation();
 		PrevLocation = InTransforms[ArriveIdx].GetLocation();
 		NextLocation = InTransforms[LeaveIdx].GetLocation();
 
-		// Pre-compute some data
-
+		// Use cached directions if available
 		ArriveDir = (PrevLocation - Corner).GetSafeNormal();
 		LeaveDir = (NextLocation - Corner).GetSafeNormal();
 
-		Width = InProcessor->WidthGetter->Read(Index);
+		// Get initial width from attribute or constant
+		InitialWidth = InProcessor->WidthGetter->Read(Index);
+		Width = InitialWidth;
 
-		const double ArriveLen = InProcessor->Len(ArriveIdx);
-		const double LeaveLen = InProcessor->Len(Index);
+		// Get edge lengths from cache
+		const double ArriveLen = InProcessor->PathLength->Get(ArriveIdx);
+		const double LeaveLen = InProcessor->PathLength->Get(Index);
 		const double SmallestLength = FMath::Min(ArriveLen, LeaveLen);
 
+		// Initialize sliding limits to immediate neighbors (will be updated if sliding enabled)
+		ArriveSlidingLimit = ArriveLen;
+		LeaveSlidingLimit = LeaveLen;
+
+		// Apply width measure (relative vs absolute)
 		if (InProcessor->Settings->WidthMeasure == EPCGExMeanMeasure::Relative)
 		{
 			Width *= SmallestLength;
 		}
 
+		// Apply radius mode conversion
 		if (InProcessor->Settings->Mode == EPCGExBevelMode::Radius)
 		{
-			Width = Width / FMath::Sin(FMath::Acos(FVector::DotProduct(ArriveDir, LeaveDir)) / 2.0f);
+			const double DotProduct = FMath::Clamp(FVector::DotProduct(ArriveDir, LeaveDir), -1.0, 1.0);
+			const double HalfAngle = FMath::Acos(DotProduct) / 2.0;
+			const double SinHalfAngle = FMath::Sin(HalfAngle);
+			if (!FMath::IsNearlyZero(SinHalfAngle))
+			{
+				Width = Width / SinHalfAngle;
+			}
 		}
 
-		if (InProcessor->Settings->Limit != EPCGExBevelLimit::None)
+		// Apply basic limiting (ClosestNeighbor) - will be refined in Balance() if Balanced mode
+		// Skip this limit if sliding is enabled - will be applied after ComputeSlidingLimits
+		if (InProcessor->Settings->Limit != EPCGExBevelLimit::None && !InProcessor->bSlideAlongPath)
 		{
 			Width = FMath::Min(Width, SmallestLength);
 		}
 
-		ArriveAlpha = Width / ArriveLen;
-		LeaveAlpha = Width / LeaveLen;
+		// Compute alpha values for balancing
+		ArriveAlpha = (ArriveLen > KINDA_SMALL_NUMBER) ? Width / ArriveLen : 1.0;
+		LeaveAlpha = (LeaveLen > KINDA_SMALL_NUMBER) ? Width / LeaveLen : 1.0;
+	}
+
+	double FBevel::AccumulatePathDistance(const FProcessor* InProcessor, int32 StartIdx, int32 Direction, int32& OutBevelIdx) const
+	{
+		double TotalDistance = 0.0;
+		OutBevelIdx = -1;
+
+		int32 CurrentIdx = StartIdx;
+		const int32 MaxIterations = InProcessor->NumPoints; // Prevent infinite loops
+
+		for (int32 Iteration = 0; Iteration < MaxIterations; ++Iteration)
+		{
+			// Get the edge length
+			const int32 EdgeIdx = (Direction > 0) ? CurrentIdx : InProcessor->WrapIndex(CurrentIdx - 1);
+			if (EdgeIdx < 0) { break; } // Hit path end
+
+			TotalDistance += InProcessor->PathLength->Get(EdgeIdx);
+
+			// Move to next point
+			const int32 NextIdx = InProcessor->WrapIndex(CurrentIdx + Direction);
+			if (NextIdx < 0) { break; } // Hit path end
+
+			// Check if next point has a bevel
+			if (InProcessor->Bevels[NextIdx])
+			{
+				OutBevelIdx = NextIdx;
+				break;
+			}
+
+			CurrentIdx = NextIdx;
+
+			// For closed loops, stop if we've come back around
+			if (CurrentIdx == Index) { break; }
+		}
+
+		return TotalDistance;
+	}
+
+	void FBevel::ComputeSlidingLimits(const FProcessor* InProcessor)
+	{
+		const UPCGBasePointData* InPoints = InProcessor->PointDataFacade->GetIn();
+		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
+
+		if (!InProcessor->bSlideAlongPath)
+		{
+			// No sliding - limits are just the immediate neighbors
+			ArriveSlidingLimit = InProcessor->PathLength->Get(ArriveIdx);
+			LeaveSlidingLimit = InProcessor->PathLength->Get(Index);
+			ArriveBevelIdx = -1;
+			LeaveBevelIdx = -1;
+			return;
+		}
+
+		// Walk backwards to find limiting bevel or path end
+		ArriveSlidingLimit = 0.0;
+		ArriveBevelIdx = -1;
+		int32 CurrentIdx = Index;
+
+		ArrivePathPoints.Reset();
+		ArrivePathDistances.Reset();
+		ArrivePathIndices.Reset();
+		ArrivePathPoints.Add(Corner);
+		ArrivePathDistances.Add(0.0);
+
+		for (int32 i = 0; i < InProcessor->NumPoints; ++i)
+		{
+			const int32 PrevIdx = InProcessor->WrapIndex(CurrentIdx - 1);
+			if (PrevIdx < 0)
+			{
+				// Hit path start
+				break;
+			}
+
+			// Add edge length (edge from PrevIdx to CurrentIdx)
+			ArriveSlidingLimit += InProcessor->PathLength->Get(PrevIdx);
+
+			ArrivePathPoints.Add(InTransforms[PrevIdx].GetLocation());
+			ArrivePathDistances.Add(ArriveSlidingLimit);
+			ArrivePathIndices.Add(PrevIdx);
+
+			// Check if previous point has a bevel
+			if (InProcessor->Bevels[PrevIdx])
+			{
+				ArriveBevelIdx = PrevIdx;
+				break;
+			}
+
+			CurrentIdx = PrevIdx;
+
+			// For closed loops, stop if we've come back around
+			if (CurrentIdx == Index)
+			{
+				break;
+			}
+		}
+
+		// Walk forwards to find limiting bevel or path end
+		LeaveSlidingLimit = 0.0;
+		LeaveBevelIdx = -1;
+		CurrentIdx = Index;
+
+		LeavePathPoints.Reset();
+		LeavePathDistances.Reset();
+		LeavePathIndices.Reset();
+		LeavePathPoints.Add(Corner);
+		LeavePathDistances.Add(0.0);
+
+		for (int32 i = 0; i < InProcessor->NumPoints; ++i)
+		{
+			const int32 NextIdx = InProcessor->WrapIndex(CurrentIdx + 1);
+			if (NextIdx < 0)
+			{
+				// Hit path end
+				break;
+			}
+
+			// Add edge length (edge from CurrentIdx to NextIdx)
+			LeaveSlidingLimit += InProcessor->PathLength->Get(CurrentIdx);
+
+			LeavePathPoints.Add(InTransforms[NextIdx].GetLocation());
+			LeavePathDistances.Add(LeaveSlidingLimit);
+			LeavePathIndices.Add(NextIdx);
+
+			// Check if next point has a bevel
+			if (InProcessor->Bevels[NextIdx])
+			{
+				LeaveBevelIdx = NextIdx;
+				break;
+			}
+
+			CurrentIdx = NextIdx;
+
+			// For closed loops, stop if we've come back around
+			if (CurrentIdx == Index)
+			{
+				break;
+			}
+		}
+	}
+
+	FVector FBevel::GetPositionAlongPath(const TArray<FVector>& PathPoints, const TArray<double>& PathDistances, double Distance) const
+	{
+		if (PathPoints.Num() < 2 || Distance <= 0.0)
+		{
+			return PathPoints.Num() > 0 ? PathPoints[0] : Corner;
+		}
+
+		// Find the segment containing our distance
+		for (int32 i = 1; i < PathDistances.Num(); ++i)
+		{
+			if (Distance <= PathDistances[i])
+			{
+				const double SegmentStart = PathDistances[i - 1];
+				const double SegmentEnd = PathDistances[i];
+				const double SegmentLength = SegmentEnd - SegmentStart;
+
+				if (SegmentLength <= KINDA_SMALL_NUMBER)
+				{
+					return PathPoints[i];
+				}
+
+				const double Alpha = (Distance - SegmentStart) / SegmentLength;
+				return FMath::Lerp(PathPoints[i - 1], PathPoints[i], Alpha);
+			}
+		}
+
+		// Distance exceeds path length - return last point
+		return PathPoints.Last();
 	}
 
 	void FBevel::Balance(const FProcessor* InProcessor)
 	{
-		const TSharedPtr<FBevel>& PrevBevel = InProcessor->Bevels[ArriveIdx];
-		const TSharedPtr<FBevel>& NextBevel = InProcessor->Bevels[LeaveIdx];
+		if (InProcessor->Settings->Limit != EPCGExBevelLimit::Balanced) { return; }
 
-		double ArriveAlphaSum = ArriveAlpha;
-		double LeaveAlphaSum = LeaveAlpha;
+		double EffectiveArriveLimit = ArriveSlidingLimit;
+		double EffectiveLeaveLimit = LeaveSlidingLimit;
 
-		if (PrevBevel) { ArriveAlphaSum += PrevBevel->LeaveAlpha; }
-		else { ArriveAlphaSum = 1; }
+		// When sliding, we compete with neighboring bevels for the shared path distance
+		if (InProcessor->bSlideAlongPath)
+		{
+			// Calculate our proportion of the available space on arrive side
+			if (ArriveBevelIdx >= 0)
+			{
+				const TSharedPtr<FBevel>& ArriveBevel = InProcessor->Bevels[ArriveBevelIdx];
+				if (ArriveBevel)
+				{
+					// Both bevels want part of this path segment
+					// Split proportionally based on their initial widths
+					const double TotalWidth = InitialWidth + ArriveBevel->InitialWidth;
+					if (TotalWidth > KINDA_SMALL_NUMBER)
+					{
+						const double MyProportion = InitialWidth / TotalWidth;
+						EffectiveArriveLimit = ArriveSlidingLimit * MyProportion;
+					}
+					else
+					{
+						EffectiveArriveLimit = ArriveSlidingLimit * 0.5;
+					}
+				}
+			}
 
-		Width = FMath::Min(Width, InProcessor->Len(ArriveIdx) * (ArriveAlpha * (1 / ArriveAlphaSum)));
+			// Calculate our proportion of the available space on leave side
+			if (LeaveBevelIdx >= 0)
+			{
+				const TSharedPtr<FBevel>& LeaveBevel = InProcessor->Bevels[LeaveBevelIdx];
+				if (LeaveBevel)
+				{
+					const double TotalWidth = InitialWidth + LeaveBevel->InitialWidth;
+					if (TotalWidth > KINDA_SMALL_NUMBER)
+					{
+						const double MyProportion = InitialWidth / TotalWidth;
+						EffectiveLeaveLimit = LeaveSlidingLimit * MyProportion;
+					}
+					else
+					{
+						EffectiveLeaveLimit = LeaveSlidingLimit * 0.5;
+					}
+				}
+			}
+		}
+		else
+		{
+			// Original balance logic for non-sliding mode
+			const TSharedPtr<FBevel>& PrevBevel = InProcessor->Bevels[ArriveIdx];
+			const TSharedPtr<FBevel>& NextBevel = InProcessor->Bevels[LeaveIdx];
 
-		if (NextBevel) { LeaveAlphaSum += NextBevel->ArriveAlpha; }
-		else { LeaveAlphaSum = 1; }
+			const double ArriveLen = InProcessor->PathLength->Get(ArriveIdx);
+			const double LeaveLen = InProcessor->PathLength->Get(Index);
 
-		Width = FMath::Min(Width, InProcessor->Len(Index) * (LeaveAlpha * (1 / LeaveAlphaSum)));
+			double ArriveAlphaSum = ArriveAlpha;
+			double LeaveAlphaSum = LeaveAlpha;
+
+			if (PrevBevel) { ArriveAlphaSum += PrevBevel->LeaveAlpha; }
+			else { ArriveAlphaSum = 1.0; }
+
+			EffectiveArriveLimit = ArriveLen * (ArriveAlpha * (1.0 / ArriveAlphaSum));
+
+			if (NextBevel) { LeaveAlphaSum += NextBevel->ArriveAlpha; }
+			else { LeaveAlphaSum = 1.0; }
+
+			EffectiveLeaveLimit = LeaveLen * (LeaveAlpha * (1.0 / LeaveAlphaSum));
+		}
+
+		// Apply the most restrictive limit
+		Width = FMath::Min(Width, FMath::Min(EffectiveArriveLimit, EffectiveLeaveLimit));
 	}
 
 	void FBevel::Compute(const FProcessor* InProcessor)
 	{
-		if (InProcessor->Settings->Limit == EPCGExBevelLimit::Balanced) { Balance(InProcessor); }
+		// Balance is now called separately in the processor
 
-		Arrive = Corner + Width * ArriveDir;
-		Leave = Corner + Width * LeaveDir;
+		// Compute Arrive and Leave positions
+		if (InProcessor->bSlideAlongPath && ArrivePathPoints.Num() >= 2)
+		{
+			// Use path traversal - positions slide along the actual path geometry
+			Arrive = GetPositionAlongPath(ArrivePathPoints, ArrivePathDistances, Width);
+			Leave = GetPositionAlongPath(LeavePathPoints, LeavePathDistances, Width);
+			
+			// Recompute directions based on actual positions
+			ArriveDir = (Arrive - Corner).GetSafeNormal();
+			LeaveDir = (Leave - Corner).GetSafeNormal();
+		}
+		else
+		{
+			// Original behavior - positions along immediate neighbor directions
+			Arrive = Corner + Width * ArriveDir;
+			Leave = Corner + Width * LeaveDir;
+		}
+
 		Length = PCGExMath::GetPerpendicularDistance(Arrive, Leave, Corner);
-
-		// TODO : compute final subdivision count
 
 		if (InProcessor->Settings->Type == EPCGExBevelProfileType::Custom)
 		{
@@ -219,7 +480,7 @@ namespace PCGExBevelPath
 	{
 		const double Dist = FVector::Dist(Arrive, bKeepCorner ? Corner : Leave);
 
-		int32 SubdivCount = Factor;
+		int32 SubdivCount = static_cast<int32>(Factor);
 		double StepSize = 0;
 
 		if (bIsCount)
@@ -273,9 +534,9 @@ namespace PCGExBevelPath
 			return;
 		}
 
-		const int32 SubdivCount = bIsCount ? Factor : FMath::Floor(Arc.GetLength() / Factor);
+		const int32 SubdivCount = bIsCount ? static_cast<int32>(Factor) : FMath::Floor(Arc.GetLength() / Factor);
 
-		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
+		const double StepSize = 1.0 / static_cast<double>(SubdivCount + 1);
 		PCGExArrayHelpers::InitArray(Subdivisions, SubdivCount);
 
 		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arc.GetLocationOnArc(StepSize + i * StepSize); }
@@ -308,11 +569,11 @@ namespace PCGExBevelPath
 
 		if (InProcessor->Settings->CrossAxisScaling == EPCGExBevelCustomProfileScaling::Scale)
 		{
-			MainAxisSize = Length * CustomCrossAxisScale;
+			CrossAxisSize = Length * CustomCrossAxisScale;
 		}
 		else if (InProcessor->Settings->CrossAxisScaling == EPCGExBevelCustomProfileScaling::Distance)
 		{
-			MainAxisSize = CustomCrossAxisScale;
+			CrossAxisSize = CustomCrossAxisScale;
 		}
 
 		for (int i = 0; i < SubdivCount; i++)
@@ -341,7 +602,84 @@ namespace PCGExBevelPath
 		}
 	}
 
-	double FProcessor::Len(const int32 Index) const { return PathLength->Get(Index); }
+	void FProcessor::ComputeSlidingLimits()
+	{
+		// Compute sliding limits for all bevels
+		for (int32 i = 0; i < NumPoints; ++i)
+		{
+			if (const TSharedPtr<FBevel>& Bevel = Bevels[i])
+			{
+				Bevel->ComputeSlidingLimits(this);
+			}
+		}
+	}
+
+	void FProcessor::ApplySlidingLimits()
+	{
+		// Apply sliding limits to all bevels for ClosestNeighbor mode
+		// Balanced mode is handled in Balance()
+		if (Settings->Limit != EPCGExBevelLimit::ClosestNeighbor)
+		{
+			return;
+		}
+
+		for (int32 i = 0; i < NumPoints; ++i)
+		{
+			if (const TSharedPtr<FBevel>& Bevel = Bevels[i])
+			{
+				// Apply the sliding limit as the maximum width
+				const double SlidingLimit = FMath::Min(Bevel->ArriveSlidingLimit, Bevel->LeaveSlidingLimit);
+				Bevel->Width = FMath::Min(Bevel->Width, SlidingLimit);
+			}
+		}
+	}
+
+	void FProcessor::MarkConsumedPoints()
+	{
+		if (!bSlideAlongPath)
+		{
+			return;
+		}
+
+		// Initialize consumed array
+		ConsumedByBevel.Init(false, NumPoints);
+
+		// For each bevel, mark points that are consumed (passed through) by the bevel
+		for (int32 i = 0; i < NumPoints; ++i)
+		{
+			const TSharedPtr<FBevel>& Bevel = Bevels[i];
+			if (!Bevel) { continue; }
+
+			const double BevelWidth = Bevel->Width;
+
+			// Check arrive side - mark points whose cumulative distance is less than Width
+			// (meaning the bevel has passed through them)
+			for (int32 j = 0; j < Bevel->ArrivePathIndices.Num(); ++j)
+			{
+				// ArrivePathDistances[j+1] because index 0 is the corner with distance 0
+				const double PointDistance = Bevel->ArrivePathDistances[j + 1];
+				const int32 PointIdx = Bevel->ArrivePathIndices[j];
+
+				// If this point is before where the bevel ends, and it's not another bevel point, consume it
+				if (PointDistance < BevelWidth - KINDA_SMALL_NUMBER && !Bevels[PointIdx])
+				{
+					ConsumedByBevel[PointIdx] = true;
+				}
+			}
+
+			// Check leave side - mark points whose cumulative distance is less than Width
+			for (int32 j = 0; j < Bevel->LeavePathIndices.Num(); ++j)
+			{
+				const double PointDistance = Bevel->LeavePathDistances[j + 1];
+				const int32 PointIdx = Bevel->LeavePathIndices[j];
+
+				if (PointDistance < BevelWidth - KINDA_SMALL_NUMBER && !Bevels[PointIdx])
+				{
+					ConsumedByBevel[PointIdx] = true;
+				}
+			}
+		}
+	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
@@ -353,38 +691,24 @@ namespace PCGExBevelPath
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
+		NumPoints = PointDataFacade->GetNum();
 
 		Path = MakeShared<PCGExPaths::FPath>(InPoints, 0);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
-		if (Settings->Type == EPCGExBevelProfileType::Custom)
-		{
-			/*
-			switch (Settings->ProfileNormal)
-			{
-			case EPCGExPathNormalDirection::Normal:
-				PathDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, FVector::UpVector));
-				break;
-			case EPCGExPathNormalDirection::Binormal:
-				PathDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, FVector::UpVector));
-				break;
-			case EPCGExPathNormalDirection::AverageNormal:
-				PathDirection = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, FVector::UpVector));
-				break;
-			}
-			*/
-		}
-
 		Path->ComputeAllEdgeExtra();
+
+		bIsClosedLoop = Path->IsClosedLoop();
 
 		bForceSingleThreadedProcessPoints = true;
 
-		Bevels.Init(nullptr, PointDataFacade->GetNum());
+		Bevels.Init(nullptr, NumPoints);
 
 		WidthGetter = Settings->GetValueSettingWidth();
 		if (!WidthGetter->Init(PointDataFacade)) { return false; }
 
 		bKeepCorner = Settings->bKeepCornerPoint;
+		bSlideAlongPath = Settings->bSlideAlongPath && (Settings->Limit != EPCGExBevelLimit::None);
 
 		if (Settings->bSubdivide)
 		{
@@ -420,12 +744,31 @@ namespace PCGExBevelPath
 		Preparation->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
-			if (!This->Path->IsClosedLoop())
+			if (!This->bIsClosedLoop)
 			{
 				// Ensure bevel is disabled on start/end points
 				This->PointFilterCache[0] = false;
 				This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
 			}
+
+			// Compute sliding limits after all bevels are created
+			if (This->bSlideAlongPath)
+			{
+				This->ComputeSlidingLimits();
+				This->ApplySlidingLimits();
+			}
+
+			// Now balance all bevels (requires sliding limits to be computed first)
+			for (int32 i = 0; i < This->NumPoints; ++i)
+			{
+				if (const TSharedPtr<FBevel>& Bevel = This->Bevels[i])
+				{
+					Bevel->Balance(This.Get());
+				}
+			}
+
+			// Mark points consumed by sliding bevels
+			This->MarkConsumedPoints();
 
 			This->StartParallelLoopForPoints(PCGExData::EIOSide::In);
 		};
@@ -437,7 +780,7 @@ namespace PCGExBevelPath
 			This->PointDataFacade->Fetch(Scope);
 			This->FilterScope(Scope);
 
-			if (!This->Path->IsClosedLoop())
+			if (!This->bIsClosedLoop)
 			{
 				// Ensure bevel is disabled on start/end points
 				This->PointFilterCache[0] = false;
@@ -447,7 +790,7 @@ namespace PCGExBevelPath
 			PCGEX_SCOPE_LOOP(i) { This->PrepareSinglePoint(i); }
 		};
 
-		Preparation->StartSubLoops(PointDataFacade->GetNum(), PCGEX_CORE_SETTINGS.PointsDefaultBatchChunkSize);
+		Preparation->StartSubLoops(NumPoints, PCGEX_CORE_SETTINGS.PointsDefaultBatchChunkSize);
 
 		return true;
 	}
@@ -490,6 +833,10 @@ namespace PCGExBevelPath
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const int32 StartIndex = StartIndices[Index];
+			
+			// Skip consumed points
+			if (StartIndex < 0) { continue; }
+
 			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 
 			if (!Bevel)
@@ -552,7 +899,7 @@ namespace PCGExBevelPath
 
 	void FProcessor::CompleteWork()
 	{
-		PCGExArrayHelpers::InitArray(StartIndices, PointDataFacade->GetNum());
+		PCGExArrayHelpers::InitArray(StartIndices, NumPoints);
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
@@ -562,8 +909,17 @@ namespace PCGExBevelPath
 		TArray<int32> ReadIndices;
 		ReadIndices.Reserve(NumOutPoints * 4);
 
+		const bool bHasConsumedPoints = ConsumedByBevel.Num() > 0;
+
 		for (int i = 0; i < StartIndices.Num(); i++)
 		{
+			// Skip consumed points (not bevels that were passed through by sliding)
+			if (bHasConsumedPoints && ConsumedByBevel[i])
+			{
+				StartIndices[i] = -1;  // Mark as skipped
+				continue;
+			}
+
 			StartIndices[i] = NumOutPoints;
 
 			if (const TSharedPtr<FBevel>& Bevel = Bevels[i])
@@ -603,11 +959,13 @@ namespace PCGExBevelPath
 		TConstPCGValueRange<int64> InMetadataEntry = InPointData->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange();
 
-		const int32 NumPoints = PointDataFacade->GetNum();
-
 		for (int Index = 0; Index < NumPoints; Index++)
 		{
 			const int32 StartIndex = StartIndices[Index];
+			
+			// Skip consumed points
+			if (StartIndex < 0) { continue; }
+
 			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 
 			if (!Bevel)
@@ -669,7 +1027,7 @@ namespace PCGExBevelPath
 			}
 		};
 
-		WriteFlagsTask->StartSubLoops(PointDataFacade->GetNum(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
+		WriteFlagsTask->StartSubLoops(NumPoints, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
 
 		IProcessor::Write();
 	}
