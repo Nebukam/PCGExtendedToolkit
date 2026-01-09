@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "created": "2026-01-09T03:40:25.819Z",
-  "updated": "2026-01-09T06:33:17.735Z",
+  "updated": "2026-01-09T20:06:06.821Z",
   "sourceDir": "D:\\GIT\\PCGExWorkbench\\Plugins\\PCGExtendedToolkit\\Source",
   "files": {
     "PCGExBlending\\Public\\Blenders\\PCGExMetadataBlender.h": {
@@ -29200,7 +29200,7 @@
       "docTime": "2026-01-09T04:52:26.798Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExBevelPath.h": {
-      "hash": "672708b2f2ac",
+      "hash": "660f24dec294",
       "parsed": {
         "classes": [
           {
@@ -29307,7 +29307,7 @@
             ]
           }
         ],
-        "propertyCount": 21,
+        "propertyCount": 22,
         "includes": [
           "CoreMinimal.h",
           "Factories/PCGExFactories.h",
@@ -71704,7 +71704,7 @@
   },
   "stats": {
     "totalFiles": 0,
-    "classified": 684,
-    "documented": 451
+    "classified": 685,
+    "documented": 0
   }
 }
