@@ -130,6 +130,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBevelLimit Limit = EPCGExBevelLimit::Balanced;
 
+	/** When enabled, bevels can extend past non-beveled points, limited only by neighboring bevels or path endpoints.
+	 *  Bevel endpoints will traverse along the path geometry, and intermediate non-beveled points will be removed. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Limit != EPCGExBevelLimit::None", EditConditionHides))
+	bool bSlideAlongPath = false;
+
 
 	/** Whether to subdivide the profile */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom", EditConditionHides))
@@ -240,8 +245,23 @@ namespace PCGExBevelPath
 		FVector LeaveDir = FVector::ZeroVector;
 		double LeaveAlpha = 0;
 
+		// Sliding limit data
+		double ArriveSlidingLimit = 0;  // Total path distance available on arrive side
+		double LeaveSlidingLimit = 0;   // Total path distance available on leave side
+		int32 ArriveBevelIdx = -1;      // Index of the limiting bevel on arrive side (-1 if path end)
+		int32 LeaveBevelIdx = -1;       // Index of the limiting bevel on leave side (-1 if path end)
+
+		// Path segments for sliding (stored as pairs of point positions and cumulative distances)
+		TArray<FVector> ArrivePathPoints;    // Points along path towards arrive (including Corner)
+		TArray<double> ArrivePathDistances;  // Cumulative distances at each point
+		TArray<int32> ArrivePathIndices;     // Point indices along arrive path (excluding self)
+		TArray<FVector> LeavePathPoints;     // Points along path towards leave (including Corner)
+		TArray<double> LeavePathDistances;   // Cumulative distances at each point
+		TArray<int32> LeavePathIndices;      // Point indices along leave path (excluding self)
+
 		double Length = 0;
 		double Width = 0;
+		double InitialWidth = 0;  // Store original width before limiting
 
 		double CustomMainAxisScale = 1;
 		double CustomCrossAxisScale = 1;
@@ -255,15 +275,34 @@ namespace PCGExBevelPath
 		~FBevel()
 		{
 			Subdivisions.Empty();
+			ArrivePathPoints.Empty();
+			ArrivePathDistances.Empty();
+			ArrivePathIndices.Empty();
+			LeavePathPoints.Empty();
+			LeavePathDistances.Empty();
+			LeavePathIndices.Empty();
 		}
 
+		/** Compute sliding limits - how far can this bevel extend on each side */
+		void ComputeSlidingLimits(const FProcessor* InProcessor);
+
+		/** Balance against neighboring bevels (respects sliding if enabled) */
 		void Balance(const FProcessor* InProcessor);
+
+		/** Finalize positions and create subdivisions */
 		void Compute(const FProcessor* InProcessor);
 
 		void SubdivideLine(const double Factor, bool bIsCount, const bool bKeepCorner);
 		void SubdivideArc(const double Factor, bool bIsCount);
 		void SubdivideCustom(const FProcessor* InProcessor);
 		void SubdivideManhattan(const FProcessor* InProcessor);
+
+	private:
+		/** Helper to accumulate path distance across multiple edges */
+		double AccumulatePathDistance(const FProcessor* InProcessor, int32 StartIdx, int32 Direction, int32& OutBevelIdx) const;
+		
+		/** Compute position along stored path at given distance */
+		FVector GetPositionAlongPath(const TArray<FVector>& PathPoints, const TArray<double>& PathDistances, double Distance) const;
 	};
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBevelPathContext, UPCGExBevelPathSettings>
@@ -273,10 +312,16 @@ namespace PCGExBevelPath
 		TArray<TSharedPtr<FBevel>> Bevels;
 		TArray<int32> StartIndices;
 
+		int32 NumPoints = 0;
+		bool bIsClosedLoop = false;
+
 		bool bKeepCorner = false;
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
+		bool bSlideAlongPath = false;
+
+		TArray<bool> ConsumedByBevel;  // Points consumed by sliding bevels
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WidthGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SubdivAmountGetter;
@@ -299,7 +344,12 @@ namespace PCGExBevelPath
 			DefaultPointFilterValue = true;
 		}
 
-		double Len(const int32 Index) const;
+		FORCEINLINE int32 WrapIndex(const int32 Index) const
+		{
+			if (Index < 0) { return bIsClosedLoop ? NumPoints + Index : -1; }
+			if (Index >= NumPoints) { return bIsClosedLoop ? Index - NumPoints : -1; }
+			return Index;
+		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void PrepareSinglePoint(const int32 Index);
@@ -312,5 +362,10 @@ namespace PCGExBevelPath
 		void WriteFlags(const int32 Index);
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+
+	private:
+		void ComputeSlidingLimits();
+		void ApplySlidingLimits();
+		void MarkConsumedPoints();
 	};
 }

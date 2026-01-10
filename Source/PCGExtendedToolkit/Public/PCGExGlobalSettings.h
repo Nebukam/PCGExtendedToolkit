@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBlendingSettingsCache.h"
+#include "PCGExCommon.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DeveloperSettings.h"
 
@@ -43,6 +44,10 @@ public:
 	/** Value applied by default to node bulk init data when `Default` is selected. */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bBulkInitData = false;
+	
+	/**  */
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
+	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
 	bool bUseDelaunator = true;

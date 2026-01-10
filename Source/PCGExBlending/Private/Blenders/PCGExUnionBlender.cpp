@@ -119,7 +119,7 @@ namespace PCGExBlending
 
 	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet, FGetSourceIdx GetSourceIdxFn)
 	{
-		if (!GetSourceIdxFn) { GetSourceIdxFn = [](const TSharedPtr<PCGExData::FFacade>& InFacade) { return InFacade->Source->IOIndex; }; }
+		if (!GetSourceIdxFn) { GetSourceIdxFn = [](const TSharedRef<PCGExData::FFacade>& InFacade) { return InFacade->Source->IOIndex; }; }
 
 		int32 MaxIndex = 0;
 		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { MaxIndex = FMath::Max(GetSourceIdxFn(Src), MaxIndex); }

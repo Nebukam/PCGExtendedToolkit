@@ -62,6 +62,8 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual EPCGExExecutionPolicy GetExecutionPolicy() const override { return EPCGExExecutionPolicy::Ignored; }
+
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
