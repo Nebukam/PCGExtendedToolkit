@@ -125,11 +125,10 @@ void FPCGExPCGDataAssetHelper::GetUniqueAssets(TArray<TPair<const FPCGExPCGDataA
 
 #pragma region UPCGSettings
 
-TArray<FPCGPinProperties> UPCGExPCGDataAssetLoaderSettings::InputPinProperties() const
+void UPCGExPCGDataAssetLoaderSettings::InputPinPropertiesBeforeFilters(TArray<FPCGPinProperties>& PinProperties) const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_PARAM(PCGExPCGDataAssetLoader::SourceStagingMap, "Collection map information from staging nodes.", Required)
-	return PinProperties;
+	Super::InputPinPropertiesBeforeFilters(PinProperties);
 }
 
 TArray<FPCGPinProperties> UPCGExPCGDataAssetLoaderSettings::OutputPinProperties() const
@@ -144,26 +143,26 @@ TArray<FPCGPinProperties> UPCGExPCGDataAssetLoaderSettings::OutputPinProperties(
 
 PCGEX_INITIALIZE_ELEMENT(PCGDataAssetLoader)
 
-void FPCGExPCGDataAssetLoaderContext::RegisterNonPointData(const FPCGTaggedData& InTaggedData)
+void FPCGExPCGDataAssetLoaderContext::RegisterRoamingData(const FPCGTaggedData& InTaggedData)
 {
 	if (!InTaggedData.Data) { return; }
 
 	uint32 DUID = InTaggedData.Data->GetUniqueID();
 
 	{
-		FReadScopeLock ReadScopeLock(NonPointDataLock);
-		if (UniqueNonPointData.Contains(DUID)) { return; }
+		FReadScopeLock ReadScopeLock(RoamingDataLock);
+		if (UniqueRoamingData.Contains(DUID)) { return; }
 	}
 
 	{
-		FReadScopeLock WriteScopeLock(NonPointDataLock);
+		FReadScopeLock WriteScopeLock(RoamingDataLock);
 
 		bool bIsAlreadySet = false;
-		UniqueNonPointData.Add(DUID, &bIsAlreadySet);
+		UniqueRoamingData.Add(DUID, &bIsAlreadySet);
 
 		if (bIsAlreadySet) { return; }
 
-		FPCGTaggedData& Data = NonPointData.Add_GetRef(InTaggedData);
+		FPCGTaggedData& Data = RoamingData.Add_GetRef(InTaggedData);
 		Data.Tags.Add(FString::Printf(TEXT("Pin:%s"), *Data.Pin.ToString()));
 		Data.Pin = FName("Others");
 	}
@@ -223,7 +222,7 @@ bool FPCGExPCGDataAssetLoaderElement::AdvanceWork(FPCGExContext* InContext, cons
 	Context->BaseDataCollection->StageOutputs();
 	Context->SpawnedCollection->StageOutputs();
 
-	if (!Context->NonPointData.IsEmpty()) { Context->OutputData.TaggedData.Append(Context->NonPointData); }
+	if (!Context->RoamingData.IsEmpty()) { Context->OutputData.TaggedData.Append(Context->RoamingData); }
 	else { Context->OutputData.InactiveOutputPinBitmask |= 1ULL << (1); }
 
 	return Context->TryComplete();
@@ -335,6 +334,7 @@ namespace PCGExPCGDataAssetLoader
 			{
 				if (const UPCGBasePointData* BasePointData = Cast<UPCGBasePointData>(TaggedData.Data))
 				{
+					// TODO : Don't do this, we only need one instance of each base data collection no matter how many times we duplicate it
 					TSharedPtr<PCGExData::FPointIO> BaseIO = Context->BaseDataCollection->Emplace_GetRef(BasePointData, PCGExData::EIOInit::Forward);
 					if (BaseIO) { BaseIO->Tags->Append(TaggedData.Tags); }
 				}
@@ -391,13 +391,20 @@ namespace PCGExPCGDataAssetLoader
 					}
 				}
 
+				// TODO : This should be SpatialData not BasePointData				
 				const UPCGBasePointData* BasePointData = Cast<UPCGBasePointData>(TaggedData.Data);
-				if (!BasePointData)
+				if (!BasePointData)  
 				{
-					Context->RegisterNonPointData(TaggedData);
+					Context->RegisterRoamingData(TaggedData);
 					continue;
 				}
+				
+				// TODO : Don't use FPointIO/FFacade system, do raw PCG ops so
+				// UPCGSpatialData* DataCopy = Context->ManagedObjects->DuplicateData<UPCGSpatialData>(TaggedData.Data);
+				// TODO : The problem is transforming the data as per the "seed" point transform.
+				// This has to be handled differently depending on data source (Spline, Polygon2D etc)
 
+				// Below is legacy code
 				// Create duplicate for spawning
 				TSharedPtr<PCGExData::FPointIO> SpawnedIO = Context->SpawnedCollection->Emplace_GetRef(BasePointData, PCGExData::EIOInit::Duplicate);
 				if (!SpawnedIO) { continue; }

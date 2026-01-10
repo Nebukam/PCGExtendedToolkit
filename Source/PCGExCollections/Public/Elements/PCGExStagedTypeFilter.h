@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCollectionsCommon.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Core/PCGExAssetCollectionTypes.h"
+#include "Details/PCGExStagedTypeFilterDetails.h"
 #include "Helpers/PCGExCollectionsHelpers.h"
 
 #include "PCGExStagedTypeFilter.generated.h"
@@ -18,35 +17,6 @@ enum class EPCGExStagedTypeFilterMode : uint8
 	Exclude = 1 UMETA(DisplayName = "Exclude", ToolTip="Remove points that match selected types"),
 };
 
-/**
- * Collection type filter configuration.
- * Automatically populated from the type registry.
- */
-USTRUCT(BlueprintType)
-struct PCGEXCOLLECTIONS_API FPCGExStagedTypeFilterConfig
-{
-	GENERATED_BODY()
-
-	FPCGExStagedTypeFilterConfig();
-
-	/** Type inclusion map - keys are read-only, populated from registry */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ReadOnlyKeys))
-	TMap<FName, bool> TypeFilter;
-
-	/** Include/exclude invalid/unresolved entries */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bIncludeInvalid = false;
-
-	/** Refresh type filter from registry (editor utility) */
-	void RefreshFromRegistry();
-
-	/** Check if a type ID matches the filter configuration */
-	bool Matches(PCGExAssetCollection::FTypeId TypeId) const;
-
-#if WITH_EDITOR
-	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent);
-#endif
-};
 
 /**
  * Filters staged points by their collection entry type.
@@ -79,7 +49,7 @@ public:
 
 	/** Type configuration - populated from collection type registry */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExStagedTypeFilterConfig TypeConfig;
+	FPCGExStagedTypeFilterDetails TypeConfig;
 
 	/** If enabled, output filtered-out points to a separate pin */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

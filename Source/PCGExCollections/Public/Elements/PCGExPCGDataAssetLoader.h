@@ -43,7 +43,7 @@ public:
 
 protected:
 	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual void InputPinPropertiesBeforeFilters(TArray<FPCGPinProperties>& PinProperties) const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -152,11 +152,12 @@ struct FPCGExPCGDataAssetLoaderContext final : FPCGExPointsProcessorContext
 	// Spawned data collection
 	TSharedPtr<PCGExData::FPointIOCollection> SpawnedCollection;
 
-	mutable FRWLock NonPointDataLock;
-	TSet<int32> UniqueNonPointData;
-	TArray<FPCGTaggedData> NonPointData;
+	// Roaming data is non-spatial data
+	mutable FRWLock RoamingDataLock;
+	TSet<int32> UniqueRoamingData;
+	TArray<FPCGTaggedData> RoamingData;
 
-	void RegisterNonPointData(const FPCGTaggedData& InTaggedData);
+	void RegisterRoamingData(const FPCGTaggedData& InTaggedData);
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
