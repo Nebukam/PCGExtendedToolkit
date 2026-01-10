@@ -13,6 +13,7 @@
 #include "Details/Collections/PCGExFittingVariationsCustomization.h"
 #include "Details/Collections/PCGExMaterialPicksCustomization.h"
 #include "Details/Collections/PCGExMeshCollectionActions.h"
+#include "Details/Collections/PCGExPCGDataAssetCollectionActions.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExCollectionsEditorModule"
 
@@ -24,6 +25,7 @@ void FPCGExCollectionsEditorModule::StartupModule()
 
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExMeshCollectionActions>());
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorCollectionActions>());
+	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExPCGDataAssetCollectionActions>());
 
 	PCGEX_REGISTER_CUSTO_START
 
