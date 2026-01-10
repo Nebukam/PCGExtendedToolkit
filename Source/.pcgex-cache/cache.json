@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "created": "2026-01-09T03:40:25.819Z",
-  "updated": "2026-01-09T20:06:06.821Z",
+  "updated": "2026-01-10T00:22:57.613Z",
   "sourceDir": "D:\\GIT\\PCGExWorkbench\\Plugins\\PCGExtendedToolkit\\Source",
   "files": {
     "PCGExBlending\\Public\\Blenders\\PCGExMetadataBlender.h": {
@@ -322,7 +322,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\Core\\blendop.md",
-      "docTime": "2026-01-09T04:10:23.239Z",
+      "docTime": "2026-01-09T21:01:19.157Z",
       "dependencies": [
         "PCGExBlending\\Public\\Core\\PCGExBlendOpFactory.h",
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
@@ -672,7 +672,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\Core\\blend-operation.md",
-      "docTime": "2026-01-09T04:10:14.318Z",
+      "docTime": "2026-01-09T21:01:12.482Z",
       "dependencies": [
         "PCGExBlending\\Public\\PCGExBlendingCommon.h",
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
@@ -1788,7 +1788,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\SubPoints\\DataBlending\\inherit-last.md",
-      "docTime": "2026-01-09T04:10:34.252Z",
+      "docTime": "2026-01-09T21:01:36.011Z",
       "dependencies": [
         "PCGExBlending\\Public\\SubPoints\\DataBlending\\PCGExSubPointsBlendOperation.h",
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
@@ -1852,7 +1852,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\SubPoints\\DataBlending\\inherit-first.md",
-      "docTime": "2026-01-09T04:10:43.649Z",
+      "docTime": "2026-01-09T21:01:28.940Z",
       "dependencies": [
         "PCGExBlending\\Public\\SubPoints\\DataBlending\\PCGExSubPointsBlendOperation.h",
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
@@ -1916,7 +1916,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\SubPoints\\DataBlending\\interpolate.md",
-      "docTime": "2026-01-09T04:10:54.210Z",
+      "docTime": "2026-01-09T21:01:43.484Z",
       "dependencies": [
         "PCGExBlending\\Public\\SubPoints\\DataBlending\\PCGExSubPointsBlendOperation.h",
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
@@ -1980,7 +1980,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\SubPoints\\DataBlending\\no-blending.md",
-      "docTime": "2026-01-09T04:11:25.656Z",
+      "docTime": "2026-01-09T21:04:48.728Z",
       "dependencies": [
         "PCGExBlending\\Public\\SubPoints\\DataBlending\\PCGExSubPointsBlendOperation.h",
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
@@ -2045,7 +2045,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\SubPoints\\DataBlending\\sub-points-blend-instanced-factory.md",
-      "docTime": "2026-01-09T04:12:39.182Z",
+      "docTime": "2026-01-09T21:04:56.521Z",
       "dependencies": [
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
         "PCGExBlending\\Public\\SubPoints\\PCGExSubPointsInstancedFactory.h",
@@ -2114,7 +2114,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExBlending\\Public\\SubPoints\\sub-points-instanced-factory.md",
-      "docTime": "2026-01-09T04:11:48.937Z",
+      "docTime": "2026-01-09T21:05:06.385Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExInstancedFactory.h",
         "PCGExCore\\Public\\Factories\\PCGExOperation.h",
@@ -2752,7 +2752,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExCollections\\Public\\Elements\\Paths\\path-spline-mesh.md",
-      "docTime": "2026-01-09T04:12:27.634Z",
+      "docTime": "2026-01-09T21:04:44.795Z",
       "dependencies": [
         "PCGExFilters\\Public\\PCGExFilterCommon.h",
         "PCGExFoundations\\Public\\Core\\PCGExPathProcessor.h",
@@ -2885,7 +2885,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExCollections\\Public\\Collections\\mesh-collection.md",
-      "docTime": "2026-01-09T04:12:55.476Z",
+      "docTime": "2026-01-09T21:05:16.052Z",
       "dependencies": [
         "PCGExCollections\\Public\\Core\\PCGExAssetCollection.h",
         "PCGExCore\\Public\\Data\\Descriptors\\PCGExComponentDescriptors.h",
@@ -6256,7 +6256,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExCore\\Public\\Core\\settings.md",
-      "docTime": "2026-01-09T04:15:58.139Z",
+      "docTime": "2026-01-09T21:12:50.334Z",
       "dependencies": [
         "PCGExCore\\Public\\PCGExCommon.h",
         "PCGExCore\\Public\\Data\\PCGExDataCommon.h"
@@ -9379,7 +9379,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExCore\\Public\\Factories\\factory-provider.md",
-      "docTime": "2026-01-09T04:15:23.874Z",
+      "docTime": "2026-01-09T21:12:36.682Z",
       "dependencies": [
         "PCGExCore\\Public\\PCGExCoreSettingsCache.h",
         "PCGExCore\\Public\\Core\\PCGExContext.h",
@@ -13349,7 +13349,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExCore\\Public\\Sorting\\sorting-rule.md",
-      "docTime": "2026-01-09T04:15:14.410Z",
+      "docTime": "2026-01-09T21:12:56.325Z",
       "dependencies": [
         "PCGExCore\\Public\\Sorting\\PCGExSortingDetails.h",
         "PCGExCore\\Public\\Factories\\PCGExFactoryData.h",
@@ -14752,7 +14752,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsActions\\Public\\Actions\\action-write-attributes.md",
-      "docTime": "2026-01-09T04:15:34.776Z",
+      "docTime": "2026-01-09T21:13:00.990Z",
       "dependencies": [
         "PCGExElementsActions\\Public\\Core\\PCGExActionFactoryProvider.h",
         "PCGExCore\\Public\\Data\\Utils\\PCGExDataFilterDetails.h",
@@ -14837,7 +14837,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsActions\\Public\\Core\\action-abstract.md",
-      "docTime": "2026-01-09T04:15:44.181Z",
+      "docTime": "2026-01-09T21:13:06.844Z",
       "dependencies": [
         "PCGExElementsActions\\Public\\PCGExActionsCommon.h",
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
@@ -14923,7 +14923,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsActions\\Public\\Elements\\batch-actions.md",
-      "docTime": "2026-01-09T04:16:34.712Z",
+      "docTime": "2026-01-09T21:16:23.412Z",
       "dependencies": [
         "PCGExFoundations\\Public\\Core\\PCGExPointsProcessor.h",
         "PCGExCore\\Public\\Data\\Utils\\PCGExDataFilterDetails.h",
@@ -15125,7 +15125,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsBridges\\Public\\Elements\\wait-for-pcg-data.md",
-      "docTime": "2026-01-09T04:16:23.119Z",
+      "docTime": "2026-01-09T21:16:56.904Z",
       "dependencies": [
         "PCGExFoundations\\Public\\Core\\PCGExPointsProcessor.h",
         "PCGExCore\\Public\\Data\\Utils\\PCGExDataForwardDetails.h",
@@ -16095,7 +16095,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClipper2\\Public\\Core\\clipper2processor-settings.md",
-      "docTime": "2026-01-09T04:16:51.134Z",
+      "docTime": "2026-01-09T21:17:29.407Z",
       "dependencies": [
         "PCGExElementsClipper2\\Public\\Clipper2Lib\\clipper.h",
         "PCGExFoundations\\Public\\Core\\PCGExPathProcessor.h",
@@ -16204,7 +16204,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClipper2\\Public\\Elements\\clipper2-boolean.md",
-      "docTime": "2026-01-09T04:17:25.205Z",
+      "docTime": "2026-01-09T21:17:08.023Z",
       "dependencies": [
         "PCGExElementsClipper2\\Public\\Core\\PCGExClipper2Processor.h",
         "PCGExCore\\Public\\Paths\\PCGExPath.h",
@@ -16300,7 +16300,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClipper2\\Public\\Elements\\clipper2-offset.md",
-      "docTime": "2026-01-09T04:17:10.125Z",
+      "docTime": "2026-01-09T21:17:49.588Z",
       "dependencies": [
         "PCGExElementsClipper2\\Public\\Core\\PCGExClipper2Processor.h",
         "PCGExCore\\Public\\Details\\PCGExInputShorthandsDetails.h",
@@ -16972,7 +16972,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Diagrams\\cluster-voronoi-3d.md",
-      "docTime": "2026-01-09T04:18:49.768Z",
+      "docTime": "2026-01-09T21:25:50.881Z",
       "dependencies": [
         "PCGExFoundations\\Public\\Core\\PCGExPointsProcessor.h",
         "PCGExGraphs\\Public\\Graphs\\PCGExGraphDetails.h",
@@ -17068,7 +17068,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Diagrams\\cluster-voronoi-2d.md",
-      "docTime": "2026-01-09T04:19:46.686Z",
+      "docTime": "2026-01-09T21:25:38.194Z",
       "dependencies": [
         "PCGExFoundations\\Public\\Core\\PCGExPointsProcessor.h",
         "PCGExCore\\Public\\Clusters\\PCGExClusterCommon.h",
@@ -17410,7 +17410,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\fill-control-keep-direction.md",
-      "docTime": "2026-01-09T04:19:58.370Z",
+      "docTime": "2026-01-09T21:25:58.085Z",
       "dependencies": [
         "PCGExCore\\Public\\Utils\\PCGExCompare.h",
         "PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\PCGExFillControlOperation.h",
@@ -17497,7 +17497,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\fill-control-length.md",
-      "docTime": "2026-01-09T04:20:10.118Z",
+      "docTime": "2026-01-09T21:26:10.124Z",
       "dependencies": [
         "PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\PCGExFillControlOperation.h",
         "PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\PCGExFillControlsFactoryProvider.h",
@@ -17630,7 +17630,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\fill-control-running-average.md",
-      "docTime": "2026-01-09T04:20:35.954Z",
+      "docTime": "2026-01-09T21:26:22.406Z",
       "dependencies": [
         "PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\PCGExFillControlOperation.h",
         "PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\PCGExFillControlsFactoryProvider.h",
@@ -17709,7 +17709,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\fill-controls-definition.md",
-      "docTime": "2026-01-09T04:20:22.871Z",
+      "docTime": "2026-01-09T21:27:53.924Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryData.h",
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
@@ -17796,7 +17796,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\fill-control-vtx-filters.md",
-      "docTime": "2026-01-09T04:20:44.991Z",
+      "docTime": "2026-01-09T21:27:59.794Z",
       "dependencies": [
         "PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\PCGExFillControlOperation.h",
         "PCGExElementsClusters\\Public\\Elements\\FloodFill\\FillControls\\PCGExFillControlsFactoryProvider.h",
@@ -18098,7 +18098,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\FloodFill\\cluster-flood-fill.md",
-      "docTime": "2026-01-09T04:22:21.566Z",
+      "docTime": "2026-01-09T21:27:39.999Z",
       "dependencies": [
         "PCGExCore\\Public\\Containers\\PCGExScopedContainers.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -18178,7 +18178,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\NeighborSamplers\\sampler-vtx-attributes.md",
-      "docTime": "2026-01-09T04:22:04.558Z",
+      "docTime": "2026-01-09T21:27:29.856Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
@@ -18265,7 +18265,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\NeighborSamplers\\sampler-vtx-blend.md",
-      "docTime": "2026-01-09T04:21:15.707Z",
+      "docTime": "2026-01-09T21:27:45.428Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExElementsClusters\\Public\\Elements\\Meta\\NeighborSamplers\\PCGExNeighborSampleFactoryProvider.h",
@@ -18364,7 +18364,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\NeighborSamplers\\sampler-abstract.md",
-      "docTime": "2026-01-09T04:21:32.814Z",
+      "docTime": "2026-01-09T21:31:41.718Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
@@ -18462,7 +18462,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\NeighborSamplers\\sampler-test-neighbors.md",
-      "docTime": "2026-01-09T04:21:51.407Z",
+      "docTime": "2026-01-09T21:30:25.365Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExElementsClusters\\Public\\Elements\\Meta\\NeighborSamplers\\PCGExNeighborSampleFactoryProvider.h",
@@ -18544,7 +18544,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\NeighborSamplers\\sampler-vtx-properties.md",
-      "docTime": "2026-01-09T04:22:33.167Z",
+      "docTime": "2026-01-09T21:30:34.082Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
@@ -18642,7 +18642,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\cluster-sample-neighbors.md",
-      "docTime": "2026-01-09T04:23:55.578Z",
+      "docTime": "2026-01-09T21:30:42.998Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
@@ -18751,7 +18751,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\cluster-edge-properties.md",
-      "docTime": "2026-01-09T04:23:05.643Z",
+      "docTime": "2026-01-09T21:31:25.355Z",
       "dependencies": [
         "PCGExBlending\\Public\\Details\\PCGExBlendingDetails.h",
         "PCGExCore\\Public\\Details\\PCGExSettingsMacros.h",
@@ -18852,7 +18852,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\cluster-vtx-properties.md",
-      "docTime": "2026-01-09T04:23:20.783Z",
+      "docTime": "2026-01-09T21:33:21.184Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -18992,7 +18992,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\vtx-amplitude.md",
-      "docTime": "2026-01-09T04:23:42.852Z",
+      "docTime": "2026-01-09T21:34:13.080Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\PCGExVtxPropertyFactoryProvider.h",
@@ -19080,7 +19080,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\vtx-edge-match.md",
-      "docTime": "2026-01-09T04:24:07.661Z",
+      "docTime": "2026-01-09T21:33:35.299Z",
       "dependencies": [
         "PCGExCore\\Public\\Utils\\PCGExCompare.h",
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
@@ -19180,7 +19180,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\vtx-abstract.md",
-      "docTime": "2026-01-09T04:24:59.125Z",
+      "docTime": "2026-01-09T21:33:51.763Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExCore\\Public\\Factories\\PCGExFactoryData.h",
@@ -19266,7 +19266,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\vtx-special-edges.md",
-      "docTime": "2026-01-09T04:25:08.415Z",
+      "docTime": "2026-01-09T21:33:41.241Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\PCGExVtxPropertyFactoryProvider.h",
@@ -19352,7 +19352,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\vtx-special-neighbors.md",
-      "docTime": "2026-01-09T04:24:27.777Z",
+      "docTime": "2026-01-09T21:36:00.459Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactoryProvider.h",
         "PCGExElementsClusters\\Public\\Elements\\Meta\\VtxProperties\\PCGExVtxPropertyFactoryProvider.h",
@@ -19480,7 +19480,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Paths\\cluster-break-to-paths.md",
-      "docTime": "2026-01-09T04:24:44.187Z",
+      "docTime": "2026-01-09T21:35:54.225Z",
       "dependencies": [
         "PCGExCore\\Public\\Factories\\PCGExFactories.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -19591,7 +19591,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Paths\\cluster-cut.md",
-      "docTime": "2026-01-09T04:26:16.672Z",
+      "docTime": "2026-01-09T21:36:32.559Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -19702,7 +19702,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Paths\\path-to-clusters.md",
-      "docTime": "2026-01-09T04:25:25.586Z",
+      "docTime": "2026-01-09T21:36:15.713Z",
       "dependencies": [
         "PCGExFoundations\\Public\\Core\\PCGExPathProcessor.h",
         "PCGExCore\\Public\\Clusters\\PCGExClusterCommon.h",
@@ -19826,7 +19826,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-build-custom-graph.md",
-      "docTime": "2026-01-09T04:26:33.822Z",
+      "docTime": "2026-01-09T21:36:45.542Z",
       "dependencies": [
         "PCGExCore\\Public\\Clusters\\PCGExClusterCommon.h",
         "PCGExCore\\Public\\Factories\\PCGExInstancedFactory.h",
@@ -19943,7 +19943,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-centrality.md",
-      "docTime": "2026-01-09T04:25:39.569Z",
+      "docTime": "2026-01-09T21:38:20.482Z",
       "dependencies": [
         "PCGExCore\\Public\\Details\\PCGExDetailsNoise.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -20058,7 +20058,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-connect.md",
-      "docTime": "2026-01-09T04:25:59.516Z",
+      "docTime": "2026-01-09T21:38:11.032Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExCore\\Public\\Data\\Utils\\PCGExDataFilterDetails.h",
@@ -20152,7 +20152,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-copy-to-points.md",
-      "docTime": "2026-01-09T04:26:44.291Z",
+      "docTime": "2026-01-09T21:38:29.578Z",
       "dependencies": [
         "PCGExCore\\Public\\Utils\\PCGExCompare.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -20251,7 +20251,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-edge-order.md",
-      "docTime": "2026-01-09T04:26:54.880Z",
+      "docTime": "2026-01-09T21:38:37.737Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -20365,7 +20365,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-filter-vtx.md",
-      "docTime": "2026-01-09T04:27:13.727Z",
+      "docTime": "2026-01-09T21:38:49.372Z",
       "dependencies": [
         "PCGExFilters\\Public\\Details\\PCGExFilterDetails.h",
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
@@ -20464,7 +20464,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\find-clusters.md",
-      "docTime": "2026-01-09T04:27:22.620Z",
+      "docTime": "2026-01-09T21:40:07.975Z",
       "dependencies": [
         "PCGExCore\\Public\\Clusters\\PCGExClusterCommon.h",
         "PCGExFoundations\\Public\\Core\\PCGExPointsProcessor.h",
@@ -20558,7 +20558,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-find-point-on-bounds.md",
-      "docTime": "2026-01-09T04:27:40.661Z",
+      "docTime": "2026-01-09T21:40:26.586Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExCore\\Public\\Data\\Utils\\PCGExDataFilterDetails.h",
@@ -20650,7 +20650,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-fuse.md",
-      "docTime": "2026-01-09T04:28:09.520Z",
+      "docTime": "2026-01-09T21:40:36.317Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExBlending\\Public\\Blenders\\PCGExUnionBlender.h",
@@ -20730,7 +20730,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-make-unique.md",
-      "docTime": "2026-01-09T04:27:48.815Z",
+      "docTime": "2026-01-09T21:40:46.339Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
@@ -20810,7 +20810,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-merge-vtx.md",
-      "docTime": "2026-01-09T04:28:18.488Z",
+      "docTime": "2026-01-09T21:40:41.719Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExCore\\Public\\Data\\Utils\\PCGExDataFilterDetails.h",
@@ -20905,7 +20905,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\mesh-to-clusters.md",
-      "docTime": "2026-01-09T04:28:35.671Z",
+      "docTime": "2026-01-09T21:42:26.474Z",
       "dependencies": [
         "PCGExCore\\Public\\Clusters\\PCGExClusterCommon.h",
         "PCGExFoundations\\Public\\Core\\PCGExPointsProcessor.h",
@@ -20999,7 +20999,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-pack.md",
-      "docTime": "2026-01-09T04:28:44.910Z",
+      "docTime": "2026-01-09T21:42:11.241Z",
       "dependencies": [
         "PCGExCore\\Public\\Data\\Utils\\PCGExDataFilterDetails.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -21080,7 +21080,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-partition-vtx.md",
-      "docTime": "2026-01-09T04:28:56.105Z",
+      "docTime": "2026-01-09T21:42:33.447Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
@@ -21186,7 +21186,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-pick-closest.md",
-      "docTime": "2026-01-09T04:30:00.655Z",
+      "docTime": "2026-01-09T21:42:46.774Z",
       "dependencies": [
         "PCGExFilters\\Public\\Details\\PCGExFilterDetails.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -21320,7 +21320,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-refine.md",
-      "docTime": "2026-01-09T04:29:27.180Z",
+      "docTime": "2026-01-09T21:42:59.581Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -21425,7 +21425,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-relax.md",
-      "docTime": "2026-01-09T04:29:10.905Z",
+      "docTime": "2026-01-09T21:44:45.877Z",
       "dependencies": [
         "PCGExFoundations\\Public\\Details\\PCGExInfluenceDetails.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -21513,7 +21513,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\sample-vtx-by-id.md",
-      "docTime": "2026-01-09T04:29:46.578Z",
+      "docTime": "2026-01-09T21:45:02.954Z",
       "dependencies": [
         "PCGExFilters\\Public\\PCGExFilterCommon.h",
         "PCGExCore\\Public\\Factories\\PCGExFactories.h",
@@ -21610,7 +21610,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-sanitize.md",
-      "docTime": "2026-01-09T04:34:54.674Z",
+      "docTime": "2026-01-09T21:45:08.934Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
@@ -21717,7 +21717,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-simplify.md",
-      "docTime": "2026-01-09T04:30:19.699Z",
+      "docTime": "2026-01-09T21:45:25.484Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExFilters\\Public\\Core\\PCGExPointFilter.h",
@@ -21821,7 +21821,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-subdivide-edges.md",
-      "docTime": "2026-01-09T06:32:48.857Z",
+      "docTime": "2026-01-09T21:45:42.557Z",
       "dependencies": [
         "PCGExFoundations\\Public\\Details\\PCGExSubdivisionDetails.h",
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
@@ -21899,7 +21899,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\cluster-unpack.md",
-      "docTime": "2026-01-09T06:32:58.330Z",
+      "docTime": "2026-01-09T21:46:39.267Z",
       "dependencies": [
         "PCGExGraphs\\Public\\Core\\PCGExClustersProcessor.h",
         "PCGExGraphs\\Public\\Core\\PCGExClusterMT.h",
@@ -21965,7 +21965,7 @@
       },
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\refine-filter.md",
-      "docTime": "2026-01-09T06:33:08.048Z",
+      "docTime": "2026-01-09T21:46:51.973Z",
       "dependencies": [
         "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineOperation.h",
         "PCGExHeuristics\\Public\\PCGExHeuristicsHandler.h",
@@ -22045,7 +22045,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\refine-gabriel.md",
-      "docTime": "2026-01-09T04:35:21.794Z"
+      "docTime": "2026-01-09T21:46:44.673Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineKeepHighestScore.h": {
       "hash": "2d741788a5dc",
@@ -22118,7 +22118,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\keep-highest-score.md",
-      "docTime": "2026-01-09T04:35:12.584Z"
+      "docTime": "2026-01-09T21:47:00.096Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineKeepLongest.h": {
       "hash": "6010136d029f",
@@ -22191,7 +22191,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\keep-longest.md",
-      "docTime": "2026-01-09T04:35:30.354Z"
+      "docTime": "2026-01-09T21:47:08.259Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineKeepLowestScore.h": {
       "hash": "a3f65ac8880e",
@@ -22264,7 +22264,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\keep-lowest-score.md",
-      "docTime": "2026-01-09T04:35:40.304Z"
+      "docTime": "2026-01-09T21:48:11.018Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineKeepShortest.h": {
       "hash": "a724bf513dac",
@@ -22407,7 +22407,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\refine-line-trace.md",
-      "docTime": "2026-01-09T04:35:56.587Z"
+      "docTime": "2026-01-09T21:48:23.374Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineOperation.h": {
       "hash": "6990cff5cc22",
@@ -22484,7 +22484,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\edge-refine-instanced-factory.md",
-      "docTime": "2026-01-09T04:36:57.106Z"
+      "docTime": "2026-01-09T21:48:36.847Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefinePrimMST.h": {
       "hash": "798c1248446f",
@@ -22554,7 +22554,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\refine-mst-(prim).md",
-      "docTime": "2026-01-09T04:36:39.543Z"
+      "docTime": "2026-01-09T21:48:29.055Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineRemoveHighestScore.h": {
       "hash": "bd9cd03d870e",
@@ -22620,7 +22620,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\remove-highest-score.md",
-      "docTime": "2026-01-09T04:36:27.778Z"
+      "docTime": "2026-01-09T21:48:43.627Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineRemoveLeaves.h": {
       "hash": "1403dc074d05",
@@ -22693,7 +22693,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\remove-leaves.md",
-      "docTime": "2026-01-09T04:36:18.614Z"
+      "docTime": "2026-01-09T21:49:38.210Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineRemoveLongest.h": {
       "hash": "0f3f77710ee2",
@@ -22766,7 +22766,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\remove-longest.md",
-      "docTime": "2026-01-09T04:36:49.027Z"
+      "docTime": "2026-01-09T21:49:42.556Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineRemoveLowestScore.h": {
       "hash": "3e760fdd3eab",
@@ -22832,7 +22832,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\remove-lowest-score.md",
-      "docTime": "2026-01-09T04:37:05.746Z"
+      "docTime": "2026-01-09T21:49:48.709Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineRemoveOverlap.h": {
       "hash": "9561e0f69690",
@@ -22923,7 +22923,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\refine-overlap.md",
-      "docTime": "2026-01-09T04:37:22.520Z"
+      "docTime": "2026-01-09T21:49:57.269Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineRemoveShortest.h": {
       "hash": "19e460a8a05f",
@@ -23063,7 +23063,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\refine-β-skeleton.md",
-      "docTime": "2026-01-09T04:37:35.121Z"
+      "docTime": "2026-01-09T21:50:04.589Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Refining\\PCGExEdgeRefineTrajanDFS.h": {
       "hash": "af4a4eaf4ad1",
@@ -23129,7 +23129,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Refining\\refine-dfs-(trajan).md",
-      "docTime": "2026-01-09T04:37:45.197Z"
+      "docTime": "2026-01-09T21:51:50.927Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExBoxFittingRelax2.h": {
       "hash": "3ff9528835c5",
@@ -23217,7 +23217,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\box-fitting-v2.md",
-      "docTime": "2026-01-09T04:38:10.785Z"
+      "docTime": "2026-01-09T21:51:18.563Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExBoxFittingRelax.h": {
       "hash": "66da63a4fa71",
@@ -23285,7 +23285,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\box-fitting.md",
-      "docTime": "2026-01-09T04:37:56.132Z"
+      "docTime": "2026-01-09T21:51:24.169Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExFittingRelaxBase.h": {
       "hash": "d38584910f98",
@@ -23372,7 +23372,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\abstract-fitting.md",
-      "docTime": "2026-01-09T04:38:28.574Z"
+      "docTime": "2026-01-09T21:51:37.119Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExForceDirectedRelax.h": {
       "hash": "c0cade9a919b",
@@ -23428,7 +23428,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\force-directed.md",
-      "docTime": "2026-01-09T04:38:38.840Z"
+      "docTime": "2026-01-09T21:51:41.883Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExLaplacianRelax.h": {
       "hash": "b6627f71fc1b",
@@ -23484,7 +23484,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\laplacian-(poisson).md",
-      "docTime": "2026-01-09T04:38:47.792Z"
+      "docTime": "2026-01-09T21:53:08.788Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExRelaxClusterOperation.h": {
       "hash": "dc04b929d36b",
@@ -23548,7 +23548,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\relax-cluster-operation.md",
-      "docTime": "2026-01-09T04:39:28.781Z"
+      "docTime": "2026-01-09T21:53:40.626Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\States\\PCGExAdjacencyStates.h": {
       "hash": "667356b4fc1f",
@@ -23629,7 +23629,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\States\\state-bitmask-adjacency.md",
-      "docTime": "2026-01-09T04:39:43.759Z"
+      "docTime": "2026-01-09T21:53:34.881Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\States\\PCGExClusterWriteStates.h": {
       "hash": "b776ada9f28e",
@@ -23816,7 +23816,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Edges\\edge-filter-endpoints-check.md",
-      "docTime": "2026-01-09T04:39:57.219Z"
+      "docTime": "2026-01-09T21:55:08.274Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Edges\\PCGExEdgeEndpointsCompareNumFilter.h": {
       "hash": "01cd8cb1a2ad",
@@ -23921,7 +23921,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Edges\\edge-filter-endpoints-compare-(numeric).md",
-      "docTime": "2026-01-09T04:40:11.618Z"
+      "docTime": "2026-01-09T21:54:58.826Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Edges\\PCGExEdgeEndpointsCompareStrFilter.h": {
       "hash": "e4c819c705f4",
@@ -24005,7 +24005,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Edges\\edge-filter-endpoints-compare-(string).md",
-      "docTime": "2026-01-09T04:40:23.754Z"
+      "docTime": "2026-01-09T21:55:20.409Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Edges\\PCGExEdgeLengthFilter.h": {
       "hash": "ddb39d55bc2d",
@@ -24093,7 +24093,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Edges\\edge-filter-length.md",
-      "docTime": "2026-01-09T04:40:37.821Z"
+      "docTime": "2026-01-09T21:55:30.204Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Edges\\PCGExEdgeNeighborsCountFilter.h": {
       "hash": "8210ce7bdc15",
@@ -24198,7 +24198,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Edges\\edge-filter-neighbors-count.md",
-      "docTime": "2026-01-09T04:40:52.428Z"
+      "docTime": "2026-01-09T21:55:41.755Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExVerletRelax.h": {
       "hash": "c392c1011574",
@@ -24286,7 +24286,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\verlet-(gravity).md",
-      "docTime": "2026-01-09T04:39:19.212Z"
+      "docTime": "2026-01-09T21:53:23.056Z"
     },
     "PCGExElementsClusters\\Public\\Elements\\Relax\\PCGExRadiusFittingRelax.h": {
       "hash": "b683f2b03e3d",
@@ -24356,7 +24356,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Elements\\Relax\\radius-fitting.md",
-      "docTime": "2026-01-09T04:38:57.865Z"
+      "docTime": "2026-01-09T21:53:03.306Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Edges\\PCGExIsoEdgeDirectionFilter.h": {
       "hash": "d79dace1e3ca",
@@ -24447,7 +24447,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Edges\\edge-filter-edge-direction.md",
-      "docTime": "2026-01-09T04:41:33.014Z"
+      "docTime": "2026-01-09T21:57:05.816Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Nodes\\PCGExNodeAdjacencyFilter.h": {
       "hash": "708836d476b8",
@@ -24535,7 +24535,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Nodes\\vtx-filter-adjacency.md",
-      "docTime": "2026-01-09T04:41:07.216Z"
+      "docTime": "2026-01-09T21:57:19.582Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Nodes\\PCGExNodeEdgeAngleFilter.h": {
       "hash": "0c8528359045",
@@ -24618,7 +24618,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Nodes\\vtx-filter-edge-angle.md",
-      "docTime": "2026-01-09T04:42:11.888Z"
+      "docTime": "2026-01-09T21:57:31.848Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Nodes\\PCGExNodeEdgeDirectionFilter.h": {
       "hash": "950035b416e7",
@@ -24710,7 +24710,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Nodes\\vtx-filter-edge-direction.md",
-      "docTime": "2026-01-09T04:43:08.788Z"
+      "docTime": "2026-01-09T21:57:41.176Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\Nodes\\PCGExNodeNeighborsCountFilter.h": {
       "hash": "9bf173b3ecac",
@@ -24795,7 +24795,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsClusters\\Public\\Filters\\Nodes\\vtx-filter-neighbors-count.md",
-      "docTime": "2026-01-09T04:42:43.851Z"
+      "docTime": "2026-01-09T21:57:50.675Z"
     },
     "PCGExElementsClusters\\Public\\Filters\\PCGExAdjacency.h": {
       "hash": "3f61f3c15503",
@@ -25058,7 +25058,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\Partition\\partition-rule.md",
-      "docTime": "2026-01-09T04:42:53.090Z"
+      "docTime": "2026-01-09T21:59:11.016Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\Partition\\PCGExPartition.h": {
       "hash": "0eececcb655c",
@@ -25221,7 +25221,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\Partition\\partition-by-values-(static).md",
-      "docTime": "2026-01-09T04:41:46.829Z"
+      "docTime": "2026-01-09T21:59:05.242Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExAttributeHash.h": {
       "hash": "bd1ad58c887b",
@@ -25307,7 +25307,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\attribute-hash.md",
-      "docTime": "2026-01-09T04:43:36.733Z"
+      "docTime": "2026-01-09T21:59:20.612Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExAttributeRemap.h": {
       "hash": "9dcfcc7122d9",
@@ -25408,7 +25408,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\attribute-remap.md",
-      "docTime": "2026-01-09T04:43:24.114Z"
+      "docTime": "2026-01-09T21:59:36.667Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExAttributeStats.h": {
       "hash": "272a1bcfb17a",
@@ -25766,7 +25766,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\uber-blend.md",
-      "docTime": "2026-01-09T04:43:57.217Z"
+      "docTime": "2026-01-09T21:59:44.291Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExMetaCleanup.h": {
       "hash": "7b36431edfcb",
@@ -25842,7 +25842,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\meta-cleanup.md",
-      "docTime": "2026-01-09T04:43:46.350Z"
+      "docTime": "2026-01-09T22:15:48.916Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExPackActorData.h": {
       "hash": "609eaa6a5187",
@@ -25943,7 +25943,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\pack-actor-data.md",
-      "docTime": "2026-01-09T04:44:13.953Z"
+      "docTime": "2026-01-09T22:15:48.927Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExReduceDataAttribute.h": {
       "hash": "afa7f6171ecc",
@@ -26056,7 +26056,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\reduce-data.md",
-      "docTime": "2026-01-09T04:44:34.977Z"
+      "docTime": "2026-01-09T22:15:48.924Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExRefreshSeed.h": {
       "hash": "a98f389fa601",
@@ -26129,7 +26129,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\refresh-seed.md",
-      "docTime": "2026-01-09T04:44:22.789Z"
+      "docTime": "2026-01-09T22:15:48.921Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExUberNoise.h": {
       "hash": "c86d53791f1f",
@@ -26241,7 +26241,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\uber-noise.md",
-      "docTime": "2026-01-09T04:44:50.628Z"
+      "docTime": "2026-01-09T22:15:48.931Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExWriteIndex.h": {
       "hash": "ce64eee38272",
@@ -26326,7 +26326,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\write-index.md",
-      "docTime": "2026-01-09T04:45:09.882Z"
+      "docTime": "2026-01-09T22:17:13.928Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\PCGExWriteStates.h": {
       "hash": "fc4ec91afb14",
@@ -26488,7 +26488,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\Sorting\\sort-collections.md",
-      "docTime": "2026-01-09T04:45:27.166Z"
+      "docTime": "2026-01-09T22:17:19.093Z"
     },
     "PCGExElementsMeta\\Public\\Elements\\Sorting\\PCGExSortPoints.h": {
       "hash": "89a66d25be47",
@@ -26583,7 +26583,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\Sorting\\sort-points-(static).md",
-      "docTime": "2026-01-09T04:45:39.554Z"
+      "docTime": "2026-01-09T22:17:35.449Z"
     },
     "PCGExElementsMeta\\Public\\Filters\\Points\\PCGExNoiseFilter.h": {
       "hash": "77708b450581",
@@ -26671,7 +26671,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Filters\\Points\\filter-noise.md",
-      "docTime": "2026-01-09T04:46:05.090Z"
+      "docTime": "2026-01-09T22:17:26.388Z"
     },
     "PCGExElementsMeta\\Public\\PCGExElementsMeta.h": {
       "hash": "057418e07b42",
@@ -26981,7 +26981,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsMeta\\Public\\Elements\\Sorting\\sort-points.md",
-      "docTime": "2026-01-09T04:45:18.924Z"
+      "docTime": "2026-01-09T22:16:59.748Z"
     },
     "PCGExElementsPathfinding\\Public\\Core\\PCGExPlotQuery.h": {
       "hash": "dd7508f1ea76",
@@ -27153,7 +27153,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Elements\\pathfinding-edges.md",
-      "docTime": "2026-01-09T04:46:24.229Z"
+      "docTime": "2026-01-09T22:19:47.518Z"
     },
     "PCGExElementsPathfinding\\Public\\Elements\\PCGExPathfindingFindAllCells.h": {
       "hash": "d48f87c77115",
@@ -27237,7 +27237,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Elements\\pathfinding-find-all-cells.md",
-      "docTime": "2026-01-09T04:45:54.320Z"
+      "docTime": "2026-01-09T22:19:33.450Z"
     },
     "PCGExElementsPathfinding\\Public\\Elements\\PCGExPathfindingFindClusterHull.h": {
       "hash": "c68e6e6c9dcd",
@@ -27321,7 +27321,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Elements\\pathfinding-find-cluster-hull.md",
-      "docTime": "2026-01-09T04:46:59.409Z"
+      "docTime": "2026-01-09T22:20:11.151Z"
     },
     "PCGExElementsPathfinding\\Public\\Elements\\PCGExPathfindingFindContours.h": {
       "hash": "f7f46926c688",
@@ -27428,7 +27428,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Elements\\pathfinding-find-cells.md",
-      "docTime": "2026-01-09T04:46:44.122Z"
+      "docTime": "2026-01-09T22:19:59.189Z"
     },
     "PCGExElementsPathfinding\\Public\\Elements\\PCGExPathfindingGrowPaths.h": {
       "hash": "cf2aa4dbaf43",
@@ -27590,7 +27590,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Elements\\pathfinding-grow-paths.md",
-      "docTime": "2026-01-09T04:48:41.429Z"
+      "docTime": "2026-01-09T22:20:38.215Z"
     },
     "PCGExElementsPathfinding\\Public\\Elements\\PCGExPathfindingPlotEdges.h": {
       "hash": "b888c8df6894",
@@ -27689,7 +27689,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Elements\\pathfinding-plot-edges.md",
-      "docTime": "2026-01-09T04:47:58.430Z"
+      "docTime": "2026-01-09T22:22:01.036Z"
     },
     "PCGExElementsPathfinding\\Public\\GoalPickers\\PCGExGoalPicker.h": {
       "hash": "6a1610a5da9b",
@@ -27748,7 +27748,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\GoalPickers\\default.md",
-      "docTime": "2026-01-09T04:48:10.723Z"
+      "docTime": "2026-01-09T22:22:29.715Z"
     },
     "PCGExElementsPathfinding\\Public\\GoalPickers\\PCGExGoalPickerAll.h": {
       "hash": "b7ed28a36914",
@@ -27805,7 +27805,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\GoalPickers\\all.md",
-      "docTime": "2026-01-09T04:49:29.974Z"
+      "docTime": "2026-01-09T22:22:38.825Z"
     },
     "PCGExElementsPathfinding\\Public\\PCGExElementsPathfinding.h": {
       "hash": "2f20dabefbb6",
@@ -27921,7 +27921,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Search\\a.md",
-      "docTime": "2026-01-09T04:49:20.630Z"
+      "docTime": "2026-01-09T22:23:32.553Z"
     },
     "PCGExElementsPathfinding\\Public\\Search\\PCGExSearchBellmanFord.h": {
       "hash": "c5edd3a26c4c",
@@ -27991,7 +27991,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Search\\bellman-ford.md",
-      "docTime": "2026-01-09T04:49:41.398Z"
+      "docTime": "2026-01-09T22:23:26.740Z"
     },
     "PCGExElementsPathfinding\\Public\\Search\\PCGExSearchBidirectional.h": {
       "hash": "5daf1fe7fd63",
@@ -28076,7 +28076,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Search\\bidirectional.md",
-      "docTime": "2026-01-09T04:50:16.576Z"
+      "docTime": "2026-01-09T22:23:48.609Z"
     },
     "PCGExElementsPathfinding\\Public\\Search\\PCGExSearchDijkstra.h": {
       "hash": "1a0d0ef01f39",
@@ -28146,7 +28146,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Search\\dijkstra.md",
-      "docTime": "2026-01-09T04:50:05.726Z"
+      "docTime": "2026-01-09T22:23:38.103Z"
     },
     "PCGExElementsPathfinding\\Public\\Search\\PCGExSearchOperation.h": {
       "hash": "9a7007539130",
@@ -28215,7 +28215,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\Search\\search-instanced-factory.md",
-      "docTime": "2026-01-09T04:50:46.295Z"
+      "docTime": "2026-01-09T22:23:42.800Z"
     },
     "PCGExElementsPathfindingNavmesh\\Public\\Core\\PCGExNavmesh.h": {
       "hash": "47558de8fe22",
@@ -28397,7 +28397,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfindingNavmesh\\Public\\Elements\\pathfinding-navmesh.md",
-      "docTime": "2026-01-09T04:50:37.420Z"
+      "docTime": "2026-01-09T22:25:31.850Z"
     },
     "PCGExElementsPathfinding\\Public\\GoalPickers\\PCGExGoalPickerAttribute.h": {
       "hash": "3766ca03d686",
@@ -28471,7 +28471,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\GoalPickers\\index-attribute.md",
-      "docTime": "2026-01-09T04:48:56.901Z"
+      "docTime": "2026-01-09T22:22:22.279Z"
     },
     "PCGExElementsPathfinding\\Public\\GoalPickers\\PCGExGoalPickerRandom.h": {
       "hash": "55a0ac467da6",
@@ -28553,7 +28553,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfinding\\Public\\GoalPickers\\random.md",
-      "docTime": "2026-01-09T04:49:10.212Z"
+      "docTime": "2026-01-09T22:22:11.450Z"
     },
     "PCGExElementsPathfindingNavmesh\\Public\\Elements\\PCGExPathfindingPlotNavmesh.h": {
       "hash": "025dc287b5bf",
@@ -28645,7 +28645,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPathfindingNavmesh\\Public\\Elements\\pathfinding-plot-navmesh.md",
-      "docTime": "2026-01-09T04:49:57.300Z"
+      "docTime": "2026-01-09T22:25:17.771Z"
     },
     "PCGExElementsPathfindingNavmesh\\Public\\PCGExElementsPathfindingNavmesh.h": {
       "hash": "35e648d1c14b",
@@ -28822,7 +28822,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\Orient\\average.md",
-      "docTime": "2026-01-09T04:50:59.438Z"
+      "docTime": "2026-01-09T22:25:40.863Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\Orient\\PCGExOrientLookAt.h": {
       "hash": "73b9bff1a8bc",
@@ -28914,7 +28914,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\Orient\\look-at.md",
-      "docTime": "2026-01-09T04:51:40.669Z"
+      "docTime": "2026-01-09T22:25:48.784Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\Orient\\PCGExOrientOperation.h": {
       "hash": "aefe1cd33254",
@@ -28990,7 +28990,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\Orient\\orient-instanced-factory.md",
-      "docTime": "2026-01-09T04:51:52.542Z"
+      "docTime": "2026-01-09T22:25:57.930Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\Orient\\PCGExOrientWeighted.h": {
       "hash": "5c2e788c997e",
@@ -29064,7 +29064,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\Orient\\weighted.md",
-      "docTime": "2026-01-09T04:52:03.055Z"
+      "docTime": "2026-01-09T22:29:17.592Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExAttributeRolling.h": {
       "hash": "3b2da0d8d7a9",
@@ -29197,7 +29197,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-attribute-rolling.md",
-      "docTime": "2026-01-09T04:52:26.798Z"
+      "docTime": "2026-01-09T22:28:15.310Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExBevelPath.h": {
       "hash": "660f24dec294",
@@ -29355,7 +29355,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-bevel.md",
-      "docTime": "2026-01-09T04:53:00.625Z"
+      "docTime": "2026-01-09T22:28:45.006Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExBlendPath.h": {
       "hash": "52cf7032ba09",
@@ -29456,7 +29456,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-blend.md",
-      "docTime": "2026-01-09T04:53:18.651Z"
+      "docTime": "2026-01-09T22:28:58.483Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExBoundsPathIntersection.h": {
       "hash": "7dd56bd59d76",
@@ -29551,7 +29551,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-×-bounds-intersection.md",
-      "docTime": "2026-01-09T04:53:33.003Z"
+      "docTime": "2026-01-09T22:29:12.241Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExCopyToPaths.h": {
       "hash": "ae91e711f6e7",
@@ -29676,7 +29676,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\copy-to-path.md",
-      "docTime": "2026-01-09T04:54:42.771Z"
+      "docTime": "2026-01-09T22:31:19.595Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExCreateSpline.h": {
       "hash": "833d7d1932f1",
@@ -29780,7 +29780,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\create-spline.md",
-      "docTime": "2026-01-09T04:54:59.951Z"
+      "docTime": "2026-01-09T22:31:32.747Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExFuseCollinear.h": {
       "hash": "d3095d47bcb1",
@@ -29875,7 +29875,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-fuse-collinear.md",
-      "docTime": "2026-01-09T04:55:18.969Z"
+      "docTime": "2026-01-09T22:32:01.233Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExOffsetPath.h": {
       "hash": "77c040beb69d",
@@ -30024,7 +30024,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-offset.md",
-      "docTime": "2026-01-09T04:55:43.843Z"
+      "docTime": "2026-01-09T22:31:50.931Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExOrient.h": {
       "hash": "f73626599665",
@@ -30132,7 +30132,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-orient.md",
-      "docTime": "2026-01-09T04:56:00.361Z"
+      "docTime": "2026-01-09T22:32:15.698Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathCrossings.h": {
       "hash": "22429f53f3d8",
@@ -30231,7 +30231,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-×-path-crossings.md",
-      "docTime": "2026-01-09T04:56:39.636Z"
+      "docTime": "2026-01-09T22:34:41.249Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathInsert.h": {
       "hash": "6e4af4184899",
@@ -30312,7 +30312,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-insert.md",
-      "docTime": "2026-01-09T04:56:13.348Z"
+      "docTime": "2026-01-09T22:34:13.430Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathResample.h": {
       "hash": "0de3fb2e66ee",
@@ -30423,7 +30423,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-resample.md",
-      "docTime": "2026-01-09T04:57:21.895Z"
+      "docTime": "2026-01-09T22:35:09.593Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathShift.h": {
       "hash": "1f42fb8695c8",
@@ -30551,7 +30551,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-shift.md",
-      "docTime": "2026-01-09T04:57:01.340Z"
+      "docTime": "2026-01-09T22:34:57.910Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathShrink.h": {
       "hash": "d4675644f05b",
@@ -30707,7 +30707,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-shrink.md",
-      "docTime": "2026-01-09T04:57:40.799Z"
+      "docTime": "2026-01-09T22:35:29.213Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathSlide.h": {
       "hash": "3ed9f656681b",
@@ -30822,7 +30822,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-slide.md",
-      "docTime": "2026-01-09T04:57:54.771Z"
+      "docTime": "2026-01-09T22:37:35.563Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathSolidify.h": {
       "hash": "4c5bba5e6599",
@@ -30944,7 +30944,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-solidify.md",
-      "docTime": "2026-01-09T04:58:31.648Z"
+      "docTime": "2026-01-09T22:38:02.877Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathSplineMeshSimple.h": {
       "hash": "b334b2739df6",
@@ -31038,7 +31038,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-spline-mesh-(simple).md",
-      "docTime": "2026-01-09T04:58:53.833Z"
+      "docTime": "2026-01-09T22:38:40.797Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExPathStitch.h": {
       "hash": "addae8cbecc0",
@@ -31182,7 +31182,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-stitch.md",
-      "docTime": "2026-01-09T04:59:13.202Z"
+      "docTime": "2026-01-09T22:38:19.093Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExReversePointOrder.h": {
       "hash": "54b1570442b4",
@@ -31291,7 +31291,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\reverse-order.md",
-      "docTime": "2026-01-09T04:59:29.410Z"
+      "docTime": "2026-01-09T22:38:54.673Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExSmooth.h": {
       "hash": "3427ce07dbc8",
@@ -31378,7 +31378,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-smooth.md",
-      "docTime": "2026-01-09T04:59:46.265Z"
+      "docTime": "2026-01-09T22:42:09.383Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExSplineToPath.h": {
       "hash": "7232ddc87a20",
@@ -31467,7 +31467,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\spline-to-path.md",
-      "docTime": "2026-01-09T05:00:21.940Z"
+      "docTime": "2026-01-09T22:41:53.415Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExSplitPath.h": {
       "hash": "2c281b3fae58",
@@ -31602,7 +31602,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-split.md",
-      "docTime": "2026-01-09T05:00:40.619Z"
+      "docTime": "2026-01-09T22:42:26.130Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExSubdivide.h": {
       "hash": "b926efd2e880",
@@ -31692,7 +31692,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-subdivide.md",
-      "docTime": "2026-01-09T05:00:57.401Z"
+      "docTime": "2026-01-09T22:43:49.131Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExWritePathProperties.h": {
       "hash": "f981b345aa65",
@@ -31803,7 +31803,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-properties.md",
-      "docTime": "2026-01-09T05:03:16.265Z"
+      "docTime": "2026-01-09T22:43:30.262Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\PCGExWriteTangents.h": {
       "hash": "3c012b2f7079",
@@ -31881,7 +31881,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\path-write-tangents.md",
-      "docTime": "2026-01-09T05:03:32.550Z"
+      "docTime": "2026-01-09T22:45:03.553Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\Smoothing\\PCGExMovingAverageSmoothing.h": {
       "hash": "13c8d0e6a6d4",
@@ -31960,7 +31960,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\Smoothing\\moving-average.md",
-      "docTime": "2026-01-09T05:02:26.288Z"
+      "docTime": "2026-01-09T22:45:18.360Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\Smoothing\\PCGExRadiusSmoothing.h": {
       "hash": "8c62322f41c5",
@@ -32041,7 +32041,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\Smoothing\\radius.md",
-      "docTime": "2026-01-09T05:04:09.545Z"
+      "docTime": "2026-01-09T22:45:10.241Z"
     },
     "PCGExElementsPaths\\Public\\Elements\\Smoothing\\PCGExSmoothingInstancedFactory.h": {
       "hash": "372dde9d5b76",
@@ -32115,7 +32115,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsPaths\\Public\\Elements\\Smoothing\\smoothing-instanced-factory.md",
-      "docTime": "2026-01-09T05:03:58.764Z"
+      "docTime": "2026-01-09T22:45:34.994Z"
     },
     "PCGExElementsPaths\\Public\\PCGExElementsPaths.h": {
       "hash": "ecf069be7a68",
@@ -32237,7 +32237,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Core\\probe-definition.md",
-      "docTime": "2026-01-09T05:04:43.138Z"
+      "docTime": "2026-01-09T22:45:27.327Z"
     },
     "PCGExElementsProbing\\Public\\Core\\PCGExProbeOperation.h": {
       "hash": "fb6cc34406e3",
@@ -32432,7 +32432,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Elements\\cluster-connect-points.md",
-      "docTime": "2026-01-09T05:03:48.036Z"
+      "docTime": "2026-01-09T22:47:00.566Z"
     },
     "PCGExElementsProbing\\Public\\PCGExElementsProbing.h": {
       "hash": "054e59e19945",
@@ -32561,7 +32561,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-globalanisotropic.md",
-      "docTime": "2026-01-09T05:04:58.042Z"
+      "docTime": "2026-01-09T22:47:23.516Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeChain.h": {
       "hash": "cea5836c3e15",
@@ -32664,7 +32664,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-chainpath.md",
-      "docTime": "2026-01-09T05:06:25.155Z"
+      "docTime": "2026-01-09T22:47:09.020Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeDBSCAN.h": {
       "hash": "3fcbd9d49d4d",
@@ -32747,7 +32747,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-dbscan.md",
-      "docTime": "2026-01-09T05:05:41.908Z"
+      "docTime": "2026-01-09T22:47:33.757Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeGradientFlow.h": {
       "hash": "e199cbb47e7d",
@@ -32847,7 +32847,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-gradient-flow.md",
-      "docTime": "2026-01-09T05:05:27.039Z"
+      "docTime": "2026-01-09T22:47:45.591Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeHubSpoke.h": {
       "hash": "a752211985b9",
@@ -32950,7 +32950,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-hub-&-spoke.md",
-      "docTime": "2026-01-09T05:05:59.798Z"
+      "docTime": "2026-01-09T22:49:21.601Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeKNN.h": {
       "hash": "1b479af7ad91",
@@ -33056,7 +33056,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-knn.md",
-      "docTime": "2026-01-09T05:06:12.194Z"
+      "docTime": "2026-01-09T22:48:57.333Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeLevelSet.h": {
       "hash": "db5840f38f75",
@@ -33139,7 +33139,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-level-set.md",
-      "docTime": "2026-01-09T05:06:39.587Z"
+      "docTime": "2026-01-09T22:49:09.965Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeSpanner.h": {
       "hash": "e5b8cd1f10e6",
@@ -33222,7 +33222,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-greedy-spanner.md",
-      "docTime": "2026-01-09T05:06:52.091Z"
+      "docTime": "2026-01-09T22:49:30.448Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExGlobalProbeTheta.h": {
       "hash": "dee044a3ff6e",
@@ -33305,7 +33305,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\g-probe-theta-graph.md",
-      "docTime": "2026-01-09T05:07:05.229Z"
+      "docTime": "2026-01-09T22:49:43.817Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExProbeAnisotropic.h": {
       "hash": "755e41b2be84",
@@ -33389,7 +33389,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\probe-anisotropic.md",
-      "docTime": "2026-01-09T05:07:16.368Z"
+      "docTime": "2026-01-09T22:51:05.355Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExProbeBitmasks.h": {
       "hash": "9852afadd3ef",
@@ -33505,7 +33505,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\probe-bitmasks.md",
-      "docTime": "2026-01-09T05:07:28.518Z"
+      "docTime": "2026-01-09T22:51:14.052Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExProbeClosest.h": {
       "hash": "3a914175b10c",
@@ -33589,7 +33589,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\probe-closests.md",
-      "docTime": "2026-01-09T05:07:55.491Z"
+      "docTime": "2026-01-09T22:51:25.437Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExProbeDirection.h": {
       "hash": "f7fa98d4876f",
@@ -33691,7 +33691,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\probe-direction.md",
-      "docTime": "2026-01-09T05:07:45.588Z"
+      "docTime": "2026-01-09T22:51:38.194Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExProbeIndex.h": {
       "hash": "38f92e4e4094",
@@ -33796,7 +33796,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\probe-index.md",
-      "docTime": "2026-01-09T05:08:13.246Z"
+      "docTime": "2026-01-09T22:51:50.668Z"
     },
     "PCGExElementsProbing\\Public\\Probes\\PCGExProbeNumericCompare.h": {
       "hash": "7b28b7dc11cf",
@@ -33884,7 +33884,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsProbing\\Public\\Probes\\probe-numeric-compare.md",
-      "docTime": "2026-01-09T05:08:43.724Z"
+      "docTime": "2026-01-09T22:55:17.749Z"
     },
     "PCGExElementsSampling\\Public\\Core\\PCGExTexCommon.h": {
       "hash": "58147b102f8a",
@@ -34081,7 +34081,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Core\\texture-param.md",
-      "docTime": "2026-01-09T05:08:28.278Z"
+      "docTime": "2026-01-09T22:55:30.237Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExDiscardByOverlap.h": {
       "hash": "41657ad271ff",
@@ -34227,7 +34227,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\discard-by-overlap.md",
-      "docTime": "2026-01-09T05:09:06.925Z"
+      "docTime": "2026-01-09T22:54:06.803Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExGetTextureData.h": {
       "hash": "2aa6e8095d8a",
@@ -34347,7 +34347,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\get-texture-data.md",
-      "docTime": "2026-01-09T05:09:24.260Z"
+      "docTime": "2026-01-09T22:54:25.735Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleInsidePath.h": {
       "hash": "4f9d1b1774ac",
@@ -34463,7 +34463,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-inside-path.md",
-      "docTime": "2026-01-09T05:12:50.935Z"
+      "docTime": "2026-01-09T22:55:04.953Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleNearestBounds.h": {
       "hash": "d00909848d46",
@@ -34594,7 +34594,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-nearest-bounds.md",
-      "docTime": "2026-01-09T05:12:23.219Z"
+      "docTime": "2026-01-09T23:02:35.045Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleNearestPath.h": {
       "hash": "1333846de713",
@@ -34735,7 +34735,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-nearest-path.md",
-      "docTime": "2026-01-09T05:11:48.316Z"
+      "docTime": "2026-01-09T23:01:43.680Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleNearestPoint.h": {
       "hash": "05d31a18a1ce",
@@ -34848,7 +34848,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-nearest-point.md",
-      "docTime": "2026-01-09T05:17:53.445Z"
+      "docTime": "2026-01-09T23:03:37.559Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleNearestSpline.h": {
       "hash": "19444e871de4",
@@ -34997,7 +34997,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-nearest-spline.md",
-      "docTime": "2026-01-09T05:17:11.077Z"
+      "docTime": "2026-01-10T00:22:23.140Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleNearestSurface.h": {
       "hash": "1f7e6c513137",
@@ -35093,7 +35093,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-nearest-surface.md",
-      "docTime": "2026-01-09T05:15:31.550Z"
+      "docTime": "2026-01-10T00:22:57.612Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleOverlapStats.h": {
       "hash": "7cfe973ad190",
@@ -35192,7 +35192,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-overlap-stats.md",
-      "docTime": "2026-01-09T05:18:18.381Z"
+      "docTime": "2026-01-09T23:05:53.813Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleSockets.h": {
       "hash": "12e2130a588d",
@@ -35280,7 +35280,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-sockets.md",
-      "docTime": "2026-01-09T05:16:11.081Z"
+      "docTime": "2026-01-09T23:06:01.970Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleSurfaceGuided.h": {
       "hash": "2e75ed3e67b3",
@@ -35403,7 +35403,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-line-trace.md",
-      "docTime": "2026-01-09T05:19:23.111Z"
+      "docTime": "2026-01-09T23:06:21.976Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSampleTexture.h": {
       "hash": "3b766f8954b5",
@@ -35522,7 +35522,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\sample-texture.md",
-      "docTime": "2026-01-09T05:18:36.167Z"
+      "docTime": "2026-01-09T23:06:31.241Z"
     },
     "PCGExElementsSampling\\Public\\Elements\\PCGExSelfPruning.h": {
       "hash": "37d5e1afefd2",
@@ -35656,7 +35656,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSampling\\Public\\Elements\\self-pruning.md",
-      "docTime": "2026-01-09T05:19:51.799Z"
+      "docTime": "2026-01-09T23:06:49.408Z"
     },
     "PCGExElementsSampling\\Public\\PCGExElementsSampling.h": {
       "hash": "1d0ac398a2b9",
@@ -35828,7 +35828,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsShapes\\Public\\Core\\shapebuilder-definition.md",
-      "docTime": "2026-01-09T05:20:01.797Z"
+      "docTime": "2026-01-09T23:08:25.762Z"
     },
     "PCGExElementsShapes\\Public\\Core\\PCGExShapeBuilderOperation.h": {
       "hash": "69ed3671b244",
@@ -36013,7 +36013,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsShapes\\Public\\Core\\shape-processor-settings.md",
-      "docTime": "2026-01-09T05:19:30.899Z"
+      "docTime": "2026-01-09T23:07:57.508Z"
     },
     "PCGExElementsShapes\\Public\\Core\\PCGExShapesCommon.h": {
       "hash": "3fd61736d5bb",
@@ -36174,7 +36174,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsShapes\\Public\\Elements\\create-shapes.md",
-      "docTime": "2026-01-09T05:21:36.206Z"
+      "docTime": "2026-01-09T23:08:11.350Z"
     },
     "PCGExElementsShapes\\Public\\PCGExElementsShapes.h": {
       "hash": "9d498461baec",
@@ -36313,7 +36313,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsShapes\\Public\\Shapes\\shape-circle.md",
-      "docTime": "2026-01-09T05:20:16.683Z"
+      "docTime": "2026-01-09T23:08:20.799Z"
     },
     "PCGExElementsShapes\\Public\\Shapes\\PCGExShapeFiblat.h": {
       "hash": "9cc93a4748bd",
@@ -36432,7 +36432,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsShapes\\Public\\Shapes\\shape-φ-sphere.md",
-      "docTime": "2026-01-09T05:21:01.582Z"
+      "docTime": "2026-01-09T23:08:37.674Z"
     },
     "PCGExElementsShapes\\Public\\Shapes\\PCGExShapeGrid.h": {
       "hash": "9df9fad0ea90",
@@ -36529,7 +36529,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsShapes\\Public\\Shapes\\shape-3d-grid.md",
-      "docTime": "2026-01-09T05:20:48.114Z"
+      "docTime": "2026-01-09T23:10:23.668Z"
     },
     "PCGExElementsShapes\\Public\\Shapes\\PCGExShapePolygon.h": {
       "hash": "8b63cb587c51",
@@ -36679,7 +36679,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsShapes\\Public\\Shapes\\shape-polygon.md",
-      "docTime": "2026-01-09T05:21:24.200Z"
+      "docTime": "2026-01-09T23:11:29.490Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\Bounds\\PCGExBestMatchAxis.h": {
       "hash": "b62fae1a1090",
@@ -36789,7 +36789,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\Bounds\\best-match-axis.md",
-      "docTime": "2026-01-09T05:21:53.214Z"
+      "docTime": "2026-01-09T23:10:36.431Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\Bounds\\PCGExBoundsAxisToPoints.h": {
       "hash": "5d3254c7ed2c",
@@ -36946,7 +36946,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\Bounds\\bounds-axis-to-points.md",
-      "docTime": "2026-01-09T05:22:29.382Z"
+      "docTime": "2026-01-09T23:11:09.674Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\Bounds\\PCGExBoundsToPoints.h": {
       "hash": "9880e7286e17",
@@ -37037,7 +37037,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\Bounds\\bounds-to-points.md",
-      "docTime": "2026-01-09T05:22:10.140Z"
+      "docTime": "2026-01-09T23:10:48.989Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\Bounds\\PCGExFindPointOnBounds.h": {
       "hash": "6a2fc9646160",
@@ -37132,7 +37132,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\Bounds\\find-point-on-bounds.md",
-      "docTime": "2026-01-09T05:23:21.179Z"
+      "docTime": "2026-01-09T23:13:39.229Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\Layout\\PCGExBestFitPacking.h": {
       "hash": "a75d25667cdd",
@@ -37320,7 +37320,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\Layout\\best-fit-packing.md",
-      "docTime": "2026-01-09T05:23:03.340Z"
+      "docTime": "2026-01-09T23:14:07.701Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\Layout\\PCGExBinPacking.h": {
       "hash": "52d815150c18",
@@ -37471,7 +37471,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\Layout\\bin-packing.md",
-      "docTime": "2026-01-09T05:23:49.825Z"
+      "docTime": "2026-01-09T23:14:32.727Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\Layout\\PCGExLayout.h": {
       "hash": "836f2a3cdc8f",
@@ -37643,7 +37643,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\collocation-count.md",
-      "docTime": "2026-01-09T05:24:01.214Z"
+      "docTime": "2026-01-09T23:14:41.313Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\PCGExFlatProjection.h": {
       "hash": "7a7de606ec64",
@@ -37726,7 +37726,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\flat-projection.md",
-      "docTime": "2026-01-09T05:24:35.689Z"
+      "docTime": "2026-01-09T23:14:56.136Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\PCGExFusePoints.h": {
       "hash": "b649881e947c",
@@ -37841,7 +37841,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\fuse-points.md",
-      "docTime": "2026-01-09T05:24:13.088Z"
+      "docTime": "2026-01-09T23:16:14.638Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\PCGExLloydRelax.h": {
       "hash": "136b4f4f6d3e",
@@ -37926,7 +37926,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\lloyd-relax-3d.md",
-      "docTime": "2026-01-09T05:24:47.023Z"
+      "docTime": "2026-01-09T23:16:04.018Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\PCGExLloydRelax2D.h": {
       "hash": "f1b0aca16118",
@@ -38013,7 +38013,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\lloyd-relax-2d.md",
-      "docTime": "2026-01-09T05:24:59.670Z"
+      "docTime": "2026-01-09T23:16:21.035Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\PCGExMovePivot.h": {
       "hash": "35ec6a4b7dda",
@@ -38099,7 +38099,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\move-pivot.md",
-      "docTime": "2026-01-09T05:25:09.157Z"
+      "docTime": "2026-01-09T23:16:28.402Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\PCGExNormalize.h": {
       "hash": "34e1d79cf06f",
@@ -38184,7 +38184,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\normalize.md",
-      "docTime": "2026-01-09T05:25:28.318Z"
+      "docTime": "2026-01-09T23:16:41.823Z"
     },
     "PCGExElementsSpatial\\Public\\Elements\\PCGExPointsToBounds.h": {
       "hash": "dced6ca3895a",
@@ -38295,7 +38295,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsSpatial\\Public\\Elements\\points-to-bounds.md",
-      "docTime": "2026-01-09T05:25:48.903Z"
+      "docTime": "2026-01-09T23:18:56.677Z"
     },
     "PCGExElementsSpatial\\Public\\PCGExElementsSpatial.h": {
       "hash": "aa638b8ed4f6",
@@ -38598,7 +38598,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Core\\tensor-definition.md",
-      "docTime": "2026-01-09T05:25:58.766Z"
+      "docTime": "2026-01-09T23:19:54.937Z"
     },
     "PCGExElementsTensors\\Public\\Core\\PCGExTensorHandler.h": {
       "hash": "fbb5fa186515",
@@ -38794,7 +38794,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Core\\default.md",
-      "docTime": "2026-01-09T05:27:15.462Z"
+      "docTime": "2026-01-09T23:20:00.850Z"
     },
     "PCGExElementsTensors\\Public\\Core\\PCGExTensorSplineFactoryProvider.h": {
       "hash": "4562a14f2a9c",
@@ -38868,7 +38868,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Core\\tensor-spline-factory.md",
-      "docTime": "2026-01-09T05:27:03.664Z"
+      "docTime": "2026-01-09T23:20:10.779Z"
     },
     "PCGExElementsTensors\\Public\\Elements\\PCGExExtrudeTensors.h": {
       "hash": "b75e83cdf59d",
@@ -39060,7 +39060,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Elements\\path-extrude-tensors.md",
-      "docTime": "2026-01-09T05:26:53.532Z"
+      "docTime": "2026-01-09T23:19:49.770Z"
     },
     "PCGExElementsTensors\\Public\\Elements\\PCGExTensorsTransform.h": {
       "hash": "991cfbda160a",
@@ -39186,7 +39186,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Elements\\tensors-transform.md",
-      "docTime": "2026-01-09T05:27:47.917Z"
+      "docTime": "2026-01-09T23:21:53.887Z"
     },
     "PCGExElementsTensors\\Public\\Filters\\Points\\PCGExTensorDotFilter.h": {
       "hash": "b4f6a9a3bf9a",
@@ -39273,7 +39273,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Filters\\Points\\filter-tensor-dot.md",
-      "docTime": "2026-01-09T05:27:29.457Z"
+      "docTime": "2026-01-09T23:22:01.690Z"
     },
     "PCGExElementsTensors\\Public\\Heuristics\\PCGExHeuristicTensor.h": {
       "hash": "a2a26bc66ca1",
@@ -39361,7 +39361,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Heuristics\\heuristics-tensor.md",
-      "docTime": "2026-01-09T05:28:14.659Z"
+      "docTime": "2026-01-09T23:22:10.785Z"
     },
     "PCGExElementsTensors\\Public\\PCGExElementsTensors.h": {
       "hash": "8d8e452f0bd5",
@@ -39497,7 +39497,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Probes\\probe-tensor.md",
-      "docTime": "2026-01-09T05:28:28.959Z"
+      "docTime": "2026-01-09T23:22:22.832Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorConstant.h": {
       "hash": "8bd9ddbe6d98",
@@ -39585,7 +39585,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-constant.md",
-      "docTime": "2026-01-09T05:30:12.587Z"
+      "docTime": "2026-01-09T23:23:49.116Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorFlow.h": {
       "hash": "eb976d285d37",
@@ -39685,7 +39685,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-flow.md",
-      "docTime": "2026-01-09T05:29:07.713Z"
+      "docTime": "2026-01-09T23:23:58.730Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorInertia.h": {
       "hash": "1459dfffd3eb",
@@ -39774,7 +39774,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-inertia.md",
-      "docTime": "2026-01-09T05:29:46.781Z"
+      "docTime": "2026-01-09T23:24:17.641Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorInertiaConstant.h": {
       "hash": "a18d757aeb2f",
@@ -39863,7 +39863,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-inertia-(constant).md",
-      "docTime": "2026-01-09T05:29:35.090Z"
+      "docTime": "2026-01-09T23:25:54.349Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorNoise.h": {
       "hash": "eee0b8db84c4",
@@ -39951,7 +39951,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-noise.md",
-      "docTime": "2026-01-09T05:30:00.198Z"
+      "docTime": "2026-01-09T23:25:21.791Z"
     },
     "PCGExElementsTensors\\Public\\Samplers\\PCGExTensorSamplerRK4.h": {
       "hash": "6d90f956adba",
@@ -40008,7 +40008,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Samplers\\rk4.md",
-      "docTime": "2026-01-09T05:28:02.226Z"
+      "docTime": "2026-01-09T23:23:41.452Z"
     },
     "PCGExElementsTensors\\Public\\Samplers\\PCGExTensorSamplerAdaptive.h": {
       "hash": "827965089b4b",
@@ -40064,7 +40064,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Samplers\\adaptive-rk.md",
-      "docTime": "2026-01-09T05:28:56.455Z"
+      "docTime": "2026-01-09T23:22:31.924Z"
     },
     "PCGExElementsTensors\\Public\\Samplers\\PCGExTensorSamplerSixPoints.h": {
       "hash": "a810baa0897f",
@@ -40121,7 +40121,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Samplers\\six-points.md",
-      "docTime": "2026-01-09T05:28:42.661Z"
+      "docTime": "2026-01-09T23:24:11.202Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorNoiseBounded.h": {
       "hash": "2d45949c70d6",
@@ -40217,7 +40217,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-noise-(bounded).md",
-      "docTime": "2026-01-09T05:30:24.191Z"
+      "docTime": "2026-01-09T23:25:27.896Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorNull.h": {
       "hash": "5de17cb8dd15",
@@ -40305,7 +40305,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-null.md",
-      "docTime": "2026-01-09T05:31:18.403Z"
+      "docTime": "2026-01-09T23:25:34.466Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorPathFlow.h": {
       "hash": "f366132e7e54",
@@ -40406,7 +40406,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-path-flow.md",
-      "docTime": "2026-01-09T05:30:48.101Z"
+      "docTime": "2026-01-09T23:25:44.306Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorPathPole.h": {
       "hash": "7c86461be81c",
@@ -40490,7 +40490,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-path-pole.md",
-      "docTime": "2026-01-09T05:31:09.625Z"
+      "docTime": "2026-01-09T23:26:58.721Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorPole.h": {
       "hash": "4cda1b447cc3",
@@ -40578,7 +40578,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-pole.md",
-      "docTime": "2026-01-09T05:30:57.351Z"
+      "docTime": "2026-01-09T23:27:13.305Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorSpin.h": {
       "hash": "ef0421bc7ec0",
@@ -40678,7 +40678,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-spin.md",
-      "docTime": "2026-01-09T05:32:30.335Z"
+      "docTime": "2026-01-09T23:27:08.215Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorSplineFlow.h": {
       "hash": "03aea1ae2dd9",
@@ -40767,7 +40767,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-spline-flow.md",
-      "docTime": "2026-01-09T05:31:31.644Z"
+      "docTime": "2026-01-09T23:27:21.505Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorSplinePole.h": {
       "hash": "3919794ac44f",
@@ -40855,7 +40855,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-spline-pole.md",
-      "docTime": "2026-01-09T05:31:44.733Z"
+      "docTime": "2026-01-09T23:27:28.045Z"
     },
     "PCGExElementsTensors\\Public\\Tensors\\PCGExTensorSurface.h": {
       "hash": "cebc5240ba46",
@@ -40972,7 +40972,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTensors\\Public\\Tensors\\tensor-surface.md",
-      "docTime": "2026-01-09T05:32:02.109Z"
+      "docTime": "2026-01-09T23:29:10.110Z"
     },
     "PCGExElementsTopology\\Public\\Components\\PCGExDynamicMeshComponent.h": {
       "hash": "782e6945679f",
@@ -41159,7 +41159,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTopology\\Public\\Core\\topology.md",
-      "docTime": "2026-01-09T05:32:16.845Z"
+      "docTime": "2026-01-09T23:28:55.574Z"
     },
     "PCGExElementsTopology\\Public\\Data\\Descriptors\\PCGExDynamicMeshDescriptor.h": {
       "hash": "fb17541c6185",
@@ -41285,7 +41285,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTopology\\Public\\Elements\\spawn-dynamic-mesh.md",
-      "docTime": "2026-01-09T05:33:56.542Z"
+      "docTime": "2026-01-09T23:29:35.188Z"
     },
     "PCGExElementsTopology\\Public\\Elements\\PCGExToggleTopology.h": {
       "hash": "0f6c4afbd5c0",
@@ -41374,7 +41374,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTopology\\Public\\Elements\\topology-toggle-(deprecated).md",
-      "docTime": "2026-01-09T05:32:45.331Z"
+      "docTime": "2026-01-09T23:29:22.784Z"
     },
     "PCGExElementsTopology\\Public\\Elements\\PCGExTopologyClusterSurface.h": {
       "hash": "b3b18a2b3eb7",
@@ -41474,7 +41474,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTopology\\Public\\Elements\\topology-cluster-surface.md",
-      "docTime": "2026-01-09T05:33:16.403Z"
+      "docTime": "2026-01-09T23:29:42.710Z"
     },
     "PCGExElementsTopology\\Public\\Elements\\PCGExTopologyPathSurface.h": {
       "hash": "39cfbe3055b7",
@@ -41563,7 +41563,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTopology\\Public\\Elements\\topology-path-surface.md",
-      "docTime": "2026-01-09T05:33:28.948Z"
+      "docTime": "2026-01-09T23:30:51.330Z"
     },
     "PCGExElementsTopology\\Public\\Elements\\PCGExTopologyPointSurface.h": {
       "hash": "a1a81625aa28",
@@ -41654,7 +41654,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExElementsTopology\\Public\\Elements\\topology-point-surface.md",
-      "docTime": "2026-01-09T05:33:41.279Z"
+      "docTime": "2026-01-09T23:30:47.232Z"
     },
     "PCGExElementsTopology\\Public\\PCGExElementsTopology.h": {
       "hash": "d4cac0e78db1",
@@ -41918,7 +41918,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Core\\cluster-filter.md",
-      "docTime": "2026-01-09T05:34:18.958Z"
+      "docTime": "2026-01-09T23:30:55.200Z"
     },
     "PCGExFilters\\Public\\Core\\PCGExClusterStates.h": {
       "hash": "11ac30e1223c",
@@ -42011,7 +42011,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Core\\state-cluster.md",
-      "docTime": "2026-01-09T05:34:08.015Z"
+      "docTime": "2026-01-09T23:31:01.977Z"
     },
     "PCGExFilters\\Public\\Core\\PCGExPointStates.h": {
       "hash": "18fdfabab231",
@@ -42110,7 +42110,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Core\\abstract-point-state-definition.md",
-      "docTime": "2026-01-09T05:34:42.426Z"
+      "docTime": "2026-01-09T23:33:06.267Z"
     },
     "PCGExFilters\\Public\\Details\\PCGExFilterDetails.h": {
       "hash": "6feeffae002f",
@@ -42313,7 +42313,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Collections\\data-filter-attribute-check.md",
-      "docTime": "2026-01-09T05:35:08.152Z"
+      "docTime": "2026-01-09T23:32:24.863Z"
     },
     "PCGExFilters\\Public\\Filters\\Collections\\PCGExDataBoundsFilter.h": {
       "hash": "0afb590b294f",
@@ -42462,7 +42462,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Collections\\data-filter-bounds.md",
-      "docTime": "2026-01-09T05:35:24.239Z"
+      "docTime": "2026-01-09T23:32:35.614Z"
     },
     "PCGExFilters\\Public\\Filters\\Collections\\PCGExEntryCountFilter.h": {
       "hash": "4c1db79464b4",
@@ -42548,7 +42548,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Collections\\data-filter-entry-count.md",
-      "docTime": "2026-01-09T05:35:39.518Z"
+      "docTime": "2026-01-09T23:32:47.791Z"
     },
     "PCGExFilters\\Public\\Filters\\Collections\\PCGExTagCheckFilter.h": {
       "hash": "050b06177613",
@@ -42631,7 +42631,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Collections\\data-filter-tag-check.md",
-      "docTime": "2026-01-09T05:36:11.811Z"
+      "docTime": "2026-01-09T23:32:56.827Z"
     },
     "PCGExFilters\\Public\\Filters\\Collections\\PCGExTagValueFilter.h": {
       "hash": "7196a74f736b",
@@ -42713,7 +42713,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Collections\\data-filter-tag-value.md",
-      "docTime": "2026-01-09T05:35:57.576Z"
+      "docTime": "2026-01-09T23:34:53.839Z"
     },
     "PCGExFilters\\Public\\Core\\PCGExPointFilter.h": {
       "hash": "8bd0dd4067bc",
@@ -42910,7 +42910,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Core\\filter-abstract.md",
-      "docTime": "2026-01-09T05:34:30.034Z"
+      "docTime": "2026-01-09T23:31:07.918Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExAngleFilter.h": {
       "hash": "57d26fd0ae64",
@@ -43012,7 +43012,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-angle.md",
-      "docTime": "2026-01-09T05:36:26.700Z"
+      "docTime": "2026-01-09T23:34:39.051Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExBitmaskFilter.h": {
       "hash": "df422d9a6275",
@@ -43101,7 +43101,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-bitmask.md",
-      "docTime": "2026-01-09T05:36:52.926Z"
+      "docTime": "2026-01-09T23:35:12.368Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExBooleanCompareFilter.h": {
       "hash": "3b862d1abf72",
@@ -43187,7 +43187,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-bool-compare.md",
-      "docTime": "2026-01-09T05:36:38.352Z"
+      "docTime": "2026-01-09T23:35:02.153Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExBoundsFilter.h": {
       "hash": "e4c9fe7b0d06",
@@ -43315,7 +43315,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-inclusion-(bounds).md",
-      "docTime": "2026-01-09T05:37:12.336Z"
+      "docTime": "2026-01-09T23:35:31.066Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExConstantFilter.h": {
       "hash": "069a9c748c3e",
@@ -43396,7 +43396,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-constant.md",
-      "docTime": "2026-01-09T05:37:24.015Z"
+      "docTime": "2026-01-09T23:37:01.919Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExDistanceFilter.h": {
       "hash": "7a451c7197d3",
@@ -43484,7 +43484,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-distance.md",
-      "docTime": "2026-01-09T05:37:40.886Z"
+      "docTime": "2026-01-09T23:36:56.440Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExDotFilter.h": {
       "hash": "8e006839ff44",
@@ -43570,7 +43570,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-dot.md",
-      "docTime": "2026-01-09T05:39:18.656Z"
+      "docTime": "2026-01-09T23:37:23.956Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExFilterGroup.h": {
       "hash": "0978c36f60c8",
@@ -43677,7 +43677,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-group.md",
-      "docTime": "2026-01-09T05:38:06.989Z"
+      "docTime": "2026-01-09T23:37:09.269Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExGameplayTagsFilter.h": {
       "hash": "791a400fca47",
@@ -43760,7 +43760,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-gameplaytags.md",
-      "docTime": "2026-01-09T05:38:44.182Z"
+      "docTime": "2026-01-09T23:37:37.782Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExInclusionFilter.h": {
       "hash": "deef008a3f04",
@@ -43848,7 +43848,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-inclusion-(pathsplines).md",
-      "docTime": "2026-01-09T05:38:27.859Z"
+      "docTime": "2026-01-09T23:39:59.540Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExMeanFilter.h": {
       "hash": "c172e65c7991",
@@ -43931,7 +43931,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-mean.md",
-      "docTime": "2026-01-09T05:39:04.607Z"
+      "docTime": "2026-01-09T23:39:22.561Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExModuloCompareFilter.h": {
       "hash": "28147af0cb88",
@@ -44017,7 +44017,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-modulo-compare.md",
-      "docTime": "2026-01-09T05:39:35.987Z"
+      "docTime": "2026-01-09T23:39:38.431Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExNumericCompareFilter.h": {
       "hash": "be0234855bb2",
@@ -44103,7 +44103,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-compare-(numeric).md",
-      "docTime": "2026-01-09T05:40:10.282Z"
+      "docTime": "2026-01-09T23:40:11.192Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExNumericCompareNearestFilter.h": {
       "hash": "b02bc1e8e917",
@@ -44191,7 +44191,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-compare-nearest-(numeric).md",
-      "docTime": "2026-01-09T05:39:52.699Z"
+      "docTime": "2026-01-09T23:40:23.193Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExNumericSelfCompareFilter.h": {
       "hash": "b79013b6febe",
@@ -44279,7 +44279,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-self-compare-(numeric).md",
-      "docTime": "2026-01-09T05:40:28.221Z"
+      "docTime": "2026-01-09T23:41:53.842Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExPickerFilter.h": {
       "hash": "41225e30ddc5",
@@ -44360,7 +44360,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-picker.md",
-      "docTime": "2026-01-09T05:40:39.892Z"
+      "docTime": "2026-01-09T23:41:59.905Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExRandomFilter.h": {
       "hash": "e3af13b50a0e",
@@ -44447,7 +44447,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-random.md",
-      "docTime": "2026-01-09T05:40:56.973Z"
+      "docTime": "2026-01-09T23:42:27.462Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExRandomRatioFilter.h": {
       "hash": "0534aecf3b78",
@@ -44535,7 +44535,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-random-(ratio).md",
-      "docTime": "2026-01-09T05:41:23.854Z"
+      "docTime": "2026-01-09T23:42:35.750Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExSegmentCrossFilter.h": {
       "hash": "b2bd0a148252",
@@ -44644,7 +44644,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-segment-cross.md",
-      "docTime": "2026-01-09T05:42:00.696Z"
+      "docTime": "2026-01-09T23:44:14.214Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExPolyPathFilterFactory.h": {
       "hash": "990aef6995d4",
@@ -44819,7 +44819,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\poly-path-filter.md",
-      "docTime": "2026-01-09T05:41:13.325Z"
+      "docTime": "2026-01-09T23:42:14.960Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExSegmentLengthFilter.h": {
       "hash": "bd72fb1325f6",
@@ -44904,7 +44904,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-segment-length.md",
-      "docTime": "2026-01-09T05:41:46.113Z"
+      "docTime": "2026-01-09T23:44:32.442Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExStringCompareFilter.h": {
       "hash": "62801a8bf3d4",
@@ -44990,7 +44990,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-compare-(string).md",
-      "docTime": "2026-01-09T05:42:17.964Z"
+      "docTime": "2026-01-09T23:44:58.103Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExStringSelfCompareFilter.h": {
       "hash": "d5cd01f9f819",
@@ -45074,7 +45074,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-self-compare-(string).md",
-      "docTime": "2026-01-09T05:42:58.489Z"
+      "docTime": "2026-01-09T23:44:46.283Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExTimeFilter.h": {
       "hash": "6f7c978f787b",
@@ -45185,7 +45185,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-time.md",
-      "docTime": "2026-01-09T05:42:39.153Z"
+      "docTime": "2026-01-09T23:45:16.503Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExValueHashFilter.h": {
       "hash": "46a4313640dd",
@@ -45298,7 +45298,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-contains-(hash).md",
-      "docTime": "2026-01-09T05:43:31.168Z"
+      "docTime": "2026-01-09T23:46:51.028Z"
     },
     "PCGExFilters\\Public\\Filters\\Points\\PCGExWithinRangeFilter.h": {
       "hash": "7edf05ea28cf",
@@ -45395,7 +45395,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFilters\\Public\\Filters\\Points\\filter-within-range.md",
-      "docTime": "2026-01-09T05:43:14.067Z"
+      "docTime": "2026-01-09T23:46:59.533Z"
     },
     "PCGExFilters\\Public\\PCGExFilterCommon.h": {
       "hash": "dc1e4af11376",
@@ -45638,7 +45638,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Core\\path-processor-settings.md",
-      "docTime": "2026-01-09T05:43:56.985Z"
+      "docTime": "2026-01-09T23:46:38.963Z"
     },
     "PCGExFilters\\Public\\PCGExFiltersSubSystem.h": {
       "hash": "1b60f459f0b7",
@@ -45850,7 +45850,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Core\\points-processor-settings.md",
-      "docTime": "2026-01-09T05:43:46.854Z"
+      "docTime": "2026-01-09T23:46:32.439Z"
     },
     "PCGExFoundations\\Public\\Details\\PCGExAxisDeformDetails.h": {
       "hash": "bc91de736191",
@@ -46596,7 +46596,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Bitmasks\\bitmask.md",
-      "docTime": "2026-01-09T05:44:20.611Z"
+      "docTime": "2026-01-09T23:47:07.666Z"
     },
     "PCGExFoundations\\Public\\Elements\\Bitmasks\\PCGExBitmaskMerge.h": {
       "hash": "6bf439256be8",
@@ -46674,7 +46674,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Bitmasks\\bitmask-merge.md",
-      "docTime": "2026-01-09T05:44:08.625Z"
+      "docTime": "2026-01-09T23:48:48.026Z"
     },
     "PCGExFoundations\\Public\\Elements\\Bitmasks\\PCGExBitwiseOperation.h": {
       "hash": "3d7b70be2ee3",
@@ -46760,7 +46760,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Bitmasks\\bitmask-operation.md",
-      "docTime": "2026-01-09T05:44:33.810Z"
+      "docTime": "2026-01-09T23:48:40.940Z"
     },
     "PCGExFoundations\\Public\\Elements\\Constants\\PCGExConstantEnum.h": {
       "hash": "305b1f23b7fa",
@@ -46878,7 +46878,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Constants\\enum-constant.md",
-      "docTime": "2026-01-09T05:46:32.447Z"
+      "docTime": "2026-01-09T23:49:06.958Z"
     },
     "PCGExFoundations\\Public\\Elements\\Constants\\PCGExConstants.h": {
       "hash": "9b45c8e8b0b8",
@@ -46962,7 +46962,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Constants\\constant.md",
-      "docTime": "2026-01-09T05:45:17.332Z"
+      "docTime": "2026-01-09T23:49:19.708Z"
     },
     "PCGExFoundations\\Public\\Elements\\Constants\\PCGExConstantsDefinitions.h": {
       "hash": "80fca1264811",
@@ -47203,7 +47203,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Constants\\tuple.md",
-      "docTime": "2026-01-09T05:46:13.399Z"
+      "docTime": "2026-01-09T23:49:26.371Z"
     },
     "PCGExFoundations\\Public\\Elements\\ControlFlow\\PCGExBranchOnDataAttribute.h": {
       "hash": "f9e6f17502b1",
@@ -47309,7 +47309,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\ControlFlow\\branch-on-data.md",
-      "docTime": "2026-01-09T05:45:39.392Z"
+      "docTime": "2026-01-09T23:51:28.484Z"
     },
     "PCGExFoundations\\Public\\Elements\\ControlFlow\\PCGExRecursionTracker.h": {
       "hash": "26c5f362c94c",
@@ -47416,7 +47416,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\ControlFlow\\break.md",
-      "docTime": "2026-01-09T05:46:49.830Z"
+      "docTime": "2026-01-09T23:51:17.006Z"
     },
     "PCGExFoundations\\Public\\Elements\\ControlFlow\\PCGExUberBranch.h": {
       "hash": "13aef9bb6082",
@@ -47512,7 +47512,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\ControlFlow\\uber-branch.md",
-      "docTime": "2026-01-09T05:47:57.797Z"
+      "docTime": "2026-01-09T23:51:36.459Z"
     },
     "PCGExFoundations\\Public\\Elements\\Debug\\PCGExDrawAttributes.h": {
       "hash": "97f58c59ee7b",
@@ -47619,7 +47619,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Debug\\draw-attributes.md",
-      "docTime": "2026-01-09T05:47:12.624Z"
+      "docTime": "2026-01-09T23:51:57.680Z"
     },
     "PCGExFoundations\\Public\\Elements\\Debug\\PCGExFlushDebug.h": {
       "hash": "a3afe27f834b",
@@ -47691,7 +47691,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Debug\\flush-debug.md",
-      "docTime": "2026-01-09T05:47:21.883Z"
+      "docTime": "2026-01-09T23:52:05.741Z"
     },
     "PCGExFoundations\\Public\\Elements\\Filtering\\PCGExCherryPickPoints.h": {
       "hash": "13d4804c337b",
@@ -47788,7 +47788,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Filtering\\cherry-pick-points.md",
-      "docTime": "2026-01-09T05:47:33.648Z"
+      "docTime": "2026-01-09T23:53:35.343Z"
     },
     "PCGExFoundations\\Public\\Elements\\Filtering\\PCGExDiscardByPointCount.h": {
       "hash": "6c0b5aba732e",
@@ -47856,7 +47856,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Filtering\\discard-by-point-count.md",
-      "docTime": "2026-01-09T05:47:45.224Z"
+      "docTime": "2026-01-09T23:53:49.775Z"
     },
     "PCGExFoundations\\Public\\Elements\\Filtering\\PCGExDiscardSame.h": {
       "hash": "26c6d5b61d16",
@@ -47982,7 +47982,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Filtering\\discard-same.md",
-      "docTime": "2026-01-09T05:48:46.478Z"
+      "docTime": "2026-01-09T23:54:05.242Z"
     },
     "PCGExFoundations\\Public\\Elements\\Filtering\\PCGExSpatialTriage.h": {
       "hash": "cabdb7742934",
@@ -48055,7 +48055,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Filtering\\spatial-triage.md",
-      "docTime": "2026-01-09T05:48:09.830Z"
+      "docTime": "2026-01-09T23:54:27.176Z"
     },
     "PCGExFoundations\\Public\\Elements\\Filtering\\PCGExUberFilter.h": {
       "hash": "a06433f135ee",
@@ -48162,7 +48162,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Filtering\\uber-filter.md",
-      "docTime": "2026-01-09T05:49:32.489Z"
+      "docTime": "2026-01-09T23:54:20.775Z"
     },
     "PCGExFoundations\\Public\\Elements\\Filtering\\PCGExUberFilterCollections.h": {
       "hash": "f394f7519076",
@@ -48272,7 +48272,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Filtering\\uber-filter-(collection).md",
-      "docTime": "2026-01-09T05:49:03.900Z"
+      "docTime": "2026-01-09T23:56:08.162Z"
     },
     "PCGExFoundations\\Public\\Elements\\PCGExCopyToPoints.h": {
       "hash": "007e8252f632",
@@ -48369,7 +48369,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\copy-to-points.md",
-      "docTime": "2026-01-09T05:49:15.556Z"
+      "docTime": "2026-01-09T23:56:18.244Z"
     },
     "PCGExFoundations\\Public\\Elements\\PCGExTransformPoints.h": {
       "hash": "42f4ddbdcb8a",
@@ -48460,7 +48460,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\transform-points.md",
-      "docTime": "2026-01-09T05:50:04.529Z"
+      "docTime": "2026-01-09T23:56:44.424Z"
     },
     "PCGExFoundations\\Public\\Elements\\Utils\\PCGExDestroyActor.h": {
       "hash": "d32100202846",
@@ -48541,7 +48541,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Utils\\destroy-actor.md",
-      "docTime": "2026-01-09T05:50:13.133Z"
+      "docTime": "2026-01-09T23:56:50.338Z"
     },
     "PCGExFoundations\\Public\\Elements\\Utils\\PCGExGetGUID.h": {
       "hash": "c3c5c3eeadd4",
@@ -48620,7 +48620,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Utils\\get-guid.md",
-      "docTime": "2026-01-09T05:50:29.319Z"
+      "docTime": "2026-01-09T23:56:59.261Z"
     },
     "PCGExFoundations\\Public\\Elements\\Utils\\PCGExIterations.h": {
       "hash": "b2a65b015390",
@@ -48712,7 +48712,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Utils\\iterations.md",
-      "docTime": "2026-01-09T05:50:52.110Z"
+      "docTime": "2026-01-09T23:58:23.214Z"
     },
     "PCGExFoundations\\Public\\Elements\\Utils\\PCGExMergePoints.h": {
       "hash": "1dd71ca289f9",
@@ -48809,7 +48809,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Utils\\merge-points.md",
-      "docTime": "2026-01-09T05:51:01.273Z"
+      "docTime": "2026-01-09T23:58:32.807Z"
     },
     "PCGExFoundations\\Public\\Elements\\Utils\\PCGExMergePointsByTag.h": {
       "hash": "0d9177c24016",
@@ -48951,7 +48951,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Utils\\merge-points-by-tag.md",
-      "docTime": "2026-01-09T05:51:18.289Z"
+      "docTime": "2026-01-09T23:59:01.736Z"
     },
     "PCGExFoundations\\Public\\Elements\\Utils\\PCGExWriteGUID.h": {
       "hash": "f2f7acc31890",
@@ -49097,7 +49097,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Elements\\Utils\\write-guid.md",
-      "docTime": "2026-01-09T05:55:57.962Z"
+      "docTime": "2026-01-09T23:58:50.025Z"
     },
     "PCGExFoundations\\Public\\Helpers\\PCGExSocketHelpers.h": {
       "hash": "1bd4c9833906",
@@ -49269,7 +49269,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Tangents\\auto.md",
-      "docTime": "2026-01-09T05:51:28.773Z"
+      "docTime": "2026-01-09T23:59:08.234Z"
     },
     "PCGExFoundations\\Public\\Tangents\\PCGExTangentsCatmullRom.h": {
       "hash": "a02c0802b5a8",
@@ -49340,7 +49340,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Tangents\\catmull-rom.md",
-      "docTime": "2026-01-09T06:33:17.734Z"
+      "docTime": "2026-01-10T00:00:15.439Z"
     },
     "PCGExFoundations\\Public\\Tangents\\PCGExTangentsFromNeighbors.h": {
       "hash": "640363d56da9",
@@ -49411,7 +49411,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Tangents\\from-neighbors.md",
-      "docTime": "2026-01-09T05:55:31.968Z"
+      "docTime": "2026-01-10T00:00:08.820Z"
     },
     "PCGExFoundations\\Public\\Tangents\\PCGExTangentsFromTransform.h": {
       "hash": "7dbb1f738fd2",
@@ -49485,7 +49485,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Tangents\\from-transform.md",
-      "docTime": "2026-01-09T05:56:24.796Z"
+      "docTime": "2026-01-10T00:00:21.989Z"
     },
     "PCGExFoundations\\Public\\Tangents\\PCGExTangentsInstancedFactory.h": {
       "hash": "416a31f19ce7",
@@ -49595,7 +49595,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Tangents\\tangents-instanced-factory.md",
-      "docTime": "2026-01-09T05:57:35.845Z"
+      "docTime": "2026-01-10T00:00:33.991Z"
     },
     "PCGExFoundations\\Public\\Tangents\\PCGExTangentsZero.h": {
       "hash": "4f676b6928e3",
@@ -49662,7 +49662,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExFoundations\\Public\\Tangents\\zero.md",
-      "docTime": "2026-01-09T05:57:22.474Z"
+      "docTime": "2026-01-10T00:00:41.217Z"
     },
     "PCGExFoundationsEditor\\Public\\Details\\Bitmask\\PCGExBitmaskCustomization.h": {
       "hash": "18fcd1f6d575",
@@ -50480,7 +50480,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExGraphs\\Public\\Core\\edges-processor-settings.md",
-      "docTime": "2026-01-09T05:57:13.510Z"
+      "docTime": "2026-01-10T00:01:52.457Z"
     },
     "PCGExGraphs\\Public\\Graphs\\PCGExChainHelpers.h": {
       "hash": "d79663600d85",
@@ -51273,7 +51273,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Core\\heuristics-definition.md",
-      "docTime": "2026-01-09T05:57:05.640Z"
+      "docTime": "2026-01-10T00:02:05.452Z"
     },
     "PCGExHeuristics\\Public\\Heuristics\\PCGExHeuristicAttribute.h": {
       "hash": "6a2f79664af9",
@@ -51378,7 +51378,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Heuristics\\heuristics-attribute.md",
-      "docTime": "2026-01-09T05:57:52.564Z"
+      "docTime": "2026-01-10T00:02:29.294Z"
     },
     "PCGExHeuristics\\Public\\Heuristics\\PCGExHeuristicAzimuth.h": {
       "hash": "55364bc9e0d3",
@@ -51462,7 +51462,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Heuristics\\heuristics-azimuth.md",
-      "docTime": "2026-01-09T05:58:41.387Z"
+      "docTime": "2026-01-10T00:02:11.016Z"
     },
     "PCGExHeuristics\\Public\\Heuristics\\PCGExHeuristicDistance.h": {
       "hash": "0ee4bf3424be",
@@ -51546,7 +51546,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Heuristics\\heuristics-shortest-distance.md",
-      "docTime": "2026-01-09T05:58:16.069Z"
+      "docTime": "2026-01-10T00:02:17.394Z"
     },
     "PCGExHeuristics\\Public\\Heuristics\\PCGExHeuristicFeedback.h": {
       "hash": "59c1bfde9156",
@@ -51630,7 +51630,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Heuristics\\heuristics-feedback.md",
-      "docTime": "2026-01-09T05:58:06.419Z"
+      "docTime": "2026-01-10T00:03:45.562Z"
     },
     "PCGExHeuristics\\Public\\Heuristics\\PCGExHeuristicInertia.h": {
       "hash": "c5c5534a13b2",
@@ -51714,7 +51714,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Heuristics\\heuristics-inertia.md",
-      "docTime": "2026-01-09T05:58:31.445Z"
+      "docTime": "2026-01-10T00:03:52.979Z"
     },
     "PCGExHeuristics\\Public\\Heuristics\\PCGExHeuristicNodeCount.h": {
       "hash": "e7ac32ea6ca6",
@@ -51792,7 +51792,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Heuristics\\heuristics-least-nodes.md",
-      "docTime": "2026-01-09T05:59:29.098Z"
+      "docTime": "2026-01-10T00:04:12.186Z"
     },
     "PCGExHeuristics\\Public\\Heuristics\\PCGExHeuristicSteepness.h": {
       "hash": "54f3acda0df3",
@@ -51874,7 +51874,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExHeuristics\\Public\\Heuristics\\heuristics-steepness.md",
-      "docTime": "2026-01-09T06:00:07.722Z"
+      "docTime": "2026-01-10T00:04:07.325Z"
     },
     "PCGExHeuristics\\Public\\PCGExHeuristics.h": {
       "hash": "a15a1c361da5",
@@ -52125,7 +52125,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Core\\match-rule-definition.md",
-      "docTime": "2026-01-09T05:59:39.143Z"
+      "docTime": "2026-01-10T00:04:17.933Z"
     },
     "PCGExMatching\\Public\\Details\\PCGExMatchingDetails.h": {
       "hash": "02914a220d2e",
@@ -52396,7 +52396,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Matching\\match-attributes.md",
-      "docTime": "2026-01-09T05:59:03.151Z"
+      "docTime": "2026-01-10T00:06:25.087Z"
     },
     "PCGExMatching\\Public\\Matching\\PCGExMatchByIndex.h": {
       "hash": "1e190838bd6d",
@@ -52493,7 +52493,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Matching\\match-by-index.md",
-      "docTime": "2026-01-09T05:59:55.868Z"
+      "docTime": "2026-01-10T00:05:36.815Z"
     },
     "PCGExMatching\\Public\\Matching\\PCGExMatchCopyTags.h": {
       "hash": "f3d64404f798",
@@ -52572,7 +52572,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Matching\\match-copy-tags.md",
-      "docTime": "2026-01-09T06:00:16.573Z"
+      "docTime": "2026-01-10T00:06:06.761Z"
     },
     "PCGExMatching\\Public\\Matching\\PCGExMatchOverlap.h": {
       "hash": "02d6e173a99b",
@@ -52676,7 +52676,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Matching\\match-overlap.md",
-      "docTime": "2026-01-09T06:00:54.632Z"
+      "docTime": "2026-01-10T00:05:47.603Z"
     },
     "PCGExMatching\\Public\\Matching\\PCGExMatchRandom.h": {
       "hash": "4c43c02bf362",
@@ -52755,7 +52755,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Matching\\match-random.md",
-      "docTime": "2026-01-09T06:00:28.957Z"
+      "docTime": "2026-01-10T00:05:59.404Z"
     },
     "PCGExMatching\\Public\\Matching\\PCGExMatchSharedTag.h": {
       "hash": "cbda1ceb48e6",
@@ -52834,7 +52834,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Matching\\match-shared-tag.md",
-      "docTime": "2026-01-09T06:00:43.148Z"
+      "docTime": "2026-01-10T00:08:16.998Z"
     },
     "PCGExMatching\\Public\\Matching\\PCGExMatchTagToAttr.h": {
       "hash": "da228eb7e83f",
@@ -52916,7 +52916,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExMatching\\Public\\Matching\\match-tags-×-attributes.md",
-      "docTime": "2026-01-09T06:01:15.376Z"
+      "docTime": "2026-01-10T00:08:08.764Z"
     },
     "PCGExMatching\\Public\\PCGExMatching.h": {
       "hash": "2905339246d4",
@@ -53257,7 +53257,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Core\\noise3d-definition.md",
-      "docTime": "2026-01-09T06:01:50.422Z"
+      "docTime": "2026-01-10T00:08:46.055Z"
     },
     "PCGExNoise3D\\Public\\Core\\PCGExNoise3DOperation.h": {
       "hash": "9fd9af0773ec",
@@ -53471,7 +53471,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-caustic.md",
-      "docTime": "2026-01-09T06:01:30.608Z"
+      "docTime": "2026-01-10T00:08:29.659Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseCurl.h": {
       "hash": "32b3cfe2cd77",
@@ -53553,7 +53553,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-curl.md",
-      "docTime": "2026-01-09T06:02:04.001Z"
+      "docTime": "2026-01-10T00:08:55.599Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseFBM.h": {
       "hash": "40e0b0e52618",
@@ -53652,7 +53652,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-fbm.md",
-      "docTime": "2026-01-09T06:02:33.031Z"
+      "docTime": "2026-01-10T00:10:31.550Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseFlow.h": {
       "hash": "dfcde0f492b3",
@@ -53734,7 +53734,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-flow.md",
-      "docTime": "2026-01-09T06:02:16.340Z"
+      "docTime": "2026-01-10T00:10:20.565Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseGabor.h": {
       "hash": "f09288084a82",
@@ -53816,7 +53816,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-gabor.md",
-      "docTime": "2026-01-09T06:02:46.677Z"
+      "docTime": "2026-01-10T00:10:40.534Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseMarble.h": {
       "hash": "157a1753585b",
@@ -53914,7 +53914,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-marble.md",
-      "docTime": "2026-01-09T06:03:40.842Z"
+      "docTime": "2026-01-10T00:10:48.331Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseOpenSimplex2.h": {
       "hash": "320fa685d367",
@@ -53996,7 +53996,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-opensimplex2.md",
-      "docTime": "2026-01-09T06:03:01.136Z"
+      "docTime": "2026-01-10T00:10:57.029Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoisePerlin.h": {
       "hash": "752685f2f656",
@@ -54078,7 +54078,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-perlin.md",
-      "docTime": "2026-01-09T06:03:13.649Z"
+      "docTime": "2026-01-10T00:12:28.787Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseSimplex.h": {
       "hash": "f169ff10cda5",
@@ -54160,7 +54160,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-simplex.md",
-      "docTime": "2026-01-09T06:03:25.872Z"
+      "docTime": "2026-01-10T00:12:20.116Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseSpots.h": {
       "hash": "85c61c1afac6",
@@ -54259,7 +54259,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-spots.md",
-      "docTime": "2026-01-09T06:04:49.001Z"
+      "docTime": "2026-01-10T00:12:41.425Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseSwiss.h": {
       "hash": "06999fcc98fa",
@@ -54341,7 +54341,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-swiss-(erosion).md",
-      "docTime": "2026-01-09T06:03:53.981Z"
+      "docTime": "2026-01-10T00:12:50.693Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseTiling.h": {
       "hash": "95f781821d7e",
@@ -54423,7 +54423,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-tiling.md",
-      "docTime": "2026-01-09T06:04:11.360Z"
+      "docTime": "2026-01-10T00:13:03.748Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseValue.h": {
       "hash": "6f66c0fb8543",
@@ -54505,7 +54505,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-value.md",
-      "docTime": "2026-01-09T06:04:22.196Z"
+      "docTime": "2026-01-10T00:14:22.248Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseVoronoi.h": {
       "hash": "e8d094136f44",
@@ -54603,7 +54603,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-voronoi.md",
-      "docTime": "2026-01-09T06:04:35.332Z"
+      "docTime": "2026-01-10T00:14:31.617Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseWhite.h": {
       "hash": "81a1daa43e6d",
@@ -54685,7 +54685,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-white.md",
-      "docTime": "2026-01-09T06:05:23.469Z"
+      "docTime": "2026-01-10T00:14:51.376Z"
     },
     "PCGExNoise3D\\Public\\Noises\\PCGExNoiseWorley.h": {
       "hash": "07e233ac78b7",
@@ -54800,7 +54800,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExNoise3D\\Public\\Noises\\noise-worley.md",
-      "docTime": "2026-01-09T06:05:54.397Z"
+      "docTime": "2026-01-10T00:14:41.262Z"
     },
     "PCGExNoise3D\\Public\\PCGExNoise3D.h": {
       "hash": "4d1d828d2a4a",
@@ -54931,7 +54931,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExPickers\\Public\\Core\\picker-definition.md",
-      "docTime": "2026-01-09T06:05:38.058Z"
+      "docTime": "2026-01-10T00:15:03.217Z"
     },
     "PCGExPickers\\Public\\PCGExPickers.h": {
       "hash": "d650dd63b826",
@@ -55081,7 +55081,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExPickers\\Public\\Pickers\\picker-indices-from-set.md",
-      "docTime": "2026-01-09T06:06:03.655Z"
+      "docTime": "2026-01-10T00:15:58.782Z"
     },
     "PCGExPickers\\Public\\Pickers\\PCGExPickerAttributeSetRanges.h": {
       "hash": "c4a4a89efcee",
@@ -55154,7 +55154,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExPickers\\Public\\Pickers\\picker-ranges-from-set.md",
-      "docTime": "2026-01-09T06:05:00.869Z"
+      "docTime": "2026-01-10T00:16:03.666Z"
     },
     "PCGExPickers\\Public\\Pickers\\PCGExPickerConstant.h": {
       "hash": "3eadb3890599",
@@ -55225,7 +55225,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExPickers\\Public\\Pickers\\picker-constant.md",
-      "docTime": "2026-01-09T06:06:39.189Z"
+      "docTime": "2026-01-10T00:16:12.439Z"
     },
     "PCGExPickers\\Public\\Pickers\\PCGExPickerConstantRange.h": {
       "hash": "7d3a5d2fa17a",
@@ -55296,7 +55296,7 @@
       ],
       "documented": true,
       "docPath": "D:\\GIT\\PCGExWorkbench\\Docu\\PCGExPickers\\Public\\Pickers\\picker-range.md",
-      "docTime": "2026-01-09T06:06:28.632Z"
+      "docTime": "2026-01-10T00:16:23.691Z"
     },
     "PCGExtendedToolkit\\Private\\Generated\\PCGExSubModules.generated.h": {
       "hash": "ae2d8e1b345a",
@@ -71705,6 +71705,6 @@
   "stats": {
     "totalFiles": 0,
     "classified": 685,
-    "documented": 0
+    "documented": 364
   }
 }
