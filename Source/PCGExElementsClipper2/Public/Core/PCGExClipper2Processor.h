@@ -291,6 +291,7 @@ public:
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const;
 	virtual bool SupportOpenMainPaths() const;
 	virtual bool SupportOpenOperandPaths() const;
+	virtual bool OperandsAsBounds() const;
 };
 
 struct PCGEXELEMENTSCLIPPER2_API FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
