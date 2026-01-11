@@ -22,6 +22,7 @@ enum class EPCGExRectClipBoundsSource : uint8
 /**
  * Clipper2 Rectangle Clipping
  * Uses optimized RectClip64 algorithm which is significantly faster than boolean intersection for rectangles.
+ * NOTE : Work only with AABB!
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-rectclip"))
 class UPCGExClipper2RectClipSettings : public UPCGExClipper2ProcessorSettings
@@ -66,6 +67,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable, EditCondition="!bSkipOpenPaths", EditConditionHides))
 	bool bClipOpenPathsAsLines = true;
 
+	/** If true, clips closed paths as lines (outputs will be open paths).
+	*  Useful when you want to cut through paths rather than get polygon intersections. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable, EditCondition="!bInvertClip", EditConditionHides))
+	bool bClipAsLines = false;
+	
 	/** If enabled, inverts the clip region (uses boolean difference with the rectangle instead) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	bool bInvertClip = false;

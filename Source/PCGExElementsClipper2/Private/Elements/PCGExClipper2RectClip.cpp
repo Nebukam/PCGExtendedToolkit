@@ -45,34 +45,34 @@ namespace PCGExClipper2RectClip
 		// Vector AB
 		const double ABx = static_cast<double>(Bx - Ax);
 		const double ABy = static_cast<double>(By - Ay);
-		
+
 		// Vector AP
 		const double APx = static_cast<double>(Px - Ax);
 		const double APy = static_cast<double>(Py - Ay);
-		
+
 		// Length squared of AB
 		const double ABLenSq = ABx * ABx + ABy * ABy;
 		if (ABLenSq < 1.0) return -1.0; // Degenerate segment
-		
+
 		// Project P onto line AB, get parameter t
 		const double t = (APx * ABx + APy * ABy) / ABLenSq;
-		
+
 		// Check if t is in valid range [0, 1]
 		if (t < -0.001 || t > 1.001) return -1.0;
-		
+
 		// Calculate closest point on segment
 		const double ClosestX = Ax + t * ABx;
 		const double ClosestY = Ay + t * ABy;
-		
+
 		// Check distance from P to closest point
 		const double DistX = Px - ClosestX;
 		const double DistY = Py - ClosestY;
 		const double DistSq = DistX * DistX + DistY * DistY;
-		
+
 		// Use tolerance squared for comparison
 		const double TolSq = static_cast<double>(Tolerance) * static_cast<double>(Tolerance);
 		if (DistSq > TolSq) return -1.0;
-		
+
 		return FMath::Clamp(t, 0.0, 1.0);
 	}
 
@@ -131,28 +131,28 @@ namespace PCGExClipper2RectClip
 				// No exact match - this is an intersection point
 				// Find which source edge this point lies on
 				bool bFoundEdge = false;
-				
+
 				for (const PCGExClipper2Lib::Path64& SrcPath : SourcePaths)
 				{
 					if (bFoundEdge) break;
-					
+
 					const size_t SrcNumPts = SrcPath.size();
 					if (SrcNumPts < 2) continue;
-					
+
 					// Check each edge in the source path
 					for (size_t j = 0; j < SrcNumPts; j++)
 					{
 						const size_t NextJ = (j + 1) % SrcNumPts;
 						const PCGExClipper2Lib::Point64& A = SrcPath[j];
 						const PCGExClipper2Lib::Point64& B = SrcPath[NextJ];
-						
+
 						// Check if Pt lies on edge A->B
 						const double Alpha = PointOnSegment(
 							Pt.x, Pt.y,
 							A.x, A.y,
 							B.x, B.y,
 							Tolerance);
-						
+
 						if (Alpha >= 0.0)
 						{
 							// Point lies on this edge! Interpolate Z
@@ -171,7 +171,7 @@ namespace PCGExClipper2RectClip
 						}
 					}
 				}
-				
+
 				// If still not found (shouldn't happen normally), leave Z as 0
 				// The output code will need to handle this gracefully
 			}
@@ -339,29 +339,122 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 		// Clip closed paths
 		if (!Group->SubjectPaths.empty())
 		{
-			PCGExClipper2Lib::RectClip64 Clipper(ClipRect);
-			ClosedResults = Clipper.Execute(Group->SubjectPaths);
+			if (Settings->bClipAsLines)
+			{
+				for (const PCGExClipper2Lib::Path64& SrcPath : Group->SubjectPaths)
+				{
+					PCGExClipper2Lib::Rect64 PathBounds = PCGExClipper2Lib::GetBounds(SrcPath);
 
-			PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClosedResults, Group->SubjectPaths);
+					const bool bEntirelyInside =
+						PathBounds.left >= ClipRect.left &&
+						PathBounds.right <= ClipRect.right &&
+						PathBounds.top >= ClipRect.top &&
+						PathBounds.bottom <= ClipRect.bottom;
+
+					if (bEntirelyInside)
+					{
+						ClosedResults.push_back(SrcPath);
+					}
+					else
+					{
+						// For closed paths, explicitly close the loop by appending V0
+						// RectClipLines64 doesn't process the edge from last vertex back to V0 otherwise
+						PCGExClipper2Lib::Path64 ExplicitlyClosed = SrcPath;
+						if (!SrcPath.empty())
+						{
+							ExplicitlyClosed.push_back(SrcPath[0]);
+						}
+
+						PCGExClipper2Lib::RectClipLines64 LineClipper(ClipRect);
+						PCGExClipper2Lib::Paths64 SinglePath = {ExplicitlyClosed};
+						PCGExClipper2Lib::Paths64 ClippedResults = LineClipper.Execute(SinglePath);
+
+						// Restore Z values using original source paths
+						PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClippedResults, Group->SubjectPaths);
+
+						// Now that the path is explicitly closed, segments that should connect at V0 will exist
+						// Find and merge them
+						if (ClippedResults.size() >= 2 && !SrcPath.empty())
+						{
+							const PCGExClipper2Lib::Point64& V0 = SrcPath[0];
+
+							int SegmentStartingAtV0 = -1;
+							int SegmentEndingAtV0 = -1;
+
+							for (int s = 0; s < static_cast<int>(ClippedResults.size()); s++)
+							{
+								const PCGExClipper2Lib::Path64& Seg = ClippedResults[s];
+								if (Seg.empty()) continue;
+
+								if (Seg.front().x == V0.x && Seg.front().y == V0.y)
+								{
+									SegmentStartingAtV0 = s;
+								}
+								if (Seg.back().x == V0.x && Seg.back().y == V0.y)
+								{
+									SegmentEndingAtV0 = s;
+								}
+							}
+
+							if (SegmentStartingAtV0 >= 0 && SegmentEndingAtV0 >= 0 &&
+								SegmentStartingAtV0 != SegmentEndingAtV0)
+							{
+								PCGExClipper2Lib::Path64& EndingSeg = ClippedResults[SegmentEndingAtV0];
+								PCGExClipper2Lib::Path64& StartingSeg = ClippedResults[SegmentStartingAtV0];
+
+								// Append StartingSeg onto EndingSeg (skip duplicate V0)
+								EndingSeg.reserve(EndingSeg.size() + StartingSeg.size() - 1);
+								for (size_t k = 1; k < StartingSeg.size(); k++)
+								{
+									EndingSeg.push_back(StartingSeg[k]);
+								}
+
+								StartingSeg.clear();
+							}
+						}
+
+						for (auto& Path : ClippedResults)
+						{
+							if (!Path.empty())
+							{
+								OpenResults.push_back(std::move(Path));
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				// Normal polygon clipping
+				PCGExClipper2Lib::RectClip64 Clipper(ClipRect);
+				ClosedResults = Clipper.Execute(Group->SubjectPaths);
+
+				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClosedResults, Group->SubjectPaths);
+			}
 		}
 
 		// Clip open paths
 		if (!Group->OpenSubjectPaths.empty())
 		{
-			if (Settings->bClipOpenPathsAsLines)
+			if (Settings->bClipOpenPathsAsLines || Settings->bClipAsLines)
 			{
+				// Use RectClipLines for open paths (or when bClipAsLines is enabled)
 				PCGExClipper2Lib::RectClipLines64 LineClipper(ClipRect);
-				OpenResults = LineClipper.Execute(Group->OpenSubjectPaths);
+				PCGExClipper2Lib::Paths64 OpenLinesResults = LineClipper.Execute(Group->OpenSubjectPaths);
 
-				// FIX: Restore Z values that were lost during RectClipLines
-				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenResults, Group->OpenSubjectPaths);
+				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenLinesResults, Group->OpenSubjectPaths);
+
+				for (auto& Path : OpenLinesResults)
+				{
+					OpenResults.push_back(std::move(Path));
+				}
 			}
 			else
 			{
+				// Treat open paths as closed polygons
 				PCGExClipper2Lib::RectClip64 Clipper(ClipRect);
 				PCGExClipper2Lib::Paths64 OpenAsClosedResults = Clipper.Execute(Group->OpenSubjectPaths);
 
-				// FIX: Restore Z values
 				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenAsClosedResults, Group->OpenSubjectPaths);
 
 				for (auto& Path : OpenAsClosedResults)
@@ -372,8 +465,6 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 		}
 
 		// Output results
-		// FromSource copies the entire source transform including position, which is wrong for intersection points.
-		// Unproject mode uses Clipper X/Y for position and gets rotation/scale from the source point.
 		if (!ClosedResults.empty())
 		{
 			TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
