@@ -23,8 +23,7 @@ enum class EPCGExRectClipBoundsSource : uint8
  * Clipper2 Rectangle Clipping
  * Uses optimized RectClip64 algorithm which is significantly faster than boolean intersection for rectangles.
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path",
-	meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-rectclip"))
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-rectclip"))
 class UPCGExClipper2RectClipSettings : public UPCGExClipper2ProcessorSettings
 {
 	GENERATED_BODY()
