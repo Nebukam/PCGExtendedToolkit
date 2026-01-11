@@ -25,22 +25,28 @@ protected:
 	virtual TSharedRef<SWidget> GetAssetPicker(TSharedRef<IPropertyHandle> PropertyHandle, TSharedPtr<IPropertyHandle> IsSubCollectionHandle) =0;
 };
 
-class FPCGExMeshEntryCustomization : public FPCGExAssetEntryCustomization
+class FPCGExEntryHeaderCustomizationBase : public FPCGExAssetEntryCustomization
 {
-public:
-	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
-
 protected:
+	virtual FName GetAssetName(){ return FName("Asset"); }
 	virtual void FillCustomizedTopLevelPropertiesNames() override;
 	virtual TSharedRef<SWidget> GetAssetPicker(TSharedRef<IPropertyHandle> PropertyHandle, TSharedPtr<IPropertyHandle> IsSubCollectionHandle) override;
 };
 
-class FPCGExActorEntryCustomization : public FPCGExAssetEntryCustomization
-{
-public:
-	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+#define PCGEX_FOREACH_ENTRY_TYPE(MACRO)\
+MACRO(Mesh, "StaticMesh")\
+MACRO(Actor, "Actor")\
+MACRO(PCGDataAsset, "DataAsset")
 
-protected:
-	virtual void FillCustomizedTopLevelPropertiesNames() override;
-	virtual TSharedRef<SWidget> GetAssetPicker(TSharedRef<IPropertyHandle> PropertyHandle, TSharedPtr<IPropertyHandle> IsSubCollectionHandle) override;
+
+#define PCGEX_SUBCOLLECTION_ENTRY_BOILERPLATE_DECL(_CLASS, _NAME) \
+class FPCGEx##_CLASS##EntryCustomization : public FPCGExEntryHeaderCustomizationBase \
+{ \
+public: \
+virtual FName GetAssetName(){ return FName(_NAME); } \
+static TSharedRef<IPropertyTypeCustomization> MakeInstance(); \
 };
+
+PCGEX_FOREACH_ENTRY_TYPE(PCGEX_SUBCOLLECTION_ENTRY_BOILERPLATE_DECL)
+
+#undef PCGEX_SUBCOLLECTION_ENTRY_BOILERPLATE_DECL

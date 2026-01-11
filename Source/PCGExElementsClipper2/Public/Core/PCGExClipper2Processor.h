@@ -114,7 +114,7 @@ namespace PCGExClipper2
 	};
 
 	// Intersection blend info - stores the 4 contributing source points
-	struct FIntersectionBlendInfo
+	struct PCGEXELEMENTSCLIPPER2_API FIntersectionBlendInfo
 	{
 		// Edge 1: bot -> top
 		uint32 E1BotPointIdx = 0;
@@ -133,7 +133,7 @@ namespace PCGExClipper2
 		double E2Alpha = 0.5;
 	};
 
-	class FOpData : public TSharedFromThis<FOpData>
+	class PCGEXELEMENTSCLIPPER2_API FOpData : public TSharedFromThis<FOpData>
 	{
 	public:
 		TArray<TSharedPtr<PCGExData::FFacade>> Facades;
@@ -199,7 +199,7 @@ namespace PCGExClipper2
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Cavalier")
-class UPCGExClipper2ProcessorSettings : public UPCGExPathProcessorSettings
+class PCGEXELEMENTSCLIPPER2_API UPCGExClipper2ProcessorSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -293,7 +293,7 @@ public:
 	virtual bool SupportOpenOperandPaths() const;
 };
 
-struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
+struct PCGEXELEMENTSCLIPPER2_API FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 {
 	friend class FPCGExClipper2ProcessorElement;
 
@@ -334,7 +334,7 @@ struct FPCGExClipper2ProcessorContext : FPCGExPathProcessorContext
 	virtual void Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group);
 };
 
-class FPCGExClipper2ProcessorElement : public FPCGExPathProcessorElement
+class PCGEXELEMENTSCLIPPER2_API FPCGExClipper2ProcessorElement : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Clipper2Processor)
@@ -342,6 +342,7 @@ protected:
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
+	virtual void OutputWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const;
 
 	int32 BuildDataFromCollection(
 		FPCGExClipper2ProcessorContext* Context,

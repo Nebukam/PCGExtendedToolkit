@@ -1264,4 +1264,254 @@ namespace PCGExClipper2Lib
         solution = ScalePaths<double, int64_t>(sol64, 1 / scale, ec);
         return result;
     }
+    
+    /////////////////////////////////////////////////////////////////////////////
+    // PolyTree-based Triangulation (with proper hole handling)
+    /////////////////////////////////////////////////////////////////////////////
+
+    // Helper: Recursively process a PolyPath node and triangulate outer + holes
+    static TriangulateResult TriangulatePolyPathNode(
+        const PolyPath64* node, 
+        Paths64& solution,
+        bool useDelaunay)
+    {
+        if (!node) return TriangulateResult::success;
+
+        // Get the outer polygon from this node
+        const Path64& outerPath = node->Polygon();
+        
+        // If this node has no polygon (root node), just process children
+        if (outerPath.empty())
+        {
+            for (size_t i = 0; i < node->Count(); ++i)
+            {
+                TriangulateResult childResult = TriangulatePolyPathNode(node->Child(i), solution, useDelaunay);
+                if (childResult != TriangulateResult::success)
+                    return childResult;
+            }
+            return TriangulateResult::success;
+        }
+
+        // Collect this outer polygon and its direct children (holes)
+        Paths64 pathsToTriangulate;
+        pathsToTriangulate.reserve(1 + node->Count());
+        
+        // Add outer polygon (ensure correct orientation: CW for outer)
+        Path64 outer = outerPath;
+        if (Area(outer) < 0)  // If CCW, reverse to CW
+            std::reverse(outer.begin(), outer.end());
+        pathsToTriangulate.push_back(outer);
+
+        // Add holes (direct children, ensure CCW orientation)
+        for (size_t i = 0; i < node->Count(); ++i)
+        {
+            const PolyPath64* child = node->Child(i);
+            Path64 hole = child->Polygon();
+            if (!hole.empty())
+            {
+                if (Area(hole) > 0)  // If CW, reverse to CCW for holes
+                    std::reverse(hole.begin(), hole.end());
+                pathsToTriangulate.push_back(hole);
+            }
+        }
+
+        // Triangulate this outer + holes group
+        if (!pathsToTriangulate.empty())
+        {
+            Paths64 groupTriangles;
+            Delaunay d(useDelaunay);
+            TriangulateResult result = TriangulateResult::success;
+            groupTriangles = d.Execute(pathsToTriangulate, result);
+            
+            if (result != TriangulateResult::success)
+                return result;
+            
+            // Append triangles to solution
+            solution.insert(solution.end(), groupTriangles.begin(), groupTriangles.end());
+        }
+
+        // Recursively process grandchildren (islands inside holes)
+        // These are children of our holes (node's children's children)
+        for (size_t i = 0; i < node->Count(); ++i)
+        {
+            const PolyPath64* hole = node->Child(i);
+            // Each hole's children are islands that need their own triangulation
+            for (size_t j = 0; j < hole->Count(); ++j)
+            {
+                TriangulateResult grandchildResult = TriangulatePolyPathNode(hole->Child(j), solution, useDelaunay);
+                if (grandchildResult != TriangulateResult::success)
+                    return grandchildResult;
+            }
+        }
+
+        return TriangulateResult::success;
+    }
+
+    TriangulateResult TriangulatePolyTree(
+        const PolyTree64& polytree, 
+        Paths64& solution,
+        bool useDelaunay)
+    {
+        solution.clear();
+        
+        // Process each top-level polygon in the tree
+        for (size_t i = 0; i < polytree.Count(); ++i)
+        {
+            TriangulateResult result = TriangulatePolyPathNode(polytree.Child(i), solution, useDelaunay);
+            if (result != TriangulateResult::success)
+                return result;
+        }
+        
+        return solution.empty() ? TriangulateResult::no_polygons : TriangulateResult::success;
+    }
+
+    TriangulateResult TriangulateWithHoles(
+        const Paths64& pp, 
+        Paths64& solution, 
+        FillRule fillRule,
+        bool useDelaunay)
+    {
+        solution.clear();
+        
+        if (pp.empty())
+            return TriangulateResult::no_polygons;
+
+        // Step 1: Use Union to build PolyTree with proper parent-child relationships
+        // This resolves which paths are holes inside which outer polygons
+        PolyTree64 polytree;
+        Clipper64 clipper;
+        clipper.AddSubject(pp);
+        
+        Paths64 openPaths;  // We don't use open paths for triangulation
+        if (!clipper.Execute(ClipType::Union, fillRule, polytree, openPaths))
+        {
+            return TriangulateResult::fail;
+        }
+
+        // Step 2: Triangulate the PolyTree
+        return TriangulatePolyTree(polytree, solution, useDelaunay);
+    }
+
+    TriangulateResult TriangulateWithHoles(
+        const PathsD& pp, 
+        int decPlaces, 
+        PathsD& solution,
+        FillRule fillRule,
+        bool useDelaunay)
+    {
+        solution.clear();
+        
+        if (pp.empty())
+            return TriangulateResult::no_polygons;
+
+        int ec;
+        double scale;
+        if (decPlaces <= 0) scale = 1;
+        else if (decPlaces > 8) scale = std::pow(10, 8);
+        else scale = std::pow(10, decPlaces);
+        
+        Paths64 pp64 = ScalePaths<int64_t, double>(pp, scale, ec);
+        
+        Paths64 solution64;
+        TriangulateResult result = TriangulateWithHoles(pp64, solution64, fillRule, useDelaunay);
+        
+        if (result == TriangulateResult::success)
+        {
+            solution = ScalePaths<double, int64_t>(solution64, 1 / scale, ec);
+        }
+        
+        return result;
+    }
+
+    // Helper for PolyPathD
+    static TriangulateResult TriangulatePolyPathNodeD(
+        const PolyPathD* node, 
+        PathsD& solution,
+        double scale,
+        bool useDelaunay)
+    {
+        if (!node) return TriangulateResult::success;
+
+        const PathD& outerPath = node->Polygon();
+        
+        if (outerPath.empty())
+        {
+            for (size_t i = 0; i < node->Count(); ++i)
+            {
+                TriangulateResult childResult = TriangulatePolyPathNodeD(node->Child(i), solution, scale, useDelaunay);
+                if (childResult != TriangulateResult::success)
+                    return childResult;
+            }
+            return TriangulateResult::success;
+        }
+
+        // Convert to int64 for triangulation
+        int ec;
+        Paths64 pathsToTriangulate;
+        pathsToTriangulate.reserve(1 + node->Count());
+        
+        Path64 outer = ScalePath<int64_t, double>(outerPath, scale, ec);
+        if (Area(outer) < 0)
+            std::reverse(outer.begin(), outer.end());
+        pathsToTriangulate.push_back(outer);
+
+        for (size_t i = 0; i < node->Count(); ++i)
+        {
+            const PolyPathD* child = node->Child(i);
+            Path64 hole = ScalePath<int64_t, double>(child->Polygon(), scale, ec);
+            if (!hole.empty())
+            {
+                if (Area(hole) > 0)
+                    std::reverse(hole.begin(), hole.end());
+                pathsToTriangulate.push_back(hole);
+            }
+        }
+
+        if (!pathsToTriangulate.empty())
+        {
+            Paths64 groupTriangles;
+            Delaunay d(useDelaunay);
+            TriangulateResult result = TriangulateResult::success;
+            groupTriangles = d.Execute(pathsToTriangulate, result);
+            
+            if (result != TriangulateResult::success)
+                return result;
+            
+            // Convert back to double and append
+            PathsD groupTrianglesD = ScalePaths<double, int64_t>(groupTriangles, 1.0 / scale, ec);
+            solution.insert(solution.end(), groupTrianglesD.begin(), groupTrianglesD.end());
+        }
+
+        for (size_t i = 0; i < node->Count(); ++i)
+        {
+            const PolyPathD* hole = node->Child(i);
+            for (size_t j = 0; j < hole->Count(); ++j)
+            {
+                TriangulateResult grandchildResult = TriangulatePolyPathNodeD(hole->Child(j), solution, scale, useDelaunay);
+                if (grandchildResult != TriangulateResult::success)
+                    return grandchildResult;
+            }
+        }
+
+        return TriangulateResult::success;
+    }
+
+    TriangulateResult TriangulatePolyTreeD(
+        const PolyTreeD& polytree, 
+        PathsD& solution,
+        double scale,
+        bool useDelaunay)
+    {
+        solution.clear();
+        
+        for (size_t i = 0; i < polytree.Count(); ++i)
+        {
+            TriangulateResult result = TriangulatePolyPathNodeD(polytree.Child(i), solution, scale, useDelaunay);
+            if (result != TriangulateResult::success)
+                return result;
+        }
+        
+        return solution.empty() ? TriangulateResult::no_polygons : TriangulateResult::success;
+    }
+    
 } // Clipper2Lib namespace

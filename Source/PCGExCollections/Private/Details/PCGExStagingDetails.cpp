@@ -9,13 +9,6 @@
 #include "Core/PCGExCollectionHelpers.h"
 #include "Details/PCGExSettingsDetails.h"
 
-FPCGExEntryTypeDetails::FPCGExEntryTypeDetails()
-{
-	EntryTypes = TSoftObjectPtr<UPCGExBitmaskCollection>(
-		FSoftObjectPath(TEXT("/PCGExtendedToolkit/Data/Bitmasks/PCGEx_CollectionEntryTypes.PCGEx_CollectionEntryTypes"))
-	);
-}
-
 FPCGExAssetDistributionIndexDetails::FPCGExAssetDistributionIndexDetails()
 {
 	if (IndexSource.GetName() == FName("@Last")) { IndexSource.Update(TEXT("$Index")); }

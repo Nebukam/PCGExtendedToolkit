@@ -48,7 +48,11 @@ struct PCGEXMATCHING_API FPCGExMatchRuleConfigBase
 	/** Match Strictness */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExMatchStrictness Strictness = EPCGExMatchStrictness::Any;
-
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bInvert = false;
+	
 	virtual void Init()
 	{
 	}

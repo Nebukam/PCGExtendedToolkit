@@ -62,14 +62,15 @@ bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, con
 	}
 	else
 	{
-		if (!PCGExData::Helpers::TryReadDataValue<int32>(Context, InCandidate.Data, Config.IndexAttribute, IndexValue)) { return false; }
+		if (!PCGExData::Helpers::TryReadDataValue<int32>(Context, InCandidate.Data, Config.IndexAttribute, IndexValue)) { return Config.bInvert; }
 		OtherIndex = InTargetElement.Data ? InTargetElement.Index : InTargetElement.IO;
 
 		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InTargetElement.Data ? InTargetElement.Data->GetNumPoints() - 1 : MatchableSources->Num() - 1, Config.IndexSafety);
 	}
 
-	if (IndexValue == -1 || OtherIndex == -1) { return false; }
-	return IndexValue == OtherIndex;
+	if (IndexValue == -1 || OtherIndex == -1) { return Config.bInvert; }
+	const bool bResult = IndexValue == OtherIndex;
+	return Config.bInvert ? !bResult : bResult;
 }
 
 bool UPCGExMatchByIndexFactory::WantsPoints()

@@ -29,6 +29,8 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 		}
 	}
 
+	InputPinPropertiesBeforeFilters(PinProperties);
+
 	if (SupportsPointFilters())
 	{
 		if (RequiresPointFilters()) { PCGEX_PIN_FILTERS(GetPointFilterPin(), GetPointFilterTooltip(), Required) }
@@ -36,6 +38,10 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 	}
 
 	return PinProperties;
+}
+
+void UPCGExPointsProcessorSettings::InputPinPropertiesBeforeFilters(TArray<FPCGPinProperties>& PinProperties) const
+{
 }
 
 

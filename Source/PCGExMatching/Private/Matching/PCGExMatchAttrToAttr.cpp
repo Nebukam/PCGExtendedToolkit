@@ -69,16 +69,27 @@ bool FPCGExMatchAttrToAttr::Test(const PCGExData::FConstPoint& InTargetElement, 
 		const double TargetValue = NumGetters[InTargetElement.IO]->FetchSingle(InTargetElement, MAX_dbl);
 		double CandidateValue = 0;
 
-		if (!PCGExData::Helpers::TryReadDataValue<double>(Context, InCandidate.Data, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return false; }
+		if (!PCGExData::Helpers::TryReadDataValue<double>(Context, InCandidate.Data, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return Config.bInvert; }
 
-		return Config.bSwapOperands ? PCGExCompare::Compare(Config.NumericComparison, TargetValue, CandidateValue, Config.Tolerance) : PCGExCompare::Compare(Config.NumericComparison, CandidateValue, TargetValue, Config.Tolerance);
+		const bool bResult =
+			Config.bSwapOperands
+				? PCGExCompare::Compare(Config.NumericComparison, TargetValue, CandidateValue, Config.Tolerance)
+				: PCGExCompare::Compare(Config.NumericComparison, CandidateValue, TargetValue, Config.Tolerance);
+
+		return Config.bInvert ? !bResult : bResult;
 	}
+
 	const FString TargetValue = StrGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
 	FString CandidateValue = TEXT("");
 
-	if (!PCGExData::Helpers::TryReadDataValue<FString>(Context, InCandidate.Data, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return false; }
+	if (!PCGExData::Helpers::TryReadDataValue<FString>(Context, InCandidate.Data, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return Config.bInvert; }
 
-	return Config.bSwapOperands ? PCGExCompare::Compare(Config.StringComparison, TargetValue, CandidateValue) : PCGExCompare::Compare(Config.StringComparison, CandidateValue, TargetValue);
+	const bool bResult =
+		Config.bSwapOperands
+			? PCGExCompare::Compare(Config.StringComparison, TargetValue, CandidateValue)
+			: PCGExCompare::Compare(Config.StringComparison, CandidateValue, TargetValue);
+
+	return Config.bInvert ? !bResult : bResult;
 }
 
 bool UPCGExMatchAttrToAttrFactory::WantsPoints()

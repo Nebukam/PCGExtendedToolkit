@@ -13,28 +13,6 @@ class UPCGExBitmaskCollection;
 class UPCGParamData;
 
 USTRUCT(BlueprintType)
-struct PCGEXCOLLECTIONS_API FPCGExEntryTypeDetails
-{
-	GENERATED_BODY()
-
-	FPCGExEntryTypeDetails();
-
-	/** Name of the int64 that will hold entry type as a bitmask */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName EntryTypeAttributeName = FName("EntryType");
-
-	/** Bitmask collection containing the flags to apply per entry type. Is expected to have the following bitmasks identifiers:
-	 * - Collection
-	 * - Mesh
-	 * - Actor
-	 * - PCGDataAsset
-	 * Note that "Collection" will be OR'd to subcollection with their matching specific type; i.e Collection | Mesh for a MeshCollection. 
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExBitmaskCollection> EntryTypes;
-};
-
-USTRUCT(BlueprintType)
 struct PCGEXCOLLECTIONS_API FPCGExAssetDistributionIndexDetails
 {
 	GENERATED_BODY()
@@ -179,3 +157,4 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetAttributeSetDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CategorySourceAttribute = NAME_None;
 };
+
