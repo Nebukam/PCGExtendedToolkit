@@ -80,6 +80,7 @@ public:
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
 	virtual bool SupportOpenMainPaths() const override;
 	virtual bool SupportOpenOperandPaths() const override;
+	virtual bool OperandsAsBounds() const override;
 };
 
 struct FPCGExClipper2RectClipContext final : FPCGExClipper2ProcessorContext

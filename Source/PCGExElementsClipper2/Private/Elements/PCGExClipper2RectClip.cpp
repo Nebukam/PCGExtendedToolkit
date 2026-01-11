@@ -32,6 +32,11 @@ bool UPCGExClipper2RectClipSettings::SupportOpenOperandPaths() const
 	return true; // Operands are only used for bounds, so open paths are fine
 }
 
+bool UPCGExClipper2RectClipSettings::OperandsAsBounds() const
+{
+	return true;
+}
+
 namespace PCGExClipper2RectClip
 {
 	// Helper to check if point P lies on segment AB (within tolerance)

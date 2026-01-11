@@ -243,6 +243,11 @@ bool UPCGExClipper2ProcessorSettings::SupportOpenOperandPaths() const
 	return SupportOpenMainPaths();
 }
 
+bool UPCGExClipper2ProcessorSettings::OperandsAsBounds() const
+{
+	return false;
+}
+
 /*
 class FOutputPaths64 final : public PCGExMT::FTask
 	{
@@ -807,7 +812,7 @@ int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 				if (!bIsClosed && !bSupportOpenPaths) { return; }
 
 				// Skip paths with insufficient points
-				if (IO->GetNum() < 2)
+				if (IO->GetNum() < 2 && !Settings->OperandsAsBounds())
 				{
 					PCGEX_LOG_INVALID_INPUT(Context, FTEXT("Some inputs have less than 2 points and won't be processed."))
 					return;
