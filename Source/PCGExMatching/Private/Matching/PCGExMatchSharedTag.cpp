@@ -57,21 +57,22 @@ bool FPCGExMatchSharedTag::Test(const PCGExData::FConstPoint& InTargetElement, c
 	if (TSharedPtr<PCGExData::IDataValue> Value = PCGExData::TryGetValueFromTag(TestTagName, TestTagName)) { bDoValueMatch = true; }
 
 	TSharedPtr<PCGExData::FTags> TargetTags = Tags[InTargetElement.IO].Pin();
-	if (!TargetTags) { return false; }
+	if (!TargetTags) { return Config.bInvert; }
 
 	TSharedPtr<PCGExData::IDataValue> TargetValue = TargetTags->GetValue(TestTagName);
 	TSharedPtr<PCGExData::IDataValue> SourceValue = InCandidate.GetTags()->GetValue(TestTagName);
 
 	if (bDoValueMatch)
 	{
-		if (!TargetValue || !SourceValue) { return false; }
+		if (!TargetValue || !SourceValue) { return Config.bInvert; }
 		return TargetValue->SameValue(SourceValue);
 	}
 
-	if (TargetValue && SourceValue) { return true; }
-	if (TargetValue || SourceValue) { return false; }
+	if (TargetValue && SourceValue) { return !Config.bInvert; }
+	if (TargetValue || SourceValue) { return Config.bInvert; }
 
-	return TargetTags->RawTags.Contains(TestTagName) && InCandidate.GetTags()->RawTags.Contains(TestTagName);
+	const bool bResult = TargetTags->RawTags.Contains(TestTagName) && InCandidate.GetTags()->RawTags.Contains(TestTagName);
+	return Config.bInvert ? !bResult : bResult;
 }
 
 bool UPCGExMatchSharedTagFactory::WantsPoints()
