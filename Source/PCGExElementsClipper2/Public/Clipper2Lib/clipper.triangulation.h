@@ -18,7 +18,7 @@
 
 namespace PCGExClipper2Lib
 {
-    enum class TriangulateResult
+    enum class PCGEXELEMENTSCLIPPER2_API TriangulateResult
     {
         success,
         fail,
@@ -27,7 +27,10 @@ namespace PCGExClipper2Lib
     };
 
     // Triangulate - this function will not accept intesecting paths
+    PCGEXELEMENTSCLIPPER2_API
     TriangulateResult Triangulate(const Paths64& pp, Paths64& solution, bool useDelaunay = true);
+    
+    PCGEXELEMENTSCLIPPER2_API
     TriangulateResult Triangulate(const PathsD& pp, int decPlaces, PathsD& solution, bool useDelaunay = true);
 } // Clipper2Lib namespace
 

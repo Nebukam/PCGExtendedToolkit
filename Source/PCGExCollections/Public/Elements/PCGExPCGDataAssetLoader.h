@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCollectionsCommon.h"
 #include "PCGExFilterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
@@ -30,16 +29,29 @@ namespace PCGExPCGDataAssetLoader
 	class FBatch;
 }
 
-/**
- * Result of attempting to transform spatial data
- */
-UENUM()
-enum class EPCGExSpatialTransformResult : uint8
+
+namespace PCGExPCGDataAssetLoader
 {
-	Success     = 0 UMETA(DisplayName = "Success", ToolTip = "Transform applied successfully"),
-	Unsupported = 1 UMETA(DisplayName = "Unsupported", ToolTip = "Data type does not support transformation"),
-	Failed      = 2 UMETA(DisplayName = "Failed", ToolTip = "Transform failed"),
-};
+	/** Result of attempting to transform spatial data */
+	enum class ETransformResult : uint8
+	{
+		Success     = 0,
+		Unsupported = 1,
+		Failed      = 2,
+	};
+
+	struct FSpatialTransformResult
+	{
+		ETransformResult Result = ETransformResult::Failed;
+		TSharedPtr<PCGExMT::FTask> Task = nullptr;
+
+		FSpatialTransformResult() = default;
+		explicit FSpatialTransformResult(ETransformResult InResult);
+		explicit FSpatialTransformResult(const TSharedPtr<PCGExMT::FTask>& InTask);
+	};
+
+	static FSpatialTransformResult PrepareTransformTask(UPCGSpatialData* InData, const FTransform& InTransform);
+}
 
 /**
  * Spawns PCGDataAsset contents onto staged points.
@@ -72,12 +84,8 @@ public:
 	 * Data from the PCGDataAsset will be routed to matching pins by exact name.
 	 * Data that doesn't match any custom pin goes to the default "Out" pin.
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output Pins", meta = (TitleProperty = "Label"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (TitleProperty = "Label"))
 	TArray<FPCGPinProperties> CustomOutputPins;
-
-	/** Target inherit behavior for point data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(true, true);
 
 	/** If enabled, only spawn data from the PCGDataAsset that matches these tags. Empty means all data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable))
@@ -166,44 +174,6 @@ public:
 	int32 GetNumEntries() const;
 };
 
-/**
- * Handles type-specific spatial data transformation.
- * Designed with virtual methods for future extension.
- */
-class PCGEXCOLLECTIONS_API FPCGExSpatialDataTransformer
-{
-public:
-	virtual ~FPCGExSpatialDataTransformer() = default;
-
-	/**
-	 * Transform spatial data by the given transform.
-	 * Returns the transform result status.
-	 */
-	virtual EPCGExSpatialTransformResult Transform(UPCGSpatialData* InData, const FTransform& InTransform) const;
-
-protected:
-	/** Transform point data - applies transform to each point */
-	virtual EPCGExSpatialTransformResult TransformPointData(UPCGBasePointData* InData, const FTransform& InTransform) const;
-
-	/** Transform spline data - composes with spline's root transform */
-	virtual EPCGExSpatialTransformResult TransformSplineData(UPCGSplineData* InData, const FTransform& InTransform) const;
-
-	/** Transform polyline data - composes with polyline's root transform */
-	virtual EPCGExSpatialTransformResult TransformPolyLineData(UPCGPolyLineData* InData, const FTransform& InTransform) const;
-
-	/** Transform primitive data - placeholder for future implementation */
-	virtual EPCGExSpatialTransformResult TransformPrimitiveData(UPCGPrimitiveData* InData, const FTransform& InTransform) const;
-
-	/** Transform surface data - placeholder for future implementation */
-	virtual EPCGExSpatialTransformResult TransformSurfaceData(UPCGSurfaceData* InData, const FTransform& InTransform) const;
-
-	/** Transform volume data - placeholder for future implementation */
-	virtual EPCGExSpatialTransformResult TransformVolumeData(UPCGVolumeData* InData, const FTransform& InTransform) const;
-
-	/** Transform landscape data - not supported */
-	virtual EPCGExSpatialTransformResult TransformLandscapeData(UPCGLandscapeData* InData, const FTransform& InTransform) const;
-};
-
 struct FPCGExPCGDataAssetLoaderContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPCGDataAssetLoaderElement;
@@ -214,9 +184,6 @@ struct FPCGExPCGDataAssetLoaderContext final : FPCGExPointsProcessorContext
 
 	// Shared asset pool - all processors register entries here, single load
 	TSharedPtr<FPCGExSharedAssetPool> SharedAssetPool;
-
-	// Transformer for spatial data
-	TSharedPtr<FPCGExSpatialDataTransformer> SpatialTransformer;
 
 	// Custom output pin names for routing
 	TSet<FName> CustomPinNames;
@@ -268,12 +235,9 @@ namespace PCGExPCGDataAssetLoader
 		}
 
 		/** Get or create a new ID for the given original ID */
-		int32 GetRemappedId(int32 OriginalId)
+		FORCEINLINE int32 GetRemappedId(int32 OriginalId)
 		{
-			if (int32* Found = IdMap.Find(OriginalId))
-			{
-				return *Found;
-			}
+			if (int32* Found = IdMap.Find(OriginalId)) { return *Found; }
 
 			int32 NewId = ++SharedIdCounter;
 			IdMap.Add(OriginalId, NewId);
@@ -291,8 +255,6 @@ namespace PCGExPCGDataAssetLoader
 
 		// Forward handler (created after facade is available)
 		TSharedPtr<PCGExData::FDataForwardHandler> ForwardHandler;
-
-		FPCGExTransformDetails TransformDetails;
 
 		// Shared counter for generating unique cluster IDs across all points
 		int32 ClusterIdCounter = 0;
@@ -314,7 +276,7 @@ namespace PCGExPCGDataAssetLoader
 		bool PassesTagFilter(const FPCGTaggedData& InTaggedData) const;
 
 		/** Process a single tagged data item for a point */
-		void ProcessTaggedData(int32 PointIndex, const FTransform& TargetTransform, const FPCGTaggedData& InTaggedData, FClusterIdRemapper& ClusterRemapper);
+		FSpatialTransformResult ProcessTaggedData(int32 PointIndex, const FTransform& TargetTransform, const FPCGTaggedData& InTaggedData, FClusterIdRemapper& ClusterRemapper);
 
 		/** Check if data has PCGEx cluster tags and remap them */
 		void RemapClusterTags(TSet<FString>& Tags, FClusterIdRemapper& ClusterRemapper) const;

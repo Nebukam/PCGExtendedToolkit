@@ -130,128 +130,172 @@ int32 FPCGExSharedAssetPool::GetNumEntries() const
 
 #pragma region FPCGExSpatialDataTransformer
 
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::Transform(UPCGSpatialData* InData, const FTransform& InTransform) const
+namespace PCGExPCGDataAssetLoader
 {
-	if (!InData)
+	FSpatialTransformResult::FSpatialTransformResult(ETransformResult InResult)
+		: Result(InResult)
 	{
-		return EPCGExSpatialTransformResult::Failed;
 	}
 
-	// Try each type in order of specificity
-	if (UPCGPointData* PointData = Cast<UPCGPointData>(InData))
+
+	FSpatialTransformResult::FSpatialTransformResult(const TSharedPtr<PCGExMT::FTask>& InTask)
+		: Result(ETransformResult::Success), Task(InTask)
 	{
-		return TransformPointData(PointData, InTransform);
 	}
 
-	if (UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData))
+	class FTransformTask : public PCGExMT::FTask
 	{
-		return TransformSplineData(SplineData, InTransform);
-	}
+	public:
+		PCGEX_ASYNC_TASK_NAME(FTransformTask)
 
-	if (UPCGPolyLineData* PolyLineData = Cast<UPCGPolyLineData>(InData))
+		FTransformTask(const FTransform& InTransform)
+			: FTask(), Transform(InTransform)
+		{
+		}
+
+		const FTransform& Transform;
+	};
+
+	class FTransformPoints final : public FTransformTask
 	{
-		return TransformPolyLineData(PolyLineData, InTransform);
-	}
+	public:
+		PCGEX_ASYNC_TASK_NAME(FTransformPoints)
 
-	if (UPCGPrimitiveData* PrimitiveData = Cast<UPCGPrimitiveData>(InData))
+		FTransformPoints(const FTransform& InTransform, UPCGBasePointData* InData)
+			: FTransformTask(InTransform), Data(InData)
+		{
+		}
+
+		UPCGBasePointData* Data = nullptr;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
+		{
+			TPCGValueRange<FTransform> OutTransforms = Data->GetTransformValueRange();
+			for (FTransform& OutTr : OutTransforms) { OutTr = OutTr * Transform; }
+		}
+	};
+
+	class FTransformSpline final : public FTransformTask
 	{
-		return TransformPrimitiveData(PrimitiveData, InTransform);
-	}
+	public:
+		PCGEX_ASYNC_TASK_NAME(FTransformSpline)
 
-	if (UPCGSurfaceData* SurfaceData = Cast<UPCGSurfaceData>(InData))
+		FTransformSpline(const FTransform& InTransform, UPCGSplineData* InData)
+			: FTransformTask(InTransform), Data(InData)
+		{
+		}
+
+		UPCGSplineData* Data = nullptr;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
+		{
+			// Copy keys
+			TArray<FInterpCurvePoint<FVector>>& Scales = const_cast<FInterpCurveVector&>(Data->SplineStruct.GetSplinePointsScale()).Points;
+			TArray<FInterpCurvePoint<FQuat>>& Rotations = const_cast<FInterpCurveQuat&>(Data->SplineStruct.GetSplinePointsRotation()).Points;
+			TArray<FInterpCurvePoint<FVector>>& Positions = const_cast<FInterpCurveVector&>(Data->SplineStruct.GetSplinePointsPosition()).Points;
+
+			FVector OutScale = Transform.GetScale3D();
+			for (FInterpCurvePoint<FVector>& Scale : Scales)
+			{
+				Scale.ArriveTangent = Transform.TransformVector(Scale.ArriveTangent);
+				Scale.LeaveTangent = Transform.TransformVector(Scale.LeaveTangent);
+				Scale.OutVal *= OutScale;
+			}
+
+			for (FInterpCurvePoint<FQuat>& Rotation : Rotations)
+			{
+				Rotation.ArriveTangent = Transform.TransformRotation(Rotation.ArriveTangent);
+				Rotation.LeaveTangent = Transform.TransformRotation(Rotation.LeaveTangent);
+				Rotation.OutVal = Transform.TransformRotation(Rotation.OutVal);
+			}
+
+			for (FInterpCurvePoint<FVector>& Position : Positions)
+			{
+				Position.ArriveTangent = Transform.TransformVector(Position.ArriveTangent);
+				Position.LeaveTangent = Transform.TransformVector(Position.LeaveTangent);
+				Position.OutVal = Transform.TransformPosition(Position.OutVal);
+			}
+		}
+	};
+
+	class FTransformPolyline final : public FTransformTask
 	{
-		return TransformSurfaceData(SurfaceData, InTransform);
-	}
+	public:
+		PCGEX_ASYNC_TASK_NAME(FTransformPolyline)
 
-	if (UPCGVolumeData* VolumeData = Cast<UPCGVolumeData>(InData))
+		FTransformPolyline(const FTransform& InTransform, UPCGPolyLineData* InData)
+			: FTransformTask(InTransform), Data(InData)
+		{
+		}
+
+		UPCGPolyLineData* Data = nullptr;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
+		{
+		}
+	};
+
+	class FTransformVolume final : public FTransformTask
 	{
-		return TransformVolumeData(VolumeData, InTransform);
-	}
+	public:
+		PCGEX_ASYNC_TASK_NAME(FTransformVolume)
 
-	if (UPCGLandscapeData* LandscapeData = Cast<UPCGLandscapeData>(InData))
+		FTransformVolume(const FTransform& InTransform, UPCGVolumeData* InData)
+			: FTransformTask(InTransform), Data(InData)
+		{
+		}
+
+		UPCGVolumeData* Data = nullptr;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) override
+		{
+			Data->Initialize(Data->GetStrictBounds().TransformBy(Transform));
+		}
+	};
+
+	FSpatialTransformResult PrepareTransformTask(UPCGSpatialData* InData, const FTransform& InTransform)
 	{
-		return TransformLandscapeData(LandscapeData, InTransform);
-	}
+		if (!InData) { return FSpatialTransformResult(); }
 
-	return EPCGExSpatialTransformResult::Unsupported;
+		// Try each type in order of specificity
+		if (UPCGPointData* PointData = Cast<UPCGPointData>(InData))
+		{
+			return FSpatialTransformResult(MakeShared<FTransformPoints>(InTransform, PointData));
+		}
+
+		if (UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData))
+		{
+			return FSpatialTransformResult(MakeShared<FTransformSpline>(InTransform, SplineData));
+		}
+
+		if (UPCGPolyLineData* PolyLineData = Cast<UPCGPolyLineData>(InData))
+		{
+			return FSpatialTransformResult(MakeShared<FTransformPolyline>(InTransform, PolyLineData));
+		}
+
+		if (UPCGPrimitiveData* PrimitiveData = Cast<UPCGPrimitiveData>(InData))
+		{
+			return FSpatialTransformResult(ETransformResult::Unsupported);
+		}
+
+		if (UPCGSurfaceData* SurfaceData = Cast<UPCGSurfaceData>(InData))
+		{
+			return FSpatialTransformResult(ETransformResult::Unsupported);
+		}
+
+		if (UPCGVolumeData* VolumeData = Cast<UPCGVolumeData>(InData))
+		{
+			return FSpatialTransformResult(MakeShared<FTransformVolume>(InTransform, VolumeData));
+		}
+
+		if (UPCGLandscapeData* LandscapeData = Cast<UPCGLandscapeData>(InData))
+		{
+			return FSpatialTransformResult(ETransformResult::Unsupported);
+		}
+
+		return FSpatialTransformResult(ETransformResult::Unsupported);
+	}
 }
-
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::TransformPointData(UPCGBasePointData* InData, const FTransform& InTransform) const
-{
-	if (!InData)
-	{
-		return EPCGExSpatialTransformResult::Failed;
-	}
-
-	// TODO : Transform points
-
-	/*
-	TArray<FPCGPoint>& Points = InData->GetMutablePoints();
-
-	for (FPCGPoint& Point : Points)
-	{
-		// Compose point transform with target transform
-		FTransform PointTransform = Point.Transform;
-		Point.Transform = PointTransform * InTransform;
-	}
-	*/
-
-	return EPCGExSpatialTransformResult::Success;
-}
-
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::TransformSplineData(UPCGSplineData* InData, const FTransform& InTransform) const
-{
-	if (!InData)
-	{
-		return EPCGExSpatialTransformResult::Failed;
-	}
-
-	// TODO: UPCGSplineData stores spline in local space relative to its Transform
-	// We compose the existing transform with the target transform
-	// FTransform CurrentTransform = InData->GetTransform();
-	// InData->ApplyTransform(CurrentTransform * InTransform);
-
-	return EPCGExSpatialTransformResult::Success;
-}
-
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::TransformPolyLineData(UPCGPolyLineData* InData, const FTransform& InTransform) const
-{
-	if (!InData)
-	{
-		return EPCGExSpatialTransformResult::Failed;
-	}
-
-	// TODO: Similar to spline - compose transforms
-	// FTransform CurrentTransform = InData->GetTransform();
-	// InData->ApplyTransform(CurrentTransform * InTransform);
-
-	return EPCGExSpatialTransformResult::Success;
-}
-
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::TransformPrimitiveData(UPCGPrimitiveData* InData, const FTransform& InTransform) const
-{
-	// Placeholder - primitive data references components
-	return EPCGExSpatialTransformResult::Unsupported;
-}
-
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::TransformSurfaceData(UPCGSurfaceData* InData, const FTransform& InTransform) const
-{
-	// Placeholder - surface data references actors
-	return EPCGExSpatialTransformResult::Unsupported;
-}
-
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::TransformVolumeData(UPCGVolumeData* InData, const FTransform& InTransform) const
-{
-	// Placeholder - volume data references actors
-	return EPCGExSpatialTransformResult::Unsupported;
-}
-
-EPCGExSpatialTransformResult FPCGExSpatialDataTransformer::TransformLandscapeData(UPCGLandscapeData* InData, const FTransform& InTransform) const
-{
-	// Landscape data cannot be transformed - it's tied to world landscape
-	return EPCGExSpatialTransformResult::Unsupported;
-}
-
 #pragma endregion
 
 #pragma region FPCGExPCGDataAssetLoaderContext
@@ -360,9 +404,6 @@ bool FPCGExPCGDataAssetLoaderElement::Boot(FPCGExContext* InContext) const
 	// Setup shared asset pool
 	Context->SharedAssetPool = MakeShared<FPCGExSharedAssetPool>();
 
-	// Setup spatial transformer
-	Context->SpatialTransformer = MakeShared<FPCGExSpatialDataTransformer>();
-
 	// Build custom pin name set for fast lookup
 	for (const FPCGPinProperties& CustomPin : Settings->CustomOutputPins)
 	{
@@ -437,12 +478,6 @@ namespace PCGExPCGDataAssetLoader
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::NoInit)
-
-		TransformDetails = Settings->TransformDetails;
-		if (!TransformDetails.Init(Context, PointDataFacade))
-		{
-			return false;
-		}
 
 		// Get hash attribute
 		EntryHashGetter = PointDataFacade->GetReadable<int64>(PCGExCollections::Labels::Tag_EntryIdx, PCGExData::EIOSide::In, true);
@@ -532,10 +567,10 @@ namespace PCGExPCGDataAssetLoader
 		return true;
 	}
 
-	void FProcessor::ProcessTaggedData(int32 PointIndex, const FTransform& TargetTransform, const FPCGTaggedData& InTaggedData, FClusterIdRemapper& ClusterRemapper)
+	FSpatialTransformResult FProcessor::ProcessTaggedData(int32 PointIndex, const FTransform& TargetTransform, const FPCGTaggedData& InTaggedData, FClusterIdRemapper& ClusterRemapper)
 	{
 		UPCGData* Data = const_cast<UPCGData*>(InTaggedData.Data.Get());
-		if (!Data) { return; }
+		if (!Data) { return FSpatialTransformResult(); }
 
 		// Check if this is spatial data
 		UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Data);
@@ -544,7 +579,7 @@ namespace PCGExPCGDataAssetLoader
 		{
 			// Non-spatial data: register once per unique asset (not per point)
 			Context->RegisterNonSpatialData(InTaggedData);
-			return;
+			return FSpatialTransformResult();
 		}
 
 		// Spatial data: duplicate and transform for this point
@@ -554,32 +589,26 @@ namespace PCGExPCGDataAssetLoader
 		{
 			if (!Settings->bQuietUnsupportedTypeWarnings)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext,
-				           FText::Format(FTEXT("Failed to duplicate spatial data of type {0}"),
-					           FText::FromString(Data->GetClass()->GetName())));
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Failed to duplicate spatial data of type {0}"), FText::FromString(Data->GetClass()->GetName())));
 			}
-			return;
+			return FSpatialTransformResult();
 		}
 
 		// Apply transform
-		EPCGExSpatialTransformResult TransformResult = Context->SpatialTransformer->Transform(DuplicatedData, TargetTransform);
+		FSpatialTransformResult TransformResult = PrepareTransformTask(DuplicatedData, TargetTransform);
 
-		if (TransformResult == EPCGExSpatialTransformResult::Unsupported)
+		if (TransformResult.Result == ETransformResult::Unsupported)
 		{
 			if (!Settings->bQuietUnsupportedTypeWarnings)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext,
-				           FText::Format(FTEXT("Spatial data type {0} does not support transformation. Data will be output untransformed."),
-					           FText::FromString(Data->GetClass()->GetName())));
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Spatial data type {0} does not support transformation. Data will be output untransformed."), FText::FromString(Data->GetClass()->GetName())));
 			}
 		}
-		else if (TransformResult == EPCGExSpatialTransformResult::Failed)
+		else if (TransformResult.Result == ETransformResult::Failed)
 		{
 			if (!Settings->bQuietUnsupportedTypeWarnings)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext,
-				           FText::Format(FTEXT("Failed to transform spatial data of type {0}"),
-					           FText::FromString(Data->GetClass()->GetName())));
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Failed to transform spatial data of type {0}"), FText::FromString(Data->GetClass()->GetName())));
 			}
 		}
 
@@ -609,6 +638,7 @@ namespace PCGExPCGDataAssetLoader
 
 		// Register output (Pin: tag added only for default "Out" pin)
 		Context->RegisterOutput(OutputData, true);
+		return TransformResult;
 	}
 
 	void FProcessor::RemapClusterTags(TSet<FString>& Tags, FClusterIdRemapper& ClusterRemapper) const
@@ -643,12 +673,14 @@ namespace PCGExPCGDataAssetLoader
 
 	void FProcessor::CompleteWork()
 	{
-		// Called after assets have been loaded by FBatch
 		// Process each point using the shared asset pool
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 		const int32 NumPoints = PointDataFacade->GetNum();
+
+		TArray<TSharedPtr<PCGExMT::FTask>> Tasks;
+		Tasks.Reserve(NumPoints);
 
 		for (int32 Index = 0; Index < NumPoints; Index++)
 		{
@@ -674,8 +706,15 @@ namespace PCGExPCGDataAssetLoader
 				if (!PassesTagFilter(TaggedData)) { continue; }
 
 				// Process the data (cluster remapper ensures paired data gets consistent new IDs)
-				ProcessTaggedData(Index, TargetTransform, TaggedData, ClusterRemapper);
+				FSpatialTransformResult Result = ProcessTaggedData(Index, TargetTransform, TaggedData, ClusterRemapper);
+				if (Result.Task) { Tasks.Add(Result.Task); }
 			}
+		}
+
+		if (!Tasks.IsEmpty())
+		{
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, TransformTasks)
+			TransformTasks->StartTasksBatch(Tasks);
 		}
 	}
 

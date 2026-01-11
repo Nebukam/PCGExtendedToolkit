@@ -38,6 +38,7 @@ public class PCGExElementsTopology : ModuleRules
 				"PCGExFilters",
 				"PCGExFoundations",
 				"PCGExGraphs",
+				"PCGExElementsClipper2",
 			}
 		);
 
