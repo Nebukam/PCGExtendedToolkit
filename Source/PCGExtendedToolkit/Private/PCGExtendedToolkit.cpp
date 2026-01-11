@@ -19,6 +19,10 @@ void FPCGExtendedToolkitModule::StartupModule()
 	
 	FModuleManager::Get().LoadModuleChecked<IModuleInterface>("PCG");
 	
+	// Load default asset labels
+    FSoftObjectPath LabelPath(TEXT("/PCGExtendedToolkit/PL_PCGExDefaultAssets.PL_PCGExDefaultAssets"));
+    if (UObject* Label = LabelPath.TryLoad(); !Label) { UE_LOG(LogTemp, Error, TEXT("Failed to load PCGEx primary asset label")); }
+    	
 	const TMap<FString, TArray<FString>>& Dependencies = PCGExSubModules::GetModuleDependencies();
 	TSet<FString> Loaded;
 
