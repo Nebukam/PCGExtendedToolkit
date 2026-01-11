@@ -14,6 +14,12 @@
 
 #include "PCGExPCGDataAssetLoader.generated.h"
 
+class UPCGLandscapeData;
+class UPCGVolumeData;
+class UPCGSurfaceData;
+class UPCGPrimitiveData;
+class UPCGPolyLineData;
+class UPCGSplineData;
 class UPCGDataAsset;
 class UPCGExPCGDataAssetCollection;
 struct FPCGExPCGDataAssetCollectionEntry;
@@ -21,13 +27,25 @@ struct FPCGExPCGDataAssetCollectionEntry;
 namespace PCGExPCGDataAssetLoader
 {
 	class FProcessor;
+	class FBatch;
 }
+
+/**
+ * Result of attempting to transform spatial data
+ */
+UENUM()
+enum class EPCGExSpatialTransformResult : uint8
+{
+	Success     = 0 UMETA(DisplayName = "Success", ToolTip = "Transform applied successfully"),
+	Unsupported = 1 UMETA(DisplayName = "Unsupported", ToolTip = "Data type does not support transformation"),
+	Failed      = 2 UMETA(DisplayName = "Failed", ToolTip = "Transform failed"),
+};
 
 /**
  * Spawns PCGDataAsset contents onto staged points.
  * Works with data staged by the Asset Staging node using Collection Map output.
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "spawn pcgdata asset staged", PCGExNodeLibraryDoc="assets-management/pcgdataasset-spawner"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "spawn pcgdata asset staged", PCGExNodeLibraryDoc="assets-management/pcgdataasset-loader"))
 class UPCGExPCGDataAssetLoaderSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -35,7 +53,7 @@ class UPCGExPCGDataAssetLoaderSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PCGDataAssetLoader, "PCGDataAsset Loader", "Spawns PCGDataAsset contents from staged points.");
+	PCGEX_NODE_INFOS(PCGDataAssetLoader, "PCGDataAsset Loader", "Loads and spawns PCGDataAsset contents from staged points.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
@@ -49,7 +67,15 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** Target inherit behavior */
+	/**
+	 * Custom output pins for routing data by pin name.
+	 * Data from the PCGDataAsset will be routed to matching pins by exact name.
+	 * Data that doesn't match any custom pin goes to the default "Out" pin.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output Pins", meta = (TitleProperty = "Label"))
+	TArray<FPCGPinProperties> CustomOutputPins;
+
+	/** Target inherit behavior for point data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(true, true);
 
@@ -65,7 +91,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable, EditCondition="bFilterByTags"))
 	TSet<FString> ExcludeTags;
 
-	/** Which target attributes to forward on spawned data. */
+	/** Which target attributes to forward on spawned point data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta = (PCG_Overridable))
 	FPCGExForwardDetails TargetsForwarding;
 
@@ -73,91 +99,141 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta = (PCG_Overridable))
 	bool bForwardInputTags = true;
 
+	/** Quiet warnings about unsupported spatial data types that cannot be transformed */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta = (PCG_Overridable))
+	bool bQuietUnsupportedTypeWarnings = false;
+
 	/** Quiet warnings about missing or invalid entries */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta = (PCG_Overridable))
 	bool bQuietInvalidEntryWarnings = false;
 };
 
 /**
- * Helper to track PCGDataAsset entries per point and handle async loading.
- * Similar pattern to FSocketHelper - collects during parallel, processes after.
+ * Shared asset pool for loading PCGDataAssets once across all processors.
+ * Uses entry hash (unique to collection/entry pair) as key.
+ * Thread-safe registration during parallel processing, single consolidated load after.
  */
-class PCGEXCOLLECTIONS_API FPCGExPCGDataAssetHelper : public TSharedFromThis<FPCGExPCGDataAssetHelper>
+class PCGEXCOLLECTIONS_API FPCGExSharedAssetPool : public TSharedFromThis<FPCGExSharedAssetPool>
 {
 protected:
-	mutable FRWLock EntriesLock;
+	mutable FRWLock PoolLock;
 
-	// Per-point entry mapping (index = point index, value = entry pointer)
-	TArray<const FPCGExPCGDataAssetCollectionEntry*> PointEntries;
+	// Entry hash -> Entry pointer mapping (built during parallel phase)
+	TMap<uint64, const FPCGExPCGDataAssetCollectionEntry*> EntryMap;
 
-	// Unique entries that need loading (entry pointer -> collected paths)
-	TMap<const FPCGExPCGDataAssetCollectionEntry*, FSoftObjectPath> UniqueEntries;
-
-	// Loaded data assets (entry pointer -> loaded asset data)
+	// Entry pointer -> Loaded asset (populated after load)
 	TMap<const FPCGExPCGDataAssetCollectionEntry*, TObjectPtr<UPCGDataAsset>> LoadedAssets;
 
-	// Streamable handle for async loading
+	// Streamable handle
 	TSharedPtr<FStreamableHandle> LoadHandle;
 
 public:
 	using FOnLoadEnd = std::function<void(const bool bSuccess)>;
 
-	explicit FPCGExPCGDataAssetHelper(int32 NumPoints);
-	~FPCGExPCGDataAssetHelper();
+	FPCGExSharedAssetPool() = default;
+	~FPCGExSharedAssetPool();
 
 	/**
-	 * Thread-safe: Register an entry for a point index.
-	 * Called during parallel ProcessPoints.
+	 * Thread-safe: Register an entry by its hash.
+	 * Called during parallel ProcessPoints from any processor.
 	 */
-	void Add(int32 PointIndex, const FPCGExPCGDataAssetCollectionEntry* Entry);
+	void RegisterEntry(uint64 EntryHash, const FPCGExPCGDataAssetCollectionEntry* Entry);
 
 	/**
-	 * Load all unique PCGDataAssets. Call after parallel processing completes.
-	 * Blocks until loading is complete.
+	 * Load all registered unique assets. Call once after all processors complete initial processing.
 	 */
-	void LoadAssets(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FOnLoadEnd&& OnLoadEnd);
+	void LoadAllAssets(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, FOnLoadEnd&& OnLoadEnd);
 
 	/**
-	 * Get loaded data asset for a point index.
-	 * Call after LoadAssets() has completed.
+	 * Get loaded asset by entry hash.
+	 * Call after LoadAllAssets() has completed.
 	 */
-	UPCGDataAsset* GetAssetForPoint(int32 PointIndex) const;
+	UPCGDataAsset* GetAsset(uint64 EntryHash) const;
 
 	/**
-	 * Get the entry for a point index.
+	 * Get loaded asset by entry pointer.
 	 */
-	const FPCGExPCGDataAssetCollectionEntry* GetEntryForPoint(int32 PointIndex) const;
+	UPCGDataAsset* GetAsset(const FPCGExPCGDataAssetCollectionEntry* Entry) const;
 
 	/**
-	 * Check if a point has a valid entry.
+	 * Check if pool has any registered entries.
 	 */
-	bool HasValidEntry(int32 PointIndex) const;
+	bool HasEntries() const;
 
 	/**
-	 * Get all unique loaded assets.
+	 * Get number of unique entries.
 	 */
-	void GetUniqueAssets(TArray<TPair<const FPCGExPCGDataAssetCollectionEntry*, UPCGDataAsset*>>& OutAssets) const;
+	int32 GetNumEntries() const;
+};
+
+/**
+ * Handles type-specific spatial data transformation.
+ * Designed with virtual methods for future extension.
+ */
+class PCGEXCOLLECTIONS_API FPCGExSpatialDataTransformer
+{
+public:
+	virtual ~FPCGExSpatialDataTransformer() = default;
+
+	/**
+	 * Transform spatial data by the given transform.
+	 * Returns the transform result status.
+	 */
+	virtual EPCGExSpatialTransformResult Transform(UPCGSpatialData* InData, const FTransform& InTransform) const;
+
+protected:
+	/** Transform point data - applies transform to each point */
+	virtual EPCGExSpatialTransformResult TransformPointData(UPCGBasePointData* InData, const FTransform& InTransform) const;
+
+	/** Transform spline data - composes with spline's root transform */
+	virtual EPCGExSpatialTransformResult TransformSplineData(UPCGSplineData* InData, const FTransform& InTransform) const;
+
+	/** Transform polyline data - composes with polyline's root transform */
+	virtual EPCGExSpatialTransformResult TransformPolyLineData(UPCGPolyLineData* InData, const FTransform& InTransform) const;
+
+	/** Transform primitive data - placeholder for future implementation */
+	virtual EPCGExSpatialTransformResult TransformPrimitiveData(UPCGPrimitiveData* InData, const FTransform& InTransform) const;
+
+	/** Transform surface data - placeholder for future implementation */
+	virtual EPCGExSpatialTransformResult TransformSurfaceData(UPCGSurfaceData* InData, const FTransform& InTransform) const;
+
+	/** Transform volume data - placeholder for future implementation */
+	virtual EPCGExSpatialTransformResult TransformVolumeData(UPCGVolumeData* InData, const FTransform& InTransform) const;
+
+	/** Transform landscape data - not supported */
+	virtual EPCGExSpatialTransformResult TransformLandscapeData(UPCGLandscapeData* InData, const FTransform& InTransform) const;
 };
 
 struct FPCGExPCGDataAssetLoaderContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPCGDataAssetLoaderElement;
 	friend class PCGExPCGDataAssetLoader::FProcessor;
+	friend class PCGExPCGDataAssetLoader::FBatch;
 
 	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionUnpacker;
 
-	// Base instances - one per unique PCGDataAsset
-	TSharedPtr<PCGExData::FPointIOCollection> BaseDataCollection;
+	// Shared asset pool - all processors register entries here, single load
+	TSharedPtr<FPCGExSharedAssetPool> SharedAssetPool;
 
-	// Spawned data collection
-	TSharedPtr<PCGExData::FPointIOCollection> SpawnedCollection;
+	// Transformer for spatial data
+	TSharedPtr<FPCGExSpatialDataTransformer> SpatialTransformer;
 
-	// Roaming data is non-spatial data
-	mutable FRWLock RoamingDataLock;
-	TSet<int32> UniqueRoamingData;
-	TArray<FPCGTaggedData> RoamingData;
+	// Custom output pin names for routing
+	TSet<FName> CustomPinNames;
 
-	void RegisterRoamingData(const FPCGTaggedData& InTaggedData);
+	// Output data organized by pin
+	TMap<FName, TArray<FPCGTaggedData>> OutputByPin;
+	mutable FRWLock OutputLock;
+
+	// Non-spatial data (forwarded once per unique asset, not duplicated)
+	TSet<uint32> UniqueNonSpatialUIDs;
+	mutable FRWLock NonSpatialLock;
+
+	/** Register output data to appropriate pin */
+	void RegisterOutput(const FPCGTaggedData& InTaggedData, bool bAddPinTag);
+
+	/** Register non-spatial data (once per unique asset) */
+	void RegisterNonSpatialData(const FPCGTaggedData& InTaggedData);
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -175,19 +251,51 @@ protected:
 namespace PCGExPCGDataAssetLoader
 {
 	const FName SourceStagingMap = TEXT("Map");
+	const FName OutputPinDefault = TEXT("Out");
+
+	/** Tracks cluster ID remapping for a single point's spawned data */
+	struct FClusterIdRemapper
+	{
+		// Original cluster ID -> New cluster ID
+		TMap<int32, int32> IdMap;
+
+		// Counter for generating new IDs
+		int32& SharedIdCounter;
+
+		explicit FClusterIdRemapper(int32& InSharedCounter)
+			: SharedIdCounter(InSharedCounter)
+		{
+		}
+
+		/** Get or create a new ID for the given original ID */
+		int32 GetRemappedId(int32 OriginalId)
+		{
+			if (int32* Found = IdMap.Find(OriginalId))
+			{
+				return *Found;
+			}
+
+			int32 NewId = ++SharedIdCounter;
+			IdMap.Add(OriginalId, NewId);
+			return NewId;
+		}
+	};
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPCGDataAssetLoaderContext, UPCGExPCGDataAssetLoaderSettings>
 	{
 	protected:
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashGetter;
 
-		// Helper for tracking entries and loading
-		TSharedPtr<FPCGExPCGDataAssetHelper> AssetHelper;
+		// Per-point entry hash (0 for invalid/filtered points)
+		TArray<uint64> PointEntryHashes;
 
 		// Forward handler (created after facade is available)
 		TSharedPtr<PCGExData::FDataForwardHandler> ForwardHandler;
 
 		FPCGExTransformDetails TransformDetails;
+
+		// Shared counter for generating unique cluster IDs across all points
+		int32 ClusterIdCounter = 0;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
@@ -195,13 +303,34 @@ namespace PCGExPCGDataAssetLoader
 		{
 		}
 
-		virtual ~FProcessor() override
-		{
-		}
+		virtual ~FProcessor() override = default;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		virtual void OnPointsProcessingComplete() override;
-		void OnAssetLoadComplete(const bool bSuccess);
+		virtual void CompleteWork() override;
+
+	protected:
+		/** Check if tagged data passes tag filters */
+		bool PassesTagFilter(const FPCGTaggedData& InTaggedData) const;
+
+		/** Process a single tagged data item for a point */
+		void ProcessTaggedData(int32 PointIndex, const FTransform& TargetTransform, const FPCGTaggedData& InTaggedData, FClusterIdRemapper& ClusterRemapper);
+
+		/** Check if data has PCGEx cluster tags and remap them */
+		void RemapClusterTags(TSet<FString>& Tags, FClusterIdRemapper& ClusterRemapper) const;
+	};
+
+	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
+	{
+		TWeakPtr<PCGExMT::FAsyncToken> LoadingToken;
+
+	public:
+		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+			: TBatch(InContext, InPointsCollection)
+		{
+		}
+
+		virtual void CompleteWork() override;
+		void OnLoadAssetsComplete(const bool bSuccess);
 	};
 }
