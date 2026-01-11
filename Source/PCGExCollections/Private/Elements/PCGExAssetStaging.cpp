@@ -18,6 +18,14 @@
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
 
+#if WITH_EDITOR
+void UPCGExAssetStagingSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	EntryTypeFilter.PostEditChangeProperty(PropertyChangedEvent);
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
+
 PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(AssetStaging)
@@ -60,6 +68,11 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	{
 		PCGEX_VALIDATE_NAME(Settings->MaterialAttributePrefix)
 		Context->bPickMaterials = true;
+	}
+
+	if (Settings->bWriteEntryType)
+	{
+		PCGEX_VALIDATE_NAME(Settings->EntryTypeAttributeName)
 	}
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
@@ -301,6 +314,11 @@ namespace PCGExAssetStaging
 			NormalizedWeightWriter = PointDataFacade->GetWritable<double>(Settings->WeightAttributeName, PCGExData::EBufferInit::New);
 		}
 
+		if (Settings->bWriteEntryType)
+		{
+			EntryTypeWriter = PointDataFacade->GetWritable<FName>(Settings->EntryTypeAttributeName, NAME_None, true, PCGExData::EBufferInit::Inherit);
+		}
+
 		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
 		{
 			bInherit = PointDataFacade->GetIn()->Metadata->HasAttribute(Settings->AssetPathAttributeName);
@@ -383,6 +401,9 @@ namespace PCGExAssetStaging
 		int32 LocalHighestSlotIndex = 0;
 		FRandomStream RandomSource;
 
+		const bool bFilterEntryType = Settings->bDoFilterEntryType;
+		const FPCGExStagedTypeFilterDetails& EntryTypeFilter = Settings->EntryTypeFilter;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCollections::FDistributionHelper* Helper = nullptr;
@@ -398,7 +419,9 @@ namespace PCGExAssetStaging
 
 			FPCGExEntryAccessResult Result = Helper->GetEntry(Index, Seed);
 
-			if (!Result.IsValid() || !Result.Entry->Staging.Bounds.IsValid)
+			if (!Result.IsValid()
+				|| !Result.Entry->Staging.Bounds.IsValid
+				|| (bFilterEntryType && !EntryTypeFilter.Matches(Result.Host->GetTypeId())))
 			{
 				InvalidPoint(Index);
 				continue;
@@ -470,6 +493,11 @@ namespace PCGExAssetStaging
 				// Register entry
 				uint64 EntryHash = PCGEx::H64(EntryHost->GetUniqueID(), Staging.InternalIndex);
 				SocketHelper->Add(Index, EntryHash, Entry);
+			}
+
+			if (EntryTypeWriter)
+			{
+				EntryTypeWriter->SetValue(Index, Result.Host->GetTypeId());
 			}
 		}
 

@@ -74,6 +74,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual void InputPinPropertiesBeforeFilters(TArray<FPCGPinProperties>& PinProperties) const;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override { return false; }
 	//~End UPCGSettings
