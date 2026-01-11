@@ -3,7 +3,7 @@
 
 #include "PCGExtendedToolkit.h"
 #include "PCGExVersion.h"
-#include "Generated/PCGExSubModules.generated.h"
+#include "PCGExSubModules.generated.h"
 
 #if WITH_EDITOR
 #include "PCGExCoreSettingsCache.h"
