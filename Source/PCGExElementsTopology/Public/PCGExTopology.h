@@ -93,6 +93,13 @@ struct PCGEXELEMENTSTOPOLOGY_API FPCGExTopologyUVDetails
 	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 	void Write(const TArray<int32>& TriangleIDs, UE::Geometry::FDynamicMesh3& InMesh) const;
 	void Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, UE::Geometry::FDynamicMesh3& InMesh) const;
+	void Write(
+	const TArray<int32>& TriangleIDs,
+	const TArray<int32>& VertexIDs,
+	const TArray<int32>& SourceDataIndices,  // Per-vertex: which facade
+	const TArray<int32>& SourcePointIndices, // Per-vertex: which point in that facade
+	const TArray<TSharedPtr<PCGExData::FFacade>>& Facades,
+	UE::Geometry::FDynamicMesh3& InMesh) const;
 };
 
 USTRUCT(BlueprintType)
@@ -139,9 +146,12 @@ struct PCGEXELEMENTSTOPOLOGY_API FPCGExTopologyDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bComputeNormals = true;
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, EditCondition="bComputeNormals"))
 	FGeometryScriptCalculateNormalsOptions NormalsOptions;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable))
+	bool bFlipNormals = false;
 
 	/** Dynamic mesh component data. Only used by legacy output mode that spawned the component, prior to vanilla PCG interop.
 	 * This will be completely ignored in most usecases. */

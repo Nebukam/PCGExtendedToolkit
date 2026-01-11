@@ -13,6 +13,7 @@
 #include "Details/Collections/PCGExFittingVariationsCustomization.h"
 #include "Details/Collections/PCGExMaterialPicksCustomization.h"
 #include "Details/Collections/PCGExMeshCollectionActions.h"
+#include "Details/Collections/PCGExPCGDataAssetCollectionActions.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExCollectionsEditorModule"
 
@@ -21,19 +22,23 @@
 void FPCGExCollectionsEditorModule::StartupModule()
 {
 	IPCGExEditorModuleInterface::StartupModule();
-
-	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExMeshCollectionActions>());
-	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorCollectionActions>());
-
+	
 	PCGEX_REGISTER_CUSTO_START
 
 	PCGEX_REGISTER_CUSTO("PCGExFittingVariations", FPCGExFittingVariationsCustomization)
 	PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideEntry", FPCGExMaterialOverrideEntryCustomization)
 	PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideSingleEntry", FPCGExMaterialOverrideSingleEntryCustomization)
 	PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideCollection", FPCGExMaterialOverrideCollectionCustomization)
-	PCGEX_REGISTER_CUSTO("PCGExMeshCollectionEntry", FPCGExMeshEntryCustomization)
-	PCGEX_REGISTER_CUSTO("PCGExActorCollectionEntry", FPCGExActorEntryCustomization)
 	PCGEX_REGISTER_CUSTO("PCGExAssetGrammarDetails", FPCGExAssetGrammarCustomization)
+	
+#define PCGEX_REGISTER_ENTRY_CUSTOMIZATION(_CLASS, _NAME)\
+	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGEx##_CLASS##CollectionActions>());\
+	PCGEX_REGISTER_CUSTO("PCGEx"#_CLASS"CollectionEntry", FPCGEx##_CLASS##EntryCustomization)
+	
+PCGEX_FOREACH_ENTRY_TYPE(PCGEX_REGISTER_ENTRY_CUSTOMIZATION)
+	
+#undef PCGEX_REGISTER_ENTRY_CUSTOMIZATION
+	
 }
 
 void FPCGExCollectionsEditorModule::RegisterMenuExtensions()

@@ -86,19 +86,19 @@ bool FPCGExMatchTagToAttr::Test(const PCGExData::FConstPoint& InTargetElement, c
 
 	if (!Config.bDoValueMatch)
 	{
-		return PCGExCompare::HasMatchingTags(InCandidate.GetTags(), TestTagName, Config.NameMatch);
+		return PCGExCompare::HasMatchingTags(InCandidate.GetTags(), TestTagName, Config.NameMatch) ? !Config.bInvert : Config.bInvert;
 	}
 
 
 	TArray<TSharedPtr<PCGExData::IDataValue>> TagValues;
-	if (!PCGExCompare::GetMatchingValueTags(InCandidate.GetTags(), TestTagName, Config.NameMatch, TagValues)) { return false; }
+	if (!PCGExCompare::GetMatchingValueTags(InCandidate.GetTags(), TestTagName, Config.NameMatch, TagValues)) { return Config.bInvert; }
 
 	if (Config.ValueType == EPCGExComparisonDataType::Numeric)
 	{
 		const double OperandBNumeric = NumGetters[InTargetElement.IO]->FetchSingle(InTargetElement, 0);
 		for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 		{
-			if (!PCGExCompare::Compare(Config.NumericComparison, TagValue, OperandBNumeric, Config.Tolerance)) { return false; }
+			if (!PCGExCompare::Compare(Config.NumericComparison, TagValue, OperandBNumeric, Config.Tolerance)) { return Config.bInvert; }
 		}
 	}
 	else
@@ -106,11 +106,11 @@ bool FPCGExMatchTagToAttr::Test(const PCGExData::FConstPoint& InTargetElement, c
 		const FString OperandBString = StrGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
 		for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 		{
-			if (!PCGExCompare::Compare(Config.StringComparison, TagValue, OperandBString)) { return false; }
+			if (!PCGExCompare::Compare(Config.StringComparison, TagValue, OperandBString)) { return Config.bInvert; }
 		}
 	}
 
-	return true;
+	return !Config.bInvert;
 }
 
 bool UPCGExMatchTagToAttrFactory::WantsPoints()

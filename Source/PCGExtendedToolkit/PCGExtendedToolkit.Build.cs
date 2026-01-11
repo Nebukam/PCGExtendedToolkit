@@ -56,6 +56,8 @@ public class PCGExtendedToolkit : ModuleRules
 
 		ValidateConfiguration(declaredModules);
 		GenerateSubModulesHeader();
+		
+		PublicIncludePaths.AddRange(new string[] { Path.Combine(ModuleDirectory, "../../Intermediate/Generated") });
 	}
 
 	private Dictionary<string, List<string>> LoadPluginsDeps(string filePath)
@@ -236,7 +238,7 @@ public class PCGExtendedToolkit : ModuleRules
 
 	private void GenerateSubModulesHeader()
 	{
-		string headerPath = Path.Combine(ModuleDirectory, "Private", "Generated", "PCGExSubModules.generated.h");
+		string headerPath = Path.Combine(ModuleDirectory, "..", "..", "Intermediate", "Generated", "PCGExSubModules.generated.h");
 		Directory.CreateDirectory(Path.GetDirectoryName(headerPath)!);
 
 		var modules = _moduleDependencies.Keys.OrderBy(m => m).ToList();

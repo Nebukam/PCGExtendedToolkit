@@ -278,7 +278,7 @@ namespace PCGExCollections
 		const int32 NumEntries = Keys->GetNum();
 		if (NumEntries == 0)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute set is empty."));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Collection map is empty."));
 			return false;
 		}
 

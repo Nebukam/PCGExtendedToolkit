@@ -9,6 +9,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExRoamingAssetCollectionDetails.h"
 #include "Details/PCGExSocketOutputDetails.h"
+#include "Details/PCGExStagedTypeFilterDetails.h"
 #include "Details/PCGExStagingDetails.h"
 #include "Fitting/PCGExFitting.h"
 
@@ -61,9 +62,11 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Asset Staging", "Data staging from PCGEx Asset Collections.", FName(TEXT("[ ") + ( CollectionSource == EPCGExCollectionSource::Asset ? AssetCollection.GetAssetName() : TEXT("Attribute Set to Collection")) + TEXT(" ]")));
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscAdd); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
+	
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 protected:
@@ -88,7 +91,7 @@ public:
 	FName CollectionPathAttributeName = "CollectionPath";
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::Attributes;
+	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::CollectionMap;
 
 	/** The name of the attribute to write asset path to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExStagingOutputMode::Attributes"))
@@ -116,13 +119,22 @@ public:
 	bool bPruneEmptyPoints = true;
 
 	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bDoFilterEntryType = false;
+
+	/** Lets you filter which collection type gets staged. 
+	 * This is most useful when using per-point collections and you want to stage only certain types of assets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditions="bDoFilterEntryType"))
+	FPCGExStagedTypeFilterDetails EntryTypeFilter;
+	
+	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteEntryType = false;
 
-	/** Entry Type Details */
+	/** Name of the FName entry type will be written to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteEntryType"))
-	FPCGExEntryTypeDetails EntryType;
-
+	FName EntryTypeAttributeName = FName("EntryType");
+	
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
@@ -215,6 +227,7 @@ namespace PCGExAssetStaging
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
+		TSharedPtr<PCGExData::TBuffer<FName>> EntryTypeWriter;
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 

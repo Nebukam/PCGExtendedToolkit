@@ -30,7 +30,7 @@ namespace PCGExData
 UENUM()
 enum class EPCGExPointReverseMethod : uint8
 {
-	None         = 0 UMETA(DisplayName = "None", ToolTip="..."),
+	None         = 0 UMETA(DisplayName = "Unconditional", ToolTip="..."),
 	SortingRules = 1 UMETA(DisplayName = "Sorting Rules", ToolTip="..."),
 	Winding      = 2 UMETA(DisplayName = "Winding", ToolTip="..."),
 };
