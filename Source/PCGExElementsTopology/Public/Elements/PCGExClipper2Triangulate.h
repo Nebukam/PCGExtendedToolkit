@@ -17,7 +17,7 @@ class UPCGDynamicMeshData;
  * Clipper2 Constrained Delaunay Triangulation
  * Converts closed paths into a triangulated mesh, preserving source point indices for attribute lookup.
  */
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-triangulate"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-triangulate"))
 class UPCGExClipper2TriangulateSettings : public UPCGExClipper2ProcessorSettings
 {
 	GENERATED_BODY()
@@ -38,6 +38,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExClipper2FillRule FillRule = EPCGExClipper2FillRule::EvenOdd;
+	
 	/** Use Delaunay optimization for better triangle quality */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUseDelaunay = true;

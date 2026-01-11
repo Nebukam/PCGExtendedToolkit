@@ -129,7 +129,12 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 	// Perform triangulation
 	PCGExClipper2Lib::Paths64 TrianglePaths;
 	PCGExClipper2Lib::TriangulateResult Result =
-		PCGExClipper2Lib::Triangulate(CombinedPaths, TrianglePaths, Settings->bUseDelaunay);
+		PCGExClipper2Lib::TriangulateWithHoles(
+			CombinedPaths,
+			TrianglePaths,
+			PCGExClipper2::ConvertFillRule(Settings->FillRule),    // or NonZero
+			Settings->bUseDelaunay // useDelaunay
+		);
 
 	if (Result != PCGExClipper2Lib::TriangulateResult::success)
 	{

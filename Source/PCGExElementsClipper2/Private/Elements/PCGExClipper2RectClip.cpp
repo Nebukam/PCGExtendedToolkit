@@ -32,6 +32,153 @@ bool UPCGExClipper2RectClipSettings::SupportOpenOperandPaths() const
 	return true; // Operands are only used for bounds, so open paths are fine
 }
 
+namespace PCGExClipper2RectClip
+{
+	// Helper to check if point P lies on segment AB (within tolerance)
+	// Returns alpha (0-1) if on segment, -1 if not
+	double PointOnSegment(
+		int64_t Px, int64_t Py,
+		int64_t Ax, int64_t Ay,
+		int64_t Bx, int64_t By,
+		int64_t Tolerance)
+	{
+		// Vector AB
+		const double ABx = static_cast<double>(Bx - Ax);
+		const double ABy = static_cast<double>(By - Ay);
+		
+		// Vector AP
+		const double APx = static_cast<double>(Px - Ax);
+		const double APy = static_cast<double>(Py - Ay);
+		
+		// Length squared of AB
+		const double ABLenSq = ABx * ABx + ABy * ABy;
+		if (ABLenSq < 1.0) return -1.0; // Degenerate segment
+		
+		// Project P onto line AB, get parameter t
+		const double t = (APx * ABx + APy * ABy) / ABLenSq;
+		
+		// Check if t is in valid range [0, 1]
+		if (t < -0.001 || t > 1.001) return -1.0;
+		
+		// Calculate closest point on segment
+		const double ClosestX = Ax + t * ABx;
+		const double ClosestY = Ay + t * ABy;
+		
+		// Check distance from P to closest point
+		const double DistX = Px - ClosestX;
+		const double DistY = Py - ClosestY;
+		const double DistSq = DistX * DistX + DistY * DistY;
+		
+		// Use tolerance squared for comparison
+		const double TolSq = static_cast<double>(Tolerance) * static_cast<double>(Tolerance);
+		if (DistSq > TolSq) return -1.0;
+		
+		return FMath::Clamp(t, 0.0, 1.0);
+	}
+
+	/**
+	 * Restore Z values for paths output by RectClip64.
+	 * 
+	 * RectClip64 sets Z=0 for all intersection points (see GetLineIntersectPt in clipper_core.h).
+	 * This function restores proper Z values by:
+	 * 1. Matching output points to original source points by X/Y coordinates (exact match)
+	 * 2. For intersection points, finding which SOURCE EDGE they lie on and interpolating Z
+	 * 
+	 * @param OutPaths - The paths output by RectClip64 (modified in place)
+	 * @param SourcePaths - The original source paths with valid Z encodings
+	 * @param Tolerance - Distance tolerance for matching points (in Clipper2 integer units)
+	 */
+	void RestoreZValuesForRectClipResults(
+		PCGExClipper2Lib::Paths64& OutPaths,
+		const PCGExClipper2Lib::Paths64& SourcePaths,
+		int64_t Tolerance = 2)
+	{
+		// Build a map from (X,Y) to Z for all source points (for exact matches)
+		TMap<uint64, int64_t> SourcePointZMap;
+		for (const PCGExClipper2Lib::Path64& SrcPath : SourcePaths)
+		{
+			for (const PCGExClipper2Lib::Point64& SrcPt : SrcPath)
+			{
+				const uint64 Key = PCGEx::H64(
+					static_cast<uint32>(SrcPt.x & 0xFFFFFFFF),
+					static_cast<uint32>(SrcPt.y & 0xFFFFFFFF));
+				SourcePointZMap.Add(Key, SrcPt.z);
+			}
+		}
+
+		// Process each output path
+		for (PCGExClipper2Lib::Path64& OutPath : OutPaths)
+		{
+			const size_t NumPoints = OutPath.size();
+			if (NumPoints == 0) continue;
+
+			for (size_t i = 0; i < NumPoints; i++)
+			{
+				PCGExClipper2Lib::Point64& Pt = OutPath[i];
+
+				// First, try exact match with source points
+				const uint64 Key = PCGEx::H64(
+					static_cast<uint32>(Pt.x & 0xFFFFFFFF),
+					static_cast<uint32>(Pt.y & 0xFFFFFFFF));
+
+				if (const int64_t* FoundZ = SourcePointZMap.Find(Key))
+				{
+					// Exact match found - restore original Z
+					Pt.z = *FoundZ;
+					continue;
+				}
+
+				// No exact match - this is an intersection point
+				// Find which source edge this point lies on
+				bool bFoundEdge = false;
+				
+				for (const PCGExClipper2Lib::Path64& SrcPath : SourcePaths)
+				{
+					if (bFoundEdge) break;
+					
+					const size_t SrcNumPts = SrcPath.size();
+					if (SrcNumPts < 2) continue;
+					
+					// Check each edge in the source path
+					for (size_t j = 0; j < SrcNumPts; j++)
+					{
+						const size_t NextJ = (j + 1) % SrcNumPts;
+						const PCGExClipper2Lib::Point64& A = SrcPath[j];
+						const PCGExClipper2Lib::Point64& B = SrcPath[NextJ];
+						
+						// Check if Pt lies on edge A->B
+						const double Alpha = PointOnSegment(
+							Pt.x, Pt.y,
+							A.x, A.y,
+							B.x, B.y,
+							Tolerance);
+						
+						if (Alpha >= 0.0)
+						{
+							// Point lies on this edge! Interpolate Z
+							// Since Z encodes (PointIndex, SourceIndex), we pick the closer endpoint's Z
+							// This ensures we reference a valid source point for transform lookup
+							if (Alpha <= 0.5)
+							{
+								Pt.z = A.z;
+							}
+							else
+							{
+								Pt.z = B.z;
+							}
+							bFoundEdge = true;
+							break;
+						}
+					}
+				}
+				
+				// If still not found (shouldn't happen normally), leave Z as 0
+				// The output code will need to handle this gracefully
+			}
+		}
+	}
+}
+
 void FPCGExClipper2RectClipContext::ApplyPadding(PCGExClipper2Lib::Rect64& Rect, double Padding, const FVector2D& Scale, int32 Precision)
 {
 	const int64 PaddingX = static_cast<int64>(Padding * Scale.X * Precision);
@@ -146,7 +293,7 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 	if (Settings->bInvertClip)
 	{
 		// For inverted clip, use boolean difference with the rectangle
-		// Create rectangle as a path (clockwise winding for positive area)
+		// (This path uses ZCallback and doesn't need the fix)
 		PCGExClipper2Lib::Path64 RectPath;
 		RectPath.reserve(4);
 		RectPath.emplace_back(ClipRect.left, ClipRect.top, 0);
@@ -156,7 +303,6 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 
 		PCGExClipper2Lib::Paths64 RectPaths = {RectPath};
 
-		// Perform difference: Subject - Rectangle = Keep what's outside
 		PCGExClipper2Lib::Clipper64 Clipper;
 		Clipper.SetZCallback(Group->CreateZCallback());
 
@@ -195,6 +341,8 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 		{
 			PCGExClipper2Lib::RectClip64 Clipper(ClipRect);
 			ClosedResults = Clipper.Execute(Group->SubjectPaths);
+
+			PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClosedResults, Group->SubjectPaths);
 		}
 
 		// Clip open paths
@@ -202,17 +350,20 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 		{
 			if (Settings->bClipOpenPathsAsLines)
 			{
-				// Use RectClipLines for open paths (keeps them as lines)
 				PCGExClipper2Lib::RectClipLines64 LineClipper(ClipRect);
 				OpenResults = LineClipper.Execute(Group->OpenSubjectPaths);
+
+				// FIX: Restore Z values that were lost during RectClipLines
+				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenResults, Group->OpenSubjectPaths);
 			}
 			else
 			{
-				// Treat open paths as closed polygons
 				PCGExClipper2Lib::RectClip64 Clipper(ClipRect);
 				PCGExClipper2Lib::Paths64 OpenAsClosedResults = Clipper.Execute(Group->OpenSubjectPaths);
 
-				// Add to closed results
+				// FIX: Restore Z values
+				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenAsClosedResults, Group->OpenSubjectPaths);
+
 				for (auto& Path : OpenAsClosedResults)
 				{
 					ClosedResults.push_back(std::move(Path));
@@ -221,17 +372,18 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 		}
 
 		// Output results
-		// Note: RectClip doesn't use ZCallback, so we use FromSource mode
+		// FromSource copies the entire source transform including position, which is wrong for intersection points.
+		// Unproject mode uses Clipper X/Y for position and gets rotation/scale from the source point.
 		if (!ClosedResults.empty())
 		{
 			TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-			OutputPaths64(ClosedResults, Group, OutputPaths, true, PCGExClipper2::ETransformRestoration::FromSource);
+			OutputPaths64(ClosedResults, Group, OutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
 		}
 
 		if (Settings->OpenPathsOutput != EPCGExClipper2OpenPathOutput::Ignore && !OpenResults.empty())
 		{
 			TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-			OutputPaths64(OpenResults, Group, OutputPaths, false, PCGExClipper2::ETransformRestoration::FromSource);
+			OutputPaths64(OpenResults, Group, OutputPaths, false, PCGExClipper2::ETransformRestoration::Unproject);
 		}
 	}
 }
