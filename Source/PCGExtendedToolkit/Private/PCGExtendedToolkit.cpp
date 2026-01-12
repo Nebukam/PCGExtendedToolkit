@@ -7,6 +7,9 @@
 
 #if WITH_EDITOR
 #include "PCGExCoreSettingsCache.h"
+#include "UObject/ICookInfo.h"
+#include "Engine/AssetManagerTypes.h"
+#include "Engine/AssetManager.h"
 #endif
 
 #include "PCGExGlobalSettings.h"
@@ -18,9 +21,27 @@ void FPCGExtendedToolkitModule::StartupModule()
 {
 	FModuleManager::Get().LoadModuleChecked<IModuleInterface>("PCG");
 
-	// Load default asset labels
-	FSoftObjectPath LabelPath(TEXT("/PCGExtendedToolkit/PL_PCGExDefaultAssets.PL_PCGExDefaultAssets"));
-	if (UObject* Label = LabelPath.TryLoad(); !Label) { UE_LOG(LogTemp, Error, TEXT("Failed to load PCGEx primary asset label")); }
+#if WITH_EDITOR
+
+	ModifyCookDelegateHandle = UE::Cook::FDelegates::ModifyCook.AddLambda(
+		[](UE::Cook::ICookInfo& CookInfo, TArray<UE::Cook::FPackageCookRule>& InOutPackageCookRules)
+		{
+			// Thanks @jenkinsgage
+			
+			// Grab all content assets
+			TArray<FAssetData> PCGExAssets;
+			UAssetManager::Get().GetAssetRegistry().GetAssetsByPath(TEXT("/PCGExtendedToolkit"), PCGExAssets, true);
+
+			// Add them to cook
+			FName Instigator = FName(TEXT("PCGExAlwaysCookAssets"));
+			for (FAssetData Asset : PCGExAssets)
+			{
+				InOutPackageCookRules.Emplace(Asset.PackageName, Instigator, UE::Cook::EPackageCookRule::AddToCook);
+			}
+		}
+	);
+
+#endif
 
 	const TMap<FString, TArray<FString>>& Dependencies = PCGExSubModules::GetModuleDependencies();
 	TSet<FString> Loaded;
@@ -293,6 +314,10 @@ void FPCGExtendedToolkitModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module
+
+#if WITH_EDITOR
+	UE::Cook::FDelegates::ModifyCook.Remove(ModifyCookDelegateHandle);
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE
