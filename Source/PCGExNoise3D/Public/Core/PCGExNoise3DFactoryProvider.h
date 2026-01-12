@@ -101,7 +101,7 @@ struct PCGEXNOISE3D_API FPCGExNoise3DConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyTransform"))
 	FTransform Transform = FTransform::Identity;
 		
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.000001"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.000001", DIsplayPriority=-1))
 	double Frequency = 0.01;
 
 	/** Contrast adjustment (1.0 = no change, >1 = more contrast, <1 = less) */
