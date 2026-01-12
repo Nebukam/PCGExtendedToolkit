@@ -494,7 +494,10 @@ namespace PCGExClusterMT
 
 		bIsBatchValid = true;
 
-		CurrentState.store(PCGExCommon::States::State_Processing, std::memory_order_release);
+		{
+			FScopeLock Lock(&CurrentStateLock);
+			CurrentState = PCGExCommon::States::State_Processing;
+		}
 
 		for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 		{
@@ -560,7 +563,10 @@ namespace PCGExClusterMT
 		if (bSkipCompletion) { return; }
 		if (!bIsBatchValid) { return; }
 
-		CurrentState.store(PCGExCommon::States::State_Completing, std::memory_order_release);
+		{
+			FScopeLock Lock(&CurrentStateLock);
+			CurrentState = PCGExCommon::States::State_Completing;
+		}
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, {Processor->CompleteWork(); }, {})
 	}
 
@@ -570,7 +576,10 @@ namespace PCGExClusterMT
 
 		if (!bIsBatchValid) { return; }
 
-		CurrentState.store(PCGExCommon::States::State_Writing, std::memory_order_release);
+		{
+			FScopeLock Lock(&CurrentStateLock);
+			CurrentState = PCGExCommon::States::State_Writing;
+		}
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); }, {})
 
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(TaskManager); }
