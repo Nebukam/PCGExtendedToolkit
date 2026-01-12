@@ -257,8 +257,7 @@ namespace PCGExPCGDataAssetLoader
 	{
 		if (!InData) { return FSpatialTransformResult(); }
 
-		// Try each type in order of specificity
-		if (UPCGPointData* PointData = Cast<UPCGPointData>(InData))
+		if (UPCGBasePointData* PointData = Cast<UPCGBasePointData>(InData))
 		{
 			return FSpatialTransformResult(MakeShared<FTransformPoints>(InTransform, PointData));
 		}
