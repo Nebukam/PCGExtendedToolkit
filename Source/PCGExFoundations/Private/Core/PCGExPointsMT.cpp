@@ -206,8 +206,6 @@ namespace PCGExPointsMT
 	{
 		if (PointsCollection.IsEmpty()) { return; }
 
-		CurrentState.store(PCGExCommon::States::State_Processing, std::memory_order_release);
-
 		TaskManager = InTaskManager;
 		PCGEX_ASYNC_CHKD_VOID(TaskManager)
 
@@ -285,13 +283,11 @@ namespace PCGExPointsMT
 	void IBatch::CompleteWork()
 	{
 		if (bSkipCompletion) { return; }
-		CurrentState.store(PCGExCommon::States::State_Completing, std::memory_order_release);
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, { Processor->CompleteWork(); }, {})
 	}
 
 	void IBatch::Write()
 	{
-		CurrentState.store(PCGExCommon::States::State_Writing, std::memory_order_release);
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, { Processor->Write(); }, {})
 	}
 

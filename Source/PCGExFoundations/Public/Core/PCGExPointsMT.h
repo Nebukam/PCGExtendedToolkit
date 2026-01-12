@@ -210,8 +210,6 @@ namespace PCGExPointsMT
 
 		mutable FRWLock BatchLock;
 
-		std::atomic<PCGExCommon::ContextState> CurrentState{PCGExCommon::States::State_InitialExecution};
-
 		FPCGExContext* ExecutionContext = nullptr;
 		UPCGSettings* ExecutionSettings = nullptr;
 
