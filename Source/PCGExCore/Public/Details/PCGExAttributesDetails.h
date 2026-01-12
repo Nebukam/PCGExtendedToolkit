@@ -61,6 +61,11 @@ struct PCGEXCORE_API FPCGExAttributeSourceToTargetDetails
 
 	FPCGExAttributeSourceToTargetDetails() = default;
 
+	explicit FPCGExAttributeSourceToTargetDetails(const FName DefaultName, const bool InOutputToDifferentName = false, const FName DefaultTargetName = NAME_None)
+		: Source(DefaultName), bOutputToDifferentName(InOutputToDifferentName), Target(DefaultTargetName)
+	{
+	}
+
 	/** Attribute to read on input */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName Source = NAME_None;
