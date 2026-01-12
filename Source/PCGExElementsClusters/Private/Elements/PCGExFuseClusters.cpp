@@ -71,6 +71,9 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 		Context->UnionProcessor->InitEdgeEdge(Settings->EdgeEdgeIntersectionDetails, Settings->bUseCustomPointEdgeBlending, &Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
+	Context->UnionGraph->NodesUnion->BeginConcurrentBuild(Context->MainPoints->GetInNumPoints());
+	Context->UnionGraph->EdgesUnion->BeginConcurrentBuild(Context->MainEdges->GetInNumPoints());
+    
 	return true;
 }
 
@@ -97,7 +100,7 @@ bool FPCGExFuseClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::States::State_PreparingUnion)
 
 	PCGEX_ON_STATE(PCGExGraphs::States::State_PreparingUnion)
-	{
+	{		
 		const int32 NumFacades = Context->Batches.Num();
 
 		Context->VtxFacades.Reserve(NumFacades);

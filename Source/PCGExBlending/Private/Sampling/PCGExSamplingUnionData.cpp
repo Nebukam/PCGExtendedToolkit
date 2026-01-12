@@ -81,13 +81,6 @@ namespace PCGExSampling
 		return Index;
 	}
 
-	void FSampingUnionData::AddWeighted(const PCGExData::FElement& Element, const double InWeight)
-	{
-		FWriteScopeLock WriteScopeLock(UnionLock);
-		Add_Unsafe(Element.Index, Element.IO);
-		Weights.Add(Element, InWeight);
-	}
-
 	double FSampingUnionData::GetWeightAverage() const
 	{
 		if (Weights.Num() == 0) { return 0; }

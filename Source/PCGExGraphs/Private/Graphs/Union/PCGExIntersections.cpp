@@ -110,28 +110,29 @@ namespace PCGExGraphs
 		if (!Octree)
 		{
 			const uint64 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
+
+			// Fast path: check sharded map first (lock-free read)
+			if (const int32* NodePtr = NodeBinsShards.Find(GridKey))
 			{
-				if (const int32* NodePtr = NodeBinsShards.Find(GridKey))
-				{
-					const int32 NodeIndex = *NodePtr;
-					NodesUnion->Append(NodeIndex, Point);
-					return NodeIndex;
-				}
+				NodesUnion->Append(*NodePtr, Point); // Uses builder if active
+				return *NodePtr;
 			}
 
 			{
+				// Slow path: need to create new entry
 				FWriteScopeLock WriteLock(UnionLock);
 
-				// Make sure there hasn't been an insert while locking
+				// Double-check after acquiring lock
 				if (const int32* NodePtr = NodeBinsShards.Find(GridKey))
 				{
-					const int32 NodeIndex = *NodePtr;
-					NodesUnion->Append(NodeIndex, Point);
-					return NodeIndex;
+					NodesUnion->Append(*NodePtr, Point);
+					return *NodePtr;
 				}
 
-				NodesUnion->NewEntry_Unsafe(Point);
-				return NodeBinsShards.Add(GridKey, Nodes.Add(MakeShared<FUnionNode>(Point, Origin, Nodes.Num())));
+				// Create new entry via metadata (thread-safe via builder)
+				const int32 NewIndex = NodesUnion->NewEntry(Point);
+				NodeBinsShards.Add(GridKey, Nodes.Add(MakeShared<FUnionNode>(Point, Origin, NewIndex)));
+				return NewIndex;
 			}
 		}
 
@@ -236,7 +237,7 @@ namespace PCGExGraphs
 			if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); } // Abstract tracking to get valid union data
 			else { EdgeUnion->Add(Edge); }
 		};
-		
+
 		if (const int32* ExistingEdge = EdgesMapShards.Find(H))
 		{
 			UpdateExistingUnion(ExistingEdge);
@@ -251,7 +252,7 @@ namespace PCGExGraphs
 				UpdateExistingUnion(ExistingEdge);
 				return;
 			}
-			
+
 			EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
 			EdgesMapShards.Add(H, Edges.Emplace(Edges.Num(), Start, End));
 		}
@@ -279,7 +280,7 @@ namespace PCGExGraphs
 			if (const int32* ExistingEdge = EdgesMap.Find(H))
 			{
 				TSharedPtr<PCGExData::IUnionData> EdgeUnion = EdgesUnion->Entries[*ExistingEdge];
-				EdgeUnion->Add_Unsafe(EdgeUnion->Num(), -1);
+				EdgeUnion->Add(EdgeUnion->Num(), -1);
 			}
 			else
 			{
@@ -297,7 +298,7 @@ namespace PCGExGraphs
 			// Concrete edge management, we have valild input edges			
 			if (const int32* ExistingEdge = EdgesMap.Find(H))
 			{
-				EdgesUnion->Entries[*ExistingEdge]->Add_Unsafe(Edge);
+				EdgesUnion->Entries[*ExistingEdge]->Add(Edge);
 			}
 			else
 			{
@@ -354,6 +355,9 @@ namespace PCGExGraphs
 
 	void FUnionGraph::Collapse()
 	{
+		NodesUnion->EndConcurrentBuild();
+		EdgesUnion->EndConcurrentBuild();
+
 		NumCollapsedEdges = Edges.Num();
 		EdgesMapShards.Empty();
 		EdgesMap.Empty();

@@ -54,7 +54,7 @@ namespace PCGExGraphs
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Union graph is empty. Something is likely corrupted."));
 			return false;
 		}
-
+		
 		UnionGraph->Collapse();
 		Context->SetState(States::State_ProcessingUnion);
 

@@ -25,13 +25,11 @@ namespace PCGExSampling
 			const PCGExMath::IDistances* InDistances,
 			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
 
-		FORCEINLINE void AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight)
+		FORCEINLINE void AddWeighted(const PCGExData::FElement& Element, const double InWeight)
 		{
-			Add_Unsafe(Element.Index, Element.IO);
+			Add(Element.Index, Element.IO);
 			Weights.Add(Element, InWeight);
 		}
-
-		void AddWeighted(const PCGExData::FElement& Element, const double InWeight);
 
 		double GetWeightAverage() const;
 		double GetSqrtWeightAverage() const;

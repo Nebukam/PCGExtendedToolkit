@@ -9,31 +9,6 @@
 
 namespace PCGExData
 {
-	void IUnionData::Add(const FElement& Point)
-	{
-		FWriteScopeLock WriteScopeLock(UnionLock);
-		Add_Unsafe(Point.Index, Point.IO);
-	}
-
-	void IUnionData::Add(const int32 Index, const int32 IO)
-	{
-		FWriteScopeLock WriteScopeLock(UnionLock);
-		Add_Unsafe(Index, IO);
-	}
-
-	void IUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
-	{
-		IOSet.Add(IOIndex);
-		Elements.Reserve(Elements.Num() + PointIndices.Num());
-		for (const int32 A : PointIndices) { Elements.Add(FElement(A, IOIndex)); }
-	}
-
-	void IUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
-	{
-		FWriteScopeLock WriteScopeLock(UnionLock);
-		Add_Unsafe(IOIndex, PointIndices);
-	}
-
 	int32 IUnionData::ComputeWeights(
 		const TArray<const UPCGBasePointData*>& Sources,
 		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
@@ -84,7 +59,7 @@ namespace PCGExData
 		return Index;
 	}
 
-	void IUnionData::Reserve(const int32 InSetReserve, const int32 InElementReserve = 8)
+	void IUnionData::Reserve(const int32 InSetReserve, const int32 InElementReserve)
 	{
 		if (InElementReserve > 8 && Elements.Max() < InElementReserve) { Elements.Reserve(InElementReserve); }
 		if (InSetReserve > 8) { IOSet.Reserve(InSetReserve); }
@@ -102,12 +77,70 @@ namespace PCGExData
 		Entries.Init(nullptr, InNum);
 	}
 
-	TSharedPtr<IUnionData> FUnionMetadata::NewEntry_Unsafe(const FConstPoint& Point)
-	{
-		TSharedPtr<IUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<IUnionData>());
-		NewUnionData->Add_Unsafe(Point);
-		return NewUnionData;
-	}
+	FUnionMetadataBuilder::FUnionMetadataBuilder(FUnionMetadata* InTarget)
+        : Target(InTarget)
+    {
+        // Pre-allocate thread buffers based on hardware concurrency
+        const int32 NumThreads = FMath::Max(1, FPlatformMisc::NumberOfWorkerThreadsToSpawn() + 1);
+        ThreadBuffers.SetNum(NumThreads);
+    }
+
+    int32 FUnionMetadataBuilder::NewEntry(const FConstPoint& Point)
+    {
+        FWriteScopeLock Lock(CreationLock);
+        
+        TSharedPtr<IUnionData> NewUnionData = Target->Entries.Add_GetRef(MakeShared<IUnionData>());
+        NewUnionData->Add(Point);  // Safe - we hold the lock, no other thread can access this entry yet
+        
+        return Target->Entries.Num() - 1;
+    }
+
+    void FUnionMetadataBuilder::Append(int32 EntryIndex, const FPoint& Point)
+    {
+        // Get thread-local buffer (lock-free path for common case)
+        const int32 ThreadId = FPlatformTLS::GetCurrentThreadId() % ThreadBuffers.Num();
+        ThreadBuffers[ThreadId].Add({EntryIndex, FElement(Point.Index, Point.IO)});
+    }
+
+    void FUnionMetadataBuilder::Finalize()
+    {
+        // Merge all thread buffers into target entries
+        // This is single-threaded, so no locks needed
+        for (TArray<FPendingAppend>& Buffer : ThreadBuffers)
+        {
+            for (const FPendingAppend& Pending : Buffer)
+            {
+                if (Target->Entries.IsValidIndex(Pending.EntryIndex))
+                {
+                    Target->Entries[Pending.EntryIndex]->Add(Pending.Element);
+                }
+            }
+            Buffer.Reset();
+        }
+    }
+
+    void FUnionMetadata::BeginConcurrentBuild(int32 ReserveCount)
+    {
+        check(!Builder.IsValid());
+        Builder = MakeUnique<FUnionMetadataBuilder>(this);
+        if (ReserveCount > 0) { Entries.Reserve(ReserveCount); }
+    }
+
+    void FUnionMetadata::EndConcurrentBuild()
+    {
+        if (Builder)
+        {
+            Builder->Finalize();
+            Builder.Reset();
+        }
+    }
+
+    int32 FUnionMetadata::NewEntry_Unsafe(const FConstPoint& Point)
+    {
+        TSharedPtr<IUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<IUnionData>());
+        NewUnionData->Add(Point);
+        return Entries.Num() - 1;
+    }
 
 	TSharedPtr<IUnionData> FUnionMetadata::NewEntryAt_Unsafe(const int32 ItemIndex)
 	{
