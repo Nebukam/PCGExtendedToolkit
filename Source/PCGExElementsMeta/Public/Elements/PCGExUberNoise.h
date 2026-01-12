@@ -73,7 +73,7 @@ public:
 	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Double;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExAttributeSourceToTargetDetails Attributes;
+	FPCGExAttributeSourceToTargetDetails Attributes = FPCGExAttributeSourceToTargetDetails(FName(TEXT("$Density")));
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExUberNoiseMode::Mutate", EditConditionHides))
 	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Add;
