@@ -172,6 +172,7 @@ namespace PCGExUberNoise
 
 		A.WorkingType = NoiseType;
 		N.WorkingType = NoiseType;
+		C.WorkingType = NoiseType;
 
 		if (bIsNewOutput) { Blender = PCGExBlending::CreateProxyBlender(Context, BlendMode, N, C); }
 		else { Blender = PCGExBlending::CreateProxyBlender(Context, BlendMode, A, N, C); }
