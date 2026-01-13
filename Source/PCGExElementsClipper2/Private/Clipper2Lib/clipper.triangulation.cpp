@@ -220,7 +220,7 @@ namespace PCGExClipper2Lib
     static void RemoveEdgeFromVertex(Vertex2* vert, Edge* edge)
     {
         auto it = std::find(vert->edges.begin(), vert->edges.end(), edge);
-        if (it == vert->edges.end()) throw "oops!";
+        checkf(it != vert->edges.end(), TEXT("Clipper2: Edge not found in vertex edge list"));
         vert->edges.erase(it);
     }
 
@@ -463,7 +463,7 @@ namespace PCGExClipper2Lib
         for (int i = 1; i < 3; ++i)
         {
             edge->triA->edges[i] = edgesA[i];
-            if (!edgesA[i]) throw "oops"; // stops compiler warnings 
+            checkf(edgesA[i], TEXT("Clipper2: edgesA[i] is null in ForceLegal"));
             if (IsLooseEdge(*edgesA[i]))
                 pendingDelaunayStack.push(edgesA[i]);
             // since each edge has its own triangleA and triangleB, we have to be careful
@@ -474,14 +474,14 @@ namespace PCGExClipper2Lib
                 edgesA[i]->triA = edge->triA;
             else if (edgesA[i]->triB == edge->triB)
                 edgesA[i]->triB = edge->triA;
-            else throw "oops";
+            else checkf(false, TEXT("Clipper2: Invalid triangle reference in ForceLegal (edgesA)"));
         }
 
         edge->triB->edges[0] = edge;
         for (int i = 1; i < 3; ++i)
         {
             edge->triB->edges[i] = edgesB[i];
-            if (!edgesB[i]) throw "oops"; // stops compiler warnings 
+            checkf(edgesB[i], TEXT("Clipper2: edgesB[i] is null in ForceLegal"));
             if (IsLooseEdge(*edgesB[i]))
                 pendingDelaunayStack.push(edgesB[i]);
             // since each edge has its own triangleA and triangleB, we have to be careful
@@ -492,7 +492,7 @@ namespace PCGExClipper2Lib
                 edgesB[i]->triA = edge->triB;
             else if (edgesB[i]->triB == edge->triA)
                 edgesB[i]->triB = edge->triB;
-            else throw "oops";
+            else checkf(false, TEXT("Clipper2: Invalid triangle reference in ForceLegal (edgesB)"));
         }
     }
 
