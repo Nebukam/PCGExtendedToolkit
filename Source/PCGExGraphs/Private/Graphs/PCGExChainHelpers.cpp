@@ -68,7 +68,7 @@ namespace PCGExClusters::ChainHelpers
 
 			if (Graph->EdgesUnion)
 			{
-				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add_Unsafe(PCGExData::FPoint(OriginalEdge.Index, IOIndex));
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(PCGExData::FPoint(OriginalEdge.Index, IOIndex));
 			}
 		}
 		else
@@ -93,7 +93,7 @@ namespace PCGExClusters::ChainHelpers
 				// TODO : Possible missing edge in some edge cases
 				for (const FLink& Link : Chain->Links) { MergedEdges.Add(Link.Edge); }
 
-				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add_Unsafe(IOIndex, MergedEdges);
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
 			}
 		}
 	}

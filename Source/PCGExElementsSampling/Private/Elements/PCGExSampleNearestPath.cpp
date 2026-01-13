@@ -362,7 +362,7 @@ namespace PCGExSampleNearestPath
 		
 		const PCGExMath::IDistances* Distances = Context->TargetsHandler->GetDistances();
 
-		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const TSharedPtr<PCGExSampling::FSamplingUnionData> Union = MakeShared<PCGExSampling::FSamplingUnionData>();
 		Union->Reserve(Context->TargetsHandler->Num());
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -417,8 +417,8 @@ namespace PCGExSampleNearestPath
 
 					// TODO : Adjust dist based on edge lerp
 					Union->Reset();
-					Union->AddWeighted_Unsafe(A, DistSquared);
-					Union->AddWeighted_Unsafe(B, DistSquared);
+					Union->AddWeighted(A, DistSquared);
+					Union->AddWeighted(B, DistSquared);
 
 					NumInside = NumInsideIncrement;
 					NumInClosed = bSampledClosedLoop = bClosedLoop;
@@ -432,8 +432,8 @@ namespace PCGExSampleNearestPath
 			{
 				// TODO : Adjust dist based on edge lerp
 				WeightedDistance += FMath::Square(DistSquared);
-				Union->AddWeighted_Unsafe(A, DistSquared);
-				Union->AddWeighted_Unsafe(B, DistSquared);
+				Union->AddWeighted(A, DistSquared);
+				Union->AddWeighted(B, DistSquared);
 
 				if (bClosedLoop)
 				{

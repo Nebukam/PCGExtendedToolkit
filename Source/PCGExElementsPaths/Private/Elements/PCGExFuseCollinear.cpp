@@ -235,7 +235,7 @@ namespace PCGExFuseCollinear
 		TArray<PCGEx::FOpStats> Trackers;
 		DataBlender->InitTrackers(Trackers);
 
-		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const TSharedPtr<PCGExSampling::FSamplingUnionData> Union = MakeShared<PCGExSampling::FSamplingUnionData>();
 
 		const int32 IOIndex = PointDataFacade->Source->IOIndex;
 
@@ -255,7 +255,7 @@ namespace PCGExFuseCollinear
 
 			for (int j = 0; j < Count; j++)
 			{
-				Union->AddWeighted_Unsafe(PCGExData::FElement(From + j, IOIndex), 1);
+				Union->AddWeighted(PCGExData::FElement(From + j, IOIndex), 1);
 			}
 
 			DataBlender->ComputeWeights(i, Union, OutWeightedPoints);
@@ -276,7 +276,7 @@ namespace PCGExFuseCollinear
 
 				for (int j = 0; j < Count; j++)
 				{
-					Union->AddWeighted_Unsafe(PCGExData::FElement((From + j) % NumInPoints, IOIndex), 1);
+					Union->AddWeighted(PCGExData::FElement((From + j) % NumInPoints, IOIndex), 1);
 				}
 
 				DataBlender->ComputeWeights(LastRead, Union, OutWeightedPoints);

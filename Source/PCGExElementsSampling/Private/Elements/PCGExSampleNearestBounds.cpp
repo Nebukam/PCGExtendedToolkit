@@ -325,7 +325,7 @@ namespace PCGExSampleNearestBounds
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const TSharedPtr<PCGExSampling::FSamplingUnionData> Union = MakeShared<PCGExSampling::FSamplingUnionData>();
 		Union->Reserve(Context->TargetsHandler->Num());
 		Union->WeightRange = -2; // Don't remap
 
@@ -393,7 +393,7 @@ namespace PCGExSampleNearestBounds
 					SinglePick = Current;
 					Det = DetCandidate;
 					Union->Reset();
-					Union->AddWeighted_Unsafe(Current, OBBSample.Weight);
+					Union->AddWeighted(Current, OBBSample.Weight);
 				}
 			};
 
@@ -411,7 +411,7 @@ namespace PCGExSampleNearestBounds
 
 					const PCGExData::FElement Current(NearbyOBB.GetIndex(), Target.Index);
 					if (bSingleSample) { SampleSingle(Current, NearbyOBB); }
-					else { Union->AddWeighted_Unsafe(Current, OBBSample.Weight); }
+					else { Union->AddWeighted(Current, OBBSample.Weight); }
 				});
 			}, &IgnoreList);
 

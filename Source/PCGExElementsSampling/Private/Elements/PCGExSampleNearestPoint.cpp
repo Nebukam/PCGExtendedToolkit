@@ -334,7 +334,7 @@ namespace PCGExSampleNearestPoint
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const TSharedPtr<PCGExSampling::FSamplingUnionData> Union = MakeShared<PCGExSampling::FSamplingUnionData>();
 
 		const bool bProcessFilteredOutAsFails = Settings->bProcessFilteredOutAsFails;
 		const double DefaultDet = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
@@ -384,7 +384,7 @@ namespace PCGExSampleNearestPoint
 					SinglePick = static_cast<PCGExData::FElement>(Target);
 					Det = DistSquared;
 					Union->Reset();
-					Union->AddWeighted_Unsafe(Target, DistSquared);
+					Union->AddWeighted(Target, DistSquared);
 				}
 			};
 
@@ -395,7 +395,7 @@ namespace PCGExSampleNearestPoint
 				if (bWeightUseAttr) { DistSquared = Context->TargetWeights[Target.IO]->Read(Target.Index); }
 				else if (bWeightUseAttrMult) { DistSquared *= Context->TargetWeights[Target.IO]->Read(Target.Index); }
 
-				Union->AddWeighted_Unsafe(Target, DistSquared);
+				Union->AddWeighted(Target, DistSquared);
 			};
 
 			if (RangeMax > 0)

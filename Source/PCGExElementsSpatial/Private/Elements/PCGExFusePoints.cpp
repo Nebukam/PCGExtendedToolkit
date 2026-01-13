@@ -58,7 +58,7 @@ bool FPCGExFusePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 		{
-			NewBatch->bRequiresWriteStep = Settings->Mode != EPCGExFusedPointOutput::MostCentral;
+			
 		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to fuse."));
@@ -92,7 +92,9 @@ namespace PCGExFusePoints
 
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
-		UnionGraph->Reserve(PointDataFacade->GetNum(), 0);
+		
+		const int32 NumPoints = PointDataFacade->GetNum();
+		UnionGraph->Reserve(NumPoints, 0);
 
 		// Register fetch-able buffers for chunked reads
 		TArray<PCGExData::FAttributeIdentity> SourceAttributes;
@@ -101,6 +103,13 @@ namespace PCGExFusePoints
 		PointDataFacade->CreateReadables(SourceAttributes);
 
 		bForceSingleThreadedProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+
+		// Begin concurrent build mode for parallel insertion
+		if (!bForceSingleThreadedProcessPoints)
+		{
+			UnionGraph->BeginConcurrentBuild(NumPoints, 0);
+		}
+
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
@@ -122,47 +131,22 @@ namespace PCGExFusePoints
 		}
 	}
 
-	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	void FProcessor::OnPointsProcessingComplete()
 	{
-		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
-
-		TArray<int32> ReadIndices;
-		TArray<int32> WriteIndices;
-
-		ReadIndices.SetNumUninitialized(Scope.Count);
-		WriteIndices.SetNumUninitialized(Scope.Count);
-
-		for (int i = 0; i < Scope.Count; ++i)
+		// Finalize concurrent build - merges staged data and finalizes node adjacencies
+		if (!bForceSingleThreadedProcessPoints)
 		{
-			const int32 Idx = Scope.Start + i;
-			ReadIndices[i] = UnionGraph->Nodes[Idx]->Point.Index;
-			WriteIndices[i] = Idx;
+			UnionGraph->EndConcurrentBuild();
+		}
+		else
+		{
+			// For single-threaded mode, still need to finalize nodes
+			for (const TSharedPtr<PCGExGraphs::FUnionNode>& Node : UnionGraph->Nodes)
+			{
+				Node->Finalize();
+			}
 		}
 
-		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PointDataFacade->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
-
-		TArray<PCGExData::FWeightedPoint> WeightedPoints;
-		TArray<PCGEx::FOpStats> Trackers;
-		UnionBlender->InitTrackers(Trackers);
-
-		bool bUpdateCenter = Settings->BlendingDetails.PropertiesOverrides.bOverridePosition && Settings->BlendingDetails.PropertiesOverrides.PositionBlending == EPCGExBlendingType::None;
-
-		PCGEX_SHARED_CONTEXT_VOID(Context->GetOrCreateHandle())
-
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
-
-			if (bUpdateCenter) { Transforms[Index].SetLocation(Center); }
-
-			UnionBlender->MergeSingle(Index, WeightedPoints, Trackers);
-			if (IsUnionWriter) { IsUnionWriter->SetValue(Index, WeightedPoints.Num() > 1); }
-			if (UnionSizeWriter) { UnionSizeWriter->SetValue(Index, WeightedPoints.Num()); }
-		}
-	}
-
-	void FProcessor::CompleteWork()
-	{
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
 
 		UPCGBasePointData* OutData = PointDataFacade->GetOut();
@@ -229,7 +213,46 @@ namespace PCGExFusePoints
 		StartParallelLoopForRange(NumUnionNodes);
 	}
 
-	void FProcessor::Write()
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	{
+		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+
+		TArray<int32> ReadIndices;
+		TArray<int32> WriteIndices;
+
+		ReadIndices.SetNumUninitialized(Scope.Count);
+		WriteIndices.SetNumUninitialized(Scope.Count);
+
+		for (int i = 0; i < Scope.Count; ++i)
+		{
+			const int32 Idx = Scope.Start + i;
+			ReadIndices[i] = UnionGraph->Nodes[Idx]->Point.Index;
+			WriteIndices[i] = Idx;
+		}
+
+		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PointDataFacade->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+
+		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
+		UnionBlender->InitTrackers(Trackers);
+
+		bool bUpdateCenter = Settings->BlendingDetails.PropertiesOverrides.bOverridePosition && Settings->BlendingDetails.PropertiesOverrides.PositionBlending == EPCGExBlendingType::None;
+
+		PCGEX_SHARED_CONTEXT_VOID(Context->GetOrCreateHandle())
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
+
+			if (bUpdateCenter) { Transforms[Index].SetLocation(Center); }
+
+			UnionBlender->MergeSingle(Index, WeightedPoints, Trackers);
+			if (IsUnionWriter) { IsUnionWriter->SetValue(Index, WeightedPoints.Num() > 1); }
+			if (UnionSizeWriter) { UnionSizeWriter->SetValue(Index, WeightedPoints.Num()); }
+		}
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
 	{
 		PointDataFacade->WriteFastest(TaskManager);
 	}

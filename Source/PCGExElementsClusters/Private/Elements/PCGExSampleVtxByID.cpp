@@ -214,7 +214,7 @@ namespace PCGExSampleVtxByID
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const TSharedPtr<PCGExSampling::FSamplingUnionData> Union = MakeShared<PCGExSampling::FSamplingUnionData>();
 		Union->IOSet.Reserve(Context->TargetFacades.Num());
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -235,7 +235,7 @@ namespace PCGExSampleVtxByID
 			}
 
 			PCGExData::FElement Element(PCGEx::H64A(*Hash), PCGEx::H64B(*Hash));
-			Union->AddWeighted_Unsafe(Element, 1);
+			Union->AddWeighted(Element, 1);
 
 			const FVector Origin = Transforms[Index].GetLocation();
 			const FVector LookAtUp = LookAtUpGetter->Read(Index).GetSafeNormal();

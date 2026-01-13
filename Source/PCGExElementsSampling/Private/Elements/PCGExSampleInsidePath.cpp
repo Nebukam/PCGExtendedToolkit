@@ -282,7 +282,7 @@ namespace PCGExSampleInsidePath
 		TArray<PCGEx::FOpStats> Trackers;
 		DataBlender->InitTrackers(Trackers);
 
-		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const TSharedPtr<PCGExSampling::FSamplingUnionData> Union = MakeShared<PCGExSampling::FSamplingUnionData>();
 		Union->Reserve(Context->TargetsHandler->Num(), RangeMax ? 8 : Context->NumMaxTargets);
 		Union->Reset();
 
@@ -346,7 +346,7 @@ namespace PCGExSampleInsidePath
 					WeightedDistance = DistSquared;
 
 					Union->Reset();
-					Union->AddWeighted_Unsafe(Target, DistSquared);
+					Union->AddWeighted(Target, DistSquared);
 
 					NumInside = NumInsideIncrement;
 
@@ -358,7 +358,7 @@ namespace PCGExSampleInsidePath
 			{
 				// TODO : Adjust dist based on edge lerp
 				WeightedDistance += DistSquared;
-				Union->AddWeighted_Unsafe(Target, DistSquared);
+				Union->AddWeighted(Target, DistSquared);
 
 				WeightedTime += Time;
 				WeightedSegmentTime += Alpha;

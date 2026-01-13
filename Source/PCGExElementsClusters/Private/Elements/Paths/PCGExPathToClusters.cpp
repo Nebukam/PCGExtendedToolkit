@@ -56,7 +56,15 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 		// TODO : Support local fuse distance, requires access to all input facades
 		if (!Context->UnionGraph->Init(Context)) { return false; }
-		Context->UnionGraph->Reserve(Context->MainPoints->GetInNumPoints(), -1);
+
+		const int32 NodeReserve = Context->MainPoints->GetInNumPoints();
+		Context->UnionGraph->Reserve(NodeReserve, -1);
+
+		// Begin concurrent build mode for parallel insertion (only if not doing inline/single-threaded)
+		if (!Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion())
+		{
+			Context->UnionGraph->BeginConcurrentBuild(NodeReserve, -1);
+		}
 
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
 
@@ -74,7 +82,6 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 			Context->UnionProcessor->InitEdgeEdge(Settings->EdgeEdgeIntersectionDetails, Settings->bUseCustomPointEdgeBlending, &Settings->CustomEdgeEdgeBlendingDetails);
 		}
 	}
-
 
 	return true;
 }
@@ -136,6 +143,22 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		PCGEX_ON_STATE(PCGExGraphs::States::State_PreparingUnion)
 		{
+			// Finalize concurrent build - merges all staged union data and finalizes node adjacencies
+			// Must be done before UnionProcessor starts reading the data
+			if (!Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion())
+			{
+				Context->UnionGraph->EndConcurrentBuild();
+			}
+			else
+			{
+				// For single-threaded mode, still need to finalize nodes and collapse edges
+				for (const TSharedPtr<PCGExGraphs::FUnionNode>& Node : Context->UnionGraph->Nodes)
+				{
+					Node->Finalize();
+				}
+				Context->UnionGraph->Collapse();
+			}
+
 			const int32 NumFacades = Context->MainBatch->ProcessorFacades.Num();
 			Context->PathsFacades.Reserve(NumFacades);
 

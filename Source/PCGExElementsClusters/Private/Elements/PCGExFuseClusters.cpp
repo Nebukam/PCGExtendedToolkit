@@ -52,7 +52,10 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	// TODO : Support local fuse distance, requires access to all input facades
 	if (!Context->UnionGraph->Init(Context)) { return false; }
-	Context->UnionGraph->Reserve(Context->MainPoints->GetInNumPoints(), Context->MainEdges->GetInNumPoints());
+
+	const int32 NodeReserve = Context->MainPoints->GetInNumPoints();
+	const int32 EdgeReserve = Context->MainEdges->GetInNumPoints();
+	Context->UnionGraph->Reserve(NodeReserve, EdgeReserve);
 
 	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
@@ -71,9 +74,12 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 		Context->UnionProcessor->InitEdgeEdge(Settings->EdgeEdgeIntersectionDetails, Settings->bUseCustomPointEdgeBlending, &Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
-	Context->UnionGraph->NodesUnion->BeginConcurrentBuild(Context->MainPoints->GetInNumPoints());
-	Context->UnionGraph->EdgesUnion->BeginConcurrentBuild(Context->MainEdges->GetInNumPoints());
-    
+	// Begin concurrent build mode for parallel insertion (only if not doing inline/single-threaded)
+	if (!Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion())
+	{
+		Context->UnionGraph->BeginConcurrentBuild(NodeReserve, EdgeReserve);
+	}
+
 	return true;
 }
 
@@ -100,7 +106,23 @@ bool FPCGExFuseClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraphs::States::State_PreparingUnion)
 
 	PCGEX_ON_STATE(PCGExGraphs::States::State_PreparingUnion)
-	{		
+	{
+		// Finalize concurrent build - merges all staged union data and finalizes node adjacencies
+		// Must be done before UnionProcessor starts reading the data
+		if (!Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion())
+		{
+			Context->UnionGraph->EndConcurrentBuild();
+		}
+		else
+		{
+			// For single-threaded mode, still need to finalize nodes and collapse edges
+			for (const TSharedPtr<PCGExGraphs::FUnionNode>& Node : Context->UnionGraph->Nodes)
+			{
+				Node->Finalize();
+			}
+			Context->UnionGraph->Collapse();
+		}
+
 		const int32 NumFacades = Context->Batches.Num();
 
 		Context->VtxFacades.Reserve(NumFacades);

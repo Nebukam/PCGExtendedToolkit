@@ -127,10 +127,9 @@ namespace PCGExFusePoints
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
 
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-
-		virtual void CompleteWork() override;
-		virtual void Write() override;
+		virtual void OnRangeProcessingComplete() override;
 	};
 }

@@ -549,7 +549,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 							if (static_cast<int32>(PtIdx) >= NumPts) { return; }
 
-							Union->Add_Unsafe(static_cast<int32>(PtIdx), SourceFacade->Idx);
+							Union->Add(static_cast<int32>(PtIdx), SourceFacade->Idx);
 						};
 
 						AddToUnion(BlendInfo->E1BotPointIdx, BlendInfo->E1BotSourceIdx);
@@ -619,7 +619,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 						const int32 SrcNumPts = SrcFacade->Source->GetNum(PCGExData::EIOSide::In);
 						const int32 Pt1 = FMath::Clamp(static_cast<int32>(OriginalPointIdx), 0, SrcNumPts - 1);
 
-						Union->Add_Unsafe(Pt1, SrcFacade->Idx);
+						Union->Add(Pt1, SrcFacade->Idx);
 					}
 				}
 			}, NumPoints < 128);
