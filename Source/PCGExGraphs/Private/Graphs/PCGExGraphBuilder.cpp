@@ -281,35 +281,39 @@ namespace PCGExGraphs
 
 		// Subgraphs
 
-		for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 		{
-			const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
-
-			check(!SubGraph->Edges.IsEmpty())
-
-			TSharedPtr<PCGExData::FPointIO> EdgeIO;
-
-			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
+			TRACE_CPUPROFILER_EVENT_SCOPE(CreateEdgeData)
+			
+			for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 			{
-				// Don't grab original point IO if we have metadata.
-				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EIOInit::New);
+				const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
+
+				check(!SubGraph->Edges.IsEmpty())
+
+				TSharedPtr<PCGExData::FPointIO> EdgeIO;
+
+				if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
+				{
+					// Don't grab original point IO if we have metadata.
+					EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EIOInit::New);
+				}
+				else
+				{
+					EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EIOInit::New);
+				}
+
+				if (!EdgeIO) { return; }
+
+				EdgeIO->IOIndex = i;
+
+				SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
+				SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
+
+				SubGraph->VtxDataFacade = NodeDataFacade;
+				SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
+
+				PCGExClusters::Helpers::MarkClusterEdges(EdgeIO, PairId);
 			}
-			else
-			{
-				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EIOInit::New);
-			}
-
-			if (!EdgeIO) { return; }
-
-			EdgeIO->IOIndex = i;
-
-			SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
-			SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
-
-			SubGraph->VtxDataFacade = NodeDataFacade;
-			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
-
-			PCGExClusters::Helpers::MarkClusterEdges(EdgeIO, PairId);
 		}
 
 		PCGExClusters::Helpers::MarkClusterVtx(NodeDataFacade->Source, PairId);

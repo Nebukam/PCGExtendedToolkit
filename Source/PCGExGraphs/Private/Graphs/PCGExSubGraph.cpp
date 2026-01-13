@@ -5,6 +5,7 @@
 
 
 #include "PCGExCoreSettingsCache.h"
+#include "Algo/RemoveIf.h"
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Blenders/PCGExUnionBlender.h"
@@ -194,8 +195,11 @@ namespace PCGExGraphs
 			Metadata->AddDelayedEntries(DelayedEntries);
 		}
 
-		MetadataDetails = InBuilder->GetMetadataDetails();
-		const bool bHasUnionMetadata = (MetadataDetails && InBuilder && !ParentGraph->EdgeMetadata.IsEmpty());
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(PrepareMetadata)
+
+			MetadataDetails = InBuilder->GetMetadataDetails();
+			const bool bHasUnionMetadata = (MetadataDetails && InBuilder && !ParentGraph->EdgeMetadata.IsEmpty());
 
 #define PCGEX_FOREACH_EDGE_METADATA(MACRO)\
 MACRO(IsEdgeUnion, bool, false, IsUnion()) \
@@ -203,51 +207,98 @@ MACRO(IsSubEdge, bool, false, bIsSubEdge) \
 MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #define PCGEX_EDGE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(bHasUnionMetadata && MetadataDetails->bWrite##_NAME){ _NAME##Buffer = EdgesDataFacade->GetWritable<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, true, PCGExData::EBufferInit::New); }
-		PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_DECL)
+			PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_DECL)
 #undef PCGEX_EDGE_METADATA_DECL
 
-		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
-		{
-			UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExMath::GetNoneDistances());
-			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &PCGExClusters::Labels::ProtectedClusterAttributes);
-			if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
+			if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 			{
-				// TODO : Log error
-				return;
+				TRACE_CPUPROFILER_EVENT_SCOPE(InitBlender)
+
+				TArray<TSharedRef<PCGExData::FFacade>> EdgeSources = *InBuilder->SourceEdgeFacades;
+
+				if (InBuilder->SourceEdgeFacades->Num() >= 3 && InBuilder->Graph->SubGraphs.Num() > 1)
+				{
+					// NOTE : Need to find better metrics.
+					// We want to avoid going through massive graphs with few sources as it would be wasted compute
+					// On the other end many small subgraphs will cripple the cache with tons of useless source references
+
+					TRACE_CPUPROFILER_EVENT_SCOPE(FindUniqueSourceIOIndices);
+
+					TSet<int32> UniqueSourceIOIndices;
+
+					for (const FEdge& E : FlattenedEdges)
+					{
+						const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindEdgeMetadata_Unsafe(E.IOIndex);
+						if (const FGraphEdgeMetadata* RootEdgeMeta = EdgeMeta ? ParentGraph->FindEdgeMetadata_Unsafe(EdgeMeta->RootIndex) : nullptr)
+						{
+							if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(RootEdgeMeta->RootIndex); UnionBlender && UnionData)
+							{
+								UniqueSourceIOIndices.Append(UnionData->IOSet);
+							}
+						}
+					}
+
+					UniqueSourceIOIndices.Remove(-1);
+					EdgeSources.SetNumUninitialized(Algo::RemoveIf(EdgeSources, [&UniqueSourceIOIndices](const TSharedRef<PCGExData::FFacade>& SrcIO) { return !UniqueSourceIOIndices.Contains(SrcIO->Source->IOIndex); }));
+				}
+
+				if (!EdgeSources.IsEmpty())
+				{
+					UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, PCGExMath::GetNoneDistances());
+					UnionBlender->AddSources(EdgeSources, &PCGExClusters::Labels::ProtectedClusterAttributes);
+					if (!UnionBlender->Init(TaskManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
+					{
+						// TODO : Log error
+						return;
+					}
+				}
+			}
+
+			if (InBuilder->OutputDetails->bOutputEdgeLength)
+			{
+				if (!PCGExMetaHelpers::IsWritableAttributeName(InBuilder->OutputDetails->EdgeLengthName))
+				{
+					PCGE_LOG_C(Error, GraphAndLog, TaskManager->GetContext(), FTEXT("Invalid user-defined attribute name for Edge Length."));
+				}
+				else
+				{
+					EdgeLength = EdgesDataFacade->GetWritable<double>(InBuilder->OutputDetails->EdgeLengthName, 0, true, PCGExData::EBufferInit::New);
+				}
 			}
 		}
 
-		if (InBuilder->OutputDetails->bOutputEdgeLength)
+		if (NumEdges < 1024)
 		{
-			if (!PCGExMetaHelpers::IsWritableAttributeName(InBuilder->OutputDetails->EdgeLengthName))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, TaskManager->GetContext(), FTEXT("Invalid user-defined attribute name for Edge Length."));
-			}
-			else
-			{
-				EdgeLength = EdgesDataFacade->GetWritable<double>(InBuilder->OutputDetails->EdgeLengthName, 0, true, PCGExData::EBufferInit::New);
-			}
+			TRACE_CPUPROFILER_EVENT_SCOPE(CompileAll);
+			// Avoid contention when dealing with lots of small graphs
+			CompileRange(PCGExMT::FScope(0, NumEdges));
+			CompilationComplete();
 		}
-
-		PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(TaskManager, InParentHandle.Pin(), CompileSubGraph)
-
-		CompileSubGraph->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		else
 		{
-			PCGEX_ASYNC_THIS
-			This->CompilationComplete();
-		};
+			TRACE_CPUPROFILER_EVENT_SCOPE(CompileParallel);
+			PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(TaskManager, InParentHandle.Pin(), CompileSubGraph)
 
-		CompileSubGraph->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-		{
-			PCGEX_ASYNC_THIS
-			This->CompileRange(Scope);
-		};
+			CompileSubGraph->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->CompilationComplete();
+			};
 
-		CompileSubGraph->StartSubLoops(FlattenedEdges.Num(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
+			CompileSubGraph->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				This->CompileRange(Scope);
+			};
+
+			CompileSubGraph->StartSubLoops(FlattenedEdges.Num(), PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
+		}
 	}
 
 	void FSubGraph::CompileRange(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FSubGraph::CompileRange);
+
 		const TSharedPtr<FGraph> ParentGraph = WeakParentGraph.Pin();
 		const TSharedPtr<FGraphBuilder> Builder = WeakBuilder.Pin();
 
