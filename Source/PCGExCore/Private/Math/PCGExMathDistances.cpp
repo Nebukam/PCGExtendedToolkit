@@ -26,70 +26,77 @@ namespace PCGExMath
 
 	const IDistances* GetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero, const EPCGExDistanceType Type)
 	{
-		// Static cache for each combination
-		static TMap<TTuple<EPCGExDistance, EPCGExDistance, EPCGExDistanceType, bool>, TSharedPtr<IDistances>> Cache;
-
 		const TTuple<EPCGExDistance, EPCGExDistance, EPCGExDistanceType, bool> Key(Source, Target, Type, bOverlapIsZero);
-
-		// Check if already cached
-		if (const TSharedPtr<IDistances>* Found = Cache.Find(Key))
-		{
-			return Found->Get();
-		}
-
-		// Create new instance based on parameters
-		TSharedPtr<IDistances> NewDistances;
-
-		switch (Type)
-		{
-		default:
-		case EPCGExDistanceType::Euclidian:
-			if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
-			{
-				NewDistances = MakeShared<TEuclideanDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
-			}
-#define PCGEX_DIST_TPL(_FROM, _TO) \
-    else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TEuclideanDistances<_FROM, _TO>>(bOverlapIsZero); }
-			PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
-#undef PCGEX_DIST_TPL
-			break;
-
-		case EPCGExDistanceType::Manhattan:
-			if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
-			{
-				NewDistances = MakeShared<TManhattanDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
-			}
-#define PCGEX_DIST_TPL(_FROM, _TO) \
-    else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TManhattanDistances<_FROM, _TO>>(bOverlapIsZero); }
-			PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
-#undef PCGEX_DIST_TPL
-			break;
-
-		case EPCGExDistanceType::Chebyshev:
-			if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
-			{
-				NewDistances = MakeShared<TChebyshevDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
-			}
-#define PCGEX_DIST_TPL(_FROM, _TO) \
-    else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TChebyshevDistances<_FROM, _TO>>(bOverlapIsZero); }
-			PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
-#undef PCGEX_DIST_TPL
-			break;
-		}
-
-		// Cache and return
-		if (NewDistances)
-		{
-			Cache.Add(Key, NewDistances);
-		}
-
-		return NewDistances.Get();
+		return GDistancesStatic.Cache[Key].Get();
 	}
 
-#undef PCGEX_FOREACH_DISTANCE_PAIR
 
 	const IDistances* GetNoneDistances()
 	{
 		return GetDistances(EPCGExDistance::None, EPCGExDistance::None);
 	}
+
+	FDistancesStatic::FDistancesStatic()
+	{
+		// Create all distances combinations so we're thread safe
+		
+		TArray<bool> Overlap = {true, false};
+		TArray<EPCGExDistance> Dist = {EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds, EPCGExDistance::Center, EPCGExDistance::None};
+		TArray<EPCGExDistanceType> Types = {EPCGExDistanceType::Euclidian, EPCGExDistanceType::Manhattan, EPCGExDistanceType::Chebyshev};
+
+		for (bool bOverlapIsZero : Overlap)
+		{
+			for (EPCGExDistance Source : Dist)
+			{
+				for (EPCGExDistance Target : Dist)
+				{
+					for (EPCGExDistanceType Type : Types)
+					{
+						TSharedPtr<IDistances> NewDistances;
+						const TTuple<EPCGExDistance, EPCGExDistance, EPCGExDistanceType, bool> Key(Source, Target, Type, bOverlapIsZero);
+						switch (Type)
+						{
+						default:
+						case EPCGExDistanceType::Euclidian:
+							if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+							{
+								NewDistances = MakeShared<TEuclideanDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
+							}
+#define PCGEX_DIST_TPL(_FROM, _TO) \
+else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TEuclideanDistances<_FROM, _TO>>(bOverlapIsZero); }
+							PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
+	#undef PCGEX_DIST_TPL
+							break;
+
+						case EPCGExDistanceType::Manhattan:
+							if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+							{
+								NewDistances = MakeShared<TManhattanDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
+							}
+#define PCGEX_DIST_TPL(_FROM, _TO) \
+else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TManhattanDistances<_FROM, _TO>>(bOverlapIsZero); }
+							PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
+	#undef PCGEX_DIST_TPL
+							break;
+
+						case EPCGExDistanceType::Chebyshev:
+							if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)
+							{
+								NewDistances = MakeShared<TChebyshevDistances<EPCGExDistance::None, EPCGExDistance::None>>(bOverlapIsZero);
+							}
+#define PCGEX_DIST_TPL(_FROM, _TO) \
+else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TChebyshevDistances<_FROM, _TO>>(bOverlapIsZero); }
+							PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
+	#undef PCGEX_DIST_TPL
+							break;
+						}
+
+						Cache.Add(Key, NewDistances);
+					}
+				}
+			}
+		}
+	}
+
+#undef PCGEX_FOREACH_DISTANCE_PAIR
 }

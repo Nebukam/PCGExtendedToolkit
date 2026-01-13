@@ -138,6 +138,22 @@ namespace PCGExData
 		void SetComponent(const PCGExTypeOps::ETransformPart InComponent);
 		bool SetFieldIndex(const int32 InFieldIndex);
 
+		friend FORCEINLINE uint32 GetTypeHash(const FSubSelection& S)
+		{
+			uint32 Hash = 0;
+
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.bIsValid));
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.bIsAxisSet));
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.Axis));
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.bIsFieldSet));
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.Field));
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.bIsComponentSet));
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.Component));
+			Hash = HashCombineFast(Hash, static_cast<uint32>(S.PossibleSourceType));
+
+			return Hash;
+		}
+		
 	protected:
 		void Init(const TArray<FString>& ExtraNames);
 

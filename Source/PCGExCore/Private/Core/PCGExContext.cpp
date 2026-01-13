@@ -16,6 +16,7 @@
 #include "Async/Async.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExDataCommon.h"
+#include "Data/PCGExProxyData.h"
 #include "Engine/EngineTypes.h"
 #include "Helpers/PCGDynamicTrackingHelpers.h"
 #include "Helpers/PCGExFunctionPrototypes.h"
@@ -126,6 +127,7 @@ FPCGExContext::FPCGExContext()
 	WorkHandle = MakeShared<PCGEx::FWorkHandle>();
 	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this, WorkHandle);
 	UniqueNameGenerator = MakeShared<FPCGExUniqueNameGenerator>();
+	BufferProxyPool = MakeShared<PCGExData::IBufferProxyPool>();
 }
 
 FPCGExContext::~FPCGExContext()

@@ -12,6 +12,7 @@
 #include "UObject/Object.h"
 #include "Data/PCGExCachedSubSelection.h"
 #include "Helpers/PCGExMetaHelpers.h"
+#include "Misc/ScopeRWLock.h"
 
 struct FPCGExContext;
 class UPCGBasePointData;
@@ -39,6 +40,7 @@ namespace PCGExData
 		Direct   = 1 << 0,
 		Constant = 1 << 1,
 		Raw      = 1 << 2,
+		Shared   = 1 << 3,
 	};
 
 	ENUM_CLASS_FLAGS(EProxyFlags)
@@ -103,6 +105,8 @@ namespace PCGExData
 
 		bool CaptureStrict(FPCGExContext* InContext, const FString& Path, const EIOSide InSide = EIOSide::Out, const bool bRequired = true);
 		bool CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide = EIOSide::Out, const bool bRequired = true);
+
+		friend uint32 GetTypeHash(const FProxyDescriptor& D);
 	};
 
 	//
@@ -266,5 +270,17 @@ namespace PCGExData
 		{
 			return PCGExTypes::FScopedTypedValue(WorkingType);
 		}
+	};
+
+	class PCGEXCORE_API IBufferProxyPool : public TSharedFromThis<IBufferProxyPool>
+	{
+		mutable FRWLock MapLock;
+		TMap<uint32, TWeakPtr<IBufferProxy>> ProxyMap;
+
+	public:
+		IBufferProxyPool() = default;
+
+		TSharedPtr<IBufferProxy> TryGet(const FProxyDescriptor& Descriptor);
+		void Add(const FProxyDescriptor& Descriptor, const TSharedPtr<IBufferProxy>& Proxy);
 	};
 }

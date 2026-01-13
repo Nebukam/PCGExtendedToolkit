@@ -73,4 +73,14 @@ namespace PCGExMath
         const EPCGExDistanceType Type = EPCGExDistanceType::Euclidian);
 
     PCGEXCORE_API const IDistances* GetNoneDistances();
+    
+    // Distances Initialization
+    struct PCGEXCORE_API FDistancesStatic
+    {
+        TMap<TTuple<EPCGExDistance, EPCGExDistance, EPCGExDistanceType, bool>, TSharedPtr<IDistances>> Cache;
+        FDistancesStatic();        
+    };
+
+    // Static instance triggers initialization at module load
+    static FDistancesStatic GDistancesStatic;
 }
