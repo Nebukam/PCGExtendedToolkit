@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Clusters/PCGExCluster.h"
+#include "Async/ParallelFor.h"
+
 #include "PCGExEdgeRefineRemoveLeavesRecursive.generated.h"
 
 /**
