@@ -319,100 +319,113 @@ template PCGEXCORE_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(co
 			}
 		}
 
-		// Handle raw proxy
-		if (InDescriptor.HasFlag(EProxyFlags::Raw))
+		if (InDescriptor.HasFlag(EProxyFlags::Shared))
 		{
-			PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				OutProxy = Internal::CreateRawProxy<T>(InContext, InDescriptor, InDataFacade);
-			});
-
-			if (OutProxy) { OutProxy->SetSubSelection(InDescriptor.SubSelection); }
-			return OutProxy;
+			OutProxy = InContext->BufferProxyPool->TryGet(InDescriptor);
+			if (OutProxy) { return OutProxy; }
 		}
 
-		// Handle constant proxy
-		if (InDescriptor.HasFlag(EProxyFlags::Constant))
 		{
-			const PCGMetadataEntryKey Key =
-				InDataFacade->GetIn()->IsEmpty()
-					? PCGInvalidEntryKey
-					: InDataFacade->GetIn()->GetMetadataEntry(0);
-
-			PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
+			ON_SCOPE_EXIT
 			{
-				using T = decltype(DummyValue);
-
-				if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-				{
-					if (const FPCGMetadataAttribute<T>* Attr = PCGExMetaHelpers::TryGetConstAttribute<T>(InDataFacade->GetIn(), PCGExMetaHelpers::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn())))
-					{
-						OutProxy = GetConstantProxyBuffer<T>(Attr->GetValueFromItemKey(Key), InDescriptor.WorkingType);
-					}
-				}
-				else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
-				{
-					OutProxy = Internal::CreateConstantProxyFromProperty<T>(InDescriptor, PointData);
-				}
-			});
-
-			if (OutProxy) { OutProxy->SetSubSelection(InDescriptor.SubSelection); }
-			return OutProxy;
-		}
-
-		// Handle attribute proxy
-		if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-		{
-			if (InDescriptor.HasFlag(EProxyFlags::Direct))
+				if (OutProxy.IsValid() && InDescriptor.HasFlag(EProxyFlags::Shared)) { InContext->BufferProxyPool->Add(InDescriptor, OutProxy); }
+			};
+		
+			// Handle raw proxy
+			if (InDescriptor.HasFlag(EProxyFlags::Raw))
 			{
-				// Direct attribute access
-				const FPCGAttributeIdentifier Identifier = PCGExMetaHelpers::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn());
-				const FPCGMetadataAttributeBase* BaseAttr = InDataFacade->FindConstAttribute(Identifier, InDescriptor.Side);
-				const bool bIsDataDomain = BaseAttr && BaseAttr->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data;
+				PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					OutProxy = Internal::CreateRawProxy<T>(InContext, InDescriptor, InDataFacade);
+				});
+
+				if (OutProxy) { OutProxy->SetSubSelection(InDescriptor.SubSelection); }
+				return OutProxy;
+			}
+
+			// Handle constant proxy
+			if (InDescriptor.HasFlag(EProxyFlags::Constant))
+			{
+				const PCGMetadataEntryKey Key =
+					InDataFacade->GetIn()->IsEmpty()
+						? PCGInvalidEntryKey
+						: InDataFacade->GetIn()->GetMetadataEntry(0);
 
 				PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					OutProxy = Internal::CreateDirectProxy<T>(InDescriptor, InDataFacade, bIsDataDomain);
+
+					if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+					{
+						if (const FPCGMetadataAttribute<T>* Attr = PCGExMetaHelpers::TryGetConstAttribute<T>(InDataFacade->GetIn(), PCGExMetaHelpers::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn())))
+						{
+							OutProxy = GetConstantProxyBuffer<T>(Attr->GetValueFromItemKey(Key), InDescriptor.WorkingType);
+						}
+					}
+					else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
+					{
+						OutProxy = Internal::CreateConstantProxyFromProperty<T>(InDescriptor, PointData);
+					}
 				});
+
+				if (OutProxy) { OutProxy->SetSubSelection(InDescriptor.SubSelection); }
+				return OutProxy;
 			}
+
+			// Handle attribute proxy
+			if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			{
+				if (InDescriptor.HasFlag(EProxyFlags::Direct))
+				{
+					// Direct attribute access
+					const FPCGAttributeIdentifier Identifier = PCGExMetaHelpers::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn());
+					const FPCGMetadataAttributeBase* BaseAttr = InDataFacade->FindConstAttribute(Identifier, InDescriptor.Side);
+					const bool bIsDataDomain = BaseAttr && BaseAttr->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data;
+
+					PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						OutProxy = Internal::CreateDirectProxy<T>(InDescriptor, InDataFacade, bIsDataDomain);
+					});
+				}
+				else
+				{
+					// Buffered attribute access
+					PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						OutProxy = Internal::CreateAttributeProxy<T>(InContext, InDescriptor, InDataFacade);
+					});
+				}
+			}
+			// Handle point property proxy
+			else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
+			{
+				OutProxy = MakeShared<FPointPropertyProxy>(InDescriptor.Selector.GetPointProperty(), InDescriptor.WorkingType);
+			}
+			// Handle extra property proxy
 			else
 			{
-				// Buffered attribute access
-				PCGExMetaHelpers::ExecuteWithRightType(InDescriptor.RealType, [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					OutProxy = Internal::CreateAttributeProxy<T>(InContext, InDescriptor, InDataFacade);
-				});
+				OutProxy = MakeShared<FPointExtraPropertyProxy>(EPCGExtraProperties::Index, InDescriptor.WorkingType);
 			}
-		}
-		// Handle point property proxy
-		else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
-		{
-			OutProxy = MakeShared<FPointPropertyProxy>(InDescriptor.Selector.GetPointProperty(), InDescriptor.WorkingType);
-		}
-		// Handle extra property proxy
-		else
-		{
-			OutProxy = MakeShared<FPointExtraPropertyProxy>(EPCGExtraProperties::Index, InDescriptor.WorkingType);
-		}
 
-		// Finalize proxy setup
-		if (OutProxy)
-		{
-			OutProxy->Data = PointData;
-			OutProxy->SetSubSelection(InDescriptor.SubSelection);
-			OutProxy->InitForRole(InDescriptor.Role);
-
-			if (!OutProxy->Validate(InDescriptor))
+			// Finalize proxy setup
+			if (OutProxy)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format( FTEXT("Proxy buffer doesn't match desired types: \"{0}\""), FText::FromString(PCGExMetaHelpers::GetSelectorDisplayName(InDescriptor.Selector))));
-				OutProxy = nullptr;
-			}
-		}
+				OutProxy->Data = PointData;
+				OutProxy->SetSubSelection(InDescriptor.SubSelection);
+				OutProxy->InitForRole(InDescriptor.Role);
 
-		return OutProxy;
+				if (!OutProxy->Validate(InDescriptor))
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format( FTEXT("Proxy buffer doesn't match desired types: \"{0}\""), FText::FromString(PCGExMetaHelpers::GetSelectorDisplayName(InDescriptor.Selector))));
+					OutProxy = nullptr;
+				}
+			}
+
+			return OutProxy;
+		}
 	}
 
 #pragma endregion

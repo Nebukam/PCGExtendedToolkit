@@ -13,6 +13,11 @@
 
 #include "Data/PCGExDataCommon.h"
 
+namespace PCGExData
+{
+	class IBufferProxyPool;
+}
+
 class FPCGExUniqueNameGenerator;
 
 namespace PCGExMT
@@ -172,6 +177,8 @@ public:
 	bool bQuietMissingAttributeError = false;
 	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;
+	
+	TSharedPtr<PCGExData::IBufferProxyPool> BufferProxyPool;
 
 	virtual bool CancelExecution(const FString& InReason = FString());
 

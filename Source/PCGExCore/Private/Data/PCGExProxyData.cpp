@@ -121,6 +121,50 @@ namespace PCGExData
 		return true;
 	}
 
+	uint32 GetSelectorTypeHash(const FPCGAttributePropertyInputSelector& Selector)
+	{
+		EPCGAttributePropertySelection Selection = Selector.GetSelection();
+		uint32 Hash = HashCombine(GetTypeHash(Selection), GetTypeHash(Selector.GetDomainName()));
+
+		switch (Selection)
+		{
+		case EPCGAttributePropertySelection::Attribute:
+			Hash = HashCombine(Hash, GetTypeHash(Selector.GetAttributeName()));
+			break;
+		case EPCGAttributePropertySelection::Property:
+			Hash = HashCombine(Hash, GetTypeHash(Selector.GetPropertyName()));
+			break;
+		case EPCGAttributePropertySelection::ExtraProperty:
+			Hash = HashCombine(Hash, GetTypeHash(Selector.GetExtraProperty()));
+			break;
+		default:
+			break;
+		}
+
+		for (const FString& ExtraName : Selector.GetExtraNames())
+		{
+			Hash = HashCombine(Hash, GetTypeHash(ExtraName));
+		}
+
+		return Hash;
+	}
+
+	uint32 GetTypeHash(const FProxyDescriptor& D)
+	{
+		uint32 Hash = 0;
+
+		Hash = HashCombineFast(Hash, GetSelectorTypeHash(D.Selector));
+		Hash = HashCombineFast(Hash, GetTypeHash(D.SubSelection));
+		Hash = HashCombineFast(Hash, static_cast<uint32>(D.Side));
+		Hash = HashCombineFast(Hash, static_cast<uint32>(D.Role));
+		Hash = HashCombineFast(Hash, static_cast<uint32>(D.RealType));
+		Hash = HashCombineFast(Hash, static_cast<uint32>(D.WorkingType));
+		Hash = HashCombineFast(Hash, static_cast<uint32>(D.Flags));
+		Hash = HashCombineFast(Hash, D.PointData ? D.PointData->GetUniqueID() : 0);
+
+		return Hash;
+	}
+
 #pragma endregion
 
 #pragma region IBufferProxy
@@ -172,7 +216,23 @@ namespace PCGExData
 		return Result; \
 	}
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ_IMPL)
+
 #undef PCGEX_CONVERTING_READ_IMPL
 
 #pragma endregion
+
+	TSharedPtr<IBufferProxy> IBufferProxyPool::TryGet(const FProxyDescriptor& Descriptor)
+	{
+		FReadScopeLock ReadScopeLock(MapLock);
+		TWeakPtr<IBufferProxy>* ProxyPtr = ProxyMap.Find(GetTypeHash(Descriptor));
+		if (!ProxyPtr) { return nullptr; }
+		return ProxyPtr->Pin();
+	}
+
+	void IBufferProxyPool::Add(const FProxyDescriptor& Descriptor, const TSharedPtr<IBufferProxy>& Proxy)
+	{
+		// Will replace existing, it's fine, we can live with a few duplicate proxies
+		FWriteScopeLock WriteScopeLock(MapLock);
+		ProxyMap.Add(GetTypeHash(Descriptor), Proxy);
+	}
 }

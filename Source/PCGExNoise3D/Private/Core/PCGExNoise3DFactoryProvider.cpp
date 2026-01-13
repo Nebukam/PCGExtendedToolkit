@@ -11,7 +11,7 @@ PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoNoise3D, UPCGExNoise3DFactoryData)
 
 void FPCGExNoise3DConfigBase::Init()
 {
-	RemapLUT = RemapCurveLookup.MakeLookup(bUseLocalCurve, LocalRemapCurve, RemapCurve);
+	RemapLUT = RemapCurveLookup.MakeLookup(true, LocalRemapCurve, nullptr);
 }
 
 bool UPCGExNoise3DFactoryData::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

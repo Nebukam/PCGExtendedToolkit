@@ -220,6 +220,8 @@ namespace PCGExBlending
 		const PCGExData::EIOSide InSide,
 		const PCGExData::EProxyFlags InProxyFlags)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FProxyDataBlender::InitFromParam)
+		
 		// Setup proxy descriptors
 		PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade, PCGExData::EProxyRole::Read);
 		PCGExData::FProxyDescriptor Desc_B = PCGExData::FProxyDescriptor(InTargetFacade, PCGExData::EProxyRole::Read);
@@ -246,8 +248,8 @@ namespace PCGExBlending
 		Desc_C.Side = PCGExData::EIOSide::Out;
 		Desc_C.Role = PCGExData::EProxyRole::Write;
 
-		Desc_A.AddFlags(InProxyFlags);
-		Desc_B.AddFlags(InProxyFlags);
+		Desc_A.AddFlags(InProxyFlags | PCGExData::EProxyFlags::Shared);
+		Desc_B.AddFlags(InProxyFlags | PCGExData::EProxyFlags::Shared);
 		Desc_C.AddFlags(InProxyFlags);
 
 		// Set type info
