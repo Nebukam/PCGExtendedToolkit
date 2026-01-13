@@ -206,11 +206,6 @@ namespace PCGExPointsMT
 	{
 		if (PointsCollection.IsEmpty()) { return; }
 
-		{
-			FScopeLock Lock(&CurrentStateLock);
-			CurrentState = PCGExCommon::States::State_Processing;
-		}
-
 		TaskManager = InTaskManager;
 		PCGEX_ASYNC_CHKD_VOID(TaskManager)
 
@@ -288,19 +283,11 @@ namespace PCGExPointsMT
 	void IBatch::CompleteWork()
 	{
 		if (bSkipCompletion) { return; }
-		{
-			FScopeLock Lock(&CurrentStateLock);
-			CurrentState = PCGExCommon::States::State_Completing;
-		}
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, { Processor->CompleteWork(); }, {})
 	}
 
 	void IBatch::Write()
 	{
-		{
-			FScopeLock Lock(&CurrentStateLock);
-			CurrentState = PCGExCommon::States::State_Writing;
-		}
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, { Processor->Write(); }, {})
 	}
 

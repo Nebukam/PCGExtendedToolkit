@@ -210,9 +210,6 @@ namespace PCGExPointsMT
 
 		mutable FRWLock BatchLock;
 
-		PCGExCommon::ContextState CurrentState{PCGExCommon::States::State_InitialExecution};
-		mutable FCriticalSection CurrentStateLock;
-
 		FPCGExContext* ExecutionContext = nullptr;
 		UPCGSettings* ExecutionSettings = nullptr;
 

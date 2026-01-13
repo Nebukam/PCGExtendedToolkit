@@ -63,6 +63,7 @@ class UPCGExPCGDataAssetLoaderSettings : public UPCGExPointsProcessorSettings
 	GENERATED_BODY()
 
 public:
+	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PCGDataAssetLoader, "PCGDataAsset Loader", "Loads and spawns PCGDataAsset contents from staged points.");
@@ -190,6 +191,7 @@ struct FPCGExPCGDataAssetLoaderContext final : FPCGExPointsProcessorContext
 
 	// Output data organized by pin
 	TMap<FName, TArray<FPCGTaggedData>> OutputByPin;
+	TMap<uint32, int32> OutputIndices;
 	mutable FRWLock OutputLock;
 
 	// Non-spatial data (forwarded once per unique asset, not duplicated)
@@ -197,10 +199,10 @@ struct FPCGExPCGDataAssetLoaderContext final : FPCGExPointsProcessorContext
 	mutable FRWLock NonSpatialLock;
 
 	/** Register output data to appropriate pin */
-	void RegisterOutput(const FPCGTaggedData& InTaggedData, bool bAddPinTag);
+	void RegisterOutput(const FPCGTaggedData& InTaggedData, bool bAddPinTag, const int32 InIndex);
 
 	/** Register non-spatial data (once per unique asset) */
-	void RegisterNonSpatialData(const FPCGTaggedData& InTaggedData);
+	void RegisterNonSpatialData(const FPCGTaggedData& InTaggedData, const int32 InIndex);
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL

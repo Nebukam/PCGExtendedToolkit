@@ -494,11 +494,6 @@ namespace PCGExClusterMT
 
 		bIsBatchValid = true;
 
-		{
-			FScopeLock Lock(&CurrentStateLock);
-			CurrentState = PCGExCommon::States::State_Processing;
-		}
-
 		for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 		{
 			const TSharedPtr<IProcessor> NewProcessor = NewProcessorInstance(VtxDataFacade, (*EdgesDataFacades)[IO->IOIndex]);
@@ -563,10 +558,6 @@ namespace PCGExClusterMT
 		if (bSkipCompletion) { return; }
 		if (!bIsBatchValid) { return; }
 
-		{
-			FScopeLock Lock(&CurrentStateLock);
-			CurrentState = PCGExCommon::States::State_Completing;
-		}
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, {Processor->CompleteWork(); }, {})
 	}
 
@@ -576,10 +567,6 @@ namespace PCGExClusterMT
 
 		if (!bIsBatchValid) { return; }
 
-		{
-			FScopeLock Lock(&CurrentStateLock);
-			CurrentState = PCGExCommon::States::State_Writing;
-		}
 		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); }, {})
 
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(TaskManager); }
