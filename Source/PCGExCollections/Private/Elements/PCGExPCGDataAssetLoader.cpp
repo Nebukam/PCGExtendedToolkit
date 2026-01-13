@@ -257,8 +257,7 @@ namespace PCGExPCGDataAssetLoader
 	{
 		if (!InData) { return FSpatialTransformResult(); }
 
-		// Try each type in order of specificity
-		if (UPCGPointData* PointData = Cast<UPCGPointData>(InData))
+		if (UPCGBasePointData* PointData = Cast<UPCGBasePointData>(InData))
 		{
 			return FSpatialTransformResult(MakeShared<FTransformPoints>(InTransform, PointData));
 		}
@@ -300,17 +299,14 @@ namespace PCGExPCGDataAssetLoader
 
 #pragma region FPCGExPCGDataAssetLoaderContext
 
-void FPCGExPCGDataAssetLoaderContext::RegisterOutput(const FPCGTaggedData& InTaggedData, bool bAddPinTag)
+void FPCGExPCGDataAssetLoaderContext::RegisterOutput(const FPCGTaggedData& InTaggedData, bool bAddPinTag, const int32 InIndex)
 {
 	if (!InTaggedData.Data) { return; }
 
 	FName TargetPin = PCGExPCGDataAssetLoader::OutputPinDefault;
 
 	// Check if we have a custom pin that matches
-	if (CustomPinNames.Contains(InTaggedData.Pin))
-	{
-		TargetPin = InTaggedData.Pin;
-	}
+	if (CustomPinNames.Contains(InTaggedData.Pin)) { TargetPin = InTaggedData.Pin; }
 
 	FPCGTaggedData LocalOutputData = InTaggedData;
 
@@ -325,10 +321,11 @@ void FPCGExPCGDataAssetLoaderContext::RegisterOutput(const FPCGTaggedData& InTag
 	{
 		FWriteScopeLock WriteLock(OutputLock);
 		OutputByPin.FindOrAdd(TargetPin).Add(LocalOutputData);
+		OutputIndices.Add(InTaggedData.Data->GetUniqueID(), InIndex);
 	}
 }
 
-void FPCGExPCGDataAssetLoaderContext::RegisterNonSpatialData(const FPCGTaggedData& InTaggedData)
+void FPCGExPCGDataAssetLoaderContext::RegisterNonSpatialData(const FPCGTaggedData& InTaggedData, const int32 InIndex)
 {
 	if (!InTaggedData.Data) { return; }
 
@@ -347,7 +344,7 @@ void FPCGExPCGDataAssetLoaderContext::RegisterNonSpatialData(const FPCGTaggedDat
 		if (bAlreadyInSet) { return; }
 
 		// Non-spatial goes to appropriate pin, with Pin: tag if going to default
-		RegisterOutput(InTaggedData, true);
+		RegisterOutput(InTaggedData, true, InIndex * -1);
 	}
 }
 
@@ -404,6 +401,7 @@ bool FPCGExPCGDataAssetLoaderElement::Boot(FPCGExContext* InContext) const
 
 	// Setup shared asset pool
 	Context->SharedAssetPool = MakeShared<FPCGExSharedAssetPool>();
+	Context->CustomPinNames.Reserve(Settings->CustomOutputPins.Num());
 
 	// Build custom pin name set for fast lookup
 	for (const FPCGPinProperties& CustomPin : Settings->CustomOutputPins)
@@ -441,11 +439,12 @@ bool FPCGExPCGDataAssetLoaderElement::AdvanceWork(FPCGExContext* InContext, cons
 	// Stage outputs from all pins
 	for (auto& Pair : Context->OutputByPin)
 	{
+		Pair.Value.Sort([&](const FPCGTaggedData& A, const FPCGTaggedData& B) { return Context->OutputIndices[A.Data->GetUniqueID()] < Context->OutputIndices[A.Data->GetUniqueID()]; });
 		Context->OutputData.TaggedData.Append(Pair.Value);
 	}
 
 	// Mark unused pins as inactive
-	int32 PinIndex = 0;
+	int32 PinIndex = 1;
 	for (const FPCGPinProperties& CustomPin : Settings->CustomOutputPins)
 	{
 		if (!CustomPin.Label.IsNone())
@@ -573,13 +572,15 @@ namespace PCGExPCGDataAssetLoader
 		UPCGData* Data = const_cast<UPCGData*>(InTaggedData.Data.Get());
 		if (!Data) { return FSpatialTransformResult(); }
 
+		const int32 OutIdx = BatchIndex * 1000000 + PointIndex;
+
 		// Check if this is spatial data
 		UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Data);
 
 		if (!SpatialData)
 		{
 			// Non-spatial data: register once per unique asset (not per point)
-			Context->RegisterNonSpatialData(InTaggedData);
+			Context->RegisterNonSpatialData(InTaggedData, OutIdx);
 			return FSpatialTransformResult();
 		}
 
@@ -638,7 +639,7 @@ namespace PCGExPCGDataAssetLoader
 		}
 
 		// Register output (Pin: tag added only for default "Out" pin)
-		Context->RegisterOutput(OutputData, true);
+		Context->RegisterOutput(OutputData, true, OutIdx);
 		return TransformResult;
 	}
 
