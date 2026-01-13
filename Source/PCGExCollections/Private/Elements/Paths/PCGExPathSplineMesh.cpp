@@ -16,6 +16,7 @@
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsHelpers.h"
+#include "Tangents/PCGExTangentsAuto.h"
 #include "Utils/PCGExUniqueNameGenerator.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
@@ -32,7 +33,17 @@ void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
 
 	Super::ApplyDeprecation(InOutNode);
 }
+
+void UPCGExPathSplineMeshSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
+	{
+		if (!Tangents.StartTangents) { Tangents.StartTangents = NewObject<UPCGExAutoTangents>(this, TEXT("StartTangents")); }
+	}
+	Super::PostInitProperties();
+}
 #endif
+
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMesh)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSplineMesh)

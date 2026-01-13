@@ -18,6 +18,7 @@
 #include "Paths/PCGExPathsHelpers.h"
 #include "Utils/PCGExUniqueNameGenerator.h"
 #include "Materials/MaterialInterface.h"
+#include "Tangents/PCGExTangentsAuto.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -35,6 +36,15 @@ void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	}
 
 	Super::ApplyDeprecation(InOutNode);
+}
+
+void UPCGExPathSplineMeshSimpleSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
+	{
+		if (!Tangents.StartTangents) { Tangents.StartTangents = NewObject<UPCGExAutoTangents>(this, TEXT("StartTangents")); }
+	}
+	Super::PostInitProperties();
 }
 #endif
 
