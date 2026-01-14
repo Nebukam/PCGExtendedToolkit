@@ -11,8 +11,8 @@ UENUM(BlueprintType)
 enum class EPCGExTangentSmoothing : uint8
 {
 	None UMETA(DisplayName = "None (Accurate)", ToolTip="Keep tangents separate - most accurate to original curve"),
-	DirectionOnly UMETA(DisplayName = "Direction Only (G1)", ToolTip="Blend directions only - smooth joins, preserves speed variation"),
-	Full UMETA(DisplayName = "Full (C1)", ToolTip="Fully blend tangents - smoothest joins")
+	DirectionOnly UMETA(DisplayName = "Direction Only (G1)", ToolTip="Blend directions only, re-optimize magnitudes"),
+	Full UMETA(DisplayName = "Full (C1)", ToolTip="Fully matched tangents with optimized magnitudes")
 };
 
 namespace PCGExPaths
@@ -20,8 +20,8 @@ namespace PCGExPaths
 	struct FSimplifiedPoint
 	{
 		FTransform Transform = FTransform::Identity;
-		FVector TangentIn = FVector::ZeroVector;  // Incoming tangent
-		FVector TangentOut = FVector::ZeroVector; // Outgoing tangent
+		FVector TangentIn = FVector::ZeroVector;
+		FVector TangentOut = FVector::ZeroVector;
 		int8 bIsRemovable = false;
 		int32 OriginalIndex = -1;
 
@@ -34,46 +34,27 @@ namespace PCGExPaths
 	public:
 		/**
 		 * Simplify a polyline with uniform smoothing applied to all points.
-		 * 
-		 * @param InPoints          The original point transforms
-		 * @param InRemovableFlags  Which points can be removed (true = removable)
-		 * @param MaxError          Maximum allowed deviation from original path
-		 * @param bIsClosed         Whether this is a closed loop
-		 * @param Smoothing         How much to blend tangents at junctions (0 = precise, 1 = smooth)
-		 * @param SmoothingMode     Type of smoothing to apply
 		 */
 		static TArray<FSimplifiedPoint> SimplifyPolyline(
 			const TConstPCGValueRange<FTransform>& InPoints,
 			const TArray<int8>& InRemovableFlags,
-			double MaxError = 0.1f,
+			double MaxError = 0.1,
 			bool bIsClosed = false,
-			double Smoothing = 0.0f,
+			double Smoothing = 0.0,
 			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
 
 		/**
 		 * Simplify a polyline with per-point smoothing control.
-		 * 
-		 * @param InPoints              The original point transforms
-		 * @param InRemovableFlags      Which points can be removed (true = removable)
-		 * @param InSmoothingValues     Per-point smoothing values (0 = precise, 1 = smooth). Must match InPoints size.
-		 * @param MaxError              Maximum allowed deviation from original path
-		 * @param bIsClosed             Whether this is a closed loop
-		 * @param SmoothingMode         Type of smoothing to apply
 		 */
 		static TArray<FSimplifiedPoint> SimplifyPolyline(
 			const TConstPCGValueRange<FTransform>& InPoints,
 			const TArray<int8>& InRemovableFlags,
 			const TArray<double>& InSmoothingValues,
-			double MaxError = 0.1f,
+			double MaxError = 0.1,
 			bool bIsClosed = false,
 			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
 
 	private:
-		/**
-		 * Core implementation that handles both uniform and per-point smoothing.
-		 * @param InSmoothingValues If empty, uses uniform smoothing. Otherwise per-point.
-		 * @param UniformSmoothing  Used when InSmoothingValues is empty.
-		 */
 		static TArray<FSimplifiedPoint> SimplifyPolylineInternal(
 			const TConstPCGValueRange<FTransform>& InPoints,
 			const TArray<int8>& InRemovableFlags,
@@ -105,26 +86,43 @@ namespace PCGExPaths
 			const TConstPCGValueRange<FTransform>& OriginalPoints,
 			bool bIsClosed);
 
-		/**
-		 * Smooth tangents at junctions with per-point control.
-		 * @param InSmoothingValues Per-point smoothing indexed by OriginalIndex. Empty = no smoothing.
-		 * @param UniformSmoothing  Fallback when InSmoothingValues is empty.
-		 */
-		static void SmoothTangentsAtJunctions(
+		static void SmoothAndRefitTangents(
 			TArray<FSimplifiedPoint>& SimplifiedPoints,
+			const TConstPCGValueRange<FTransform>& OriginalPoints,
 			bool bIsClosed,
 			const TArray<double>& InSmoothingValues,
 			double UniformSmoothing,
 			EPCGExTangentSmoothing SmoothingMode);
 
 		/**
-		 * Apply smoothing to a single point's tangents.
+		 * Compute the effective smoothing at a point, reduced for sharp corners.
 		 */
-		static void SmoothPointTangents(
-			FVector& TangentIn,
-			FVector& TangentOut,
-			double Smoothing,
-			EPCGExTangentSmoothing SmoothingMode);
+		static double ComputeEffectiveSmoothing(
+			const FVector& TangentIn,
+			const FVector& TangentOut,
+			double RequestedSmoothing);
+
+		/**
+		 * Compute smoothed direction, respecting corner sharpness.
+		 */
+		static FVector ComputeSmoothedDirection(
+			const FVector& TangentIn,
+			const FVector& TangentOut,
+			double Smoothing);
+
+		/**
+		 * Re-fit magnitudes for a segment given fixed directions.
+		 * Returns false if the fit is invalid (would require negative magnitudes).
+		 */
+		static void FitSegmentMagnitudes(
+			const FVector& P0Pos,
+			const FVector& P1Pos,
+			const FVector& Dir0,
+			const FVector& Dir1,
+			const TArray<FVector>& IntermediatePoints,
+			const TArray<double>& TValues,
+			double& OutMag0,
+			double& OutMag1);
 
 		static void FitSegmentTangentsLS(
 			const FVector& P0Pos,
@@ -148,10 +146,9 @@ namespace PCGExPaths
 			bool bIsClosed,
 			TArray<FVector>& OutPoints);
 
-		// Hermite basis functions
-		FORCEINLINE static double H00(double t) { return 2.0f * t * t * t - 3.0f * t * t + 1.0f; }
-		FORCEINLINE static double H10(double t) { return t * t * t - 2.0f * t * t + t; }
-		FORCEINLINE static double H01(double t) { return -2.0f * t * t * t + 3.0f * t * t; }
+		FORCEINLINE static double H00(double t) { return 2.0 * t * t * t - 3.0 * t * t + 1.0; }
+		FORCEINLINE static double H10(double t) { return t * t * t - 2.0 * t * t + t; }
+		FORCEINLINE static double H01(double t) { return -2.0 * t * t * t + 3.0 * t * t; }
 		FORCEINLINE static double H11(double t) { return t * t * t - t * t; }
 
 		static FVector EvaluateHermite(const FVector& P0, const FVector& T0,

@@ -20,7 +20,7 @@ namespace PCGExPaths
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/slide"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/reduce"))
 class UPCGExPathReduceSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -50,10 +50,10 @@ public:
 	float TangentSmoothing = 0.0f;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::None;
+	EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExInputShorthandNameDouble Smoothing = FPCGExInputShorthandNameDouble(FName("Smoothing"), 0.5, false); 
+	FPCGExInputShorthandNameDouble01 Smoothing = FPCGExInputShorthandNameDouble01(FName("Smoothing"), 1.0, false); 
 	
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
