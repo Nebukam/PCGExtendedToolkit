@@ -11,14 +11,56 @@ namespace PCGExPaths
 		TangentOut = FVector::ZeroVector;
 	}
 
+	// Public overload: uniform smoothing
 	TArray<FSimplifiedPoint> FCurveSimplifier::SimplifyPolyline(
 		const TConstPCGValueRange<FTransform>& InPoints,
 		const TArray<int8>& InRemovableFlags,
-		float MaxError,
-		bool bIsClosed)
+		double MaxError,
+		bool bIsClosed,
+		double Smoothing,
+		EPCGExTangentSmoothing SmoothingMode)
+	{
+		// Empty array signals uniform smoothing
+		return SimplifyPolylineInternal(
+			InPoints, InRemovableFlags,
+			TArray<double>(), // Empty = use uniform
+			Smoothing,
+			MaxError, bIsClosed, SmoothingMode);
+	}
+
+	// Public overload: per-point smoothing
+	TArray<FSimplifiedPoint> FCurveSimplifier::SimplifyPolyline(
+		const TConstPCGValueRange<FTransform>& InPoints,
+		const TArray<int8>& InRemovableFlags,
+		const TArray<double>& InSmoothingValues,
+		double MaxError,
+		bool bIsClosed,
+		EPCGExTangentSmoothing SmoothingMode)
+	{
+		return SimplifyPolylineInternal(
+			InPoints, InRemovableFlags,
+			InSmoothingValues,
+			0.0f, // Ignored when per-point array is provided
+			MaxError, bIsClosed, SmoothingMode);
+	}
+
+	// Internal implementation
+	TArray<FSimplifiedPoint> FCurveSimplifier::SimplifyPolylineInternal(
+		const TConstPCGValueRange<FTransform>& InPoints,
+		const TArray<int8>& InRemovableFlags,
+		const TArray<double>& InSmoothingValues,
+		double UniformSmoothing,
+		double MaxError,
+		bool bIsClosed,
+		EPCGExTangentSmoothing SmoothingMode)
 	{
 		if (InPoints.Num() < 2 || InPoints.Num() != InRemovableFlags.Num())
 			return {};
+
+		// Validate per-point smoothing array if provided
+		const bool bHasPerPointSmoothing = InSmoothingValues.Num() > 0;
+		if (bHasPerPointSmoothing && InSmoothingValues.Num() != InPoints.Num())
+			return {}; // Size mismatch
 
 		TArray<FSimplifiedPoint> Result;
 
@@ -30,8 +72,11 @@ namespace PCGExPaths
 				Result.Add(FSimplifiedPoint(InPoints[i], InRemovableFlags[i]));
 				Result.Last().OriginalIndex = i;
 			}
-			// Simple tangent computation for trivial cases
 			FitTangentsLeastSquares(Result, InPoints, bIsClosed);
+			if (SmoothingMode != EPCGExTangentSmoothing::None)
+			{
+				SmoothTangentsAtJunctions(Result, bIsClosed, InSmoothingValues, UniformSmoothing, SmoothingMode);
+			}
 			return Result;
 		}
 
@@ -54,6 +99,10 @@ namespace PCGExPaths
 				Result.Last().OriginalIndex = i;
 			}
 			FitTangentsLeastSquares(Result, InPoints, bIsClosed);
+			if (SmoothingMode != EPCGExTangentSmoothing::None)
+			{
+				SmoothTangentsAtJunctions(Result, bIsClosed, InSmoothingValues, UniformSmoothing, SmoothingMode);
+			}
 			return Result;
 		}
 
@@ -70,13 +119,123 @@ namespace PCGExPaths
 		// Step 3: Fit tangents using least-squares
 		FitTangentsLeastSquares(Result, InPoints, bIsClosed);
 
+		// Step 4: Smooth tangents at junctions
+		if (SmoothingMode != EPCGExTangentSmoothing::None)
+		{
+			SmoothTangentsAtJunctions(Result, bIsClosed, InSmoothingValues, UniformSmoothing, SmoothingMode);
+		}
+
 		return Result;
+	}
+
+	void FCurveSimplifier::SmoothTangentsAtJunctions(
+		TArray<FSimplifiedPoint>& SimplifiedPoints,
+		bool bIsClosed,
+		const TArray<double>& InSmoothingValues,
+		double UniformSmoothing,
+		EPCGExTangentSmoothing SmoothingMode)
+	{
+		const int32 NumPoints = SimplifiedPoints.Num();
+		if (NumPoints < 2)
+			return;
+
+		const bool bHasPerPointSmoothing = InSmoothingValues.Num() > 0;
+
+		// For open paths: smooth interior points (indices 1 to N-2)
+		// For closed paths: smooth all points
+		const int32 StartIdx = bIsClosed ? 0 : 1;
+		const int32 EndIdx = bIsClosed ? NumPoints : (NumPoints - 1);
+
+		for (int32 i = StartIdx; i < EndIdx; ++i)
+		{
+			// Get smoothing value for this point
+			double Smoothing;
+			if (bHasPerPointSmoothing)
+			{
+				const int32 OrigIdx = SimplifiedPoints[i].OriginalIndex;
+				Smoothing = (OrigIdx >= 0 && OrigIdx < InSmoothingValues.Num())
+					            ? InSmoothingValues[OrigIdx]
+					            : 0.0f;
+			}
+			else
+			{
+				Smoothing = UniformSmoothing;
+			}
+
+			// Skip if no smoothing requested for this point
+			if (Smoothing <= 0.0f)
+				continue;
+
+			SmoothPointTangents(
+				SimplifiedPoints[i].TangentIn,
+				SimplifiedPoints[i].TangentOut,
+				Smoothing,
+				SmoothingMode);
+		}
+
+		// For open paths, ensure endpoints are consistent
+		if (!bIsClosed)
+		{
+			SimplifiedPoints[0].TangentIn = SimplifiedPoints[0].TangentOut;
+			SimplifiedPoints[NumPoints - 1].TangentOut = SimplifiedPoints[NumPoints - 1].TangentIn;
+		}
+	}
+
+	void FCurveSimplifier::SmoothPointTangents(
+		FVector& TangentIn,
+		FVector& TangentOut,
+		double Smoothing,
+		EPCGExTangentSmoothing SmoothingMode)
+	{
+		Smoothing = FMath::Clamp(Smoothing, 0.0f, 1.0f);
+
+		const double MagIn = TangentIn.Size();
+		const double MagOut = TangentOut.Size();
+
+		// Skip if either tangent is degenerate
+		if (MagIn < SMALL_NUMBER || MagOut < SMALL_NUMBER)
+			return;
+
+		const FVector DirIn = TangentIn / MagIn;
+		const FVector DirOut = TangentOut / MagOut;
+
+		if (SmoothingMode == EPCGExTangentSmoothing::DirectionOnly)
+		{
+			// G1 continuity: blend directions, keep magnitudes
+			FVector AvgDir = (DirIn + DirOut);
+			const double AvgDirLen = AvgDir.Size();
+
+			if (AvgDirLen < SMALL_NUMBER)
+			{
+				// Directions are opposite - keep original
+				return;
+			}
+
+			AvgDir /= AvgDirLen;
+
+			// Lerp from original direction toward average direction
+			const FVector SmoothedDirIn = FMath::Lerp(DirIn, AvgDir, Smoothing).GetSafeNormal();
+			const FVector SmoothedDirOut = FMath::Lerp(DirOut, AvgDir, Smoothing).GetSafeNormal();
+
+			// Apply smoothed directions with original magnitudes
+			TangentIn = SmoothedDirIn * MagIn;
+			TangentOut = SmoothedDirOut * MagOut;
+		}
+		else if (SmoothingMode == EPCGExTangentSmoothing::Full)
+		{
+			// C1 continuity: blend both direction and magnitude
+			const FVector AvgTangent = (TangentIn + TangentOut) * 0.5f;
+
+			// Lerp from original toward the averaged tangent
+			TangentIn = FMath::Lerp(TangentIn, AvgTangent, Smoothing);
+			TangentOut = FMath::Lerp(TangentOut, AvgTangent, Smoothing);
+		}
 	}
 
 	TArray<int32> FCurveSimplifier::SimplifyWithDP(
 		const TConstPCGValueRange<FTransform>& Points,
 		const TArray<int8>& RemovableFlags,
-		float MaxError,
+		double MaxError,
 		bool bIsClosed)
 	{
 		TArray<int32> ResultIndices;
@@ -115,20 +274,6 @@ namespace PCGExPaths
 		// Recursive simplification
 		SimplifyRecursive(Points, RemovableFlags, ResultIndices, 0, Points.Num() - 1, MaxError, bIsClosed);
 
-		// For closed loops, also check the wrap-around segment
-		if (bIsClosed)
-		{
-			// Check segment from last point back to first
-			float MaxDistance = 0.0f;
-			int32 MaxIndex = -1;
-
-			FVector StartPoint = Points[Points.Num() - 1].GetLocation();
-			FVector EndPoint = Points[0].GetLocation();
-
-			// No intermediate points in wrap-around for standard DP
-			// The wrap is handled by the closed loop tangent fitting
-		}
-
 		// Sort and remove duplicates
 		ResultIndices.Sort();
 		for (int32 i = ResultIndices.Num() - 1; i > 0; --i)
@@ -148,13 +293,13 @@ namespace PCGExPaths
 		TArray<int32>& SelectedIndices,
 		int32 StartIndex,
 		int32 EndIndex,
-		float MaxError,
+		double MaxError,
 		bool bIsClosed)
 	{
 		if (EndIndex - StartIndex <= 1)
 			return;
 
-		float MaxDistance = 0.0f;
+		double MaxDistance = 0.0f;
 		int32 MaxIndex = -1;
 
 		FVector StartPoint = Points[StartIndex].GetLocation();
@@ -166,7 +311,7 @@ namespace PCGExPaths
 				continue;
 
 			FVector CurrentPoint = Points[i].GetLocation();
-			float Distance = PointToLineDistance(CurrentPoint, StartPoint, EndPoint);
+			double Distance = PointToLineDistance(CurrentPoint, StartPoint, EndPoint);
 
 			if (Distance > MaxDistance)
 			{
@@ -183,17 +328,17 @@ namespace PCGExPaths
 		}
 	}
 
-	float FCurveSimplifier::PointToLineDistance(const FVector& Point, const FVector& LineStart, const FVector& LineEnd)
+	double FCurveSimplifier::PointToLineDistance(const FVector& Point, const FVector& LineStart, const FVector& LineEnd)
 	{
 		FVector LineDirection = LineEnd - LineStart;
-		float LineLength = LineDirection.Size();
+		double LineLength = LineDirection.Size();
 
 		if (FMath::IsNearlyZero(LineLength))
 			return (Point - LineStart).Size();
 
 		FVector NormalizedLine = LineDirection.GetSafeNormal();
 		FVector VectorToPoint = Point - LineStart;
-		float Projection = FVector::DotProduct(VectorToPoint, NormalizedLine);
+		double Projection = FVector::DotProduct(VectorToPoint, NormalizedLine);
 		Projection = FMath::Clamp(Projection, 0.0f, LineLength);
 
 		FVector ClosestPointOnLine = LineStart + NormalizedLine * Projection;
@@ -212,7 +357,7 @@ namespace PCGExPaths
 		const int32 NumOriginal = OriginalPoints.Num();
 		const int32 NumSegments = bIsClosed ? NumSimplified : (NumSimplified - 1);
 
-		// Process each segment independently first
+		// Process each segment independently
 		for (int32 i = 0; i < NumSegments; ++i)
 		{
 			const int32 NextIdx = (i + 1) % NumSimplified;
@@ -228,7 +373,7 @@ namespace PCGExPaths
 			GetIntermediatePoints(OriginalPoints, OrigStartIdx, OrigEndIdx, NumOriginal, bIsClosed, IntermediatePoints);
 
 			// Compute t values using chord-length parameterization
-			TArray<float> TValues;
+			TArray<double> TValues;
 			ComputeChordLengthParams(P0, P1, IntermediatePoints, TValues);
 
 			// Solve for optimal tangents
@@ -236,16 +381,11 @@ namespace PCGExPaths
 			FitSegmentTangentsLS(P0, P1, IntermediatePoints, TValues, T0, T1);
 
 			// Store results
-			// TangentOut of current point, TangentIn of next point
 			SimplifiedPoints[i].TangentOut = T0;
 			SimplifiedPoints[NextIdx].TangentIn = T1;
 		}
 
-		// For points that now have both TangentIn and TangentOut set,
-		// we may want to average them or keep them separate for C1 vs G1 continuity
-
-		// For open paths, first point has no TangentIn from a previous segment
-		// and last point has no TangentOut to a next segment
+		// For open paths, endpoints need special handling
 		if (!bIsClosed)
 		{
 			SimplifiedPoints[0].TangentIn = SimplifiedPoints[0].TangentOut;
@@ -289,18 +429,17 @@ namespace PCGExPaths
 		const FVector& P0,
 		const FVector& P1,
 		const TArray<FVector>& IntermediatePoints,
-		TArray<float>& OutTValues)
+		TArray<double>& OutTValues)
 	{
 		OutTValues.Empty();
 
 		if (IntermediatePoints.Num() == 0)
 			return;
 
-		// Compute cumulative chord lengths
-		TArray<float> CumulativeLengths;
+		TArray<double> CumulativeLengths;
 		CumulativeLengths.Reserve(IntermediatePoints.Num() + 2);
 
-		float TotalLength = 0.0f;
+		double TotalLength = 0.0f;
 		FVector PrevPoint = P0;
 
 		CumulativeLengths.Add(0.0f);
@@ -314,21 +453,18 @@ namespace PCGExPaths
 
 		TotalLength += (P1 - PrevPoint).Size();
 
-		// Convert to t values
 		if (TotalLength > SMALL_NUMBER)
 		{
 			for (int32 i = 0; i < IntermediatePoints.Num(); ++i)
 			{
-				// CumulativeLengths[i+1] because [0] is P0's length (0)
 				OutTValues.Add(CumulativeLengths[i + 1] / TotalLength);
 			}
 		}
 		else
 		{
-			// Fallback to uniform
 			for (int32 i = 0; i < IntermediatePoints.Num(); ++i)
 			{
-				OutTValues.Add(static_cast<float>(i + 1) / static_cast<float>(IntermediatePoints.Num() + 1));
+				OutTValues.Add(static_cast<double>(i + 1) / static_cast<double>(IntermediatePoints.Num() + 1));
 			}
 		}
 	}
@@ -337,18 +473,17 @@ namespace PCGExPaths
 		const FVector& P0Pos,
 		const FVector& P1Pos,
 		const TArray<FVector>& IntermediatePoints,
-		const TArray<float>& TValues,
+		const TArray<double>& TValues,
 		FVector& OutT0,
 		FVector& OutT1)
 	{
 		const int32 N = IntermediatePoints.Num();
 		const FVector ChordDir = P1Pos - P0Pos;
-		const float ChordLength = ChordDir.Size();
+		const double ChordLength = ChordDir.Size();
 
-		// Fallback for no intermediate points: use chord-based tangents
+		// Fallback for no intermediate points
 		if (N == 0 || TValues.Num() != N)
 		{
-			// Catmull-Rom style: tangent magnitude equals chord length
 			FVector Dir = ChordDir.GetSafeNormal();
 			if (Dir.IsNearlyZero())
 			{
@@ -359,41 +494,19 @@ namespace PCGExPaths
 			return;
 		}
 
-		// For a single intermediate point, we can solve exactly
-		// For multiple points, we use least squares
-
-		// The cubic Hermite spline is:
-		// S(t) = H00(t)*P0 + H10(t)*T0 + H01(t)*P1 + H11(t)*T1
-		//
-		// We want: Qi ≈ S(ti) for each intermediate point Qi
-		//
-		// Rearranging: Qi - H00(ti)*P0 - H01(ti)*P1 = H10(ti)*T0 + H11(ti)*T1
-		// Let: Ri = Qi - H00(ti)*P0 - H01(ti)*P1
-		//
-		// Then for each component (x,y,z): Ri.c = H10(ti)*T0.c + H11(ti)*T1.c
-		//
-		// Matrix form: A * [T0.c, T1.c]^T = [R1.c, R2.c, ..., RN.c]^T
-		// where A[i] = [H10(ti), H11(ti)]
-		//
-		// Least squares solution: [T0.c, T1.c]^T = (A^T * A)^-1 * A^T * R
-
-		// Build A^T * A (2x2 matrix) and A^T * R (2x1 vector per component)
-		// A^T * A = [sum(H10*H10), sum(H10*H11)]
-		//           [sum(H10*H11), sum(H11*H11)]
-
+		// Build least-squares system
 		double AtA_00 = 0.0, AtA_01 = 0.0, AtA_11 = 0.0;
 		FVector AtR_0 = FVector::ZeroVector;
 		FVector AtR_1 = FVector::ZeroVector;
 
 		for (int32 i = 0; i < N; ++i)
 		{
-			const float t = TValues[i];
-			const float h10 = H10(t);
-			const float h11 = H11(t);
-			const float h00 = H00(t);
-			const float h01 = H01(t);
+			const double t = TValues[i];
+			const double h10 = H10(t);
+			const double h11 = H11(t);
+			const double h00 = H00(t);
+			const double h01 = H01(t);
 
-			// Residual: Ri = Qi - H00*P0 - H01*P1
 			const FVector Ri = IntermediatePoints[i] - h00 * P0Pos - h01 * P1Pos;
 
 			AtA_00 += h10 * h10;
@@ -404,14 +517,10 @@ namespace PCGExPaths
 			AtR_1 += h11 * Ri;
 		}
 
-		// Solve 2x2 system: [AtA_00, AtA_01] [T0]   [AtR_0]
-		//                   [AtA_01, AtA_11] [T1] = [AtR_1]
-
 		const double Det = AtA_00 * AtA_11 - AtA_01 * AtA_01;
 
 		if (FMath::Abs(Det) < SMALL_NUMBER)
 		{
-			// Singular matrix - fall back to chord-based tangents
 			FVector Dir = ChordDir.GetSafeNormal();
 			if (Dir.IsNearlyZero())
 			{
@@ -424,30 +533,22 @@ namespace PCGExPaths
 
 		const double InvDet = 1.0 / Det;
 
-		// Inverse of 2x2: [a b; c d]^-1 = (1/det) * [d -b; -c a]
-		// [AtA_00, AtA_01]^-1 = (1/det) * [AtA_11, -AtA_01]
-		// [AtA_01, AtA_11]             [-AtA_01, AtA_00]
-
 		OutT0 = (AtA_11 * AtR_0 - AtA_01 * AtR_1) * InvDet;
 		OutT1 = (-AtA_01 * AtR_0 + AtA_00 * AtR_1) * InvDet;
 
-		// Only clamp extreme magnitudes - don't mess with direction!
-		// The least-squares solution knows best about direction.
+		// Only clamp extreme magnitudes
+		const double MinMag = ChordLength * 0.05f;
+		const double MaxMag = ChordLength * 5.0f;
 
-		const float MinMag = ChordLength * 0.05f;
-		const float MaxMag = ChordLength * 5.0f;
-
-		float Mag0 = OutT0.Size();
-		float Mag1 = OutT1.Size();
+		double Mag0 = OutT0.Size();
+		double Mag1 = OutT1.Size();
 
 		if (Mag0 < SMALL_NUMBER)
 		{
-			// Degenerate - use chord direction
 			OutT0 = ChordDir.GetSafeNormal() * ChordLength;
 		}
 		else if (Mag0 < MinMag || Mag0 > MaxMag)
 		{
-			// Preserve direction, clamp magnitude
 			OutT0 = OutT0.GetSafeNormal() * FMath::Clamp(Mag0, MinMag, MaxMag);
 		}
 
@@ -464,7 +565,7 @@ namespace PCGExPaths
 	FVector FCurveSimplifier::EvaluateHermite(
 		const FVector& P0, const FVector& T0,
 		const FVector& P1, const FVector& T1,
-		float t)
+		double t)
 	{
 		return H00(t) * P0 + H10(t) * T0 + H01(t) * P1 + H11(t) * T1;
 	}

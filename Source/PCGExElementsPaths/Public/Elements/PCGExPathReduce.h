@@ -7,8 +7,8 @@
 #include "PCGExFilterCommon.h"
 #include "Factories/PCGExFactories.h"
 #include "Core/PCGExPathProcessor.h"
-#include "Details/PCGExSettingsMacros.h"
-#include "Math/PCGExMathMean.h"
+#include "Details/PCGExInputShorthandsDetails.h"
+#include "Helpers/PCGExPathSimplifier.h"
 
 #include "PCGExPathReduce.generated.h"
 
@@ -37,7 +37,6 @@ protected:
 	//~End UPCGSettings
 
 public:
-	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName ArriveName = "ArriveTangent";
 
@@ -46,6 +45,15 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double ErrorTolerance = 10;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="0", ClampMax="1"))
+	float TangentSmoothing = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::None;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExInputShorthandNameDouble Smoothing = FPCGExInputShorthandNameDouble(FName("Smoothing"), 0.5, false); 
 	
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
@@ -77,9 +85,10 @@ namespace PCGExPathReduce
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveWriter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveWriter;
-		
+		TSharedPtr<PCGExDetails::TSettingValue<double>> SmoothingGetter;
+
 		TArray<int8> Mask;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)

@@ -79,13 +79,37 @@ namespace PCGExPathReduce
 
 		for (int8& Pass : PointFilterCache) { Pass = !Pass; }
 
-		// Call the simplifier
-		TArray<PCGExPaths::FSimplifiedPoint> SimplifiedResult = PCGExPaths::FCurveSimplifier::SimplifyPolyline(
-			PointDataFacade->GetIn()->GetConstTransformValueRange(),
-			PointFilterCache,
-			Settings->ErrorTolerance,
-			bClosedLoop
-		);
+		SmoothingGetter = Settings->Smoothing.GetValueSetting();
+		if (!SmoothingGetter->Init(PointDataFacade, false)) { return false; }
+
+		TArray<PCGExPaths::FSimplifiedPoint> SimplifiedResult;
+
+		if (SmoothingGetter->IsConstant())
+		{
+			SimplifiedResult = PCGExPaths::FCurveSimplifier::SimplifyPolyline(
+				PointDataFacade->GetIn()->GetConstTransformValueRange(),
+				PointFilterCache,
+				Settings->ErrorTolerance,
+				bClosedLoop,
+				SmoothingGetter->Read(0),
+				Settings->SmoothingMode
+			);
+		}
+		else
+		{
+			TArray<double> SmoothingValues;
+			SmoothingValues.SetNumUninitialized(PointDataFacade->GetNum());
+			SmoothingGetter->ReadScope(0, SmoothingValues);
+			
+			SimplifiedResult = PCGExPaths::FCurveSimplifier::SimplifyPolyline(
+				PointDataFacade->GetIn()->GetConstTransformValueRange(),
+				PointFilterCache,
+				SmoothingValues,
+				Settings->ErrorTolerance,
+				bClosedLoop,
+				Settings->SmoothingMode
+			);
+		}
 
 		Mask.Init(true, PointDataFacade->GetNum());
 
