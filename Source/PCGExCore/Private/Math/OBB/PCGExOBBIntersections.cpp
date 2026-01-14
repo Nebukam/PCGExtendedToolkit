@@ -50,7 +50,10 @@ namespace PCGExMath::OBB
 		bOutInverseDir = false;
 
 		// Both inside - no surface intersection
-		if (bStartInside && bEndInside) return false;
+		if (bStartInside && bEndInside)
+		{
+			return false;
+		}
 
 		FVector HitLoc, HitNorm;
 		float HitTime;

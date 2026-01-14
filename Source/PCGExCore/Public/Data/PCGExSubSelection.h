@@ -153,7 +153,7 @@ namespace PCGExData
 
 			return Hash;
 		}
-		
+
 	protected:
 		void Init(const TArray<FString>& ExtraNames);
 

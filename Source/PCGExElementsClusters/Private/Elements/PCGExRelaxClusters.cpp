@@ -114,7 +114,7 @@ namespace PCGExRelaxClusters
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
-				
+
 		if (!RelaxOperation->PrepareForCluster(ExecutionContext, Cluster)) { return false; }
 
 		Iterations = Settings->Iterations;

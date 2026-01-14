@@ -30,7 +30,7 @@ namespace PCGExMT
 {
 	PCGEXCORE_API
 	int32 GetSanitizedBatchSize(const int32 NumIterations, const int32 DesiredBatchSize);
-	
+
 	PCGEXCORE_API
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 NumIterations, const int32 RangeSize);
 

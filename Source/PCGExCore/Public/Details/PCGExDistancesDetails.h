@@ -39,7 +39,7 @@ struct PCGEXCORE_API FPCGExDistanceDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistanceType Type = EPCGExDistanceType::Euclidian;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOverlapIsZero = true;
 

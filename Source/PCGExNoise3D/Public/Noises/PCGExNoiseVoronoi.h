@@ -24,7 +24,8 @@ struct FPCGExNoiseConfigVoronoi : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigVoronoi() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigVoronoi()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
 

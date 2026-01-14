@@ -67,19 +67,20 @@ bool FPCGExSubdivideElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         NewBatch->bRequiresWriteStep = true;
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}

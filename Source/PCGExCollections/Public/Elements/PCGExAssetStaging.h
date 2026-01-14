@@ -65,7 +65,7 @@ public:
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscAdd); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
-	
+
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
@@ -126,7 +126,7 @@ public:
 	 * This is most useful when using per-point collections and you want to stage only certain types of assets. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditions="bDoFilterEntryType"))
 	FPCGExStagedTypeFilterDetails EntryTypeFilter;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteEntryType = false;
@@ -134,7 +134,7 @@ public:
 	/** Name of the FName entry type will be written to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteEntryType"))
 	FName EntryTypeAttributeName = FName("EntryType");
-	
+
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;

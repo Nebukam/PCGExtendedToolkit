@@ -35,7 +35,8 @@ struct FPCGExNoiseConfigWorley : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigWorley() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigWorley()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
 

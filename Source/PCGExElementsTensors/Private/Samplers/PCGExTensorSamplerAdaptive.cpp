@@ -27,13 +27,19 @@ double UPCGExTensorSamplerAdaptive::EstimateCurvature(
 {
 	// Sample at current and slightly offset position to estimate direction change
 	const PCGExTensor::FTensorSample S1 = Super::RawSample(InTensors, InSeedIndex, InProbe);
-	if (S1.Effectors == 0) return 0;
+	if (S1.Effectors == 0)
+	{
+		return 0;
+	}
 
 	FTransform OffsetProbe = InProbe;
 	OffsetProbe.AddToTranslation(S1.DirectionAndSize.GetSafeNormal() * StepSize * 0.5);
 
 	const PCGExTensor::FTensorSample S2 = Super::RawSample(InTensors, InSeedIndex, OffsetProbe);
-	if (S2.Effectors == 0) return 0;
+	if (S2.Effectors == 0)
+	{
+		return 0;
+	}
 
 	// Curvature approximation: angle change per unit distance
 	const FVector D1 = S1.DirectionAndSize.GetSafeNormal();
@@ -80,7 +86,10 @@ PCGExTensor::FTensorSample UPCGExTensorSamplerAdaptive::Sample(
 	{
 		// RK4 for this sub-step
 		PCGExTensor::FTensorSample K1 = Super::RawSample(InTensors, InSeedIndex, CurrentProbe);
-		if (K1.Effectors == 0) break;
+		if (K1.Effectors == 0)
+		{
+			break;
+		}
 
 		PCGExTensor::FTensorSample K2 = Super::RawSample(InTensors, InSeedIndex, K1.GetTransformed(CurrentProbe, SubStepSize * 0.5));
 		PCGExTensor::FTensorSample K3 = Super::RawSample(InTensors, InSeedIndex, K2.GetTransformed(CurrentProbe, SubStepSize * 0.5));

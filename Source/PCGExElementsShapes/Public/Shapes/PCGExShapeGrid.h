@@ -29,21 +29,21 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 	/** How */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="X - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
 	EPCGExTruncateMode TruncateX = EPCGExTruncateMode::None;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="X - Clamp Count"))
 	FPCGExClampDetails AxisClampDetailsX;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Y - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
 	EPCGExTruncateMode TruncateY = EPCGExTruncateMode::None;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="Y - Clamp Count"))
 	FPCGExClampDetails AxisClampDetailsY;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Z - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
 	EPCGExTruncateMode TruncateZ = EPCGExTruncateMode::None;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="Z - Clamp Count"))
 	FPCGExClampDetails AxisClampDetailsZ;
 };

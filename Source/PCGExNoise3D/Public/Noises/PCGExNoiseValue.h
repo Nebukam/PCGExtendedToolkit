@@ -15,7 +15,8 @@ struct FPCGExNoiseConfigValue : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigValue() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigValue()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
 
@@ -27,7 +28,6 @@ struct FPCGExNoiseConfigValue : public FPCGExNoise3DConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0", ClampMax = "1.0"))
 	double Persistence = 0.5;
-
 };
 
 /**

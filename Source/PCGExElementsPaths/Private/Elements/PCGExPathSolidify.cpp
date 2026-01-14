@@ -97,13 +97,14 @@ bool FPCGExPathSolidifyElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				PCGEX_SKIP_INVALID_PATH_ENTRY
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}

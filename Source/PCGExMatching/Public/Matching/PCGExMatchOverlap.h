@@ -43,7 +43,6 @@ struct FPCGExMatchOverlapConfig : public FPCGExMatchRuleConfigBase
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ExpansionMode != EPCGExMatchOverlapExpansionMode::None"))
 	FPCGExInputShorthandNameVector Expansion = FPCGExInputShorthandNameVector(FName("@Data.Expansion"), FVector(0, 0, 0));
-
 };
 
 /**

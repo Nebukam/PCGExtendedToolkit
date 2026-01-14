@@ -7,16 +7,14 @@
 #include "Modules/ModuleManager.h"
 
 
-
 class FPCGExtendedToolkitModule final : public IModuleInterface
 {
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-	
+
 #if WITH_EDITOR
 	FDelegateHandle ModifyCookDelegateHandle;
 #endif
-	
 };

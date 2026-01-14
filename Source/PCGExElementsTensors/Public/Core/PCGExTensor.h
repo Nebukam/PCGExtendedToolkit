@@ -87,10 +87,10 @@ struct PCGEXELEMENTSTENSORS_API FPCGExTensorSamplingMutationsDetails
 	/** Local axis from input transform used to test if the sampled direction should be inverted */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName = " └─ Reference Axis", EditCondition="bBidirectional", EditConditionHides))
 	EPCGExAxis BidirectionalAxisReference = EPCGExAxis::Forward;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, InlineEditConditionToggle))
 	bool bScaleDirectionAndSize = false;
-	
+
 	/** If enabled, applies a scale factor to the direction and size. This is handy for "flattening" tensors (scale by 1,1,0) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bScaleDirectionAndSize"))
 	FVector Scale = FVector::OneVector;
@@ -261,7 +261,6 @@ namespace PCGExTensor
 		FORCEINLINE const FPackedEffector& GetPackedEffector(const int32 Index) const { return PackedEffectors[Index]; }
 		FORCEINLINE const FPackedEffector* GetPackedEffectorPtr(const int32 Index) const { return (PackedEffectors.GetData() + Index); }
 		FORCEINLINE const FQuat& GetRotation(const int32 Index) const { return Rotations[Index]; }
-
 	};
 
 	struct FTensorSample

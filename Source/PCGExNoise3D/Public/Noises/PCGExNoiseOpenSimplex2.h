@@ -14,10 +14,10 @@ namespace PCGExOpenSimplex2
 {
 	// OpenSimplex2 gradients (24 gradients on edges of a rhombic dodecahedron)
 	constexpr double STRETCH_3D = -0.1666666667; // -1.0 / 6.0;
-	constexpr double SQUISH_3D = 0.3333333333; // 1.0 / 3.0;
+	constexpr double SQUISH_3D = 0.3333333333;   // 1.0 / 3.0;
 	constexpr double NORM_3D = 103.0;
 
-	const int8 Gradients3D[] = {
+	constexpr int8 Gradients3D[] = {
 		-11, 4, 4, -4, 11, 4, -4, 4, 11,
 		11, 4, 4, 4, 11, 4, 4, 4, 11,
 		-11, -4, 4, -4, -11, 4, -4, -4, 11,

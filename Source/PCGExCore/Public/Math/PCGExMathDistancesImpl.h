@@ -148,12 +148,12 @@ namespace PCGExMath
 
 		FORCEINLINE static double GetDistSquaredStatic(const FVector& SourcePos, const FVector& TargetPos)
 		{
-			return FMath::Square(PCGExMath::DistanceManhattan(SourcePos, TargetPos));
+			return FMath::Square(DistanceManhattan(SourcePos, TargetPos));
 		}
 
 		FORCEINLINE static double GetDistStatic(const FVector& SourcePos, const FVector& TargetPos)
 		{
-			return PCGExMath::DistanceManhattan(SourcePos, TargetPos);
+			return DistanceManhattan(SourcePos, TargetPos);
 		}
 	};
 
@@ -176,12 +176,12 @@ namespace PCGExMath
 
 		FORCEINLINE static double GetDistSquaredStatic(const FVector& SourcePos, const FVector& TargetPos)
 		{
-			return FMath::Square(PCGExMath::DistanceChebyshev(SourcePos, TargetPos));
+			return FMath::Square(DistanceChebyshev(SourcePos, TargetPos));
 		}
 
 		FORCEINLINE static double GetDistStatic(const FVector& SourcePos, const FVector& TargetPos)
 		{
-			return PCGExMath::DistanceChebyshev(SourcePos, TargetPos);
+			return DistanceChebyshev(SourcePos, TargetPos);
 		}
 	};
 }

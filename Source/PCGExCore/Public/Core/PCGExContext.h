@@ -65,7 +65,7 @@ public:
 
 	int32 GetLoopIndex() const { return LoopIndex; }
 	bool IsExecutingInsideLoop() const { return TopLoopIndex != INDEX_NONE; }
-	
+
 	// TODO : bool toggle for hoarder execution 
 
 	bool bScopedAttributeGet = false;
@@ -177,7 +177,7 @@ public:
 	bool bQuietMissingAttributeError = false;
 	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;
-	
+
 	TSharedPtr<PCGExData::IBufferProxyPool> BufferProxyPool;
 
 	virtual bool CancelExecution(const FString& InReason = FString());

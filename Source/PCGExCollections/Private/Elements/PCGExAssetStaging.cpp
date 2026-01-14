@@ -203,10 +203,12 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		}
 		else
 		{
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
-			}))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+					NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
+				}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to process."));
 			}
@@ -226,10 +228,12 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 			Pair.Value->LoadCache();
 		}
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-			NewBatch->bSkipCompletion = true;
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}

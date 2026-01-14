@@ -283,7 +283,7 @@ namespace PCGExGraphs
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(CreateEdgeData)
-			
+
 			for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 			{
 				const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];

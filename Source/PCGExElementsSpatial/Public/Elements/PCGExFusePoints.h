@@ -13,7 +13,6 @@
 #include "Details/PCGExIntersectionDetails.h"
 
 
-
 #include "PCGExFusePoints.generated.h"
 
 namespace PCGExGraphs

@@ -5,11 +5,8 @@
 
 #include "CoreMinimal.h"
 
-namespace PCGExClipper2
+namespace PCGExClipper2::Labels
 {
-	namespace Labels
-	{
-		const FName SourceOperandsLabel = FName("Operands");
-		const FName SourceOperandsMatchRulesLabel = TEXT("Match Rules (Ops)");
-	}
+	const FName SourceOperandsLabel = FName("Operands");
+	const FName SourceOperandsMatchRulesLabel = TEXT("Match Rules (Ops)");
 }

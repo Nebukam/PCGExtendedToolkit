@@ -388,7 +388,7 @@ namespace PCGExPathfindingPlotEdges
 
 		VtxDataForwardHandler = Context->VtxDataForwarding.TryGetHandler(VtxDataFacade, false);
 
-		if (PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true); 
+		if (PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true);
 			Context->bMatchForVtx && !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source->GetTaggedData(), MatchingScope, IgnoreList))
 		{
 			bUnmatched = true;

@@ -31,7 +31,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 
 	if (!Group->IsValid()) { return; }
 
-	const double Scale = static_cast<double>(Settings->Precision);
+	const double Scale = Settings->Precision;
 	const PCGExClipper2Lib::JoinType JoinType = PCGExClipper2::ConvertJoinType(Settings->JoinType);
 	const PCGExClipper2Lib::EndType EndTypeClosed = PCGExClipper2::ConvertEndType(Settings->EndTypeClosed);
 	const PCGExClipper2Lib::EndType EndTypeOpen = PCGExClipper2::ConvertEndType(Settings->EndTypeOpen);
@@ -39,7 +39,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 	if (Group->SubjectPaths.empty() && Group->OpenSubjectPaths.empty()) { return; }
 
 	int32 NumIterations = 1;
-	const double DefaultOffset = 10;
+	constexpr double DefaultOffset = 10;
 
 	// Read values from subjects (take max iterations across all)
 	switch (Settings->IterationConsolidation)
@@ -108,7 +108,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 	// Process iterations
 	for (int32 Iteration = 0; Iteration < NumIterations; Iteration++)
 	{
-		const double IterationMultiplier = static_cast<double>(Iteration + 1);
+		const double IterationMultiplier = Iteration + 1;
 
 		// Generate positive offset
 		{

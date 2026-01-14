@@ -66,7 +66,7 @@ void FPCGExTopologyUVDetails::RegisterBuffersDependencies(FPCGExContext* InConte
 	}
 }
 
-void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, UE::Geometry::FDynamicMesh3& InMesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, FDynamicMesh3& InMesh) const
 {
 	if (!NumChannels) { return; }
 
@@ -93,7 +93,7 @@ void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, UE::Geomet
 	}
 }
 
-void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, UE::Geometry::FDynamicMesh3& InMesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, FDynamicMesh3& InMesh) const
 {
 	if (!NumChannels) { return; }
 
@@ -125,84 +125,84 @@ void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArr
 }
 
 void FPCGExTopologyUVDetails::Write(
-    const TArray<int32>& TriangleIDs,
-    const TArray<int32>& VertexIDs,
-    const TArray<int32>& SourceDataIndices,
-    const TArray<int32>& SourcePointIndices,
-    const TArray<TSharedPtr<PCGExData::FFacade>>& Facades,
-    UE::Geometry::FDynamicMesh3& InMesh) const
+	const TArray<int32>& TriangleIDs,
+	const TArray<int32>& VertexIDs,
+	const TArray<int32>& SourceDataIndices,
+	const TArray<int32>& SourcePointIndices,
+	const TArray<TSharedPtr<PCGExData::FFacade>>& Facades,
+	FDynamicMesh3& InMesh) const
 {
-    if (UVs.IsEmpty()) { return; }
+	if (UVs.IsEmpty()) { return; }
 
-    const int32 VtxCount = InMesh.MaxVertexID();
-    const int32 NumFacades = Facades.Num();
+	const int32 VtxCount = InMesh.MaxVertexID();
+	const int32 NumFacades = Facades.Num();
 
-    // Build UV buffers per facade per channel
-    TSet<int32> ExistingChannels;
-    TArray<int32> ActiveChannelIndices;
-    TMap<int32, TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>>> PerFacadeBuffers; // ChannelIndex -> [FacadeIndex -> Buffer]
+	// Build UV buffers per facade per channel
+	TSet<int32> ExistingChannels;
+	TArray<int32> ActiveChannelIndices;
+	TMap<int32, TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>>> PerFacadeBuffers; // ChannelIndex -> [FacadeIndex -> Buffer]
 
-    for (const FPCGExUVInputDetails& Channel : UVs)
-    {
-        if (!Channel.bEnabled || Channel.AttributeName.IsNone()) { continue; }
+	for (const FPCGExUVInputDetails& Channel : UVs)
+	{
+		if (!Channel.bEnabled || Channel.AttributeName.IsNone()) { continue; }
 
-        bool bIsAlreadySet = false;
-        ExistingChannels.Add(Channel.Channel, &bIsAlreadySet);
-        if (bIsAlreadySet) { continue; }
+		bool bIsAlreadySet = false;
+		ExistingChannels.Add(Channel.Channel, &bIsAlreadySet);
+		if (bIsAlreadySet) { continue; }
 
-        TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>>& FacadeBuffers = PerFacadeBuffers.FindOrAdd(Channel.Channel);
-        FacadeBuffers.SetNum(NumFacades);
+		TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>>& FacadeBuffers = PerFacadeBuffers.FindOrAdd(Channel.Channel);
+		FacadeBuffers.SetNum(NumFacades);
 
-        bool bHasAnyBuffer = false;
-        for (int32 FacadeIdx = 0; FacadeIdx < NumFacades; ++FacadeIdx)
-        {
-            if (const TSharedPtr<PCGExData::FFacade>& Facade = Facades[FacadeIdx])
-            {
-                FacadeBuffers[FacadeIdx] = Facade->GetBroadcaster<FVector2D>(Channel.AttributeName, true);
-                if (FacadeBuffers[FacadeIdx]) { bHasAnyBuffer = true; }
-            }
-        }
+		bool bHasAnyBuffer = false;
+		for (int32 FacadeIdx = 0; FacadeIdx < NumFacades; ++FacadeIdx)
+		{
+			if (const TSharedPtr<PCGExData::FFacade>& Facade = Facades[FacadeIdx])
+			{
+				FacadeBuffers[FacadeIdx] = Facade->GetBroadcaster<FVector2D>(Channel.AttributeName, true);
+				if (FacadeBuffers[FacadeIdx]) { bHasAnyBuffer = true; }
+			}
+		}
 
-        if (bHasAnyBuffer) { ActiveChannelIndices.Add(Channel.Channel); }
-    }
+		if (bHasAnyBuffer) { ActiveChannelIndices.Add(Channel.Channel); }
+	}
 
-    if (ActiveChannelIndices.IsEmpty()) { return; }
+	if (ActiveChannelIndices.IsEmpty()) { return; }
 
-    // Find max channel index for layer count
-    int32 MaxChannel = 0;
-    for (const int32 Ch : ActiveChannelIndices) { MaxChannel = FMath::Max(MaxChannel, Ch + 1); }
-    InMesh.Attributes()->SetNumUVLayers(MaxChannel);
+	// Find max channel index for layer count
+	int32 MaxChannel = 0;
+	for (const int32 Ch : ActiveChannelIndices) { MaxChannel = FMath::Max(MaxChannel, Ch + 1); }
+	InMesh.Attributes()->SetNumUVLayers(MaxChannel);
 
-    TArray<int32> ElemIDs;
-    ElemIDs.SetNum(VtxCount);
+	TArray<int32> ElemIDs;
+	ElemIDs.SetNum(VtxCount);
 
-    for (const int32 ChannelIndex : ActiveChannelIndices)
-    {
-        const TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>>& FacadeBuffers = PerFacadeBuffers[ChannelIndex];
-        UE::Geometry::FDynamicMeshUVOverlay* UV = InMesh.Attributes()->GetUVLayer(ChannelIndex);
+	for (const int32 ChannelIndex : ActiveChannelIndices)
+	{
+		const TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>>& FacadeBuffers = PerFacadeBuffers[ChannelIndex];
+		UE::Geometry::FDynamicMeshUVOverlay* UV = InMesh.Attributes()->GetUVLayer(ChannelIndex);
 
-        for (int32 i = 0; i < VtxCount; ++i)
-        {
-            FVector2D UVValue = FVector2D::ZeroVector;
+		for (int32 i = 0; i < VtxCount; ++i)
+		{
+			FVector2D UVValue = FVector2D::ZeroVector;
 
-            const int32 SrcDataIdx = SourceDataIndices[i];
-            const int32 SrcPtIdx = SourcePointIndices[i];
+			const int32 SrcDataIdx = SourceDataIndices[i];
+			const int32 SrcPtIdx = SourcePointIndices[i];
 
-            if (SrcDataIdx >= 0 && SrcDataIdx < NumFacades && SrcPtIdx >= 0)
-            {
-                if (const TSharedPtr<PCGExData::TBuffer<FVector2D>>& Buffer = FacadeBuffers[SrcDataIdx])
-                {
-                    UVValue = Buffer->Read(SrcPtIdx);
-                }
-            }
+			if (SrcDataIdx >= 0 && SrcDataIdx < NumFacades && SrcPtIdx >= 0)
+			{
+				if (const TSharedPtr<PCGExData::TBuffer<FVector2D>>& Buffer = FacadeBuffers[SrcDataIdx])
+				{
+					UVValue = Buffer->Read(SrcPtIdx);
+				}
+			}
 
-            ElemIDs[i] = UV->AppendElement(FVector2f(UVValue));
-        }
+			ElemIDs[i] = UV->AppendElement(FVector2f(UVValue));
+		}
 
-        for (const int32 TriangleID : TriangleIDs)
-        {
-            const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-            UV->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
-        }
-    }
+		for (const int32 TriangleID : TriangleIDs)
+		{
+			const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+			UV->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+		}
+	}
 }

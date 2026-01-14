@@ -36,7 +36,7 @@ struct PCGEXELEMENTSTENSORS_API FPCGExTensorSamplerDetails
 	 * NOTE : Whether it has any effect depends on the selected sampler. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Radius = 1;
-	
+
 	/** Minimum step size as fraction of base radius 
 	 * NOTE : Whether it has any effect depends on the selected sampler. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.01, ClampMax=1.0))

@@ -23,22 +23,22 @@ double FPCGExNoiseMarble::BaseNoise(const FVector& Position) const
 
 	const int32 X0S = (X0 + Seed) & 255;
 
-	const int32 AAA = Hash3D(X0S,     Y0,     Z0);
-	const int32 ABA = Hash3D(X0S,     Y0 + 1, Z0);
-	const int32 AAB = Hash3D(X0S,     Y0,     Z0 + 1);
-	const int32 ABB = Hash3D(X0S,     Y0 + 1, Z0 + 1);
-	const int32 BAA = Hash3D(X0S + 1, Y0,     Z0);
+	const int32 AAA = Hash3D(X0S, Y0, Z0);
+	const int32 ABA = Hash3D(X0S, Y0 + 1, Z0);
+	const int32 AAB = Hash3D(X0S, Y0, Z0 + 1);
+	const int32 ABB = Hash3D(X0S, Y0 + 1, Z0 + 1);
+	const int32 BAA = Hash3D(X0S + 1, Y0, Z0);
 	const int32 BBA = Hash3D(X0S + 1, Y0 + 1, Z0);
-	const int32 BAB = Hash3D(X0S + 1, Y0,     Z0 + 1);
+	const int32 BAB = Hash3D(X0S + 1, Y0, Z0 + 1);
 	const int32 BBB = Hash3D(X0S + 1, Y0 + 1, Z0 + 1);
 
-	const double G_AAA = GradDot3(AAA, Xf,       Yf,       Zf);
-	const double G_BAA = GradDot3(BAA, Xf - 1.0, Yf,       Zf);
-	const double G_ABA = GradDot3(ABA, Xf,       Yf - 1.0, Zf);
+	const double G_AAA = GradDot3(AAA, Xf, Yf, Zf);
+	const double G_BAA = GradDot3(BAA, Xf - 1.0, Yf, Zf);
+	const double G_ABA = GradDot3(ABA, Xf, Yf - 1.0, Zf);
 	const double G_BBA = GradDot3(BBA, Xf - 1.0, Yf - 1.0, Zf);
-	const double G_AAB = GradDot3(AAB, Xf,       Yf,       Zf - 1.0);
-	const double G_BAB = GradDot3(BAB, Xf - 1.0, Yf,       Zf - 1.0);
-	const double G_ABB = GradDot3(ABB, Xf,       Yf - 1.0, Zf - 1.0);
+	const double G_AAB = GradDot3(AAB, Xf, Yf, Zf - 1.0);
+	const double G_BAB = GradDot3(BAB, Xf - 1.0, Yf, Zf - 1.0);
+	const double G_ABB = GradDot3(ABB, Xf, Yf - 1.0, Zf - 1.0);
 	const double G_BBB = GradDot3(BBB, Xf - 1.0, Yf - 1.0, Zf - 1.0);
 
 	const double X00 = Lerp(G_AAA, G_BAA, U);

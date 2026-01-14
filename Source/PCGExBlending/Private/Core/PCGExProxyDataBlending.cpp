@@ -221,7 +221,7 @@ namespace PCGExBlending
 		const PCGExData::EProxyFlags InProxyFlags)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FProxyDataBlender::InitFromParam)
-		
+
 		// Setup proxy descriptors
 		PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade, PCGExData::EProxyRole::Read);
 		PCGExData::FProxyDescriptor Desc_B = PCGExData::FProxyDescriptor(InTargetFacade, PCGExData::EProxyRole::Read);

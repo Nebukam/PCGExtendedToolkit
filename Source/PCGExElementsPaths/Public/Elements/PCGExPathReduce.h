@@ -64,8 +64,6 @@ public:
 	FPCGExInputShorthandNameDouble01 Smoothing = FPCGExInputShorthandNameDouble01(FName("Smoothing"), 1.0, false);
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-
-public:
 };
 
 struct FPCGExPathReduceContext final : FPCGExPathProcessorContext

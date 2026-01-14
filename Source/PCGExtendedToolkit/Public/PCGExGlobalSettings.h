@@ -44,7 +44,7 @@ public:
 	/** Value applied by default to node bulk init data when `Default` is selected. */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bBulkInitData = false;
-	
+
 	/**  */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
@@ -293,7 +293,7 @@ public:
 	/** Color associated with partition rules subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
 	FLinearColor ColorPartitionRule = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);
-	
+
 	/** Color associated with noise subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
 	FLinearColor ColorNoise3D = FLinearColor(1.000000, 0.191, 0.0, 1.000000);

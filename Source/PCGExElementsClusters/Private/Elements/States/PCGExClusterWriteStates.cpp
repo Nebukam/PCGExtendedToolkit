@@ -51,7 +51,6 @@ bool FPCGExFlagNodesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
-			
 		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));

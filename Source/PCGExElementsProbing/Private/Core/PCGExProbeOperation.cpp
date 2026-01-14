@@ -58,7 +58,6 @@ void FPCGExProbeOperation::ProcessNode(const int32 Index, TSet<uint64>* Coincide
 
 void FPCGExProbeOperation::ProcessAll(TSet<uint64>& OutEdges) const
 {
-	
 }
 
 double FPCGExProbeOperation::GetSearchRadius(const int32 Index) const

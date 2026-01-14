@@ -46,7 +46,7 @@ namespace PCGExDetails
 		FORCEINLINE virtual bool IsConstant() { return false; }
 		FORCEINLINE virtual T Read(const int32 Index) = 0;
 		virtual void ReadScope(const int32 Start, TArrayView<T> OutResults) = 0;
-		
+
 		FORCEINLINE virtual T Min() = 0;
 		FORCEINLINE virtual T Max() = 0;
 		FORCEINLINE virtual uint32 ReadValueHash(const int32 Index) = 0;
@@ -69,7 +69,7 @@ namespace PCGExDetails
 
 		virtual T Read(const int32 Index) override;
 		virtual void ReadScope(const int32 Start, TArrayView<T> OutResults) override;
-		
+
 		virtual T Min() override;
 		virtual T Max() override;
 		virtual uint32 ReadValueHash(const int32 Index) override;
@@ -79,6 +79,7 @@ namespace PCGExDetails
 	class TSettingValueSelector final : public TSettingValueBuffer<T>
 	{
 		using TSettingValueBuffer<T>::Buffer;
+
 	protected:
 		FPCGAttributePropertyInputSelector Selector;
 
@@ -89,7 +90,6 @@ namespace PCGExDetails
 		}
 
 		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override;
-
 	};
 
 	template <typename T>
@@ -111,7 +111,7 @@ namespace PCGExDetails
 
 		FORCEINLINE virtual T Read(const int32 Index) override { return Constant; }
 		virtual void ReadScope(const int32 Start, TArrayView<T> OutResults) override;
-		
+
 		FORCEINLINE virtual T Min() override { return Constant; }
 		FORCEINLINE virtual T Max() override { return Constant; }
 		virtual uint32 ReadValueHash(const int32 Index) override;

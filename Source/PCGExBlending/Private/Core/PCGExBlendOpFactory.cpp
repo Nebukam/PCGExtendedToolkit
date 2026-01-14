@@ -247,7 +247,7 @@ void FPCGExBlendOperation::BlendScope(const PCGExMT::FScope& Scope, TArrayView<c
 	Weights.SetNumUninitialized(Scope.Count);
 	Weight->ReadScope(Scope.Start, Weights);
 	Config.Weighting.ScoreLUT->EvalInPlace(Weights);
-	
+
 	Blender->BlendScope(Scope, Mask, Weights);
 }
 

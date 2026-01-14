@@ -59,7 +59,7 @@ namespace PCGExBlending
 		void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex) const;
 		virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight) const override;
 		virtual void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double InWeight) const override;
-		
+
 		void BlendAutoWeight(const PCGExMT::FScope& Scope) const;
 		void BlendAutoWeight(const PCGExMT::FScope& Scope, TArrayView<const int8> Mask) const;
 

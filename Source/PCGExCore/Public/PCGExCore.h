@@ -8,7 +8,6 @@
 #include "Modules/ModuleManager.h"
 
 
-
 class FPCGExCoreModule final : public IPCGExLegacyModuleInterface
 {
 	PCGEX_MODULE_BODY

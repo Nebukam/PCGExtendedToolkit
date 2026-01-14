@@ -100,7 +100,7 @@ public:
 	/** Distance type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	EPCGExDistanceType DistanceType = EPCGExDistanceType::Euclidian;
-	
+
 #pragma region Sampling Range
 
 	/** Type of Range Min */

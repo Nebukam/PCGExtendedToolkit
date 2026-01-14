@@ -57,7 +57,7 @@ namespace PCGExMath::OBB
 	void FCollection::BuildFrom(const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExPointBoundsSource BoundsSource)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMath::OBB::FCollection::BuildFrom);
-		
+
 		const int32 NumPoints = InIO->GetNum();
 		Reserve(NumPoints);
 
@@ -72,7 +72,10 @@ namespace PCGExMath::OBB
 
 	bool FCollection::IsPointInside(const FVector& Point, const EPCGExBoxCheckMode Mode, const float Expansion) const
 	{
-		if (!Octree) return false;
+		if (!Octree)
+		{
+			return false;
+		}
 
 		const FBoxCenterAndExtent QueryBounds(Point, FVector4(Expansion, Expansion, Expansion, Expansion));
 
@@ -92,7 +95,10 @@ namespace PCGExMath::OBB
 
 	bool FCollection::IsPointInside(const FVector& Point, int32& OutIndex, EPCGExBoxCheckMode Mode, float Expansion) const
 	{
-		if (!Octree) return false;
+		if (!Octree)
+		{
+			return false;
+		}
 
 		const FBoxCenterAndExtent QueryBounds(Point, FVector4(Expansion, Expansion, Expansion, Expansion));
 
@@ -113,7 +119,10 @@ namespace PCGExMath::OBB
 
 	void FCollection::FindContaining(const FVector& Point, TArray<int32>& OutIndices, EPCGExBoxCheckMode Mode, float Expansion) const
 	{
-		if (!Octree) return;
+		if (!Octree)
+		{
+			return;
+		}
 
 		const FBoxCenterAndExtent QueryBounds(Point, FVector4(Expansion, Expansion, Expansion, Expansion));
 
@@ -128,7 +137,10 @@ namespace PCGExMath::OBB
 
 	bool FCollection::Overlaps(const FOBB& Query, EPCGExBoxCheckMode Mode, float Expansion) const
 	{
-		if (!Octree) return false;
+		if (!Octree)
+		{
+			return false;
+		}
 
 		const float R = Query.Bounds.Radius + Expansion;
 		const FBoxCenterAndExtent QueryBounds(Query.Bounds.Origin, FVector4(R, R, R, R));
@@ -149,7 +161,10 @@ namespace PCGExMath::OBB
 
 	bool FCollection::FindFirstOverlap(const FOBB& Query, int32& OutIndex, EPCGExBoxCheckMode Mode, float Expansion) const
 	{
-		if (!Octree) return false;
+		if (!Octree)
+		{
+			return false;
+		}
 
 		const float R = Query.Bounds.Radius + Expansion;
 		const FBoxCenterAndExtent QueryBounds(Query.Bounds.Origin, FVector4(R, R, R, R));
@@ -171,7 +186,10 @@ namespace PCGExMath::OBB
 
 	void FCollection::FindAllOverlaps(const FOBB& Query, TArray<int32>& OutIndices, EPCGExBoxCheckMode Mode, float Expansion) const
 	{
-		if (!Octree) return;
+		if (!Octree)
+		{
+			return;
+		}
 
 		const float R = Query.Bounds.Radius + Expansion;
 		const FBoxCenterAndExtent QueryBounds(Query.Bounds.Origin, FVector4(R, R, R, R));
@@ -187,7 +205,10 @@ namespace PCGExMath::OBB
 
 	bool FCollection::FindIntersections(FIntersections& IO) const
 	{
-		if (!Octree) return false;
+		if (!Octree)
+		{
+			return false;
+		}
 
 		const FBoxCenterAndExtent QueryBounds = IO.GetBounds();
 
@@ -201,7 +222,10 @@ namespace PCGExMath::OBB
 
 	bool FCollection::SegmentIntersectsAny(const FVector& Start, const FVector& End) const
 	{
-		if (!Octree) return false;
+		if (!Octree)
+		{
+			return false;
+		}
 
 		FBox SegBox(ForceInit);
 		SegBox += Start;

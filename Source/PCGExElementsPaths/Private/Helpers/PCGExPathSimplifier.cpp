@@ -78,7 +78,9 @@ namespace PCGExPaths
 		EPCGExTangentSmoothing SmoothingMode)
 	{
 		if (InPoints.Num() != InKeepFlags.Num() || InPoints.Num() < 2)
+		{
 			return {};
+		}
 
 		TArray<int32> SelectedIndices;
 		for (int32 i = 0; i < InKeepFlags.Num(); ++i)
@@ -104,7 +106,9 @@ namespace PCGExPaths
 		EPCGExTangentSmoothing SmoothingMode)
 	{
 		if (InPoints.Num() != InKeepFlags.Num() || InPoints.Num() < 2)
+		{
 			return {};
+		}
 
 		TArray<int32> SelectedIndices;
 		for (int32 i = 0; i < InKeepFlags.Num(); ++i)
@@ -153,11 +157,15 @@ namespace PCGExPaths
 		EPCGExTangentSmoothing SmoothingMode)
 	{
 		if (InPoints.Num() < 2 || InPoints.Num() != InRemovableFlags.Num())
+		{
 			return {};
+		}
 
 		const bool bHasPerPointSmoothing = InSmoothingValues.Num() > 0;
 		if (bHasPerPointSmoothing && InSmoothingValues.Num() != InPoints.Num())
+		{
 			return {};
+		}
 
 		TArray<int32> SelectedIndices = SimplifyWithDP(InPoints, InRemovableFlags, MaxError, bIsClosed);
 
@@ -176,11 +184,15 @@ namespace PCGExPaths
 		EPCGExTangentSmoothing SmoothingMode)
 	{
 		if (InPoints.Num() < 2)
+		{
 			return {};
+		}
 
 		const bool bHasPerPointSmoothing = InSmoothingValues.Num() > 0;
 		if (bHasPerPointSmoothing && InSmoothingValues.Num() != InPoints.Num())
+		{
 			return {};
+		}
 
 		// Clean up indices: validate, dedupe, and sort
 		TArray<int32> CleanIndices;
@@ -195,7 +207,9 @@ namespace PCGExPaths
 		CleanIndices.Sort();
 
 		if (CleanIndices.Num() < 2)
+		{
 			return {};
+		}
 
 		TArray<FSimplifiedPoint> Result;
 		Result.Reserve(CleanIndices.Num());
@@ -229,7 +243,9 @@ namespace PCGExPaths
 		if (Points.Num() < 3)
 		{
 			for (int32 i = 0; i < Points.Num(); ++i)
+			{
 				ResultIndices.Add(i);
+			}
 			return ResultIndices;
 		}
 
@@ -276,7 +292,9 @@ namespace PCGExPaths
 		bool bIsClosed)
 	{
 		if (EndIndex - StartIndex <= 1)
+		{
 			return;
+		}
 
 		double MaxDistance = 0.0;
 		int32 MaxIndex = -1;
@@ -287,7 +305,9 @@ namespace PCGExPaths
 		for (int32 i = StartIndex + 1; i < EndIndex; ++i)
 		{
 			if (!RemovableFlags[i])
+			{
 				continue;
+			}
 
 			FVector CurrentPoint = Points[i].GetLocation();
 			double Distance = PointToLineDistance(CurrentPoint, StartPoint, EndPoint);
@@ -313,7 +333,9 @@ namespace PCGExPaths
 		double LineLength = LineDirection.Size();
 
 		if (FMath::IsNearlyZero(LineLength))
+		{
 			return (Point - LineStart).Size();
+		}
 
 		FVector NormalizedLine = LineDirection.GetSafeNormal();
 		FVector VectorToPoint = Point - LineStart;
@@ -333,7 +355,9 @@ namespace PCGExPaths
 	{
 		const int32 NumSimplified = SimplifiedPoints.Num();
 		if (NumSimplified < 2)
+		{
 			return;
+		}
 
 		const int32 NumOriginal = OriginalPoints.Num();
 		const int32 NumSegments = bIsClosed ? NumSimplified : (NumSimplified - 1);
@@ -388,17 +412,14 @@ namespace PCGExPaths
 					SimplifiedPoints[0].TangentIn = SimplifiedPoints[0].TangentOut;
 					continue;
 				}
-				else if (i == NumSimplified - 1)
+				if (i == NumSimplified - 1)
 				{
 					// Last point only has incoming segment
 					SimplifiedPoints[i].TangentOut = SimplifiedPoints[i].TangentIn;
 					continue;
 				}
-				else
-				{
-					PrevSegIdx = i - 1;
-					NextSegIdx = i;
-				}
+				PrevSegIdx = i - 1;
+				NextSegIdx = i;
 			}
 
 			const bool bPrevHas = SegmentHasIntermediates[PrevSegIdx];
@@ -476,13 +497,19 @@ namespace PCGExPaths
 		const double MagOut = TangentOut.Size();
 
 		if (MagIn < SMALL_NUMBER && MagOut < SMALL_NUMBER)
+		{
 			return FVector::ForwardVector;
+		}
 
 		if (MagIn < SMALL_NUMBER)
+		{
 			return TangentOut.GetSafeNormal();
+		}
 
 		if (MagOut < SMALL_NUMBER)
+		{
 			return TangentIn.GetSafeNormal();
+		}
 
 		const FVector DirIn = TangentIn / MagIn;
 		const FVector DirOut = TangentOut / MagOut;
@@ -519,7 +546,9 @@ namespace PCGExPaths
 	{
 		const int32 NumPoints = SimplifiedPoints.Num();
 		if (NumPoints < 2)
+		{
 			return;
+		}
 
 		const int32 NumOriginal = OriginalPoints.Num();
 		const bool bHasPerPointSmoothing = InSmoothingValues.Num() > 0;
@@ -625,7 +654,9 @@ namespace PCGExPaths
 			const double EffectiveSmoothing = EffectiveSmoothingValues[i];
 
 			if (EffectiveSmoothing <= SMALL_NUMBER)
+			{
 				continue;
+			}
 
 			if (SmoothingMode == EPCGExTangentSmoothing::Full)
 			{
@@ -658,8 +689,14 @@ namespace PCGExPaths
 				double MagIn = MagnitudesIn[i];
 				double MagOut = MagnitudesOut[i];
 
-				if (MagIn < SMALL_NUMBER) MagIn = SimplifiedPoints[i].TangentIn.Size();
-				if (MagOut < SMALL_NUMBER) MagOut = SimplifiedPoints[i].TangentOut.Size();
+				if (MagIn < SMALL_NUMBER)
+				{
+					MagIn = SimplifiedPoints[i].TangentIn.Size();
+				}
+				if (MagOut < SMALL_NUMBER)
+				{
+					MagOut = SimplifiedPoints[i].TangentOut.Size();
+				}
 
 				const FVector SmoothedIn = SmoothedDirections[i] * MagIn;
 				const FVector SmoothedOut = SmoothedDirections[i] * MagOut;
@@ -858,7 +895,9 @@ namespace PCGExPaths
 		OutTValues.Empty();
 
 		if (IntermediatePoints.Num() == 0)
+		{
 			return;
+		}
 
 		TArray<double> CumulativeLengths;
 		CumulativeLengths.Reserve(IntermediatePoints.Num() + 2);

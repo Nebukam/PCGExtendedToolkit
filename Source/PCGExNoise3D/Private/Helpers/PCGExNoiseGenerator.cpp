@@ -49,7 +49,7 @@ namespace PCGExNoise3D
 
 	bool FNoiseGenerator::Init(FPCGExContext* InContext, const bool bThrowError)
 	{
-		return Init(InContext, PCGExNoise3D::Labels::SourceNoise3DLabel, bThrowError);
+		return Init(InContext, Labels::SourceNoise3DLabel, bThrowError);
 	}
 
 	//

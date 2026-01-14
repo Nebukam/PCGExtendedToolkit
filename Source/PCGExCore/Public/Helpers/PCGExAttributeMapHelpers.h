@@ -95,7 +95,7 @@ namespace PCGExAttributeMapHelpers
 
 			for (FPCGMetadataAttributeBase* Candidate : Infos->Attributes)
 			{
-				if (!Candidate){ continue; }
+				if (!Candidate) { continue; }
 
 				if (!KeyCandidate && Candidate->GetTypeId() == KeyType)
 				{

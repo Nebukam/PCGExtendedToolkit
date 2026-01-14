@@ -132,8 +132,8 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 		PCGExClipper2Lib::TriangulateWithHoles(
 			CombinedPaths,
 			TrianglePaths,
-			PCGExClipper2::ConvertFillRule(Settings->FillRule),    // or NonZero
-			Settings->bUseDelaunay // useDelaunay
+			PCGExClipper2::ConvertFillRule(Settings->FillRule), // or NonZero
+			Settings->bUseDelaunay                              // useDelaunay
 		);
 
 	if (Result != PCGExClipper2Lib::TriangulateResult::success)
@@ -236,7 +236,7 @@ void FPCGExClipper2TriangulateContext::BuildMesh()
 	ColorElemIDs.SetNum(NumVertices);
 	TriangleIDs.Reserve(NumTriangles);
 
-	Mesh->EditMesh([&](UE::Geometry::FDynamicMesh3& InMesh)
+	Mesh->EditMesh([&](FDynamicMesh3& InMesh)
 	{
 		// Enable attributes
 		InMesh.EnableAttributes();

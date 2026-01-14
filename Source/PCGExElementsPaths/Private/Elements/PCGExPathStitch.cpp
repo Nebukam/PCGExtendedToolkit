@@ -64,7 +64,7 @@ bool FPCGExPathStitchElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
-				
+
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;

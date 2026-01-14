@@ -30,7 +30,7 @@ void FPCGExBlendingModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& In
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
-	PCGEX_START_PCG_REGISTRATION	
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(BlendOp, BlendOp)
 }
 #endif

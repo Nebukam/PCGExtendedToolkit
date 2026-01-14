@@ -188,10 +188,12 @@ bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	{
 		PCGEX_ON_INITIAL_EXECUTION
 		{
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-			}))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+					NewBatch->bSkipCompletion = true;
+				}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to process."));
 			}

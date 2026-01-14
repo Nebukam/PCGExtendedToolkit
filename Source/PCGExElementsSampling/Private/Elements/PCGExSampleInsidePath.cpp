@@ -172,9 +172,11 @@ bool FPCGExSampleInsidePathElement::AdvanceWork(FPCGExContext* InContext, const 
 
 			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
 
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any paths to split."));
 			}
@@ -232,7 +234,7 @@ namespace PCGExSampleInsidePath
 		}
 
 		Distances = PCGExMath::GetDistances(EPCGExDistance::Center, EPCGExDistance::Center, false, Settings->DistanceType);
-		
+
 		if (!Context->BlendingFactories.IsEmpty())
 		{
 			UnionBlendOpsManager = MakeShared<PCGExBlending::FUnionOpsManager>(&Context->BlendingFactories, Distances);

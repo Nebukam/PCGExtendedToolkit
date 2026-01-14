@@ -38,7 +38,7 @@ struct FPCGExProbeConfigKNN : public FPCGExProbeConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorInteger32Abs K = FPCGExInputShorthandSelectorInteger32Abs(FName("K"), 5, false);
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExProbeKNNMode Mode = EPCGExProbeKNNMode::Mutual;

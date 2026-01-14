@@ -39,7 +39,7 @@ namespace PCGExMath
 	FDistancesStatic::FDistancesStatic()
 	{
 		// Create all distances combinations so we're thread safe
-		
+
 		TArray<bool> Overlap = {true, false};
 		TArray<EPCGExDistance> Dist = {EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds, EPCGExDistance::Center, EPCGExDistance::None};
 		TArray<EPCGExDistanceType> Types = {EPCGExDistanceType::Euclidian, EPCGExDistanceType::Manhattan, EPCGExDistanceType::Chebyshev};
@@ -65,7 +65,7 @@ namespace PCGExMath
 #define PCGEX_DIST_TPL(_FROM, _TO) \
 else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TEuclideanDistances<_FROM, _TO>>(bOverlapIsZero); }
 							PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
-	#undef PCGEX_DIST_TPL
+#undef PCGEX_DIST_TPL
 							break;
 
 						case EPCGExDistanceType::Manhattan:
@@ -76,7 +76,7 @@ else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TEuclidea
 #define PCGEX_DIST_TPL(_FROM, _TO) \
 else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TManhattanDistances<_FROM, _TO>>(bOverlapIsZero); }
 							PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
-	#undef PCGEX_DIST_TPL
+#undef PCGEX_DIST_TPL
 							break;
 
 						case EPCGExDistanceType::Chebyshev:
@@ -87,7 +87,7 @@ else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TManhatta
 #define PCGEX_DIST_TPL(_FROM, _TO) \
 else if (Source == _FROM && Target == _TO) { NewDistances = MakeShared<TChebyshevDistances<_FROM, _TO>>(bOverlapIsZero); }
 							PCGEX_FOREACH_DISTANCE_PAIR(PCGEX_DIST_TPL)
-	#undef PCGEX_DIST_TPL
+#undef PCGEX_DIST_TPL
 							break;
 						}
 

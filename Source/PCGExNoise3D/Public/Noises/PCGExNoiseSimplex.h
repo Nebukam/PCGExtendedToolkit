@@ -15,7 +15,8 @@ struct FPCGExNoiseConfigSimplex : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigSimplex() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigSimplex()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
 
@@ -30,7 +31,6 @@ struct FPCGExNoiseConfigSimplex : public FPCGExNoise3DConfigBase
 	/** Amplitude multiplier per octave */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0", ClampMax = "1.0"))
 	double Persistence = 0.5;
-
 };
 
 /**

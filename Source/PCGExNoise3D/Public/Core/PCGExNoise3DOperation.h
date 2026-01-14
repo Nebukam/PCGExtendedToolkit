@@ -55,7 +55,7 @@ public:
 
 	EPCGExNoiseBlendMode BlendMode = EPCGExNoiseBlendMode::Blend;
 
-	virtual ~FPCGExNoise3DOperation() = default;
+	virtual ~FPCGExNoise3DOperation() override = default;
 
 	//
 	// Single-point generation (override in derived classes)

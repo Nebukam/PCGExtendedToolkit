@@ -37,7 +37,7 @@ void UPCGExNoise3DFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* InCon
 	NewOperation->bApplyTransform = Config.bApplyTransform; \
 	NewOperation->Transform = Config.Transform; \
 	NewOperation->Contrast = Config.Contrast; \
-	NewOperation->ContrastCurve = Config.ContrastCurve; 
+	NewOperation->ContrastCurve = Config.ContrastCurve;
 
 class FPCGExNoise3DOperation;
 
@@ -86,13 +86,13 @@ struct PCGEXNOISE3D_API FPCGExNoise3DConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	int32 Seed = 1337;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bApplyTransform = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyTransform"))
 	FTransform Transform = FTransform::Identity;
-		
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.000001", DIsplayPriority=-1))
 	double Frequency = 0.01;
 
@@ -103,13 +103,9 @@ struct PCGEXNOISE3D_API FPCGExNoise3DConfigBase
 	/** Contrast curve type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Constrast", meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="Contrast != 1.0"))
 	EPCGExContrastCurve ContrastCurve = EPCGExContrastCurve::Power;
-	
+
 	void Init();
 };
-
-
-
-
 
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
