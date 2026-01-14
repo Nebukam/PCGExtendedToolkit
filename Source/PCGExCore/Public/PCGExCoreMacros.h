@@ -146,18 +146,17 @@ virtual bool HasFlippedTitleLines() const { FName N = _TASK_NAME; return !N.IsNo
 virtual FText GetDefaultNodeTitle() const override { FString A = TEXT(""); A += TEXT("PCGEx | ");  A += (bCleanupConsumableAttributes ? TEXT("🗑️ ") : TEXT("")); A += TEXT(_NAME); return FTEXT(A);} \
 virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); }
 
+#else
+#define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)
+#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)
+#endif
+
 // Define point filter pin configuration for a node
 #define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED) \
 virtual FName GetPointFilterPin() const override { return _LABEL; } \
 virtual FString GetPointFilterTooltip() const override { return TEXT(_TOOLTIP); } \
 virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return _TYPE; } \
 virtual bool RequiresPointFilters() const override { return _REQUIRED; }
-
-#else
-#define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)
-#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)
-#define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED)
-#endif
 
 /// CONTEXT & SETTINGS ACCESS
 /// Macros for retrieving and validating PCG context and settings objects
