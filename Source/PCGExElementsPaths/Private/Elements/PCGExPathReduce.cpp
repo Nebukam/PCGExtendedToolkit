@@ -77,46 +77,78 @@ namespace PCGExPathReduce
 
 		FilterAll();
 
-		for (int8& Pass : PointFilterCache) { Pass = !Pass; }
+		Mask.Init(true, PointDataFacade->GetNum());
 
 		SmoothingGetter = Settings->Smoothing.GetValueSetting();
 		if (!SmoothingGetter->Init(PointDataFacade, false)) { return false; }
 
-		TArray<PCGExPaths::FSimplifiedPoint> SimplifiedResult;
-
-		if (SmoothingGetter->IsConstant())
-		{
-			SimplifiedResult = PCGExPaths::FCurveSimplifier::SimplifyPolyline(
-				PointDataFacade->GetIn()->GetConstTransformValueRange(),
-				PointFilterCache,
-				Settings->ErrorTolerance,
-				bClosedLoop,
-				SmoothingGetter->Read(0),
-				Settings->SmoothingMode
-			);
-		}
-		else
-		{
-			TArray<double> SmoothingValues;
-			SmoothingValues.SetNumUninitialized(PointDataFacade->GetNum());
-			SmoothingGetter->ReadScope(0, SmoothingValues);
-			
-			SimplifiedResult = PCGExPaths::FCurveSimplifier::SimplifyPolyline(
-				PointDataFacade->GetIn()->GetConstTransformValueRange(),
-				PointFilterCache,
-				SmoothingValues,
-				Settings->ErrorTolerance,
-				bClosedLoop,
-				Settings->SmoothingMode
-			);
-		}
-
-		Mask.Init(true, PointDataFacade->GetNum());
-
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		const bool bPreserve = Settings->Mode == EPCGExPathReduceFilterMode::Preserve;
 
 		ArriveWriter = PointDataFacade->GetWritable<FVector>(Settings->ArriveName, PCGExData::EBufferInit::Inherit);
 		LeaveWriter = PointDataFacade->GetWritable<FVector>(Settings->LeaveName, PCGExData::EBufferInit::Inherit);
+
+		TArray<PCGExPaths::FSimplifiedPoint> SimplifiedResult;
+
+		if (bPreserve)
+		{
+			for (int8& Pass : PointFilterCache) { Pass = !Pass; }
+
+			if (SmoothingGetter->IsConstant())
+			{
+				SimplifiedResult = PCGExPaths::FCurveSimplifier::SimplifyPolyline(
+					PointDataFacade->GetIn()->GetConstTransformValueRange(),
+					PointFilterCache,
+					Settings->ErrorTolerance,
+					bClosedLoop,
+					SmoothingGetter->Read(0),
+					Settings->SmoothingMode
+				);
+			}
+			else
+			{
+				TArray<double> SmoothingValues;
+				SmoothingValues.SetNumUninitialized(PointDataFacade->GetNum());
+				SmoothingGetter->ReadScope(0, SmoothingValues);
+
+				SimplifiedResult = PCGExPaths::FCurveSimplifier::SimplifyPolyline(
+					PointDataFacade->GetIn()->GetConstTransformValueRange(),
+					PointFilterCache,
+					SmoothingValues,
+					Settings->ErrorTolerance,
+					bClosedLoop,
+					Settings->SmoothingMode
+				);
+			}
+		}
+		else
+		{
+			if (SmoothingGetter->IsConstant())
+			{
+				SimplifiedResult = PCGExPaths::FCurveSimplifier::FitTangentsToMask(
+					PointDataFacade->GetIn()->GetConstTransformValueRange(),
+					PointFilterCache,
+					bClosedLoop,
+					SmoothingGetter->Read(0),
+					Settings->SmoothingMode
+				);
+			}
+			else
+			{
+				TArray<double> SmoothingValues;
+				SmoothingValues.SetNumUninitialized(PointDataFacade->GetNum());
+				SmoothingGetter->ReadScope(0, SmoothingValues);
+
+				SimplifiedResult = PCGExPaths::FCurveSimplifier::FitTangentsToMask(
+					PointDataFacade->GetIn()->GetConstTransformValueRange(),
+					PointFilterCache,
+					SmoothingValues,
+					bClosedLoop,
+					Settings->SmoothingMode
+				);
+			}
+		}
+
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
 
 		TArray<int32> SimplifiedIndices;
 		SimplifiedIndices.Init(INDEX_NONE, Mask.Num());
@@ -129,7 +161,8 @@ namespace PCGExPathReduce
 
 		for (int i = 0; i < PointDataFacade->GetNum(); i++)
 		{
-			if (!PointFilterCache[i]) { continue; }
+			if (bPreserve) { if (!PointFilterCache[i]) { continue; } }
+			else if (PointFilterCache[i]) { continue; }
 
 			const int j = SimplifiedIndices[i];
 			if (j == INDEX_NONE)
@@ -139,7 +172,6 @@ namespace PCGExPathReduce
 			}
 
 			const PCGExPaths::FSimplifiedPoint& Point = SimplifiedResult[j];
-
 
 			OutTransforms[i] = Point.Transform;
 			ArriveWriter->SetValue(i, Point.TangentIn);

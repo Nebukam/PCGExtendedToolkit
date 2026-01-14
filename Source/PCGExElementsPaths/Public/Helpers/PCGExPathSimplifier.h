@@ -32,8 +32,10 @@ namespace PCGExPaths
 	class FCurveSimplifier
 	{
 	public:
+		//~~ Simplification (Douglas-Peucker) + Tangent Fitting ~~//
+		
 		/**
-		 * Simplify a polyline with uniform smoothing applied to all points.
+		 * Simplify a polyline using Douglas-Peucker, then fit tangents.
 		 */
 		static TArray<FSimplifiedPoint> SimplifyPolyline(
 			const TConstPCGValueRange<FTransform>& InPoints,
@@ -54,7 +56,80 @@ namespace PCGExPaths
 			bool bIsClosed = false,
 			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
 
+		//~~ Tangent Fitting Only (no simplification) ~~//
+
+		/**
+		 * Fit tangents to a pre-selected subset of points.
+		 * No simplification is performed - the provided indices define exactly which points to keep.
+		 * 
+		 * @param InPoints          The original point transforms
+		 * @param InSelectedIndices Sorted indices of points to keep (must be sorted ascending)
+		 * @param bIsClosed         Whether this is a closed loop
+		 * @param Smoothing         How much to blend tangents at junctions (0 = precise, 1 = smooth)
+		 * @param SmoothingMode     Type of smoothing to apply
+		 */
+		static TArray<FSimplifiedPoint> FitTangentsToSelection(
+			const TConstPCGValueRange<FTransform>& InPoints,
+			const TArray<int32>& InSelectedIndices,
+			bool bIsClosed = false,
+			double Smoothing = 0.0,
+			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
+
+		/**
+		 * Fit tangents to a pre-selected subset with per-point smoothing.
+		 * 
+		 * @param InPoints              The original point transforms
+		 * @param InSelectedIndices     Sorted indices of points to keep
+		 * @param InSmoothingValues     Per-point smoothing (indexed by original point index, same size as InPoints)
+		 * @param bIsClosed             Whether this is a closed loop
+		 * @param SmoothingMode         Type of smoothing to apply
+		 */
+		static TArray<FSimplifiedPoint> FitTangentsToSelection(
+			const TConstPCGValueRange<FTransform>& InPoints,
+			const TArray<int32>& InSelectedIndices,
+			const TArray<double>& InSmoothingValues,
+			bool bIsClosed = false,
+			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
+
+		/**
+		 * Fit tangents using a keep/remove mask.
+		 * Points where InKeepFlags[i] == true will be kept.
+		 * 
+		 * @param InPoints          The original point transforms
+		 * @param InKeepFlags       Which points to keep (true = keep, false = remove)
+		 * @param bIsClosed         Whether this is a closed loop
+		 * @param Smoothing         Uniform smoothing value
+		 * @param SmoothingMode     Type of smoothing to apply
+		 */
+		static TArray<FSimplifiedPoint> FitTangentsToMask(
+			const TConstPCGValueRange<FTransform>& InPoints,
+			const TArray<int8>& InKeepFlags,
+			bool bIsClosed = false,
+			double Smoothing = 0.0,
+			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
+
+		/**
+		 * Fit tangents using a keep/remove mask with per-point smoothing.
+		 */
+		static TArray<FSimplifiedPoint> FitTangentsToMask(
+			const TConstPCGValueRange<FTransform>& InPoints,
+			const TArray<int8>& InKeepFlags,
+			const TArray<double>& InSmoothingValues,
+			bool bIsClosed = false,
+			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
+
+		/**
+		 * Fit tangents to ALL points (no reduction at all).
+		 * Useful when you just want tangent computation for an existing polyline.
+		 */
+		static TArray<FSimplifiedPoint> FitTangentsToAll(
+			const TConstPCGValueRange<FTransform>& InPoints,
+			bool bIsClosed = false,
+			double Smoothing = 0.0,
+			EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full);
+
 	private:
+		// Core implementation for simplification path
 		static TArray<FSimplifiedPoint> SimplifyPolylineInternal(
 			const TConstPCGValueRange<FTransform>& InPoints,
 			const TArray<int8>& InRemovableFlags,
@@ -64,6 +139,16 @@ namespace PCGExPaths
 			bool bIsClosed,
 			EPCGExTangentSmoothing SmoothingMode);
 
+		// Core implementation for selection-based fitting
+		static TArray<FSimplifiedPoint> FitTangentsToSelectionInternal(
+			const TConstPCGValueRange<FTransform>& InPoints,
+			const TArray<int32>& InSelectedIndices,
+			const TArray<double>& InSmoothingValues,
+			double UniformSmoothing,
+			bool bIsClosed,
+			EPCGExTangentSmoothing SmoothingMode);
+
+		// Douglas-Peucker
 		static TArray<int32> SimplifyWithDP(
 			const TConstPCGValueRange<FTransform>& Points,
 			const TArray<int8>& RemovableFlags,
@@ -81,6 +166,7 @@ namespace PCGExPaths
 
 		static double PointToLineDistance(const FVector& Point, const FVector& LineStart, const FVector& LineEnd);
 
+		// Tangent fitting
 		static void FitTangentsLeastSquares(
 			TArray<FSimplifiedPoint>& SimplifiedPoints,
 			const TConstPCGValueRange<FTransform>& OriginalPoints,
@@ -94,26 +180,11 @@ namespace PCGExPaths
 			double UniformSmoothing,
 			EPCGExTangentSmoothing SmoothingMode);
 
-		/**
-		 * Compute the effective smoothing at a point, reduced for sharp corners.
-		 */
-		static double ComputeEffectiveSmoothing(
-			const FVector& TangentIn,
-			const FVector& TangentOut,
-			double RequestedSmoothing);
-
-		/**
-		 * Compute smoothed direction, respecting corner sharpness.
-		 */
 		static FVector ComputeSmoothedDirection(
 			const FVector& TangentIn,
 			const FVector& TangentOut,
 			double Smoothing);
 
-		/**
-		 * Re-fit magnitudes for a segment given fixed directions.
-		 * Returns false if the fit is invalid (would require negative magnitudes).
-		 */
 		static void FitSegmentMagnitudes(
 			const FVector& P0Pos,
 			const FVector& P1Pos,

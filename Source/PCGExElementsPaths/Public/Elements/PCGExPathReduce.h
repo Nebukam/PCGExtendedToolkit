@@ -17,6 +17,13 @@ namespace PCGExPaths
 	class FPath;
 }
 
+UENUM(BlueprintType)
+enum class EPCGExPathReduceFilterMode : uint8
+{
+	Preserve = 0 UMETA(DisplayName = "Preserve", ToolTip="Filters drive points that are guaranteed to be preserved. Any other may be removed."),
+	Anchor   = 1 UMETA(DisplayName = "Anchors", ToolTip="Filters define which points the path will be reduced to")
+};
+
 /**
  * 
  */
@@ -33,10 +40,17 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filter which points are going to be preserved.", PCGExFactories::PointFilters, false)
+	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filter which points are going to be preserved.", PCGExFactories::PointFilters, Mode == EPCGExPathReduceFilterMode::Anchor)
 	//~End UPCGSettings
 
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExPathReduceFilterMode Mode = EPCGExPathReduceFilterMode::Preserve;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Error Tolerance", EditCondition="Mode == EPCGExPathReduceFilterMode::Preserve", EditConditionHides))
+	double ErrorTolerance = 10;
+
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName ArriveName = "ArriveTangent";
 
@@ -44,17 +58,11 @@ public:
 	FName LeaveName = "LeaveTangent";
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double ErrorTolerance = 10;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin="0", ClampMax="1"))
-	float TangentSmoothing = 0.0f;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExTangentSmoothing SmoothingMode = EPCGExTangentSmoothing::Full;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExInputShorthandNameDouble01 Smoothing = FPCGExInputShorthandNameDouble01(FName("Smoothing"), 1.0, false); 
-	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SmoothingMode != EPCGExTangentSmoothing::None"))
+	FPCGExInputShorthandNameDouble01 Smoothing = FPCGExInputShorthandNameDouble01(FName("Smoothing"), 1.0, false);
+
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
