@@ -130,9 +130,13 @@ namespace PCGExCreateSpline
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
+		bApplyTangents = Settings->GetApplyTangents();
 
-		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
-		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
+		if (bApplyTangents)
+		{
+			TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
+			if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
+		}
 
 		if (Settings->bApplyCustomPointType)
 		{
@@ -173,7 +177,7 @@ namespace PCGExCreateSpline
 			FVector OutArrive = FVector::ZeroVector;
 			FVector OutLeave = FVector::ZeroVector;
 
-			TangentsHandler->GetPointTangents(Index, OutArrive, OutLeave);
+			if (bApplyTangents) { TangentsHandler->GetPointTangents(Index, OutArrive, OutLeave); }
 
 			const FTransform& TR = InTransforms[Index];
 

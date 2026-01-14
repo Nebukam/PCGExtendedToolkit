@@ -36,6 +36,14 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExActorCollection> SubCollection;
 
+	/** If enabled, the cached bounds will only account for collicable components on the actor. */
+	UPROPERTY(EditAnywhere, Category = "Settings|Bounds", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	bool bOnlyCollidingComponents = false;
+
+	/** If enabled, the cached bounds will also account for child actors. */
+	UPROPERTY(EditAnywhere, Category = "Settings|Bounds", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	bool bIncludeFromChildActors = true;
+	
 	virtual const UPCGExAssetCollection* GetSubCollectionPtr() const override;
 
 	virtual void ClearSubCollection() override;
