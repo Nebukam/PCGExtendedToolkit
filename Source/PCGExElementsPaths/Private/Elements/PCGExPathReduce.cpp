@@ -161,8 +161,11 @@ namespace PCGExPathReduce
 
 		for (int i = 0; i < PointDataFacade->GetNum(); i++)
 		{
-			if (bPreserve) { if (!PointFilterCache[i]) { continue; } }
-			else if (PointFilterCache[i]) { continue; }
+			if (!PointFilterCache[i])
+			{
+				if (!bPreserve) { Mask[i] = false; }
+				continue;
+			}
 
 			const int j = SimplifiedIndices[i];
 			if (j == INDEX_NONE)

@@ -418,34 +418,47 @@ namespace PCGExPaths
 				const FVector CurrPos = SimplifiedPoints[i].Transform.GetLocation();
 				const FVector NextPos = SimplifiedPoints[NextPtIdx].Transform.GetLocation();
 
-				// Catmull-Rom central difference
-				FVector CentralTangent = (NextPos - PrevPos) * 0.5;
+				// Compute distances to neighbors
+				const double DistToPrev = (CurrPos - PrevPos).Size();
+				const double DistToNext = (NextPos - CurrPos).Size();
 
-				if (CentralTangent.IsNearlyZero())
+				// Central difference direction
+				FVector CentralDir = (NextPos - PrevPos);
+				const double CentralLen = CentralDir.Size();
+				
+				if (CentralLen > SMALL_NUMBER)
 				{
-					// Degenerate case - use forward direction
-					CentralTangent = NextPos - CurrPos;
-					if (CentralTangent.IsNearlyZero())
+					CentralDir /= CentralLen;
+				}
+				else
+				{
+					CentralDir = (NextPos - CurrPos).GetSafeNormal();
+					if (CentralDir.IsNearlyZero())
 					{
-						CentralTangent = CurrPos - PrevPos;
+						CentralDir = (CurrPos - PrevPos).GetSafeNormal();
 					}
 				}
 
+				// Scale tangent magnitude based on adjacent segment lengths
+				// This ensures the Hermite curve properly spans each segment
+				const double MagIn = DistToPrev;
+				const double MagOut = DistToNext;
+
 				if (!bPrevHas && !bNextHas)
 				{
-					// Neither segment has data - use pure central difference
-					SimplifiedPoints[i].TangentIn = CentralTangent;
-					SimplifiedPoints[i].TangentOut = CentralTangent;
+					// Neither segment has data - use scaled central difference
+					SimplifiedPoints[i].TangentIn = CentralDir * MagIn;
+					SimplifiedPoints[i].TangentOut = CentralDir * MagOut;
 				}
 				else if (!bPrevHas)
 				{
-					// Previous segment has no data - blend TangentIn toward central
-					SimplifiedPoints[i].TangentIn = CentralTangent;
+					// Previous segment has no data
+					SimplifiedPoints[i].TangentIn = CentralDir * MagIn;
 				}
 				else // !bNextHas
 				{
-					// Next segment has no data - blend TangentOut toward central
-					SimplifiedPoints[i].TangentOut = CentralTangent;
+					// Next segment has no data
+					SimplifiedPoints[i].TangentOut = CentralDir * MagOut;
 				}
 			}
 		}
@@ -529,8 +542,8 @@ namespace PCGExPaths
 			{
 				const int32 OrigIdx = SimplifiedPoints[i].OriginalIndex;
 				Smoothing = (OrigIdx >= 0 && OrigIdx < InSmoothingValues.Num())
-					            ? FMath::Clamp(InSmoothingValues[OrigIdx], 0.0, 1.0)
-					            : 0.0;
+					? FMath::Clamp(InSmoothingValues[OrigIdx], 0.0, 1.0)
+					: 0.0;
 			}
 			else
 			{
