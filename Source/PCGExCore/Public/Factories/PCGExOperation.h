@@ -10,6 +10,7 @@ namespace PCGExData
 {
 	class FFacadePreloader;
 	class FFacade;
+	class FPointIO;
 }
 
 struct FPCGExContext;
