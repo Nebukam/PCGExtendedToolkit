@@ -95,10 +95,10 @@ namespace PCGExTensor
 		PCGExArrayHelpers::InitArray(Rotations, NumEffectors);
 
 		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
-		
+
 		TArray<FVector> TempExtents;
 		TempExtents.SetNumUninitialized(NumEffectors);
-		
+
 		// Pack per-point data
 		PCGEX_PARALLEL_FOR(
 			NumEffectors,
@@ -119,7 +119,7 @@ namespace PCGExTensor
 
 			PrepareSinglePoint(i, Transform, PackedEffector);
 		)
-		
+
 		// Build octree outside of parallel for :x
 		TConstPCGValueRange<float> InSteepness = InPoints->GetConstSteepnessValueRange();
 		for (int i = 0; i < NumEffectors; i++)

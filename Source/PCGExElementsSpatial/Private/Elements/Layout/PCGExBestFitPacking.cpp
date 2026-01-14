@@ -113,15 +113,16 @@ bool FPCGExBestFitPackingElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         return Context->ValidIOIndices.Contains(Entry->IOIndex);
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         TArray<FPCGExSortRuleConfig> OutRules;
-			                                         Settings->GetSortingRules(Context, OutRules);
-			                                         NewBatch->bPrefetchData = !OutRules.IsEmpty() || Settings->bSortByVolume;
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				return Context->ValidIOIndices.Contains(Entry->IOIndex);
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				TArray<FPCGExSortRuleConfig> OutRules;
+				Settings->GetSortingRules(Context, OutRules);
+				NewBatch->bPrefetchData = !OutRules.IsEmpty() || Settings->bSortByVolume;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
@@ -141,17 +142,17 @@ namespace PCGExBestFitPacking
 	//--------------------------------------------------
 	// Rotation Helper Implementation
 	//--------------------------------------------------
-	
+
 	void FRotationHelper::GetRotationsToTest(EPCGExBestFitRotationMode Mode, TArray<FRotator>& OutRotations)
 	{
 		OutRotations.Empty();
-		
+
 		switch (Mode)
 		{
 		case EPCGExBestFitRotationMode::None:
 			OutRotations.Add(FRotator::ZeroRotator);
 			break;
-			
+
 		case EPCGExBestFitRotationMode::CardinalOnly:
 			// 4 rotations around the up axis (most common for 2.5D packing)
 			OutRotations.Add(FRotator(0, 0, 0));
@@ -159,7 +160,7 @@ namespace PCGExBestFitPacking
 			OutRotations.Add(FRotator(0, 180, 0));
 			OutRotations.Add(FRotator(0, 270, 0));
 			break;
-			
+
 		case EPCGExBestFitRotationMode::AllOrthogonal:
 			// All 24 unique orthogonal rotations (cube symmetry group)
 			// Face pointing +X
@@ -199,15 +200,15 @@ namespace PCGExBestFitPacking
 	FVector FRotationHelper::RotateSize(const FVector& Size, const FRotator& Rotation)
 	{
 		if (Rotation.IsNearlyZero()) { return Size; }
-		
+
 		// Create a box and rotate it, then get the new axis-aligned size
 		const FQuat Quat = Rotation.Quaternion();
-		
+
 		// Rotate the 8 corners of the unit box and find the new AABB
 		const FVector HalfSize = Size * 0.5;
 		FVector Min = FVector(MAX_dbl);
 		FVector Max = FVector(-MAX_dbl);
-		
+
 		for (int32 i = 0; i < 8; i++)
 		{
 			FVector Corner(
@@ -215,19 +216,19 @@ namespace PCGExBestFitPacking
 				(i & 2) ? HalfSize.Y : -HalfSize.Y,
 				(i & 4) ? HalfSize.Z : -HalfSize.Z
 			);
-			
+
 			Corner = Quat.RotateVector(Corner);
 			Min = Min.ComponentMin(Corner);
 			Max = Max.ComponentMax(Corner);
 		}
-		
+
 		return Max - Min;
 	}
 
 	//--------------------------------------------------
 	// FBestFitBin Implementation
 	//--------------------------------------------------
-	
+
 	void FBestFitBin::AddSpace(const FBox& InBox)
 	{
 		FSpace& NewSpace = Spaces.Emplace_GetRef(InBox, Seed);
@@ -258,7 +259,7 @@ namespace PCGExBestFitPacking
 
 		MaxVolume = Bounds.GetVolume();
 		UsedVolume = 0;
-		
+
 		FVector FurthestLocation = InSeed;
 		for (int C = 0; C < 3; C++)
 		{
@@ -280,29 +281,29 @@ namespace PCGExBestFitPacking
 		FPlacementCandidate& OutCandidate) const
 	{
 		if (SpaceIndex < 0 || SpaceIndex >= Spaces.Num()) { return false; }
-		
+
 		const FSpace& Space = Spaces[SpaceIndex];
 		const FVector RotatedSize = FRotationHelper::RotateSize(ItemSize, Rotation);
-		
+
 		// Check if it fits
 		if (!Space.CanFit(RotatedSize)) { return false; }
-		
+
 		const double ItemVolume = RotatedSize.X * RotatedSize.Y * RotatedSize.Z;
 		const FVector SpaceSize = Space.Box.GetSize();
-		
+
 		// Compute tightness score (how well does the item fill the space?)
 		// Lower is better - measures the gap on each axis
 		const FVector Gaps = SpaceSize - RotatedSize;
 		const double TotalGap = Gaps.X + Gaps.Y + Gaps.Z;
 		const double MaxPossibleGap = SpaceSize.X + SpaceSize.Y + SpaceSize.Z;
 		const double TightnessScore = MaxPossibleGap > 0 ? TotalGap / MaxPossibleGap : 0;
-		
+
 		// Compute waste score (how much space is wasted?)
 		const double WasteScore = 1.0 - (ItemVolume / Space.Volume);
-		
+
 		// Compute proximity score (distance to seed, normalized)
 		const double ProximityScore = Space.DistanceScore;
-		
+
 		OutCandidate.BinIndex = BinIndex;
 		OutCandidate.SpaceIndex = SpaceIndex;
 		OutCandidate.Rotation = Rotation;
@@ -310,20 +311,20 @@ namespace PCGExBestFitPacking
 		OutCandidate.TightnessScore = TightnessScore;
 		OutCandidate.WasteScore = WasteScore;
 		OutCandidate.ProximityScore = ProximityScore;
-		
+
 		return true;
 	}
 
 	void FBestFitBin::CommitPlacement(const FPlacementCandidate& Candidate, FBestFitItem& InItem)
 	{
 		if (!Candidate.IsValid()) { return; }
-		
+
 		const FSpace& Space = Spaces[Candidate.SpaceIndex];
 		const FVector ItemSize = Candidate.RotatedSize;
-		
+
 		// Calculate placement position based on anchor mode
 		FVector ItemMin = Space.Box.Min;
-		
+
 		switch (Settings->PlacementAnchor)
 		{
 		case EPCGExBestFitPlacementAnchor::Corner:
@@ -340,7 +341,7 @@ namespace PCGExBestFitPacking
 				}
 			}
 			break;
-			
+
 		case EPCGExBestFitPlacementAnchor::Center:
 			ItemMin = Space.Box.GetCenter() - ItemSize * 0.5;
 			// Clamp to space bounds
@@ -349,7 +350,7 @@ namespace PCGExBestFitPacking
 				ItemMin[C] = FMath::Clamp(ItemMin[C], Space.Box.Min[C], Space.Box.Max[C] - ItemSize[C]);
 			}
 			break;
-			
+
 		case EPCGExBestFitPlacementAnchor::SeedProximity:
 		default:
 			for (int C = 0; C < 3; C++)
@@ -358,40 +359,40 @@ namespace PCGExBestFitPacking
 			}
 			break;
 		}
-		
+
 		FBox ItemBox = FBox(ItemMin, ItemMin + ItemSize);
 		InItem.Box = ItemBox;
 		InItem.Rotation = Candidate.Rotation;
-		
+
 		// Store the item after setting all properties
 		Items.Add(InItem);
-		
+
 		// Expand by padding
 		Space.Expand(ItemBox, InItem.Padding);
-		
+
 		// Optionally inflate to avoid tiny fragments
 		if (Settings->bAvoidWastedSpace)
 		{
 			Space.Inflate(ItemBox, WastedSpaceThresholds);
 		}
-		
+
 		// Update used volume
 		UsedVolume += ItemSize.X * ItemSize.Y * ItemSize.Z;
-		
+
 		// Split the space
 		TArray<FBox> NewPartitions;
 		Splitter->SplitSpace(Space, ItemBox, NewPartitions);
-		
+
 		// Remove the used space
 		Spaces.RemoveAt(Candidate.SpaceIndex);
-		
+
 		// Add new spaces
 		Spaces.Reserve(Spaces.Num() + NewPartitions.Num());
 		for (const FBox& Partition : NewPartitions)
 		{
 			AddSpace(Partition);
 		}
-		
+
 		// Clean up tiny spaces using the bin's stored MinOccupation
 		if (Settings->bAvoidWastedSpace && MinOccupation > 0)
 		{
@@ -417,16 +418,16 @@ namespace PCGExBestFitPacking
 	{
 		FPlacementCandidate BestCandidate;
 		double BestScore = MAX_dbl;
-		
+
 		const FVector OriginalSize = InItem.OriginalSize;
-		
+
 		if (Settings->bGlobalBestFit)
 		{
 			// Global best-fit: Check ALL bins and find the absolute best placement
 			for (int32 BinIdx = 0; BinIdx < Bins.Num(); BinIdx++)
 			{
 				const TSharedPtr<FBestFitBin>& Bin = Bins[BinIdx];
-				
+
 				// Iterate through spaces in this bin
 				for (int32 SpaceIdx = 0; SpaceIdx < Bin->GetSpaceCount(); SpaceIdx++)
 				{
@@ -435,11 +436,11 @@ namespace PCGExBestFitPacking
 					{
 						FPlacementCandidate Candidate;
 						Candidate.RotationIndex = RotIdx;
-						
+
 						if (Bin->EvaluatePlacement(OriginalSize, SpaceIdx, RotationsToTest[RotIdx], Candidate))
 						{
 							Candidate.Score = ComputeFinalScore(Candidate);
-							
+
 							if (Candidate.Score < BestScore)
 							{
 								BestScore = Candidate.Score;
@@ -458,7 +459,7 @@ namespace PCGExBestFitPacking
 				const TSharedPtr<FBestFitBin>& Bin = Bins[BinIdx];
 				BestScore = MAX_dbl;
 				BestCandidate = FPlacementCandidate(); // Reset for this bin
-				
+
 				// Find best placement in this specific bin
 				for (int32 SpaceIdx = 0; SpaceIdx < Bin->GetSpaceCount(); SpaceIdx++)
 				{
@@ -466,11 +467,11 @@ namespace PCGExBestFitPacking
 					{
 						FPlacementCandidate Candidate;
 						Candidate.RotationIndex = RotIdx;
-						
+
 						if (Bin->EvaluatePlacement(OriginalSize, SpaceIdx, RotationsToTest[RotIdx], Candidate))
 						{
 							Candidate.Score = ComputeFinalScore(Candidate);
-							
+
 							if (Candidate.Score < BestScore)
 							{
 								BestScore = Candidate.Score;
@@ -479,7 +480,7 @@ namespace PCGExBestFitPacking
 						}
 					}
 				}
-				
+
 				// If we found a valid placement in this bin, use it
 				if (BestCandidate.IsValid())
 				{
@@ -487,7 +488,7 @@ namespace PCGExBestFitPacking
 				}
 			}
 		}
-		
+
 		return BestCandidate;
 	}
 
@@ -498,21 +499,21 @@ namespace PCGExBestFitPacking
 		case EPCGExBestFitScoreMode::TightestFit:
 			// Prioritize tight fits - lower tightness score is better
 			return Candidate.TightnessScore + Candidate.ProximityScore * 0.1;
-			
+
 		case EPCGExBestFitScoreMode::SmallestSpace:
 			// Just use the waste score (smaller space = less waste)
 			return Candidate.WasteScore;
-			
+
 		case EPCGExBestFitScoreMode::LeastWaste:
 			// Minimize overall waste
 			return Candidate.WasteScore + Candidate.TightnessScore * 0.5;
-			
+
 		case EPCGExBestFitScoreMode::Balanced:
 		default:
 			// Weighted combination
 			return Settings->TightnessWeight * Candidate.TightnessScore +
-			       (1.0 - Settings->TightnessWeight) * Candidate.WasteScore +
-			       Candidate.ProximityScore * 0.1;
+				(1.0 - Settings->TightnessWeight) * Candidate.WasteScore +
+				Candidate.ProximityScore * 0.1;
 		}
 	}
 
@@ -576,7 +577,7 @@ namespace PCGExBestFitPacking
 		// Setup seed getter
 		bool bRelativeSeed = Settings->SeedMode == EPCGExBinSeedMode::UVWConstant;
 		TSharedPtr<PCGExData::TAttributeBroadcaster<FVector>> SeedGetter = MakeShared<PCGExData::TAttributeBroadcaster<FVector>>();
-		
+
 		if (Settings->SeedMode == EPCGExBinSeedMode::PositionAttribute)
 		{
 			if (!SeedGetter->Prepare(Settings->SeedPositionAttribute, TargetBins.ToSharedRef()))
@@ -613,7 +614,7 @@ namespace PCGExBestFitPacking
 				const FVector Size = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(PCGExData::FConstPoint(InPoints, i)).GetSize();
 				MinOccupation = FMath::Min(MinOccupation, FMath::Min3(Size.X, Size.Y, Size.Z));
 			}
-			
+
 			// Ensure we don't have an invalid value
 			if (MinOccupation == MAX_dbl) { MinOccupation = 0; }
 		}
@@ -622,17 +623,17 @@ namespace PCGExBestFitPacking
 		if (Settings->bSortByVolume)
 		{
 			const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
-			
+
 			// Create volume array
 			TArray<double> Volumes;
 			Volumes.SetNum(NumPoints);
-			
+
 			for (int32 i = 0; i < NumPoints; i++)
 			{
 				const FVector Size = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(PCGExData::FConstPoint(InPoints, i)).GetSize();
 				Volumes[i] = Size.X * Size.Y * Size.Z;
 			}
-			
+
 			// Sort indices by volume (descending for BFD)
 			if (Settings->SortDirection == EPCGExSortDirection::Descending)
 			{

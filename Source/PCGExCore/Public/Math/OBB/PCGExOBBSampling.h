@@ -11,13 +11,15 @@ namespace PCGExMath::OBB
 	// Sample result - what you get from sampling a point against an OBB
 	struct PCGEXCORE_API FSample
 	{
-		FVector Distances = FVector::ZeroVector;  // Local position = signed distances from center
-		FVector UVW = FVector::ZeroVector;        // Normalized [-1, 1] position within box
-		double Weight = 0.0;                       // Weight based on position (for blending)
+		FVector Distances = FVector::ZeroVector; // Local position = signed distances from center
+		FVector UVW = FVector::ZeroVector;       // Normalized [-1, 1] position within box
+		double Weight = 0.0;                     // Weight based on position (for blending)
 		int32 BoxIndex = -1;
 		bool bIsInside = false;
 
-		FORCEINLINE FSample(){};
+		FORCEINLINE FSample()
+		{
+		};
 	};
 
 	// Sampling functions
@@ -101,5 +103,4 @@ namespace PCGExMath::OBB
 
 		OutSample.Weight = OutSample.bIsInside ? ComputeWeight(OutSample.UVW) : 0.0;
 	}
-
 }

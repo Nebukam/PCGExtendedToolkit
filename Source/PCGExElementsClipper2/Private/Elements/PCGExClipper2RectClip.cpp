@@ -57,13 +57,19 @@ namespace PCGExClipper2RectClip
 
 		// Length squared of AB
 		const double ABLenSq = ABx * ABx + ABy * ABy;
-		if (ABLenSq < 1.0) return -1.0; // Degenerate segment
+		if (ABLenSq < 1.0)
+		{
+			return -1.0; // Degenerate segment
+		}
 
 		// Project P onto line AB, get parameter t
 		const double t = (APx * ABx + APy * ABy) / ABLenSq;
 
 		// Check if t is in valid range [0, 1]
-		if (t < -0.001 || t > 1.001) return -1.0;
+		if (t < -0.001 || t > 1.001)
+		{
+			return -1.0;
+		}
 
 		// Calculate closest point on segment
 		const double ClosestX = Ax + t * ABx;
@@ -76,7 +82,10 @@ namespace PCGExClipper2RectClip
 
 		// Use tolerance squared for comparison
 		const double TolSq = static_cast<double>(Tolerance) * static_cast<double>(Tolerance);
-		if (DistSq > TolSq) return -1.0;
+		if (DistSq > TolSq)
+		{
+			return -1.0;
+		}
 
 		return FMath::Clamp(t, 0.0, 1.0);
 	}
@@ -115,7 +124,10 @@ namespace PCGExClipper2RectClip
 		for (PCGExClipper2Lib::Path64& OutPath : OutPaths)
 		{
 			const size_t NumPoints = OutPath.size();
-			if (NumPoints == 0) continue;
+			if (NumPoints == 0)
+			{
+				continue;
+			}
 
 			for (size_t i = 0; i < NumPoints; i++)
 			{
@@ -139,10 +151,16 @@ namespace PCGExClipper2RectClip
 
 				for (const PCGExClipper2Lib::Path64& SrcPath : SourcePaths)
 				{
-					if (bFoundEdge) break;
+					if (bFoundEdge)
+					{
+						break;
+					}
 
 					const size_t SrcNumPts = SrcPath.size();
-					if (SrcNumPts < 2) continue;
+					if (SrcNumPts < 2)
+					{
+						continue;
+					}
 
 					// Check each edge in the source path
 					for (size_t j = 0; j < SrcNumPts; j++)
@@ -197,7 +215,7 @@ void FPCGExClipper2RectClipContext::ApplyPadding(PCGExClipper2Lib::Rect64& Rect,
 
 FBox FPCGExClipper2RectClipContext::ComputeCombinedBounds(const TArray<int32>& Indices)
 {
-	FBox CombinedBounds(EForceInit::ForceInit);
+	FBox CombinedBounds(ForceInit);
 
 	for (const int32 Idx : Indices)
 	{
@@ -222,7 +240,7 @@ PCGExClipper2Lib::Rect64 FPCGExClipper2RectClipContext::ComputeClipRect(
 {
 	const int32 Scale = Settings->Precision;
 
-	FBox WorldBounds(EForceInit::ForceInit);
+	FBox WorldBounds(ForceInit);
 
 	switch (Settings->BoundsSource)
 	{
@@ -389,7 +407,10 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 							for (int s = 0; s < static_cast<int>(ClippedResults.size()); s++)
 							{
 								const PCGExClipper2Lib::Path64& Seg = ClippedResults[s];
-								if (Seg.empty()) continue;
+								if (Seg.empty())
+								{
+									continue;
+								}
 
 								if (Seg.front().x == V0.x && Seg.front().y == V0.y)
 								{

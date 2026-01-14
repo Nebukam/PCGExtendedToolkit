@@ -4,7 +4,6 @@
 #include "PCGExElementsClusters.h"
 
 
-
 #if WITH_EDITOR
 
 #if PCGEX_ENGINE_VERSION > 506
@@ -34,11 +33,11 @@ void FPCGExElementsClustersModule::RegisterToEditor(const TSharedPtr<FSlateStyle
 
 	PCGEX_REGISTER_PIN_ICON(IN_Vtx)
 	PCGEX_REGISTER_PIN_ICON(OUT_Vtx)
-	
+
 	PCGEX_REGISTER_PIN_ICON(IN_Edges)
 	PCGEX_REGISTER_PIN_ICON(OUT_Edges)
-	
-	PCGEX_START_PCG_REGISTRATION	
+
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(ClusterState, ClusterState)
 	PCGEX_REGISTER_DATA_TYPE(FillControl, FillControl)
 }

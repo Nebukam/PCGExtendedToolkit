@@ -508,7 +508,7 @@ namespace PCGExClusters
 				{
 					if (MinNeighbors > 0)
 					{
-						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors){ continue; }
+						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors) { continue; }
 					}
 
 					MaxDistance = Dist;
@@ -525,7 +525,7 @@ namespace PCGExClusters
 				{
 					if (MinNeighbors > 0)
 					{
-						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors){ continue; }
+						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors) { continue; }
 					}
 
 					MaxDistance = Dist;

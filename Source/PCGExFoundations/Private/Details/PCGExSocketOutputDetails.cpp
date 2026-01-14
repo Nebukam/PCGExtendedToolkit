@@ -14,7 +14,7 @@ bool FPCGExSocketOutputDetails::Init(FPCGExContext* InContext)
 	PCGEX_VALIDATE_NAME_C(InContext, SocketTagAttributeName)
 	PCGEX_VALIDATE_NAME_C(InContext, CategoryAttributeName)
 	PCGEX_VALIDATE_NAME_C(InContext, AssetPathAttributeName)
-	
+
 	SocketTagFilters.Init();
 	SocketNameFilters.Init();
 	CarryOverDetails.Init();

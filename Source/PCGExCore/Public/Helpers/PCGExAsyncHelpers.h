@@ -16,13 +16,13 @@ namespace PCGExAsyncHelpers
 		// No copy
 		FAsyncExecutionScope(const FAsyncExecutionScope&) = delete;
 		FAsyncExecutionScope& operator=(const FAsyncExecutionScope&) = delete;
-    
+
 		// No move (moving while tasks reference this could be dangerous)
 		FAsyncExecutionScope(FAsyncExecutionScope&&) = delete;
 		FAsyncExecutionScope& operator=(FAsyncExecutionScope&&) = delete;
 
 		explicit FAsyncExecutionScope(int32 Reserve = 0) { Tasks.Reserve(Reserve); }
-    
+
 		~FAsyncExecutionScope()
 		{
 			if (Tasks.Num() > 0)

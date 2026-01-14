@@ -134,7 +134,7 @@ namespace PCGExConnectPoints
 
 		PCGExArrayHelpers::InitArray(WorkingTransforms, NumPoints);
 		PCGExArrayHelpers::InitArray(WorkingPositions, NumPoints);
-		
+
 		AllOperations.Reserve(Context->ProbeFactories.Num());
 
 		for (const UPCGExProbeFactoryData* Factory : Context->ProbeFactories)
@@ -147,7 +147,7 @@ namespace PCGExConnectPoints
 			NewOperation->WorkingPositions = &WorkingPositions;
 			NewOperation->CanGenerate = &CanGenerate;
 			NewOperation->AcceptConnections = &AcceptConnections;
-			
+
 			if (!NewOperation->Prepare(Context)) { continue; }
 
 			AllOperations.Add(NewOperation);
@@ -247,13 +247,13 @@ namespace PCGExConnectPoints
 			NumPoints,
 			if (bUseProjection)
 			{
-				WorkingTransforms[i] = ProjectionDetails.ProjectFlat(OriginalTransforms[i], i);
-				WorkingPositions[i] = WorkingTransforms[i].GetLocation();
+			WorkingTransforms[i] = ProjectionDetails.ProjectFlat(OriginalTransforms[i], i);
+			WorkingPositions[i] = WorkingTransforms[i].GetLocation();
 			}
 			else
 			{
-				WorkingTransforms[i] = OriginalTransforms[i];
-				WorkingPositions[i] = OriginalTransforms[i].GetLocation();
+			WorkingTransforms[i] = OriginalTransforms[i];
+			WorkingPositions[i] = OriginalTransforms[i].GetLocation();
 			})
 
 		if (bWantsOctree)

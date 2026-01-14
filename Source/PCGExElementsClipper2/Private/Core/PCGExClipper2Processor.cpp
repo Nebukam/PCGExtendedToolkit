@@ -650,7 +650,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 		TSharedPtr<PCGExData::FTags> GatheredTags = GatherTags(VisitedSources);
 		NewPointIO->Tags->Append(GatheredTags.ToSharedRef());
-		
+
 		CarryOverDetails.Prune(NewPointIO->Tags.Get());
 
 		OutPaths.Add(NewPointIO);

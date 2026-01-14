@@ -24,7 +24,7 @@ struct FPCGExTensorNoiseBoundedConfig : public FPCGExTensorConfigBase
 		: FPCGExTensorConfigBase()
 	{
 	}
-	
+
 	/** If enabled normalize the sampled noise direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bNormalizeNoiseSampling = true;
@@ -39,7 +39,7 @@ public:
 	FPCGExTensorNoiseBoundedConfig Config;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
-	
+
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample Sample(int32 InSeedIndex, const FTransform& InProbe) const override;
@@ -93,7 +93,6 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	
 	/** Tensor properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExTensorNoiseBoundedConfig Config;

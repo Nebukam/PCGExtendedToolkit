@@ -51,7 +51,7 @@ bool FPCGExProbeIndex::Prepare(FPCGExContext* InContext)
 	if (!TargetCache->Init(PrimaryDataFacade)) { return false; }
 
 	PCGEX_TARGET_CONNECT_SWITCH(TargetCache->Read(Index))
-	
+
 #undef PCGEX_FOREACH_SANITIZEINDEX
 #undef PCGEX_TARGET_CONNECT_TARGET
 #undef PCGEX_TARGET_CONNECT_ONEWAY

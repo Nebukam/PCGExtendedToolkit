@@ -24,7 +24,8 @@ struct FPCGExNoiseConfigMarble : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigMarble() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigMarble()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
 

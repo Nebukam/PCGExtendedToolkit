@@ -246,22 +246,22 @@ namespace PCGExBevelPath
 		double LeaveAlpha = 0;
 
 		// Sliding limit data
-		double ArriveSlidingLimit = 0;  // Total path distance available on arrive side
-		double LeaveSlidingLimit = 0;   // Total path distance available on leave side
-		int32 ArriveBevelIdx = -1;      // Index of the limiting bevel on arrive side (-1 if path end)
-		int32 LeaveBevelIdx = -1;       // Index of the limiting bevel on leave side (-1 if path end)
+		double ArriveSlidingLimit = 0; // Total path distance available on arrive side
+		double LeaveSlidingLimit = 0;  // Total path distance available on leave side
+		int32 ArriveBevelIdx = -1;     // Index of the limiting bevel on arrive side (-1 if path end)
+		int32 LeaveBevelIdx = -1;      // Index of the limiting bevel on leave side (-1 if path end)
 
 		// Path segments for sliding (stored as pairs of point positions and cumulative distances)
-		TArray<FVector> ArrivePathPoints;    // Points along path towards arrive (including Corner)
-		TArray<double> ArrivePathDistances;  // Cumulative distances at each point
-		TArray<int32> ArrivePathIndices;     // Point indices along arrive path (excluding self)
-		TArray<FVector> LeavePathPoints;     // Points along path towards leave (including Corner)
-		TArray<double> LeavePathDistances;   // Cumulative distances at each point
-		TArray<int32> LeavePathIndices;      // Point indices along leave path (excluding self)
+		TArray<FVector> ArrivePathPoints;   // Points along path towards arrive (including Corner)
+		TArray<double> ArrivePathDistances; // Cumulative distances at each point
+		TArray<int32> ArrivePathIndices;    // Point indices along arrive path (excluding self)
+		TArray<FVector> LeavePathPoints;    // Points along path towards leave (including Corner)
+		TArray<double> LeavePathDistances;  // Cumulative distances at each point
+		TArray<int32> LeavePathIndices;     // Point indices along leave path (excluding self)
 
 		double Length = 0;
 		double Width = 0;
-		double InitialWidth = 0;  // Store original width before limiting
+		double InitialWidth = 0; // Store original width before limiting
 
 		double CustomMainAxisScale = 1;
 		double CustomCrossAxisScale = 1;
@@ -300,7 +300,7 @@ namespace PCGExBevelPath
 	private:
 		/** Helper to accumulate path distance across multiple edges */
 		double AccumulatePathDistance(const FProcessor* InProcessor, int32 StartIdx, int32 Direction, int32& OutBevelIdx) const;
-		
+
 		/** Compute position along stored path at given distance */
 		FVector GetPositionAlongPath(const TArray<FVector>& PathPoints, const TArray<double>& PathDistances, double Distance) const;
 	};
@@ -321,7 +321,7 @@ namespace PCGExBevelPath
 		bool bArc = false;
 		bool bSlideAlongPath = false;
 
-		TArray<bool> ConsumedByBevel;  // Points consumed by sliding bevels
+		TArray<bool> ConsumedByBevel; // Points consumed by sliding bevels
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WidthGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SubdivAmountGetter;

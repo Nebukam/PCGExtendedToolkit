@@ -60,13 +60,14 @@ bool FPCGExBlendPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				PCGEX_SKIP_INVALID_PATH_ENTRY
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to blend."));
 		}

@@ -24,13 +24,13 @@ double FPCGExNoiseValue::GenerateRaw(const FVector& Position) const
 	const int32 X0S = (X0 + Seed) & 255;
 
 	// Get values at 8 corners
-	const double V000 = HashToDouble(Hash3D(X0S,     Y0,     Z0));
-	const double V100 = HashToDouble(Hash3D(X0S + 1, Y0,     Z0));
-	const double V010 = HashToDouble(Hash3D(X0S,     Y0 + 1, Z0));
+	const double V000 = HashToDouble(Hash3D(X0S, Y0, Z0));
+	const double V100 = HashToDouble(Hash3D(X0S + 1, Y0, Z0));
+	const double V010 = HashToDouble(Hash3D(X0S, Y0 + 1, Z0));
 	const double V110 = HashToDouble(Hash3D(X0S + 1, Y0 + 1, Z0));
-	const double V001 = HashToDouble(Hash3D(X0S,     Y0,     Z0 + 1));
-	const double V101 = HashToDouble(Hash3D(X0S + 1, Y0,     Z0 + 1));
-	const double V011 = HashToDouble(Hash3D(X0S,     Y0 + 1, Z0 + 1));
+	const double V001 = HashToDouble(Hash3D(X0S, Y0, Z0 + 1));
+	const double V101 = HashToDouble(Hash3D(X0S + 1, Y0, Z0 + 1));
+	const double V011 = HashToDouble(Hash3D(X0S, Y0 + 1, Z0 + 1));
 	const double V111 = HashToDouble(Hash3D(X0S + 1, Y0 + 1, Z0 + 1));
 
 	// Trilinear interpolation

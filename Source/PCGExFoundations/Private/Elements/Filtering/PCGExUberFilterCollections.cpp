@@ -94,10 +94,12 @@ bool FPCGExUberFilterCollectionsElement::AdvanceWork(FPCGExContext* InContext, c
 		{
 			Context->NumPairs = Context->MainPoints->Pairs.Num();
 
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = Context->bHasOnlyCollectionFilters;
-			}))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+					NewBatch->bSkipCompletion = Context->bHasOnlyCollectionFilters;
+				}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to filter."));
 			}

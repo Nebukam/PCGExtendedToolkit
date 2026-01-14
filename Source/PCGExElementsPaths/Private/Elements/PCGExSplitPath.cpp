@@ -47,18 +47,19 @@ bool FPCGExSplitPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
-				                                         else { bHasInvalidInputs = true; }
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EIOInit::Forward); }
+					else { bHasInvalidInputs = true; }
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to split."));
 		}

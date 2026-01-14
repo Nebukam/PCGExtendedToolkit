@@ -30,23 +30,23 @@ void FPCGExNoiseSwiss::NoiseWithDerivatives(const FVector& Position, double& Out
 	const int32 X0S = (X0 + Seed) & 255;
 
 	// Hash all 8 corners
-	const int32 AAA = Hash3D(X0S,     Y0,     Z0);
-	const int32 ABA = Hash3D(X0S,     Y0 + 1, Z0);
-	const int32 AAB = Hash3D(X0S,     Y0,     Z0 + 1);
-	const int32 ABB = Hash3D(X0S,     Y0 + 1, Z0 + 1);
-	const int32 BAA = Hash3D(X0S + 1, Y0,     Z0);
+	const int32 AAA = Hash3D(X0S, Y0, Z0);
+	const int32 ABA = Hash3D(X0S, Y0 + 1, Z0);
+	const int32 AAB = Hash3D(X0S, Y0, Z0 + 1);
+	const int32 ABB = Hash3D(X0S, Y0 + 1, Z0 + 1);
+	const int32 BAA = Hash3D(X0S + 1, Y0, Z0);
 	const int32 BBA = Hash3D(X0S + 1, Y0 + 1, Z0);
-	const int32 BAB = Hash3D(X0S + 1, Y0,     Z0 + 1);
+	const int32 BAB = Hash3D(X0S + 1, Y0, Z0 + 1);
 	const int32 BBB = Hash3D(X0S + 1, Y0 + 1, Z0 + 1);
 
 	// Gradient dot products
-	const double G_AAA = GradDot3(AAA, Xf,       Yf,       Zf);
-	const double G_BAA = GradDot3(BAA, Xf - 1.0, Yf,       Zf);
-	const double G_ABA = GradDot3(ABA, Xf,       Yf - 1.0, Zf);
+	const double G_AAA = GradDot3(AAA, Xf, Yf, Zf);
+	const double G_BAA = GradDot3(BAA, Xf - 1.0, Yf, Zf);
+	const double G_ABA = GradDot3(ABA, Xf, Yf - 1.0, Zf);
 	const double G_BBA = GradDot3(BBA, Xf - 1.0, Yf - 1.0, Zf);
-	const double G_AAB = GradDot3(AAB, Xf,       Yf,       Zf - 1.0);
-	const double G_BAB = GradDot3(BAB, Xf - 1.0, Yf,       Zf - 1.0);
-	const double G_ABB = GradDot3(ABB, Xf,       Yf - 1.0, Zf - 1.0);
+	const double G_AAB = GradDot3(AAB, Xf, Yf, Zf - 1.0);
+	const double G_BAB = GradDot3(BAB, Xf - 1.0, Yf, Zf - 1.0);
+	const double G_ABB = GradDot3(ABB, Xf, Yf - 1.0, Zf - 1.0);
 	const double G_BBB = GradDot3(BBB, Xf - 1.0, Yf - 1.0, Zf - 1.0);
 
 	// Interpolation coefficients
@@ -74,22 +74,22 @@ void FPCGExNoiseSwiss::NoiseWithDerivatives(const FVector& Position, double& Out
 
 	// Analytical derivatives
 	OutDerivatives.X = GA.X * (1 - U) * (1 - V) * (1 - W) + GB.X * U * (1 - V) * (1 - W) +
-	                   GC.X * (1 - U) * V * (1 - W) + GD.X * U * V * (1 - W) +
-	                   GE.X * (1 - U) * (1 - V) * W + GF.X * U * (1 - V) * W +
-	                   GG.X * (1 - U) * V * W + GH.X * U * V * W +
-	                   DU * (K1 + K4 * V + K6 * W + K7 * V * W);
+		GC.X * (1 - U) * V * (1 - W) + GD.X * U * V * (1 - W) +
+		GE.X * (1 - U) * (1 - V) * W + GF.X * U * (1 - V) * W +
+		GG.X * (1 - U) * V * W + GH.X * U * V * W +
+		DU * (K1 + K4 * V + K6 * W + K7 * V * W);
 
 	OutDerivatives.Y = GA.Y * (1 - U) * (1 - V) * (1 - W) + GB.Y * U * (1 - V) * (1 - W) +
-	                   GC.Y * (1 - U) * V * (1 - W) + GD.Y * U * V * (1 - W) +
-	                   GE.Y * (1 - U) * (1 - V) * W + GF.Y * U * (1 - V) * W +
-	                   GG.Y * (1 - U) * V * W + GH.Y * U * V * W +
-	                   DV * (K2 + K4 * U + K5 * W + K7 * U * W);
+		GC.Y * (1 - U) * V * (1 - W) + GD.Y * U * V * (1 - W) +
+		GE.Y * (1 - U) * (1 - V) * W + GF.Y * U * (1 - V) * W +
+		GG.Y * (1 - U) * V * W + GH.Y * U * V * W +
+		DV * (K2 + K4 * U + K5 * W + K7 * U * W);
 
 	OutDerivatives.Z = GA.Z * (1 - U) * (1 - V) * (1 - W) + GB.Z * U * (1 - V) * (1 - W) +
-	                   GC.Z * (1 - U) * V * (1 - W) + GD.Z * U * V * (1 - W) +
-	                   GE.Z * (1 - U) * (1 - V) * W + GF.Z * U * (1 - V) * W +
-	                   GG.Z * (1 - U) * V * W + GH.Z * U * V * W +
-	                   DW * (K3 + K5 * V + K6 * U + K7 * U * V);
+		GC.Z * (1 - U) * V * (1 - W) + GD.Z * U * V * (1 - W) +
+		GE.Z * (1 - U) * (1 - V) * W + GF.Z * U * (1 - V) * W +
+		GG.Z * (1 - U) * V * W + GH.Z * U * V * W +
+		DW * (K3 + K5 * V + K6 * U + K7 * U * V);
 }
 
 double FPCGExNoiseSwiss::GenerateRaw(const FVector& Position) const

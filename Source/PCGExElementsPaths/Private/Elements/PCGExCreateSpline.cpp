@@ -56,7 +56,10 @@ bool FPCGExCreateSplineElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CreateSpline)
 
-	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
+	if (Settings->bApplyCustomPointType || Settings->DefaultPointType == EPCGExSplinePointType::CurveCustomTangent)
+	{
+		if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
+	}
 
 	return true;
 }
@@ -127,9 +130,13 @@ namespace PCGExCreateSpline
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
+		bApplyTangents = Settings->GetApplyTangents();
 
-		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
-		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
+		if (bApplyTangents)
+		{
+			TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
+			if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
+		}
 
 		if (Settings->bApplyCustomPointType)
 		{
@@ -170,7 +177,7 @@ namespace PCGExCreateSpline
 			FVector OutArrive = FVector::ZeroVector;
 			FVector OutLeave = FVector::ZeroVector;
 
-			TangentsHandler->GetPointTangents(Index, OutArrive, OutLeave);
+			if (bApplyTangents) { TangentsHandler->GetPointTangents(Index, OutArrive, OutLeave); }
 
 			const FTransform& TR = InTransforms[Index];
 

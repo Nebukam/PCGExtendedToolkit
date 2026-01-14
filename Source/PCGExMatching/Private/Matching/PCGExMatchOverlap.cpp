@@ -17,7 +17,7 @@ bool FPCGExMatchOverlap::PrepareForMatchableSources(FPCGExContext* InContext, co
 	if (!FPCGExMatchRuleOperation::PrepareForMatchableSources(InContext, InMatchableSources)) { return false; }
 
 	// TODO
-	
+
 	return true;
 }
 

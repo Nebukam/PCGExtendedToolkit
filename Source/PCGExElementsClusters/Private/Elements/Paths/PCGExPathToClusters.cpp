@@ -91,19 +91,20 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		if (Settings->bFusePaths)
 		{
 			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			                                         {
-				                                         if (Entry->GetNum() < 2)
-				                                         {
-					                                         bHasInvalidInputs = true;
-					                                         return false;
-				                                         }
-				                                         return true;
-			                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			                                         {
-				                                         NewBatch->bSkipCompletion = true;
-				                                         NewBatch->bForceSingleThreadedProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
-			                                         }))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+				{
+					if (Entry->GetNum() < 2)
+					{
+						bHasInvalidInputs = true;
+						return false;
+					}
+					return true;
+				}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+					NewBatch->bSkipCompletion = true;
+					NewBatch->bForceSingleThreadedProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+				}))
 			{
 				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}
@@ -111,17 +112,18 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 		else
 		{
 			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			                                         {
-				                                         if (Entry->GetNum() < 2)
-				                                         {
-					                                         bHasInvalidInputs = true;
-					                                         return false;
-				                                         }
-				                                         return true;
-			                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			                                         {
-			                                         }))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+				{
+					if (Entry->GetNum() < 2)
+					{
+						bHasInvalidInputs = true;
+						return false;
+					}
+					return true;
+				}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+				}))
 			{
 				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}

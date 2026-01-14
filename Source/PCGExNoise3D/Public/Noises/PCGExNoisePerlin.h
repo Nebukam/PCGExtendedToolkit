@@ -28,7 +28,6 @@ struct FPCGExNoiseConfigPerlin : public FPCGExNoise3DConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin = "0.0", ClampMax = "1.0"))
 	double Persistence = 0.5;
-
 };
 
 /**

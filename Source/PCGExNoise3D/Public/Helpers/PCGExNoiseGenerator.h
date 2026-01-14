@@ -22,15 +22,15 @@ namespace PCGExNoise3D
 		TArray<const FPCGExNoise3DOperation*> OperationsPtr;
 		TArray<double> Weights;
 		TArray<EPCGExNoiseBlendMode> BlendModes;
-		
+
 		/** Precomputed blend factors: BlendFactors[i] = Weights[i] / sum(Weights[0..i]) */
 		TArray<double> BlendFactors;
-		
+
 		double TotalWeight = 0.0;
 
 		/** How GenerateInPlace combines initial value with noise */
 		EPCGExNoiseInPlaceMode InPlaceMode = EPCGExNoiseInPlaceMode::Composite;
-		
+
 		/** Blend mode used for BlendResult in-place mode */
 		EPCGExNoiseBlendMode InPlaceBlendMode = EPCGExNoiseBlendMode::Blend;
 

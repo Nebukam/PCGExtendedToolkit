@@ -154,7 +154,7 @@ namespace PCGExClipper2
 	 * Unified processing group that encapsulates subjects, operands, and cached data.
 	 * This provides a clean interface for Clipper2 operations.
 	 */
-	struct FProcessingGroup : public TSharedFromThis<FProcessingGroup>
+	struct FProcessingGroup : TSharedFromThis<FProcessingGroup>
 	{
 		// Indices into AllOpData
 		TArray<int32> SubjectIndices;
@@ -166,7 +166,7 @@ namespace PCGExClipper2
 
 		PCGExClipper2Lib::Paths64 OperandPaths;
 		PCGExClipper2Lib::Paths64 OpenOperandPaths;
-		
+
 		// Combined source indices for blending
 		TArray<int32> AllSourceIndices;
 		TSharedPtr<PCGExData::FTags> GroupTags;
@@ -311,7 +311,7 @@ struct PCGEXELEMENTSCLIPPER2_API FPCGExClipper2ProcessorContext : FPCGExPathProc
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	TSharedPtr<PCGExData::FTags> GatherTags(const TArray<int8>& VisitedSources);
-	
+
 	/**
 	 * Convert Clipper2 Paths64 results back to PCGEx point data with metadata blending.
 	 * 

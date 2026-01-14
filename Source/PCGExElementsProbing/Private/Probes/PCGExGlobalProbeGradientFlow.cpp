@@ -40,7 +40,7 @@ void FPCGExProbeGradientFlow::ProcessAll(TSet<uint64>& OutEdges) const
 	for (int32 i = 0; i < NumPoints; ++i)
 	{
 		if (!CanGenerateRef[i]) { continue; }
-		
+
 		int32 BestUphill = INDEX_NONE;
 		int32 BestDownhill = INDEX_NONE;
 		double BestUphillGradient = 0;

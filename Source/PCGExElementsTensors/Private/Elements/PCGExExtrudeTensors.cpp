@@ -92,10 +92,12 @@ bool FPCGExExtrudeTensorsElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		Context->AddConsumableAttributeName(Settings->IterationsAttribute);
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-			NewBatch->bPrefetchData = true;
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bPrefetchData = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}

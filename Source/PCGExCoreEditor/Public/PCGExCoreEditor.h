@@ -8,12 +8,10 @@
 #include "Modules/ModuleManager.h"
 
 
-
 class FPCGExCoreEditorModule final : public IPCGExEditorModuleInterface
 {
-	
 	PCGEX_MODULE_BODY
-	
+
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;

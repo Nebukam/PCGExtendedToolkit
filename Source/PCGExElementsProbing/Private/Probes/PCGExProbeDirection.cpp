@@ -102,7 +102,7 @@ void FPCGExProbeDirection::PrepareBestCandidate(const int32 Index, PCGExProbing:
 void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate, PCGExMT::FScopedContainer* Container)
 {
 	const double R = GetSearchRadius(Index);
-	
+
 	const FTransform& WorkingTransform = *(WorkingTransforms->GetData() + Index);
 	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(PCGEX_GET_DIRECTION) : PCGEX_GET_DIRECTION;
 

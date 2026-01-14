@@ -71,7 +71,7 @@ public:
 	*  Useful when you want to cut through paths rather than get polygon intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable, EditCondition="!bInvertClip", EditConditionHides))
 	bool bClipAsLines = false;
-	
+
 	/** If enabled, inverts the clip region (uses boolean difference with the rectangle instead) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	bool bInvertClip = false;

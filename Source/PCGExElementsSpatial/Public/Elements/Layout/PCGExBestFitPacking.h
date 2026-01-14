@@ -27,26 +27,26 @@ namespace PCGExData
 UENUM()
 enum class EPCGExBestFitRotationMode : uint8
 {
-	None            = 0 UMETA(DisplayName = "None", ToolTip="No rotation testing"),
-	CardinalOnly    = 1 UMETA(DisplayName = "Cardinal (90°)", ToolTip="Test 90° rotations only (4 orientations)"),
-	AllOrthogonal   = 2 UMETA(DisplayName = "All Orthogonal", ToolTip="Test all 24 orthogonal orientations"),
+	None          = 0 UMETA(DisplayName = "None", ToolTip="No rotation testing"),
+	CardinalOnly  = 1 UMETA(DisplayName = "Cardinal (90°)", ToolTip="Test 90° rotations only (4 orientations)"),
+	AllOrthogonal = 2 UMETA(DisplayName = "All Orthogonal", ToolTip="Test all 24 orthogonal orientations"),
 };
 
 UENUM()
 enum class EPCGExBestFitScoreMode : uint8
 {
-	TightestFit     = 0 UMETA(DisplayName = "Tightest Fit", ToolTip="Prioritize spaces where the item fits most tightly"),
-	SmallestSpace   = 1 UMETA(DisplayName = "Smallest Space", ToolTip="Prioritize smallest space that can contain the item"),
-	LeastWaste      = 2 UMETA(DisplayName = "Least Waste", ToolTip="Minimize volume wasted after placement"),
-	Balanced        = 3 UMETA(DisplayName = "Balanced", ToolTip="Balance between tight fit and space conservation"),
+	TightestFit   = 0 UMETA(DisplayName = "Tightest Fit", ToolTip="Prioritize spaces where the item fits most tightly"),
+	SmallestSpace = 1 UMETA(DisplayName = "Smallest Space", ToolTip="Prioritize smallest space that can contain the item"),
+	LeastWaste    = 2 UMETA(DisplayName = "Least Waste", ToolTip="Minimize volume wasted after placement"),
+	Balanced      = 3 UMETA(DisplayName = "Balanced", ToolTip="Balance between tight fit and space conservation"),
 };
 
 UENUM()
 enum class EPCGExBestFitPlacementAnchor : uint8
 {
-	Corner          = 0 UMETA(DisplayName = "Corner", ToolTip="Place items at corner of free space"),
-	Center          = 1 UMETA(DisplayName = "Center", ToolTip="Place items at center of free space"),
-	SeedProximity   = 2 UMETA(DisplayName = "Seed Proximity", ToolTip="Place items as close to seed as possible"),
+	Corner        = 0 UMETA(DisplayName = "Corner", ToolTip="Place items at corner of free space"),
+	Center        = 1 UMETA(DisplayName = "Center", ToolTip="Place items at center of free space"),
+	SeedProximity = 2 UMETA(DisplayName = "Seed Proximity", ToolTip="Place items as close to seed as possible"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/layout/best-fit-packing"))
@@ -192,7 +192,7 @@ namespace PCGExBestFitPacking
 	struct FBestFitItem
 	{
 		int32 Index = -1;
-		FBox Box = FBox(EForceInit::ForceInit);
+		FBox Box = FBox(ForceInit);
 		FVector Padding = FVector::ZeroVector;
 		FRotator Rotation = FRotator::ZeroRotator;
 		FVector OriginalSize = FVector::ZeroVector; // Size before rotation

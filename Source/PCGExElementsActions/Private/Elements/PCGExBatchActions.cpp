@@ -81,9 +81,11 @@ bool FPCGExBatchActionsElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	{
 		if (!Context->ActionsFactories.IsEmpty())
 		{
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+				}))
 			{
 				return Context->CancelExecution(TEXT("Could not find any points to process."));
 			}

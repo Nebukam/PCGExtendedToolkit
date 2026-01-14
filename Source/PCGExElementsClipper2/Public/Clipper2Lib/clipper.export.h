@@ -125,15 +125,15 @@ the four vertices that define the two segments that are intersecting.
 
 namespace PCGExClipper2Lib
 {
-	typedef int64_t* CPath64;
-	typedef int64_t* CPaths64;
-	typedef double* CPathD;
-	typedef double* CPathsD;
+	using CPath64 = int64_t*;
+	using CPaths64 = int64_t*;
+	using CPathD = double*;
+	using CPathsD = double*;
 
-	typedef int64_t* CPolyPath64;
-	typedef int64_t* CPolyTree64;
-	typedef double* CPolyPathD;
-	typedef double* CPolyTreeD;
+	using CPolyPath64 = int64_t*;
+	using CPolyTree64 = int64_t*;
+	using CPolyPathD = double*;
+	using CPolyTreeD = double*;
 
 	template <typename T>
 	struct CRect
@@ -144,17 +144,17 @@ namespace PCGExClipper2Lib
 		T bottom;
 	};
 
-	typedef CRect<int64_t> CRect64;
-	typedef CRect<double> CRectD;
+	using CRect64 = CRect<int64_t>;
+	using CRectD = CRect<double>;
 
 	template <typename T>
-	inline bool CRectIsEmpty(const CRect<T>& rect)
+	bool CRectIsEmpty(const CRect<T>& rect)
 	{
 		return (rect.right <= rect.left) || (rect.bottom <= rect.top);
 	}
 
 	template <typename T>
-	inline Rect<T> CRectToRect(const CRect<T>& rect)
+	Rect<T> CRectToRect(const CRect<T>& rect)
 	{
 		Rect<T> result;
 		result.left = rect.left;
@@ -165,7 +165,7 @@ namespace PCGExClipper2Lib
 	}
 
 	template <typename T1, typename T2>
-	inline T1 Reinterpret(T2 value)
+	T1 Reinterpret(T2 value)
 	{
 		return *reinterpret_cast<T1*>(&value);
 	}
@@ -252,11 +252,13 @@ namespace PCGExClipper2Lib
 		array_len = 2;
 		cnt = 0;
 		for (const Path<T>& path : paths)
+		{
 			if (path.size())
 			{
 				array_len += path.size() * EXPORT_VERTEX_DIMENSIONALITY + 2;
 				++cnt;
 			}
+		}
 	}
 
 	static size_t GetPolyPathArrayLen64(const PolyPath64& pp)
@@ -265,7 +267,9 @@ namespace PCGExClipper2Lib
 		result += pp.Polygon().size() * EXPORT_VERTEX_DIMENSIONALITY;
 		//plus nested children :)
 		for (size_t i = 0; i < pp.Count(); ++i)
+		{
 			result += GetPolyPathArrayLen64(*pp[i]);
+		}
 		return result;
 	}
 
@@ -275,7 +279,9 @@ namespace PCGExClipper2Lib
 		result += pp.Polygon().size() * EXPORT_VERTEX_DIMENSIONALITY;
 		//plus nested children :)
 		for (size_t i = 0; i < pp.Count(); ++i)
+		{
 			result += GetPolyPathArrayLenD(*pp[i]);
+		}
 		return result;
 	}
 
@@ -303,7 +309,10 @@ namespace PCGExClipper2Lib
 		*v++ = cnt;
 		for (const Path<T>& path : paths)
 		{
-			if (!path.size()) continue;
+			if (!path.size())
+			{
+				continue;
+			}
 			*v++ = path.size();
 			*v++ = 0;
 			for (const Point<T>& pt : path)
@@ -318,16 +327,22 @@ namespace PCGExClipper2Lib
 
 	FORCEINLINE CPathsD CreateCPathsDFromPathsD(const PathsD& paths)
 	{
-		if (!paths.size()) return nullptr;
+		if (!paths.size())
+		{
+			return nullptr;
+		}
 		size_t cnt, array_len;
 		GetPathCountAndCPathsArrayLen(paths, cnt, array_len);
 		CPathsD result = new double[array_len], v = result;
-		*v++ = (double)array_len;
-		*v++ = (double)cnt;
+		*v++ = static_cast<double>(array_len);
+		*v++ = static_cast<double>(cnt);
 		for (const PathD& path : paths)
 		{
-			if (!path.size()) continue;
-			*v = (double)path.size();
+			if (!path.size())
+			{
+				continue;
+			}
+			*v = static_cast<double>(path.size());
 			++v;
 			*v++ = 0;
 			for (const PointD& pt : path)
@@ -342,16 +357,22 @@ namespace PCGExClipper2Lib
 
 	FORCEINLINE CPathsD CreateCPathsDFromPaths64(const Paths64& paths, double scale)
 	{
-		if (!paths.size()) return nullptr;
+		if (!paths.size())
+		{
+			return nullptr;
+		}
 		size_t cnt, array_len;
 		GetPathCountAndCPathsArrayLen(paths, cnt, array_len);
 		CPathsD result = new double[array_len], v = result;
-		*v++ = (double)array_len;
-		*v++ = (double)cnt;
+		*v++ = static_cast<double>(array_len);
+		*v++ = static_cast<double>(cnt);
 		for (const Path64& path : paths)
 		{
-			if (!path.size()) continue;
-			*v = (double)path.size();
+			if (!path.size())
+			{
+				continue;
+			}
+			*v = static_cast<double>(path.size());
 			++v;
 			*v++ = 0;
 			for (const Point64& pt : path)
@@ -368,7 +389,10 @@ namespace PCGExClipper2Lib
 	static Path<T> ConvertCPathToPathT(T* path)
 	{
 		Path<T> result;
-		if (!path) return result;
+		if (!path)
+		{
+			return result;
+		}
 		T* v = path;
 		size_t cnt = static_cast<size_t>(*v);
 		v += 2; // skip 0 value
@@ -386,7 +410,10 @@ namespace PCGExClipper2Lib
 	static Paths<T> ConvertCPathsToPathsT(T* paths)
 	{
 		Paths<T> result;
-		if (!paths) return result;
+		if (!paths)
+		{
+			return result;
+		}
 		T* v = paths;
 		++v;
 		size_t cnt = static_cast<size_t>(*v++);
@@ -411,7 +438,10 @@ namespace PCGExClipper2Lib
 	static Path64 ConvertCPathDToPath64WithScale(const CPathD path, double scale)
 	{
 		Path64 result;
-		if (!path) return result;
+		if (!path)
+		{
+			return result;
+		}
 		double* v = path;
 		size_t cnt = static_cast<size_t>(*v);
 		v += 2; // skip 0 value
@@ -429,7 +459,10 @@ namespace PCGExClipper2Lib
 	static Paths64 ConvertCPathsDToPaths64(const CPathsD paths, double scale)
 	{
 		Paths64 result;
-		if (!paths) return result;
+		if (!paths)
+		{
+			return result;
+		}
 		double* v = paths;
 		++v; // skip the first value (0)
 		size_t cnt = static_cast<size_t>(*v++);
@@ -463,7 +496,9 @@ namespace PCGExClipper2Lib
 			*v++ = Reinterpret<int64_t>(pt.z); // raw memory copy
 		}
 		for (size_t i = 0; i < pp->Count(); ++i)
+		{
 			CreateCPolyPath64(pp->Child(i), v);
+		}
 	}
 
 	static void CreateCPolyPathD(const PolyPathD* pp, double*& v)
@@ -477,21 +512,28 @@ namespace PCGExClipper2Lib
 			*v++ = Reinterpret<double>(pt.z); // raw memory copy
 		}
 		for (size_t i = 0; i < pp->Count(); ++i)
+		{
 			CreateCPolyPathD(pp->Child(i), v);
+		}
 	}
 
 	static int64_t* CreateCPolyTree64(const PolyTree64& tree)
 	{
 		size_t cnt, array_len;
 		GetPolytreeCountAndCStorageSize64(tree, cnt, array_len);
-		if (!cnt) return nullptr;
+		if (!cnt)
+		{
+			return nullptr;
+		}
 		// allocate storage
 		int64_t* result = new int64_t[array_len];
 		int64_t* v = result;
 		*v++ = static_cast<int64_t>(array_len);
 		*v++ = static_cast<int64_t>(tree.Count());
 		for (size_t i = 0; i < tree.Count(); ++i)
+		{
 			CreateCPolyPath64(tree.Child(i), v);
+		}
 		return result;
 	}
 
@@ -500,14 +542,19 @@ namespace PCGExClipper2Lib
 		double scale = std::log10(tree.Scale());
 		size_t cnt, array_len;
 		GetPolytreeCountAndCStorageSizeD(tree, cnt, array_len);
-		if (!cnt) return nullptr;
+		if (!cnt)
+		{
+			return nullptr;
+		}
 		// allocate storage
 		double* result = new double[array_len];
 		double* v = result;
 		*v++ = static_cast<double>(array_len);
 		*v++ = static_cast<double>(tree.Count());
 		for (size_t i = 0; i < tree.Count(); ++i)
+		{
 			CreateCPolyPathD(tree.Child(i), v);
+		}
 		return result;
 	}
 
@@ -526,8 +573,14 @@ namespace PCGExClipper2Lib
 	                            CPaths64& solution, CPaths64& solution_open,
 	                            bool preserve_collinear, bool reverse_solution)
 	{
-		if (cliptype > static_cast<uint8_t>(ClipType::Xor)) return -4;
-		if (fillrule > static_cast<uint8_t>(FillRule::Negative)) return -3;
+		if (cliptype > static_cast<uint8_t>(ClipType::Xor))
+		{
+			return -4;
+		}
+		if (fillrule > static_cast<uint8_t>(FillRule::Negative))
+		{
+			return -3;
+		}
 
 		Paths64 sub, sub_open, clp, sol, sol_open;
 		sub = ConvertCPathsToPathsT(subjects);
@@ -537,12 +590,26 @@ namespace PCGExClipper2Lib
 		Clipper64 clipper;
 		clipper.PreserveCollinear(preserve_collinear);
 		clipper.ReverseSolution(reverse_solution);
-		if (dllCallback64) clipper.SetZCallback(dllCallback64);
-		if (sub.size() > 0) clipper.AddSubject(sub);
-		if (sub_open.size() > 0) clipper.AddOpenSubject(sub_open);
-		if (clp.size() > 0) clipper.AddClip(clp);
-		if (!clipper.Execute(ClipType(cliptype), FillRule(fillrule), sol, sol_open))
+		if (dllCallback64)
+		{
+			clipper.SetZCallback(dllCallback64);
+		}
+		if (sub.size() > 0)
+		{
+			clipper.AddSubject(sub);
+		}
+		if (sub_open.size() > 0)
+		{
+			clipper.AddOpenSubject(sub_open);
+		}
+		if (clp.size() > 0)
+		{
+			clipper.AddClip(clp);
+		}
+		if (!clipper.Execute(static_cast<ClipType>(cliptype), static_cast<FillRule>(fillrule), sol, sol_open))
+		{
 			return -1; // clipping bug - should never happen :)
+		}
 		solution = CreateCPathsFromPathsT(sol);
 		solution_open = CreateCPathsFromPathsT(sol_open);
 		return 0; //success !!
@@ -554,8 +621,14 @@ namespace PCGExClipper2Lib
 	                                     CPolyTree64& sol_tree, CPaths64& solution_open,
 	                                     bool preserve_collinear, bool reverse_solution)
 	{
-		if (cliptype > static_cast<uint8_t>(ClipType::Xor)) return -4;
-		if (fillrule > static_cast<uint8_t>(FillRule::Negative)) return -3;
+		if (cliptype > static_cast<uint8_t>(ClipType::Xor))
+		{
+			return -4;
+		}
+		if (fillrule > static_cast<uint8_t>(FillRule::Negative))
+		{
+			return -3;
+		}
 		Paths64 sub, sub_open, clp, sol_open;
 		sub = ConvertCPathsToPathsT(subjects);
 		sub_open = ConvertCPathsToPathsT(subjects_open);
@@ -565,12 +638,26 @@ namespace PCGExClipper2Lib
 		Clipper64 clipper;
 		clipper.PreserveCollinear(preserve_collinear);
 		clipper.ReverseSolution(reverse_solution);
-		if (dllCallback64) clipper.SetZCallback(dllCallback64);
-		if (sub.size() > 0) clipper.AddSubject(sub);
-		if (sub_open.size() > 0) clipper.AddOpenSubject(sub_open);
-		if (clp.size() > 0) clipper.AddClip(clp);
-		if (!clipper.Execute(ClipType(cliptype), FillRule(fillrule), tree, sol_open))
+		if (dllCallback64)
+		{
+			clipper.SetZCallback(dllCallback64);
+		}
+		if (sub.size() > 0)
+		{
+			clipper.AddSubject(sub);
+		}
+		if (sub_open.size() > 0)
+		{
+			clipper.AddOpenSubject(sub_open);
+		}
+		if (clp.size() > 0)
+		{
+			clipper.AddClip(clp);
+		}
+		if (!clipper.Execute(static_cast<ClipType>(cliptype), static_cast<FillRule>(fillrule), tree, sol_open))
+		{
 			return -1; // clipping bug - should never happen :)
+		}
 
 		sol_tree = CreateCPolyTree64(tree);
 		solution_open = CreateCPathsFromPathsT(sol_open);
@@ -583,9 +670,18 @@ namespace PCGExClipper2Lib
 	                           CPathsD& solution, CPathsD& solution_open, int precision,
 	                           bool preserve_collinear, bool reverse_solution)
 	{
-		if (precision < -8 || precision > 8) return -5;
-		if (cliptype > static_cast<uint8_t>(ClipType::Xor)) return -4;
-		if (fillrule > static_cast<uint8_t>(FillRule::Negative)) return -3;
+		if (precision < -8 || precision > 8)
+		{
+			return -5;
+		}
+		if (cliptype > static_cast<uint8_t>(ClipType::Xor))
+		{
+			return -4;
+		}
+		if (fillrule > static_cast<uint8_t>(FillRule::Negative))
+		{
+			return -3;
+		}
 		//const double scale = std::pow(10, precision);
 
 		PathsD sub, sub_open, clp, sol, sol_open;
@@ -596,13 +692,27 @@ namespace PCGExClipper2Lib
 		ClipperD clipper(precision);
 		clipper.PreserveCollinear(preserve_collinear);
 		clipper.ReverseSolution(reverse_solution);
-		if (dllCallbackD) clipper.SetZCallback(dllCallbackD);
-		if (sub.size() > 0) clipper.AddSubject(sub);
-		if (sub_open.size() > 0) clipper.AddOpenSubject(sub_open);
-		if (clp.size() > 0) clipper.AddClip(clp);
-		if (!clipper.Execute(ClipType(cliptype),
-		                     FillRule(fillrule), sol, sol_open))
+		if (dllCallbackD)
+		{
+			clipper.SetZCallback(dllCallbackD);
+		}
+		if (sub.size() > 0)
+		{
+			clipper.AddSubject(sub);
+		}
+		if (sub_open.size() > 0)
+		{
+			clipper.AddOpenSubject(sub_open);
+		}
+		if (clp.size() > 0)
+		{
+			clipper.AddClip(clp);
+		}
+		if (!clipper.Execute(static_cast<ClipType>(cliptype),
+		                     static_cast<FillRule>(fillrule), sol, sol_open))
+		{
 			return -1;
+		}
 		solution = CreateCPathsDFromPathsD(sol);
 		solution_open = CreateCPathsDFromPathsD(sol_open);
 		return 0;
@@ -614,9 +724,18 @@ namespace PCGExClipper2Lib
 	                                    CPolyTreeD& solution, CPathsD& solution_open, int precision,
 	                                    bool preserve_collinear, bool reverse_solution)
 	{
-		if (precision < -8 || precision > 8) return -5;
-		if (cliptype > static_cast<uint8_t>(ClipType::Xor)) return -4;
-		if (fillrule > static_cast<uint8_t>(FillRule::Negative)) return -3;
+		if (precision < -8 || precision > 8)
+		{
+			return -5;
+		}
+		if (cliptype > static_cast<uint8_t>(ClipType::Xor))
+		{
+			return -4;
+		}
+		if (fillrule > static_cast<uint8_t>(FillRule::Negative))
+		{
+			return -3;
+		}
 		//double scale = std::pow(10, precision);
 
 		int err = 0;
@@ -629,12 +748,26 @@ namespace PCGExClipper2Lib
 		ClipperD clipper(precision);
 		clipper.PreserveCollinear(preserve_collinear);
 		clipper.ReverseSolution(reverse_solution);
-		if (dllCallbackD) clipper.SetZCallback(dllCallbackD);
-		if (sub.size() > 0) clipper.AddSubject(sub);
-		if (sub_open.size() > 0) clipper.AddOpenSubject(sub_open);
-		if (clp.size() > 0) clipper.AddClip(clp);
-		if (!clipper.Execute(ClipType(cliptype), FillRule(fillrule), tree, sol_open))
+		if (dllCallbackD)
+		{
+			clipper.SetZCallback(dllCallbackD);
+		}
+		if (sub.size() > 0)
+		{
+			clipper.AddSubject(sub);
+		}
+		if (sub_open.size() > 0)
+		{
+			clipper.AddOpenSubject(sub_open);
+		}
+		if (clp.size() > 0)
+		{
+			clipper.AddClip(clp);
+		}
+		if (!clipper.Execute(static_cast<ClipType>(cliptype), static_cast<FillRule>(fillrule), tree, sol_open))
+		{
 			return -1; // clipping bug - should never happen :)
+		}
 
 		solution = CreateCPolyTreeD(tree);
 		solution_open = CreateCPathsDFromPathsD(sol_open);
@@ -649,7 +782,7 @@ namespace PCGExClipper2Lib
 		pp = ConvertCPathsToPathsT(paths);
 		ClipperOffset clip_offset(miter_limit,
 		                          arc_tolerance, reverse_solution);
-		clip_offset.AddPaths(pp, JoinType(jointype), EndType(endtype));
+		clip_offset.AddPaths(pp, static_cast<JoinType>(jointype), static_cast<EndType>(endtype));
 		Paths64 result;
 		clip_offset.Execute(delta, result);
 		return CreateCPathsFromPathsT(result);
@@ -660,12 +793,15 @@ namespace PCGExClipper2Lib
 	                                  int precision, double miter_limit,
 	                                  double arc_tolerance, bool reverse_solution)
 	{
-		if (precision < -8 || precision > 8 || !paths) return nullptr;
+		if (precision < -8 || precision > 8 || !paths)
+		{
+			return nullptr;
+		}
 
 		const double scale = std::pow(10, precision);
 		ClipperOffset clip_offset(miter_limit, arc_tolerance, reverse_solution);
 		Paths64 pp = ConvertCPathsDToPaths64(paths, scale);
-		clip_offset.AddPaths(pp, JoinType(jointype), EndType(endtype));
+		clip_offset.AddPaths(pp, static_cast<JoinType>(jointype), static_cast<EndType>(endtype));
 		Paths64 result;
 		clip_offset.Execute(delta * scale, result);
 		return CreateCPathsDFromPaths64(result, 1 / scale);
@@ -680,7 +816,7 @@ namespace PCGExClipper2Lib
 		pp = ConvertCPathToPathT(path);
 		ClipperOffset clip_offset(miter_limit,
 		                          arc_tolerance, reverse_solution);
-		clip_offset.AddPath(pp, JoinType(jointype), EndType(endtype));
+		clip_offset.AddPath(pp, static_cast<JoinType>(jointype), static_cast<EndType>(endtype));
 		Paths64 result;
 		clip_offset.Execute(delta, result);
 		return CreateCPathsFromPathsT(result);
@@ -691,12 +827,15 @@ namespace PCGExClipper2Lib
 	                                 int precision, double miter_limit,
 	                                 double arc_tolerance, bool reverse_solution)
 	{
-		if (precision < -8 || precision > 8 || !path) return nullptr;
+		if (precision < -8 || precision > 8 || !path)
+		{
+			return nullptr;
+		}
 
 		const double scale = std::pow(10, precision);
 		ClipperOffset clip_offset(miter_limit, arc_tolerance, reverse_solution);
 		Path64 pp = ConvertCPathDToPath64WithScale(path, scale);
-		clip_offset.AddPath(pp, JoinType(jointype), EndType(endtype));
+		clip_offset.AddPath(pp, static_cast<JoinType>(jointype), static_cast<EndType>(endtype));
 		Paths64 result;
 		clip_offset.Execute(delta * scale, result);
 
@@ -705,7 +844,10 @@ namespace PCGExClipper2Lib
 
 	FORCEINLINE CPaths64 ExecuteRectClip64(const CRect64& rect, const CPaths64 paths)
 	{
-		if (CRectIsEmpty(rect) || !paths) return nullptr;
+		if (CRectIsEmpty(rect) || !paths)
+		{
+			return nullptr;
+		}
 		Rect64 r64 = CRectToRect(rect);
 		class RectClip64 rc(r64);
 		Paths64 pp = ConvertCPathsToPathsT(paths);
@@ -715,8 +857,14 @@ namespace PCGExClipper2Lib
 
 	FORCEINLINE CPathsD ExecuteRectClipD(const CRectD& rect, const CPathsD paths, int precision)
 	{
-		if (CRectIsEmpty(rect) || !paths) return nullptr;
-		if (precision < -8 || precision > 8) return nullptr;
+		if (CRectIsEmpty(rect) || !paths)
+		{
+			return nullptr;
+		}
+		if (precision < -8 || precision > 8)
+		{
+			return nullptr;
+		}
 		const double scale = std::pow(10, precision);
 
 		RectD r = CRectToRect(rect);
@@ -729,9 +877,12 @@ namespace PCGExClipper2Lib
 	}
 
 	FORCEINLINE CPaths64 ExecuteRectClipLines64(const CRect64& rect,
-	                                        const CPaths64 paths)
+	                                            const CPaths64 paths)
 	{
-		if (CRectIsEmpty(rect) || !paths) return nullptr;
+		if (CRectIsEmpty(rect) || !paths)
+		{
+			return nullptr;
+		}
 		Rect64 r = CRectToRect(rect);
 		class RectClipLines64 rcl(r);
 		Paths64 pp = ConvertCPathsToPathsT(paths);
@@ -740,10 +891,16 @@ namespace PCGExClipper2Lib
 	}
 
 	FORCEINLINE CPathsD ExecuteRectClipLinesD(const CRectD& rect,
-	                                      const CPathsD paths, int precision)
+	                                          const CPathsD paths, int precision)
 	{
-		if (CRectIsEmpty(rect) || !paths) return nullptr;
-		if (precision < -8 || precision > 8) return nullptr;
+		if (CRectIsEmpty(rect) || !paths)
+		{
+			return nullptr;
+		}
+		if (precision < -8 || precision > 8)
+		{
+			return nullptr;
+		}
 
 		const double scale = std::pow(10, precision);
 		Rect64 r = ScaleRect<int64_t, double>(CRectToRect(rect), scale);
@@ -773,22 +930,31 @@ namespace PCGExClipper2Lib
 	{
 		Paths64 pp = ConvertCPathsToPathsT(paths);
 		Paths64 sol;
-		if (Triangulate(pp, sol, use_delaunay) != TriangulateResult::success) return nullptr;
+		if (Triangulate(pp, sol, use_delaunay) != TriangulateResult::success)
+		{
+			return nullptr;
+		}
 		return CreateCPathsFromPathsT(sol);
 	}
 
 	FORCEINLINE CPathsD TriangulateD(const CPathsD paths, int decimal_precison, bool use_delaunay)
 	{
-		if (decimal_precison < -8 || decimal_precison > 8) return nullptr;
+		if (decimal_precison < -8 || decimal_precison > 8)
+		{
+			return nullptr;
+		}
 		const double scale = std::pow(10, decimal_precison);
 		Paths64 pp = ConvertCPathsDToPaths64(paths, scale);
 		Paths64 sol;
-		if (Triangulate(pp, sol, use_delaunay) != TriangulateResult::success) return nullptr;
+		if (Triangulate(pp, sol, use_delaunay) != TriangulateResult::success)
+		{
+			return nullptr;
+		}
 		return CreateCPathsDFromPaths64(sol, 1 / scale);
 	}
 
-	typedef void (*DLLZCallback64)(const Point64& e1bot, const Point64& e1top, const Point64& e2bot, const Point64& e2top, Point64& pt);
-	typedef void (*DLLZCallbackD)(const PointD& e1bot, const PointD& e1top, const PointD& e2bot, const PointD& e2top, PointD& pt);
+	using DLLZCallback64 = void(*)(const Point64& e1bot, const Point64& e1top, const Point64& e2bot, const Point64& e2top, Point64& pt);
+	using DLLZCallbackD = void(*)(const PointD& e1bot, const PointD& e1top, const PointD& e2bot, const PointD& e2top, PointD& pt);
 
 	FORCEINLINE void SetZCallback64(DLLZCallback64 callback)
 	{

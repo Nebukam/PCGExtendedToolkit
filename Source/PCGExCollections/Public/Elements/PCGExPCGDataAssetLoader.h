@@ -63,7 +63,6 @@ class UPCGExPCGDataAssetLoaderSettings : public UPCGExPointsProcessorSettings
 	GENERATED_BODY()
 
 public:
-	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PCGDataAssetLoader, "PCGDataAsset Loader", "Loads and spawns PCGDataAsset contents from staged points.");

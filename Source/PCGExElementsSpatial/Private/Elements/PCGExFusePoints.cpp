@@ -56,10 +56,12 @@ bool FPCGExFusePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-			NewBatch->bRequiresWriteStep = Settings->Mode != EPCGExFusedPointOutput::MostCentral;
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = Settings->Mode != EPCGExFusedPointOutput::MostCentral;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to fuse."));
 		}

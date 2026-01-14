@@ -24,13 +24,13 @@ double FPCGExNoiseFlow::GenerateRaw(const FVector& Position) const
 	const int32 X0S = (X0 + Seed) & 255;
 
 	// Hash all 8 corners
-	const int32 AAA = Hash3D(X0S,     Y0,     Z0);
-	const int32 ABA = Hash3D(X0S,     Y0 + 1, Z0);
-	const int32 AAB = Hash3D(X0S,     Y0,     Z0 + 1);
-	const int32 ABB = Hash3D(X0S,     Y0 + 1, Z0 + 1);
-	const int32 BAA = Hash3D(X0S + 1, Y0,     Z0);
+	const int32 AAA = Hash3D(X0S, Y0, Z0);
+	const int32 ABA = Hash3D(X0S, Y0 + 1, Z0);
+	const int32 AAB = Hash3D(X0S, Y0, Z0 + 1);
+	const int32 ABB = Hash3D(X0S, Y0 + 1, Z0 + 1);
+	const int32 BAA = Hash3D(X0S + 1, Y0, Z0);
 	const int32 BBA = Hash3D(X0S + 1, Y0 + 1, Z0);
-	const int32 BAB = Hash3D(X0S + 1, Y0,     Z0 + 1);
+	const int32 BAB = Hash3D(X0S + 1, Y0, Z0 + 1);
 	const int32 BBB = Hash3D(X0S + 1, Y0 + 1, Z0 + 1);
 
 	// Get rotated gradients
@@ -44,13 +44,13 @@ double FPCGExNoiseFlow::GenerateRaw(const FVector& Position) const
 	const FVector G_BBB = GetRotatedGradient(BBB, Time);
 
 	// Dot products with rotated gradients
-	const double D_AAA = FVector::DotProduct(G_AAA, FVector(Xf,       Yf,       Zf));
-	const double D_BAA = FVector::DotProduct(G_BAA, FVector(Xf - 1.0, Yf,       Zf));
-	const double D_ABA = FVector::DotProduct(G_ABA, FVector(Xf,       Yf - 1.0, Zf));
+	const double D_AAA = FVector::DotProduct(G_AAA, FVector(Xf, Yf, Zf));
+	const double D_BAA = FVector::DotProduct(G_BAA, FVector(Xf - 1.0, Yf, Zf));
+	const double D_ABA = FVector::DotProduct(G_ABA, FVector(Xf, Yf - 1.0, Zf));
 	const double D_BBA = FVector::DotProduct(G_BBA, FVector(Xf - 1.0, Yf - 1.0, Zf));
-	const double D_AAB = FVector::DotProduct(G_AAB, FVector(Xf,       Yf,       Zf - 1.0));
-	const double D_BAB = FVector::DotProduct(G_BAB, FVector(Xf - 1.0, Yf,       Zf - 1.0));
-	const double D_ABB = FVector::DotProduct(G_ABB, FVector(Xf,       Yf - 1.0, Zf - 1.0));
+	const double D_AAB = FVector::DotProduct(G_AAB, FVector(Xf, Yf, Zf - 1.0));
+	const double D_BAB = FVector::DotProduct(G_BAB, FVector(Xf - 1.0, Yf, Zf - 1.0));
+	const double D_ABB = FVector::DotProduct(G_ABB, FVector(Xf, Yf - 1.0, Zf - 1.0));
 	const double D_BBB = FVector::DotProduct(G_BBB, FVector(Xf - 1.0, Yf - 1.0, Zf - 1.0));
 
 	// Trilinear interpolation

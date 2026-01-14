@@ -66,7 +66,7 @@ public:
 #pragma endregion
 
 	/** Per-point tangent settings. Can't be set if the spline is linear. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GetApplyTangents()"))
 	FPCGExTangentsDetails Tangents;
 
 	UPROPERTY(meta = (PCG_Overridable), AdvancedDisplay)
@@ -79,6 +79,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	FPCGExAttachmentRules AttachmentRules;
 
+	UFUNCTION()
 	bool GetApplyTangents() const
 	{
 		return (!bApplyCustomPointType && DefaultPointType == EPCGExSplinePointType::CurveCustomTangent);

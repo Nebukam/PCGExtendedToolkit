@@ -38,7 +38,7 @@ namespace PCGExMath::OBB
 		}
 
 		// Axes computed on demand
-		FORCEINLINE FVector GetAxisX() const { return Rotation.GetAxisX() ; }
+		FORCEINLINE FVector GetAxisX() const { return Rotation.GetAxisX(); }
 		FORCEINLINE FVector GetAxisY() const { return Rotation.GetAxisY(); }
 		FORCEINLINE FVector GetAxisZ() const { return Rotation.GetAxisZ(); }
 

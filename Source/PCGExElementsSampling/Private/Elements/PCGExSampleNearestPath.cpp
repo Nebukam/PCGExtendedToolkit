@@ -196,9 +196,11 @@ bool FPCGExSampleNearestPathElement::AdvanceWork(FPCGExContext* InContext, const
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any paths to split."));
 			}
@@ -359,7 +361,7 @@ namespace PCGExSampleNearestPath
 		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
 		TArray<PCGEx::FOpStats> Trackers;
 		DataBlender->InitTrackers(Trackers);
-		
+
 		const PCGExMath::IDistances* Distances = Context->TargetsHandler->GetDistances();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();

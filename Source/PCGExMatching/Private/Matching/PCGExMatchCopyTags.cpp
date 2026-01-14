@@ -26,7 +26,7 @@ bool FPCGExMatchCopyTags::Test(const PCGExData::FConstPoint& InTargetElement, co
 	{
 		CandidateTags->Append(Tags.ToSharedRef());
 	}
-	
+
 	return true;
 }
 

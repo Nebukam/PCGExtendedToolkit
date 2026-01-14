@@ -87,10 +87,12 @@ bool FPCGExSampleNearestSurfaceElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		{
-			if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
-		}))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to sample."));
 		}

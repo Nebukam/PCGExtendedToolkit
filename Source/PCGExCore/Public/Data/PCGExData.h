@@ -261,7 +261,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		virtual const T& GetValue(const int32 Index) override;
 		virtual const void GetValues(const int32 Start, TArrayView<T> OutResults) override;
-		
+
 		virtual void SetValue(const int32 Index, const T& Value) override;
 		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
 
@@ -317,7 +317,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		virtual const T& GetValue(const int32 Index) override;
 		virtual const void GetValues(const int32 Start, TArrayView<T> OutResults) override;
-		
+
 		virtual void SetValue(const int32 Index, const T& Value) override;
 
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) override;

@@ -24,7 +24,7 @@ namespace PCGExData
 		check(Buffer);
 
 		T_REAL* RealValue = (Buffer->GetData() + Index);
-		
+
 		// Use direct conversion function
 		if (RealType != WorkingType) { RealToWorking(RealValue, OutValue); }
 		// Same type - direct get
@@ -35,7 +35,7 @@ namespace PCGExData
 	void TRawBufferProxy<T_REAL>::SetVoid(const int32 Index, const void* Value) const
 	{
 		check(Buffer);
-		
+
 		// Use direct conversion function
 		if (RealType != WorkingType) { WorkingToReal(Value, (Buffer->GetData() + Index)); }
 		// Same type - direct set
@@ -47,14 +47,14 @@ namespace PCGExData
 	{
 		return PCGExTypeOps::FTypeOps<T_REAL>::Hash(*(Buffer->GetData() + Index));
 	}
-	
+
 	// Explicit instantiations
 #define PCGEX_TPL(_TYPE, _NAME, ...) template class TRawBufferProxy<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 #pragma region TAttributeBufferProxy
 
 	template <typename T_REAL>
