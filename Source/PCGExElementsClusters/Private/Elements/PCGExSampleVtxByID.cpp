@@ -114,10 +114,12 @@ bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
-			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
-			}))
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
+				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
 			}

@@ -86,24 +86,25 @@ bool FPCGExPathCrossingsElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 		const bool bIsCanBeCutTagValid = PCGExMetaHelpers::IsValidStringTag(Context->CanBeCutTag);
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward); // TODO : This is no good as we'll be missing template attributes
-				                                         bHasInvalidInputs = true;
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward); // TODO : This is no good as we'll be missing template attributes
+					bHasInvalidInputs = true;
 
-				                                         if (bIsCanBeCutTagValid) { if (Settings->bTagIfHasNoCrossings && Entry->Tags->IsTagged(Context->CanBeCutTag)) { Entry->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
-				                                         else if (Settings->bTagIfHasNoCrossings) { Entry->Tags->AddRaw(Settings->HasNoCrossingsTag); }
+					if (bIsCanBeCutTagValid) { if (Settings->bTagIfHasNoCrossings && Entry->Tags->IsTagged(Context->CanBeCutTag)) { Entry->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
+					else if (Settings->bTagIfHasNoCrossings) { Entry->Tags->AddRaw(Settings->HasNoCrossingsTag); }
 
-				                                         return false;
-			                                         }
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         //NewBatch->SetPointsFilterData(&Context->FilterFactories);
-			                                         NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
-		                                         }))
+					return false;
+				}
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
+				NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 		}

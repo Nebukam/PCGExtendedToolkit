@@ -98,18 +98,17 @@ namespace PCGExConnectPoints
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
 	{
-				
 		TSharedPtr<PCGExPointFilter::FManager> GeneratorsFilter;
 		TSharedPtr<PCGExPointFilter::FManager> ConnectableFilter;
 
 		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 
 		TArray<TSharedPtr<FPCGExProbeOperation>> AllOperations;
-		
+
 		TArray<FPCGExProbeOperation*> RadiusSources;
 		TArray<FPCGExProbeOperation*> DirectOperations;
 		TArray<FPCGExProbeOperation*> ChainedOperations;
-		TArray<FPCGExProbeOperation*> SharedOperations;		
+		TArray<FPCGExProbeOperation*> SharedOperations;
 		TArray<FPCGExProbeOperation*> GlobalOperations;
 
 		int32 NumRadiusSources = 0;
@@ -120,9 +119,9 @@ namespace PCGExConnectPoints
 
 		bool bOnlyGlobalOps = false;
 		bool bWantsOctree = false;
-		
+
 		int8 NumCompletions = 2;
-		
+
 		bool bUseVariableRadius = false;
 		double SharedSearchRadius = 0;
 
@@ -152,15 +151,15 @@ namespace PCGExConnectPoints
 		virtual ~FProcessor() override;
 
 		void AppendEdges(const TSet<uint64>& InUniqueEdges);
-		
+
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		void OnPreparationComplete();
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
-		
+
 		void AdvanceCompletion();
-		
+
 		virtual void CompleteWork() override;
 		virtual void Output() override;
 

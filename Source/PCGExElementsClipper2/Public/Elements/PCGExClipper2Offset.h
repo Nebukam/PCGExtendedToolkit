@@ -55,7 +55,7 @@ public:
 	/** How to determine final iteration count when iteration attribute from multiple source differ */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Iterations", meta = (PCG_Overridable, DisplayName=" ├─ Consolidation"))
 	EPCGExClipper2OffsetIterationCount IterationConsolidation = EPCGExClipper2OffsetIterationCount::Max;
-	
+
 	/** Minimum guaranteed iterations */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Iterations", meta = (PCG_Overridable, DisplayName=" └─ Min Iterations", ClampMin=0))
 	int32 MinIterations = 1;

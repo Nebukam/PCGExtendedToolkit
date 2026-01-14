@@ -330,7 +330,7 @@ template PCGEXCORE_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(co
 			{
 				if (OutProxy.IsValid() && InDescriptor.HasFlag(EProxyFlags::Shared)) { InContext->BufferProxyPool->Add(InDescriptor, OutProxy); }
 			};
-		
+
 			// Handle raw proxy
 			if (InDescriptor.HasFlag(EProxyFlags::Raw))
 			{

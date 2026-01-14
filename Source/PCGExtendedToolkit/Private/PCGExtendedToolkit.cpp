@@ -27,7 +27,7 @@ void FPCGExtendedToolkitModule::StartupModule()
 		[](UE::Cook::ICookInfo& CookInfo, TArray<UE::Cook::FPackageCookRule>& InOutPackageCookRules)
 		{
 			// Thanks @jenkinsgage
-			
+
 			// Grab all content assets
 			TArray<FAssetData> PCGExAssets;
 			UAssetManager::Get().GetAssetRegistry().GetAssetsByPath(TEXT("/PCGExtendedToolkit"), PCGExAssets, true);

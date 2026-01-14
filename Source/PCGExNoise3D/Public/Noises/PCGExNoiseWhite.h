@@ -15,10 +15,10 @@ struct FPCGExNoiseConfigWhite : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigWhite() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigWhite()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
-
 };
 
 /**

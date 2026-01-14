@@ -437,7 +437,6 @@ protected:
 #pragma endregion
 
 public:
-	
 	// Properties
 
 #if WITH_EDITORONLY_DATA

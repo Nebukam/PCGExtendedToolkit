@@ -33,7 +33,7 @@ void FPCGExElementsMetaModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
-	PCGEX_START_PCG_REGISTRATION	
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(PartitionRule, PartitionRule)
 
 	PCGEX_ASSET_TYPE_ACTION_BASIC(

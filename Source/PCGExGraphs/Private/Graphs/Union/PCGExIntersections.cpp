@@ -236,7 +236,7 @@ namespace PCGExGraphs
 			if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); } // Abstract tracking to get valid union data
 			else { EdgeUnion->Add(Edge); }
 		};
-		
+
 		if (const int32* ExistingEdge = EdgesMapShards.Find(H))
 		{
 			UpdateExistingUnion(ExistingEdge);
@@ -251,7 +251,7 @@ namespace PCGExGraphs
 				UpdateExistingUnion(ExistingEdge);
 				return;
 			}
-			
+
 			EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
 			EdgesMapShards.Add(H, Edges.Emplace(Edges.Num(), Start, End));
 		}

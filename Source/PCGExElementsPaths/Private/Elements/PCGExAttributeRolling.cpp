@@ -99,15 +99,16 @@ bool FPCGExAttributeRollingElement::AdvanceWork(FPCGExContext* InContext, const 
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
-			                                         Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         NewBatch->bPrefetchData = !Context->BlendingFactories.IsEmpty();
-		                                         }))
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				PCGEX_SKIP_INVALID_PATH_ENTRY
+				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bPrefetchData = !Context->BlendingFactories.IsEmpty();
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to roll over."));
 		}
@@ -293,7 +294,7 @@ namespace PCGExAttributeRolling
 				{
 					// Don't skip that one roll
 				}
-				else{ continue; }
+				else { continue; }
 			}
 
 			if (SourceIndex != -1 && BlendOpsManager)

@@ -23,16 +23,16 @@ PCGExTensor::FTensorSample FPCGExTensorNoise::Sample(const int32 InSeedIndex, co
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
 	const FVector InPosition = InProbe.GetLocation();
-	
+
 	FVector Noise = NoiseGenerator->GetVector(InPosition);
-	if (Config.bNormalizeNoiseSampling){Noise.Normalize();}
+	if (Config.bNormalizeNoiseSampling) { Noise.Normalize(); }
 
 	if (NoiseMaskGenerator)
 	{
 		if (const double Mask = NoiseMaskGenerator->GetDouble(InPosition);
 			!FMath::IsNearlyZero(Mask))
 		{
-			Samples.Emplace_GetRef(Noise, Config.Potency* Mask, Config.Weight* Mask);
+			Samples.Emplace_GetRef(Noise, Config.Potency * Mask, Config.Weight * Mask);
 		}
 	}
 	else

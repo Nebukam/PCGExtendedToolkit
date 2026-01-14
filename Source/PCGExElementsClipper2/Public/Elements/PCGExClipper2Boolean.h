@@ -37,7 +37,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Clipper2Boolean, "Clipper2 : Boolean", "Does a Clipper2 Boolean operation.", FName(GetDisplayName()));
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
-	
+
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 protected:
@@ -45,7 +45,6 @@ protected:
 	//~End UPCGSettings
 
 public:
-	
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
@@ -55,16 +54,16 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExClipper2FillRule FillRule = EPCGExClipper2FillRule::NonZero;
-	
+
 	/** Display operand pin as a separate pin */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_NotOverridable, EditCondition="Operation!=EPCGExClipper2BooleanOp::Union", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Processing", meta = (PCG_NotOverridable, EditCondition="Operation != EPCGExClipper2BooleanOp::Union", EditConditionHides))
 	bool bUseOperandPin = false;
-	
+
 	virtual bool WantsOperands() const override;
 	virtual FPCGExGeo2DProjectionDetails GetProjectionDetails() const override;
-	
+
 	virtual bool SupportOpenOperandPaths() const override;
-	
+
 #if WITH_EDITOR
 	FString GetDisplayName() const;
 #endif

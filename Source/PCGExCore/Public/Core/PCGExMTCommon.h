@@ -49,7 +49,6 @@ namespace PCGExMT
 			return TArrayView<const T>(InArray.GetData() + Start, Count);
 		}
 	};
-
 }
 
 #pragma region MT MACROS

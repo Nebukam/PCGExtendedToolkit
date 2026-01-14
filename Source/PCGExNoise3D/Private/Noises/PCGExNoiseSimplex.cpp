@@ -29,36 +29,60 @@ double FPCGExNoiseSimplex::GenerateRaw(const FVector& Position) const
 	{
 		if (Y0 >= Z0)
 		{
-			I1 = 1; J1 = 0; K1 = 0;
-			I2 = 1; J2 = 1; K2 = 0;
+			I1 = 1;
+			J1 = 0;
+			K1 = 0;
+			I2 = 1;
+			J2 = 1;
+			K2 = 0;
 		}
 		else if (X0 >= Z0)
 		{
-			I1 = 1; J1 = 0; K1 = 0;
-			I2 = 1; J2 = 0; K2 = 1;
+			I1 = 1;
+			J1 = 0;
+			K1 = 0;
+			I2 = 1;
+			J2 = 0;
+			K2 = 1;
 		}
 		else
 		{
-			I1 = 0; J1 = 0; K1 = 1;
-			I2 = 1; J2 = 0; K2 = 1;
+			I1 = 0;
+			J1 = 0;
+			K1 = 1;
+			I2 = 1;
+			J2 = 0;
+			K2 = 1;
 		}
 	}
 	else
 	{
 		if (Y0 < Z0)
 		{
-			I1 = 0; J1 = 0; K1 = 1;
-			I2 = 0; J2 = 1; K2 = 1;
+			I1 = 0;
+			J1 = 0;
+			K1 = 1;
+			I2 = 0;
+			J2 = 1;
+			K2 = 1;
 		}
 		else if (X0 < Z0)
 		{
-			I1 = 0; J1 = 1; K1 = 0;
-			I2 = 0; J2 = 1; K2 = 1;
+			I1 = 0;
+			J1 = 1;
+			K1 = 0;
+			I2 = 0;
+			J2 = 1;
+			K2 = 1;
 		}
 		else
 		{
-			I1 = 0; J1 = 1; K1 = 0;
-			I2 = 1; J2 = 1; K2 = 0;
+			I1 = 0;
+			J1 = 1;
+			K1 = 0;
+			I2 = 1;
+			J2 = 1;
+			K2 = 0;
 		}
 	}
 
@@ -80,10 +104,10 @@ double FPCGExNoiseSimplex::GenerateRaw(const FVector& Position) const
 	const int32 JJ = J & 255;
 	const int32 KK = K & 255;
 
-	const int32 GI0 = Hash3D(II,      JJ,      KK);
+	const int32 GI0 = Hash3D(II, JJ, KK);
 	const int32 GI1 = Hash3D(II + I1, JJ + J1, KK + K1);
 	const int32 GI2 = Hash3D(II + I2, JJ + J2, KK + K2);
-	const int32 GI3 = Hash3D(II + 1,  JJ + 1,  KK + 1);
+	const int32 GI3 = Hash3D(II + 1, JJ + 1, KK + 1);
 
 	// Calculate contributions from corners
 	const double N0 = Contrib(GI0, X0, Y0, Z0);

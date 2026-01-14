@@ -35,11 +35,11 @@ namespace PCGExBlending
 		check(InTargetData);
 
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionBlender::FMultiSourceBlender::Init)
-		
+
 		if (Param.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(Attribute)
-			
+
 			const EPCGMetadataTypes WorkingType = Identity.UnderlyingType;
 			if (WorkingType == EPCGMetadataTypes::Unknown)
 			{
@@ -86,7 +86,7 @@ namespace PCGExBlending
 		else if (Param.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(Property)
-			
+
 			const EPCGMetadataTypes WorkingType = PCGExMetaHelpers::GetPropertyType(Param.Selector.GetPointProperty());
 
 			MainBlender = CreateProxyBlender(WorkingType, Param.Blending);
@@ -128,7 +128,7 @@ namespace PCGExBlending
 		if (!GetSourceIdxFn) { GetSourceIdxFn = [](const TSharedRef<PCGExData::FFacade>& InFacade) { return InFacade->Source->IOIndex; }; }
 
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionBlender::AddSources)
-		
+
 		int32 MaxIndex = 0;
 		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { MaxIndex = FMath::Max(GetSourceIdxFn(Src), MaxIndex); }
 		IOLookup = MakeShared<PCGEx::FIndexLookup>(MaxIndex + 1);
@@ -210,7 +210,7 @@ namespace PCGExBlending
 	bool FUnionBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const PCGExData::EProxyFlags InProxyFlags)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionBlender::Init)
-		
+
 		CurrentTargetData = TargetData;
 
 		if (!Validate(InContext, false)) { return false; }
@@ -232,7 +232,7 @@ namespace PCGExBlending
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(InitBlenders)
-			
+
 			// Initialize all blending operations
 			for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : Blenders)
 			{

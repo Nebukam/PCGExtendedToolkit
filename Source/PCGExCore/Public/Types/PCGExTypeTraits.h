@@ -10,9 +10,8 @@
 
 namespace PCGExTypes
 {
-	
 	constexpr int TypesAllocations = 15;
-	
+
 	// Type Traits - Compile time type classification
 
 	template <typename T>

@@ -167,7 +167,7 @@ struct PCGEXCORE_API FPCGExBitmaskWithOperation
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides))
 	EPCGExBitOp Op = EPCGExBitOp::OR;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
 	TArray<FPCGExClampedBitOp> Mutations;
 

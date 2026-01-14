@@ -18,6 +18,7 @@
 #include "Paths/PCGExPathsHelpers.h"
 #include "Utils/PCGExUniqueNameGenerator.h"
 #include "Materials/MaterialInterface.h"
+#include "Tangents/PCGExTangentsAuto.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -35,6 +36,15 @@ void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	}
 
 	Super::ApplyDeprecation(InOutNode);
+}
+
+void UPCGExPathSplineMeshSimpleSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
+	{
+		if (!Tangents.StartTangents) { Tangents.StartTangents = NewObject<UPCGExAutoTangents>(this, TEXT("StartTangents")); }
+	}
+	Super::PostInitProperties();
 }
 #endif
 
@@ -133,19 +143,20 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         if (Entry->GetNum() < 2)
-			                                         {
-				                                         bHasInvalidInputs = true;
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-				                                         return false;
-			                                         }
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bHasInvalidInputs = true;
+					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+					return false;
+				}
 
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-		                                         }))
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}

@@ -19,7 +19,7 @@ bool FPCGExProbeAnisotropic::Prepare(FPCGExContext* InContext)
 }
 
 void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
-{	
+{
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
 
@@ -37,7 +37,7 @@ void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, TArray<PCGExPr
 	else
 	{
 		const FTransform& WorkingTransform = *(WorkingTransforms->GetData() + Index);
-		
+
 		for (int d = 0; d < 16; d++)
 		{
 			D[d] = WorkingTransform.TransformVectorNoScale(Directions[d]);

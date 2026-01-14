@@ -24,7 +24,7 @@ struct FPCGExTensorNoiseConfig : public FPCGExTensorConfigBase
 		: FPCGExTensorConfigBase()
 	{
 	}
-	
+
 	/** If enabled normalize the sampled noise direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bNormalizeNoiseSampling = true;
@@ -36,10 +36,10 @@ struct FPCGExTensorNoiseConfig : public FPCGExTensorConfigBase
 class FPCGExTensorNoise : public PCGExTensorOperation
 {
 public:
-	FPCGExTensorNoiseConfig Config;	
+	FPCGExTensorNoiseConfig Config;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
-	
+
 	virtual bool Init(FPCGExContext* InContext, const UPCGExTensorFactoryData* InFactory) override;
 
 	virtual PCGExTensor::FTensorSample Sample(int32 InSeedIndex, const FTransform& InProbe) const override;
@@ -54,7 +54,7 @@ class UPCGExTensorNoiseFactory : public UPCGExTensorFactoryData
 public:
 	UPROPERTY()
 	FPCGExTensorNoiseConfig Config;
-	
+
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseGenerator = nullptr;
 	TSharedPtr<PCGExNoise3D::FNoiseGenerator> NoiseMaskGenerator = nullptr;
 
@@ -79,9 +79,8 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 public:
-	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double TensorWeight = 1;
@@ -89,15 +88,15 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Potency = 1;
-	
+
 	/** If enabled normalize the sampled noise direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bNormalizeNoiseSampling = true;
-	
+
 	/** Tensor mutations settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Sampling Mutations"))
 	FPCGExTensorSamplingMutationsDetails Mutations;
-		
+
 	/** Tensor properties */
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	FPCGExTensorNoiseConfig Config;

@@ -7,6 +7,7 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
+#include "PCGExLog.h"
 #include "Engine/Blueprint.h"
 
 // Register the Actor collection type at startup
@@ -50,23 +51,46 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	// Load the actor class to compute bounds
 	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(Actor.ToSoftObjectPath());
 
-	if (const UClass* ActorClass = Actor.Get())
+	if (UClass* ActorClass = Actor.Get())
 	{
-		// Try to get default object bounds
-		if (const AActor* CDO = Cast<AActor>(ActorClass->GetDefaultObject()))
+#if WITH_EDITOR
+		UWorld* World = GWorld;
+		if (!World)
 		{
-			FVector Origin, BoxExtent;
-			CDO->GetActorBounds(false, Origin, BoxExtent);
-			Staging.Bounds = FBox(Origin - BoxExtent, Origin + BoxExtent);
+			UE_LOG(LogPCGEx, Error, TEXT("No world to compute actor bounds!"));
+			return;
 		}
-		else
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AActor* TempActor = World->SpawnActor<AActor>(ActorClass, FTransform(), SpawnParams);
+		if (!TempActor)
 		{
-			Staging.Bounds = FBox(ForceInit);
+			UE_LOG(LogPCGEx, Error, TEXT("Failed to create temp actor!"));
+			return;
 		}
-	}
-	else
-	{
+
+		FVector Origin;
+		FVector Extents;
+
+		// Compute the bounds
+		TempActor->GetActorBounds(bOnlyCollidingComponents, Origin, Extents, bIncludeFromChildActors);
+
+		// Hide the actor to ensure it doesn't affect gameplay or rendering
+		TempActor->SetActorHiddenInGame(true);
+		TempActor->SetActorEnableCollision(false);
+
+		// Destroy the temporary actor
+		TempActor->Destroy();
+
+		Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
+
+#else
 		Staging.Bounds = FBox(ForceInit);
+		UE_LOG(LogPCGEx, Error, TEXT("UpdateStaging called in non-editor context."));
+#endif
 	}
 
 	FPCGExAssetCollectionEntry::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);

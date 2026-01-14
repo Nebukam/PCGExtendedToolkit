@@ -22,23 +22,23 @@ double FPCGExNoiseTiling::GenerateRaw(const FVector& Position) const
 	const double W = SmoothStep(Zf);
 
 	// Hash with periodic wrapping
-	const int32 AAA = HashPeriodic(X0,     Y0,     Z0,     PeriodX, PeriodY, PeriodZ);
-	const int32 ABA = HashPeriodic(X0,     Y0 + 1, Z0,     PeriodX, PeriodY, PeriodZ);
-	const int32 AAB = HashPeriodic(X0,     Y0,     Z0 + 1, PeriodX, PeriodY, PeriodZ);
-	const int32 ABB = HashPeriodic(X0,     Y0 + 1, Z0 + 1, PeriodX, PeriodY, PeriodZ);
-	const int32 BAA = HashPeriodic(X0 + 1, Y0,     Z0,     PeriodX, PeriodY, PeriodZ);
-	const int32 BBA = HashPeriodic(X0 + 1, Y0 + 1, Z0,     PeriodX, PeriodY, PeriodZ);
-	const int32 BAB = HashPeriodic(X0 + 1, Y0,     Z0 + 1, PeriodX, PeriodY, PeriodZ);
+	const int32 AAA = HashPeriodic(X0, Y0, Z0, PeriodX, PeriodY, PeriodZ);
+	const int32 ABA = HashPeriodic(X0, Y0 + 1, Z0, PeriodX, PeriodY, PeriodZ);
+	const int32 AAB = HashPeriodic(X0, Y0, Z0 + 1, PeriodX, PeriodY, PeriodZ);
+	const int32 ABB = HashPeriodic(X0, Y0 + 1, Z0 + 1, PeriodX, PeriodY, PeriodZ);
+	const int32 BAA = HashPeriodic(X0 + 1, Y0, Z0, PeriodX, PeriodY, PeriodZ);
+	const int32 BBA = HashPeriodic(X0 + 1, Y0 + 1, Z0, PeriodX, PeriodY, PeriodZ);
+	const int32 BAB = HashPeriodic(X0 + 1, Y0, Z0 + 1, PeriodX, PeriodY, PeriodZ);
 	const int32 BBB = HashPeriodic(X0 + 1, Y0 + 1, Z0 + 1, PeriodX, PeriodY, PeriodZ);
 
 	// Gradient dot products
-	const double G_AAA = GradDot3(AAA, Xf,       Yf,       Zf);
-	const double G_BAA = GradDot3(BAA, Xf - 1.0, Yf,       Zf);
-	const double G_ABA = GradDot3(ABA, Xf,       Yf - 1.0, Zf);
+	const double G_AAA = GradDot3(AAA, Xf, Yf, Zf);
+	const double G_BAA = GradDot3(BAA, Xf - 1.0, Yf, Zf);
+	const double G_ABA = GradDot3(ABA, Xf, Yf - 1.0, Zf);
 	const double G_BBA = GradDot3(BBA, Xf - 1.0, Yf - 1.0, Zf);
-	const double G_AAB = GradDot3(AAB, Xf,       Yf,       Zf - 1.0);
-	const double G_BAB = GradDot3(BAB, Xf - 1.0, Yf,       Zf - 1.0);
-	const double G_ABB = GradDot3(ABB, Xf,       Yf - 1.0, Zf - 1.0);
+	const double G_AAB = GradDot3(AAB, Xf, Yf, Zf - 1.0);
+	const double G_BAB = GradDot3(BAB, Xf - 1.0, Yf, Zf - 1.0);
+	const double G_ABB = GradDot3(ABB, Xf, Yf - 1.0, Zf - 1.0);
 	const double G_BBB = GradDot3(BBB, Xf - 1.0, Yf - 1.0, Zf - 1.0);
 
 	// Trilinear interpolation

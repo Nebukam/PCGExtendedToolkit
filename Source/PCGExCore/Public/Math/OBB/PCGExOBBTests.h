@@ -116,13 +116,19 @@ namespace PCGExMath::OBB
 			{
 				// Expand A for test
 				FOBB ExpandedA = Factory::Expanded(A, Expansion);
-				if (!SphereOverlap(ExpandedA.Bounds, B.Bounds)) return false;
+				if (!SphereOverlap(ExpandedA.Bounds, B.Bounds))
+				{
+					return false;
+				}
 				return SATOverlap(ExpandedA, B);
 			}
 
 		case EPCGExBoxCheckMode::Box:
 		default:
-			if (!SphereOverlap(A.Bounds, B.Bounds)) return false;
+			if (!SphereOverlap(A.Bounds, B.Bounds))
+			{
+				return false;
+			}
 			return SATOverlap(A, B);
 		}
 	}

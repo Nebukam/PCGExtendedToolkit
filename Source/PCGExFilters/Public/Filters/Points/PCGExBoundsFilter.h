@@ -38,7 +38,9 @@ struct FPCGExBoundsFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExBoundsFilterConfig() {}
+	FPCGExBoundsFilterConfig()
+	{
+	}
 
 	/** How to compare bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -55,7 +57,7 @@ struct FPCGExBoundsFilterConfig
 	/** Bounds to use on input points (the points being filtered). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CheckType == EPCGExBoundsCheckType::Intersects || CheckType == EPCGExBoundsCheckType::IsInsideOrIntersects", EditConditionHides))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
-	
+
 	/** Shape type for testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBoxCheckMode TestMode = EPCGExBoxCheckMode::Box;

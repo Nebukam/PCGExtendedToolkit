@@ -53,7 +53,7 @@ bool FPCGExAttributeToTagDetails::Init(const FPCGExContext* InContext, const TSh
 		{
 			if (IgnoreAttributes->Contains(Selector.GetAttributeName())) { continue; }
 		}
-		
+
 		const TSharedPtr<PCGExData::IAttributeBroadcaster>& Getter = PCGExData::MakeBroadcaster(Selector, InSourceFacade->Source, true);
 		if (!Getter)
 		{

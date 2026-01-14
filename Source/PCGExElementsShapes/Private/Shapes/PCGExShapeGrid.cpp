@@ -117,27 +117,27 @@ void FPCGExShapeGridBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> In
 
 		if (Config.PointsLookAt == EPCGExShapePointLookAt::None)
 		{
-			OutTransforms[WriteIndex] = FTransform(FRotator::ZeroRotator, Point, FVector::OneVector);
+		OutTransforms[WriteIndex] = FTransform(FRotator::ZeroRotator, Point, FVector::OneVector);
 		}
 		else
 		{
-			switch (Config.PointsLookAt)
-			{
-				case EPCGExShapePointLookAt::Seed:
-					Target = Center;
-				break;
-				case EPCGExShapePointLookAt::None:
-					Target = Point + FVector(0, 0, 1);
-				break;
-				default:
-					Target = Point;
-				break;
-			}
+		switch (Config.PointsLookAt)
+		{
+		case EPCGExShapePointLookAt::Seed:
+		Target = Center;
+		break;
+		case EPCGExShapePointLookAt::None:
+		Target = Point + FVector(0, 0, 1);
+		break;
+		default:
+		Target = Point;
+		break;
+		}
 
-			OutTransforms[WriteIndex] = FTransform(
-				PCGExMath::MakeLookAtTransform(Point - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),
-				Point, FVector::OneVector
-			);
+		OutTransforms[WriteIndex] = FTransform(
+			PCGExMath::MakeLookAtTransform(Point - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),
+			Point, FVector::OneVector
+		);
 		}
 	)
 

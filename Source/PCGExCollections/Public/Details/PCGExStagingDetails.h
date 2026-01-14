@@ -157,4 +157,3 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetAttributeSetDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CategorySourceAttribute = NAME_None;
 };
-

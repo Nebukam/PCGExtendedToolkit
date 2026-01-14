@@ -174,14 +174,13 @@ namespace PCGExTypeOps
 		// Get the conversion function pointer for a specific pair
 		FORCEINLINE static FConvertFn GetConversionFn(EPCGMetadataTypes FromType, EPCGMetadataTypes ToType)
 		{
-			if (!bInitialized) { Initialize(); }		
+			if (!bInitialized) { Initialize(); }
 			return Table[static_cast<int32>(FromType)][static_cast<int32>(ToType)];
 		}
 
 		// Initialize the table (called automatically)
 		static void Initialize();
 
-		
 	private:
 		static FConvertFn Table[PCGExTypes::TypesAllocations][PCGExTypes::TypesAllocations];
 		static bool bInitialized;

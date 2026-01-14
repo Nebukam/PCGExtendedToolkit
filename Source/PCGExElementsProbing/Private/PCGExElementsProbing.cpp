@@ -30,7 +30,7 @@ void FPCGExElementsProbingModule::RegisterToEditor(const TSharedPtr<FSlateStyleS
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
-	PCGEX_START_PCG_REGISTRATION	
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(Probe, Probe)
 }
 #endif

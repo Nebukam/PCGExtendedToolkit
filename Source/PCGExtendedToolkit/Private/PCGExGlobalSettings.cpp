@@ -24,7 +24,7 @@ void UPCGExGlobalSettings::PostEditChangeProperty(struct FPropertyChangedEvent& 
 void UPCGExGlobalSettings::UpdateSettingsCaches() const
 {
 #define PCGEX_PUSH_SETTING(_MODULE, _SETTING) PCGEX_SETTINGS_INST(_MODULE)._SETTING = _SETTING;
-	
+
 #if WITH_EDITOR
 #define PCGEX_PUSH_COLOR(_COLOR) PCGEX_CORE_SETTINGS.ColorsMap.Add(FName(#_COLOR), Color##_COLOR);
 #else
@@ -58,7 +58,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_SETTING(Core, ClusterDefaultBatchChunkSize)
 
 #if WITH_EDITOR
-	
+
 	// Push colors
 	PCGEX_PUSH_COLOR(Constant)
 	PCGEX_PUSH_COLOR(Debug)
@@ -98,9 +98,9 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_COLOR(SortRule)
 	PCGEX_PUSH_COLOR(PartitionRule)
 	PCGEX_PUSH_COLOR(Noise3D)
-	
+
 #endif
-	
+
 #pragma endregion
 
 #pragma region Blending

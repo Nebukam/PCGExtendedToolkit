@@ -40,7 +40,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExClipper2FillRule FillRule = EPCGExClipper2FillRule::EvenOdd;
-	
+
 	/** Use Delaunay optimization for better triangle quality */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUseDelaunay = true;
@@ -56,7 +56,7 @@ public:
 	/** Topology settings. Some settings will be ignored based on selected output mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mesh")
 	FPCGExTopologyDetails Topology;
-	
+
 	/** Suppress warnings about bad/duplicate vertices */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta = (PCG_Overridable))
 	bool bQuietBadVerticesWarning = false;

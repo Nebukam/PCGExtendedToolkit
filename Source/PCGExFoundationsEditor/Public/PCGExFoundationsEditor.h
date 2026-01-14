@@ -9,7 +9,7 @@
 class FPCGExFoundationsEditorModule final : public IPCGExEditorModuleInterface
 {
 	PCGEX_MODULE_BODY
-	
+
 public:
 	virtual void StartupModule() override;
 };

@@ -16,7 +16,7 @@
 void IPCGExLegacyModuleInterface::StartupModule()
 {
 	IPCGExModuleInterface::StartupModule();
-	
+
 #if PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED
 	RegisterRedirectors();
 #endif

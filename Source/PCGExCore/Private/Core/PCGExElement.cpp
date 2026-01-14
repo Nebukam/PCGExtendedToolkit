@@ -165,7 +165,7 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (InContext->IsInitialExecution()) { InitializeData(InContext, InSettings); }
 
-	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();;
+	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();
 	const EPCGExExecutionPolicy LocalPolicy = DesiredPolicy == EPCGExExecutionPolicy::Default ? PCGEX_CORE_SETTINGS.ExecutionPolicy : DesiredPolicy;
 
 	if (!IsInGameThread()

@@ -79,7 +79,7 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 extern template class TDataValue<_TYPE>;
-	
+
 	//PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL

@@ -4,7 +4,6 @@
 #include "PCGExCore.h"
 
 
-
 #if WITH_EDITOR
 
 #if PCGEX_ENGINE_VERSION > 506
@@ -24,7 +23,7 @@ void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyl
 {
 	IPCGExModuleInterface::RegisterToEditor(InStyle);
 
-	PCGEX_START_PCG_REGISTRATION	
+	PCGEX_START_PCG_REGISTRATION
 	PCGEX_REGISTER_DATA_TYPE(SortRule, SortRule)
 
 	PCGEX_REGISTER_PIN_ICON(OUT_Special)
@@ -32,7 +31,7 @@ void FPCGExCoreModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyl
 
 	PCGEX_REGISTER_PIN_ICON(OUT_RecursionTracker)
 	PCGEX_REGISTER_PIN_ICON(IN_RecursionTracker)
-	
+
 	PCGEX_ASSET_TYPE_ACTION_BASIC(
 		Bitmasks, "PCGEx Bitmasks", UPCGExBitmaskCollection,
 		FColor(195, 0, 40), EAssetTypeCategories::Misc)

@@ -15,7 +15,8 @@ struct FPCGExNoiseConfigTiling : public FPCGExNoise3DConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExNoiseConfigTiling() : FPCGExNoise3DConfigBase()
+	FPCGExNoiseConfigTiling()
+		: FPCGExNoise3DConfigBase()
 	{
 	}
 

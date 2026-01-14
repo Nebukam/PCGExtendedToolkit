@@ -91,23 +91,24 @@ bool FPCGExBevelPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-		                                         {
-			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+			{
+				PCGEX_SKIP_INVALID_PATH_ENTRY
 
-			                                         if (Entry->GetNum() < 3)
-			                                         {
-				                                         Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
-				                                         Settings->InitOutputFlags(Entry);
-				                                         bHasInvalidInputs = true;
-				                                         return false;
-			                                         }
+				if (Entry->GetNum() < 3)
+				{
+					Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
+					Settings->InitOutputFlags(Entry);
+					bHasInvalidInputs = true;
+					return false;
+				}
 
-			                                         return true;
-		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-		                                         {
-			                                         NewBatch->bRequiresWriteStep = (Settings->bFlagPoles || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
-		                                         }))
+				return true;
+			}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = (Settings->bFlagPoles || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to Bevel."));
 		}
@@ -442,7 +443,7 @@ namespace PCGExBevelPath
 			// Use path traversal - positions slide along the actual path geometry
 			Arrive = GetPositionAlongPath(ArrivePathPoints, ArrivePathDistances, Width);
 			Leave = GetPositionAlongPath(LeavePathPoints, LeavePathDistances, Width);
-			
+
 			// Recompute directions based on actual positions
 			ArriveDir = (Arrive - Corner).GetSafeNormal();
 			LeaveDir = (Leave - Corner).GetSafeNormal();
@@ -833,7 +834,7 @@ namespace PCGExBevelPath
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const int32 StartIndex = StartIndices[Index];
-			
+
 			// Skip consumed points
 			if (StartIndex < 0) { continue; }
 
@@ -916,7 +917,7 @@ namespace PCGExBevelPath
 			// Skip consumed points (not bevels that were passed through by sliding)
 			if (bHasConsumedPoints && ConsumedByBevel[i])
 			{
-				StartIndices[i] = -1;  // Mark as skipped
+				StartIndices[i] = -1; // Mark as skipped
 				continue;
 			}
 
@@ -962,7 +963,7 @@ namespace PCGExBevelPath
 		for (int Index = 0; Index < NumPoints; Index++)
 		{
 			const int32 StartIndex = StartIndices[Index];
-			
+
 			// Skip consumed points
 			if (StartIndex < 0) { continue; }
 

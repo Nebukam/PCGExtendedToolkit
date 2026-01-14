@@ -28,7 +28,7 @@ protected:
 class FPCGExEntryHeaderCustomizationBase : public FPCGExAssetEntryCustomization
 {
 protected:
-	virtual FName GetAssetName(){ return FName("Asset"); }
+	virtual FName GetAssetName() { return FName("Asset"); }
 	virtual void FillCustomizedTopLevelPropertiesNames() override;
 	virtual TSharedRef<SWidget> GetAssetPicker(TSharedRef<IPropertyHandle> PropertyHandle, TSharedPtr<IPropertyHandle> IsSubCollectionHandle) override;
 };

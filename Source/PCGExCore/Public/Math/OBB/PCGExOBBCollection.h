@@ -51,7 +51,7 @@ namespace PCGExMath::OBB
 		void BuildOctree();
 
 		void Reset();
-		
+
 		void BuildFrom(const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExPointBoundsSource BoundsSource);
 
 		FORCEINLINE int32 Num() const { return Bounds.Num(); }
@@ -81,7 +81,10 @@ namespace PCGExMath::OBB
 		template <typename Policy>
 		bool IsPointInside(const FVector& Point, Policy TestPolicy = Policy{}) const
 		{
-			if (!Octree) return false;
+			if (!Octree)
+			{
+				return false;
+			}
 
 			const float Exp = TestPolicy.Expansion;
 			const FBoxCenterAndExtent QueryBounds(Point, FVector4(Exp, Exp, Exp, Exp));
@@ -112,7 +115,10 @@ namespace PCGExMath::OBB
 		template <typename Policy>
 		bool Overlaps(const FOBB& Query, Policy TestPolicy = Policy{}) const
 		{
-			if (!Octree) return false;
+			if (!Octree)
+			{
+				return false;
+			}
 
 			const float R = Query.Bounds.Radius + TestPolicy.Expansion;
 			const FBoxCenterAndExtent QueryBounds(Query.Bounds.Origin, FVector4(R, R, R, R));
@@ -141,7 +147,10 @@ namespace PCGExMath::OBB
 		template <typename Callback>
 		void ForEachOverlap(const FOBB& Query, Callback&& Func, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, float Expansion = 0.0f) const
 		{
-			if (!Octree) return;
+			if (!Octree)
+			{
+				return;
+			}
 
 			const float R = Query.Bounds.Radius + Expansion;
 			const FBoxCenterAndExtent QueryBounds(Query.Bounds.Origin, FVector4(R, R, R, R));
@@ -167,7 +176,7 @@ namespace PCGExMath::OBB
 
 		/** Classify points as inside/outside */
 		void ClassifyPoints(TArrayView<const FVector> Points, TBitArray<>& OutInside, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, float Expansion = 0.0f) const;
-		
+
 		/** Filter to points inside any OBB */
 		void FilterInside(TArrayView<const FVector> Points, TArray<int32>& OutIndices, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, float Expansion = 0.0f) const;
 
@@ -180,13 +189,19 @@ namespace PCGExMath::OBB
 
 		bool Overlaps(const FBox& Box) const
 		{
-			if (!WorldBounds.Intersect(Box) && !WorldBounds.IsInside(Box)) return false;
+			if (!WorldBounds.Intersect(Box) && !WorldBounds.IsInside(Box))
+			{
+				return false;
+			}
 			return Overlaps(Factory::FromAABB(Box, -1));
 		}
 
 		bool Encompasses(const FBox& Box) const
 		{
-			if (!WorldBounds.Intersect(Box) && !WorldBounds.IsInside(Box)) return false;
+			if (!WorldBounds.Intersect(Box) && !WorldBounds.IsInside(Box))
+			{
+				return false;
+			}
 
 			// All 8 corners must be inside
 			const FVector Corners[8] = {
