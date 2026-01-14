@@ -56,7 +56,10 @@ bool FPCGExCreateSplineElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CreateSpline)
 
-	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
+	if (Settings->bApplyCustomPointType || Settings->DefaultPointType == EPCGExSplinePointType::CurveCustomTangent)
+	{
+		if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
+	}
 
 	return true;
 }
