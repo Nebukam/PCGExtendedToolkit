@@ -32,8 +32,6 @@ namespace PCGExPaths
 	class FCurveSimplifier
 	{
 	public:
-		//~~ Simplification (Douglas-Peucker) + Tangent Fitting ~~//
-		
 		/**
 		 * Simplify a polyline using Douglas-Peucker, then fit tangents.
 		 */

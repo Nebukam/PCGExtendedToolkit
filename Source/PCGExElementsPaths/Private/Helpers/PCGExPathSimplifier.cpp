@@ -11,7 +11,6 @@ namespace PCGExPaths
 		TangentOut = FVector::ZeroVector;
 	}
 
-	//~~ Simplification API ~~//
 
 	TArray<FSimplifiedPoint> FCurveSimplifier::SimplifyPolyline(
 		const TConstPCGValueRange<FTransform>& InPoints,
@@ -42,8 +41,6 @@ namespace PCGExPaths
 			0.0,
 			MaxError, bIsClosed, SmoothingMode);
 	}
-
-	//~~ Selection-based API ~~//
 
 	TArray<FSimplifiedPoint> FCurveSimplifier::FitTangentsToSelection(
 		const TConstPCGValueRange<FTransform>& InPoints,
@@ -145,7 +142,6 @@ namespace PCGExPaths
 			bIsClosed, SmoothingMode);
 	}
 
-	//~~ Internal Implementations ~~//
 
 	TArray<FSimplifiedPoint> FCurveSimplifier::SimplifyPolylineInternal(
 		const TConstPCGValueRange<FTransform>& InPoints,
@@ -220,7 +216,7 @@ namespace PCGExPaths
 		return Result;
 	}
 
-	//~~ Douglas-Peucker ~~//
+	// Douglas-Peucker
 
 	TArray<int32> FCurveSimplifier::SimplifyWithDP(
 		const TConstPCGValueRange<FTransform>& Points,
@@ -328,7 +324,7 @@ namespace PCGExPaths
 		return (Point - ClosestPointOnLine).Size();
 	}
 
-	//~~ Tangent Fitting ~~//
+	// Tangent Fitting
 
 	void FCurveSimplifier::FitTangentsLeastSquares(
 		TArray<FSimplifiedPoint>& SimplifiedPoints,
@@ -425,7 +421,7 @@ namespace PCGExPaths
 				// Central difference direction
 				FVector CentralDir = (NextPos - PrevPos);
 				const double CentralLen = CentralDir.Size();
-				
+
 				if (CentralLen > SMALL_NUMBER)
 				{
 					CentralDir /= CentralLen;
@@ -542,8 +538,8 @@ namespace PCGExPaths
 			{
 				const int32 OrigIdx = SimplifiedPoints[i].OriginalIndex;
 				Smoothing = (OrigIdx >= 0 && OrigIdx < InSmoothingValues.Num())
-					? FMath::Clamp(InSmoothingValues[OrigIdx], 0.0, 1.0)
-					: 0.0;
+					            ? FMath::Clamp(InSmoothingValues[OrigIdx], 0.0, 1.0)
+					            : 0.0;
 			}
 			else
 			{
