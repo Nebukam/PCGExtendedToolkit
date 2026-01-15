@@ -335,6 +335,18 @@ namespace PCGExBuildVoronoiGraph2D
 		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Voronoi->OutputEdges, -1);
 
+		// Mark out-of-bounds cell centers as invalid - the builder will handle pruning
+		if (Settings->bPruneOutOfBounds)
+		{
+			for (int32 i = 0; i < NumCellCenters; i++)
+			{
+				if (!WithinBounds[i])
+				{
+					GraphBuilder->Graph->Nodes[i].bValid = false;
+				}
+			}
+		}
+
 		Voronoi.Reset();
 
 		GraphBuilder->bInheritNodeData = false;

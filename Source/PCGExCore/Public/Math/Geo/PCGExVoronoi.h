@@ -39,8 +39,8 @@ namespace PCGExMath::Geo
 	protected:
 		void Clear();
 
-		// Build extended output for non-Euclidean metrics (uses 2D circumcenters for correct projection-independent results)
-		void BuildMetricOutput(const TArrayView<FVector>& Positions, EPCGExCellCenter CellCenterMethod, const TBitArray<>* WithinBounds = nullptr);
+		// Build extended output with projection support (projects to 2D, computes circumcenters, unprojects back)
+		void BuildMetricOutput(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, EPCGExCellCenter CellCenterMethod, const FBox* Bounds = nullptr, TBitArray<>* WithinBounds = nullptr);
 
 	public:
 		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails);

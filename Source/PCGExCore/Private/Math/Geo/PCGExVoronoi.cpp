@@ -107,8 +107,8 @@ namespace PCGExMath::Geo
 
 	bool TVoronoi2::Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, EPCGExVoronoiMetric InMetric, EPCGExCellCenter CellCenterMethod)
 	{
-		Metric = InMetric;
 		Clear();
+		Metric = InMetric;
 
 		Delaunay = MakeShared<TDelaunay2>();
 		if (!Delaunay->Process(Positions, ProjectionDetails))
@@ -136,14 +136,14 @@ namespace PCGExMath::Geo
 		}
 
 		IsValid = true;
-		BuildMetricOutput(Positions, CellCenterMethod, nullptr);
+		BuildMetricOutput(Positions, ProjectionDetails, CellCenterMethod, nullptr, nullptr);
 		return IsValid;
 	}
 
 	bool TVoronoi2::Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, const FBox& Bounds, TBitArray<>& WithinBounds, EPCGExVoronoiMetric InMetric, EPCGExCellCenter CellCenterMethod)
 	{
-		Metric = InMetric;
 		Clear();
+		Metric = InMetric;
 
 		Delaunay = MakeShared<TDelaunay2>();
 		if (!Delaunay->Process(Positions, ProjectionDetails))
@@ -159,12 +159,7 @@ namespace PCGExMath::Geo
 
 		for (FDelaunaySite2& Site : Delaunay->Sites)
 		{
-			// Use 2D circumcenter for bounds checking (consistent X,Y regardless of Z)
-			FVector CC2D = FVector::ZeroVector;
-			GetCircumcenter2D(Positions, Site.Vtx, CC2D);
-			WithinBounds[Site.Id] = Bounds.IsInside(CC2D);
-
-			// Also store 3D versions for backwards compatibility
+			// Store 3D versions for backwards compatibility
 			GetCircumcenter(Positions, Site.Vtx, Circumcenters[Site.Id]);
 			GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
 
@@ -177,50 +172,80 @@ namespace PCGExMath::Geo
 		}
 
 		IsValid = true;
-		BuildMetricOutput(Positions, CellCenterMethod, &WithinBounds);
+		// BuildMetricOutput will compute final positions and check bounds after unprojection
+		BuildMetricOutput(Positions, ProjectionDetails, CellCenterMethod, &Bounds, &WithinBounds);
 		return IsValid;
 	}
 
-	void TVoronoi2::BuildMetricOutput(const TArrayView<FVector>& Positions, EPCGExCellCenter CellCenterMethod, const TBitArray<>* WithinBounds)
+	void TVoronoi2::BuildMetricOutput(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, EPCGExCellCenter CellCenterMethod, const FBox* Bounds, TBitArray<>* WithinBounds)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(TVoronoi2::BuildMetricOutput);
 
 		const int32 NumSites = Delaunay->Sites.Num();
+		const int32 NumPositions = Positions.Num();
 		NumCellCenters = NumSites;
 
 		// Reserve space for cell centers + potential bend points
 		OutputVertices.Reserve(NumSites + VoronoiEdges.Num());
 		OutputEdges.Reserve(VoronoiEdges.Num() * 2);
 
-		// Build cell centers using 2D circumcenters (X,Y from 2D computation, Z averaged from vertices)
-		// This ensures the cell centers have correct X,Y positions regardless of input Z values
+		// Pre-project all input positions to 2D space for circumcenter computation
+		TArray<FVector> ProjectedPositions;
+		ProjectedPositions.SetNumUninitialized(NumPositions);
+		for (int32 i = 0; i < NumPositions; i++)
+		{
+			ProjectedPositions[i] = ProjectionDetails.Project(Positions[i]);
+		}
+		const TArrayView<FVector> ProjectedView(ProjectedPositions);
+
+		// Build cell centers in projected 2D space, then unproject back
 		OutputVertices.SetNum(NumSites);
+
+		// Initialize WithinBounds if provided
+		if (WithinBounds)
+		{
+			WithinBounds->Init(true, NumSites);
+		}
 
 		for (int32 i = 0; i < NumSites; i++)
 		{
 			const FDelaunaySite2& Site = Delaunay->Sites[i];
 
+			FVector ProjectedCenter;
 			if (CellCenterMethod == EPCGExCellCenter::Centroid)
 			{
-				// Centroid: average of all three vertices (same result in 2D and 3D for X,Y)
-				GetCentroid(Positions, Site.Vtx, OutputVertices[i]);
+				// Centroid: average of projected vertices (includes Z from projected positions)
+				GetCentroid(ProjectedView, Site.Vtx, ProjectedCenter);
 			}
 			else if (CellCenterMethod == EPCGExCellCenter::Circumcenter)
 			{
-				// Use 2D circumcenter for correct X,Y, with averaged Z
-				GetCircumcenter2D(Positions, Site.Vtx, OutputVertices[i]);
+				// 2D circumcenter in projected space - Z comes from averaged projected Z
+				GetCircumcenter2D(ProjectedView, Site.Vtx, ProjectedCenter);
 			}
-			else // Balanced
+			else // Balanced - compute circumcenter first, check bounds, fallback to centroid if out of bounds
 			{
-				const bool bInBounds = WithinBounds ? (*WithinBounds)[i] : true;
-				if (bInBounds)
+				GetCircumcenter2D(ProjectedView, Site.Vtx, ProjectedCenter);
+
+				// Check if circumcenter is within bounds (after unprojection)
+				if (Bounds)
 				{
-					GetCircumcenter2D(Positions, Site.Vtx, OutputVertices[i]);
+					const FVector Unprojected = ProjectionDetails.Unproject(ProjectedCenter);
+					if (!Bounds->IsInside(Unprojected))
+					{
+						// Out of bounds - use centroid instead
+						GetCentroid(ProjectedView, Site.Vtx, ProjectedCenter);
+					}
 				}
-				else
-				{
-					GetCentroid(Positions, Site.Vtx, OutputVertices[i]);
-				}
+			}
+
+			// Unproject the full 3D point back to original coordinate space
+			// The result lies on the projection plane
+			OutputVertices[i] = ProjectionDetails.Unproject(ProjectedCenter);
+
+			// Update WithinBounds based on final position
+			if (Bounds && WithinBounds)
+			{
+				(*WithinBounds)[i] = Bounds->IsInside(OutputVertices[i]);
 			}
 		}
 
@@ -237,13 +262,35 @@ namespace PCGExMath::Geo
 				continue;
 			}
 
-			// For L1/L∞, compute 2D path with potential bends
-			const FVector& CenterA = OutputVertices[SiteA];
-			const FVector& CenterB = OutputVertices[SiteB];
+			// For L1/L∞, compute 2D path with potential bends in projected space
+			const FDelaunaySite2& SiteDataA = Delaunay->Sites[SiteA];
+			const FDelaunaySite2& SiteDataB = Delaunay->Sites[SiteB];
 
-			// Use X,Y directly for 2D path computation (circumcenters already have correct 2D X,Y)
-			const FVector2D Start2D(CenterA.X, CenterA.Y);
-			const FVector2D End2D(CenterB.X, CenterB.Y);
+			// Get projected cell centers for 2D path computation
+			FVector ProjectedCenterA, ProjectedCenterB;
+			if (CellCenterMethod == EPCGExCellCenter::Centroid)
+			{
+				GetCentroid(ProjectedView, SiteDataA.Vtx, ProjectedCenterA);
+				GetCentroid(ProjectedView, SiteDataB.Vtx, ProjectedCenterB);
+			}
+			else if (CellCenterMethod == EPCGExCellCenter::Circumcenter)
+			{
+				GetCircumcenter2D(ProjectedView, SiteDataA.Vtx, ProjectedCenterA);
+				GetCircumcenter2D(ProjectedView, SiteDataB.Vtx, ProjectedCenterB);
+			}
+			else // Balanced
+			{
+				const bool bInBoundsA = WithinBounds ? (*WithinBounds)[SiteA] : true;
+				const bool bInBoundsB = WithinBounds ? (*WithinBounds)[SiteB] : true;
+				if (bInBoundsA) { GetCircumcenter2D(ProjectedView, SiteDataA.Vtx, ProjectedCenterA); }
+				else { GetCentroid(ProjectedView, SiteDataA.Vtx, ProjectedCenterA); }
+				if (bInBoundsB) { GetCircumcenter2D(ProjectedView, SiteDataB.Vtx, ProjectedCenterB); }
+				else { GetCentroid(ProjectedView, SiteDataB.Vtx, ProjectedCenterB); }
+			}
+
+			// Use projected X,Y for 2D path computation
+			const FVector2D Start2D(ProjectedCenterA.X, ProjectedCenterA.Y);
+			const FVector2D End2D(ProjectedCenterB.X, ProjectedCenterB.Y);
 
 			TArray<FVector2D> Path2D;
 			if (Metric == EPCGExVoronoiMetric::Manhattan)
@@ -262,17 +309,18 @@ namespace PCGExMath::Geo
 			}
 			else
 			{
-				// Has bend points - add intermediate vertices with interpolated Z
+				// Has bend points - add intermediate vertices
 				int32 PrevIdx = SiteA;
 
-				for (int32 i = 1; i < Path2D.Num() - 1; i++)
+				for (int32 j = 1; j < Path2D.Num() - 1; j++)
 				{
-					// Interpolate Z based on position along path
-					const double Alpha = static_cast<double>(i) / (Path2D.Num() - 1);
-					const double Z = FMath::Lerp(CenterA.Z, CenterB.Z, Alpha);
+					// Interpolate Z in projected space based on position along path
+					const double Alpha = static_cast<double>(j) / (Path2D.Num() - 1);
+					const double ProjectedZ = FMath::Lerp(ProjectedCenterA.Z, ProjectedCenterB.Z, Alpha);
 
-					// Create 3D bend point
-					const FVector BendPoint3D(Path2D[i].X, Path2D[i].Y, Z);
+					// Create projected bend point and unproject to get point on the plane
+					const FVector ProjectedBend(Path2D[j].X, Path2D[j].Y, ProjectedZ);
+					const FVector BendPoint3D = ProjectionDetails.Unproject(ProjectedBend);
 
 					const int32 BendIdx = OutputVertices.Num();
 					OutputVertices.Add(BendPoint3D);
