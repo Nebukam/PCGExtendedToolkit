@@ -1,4 +1,4 @@
-﻿// Copyright 2025 Timothé Lapetite and contributors
+﻿// Copyright 2026 Timothé Lapetite and contributors
 // * 24/02/25 Omer Salomon Fixed - Made the count condition for discarding to be inclusive on MaxPointCount (to fit the comment).
 // Released under the MIT license https://opensource.org/license/MIT/
 
