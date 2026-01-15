@@ -69,6 +69,7 @@ class PCGEXFOUNDATIONS_API UPCGExPointsProcessorSettings : public UPCGExSettings
 public:
 	//~Begin UPCGSettings	
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 #endif
 

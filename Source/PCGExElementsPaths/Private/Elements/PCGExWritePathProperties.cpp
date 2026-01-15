@@ -143,8 +143,7 @@ namespace PCGExWritePathProperties
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->CanForwardData() ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate)
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		if (!ProjectionDetails.Init(PointDataFacade)) { return false; }
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 

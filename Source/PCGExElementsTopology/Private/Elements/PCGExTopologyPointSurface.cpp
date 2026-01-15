@@ -119,8 +119,7 @@ namespace PCGExTopologyPointSurface
 		// Project points
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		if (!ProjectionDetails.Init(PointDataFacade)) { return false; }
 
 		// Build delaunay
 

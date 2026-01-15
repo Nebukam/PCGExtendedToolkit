@@ -92,8 +92,7 @@ void FPCGExClipper2TriangulateContext::BuildVertexPoolFromGroup(const TSharedPtr
 					FVector(
 						static_cast<double>(Pt.x) * InvScale,
 						static_cast<double>(Pt.y) * InvScale,
-						0.0),
-					0);
+						0.0));
 				Vertex.Color = FVector4(1, 1, 1, 1);
 			}
 

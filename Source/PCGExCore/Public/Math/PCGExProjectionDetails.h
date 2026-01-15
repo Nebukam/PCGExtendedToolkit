@@ -5,6 +5,7 @@
 
 #include <vector>
 #include "CoreMinimal.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExProjectionDetails.generated.h"
@@ -45,45 +46,74 @@ struct PCGEXCORE_API FPCGExGeo2DProjectionDetails
 	GENERATED_BODY()
 
 	FPCGExGeo2DProjectionDetails();
-	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal);
-
-	UPROPERTY()
-	bool bSupportLocalNormal = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExProjectionMethod Method = EPCGExProjectionMethod::Normal;
 
-	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method == EPCGExProjectionMethod::Normal", EditConditionHides, ShowOnlyInnerProperties))
-	FVector ProjectionNormal = FVector::UpVector;
+#pragma region DEPRECATED
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Method == EPCGExProjectionMethod::Normal && bSupportLocalNormal", EditConditionHides))
-	bool bLocalProjectionNormal = false;
+	UPROPERTY()
+	FVector ProjectionNormal_DEPRECATED = FVector::UpVector;
 
-	/** Local attribute to fetch projection normal from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Method == EPCGExProjectionMethod::Normal && bSupportLocalNormal && bLocalProjectionNormal", EditConditionHides))
-	FPCGAttributePropertyInputSelector LocalNormal;
+	UPROPERTY()
+	bool bLocalProjectionNormal_DEPRECATED = false;
 
-	TSharedPtr<PCGExDetails::TSettingValue<FVector>> NormalGetter;
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector LocalNormal_DEPRECATED;
+
+#pragma endregion
+
+	/** Projection normal from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Method == EPCGExProjectionMethod::Normal", EditConditionHides))
+	FPCGExInputShorthandSelectorVector ProjectionVector = FPCGExInputShorthandSelectorVector(FName("@Data.Projection"), FVector::UpVector, false);
+
+	FVector Normal = FVector::UpVector;
 	FQuat ProjectionQuat = FQuat::Identity;
+	FQuat ProjectionQuatInv = FQuat::Identity;
 
 	bool Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
 	bool Init(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 	bool Init(const UPCGData* InData);
 	void Init(const PCGExMath::FBestFitPlane& InFitPlane);
 
-	~FPCGExGeo2DProjectionDetails() = default;
-	FQuat GetQuat(const int32 PointIndex) const;
+protected:
+	void InitInternal(const FVector& InNormal);
 
-	FTransform Project(const FTransform& InTransform, const int32 PointIndex) const;
-	void ProjectInPlace(FTransform& InTransform, const int32 PointIndex) const;
-	FVector Project(const FVector& InPosition, const int32 PointIndex) const;
-	FVector Project(const FVector& InPosition) const;
-	FVector ProjectFlat(const FVector& InPosition) const;
-	FVector ProjectFlat(const FVector& InPosition, const int32 PointIndex) const;
-	FTransform ProjectFlat(const FTransform& InTransform) const;
-	FTransform ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const;
+public:
+	~FPCGExGeo2DProjectionDetails() = default;
+
+	FORCEINLINE FTransform Project(const FTransform& InTransform) const
+	{
+		return FTransform(
+			ProjectionQuatInv * InTransform.GetRotation(),
+			ProjectionQuatInv.RotateVector(InTransform.GetLocation()),
+			InTransform.GetScale3D()
+		);
+	}
+
+	FORCEINLINE void ProjectInPlace(FTransform& InTransform) const
+	{
+		InTransform.SetRotation(ProjectionQuatInv * InTransform.GetRotation());
+		InTransform.SetLocation(ProjectionQuatInv.RotateVector(InTransform.GetLocation()));
+	}
+
+	FORCEINLINE FVector Project(const FVector& InPosition) const
+	{
+		return ProjectionQuat.UnrotateVector(InPosition);
+	}
+
+	FORCEINLINE FVector ProjectFlat(const FVector& InPosition) const
+	{
+		FVector RotatedPosition = ProjectionQuat.UnrotateVector(InPosition);
+		RotatedPosition.Z = 0;
+		return RotatedPosition;
+	}
+
+	FORCEINLINE FTransform ProjectFlat(const FTransform& InTransform) const
+	{
+		const FVector P = ProjectionQuat.UnrotateVector(InTransform.GetLocation());
+		return FTransform(InTransform.GetRotation() * ProjectionQuat, FVector(P.X, P.Y, 0));
+	}
 
 	template <typename T>
 	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const;
@@ -94,10 +124,34 @@ struct PCGEXCORE_API FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const;
 	void Project(const TConstPCGValueRange<FTransform>& InTransforms, std::vector<double>& OutPositions) const;
 
-	FTransform Unproject(const FTransform& InTransform, const int32 PointIndex) const;
-	FVector Unproject(const FVector& InPosition, const int32 PointIndex) const;
-	void UnprojectInPlace(FTransform& InTransform, const int32 PointIndex) const;
-	void UnprojectInPlace(FVector& InPosition, const int32 PointIndex) const;
+	FORCEINLINE FTransform Unproject(const FTransform& InTransform) const
+	{
+		return FTransform(
+			ProjectionQuat * InTransform.GetRotation(),
+			ProjectionQuat.RotateVector(InTransform.GetLocation()),
+			InTransform.GetScale3D()
+		);
+	}
+
+	FORCEINLINE FVector Unproject(const FVector& InPosition) const
+	{
+		return ProjectionQuat.RotateVector(InPosition);
+	}
+
+	FORCEINLINE void UnprojectInPlace(FTransform& InTransform) const
+	{
+		InTransform.SetRotation(ProjectionQuat * InTransform.GetRotation());
+		InTransform.SetLocation(ProjectionQuat.RotateVector(InTransform.GetLocation()));
+	}
+
+	FORCEINLINE void UnprojectInPlace(FVector& InPosition) const
+	{
+		InPosition = ProjectionQuat.RotateVector(InPosition);
+	}
+
+#if WITH_EDITOR
+	void ApplyDeprecation();
+#endif
 
 protected:
 	FVector WorldUp = FVector::UpVector;
