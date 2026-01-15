@@ -116,7 +116,33 @@ namespace PCGExHeuristics
 	void FHandler::CompleteClusterPreparation()
 	{
 		TotalStaticWeight = 0;
-		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
+		CategorizedOps.Reset();
+
+		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations)
+		{
+			TotalStaticWeight += Op->WeightFactor;
+
+			// Categorize operation for fast-path optimizations
+			switch (Op->GetCategory())
+			{
+			case EPCGExHeuristicCategory::FullyStatic:
+				CategorizedOps.FullyStatic.Add(Op);
+				CategorizedOps.FullyStaticWeight += Op->WeightFactor;
+				break;
+			case EPCGExHeuristicCategory::GoalDependent:
+				CategorizedOps.GoalDependent.Add(Op);
+				CategorizedOps.GoalDependentWeight += Op->WeightFactor;
+				break;
+			case EPCGExHeuristicCategory::TravelDependent:
+				CategorizedOps.TravelDependent.Add(Op);
+				CategorizedOps.TravelDependentWeight += Op->WeightFactor;
+				CategorizedOps.bHasTravelDependent = true;
+				break;
+			case EPCGExHeuristicCategory::Feedback:
+				// Feedback operations are already in Feedbacks array
+				break;
+			}
+		}
 	}
 
 	double FHandler::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback) const

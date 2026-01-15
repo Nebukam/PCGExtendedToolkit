@@ -29,6 +29,8 @@ class FPCGExHeuristicAzimuth : public FPCGExHeuristicOperation
 	TArray<FVector> CachedEdgeDirections;
 
 public:
+	virtual EPCGExHeuristicCategory GetCategory() const override { return EPCGExHeuristicCategory::GoalDependent; }
+
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster) override;
 
 	virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const override;

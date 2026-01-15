@@ -8,6 +8,8 @@
 #include "Clusters/PCGExNode.h"
 
 class FPCGExHeuristicFeedback;
+class FPCGExHeuristicOperation;
+enum class EPCGExHeuristicCategory : uint8;
 
 namespace PCGEx
 {
@@ -21,6 +23,32 @@ namespace PCGExGraphs
 
 namespace PCGExHeuristics
 {
+	/** Categorized operation arrays for fast-path optimizations */
+	struct PCGEXHEURISTICS_API FCategorizedOperations
+	{
+		TArray<TSharedPtr<FPCGExHeuristicOperation>> FullyStatic;
+		TArray<TSharedPtr<FPCGExHeuristicOperation>> GoalDependent;
+		TArray<TSharedPtr<FPCGExHeuristicOperation>> TravelDependent;
+		// Note: Feedback operations are stored separately in Feedbacks array
+
+		double FullyStaticWeight = 0;
+		double GoalDependentWeight = 0;
+		double TravelDependentWeight = 0;
+
+		bool bHasTravelDependent = false;
+
+		void Reset()
+		{
+			FullyStatic.Empty();
+			GoalDependent.Empty();
+			TravelDependent.Empty();
+			FullyStaticWeight = 0;
+			GoalDependentWeight = 0;
+			TravelDependentWeight = 0;
+			bHasTravelDependent = false;
+		}
+	};
+
 	class PCGEXHEURISTICS_API FLocalFeedbackHandler : public TSharedFromThis<FLocalFeedbackHandler>
 	{
 	public:
@@ -71,7 +99,11 @@ namespace PCGExHeuristics
 		double TotalStaticWeight = 0;
 		bool bUseDynamicWeight = false;
 
+		/** Categorized operations for fast-path optimizations */
+		FCategorizedOperations CategorizedOps;
+
 		bool IsValidHandler() const { return bIsValidHandler; }
+		bool HasTravelDependentOperations() const { return CategorizedOps.bHasTravelDependent; }
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 		bool HasLocalFeedback() const { return !LocalFeedbackFactories.IsEmpty(); };
 		bool HasAnyFeedback() const { return HasGlobalFeedback() || HasLocalFeedback(); };

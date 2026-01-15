@@ -56,6 +56,8 @@ public:
 	bool bBleed = true;
 	bool bBinary = false;
 
+	virtual EPCGExHeuristicCategory GetCategory() const override { return EPCGExHeuristicCategory::Feedback; }
+
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster) override;
 
 	virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const override;
