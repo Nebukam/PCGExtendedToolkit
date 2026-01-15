@@ -1,4 +1,4 @@
-﻿// Copyright 2025 Edward Boucher and contributors
+﻿// Copyright 2026 Edward Boucher and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Elements/Constants/PCGExConstantEnum.h"
