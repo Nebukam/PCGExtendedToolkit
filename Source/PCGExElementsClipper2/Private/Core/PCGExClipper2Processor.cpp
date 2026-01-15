@@ -825,8 +825,7 @@ int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 
 				// Initialize projection for this path
 				FPCGExGeo2DProjectionDetails LocalProjection = Context->ProjectionDetails;
-				if (LocalProjection.Method == EPCGExProjectionMethod::Normal) { if (!LocalProjection.Init(Facade)) { return; } }
-				else { LocalProjection.Init(PCGExMath::FBestFitPlane(IO->GetIn()->GetConstTransformValueRange())); }
+				if (!LocalProjection.Init(Facade)) { return; }
 
 				const int32 Scale = Settings->Precision;
 

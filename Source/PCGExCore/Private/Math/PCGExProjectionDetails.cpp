@@ -18,12 +18,19 @@ FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails()
 {
 	WorldUp = PCGEX_CORE_SETTINGS.WorldUp;
 	WorldFwd = PCGEX_CORE_SETTINGS.WorldForward;
-	Normal = WorldUp;
+	
+	InitInternal(WorldUp);
 	ProjectionVector.Constant = Normal;
 }
 
 bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
 {
+	if (Method == EPCGExProjectionMethod::BestFit)
+	{
+		Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange()));
+		return true;
+	}
+	
 	FPCGExContext* Context = PointDataFacade->GetContext();
 	if (!Context) { return false; }
 
@@ -43,6 +50,12 @@ bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FFacade>& Po
 
 bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 {
+	if (Method == EPCGExProjectionMethod::BestFit)
+	{
+		Init(PCGExMath::FBestFitPlane(PointIO->GetIn()->GetConstTransformValueRange()));
+		return true;
+	}
+	
 	FPCGExContext* Context = PointIO->GetContext();
 	if (!Context) { return false; }
 

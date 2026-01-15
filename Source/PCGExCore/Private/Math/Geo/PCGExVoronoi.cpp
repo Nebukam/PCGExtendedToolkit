@@ -189,16 +189,7 @@ namespace PCGExMath::Geo
 		OutputVertices.Reserve(NumSites + VoronoiEdges.Num());
 		OutputEdges.Reserve(VoronoiEdges.Num() * 2);
 
-		// Pre-project all input positions to 2D space for circumcenter computation
-		TArray<FVector> ProjectedPositions;
-		ProjectedPositions.SetNumUninitialized(NumPositions);
-		for (int32 i = 0; i < NumPositions; i++)
-		{
-			ProjectedPositions[i] = ProjectionDetails.Project(Positions[i]);
-		}
-		const TArrayView<FVector> ProjectedView(ProjectedPositions);
-
-		// Build cell centers in projected 2D space, then unproject back
+		// Build cell centers
 		OutputVertices.SetNum(NumSites);
 
 		// Initialize WithinBounds if provided
@@ -207,6 +198,16 @@ namespace PCGExMath::Geo
 			WithinBounds->Init(true, NumSites);
 		}
 
+		// Project all positions to 2D space - used for all metrics
+		TArray<FVector> ProjectedPositions;
+		ProjectedPositions.SetNumUninitialized(NumPositions);
+		for (int32 i = 0; i < NumPositions; i++)
+		{
+			ProjectedPositions[i] = ProjectionDetails.Project(Positions[i]);
+		}
+		const TArrayView<FVector> ProjectedView(ProjectedPositions);
+
+		// Compute cell centers in projected space, then unproject
 		for (int32 i = 0; i < NumSites; i++)
 		{
 			const FDelaunaySite2& Site = Delaunay->Sites[i];
@@ -214,42 +215,34 @@ namespace PCGExMath::Geo
 			FVector ProjectedCenter;
 			if (CellCenterMethod == EPCGExCellCenter::Centroid)
 			{
-				// Centroid: average of projected vertices (includes Z from projected positions)
 				GetCentroid(ProjectedView, Site.Vtx, ProjectedCenter);
 			}
 			else if (CellCenterMethod == EPCGExCellCenter::Circumcenter)
 			{
-				// 2D circumcenter in projected space - Z comes from averaged projected Z
 				GetCircumcenter2D(ProjectedView, Site.Vtx, ProjectedCenter);
 			}
-			else // Balanced - compute circumcenter first, check bounds, fallback to centroid if out of bounds
+			else // Balanced
 			{
 				GetCircumcenter2D(ProjectedView, Site.Vtx, ProjectedCenter);
-
-				// Check if circumcenter is within bounds (after unprojection)
 				if (Bounds)
 				{
 					const FVector Unprojected = ProjectionDetails.Unproject(ProjectedCenter);
 					if (!Bounds->IsInside(Unprojected))
 					{
-						// Out of bounds - use centroid instead
 						GetCentroid(ProjectedView, Site.Vtx, ProjectedCenter);
 					}
 				}
 			}
 
-			// Unproject the full 3D point back to original coordinate space
-			// The result lies on the projection plane
 			OutputVertices[i] = ProjectionDetails.Unproject(ProjectedCenter);
 
-			// Update WithinBounds based on final position
 			if (Bounds && WithinBounds)
 			{
 				(*WithinBounds)[i] = Bounds->IsInside(OutputVertices[i]);
 			}
 		}
 
-		// Process each Voronoi edge
+		// Process edges - for Euclidean, just direct edges; for L1/L∞, potential bends
 		for (const uint64 EdgeHash : VoronoiEdges)
 		{
 			const int32 SiteA = PCGEx::H64A(EdgeHash);
@@ -262,7 +255,7 @@ namespace PCGExMath::Geo
 				continue;
 			}
 
-			// For L1/L∞, compute 2D path with potential bends in projected space
+			// For L1/L∞, compute 2D path with potential bends
 			const FDelaunaySite2& SiteDataA = Delaunay->Sites[SiteA];
 			const FDelaunaySite2& SiteDataB = Delaunay->Sites[SiteB];
 

@@ -125,8 +125,7 @@ namespace PCGExConnectPoints
 		if (Settings->bProjectPoints)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(PointDataFacade); }
-			else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+			ProjectionDetails.Init(PointDataFacade);
 		}
 
 		CanGenerate.SetNumUninitialized(NumPoints);

@@ -328,11 +328,7 @@ namespace PCGExClusterMT
 
 		AllocateVtxPoints();
 
-		if (WantsProjection())
-		{
-			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(VtxDataFacade); }
-			else if (!WantsPerClusterProjection()) { ProjectionDetails.Init(PCGExMath::FBestFitPlane(VtxDataFacade->GetIn()->GetConstTransformValueRange())); }
-		}
+		if (WantsProjection()) { ProjectionDetails.Init(VtxDataFacade); }
 
 		if (!bScopedIndexLookupBuild || NumVtx < PCGEX_CORE_SETTINGS.SmallClusterSize)
 		{

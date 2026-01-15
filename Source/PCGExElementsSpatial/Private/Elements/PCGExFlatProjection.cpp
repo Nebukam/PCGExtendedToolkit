@@ -112,8 +112,7 @@ namespace PCGExFlatProjection
 		else if (bWriteAttribute)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(PointDataFacade); }
-			else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+			ProjectionDetails.Init(PointDataFacade);
 
 			TransformWriter = PointDataFacade->GetWritable<FTransform>(Context->CachedTransformAttributeName, PCGExData::EBufferInit::New);
 		}

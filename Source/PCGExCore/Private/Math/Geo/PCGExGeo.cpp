@@ -95,7 +95,10 @@ namespace PCGExMath::Geo
 		const double Ux = (Asq * (By - Cy) + Bsq * (Cy - Ay) + Csq * (Ay - By)) / D;
 		const double Uy = (Asq * (Cx - Bx) + Bsq * (Ax - Cx) + Csq * (Bx - Ax)) / D;
 
-		// Z is the average of the three vertices
+		// For 2D Voronoi on a projection plane, the circumcenter lies ON the plane
+		// In projected space, points on the plane have a constant Z value
+		// Use the average Z which represents the plane's depth from origin
+		// For perfectly coplanar points, all Z values are equal so average = that value
 		const double Uz = (A.Z + B.Z + C.Z) / 3.0;
 
 		OutCircumcenter = FVector(Ux, Uy, Uz);
