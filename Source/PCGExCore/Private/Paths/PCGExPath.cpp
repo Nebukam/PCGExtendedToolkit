@@ -283,7 +283,7 @@ namespace PCGExPaths
 
 		for (int i = 0; i < NumPoints; i++)
 		{
-			const FVector2D ProjectedPoint = FVector2D(Projection.ProjectFlat(GetPos_Unsafe(i), i));
+			const FVector2D ProjectedPoint = FVector2D(Projection.ProjectFlat(GetPos_Unsafe(i)));
 			ProjectedBounds += ProjectedPoint;
 			ProjectedPoints[i] = ProjectedPoint;
 		}

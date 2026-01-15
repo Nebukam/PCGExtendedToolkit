@@ -146,7 +146,7 @@ namespace PCGExClusterMT
 
 				for (const int32 i : PtIndices)
 				{
-					FVector2D V = FVector2D(ProjectionDetails.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+					FVector2D V = FVector2D(ProjectionDetails.ProjectFlat(InVtxTransforms[i].GetLocation()));
 					ProjectedVtx[i] = V;
 					Cluster->ProjectedCentroid += V;
 				}
@@ -368,7 +368,7 @@ namespace PCGExClusterMT
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation()));
 					}
 				};
 
@@ -437,7 +437,7 @@ namespace PCGExClusterMT
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation()));
 					}
 				}
 			};

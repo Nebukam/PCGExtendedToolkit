@@ -247,7 +247,7 @@ namespace PCGExConnectPoints
 			NumPoints,
 			if (bUseProjection)
 			{
-			WorkingTransforms[i] = ProjectionDetails.ProjectFlat(OriginalTransforms[i], i);
+			WorkingTransforms[i] = ProjectionDetails.ProjectFlat(OriginalTransforms[i]);
 			WorkingPositions[i] = WorkingTransforms[i].GetLocation();
 			}
 			else
