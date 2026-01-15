@@ -16,6 +16,14 @@ enum class EPCGExCellCenter : uint8
 	Centroid     = 2 UMETA(DisplayName = "Centroid", ToolTip="Uses Delaunay cells' averaged vertice positions.")
 };
 
+UENUM()
+enum class EPCGExVoronoiMetric : uint8
+{
+	Euclidean = 0 UMETA(DisplayName = "Euclidean (L2)", ToolTip="Standard Euclidean distance. Produces classic Voronoi with straight edges."),
+	Manhattan = 1 UMETA(DisplayName = "Manhattan (L1)", ToolTip="Taxicab/Manhattan distance. Produces diamond-shaped cells with axis-aligned and 45-degree edges."),
+	Chebyshev = 2 UMETA(DisplayName = "Chebyshev (L-Inf)", ToolTip="Chessboard/Chebyshev distance. Produces square-ish cells with axis-aligned and 45-degree edges.")
+};
+
 namespace PCGExMath::Geo
 {
 	namespace States
@@ -47,6 +55,9 @@ namespace PCGExMath::Geo
 	PCGEXCORE_API bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere);
 	PCGEXCORE_API bool FindSphereFrom4Points(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FSphere& OutSphere);
 	PCGEXCORE_API void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter);
+
+	/** Compute 2D circumcenter (using only X,Y) with Z averaged from input vertices */
+	PCGEXCORE_API void GetCircumcenter2D(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter);
 
 	PCGEXCORE_API void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid);
 	PCGEXCORE_API void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid);
@@ -136,4 +147,31 @@ namespace PCGExMath::Geo
 	PCGEXCORE_API bool IsPointInPolygon(const FVector& Point, const TArray<FVector2D>& Polygon);
 
 	PCGEXCORE_API bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const TArray<FVector2D>& Polygon);
+
+	// L1/L∞ Voronoi edge path computation
+
+	/** Transform 2D coordinates for L1/L∞ Voronoi computation: (x,y) -> (x+y, x-y) */
+	FORCEINLINE static FVector2D TransformToLInf(const FVector2D& P) { return FVector2D(P.X + P.Y, P.X - P.Y); }
+
+	/** Inverse transform: (u,v) -> ((u+v)/2, (u-v)/2) */
+	FORCEINLINE static FVector2D TransformFromLInf(const FVector2D& P) { return FVector2D((P.X + P.Y) * 0.5, (P.X - P.Y) * 0.5); }
+
+	/**
+	 * Compute the edge path between two Voronoi cell centers for L∞ metric.
+	 * L∞ edges are axis-aligned or 45° diagonal, with at most one bend.
+	 * @param Start Start position (2D)
+	 * @param End End position (2D)
+	 * @param OutPath Output path including start, optional bend point, and end
+	 */
+	PCGEXCORE_API void ComputeLInfEdgePath(const FVector2D& Start, const FVector2D& End, TArray<FVector2D>& OutPath);
+
+	/**
+	 * Compute the edge path between two Voronoi cell centers for L1 metric.
+	 * L1 edges are axis-aligned or 45° diagonal, with at most one bend.
+	 * Uses coordinate transform to leverage L∞ computation.
+	 * @param Start Start position (2D)
+	 * @param End End position (2D)
+	 * @param OutPath Output path including start, optional bend point, and end
+	 */
+	PCGEXCORE_API void ComputeL1EdgePath(const FVector2D& Start, const FVector2D& End, TArray<FVector2D>& OutPath);
 }

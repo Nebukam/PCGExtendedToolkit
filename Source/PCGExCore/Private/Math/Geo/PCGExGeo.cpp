@@ -67,6 +67,40 @@ namespace PCGExMath::Geo
 		OutCircumcenter = A + ToCircumsphereCenter;
 	}
 
+	void GetCircumcenter2D(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
+	{
+		// Compute 2D circumcenter using only X,Y coordinates
+		const FVector& A = Positions[Vtx[0]];
+		const FVector& B = Positions[Vtx[1]];
+		const FVector& C = Positions[Vtx[2]];
+
+		// 2D circumcenter formula
+		const double Ax = A.X, Ay = A.Y;
+		const double Bx = B.X, By = B.Y;
+		const double Cx = C.X, Cy = C.Y;
+
+		const double D = 2.0 * (Ax * (By - Cy) + Bx * (Cy - Ay) + Cx * (Ay - By));
+
+		if (FMath::IsNearlyZero(D))
+		{
+			// Degenerate case - collinear points, use centroid
+			OutCircumcenter = (A + B + C) / 3.0;
+			return;
+		}
+
+		const double Asq = Ax * Ax + Ay * Ay;
+		const double Bsq = Bx * Bx + By * By;
+		const double Csq = Cx * Cx + Cy * Cy;
+
+		const double Ux = (Asq * (By - Cy) + Bsq * (Cy - Ay) + Csq * (Ay - By)) / D;
+		const double Uy = (Asq * (Cx - Bx) + Bsq * (Ax - Cx) + Csq * (Bx - Ax)) / D;
+
+		// Z is the average of the three vertices
+		const double Uz = (A.Z + B.Z + C.Z) / 3.0;
+
+		OutCircumcenter = FVector(Ux, Uy, Uz);
+	}
+
 	void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
 	{
 		OutCentroid = FVector::ZeroVector;
@@ -238,5 +272,63 @@ namespace PCGExMath::Geo
 		if (Points.IsEmpty()) { return false; }
 		for (const FVector2D& P : Points) { if (FGeomTools2D::IsPointInPolygon(P, Polygon)) { return true; } }
 		return false;
+	}
+
+	void ComputeLInfEdgePath(const FVector2D& Start, const FVector2D& End, TArray<FVector2D>& OutPath)
+	{
+		OutPath.Reset();
+		OutPath.Add(Start);
+
+		const double DX = End.X - Start.X;
+		const double DY = End.Y - Start.Y;
+		const double AbsDX = FMath::Abs(DX);
+		const double AbsDY = FMath::Abs(DY);
+
+		// For L∞, edges are axis-aligned or 45° diagonal
+		// If |dx| ≈ |dy|, it's diagonal (no bend needed)
+		// Otherwise, we need one bend point
+		constexpr double Tolerance = UE_DOUBLE_KINDA_SMALL_NUMBER;
+
+		if (FMath::IsNearlyEqual(AbsDX, AbsDY, Tolerance))
+		{
+			// Pure diagonal, no bend needed
+			OutPath.Add(End);
+		}
+		else if (AbsDX > AbsDY)
+		{
+			// Horizontal dominant: go horizontal first, then diagonal
+			// Bend point: move horizontally until remaining dx equals dy
+			const double DiagDist = AbsDY;
+			const double HorizDist = AbsDX - DiagDist;
+			const double BendX = Start.X + FMath::Sign(DX) * HorizDist;
+			OutPath.Add(FVector2D(BendX, Start.Y));
+			OutPath.Add(End);
+		}
+		else
+		{
+			// Vertical dominant: go vertical first, then diagonal
+			const double DiagDist = AbsDX;
+			const double VertDist = AbsDY - DiagDist;
+			const double BendY = Start.Y + FMath::Sign(DY) * VertDist;
+			OutPath.Add(FVector2D(Start.X, BendY));
+			OutPath.Add(End);
+		}
+	}
+
+	void ComputeL1EdgePath(const FVector2D& Start, const FVector2D& End, TArray<FVector2D>& OutPath)
+	{
+		// L1 Voronoi edges are rotated 45° from L∞
+		// Transform to L∞ space, compute path, transform back
+		const FVector2D StartTransformed = TransformToLInf(Start);
+		const FVector2D EndTransformed = TransformToLInf(End);
+
+		TArray<FVector2D> TransformedPath;
+		ComputeLInfEdgePath(StartTransformed, EndTransformed, TransformedPath);
+
+		OutPath.Reset();
+		for (const FVector2D& P : TransformedPath)
+		{
+			OutPath.Add(TransformFromLInf(P));
+		}
 	}
 }
