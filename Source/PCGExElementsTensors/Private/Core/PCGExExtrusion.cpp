@@ -513,7 +513,24 @@ namespace PCGExExtrusion
 
 	void FExtrusion::CutOff(const FVector& InCutOff)
 	{
-		FVector PrevPos = ExtrudedPoints.Last(1).GetLocation();
+		// Check if cutoff connects back to last point or point before last (self-connection)
+		const FVector LastPos = ExtrudedPoints.Last().GetLocation();
+		const FVector PrevPos = ExtrudedPoints.Last(1).GetLocation();
+
+		const double DistToLast = FVector::DistSquared(InCutOff, LastPos);
+		const double DistToPrev = FVector::DistSquared(InCutOff, PrevPos);
+
+		if (DistToLast <= Config.FuseDistanceSquared || DistToPrev <= Config.FuseDistanceSquared)
+		{
+			// Cutoff connects back to own path - remove last point and stop
+			ExtrudedPoints.Pop();
+			if (SegmentBounds.Num() > 0) { SegmentBounds.Pop(); }
+
+			StopReason |= EStopReason::SelfIntersection;
+			Complete();
+			State = EExtrusionState::Stopped;
+			return;
+		}
 
 		ExtrudedPoints.Last().SetLocation(InCutOff);
 		StopReason |= EStopReason::SelfIntersection;
@@ -524,6 +541,7 @@ namespace PCGExExtrusion
 		if (SegmentBounds.Num() > 0)
 		{
 			SegmentBounds.Last() = OEBox;
+			Bounds += OEBox; // Ensure overall bounds include the cutoff segment
 		}
 
 		State = EExtrusionState::Stopped;
