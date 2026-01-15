@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExTensorsTransform.h"
+#include "Core/PCGExExtrusion.h"
 
 #include "Core/PCGExPathProcessor.h"
 #include "Core/PCGExPointFilter.h"
@@ -50,128 +51,37 @@ enum class EPCGExSelfIntersectionPriority : uint8
 };
 
 //
-// Extrusion State Machine
+// Import types from PCGExExtrusion namespace
 //
 
 namespace PCGExExtrudeTensors
 {
-	/** Extrusion state - tracks where in the lifecycle an extrusion is */
-	enum class EExtrusionState : uint8
-	{
-		Probing,    // Searching for valid start position (when starting in stop filter)
-		Extruding,  // Actively adding points to path
-		Completed,  // Finalized successfully, path is valid
-		Stopped     // Hit termination condition, no longer advancing
-	};
+	// Import core extrusion types from the reusable module
+	using EExtrusionState = PCGExExtrusion::EExtrusionState;
+	using EStopReason = PCGExExtrusion::EStopReason;
+	using EExtrusionFlags = PCGExExtrusion::EExtrusionFlags;
+	using FExtrusionConfig = PCGExExtrusion::FExtrusionConfig;
+	using FCollisionResult = PCGExExtrusion::FCollisionResult;
+	using FBranchPoint = PCGExExtrusion::FBranchPoint;
+	using FExtrusionCallbacks = PCGExExtrusion::FExtrusionCallbacks;
+	using FExtrusion = PCGExExtrusion::FExtrusion;
 
-	/** Reason why an extrusion stopped */
-	enum class EStopReason : uint16
-	{
-		None              = 0,
-		Iterations        = 1 << 0, // Ran out of iterations
-		MaxLength         = 1 << 1, // Hit max path length
-		MaxPointCount     = 1 << 2, // Hit max point count
-		StopFilter        = 1 << 3, // Hit stop filter boundary
-		ExternalPath      = 1 << 4, // Intersected external path
-		SelfIntersection  = 1 << 5, // Intersected another extrusion
-		SelfMerge         = 1 << 6, // Merged with another extrusion
-		ClosedLoop        = 1 << 7, // Detected closed loop back to origin
-		SamplingFailed    = 1 << 8  // Tensor sampling returned no result
-	};
-	ENUM_CLASS_FLAGS(EStopReason)
-
-	/** Feature flags - determines which checks are enabled at runtime */
-	enum class EExtrusionFlags : uint32
-	{
-		None           = 0,
-		Bounded        = 1 << 0, // Stop filters are enabled
-		ClosedLoop     = 1 << 1, // Check for closed loops
-		AllowsChildren = 1 << 2, // Allow child extrusions after stopping
-		CollisionCheck = 1 << 3, // Check for path intersections
-	};
-	ENUM_CLASS_FLAGS(EExtrusionFlags)
-
-	constexpr bool HasFlag(const EExtrusionFlags Flags, EExtrusionFlags Flag)
-	{
-		return (static_cast<uint32>(Flags) & static_cast<uint32>(Flag)) != 0;
-	}
+	// Re-export HasFlag for convenience
+	using PCGExExtrusion::HasFlag;
 }
 
-// Forward declarations for config initialization (global scope)
+// Forward declarations for config initialization
 struct FPCGExExtrudeTensorsContext;
 class UPCGExExtrudeTensorsSettings;
 
 namespace PCGExExtrudeTensors
 {
-	/** Immutable configuration extracted from settings - used to avoid repeated Settings-> access */
-	struct FExtrusionConfig
-	{
-		// Transform settings
-		bool bTransformRotation = true;
-		EPCGExTensorTransformMode RotationMode = EPCGExTensorTransformMode::Align;
-		EPCGExAxis AlignAxis = EPCGExAxis::Forward;
-
-		// Limits
-		double FuseDistance = DBL_COLLOCATION_TOLERANCE;
-		double FuseDistanceSquared = DBL_COLLOCATION_TOLERANCE * DBL_COLLOCATION_TOLERANCE;
-		EPCGExTensorStopConditionHandling StopHandling = EPCGExTensorStopConditionHandling::Exclude;
-		bool bAllowChildExtrusions = false;
-
-		// External intersection
-		bool bDoExternalIntersections = false;
-		bool bIgnoreIntersectionOnOrigin = true;
-
-		// Self intersection
-		bool bDoSelfIntersections = false;
-		bool bMergeOnProximity = false;
-		double ProximitySegmentBalance = 0.5;
-		EPCGExSelfIntersectionPriority IntersectionPriority = EPCGExSelfIntersectionPriority::Crossing;
-
-		// Closed loop detection
-		bool bDetectClosedLoops = false;
-		double ClosedLoopSquaredDistance = 0;
-		double ClosedLoopSearchDot = 0;
-
-		// Intersection details (cached from context)
-		FPCGExPathIntersectionDetails ExternalPathIntersections;
-		FPCGExPathIntersectionDetails SelfPathIntersections;
-		FPCGExPathIntersectionDetails MergeDetails;
-
-		// Computed flags
-		EExtrusionFlags Flags = EExtrusionFlags::None;
-
-		/** Initialize from settings and context */
-		void InitFromContext(const FPCGExExtrudeTensorsContext* InContext, const UPCGExExtrudeTensorsSettings* InSettings, bool bHasStopFilters);
-	};
-
-	/** Result of collision detection */
-	struct FCollisionResult
-	{
-		bool bHasCollision = false;
-		FVector Position = FVector::ZeroVector;
-		EStopReason Reason = EStopReason::None;
-		int32 OtherIndex = -1; // Index of other path/extrusion if applicable
-
-		explicit operator bool() const { return bHasCollision; }
-
-		void Set(const FVector& InPosition, EStopReason InReason, int32 InOtherIndex = -1)
-		{
-			bHasCollision = true;
-			Position = InPosition;
-			Reason = InReason;
-			OtherIndex = InOtherIndex;
-		}
-	};
-
-	/** Branch point for future branching extrusions */
-	struct FBranchPoint
-	{
-		int32 SourceExtrusionIndex = -1;
-		int32 PointIndex = -1;
-		FTransform BranchTransform = FTransform::Identity;
-		FVector BranchDirection = FVector::ZeroVector;
-		double BranchAngle = 0.0; // Angle from main direction
-	};
+	/** Initialize FExtrusionConfig from ExtrudeTensors settings */
+	void InitExtrusionConfigFromSettings(
+		FExtrusionConfig& OutConfig,
+		const FPCGExExtrudeTensorsContext* InContext,
+		const UPCGExExtrudeTensorsSettings* InSettings,
+		bool bHasStopFilters);
 }
 
 //
@@ -420,7 +330,7 @@ struct FPCGExExtrudeTensorsContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> StopFilterFactories;
 
-	// Cached configuration
+	// Cached configuration (uses imported type)
 	PCGExExtrudeTensors::FExtrusionConfig ExtrusionConfig;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
@@ -440,124 +350,16 @@ protected:
 };
 
 //
-// Extrusion Implementation
+// Processor Implementation
 //
 
 namespace PCGExExtrudeTensors
 {
-	class FProcessor;
-
-	/**
-	 * FExtrusion - Single extrusion instance that advances along tensor field
-	 *
-	 * Lifecycle:
-	 *   1. Constructed with seed point and configuration
-	 *   2. Advance() called each iteration to sample tensor and move head
-	 *   3. Collision checks performed (if enabled)
-	 *   4. Points inserted into path
-	 *   5. Complete() called when stopped or finished
-	 */
-	class FExtrusion : public TSharedFromThis<FExtrusion>
-	{
-		
-		friend class FProcessor;
-		
-	public:
-		FExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations, const FExtrusionConfig& InConfig);
-		virtual ~FExtrusion() = default;
-
-		//~ State
-		EExtrusionState State = EExtrusionState::Probing;
-		EStopReason StopReason = EStopReason::None;
-
-		// bIsExtruding stays true once set, even after completion (matches original behavior)
-		// This is needed for OnRangeProcessingComplete to work correctly
-		bool bIsExtruding = false;
-
-		//~ Configuration (immutable after construction)
-		const FExtrusionConfig& Config;
-		EExtrusionFlags Flags = EExtrusionFlags::None;
-
-		//~ Hierarchy (for child/branching extrusions)
-		TWeakPtr<FExtrusion> ParentExtrusion;
-		bool bIsChildExtrusion = false;
-		bool bIsFollowUp = false;
-
-		//~ Processing references
-		FProcessor* Processor = nullptr;
-		TSharedPtr<TArray<TSharedPtr<PCGExPaths::FPath>>> SolidPaths;      // For self-intersection (grows as extrusions complete)
-		TArray<TSharedPtr<PCGExPaths::FPath>>* ExternalPaths = nullptr;    // For external path intersection (from Context)
-		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
-		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
-
-		//~ Head position and direction
-		FTransform Head = FTransform::Identity;
-		FVector ExtrusionDirection = FVector::ZeroVector;
-
-		//~ Seed and limits
-		int32 SeedIndex = -1;
-		int32 RemainingIterations = 0;
-		double MaxLength = MAX_dbl;
-		int32 MaxPointCount = MAX_int32;
-
-		//~ Path data
-		PCGExPaths::FPathMetrics Metrics;
-		TSharedRef<PCGExData::FFacade> PointDataFacade;
-		FBox Bounds = FBox(ForceInit);
-
-		//~ Future branching support
-		TArray<FBranchPoint> PendingBranches;
-
-		//~ Main interface
-		bool Advance();
-		void Complete();
-
-		//~ Collision interface
-		PCGExMath::FSegment GetHeadSegment() const;           // Segment between last two inserted points
-		PCGExMath::FSegment GetCurrentHeadSegment() const;    // Segment from last inserted point to current head position
-		PCGExMath::FClosestPosition FindCrossing(const PCGExMath::FSegment& InSegment, bool& OutIsLastSegment, PCGExMath::FClosestPosition& OutClosestPosition, int32 TruncateSearch = 0) const;
-		bool TryMerge(const PCGExMath::FSegment& InSegment, const PCGExMath::FClosestPosition& InMerge);
-
-		//~ Modification
-		void SetHead(const FTransform& InHead);
-		void CutOff(const FVector& InCutOff);
-		void Shorten(const FVector& InCutOff);
-		void Cleanup();
-
-		//~ State queries
-		FORCEINLINE bool IsActive() const { return State == EExtrusionState::Probing || State == EExtrusionState::Extruding; }
-		FORCEINLINE bool IsComplete() const { return State == EExtrusionState::Completed || State == EExtrusionState::Stopped; }
-		FORCEINLINE bool IsValidPath() const { return (State == EExtrusionState::Completed || State == EExtrusionState::Stopped) && ExtrudedPoints.Num() >= 2; }
-		FORCEINLINE int32 GetPointCount() const { return ExtrudedPoints.Num(); }
-		FORCEINLINE bool HasStopReason(EStopReason InReason) const { return EnumHasAnyFlags(StopReason, InReason); }
-
-	protected:
-		//~ Internal data
-		TArray<FTransform> ExtrudedPoints;
-		TArray<FBox> SegmentBounds;
-		double DistToLastSum = 0;
-		PCGExData::FConstPoint Origin;
-		PCGExData::FProxyPoint ProxyHead;
-		FVector LastInsertion = FVector::ZeroVector;
-		FTransform ActiveTransform = FTransform::Identity;
-		bool bAdvancedOnly = false;
-
-		//~ Internal methods
-		void ApplyRotation(const PCGExTensor::FTensorSample& Sample);
-		bool CheckClosedLoop(const FVector& PreviousHeadLocation);
-		bool CheckStopFilters();
-		bool CheckCollisions(const PCGExMath::FSegment& Segment);
-		FCollisionResult CheckExternalIntersection(const PCGExMath::FSegment& Segment);
-		FCollisionResult CheckSelfIntersection(const PCGExMath::FSegment& Segment, PCGExMath::FClosestPosition& OutMerge);
-		FCollisionResult ResolveCollisionPriority(const FCollisionResult& Crossing, const FCollisionResult& Merge);
-
-		void Insert(const FTransform& InPoint);
-		void StartNewExtrusion();
-		void Stop(EStopReason InReason);
-	};
-
 	/**
 	 * FProcessor - Processes a batch of seed points into extrusions
+	 *
+	 * Uses callbacks to communicate with FExtrusion instances,
+	 * enabling the decoupled architecture for reusability.
 	 */
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
 	{
@@ -611,6 +413,9 @@ namespace PCGExExtrudeTensors
 		TSharedPtr<TArray<TSharedPtr<PCGExPaths::FPath>>> StaticPaths;
 
 		TSharedPtr<FExtrusion> CreateExtrusion(const int32 InSeedIndex, const int32 InMaxIterations);
+
+		/** Set up callbacks for a newly created extrusion */
+		void SetupExtrusionCallbacks(const TSharedPtr<FExtrusion>& Extrusion);
 	};
 
 	/**
