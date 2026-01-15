@@ -39,6 +39,11 @@ namespace PCGExHeuristics
 		for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 	}
 
+	void FLocalFeedbackHandler::ResetFeedback()
+	{
+		for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { Feedback->ResetFeedback(); }
+	}
+
 	FHandler::FHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories)
 		: ExecutionContext(InContext), VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{
@@ -220,6 +225,32 @@ namespace PCGExHeuristics
 		}
 
 		return NewLocalFeedbackHandler;
+	}
+
+	TSharedPtr<FLocalFeedbackHandler> FHandler::AcquireLocalFeedbackHandler(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
+	{
+		if (LocalFeedbackFactories.IsEmpty()) { return nullptr; }
+
+		{
+			FScopeLock Lock(&PoolLock);
+			if (!LocalFeedbackHandlerPool.IsEmpty())
+			{
+				TSharedPtr<FLocalFeedbackHandler> Handler = LocalFeedbackHandlerPool.Pop();
+				Handler->ResetFeedback();
+				return Handler;
+			}
+		}
+
+		// Pool is empty, create new handler
+		return MakeLocalFeedbackHandler(InCluster);
+	}
+
+	void FHandler::ReleaseLocalFeedbackHandler(const TSharedPtr<FLocalFeedbackHandler>& Handler)
+	{
+		if (!Handler) { return; }
+
+		FScopeLock Lock(&PoolLock);
+		LocalFeedbackHandlerPool.Add(Handler);
 	}
 }
 

@@ -47,15 +47,16 @@ struct FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
  */
 class FPCGExHeuristicFeedback : public FPCGExHeuristicOperation
 {
-	mutable FRWLock FeedbackLock;
-	TMap<int32, uint32> NodeFeedbackNum;
-	TMap<int32, uint32> EdgeFeedbackNum;
+	TArray<uint32> NodeFeedbackCounts;
+	TArray<uint32> EdgeFeedbackCounts;
 
 public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
 	bool bBleed = true;
 	bool bBinary = false;
+
+	virtual void PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster) override;
 
 	virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const override;
 
@@ -64,6 +65,9 @@ public:
 	void FeedbackPointScore(const PCGExClusters::FNode& Node);
 
 	void FeedbackScore(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge);
+
+	/** Reset feedback counts for reuse (supports handler pooling) */
+	void ResetFeedback();
 };
 
 ////

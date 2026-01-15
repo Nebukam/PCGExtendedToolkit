@@ -46,6 +46,9 @@ namespace PCGExHeuristics
 		void FeedbackPointScore(const PCGExClusters::FNode& Node);
 
 		void FeedbackScore(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge);
+
+		/** Reset all feedback counts for reuse */
+		void ResetFeedback();
 	};
 
 	class PCGEXHEURISTICS_API FHandler : public TSharedFromThis<FHandler>
@@ -97,8 +100,18 @@ namespace PCGExHeuristics
 
 		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const TSharedPtr<const PCGExClusters::FCluster>& InCluster);
 
+		/** Acquire a local feedback handler from pool (creates new if pool is empty) */
+		TSharedPtr<FLocalFeedbackHandler> AcquireLocalFeedbackHandler(const TSharedPtr<const PCGExClusters::FCluster>& InCluster);
+
+		/** Release a local feedback handler back to pool for reuse */
+		void ReleaseLocalFeedbackHandler(const TSharedPtr<FLocalFeedbackHandler>& Handler);
+
 	protected:
 		PCGExClusters::FNode* RoamingSeedNode = nullptr;
 		PCGExClusters::FNode* RoamingGoalNode = nullptr;
+
+		/** Pool of reusable local feedback handlers */
+		TArray<TSharedPtr<FLocalFeedbackHandler>> LocalFeedbackHandlerPool;
+		FCriticalSection PoolLock;
 	};
 }
