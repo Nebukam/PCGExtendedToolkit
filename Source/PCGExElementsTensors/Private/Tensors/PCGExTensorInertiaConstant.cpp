@@ -32,7 +32,7 @@ PCGExTensor::FTensorSample FPCGExTensorInertiaConstant::Sample(const int32 InSee
 	}
 
 
-	return Samples.Flatten(Config.TensorWeight);
+	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
 PCGEX_TENSOR_BOILERPLATE(
