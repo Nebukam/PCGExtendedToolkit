@@ -162,7 +162,12 @@ namespace PCGExFindContours
 			const FVector SeedWP = InSeedTransforms[Index].GetLocation();
 
 			const TSharedPtr<PCGExClusters::FCell> Cell = MakeShared<PCGExClusters::FCell>(CellsConstraints.ToSharedRef());
-			const PCGExClusters::ECellResult Result = Cell->BuildFromCluster(SeedWP, Cluster.ToSharedRef(), ProjectedPositions, ProjectionDetails.ProjectionNormal_DEPRECATED, &Settings->SeedPicking);
+			const PCGExClusters::ECellResult Result = Cell->BuildFromCluster(
+				SeedWP,
+				Cluster.ToSharedRef(),
+				ProjectedPositions,
+				ProjectionDetails,
+				&Settings->SeedPicking);
 
 			if (Result != PCGExClusters::ECellResult::Success)
 			{
