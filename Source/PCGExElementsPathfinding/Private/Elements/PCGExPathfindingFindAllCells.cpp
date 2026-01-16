@@ -133,7 +133,7 @@ namespace PCGExFindAllCells
 		// Build or get the shared enumerator from constraints (enables reuse)
 		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 
-		// Enumerate all cells
+		// Enumerate all cells (reserves internally based on face count)
 		Enumerator->EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef());
 
 		// If we should omit wrapping bounds, find and remove the wrapper cell

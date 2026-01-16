@@ -3,6 +3,7 @@
 
 #include "Clusters/Artifacts/PCGExPlanarFaceEnumerator.h"
 
+#include "Async/ParallelFor.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "Math/PCGExMath.h"
@@ -190,19 +191,71 @@ namespace PCGExClusters
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::EnumerateAllFaces);
 
 		const TArray<FRawFace>& RawFaces = EnumerateRawFaces();
+		const int32 NumRawFaces = RawFaces.Num();
 
-		for (const FRawFace& RawFace : RawFaces)
+		if (NumRawFaces == 0) { return; }
+
+		// For small face counts, serial is faster due to parallel overhead
+		constexpr int32 ParallelThreshold = 32;
+
+		if (NumRawFaces < ParallelThreshold)
+		{
+			// Serial path for small counts
+			OutCells.Reserve(OutCells.Num() + NumRawFaces);
+			for (const FRawFace& RawFace : RawFaces)
+			{
+				TSharedPtr<FCell> Cell = MakeShared<FCell>(Constraints);
+				const ECellResult Result = BuildCellFromRawFace(RawFace, Cell, Constraints);
+
+				if (Result == ECellResult::Success)
+				{
+					OutCells.Add(Cell);
+				}
+				else if (OutFailedCells && !Cell->Polygon.IsEmpty())
+				{
+					OutFailedCells->Add(Cell);
+				}
+			}
+			return;
+		}
+
+		// Parallel path for larger counts
+		// Pre-allocate result arrays - each slot corresponds to a raw face index
+		TArray<TSharedPtr<FCell>> SuccessCells;
+		SuccessCells.SetNum(NumRawFaces);
+
+		TArray<TSharedPtr<FCell>> FailedCells;
+		if (OutFailedCells) { FailedCells.SetNum(NumRawFaces); }
+
+		// Process cells in parallel - each thread writes to its own index (no contention)
+		ParallelFor(NumRawFaces, [&](const int32 FaceIndex)
 		{
 			TSharedPtr<FCell> Cell = MakeShared<FCell>(Constraints);
-			const ECellResult Result = BuildCellFromRawFace(RawFace, Cell, Constraints);
+			const ECellResult Result = BuildCellFromRawFace(RawFaces[FaceIndex], Cell, Constraints);
 
 			if (Result == ECellResult::Success)
 			{
-				OutCells.Add(Cell);
+				SuccessCells[FaceIndex] = Cell;
 			}
 			else if (OutFailedCells && !Cell->Polygon.IsEmpty())
 			{
-				OutFailedCells->Add(Cell);
+				FailedCells[FaceIndex] = Cell;
+			}
+		});
+
+		// Compact results - remove null entries
+		OutCells.Reserve(OutCells.Num() + NumRawFaces);
+		for (TSharedPtr<FCell>& Cell : SuccessCells)
+		{
+			if (Cell) { OutCells.Add(MoveTemp(Cell)); }
+		}
+
+		if (OutFailedCells)
+		{
+			OutFailedCells->Reserve(OutFailedCells->Num() + NumRawFaces);
+			for (TSharedPtr<FCell>& Cell : FailedCells)
+			{
+				if (Cell) { OutFailedCells->Add(MoveTemp(Cell)); }
 			}
 		}
 	}
