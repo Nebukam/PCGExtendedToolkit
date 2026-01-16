@@ -185,15 +185,6 @@ namespace PCGExClusters
 		~FCell() = default;
 
 		uint64 GetCellHash();
-
-		/** Build cell from a half-edge using on-the-fly angle calculation (original method) */
-		ECellResult BuildFromCluster(const PCGExGraphs::FLink InSeedLink, TSharedRef<FCluster> InCluster, const TArray<FVector2D>& ProjectedPositions);
-
-		/** Build cell from seed position using on-the-fly angle calculation (original method) */
-		ECellResult BuildFromCluster(const FVector& SeedPosition, const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const FPCGExGeo2DProjectionDetails& ProjectionDetails, const FPCGExNodeSelectionDetails* Picking = nullptr);
-
-		ECellResult BuildFromPath(const TArray<FVector2D>& ProjectedPositions);
-
 		void PostProcessPoints(UPCGBasePointData* InMutablePoints);
 	};
 
