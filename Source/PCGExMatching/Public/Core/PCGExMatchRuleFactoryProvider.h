@@ -68,6 +68,15 @@ public:
 
 	virtual bool Test(const PCGExData::FConstPoint& InMatchableSourceElement, const FPCGExTaggedData& InCandidate, const PCGExMatching::FScope& InMatchingScope) const PCGEX_NOT_IMPLEMENTED_RET(Test, false);
 
+	/** Whether this rule type supports recursive/transitive matching */
+	virtual bool SupportsRecursion() const { return false; }
+
+	/** Whether recursion is both supported AND enabled in config */
+	virtual bool WantsRecursion() const { return false; }
+
+	/** Maximum recursion depth (-1 = unlimited). Only meaningful if WantsRecursion() returns true. */
+	virtual int32 GetMaxRecursionDepth() const { return -1; }
+
 protected:
 	TSharedPtr<TArray<FPCGExTaggedData>> MatchableSources;
 };
