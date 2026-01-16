@@ -9,11 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointElements.h"
 #include "Clusters/PCGExCluster.h"
-#include "Clusters/PCGExClusterCommon.h"
-#include "Math/PCGExMath.h"
-#include "Math/PCGExMathAxis.h"
 #include "Math/Geo/PCGExGeo.h"
-#include "Paths/PCGExPathsCommon.h"
 
 namespace PCGExClusters
 {
@@ -122,142 +118,155 @@ namespace PCGExClusters
 		return !bAlreadyExists;
 	}
 
-	void FCellConstraints::BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints)
+	TSharedPtr<FPlanarFaceEnumerator> FCellConstraints::GetOrBuildEnumerator(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions)
 	{
-		// Build the DCEL and enumerate all faces
-		FPlanarFaceEnumerator Enumerator;
-		Enumerator.Build(InCluster, ProjectedPositions);
+		if (!Enumerator)
+		{
+			Enumerator = MakeShared<FPlanarFaceEnumerator>();
+			Enumerator->Build(InCluster, ProjectedPositions);
+		}
+		return Enumerator;
+	}
+
+	void FCellConstraints::BuildWrapperCell(const TSharedPtr<FCellConstraints>& InConstraints)
+	{
+		if (!Enumerator || !Enumerator->IsBuilt())
+		{
+			// Cannot build wrapper without an enumerator - caller should call GetOrBuildEnumerator first
+			return;
+		}
 
 		// Create minimal constraints for wrapper detection - no filtering
 		TSharedPtr<FCellConstraints> TempConstraints = MakeShared<FCellConstraints>();
 		TempConstraints->bKeepCellsWithLeaves = true;
-		TempConstraints->bDuplicateLeafPoints = InConstraints ? InConstraints->bDuplicateLeafPoints : false;
+		TempConstraints->bDuplicateLeafPoints = InConstraints ? InConstraints->bDuplicateLeafPoints : bDuplicateLeafPoints;
 
-		// Enumerate all faces
-		TArray<TSharedPtr<FCell>> AllCells;
-		Enumerator.EnumerateAllFaces(AllCells, TempConstraints.ToSharedRef());
+		// Get cached raw faces and build cells
+		const TArray<FRawFace>& RawFaces = Enumerator->EnumerateRawFaces();
 
-		// The wrapper/exterior face is simply the one with the largest area
-		// In a proper planar graph, the exterior face encloses all others
+		// Find the wrapper cell (largest area)
 		double LargestArea = -MAX_dbl;
-		for (const TSharedPtr<FCell>& Cell : AllCells)
+		for (const FRawFace& RawFace : RawFaces)
 		{
-			if (Cell && Cell->Data.Area > LargestArea)
+			TSharedPtr<FCell> Cell = MakeShared<FCell>(TempConstraints.ToSharedRef());
+			const ECellResult Result = Enumerator->BuildCellFromRawFace(RawFace, Cell, TempConstraints.ToSharedRef());
+
+			if (Result == ECellResult::Success || Result == ECellResult::Duplicate)
 			{
-				LargestArea = Cell->Data.Area;
-				WrapperCell = Cell;
+				if (Cell && Cell->Data.Area > LargestArea)
+				{
+					LargestArea = Cell->Data.Area;
+					WrapperCell = Cell;
+				}
 			}
 		}
 
-		// Fallback for tree structures (no cycles = no valid DCEL faces)
-		// Use DFS tree-walking to produce wrap-around path that follows all branches
-		if (!WrapperCell && InCluster->Nodes->Num() >= 2)
+		// Fallback for tree structures - use the cluster and projected positions from the enumerator
+		if (!WrapperCell)
 		{
-			const TArray<FNode>& Nodes = *InCluster->Nodes;
-			const int32 NumNodes = Nodes.Num();
+			const FCluster* Cluster = Enumerator->GetCluster();
+			const TArray<FVector2D>* ProjectedPositions = Enumerator->GetProjectedPositions();
 
-			// Find a leaf node to start from (gives cleaner traversal)
-			int32 StartNode = 0;
-			for (int32 i = 0; i < NumNodes; ++i)
+			if (Cluster && ProjectedPositions && Cluster->Nodes->Num() >= 2)
 			{
-				if (Nodes[i].IsLeaf())
+				const TArray<FNode>& Nodes = *Cluster->Nodes;
+				const int32 NumNodes = Nodes.Num();
+
+				// Find a leaf node to start from (gives cleaner traversal)
+				int32 StartNode = 0;
+				for (int32 i = 0; i < NumNodes; ++i)
 				{
-					StartNode = i;
-					break;
-				}
-			}
-
-			// DFS tree walk - visits each edge twice (once each direction)
-			// This produces the wrap-around path
-			TArray<int32> WalkNodes;
-			WalkNodes.Reserve(InCluster->Edges->Num() * 2 + 1);
-
-			const bool bDuplicateLeaves = TempConstraints->bDuplicateLeafPoints;
-
-			TSet<int32> VisitedNodes;
-			TArray<TPair<int32, int32>> Stack; // (node, link index to process next)
-			Stack.Reserve(NumNodes);
-			Stack.Emplace(StartNode, 0);
-			WalkNodes.Add(StartNode);
-			if (bDuplicateLeaves && Nodes[StartNode].IsLeaf()) { WalkNodes.Add(StartNode); }
-			VisitedNodes.Add(StartNode);
-
-			while (!Stack.IsEmpty())
-			{
-				TPair<int32, int32>& Current = Stack.Last();
-				const FNode& Node = Nodes[Current.Key];
-
-				// Find next unvisited neighbor
-				bool bFoundNext = false;
-				while (Current.Value < Node.Links.Num())
-				{
-					const int32 NeighborNode = Node.Links[Current.Value].Node;
-					Current.Value++;
-
-					if (!VisitedNodes.Contains(NeighborNode))
+					if (Nodes[i].IsLeaf())
 					{
-						// Go to unvisited neighbor
-						VisitedNodes.Add(NeighborNode);
-						WalkNodes.Add(NeighborNode);
-						if (bDuplicateLeaves && Nodes[NeighborNode].IsLeaf()) { WalkNodes.Add(NeighborNode); }
-						Stack.Emplace(NeighborNode, 0);
-						bFoundNext = true;
+						StartNode = i;
 						break;
 					}
 				}
 
-				if (!bFoundNext)
+				// DFS tree walk - visits each edge twice (once each direction)
+				TArray<int32> WalkNodes;
+				WalkNodes.Reserve(Cluster->Edges->Num() * 2 + 1);
+
+				const bool bDuplicateLeaves = TempConstraints->bDuplicateLeafPoints;
+
+				TSet<int32> VisitedNodes;
+				TArray<TPair<int32, int32>> Stack;
+				Stack.Reserve(NumNodes);
+				Stack.Emplace(StartNode, 0);
+				WalkNodes.Add(StartNode);
+				if (bDuplicateLeaves && Nodes[StartNode].IsLeaf()) { WalkNodes.Add(StartNode); }
+				VisitedNodes.Add(StartNode);
+
+				while (!Stack.IsEmpty())
 				{
-					// Backtrack - pop current and add parent back to path
-					Stack.Pop();
-					if (!Stack.IsEmpty())
+					TPair<int32, int32>& Current = Stack.Last();
+					const FNode& Node = Nodes[Current.Key];
+
+					bool bFoundNext = false;
+					while (Current.Value < Node.Links.Num())
 					{
-						WalkNodes.Add(Stack.Last().Key);
+						const int32 NeighborNode = Node.Links[Current.Value].Node;
+						Current.Value++;
+
+						if (!VisitedNodes.Contains(NeighborNode))
+						{
+							VisitedNodes.Add(NeighborNode);
+							WalkNodes.Add(NeighborNode);
+							if (bDuplicateLeaves && Nodes[NeighborNode].IsLeaf()) { WalkNodes.Add(NeighborNode); }
+							Stack.Emplace(NeighborNode, 0);
+							bFoundNext = true;
+							break;
+						}
+					}
+
+					if (!bFoundNext)
+					{
+						Stack.Pop();
+						if (!Stack.IsEmpty())
+						{
+							WalkNodes.Add(Stack.Last().Key);
+						}
 					}
 				}
-			}
 
-			if (WalkNodes.Num() >= 3)
-			{
-				// Build wrapper cell from tree walk
-				WrapperCell = MakeShared<FCell>(TempConstraints.ToSharedRef());
-				WrapperCell->Nodes = MoveTemp(WalkNodes);
-				WrapperCell->Polygon.Reserve(WrapperCell->Nodes.Num());
-				WrapperCell->Data.Bounds = FBox(ForceInit);
-				WrapperCell->Data.Centroid = FVector::ZeroVector;
-
-				TSet<int32> UniqueNodes;
-				for (const int32 NodeIdx : WrapperCell->Nodes)
+				if (WalkNodes.Num() >= 3)
 				{
-					const int32 PointIdx = Nodes[NodeIdx].PointIndex;
-					WrapperCell->Polygon.Add(ProjectedPositions[PointIdx]);
+					WrapperCell = MakeShared<FCell>(TempConstraints.ToSharedRef());
+					WrapperCell->Nodes = MoveTemp(WalkNodes);
+					WrapperCell->Polygon.Reserve(WrapperCell->Nodes.Num());
+					WrapperCell->Data.Bounds = FBox(ForceInit);
+					WrapperCell->Data.Centroid = FVector::ZeroVector;
 
-					if (!UniqueNodes.Contains(NodeIdx))
+					TSet<int32> UniqueNodes;
+					for (const int32 NodeIdx : WrapperCell->Nodes)
 					{
-						UniqueNodes.Add(NodeIdx);
-						const FVector Pos = InCluster->GetPos(NodeIdx);
-						WrapperCell->Data.Bounds += Pos;
-						WrapperCell->Data.Centroid += Pos;
+						const int32 PointIdx = Nodes[NodeIdx].PointIndex;
+						WrapperCell->Polygon.Add((*ProjectedPositions)[PointIdx]);
+
+						if (!UniqueNodes.Contains(NodeIdx))
+						{
+							UniqueNodes.Add(NodeIdx);
+							const FVector Pos = Cluster->GetPos(NodeIdx);
+							WrapperCell->Data.Bounds += Pos;
+							WrapperCell->Data.Centroid += Pos;
+						}
 					}
+
+					WrapperCell->Data.Centroid /= UniqueNodes.Num();
+					WrapperCell->Data.bIsClosedLoop = true;
+					WrapperCell->Data.bIsConvex = false;
+
+					double Perimeter = 0;
+					for (int32 i = 0; i < WrapperCell->Polygon.Num() - 1; ++i)
+					{
+						Perimeter += FVector2D::Distance(WrapperCell->Polygon[i], WrapperCell->Polygon[i + 1]);
+					}
+					WrapperCell->Data.Perimeter = Perimeter;
+					WrapperCell->Data.Area = 0;
+					WrapperCell->Data.Compactness = 0;
+
+					WrapperCell->bBuiltSuccessfully = true;
 				}
-
-				WrapperCell->Data.Centroid /= UniqueNodes.Num();
-				WrapperCell->Data.bIsClosedLoop = true;
-				WrapperCell->Data.bIsConvex = false; // Tree wrap-around is never convex
-
-				// Compute perimeter (sum of all edge traversals)
-				double Perimeter = 0;
-				for (int32 i = 0; i < WrapperCell->Polygon.Num() - 1; ++i)
-				{
-					Perimeter += FVector2D::Distance(WrapperCell->Polygon[i], WrapperCell->Polygon[i + 1]);
-				}
-				WrapperCell->Data.Perimeter = Perimeter;
-
-				// Area for tree wrap-around is 0 (degenerate polygon)
-				WrapperCell->Data.Area = 0;
-				WrapperCell->Data.Compactness = 0;
-
-				WrapperCell->bBuiltSuccessfully = true;
 			}
 		}
 
@@ -267,9 +276,17 @@ namespace PCGExClusters
 		}
 	}
 
+	void FCellConstraints::BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions)
+	{
+		// Build or get shared enumerator, then delegate to the overload that uses it
+		GetOrBuildEnumerator(InCluster, ProjectedPositions);
+		BuildWrapperCell(SharedThis(this));
+	}
+
 	void FCellConstraints::Cleanup()
 	{
 		WrapperCell = nullptr;
+		Enumerator = nullptr;
 	}
 
 	uint64 FCell::GetCellHash()

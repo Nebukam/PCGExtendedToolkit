@@ -124,6 +124,7 @@ namespace PCGExClusters
 
 		TSharedPtr<FCell> WrapperCell;
 		TSharedPtr<FHoles> Holes;
+		TSharedPtr<FPlanarFaceEnumerator> Enumerator;
 
 		FCellConstraints()
 		{
@@ -135,7 +136,15 @@ namespace PCGExClusters
 		bool ContainsSignedEdgeHash(const uint64 Hash);
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
-		void BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
+
+		/** Build or get the shared enumerator. Call this once to build the DCEL, then reuse. */
+		TSharedPtr<FPlanarFaceEnumerator> GetOrBuildEnumerator(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions);
+
+		/** Build wrapper cell using the shared enumerator */
+		void BuildWrapperCell(const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
+
+		/** Legacy method - builds enumerator internally if needed */
+		void BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions);
 
 		void Cleanup();
 	};

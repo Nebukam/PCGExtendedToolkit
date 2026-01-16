@@ -135,14 +135,13 @@ namespace PCGExFindContours
 		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 
-		// Use FPlanarFaceEnumerator (DCEL-based) to find ALL cells first
-		PCGExClusters::FPlanarFaceEnumerator Enumerator;
-		Enumerator.Build(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		// Build or get the shared enumerator from constraints (enables reuse)
+		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 
 		// Enumerate all cells, also get failed cells for consumption tracking
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> FailedCells;
-		Enumerator.EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), &FailedCells);
+		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), &FailedCells);
 
 		// Identify and extract wrapper cell (largest area)
 		if (!AllCells.IsEmpty())

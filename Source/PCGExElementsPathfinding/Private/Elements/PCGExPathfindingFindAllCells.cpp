@@ -130,12 +130,11 @@ namespace PCGExFindAllCells
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 		CellsConstraints->Holes = Holes;
 
-		// Use FPlanarFaceEnumerator (DCEL-based) to find all faces
-		PCGExClusters::FPlanarFaceEnumerator Enumerator;
-		Enumerator.Build(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		// Build or get the shared enumerator from constraints (enables reuse)
+		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 
 		// Enumerate all cells
-		Enumerator.EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef());
+		Enumerator->EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef());
 
 		// If we should omit wrapping bounds, find and remove the wrapper cell
 		if (Settings->Constraints.bOmitWrappingBounds && !ValidCells.IsEmpty())

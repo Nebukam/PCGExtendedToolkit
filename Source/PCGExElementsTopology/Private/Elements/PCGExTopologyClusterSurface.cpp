@@ -66,12 +66,11 @@ namespace PCGExTopologyClusterSurface
 
 		if (!TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>::Process(InTaskManager)) { return false; }
 
-		// Use FPlanarFaceEnumerator (DCEL-based) to find all faces
-		PCGExClusters::FPlanarFaceEnumerator Enumerator;
-		Enumerator.Build(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		// Build or get the shared enumerator from constraints (enables reuse)
+		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 
-		// Enumerate all cells
-		Enumerator.EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef());
+		// Enumerate all cells using the shared enumerator
+		Enumerator->EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef());
 
 		// If we should omit wrapping bounds, find and remove the wrapper cell
 		if (Settings->Constraints.bOmitWrappingBounds && !ValidCells.IsEmpty())

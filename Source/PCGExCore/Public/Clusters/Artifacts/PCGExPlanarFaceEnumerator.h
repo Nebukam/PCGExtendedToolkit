@@ -35,10 +35,22 @@ namespace PCGExClusters
 	};
 
 	/**
+	 * Raw face data - lightweight structure for parallel cell building
+	 */
+	struct PCGEXCORE_API FRawFace
+	{
+		TArray<int32> Nodes;
+		int32 FaceIndex = -1;
+
+		FRawFace() = default;
+		explicit FRawFace(int32 InFaceIndex) : FaceIndex(InFaceIndex) {}
+	};
+
+	/**
 	 * DCEL-based planar face enumerator.
 	 * Builds a proper half-edge structure and enumerates all faces by following next pointers.
 	 */
-	class PCGEXCORE_API FPlanarFaceEnumerator
+	class PCGEXCORE_API FPlanarFaceEnumerator : public TSharedFromThis<FPlanarFaceEnumerator>
 	{
 	protected:
 		TArray<FHalfEdge> HalfEdges;
@@ -48,6 +60,10 @@ namespace PCGExClusters
 		const TArray<FVector2D>* ProjectedPositions = nullptr;
 
 		int32 NumFaces = 0;
+
+		// Cached raw faces for reuse
+		TArray<FRawFace> CachedRawFaces;
+		bool bRawFacesEnumerated = false;
 
 	public:
 		FPlanarFaceEnumerator() = default;
@@ -60,7 +76,26 @@ namespace PCGExClusters
 		void Build(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& InProjectedPositions);
 
 		/**
-		 * Enumerate all faces and create cells.
+		 * Enumerate raw faces (serial operation).
+		 * Call this once, then use BuildCellsFromRawFaces for parallel cell building.
+		 * @return Reference to cached raw faces
+		 */
+		const TArray<FRawFace>& EnumerateRawFaces();
+
+		/**
+		 * Build cells from raw faces. Can be called in parallel per-face.
+		 * @param InRawFace The raw face data
+		 * @param OutCell Output cell (caller should allocate)
+		 * @param Constraints Cell constraints for filtering
+		 * @return Cell result status
+		 */
+		ECellResult BuildCellFromRawFace(
+			const FRawFace& InRawFace,
+			TSharedPtr<FCell>& OutCell,
+			const TSharedRef<FCellConstraints>& Constraints) const;
+
+		/**
+		 * Enumerate all faces and create cells (convenience method, combines EnumerateRawFaces + BuildCellFromRawFace).
 		 * @param OutCells Output array of cells (faces that pass constraints)
 		 * @param Constraints Cell constraints for filtering
 		 * @param OutFailedCells Optional output array of cells that failed constraints (but have valid polygons for containment testing)
@@ -84,6 +119,8 @@ namespace PCGExClusters
 		FORCEINLINE bool IsBuilt() const { return !HalfEdges.IsEmpty(); }
 		FORCEINLINE int32 GetNumHalfEdges() const { return HalfEdges.Num(); }
 		FORCEINLINE int32 GetNumFaces() const { return NumFaces; }
+		FORCEINLINE const FCluster* GetCluster() const { return Cluster; }
+		FORCEINLINE const TArray<FVector2D>* GetProjectedPositions() const { return ProjectedPositions; }
 
 		/**
 		 * Get half-edge index for a directed edge.
@@ -96,7 +133,7 @@ namespace PCGExClusters
 		}
 
 	protected:
-		/** Build a cell from a face (list of node indices) */
+		/** Build a cell from a face (list of node indices) - internal use */
 		ECellResult BuildCellFromFace(
 			const TArray<int32>& FaceNodes,
 			TSharedPtr<FCell>& OutCell,

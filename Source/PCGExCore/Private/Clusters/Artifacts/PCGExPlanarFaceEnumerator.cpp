@@ -110,20 +110,22 @@ namespace PCGExClusters
 		}
 
 		NumFaces = 0;
+		bRawFacesEnumerated = false;
+		CachedRawFaces.Reset();
 	}
 
-	void FPlanarFaceEnumerator::EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells)
+	const TArray<FRawFace>& FPlanarFaceEnumerator::EnumerateRawFaces()
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::EnumerateAllFaces);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::EnumerateRawFaces);
 
-		if (!IsBuilt()) { return; }
+		if (bRawFacesEnumerated) { return CachedRawFaces; }
+		if (!IsBuilt()) { return CachedRawFaces; }
+
+		bRawFacesEnumerated = true;
 
 		// Mark all half-edges as unvisited
 		TArray<bool> Visited;
 		Visited.SetNumZeroed(HalfEdges.Num());
-
-		TArray<int32> FaceNodes;
-		FaceNodes.Reserve(64);
 
 		NumFaces = 0;
 
@@ -132,60 +134,75 @@ namespace PCGExClusters
 		{
 			if (Visited[StartHE]) { continue; }
 
-			// Trace the face starting from this half-edge
-			FaceNodes.Reset();
+			FRawFace& RawFace = CachedRawFaces.Emplace_GetRef(NumFaces);
+			RawFace.Nodes.Reserve(64);
+
 			int32 CurrentHE = StartHE;
-			const int32 MaxSteps = HalfEdges.Num(); // Failsafe
+			const int32 MaxSteps = HalfEdges.Num();
 
 			for (int32 Step = 0; Step < MaxSteps; ++Step)
 			{
 				if (CurrentHE < 0 || CurrentHE >= HalfEdges.Num())
 				{
-					// Invalid index - malformed DCEL
-					FaceNodes.Reset();
+					RawFace.Nodes.Reset();
 					break;
 				}
 
 				if (Visited[CurrentHE])
 				{
-					// We've completed the face (or hit an already-visited edge)
-					if (CurrentHE == StartHE)
+					if (CurrentHE != StartHE)
 					{
-						// Successfully closed the face
-						break;
+						RawFace.Nodes.Reset();
 					}
-					else
-					{
-						// Hit a different visited edge - malformed
-						FaceNodes.Reset();
-						break;
-					}
+					break;
 				}
 
 				Visited[CurrentHE] = true;
-				FaceNodes.Add(HalfEdges[CurrentHE].OriginNode);
+				RawFace.Nodes.Add(HalfEdges[CurrentHE].OriginNode);
 				HalfEdges[CurrentHE].FaceIndex = NumFaces;
 
 				CurrentHE = HalfEdges[CurrentHE].NextIndex;
 			}
 
-			// Validate and create cell
-			if (FaceNodes.Num() >= 3)
+			if (RawFace.Nodes.Num() >= 3)
 			{
-				TSharedPtr<FCell> Cell = MakeShared<FCell>(Constraints);
-				const ECellResult Result = BuildCellFromFace(FaceNodes, Cell, Constraints);
-
-				if (Result == ECellResult::Success)
-				{
-					OutCells.Add(Cell);
-				}
-				else if (OutFailedCells && !Cell->Polygon.IsEmpty())
-				{
-					// Cell failed constraints but has valid polygon - useful for containment testing
-					OutFailedCells->Add(Cell);
-				}
-
 				NumFaces++;
+			}
+			else
+			{
+				CachedRawFaces.Pop();
+			}
+		}
+
+		return CachedRawFaces;
+	}
+
+	ECellResult FPlanarFaceEnumerator::BuildCellFromRawFace(
+		const FRawFace& InRawFace,
+		TSharedPtr<FCell>& OutCell,
+		const TSharedRef<FCellConstraints>& Constraints) const
+	{
+		return BuildCellFromFace(InRawFace.Nodes, OutCell, Constraints);
+	}
+
+	void FPlanarFaceEnumerator::EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::EnumerateAllFaces);
+
+		const TArray<FRawFace>& RawFaces = EnumerateRawFaces();
+
+		for (const FRawFace& RawFace : RawFaces)
+		{
+			TSharedPtr<FCell> Cell = MakeShared<FCell>(Constraints);
+			const ECellResult Result = BuildCellFromRawFace(RawFace, Cell, Constraints);
+
+			if (Result == ECellResult::Success)
+			{
+				OutCells.Add(Cell);
+			}
+			else if (OutFailedCells && !Cell->Polygon.IsEmpty())
+			{
+				OutFailedCells->Add(Cell);
 			}
 		}
 	}
