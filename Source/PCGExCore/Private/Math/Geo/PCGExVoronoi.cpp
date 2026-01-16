@@ -318,6 +318,13 @@ namespace PCGExMath::Geo
 					const int32 BendIdx = OutputVertices.Num();
 					OutputVertices.Add(BendPoint3D);
 
+					// For non-Euclidean metrics, if bend point is out of bounds, mark connected sites as out of bounds
+					if (Bounds && WithinBounds && !Bounds->IsInside(BendPoint3D))
+					{
+						(*WithinBounds)[SiteA] = false;
+						(*WithinBounds)[SiteB] = false;
+					}
+
 					// Edge from previous to bend
 					OutputEdges.Add(PCGEx::H64(PrevIdx, BendIdx));
 					PrevIdx = BendIdx;
