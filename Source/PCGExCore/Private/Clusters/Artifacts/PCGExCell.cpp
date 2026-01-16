@@ -131,7 +131,7 @@ namespace PCGExClusters
 		// Create minimal constraints for wrapper detection - no filtering
 		TSharedPtr<FCellConstraints> TempConstraints = MakeShared<FCellConstraints>();
 		TempConstraints->bKeepCellsWithLeaves = true;
-		TempConstraints->bDuplicateLeafPoints = false;
+		TempConstraints->bDuplicateLeafPoints = InConstraints ? InConstraints->bDuplicateLeafPoints : false;
 
 		// Enumerate all faces
 		TArray<TSharedPtr<FCell>> AllCells;
@@ -146,6 +146,118 @@ namespace PCGExClusters
 			{
 				LargestArea = Cell->Data.Area;
 				WrapperCell = Cell;
+			}
+		}
+
+		// Fallback for tree structures (no cycles = no valid DCEL faces)
+		// Use DFS tree-walking to produce wrap-around path that follows all branches
+		if (!WrapperCell && InCluster->Nodes->Num() >= 2)
+		{
+			const TArray<FNode>& Nodes = *InCluster->Nodes;
+			const int32 NumNodes = Nodes.Num();
+
+			// Find a leaf node to start from (gives cleaner traversal)
+			int32 StartNode = 0;
+			for (int32 i = 0; i < NumNodes; ++i)
+			{
+				if (Nodes[i].IsLeaf())
+				{
+					StartNode = i;
+					break;
+				}
+			}
+
+			// DFS tree walk - visits each edge twice (once each direction)
+			// This produces the wrap-around path
+			TArray<int32> WalkNodes;
+			WalkNodes.Reserve(InCluster->Edges->Num() * 2 + 1);
+
+			const bool bDuplicateLeaves = TempConstraints->bDuplicateLeafPoints;
+
+			TSet<int32> VisitedNodes;
+			TArray<TPair<int32, int32>> Stack; // (node, link index to process next)
+			Stack.Reserve(NumNodes);
+			Stack.Emplace(StartNode, 0);
+			WalkNodes.Add(StartNode);
+			if (bDuplicateLeaves && Nodes[StartNode].IsLeaf()) { WalkNodes.Add(StartNode); }
+			VisitedNodes.Add(StartNode);
+
+			while (!Stack.IsEmpty())
+			{
+				TPair<int32, int32>& Current = Stack.Last();
+				const FNode& Node = Nodes[Current.Key];
+
+				// Find next unvisited neighbor
+				bool bFoundNext = false;
+				while (Current.Value < Node.Links.Num())
+				{
+					const int32 NeighborNode = Node.Links[Current.Value].Node;
+					Current.Value++;
+
+					if (!VisitedNodes.Contains(NeighborNode))
+					{
+						// Go to unvisited neighbor
+						VisitedNodes.Add(NeighborNode);
+						WalkNodes.Add(NeighborNode);
+						if (bDuplicateLeaves && Nodes[NeighborNode].IsLeaf()) { WalkNodes.Add(NeighborNode); }
+						Stack.Emplace(NeighborNode, 0);
+						bFoundNext = true;
+						break;
+					}
+				}
+
+				if (!bFoundNext)
+				{
+					// Backtrack - pop current and add parent back to path
+					Stack.Pop();
+					if (!Stack.IsEmpty())
+					{
+						WalkNodes.Add(Stack.Last().Key);
+					}
+				}
+			}
+
+			if (WalkNodes.Num() >= 3)
+			{
+				// Build wrapper cell from tree walk
+				WrapperCell = MakeShared<FCell>(TempConstraints.ToSharedRef());
+				WrapperCell->Nodes = MoveTemp(WalkNodes);
+				WrapperCell->Polygon.Reserve(WrapperCell->Nodes.Num());
+				WrapperCell->Data.Bounds = FBox(ForceInit);
+				WrapperCell->Data.Centroid = FVector::ZeroVector;
+
+				TSet<int32> UniqueNodes;
+				for (const int32 NodeIdx : WrapperCell->Nodes)
+				{
+					const int32 PointIdx = Nodes[NodeIdx].PointIndex;
+					WrapperCell->Polygon.Add(ProjectedPositions[PointIdx]);
+
+					if (!UniqueNodes.Contains(NodeIdx))
+					{
+						UniqueNodes.Add(NodeIdx);
+						const FVector Pos = InCluster->GetPos(NodeIdx);
+						WrapperCell->Data.Bounds += Pos;
+						WrapperCell->Data.Centroid += Pos;
+					}
+				}
+
+				WrapperCell->Data.Centroid /= UniqueNodes.Num();
+				WrapperCell->Data.bIsClosedLoop = true;
+				WrapperCell->Data.bIsConvex = false; // Tree wrap-around is never convex
+
+				// Compute perimeter (sum of all edge traversals)
+				double Perimeter = 0;
+				for (int32 i = 0; i < WrapperCell->Polygon.Num() - 1; ++i)
+				{
+					Perimeter += FVector2D::Distance(WrapperCell->Polygon[i], WrapperCell->Polygon[i + 1]);
+				}
+				WrapperCell->Data.Perimeter = Perimeter;
+
+				// Area for tree wrap-around is 0 (degenerate polygon)
+				WrapperCell->Data.Area = 0;
+				WrapperCell->Data.Compactness = 0;
+
+				WrapperCell->bBuiltSuccessfully = true;
 			}
 		}
 
