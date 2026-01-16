@@ -1,4 +1,4 @@
-﻿// Copyright 2026 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Elements/PCGExTopologyClusterSurface.h"
@@ -8,6 +8,7 @@
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/Artifacts/PCGExCellDetails.h"
+#include "Clusters/Artifacts/PCGExPlanarFaceEnumerator.h"
 
 #define LOCTEXT_NAMESPACE "TopologyClustersProcessor"
 #define PCGEX_NAMESPACE TopologyClustersProcessor
@@ -56,98 +57,93 @@ bool FPCGExTopologyClusterSurfaceElement::AdvanceWork(FPCGExContext* InContext, 
 	return Context->TryComplete();
 }
 
+
 namespace PCGExTopologyClusterSurface
 {
-	void FProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
-		TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>::PrepareLoopScopesForEdges(Loops);
-		SubTriangulations.Reserve(Loops.Num());
-		for (int i = 0; i < Loops.Num(); i++)
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTopologyClusterSurface::Process);
+
+		if (!TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>::Process(InTaskManager)) { return false; }
+
+		// Use FPlanarFaceEnumerator (DCEL-based) to find all faces
+		PCGExClusters::FPlanarFaceEnumerator Enumerator;
+		Enumerator.Build(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+
+		// Enumerate all cells
+		Enumerator.EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef());
+
+		// If we should omit wrapping bounds, find and remove the wrapper cell
+		if (Settings->Constraints.bOmitWrappingBounds && !ValidCells.IsEmpty())
 		{
-			PCGEX_MAKE_SHARED(A, TArray<FGeometryScriptSimplePolygon>)
-			SubTriangulations.Add(A.ToSharedRef());
+			// Find wrapper by largest area
+			double MaxArea = -MAX_dbl;
+			int32 WrapperIdx = INDEX_NONE;
+			for (int32 i = 0; i < ValidCells.Num(); ++i)
+			{
+				if (ValidCells[i] && ValidCells[i]->Data.Area > MaxArea)
+				{
+					MaxArea = ValidCells[i]->Data.Area;
+					WrapperIdx = i;
+				}
+			}
+			if (WrapperIdx != INDEX_NONE)
+			{
+				CellsConstraints->WrapperCell = ValidCells[WrapperIdx];
+				ValidCells.RemoveAt(WrapperIdx);
+			}
 		}
-	}
-
-	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
-	{
-		EdgeDataFacade->Fetch(Scope);
-		FilterConstrainedEdgeScope(Scope);
-
-		TArray<PCGExGraphs::FEdge>& ClusterEdges = *Cluster->Edges;
-
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			PCGExGraphs::FEdge& Edge = ClusterEdges[Index];
-
-			if (EdgeFilterCache[Index]) { return; }
-
-			PCGEX_MAKE_SHARED(Cell, PCGExClusters::FCell, CellsConstraints.ToSharedRef())
-
-			FindCell(*Cluster->GetEdgeStart(Edge), Edge, Scope.LoopIndex);
-			FindCell(*Cluster->GetEdgeEnd(Edge), Edge, Scope.LoopIndex);
-		}
-	}
-
-	bool FProcessor::FindCell(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge, const int32 LoopIdx, const bool bSkipBinary)
-	{
-		if (Node.IsBinary() && bSkipBinary)
-		{
-			FPlatformAtomics::InterlockedExchange(&LastBinary, Node.Index);
-			return false;
-		}
-
-		if (!CellsConstraints->bKeepCellsWithLeaves && Node.IsLeaf()) { return false; }
-
-		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
-
-		PCGEX_MAKE_SHARED(Cell, PCGExClusters::FCell, CellsConstraints.ToSharedRef())
-
-		const PCGExClusters::ECellResult Result = Cell->BuildFromCluster(PCGExGraphs::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
-		if (Result != PCGExClusters::ECellResult::Success) { return false; }
-
-		FGeometryScriptSimplePolygon& Polygon = SubTriangulations[LoopIdx]->Emplace_GetRef();
-		Polygon.Reset(Cell->Polygon.Num());
-		Polygon.Vertices->Append(Cell->Polygon);
-
-		FPlatformAtomics::InterlockedAdd(&NumTriangulations, 1);
 
 		return true;
 	}
 
-	void FProcessor::EnsureRoamingClosedLoopProcessing()
+	void FProcessor::CompleteWork()
 	{
-		if (NumAttempts == 0 && LastBinary != -1)
-		{
-			PCGEX_MAKE_SHARED(Cell, PCGExClusters::FCell, CellsConstraints.ToSharedRef())
-			PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(Cluster->GetNode(LastBinary)->Links[0].Edge);
-			FindCell(*Cluster->GetEdgeStart(Edge), Edge, 0, false);
-		}
-	}
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTopologyClusterSurface::CompleteWork);
 
-	void FProcessor::OnEdgesProcessingComplete()
-	{
-		EnsureRoamingClosedLoopProcessing();
-
+		// Build polygons from enumerated cells
 		FGeometryScriptGeneralPolygonList ClusterPolygonList;
 		ClusterPolygonList.Reset();
 
-		if (NumTriangulations == 0 && CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
+		TArray<FGeometryScriptSimplePolygon> Polygons;
+		Polygons.Reserve(ValidCells.Num() + 1);
+
+		for (const TSharedPtr<PCGExClusters::FCell>& Cell : ValidCells)
 		{
-			FGeometryScriptSimplePolygon& Polygon = SubTriangulations[0]->Emplace_GetRef();
-			Polygon.Reset(CellsConstraints->WrapperCell->Polygon.Num());
-			Polygon.Vertices->Append(CellsConstraints->WrapperCell->Polygon);
-			FPlatformAtomics::InterlockedAdd(&NumTriangulations, 1);
+			if (!Cell || Cell->Polygon.IsEmpty()) { continue; }
+
+			FGeometryScriptSimplePolygon& Polygon = Polygons.Emplace_GetRef();
+			Polygon.Reset(Cell->Polygon.Num());
+			Polygon.Vertices->Append(Cell->Polygon);
 		}
 
-		for (const TSharedRef<TArray<FGeometryScriptSimplePolygon>>& SubTriangulation : SubTriangulations)
+		// Handle wrapper cell as sole path if needed
+		if (Polygons.IsEmpty() && CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
 		{
-			UGeometryScriptLibrary_PolygonListFunctions::AppendPolygonList(ClusterPolygonList, UGeometryScriptLibrary_PolygonListFunctions::CreatePolygonListFromSimplePolygons(*SubTriangulation));
+			FGeometryScriptSimplePolygon& Polygon = Polygons.Emplace_GetRef();
+			Polygon.Reset(CellsConstraints->WrapperCell->Polygon.Num());
+			Polygon.Vertices->Append(CellsConstraints->WrapperCell->Polygon);
 		}
+
+		if (Polygons.IsEmpty())
+		{
+			bIsProcessorValid = false;
+			return;
+		}
+
+		UGeometryScriptLibrary_PolygonListFunctions::AppendPolygonList(
+			ClusterPolygonList,
+			UGeometryScriptLibrary_PolygonListFunctions::CreatePolygonListFromSimplePolygons(Polygons));
 
 		bool bTriangulationError = false;
 
-		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendPolygonListTriangulation(GetInternalMesh(), Settings->Topology.PrimitiveOptions, FTransform::Identity, ClusterPolygonList, Settings->Topology.TriangulationOptions, bTriangulationError);
+		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendPolygonListTriangulation(
+			GetInternalMesh(),
+			Settings->Topology.PrimitiveOptions,
+			FTransform::Identity,
+			ClusterPolygonList,
+			Settings->Topology.TriangulationOptions,
+			bTriangulationError);
 
 		if (bTriangulationError && !Settings->Topology.bQuietTriangulationError)
 		{
@@ -155,12 +151,6 @@ namespace PCGExTopologyClusterSurface
 		}
 
 		ApplyPointData();
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		//UE_LOG(LogPCGEx, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
-		StartParallelLoopForEdges(128);
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)

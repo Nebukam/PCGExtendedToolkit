@@ -1,4 +1,4 @@
-﻿// Copyright 2026 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -7,6 +7,7 @@
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExTopologyClustersProcessor.h"
+#include "Clusters/Artifacts/PCGExCell.h"
 
 #include "PCGExTopologyClusterSurface.generated.h"
 
@@ -54,10 +55,7 @@ namespace PCGExTopologyClusterSurface
 {
 	class FProcessor final : public PCGExTopologyEdges::TProcessor<FPCGExTopologyClusterSurfaceContext, UPCGExTopologyClusterSurfaceSettings>
 	{
-		TArray<TSharedRef<TArray<FGeometryScriptSimplePolygon>>> SubTriangulations;
-		int32 NumAttempts = 0;
-		int32 LastBinary = -1;
-		int32 NumTriangulations = 0;
+		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -69,12 +67,8 @@ namespace PCGExTopologyClusterSurface
 		{
 		}
 
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void CompleteWork() override;
-		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
-		bool FindCell(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
-		void EnsureRoamingClosedLoopProcessing();
-		virtual void OnEdgesProcessingComplete() override;
 	};
 
 	class FBatch final : public PCGExTopologyEdges::TBatch<FProcessor>
