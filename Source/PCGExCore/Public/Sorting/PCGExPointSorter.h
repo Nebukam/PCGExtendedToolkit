@@ -40,6 +40,11 @@ namespace PCGExSorting
 		double Tolerance = DBL_COMPARE_TOLERANCE;
 		bool bInvertRule = false;
 		bool bAbsolute = false;
+
+		// Tag-based sorting
+		bool bUseDataTag = false;
+		double CachedTagValue = 0.0;                // For single-facade sorting
+		TArray<double> CachedTagValues;             // For multi-facade sorting (indexed by Facade->Idx)
 	};
 
 	class PCGEXCORE_API FSorter : public TSharedFromThis<FSorter>

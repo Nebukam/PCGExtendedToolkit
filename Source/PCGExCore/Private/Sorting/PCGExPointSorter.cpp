@@ -36,7 +36,8 @@ namespace PCGExSorting
 	}
 
 	FRuleHandler::FRuleHandler(const FPCGExSortRuleConfig& Config)
-		: Selector(Config.Selector), Tolerance(Config.Tolerance), bInvertRule(Config.bInvertRule)
+		: Selector(Config.Selector), Tolerance(Config.Tolerance), bInvertRule(Config.bInvertRule),
+		  bUseDataTag(Config.bReadDataTag)
 	{
 	}
 
@@ -54,6 +55,31 @@ namespace PCGExSorting
 		for (int i = 0; i < RuleHandlers.Num(); i++)
 		{
 			const TSharedPtr<FRuleHandler> RuleHandler = RuleHandlers[i];
+
+			if (RuleHandler->bUseDataTag)
+			{
+				// Tag-based sorting: get value from data tags using selector name
+				const FString TagName = RuleHandler->Selector.GetName().ToString();
+				if (DataFacade && DataFacade->Source->Tags)
+				{
+					if (const TSharedPtr<PCGExData::IDataValue> TagValue = DataFacade->Source->Tags->GetValue(TagName))
+					{
+						RuleHandler->CachedTagValue = TagValue->AsDouble();
+					}
+					else
+					{
+						PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Sorting rule tag '{0}' not found on data, rule will be skipped."), FText::FromString(TagName)));
+						RuleHandlers.RemoveAt(i);
+						i--;
+					}
+				}
+				else
+				{
+					RuleHandlers.RemoveAt(i);
+					i--;
+				}
+				continue;
+			}
 
 			TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
 
@@ -86,19 +112,66 @@ namespace PCGExSorting
 		for (int i = 0; i < RuleHandlers.Num(); i++)
 		{
 			const TSharedPtr<FRuleHandler> RuleHandler = RuleHandlers[i];
+
+			if (RuleHandler->bUseDataTag)
+			{
+				// Tag-based sorting: get value from each facade's data tags
+				const FString TagName = RuleHandler->Selector.GetName().ToString();
+				RuleHandler->CachedTagValues.SetNum(MaxIndex);
+				RuleHandler->DataValues.SetNum(MaxIndex);
+				bool bFoundAny = false;
+
+				for (const TSharedRef<PCGExData::FFacade>& InFacade : InDataFacades)
+				{
+					double TagValue = 0.0;
+					if (InFacade->Source->Tags)
+					{
+						if (const TSharedPtr<PCGExData::IDataValue> DataValue = InFacade->Source->Tags->GetValue(TagName))
+						{
+							TagValue = DataValue->AsDouble();
+							RuleHandler->DataValues[InFacade->Idx] = DataValue;
+							bFoundAny = true;
+						}
+					}
+					RuleHandler->CachedTagValues[InFacade->Idx] = TagValue;
+				}
+
+				if (!bFoundAny)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Sorting rule tag '{0}' not found on any data, rule will be skipped."), FText::FromString(TagName)));
+					RuleHandlers.RemoveAt(i);
+					i--;
+				}
+				continue;
+			}
+
+			// For facade sorting, we need data-level values (not per-point buffers)
+			// Try to get data values from each facade's underlying data
+			RuleHandler->DataValues.SetNum(MaxIndex);
 			RuleHandler->Buffers.SetNum(MaxIndex);
 
 			for (int f = 0; f < InDataFacades.Num(); f++)
 			{
-				TSharedPtr<PCGExData::FFacade> InFacade = InDataFacades[f];
-				PCGExData::FProxyDescriptor Descriptor(InFacade);
+				const TSharedRef<PCGExData::FFacade>& InFacade = InDataFacades[f];
+				const UPCGData* Data = InFacade->Source->GetIn();
+
+				// First try to get a data-level value (for SortData)
+				TSharedPtr<PCGExData::IDataValue> DataValue = PCGExData::TryGetValueFromData(Data, RuleHandler->Selector);
+				if (DataValue)
+				{
+					RuleHandler->DataValues[InFacade->Idx] = DataValue;
+				}
+
+				// Also set up buffers for per-point sorting (Sort with FElement)
+				TSharedPtr<PCGExData::FFacade> FacadePtr = InFacade;
+				PCGExData::FProxyDescriptor Descriptor(FacadePtr);
 				Descriptor.AddFlags(PCGExData::EProxyFlags::Direct);
 
 				TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
 
 				if (Descriptor.CaptureStrict(InContext, RuleHandler->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
 
-				if (!Buffer)
+				if (!Buffer && !DataValue)
 				{
 					RuleHandlers.RemoveAt(i);
 					i--;
@@ -122,11 +195,57 @@ namespace PCGExSorting
 		for (int i = 0; i < RuleHandlers.Num(); i++)
 		{
 			const TSharedPtr<FRuleHandler> RuleHandler = RuleHandlers[i];
+
+			if (RuleHandler->bUseDataTag)
+			{
+				// Tag-based sorting: get value from each facade's data tags
+				const FString TagName = RuleHandler->Selector.GetName().ToString();
+				RuleHandler->CachedTagValues.SetNum(MaxIndex);
+				RuleHandler->DataValues.SetNum(MaxIndex);
+				bool bFoundAny = false;
+
+				for (const TSharedPtr<PCGExData::FFacade>& InFacade : InDataFacades)
+				{
+					double TagValue = 0.0;
+					if (InFacade->Source->Tags)
+					{
+						if (const TSharedPtr<PCGExData::IDataValue> DataValue = InFacade->Source->Tags->GetValue(TagName))
+						{
+							TagValue = DataValue->AsDouble();
+							RuleHandler->DataValues[InFacade->Idx] = DataValue;
+							bFoundAny = true;
+						}
+					}
+					RuleHandler->CachedTagValues[InFacade->Idx] = TagValue;
+				}
+
+				if (!bFoundAny)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Sorting rule tag '{0}' not found on any data, rule will be skipped."), FText::FromString(TagName)));
+					RuleHandlers.RemoveAt(i);
+					i--;
+				}
+				continue;
+			}
+
+			// For facade sorting, we need data-level values (not per-point buffers)
+			// Try to get data values from each facade's underlying data
+			RuleHandler->DataValues.SetNum(MaxIndex);
 			RuleHandler->Buffers.SetNum(MaxIndex);
 
 			for (int f = 0; f < InDataFacades.Num(); f++)
 			{
-				TSharedPtr<PCGExData::FFacade> InFacade = InDataFacades[f];
+				const TSharedPtr<PCGExData::FFacade>& InFacade = InDataFacades[f];
+				const UPCGData* Data = InFacade->Source->GetIn();
+
+				// First try to get a data-level value (for SortData)
+				TSharedPtr<PCGExData::IDataValue> DataValue = PCGExData::TryGetValueFromData(Data, RuleHandler->Selector);
+				if (DataValue)
+				{
+					RuleHandler->DataValues[InFacade->Idx] = DataValue;
+				}
+
+				// Also set up buffers for per-point sorting (Sort with FElement)
 				PCGExData::FProxyDescriptor Descriptor(InFacade);
 				Descriptor.AddFlags(PCGExData::EProxyFlags::Direct);
 
@@ -134,7 +253,7 @@ namespace PCGExSorting
 
 				if (Descriptor.CaptureStrict(InContext, RuleHandler->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
 
-				if (!Buffer)
+				if (!Buffer && !DataValue)
 				{
 					RuleHandlers.RemoveAt(i);
 					i--;
@@ -187,8 +306,21 @@ namespace PCGExSorting
 		int Result = 0;
 		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
 		{
-			const double ValueA = RuleHandler->Buffer->ReadAsDouble(A);
-			const double ValueB = RuleHandler->Buffer->ReadAsDouble(B);
+			double ValueA, ValueB;
+
+			if (RuleHandler->bUseDataTag)
+			{
+				// Tag-based sorting: all points share the same value, so A == B
+				// This is only meaningful for collection-level sorting, not point sorting
+				ValueA = RuleHandler->CachedTagValue;
+				ValueB = RuleHandler->CachedTagValue;
+			}
+			else
+			{
+				ValueA = RuleHandler->Buffer->ReadAsDouble(A);
+				ValueB = RuleHandler->Buffer->ReadAsDouble(B);
+			}
+
 			Result = FMath::IsNearlyEqual(ValueA, ValueB, RuleHandler->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
 			if (Result != 0)
 			{
@@ -206,8 +338,20 @@ namespace PCGExSorting
 		int Result = 0;
 		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
 		{
-			const double ValueA = RuleHandler->Buffers[A.IO]->ReadAsDouble(A.Index);
-			const double ValueB = RuleHandler->Buffers[B.IO]->ReadAsDouble(B.Index);
+			double ValueA, ValueB;
+
+			if (RuleHandler->bUseDataTag)
+			{
+				// Tag-based sorting: use cached tag values indexed by facade
+				ValueA = RuleHandler->CachedTagValues[A.IO];
+				ValueB = RuleHandler->CachedTagValues[B.IO];
+			}
+			else
+			{
+				ValueA = RuleHandler->Buffers[A.IO]->ReadAsDouble(A.Index);
+				ValueB = RuleHandler->Buffers[B.IO]->ReadAsDouble(B.Index);
+			}
+
 			Result = FMath::IsNearlyEqual(ValueA, ValueB, RuleHandler->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
 			if (Result != 0)
 			{
@@ -279,11 +423,15 @@ namespace PCGExSorting
 		const int32 NumRules = Sorter.RuleHandlers.Num();
 		Cache->Rules.SetNum(NumRules);
 
-		// Collect buffer pointers for fast access in parallel loop
+		// Collect buffer pointers and tag values for fast access in parallel loop
 		TArray<PCGExData::IBufferProxy*> Buffers;
+		TArray<double> TagValues;
+		TArray<bool> UseTagFlags;
 		Buffers.SetNum(NumRules);
+		TagValues.SetNum(NumRules);
+		UseTagFlags.SetNum(NumRules);
 
-		// Initialize rule caches and collect buffers
+		// Initialize rule caches and collect buffers/tag values
 		for (int32 RuleIdx = 0; RuleIdx < NumRules; RuleIdx++)
 		{
 			const TSharedPtr<FRuleHandler>& Handler = Sorter.RuleHandlers[RuleIdx];
@@ -293,7 +441,17 @@ namespace PCGExSorting
 			RuleCache.bInvertRule = Handler->bInvertRule;
 			RuleCache.Values.SetNumUninitialized(InNumElements);
 
-			Buffers[RuleIdx] = Handler->Buffer.Get();
+			UseTagFlags[RuleIdx] = Handler->bUseDataTag;
+			if (Handler->bUseDataTag)
+			{
+				TagValues[RuleIdx] = Handler->CachedTagValue;
+				Buffers[RuleIdx] = nullptr;
+			}
+			else
+			{
+				TagValues[RuleIdx] = 0.0;
+				Buffers[RuleIdx] = Handler->Buffer.Get();
+			}
 		}
 
 		// Get raw pointers to value arrays for capture
@@ -304,15 +462,29 @@ namespace PCGExSorting
 			ValueArrays[RuleIdx] = Cache->Rules[RuleIdx].Values.GetData();
 		}
 
-		// Single parallel pass - process all rules for each point
-		//const int32 MinBatchSize = FMath::Max(1024, InNumElements / (FPlatformMisc::NumberOfCoresIncludingHyperthreads() * 4));
+		// Get raw pointers for capture
+		const bool* UseTagFlagsData = UseTagFlags.GetData();
+		const double* TagValuesData = TagValues.GetData();
+		PCGExData::IBufferProxy* const* BuffersData = Buffers.GetData();
 
+		// Single parallel pass - process all rules for each point
 		PCGEX_PARALLEL_FOR(
 			InNumElements,
 			for (int32 RuleIdx = 0; RuleIdx < NumRules; RuleIdx++)
 			{
-			if (PCGExData::IBufferProxy* Buffer = Buffers[RuleIdx]) { ValueArrays[RuleIdx][i] = Buffer->ReadAsDouble(i); }
-			else { ValueArrays[RuleIdx][i] = 0.0; }
+			if (UseTagFlagsData[RuleIdx])
+			{
+			// Tag-based: constant value for all points
+			ValueArrays[RuleIdx][i] = TagValuesData[RuleIdx];
+			}
+			else if (PCGExData::IBufferProxy* Buffer = BuffersData[RuleIdx])
+			{
+			ValueArrays[RuleIdx][i] = Buffer->ReadAsDouble(i);
+			}
+			else
+			{
+			ValueArrays[RuleIdx][i] = 0.0;
+			}
 			}
 		)
 

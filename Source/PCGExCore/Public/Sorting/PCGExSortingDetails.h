@@ -26,6 +26,11 @@ struct PCGEXCORE_API FPCGExSortRuleConfig : public FPCGExInputConfig
 	FPCGExSortRuleConfig() = default;
 	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other);
 
+	/** If enabled, reads the sort value from a data tag (tag:value format) instead of a point attribute.
+	 * Tag values are per-data, so all points in the same data will share the same sort value.
+	 * The Attribute selector will be used as the tag name to look up. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bReadDataTag = false;
 
 	/** Equality tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
