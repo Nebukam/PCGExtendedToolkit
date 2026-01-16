@@ -356,7 +356,43 @@ namespace PCGExPathfindingPlotEdges
 		bForceSingleThreadedProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
 		if (bForceSingleThreadedProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
 
-		StartParallelLoopForRange(Queries.Num(), 1);
+		// Build all queries first
+		for (int i = 0; i < NumPlots; i++)
+		{
+			Queries[i]->BuildPlotQuery(ValidPlots[i], Settings->SeedPicking, Settings->GoalPicking);
+		}
+
+		if (bForceSingleThreadedProcessRange)
+		{
+			// Chain FindPaths calls through OnCompleteCallback to ensure sequential execution with shared allocations
+			for (int i = 0; i < NumPlots; i++)
+			{
+				const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query = Queries[i];
+				const int32 NextIndex = i + 1;
+
+				Query->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, NextIndex](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
+				{
+					PCGEX_ASYNC_THIS
+					This->Context->BuildPath(Plot, This->QueriesIO[Plot->QueryIndex]);
+					Plot->Cleanup();
+
+					// Start next query if there is one
+					if (NextIndex < This->Queries.Num())
+					{
+						This->Queries[NextIndex]->FindPaths(This->TaskManager, This->SearchOperation, This->SearchAllocations, This->HeuristicsHandler);
+					}
+				};
+			}
+
+			// Start the first query
+			Queries[0]->FindPaths(TaskManager, SearchOperation, SearchAllocations, HeuristicsHandler);
+		}
+		else
+		{
+			// Parallel execution - each query gets its own allocations
+			StartParallelLoopForRange(Queries.Num(), 1);
+		}
+
 		return true;
 	}
 
@@ -365,7 +401,6 @@ namespace PCGExPathfindingPlotEdges
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			TSharedPtr<PCGExPathfinding::FPlotQuery> Query = Queries[Index];
-			Query->BuildPlotQuery(ValidPlots[Index], Settings->SeedPicking, Settings->GoalPicking);
 			Query->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 			{
 				PCGEX_ASYNC_THIS
