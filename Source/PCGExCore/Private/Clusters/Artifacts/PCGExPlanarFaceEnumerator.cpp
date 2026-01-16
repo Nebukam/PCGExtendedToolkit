@@ -112,7 +112,7 @@ namespace PCGExClusters
 		NumFaces = 0;
 	}
 
-	void FPlanarFaceEnumerator::EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints)
+	void FPlanarFaceEnumerator::EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::EnumerateAllFaces);
 
@@ -178,6 +178,11 @@ namespace PCGExClusters
 				if (Result == ECellResult::Success)
 				{
 					OutCells.Add(Cell);
+				}
+				else if (OutFailedCells && !Cell->Polygon.IsEmpty())
+				{
+					// Cell failed constraints but has valid polygon - useful for containment testing
+					OutFailedCells->Add(Cell);
 				}
 
 				NumFaces++;

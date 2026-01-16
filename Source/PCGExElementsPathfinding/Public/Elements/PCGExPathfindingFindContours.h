@@ -138,7 +138,10 @@ namespace PCGExFindContours
 	{
 	protected:
 		TArray<FVector2D> ProjectedSeeds;
+		TArray<FVector> SeedPositions3D;
 		TArray<TSharedPtr<PCGExClusters::FCell>> EnumeratedCells;
+		TArray<TSharedPtr<PCGExClusters::FCell>> AllCellsIncludingFailed; // For checking seed consumption
+		TSharedPtr<PCGExClusters::FCell> WrapperCell;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
@@ -160,6 +163,7 @@ namespace PCGExFindContours
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
+		void HandleWrapperOnlyCase(const int32 NumSeeds);
 		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 
 		virtual void Cleanup() override;
