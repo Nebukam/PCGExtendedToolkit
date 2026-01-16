@@ -195,24 +195,19 @@ namespace PCGExClusters
 		TSharedPtr<FCell>& OutCell,
 		const TSharedRef<FCellConstraints>& Constraints) const
 	{
-		const int32 NumNodes = FaceNodes.Num();
-		if (NumNodes < 3) { return ECellResult::Leaf; }
+		const int32 NumUniqueNodes = FaceNodes.Num();
+		if (NumUniqueNodes < 3) { return ECellResult::Leaf; }
 
-		// Copy nodes and normalize for hash computation
-		OutCell->Nodes = FaceNodes;
-		PCGExArrayHelpers::ShiftArrayToSmallest(OutCell->Nodes);
-
-		// Check for duplicate
-		if (!Constraints->IsUniqueCellHash(OutCell)) { return ECellResult::Duplicate; }
-
-		// Check point count limits
-		if (NumNodes < Constraints->MinPointCount || NumNodes > Constraints->MaxPointCount)
+		// Check point count limits (based on unique nodes)
+		if (NumUniqueNodes < Constraints->MinPointCount || NumUniqueNodes > Constraints->MaxPointCount)
 		{
 			return ECellResult::OutsidePointsLimit;
 		}
 
-		// Build polygon and compute properties
-		OutCell->Polygon.SetNumUninitialized(NumNodes);
+		// Build nodes array with leaf duplication support
+		OutCell->Nodes.Reset();
+		OutCell->Nodes.Reserve(NumUniqueNodes * 2); // Reserve extra for potential leaf duplicates
+
 		OutCell->Data.Bounds = FBox(ForceInit);
 		OutCell->Data.Centroid = FVector::ZeroVector;
 
@@ -220,19 +215,26 @@ namespace PCGExClusters
 		int32 Sign = 0;
 		FVector PrevPos = Cluster->GetPos(FaceNodes.Last());
 
-		for (int32 i = 0; i < NumNodes; ++i)
+		for (int32 i = 0; i < NumUniqueNodes; ++i)
 		{
 			const int32 NodeIdx = FaceNodes[i];
 			const FNode& Node = (*Cluster->Nodes)[NodeIdx];
+			const bool bIsLeaf = Node.IsLeaf();
 
 			// Check for leaves
-			if (Node.IsLeaf() && !Constraints->bKeepCellsWithLeaves)
+			if (bIsLeaf && !Constraints->bKeepCellsWithLeaves)
 			{
 				return ECellResult::Leaf;
 			}
 
+			// Add node (and duplicate if leaf and duplication is enabled)
+			OutCell->Nodes.Add(NodeIdx);
+			if (bIsLeaf && Constraints->bDuplicateLeafPoints)
+			{
+				OutCell->Nodes.Add(NodeIdx);
+			}
+
 			const FVector Pos = Cluster->GetPos(NodeIdx);
-			OutCell->Polygon[i] = (*ProjectedPositions)[Node.PointIndex];
 
 			OutCell->Data.Bounds += Pos;
 			OutCell->Data.Centroid += Pos;
@@ -264,7 +266,13 @@ namespace PCGExClusters
 			}
 		}
 
-		OutCell->Data.Centroid /= NumNodes;
+		// Normalize nodes for hash computation
+		PCGExArrayHelpers::ShiftArrayToSmallest(OutCell->Nodes);
+
+		// Check for duplicate
+		if (!Constraints->IsUniqueCellHash(OutCell)) { return ECellResult::Duplicate; }
+
+		OutCell->Data.Centroid /= NumUniqueNodes;
 		OutCell->Data.Perimeter = Perimeter;
 		OutCell->Data.bIsClosedLoop = true;
 
@@ -279,6 +287,16 @@ namespace PCGExClusters
 		if (Perimeter < Constraints->MinPerimeter || Perimeter > Constraints->MaxPerimeter)
 		{
 			return ECellResult::OutsidePerimeterLimit;
+		}
+
+		// Build polygon from the expanded nodes array (includes leaf duplicates)
+		const int32 NumOutputNodes = OutCell->Nodes.Num();
+		OutCell->Polygon.SetNumUninitialized(NumOutputNodes);
+		for (int32 i = 0; i < NumOutputNodes; ++i)
+		{
+			const int32 NodeIdx = OutCell->Nodes[i];
+			const FNode& Node = (*Cluster->Nodes)[NodeIdx];
+			OutCell->Polygon[i] = (*ProjectedPositions)[Node.PointIndex];
 		}
 
 		// Compute polygon properties (area, winding, compactness)
