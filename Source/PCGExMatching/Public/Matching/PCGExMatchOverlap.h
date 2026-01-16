@@ -59,7 +59,7 @@ struct FPCGExMatchOverlapConfig : public FPCGExMatchRuleConfigBase
 
 	/** If enabled, matches are expanded transitively - if A overlaps B and B overlaps C, then A, B, and C are all considered matching.
 	 * Maximum number of hops for recursive matching. -1 means unlimited. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRecursive", EditConditionHides, ClampMin=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRecursive", ClampMin=-1))
 	int32 MaxRecursionDepth = -1;
 };
 
