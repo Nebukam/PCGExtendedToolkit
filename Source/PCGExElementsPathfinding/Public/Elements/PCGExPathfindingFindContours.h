@@ -137,13 +137,8 @@ namespace PCGExFindContours
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
 	protected:
-		FRWLock WrappedSeedLock;
-
-		double ClosestSeedDist = MAX_dbl;
-		int32 WrapperSeed = -1;
-
-		bool bBuildExpandedNodes = false;
-		TSharedPtr<PCGExClusters::FCell> WrapperCell;
+		TArray<FVector2D> ProjectedSeeds;
+		TArray<TSharedPtr<PCGExClusters::FCell>> EnumeratedCells;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;

@@ -12,6 +12,7 @@
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "Data/Utils/PCGExDataForward.h"
+#include "Math/Geo/PCGExGeo.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
 
@@ -128,17 +129,81 @@ namespace PCGExFindContours
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
-		Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); // We need edge octree anyway
-
 		const int32 NumSeeds = Context->SeedsDataFacade->Source->GetNum();
 
+		// Set up cell constraints
 		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
-		CellsConstraints->Reserve(NumSeeds);
-		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get()); }
-		if (CellsConstraints->WrapperCell) { CellsConstraints->WrapperCell->CustomIndex = WrapperSeed; }
+		CellsConstraints->Reserve(Cluster->Edges->Num());
 
-		StartParallelLoopForRange(NumSeeds, 64);
+		// Use FPlanarFaceEnumerator (DCEL-based) to find ALL cells first
+		PCGExClusters::FPlanarFaceEnumerator Enumerator;
+		Enumerator.Build(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+
+		// Enumerate all cells
+		TArray<TSharedPtr<PCGExClusters::FCell>> AllCells;
+		Enumerator.EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef());
+
+		// If we should omit wrapping bounds, find and store the wrapper cell
+		if (Settings->Constraints.bOmitWrappingBounds && !AllCells.IsEmpty())
+		{
+			double MaxArea = -MAX_dbl;
+			int32 WrapperIdx = INDEX_NONE;
+			for (int32 i = 0; i < AllCells.Num(); ++i)
+			{
+				if (AllCells[i] && AllCells[i]->Data.Area > MaxArea)
+				{
+					MaxArea = AllCells[i]->Data.Area;
+					WrapperIdx = i;
+				}
+			}
+			if (WrapperIdx != INDEX_NONE)
+			{
+				CellsConstraints->WrapperCell = AllCells[WrapperIdx];
+				AllCells.RemoveAt(WrapperIdx);
+			}
+		}
+
+		if (AllCells.IsEmpty())
+		{
+			// Check if we should output the wrapper cell as the sole cell
+			if (CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
+			{
+				// Find seed closest to bounds center for wrapper
+				TConstPCGValueRange<FTransform> InSeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
+				double ClosestDist = MAX_dbl;
+				int32 ClosestSeed = -1;
+				for (int32 i = 0; i < NumSeeds; ++i)
+				{
+					const double Dist = FVector::DistSquared(InSeedTransforms[i].GetLocation(), Cluster->Bounds.GetCenter());
+					if (Dist < ClosestDist)
+					{
+						ClosestDist = Dist;
+						ClosestSeed = i;
+					}
+				}
+				if (ClosestSeed != -1)
+				{
+					CellsConstraints->WrapperCell->CustomIndex = ClosestSeed;
+					ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
+				}
+			}
+			return true;
+		}
+
+		// Project all seeds to 2D and store them
+		ProjectedSeeds.SetNumUninitialized(NumSeeds);
+		TConstPCGValueRange<FTransform> InSeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
+		for (int32 i = 0; i < NumSeeds; ++i)
+		{
+			const FVector ProjectedSeed3D = ProjectionDetails.ProjectFlat(InSeedTransforms[i].GetLocation());
+			ProjectedSeeds[i] = FVector2D(ProjectedSeed3D.X, ProjectedSeed3D.Y);
+		}
+
+		// Store all cells for parallel processing - we'll filter by seed containment
+		EnumeratedCells = MoveTemp(AllCells);
+
+		// Process cells in parallel to find which seeds they contain
+		StartParallelLoopForRange(EnumeratedCells.Num(), 64);
 
 		return true;
 	}
@@ -150,49 +215,33 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		TConstPCGValueRange<FTransform> InSeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
-
-		const TArray<FVector2D>& ProjectedPositions = *ProjectedVtxPositions.Get();
+		const int32 NumSeeds = ProjectedSeeds.Num();
 
 		TArray<TSharedPtr<PCGExClusters::FCell>>& CellsContainer = ScopedValidCells->Get_Ref(Scope);
-		CellsContainer.Reserve(Scope.Count * 2);
+		CellsContainer.Reserve(Scope.Count);
 
-		PCGEX_SCOPE_LOOP(Index)
+		PCGEX_SCOPE_LOOP(CellIndex)
 		{
-			const FVector SeedWP = InSeedTransforms[Index].GetLocation();
+			const TSharedPtr<PCGExClusters::FCell>& Cell = EnumeratedCells[CellIndex];
+			if (!Cell || Cell->Polygon.IsEmpty()) { continue; }
 
-			const TSharedPtr<PCGExClusters::FCell> Cell = MakeShared<PCGExClusters::FCell>(CellsConstraints.ToSharedRef());
-			const PCGExClusters::ECellResult Result = Cell->BuildFromCluster(
-				SeedWP,
-				Cluster.ToSharedRef(),
-				ProjectedPositions,
-				ProjectionDetails,
-				&Settings->SeedPicking);
-
-			if (Result != PCGExClusters::ECellResult::Success)
+			// Find the first seed that is inside this cell
+			int32 ContainingSeedIndex = -1;
+			for (int32 SeedIdx = 0; SeedIdx < NumSeeds; ++SeedIdx)
 			{
-				if (Result == PCGExClusters::ECellResult::WrapperCell || (CellsConstraints->WrapperCell && CellsConstraints->WrapperCell->GetCellHash() == Cell->GetCellHash()))
+				if (PCGExMath::Geo::IsPointInPolygon(ProjectedSeeds[SeedIdx], Cell->Polygon))
 				{
-					// Only track the seed closest to bound center as being associated with the wrapper.
-					// There may be edge cases where we don't want that to happen
-
-					const double DistToSeed = FVector::DistSquared(SeedWP, Cluster->Bounds.GetCenter());
-					{
-						FReadScopeLock ReadScopeLock(WrappedSeedLock);
-						if (ClosestSeedDist < DistToSeed) { continue; }
-					}
-					{
-						FReadScopeLock WriteScopeLock(WrappedSeedLock);
-						if (ClosestSeedDist < DistToSeed) { continue; }
-						ClosestSeedDist = DistToSeed;
-						WrapperSeed = Index;
-					}
+					ContainingSeedIndex = SeedIdx;
+					break;
 				}
-				continue;
 			}
 
-			Cell->CustomIndex = Index;
-			CellsContainer.Add(Cell);
+			// Only output cells that contain at least one seed
+			if (ContainingSeedIndex != -1)
+			{
+				Cell->CustomIndex = ContainingSeedIndex;
+				CellsContainer.Add(Cell);
+			}
 		}
 	}
 
@@ -201,7 +250,7 @@ namespace PCGExFindContours
 		ScopedValidCells->Collapse(ValidCells);
 		const int32 NumCells = ValidCells.Num();
 
-		if (!NumCells)
+		if (NumCells == 0)
 		{
 			bIsProcessorValid = false;
 			return;
@@ -213,13 +262,6 @@ namespace PCGExFindContours
 		for (int i = 0; i < NumCells; i++)
 		{
 			CellsIOIndices.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
-		}
-
-		if (CellsConstraints->WrapperCell && ValidCells.IsEmpty() && WrapperSeed != -1 && Settings->Constraints.bKeepWrapperIfSolePath)
-		{
-			// Process wrapper cell if it's the only valid cell and it's not omitted
-			ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
-			return;
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ProcessCellsTask)
