@@ -80,7 +80,7 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeNeighborsCount)
 #if WITH_EDITOR
 FString UPCGExEdgeNeighborsCountFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = "Neighbors Count (";
+	FString DisplayName = "Num Neighbors (";
 
 	switch (Config.Mode)
 	{

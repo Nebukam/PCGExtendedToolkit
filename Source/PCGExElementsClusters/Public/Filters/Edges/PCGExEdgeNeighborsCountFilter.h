@@ -105,7 +105,7 @@ class UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExEdgeFilterPr
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(EdgeNeighborsCountFilterFactory, "Edge Filter : Neighbors Count", "Check against the edge' endpoints neighbor count.", PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(EdgeNeighborsCountFilterFactory, "Edge Filter : Num Neighbors", "Check against the edge' endpoints neighbor count.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(FilterCluster); }
 #endif
 	//~End UPCGSettings
