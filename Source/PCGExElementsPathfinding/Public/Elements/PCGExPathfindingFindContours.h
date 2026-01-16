@@ -137,12 +137,10 @@ namespace PCGExFindContours
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
 	protected:
-		FRWLock WrappedSeedLock;
-
-		double ClosestSeedDist = MAX_dbl;
-		int32 WrapperSeed = -1;
-
-		bool bBuildExpandedNodes = false;
+		TArray<FVector2D> ProjectedSeeds;
+		TArray<FVector> SeedPositions3D;
+		TArray<TSharedPtr<PCGExClusters::FCell>> EnumeratedCells;
+		TArray<TSharedPtr<PCGExClusters::FCell>> AllCellsIncludingFailed; // For checking seed consumption
 		TSharedPtr<PCGExClusters::FCell> WrapperCell;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>> ScopedValidCells;
@@ -165,6 +163,7 @@ namespace PCGExFindContours
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
+		void HandleWrapperOnlyCase(const int32 NumSeeds);
 		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 
 		virtual void Cleanup() override;

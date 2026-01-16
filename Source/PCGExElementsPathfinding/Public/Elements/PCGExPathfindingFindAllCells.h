@@ -107,15 +107,8 @@ namespace PCGExFindAllCells
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindAllCellsContext, UPCGExFindAllCellsSettings>
 	{
-		int32 NumAttempts = 0;
-		int32 LastBinary = -1;
-
 	protected:
 		TSharedPtr<PCGExClusters::FHoles> Holes;
-		bool bBuildExpandedNodes = false;
-		TSharedPtr<PCGExClusters::FCell> WrapperCell;
-
-		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIO;
 
@@ -130,13 +123,8 @@ namespace PCGExFindAllCells
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
-		bool FindCell(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge, TArray<TSharedPtr<PCGExClusters::FCell>>& Scope, const bool bSkipBinary = true);
 		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
-		void EnsureRoamingClosedLoopProcessing();
 
-		virtual void OnEdgesProcessingComplete() override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 
 		virtual void Cleanup() override;

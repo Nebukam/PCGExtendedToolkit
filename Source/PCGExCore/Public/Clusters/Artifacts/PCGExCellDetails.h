@@ -41,6 +41,14 @@ enum class EPCGExPointPropertyOutput : uint8
 	ColorA    = 6 UMETA(DisplayName = "A Channel", Tooltip="..."),
 };
 
+UENUM(BlueprintType)
+enum class EPCGExCellRotationMethod : uint8
+{
+	Projection2D UMETA(DisplayName = "Projection 2D", ToolTip="Standard: project positions to 2D, sort edges by angle around each vertex. Works well for planar or near-planar graphs."),
+	TopologicalHints UMETA(DisplayName = "Topological Hints", ToolTip="Follow binary node chains for angle calculation, useful for Voronoi-like graphs with many degree-2 vertices."),
+	LocalTangent3D UMETA(DisplayName = "Local Tangent 3D", ToolTip="Use vertex normals to compute a local tangent frame for 3D surface graphs.")
+};
+
 UENUM()
 enum class EPCGExCellOutputOrientation : uint8
 {
@@ -91,6 +99,10 @@ struct PCGEXCORE_API FPCGExCellConstraintsDetails
 
 	UPROPERTY()
 	bool bUsedForPaths = false;
+
+	/** Method used to compute edge rotation order around each vertex. Projection2D is standard and works for most graphs. TopologicalHints can help with Manhattan/Chebyshev Voronoi graphs. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExCellRotationMethod RotationMethod = EPCGExCellRotationMethod::Projection2D;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUsedForPaths", EditConditionHides, HideEditConditionToggle))

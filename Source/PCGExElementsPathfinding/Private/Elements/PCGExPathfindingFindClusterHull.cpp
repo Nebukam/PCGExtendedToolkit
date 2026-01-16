@@ -94,7 +94,7 @@ namespace PCGExFindClusterHull
 		const TArray<FVector2D>& Proj = *ProjectedVtxPositions.Get();
 
 		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
-		CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), Proj, CellsConstraints);
+		CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), Proj);
 
 		if (!CellsConstraints->WrapperCell)
 		{
