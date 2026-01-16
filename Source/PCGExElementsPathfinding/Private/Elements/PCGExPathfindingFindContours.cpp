@@ -289,7 +289,8 @@ namespace PCGExFindContours
 		int32 NumCells = ValidCells.Num();
 
 		// Check if any exterior seeds can claim the wrapper
-		if (WrapperCell && !Settings->Constraints.bOmitWrappingBounds)
+		// Include wrapper if: not omitting wrapping bounds, OR (omitting but keep-if-sole is on AND no other valid cells)
+		if (WrapperCell && (!Settings->Constraints.bOmitWrappingBounds || (Settings->Constraints.bKeepWrapperIfSolePath && NumCells == 0)))
 		{
 			// Collect consumed seed indices (seeds that matched a valid internal cell)
 			TSet<int32> ConsumedSeeds;
