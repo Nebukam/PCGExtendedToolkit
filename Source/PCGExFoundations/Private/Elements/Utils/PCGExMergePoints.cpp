@@ -1,26 +1,60 @@
-﻿// Copyright 2026 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Elements/Utils/PCGExMergePoints.h"
 
-#include "Clusters/PCGExClusterCommon.h"
 #include "Data/PCGExDataTags.h"
-#include "Data/PCGBasePointData.h"
-#include "Data/PCGExData.h"
-#include "Data/PCGExPointIO.h"
-#include "Types/PCGExTypes.h"
+#include "Details/PCGExMatchingDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
+#include "PCGExMatchingCommon.h"
+#include "Sorting/PCGExPointSorter.h"
 #include "Utils/PCGExPointIOMerger.h"
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsElement"
 #define PCGEX_NAMESPACE MergePoints
 
-PCGEX_INITIALIZE_ELEMENT(MergePoints)
-PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(MergePoints)
+namespace PCGExMergePoints
+{
+	PCGEX_CTX_STATE(State_MergingData);
+}
+
+void FPCGExMergeList::Merge(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const FPCGExCarryOverDetails* InCarryOverDetails)
+{
+	if (IOs.IsEmpty()) { return; }
+
+	FPCGExMergePointsContext* Ctx = TaskManager->GetContext<FPCGExMergePointsContext>();
+	const TSharedPtr<PCGExData::FPointIO> CompositeIO = Ctx->MainPoints->Emplace_GetRef( IOs[0], PCGExData::EIOInit::New);
+	
+	if (!CompositeIO){return;}
+	
+	CompositeDataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
+
+	Merger = MakeShared<FPCGExPointIOMerger>(CompositeDataFacade.ToSharedRef());
+	Merger->Append(IOs);
+	Merger->MergeAsync(TaskManager, InCarryOverDetails);
+}
+
+void FPCGExMergeList::Write(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) const
+{
+	CompositeDataFacade->WriteFastest(TaskManager);
+}
+
+FPCGElementPtr UPCGExMergePointsSettings::CreateElement() const { return MakeShared<FPCGExMergePointsElement>(); }
+
+TArray<FPCGPinProperties> UPCGExMergePointsSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(MatchingDetails, PinProperties);
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, EPCGPinStatus::Normal);
+	return PinProperties;
+}
 
 TArray<FPCGPinProperties> UPCGExMergePointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINT(GetMainOutputPin(), "The merged points.", Required)
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "Merged outputs.", Required)
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(MatchingDetails, PinProperties);
 	return PinProperties;
 }
 
@@ -30,227 +64,169 @@ bool FPCGExMergePointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(MergePoints)
 
-	PCGEX_FWD(SortingDetails)
-	if (!Context->SortingDetails.Init(Context)) { return false; }
+	// Get facades from main input
+	TArray<TSharedPtr<PCGExData::FFacade>> Facades;
+	Facades.Reserve(Context->MainPoints->Num());
+	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
+	{
+		Facades.Add(MakeShared<PCGExData::FFacade>(PointIO.ToSharedRef()));
+	}
 
-	Context->SortingDetails.Sort(Context, Context->MainPoints);
+	TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(InContext, PCGExSorting::Labels::SourceSortingRules);
 
-	PCGEX_FWD(CarryOverDetails)
+	if (!RuleConfigs.IsEmpty())
+	{
+		auto Sorter = MakeShared<PCGExSorting::FSorter>(RuleConfigs);
+		Sorter->SortDirection = Settings->SortDirection;
+
+		if (!Sorter->Init(InContext, Facades))
+		{
+			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Error with sorting rules."))
+			return false;
+		}
+
+		for (int i = 0; i < Facades.Num(); i++) { Facades[i]->Idx = i; }
+		Facades.Sort([&](const TSharedPtr<PCGExData::FFacade>& A, const TSharedPtr<PCGExData::FFacade>& B)
+		{
+			return Sorter->SortData(A->Idx, B->Idx);
+		});
+	}
+
+	Context->MatchingDetails = Settings->MatchingDetails;
+
+	Context->CarryOverDetails = Settings->CarryOverDetails;
 	Context->CarryOverDetails.Init();
 
-	PCGEX_FWD(TagsToAttributes)
-	Context->TagsToAttributes.Init();
+	// Initialize the data matcher
+	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+	Context->DataMatcher->SetDetails(&Context->MatchingDetails);
+
+	// Check if matching is actually enabled in settings, not just if init succeeded
+	const bool bMatchingEnabled = Context->MatchingDetails.IsEnabled() &&
+		Context->DataMatcher->Init(Context, Facades, false, PCGExMatching::Labels::SourceMatchRulesLabel);
+
+	if (!bMatchingEnabled)
+	{
+		// No matching rules or disabled - treat all as one group
+		Context->Partitions.SetNum(1);
+		for (int32 i = 0; i < Facades.Num(); i++) { Context->Partitions[0].Add(i); }
+	}
+	else
+	{
+		// Use the matching system to create partitions
+		PCGExMatching::Helpers::GetMatchingSourcePartitions(
+			Context->DataMatcher, Facades, Context->Partitions,
+			Settings->bExclusivePartitions, nullptr);
+
+		// When matching is enabled, single-element partitions are "unmatched" items
+		// (they only matched themselves, no other data passed the matching rules)
+		if (Context->MatchingDetails.WantsUnmatchedSplit())
+		{
+			// Extract unmatched indices (single-element partitions)
+			for (int32 i = Context->Partitions.Num() - 1; i >= 0; --i)
+			{
+				if (Context->Partitions[i].Num() == 1)
+				{
+					Context->UnmatchedIndices.Add(Context->Partitions[i][0]);
+					Context->Partitions.RemoveAt(i);
+				}
+			}
+		}
+	}
+
+	// Remove empty partitions
+	Context->Partitions.RemoveAll([](const TArray<int32>& Partition) { return Partition.IsEmpty(); });
+
+	// Allow execution if we have partitions to merge OR unmatched items to forward
+	if (Context->Partitions.IsEmpty() && Context->UnmatchedIndices.IsEmpty())
+	{
+		return Context->CancelExecution(TEXT("No valid partitions created."));
+	}
 
 	return true;
 }
 
 bool FPCGExMergePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMergePointsElement::Execute);
-
-	PCGEX_CONTEXT(MergePoints)
+	PCGEX_CONTEXT_AND_SETTINGS(MergePoints)
 	PCGEX_EXECUTION_CHECK
+
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		// Route unmatched data to the unmatched output pin
+		for (const int32 UnmatchedIndex : Context->UnmatchedIndices)
 		{
-			return Context->CancelExecution(TEXT("Could not find any points to merge."));
-		}
-	}
-
-	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
-
-	(void)Context->CompositeDataFacade->Source->StageOutput(Context);
-
-	return Context->TryComplete();
-}
-
-namespace PCGExMergePoints
-{
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::Process);
-
-		if (!IProcessor::Process(InTaskManager)) { return false; }
-
-		if (Settings->bTagToAttributes)
-		{
-			NumPoints = PointDataFacade->GetNum();
-			ConvertedTagsList = ConvertedTags->Array();
-
-			StartParallelLoopForRange(ConvertedTagsList.Num(), 1);
+			const TSharedPtr<PCGExData::FPointIO>& UnmatchedIO = Context->MainPoints->Pairs[UnmatchedIndex];
+			UnmatchedIO->OutputPin = PCGExMatching::Labels::OutputUnmatchedLabel;
+			UnmatchedIO->InitializeOutput(PCGExData::EIOInit::Forward);
 		}
 
-		return true;
-	}
+		// Build merge lists from partitions
+		Context->MergeLists.Reserve(Context->Partitions.Num());
 
-	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
-	{
-		PCGEX_SCOPE_LOOP(Index)
+		for (const TArray<int32>& Partition : Context->Partitions)
 		{
-			FName AttributeName = ConvertedTagsList[Index];
-			FString Tag = AttributeName.ToString();
+			if (Partition.IsEmpty()) { continue; }
 
-			if (const TSharedPtr<PCGExData::IDataValue> TagValue = PointDataFacade->Source->Tags->GetValue(Tag))
+			// Single item partitions just forward (these are not unmatched, they were already processed above)
+			if (Partition.Num() == 1)
 			{
-				bool bTryBroadcast = false;
-				PCGExMetaHelpers::ExecuteWithRightType(TagValue->GetTypeId(), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					const T Value = StaticCastSharedPtr<PCGExData::TDataValue<T>>(TagValue)->Value;
-					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
-
-					// Value type mismatch
-					if (!Buffer)
-					{
-						bTryBroadcast = true;
-						return;
-					}
-
-					for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
-				});
-
-				if (!bTryBroadcast) { continue; }
-
-				// Handle type mismatch by broadcasting the value with whatever type was discovered first
-				const TSharedPtr<PCGExData::IBuffer> UntypedBuffer = Context->CompositeDataFacade->FindReadableAttributeBuffer(AttributeName);
-				if (!UntypedBuffer) { continue; }
-
-				const TSharedPtr<PCGExData::IBuffer> WritableBuffer = Context->CompositeDataFacade->GetWritable(UntypedBuffer->GetTypeId(), AttributeName, PCGExData::EBufferInit::New);
-				if (!WritableBuffer) { continue; }
-
-				const PCGExTypeOps::ITypeOpsBase* BufferOps = PCGExTypeOps::FTypeOpsRegistry::Get(UntypedBuffer->GetTypeId());
-				const PCGExTypeOps::ITypeOpsBase* TagOps = PCGExTypeOps::FTypeOpsRegistry::Get(TagValue->GetTypeId());
-
-				{
-					PCGExTypes::FScopedTypedValue Value(BufferOps->GetTypeId());
-					if (!BufferOps->SameType(TagOps))
-					{
-						PCGExTypes::FScopedTypedValue SourceValue(TagOps->GetTypeId());
-						TagValue->GetVoid(SourceValue.GetRaw());
-						BufferOps->ConvertFrom(TagOps->GetTypeId(), SourceValue.GetRaw(), Value.GetRaw());
-					}
-					else
-					{
-						TagValue->GetVoid(Value.GetRaw());
-					}
-
-					for (int i = OutScope.Start; i < OutScope.End; i++) { WritableBuffer->SetVoid(i, Value.GetRaw()); }
-				}
-
-				continue; // This is a value tag, not a simple tag, stop processing here.
-			}
-
-			if (PointDataFacade->Source->Tags->IsTagged(Tag))
-			{
-				FWriteScopeLock WriteScopeLock(SimpleTagsLock);
-				SimpleTags.Add(FName(AttributeName));
-			}
-		}
-	}
-
-	void FProcessor::OnRangeProcessingComplete()
-	{
-		TProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::OnRangeProcessingComplete();
-
-		check(Context);
-
-		if (SimpleTags.IsEmpty()) { return; }
-
-		for (TArray<FName> SimpleTagNames = SimpleTags.Array(); const FName TagName : SimpleTagNames)
-		{
-			// First validate that we're not overriding a tag with the same name that's not a bool
-			if (const FPCGMetadataAttributeBase* FlagAttribute = Context->CompositeDataFacade->Source->GetOut()->Metadata->GetConstAttribute(TagName); FlagAttribute && FlagAttribute->GetTypeId() != static_cast<int16>(EPCGMetadataTypes::Boolean))
-			{
-				if (!Settings->bQuietTagOverlapWarning)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Overlap between regular tag & value tag '{0}', and the value is not a bool."), FText::FromName(TagName)));
-				}
+				const TSharedPtr<PCGExData::FPointIO>& SingleIO = Context->MainPoints->Pairs[Partition[0]];
+				SingleIO->InitializeOutput(PCGExData::EIOInit::Forward);
 				continue;
 			}
 
-			TSharedPtr<PCGExData::TBuffer<bool>> Buffer = Context->CompositeDataFacade->GetWritable(TagName, false, true, PCGExData::EBufferInit::New);
+			// Create merge list for this partition
+			PCGEX_MAKE_SHARED(MergeList, FPCGExMergeList)
+			MergeList->IOs.Reserve(Partition.Num());
 
-			if (!Buffer) { continue; }
+			for (const int32 SourceIndex : Partition)
+			{
+				MergeList->IOs.Add(Context->MainPoints->Pairs[SourceIndex]);
+			}
 
-			for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, true); }
+			Context->MergeLists.Add(MergeList);
 		}
-	}
 
-	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
-		: TBatch(InContext, InPointsCollection)
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
+		// Start merging
+		TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
+		Context->SetState(PCGExMergePoints::State_MergingData);
 
-		TSharedPtr<PCGExData::FPointIO> CompositeIO = PCGExData::NewPointIO(InContext, Settings->GetMainOutputPin(), 0);
-		CompositeIO->InitializeOutput(PCGExData::EIOInit::New);
-
-		ConvertedTags = MakeShared<TSet<FName>>();
-
-		PCGEX_MAKE_SHARED(CompositeDataFacade, PCGExData::FFacade, CompositeIO.ToSharedRef());
-		Context->CompositeDataFacade = CompositeDataFacade;
-		Merger = MakeShared<FPCGExPointIOMerger>(CompositeDataFacade.ToSharedRef());
-	}
-
-	bool FBatch::PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor)
-	{
-		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
-
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
-		PCGEX_TYPED_PROCESSOR_REF
-
-		TypedProcessor->OutScope = Merger->Append(InProcessor->PointDataFacade->Source).Write;
-		TypedProcessor->ConvertedTags = ConvertedTags;
-
-		if (Settings->bTagToAttributes)
+		if (!Context->MergeLists.IsEmpty())
 		{
-			ConvertedTags->Append(InProcessor->PointDataFacade->Source->Tags->FlattenToArrayOfNames(false));
+			PCGEX_ASYNC_GROUP_CHKD_RET(TaskManager, MergeAsync, true)
+
+			for (const TSharedPtr<FPCGExMergeList>& List : Context->MergeLists)
+			{
+				MergeAsync->AddSimpleCallback([List, TaskManager, Det = Context->CarryOverDetails]
+				{
+					List->Merge(TaskManager, &Det);
+				});
+			}
+
+			MergeAsync->StartSimpleCallbacks();
 		}
-
-		return true;
 	}
 
-	void FBatch::OnProcessingPreparationComplete()
+	PCGEX_ON_ASYNC_STATE_READY(PCGExMergePoints::State_MergingData)
 	{
-		StartMerge();
-	}
+		Context->SetState(PCGExCommon::States::State_Writing);
 
-	void FBatch::CompleteWork()
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
-
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
-		Context->CompositeDataFacade->WriteFastest(TaskManager);
-	}
-
-	void FBatch::StartMerge()
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMergePointsElement::StartMerge);
-		// TODO : Implement a method in IOMerger to easily feedb attributes we'll need to o facade preloader
-
-		FPCGExMergePointsContext* Context = GetContext<FPCGExMergePointsContext>();
-		Context->TagsToAttributes.Prune(*ConvertedTags.Get()); // Keep only desired conversions
-
-		// Make sure we ignore attributes that should not be brought out
-		IgnoredAttributes.Append(*ConvertedTags.Get());
-		IgnoredAttributes.Append({PCGExClusters::Labels::Attr_PCGExEdgeIdx, PCGExClusters::Labels::Attr_PCGExVtxIdx, PCGExClusters::Labels::Tag_PCGExCluster, PCGExClusters::Labels::Tag_PCGExVtx, PCGExClusters::Labels::Tag_PCGExEdges,});
-
+		if (!Context->MergeLists.IsEmpty())
 		{
-			PCGEX_SCHEDULING_SCOPE(TaskManager);
-
-			// Launch all merging tasks while we compute future attributes 
-			Merger->MergeAsync(TaskManager, &Context->CarryOverDetails, &IgnoredAttributes);
-
-			// Cleanup tags that are used internally for data recognition, along with the tags we will be converting to data
-			Context->CompositeDataFacade->Source->Tags->Remove(IgnoredAttributes);
-
-			TBatch<FProcessor>::OnProcessingPreparationComplete(); //!
+			TSharedPtr<PCGExMT::FTaskManager> TaskManager = Context->GetTaskManager();
+			PCGEX_SCHEDULING_SCOPE(TaskManager, true)
+			for (const TSharedPtr<FPCGExMergeList>& List : Context->MergeLists) { List->Write(TaskManager); }
 		}
 	}
+
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::States::State_Writing)
+	{
+		Context->MainPoints->StageOutputs();
+		Context->Done();
+	}
+
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

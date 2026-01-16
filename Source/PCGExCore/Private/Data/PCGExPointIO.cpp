@@ -120,6 +120,7 @@ namespace PCGExData
 			else
 			{
 				Out = SharedContext.Get()->ManagedObjects->New<UPCGPointArrayData>();
+				if (!Out) { return false; }
 			}
 
 			return true;

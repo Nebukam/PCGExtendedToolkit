@@ -152,7 +152,7 @@ template class PCGEXCORE_API TDataValue<_TYPE>;
 		if (RightSide.IsNumeric())
 		{
 			int32 FloatingPointPosition = INDEX_NONE;
-			if (InTag.FindChar('.', FloatingPointPosition))
+			if (RightSide.FindChar('.', FloatingPointPosition))
 			{
 				return MakeShared<TDataValue<double>>(FCString::Atod(*RightSide));
 			}
