@@ -99,8 +99,9 @@ namespace PCGExClusters
 		 * @param OutCells Output array of cells (faces that pass constraints)
 		 * @param Constraints Cell constraints for filtering
 		 * @param OutFailedCells Optional output array of cells that failed constraints (but have valid polygons for containment testing)
+		 * @param bDetectWrapper If true, detects wrapper by winding (CW face), stores in Constraints->WrapperCell, and excludes from OutCells
 		 */
-		void EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells = nullptr);
+		void EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells = nullptr, bool bDetectWrapper = false);
 
 		/**
 		 * Find the face containing a given 2D point.

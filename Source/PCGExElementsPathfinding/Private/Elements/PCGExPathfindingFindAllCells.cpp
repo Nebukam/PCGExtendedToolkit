@@ -133,29 +133,8 @@ namespace PCGExFindAllCells
 		// Build or get the shared enumerator from constraints (enables reuse)
 		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 
-		// Enumerate all cells (reserves internally based on face count)
-		Enumerator->EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef());
-
-		// If we should omit wrapping bounds, find and remove the wrapper cell
-		if (Settings->Constraints.bOmitWrappingBounds && !ValidCells.IsEmpty())
-		{
-			// Find wrapper by largest area
-			double MaxArea = -MAX_dbl;
-			int32 WrapperIdx = INDEX_NONE;
-			for (int32 i = 0; i < ValidCells.Num(); ++i)
-			{
-				if (ValidCells[i] && ValidCells[i]->Data.Area > MaxArea)
-				{
-					MaxArea = ValidCells[i]->Data.Area;
-					WrapperIdx = i;
-				}
-			}
-			if (WrapperIdx != INDEX_NONE)
-			{
-				CellsConstraints->WrapperCell = ValidCells[WrapperIdx];
-				ValidCells.RemoveAt(WrapperIdx);
-			}
-		}
+		// Enumerate all cells - wrapper detected by winding and stored in constraints if bOmitWrappingBounds
+		Enumerator->EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef(), nullptr, Settings->Constraints.bOmitWrappingBounds);
 
 		// Prepare output
 		const int32 NumCells = ValidCells.Num();

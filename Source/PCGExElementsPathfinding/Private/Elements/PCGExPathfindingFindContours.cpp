@@ -139,29 +139,11 @@ namespace PCGExFindContours
 		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 
 		// Enumerate all cells, also get failed cells for consumption tracking
+		// Wrapper detected by winding (CW face) and stored in constraints
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> FailedCells;
-		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), &FailedCells);
-
-		// Identify and extract wrapper cell (largest area)
-		if (!AllCells.IsEmpty())
-		{
-			double MaxArea = -MAX_dbl;
-			int32 WrapperIdx = INDEX_NONE;
-			for (int32 i = 0; i < AllCells.Num(); ++i)
-			{
-				if (AllCells[i] && AllCells[i]->Data.Area > MaxArea)
-				{
-					MaxArea = AllCells[i]->Data.Area;
-					WrapperIdx = i;
-				}
-			}
-			if (WrapperIdx != INDEX_NONE)
-			{
-				WrapperCell = AllCells[WrapperIdx];
-				AllCells.RemoveAt(WrapperIdx);
-			}
-		}
+		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), &FailedCells, true);
+		WrapperCell = CellsConstraints->WrapperCell;
 
 		// Store 3D seed positions and project to 2D
 		TConstPCGValueRange<FTransform> InSeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();

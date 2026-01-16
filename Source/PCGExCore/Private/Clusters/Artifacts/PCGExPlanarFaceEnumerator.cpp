@@ -186,7 +186,7 @@ namespace PCGExClusters
 		return BuildCellFromFace(InRawFace.Nodes, OutCell, Constraints);
 	}
 
-	void FPlanarFaceEnumerator::EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells)
+	void FPlanarFaceEnumerator::EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells, bool bDetectWrapper)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::EnumerateAllFaces);
 
@@ -202,6 +202,8 @@ namespace PCGExClusters
 		{
 			// Serial path for small counts
 			OutCells.Reserve(OutCells.Num() + NumRawFaces);
+			double WrapperArea = -MAX_dbl;
+
 			for (const FRawFace& RawFace : RawFaces)
 			{
 				TSharedPtr<FCell> Cell = MakeShared<FCell>(Constraints);
@@ -209,7 +211,21 @@ namespace PCGExClusters
 
 				if (Result == ECellResult::Success)
 				{
-					OutCells.Add(Cell);
+					// Detect wrapper by winding - CCW face is exterior (inverted due to projection)
+					if (bDetectWrapper && !Cell->Data.bIsClockwise && Cell->Data.Area > WrapperArea)
+					{
+						// Move previous wrapper candidate back to output if any
+						if (Constraints->WrapperCell)
+						{
+							OutCells.Add(Constraints->WrapperCell);
+						}
+						Constraints->WrapperCell = Cell;
+						WrapperArea = Cell->Data.Area;
+					}
+					else
+					{
+						OutCells.Add(Cell);
+					}
 				}
 				else if (OutFailedCells && !Cell->Polygon.IsEmpty())
 				{
@@ -243,11 +259,28 @@ namespace PCGExClusters
 			}
 		});
 
-		// Compact results - remove null entries
+		// Compact results - remove null entries, detect wrapper during compaction
 		OutCells.Reserve(OutCells.Num() + NumRawFaces);
+		double WrapperArea = -MAX_dbl;
+
 		for (TSharedPtr<FCell>& Cell : SuccessCells)
 		{
-			if (Cell) { OutCells.Add(MoveTemp(Cell)); }
+			if (!Cell) { continue; }
+
+			// Detect wrapper by winding - CCW face is exterior (inverted due to projection)
+			if (bDetectWrapper && !Cell->Data.bIsClockwise && Cell->Data.Area > WrapperArea)
+			{
+				if (Constraints->WrapperCell)
+				{
+					OutCells.Add(MoveTemp(Constraints->WrapperCell));
+				}
+				Constraints->WrapperCell = MoveTemp(Cell);
+				WrapperArea = Constraints->WrapperCell->Data.Area;
+			}
+			else
+			{
+				OutCells.Add(MoveTemp(Cell));
+			}
 		}
 
 		if (OutFailedCells)
