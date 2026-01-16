@@ -113,6 +113,42 @@ namespace PCGExSorting
 		return !RuleHandlers.IsEmpty();
 	}
 
+	bool FSorter::Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InDataFacades)
+	{
+		int32 MaxIndex = 0;
+		for (const TSharedPtr<PCGExData::FFacade>& Facade : InDataFacades) { MaxIndex = FMath::Max(Facade->Idx, MaxIndex); }
+		MaxIndex++;
+
+		for (int i = 0; i < RuleHandlers.Num(); i++)
+		{
+			const TSharedPtr<FRuleHandler> RuleHandler = RuleHandlers[i];
+			RuleHandler->Buffers.SetNum(MaxIndex);
+
+			for (int f = 0; f < InDataFacades.Num(); f++)
+			{
+				TSharedPtr<PCGExData::FFacade> InFacade = InDataFacades[f];
+				PCGExData::FProxyDescriptor Descriptor(InFacade);
+				Descriptor.AddFlags(PCGExData::EProxyFlags::Direct);
+
+				TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
+
+				if (Descriptor.CaptureStrict(InContext, RuleHandler->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
+
+				if (!Buffer)
+				{
+					RuleHandlers.RemoveAt(i);
+					i--;
+
+					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
+					break;
+				}
+				RuleHandler->Buffers[InFacade->Idx] = Buffer;
+			}
+		}
+
+		return !RuleHandlers.IsEmpty();
+	}
+
 	bool FSorter::Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas)
 	{
 		IdxMap.Reserve(InTaggedDatas.Num());

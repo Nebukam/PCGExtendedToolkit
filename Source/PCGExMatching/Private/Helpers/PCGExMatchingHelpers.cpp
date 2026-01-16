@@ -69,16 +69,16 @@ namespace PCGExMatching::Helpers
 
 			for (int i = 0; i < NumSources; ++i)
 			{
-				bool bIsAlreadyInSet = false;
-				DistributedIndices.Add(i, &bIsAlreadyInSet);
-
-				if (bIsAlreadyInSet) { continue; }
+				if (DistributedIndices.Contains(i)) { continue; }
 
 				TArray<int32>& Partition = OutPartitions.Emplace_GetRef();
 
 				FScope Scope = FScope(NumSources, true);
 				Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition, &DistributedIndices);
 				Partition.AddUnique(i);
+
+				// Mark all partition members as distributed
+				for (const int32 Idx : Partition) { DistributedIndices.Add(Idx); }
 			}
 
 			return OutPartitions.Num();

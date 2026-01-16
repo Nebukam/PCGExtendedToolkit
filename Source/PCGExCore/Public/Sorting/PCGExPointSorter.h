@@ -60,6 +60,7 @@ namespace PCGExSorting
 
 		bool Init(FPCGExContext* InContext);
 		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades);
+		bool Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InDataFacades);
 		bool Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas);
 
 		bool Sort(const int32 A, const int32 B);

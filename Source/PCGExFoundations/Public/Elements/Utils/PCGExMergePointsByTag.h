@@ -70,7 +70,7 @@ namespace PCPGExMergePointsByTag
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/merge-points-by-tag"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", Hidden, meta=(PCGExNodeLibraryDoc="misc/merge-points-by-tag"))
 class UPCGExMergePointsByTagSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

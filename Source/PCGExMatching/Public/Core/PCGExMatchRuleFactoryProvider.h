@@ -59,7 +59,7 @@ struct PCGEXMATCHING_API FPCGExMatchRuleConfigBase
 };
 
 /**
- * 
+ *
  */
 class PCGEXMATCHING_API FPCGExMatchRuleOperation : public FPCGExOperation
 {
