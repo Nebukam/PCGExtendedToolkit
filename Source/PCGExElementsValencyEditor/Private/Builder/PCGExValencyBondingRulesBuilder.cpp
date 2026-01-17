@@ -329,7 +329,15 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 
 				if (ConnectedBase->IsNullCage())
 				{
-					// Null cage = boundary, no neighbor modules
+					// Null cage = boundary, mark this orbital as boundary for all modules from this cage
+					for (int32 ModuleIndex : CageModuleIndices)
+					{
+						if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+						{
+							FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
+							LayerConfig.SetBoundaryOrbital(Orbital.OrbitalIndex);
+						}
+					}
 				}
 				else if (const APCGExValencyCage* ConnectedCage = Cast<APCGExValencyCage>(ConnectedBase))
 				{
@@ -413,11 +421,15 @@ void UPCGExValencyBondingRulesBuilder::ValidateRules(
 
 				if (!Neighbors || Neighbors->Num() == 0)
 				{
-					OutResult.Warnings.Add(FText::Format(
-						LOCTEXT("OrbitalNoNeighbors", "Module '{0}', orbital '{1}' has no valid neighbors defined."),
-						FText::FromString(Module.Asset.GetAssetName()),
-						FText::FromName(OrbitalName)
-					));
+					// Skip warning if this orbital connects to a boundary (null cage)
+					if (!LayerConfig->IsBoundaryOrbital(i))
+					{
+						OutResult.Warnings.Add(FText::Format(
+							LOCTEXT("OrbitalNoNeighbors", "Module '{0}', orbital '{1}' has no valid neighbors defined."),
+							FText::FromString(Module.Asset.GetAssetName()),
+							FText::FromName(OrbitalName)
+						));
+					}
 				}
 			}
 		}

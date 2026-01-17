@@ -128,6 +128,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleLayerConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	int64 OrbitalMask = 0;
 
+	/** Bitmask indicating which orbitals connect to boundaries/null cages (no neighbors expected) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
+	int64 BoundaryOrbitalMask = 0;
+
 	/** Valid neighbor module indices per orbital. Key = OrbitalName, Value = array of valid module indices */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	TMap<FName, FPCGExValencyNeighborIndices> OrbitalNeighbors;
@@ -138,10 +142,22 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleLayerConfig
 		return (OrbitalMask & (1LL << BitIndex)) != 0;
 	}
 
+	/** Check if an orbital connects to a boundary (null cage) */
+	bool IsBoundaryOrbital(int32 BitIndex) const
+	{
+		return (BoundaryOrbitalMask & (1LL << BitIndex)) != 0;
+	}
+
 	/** Set an orbital as present */
 	void SetOrbital(int32 BitIndex)
 	{
 		OrbitalMask |= (1LL << BitIndex);
+	}
+
+	/** Mark an orbital as connecting to a boundary */
+	void SetBoundaryOrbital(int32 BitIndex)
+	{
+		BoundaryOrbitalMask |= (1LL << BitIndex);
 	}
 
 	/** Add a valid neighbor for an orbital */

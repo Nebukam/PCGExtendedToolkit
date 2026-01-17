@@ -8,37 +8,36 @@
 #include "Core/PCGExProbingCandidates.h"
 #include "Helpers/PCGExStreamingHelpers.h"
 
-UPCGExFactoryData* UPCGExProbeValencyProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
-{
-	UPCGExProbeFactoryValency* NewFactory = InContext->ManagedObjects->New<UPCGExProbeFactoryValency>();
-	NewFactory->Config = Config;
-
-	// Load and cache orbital set
-	if (!Config.OrbitalSet.IsNull())
+PCGEX_CREATE_PROBE_FACTORY(
+	Valency,
 	{
-		NewFactory->OrbitalSetHandle = PCGExHelpers::LoadBlocking_AnyThreadTpl(Config.OrbitalSet, InContext);
-		if (UPCGExValencyOrbitalSet* OrbitalSet = Config.OrbitalSet.Get())
+		// Load and cache orbital set
+		if (!Config.OrbitalSet.IsNull())
 		{
-			if (!NewFactory->OrbitalCache.BuildFrom(OrbitalSet))
+			NewFactory->OrbitalSetHandle = PCGExHelpers::LoadBlocking_AnyThreadTpl(Config.OrbitalSet, InContext);
+			if (UPCGExValencyOrbitalSet* OrbitalSet = Config.OrbitalSet.Get())
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to build orbital cache from Valency Orbital Set."));
+				if (!NewFactory->OrbitalCache.BuildFrom(OrbitalSet))
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to build orbital cache from Valency Orbital Set."));
+					return nullptr;
+				}
+			}
+			else
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to load Valency Orbital Set."));
 				return nullptr;
 			}
 		}
 		else
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to load Valency Orbital Set."));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No Valency Orbital Set provided."));
 			return nullptr;
 		}
-	}
-	else
+	},
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No Valency Orbital Set provided."));
-		return nullptr;
-	}
-
-	return NewFactory;
-}
+		NewOperation->OrbitalCache = OrbitalCache;
+	})
 
 void UPCGExProbeValencyProviderSettings::RegisterAssetDependencies(FPCGExContext* InContext) const
 {
@@ -46,14 +45,6 @@ void UPCGExProbeValencyProviderSettings::RegisterAssetDependencies(FPCGExContext
 	{
 		InContext->AddAssetDependency(Config.OrbitalSet.ToSoftObjectPath());
 	}
-}
-
-TSharedPtr<FPCGExProbeOperation> UPCGExProbeFactoryValency::CreateOperation(FPCGExContext* InContext) const
-{
-	TSharedPtr<FPCGExProbeValency> NewOperation = MakeShared<FPCGExProbeValency>();
-	NewOperation->Config = Config;
-	NewOperation->OrbitalCache = OrbitalCache;
-	return NewOperation;
 }
 
 namespace PCGExProbeValency
