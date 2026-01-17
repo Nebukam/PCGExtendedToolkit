@@ -13,11 +13,6 @@
 
 class FPCGExIntTracker;
 
-namespace PCGEx
-{
-	class FPCGExIntTracker;
-}
-
 namespace PCGExMT
 {
 	class FAsyncToken;
@@ -448,16 +443,11 @@ namespace PCGExWaitForPCGData
 		{
 		}
 
-		virtual ~FProcessor() override;
-
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
 	private:
 		void OnComponentFound(UPCGComponent* InComponent);
-		void OnDiscoveryComplete();
 		void OnGenerationComplete(UPCGComponent* InComponent, bool bSuccess);
-		void OnAllGenerationsComplete();
-
 		void ScheduleDataStaging(UPCGComponent* InComponent);
 		void DoStageComponentData(UPCGComponent* InComponent);
 	};

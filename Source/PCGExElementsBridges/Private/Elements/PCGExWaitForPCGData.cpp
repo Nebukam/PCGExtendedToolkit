@@ -583,8 +583,8 @@ namespace PCGExWaitForPCGData
 
 		UPCGComponent* Self = Context->GetMutableComponent();
 
-		// Get components for this actor and filter using RemoveAll (cleaner than manual index manipulation)
-		TArray<UPCGComponent*> FoundComponents = PerActorGatheredComponents[Index];
+		// Move the array since we don't need the original after inspection
+		TArray<UPCGComponent*> FoundComponents = MoveTemp(PerActorGatheredComponents[Index]);
 
 		FoundComponents.RemoveAll([this, Self](const UPCGComponent* Candidate) -> bool
 		{
@@ -952,10 +952,6 @@ namespace PCGExWaitForPCGData
 		}
 	};
 
-	FProcessor::~FProcessor()
-	{
-	}
-
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::Process);
@@ -999,6 +995,10 @@ namespace PCGExWaitForPCGData
 			}
 		}
 
+		// Pre-reserve component tracking collections
+		IndexedComponents.Reserve(UniqueActorReferences.Num());
+		ComponentToIndex.Reserve(UniqueActorReferences.Num());
+
 		// Create sub-systems
 		Discovery = MakeShared<FComponentDiscovery>(
 			Context,
@@ -1028,27 +1028,11 @@ namespace PCGExWaitForPCGData
 			}
 		});
 
-		Discovery->SetOnDiscoveryComplete([WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
-		{
-			if (TSharedPtr<FProcessor> This = WeakThis.Pin())
-			{
-				This->OnDiscoveryComplete();
-			}
-		});
-
 		Watcher->SetOnGenerationComplete([WeakThis = TWeakPtr<FProcessor>(SharedThis(this))](UPCGComponent* Comp, bool bSuccess)
 		{
 			if (TSharedPtr<FProcessor> This = WeakThis.Pin())
 			{
 				This->OnGenerationComplete(Comp, bSuccess);
-			}
-		});
-
-		Watcher->SetOnAllComplete([WeakThis = TWeakPtr<FProcessor>(SharedThis(this))]()
-		{
-			if (TSharedPtr<FProcessor> This = WeakThis.Pin())
-			{
-				This->OnAllGenerationsComplete();
 			}
 		});
 
@@ -1070,19 +1054,14 @@ namespace PCGExWaitForPCGData
 		// Track component for later staging
 		{
 			FWriteScopeLock WriteLock(ComponentLock);
-			if (ComponentToIndex.Contains(InComponent)) { return; } // Already tracked
+			if (ComponentToIndex.Find(InComponent)) { return; } // Already tracked
 
 			int32 Index = IndexedComponents.Add(InComponent);
-			ComponentToIndex.Add(InComponent, Index);
+			ComponentToIndex.Emplace(InComponent, Index);
 		}
 
 		// Hand off to watcher
 		Watcher->Watch(InComponent);
-	}
-
-	void FProcessor::OnDiscoveryComplete()
-	{
-		// Discovery is done - watcher will handle remaining work
 	}
 
 	void FProcessor::OnGenerationComplete(UPCGComponent* InComponent, bool bSuccess)
@@ -1091,11 +1070,6 @@ namespace PCGExWaitForPCGData
 		{
 			ScheduleDataStaging(InComponent);
 		}
-	}
-
-	void FProcessor::OnAllGenerationsComplete()
-	{
-		// All done - processor will complete naturally
 	}
 
 	void FProcessor::ScheduleDataStaging(UPCGComponent* InComponent)
