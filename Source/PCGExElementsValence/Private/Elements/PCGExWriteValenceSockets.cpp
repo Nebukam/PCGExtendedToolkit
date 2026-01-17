@@ -67,6 +67,13 @@ bool FPCGExWriteValenceSocketsElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	// Build socket cache for fast processing
+	if (!Context->SocketCache.BuildFrom(Context->SocketCollection))
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build socket cache from collection."));
+		return false;
+	}
+
 	return true;
 }
 
@@ -129,19 +136,18 @@ namespace PCGExWriteValenceSockets
 		TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
 
 		TSharedPtr<PCGExData::TArrayBuffer<int64>> IdxArrayWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(IdxWriter);
-		TArray<int64>& EdgeIndices = *IdxArrayWriter->GetOutValues().Get();
+		TArray<int64>* EdgeIndices = IdxArrayWriter->GetOutValues().Get();
 		TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges.Get();
+
+		// Use cached socket data for fast lookup
+		const PCGExValence::FSocketCache& Cache = Context->SocketCache;
+		const bool bUseTransform = Cache.bTransformDirection;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExClusters::FNode& Node = Nodes[Index];
-			if (!Context->SocketCollection) { return; }
 
-			const UPCGExValenceSocketCollection* Collection = Context->SocketCollection;
-			const bool bUseTransform = Collection->bTransformDirection;
-
-			// Get point transform if needed
-			const FTransform& PointTransform = bUseTransform ? InTransforms[Node.PointIndex] : FTransform::Identity;
+			const FTransform& DirTransform = bUseTransform ? InTransforms[Node.PointIndex] : FTransform::Identity;
 
 			int64 SocketMask = 0;
 
@@ -152,56 +158,28 @@ namespace PCGExWriteValenceSockets
 				const int32 NeighborNodeIndex = Link.Node;
 
 				// Get direction to neighbor
+				// TODO : Optimize this we can use InTransform directly
 				const FVector Direction = Cluster->GetDir(Node.Index, NeighborNodeIndex);
 
-				// Find matching socket
-				const uint8 SocketIndex = Collection->FindMatchingSocket(Direction, bUseTransform, PointTransform);
+				// Find matching socket using cached data
+				const uint8 SocketIndex = Cache.FindMatchingSocket(Direction, bUseTransform, DirTransform);
+
+				// Write socket index directly to the appropriate byte offset
+				// Start node writes to byte 0, end node writes to byte 1
+				// This avoids race conditions since each node writes to a different byte
+				const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
+				uint8* PackedBytes = reinterpret_cast<uint8*>(EdgeIndices->GetData() + EdgeIndex);
+				const int32 ByteOffset = (Edge.Start == Node.PointIndex) ? 0 : 1;
 
 				if (SocketIndex != PCGExValence::NO_SOCKET_MATCH)
 				{
-					// Get the bitmask for this socket
-					FVector SocketDir;
-					int64 SocketBitmask;
-					if (Collection->Sockets[SocketIndex].GetDirectionAndBitmask(SocketDir, SocketBitmask))
-					{
-						SocketMask |= SocketBitmask;
-					}
-
-					// Update edge indices
-					// Determine if this node is start or end of the edge
-					{
-						const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
-						int64& PackedIndices = EdgeIndices[EdgeIndex];
-
-						if (Edge.Start == Node.PointIndex)
-						{
-							// This node is the start - store in lower byte
-							PackedIndices = (PackedIndices & 0xFFFFFFFFFFFFFF00LL) | static_cast<int64>(SocketIndex);
-						}
-						else
-						{
-							// This node is the end - store in second byte
-							PackedIndices = (PackedIndices & 0xFFFFFFFFFFFF00FFLL) | (static_cast<int64>(SocketIndex) << 8);
-						}
-					}
+					// Get the bitmask directly from cache
+					SocketMask |= Cache.GetBitmask(SocketIndex);
+					PackedBytes[ByteOffset] = SocketIndex;
 				}
 				else
 				{
-					// No match - store sentinel value
-					{
-						const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
-						int64& PackedIndices = EdgeIndices[EdgeIndex];
-
-						if (Edge.Start == Node.PointIndex)
-						{
-							PackedIndices = (PackedIndices & 0xFFFFFFFFFFFFFF00LL) | static_cast<int64>(PCGExValence::NO_SOCKET_MATCH);
-						}
-						else
-						{
-							PackedIndices = (PackedIndices & 0xFFFFFFFFFFFF00FFLL) | (static_cast<int64>(PCGExValence::NO_SOCKET_MATCH) << 8);
-						}
-					}
-
+					PackedBytes[ByteOffset] = PCGExValence::NO_SOCKET_MATCH;
 					FPlatformAtomics::InterlockedIncrement(&NoMatchCount);
 				}
 			}

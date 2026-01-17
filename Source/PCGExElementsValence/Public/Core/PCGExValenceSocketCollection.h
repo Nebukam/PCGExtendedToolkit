@@ -52,12 +52,61 @@ struct PCGEXELEMENTSVALENCE_API FPCGExValenceSocketEntry
 	}
 };
 
+class UPCGExValenceSocketCollection;
+
 /**
  * Sentinel value for socket indices indicating no match.
  */
 namespace PCGExValence
 {
 	constexpr uint8 NO_SOCKET_MATCH = 0xFF;
+
+	/**
+	 * Cached socket data for fast lookup during processing.
+	 * Pre-resolves all BitmaskRef lookups once to avoid repeated asset access.
+	 */
+	struct PCGEXELEMENTSVALENCE_API FSocketCache
+	{
+		/** Pre-resolved directions (normalized) */
+		TArray<FVector> Directions;
+
+		/** Pre-resolved bitmasks */
+		TArray<int64> Bitmasks;
+
+		/** Dot threshold for matching (pre-computed from angle) */
+		double DotThreshold = 0.0;
+
+		/** Whether to transform directions using point transform */
+		bool bTransformDirection = true;
+
+		/** Number of cached sockets */
+		int32 Num() const { return Directions.Num(); }
+
+		/** Check if cache is valid (has been built) */
+		bool IsValid() const { return Directions.Num() > 0; }
+
+		/**
+		 * Build cache from socket collection.
+		 * @param Collection The socket collection to cache
+		 * @return True if all sockets resolved successfully
+		 */
+		bool BuildFrom(const UPCGExValenceSocketCollection* Collection);
+
+		/**
+		 * Find matching socket index using cached data.
+		 * @param InDirection The direction to match (normalized)
+		 * @param bUseTransform If true, directions are compared in local space
+		 * @param InTransform The transform to use if bUseTransform is true
+		 * @return Socket index (0-254), or NO_SOCKET_MATCH (0xFF) if no match
+		 */
+		uint8 FindMatchingSocket(const FVector& InDirection, bool bUseTransform, const FTransform& InTransform) const;
+
+		/** Get the bitmask for a socket index (must be valid index) */
+		int64 GetBitmask(int32 SocketIndex) const { return Bitmasks[SocketIndex]; }
+
+		/** Get the direction for a socket index (must be valid index) */
+		const FVector& GetDirection(int32 SocketIndex) const { return Directions[SocketIndex]; }
+	};
 }
 
 /**

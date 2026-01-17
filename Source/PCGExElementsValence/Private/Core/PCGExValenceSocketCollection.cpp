@@ -115,3 +115,72 @@ void UPCGExValenceSocketCollection::PostEditChangeProperty(FPropertyChangedEvent
 	// Could add validation feedback here
 }
 #endif
+
+//////// FSocketCache
+
+bool PCGExValence::FSocketCache::BuildFrom(const UPCGExValenceSocketCollection* Collection)
+{
+	if (!Collection || Collection->Sockets.Num() == 0)
+	{
+		return false;
+	}
+
+	const int32 NumSockets = Collection->Sockets.Num();
+	Directions.SetNum(NumSockets);
+	Bitmasks.SetNum(NumSockets);
+
+	// Pre-compute dot threshold from angle
+	DotThreshold = PCGExMath::DegreesToDot(Collection->AngleThreshold);
+	bTransformDirection = Collection->bTransformDirection;
+
+	// Resolve all socket directions and bitmasks upfront
+	for (int32 i = 0; i < NumSockets; ++i)
+	{
+		const FPCGExValenceSocketEntry& Entry = Collection->Sockets[i];
+
+		FVector Direction;
+		int64 Bitmask;
+		if (!Entry.GetDirectionAndBitmask(Direction, Bitmask))
+		{
+			// Failed to resolve - clear and return false
+			Directions.Empty();
+			Bitmasks.Empty();
+			return false;
+		}
+
+		Directions[i] = Direction.GetSafeNormal();
+		Bitmasks[i] = Bitmask;
+	}
+
+	return true;
+}
+
+uint8 PCGExValence::FSocketCache::FindMatchingSocket(const FVector& InDirection, bool bUseTransform, const FTransform& InTransform) const
+{
+	if (Directions.Num() == 0)
+	{
+		return NO_SOCKET_MATCH;
+	}
+
+	FVector TestDirection = InDirection.GetSafeNormal();
+	if (bUseTransform && bTransformDirection)
+	{
+		TestDirection = InTransform.InverseTransformVectorNoScale(TestDirection);
+	}
+
+	int32 BestIndex = -1;
+	double BestDot = DotThreshold;
+
+	for (int32 i = 0; i < Directions.Num(); ++i)
+	{
+		const double Dot = FVector::DotProduct(TestDirection, Directions[i]);
+
+		if (Dot >= BestDot)
+		{
+			BestDot = Dot;
+			BestIndex = i;
+		}
+	}
+
+	return BestIndex >= 0 ? static_cast<uint8>(BestIndex) : NO_SOCKET_MATCH;
+}

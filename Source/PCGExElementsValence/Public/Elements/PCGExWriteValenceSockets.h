@@ -67,6 +67,9 @@ struct PCGEXELEMENTSVALENCE_API FPCGExWriteValenceSocketsContext final : FPCGExC
 
 	TObjectPtr<UPCGExValenceSocketCollection> SocketCollection;
 
+	/** Cached socket data for fast lookup during processing */
+	PCGExValence::FSocketCache SocketCache;
+
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
