@@ -162,16 +162,13 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 {
 	GENERATED_BODY()
 
-	/** Unique index for this module (auto-assigned during compilation) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Module")
-	int32 ModuleIndex = -1;
-
+#if WITH_EDITORONLY_DATA
 	/**
-	 * Display name for this module variant (auto-generated or user-provided).
+	 * Display name for this module variant (auto-generated).
 	 * Helps identify modules during review. E.g., "Cube_NE_4conn"
 	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Module")
 	FString VariantName;
+#endif
 
 	/** The asset to spawn (mesh, actor, data asset, etc.) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")

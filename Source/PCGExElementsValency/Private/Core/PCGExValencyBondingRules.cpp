@@ -56,12 +56,6 @@ bool UPCGExValencyBondingRules::Compile()
 		}
 	}
 
-	// Assign module indices
-	for (int32 i = 0; i < Modules.Num(); ++i)
-	{
-		Modules[i].ModuleIndex = i;
-	}
-
 	// Create compiled data (using MakeShared - safe to call from any thread)
 	if (!CompiledData)
 	{
@@ -194,7 +188,8 @@ void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 	{
 		if (!GeneratedMeshCollection)
 		{
-			GeneratedMeshCollection = NewObject<UPCGExMeshCollection>(this, NAME_None, RF_Transactional);
+			const FName CollectionName = *FString::Printf(TEXT("%s_Meshes"), *GetName());
+			GeneratedMeshCollection = NewObject<UPCGExMeshCollection>(this, CollectionName, RF_Transactional);
 		}
 		GeneratedMeshCollection->Entries.Empty();
 		GeneratedMeshCollection->Entries.Reserve(MeshCount);
@@ -228,7 +223,8 @@ void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 	{
 		if (!GeneratedActorCollection)
 		{
-			GeneratedActorCollection = NewObject<UPCGExActorCollection>(this, NAME_None, RF_Transactional);
+			const FName CollectionName = *FString::Printf(TEXT("%s_Actors"), *GetName());
+			GeneratedActorCollection = NewObject<UPCGExActorCollection>(this, CollectionName, RF_Transactional);
 		}
 		GeneratedActorCollection->Entries.Empty();
 		GeneratedActorCollection->Entries.Reserve(ActorCount);

@@ -236,11 +236,11 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			}
 
 			// Create new module
+			const int32 NewModuleIndex = TargetRules->Modules.Num();
 			FPCGExValencyModuleDefinition& NewModule = TargetRules->Modules.AddDefaulted_GetRef();
 			NewModule.Asset = Entry.Asset;
 			NewModule.AssetType = Entry.AssetType;
 			NewModule.Settings = Data.Settings; // Copy settings from cage
-			NewModule.ModuleIndex = TargetRules->Modules.Num() - 1;
 
 			// Set local transform if cage preserves them
 			if (Data.bPreserveLocalTransforms)
@@ -249,14 +249,16 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 				NewModule.bHasLocalTransform = !Entry.LocalTransform.Equals(FTransform::Identity, 0.01f);
 			}
 
-			// Generate variant name
+#if WITH_EDITORONLY_DATA
+			// Generate variant name for editor review
 			NewModule.VariantName = GenerateVariantName(Entry, Data.OrbitalMask, NewModule.bHasLocalTransform);
+#endif
 
 			// Set up the layer config with the orbital mask
 			FPCGExValencyModuleLayerConfig& LayerConfig = NewModule.Layers.FindOrAdd(LayerName);
 			LayerConfig.OrbitalMask = Data.OrbitalMask;
 
-			OutModuleKeyToIndex.Add(ModuleKey, NewModule.ModuleIndex);
+			OutModuleKeyToIndex.Add(ModuleKey, NewModuleIndex);
 		}
 	}
 }
