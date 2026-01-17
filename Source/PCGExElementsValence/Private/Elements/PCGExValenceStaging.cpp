@@ -76,21 +76,65 @@ bool FPCGExValenceStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValenceStaging)
 
-	// Load ruleset
-	if (!Context->Ruleset)
-	{
-		if (!Settings->Ruleset.IsNull())
-		{
-			Context->Ruleset = Settings->Ruleset.LoadSynchronous();
-		}
-	}
+	// Validate solver settings (doesn't require loaded assets)
+	PCGEX_OPERATION_VALIDATE(Solver)
 
-	if (!Context->Ruleset)
+	// Check that asset references are provided (but don't load them yet)
+	if (Settings->Ruleset.IsNull())
 	{
 		if (!Settings->bQuietMissingRuleset)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("No Valence Ruleset provided."));
 		}
+		return false;
+	}
+
+	if (Settings->SocketCollection.IsNull())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No Valence Socket Collection provided."));
+		return false;
+	}
+
+	return true;
+}
+
+void FPCGExValenceStagingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
+{
+	FPCGExClustersProcessorElement::PostLoadAssetsDependencies(InContext);
+
+	PCGEX_CONTEXT_AND_SETTINGS(ValenceStaging)
+
+	// Get loaded assets
+	if (!Context->Ruleset && !Settings->Ruleset.IsNull())
+	{
+		Context->Ruleset = Settings->Ruleset.Get();
+	}
+
+	if (!Context->SocketCollection && !Settings->SocketCollection.IsNull())
+	{
+		Context->SocketCollection = Settings->SocketCollection.Get();
+	}
+}
+
+bool FPCGExValenceStagingElement::PostBoot(FPCGExContext* InContext) const
+{
+	if (!FPCGExClustersProcessorElement::PostBoot(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(ValenceStaging)
+
+	// Validate loaded assets
+	if (!Context->Ruleset)
+	{
+		if (!Settings->bQuietMissingRuleset)
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Valence Ruleset."));
+		}
+		return false;
+	}
+
+	if (!Context->SocketCollection)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Valence Socket Collection."));
 		return false;
 	}
 
@@ -104,44 +148,11 @@ bool FPCGExValenceStagingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	// Load socket collection
-	if (!Context->SocketCollection)
-	{
-		if (!Settings->SocketCollection.IsNull())
-		{
-			Context->SocketCollection = Settings->SocketCollection.LoadSynchronous();
-		}
-	}
-
-	if (!Context->SocketCollection)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No Valence Socket Collection provided."));
-		return false;
-	}
-
 	// Register solver from settings
-	PCGEX_OPERATION_VALIDATE(Solver)
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValenceSolverInstancedFactory, Settings->Solver, NAME_None);
 	if (!Context->Solver) { return false; }
 
 	return true;
-}
-
-void FPCGExValenceStagingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	FPCGExClustersProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(ValenceStaging)
-
-	if (!Context->Ruleset && !Settings->Ruleset.IsNull())
-	{
-		Context->Ruleset = Settings->Ruleset.Get();
-	}
-
-	if (!Context->SocketCollection && !Settings->SocketCollection.IsNull())
-	{
-		Context->SocketCollection = Settings->SocketCollection.Get();
-	}
 }
 
 bool FPCGExValenceStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -173,6 +184,16 @@ namespace PCGExValenceStaging
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExValenceStaging::Process);
 
 		if (!TProcessor::Process(InTaskManager)) { return false; }
+
+		// Create edge indices reader for this processor's edge facade
+		const FName IdxAttributeName = Context->SocketCollection->GetIdxAttributeName();
+		EdgeIndicesReader = EdgeDataFacade->GetReadable<int64>(Context->SocketCollection->GetIdxAttributeName());
+
+		if (!EdgeIndicesReader)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Edge indices attribute '{0}' not found on edges. Run 'Write Valence Sockets' first."), FText::FromName(IdxAttributeName)));
+			return false;
+		}
 
 		// Build node slots from pre-computed attributes
 		BuildNodeSlots();
@@ -386,30 +407,25 @@ namespace PCGExValenceStaging
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValenceStaging)
 
-		if (!Context->SocketCollection)
-		{
-			TBatch<FProcessor>::OnProcessingPreparationComplete();
-			return;
-		}
-
 		const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
 
 		// Get attribute names from socket collection
 		const FName MaskAttributeName = Context->SocketCollection->GetMaskAttributeName();
-		const FName IdxAttributeName = Context->SocketCollection->GetIdxAttributeName();
 
 		// Create socket mask reader (vertex attribute)
-		SocketMaskReader = OutputFacade->GetBroadcaster<int64>(MaskAttributeName);
+		SocketMaskReader = OutputFacade->GetReadable<int64>(MaskAttributeName);
 
 		if (!SocketMaskReader)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Socket mask attribute '{0}' not found on vertices. Run 'Write Valence Sockets' first."), FText::FromName(MaskAttributeName)));
+			bIsBatchValid = false;
+			return;
 		}
 
 		// Create edge indices reader (edge attribute) - need to get from edge facade
 		// Note: Edge reading is handled per-processor since each cluster has its own edges
 
-		// Create writers
+		// Create writers; inherit in case we run with a different layer
 		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Settings->ModuleIndexAttributeName, -1, true, PCGExData::EBufferInit::Inherit);
 		AssetPathWriter = OutputFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, FSoftObjectPath(), true, PCGExData::EBufferInit::Inherit);
 
@@ -434,18 +450,6 @@ namespace PCGExValenceStaging
 		TypedProcessor->ModuleIndexWriter = ModuleIndexWriter;
 		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
-
-		// Create edge indices reader for this processor's edge facade
-		if (Context->SocketCollection)
-		{
-			const FName IdxAttributeName = Context->SocketCollection->GetIdxAttributeName();
-			TypedProcessor->EdgeIndicesReader = TypedProcessor->EdgeDataFacade->GetBroadcaster<int64>(IdxAttributeName);
-
-			if (!TypedProcessor->EdgeIndicesReader)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Edge indices attribute '{0}' not found on edges. Run 'Write Valence Sockets' first."), FText::FromName(IdxAttributeName)));
-			}
-		}
 
 		return true;
 	}
