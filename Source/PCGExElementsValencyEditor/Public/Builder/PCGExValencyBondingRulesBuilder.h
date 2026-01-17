@@ -50,14 +50,39 @@ struct FPCGExValencyCageData
 	/** The source cage */
 	TWeakObjectPtr<APCGExValencyCage> Cage;
 
-	/** Assets registered on this cage */
-	TArray<TSoftObjectPtr<UObject>> Assets;
+	/** Asset entries registered on this cage (with optional local transforms) */
+	TArray<FPCGExValencyAssetEntry> AssetEntries;
 
 	/** Orbital mask (which orbitals are connected) */
 	int64 OrbitalMask = 0;
 
+	/** Module settings from the cage */
+	FPCGExValencyModuleSettings Settings;
+
+	/** Whether this cage preserves local transforms */
+	bool bPreserveLocalTransforms = false;
+
 	/** Per-orbital: module indices of valid neighbors (from connected cage's assets) */
 	TMap<int32, TArray<int32>> OrbitalToNeighborModules;
+
+	/**
+	 * Get a unique key for module lookup.
+	 * When local transforms are preserved, includes transform hash for unique variants.
+	 */
+	static FString MakeModuleKey(const FSoftObjectPath& AssetPath, int64 Mask, const FTransform* LocalTransform = nullptr)
+	{
+		if (LocalTransform && !LocalTransform->Equals(FTransform::Identity, 0.01f))
+		{
+			// Include transform hash for unique variants
+			const FVector Loc = LocalTransform->GetLocation();
+			const FRotator Rot = LocalTransform->Rotator();
+			return FString::Printf(TEXT("%s_%lld_%.0f%.0f%.0f_%.0f%.0f%.0f"),
+				*AssetPath.ToString(), Mask,
+				Loc.X, Loc.Y, Loc.Z,
+				Rot.Pitch, Rot.Yaw, Rot.Roll);
+		}
+		return FString::Printf(TEXT("%s_%lld"), *AssetPath.ToString(), Mask);
+	}
 };
 
 /**
@@ -124,13 +149,15 @@ protected:
 	);
 
 	/**
-	 * Build asset-to-module index mapping.
-	 * Creates modules for each unique asset.
+	 * Build module key to module index mapping.
+	 * Creates modules for each unique Asset + OrbitalMask combination.
+	 * Key format: "AssetPath_OrbitalMask"
 	 */
-	void BuildAssetToModuleMap(
+	void BuildModuleMap(
 		const TArray<FPCGExValencyCageData>& CageData,
 		UPCGExValencyBondingRules* TargetRules,
-		TMap<FSoftObjectPath, int32>& OutAssetToModule,
+		const UPCGExValencyOrbitalSet* OrbitalSet,
+		TMap<FString, int32>& OutModuleKeyToIndex,
 		FPCGExValencyBuildResult& OutResult
 	);
 
@@ -139,7 +166,7 @@ protected:
 	 */
 	void BuildNeighborRelationships(
 		const TArray<FPCGExValencyCageData>& CageData,
-		const TMap<FSoftObjectPath, int32>& AssetToModule,
+		const TMap<FString, int32>& ModuleKeyToIndex,
 		UPCGExValencyBondingRules* TargetRules,
 		const UPCGExValencyOrbitalSet* OrbitalSet,
 		FPCGExValencyBuildResult& OutResult
@@ -155,7 +182,12 @@ protected:
 	);
 
 	/**
-	 * Get effective assets for a cage (resolving mirror sources).
+	 * Get effective asset entries for a cage (resolving mirror sources).
 	 */
-	TArray<TSoftObjectPtr<UObject>> GetEffectiveAssets(const APCGExValencyCage* Cage);
+	TArray<FPCGExValencyAssetEntry> GetEffectiveAssetEntries(const APCGExValencyCage* Cage);
+
+	/**
+	 * Generate a variant name for a module based on its asset and configuration.
+	 */
+	static FString GenerateVariantName(const FPCGExValencyAssetEntry& Entry, int64 OrbitalMask, bool bHasLocalTransform);
 };

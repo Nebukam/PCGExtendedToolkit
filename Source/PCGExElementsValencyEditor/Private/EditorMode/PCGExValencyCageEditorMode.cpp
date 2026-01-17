@@ -122,7 +122,7 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 							WorldDir.Normalize();
 
 							const FVector LabelPos = CageLocation + WorldDir * (OrbitalArrowLength * 0.5f);
-							DrawLabel(Canvas, View, LabelPos, Entry.GetOrbitalName().ToString(), FLinearColor::White);
+							DrawLabel(Canvas, View, LabelPos, Entry.GetDisplayName().ToString(), FLinearColor::White);
 						}
 					}
 				}

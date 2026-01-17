@@ -99,12 +99,12 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromCages(
 		return Result;
 	}
 
-	// Step 2: Build asset-to-module mapping
-	TMap<FSoftObjectPath, int32> AssetToModule;
-	BuildAssetToModuleMap(CageData, TargetRules, AssetToModule, Result);
+	// Step 2: Build module mapping (keyed by Asset + OrbitalMask)
+	TMap<FString, int32> ModuleKeyToIndex;
+	BuildModuleMap(CageData, TargetRules, OrbitalSet, ModuleKeyToIndex, Result);
 
 	// Step 3: Build neighbor relationships
-	BuildNeighborRelationships(CageData, AssetToModule, TargetRules, OrbitalSet, Result);
+	BuildNeighborRelationships(CageData, ModuleKeyToIndex, TargetRules, OrbitalSet, Result);
 
 	// Step 4: Validate if requested
 	if (bValidateCompleteness)
@@ -145,9 +145,15 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			continue;
 		}
 
-		// Get effective assets (resolving mirrors)
-		TArray<TSoftObjectPtr<UObject>> Assets = GetEffectiveAssets(Cage);
-		if (Assets.Num() == 0)
+		// Trigger asset scan for cages with auto-registration enabled
+		if (Cage->bAutoRegisterContainedAssets)
+		{
+			Cage->ScanAndRegisterContainedAssets();
+		}
+
+		// Get effective asset entries (resolving mirrors)
+		TArray<FPCGExValencyAssetEntry> AssetEntries = GetEffectiveAssetEntries(Cage);
+		if (AssetEntries.Num() == 0)
 		{
 			// Skip cages with no assets
 			continue;
@@ -155,7 +161,9 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 
 		FPCGExValencyCageData Data;
 		Data.Cage = Cage;
-		Data.Assets = MoveTemp(Assets);
+		Data.AssetEntries = MoveTemp(AssetEntries);
+		Data.Settings = Cage->ModuleSettings;
+		Data.bPreserveLocalTransforms = Cage->bPreserveLocalTransforms;
 
 		// Compute orbital mask from connections
 		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
@@ -192,57 +200,66 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 	}
 }
 
-void UPCGExValencyBondingRulesBuilder::BuildAssetToModuleMap(
+void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 	const TArray<FPCGExValencyCageData>& CageData,
 	UPCGExValencyBondingRules* TargetRules,
-	TMap<FSoftObjectPath, int32>& OutAssetToModule,
+	const UPCGExValencyOrbitalSet* OrbitalSet,
+	TMap<FString, int32>& OutModuleKeyToIndex,
 	FPCGExValencyBuildResult& OutResult)
 {
-	OutAssetToModule.Empty();
+	OutModuleKeyToIndex.Empty();
 
-	// First, index existing modules
-	for (int32 i = 0; i < TargetRules->Modules.Num(); ++i)
-	{
-		const FPCGExValencyModuleDefinition& Module = TargetRules->Modules[i];
-		if (!Module.Asset.IsNull())
-		{
-			OutAssetToModule.Add(Module.Asset.ToSoftObjectPath(), i);
-		}
-	}
+	const FName LayerName = OrbitalSet->LayerName;
 
-	// Collect all unique assets from cages
-	TSet<FSoftObjectPath> UniqueAssets;
+	// Collect all unique Asset + OrbitalMask (+ LocalTransform) combinations from cages
+	// Each cage data already has its computed OrbitalMask
 	for (const FPCGExValencyCageData& Data : CageData)
 	{
-		for (const TSoftObjectPtr<UObject>& Asset : Data.Assets)
+		for (const FPCGExValencyAssetEntry& Entry : Data.AssetEntries)
 		{
-			if (!Asset.IsNull())
+			if (!Entry.IsValid())
 			{
-				UniqueAssets.Add(Asset.ToSoftObjectPath());
+				continue;
 			}
+
+			// Include local transform in key if cage preserves transforms
+			const FTransform* TransformPtr = Data.bPreserveLocalTransforms ? &Entry.LocalTransform : nullptr;
+			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
+				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr);
+
+			if (OutModuleKeyToIndex.Contains(ModuleKey))
+			{
+				continue; // Already have a module for this combo
+			}
+
+			// Create new module
+			FPCGExValencyModuleDefinition& NewModule = TargetRules->Modules.AddDefaulted_GetRef();
+			NewModule.Asset = Entry.Asset;
+			NewModule.Settings = Data.Settings; // Copy settings from cage
+			NewModule.ModuleIndex = TargetRules->Modules.Num() - 1;
+
+			// Set local transform if cage preserves them
+			if (Data.bPreserveLocalTransforms)
+			{
+				NewModule.LocalTransform = Entry.LocalTransform;
+				NewModule.bHasLocalTransform = !Entry.LocalTransform.Equals(FTransform::Identity, 0.01f);
+			}
+
+			// Generate variant name
+			NewModule.VariantName = GenerateVariantName(Entry, Data.OrbitalMask, NewModule.bHasLocalTransform);
+
+			// Set up the layer config with the orbital mask
+			FPCGExValencyModuleLayerConfig& LayerConfig = NewModule.Layers.FindOrAdd(LayerName);
+			LayerConfig.OrbitalMask = Data.OrbitalMask;
+
+			OutModuleKeyToIndex.Add(ModuleKey, NewModule.ModuleIndex);
 		}
-	}
-
-	// Create modules for new assets
-	for (const FSoftObjectPath& AssetPath : UniqueAssets)
-	{
-		if (OutAssetToModule.Contains(AssetPath))
-		{
-			continue; // Already exists
-		}
-
-		// Create new module
-		FPCGExValencyModuleDefinition& NewModule = TargetRules->Modules.AddDefaulted_GetRef();
-		NewModule.Asset = TSoftObjectPtr<UObject>(AssetPath);
-		NewModule.ModuleIndex = TargetRules->Modules.Num() - 1;
-
-		OutAssetToModule.Add(AssetPath, NewModule.ModuleIndex);
 	}
 }
 
 void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 	const TArray<FPCGExValencyCageData>& CageData,
-	const TMap<FSoftObjectPath, int32>& AssetToModule,
+	const TMap<FString, int32>& ModuleKeyToIndex,
 	UPCGExValencyBondingRules* TargetRules,
 	const UPCGExValencyOrbitalSet* OrbitalSet,
 	FPCGExValencyBuildResult& OutResult)
@@ -268,11 +285,14 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			continue;
 		}
 
-		// Get module indices for this cage's assets
+		// Get module indices for this cage's asset entries
 		TArray<int32> CageModuleIndices;
-		for (const TSoftObjectPtr<UObject>& Asset : Data.Assets)
+		for (const FPCGExValencyAssetEntry& Entry : Data.AssetEntries)
 		{
-			if (const int32* ModuleIndex = AssetToModule.Find(Asset.ToSoftObjectPath()))
+			const FTransform* TransformPtr = Data.bPreserveLocalTransforms ? &Entry.LocalTransform : nullptr;
+			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
+				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr);
+			if (const int32* ModuleIndex = ModuleKeyToIndex.Find(ModuleKey))
 			{
 				CageModuleIndices.AddUnique(*ModuleIndex);
 			}
@@ -294,7 +314,7 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 				OrbitalName = OrbitalSet->Orbitals[Orbital.OrbitalIndex].GetOrbitalName();
 			}
 
-			// Get neighbor modules
+			// Get neighbor modules from connected cage
 			TArray<int32> NeighborModuleIndices;
 
 			if (Orbital.ConnectedCage.IsValid())
@@ -304,7 +324,6 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 				if (ConnectedBase->IsNullCage())
 				{
 					// Null cage = boundary, no neighbor modules
-					// We might want to add a special "null" module index here
 				}
 				else if (const APCGExValencyCage* ConnectedCage = Cast<APCGExValencyCage>(ConnectedBase))
 				{
@@ -313,10 +332,14 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 					{
 						const FPCGExValencyCageData& ConnectedData = CageData[*ConnectedDataIndex];
 
-						// Add all of connected cage's assets as valid neighbors
-						for (const TSoftObjectPtr<UObject>& ConnectedAsset : ConnectedData.Assets)
+						// Add all of connected cage's modules as valid neighbors
+						for (const FPCGExValencyAssetEntry& ConnectedEntry : ConnectedData.AssetEntries)
 						{
-							if (const int32* NeighborModuleIndex = AssetToModule.Find(ConnectedAsset.ToSoftObjectPath()))
+							const FTransform* ConnectedTransformPtr = ConnectedData.bPreserveLocalTransforms
+								? &ConnectedEntry.LocalTransform : nullptr;
+							const FString NeighborKey = FPCGExValencyCageData::MakeModuleKey(
+								ConnectedEntry.Asset.ToSoftObjectPath(), ConnectedData.OrbitalMask, ConnectedTransformPtr);
+							if (const int32* NeighborModuleIndex = ModuleKeyToIndex.Find(NeighborKey))
 							{
 								NeighborModuleIndices.AddUnique(*NeighborModuleIndex);
 							}
@@ -335,11 +358,8 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 
 				FPCGExValencyModuleDefinition& Module = TargetRules->Modules[ModuleIndex];
 
-				// Get or create layer config
+				// Get layer config (already created in BuildModuleMap)
 				FPCGExValencyModuleLayerConfig& LayerConfig = Module.Layers.FindOrAdd(LayerName);
-
-				// Set orbital mask
-				LayerConfig.OrbitalMask = Data.OrbitalMask;
 
 				// Add neighbor modules for this orbital
 				for (int32 NeighborModuleIndex : NeighborModuleIndices)
@@ -401,7 +421,7 @@ void UPCGExValencyBondingRulesBuilder::ValidateRules(
 	// This would require tracking which modules came from which cages
 }
 
-TArray<TSoftObjectPtr<UObject>> UPCGExValencyBondingRulesBuilder::GetEffectiveAssets(const APCGExValencyCage* Cage)
+TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAssetEntries(const APCGExValencyCage* Cage)
 {
 	if (!Cage)
 	{
@@ -414,12 +434,64 @@ TArray<TSoftObjectPtr<UObject>> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 		const APCGExValencyCage* Source = Cage->MirrorSource.Get();
 		if (Source && Source != Cage)
 		{
-			// Recursively get source's assets (handles chained mirrors)
-			return GetEffectiveAssets(Source);
+			// Recursively get source's asset entries (handles chained mirrors)
+			return GetEffectiveAssetEntries(Source);
 		}
 	}
 
-	return Cage->GetRegisteredAssets();
+	return Cage->GetRegisteredAssetEntries();
+}
+
+FString UPCGExValencyBondingRulesBuilder::GenerateVariantName(
+	const FPCGExValencyAssetEntry& Entry,
+	int64 OrbitalMask,
+	bool bHasLocalTransform)
+{
+	// Get asset name
+	FString AssetName = Entry.Asset.GetAssetName();
+	if (AssetName.IsEmpty())
+	{
+		AssetName = TEXT("Unknown");
+	}
+
+	// Count connected orbitals for connectivity info
+	int32 ConnectionCount = 0;
+	for (int32 i = 0; i < 64; ++i)
+	{
+		if (OrbitalMask & (1LL << i))
+		{
+			++ConnectionCount;
+		}
+	}
+
+	FString VariantName = FString::Printf(TEXT("%s_%dconn"), *AssetName, ConnectionCount);
+
+	// Add transform indicator if present
+	if (bHasLocalTransform)
+	{
+		const FVector Loc = Entry.LocalTransform.GetLocation();
+		// Add simplified position indicator (e.g., "NE" for northeast corner)
+		FString PosIndicator;
+		if (FMath::Abs(Loc.X) > 1.0f || FMath::Abs(Loc.Y) > 1.0f)
+		{
+			if (Loc.X > 1.0f) PosIndicator += TEXT("E");
+			else if (Loc.X < -1.0f) PosIndicator += TEXT("W");
+			if (Loc.Y > 1.0f) PosIndicator += TEXT("N");
+			else if (Loc.Y < -1.0f) PosIndicator += TEXT("S");
+			if (Loc.Z > 1.0f) PosIndicator += TEXT("U");
+			else if (Loc.Z < -1.0f) PosIndicator += TEXT("D");
+		}
+		if (!PosIndicator.IsEmpty())
+		{
+			VariantName += TEXT("_") + PosIndicator;
+		}
+		else
+		{
+			VariantName += TEXT("_offset");
+		}
+	}
+
+	return VariantName;
 }
 
 #undef LOCTEXT_NAMESPACE

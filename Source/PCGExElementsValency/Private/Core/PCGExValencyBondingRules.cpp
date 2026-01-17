@@ -74,6 +74,8 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->ModuleMinSpawns.SetNum(Modules.Num());
 	CompiledData->ModuleMaxSpawns.SetNum(Modules.Num());
 	CompiledData->ModuleAssets.SetNum(Modules.Num());
+	CompiledData->ModuleLocalTransforms.SetNum(Modules.Num());
+	CompiledData->ModuleHasLocalTransform.SetNum(Modules.Num());
 	CompiledData->ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
 
 	// Populate module data
@@ -81,10 +83,12 @@ bool UPCGExValencyBondingRules::Compile()
 	{
 		const FPCGExValencyModuleDefinition& Module = Modules[ModuleIndex];
 
-		CompiledData->ModuleWeights[ModuleIndex] = Module.Weight;
-		CompiledData->ModuleMinSpawns[ModuleIndex] = Module.MinSpawns;
-		CompiledData->ModuleMaxSpawns[ModuleIndex] = Module.MaxSpawns;
+		CompiledData->ModuleWeights[ModuleIndex] = Module.Settings.Weight;
+		CompiledData->ModuleMinSpawns[ModuleIndex] = Module.Settings.MinSpawns;
+		CompiledData->ModuleMaxSpawns[ModuleIndex] = Module.Settings.MaxSpawns;
 		CompiledData->ModuleAssets[ModuleIndex] = Module.Asset;
+		CompiledData->ModuleLocalTransforms[ModuleIndex] = Module.LocalTransform;
+		CompiledData->ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
 
 		// Orbital masks per layer
 		for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)

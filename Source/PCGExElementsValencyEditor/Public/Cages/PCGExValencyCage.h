@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExValencyCageBase.h"
+#include "Core/PCGExValencyCommon.h"
 
 #include "PCGExValencyCage.generated.h"
 
@@ -52,11 +53,14 @@ public:
 
 	//~ End Containment Interface
 
-	/** Get all registered assets for this cage */
-	const TArray<TSoftObjectPtr<UObject>>& GetRegisteredAssets() const { return RegisteredAssets; }
+	/** Get all registered asset entries for this cage */
+	const TArray<FPCGExValencyAssetEntry>& GetRegisteredAssetEntries() const { return RegisteredAssetEntries; }
+
+	/** Get simple asset list (without transforms) for backward compatibility */
+	TArray<TSoftObjectPtr<UObject>> GetRegisteredAssets() const;
 
 	/** Register an asset as valid for this cage configuration */
-	void RegisterAsset(const TSoftObjectPtr<UObject>& Asset);
+	void RegisterAsset(const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor = nullptr);
 
 	/** Unregister an asset */
 	void UnregisterAsset(const TSoftObjectPtr<UObject>& Asset);
@@ -69,11 +73,11 @@ public:
 
 public:
 	/**
-	 * Assets registered as valid for this cage's orbital configuration.
-	 * Multiple assets = all are valid modules for this config.
+	 * Asset entries registered as valid for this cage's orbital configuration.
+	 * Multiple entries = all are valid modules for this config.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets")
-	TArray<TSoftObjectPtr<UObject>> RegisteredAssets;
+	TArray<FPCGExValencyAssetEntry> RegisteredAssetEntries;
 
 	/**
 	 * Mirror source cage.
@@ -89,6 +93,21 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection")
 	bool bAutoRegisterContainedAssets = true;
+
+	/**
+	 * When enabled, preserves the spatial relationship between assets and the cage center.
+	 * Useful when asset placement within the cage matters (e.g., corner placement).
+	 * Each unique Asset + LocalTransform combination becomes a separate module variant.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection")
+	bool bPreserveLocalTransforms = false;
+
+	/**
+	 * Module settings applied to all assets in this cage.
+	 * These settings are copied to module definitions when building rules.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module")
+	FPCGExValencyModuleSettings ModuleSettings;
 
 protected:
 	/** Called when asset registration changes */

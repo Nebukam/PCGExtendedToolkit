@@ -89,6 +89,12 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	/** Module asset references */
 	TArray<TSoftObjectPtr<UObject>> ModuleAssets;
 
+	/** Module local transforms (relative to spawn point) */
+	TArray<FTransform> ModuleLocalTransforms;
+
+	/** Whether each module has a local transform offset */
+	TArray<bool> ModuleHasLocalTransform;
+
 	/** Compiled layer data */
 	TArray<FPCGExValencyLayerCompiled> Layers;
 

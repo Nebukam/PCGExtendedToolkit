@@ -30,6 +30,53 @@ namespace PCGExValency
 
 
 /**
+ * Shared module settings - used on cages and in module definitions.
+ * Cages are the source of truth; BondingRules are compiled from cages.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleSettings
+{
+	GENERATED_BODY()
+
+	/** Probability weight for selection (higher = more likely) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "0.001"))
+	float Weight = 1.0f;
+
+	/** Minimum number of times this module must be placed (0 = no minimum) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "0"))
+	int32 MinSpawns = 0;
+
+	/** Maximum number of times this module can be placed (-1 = unlimited) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "-1"))
+	int32 MaxSpawns = -1;
+};
+
+/**
+ * An asset entry within a cage, with optional local transform.
+ * When bPreserveLocalTransform is enabled on the cage, the LocalTransform
+ * represents the asset's position relative to the cage center.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyAssetEntry
+{
+	GENERATED_BODY()
+
+	/** The asset (mesh, blueprint, actor class, etc.) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
+	TSoftObjectPtr<UObject> Asset;
+
+	/** Transform relative to cage center (used when cage has bPreserveLocalTransforms enabled) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
+	FTransform LocalTransform = FTransform::Identity;
+
+	/** Source actor this entry was scanned from (transient, not saved) */
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AActor> SourceActor;
+
+	bool IsValid() const { return !Asset.IsNull(); }
+};
+
+/**
  * Wrapper for array of module indices (needed for TMap UPROPERTY support).
  */
 USTRUCT(BlueprintType)
@@ -85,6 +132,8 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleLayerConfig
 
 /**
  * A module definition - represents one placeable asset with its orbital configuration.
+ * Modules are uniquely identified by Asset + OrbitalMask + LocalTransform combination.
+ * Same asset with different connectivity or placement = different modules.
  */
 USTRUCT(BlueprintType)
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
@@ -95,21 +144,31 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Module")
 	int32 ModuleIndex = -1;
 
+	/**
+	 * Display name for this module variant (auto-generated or user-provided).
+	 * Helps identify modules during review. E.g., "Cube_NE_4conn"
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Module")
+	FString VariantName;
+
 	/** The asset to spawn (mesh, actor, data asset, etc.) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	TSoftObjectPtr<UObject> Asset;
 
-	/** Probability weight for selection (higher = more likely) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module", meta = (ClampMin = "0.001"))
-	float Weight = 1.0f;
+	/**
+	 * Local transform relative to spawn point.
+	 * Used when the source cage had bPreserveLocalTransforms enabled.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
+	FTransform LocalTransform = FTransform::Identity;
 
-	/** Minimum number of times this module must be placed (0 = no minimum) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module|Constraints", meta = (ClampMin = "0"))
-	int32 MinSpawns = 0;
+	/** Whether this module uses a local transform offset */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Module")
+	bool bHasLocalTransform = false;
 
-	/** Maximum number of times this module can be placed (-1 = unlimited) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module|Constraints", meta = (ClampMin = "-1"))
-	int32 MaxSpawns = -1;
+	/** Module settings (weight, spawn constraints) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
+	FPCGExValencyModuleSettings Settings;
 
 	/** Per-layer orbital configuration */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
@@ -118,12 +177,20 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	/** Check if this module can still be spawned given current spawn count */
 	bool CanSpawn(int32 CurrentSpawnCount) const
 	{
-		return MaxSpawns < 0 || CurrentSpawnCount < MaxSpawns;
+		return Settings.MaxSpawns < 0 || CurrentSpawnCount < Settings.MaxSpawns;
 	}
 
 	/** Check if this module needs more spawns to meet minimum */
 	bool NeedsMoreSpawns(int32 CurrentSpawnCount) const
 	{
-		return CurrentSpawnCount < MinSpawns;
+		return CurrentSpawnCount < Settings.MinSpawns;
+	}
+
+	/** Get a unique key for this module (Asset path + primary orbital mask) */
+	FString GetModuleKey(const FName& PrimaryLayerName) const
+	{
+		const FPCGExValencyModuleLayerConfig* LayerConfig = Layers.Find(PrimaryLayerName);
+		const int64 Mask = LayerConfig ? LayerConfig->OrbitalMask : 0;
+		return FString::Printf(TEXT("%s_%lld"), *Asset.ToSoftObjectPath().ToString(), Mask);
 	}
 };

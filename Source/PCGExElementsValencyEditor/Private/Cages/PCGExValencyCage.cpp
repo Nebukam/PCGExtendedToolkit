@@ -19,7 +19,7 @@ FString APCGExValencyCage::GetCageDisplayName() const
 	}
 
 	// If we have registered assets, show count
-	const int32 AssetCount = RegisteredAssets.Num();
+	const int32 AssetCount = RegisteredAssetEntries.Num();
 	if (AssetCount > 0)
 	{
 		return FString::Printf(TEXT("Cage [%d assets]"), AssetCount);
@@ -34,41 +34,80 @@ FString APCGExValencyCage::GetCageDisplayName() const
 	return TEXT("Cage (Empty)");
 }
 
-void APCGExValencyCage::RegisterAsset(const TSoftObjectPtr<UObject>& Asset)
+TArray<TSoftObjectPtr<UObject>> APCGExValencyCage::GetRegisteredAssets() const
+{
+	TArray<TSoftObjectPtr<UObject>> Assets;
+	Assets.Reserve(RegisteredAssetEntries.Num());
+	for (const FPCGExValencyAssetEntry& Entry : RegisteredAssetEntries)
+	{
+		if (Entry.IsValid())
+		{
+			Assets.Add(Entry.Asset);
+		}
+	}
+	return Assets;
+}
+
+void APCGExValencyCage::RegisterAsset(const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor)
 {
 	if (Asset.IsNull())
 	{
 		return;
 	}
 
-	// Avoid duplicates
-	for (const TSoftObjectPtr<UObject>& Existing : RegisteredAssets)
+	FPCGExValencyAssetEntry NewEntry;
+	NewEntry.Asset = Asset;
+	NewEntry.SourceActor = SourceActor;
+
+	// Compute local transform if we have a source actor and preservation is enabled
+	if (bPreserveLocalTransforms && SourceActor)
 	{
-		if (Existing == Asset)
+		const FTransform CageTransform = GetActorTransform();
+		const FTransform ActorTransform = SourceActor->GetActorTransform();
+		NewEntry.LocalTransform = ActorTransform.GetRelativeTransform(CageTransform);
+	}
+
+	// Check for duplicates - when preserving transforms, same asset with different transform is valid
+	for (const FPCGExValencyAssetEntry& Existing : RegisteredAssetEntries)
+	{
+		if (Existing.Asset == Asset)
 		{
-			return;
+			if (!bPreserveLocalTransforms)
+			{
+				// No transforms - simple duplicate check
+				return;
+			}
+			// With transforms, check if transform is approximately the same
+			if (Existing.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
+			{
+				return;
+			}
 		}
 	}
 
-	RegisteredAssets.Add(Asset);
+	RegisteredAssetEntries.Add(NewEntry);
 	OnAssetRegistrationChanged();
 }
 
 void APCGExValencyCage::UnregisterAsset(const TSoftObjectPtr<UObject>& Asset)
 {
-	const int32 Index = RegisteredAssets.IndexOfByKey(Asset);
-	if (Index != INDEX_NONE)
+	// Remove all entries with this asset
+	const int32 RemovedCount = RegisteredAssetEntries.RemoveAll([&Asset](const FPCGExValencyAssetEntry& Entry)
 	{
-		RegisteredAssets.RemoveAt(Index);
+		return Entry.Asset == Asset;
+	});
+
+	if (RemovedCount > 0)
+	{
 		OnAssetRegistrationChanged();
 	}
 }
 
 void APCGExValencyCage::ClearRegisteredAssets()
 {
-	if (RegisteredAssets.Num() > 0)
+	if (RegisteredAssetEntries.Num() > 0)
 	{
-		RegisteredAssets.Empty();
+		RegisteredAssetEntries.Empty();
 		OnAssetRegistrationChanged();
 	}
 }
@@ -86,6 +125,9 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		return;
 	}
 
+	// Clear previous registrations before rescanning
+	RegisteredAssetEntries.Empty();
+
 	// Scan for actors using virtual IsActorInside
 	TArray<AActor*> ContainedActors;
 	for (TActorIterator<AActor> It(World); It; ++It)
@@ -96,7 +138,7 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 			continue;
 		}
 
-		// Skip other cages
+		// Skip other cages and volumes
 		if (Cast<APCGExValencyCageBase>(Actor))
 		{
 			continue;
@@ -133,7 +175,7 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		{
 			if (UStaticMesh* Mesh = SMC->GetStaticMesh())
 			{
-				RegisterAsset(TSoftObjectPtr<UObject>(Mesh));
+				RegisterAsset(TSoftObjectPtr<UObject>(Mesh), Actor);
 			}
 		}
 		else if (UClass* ActorClass = Actor->GetClass())
@@ -141,7 +183,7 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 			// Check if it's a Blueprint
 			if (UBlueprint* BP = Cast<UBlueprint>(ActorClass->ClassGeneratedBy))
 			{
-				RegisterAsset(TSoftObjectPtr<UObject>(BP));
+				RegisterAsset(TSoftObjectPtr<UObject>(BP), Actor);
 			}
 		}
 	}
