@@ -152,7 +152,7 @@ public:
 	 * Auto-created during BuildFromCages, never user-edited.
 	 * Used by downstream spawners via FPickPacker/FPickUnpacker.
 	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valency|Generated", Instanced)
+	UPROPERTY(BlueprintReadOnly, Instanced)
 	TObjectPtr<UPCGExMeshCollection> GeneratedMeshCollection;
 
 	/**
@@ -160,7 +160,7 @@ public:
 	 * Auto-created during BuildFromCages, never user-edited.
 	 * Used by downstream spawners via FPickPacker/FPickUnpacker.
 	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valency|Generated", Instanced)
+	UPROPERTY(BlueprintReadOnly, Instanced)
 	TObjectPtr<UPCGExActorCollection> GeneratedActorCollection;
 
 	/**
