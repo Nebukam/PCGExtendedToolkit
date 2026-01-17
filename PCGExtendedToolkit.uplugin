@@ -281,6 +281,29 @@
       ]
     },
     {
+      "Name": "PCGExElementsValence",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExElementsValenceEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux"
+      ]
+    },
+    {
       "Name": "PCGExFilters",
       "Type": "Runtime",
       "LoadingPhase": "Default",
