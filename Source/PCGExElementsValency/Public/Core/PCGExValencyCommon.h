@@ -4,8 +4,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGData.h"
 
 #include "PCGExValencyCommon.generated.h"
+
+/**
+ * Type of asset referenced by a Valency module.
+ * Used to route to appropriate spawner (mesh vs actor vs data asset).
+ */
+UENUM(BlueprintType)
+enum class EPCGExValencyAssetType : uint8
+{
+	/** Type not yet determined or unknown */
+	Unknown = 0,
+	/** Static mesh asset (UStaticMesh) */
+	Mesh,
+	/** Actor class or Blueprint (spawned as actor) */
+	Actor,
+	/** PCG Data Asset (UPCGDataAsset) */
+	DataAsset
+};
 
 namespace PCGExValency
 {
@@ -64,6 +82,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyAssetEntry
 	/** The asset (mesh, blueprint, actor class, etc.) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
 	TSoftObjectPtr<UObject> Asset;
+
+	/** Detected type of the asset (for routing to appropriate spawner) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Asset")
+	EPCGExValencyAssetType AssetType = EPCGExValencyAssetType::Unknown;
 
 	/** Transform relative to cage center (used when cage has bPreserveLocalTransforms enabled) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Asset")
@@ -154,6 +176,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	/** The asset to spawn (mesh, actor, data asset, etc.) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	TSoftObjectPtr<UObject> Asset;
+
+	/** Type of asset (for routing to appropriate spawner) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Module")
+	EPCGExValencyAssetType AssetType = EPCGExValencyAssetType::Unknown;
 
 	/**
 	 * Local transform relative to spawn point.

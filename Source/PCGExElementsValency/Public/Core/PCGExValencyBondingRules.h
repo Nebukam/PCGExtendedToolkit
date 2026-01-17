@@ -10,6 +10,9 @@
 
 #include "PCGExValencyBondingRules.generated.h"
 
+class UPCGExMeshCollection;
+class UPCGExActorCollection;
+
 /**
  * Compiled layer data optimized for runtime performance.
  * Uses flattened arrays for cache efficiency (similar to Unity Chemistry pattern).
@@ -89,6 +92,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	/** Module asset references */
 	TArray<TSoftObjectPtr<UObject>> ModuleAssets;
 
+	/** Module asset types for routing to appropriate spawner */
+	TArray<EPCGExValencyAssetType> ModuleAssetTypes;
+
 	/** Module local transforms (relative to spawn point) */
 	TArray<FTransform> ModuleLocalTransforms;
 
@@ -140,6 +146,34 @@ public:
 	/** Module definitions */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Modules")
 	TArray<FPCGExValencyModuleDefinition> Modules;
+
+	/**
+	 * Generated mesh collection containing all mesh-type modules.
+	 * Auto-created during BuildFromCages, never user-edited.
+	 * Used by downstream spawners via FPickPacker/FPickUnpacker.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valency|Generated", Instanced)
+	TObjectPtr<UPCGExMeshCollection> GeneratedMeshCollection;
+
+	/**
+	 * Generated actor collection containing all actor-type modules.
+	 * Auto-created during BuildFromCages, never user-edited.
+	 * Used by downstream spawners via FPickPacker/FPickUnpacker.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Valency|Generated", Instanced)
+	TObjectPtr<UPCGExActorCollection> GeneratedActorCollection;
+
+	/**
+	 * Mapping from module index to mesh collection entry index.
+	 * Only valid entries have their index stored; others are -1.
+	 */
+	TArray<int32> ModuleToMeshEntryIndex;
+
+	/**
+	 * Mapping from module index to actor collection entry index.
+	 * Only valid entries have their index stored; others are -1.
+	 */
+	TArray<int32> ModuleToActorEntryIndex;
 
 	/** Compiled runtime data (generated, not serialized) */
 	TSharedPtr<FPCGExValencyBondingRulesCompiled> CompiledData;
@@ -200,6 +234,31 @@ public:
 
 	/** Check if the bonding rules have valid compiled data */
 	bool IsCompiled() const { return CompiledData.IsValid(); }
+
+	/**
+	 * Rebuild the generated collections from current modules.
+	 * Creates/updates GeneratedMeshCollection and GeneratedActorCollection
+	 * based on module asset types. Called automatically by builder.
+	 */
+	void RebuildGeneratedCollections();
+
+	/** Get the generated mesh collection (may be nullptr if no mesh modules) */
+	UPCGExMeshCollection* GetMeshCollection() const { return GeneratedMeshCollection; }
+
+	/** Get the generated actor collection (may be nullptr if no actor modules) */
+	UPCGExActorCollection* GetActorCollection() const { return GeneratedActorCollection; }
+
+	/** Get the mesh collection entry index for a module (-1 if not a mesh module) */
+	int32 GetMeshEntryIndex(int32 ModuleIndex) const
+	{
+		return ModuleToMeshEntryIndex.IsValidIndex(ModuleIndex) ? ModuleToMeshEntryIndex[ModuleIndex] : -1;
+	}
+
+	/** Get the actor collection entry index for a module (-1 if not an actor module) */
+	int32 GetActorEntryIndex(int32 ModuleIndex) const
+	{
+		return ModuleToActorEntryIndex.IsValidIndex(ModuleIndex) ? ModuleToActorEntryIndex[ModuleIndex] : -1;
+	}
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

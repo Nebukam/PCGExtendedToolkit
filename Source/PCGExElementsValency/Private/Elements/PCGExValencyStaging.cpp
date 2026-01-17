@@ -7,6 +7,11 @@
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
+#include "Helpers/PCGExCollectionsHelpers.h"
+#include "PCGExCollectionsCommon.h"
+#include "Collections/PCGExActorCollection.h"
+#include "Collections/PCGExMeshCollection.h"
+#include "Containers/PCGExManagedObjects.h"
 #include "Solvers/PCGExValencyEntropySolver.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyStaging"
@@ -32,6 +37,10 @@ TArray<FPCGPinProperties> UPCGExValencyStagingSettings::OutputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExValency::Labels::OutputStagedLabel, "Staged points with resolved module data", Required)
+	if (OutputMode == EPCGExStagingOutputMode::CollectionMap)
+	{
+		PCGEX_PIN_PARAMS(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map for resolving entry hashes", Required)
+	}
 	return PinProperties;
 }
 
@@ -138,7 +147,7 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	// Ensure bonding rules are compiled
 	if (!Context->BondingRules->IsCompiled())
 	{
-		// TODO : Risky! 
+		// TODO : Risky!
 		if (!Context->BondingRules->Compile())
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to compile Valency Bonding Rules."));
@@ -149,6 +158,12 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	// Register solver from settings
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValencySolverInstancedFactory, Settings->Solver, NAME_None);
 	if (!Context->Solver) { return false; }
+
+	// Create pick packer for CollectionMap mode
+	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)
+	{
+		Context->PickPacker = MakeShared<PCGExCollections::FPickPacker>(Context);
+	}
 
 	return true;
 }
@@ -171,6 +186,14 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
 	Context->OutputPointsAndEdges();
+
+	// Output collection map if in CollectionMap mode
+	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap && Context->PickPacker)
+	{
+		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
+		Context->PickPacker->PackToDataset(ParamData);
+		Context->StageOutput(ParamData, PCGExCollections::Labels::OutputCollectionMapLabel, PCGExData::EStaging::None);
+	}
 
 	return Context->TryComplete();
 }
@@ -340,6 +363,7 @@ namespace PCGExValencyStaging
 
 		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->CompiledData.Get();
 		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
 
 		for (const PCGExValency::FValencyState& State : ValencyStates)
 		{
@@ -351,11 +375,47 @@ namespace PCGExValencyStaging
 				ModuleIndexWriter->SetValue(Node.PointIndex, State.ResolvedModule);
 			}
 
-			// Write asset path
-			if (AssetPathWriter && State.ResolvedModule >= 0)
+			if (State.ResolvedModule >= 0)
 			{
-				const TSoftObjectPtr<UObject>& Asset = CompiledBondingRules->ModuleAssets[State.ResolvedModule];
-				AssetPathWriter->SetValue(Node.PointIndex, Asset.ToSoftObjectPath());
+				const EPCGExValencyAssetType AssetType = CompiledBondingRules->ModuleAssetTypes[State.ResolvedModule];
+
+				// Write asset path (Attributes mode) or entry hash (CollectionMap mode)
+				if (AssetPathWriter)
+				{
+					const TSoftObjectPtr<UObject>& Asset = CompiledBondingRules->ModuleAssets[State.ResolvedModule];
+					AssetPathWriter->SetValue(Node.PointIndex, Asset.ToSoftObjectPath());
+				}
+				else if (EntryHashWriter && Context->PickPacker)
+				{
+					// Get the appropriate collection and entry index based on asset type
+					const UPCGExAssetCollection* Collection = nullptr;
+					int32 EntryIndex = -1;
+
+					if (AssetType == EPCGExValencyAssetType::Mesh)
+					{
+						Collection = Context->BondingRules->GetMeshCollection();
+						EntryIndex = Context->BondingRules->GetMeshEntryIndex(State.ResolvedModule);
+					}
+					else if (AssetType == EPCGExValencyAssetType::Actor)
+					{
+						Collection = Context->BondingRules->GetActorCollection();
+						EntryIndex = Context->BondingRules->GetActorEntryIndex(State.ResolvedModule);
+					}
+
+					if (Collection && EntryIndex >= 0)
+					{
+						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, -1);
+						EntryHashWriter->SetValue(Node.PointIndex, static_cast<int64>(Hash));
+					}
+				}
+
+				// Apply local transform if enabled
+				if (Settings->bApplyLocalTransforms && CompiledBondingRules->ModuleHasLocalTransform[State.ResolvedModule])
+				{
+					const FTransform& LocalTransform = CompiledBondingRules->ModuleLocalTransforms[State.ResolvedModule];
+					const FTransform& CurrentTransform = OutTransforms[Node.PointIndex];
+					OutTransforms[Node.PointIndex] = LocalTransform * CurrentTransform;
+				}
 			}
 
 			// Write unsolvable marker
@@ -425,7 +485,18 @@ namespace PCGExValencyStaging
 
 		// Create writers; inherit in case we run with a different layer
 		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Settings->ModuleIndexAttributeName, -1, true, PCGExData::EBufferInit::Inherit);
-		AssetPathWriter = OutputFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, FSoftObjectPath(), true, PCGExData::EBufferInit::Inherit);
+
+		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
+		{
+			// Write asset path directly to points
+			AssetPathWriter = OutputFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, FSoftObjectPath(), true, PCGExData::EBufferInit::Inherit);
+		}
+		else
+		{
+			// Write collection entry hash for downstream spawners
+			const bool bInherit = OutputFacade->GetIn()->Metadata->HasAttribute(PCGExCollections::Labels::Tag_EntryIdx);
+			EntryHashWriter = OutputFacade->GetWritable<int64>(PCGExCollections::Labels::Tag_EntryIdx, 0, true, bInherit ? PCGExData::EBufferInit::Inherit : PCGExData::EBufferInit::New);
+		}
 
 		if (Settings->bOutputUnsolvableMarker)
 		{
@@ -448,6 +519,7 @@ namespace PCGExValencyStaging
 		TypedProcessor->ModuleIndexWriter = ModuleIndexWriter;
 		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
+		TypedProcessor->EntryHashWriter = EntryHashWriter;
 
 		return true;
 	}

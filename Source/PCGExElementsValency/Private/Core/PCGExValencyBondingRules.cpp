@@ -3,6 +3,10 @@
 
 #include "Core/PCGExValencyBondingRules.h"
 
+#include "Collections/PCGExMeshCollection.h"
+#include "Collections/PCGExActorCollection.h"
+#include "Engine/Blueprint.h"
+
 void FPCGExValencyBondingRulesCompiled::BuildCandidateLookup()
 {
 	MaskToCandidates.Empty();
@@ -74,6 +78,7 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->ModuleMinSpawns.SetNum(Modules.Num());
 	CompiledData->ModuleMaxSpawns.SetNum(Modules.Num());
 	CompiledData->ModuleAssets.SetNum(Modules.Num());
+	CompiledData->ModuleAssetTypes.SetNum(Modules.Num());
 	CompiledData->ModuleLocalTransforms.SetNum(Modules.Num());
 	CompiledData->ModuleHasLocalTransform.SetNum(Modules.Num());
 	CompiledData->ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
@@ -87,6 +92,7 @@ bool UPCGExValencyBondingRules::Compile()
 		CompiledData->ModuleMinSpawns[ModuleIndex] = Module.Settings.MinSpawns;
 		CompiledData->ModuleMaxSpawns[ModuleIndex] = Module.Settings.MaxSpawns;
 		CompiledData->ModuleAssets[ModuleIndex] = Module.Asset;
+		CompiledData->ModuleAssetTypes[ModuleIndex] = Module.AssetType;
 		CompiledData->ModuleLocalTransforms[ModuleIndex] = Module.LocalTransform;
 		CompiledData->ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
 
@@ -154,6 +160,122 @@ bool UPCGExValencyBondingRules::Compile()
 
 	UE_LOG(LogTemp, Log, TEXT("Valency Bonding Rules compiled: %d modules, %d layers"), Modules.Num(), LayerCount);
 	return true;
+}
+
+void UPCGExValencyBondingRules::RebuildGeneratedCollections()
+{
+	// Initialize module-to-entry mappings
+	ModuleToMeshEntryIndex.SetNum(Modules.Num());
+	ModuleToActorEntryIndex.SetNum(Modules.Num());
+	for (int32 i = 0; i < Modules.Num(); ++i)
+	{
+		ModuleToMeshEntryIndex[i] = -1;
+		ModuleToActorEntryIndex[i] = -1;
+	}
+
+	// Count modules by type
+	int32 MeshCount = 0;
+	int32 ActorCount = 0;
+
+	for (const FPCGExValencyModuleDefinition& Module : Modules)
+	{
+		if (Module.AssetType == EPCGExValencyAssetType::Mesh)
+		{
+			MeshCount++;
+		}
+		else if (Module.AssetType == EPCGExValencyAssetType::Actor)
+		{
+			ActorCount++;
+		}
+	}
+
+	// Create or clear mesh collection
+	if (MeshCount > 0)
+	{
+		if (!GeneratedMeshCollection)
+		{
+			GeneratedMeshCollection = NewObject<UPCGExMeshCollection>(this, NAME_None, RF_Transactional);
+		}
+		GeneratedMeshCollection->Entries.Empty();
+		GeneratedMeshCollection->Entries.Reserve(MeshCount);
+
+		int32 EntryIndex = 0;
+		for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ++ModuleIndex)
+		{
+			const FPCGExValencyModuleDefinition& Module = Modules[ModuleIndex];
+			if (Module.AssetType == EPCGExValencyAssetType::Mesh)
+			{
+				FPCGExMeshCollectionEntry& Entry = GeneratedMeshCollection->Entries.AddDefaulted_GetRef();
+				Entry.StaticMesh = TSoftObjectPtr<UStaticMesh>(Module.Asset.ToSoftObjectPath());
+				Entry.Weight = FMath::Max(1, FMath::RoundToInt32(Module.Settings.Weight));
+
+				// Store mapping
+				ModuleToMeshEntryIndex[ModuleIndex] = EntryIndex;
+				++EntryIndex;
+			}
+		}
+
+		// Rebuild internal indices
+		GeneratedMeshCollection->RebuildStagingData(true);
+	}
+	else
+	{
+		GeneratedMeshCollection = nullptr;
+	}
+
+	// Create or clear actor collection
+	if (ActorCount > 0)
+	{
+		if (!GeneratedActorCollection)
+		{
+			GeneratedActorCollection = NewObject<UPCGExActorCollection>(this, NAME_None, RF_Transactional);
+		}
+		GeneratedActorCollection->Entries.Empty();
+		GeneratedActorCollection->Entries.Reserve(ActorCount);
+
+		int32 EntryIndex = 0;
+		for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ++ModuleIndex)
+		{
+			const FPCGExValencyModuleDefinition& Module = Modules[ModuleIndex];
+			if (Module.AssetType == EPCGExValencyAssetType::Actor)
+			{
+				// Actor modules store a Blueprint, we need to get the GeneratedClass from it
+				if (UObject* LoadedAsset = Module.Asset.LoadSynchronous())
+				{
+					if (const UBlueprint* Blueprint = Cast<UBlueprint>(LoadedAsset))
+					{
+						if (Blueprint->GeneratedClass && Blueprint->GeneratedClass->IsChildOf(AActor::StaticClass()))
+						{
+							FPCGExActorCollectionEntry& Entry = GeneratedActorCollection->Entries.AddDefaulted_GetRef();
+							Entry.Actor = TSoftClassPtr<AActor>(Blueprint->GeneratedClass.Get());
+							Entry.Weight = FMath::Max(1, FMath::RoundToInt32(Module.Settings.Weight));
+
+							// Store mapping
+							ModuleToActorEntryIndex[ModuleIndex] = EntryIndex;
+							++EntryIndex;
+						}
+					}
+				}
+			}
+		}
+
+		// Rebuild internal indices if we have entries
+		if (GeneratedActorCollection->Entries.Num() > 0)
+		{
+			GeneratedActorCollection->RebuildStagingData(true);
+		}
+		else
+		{
+			GeneratedActorCollection = nullptr;
+		}
+	}
+	else
+	{
+		GeneratedActorCollection = nullptr;
+	}
+
+	// Mark as dirty for save
+	Modify();
 }
 
 #if WITH_EDITOR

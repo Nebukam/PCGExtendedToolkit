@@ -9,10 +9,16 @@
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencySolverOperation.h"
+#include "Elements/PCGExAssetStaging.h"
 
 #include "PCGExValencyStaging.generated.h"
 
 class UPCGExValencySolverInstancedFactory;
+
+namespace PCGExCollections
+{
+	class FPickPacker;
+}
 
 /**
  * Valency Staging - WFC-like asset staging for cluster nodes.
@@ -60,12 +66,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUsePerClusterSeed = false;
 
+	/** Output mode - determines how staging data is written */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::CollectionMap;
+
 	/** Attribute name for the resolved module index output */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	FName ModuleIndexAttributeName = FName("ModuleIndex");
 
-	/** Attribute name for the resolved asset path output */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	/** Attribute name for the resolved asset path output (only used with Attributes mode) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExStagingOutputMode::Attributes", EditConditionHides))
 	FName AssetPathAttributeName = FName("AssetPath");
 
 	/** If enabled, output an attribute marking unsolvable nodes */
@@ -79,6 +89,10 @@ public:
 	/** If enabled, prune nodes that failed to solve */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bPruneUnsolvable = false;
+
+	/** If enabled, applies the module's local transform offset to the point's transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	bool bApplyLocalTransforms = true;
 
 	/** Warnings and errors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
@@ -96,6 +110,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExCluste
 
 	/** Solver factory (registered from settings) */
 	UPCGExValencySolverInstancedFactory* Solver = nullptr;
+
+	/** Pick packer for collection entry hash writing (shared across all batches) */
+	TSharedPtr<PCGExCollections::FPickPacker> PickPacker;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -131,6 +148,7 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
+		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
 
 		/** Orbital mask reader (vertex attribute) */
 		TSharedPtr<PCGExData::TBuffer<int64>> OrbitalMaskReader;
@@ -178,6 +196,7 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
+		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);

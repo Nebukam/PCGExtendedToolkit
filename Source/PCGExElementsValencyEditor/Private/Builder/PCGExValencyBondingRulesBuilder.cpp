@@ -119,6 +119,9 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromCages(
 		return Result;
 	}
 
+	// Generate synthetic collections from modules
+	TargetRules->RebuildGeneratedCollections();
+
 	// Mark asset as modified
 	TargetRules->Modify();
 
@@ -235,6 +238,7 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			// Create new module
 			FPCGExValencyModuleDefinition& NewModule = TargetRules->Modules.AddDefaulted_GetRef();
 			NewModule.Asset = Entry.Asset;
+			NewModule.AssetType = Entry.AssetType;
 			NewModule.Settings = Data.Settings; // Copy settings from cage
 			NewModule.ModuleIndex = TargetRules->Modules.Num() - 1;
 

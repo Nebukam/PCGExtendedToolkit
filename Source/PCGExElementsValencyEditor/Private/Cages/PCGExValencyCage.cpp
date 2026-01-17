@@ -4,6 +4,9 @@
 #include "Cages/PCGExValencyCage.h"
 
 #include "EngineUtils.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/Blueprint.h"
+#include "PCGDataAsset.h"
 
 APCGExValencyCage::APCGExValencyCage()
 {
@@ -48,6 +51,43 @@ TArray<TSoftObjectPtr<UObject>> APCGExValencyCage::GetRegisteredAssets() const
 	return Assets;
 }
 
+namespace
+{
+	EPCGExValencyAssetType DetectAssetType(const TSoftObjectPtr<UObject>& Asset)
+	{
+		if (Asset.IsNull())
+		{
+			return EPCGExValencyAssetType::Unknown;
+		}
+
+		// Try to load to check type
+		if (UObject* LoadedAsset = Asset.LoadSynchronous())
+		{
+			if (LoadedAsset->IsA<UStaticMesh>())
+			{
+				return EPCGExValencyAssetType::Mesh;
+			}
+			if (LoadedAsset->IsA<UBlueprint>())
+			{
+				return EPCGExValencyAssetType::Actor;
+			}
+			if (LoadedAsset->IsA<UPCGDataAsset>())
+			{
+				return EPCGExValencyAssetType::DataAsset;
+			}
+		}
+
+		// Fallback: check path for common patterns
+		const FString Path = Asset.ToSoftObjectPath().ToString();
+		if (Path.Contains(TEXT("/StaticMesh")) || Path.EndsWith(TEXT("_SM")))
+		{
+			return EPCGExValencyAssetType::Mesh;
+		}
+
+		return EPCGExValencyAssetType::Unknown;
+	}
+}
+
 void APCGExValencyCage::RegisterAsset(const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor)
 {
 	if (Asset.IsNull())
@@ -58,6 +98,7 @@ void APCGExValencyCage::RegisterAsset(const TSoftObjectPtr<UObject>& Asset, AAct
 	FPCGExValencyAssetEntry NewEntry;
 	NewEntry.Asset = Asset;
 	NewEntry.SourceActor = SourceActor;
+	NewEntry.AssetType = DetectAssetType(Asset);
 
 	// Compute local transform if we have a source actor and preservation is enabled
 	if (bPreserveLocalTransforms && SourceActor)
