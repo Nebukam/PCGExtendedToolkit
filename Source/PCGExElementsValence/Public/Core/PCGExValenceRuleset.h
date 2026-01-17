@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "PCGExValenceCommon.h"
+#include "PCGExValenceSocketCollection.h"
 
 #include "PCGExValenceRuleset.generated.h"
 
@@ -123,7 +124,7 @@ public:
 
 /**
  * Main ruleset data asset - the user-facing configuration.
- * Contains socket registries (layers) and module definitions.
+ * Contains socket collection references and module definitions.
  */
 UCLASS(BlueprintType)
 class PCGEXELEMENTSVALENCE_API UPCGExValenceRuleset : public UDataAsset
@@ -131,9 +132,9 @@ class PCGEXELEMENTSVALENCE_API UPCGExValenceRuleset : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	/** Socket layers (registries). First layer is the "Main" layer. */
+	/** Socket collections defining the layers. Each collection defines sockets for one layer. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valence|Layers")
-	TArray<FPCGExValenceSocketRegistry> Layers;
+	TArray<TSoftObjectPtr<UPCGExValenceSocketCollection>> SocketCollections;
 
 	/** Module definitions */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valence|Modules")
@@ -143,20 +144,24 @@ public:
 	UPROPERTY()
 	TObjectPtr<UPCGExValenceRulesetCompiled> CompiledData;
 
+	/** Loaded socket collections (populated during Compile) */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UPCGExValenceSocketCollection>> LoadedSocketCollections;
+
 	/** Get layer count */
-	int32 GetLayerCount() const { return Layers.Num(); }
+	int32 GetLayerCount() const { return SocketCollections.Num(); }
 
 	/** Get module count */
 	int32 GetModuleCount() const { return Modules.Num(); }
 
-	/** Find a layer by name */
-	const FPCGExValenceSocketRegistry* FindLayer(const FName& LayerName) const
+	/** Find a socket collection by layer name */
+	const UPCGExValenceSocketCollection* FindSocketCollection(const FName& LayerName) const
 	{
-		for (const FPCGExValenceSocketRegistry& Layer : Layers)
+		for (const TObjectPtr<UPCGExValenceSocketCollection>& Collection : LoadedSocketCollections)
 		{
-			if (Layer.LayerName == LayerName)
+			if (Collection && Collection->LayerName == LayerName)
 			{
-				return &Layer;
+				return Collection;
 			}
 		}
 		return nullptr;
@@ -190,7 +195,7 @@ public:
 
 	/**
 	 * Compile the ruleset for runtime use.
-	 * Validates layers, assigns module indices, and builds optimized lookup structures.
+	 * Loads socket collections, validates layers, assigns module indices, and builds optimized lookup structures.
 	 * @return True if compilation succeeded
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Valence")

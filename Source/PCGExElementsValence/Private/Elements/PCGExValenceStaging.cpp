@@ -52,9 +52,16 @@ void FPCGExValenceStagingContext::RegisterAssetDependencies()
 	FPCGExClustersProcessorContext::RegisterAssetDependencies();
 
 	const UPCGExValenceStagingSettings* Settings = GetInputSettings<UPCGExValenceStagingSettings>();
-	if (Settings && !Settings->Ruleset.IsNull())
+	if (Settings)
 	{
-		AddAssetDependency(Settings->Ruleset.ToSoftObjectPath());
+		if (!Settings->Ruleset.IsNull())
+		{
+			AddAssetDependency(Settings->Ruleset.ToSoftObjectPath());
+		}
+		if (!Settings->SocketCollection.IsNull())
+		{
+			AddAssetDependency(Settings->SocketCollection.ToSoftObjectPath());
+		}
 	}
 }
 
@@ -69,7 +76,7 @@ bool FPCGExValenceStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValenceStaging)
 
-	// Try to get ruleset from pin first, then from settings
+	// Load ruleset
 	if (!Context->Ruleset)
 	{
 		if (!Settings->Ruleset.IsNull())
@@ -97,6 +104,21 @@ bool FPCGExValenceStagingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
+	// Load socket collection
+	if (!Context->SocketCollection)
+	{
+		if (!Settings->SocketCollection.IsNull())
+		{
+			Context->SocketCollection = Settings->SocketCollection.LoadSynchronous();
+		}
+	}
+
+	if (!Context->SocketCollection)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No Valence Socket Collection provided."));
+		return false;
+	}
+
 	// Register solver from settings
 	PCGEX_OPERATION_VALIDATE(Solver)
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValenceSolverInstancedFactory, Settings->Solver, NAME_None);
@@ -114,6 +136,11 @@ void FPCGExValenceStagingElement::PostLoadAssetsDependencies(FPCGExContext* InCo
 	if (!Context->Ruleset && !Settings->Ruleset.IsNull())
 	{
 		Context->Ruleset = Settings->Ruleset.Get();
+	}
+
+	if (!Context->SocketCollection && !Settings->SocketCollection.IsNull())
+	{
+		Context->SocketCollection = Settings->SocketCollection.Get();
 	}
 }
 
@@ -147,7 +174,7 @@ namespace PCGExValenceStaging
 
 		if (!TProcessor::Process(InTaskManager)) { return false; }
 
-		// Build node contexts
+		// Build node slots from pre-computed attributes
 		BuildNodeSlots();
 
 		// Run solver
@@ -171,13 +198,14 @@ namespace PCGExValenceStaging
 
 	void FProcessor::BuildNodeSlots()
 	{
-		if (!Cluster) { return; }
+		if (!Cluster || !Context->SocketCollection) { return; }
 
 		NodeSlots.SetNum(NumNodes);
 
 		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+		const int32 MaxSockets = Context->SocketCollection->Num();
 
-		// Build context for each node
+		// Build slot for each node
 		for (int32 NodeIndex = 0; NodeIndex < NumNodes; ++NodeIndex)
 		{
 			PCGExValence::FNodeSlot& NodeSlot = NodeSlots[NodeIndex];
@@ -185,33 +213,59 @@ namespace PCGExValenceStaging
 
 			const PCGExClusters::FNode& Node = Nodes[NodeIndex];
 
-			// Get socket mask from attribute
+			// Read socket mask from pre-computed vertex attribute
 			if (SocketMaskReader)
 			{
 				const int64 Mask = SocketMaskReader->Read(Node.PointIndex);
 				NodeSlot.SocketMasks.Add(Mask);
-
-				// Initialize socket-to-neighbor mapping
-				NodeSlot.SocketToNeighbor.SetNum(64); // Max sockets
-				for (int32 i = 0; i < 64; ++i)
-				{
-					NodeSlot.SocketToNeighbor[i] = -1; // Default no neighbor
-				}
 			}
 
-			// Map links to sockets
-			// For now, use link index as socket index (simple mapping)
-			// In production, this should use the actual socket bit mapping from the ruleset
-			for (int32 LinkIndex = 0; LinkIndex < Node.Links.Num(); ++LinkIndex)
+			// Initialize socket-to-neighbor mapping with no neighbors
+			NodeSlot.SocketToNeighbor.SetNum(MaxSockets);
+			for (int32 i = 0; i < MaxSockets; ++i)
 			{
-				const PCGExClusters::FLink& Link = Node.Links[LinkIndex];
+				NodeSlot.SocketToNeighbor[i] = -1;
+			}
+
+			// Build socket-to-neighbor from edge indices
+			for (const PCGExClusters::FLink& Link : Node.Links)
+			{
+				const int32 EdgeIndex = Link.Edge;
 				const int32 NeighborNodeIndex = Link.Node;
 
-				// Map this neighbor to a socket
-				// Simple approach: use link index as socket bit index
-				if (LinkIndex < 64 && NodeSlot.SocketToNeighbor.IsValidIndex(LinkIndex))
+				if (!EdgeIndicesReader || !Cluster->Edges->IsValidIndex(EdgeIndex))
 				{
-					NodeSlot.SocketToNeighbor[LinkIndex] = NeighborNodeIndex;
+					continue;
+				}
+
+				const PCGExGraphs::FEdge& Edge = (*Cluster->Edges)[EdgeIndex];
+				const int64 PackedIndices = EdgeIndicesReader->Read(EdgeIndex);
+
+				// Unpack socket indices (byte 0 = start, byte 1 = end)
+				const uint8 StartSocketIndex = static_cast<uint8>(PackedIndices & 0xFF);
+				const uint8 EndSocketIndex = static_cast<uint8>((PackedIndices >> 8) & 0xFF);
+
+				// Determine which socket index applies to this node
+				uint8 SocketIndex;
+				if (Edge.Start == Node.PointIndex)
+				{
+					SocketIndex = StartSocketIndex;
+				}
+				else
+				{
+					SocketIndex = EndSocketIndex;
+				}
+
+				// Skip if no match (sentinel value)
+				if (SocketIndex == PCGExValence::NO_SOCKET_MATCH)
+				{
+					continue;
+				}
+
+				// Store neighbor at this socket
+				if (SocketIndex < MaxSockets)
+				{
+					NodeSlot.SocketToNeighbor[SocketIndex] = NeighborNodeIndex;
 				}
 			}
 		}
@@ -332,16 +386,28 @@ namespace PCGExValenceStaging
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValenceStaging)
 
+		if (!Context->SocketCollection)
+		{
+			TBatch<FProcessor>::OnProcessingPreparationComplete();
+			return;
+		}
+
 		const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
 
-		// Create socket mask reader
-		const FName SocketMaskAttributeName = FName(Settings->LayerName.ToString() + TEXT("Mask"));
-		SocketMaskReader = OutputFacade->GetBroadcaster<int64>(SocketMaskAttributeName);
+		// Get attribute names from socket collection
+		const FName MaskAttributeName = Context->SocketCollection->GetMaskAttributeName();
+		const FName IdxAttributeName = Context->SocketCollection->GetIdxAttributeName();
+
+		// Create socket mask reader (vertex attribute)
+		SocketMaskReader = OutputFacade->GetBroadcaster<int64>(MaskAttributeName);
 
 		if (!SocketMaskReader)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Socket mask attribute '{0}' not found on vertices."), FText::FromName(SocketMaskAttributeName)));
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Socket mask attribute '{0}' not found on vertices. Run 'Write Valence Sockets' first."), FText::FromName(MaskAttributeName)));
 		}
+
+		// Create edge indices reader (edge attribute) - need to get from edge facade
+		// Note: Edge reading is handled per-processor since each cluster has its own edges
 
 		// Create writers
 		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Settings->ModuleIndexAttributeName, -1, true, PCGExData::EBufferInit::Inherit);
@@ -359,6 +425,8 @@ namespace PCGExValenceStaging
 	{
 		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValenceStaging)
+
 		FProcessor* TypedProcessor = static_cast<FProcessor*>(InProcessor.Get());
 
 		// Forward reader and writers to processor
@@ -366,6 +434,18 @@ namespace PCGExValenceStaging
 		TypedProcessor->ModuleIndexWriter = ModuleIndexWriter;
 		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
+
+		// Create edge indices reader for this processor's edge facade
+		if (Context->SocketCollection)
+		{
+			const FName IdxAttributeName = Context->SocketCollection->GetIdxAttributeName();
+			TypedProcessor->EdgeIndicesReader = TypedProcessor->EdgeDataFacade->GetBroadcaster<int64>(IdxAttributeName);
+
+			if (!TypedProcessor->EdgeIndicesReader)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Edge indices attribute '{0}' not found on edges. Run 'Write Valence Sockets' first."), FText::FromName(IdxAttributeName)));
+			}
+		}
 
 		return true;
 	}

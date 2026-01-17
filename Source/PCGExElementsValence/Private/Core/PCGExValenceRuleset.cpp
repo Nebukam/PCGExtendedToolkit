@@ -24,12 +24,40 @@ void UPCGExValenceRulesetCompiled::BuildCandidateLookup()
 
 bool UPCGExValenceRuleset::Compile()
 {
-	// Validate layers
-	for (FPCGExValenceSocketRegistry& Layer : Layers)
+	// Load and validate socket collections
+	LoadedSocketCollections.Empty();
+	LoadedSocketCollections.SetNum(SocketCollections.Num());
+
+	for (int32 i = 0; i < SocketCollections.Num(); ++i)
 	{
-		if (!Layer.Compile())
+		if (SocketCollections[i].IsNull())
 		{
-			UE_LOG(LogTemp, Error, TEXT("Valence Ruleset: Layer '%s' has more than 64 sockets"), *Layer.LayerName.ToString());
+			UE_LOG(LogTemp, Error, TEXT("Valence Ruleset: Socket collection at index %d is null"), i);
+			return false;
+		}
+
+		LoadedSocketCollections[i] = SocketCollections[i].LoadSynchronous();
+		if (!LoadedSocketCollections[i])
+		{
+			UE_LOG(LogTemp, Error, TEXT("Valence Ruleset: Failed to load socket collection at index %d"), i);
+			return false;
+		}
+
+		// Validate collection
+		TArray<FText> ValidationErrors;
+		if (!LoadedSocketCollections[i]->Validate(ValidationErrors))
+		{
+			for (const FText& Error : ValidationErrors)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Valence Ruleset: %s"), *Error.ToString());
+			}
+			return false;
+		}
+
+		// Check for more than 64 sockets
+		if (LoadedSocketCollections[i]->Num() > 64)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Valence Ruleset: Layer '%s' has more than 64 sockets"), *LoadedSocketCollections[i]->LayerName.ToString());
 			return false;
 		}
 	}
@@ -46,15 +74,17 @@ bool UPCGExValenceRuleset::Compile()
 		CompiledData = NewObject<UPCGExValenceRulesetCompiled>(this);
 	}
 
+	const int32 LayerCount = LoadedSocketCollections.Num();
+
 	CompiledData->ModuleCount = Modules.Num();
-	CompiledData->Layers.SetNum(Layers.Num());
+	CompiledData->Layers.SetNum(LayerCount);
 
 	// Initialize parallel arrays
 	CompiledData->ModuleWeights.SetNum(Modules.Num());
 	CompiledData->ModuleMinSpawns.SetNum(Modules.Num());
 	CompiledData->ModuleMaxSpawns.SetNum(Modules.Num());
 	CompiledData->ModuleAssets.SetNum(Modules.Num());
-	CompiledData->ModuleSocketMasks.SetNum(Modules.Num() * Layers.Num());
+	CompiledData->ModuleSocketMasks.SetNum(Modules.Num() * LayerCount);
 
 	// Populate module data
 	for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ++ModuleIndex)
@@ -67,10 +97,10 @@ bool UPCGExValenceRuleset::Compile()
 		CompiledData->ModuleAssets[ModuleIndex] = Module.Asset;
 
 		// Socket masks per layer
-		for (int32 LayerIndex = 0; LayerIndex < Layers.Num(); ++LayerIndex)
+		for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)
 		{
-			const FName& LayerName = Layers[LayerIndex].LayerName;
-			const int32 MaskIndex = ModuleIndex * Layers.Num() + LayerIndex;
+			const FName& LayerName = LoadedSocketCollections[LayerIndex]->LayerName;
+			const int32 MaskIndex = ModuleIndex * LayerCount + LayerIndex;
 
 			if (const FPCGExValenceModuleLayerConfig* LayerConfig = Module.Layers.Find(LayerName))
 			{
@@ -84,16 +114,16 @@ bool UPCGExValenceRuleset::Compile()
 	}
 
 	// Compile each layer's neighbor data
-	for (int32 LayerIndex = 0; LayerIndex < Layers.Num(); ++LayerIndex)
+	for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)
 	{
-		const FPCGExValenceSocketRegistry& Layer = Layers[LayerIndex];
+		const UPCGExValenceSocketCollection* Collection = LoadedSocketCollections[LayerIndex];
 		FPCGExValenceLayerCompiled& CompiledLayer = CompiledData->Layers[LayerIndex];
 
-		CompiledLayer.LayerName = Layer.LayerName;
-		CompiledLayer.SocketCount = Layer.Num();
+		CompiledLayer.LayerName = Collection->LayerName;
+		CompiledLayer.SocketCount = Collection->Num();
 
 		// Prepare header array (ModuleCount * SocketCount entries)
-		const int32 HeaderCount = Modules.Num() * Layer.Num();
+		const int32 HeaderCount = Modules.Num() * Collection->Num();
 		CompiledLayer.NeighborHeaders.SetNum(HeaderCount);
 		CompiledLayer.AllNeighbors.Empty();
 
@@ -101,12 +131,12 @@ bool UPCGExValenceRuleset::Compile()
 		for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ++ModuleIndex)
 		{
 			const FPCGExValenceModuleDefinition& Module = Modules[ModuleIndex];
-			const FPCGExValenceModuleLayerConfig* LayerConfig = Module.Layers.Find(Layer.LayerName);
+			const FPCGExValenceModuleLayerConfig* LayerConfig = Module.Layers.Find(Collection->LayerName);
 
-			for (int32 SocketIndex = 0; SocketIndex < Layer.Num(); ++SocketIndex)
+			for (int32 SocketIndex = 0; SocketIndex < Collection->Num(); ++SocketIndex)
 			{
-				const int32 HeaderIndex = ModuleIndex * Layer.Num() + SocketIndex;
-				const FName& SocketName = Layer.Sockets[SocketIndex].SocketName;
+				const int32 HeaderIndex = ModuleIndex * Collection->Num() + SocketIndex;
+				const FName SocketName = Collection->Sockets[SocketIndex].GetSocketName();
 
 				int32 NeighborStart = CompiledLayer.AllNeighbors.Num();
 				int32 NeighborCount = 0;
@@ -128,7 +158,7 @@ bool UPCGExValenceRuleset::Compile()
 	// Build fast lookup
 	CompiledData->BuildCandidateLookup();
 
-	UE_LOG(LogTemp, Log, TEXT("Valence Ruleset compiled: %d modules, %d layers"), Modules.Num(), Layers.Num());
+	UE_LOG(LogTemp, Log, TEXT("Valence Ruleset compiled: %d modules, %d layers"), Modules.Num(), LayerCount);
 	return true;
 }
 

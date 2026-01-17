@@ -7,6 +7,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExValenceCommon.h"
 #include "Core/PCGExValenceRuleset.h"
+#include "Core/PCGExValenceSocketCollection.h"
 #include "Core/PCGExValenceSolverOperation.h"
 
 #include "PCGExValenceStaging.generated.h"
@@ -43,21 +44,17 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
-	/** The ruleset data asset containing socket definitions and module configurations */
+	/** The ruleset data asset containing module configurations */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExValenceRuleset> Ruleset;
+
+	/** Socket collection - determines which layer's socket data to read (PCGEx/Valence/Mask/{LayerName}, PCGEx/Valence/Idx/{LayerName}) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	TSoftObjectPtr<UPCGExValenceSocketCollection> SocketCollection;
 
 	/** Solver algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExValenceSolverInstancedFactory> Solver;
-
-	/** Layer name for socket mask attribute lookup. The attribute should be named "{LayerName}Mask" */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName LayerName = FName("Main");
-
-	/** Attribute name for socket-to-neighbor mapping (array of neighbor node indices per socket bit) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName SocketNeighborAttributePrefix = FName("Socket");
 
 	/** If enabled, use the point's seed attribute to vary per-cluster solving */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -95,6 +92,7 @@ struct PCGEXELEMENTSVALENCE_API FPCGExValenceStagingContext final : FPCGExCluste
 	virtual void RegisterAssetDependencies() override;
 
 	TObjectPtr<UPCGExValenceRuleset> Ruleset;
+	TObjectPtr<UPCGExValenceSocketCollection> SocketCollection;
 
 	/** Solver factory (registered from settings) */
 	UPCGExValenceSolverInstancedFactory* Solver = nullptr;
@@ -133,8 +131,11 @@ namespace PCGExValenceStaging
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 
-		/** Socket mask reader */
+		/** Socket mask reader (vertex attribute) */
 		TSharedPtr<PCGExData::TBuffer<int64>> SocketMaskReader;
+
+		/** Edge socket indices reader (edge attribute) */
+		TSharedPtr<PCGExData::TBuffer<int64>> EdgeIndicesReader;
 
 		/** Solve result */
 		PCGExValence::FSolveResult SolveResult;
@@ -166,8 +167,11 @@ namespace PCGExValenceStaging
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		/** Socket mask reader (owned here, shared with processors) */
+		/** Socket mask reader - vertex attribute (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int64>> SocketMaskReader;
+
+		/** Edge socket indices reader - edge attribute (owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<int64>> EdgeIndicesReader;
 
 		/** Attribute writers (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
