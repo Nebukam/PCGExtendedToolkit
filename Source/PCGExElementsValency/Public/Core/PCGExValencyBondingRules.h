@@ -1,0 +1,211 @@
+// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/DataAsset.h"
+#include "PCGExValencyCommon.h"
+#include "PCGExValencyOrbitalSet.h"
+
+#include "PCGExValencyBondingRules.generated.h"
+
+/**
+ * Compiled layer data optimized for runtime performance.
+ * Uses flattened arrays for cache efficiency (similar to Unity Chemistry pattern).
+ */
+USTRUCT()
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyLayerCompiled
+{
+	GENERATED_BODY()
+
+	/** Layer name */
+	UPROPERTY()
+	FName LayerName;
+
+	/** Number of orbitals in this layer */
+	UPROPERTY()
+	int32 OrbitalCount = 0;
+
+	/**
+	 * Per-module, per-orbital neighbor data.
+	 * Index = ModuleIndex * OrbitalCount + OrbitalIndex
+	 * Value.X = Start index in AllNeighbors
+	 * Value.Y = Count of valid neighbors
+	 */
+	UPROPERTY()
+	TArray<FIntPoint> NeighborHeaders;
+
+	/** Flattened array of all valid neighbor module indices */
+	UPROPERTY()
+	TArray<int32> AllNeighbors;
+
+	/** Check if a module's orbital accepts a specific neighbor */
+	bool OrbitalAcceptsNeighbor(int32 ModuleIndex, int32 OrbitalIndex, int32 NeighborModuleIndex) const
+	{
+		const int32 HeaderIndex = ModuleIndex * OrbitalCount + OrbitalIndex;
+		if (!NeighborHeaders.IsValidIndex(HeaderIndex))
+		{
+			return false;
+		}
+
+		const FIntPoint& Header = NeighborHeaders[HeaderIndex];
+		const int32 Start = Header.X;
+		const int32 End = Start + Header.Y;
+
+		for (int32 i = Start; i < End; ++i)
+		{
+			if (AllNeighbors.IsValidIndex(i) && AllNeighbors[i] == NeighborModuleIndex)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
+/**
+ * Compiled bonding rules optimized for runtime solving.
+ */
+UCLASS()
+class PCGEXELEMENTSVALENCY_API UPCGExValencyBondingRulesCompiled : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	/** Total number of modules */
+	UPROPERTY()
+	int32 ModuleCount = 0;
+
+	/** Module weights (parallel array) */
+	UPROPERTY()
+	TArray<float> ModuleWeights;
+
+	/** Module orbital masks per layer (Index = ModuleIndex * LayerCount + LayerIndex) */
+	UPROPERTY()
+	TArray<int64> ModuleOrbitalMasks;
+
+	/** Module min spawn constraints */
+	UPROPERTY()
+	TArray<int32> ModuleMinSpawns;
+
+	/** Module max spawn constraints (-1 = unlimited) */
+	UPROPERTY()
+	TArray<int32> ModuleMaxSpawns;
+
+	/** Module asset references */
+	UPROPERTY()
+	TArray<TSoftObjectPtr<UObject>> ModuleAssets;
+
+	/** Compiled layer data */
+	UPROPERTY()
+	TArray<FPCGExValencyLayerCompiled> Layers;
+
+	/**
+	 * Fast lookup: OrbitalMask -> array of candidate module indices.
+	 * Key is the combined mask from all layers (for single-layer, just the mask).
+	 * This allows O(1) lookup of which modules could potentially fit a node.
+	 */
+	TMap<int64, TArray<int32>> MaskToCandidates;
+
+	/** Get layer count */
+	int32 GetLayerCount() const { return Layers.Num(); }
+
+	/** Get a module's orbital mask for a specific layer */
+	int64 GetModuleOrbitalMask(int32 ModuleIndex, int32 LayerIndex) const
+	{
+		const int32 Index = ModuleIndex * Layers.Num() + LayerIndex;
+		return ModuleOrbitalMasks.IsValidIndex(Index) ? ModuleOrbitalMasks[Index] : 0;
+	}
+
+	/** Build the MaskToCandidates lookup table */
+	void BuildCandidateLookup();
+};
+
+/**
+ * Main bonding rules data asset - the user-facing configuration.
+ * Contains orbital set references and module definitions.
+ */
+UCLASS(BlueprintType)
+class PCGEXELEMENTSVALENCY_API UPCGExValencyBondingRules : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	/** Orbital sets defining the layers. Each set defines orbitals for one layer. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Layers")
+	TArray<TSoftObjectPtr<UPCGExValencyOrbitalSet>> OrbitalSets;
+
+	/** Module definitions */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Modules")
+	TArray<FPCGExValencyModuleDefinition> Modules;
+
+	/** Compiled runtime data (generated, not user-editable) */
+	UPROPERTY()
+	TObjectPtr<UPCGExValencyBondingRulesCompiled> CompiledData;
+
+	/** Loaded orbital sets (populated during Compile) */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UPCGExValencyOrbitalSet>> LoadedOrbitalSets;
+
+	/** Get layer count */
+	int32 GetLayerCount() const { return OrbitalSets.Num(); }
+
+	/** Get module count */
+	int32 GetModuleCount() const { return Modules.Num(); }
+
+	/** Find an orbital set by layer name */
+	const UPCGExValencyOrbitalSet* FindOrbitalSet(const FName& LayerName) const
+	{
+		for (const TObjectPtr<UPCGExValencyOrbitalSet>& OrbitalSet : LoadedOrbitalSets)
+		{
+			if (OrbitalSet && OrbitalSet->LayerName == LayerName)
+			{
+				return OrbitalSet;
+			}
+		}
+		return nullptr;
+	}
+
+	/** Find a module by asset */
+	FPCGExValencyModuleDefinition* FindModuleByAsset(const TSoftObjectPtr<UObject>& Asset)
+	{
+		for (FPCGExValencyModuleDefinition& Module : Modules)
+		{
+			if (Module.Asset == Asset)
+			{
+				return &Module;
+			}
+		}
+		return nullptr;
+	}
+
+	/** Get or create a module for an asset */
+	FPCGExValencyModuleDefinition& GetOrCreateModule(const TSoftObjectPtr<UObject>& Asset)
+	{
+		if (FPCGExValencyModuleDefinition* Existing = FindModuleByAsset(Asset))
+		{
+			return *Existing;
+		}
+
+		FPCGExValencyModuleDefinition& NewModule = Modules.AddDefaulted_GetRef();
+		NewModule.Asset = Asset;
+		return NewModule;
+	}
+
+	/**
+	 * Compile the bonding rules for runtime use.
+	 * Loads orbital sets, validates layers, assigns module indices, and builds optimized lookup structures.
+	 * @return True if compilation succeeded
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Valency")
+	bool Compile();
+
+	/** Check if the bonding rules have valid compiled data */
+	UFUNCTION(BlueprintCallable, Category = "Valency")
+	bool IsCompiled() const { return CompiledData != nullptr; }
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+};

@@ -281,7 +281,7 @@
       ]
     },
     {
-      "Name": "PCGExElementsValence",
+      "Name": "PCGExElementsValency",
       "Type": "Runtime",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
@@ -294,7 +294,7 @@
       ]
     },
     {
-      "Name": "PCGExElementsValenceEditor",
+      "Name": "PCGExElementsValencyEditor",
       "Type": "Editor",
       "LoadingPhase": "Default",
       "PlatformAllowList": [
