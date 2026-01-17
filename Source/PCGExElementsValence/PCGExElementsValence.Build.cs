@@ -22,6 +22,7 @@ public class PCGExElementsValence : ModuleRules
 				"PCGExFoundations",
 				"PCGExGraphs",
 				"PCGExCollections",
+				"PCGExElementsProbing",
 			}
 		);
 
