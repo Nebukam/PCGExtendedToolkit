@@ -25,6 +25,7 @@ public:
 	AValencyContextVolume();
 
 	//~ Begin AActor Interface
+	virtual void PostActorCreated() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
 	//~ End AActor Interface
@@ -46,6 +47,13 @@ public:
 
 	/** Trigger a rebuild of the BondingRules from contained cages */
 	void RebuildBondingRules();
+
+	/**
+	 * Build bonding rules from all cages in this volume.
+	 * Updates the BondingRules asset in place.
+	 */
+	UFUNCTION(CallInEditor, Category = "Valency")
+	void BuildRulesFromCages();
 
 public:
 	/** The bonding rules data asset for this context. Required. */

@@ -21,7 +21,7 @@ class AValencyContextVolume;
  * Cages inherit their BondingRules and OrbitalSet from containing volumes
  * unless an explicit override is provided.
  */
-UCLASS(Abstract, NotPlaceable, HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
+UCLASS(Abstract, HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
 class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public AActor
 {
 	GENERATED_BODY()
@@ -30,6 +30,7 @@ public:
 	APCGExValencyCageBase();
 
 	//~ Begin AActor Interface
+	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;

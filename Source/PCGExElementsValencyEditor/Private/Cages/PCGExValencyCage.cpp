@@ -86,9 +86,7 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		return;
 	}
 
-	const FBox DetectionBox = GetAssetDetectionBounds();
-
-	// Scan for actors in bounds
+	// Scan for actors using virtual IsActorInside
 	TArray<AActor*> ContainedActors;
 	for (TActorIterator<AActor> It(World); It; ++It)
 	{
@@ -104,15 +102,14 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 			continue;
 		}
 
-		// Check if actor is in our bounds
-		const FVector ActorLocation = Actor->GetActorLocation();
-		if (DetectionBox.IsInsideOrOn(ActorLocation))
+		// Use virtual containment check
+		if (IsActorInside(Actor))
 		{
 			ContainedActors.Add(Actor);
 		}
 	}
 
-	// Also check child actors
+	// Also check child actors (always included regardless of bounds)
 	TArray<AActor*> ChildActors;
 	GetAttachedActors(ChildActors);
 
@@ -148,14 +145,6 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 			}
 		}
 	}
-}
-
-FBox APCGExValencyCage::GetAssetDetectionBounds() const
-{
-	const FVector Center = GetActorLocation();
-	const FVector HalfExtents = AssetDetectionBounds * 0.5f;
-
-	return FBox(Center - HalfExtents, Center + HalfExtents);
 }
 
 void APCGExValencyCage::OnAssetRegistrationChanged()

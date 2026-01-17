@@ -3,8 +3,15 @@
 
 #include "Cages/PCGExValencyCageBase.h"
 
+#include "Components/SceneComponent.h"
 #include "EngineUtils.h"
 #include "Volumes/ValencyContextVolume.h"
+
+namespace PCGExValencyFolders
+{
+	const FName CagesFolder = FName(TEXT("Valency/Cages"));
+	const FName VolumesFolder = FName(TEXT("Valency/Volumes"));
+}
 
 APCGExValencyCageBase::APCGExValencyCageBase()
 {
@@ -15,6 +22,14 @@ APCGExValencyCageBase::APCGExValencyCageBase()
 	// Default root component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent->SetMobility(EComponentMobility::Movable);
+}
+
+void APCGExValencyCageBase::PostActorCreated()
+{
+	Super::PostActorCreated();
+
+	// Auto-organize into Valency/Cages folder
+	SetFolderPath(PCGExValencyFolders::CagesFolder);
 }
 
 void APCGExValencyCageBase::PostInitializeComponents()

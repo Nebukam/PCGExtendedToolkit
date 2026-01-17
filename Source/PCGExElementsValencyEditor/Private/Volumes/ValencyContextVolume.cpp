@@ -6,6 +6,14 @@
 #include "EngineUtils.h"
 #include "Components/BrushComponent.h"
 #include "Cages/PCGExValencyCageBase.h"
+#include "Builder/PCGExValencyBondingRulesBuilder.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogValencyVolume, Log, All);
+
+namespace PCGExValencyFolders
+{
+	const FName VolumesFolder = FName(TEXT("Valency/Volumes"));
+}
 
 AValencyContextVolume::AValencyContextVolume()
 {
@@ -18,6 +26,14 @@ AValencyContextVolume::AValencyContextVolume()
 		BrushComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		BrushComp->SetMobility(EComponentMobility::Static);
 	}
+}
+
+void AValencyContextVolume::PostActorCreated()
+{
+	Super::PostActorCreated();
+
+	// Auto-organize into Valency/Volumes folder
+	SetFolderPath(PCGExValencyFolders::VolumesFolder);
 }
 
 void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -89,19 +105,39 @@ void AValencyContextVolume::CollectContainedCages(TArray<APCGExValencyCageBase*>
 
 void AValencyContextVolume::RebuildBondingRules()
 {
+	BuildRulesFromCages();
+}
+
+void AValencyContextVolume::BuildRulesFromCages()
+{
 	if (!BondingRules)
 	{
+		UE_LOG(LogValencyVolume, Error, TEXT("Cannot build rules: No BondingRules asset assigned to volume."));
 		return;
 	}
 
-	TArray<APCGExValencyCageBase*> ContainedCages;
-	CollectContainedCages(ContainedCages);
+	UPCGExValencyBondingRulesBuilder* Builder = NewObject<UPCGExValencyBondingRulesBuilder>(GetTransientPackage());
+	FPCGExValencyBuildResult Result = Builder->BuildFromVolume(this);
 
-	// TODO: Implement rule extraction from cages
-	// This will be implemented when the cage asset registration is complete
+	// Log results
+	if (Result.bSuccess)
+	{
+		UE_LOG(LogValencyVolume, Log, TEXT("Build succeeded: %d modules from %d cages."), Result.ModuleCount, Result.CageCount);
+	}
+	else
+	{
+		UE_LOG(LogValencyVolume, Error, TEXT("Build failed."));
+	}
 
-	// Recompile after changes
-	BondingRules->Compile();
+	for (const FText& Warning : Result.Warnings)
+	{
+		UE_LOG(LogValencyVolume, Warning, TEXT("%s"), *Warning.ToString());
+	}
+
+	for (const FText& Error : Result.Errors)
+	{
+		UE_LOG(LogValencyVolume, Error, TEXT("%s"), *Error.ToString());
+	}
 }
 
 void AValencyContextVolume::NotifyContainedCages()

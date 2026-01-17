@@ -117,7 +117,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
  * Main bonding rules data asset - the user-facing configuration.
  * Contains orbital set references and module definitions.
  */
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, DisplayName="[PCGEx] Valency Orbital Set")
 class PCGEXELEMENTSVALENCY_API UPCGExValencyBondingRules : public UDataAsset
 {
 	GENERATED_BODY()

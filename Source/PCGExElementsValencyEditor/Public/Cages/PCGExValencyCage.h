@@ -9,11 +9,13 @@
 #include "PCGExValencyCage.generated.h"
 
 /**
- * A standard Valency cage that can register assets.
- * Assets placed inside or parented to this cage are registered as valid modules
- * for the cage's orbital configuration.
+ * Abstract base for Valency cages that can register assets.
+ * Subclasses must implement IsActorInside() for containment detection.
+ *
+ * Use APCGExValencyCageSimple for built-in shape-based containment,
+ * or subclass this directly for custom containment logic.
  */
-UCLASS(Blueprintable, meta = (DisplayName = "Valency Cage"))
+UCLASS(Abstract, HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
 class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCage : public APCGExValencyCageBase
 {
 	GENERATED_BODY()
@@ -25,6 +27,30 @@ public:
 	virtual FString GetCageDisplayName() const override;
 	virtual bool IsNullCage() const override { return false; }
 	//~ End APCGExValencyCageBase Interface
+
+	//~ Begin Containment Interface
+
+	/**
+	 * Check if an actor is inside this cage's detection bounds.
+	 * Override in subclasses to implement custom containment logic.
+	 * @param Actor The actor to test
+	 * @return True if the actor is considered "inside" this cage
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Cage|Detection")
+	bool IsActorInside(AActor* Actor) const;
+	virtual bool IsActorInside_Implementation(AActor* Actor) const { return false; }
+
+	/**
+	 * Check if a world location is inside this cage's detection bounds.
+	 * Override in subclasses to implement custom containment logic.
+	 * @param WorldLocation The location to test
+	 * @return True if the location is inside this cage
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Cage|Detection")
+	bool ContainsPoint(const FVector& WorldLocation) const;
+	virtual bool ContainsPoint_Implementation(const FVector& WorldLocation) const { return false; }
+
+	//~ End Containment Interface
 
 	/** Get all registered assets for this cage */
 	const TArray<TSoftObjectPtr<UObject>>& GetRegisteredAssets() const { return RegisteredAssets; }
@@ -41,9 +67,6 @@ public:
 	/** Scan for assets within cage bounds and register them */
 	void ScanAndRegisterContainedAssets();
 
-	/** Get the bounds used for asset detection */
-	FBox GetAssetDetectionBounds() const;
-
 public:
 	/**
 	 * Assets registered as valid for this cage's orbital configuration.
@@ -59,13 +82,6 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets", AdvancedDisplay)
 	TWeakObjectPtr<APCGExValencyCage> MirrorSource;
-
-	/**
-	 * Bounds size for asset detection (centered on cage).
-	 * Used when scanning for contained assets.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta = (ClampMin = "0.0"))
-	FVector AssetDetectionBounds = FVector(100.0f);
 
 	/**
 	 * Whether to automatically scan for and register contained assets.

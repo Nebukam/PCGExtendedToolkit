@@ -215,6 +215,8 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 	// Draw small sphere at cage center
 	DrawWireSphere(PDI, CageLocation, CenterColor, 10.0f, 8, SDPG_World);
 
+	// Note: Simple cages have their own debug shape components for bounds visualization
+
 	// Draw orbital arrows
 	const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
 
