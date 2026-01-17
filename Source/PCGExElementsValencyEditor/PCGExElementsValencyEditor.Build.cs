@@ -35,7 +35,9 @@ public class PCGExElementsValencyEditor : ModuleRules
 				"PCGExCoreEditor",
 				"PCGExFoundations",
 				"PCGExElementsClusters",
-				"PCGExElementsValency"
+				"PCGExElementsValency",
+				"EditorFramework",
+				"LevelEditor"
 			}
 		);
 

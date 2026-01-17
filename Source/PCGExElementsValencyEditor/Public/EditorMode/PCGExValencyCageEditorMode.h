@@ -1,0 +1,94 @@
+// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "EdMode.h"
+#include "Cages/PCGExValencyCageOrbital.h"
+
+class APCGExValencyCageBase;
+class AValencyContextVolume;
+class UPCGExValencyOrbitalSet;
+
+/**
+ * Editor mode for Valency Cage authoring.
+ * Provides viewport visualization of orbital connections, cage states, and placement tools.
+ */
+class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageEditorMode : public FEdMode
+{
+public:
+	/** Mode identifier */
+	static const FEditorModeID ModeID;
+
+	FPCGExValencyCageEditorMode();
+	virtual ~FPCGExValencyCageEditorMode() override;
+
+	//~ Begin FEdMode Interface
+	virtual void Enter() override;
+	virtual void Exit() override;
+
+	/** Main 3D rendering callback - draws orbital connections, cage visuals */
+	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
+
+	/** HUD rendering callback - draws labels, status text */
+	virtual void DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas) override;
+
+	/** Handle viewport clicks for cage placement */
+	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
+
+	/** Process keyboard input */
+	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event) override;
+
+	/** Allow actor selection */
+	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const override;
+
+	/** Tick for any continuous updates */
+	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime) override;
+	//~ End FEdMode Interface
+
+protected:
+	/** Collect all cages in the current level */
+	void CollectCagesFromLevel();
+
+	/** Collect all volumes in the current level */
+	void CollectVolumesFromLevel();
+
+	/** Draw a single cage's visualization */
+	void DrawCage(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage);
+
+	/** Draw a volume's boundaries */
+	void DrawVolume(FPrimitiveDrawInterface* PDI, const AValencyContextVolume* Volume);
+
+	/** Draw connection between two cages */
+	void DrawConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* FromCage, int32 OrbitalIndex, const APCGExValencyCageBase* ToCage);
+
+	/** Draw orbital direction arrow from cage */
+	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Origin, const FVector& Direction, float Length, const FLinearColor& Color, bool bDashed = false);
+
+	/** Draw text label in viewport */
+	void DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color);
+
+private:
+	/** Cached cages in level */
+	TArray<TWeakObjectPtr<APCGExValencyCageBase>> CachedCages;
+
+	/** Cached volumes in level */
+	TArray<TWeakObjectPtr<AValencyContextVolume>> CachedVolumes;
+
+	/** Whether cache needs refresh */
+	bool bCacheDirty = true;
+
+	/** Visualization settings */
+	float OrbitalArrowLength = 100.0f;
+	float ConnectionLineThickness = 2.0f;
+
+	/** Colors */
+	FLinearColor ConnectedColor = FLinearColor::Green;
+	FLinearColor DisconnectedColor = FLinearColor::Red;
+	FLinearColor MutualConnectionColor = FLinearColor(0.2f, 0.8f, 0.2f);
+	FLinearColor AsymmetricConnectionColor = FLinearColor::Yellow;
+	FLinearColor NullCageColor = FLinearColor(0.5f, 0.5f, 0.5f);
+	FLinearColor VolumeColor = FLinearColor(0.3f, 0.3f, 0.8f, 0.3f);
+	FLinearColor WarningColor = FLinearColor(1.0f, 0.5f, 0.0f);
+};

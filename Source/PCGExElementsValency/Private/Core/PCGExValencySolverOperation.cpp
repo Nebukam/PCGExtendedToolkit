@@ -10,7 +10,7 @@ void UPCGExValencySolverInstancedFactory::CopySettingsFrom(const UPCGExInstanced
 
 namespace PCGExValency
 {
-	void FDistributionTracker::Initialize(const UPCGExValencyBondingRulesCompiled* CompiledBondingRules)
+	void FDistributionTracker::Initialize(const FPCGExValencyBondingRulesCompiled* CompiledBondingRules)
 	{
 		if (!CompiledBondingRules)
 		{
@@ -31,7 +31,7 @@ namespace PCGExValency
 		}
 	}
 
-	bool FDistributionTracker::RecordSpawn(int32 ModuleIndex, const UPCGExValencyBondingRulesCompiled* CompiledBondingRules)
+	bool FDistributionTracker::RecordSpawn(int32 ModuleIndex, const FPCGExValencyBondingRulesCompiled* CompiledBondingRules)
 	{
 		if (!CompiledBondingRules || !SpawnCounts.IsValidIndex(ModuleIndex))
 		{
@@ -71,7 +71,7 @@ namespace PCGExValency
 }
 
 void FPCGExValencySolverOperation::Initialize(
-	const UPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
+	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
 	int32 InSeed)
 {

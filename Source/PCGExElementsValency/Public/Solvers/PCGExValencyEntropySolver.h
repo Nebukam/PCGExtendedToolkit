@@ -47,7 +47,7 @@ public:
 	float MinimumSpawnWeightBoost = 2.0f;
 
 	virtual void Initialize(
-		const UPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
+		const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 		TArray<PCGExValency::FValencyState>& InValencyStates,
 		int32 InSeed) override;
 

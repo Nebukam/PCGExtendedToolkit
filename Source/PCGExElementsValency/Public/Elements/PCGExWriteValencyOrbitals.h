@@ -29,7 +29,7 @@ class PCGEXELEMENTSVALENCY_API UPCGExWriteValencyOrbitalsSettings : public UPCGE
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteValencyOrbitals, "Write Valency Orbitals", "Computes and writes orbital masks and indices for Valency solving.");
+	PCGEX_NODE_INFOS(WriteValencyOrbitals, "Valency : Write Orbitals", "Computes and writes orbital masks and indices for Valency solving.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(MiscWrite); }
 #endif
@@ -81,6 +81,7 @@ protected:
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
+	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 

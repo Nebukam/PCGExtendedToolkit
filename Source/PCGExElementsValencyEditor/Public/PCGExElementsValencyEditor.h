@@ -12,4 +12,5 @@ class FPCGExElementsValencyEditorModule final : public IPCGExEditorModuleInterfa
 
 public:
 	virtual void StartupModule() override;
+	virtual void ShutdownModule() override;
 };

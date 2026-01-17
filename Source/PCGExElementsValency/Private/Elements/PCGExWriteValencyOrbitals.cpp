@@ -38,44 +38,13 @@ bool FPCGExWriteValencyOrbitalsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
 
-	// TODO : Move this to PostBoot
-	
-	// Load orbital set
-	if (!Context->OrbitalSet)
-	{
-		if (!Settings->OrbitalSet.IsNull())
-		{
-			// TODO : LoadBLocking, we're not in game thread!
-			Context->OrbitalSet = Settings->OrbitalSet.LoadSynchronous();
-		}
-	}
 
-	if (!Context->OrbitalSet)
+	if (Settings->OrbitalSet.IsNull())
 	{
-		if (!Settings->bQuietMissingOrbitalSet)
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided."));
-		}
+		if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
 		return false;
 	}
 
-	// Validate orbital set
-	TArray<FText> ValidationErrors;
-	if (!Context->OrbitalSet->Validate(ValidationErrors))
-	{
-		for (const FText& Error : ValidationErrors)
-		{
-			PCGE_LOG(Error, GraphAndLog, Error);
-		}
-		return false;
-	}
-
-	// Build orbital cache for fast processing
-	if (!Context->OrbitalCache.BuildFrom(Context->OrbitalSet))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
-		return false;
-	}
 
 	return true;
 }
@@ -90,6 +59,36 @@ void FPCGExWriteValencyOrbitalsElement::PostLoadAssetsDependencies(FPCGExContext
 	{
 		Context->OrbitalSet = Settings->OrbitalSet.Get();
 	}
+}
+
+bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
+{
+	PCGEX_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
+
+	if (!FPCGExClustersProcessorElement::PostBoot(InContext)) { return false; }
+
+	if (!Context->OrbitalSet)
+	{
+		if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
+		return false;
+	}
+
+	// Validate orbital set
+	TArray<FText> ValidationErrors;
+	if (!Context->OrbitalSet->Validate(ValidationErrors))
+	{
+		for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+		return false;
+	}
+
+	// Build orbital cache for fast processing
+	if (!Context->OrbitalCache.BuildFrom(Context->OrbitalSet))
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
+		return false;
+	}
+
+	return true;
 }
 
 bool FPCGExWriteValencyOrbitalsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const

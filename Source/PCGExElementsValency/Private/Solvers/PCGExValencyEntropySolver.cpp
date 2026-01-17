@@ -7,7 +7,7 @@
 #define PCGEX_NAMESPACE ValencyEntropySolver
 
 void FPCGExValencyEntropySolver::Initialize(
-	const UPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
+	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
 	int32 InSeed)
 {

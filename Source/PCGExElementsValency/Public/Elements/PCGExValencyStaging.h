@@ -30,7 +30,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ValencyStaging, "Valency Staging", "WFC-like asset staging on cluster vertices using orbital-based compatibility rules.");
+	PCGEX_NODE_INFOS(ValencyStaging, "Valency : Staging", "WFC-like asset staging on cluster vertices using orbital-based compatibility rules.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(MiscAdd); }
 #endif
 

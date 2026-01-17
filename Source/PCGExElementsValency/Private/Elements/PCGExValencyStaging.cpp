@@ -105,12 +105,12 @@ void FPCGExValencyStagingElement::PostLoadAssetsDependencies(FPCGExContext* InCo
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
 
 	// Get loaded assets
-	if (!Context->BondingRules && !Settings->BondingRules.IsNull())
+	if (!Settings->BondingRules.IsNull())
 	{
 		Context->BondingRules = Settings->BondingRules.Get();
 	}
 
-	if (!Context->OrbitalSet && !Settings->OrbitalSet.IsNull())
+	if (!Settings->OrbitalSet.IsNull())
 	{
 		Context->OrbitalSet = Settings->OrbitalSet.Get();
 	}
@@ -125,10 +125,7 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	// Validate loaded assets
 	if (!Context->BondingRules)
 	{
-		if (!Settings->bQuietMissingBondingRules)
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Valency Bonding Rules."));
-		}
+		if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Valency Bonding Rules.")); }
 		return false;
 	}
 
@@ -141,6 +138,7 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	// Ensure bonding rules are compiled
 	if (!Context->BondingRules->IsCompiled())
 	{
+		// TODO : Risky! 
 		if (!Context->BondingRules->Compile())
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to compile Valency Bonding Rules."));
@@ -319,7 +317,7 @@ namespace PCGExValencyStaging
 			SolveSeed = HashCombine(SolveSeed, GetTypeHash(VtxDataFacade->GetIn()->UID));
 		}
 
-		Solver->Initialize(Context->BondingRules->CompiledData, ValencyStates, SolveSeed);
+		Solver->Initialize(Context->BondingRules->CompiledData.Get(), ValencyStates, SolveSeed);
 		SolveResult = Solver->Solve();
 
 		if (SolveResult.UnsolvableCount > 0)
@@ -340,7 +338,7 @@ namespace PCGExValencyStaging
 			return;
 		}
 
-		const UPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->CompiledData;
+		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->CompiledData.Get();
 		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 
 		for (const PCGExValency::FValencyState& State : ValencyStates)

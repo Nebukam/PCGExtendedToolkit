@@ -66,39 +66,30 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyLayerCompiled
 
 /**
  * Compiled bonding rules optimized for runtime solving.
+ * This is a plain struct (not UObject) because it's generated at runtime
+ * and Compile() may be called off the game thread where NewObject is unsafe.
  */
-UCLASS()
-class PCGEXELEMENTSVALENCY_API UPCGExValencyBondingRulesCompiled : public UObject
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 {
-	GENERATED_BODY()
-
-public:
 	/** Total number of modules */
-	UPROPERTY()
 	int32 ModuleCount = 0;
 
 	/** Module weights (parallel array) */
-	UPROPERTY()
 	TArray<float> ModuleWeights;
 
 	/** Module orbital masks per layer (Index = ModuleIndex * LayerCount + LayerIndex) */
-	UPROPERTY()
 	TArray<int64> ModuleOrbitalMasks;
 
 	/** Module min spawn constraints */
-	UPROPERTY()
 	TArray<int32> ModuleMinSpawns;
 
 	/** Module max spawn constraints (-1 = unlimited) */
-	UPROPERTY()
 	TArray<int32> ModuleMaxSpawns;
 
 	/** Module asset references */
-	UPROPERTY()
 	TArray<TSoftObjectPtr<UObject>> ModuleAssets;
 
 	/** Compiled layer data */
-	UPROPERTY()
 	TArray<FPCGExValencyLayerCompiled> Layers;
 
 	/**
@@ -132,21 +123,20 @@ class PCGEXELEMENTSVALENCY_API UPCGExValencyBondingRules : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	/** Orbital sets defining the layers. Each set defines orbitals for one layer. */
+	/**
+	 * Orbital sets defining the layers. Each set defines orbitals for one layer.
+	 * Using TObjectPtr ensures all orbital sets are loaded when this asset is loaded,
+	 * avoiding the need for LoadSynchronous during Compile().
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Layers")
-	TArray<TSoftObjectPtr<UPCGExValencyOrbitalSet>> OrbitalSets;
+	TArray<TObjectPtr<UPCGExValencyOrbitalSet>> OrbitalSets;
 
 	/** Module definitions */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Modules")
 	TArray<FPCGExValencyModuleDefinition> Modules;
 
-	/** Compiled runtime data (generated, not user-editable) */
-	UPROPERTY()
-	TObjectPtr<UPCGExValencyBondingRulesCompiled> CompiledData;
-
-	/** Loaded orbital sets (populated during Compile) */
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UPCGExValencyOrbitalSet>> LoadedOrbitalSets;
+	/** Compiled runtime data (generated, not serialized) */
+	TSharedPtr<FPCGExValencyBondingRulesCompiled> CompiledData;
 
 	/** Get layer count */
 	int32 GetLayerCount() const { return OrbitalSets.Num(); }
@@ -157,7 +147,7 @@ public:
 	/** Find an orbital set by layer name */
 	const UPCGExValencyOrbitalSet* FindOrbitalSet(const FName& LayerName) const
 	{
-		for (const TObjectPtr<UPCGExValencyOrbitalSet>& OrbitalSet : LoadedOrbitalSets)
+		for (const TObjectPtr<UPCGExValencyOrbitalSet>& OrbitalSet : OrbitalSets)
 		{
 			if (OrbitalSet && OrbitalSet->LayerName == LayerName)
 			{
@@ -195,15 +185,15 @@ public:
 
 	/**
 	 * Compile the bonding rules for runtime use.
-	 * Loads orbital sets, validates layers, assigns module indices, and builds optimized lookup structures.
+	 * Validates orbital sets (already loaded via TObjectPtr), assigns module indices,
+	 * and builds optimized lookup structures.
+	 * Thread-safe - can be called from any thread.
 	 * @return True if compilation succeeded
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Valency")
 	bool Compile();
 
 	/** Check if the bonding rules have valid compiled data */
-	UFUNCTION(BlueprintCallable, Category = "Valency")
-	bool IsCompiled() const { return CompiledData != nullptr; }
+	bool IsCompiled() const { return CompiledData.IsValid(); }
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

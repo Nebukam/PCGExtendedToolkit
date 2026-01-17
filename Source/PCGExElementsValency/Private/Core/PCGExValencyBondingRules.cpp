@@ -3,7 +3,7 @@
 
 #include "Core/PCGExValencyBondingRules.h"
 
-void UPCGExValencyBondingRulesCompiled::BuildCandidateLookup()
+void FPCGExValencyBondingRulesCompiled::BuildCandidateLookup()
 {
 	MaskToCandidates.Empty();
 
@@ -24,29 +24,18 @@ void UPCGExValencyBondingRulesCompiled::BuildCandidateLookup()
 
 bool UPCGExValencyBondingRules::Compile()
 {
-	// Load and validate orbital sets
-	LoadedOrbitalSets.Empty();
-	LoadedOrbitalSets.SetNum(OrbitalSets.Num());
-
+	// Validate orbital sets (TObjectPtr ensures they're already loaded with this asset)
 	for (int32 i = 0; i < OrbitalSets.Num(); ++i)
 	{
-		if (OrbitalSets[i].IsNull())
+		if (!OrbitalSets[i])
 		{
 			UE_LOG(LogTemp, Error, TEXT("Valency Bonding Rules: Orbital set at index %d is null"), i);
 			return false;
 		}
 
-		// TODO : LoadBLocking, we're not in game thread!
-		LoadedOrbitalSets[i] = OrbitalSets[i].LoadSynchronous();
-		if (!LoadedOrbitalSets[i])
-		{
-			UE_LOG(LogTemp, Error, TEXT("Valency Bonding Rules: Failed to load orbital set at index %d"), i);
-			return false;
-		}
-
 		// Validate orbital set
 		TArray<FText> ValidationErrors;
-		if (!LoadedOrbitalSets[i]->Validate(ValidationErrors))
+		if (!OrbitalSets[i]->Validate(ValidationErrors))
 		{
 			for (const FText& Error : ValidationErrors)
 			{
@@ -56,9 +45,9 @@ bool UPCGExValencyBondingRules::Compile()
 		}
 
 		// Check for more than 64 orbitals
-		if (LoadedOrbitalSets[i]->Num() > 64)
+		if (OrbitalSets[i]->Num() > 64)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Valency Bonding Rules: Layer '%s' has more than 64 orbitals"), *LoadedOrbitalSets[i]->LayerName.ToString());
+			UE_LOG(LogTemp, Error, TEXT("Valency Bonding Rules: Layer '%s' has more than 64 orbitals"), *OrbitalSets[i]->LayerName.ToString());
 			return false;
 		}
 	}
@@ -69,13 +58,13 @@ bool UPCGExValencyBondingRules::Compile()
 		Modules[i].ModuleIndex = i;
 	}
 
-	// Create compiled data
+	// Create compiled data (using MakeShared - safe to call from any thread)
 	if (!CompiledData)
 	{
-		CompiledData = NewObject<UPCGExValencyBondingRulesCompiled>(this);
+		CompiledData = MakeShared<FPCGExValencyBondingRulesCompiled>();
 	}
 
-	const int32 LayerCount = LoadedOrbitalSets.Num();
+	const int32 LayerCount = OrbitalSets.Num();
 
 	CompiledData->ModuleCount = Modules.Num();
 	CompiledData->Layers.SetNum(LayerCount);
@@ -100,7 +89,7 @@ bool UPCGExValencyBondingRules::Compile()
 		// Orbital masks per layer
 		for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)
 		{
-			const FName& LayerName = LoadedOrbitalSets[LayerIndex]->LayerName;
+			const FName& LayerName = OrbitalSets[LayerIndex]->LayerName;
 			const int32 MaskIndex = ModuleIndex * LayerCount + LayerIndex;
 
 			if (const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(LayerName))
@@ -117,7 +106,7 @@ bool UPCGExValencyBondingRules::Compile()
 	// Compile each layer's neighbor data
 	for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)
 	{
-		const UPCGExValencyOrbitalSet* OrbitalSet = LoadedOrbitalSets[LayerIndex];
+		const UPCGExValencyOrbitalSet* OrbitalSet = OrbitalSets[LayerIndex];
 		FPCGExValencyLayerCompiled& CompiledLayer = CompiledData->Layers[LayerIndex];
 
 		CompiledLayer.LayerName = OrbitalSet->LayerName;

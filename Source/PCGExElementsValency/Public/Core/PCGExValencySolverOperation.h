@@ -72,10 +72,10 @@ namespace PCGExValency
 		TSet<int32> ModulesAtMaximum;
 
 		/** Initialize from compiled bonding rules */
-		void Initialize(const UPCGExValencyBondingRulesCompiled* CompiledBondingRules);
+		void Initialize(const FPCGExValencyBondingRulesCompiled* CompiledBondingRules);
 
 		/** Record a module spawn, update constraints. Returns false if would exceed max. */
-		bool RecordSpawn(int32 ModuleIndex, const UPCGExValencyBondingRulesCompiled* CompiledBondingRules);
+		bool RecordSpawn(int32 ModuleIndex, const FPCGExValencyBondingRulesCompiled* CompiledBondingRules);
 
 		/** Check if a module can still be spawned */
 		bool CanSpawn(int32 ModuleIndex) const;
@@ -130,7 +130,7 @@ public:
 	 * @param InSeed Random seed for deterministic solving
 	 */
 	virtual void Initialize(
-		const UPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
+		const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 		TArray<PCGExValency::FValencyState>& InValencyStates,
 		int32 InSeed);
 
@@ -146,7 +146,7 @@ public:
 
 protected:
 	/** The compiled bonding rules */
-	const UPCGExValencyBondingRulesCompiled* CompiledBondingRules = nullptr;
+	const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = nullptr;
 
 	/** Valency states (owned externally by staging node) */
 	TArray<PCGExValency::FValencyState>* ValencyStates = nullptr;
