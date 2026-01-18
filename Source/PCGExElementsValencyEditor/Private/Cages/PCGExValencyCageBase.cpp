@@ -63,25 +63,10 @@ void APCGExValencyCageBase::PostInitializeComponents()
 	LastDragUpdatePosition = GetActorLocation();
 
 	// If this is a newly created cage (not loaded), trigger auto-rebuild for containing volumes
-	// Only when Valency mode is active to avoid unexpected rebuilds
 	if (bIsNewlyCreated)
 	{
 		bIsNewlyCreated = false; // Clear flag
-
-		if (AValencyContextVolume::IsValencyModeActive())
-		{
-			for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
-			{
-				if (AValencyContextVolume* Volume = VolumePtr.Get())
-				{
-					if (Volume->bAutoRebuildOnChange)
-					{
-						Volume->BuildRulesFromCages();
-						break; // Only need to rebuild once (multi-volume aggregation handles the rest)
-					}
-				}
-			}
-		}
+		TriggerAutoRebuildIfNeeded();
 	}
 }
 
@@ -149,26 +134,11 @@ void APCGExValencyCageBase::BeginDestroy()
 	{
 		FPCGExValencyCageSpatialRegistry::Get(World).UnregisterCage(this);
 
-		// Only trigger auto-rebuild if:
-		// 1. World is still valid and not being torn down
-		// 2. We're in the editor (not PIE)
-		// 3. Valency mode is active
-		// 4. We had containing volumes
+		// Only trigger auto-rebuild if world is valid and not being torn down
 #if WITH_EDITOR
-		if (!World->bIsTearingDown && !World->IsPlayInEditor() &&
-			AValencyContextVolume::IsValencyModeActive() && ContainingVolumes.Num() > 0)
+		if (!World->bIsTearingDown && !World->IsPlayInEditor() && ContainingVolumes.Num() > 0)
 		{
-			for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
-			{
-				if (AValencyContextVolume* Volume = VolumePtr.Get())
-				{
-					if (Volume->bAutoRebuildOnChange)
-					{
-						Volume->BuildRulesFromCages();
-						break; // Only need to rebuild once (multi-volume aggregation handles the rest)
-					}
-				}
-			}
+			TriggerAutoRebuildIfNeeded();
 		}
 #endif
 	}
@@ -744,18 +714,15 @@ void APCGExValencyCageBase::HandleVolumeMembershipChange(const TArray<TWeakObjec
 		}
 	}
 
-	// Find volumes that need to rebuild
-	TSet<AValencyContextVolume*> VolumesToRebuild;
+	// Find volumes affected by membership change
+	TArray<AValencyContextVolume*> AffectedVolumes;
 
 	// Volumes that lost this cage (was in old, not in new)
 	for (AValencyContextVolume* OldVolume : OldVolumeSet)
 	{
 		if (!NewVolumeSet.Contains(OldVolume))
 		{
-			if (OldVolume->bAutoRebuildOnChange)
-			{
-				VolumesToRebuild.Add(OldVolume);
-			}
+			AffectedVolumes.AddUnique(OldVolume);
 		}
 	}
 
@@ -764,19 +731,53 @@ void APCGExValencyCageBase::HandleVolumeMembershipChange(const TArray<TWeakObjec
 	{
 		if (!OldVolumeSet.Contains(NewVolume))
 		{
-			if (NewVolume->bAutoRebuildOnChange)
-			{
-				VolumesToRebuild.Add(NewVolume);
-			}
+			AffectedVolumes.AddUnique(NewVolume);
 		}
 	}
 
 	// Trigger rebuild for affected volumes
-	for (AValencyContextVolume* Volume : VolumesToRebuild)
+	TriggerAutoRebuildForVolumes(AffectedVolumes);
+}
+
+bool APCGExValencyCageBase::TriggerAutoRebuildIfNeeded()
+{
+	// Only process when Valency mode is active
+	if (!AValencyContextVolume::IsValencyModeActive())
 	{
-		if (Volume)
+		return false;
+	}
+
+	// Collect containing volumes
+	TArray<AValencyContextVolume*> Volumes;
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+	{
+		if (AValencyContextVolume* Volume = VolumePtr.Get())
 		{
-			Volume->BuildRulesFromCages();
+			Volumes.Add(Volume);
 		}
 	}
+
+	return TriggerAutoRebuildForVolumes(Volumes);
+}
+
+bool APCGExValencyCageBase::TriggerAutoRebuildForVolumes(const TArray<AValencyContextVolume*>& Volumes)
+{
+	// Only process when Valency mode is active
+	if (!AValencyContextVolume::IsValencyModeActive())
+	{
+		return false;
+	}
+
+	// Find first volume with auto-rebuild enabled and trigger it
+	// Multi-volume aggregation handles rebuilding all related volumes
+	for (AValencyContextVolume* Volume : Volumes)
+	{
+		if (Volume && Volume->bAutoRebuildOnChange)
+		{
+			Volume->BuildRulesFromCages();
+			return true;
+		}
+	}
+
+	return false;
 }

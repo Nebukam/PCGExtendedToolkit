@@ -195,6 +195,14 @@ protected:
 	/** Called when asset registration changes */
 	virtual void OnAssetRegistrationChanged();
 
+	/**
+	 * Check if scanned assets have changed compared to a previous snapshot.
+	 * Used to determine if auto-rebuild is needed after cage movement.
+	 * @param OldScannedAssets Previous scanned assets to compare against
+	 * @return True if assets have changed
+	 */
+	bool HaveScannedAssetsChanged(const TArray<FPCGExValencyAssetEntry>& OldScannedAssets) const;
+
 	/** Extract material overrides from a static mesh component */
 	static void ExtractMaterialOverrides(const UStaticMeshComponent* MeshComponent, TArray<FPCGExValencyMaterialOverride>& OutOverrides);
 

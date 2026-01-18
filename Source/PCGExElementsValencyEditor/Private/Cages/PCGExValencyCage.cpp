@@ -19,7 +19,7 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 {
 	// Capture current scanned assets before Super (which may trigger volume membership changes)
 	TArray<FPCGExValencyAssetEntry> OldScannedAssets;
-	if (bFinished && bAutoRegisterContainedAssets)
+	if (bFinished && bAutoRegisterContainedAssets && AValencyContextVolume::IsValencyModeActive())
 	{
 		OldScannedAssets = ScannedAssetEntries;
 	}
@@ -28,63 +28,15 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 	Super::PostEditMove(bFinished);
 
 	// After drag finishes, re-scan for assets if auto-registration is enabled
-	// Only trigger auto-rebuild when Valency mode is active
 	if (bFinished && bAutoRegisterContainedAssets && AValencyContextVolume::IsValencyModeActive())
 	{
 		// Re-scan contained assets
 		ScanAndRegisterContainedAssets();
 
 		// Check if scanned assets changed
-		bool bAssetsChanged = (OldScannedAssets.Num() != ScannedAssetEntries.Num());
-		if (!bAssetsChanged)
+		if (HaveScannedAssetsChanged(OldScannedAssets))
 		{
-			// Compare individual entries
-			for (int32 i = 0; i < ScannedAssetEntries.Num(); ++i)
-			{
-				const FPCGExValencyAssetEntry& NewEntry = ScannedAssetEntries[i];
-				bool bFound = false;
-				for (const FPCGExValencyAssetEntry& OldEntry : OldScannedAssets)
-				{
-					if (OldEntry.Asset == NewEntry.Asset)
-					{
-						// If preserving transforms, also check transform equality
-						if (bPreserveLocalTransforms)
-						{
-							if (OldEntry.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
-							{
-								bFound = true;
-								break;
-							}
-						}
-						else
-						{
-							bFound = true;
-							break;
-						}
-					}
-				}
-				if (!bFound)
-				{
-					bAssetsChanged = true;
-					break;
-				}
-			}
-		}
-
-		// If assets changed, trigger auto-rebuild for containing volumes
-		if (bAssetsChanged)
-		{
-			for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
-			{
-				if (AValencyContextVolume* Volume = VolumePtr.Get())
-				{
-					if (Volume->bAutoRebuildOnChange)
-					{
-						Volume->BuildRulesFromCages();
-						break; // Only need to rebuild once (multi-volume aggregation handles the rest)
-					}
-				}
-			}
+			TriggerAutoRebuildIfNeeded();
 		}
 	}
 }
@@ -404,11 +356,49 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 
 void APCGExValencyCage::OnAssetRegistrationChanged()
 {
-	// Notify containing volumes if auto-rebuild is enabled
-	// TODO: Trigger rule rebuild
-
 	// Mark as needing save
 	Modify();
+}
+
+bool APCGExValencyCage::HaveScannedAssetsChanged(const TArray<FPCGExValencyAssetEntry>& OldScannedAssets) const
+{
+	// Quick count check
+	if (OldScannedAssets.Num() != ScannedAssetEntries.Num())
+	{
+		return true;
+	}
+
+	// Compare individual entries
+	for (const FPCGExValencyAssetEntry& NewEntry : ScannedAssetEntries)
+	{
+		bool bFound = false;
+		for (const FPCGExValencyAssetEntry& OldEntry : OldScannedAssets)
+		{
+			if (OldEntry.Asset == NewEntry.Asset)
+			{
+				// If preserving transforms, also check transform equality
+				if (bPreserveLocalTransforms)
+				{
+					if (OldEntry.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
+					{
+						bFound = true;
+						break;
+					}
+				}
+				else
+				{
+					bFound = true;
+					break;
+				}
+			}
+		}
+		if (!bFound)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void APCGExValencyCage::ExtractMaterialOverrides(

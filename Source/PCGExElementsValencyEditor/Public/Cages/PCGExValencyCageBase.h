@@ -202,4 +202,19 @@ protected:
 	 * @param OldVolumes Volumes that contained this cage before the move
 	 */
 	void HandleVolumeMembershipChange(const TArray<TWeakObjectPtr<AValencyContextVolume>>& OldVolumes);
+
+	/**
+	 * Trigger auto-rebuild for containing volumes if conditions are met.
+	 * Consolidates the common rebuild triggering logic.
+	 * Checks: Valency mode active, bAutoRebuildOnChange enabled.
+	 * @return True if a rebuild was triggered
+	 */
+	bool TriggerAutoRebuildIfNeeded();
+
+	/**
+	 * Trigger auto-rebuild for specific volumes if conditions are met.
+	 * @param Volumes Volumes to check for auto-rebuild
+	 * @return True if a rebuild was triggered
+	 */
+	static bool TriggerAutoRebuildForVolumes(const TArray<AValencyContextVolume*>& Volumes);
 };
