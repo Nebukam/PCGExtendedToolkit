@@ -55,31 +55,47 @@ public:
 
 	//~ End Containment Interface
 
-	/** Get all registered asset entries for this cage */
-	const TArray<FPCGExValencyAssetEntry>& GetRegisteredAssetEntries() const { return RegisteredAssetEntries; }
+	/** Get all asset entries for this cage (combines manual + scanned) */
+	TArray<FPCGExValencyAssetEntry> GetAllAssetEntries() const;
+
+	/** Get manual asset entries only */
+	const TArray<FPCGExValencyAssetEntry>& GetManualAssetEntries() const { return ManualAssetEntries; }
+
+	/** Get scanned asset entries only */
+	const TArray<FPCGExValencyAssetEntry>& GetScannedAssetEntries() const { return ScannedAssetEntries; }
 
 	/** Get simple asset list (without transforms) for backward compatibility */
 	TArray<TSoftObjectPtr<UObject>> GetRegisteredAssets() const;
 
-	/** Register an asset as valid for this cage configuration */
-	void RegisterAsset(const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor = nullptr);
+	/** Manually register an asset (user-defined, persisted) */
+	void RegisterManualAsset(const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor = nullptr);
 
-	/** Unregister an asset */
-	void UnregisterAsset(const TSoftObjectPtr<UObject>& Asset);
+	/** Unregister a manually added asset */
+	void UnregisterManualAsset(const TSoftObjectPtr<UObject>& Asset);
 
-	/** Clear all registered assets */
-	void ClearRegisteredAssets();
+	/** Clear manually registered assets */
+	void ClearManualAssets();
 
-	/** Scan for assets within cage bounds and register them */
+	/** Clear scanned assets (auto-detected) */
+	void ClearScannedAssets();
+
+	/** Scan for assets within cage bounds and register them as scanned */
 	void ScanAndRegisterContainedAssets();
 
 public:
 	/**
-	 * Asset entries registered as valid for this cage's orbital configuration.
-	 * Multiple entries = all are valid modules for this config.
+	 * Manually registered asset entries (user-defined via details panel).
+	 * These are persisted and not affected by auto-scanning.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets")
-	TArray<FPCGExValencyAssetEntry> RegisteredAssetEntries;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets", meta = (TitleProperty = "Asset"))
+	TArray<FPCGExValencyAssetEntry> ManualAssetEntries;
+
+	/**
+	 * Auto-scanned asset entries (transient, rebuilt by ScanAndRegisterContainedAssets).
+	 * Populated when bAutoRegisterContainedAssets is enabled.
+	 */
+	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = "Cage|Assets")
+	TArray<FPCGExValencyAssetEntry> ScannedAssetEntries;
 
 	/**
 	 * Mirror source cage.

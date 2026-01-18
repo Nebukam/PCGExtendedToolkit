@@ -183,7 +183,24 @@ bool FPCGExValencyCageEditorMode::HandleClick(FEditorViewportClient* InViewportC
 
 bool FPCGExValencyCageEditorMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
-	// TODO: Phase 3 - implement hotkeys
+	if (Event == IE_Pressed)
+	{
+		// Ctrl+Shift+C: Cleanup stale manual connections
+		if (Key == EKeys::C && ViewportClient->IsCtrlPressed() && ViewportClient->IsShiftPressed())
+		{
+			const int32 RemovedCount = CleanupAllManualConnections();
+			if (RemovedCount > 0)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Valency: Cleaned up %d stale manual connection(s)"), RemovedCount);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("Valency: No stale manual connections found"));
+			}
+			return true;
+		}
+	}
+
 	return FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
 }
 
@@ -262,8 +279,9 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 		return;
 	}
 
-	// Use probe radius for arrow length
-	const float ArrowLength = Cage->GetEffectiveProbeRadius();
+	// Use probe radius for calculating arrow positions
+	const float ProbeRadius = Cage->GetEffectiveProbeRadius();
+	const float StartOffset = ProbeRadius * ArrowStartOffsetPct;
 
 	// Note: Simple cages have their own debug shape components for bounds visualization
 	// We only draw orbital arrows and connections here
@@ -292,51 +310,68 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 		FVector WorldDir = CageTransform.TransformVectorNoScale(Direction);
 		WorldDir.Normalize();
 
-		// Determine color and style based on connection state
+		// Arrow always starts offset from center
+		const FVector ArrowStart = CageLocation + WorldDir * StartOffset;
+
+		// Determine color, style, and endpoint based on connection state
 		FLinearColor ArrowColor;
 		bool bDashed = false;
 		bool bDrawArrowhead = true;
+		FVector ArrowEnd;
+		float Thickness = 1.5f;
 
 		if (!Orbital.bEnabled)
 		{
 			// Disabled orbital - skip drawing
 			continue;
 		}
-		else if (Orbital.ConnectedCage.IsValid())
+		else if (const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection())
 		{
-			const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage.Get();
+			const FVector ConnectedLocation = ConnectedCage->GetActorLocation();
+
+			// Calculate midpoint between cages for arrow endpoint
+			const FVector Midpoint = (CageLocation + ConnectedLocation) * 0.5f;
 
 			if (ConnectedCage->IsNullCage())
 			{
 				// Connection to null cage: dashed darkish red, no arrowhead
+				// Arrow goes to midpoint (null cages are boundary markers)
 				ArrowColor = NullConnectionColor;
 				bDashed = true;
 				bDrawArrowhead = false;
+				ArrowEnd = Midpoint;
 			}
 			else if (ConnectedCage->HasConnectionTo(Cage))
 			{
 				// Bidirectional connection: green with arrowhead
+				// Arrow ends at midpoint so both arrows meet there
 				ArrowColor = BidirectionalColor;
+				ArrowEnd = Midpoint;
 			}
 			else
 			{
 				// Unilateral connection: teal with arrowhead
+				// Arrow ends at midpoint
 				ArrowColor = UnilateralColor;
+				ArrowEnd = Midpoint;
 			}
 
-			// Draw connection line to connected cage
+			// Draw thin connection line from center to center
 			DrawConnection(PDI, Cage, Orbital.OrbitalIndex, ConnectedCage);
 		}
 		else
 		{
 			// No connection: dashed light gray, no arrowhead
+			// Arrow extends full probe radius in direction
 			ArrowColor = NoConnectionColor;
 			bDashed = true;
 			bDrawArrowhead = false;
+			ArrowEnd = CageLocation + WorldDir * ProbeRadius;
+			Thickness = 0.5f;
 		}
 
 		// Draw the orbital arrow
-		DrawOrbitalArrow(PDI, CageLocation, WorldDir, ArrowLength, ArrowColor, bDashed, bDrawArrowhead);
+		DrawOrbitalArrow(PDI, ArrowStart, ArrowEnd, ArrowColor, bDashed, bDrawArrowhead, Thickness);
 	}
 }
 
@@ -403,78 +438,59 @@ void FPCGExValencyCageEditorMode::DrawConnection(FPrimitiveDrawInterface* PDI, c
 	}
 }
 
-void FPCGExValencyCageEditorMode::DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Origin, const FVector& Direction, float Length, const FLinearColor& Color, bool bDashed, bool bDrawArrowhead)
+void FPCGExValencyCageEditorMode::DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, bool bDashed, bool bDrawArrowhead, float Thickness, float ThicknessArrow)
 {
-	// Arrow geometry when arrowhead is drawn:
-	// - 0% to 70%: thin line
-	// - 70% to 110%: thicker arrow line with arrowhead at 110%
-	// Without arrowhead: just draw to 100%
-	const float ThinEndPct = bDrawArrowhead ? 0.70f : 1.0f;
-	const float ArrowEndPct = 1.10f;
+	const FVector Direction = (End - Start).GetSafeNormal();
+	const float TotalLength = FVector::Dist(Start, End);
 
-	const FVector ThinEnd = Origin + Direction * (Length * ThinEndPct);
-	const FVector ArrowEnd = Origin + Direction * (Length * ArrowEndPct);
+	if (TotalLength < KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+
+	// Arrow geometry when arrowhead is drawn:
+	// - Main line up to 85% of length
+	// - Arrowhead prongs at the end
+	const float MainLinePct = bDrawArrowhead ? 0.85f : 1.0f;
+	const FVector MainLineEnd = Start + Direction * (TotalLength * MainLinePct);
 
 	if (bDashed)
 	{
-		// Draw dashed line (0% to ThinEndPct)
-		const float ThinLength = Length * ThinEndPct;
-		const int32 NumSegments = FMath::Max(4, FMath::RoundToInt(ThinLength / 25.0f)); // Scale segments with length
-		const float SegmentLength = ThinLength / (NumSegments * 2);
+		// Draw dashed line using configurable dash length/gap
+		const float MainLength = TotalLength * MainLinePct;
+		const float DashCycle = DashLength + DashGap;
+		float CurrentPos = 0.0f;
 
-		for (int32 i = 0; i < NumSegments; ++i)
+		while (CurrentPos < MainLength)
 		{
-			const float Start = i * SegmentLength * 2;
-			const float End = Start + SegmentLength;
+			const float DashStart = CurrentPos;
+			const float DashEnd = FMath::Min(CurrentPos + DashLength, MainLength);
 
-			const FVector SegStart = Origin + Direction * Start;
-			const FVector SegEnd = Origin + Direction * FMath::Min(End, ThinLength);
+			const FVector SegStart = Start + Direction * DashStart;
+			const FVector SegEnd = Start + Direction * DashEnd;
 
-			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, 1.0f);
-		}
-
-		if (bDrawArrowhead)
-		{
-			// Draw dashed arrow line (70% to 110%)
-			const float ArrowLength = Length * (ArrowEndPct - ThinEndPct);
-			const int32 NumArrowSegments = 2;
-			const float ArrowSegmentLength = ArrowLength / (NumArrowSegments * 2);
-
-			for (int32 i = 0; i < NumArrowSegments; ++i)
-			{
-				const float Start = i * ArrowSegmentLength * 2;
-				const float End = Start + ArrowSegmentLength;
-
-				const FVector SegStart = ThinEnd + Direction * Start;
-				const FVector SegEnd = ThinEnd + Direction * FMath::Min(End, ArrowLength);
-
-				PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, 2.0f);
-			}
+			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, Thickness);
+			CurrentPos += DashCycle;
 		}
 	}
 	else
 	{
-		// Solid thin line (0% to ThinEndPct)
-		PDI->DrawLine(Origin, ThinEnd, Color, SDPG_World, 1.0f);
-
-		if (bDrawArrowhead)
-		{
-			// Solid thicker arrow line (70% to 110%)
-			PDI->DrawLine(ThinEnd, ArrowEnd, Color, SDPG_World, 2.0f);
-		}
+		// Solid line to main end point
+		PDI->DrawLine(Start, MainLineEnd, Color, SDPG_World, Thickness);
 	}
 
-	// Draw arrowhead at 110% if enabled
+	// Draw arrowhead at end if enabled
 	if (bDrawArrowhead)
 	{
 		const FVector Right = FVector::CrossProduct(Direction, FVector::UpVector).GetSafeNormal();
 		const FVector Up = FVector::CrossProduct(Right, Direction).GetSafeNormal();
 		const float ArrowSize = 10.0f;
 
-		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize + Right * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
-		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize - Right * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
-		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize + Up * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
-		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize - Up * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
+		// Four prongs for 3D arrowhead
+		PDI->DrawLine(End, End - Direction * ArrowSize + Right * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
+		PDI->DrawLine(End, End - Direction * ArrowSize - Right * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
+		PDI->DrawLine(End, End - Direction * ArrowSize + Up * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
+		PDI->DrawLine(End, End - Direction * ArrowSize - Up * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
 	}
 }
 
@@ -645,4 +661,25 @@ void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 
 	// Detect connections
 	Cage->DetectNearbyConnections();
+}
+
+int32 FPCGExValencyCageEditorMode::CleanupAllManualConnections()
+{
+	int32 TotalRemoved = 0;
+
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		{
+			TotalRemoved += Cage->CleanupManualConnections();
+		}
+	}
+
+	// Redraw to reflect any changes
+	if (TotalRemoved > 0 && GEditor)
+	{
+		GEditor->RedrawAllViewports();
+	}
+
+	return TotalRemoved;
 }

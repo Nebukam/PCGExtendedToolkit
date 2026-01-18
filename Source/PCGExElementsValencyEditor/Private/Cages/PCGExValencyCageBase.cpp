@@ -69,14 +69,51 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, OrbitalSetOverride) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, BondingRulesOverride))
 	{
-		// Override changed - reinitialize orbitals
+		// Override changed - reinitialize orbitals and redraw
 		CachedOrbitalSet.Reset();
 		InitializeOrbitalsFromSet();
+		DetectNearbyConnections();
+
+#if WITH_EDITOR
+		if (GEditor)
+		{
+			GEditor->RedrawAllViewports();
+		}
+#endif
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, ProbeRadius))
 	{
-		// Probe radius changed - redetect connections
+		// Probe radius changed - redetect connections and redraw
 		DetectNearbyConnections();
+
+#if WITH_EDITOR
+		if (GEditor)
+		{
+			GEditor->RedrawAllViewports();
+		}
+#endif
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, CageName))
+	{
+		// Display name changed - just redraw
+#if WITH_EDITOR
+		if (GEditor)
+		{
+			GEditor->RedrawAllViewports();
+		}
+#endif
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, TransformFlags))
+	{
+		// Transform settings changed - redetect connections and redraw
+		DetectNearbyConnections();
+
+#if WITH_EDITOR
+		if (GEditor)
+		{
+			GEditor->RedrawAllViewports();
+		}
+#endif
 	}
 }
 
@@ -195,23 +232,54 @@ UPCGExValencyBondingRules* APCGExValencyCageBase::GetEffectiveBondingRules() con
 
 float APCGExValencyCageBase::GetEffectiveProbeRadius() const
 {
+	float BaseRadius;
+
 	// Explicit override
 	if (ProbeRadius >= 0.0f)
 	{
-		return ProbeRadius;
+		BaseRadius = ProbeRadius;
 	}
-
-	// Get from first containing volume
-	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+	else
 	{
-		if (const AValencyContextVolume* Volume = VolumePtr.Get())
+		// Get from first containing volume
+		BaseRadius = 100.0f; // Default fallback
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
 		{
-			return Volume->GetDefaultProbeRadius();
+			if (const AValencyContextVolume* Volume = VolumePtr.Get())
+			{
+				BaseRadius = Volume->GetDefaultProbeRadius();
+				break;
+			}
 		}
 	}
 
-	// Default fallback
-	return 100.0f;
+	// Apply scale if flags are set (not inheriting) and Scale flag is enabled
+	const EPCGExCageTransformFlags Flags = static_cast<EPCGExCageTransformFlags>(TransformFlags);
+	if (TransformFlags != 0 && EnumHasAnyFlags(Flags, EPCGExCageTransformFlags::Scale))
+	{
+		const FVector Scale = GetActorScale3D();
+		const float AvgScale = (Scale.X + Scale.Y + Scale.Z) / 3.0f;
+		return BaseRadius * AvgScale;
+	}
+
+	return BaseRadius;
+}
+
+bool APCGExValencyCageBase::ShouldTransformOrbitalDirections() const
+{
+	// If no flags set, inherit from OrbitalSet
+	if (TransformFlags == 0)
+	{
+		if (const UPCGExValencyOrbitalSet* OrbitalSet = GetEffectiveOrbitalSet())
+		{
+			return OrbitalSet->bTransformDirection;
+		}
+		return true; // Default to transforming if no orbital set
+	}
+
+	// Flags are set - check if Rotation flag is enabled
+	const EPCGExCageTransformFlags Flags = static_cast<EPCGExCageTransformFlags>(TransformFlags);
+	return EnumHasAnyFlags(Flags, EPCGExCageTransformFlags::Rotation);
 }
 
 bool APCGExValencyCageBase::HasConnectionTo(const APCGExValencyCageBase* OtherCage) const
@@ -223,7 +291,19 @@ bool APCGExValencyCageBase::HasConnectionTo(const APCGExValencyCageBase* OtherCa
 
 	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 	{
-		if (Orbital.bEnabled && Orbital.ConnectedCage == OtherCage)
+		if (!Orbital.bEnabled)
+		{
+			continue;
+		}
+
+		// Check manual connections list
+		if (Orbital.IsManualTarget(OtherCage))
+		{
+			return true;
+		}
+
+		// Check auto connection
+		if (Orbital.AutoConnectedCage.Get() == OtherCage)
 		{
 			return true;
 		}
@@ -241,7 +321,19 @@ int32 APCGExValencyCageBase::GetOrbitalIndexTo(const APCGExValencyCageBase* Othe
 
 	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 	{
-		if (Orbital.bEnabled && Orbital.ConnectedCage == OtherCage)
+		if (!Orbital.bEnabled)
+		{
+			continue;
+		}
+
+		// Check manual connections list
+		if (Orbital.IsManualTarget(OtherCage))
+		{
+			return Orbital.OrbitalIndex;
+		}
+
+		// Check auto connection
+		if (Orbital.AutoConnectedCage.Get() == OtherCage)
 		{
 			return Orbital.OrbitalIndex;
 		}
@@ -296,15 +388,17 @@ void APCGExValencyCageBase::InitializeOrbitalsFromSet()
 	// Cache the set
 	CachedOrbitalSet = const_cast<UPCGExValencyOrbitalSet*>(OrbitalSet);
 
-	// Preserve existing connections where possible
-	TMap<int32, TWeakObjectPtr<APCGExValencyCageBase>> ExistingConnections;
+	// Preserve existing data where possible
+	TMap<int32, TArray<TObjectPtr<APCGExValencyCageBase>>> ExistingManualConnections;
+	TMap<int32, TWeakObjectPtr<APCGExValencyCageBase>> ExistingAutoConnections;
 	TMap<int32, bool> ExistingEnabled;
 
 	for (const FPCGExValencyCageOrbital& Existing : Orbitals)
 	{
 		if (Existing.OrbitalIndex >= 0)
 		{
-			ExistingConnections.Add(Existing.OrbitalIndex, Existing.ConnectedCage);
+			ExistingManualConnections.Add(Existing.OrbitalIndex, Existing.ManualConnections);
+			ExistingAutoConnections.Add(Existing.OrbitalIndex, Existing.AutoConnectedCage);
 			ExistingEnabled.Add(Existing.OrbitalIndex, Existing.bEnabled);
 		}
 	}
@@ -320,10 +414,15 @@ void APCGExValencyCageBase::InitializeOrbitalsFromSet()
 		Orbital.OrbitalIndex = i;
 		Orbital.OrbitalName = Entry.GetOrbitalName();
 
-		// Restore existing connection if any
-		if (TWeakObjectPtr<APCGExValencyCageBase>* ExistingPtr = ExistingConnections.Find(i))
+		// Restore existing manual connections if any (user-defined, persisted)
+		if (TArray<TObjectPtr<APCGExValencyCageBase>>* ManualPtr = ExistingManualConnections.Find(i))
 		{
-			Orbital.ConnectedCage = *ExistingPtr;
+			Orbital.ManualConnections = *ManualPtr;
+		}
+		// Restore existing auto connection if any (will be refreshed by DetectNearbyConnections)
+		if (TWeakObjectPtr<APCGExValencyCageBase>* AutoPtr = ExistingAutoConnections.Find(i))
+		{
+			Orbital.AutoConnectedCage = *AutoPtr;
 		}
 		if (bool* EnabledPtr = ExistingEnabled.Find(i))
 		{
@@ -363,10 +462,23 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 		return;
 	}
 
-	// Clear existing connections
+	// Build set of cages that are manual targets (excluded from auto-detection)
+	TSet<const APCGExValencyCageBase*> ManualTargets;
+	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
+	{
+		for (const TObjectPtr<APCGExValencyCageBase>& ManualCage : Orbital.ManualConnections)
+		{
+			if (ManualCage)
+			{
+				ManualTargets.Add(ManualCage);
+			}
+		}
+	}
+
+	// Clear existing auto-connections (manual connections are preserved)
 	for (FPCGExValencyCageOrbital& Orbital : Orbitals)
 	{
-		Orbital.ConnectedCage = nullptr;
+		Orbital.AutoConnectedCage = nullptr;
 	}
 
 	// Find nearby cages
@@ -374,6 +486,12 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 	{
 		APCGExValencyCageBase* OtherCage = *It;
 		if (OtherCage == this)
+		{
+			continue;
+		}
+
+		// Skip cages that are manual targets - they're handled separately
+		if (ManualTargets.Contains(OtherCage))
 		{
 			continue;
 		}
@@ -389,23 +507,40 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 		// Check direction to other cage
 		const FVector Direction = (OtherLocation - MyLocation).GetSafeNormal();
 
-		// Find matching orbital
+		// Find matching orbital (use per-cage transform setting)
 		const uint8 OrbitalIndex = OrbitalCache.FindMatchingOrbital(
 			Direction,
-			OrbitalSet->bTransformDirection,
+			ShouldTransformOrbitalDirections(),
 			MyTransform
 		);
 
 		if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH && Orbitals.IsValidIndex(OrbitalIndex))
 		{
 			FPCGExValencyCageOrbital& Orbital = Orbitals[OrbitalIndex];
-			if (!Orbital.ConnectedCage.IsValid())
+			if (!Orbital.AutoConnectedCage.IsValid())
 			{
-				// Connect to closest cage in this direction
-				Orbital.ConnectedCage = OtherCage;
+				// Connect to closest cage in this direction (auto-detected)
+				Orbital.AutoConnectedCage = OtherCage;
 			}
 		}
 	}
+}
+
+int32 APCGExValencyCageBase::CleanupManualConnections()
+{
+	int32 TotalRemoved = 0;
+
+	for (FPCGExValencyCageOrbital& Orbital : Orbitals)
+	{
+		TotalRemoved += Orbital.CleanupManualConnections();
+	}
+
+	if (TotalRemoved > 0)
+	{
+		Modify(); // Mark as needing save
+	}
+
+	return TotalRemoved;
 }
 
 void APCGExValencyCageBase::OnRelatedCageMoved(APCGExValencyCageBase* MovedCage)

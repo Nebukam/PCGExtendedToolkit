@@ -189,9 +189,8 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			}
 
 			// Only count connected orbitals (or null cage connections if enabled)
-			if (Orbital.ConnectedCage.IsValid())
+			if (const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection())
 			{
-				const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage.Get();
 
 				// Check if it's a null cage (boundary)
 				if (ConnectedCage->IsNullCage())
@@ -334,10 +333,8 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			// Get neighbor modules from connected cage
 			TArray<int32> NeighborModuleIndices;
 
-			if (Orbital.ConnectedCage.IsValid())
+			if (const APCGExValencyCageBase* ConnectedBase = Orbital.GetDisplayConnection())
 			{
-				const APCGExValencyCageBase* ConnectedBase = Orbital.ConnectedCage.Get();
-
 				if (ConnectedBase->IsNullCage())
 				{
 					// Null cage = boundary, mark this orbital as boundary for all modules from this cage
@@ -469,7 +466,7 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 		}
 	}
 
-	return Cage->GetRegisteredAssetEntries();
+	return Cage->GetAllAssetEntries();
 }
 
 FString UPCGExValencyBondingRulesBuilder::GenerateVariantName(

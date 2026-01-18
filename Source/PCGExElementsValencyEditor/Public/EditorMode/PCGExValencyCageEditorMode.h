@@ -63,8 +63,8 @@ protected:
 	/** Draw connection between two cages */
 	void DrawConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* FromCage, int32 OrbitalIndex, const APCGExValencyCageBase* ToCage);
 
-	/** Draw orbital direction arrow from cage */
-	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Origin, const FVector& Direction, float Length, const FLinearColor& Color, bool bDashed = false, bool bDrawArrowhead = true);
+	/** Draw orbital direction arrow - from Start to End with optional arrowhead */
+	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, bool bDashed = false, bool bDrawArrowhead = true, float Thickness = 1.5f, float ThicknessArrow = 2.0f);
 
 	/** Draw text label in viewport */
 	void DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color);
@@ -87,6 +87,13 @@ protected:
 	/** Initialize a single cage's orbitals and detect its connections */
 	void InitializeCage(APCGExValencyCageBase* Cage);
 
+	/**
+	 * Cleanup stale manual connections from all cages.
+	 * Removes null/invalid entries from manual connection lists.
+	 * @return Total number of stale entries removed across all cages
+	 */
+	int32 CleanupAllManualConnections();
+
 private:
 	/** Cached cages in level */
 	TArray<TWeakObjectPtr<APCGExValencyCageBase>> CachedCages;
@@ -103,7 +110,10 @@ private:
 
 	/** Visualization settings */
 	float OrbitalArrowLength = 100.0f;
-	float ConnectionLineThickness = 2.0f;
+	float ConnectionLineThickness = 0.5f;          // Thin center-to-center lines (many of them)
+	float ArrowStartOffsetPct = 0.25f;             // Arrows start at 25% of probe radius from center
+	float DashLength = 8.0f;                      // Length of each dash segment
+	float DashGap = 12.0f;                          // Gap between dashes
 
 	/** Colors */
 	FLinearColor BidirectionalColor = FLinearColor(0.2f, 0.8f, 0.2f);      // Green - mutual connection
