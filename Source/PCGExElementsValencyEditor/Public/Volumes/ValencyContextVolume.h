@@ -112,6 +112,21 @@ public:
 	TArray<FName> IgnoredActorTags = {FName("PCGEx_Ignore")};
 
 	/**
+	 * Specific actors to ignore during scanning and detection.
+	 * These actors (and their attached children) will be completely excluded.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Filtering")
+	TArray<TObjectPtr<AActor>> IgnoredActors;
+
+	/**
+	 * When enabled, automatically ignores actors spawned by PCGActorsToRegenerate.
+	 * Any actor attached to (child of) a PCG actor in the regenerate list will be excluded from scanning.
+	 * Default: true
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Filtering")
+	bool bAutoIgnorePCGSpawnedActors = true;
+
+	/**
 	 * Check if an actor should be ignored based on the ignore rules.
 	 * @param Actor The actor to check
 	 * @return True if the actor should be ignored/excluded

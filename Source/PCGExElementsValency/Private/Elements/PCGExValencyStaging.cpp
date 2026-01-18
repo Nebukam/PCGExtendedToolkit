@@ -13,6 +13,7 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Solvers/PCGExValencyEntropySolver.h"
+#include "Core/PCGExValencyLog.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyStaging"
 #define PCGEX_NAMESPACE ValencyStaging
@@ -251,6 +252,9 @@ namespace PCGExValencyStaging
 	{
 		if (!Cluster || !Context->OrbitalSet) { return; }
 
+		VALENCY_LOG_SECTION(Staging, "BUILDING VALENCY STATES");
+		PCGEX_VALENCY_INFO(Staging, "Cluster nodes: %d, MaxOrbitals: %d", NumNodes, Context->OrbitalSet->Num());
+
 		ValencyStates.SetNum(NumNodes);
 
 		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
@@ -269,6 +273,20 @@ namespace PCGExValencyStaging
 			{
 				const int64 Mask = OrbitalMaskReader->Read(Node.PointIndex);
 				State.OrbitalMasks.Add(Mask);
+
+				// Log mask as binary
+				FString MaskBits;
+				for (int32 Bit = 0; Bit < MaxOrbitals; ++Bit)
+				{
+					MaskBits += (Mask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
+				}
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): OrbitalMask=%s (0x%llX), Links=%d",
+					NodeIndex, Node.PointIndex, *MaskBits, Mask, Node.Links.Num());
+			}
+			else
+			{
+				PCGEX_VALENCY_WARNING(Staging, "  Node[%d] (Point=%d): NO MASK READER, Links=%d",
+					NodeIndex, Node.PointIndex, Node.Links.Num());
 			}
 
 			// Initialize orbital-to-neighbor mapping with no neighbors
@@ -310,6 +328,7 @@ namespace PCGExValencyStaging
 				// Skip if no match (sentinel value)
 				if (OrbitalIndex == PCGExValency::NO_ORBITAL_MATCH)
 				{
+					PCGEX_VALENCY_VERBOSE(Staging, "    Link to Node[%d] via Edge[%d]: NO_ORBITAL_MATCH", NeighborNodeIndex, EdgeIndex);
 					continue;
 				}
 
@@ -317,17 +336,35 @@ namespace PCGExValencyStaging
 				if (OrbitalIndex < MaxOrbitals)
 				{
 					State.OrbitalToNeighbor[OrbitalIndex] = NeighborNodeIndex;
+					PCGEX_VALENCY_VERBOSE(Staging, "    Orbital[%d] -> Neighbor Node[%d]", OrbitalIndex, NeighborNodeIndex);
 				}
 			}
 		}
+
+		// Summary: count states with/without orbitals
+		int32 WithOrbitals = 0;
+		int32 WithoutOrbitals = 0;
+		for (const PCGExValency::FValencyState& State : ValencyStates)
+		{
+			if (State.HasOrbitals()) { WithOrbitals++; } else { WithoutOrbitals++; }
+		}
+		VALENCY_LOG_SECTION(Staging, "STATE BUILDING COMPLETE");
+		PCGEX_VALENCY_INFO(Staging, "With orbitals: %d, Without: %d", WithOrbitals, WithoutOrbitals);
 	}
 
 	void FProcessor::RunSolver()
 	{
+		VALENCY_LOG_SECTION(Staging, "RUNNING VALENCY SOLVER");
+
 		if (!Context->BondingRules || !Context->BondingRules->CompiledData)
 		{
+			PCGEX_VALENCY_ERROR(Staging, "RunSolver: Missing BondingRules or CompiledData!");
 			return;
 		}
+
+		PCGEX_VALENCY_INFO(Staging, "BondingRules: '%s', CompiledModules: %d",
+			*Context->BondingRules->GetName(),
+			Context->BondingRules->CompiledData->ModuleCount);
 
 		// Create solver from factory
 		if (Context->Solver)
@@ -349,8 +386,15 @@ namespace PCGExValencyStaging
 			SolveSeed = HashCombine(SolveSeed, GetTypeHash(VtxDataFacade->GetIn()->UID));
 		}
 
+		PCGEX_VALENCY_INFO(Staging, "Initializing solver with seed %d, %d states", SolveSeed, ValencyStates.Num());
+
 		Solver->Initialize(Context->BondingRules->CompiledData.Get(), ValencyStates, SolveSeed);
 		SolveResult = Solver->Solve();
+
+		VALENCY_LOG_SECTION(Staging, "SOLVER RESULT");
+		PCGEX_VALENCY_INFO(Staging, "Resolved=%d, Unsolvable=%d, Boundary=%d, Success=%s",
+			SolveResult.ResolvedCount, SolveResult.UnsolvableCount, SolveResult.BoundaryCount,
+			SolveResult.bSuccess ? TEXT("true") : TEXT("false"));
 
 		if (SolveResult.UnsolvableCount > 0)
 		{
@@ -365,8 +409,11 @@ namespace PCGExValencyStaging
 
 	void FProcessor::WriteResults()
 	{
+		VALENCY_LOG_SECTION(Staging, "WRITING VALENCY RESULTS");
+
 		if (!Context->BondingRules || !Context->BondingRules->CompiledData)
 		{
+			PCGEX_VALENCY_ERROR(Staging, "WriteResults: Missing BondingRules or CompiledData!");
 			return;
 		}
 
@@ -374,6 +421,10 @@ namespace PCGExValencyStaging
 		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
 		TConstPCGValueRange<int32> InSeeds = VtxDataFacade->GetIn()->GetConstSeedValueRange();
+
+		int32 ResolvedCount = 0;
+		int32 UnsolvableCount = 0;
+		int32 BoundaryCount = 0;
 
 		for (const PCGExValency::FValencyState& State : ValencyStates)
 		{
@@ -387,7 +438,12 @@ namespace PCGExValencyStaging
 
 			if (State.ResolvedModule >= 0)
 			{
+				ResolvedCount++;
 				const EPCGExValencyAssetType AssetType = CompiledBondingRules->ModuleAssetTypes[State.ResolvedModule];
+				const FString AssetName = CompiledBondingRules->ModuleAssets[State.ResolvedModule].GetAssetName();
+
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)",
+					State.NodeIndex, Node.PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
 
 				// Write asset path (Attributes mode) or entry hash (CollectionMap mode)
 				if (AssetPathWriter)
@@ -424,6 +480,13 @@ namespace PCGExValencyStaging
 					{
 						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, SecondaryIndex);
 						EntryHashWriter->SetValue(Node.PointIndex, static_cast<int64>(Hash));
+						PCGEX_VALENCY_VERBOSE(Staging, "    -> EntryHash=0x%llX (EntryIndex=%d, SecondaryIndex=%d)",
+							Hash, EntryIndex, SecondaryIndex);
+					}
+					else
+					{
+						PCGEX_VALENCY_WARNING(Staging, "    -> NO COLLECTION/ENTRY (Collection=%s, EntryIndex=%d)",
+							Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
 					}
 				}
 
@@ -435,6 +498,16 @@ namespace PCGExValencyStaging
 					OutTransforms[Node.PointIndex] = LocalTransform * CurrentTransform;
 				}
 			}
+			else if (State.IsUnsolvable())
+			{
+				UnsolvableCount++;
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): UNSOLVABLE", State.NodeIndex, Node.PointIndex);
+			}
+			else if (State.IsBoundary())
+			{
+				BoundaryCount++;
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): BOUNDARY", State.NodeIndex, Node.PointIndex);
+			}
 
 			// Write unsolvable marker
 			if (UnsolvableWriter)
@@ -442,6 +515,9 @@ namespace PCGExValencyStaging
 				UnsolvableWriter->SetValue(Node.PointIndex, State.IsUnsolvable());
 			}
 		}
+
+		VALENCY_LOG_SECTION(Staging, "WRITE COMPLETE");
+		PCGEX_VALENCY_INFO(Staging, "Resolved=%d, Unsolvable=%d, Boundary=%d", ResolvedCount, UnsolvableCount, BoundaryCount);
 	}
 
 	void FProcessor::Write()

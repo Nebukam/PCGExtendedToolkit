@@ -8,6 +8,7 @@
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Core/PCGExValencyLog.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyBuilder"
 
@@ -202,6 +203,9 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 	OutCageData.Empty();
 	OutCageData.Reserve(Cages.Num());
 
+	VALENCY_LOG_SECTION(Building, "COLLECTING CAGE DATA");
+	PCGEX_VALENCY_INFO(Building, "Processing %d cages", Cages.Num());
+
 	for (APCGExValencyCage* Cage : Cages)
 	{
 		if (!Cage)
@@ -219,6 +223,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 		TArray<FPCGExValencyAssetEntry> AssetEntries = GetEffectiveAssetEntries(Cage);
 		if (AssetEntries.Num() == 0)
 		{
+			PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': NO ASSETS - skipping", *Cage->GetCageDisplayName());
 			// Skip cages with no assets
 			continue;
 		}
@@ -231,10 +236,14 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 
 		// Compute orbital mask from connections
 		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
+		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d assets, %d orbitals",
+			*Cage->GetCageDisplayName(), Data.AssetEntries.Num(), Orbitals.Num());
+
 		for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 		{
 			if (!Orbital.bEnabled)
 			{
+				PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': DISABLED", Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
 				continue;
 			}
 
@@ -245,22 +254,39 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 				// Check if it's a null cage (boundary)
 				if (ConnectedCage->IsNullCage())
 				{
-					if (bIncludeNullBoundaries)
-					{
-						// Still set the orbital bit - this is a valid "null" connection
-						Data.OrbitalMask |= (1LL << Orbital.OrbitalIndex);
-					}
+					// Null cage = boundary. Do NOT set orbital bit here.
+					// The boundary is tracked separately via BoundaryMask in BuildNeighborRelationships.
+					// OrbitalMask should only include REAL connections.
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NULL CAGE (boundary) - tracked as boundary, not in OrbitalMask",
+						Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
 				}
 				else
 				{
-					// Regular connection
+					// Regular connection - set the orbital bit
 					Data.OrbitalMask |= (1LL << Orbital.OrbitalIndex);
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': Connected to '%s' - bit set",
+						Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString(), *ConnectedCage->GetCageDisplayName());
 				}
+			}
+			else
+			{
+				PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NO CONNECTION", Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
 			}
 		}
 
+		// Log final orbital mask
+		FString MaskBits;
+		for (int32 Bit = 0; Bit < OrbitalSet->Num(); ++Bit)
+		{
+			MaskBits += (Data.OrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
+		}
+		PCGEX_VALENCY_VERBOSE(Building, "    -> Final OrbitalMask: %s (0x%llX)", *MaskBits, Data.OrbitalMask);
+
 		OutCageData.Add(MoveTemp(Data));
 	}
+
+	VALENCY_LOG_SECTION(Building, "CAGE DATA COLLECTION COMPLETE");
+	PCGEX_VALENCY_INFO(Building, "Valid cages: %d", OutCageData.Num());
 }
 
 void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
@@ -271,6 +297,8 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 	FPCGExValencyBuildResult& OutResult)
 {
 	OutModuleKeyToIndex.Empty();
+
+	VALENCY_LOG_SECTION(Building, "BUILDING MODULE MAP");
 
 	const FName LayerName = OrbitalSet->LayerName;
 
@@ -292,6 +320,7 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 			if (OutModuleKeyToIndex.Contains(ModuleKey))
 			{
+				PCGEX_VALENCY_VERBOSE(Building, "  Module key '%s' already exists", *ModuleKey);
 				continue; // Already have a module for this combo
 			}
 
@@ -318,9 +347,22 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			FPCGExValencyModuleLayerConfig& LayerConfig = NewModule.Layers.FindOrAdd(LayerName);
 			LayerConfig.OrbitalMask = Data.OrbitalMask;
 
+			// Log mask as binary
+			FString MaskBits;
+			for (int32 Bit = 0; Bit < OrbitalSet->Num(); ++Bit)
+			{
+				MaskBits += (Data.OrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
+			}
+
+			PCGEX_VALENCY_VERBOSE(Building, "  Module[%d]: Asset='%s', OrbitalMask=%s (0x%llX)",
+				NewModuleIndex, *Entry.Asset.GetAssetName(), *MaskBits, Data.OrbitalMask);
+
 			OutModuleKeyToIndex.Add(ModuleKey, NewModuleIndex);
 		}
 	}
+
+	VALENCY_LOG_SECTION(Building, "MODULE MAP COMPLETE");
+	PCGEX_VALENCY_INFO(Building, "Total modules: %d", OutModuleKeyToIndex.Num());
 }
 
 void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
@@ -330,6 +372,8 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 	const UPCGExValencyOrbitalSet* OrbitalSet,
 	FPCGExValencyBuildResult& OutResult)
 {
+	VALENCY_LOG_SECTION(Building, "BUILDING NEIGHBOR RELATIONSHIPS");
+
 	const FName LayerName = OrbitalSet->LayerName;
 
 	// Build a cage pointer to cage data index map for fast lookup
@@ -351,6 +395,8 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			continue;
 		}
 
+		PCGEX_VALENCY_VERBOSE(Building, "  Processing cage '%s':", *Cage->GetCageDisplayName());
+
 		// Get module indices for this cage's asset entries
 		TArray<int32> CageModuleIndices;
 		for (const FPCGExValencyAssetEntry& Entry : Data.AssetEntries)
@@ -363,6 +409,9 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 				CageModuleIndices.AddUnique(*ModuleIndex);
 			}
 		}
+
+		PCGEX_VALENCY_VERBOSE(Building, "    Cage modules: [%s]",
+			*FString::JoinBy(CageModuleIndices, TEXT(", "), [](int32 Idx) { return FString::FromInt(Idx); }));
 
 		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
 
@@ -387,6 +436,9 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			{
 				if (ConnectedBase->IsNullCage())
 				{
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': BOUNDARY (null cage)",
+						Orbital.OrbitalIndex, *OrbitalName.ToString());
+
 					// Null cage = boundary, mark this orbital as boundary for all modules from this cage
 					for (int32 ModuleIndex : CageModuleIndices)
 					{
@@ -418,7 +470,16 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 							}
 						}
 					}
+
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': Connected to '%s', neighbor modules: [%s]",
+						Orbital.OrbitalIndex, *OrbitalName.ToString(), *ConnectedCage->GetCageDisplayName(),
+						*FString::JoinBy(NeighborModuleIndices, TEXT(", "), [](int32 Idx) { return FString::FromInt(Idx); }));
 				}
+			}
+			else
+			{
+				PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NO CONNECTION",
+					Orbital.OrbitalIndex, *OrbitalName.ToString());
 			}
 
 			// Update each of this cage's modules with the neighbor info
@@ -442,6 +503,8 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			}
 		}
 	}
+
+	VALENCY_LOG_SECTION(Building, "NEIGHBOR RELATIONSHIPS COMPLETE");
 }
 
 void UPCGExValencyBondingRulesBuilder::ValidateRules(

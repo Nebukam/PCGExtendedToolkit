@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Core/PCGExValencySolverOperation.h"
+#include "Core/PCGExValencyLog.h"
 
 void UPCGExValencySolverInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
@@ -120,6 +121,8 @@ bool FPCGExValencySolverOperation::DoesModuleFitState(int32 ModuleIndex, const P
 		// Module's required orbitals must be present in state
 		if ((ModuleMask & StateMask) != ModuleMask)
 		{
+			PCGEX_VALENCY_VERBOSE(Solver, "    Module[%d] REJECTED at Layer[%d]: ModuleMask=0x%llX, StateMask=0x%llX, (ModuleMask & StateMask)=0x%llX != ModuleMask",
+				ModuleIndex, LayerIndex, ModuleMask, StateMask, (ModuleMask & StateMask));
 			return false;
 		}
 
@@ -127,6 +130,8 @@ bool FPCGExValencySolverOperation::DoesModuleFitState(int32 ModuleIndex, const P
 		// (BoundaryMask has bits set for orbitals that must be empty; StateMask has bits set for orbitals with neighbors)
 		if ((BoundaryMask & StateMask) != 0)
 		{
+			PCGEX_VALENCY_VERBOSE(Solver, "    Module[%d] REJECTED at Layer[%d]: BoundaryMask=0x%llX conflicts with StateMask=0x%llX",
+				ModuleIndex, LayerIndex, BoundaryMask, StateMask);
 			return false;
 		}
 	}

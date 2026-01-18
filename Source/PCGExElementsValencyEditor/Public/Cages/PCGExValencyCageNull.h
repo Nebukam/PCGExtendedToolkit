@@ -24,6 +24,10 @@ class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageNull : public APCGExValenc
 public:
 	APCGExValencyCageNull();
 
+	//~ Begin AActor Interface
+	virtual void PostEditMove(bool bFinished) override;
+	//~ End AActor Interface
+
 	//~ Begin APCGExValencyCageBase Interface
 	virtual FString GetCageDisplayName() const override;
 	virtual bool IsNullCage() const override { return true; }

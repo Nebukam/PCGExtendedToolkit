@@ -352,6 +352,50 @@ bool AValencyContextVolume::ShouldIgnoreActor(const AActor* Actor) const
 		}
 	}
 
+	// Check if actor is in the explicit ignore list
+	for (const TObjectPtr<AActor>& IgnoredActor : IgnoredActors)
+	{
+		if (IgnoredActor.Get() == Actor)
+		{
+			return true;
+		}
+	}
+
+	// Check if actor is spawned by/attached to PCG actors we regenerate
+	if (bAutoIgnorePCGSpawnedActors && PCGActorsToRegenerate.Num() > 0)
+	{
+		// Walk up the attachment chain to see if any parent is a PCG actor to regenerate
+		const AActor* Current = Actor;
+		while (Current)
+		{
+			// Check if this actor IS one of the PCG actors
+			for (const TObjectPtr<AActor>& PCGActor : PCGActorsToRegenerate)
+			{
+				if (PCGActor.Get() == Current)
+				{
+					return true;
+				}
+			}
+
+			// Move up to parent
+			Current = Current->GetAttachParentActor();
+		}
+
+		// Also check owner chain (for actors spawned by PCG but not attached)
+		Current = Actor->GetOwner();
+		while (Current)
+		{
+			for (const TObjectPtr<AActor>& PCGActor : PCGActorsToRegenerate)
+			{
+				if (PCGActor.Get() == Current)
+				{
+					return true;
+				}
+			}
+			Current = Current->GetOwner();
+		}
+	}
+
 	return false;
 }
 

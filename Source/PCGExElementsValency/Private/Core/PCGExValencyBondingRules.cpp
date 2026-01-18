@@ -6,6 +6,7 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Engine/Blueprint.h"
+#include "Core/PCGExValencyLog.h"
 
 void FPCGExValencyBondingRulesCompiled::BuildCandidateLookup()
 {
@@ -28,14 +29,20 @@ void FPCGExValencyBondingRulesCompiled::BuildCandidateLookup()
 
 bool UPCGExValencyBondingRules::Compile()
 {
+	VALENCY_LOG_SECTION(Compilation, "BONDING RULES COMPILATION START");
+	PCGEX_VALENCY_INFO(Compilation, "Asset: %s", *GetName());
+	PCGEX_VALENCY_INFO(Compilation, "Module count: %d, OrbitalSet count: %d", Modules.Num(), OrbitalSets.Num());
+
 	// Validate orbital sets (TObjectPtr ensures they're already loaded with this asset)
 	for (int32 i = 0; i < OrbitalSets.Num(); ++i)
 	{
 		if (!OrbitalSets[i])
 		{
-			UE_LOG(LogTemp, Error, TEXT("Valency Bonding Rules: Orbital set at index %d is null"), i);
+			PCGEX_VALENCY_ERROR(Compilation, "Orbital set at index %d is null", i);
 			return false;
 		}
+
+		PCGEX_VALENCY_INFO(Compilation, "  OrbitalSet[%d]: '%s' with %d orbitals", i, *OrbitalSets[i]->LayerName.ToString(), OrbitalSets[i]->Num());
 
 		// Validate orbital set
 		TArray<FText> ValidationErrors;
@@ -43,7 +50,7 @@ bool UPCGExValencyBondingRules::Compile()
 		{
 			for (const FText& Error : ValidationErrors)
 			{
-				UE_LOG(LogTemp, Error, TEXT("Valency Bonding Rules: %s"), *Error.ToString());
+				PCGEX_VALENCY_ERROR(Compilation, "%s", *Error.ToString());
 			}
 			return false;
 		}
@@ -51,7 +58,7 @@ bool UPCGExValencyBondingRules::Compile()
 		// Check for more than 64 orbitals
 		if (OrbitalSets[i]->Num() > 64)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Valency Bonding Rules: Layer '%s' has more than 64 orbitals"), *OrbitalSets[i]->LayerName.ToString());
+			PCGEX_VALENCY_ERROR(Compilation, "Layer '%s' has more than 64 orbitals", *OrbitalSets[i]->LayerName.ToString());
 			return false;
 		}
 	}
@@ -79,6 +86,7 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->ModuleBoundaryMasks.SetNum(Modules.Num() * LayerCount);
 
 	// Populate module data
+	VALENCY_LOG_SUBSECTION(Compilation, "Compiling Module Data");
 	for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ++ModuleIndex)
 	{
 		const FPCGExValencyModuleDefinition& Module = Modules[ModuleIndex];
@@ -91,6 +99,12 @@ bool UPCGExValencyBondingRules::Compile()
 		CompiledData->ModuleLocalTransforms[ModuleIndex] = Module.LocalTransform;
 		CompiledData->ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
 
+		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d",
+			ModuleIndex,
+			*Module.Asset.GetAssetName(),
+			Module.Settings.Weight,
+			static_cast<int32>(Module.AssetType));
+
 		// Orbital masks per layer
 		for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)
 		{
@@ -101,11 +115,33 @@ bool UPCGExValencyBondingRules::Compile()
 			{
 				CompiledData->ModuleOrbitalMasks[MaskIndex] = LayerConfig->OrbitalMask;
 				CompiledData->ModuleBoundaryMasks[MaskIndex] = LayerConfig->BoundaryOrbitalMask;
+
+				// Log orbital mask as binary for easier reading
+				FString OrbitalBits;
+				FString BoundaryBits;
+				for (int32 Bit = 0; Bit < OrbitalSets[LayerIndex]->Num(); ++Bit)
+				{
+					OrbitalBits += (LayerConfig->OrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
+					BoundaryBits += (LayerConfig->BoundaryOrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
+				}
+				PCGEX_VALENCY_VERBOSE(Compilation, "    Layer[%d] '%s': OrbitalMask=%s (0x%llX), BoundaryMask=%s (0x%llX)",
+					LayerIndex, *LayerName.ToString(),
+					*OrbitalBits, LayerConfig->OrbitalMask,
+					*BoundaryBits, LayerConfig->BoundaryOrbitalMask);
+
+				// Log neighbor info
+				for (const auto& NeighborPair : LayerConfig->OrbitalNeighbors)
+				{
+					PCGEX_VALENCY_VERBOSE(Compilation, "      Orbital '%s' neighbors: [%s]",
+						*NeighborPair.Key.ToString(),
+						*FString::JoinBy(NeighborPair.Value.Indices, TEXT(", "), [](int32 Idx) { return FString::FromInt(Idx); }));
+				}
 			}
 			else
 			{
 				CompiledData->ModuleOrbitalMasks[MaskIndex] = 0;
 				CompiledData->ModuleBoundaryMasks[MaskIndex] = 0;
+				PCGEX_VALENCY_VERBOSE(Compilation, "    Layer[%d] '%s': NO CONFIG (masks=0)", LayerIndex, *LayerName.ToString());
 			}
 		}
 	}
@@ -155,7 +191,8 @@ bool UPCGExValencyBondingRules::Compile()
 	// Build fast lookup
 	CompiledData->BuildCandidateLookup();
 
-	UE_LOG(LogTemp, Log, TEXT("Valency Bonding Rules compiled: %d modules, %d layers"), Modules.Num(), LayerCount);
+	VALENCY_LOG_SECTION(Compilation, "BONDING RULES COMPILATION COMPLETE");
+	PCGEX_VALENCY_INFO(Compilation, "Result: %d modules, %d layers", Modules.Num(), LayerCount);
 	return true;
 }
 
