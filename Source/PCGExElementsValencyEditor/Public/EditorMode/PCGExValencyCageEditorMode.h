@@ -67,6 +67,18 @@ protected:
 	/** Draw orbital direction arrow - from Start to End with optional arrowhead */
 	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, bool bDashed = false, bool bDrawArrowhead = true, float Thickness = 1.5f, float ThicknessArrow = 2.0f);
 
+	/** Helper: Draw a line segment (solid or dashed) */
+	void DrawLineSegment(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, float Thickness, bool bDashed);
+
+	/** Helper: Draw arrowhead at the end of a line */
+	void DrawArrowhead(FPrimitiveDrawInterface* PDI, const FVector& TipLocation, const FVector& Direction, const FLinearColor& Color, float Size, float Thickness);
+
+	/** Helper: Find volumes with asset tracking enabled and trigger auto-rebuild if needed */
+	void TriggerAutoRebuildForCages(const TSet<APCGExValencyCage*>& AffectedCages);
+
+	/** Helper: Redraw all viewports */
+	void RedrawViewports();
+
 	/** Draw text label in viewport */
 	void DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color);
 

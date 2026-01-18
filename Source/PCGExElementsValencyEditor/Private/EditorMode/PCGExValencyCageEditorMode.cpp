@@ -423,41 +423,53 @@ void FPCGExValencyCageEditorMode::DrawVolume(FPrimitiveDrawInterface* PDI, const
 	DrawWireBox(PDI, VolumeBox, DrawColor, SDPG_World);
 }
 
-void FPCGExValencyCageEditorMode::DrawConnection(FPrimitiveDrawInterface* PDI, const FVector& From, const FVector& Along, float Distance, const FLinearColor& Color, bool bDrawArrowhead, bool bDashed)
+void FPCGExValencyCageEditorMode::DrawLineSegment(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, float Thickness, bool bDashed)
 {
-	const FVector To = From + Along * Distance;
-
 	if (bDashed)
 	{
-		// Draw dashed line
+		const FVector Direction = (End - Start).GetSafeNormal();
+		const float TotalLength = FVector::Dist(Start, End);
 		const float DashCycle = DashLength + DashGap;
 		float CurrentPos = 0.0f;
 
-		while (CurrentPos < Distance)
+		while (CurrentPos < TotalLength)
 		{
 			const float DashStart = CurrentPos;
-			const float DashEnd = FMath::Min(CurrentPos + DashLength, Distance);
+			const float DashEnd = FMath::Min(CurrentPos + DashLength, TotalLength);
 
-			const FVector SegStart = From + Along * DashStart;
-			const FVector SegEnd = From + Along * DashEnd;
+			const FVector SegStart = Start + Direction * DashStart;
+			const FVector SegEnd = Start + Direction * DashEnd;
 
-			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, ConnectionLineThickness);
+			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, Thickness);
 			CurrentPos += DashCycle;
 		}
 	}
 	else
 	{
-		PDI->DrawLine(From, To, Color, SDPG_World, ConnectionLineThickness);
+		PDI->DrawLine(Start, End, Color, SDPG_World, Thickness);
 	}
+}
 
-	// Draw arrowhead at end if requested
+void FPCGExValencyCageEditorMode::DrawArrowhead(FPrimitiveDrawInterface* PDI, const FVector& TipLocation, const FVector& Direction, const FLinearColor& Color, float Size, float Thickness)
+{
+	const FVector Right = FVector::CrossProduct(Direction, FVector::UpVector).GetSafeNormal();
+	const FVector Up = FVector::CrossProduct(Right, Direction).GetSafeNormal();
+
+	// Four prongs for 3D arrowhead
+	PDI->DrawLine(TipLocation, TipLocation - Direction * Size + Right * Size * 0.5f, Color, SDPG_World, Thickness);
+	PDI->DrawLine(TipLocation, TipLocation - Direction * Size - Right * Size * 0.5f, Color, SDPG_World, Thickness);
+	PDI->DrawLine(TipLocation, TipLocation - Direction * Size + Up * Size * 0.5f, Color, SDPG_World, Thickness);
+	PDI->DrawLine(TipLocation, TipLocation - Direction * Size - Up * Size * 0.5f, Color, SDPG_World, Thickness);
+}
+
+void FPCGExValencyCageEditorMode::DrawConnection(FPrimitiveDrawInterface* PDI, const FVector& From, const FVector& Along, float Distance, const FLinearColor& Color, bool bDrawArrowhead, bool bDashed)
+{
+	const FVector To = From + Along * Distance;
+	DrawLineSegment(PDI, From, To, Color, ConnectionLineThickness, bDashed);
+
 	if (bDrawArrowhead)
 	{
-		const FVector Right = FVector::CrossProduct(Along, FVector::UpVector).GetSafeNormal();
-
-		const float ArrowSize = 12.0f;
-		PDI->DrawLine(To, To - Along * ArrowSize + Right * ArrowSize * 0.5f, Color, SDPG_World, ConnectionLineThickness);
-		PDI->DrawLine(To, To - Along * ArrowSize - Right * ArrowSize * 0.5f, Color, SDPG_World, ConnectionLineThickness);
+		DrawArrowhead(PDI, To, Along, Color, 12.0f, ConnectionLineThickness);
 	}
 }
 
@@ -477,43 +489,11 @@ void FPCGExValencyCageEditorMode::DrawOrbitalArrow(FPrimitiveDrawInterface* PDI,
 	const float MainLinePct = bDrawArrowhead ? 0.85f : 1.0f;
 	const FVector MainLineEnd = Start + Direction * (TotalLength * MainLinePct);
 
-	if (bDashed)
-	{
-		// Draw dashed line using configurable dash length/gap
-		const float MainLength = TotalLength * MainLinePct;
-		const float DashCycle = DashLength + DashGap;
-		float CurrentPos = 0.0f;
+	DrawLineSegment(PDI, Start, MainLineEnd, Color, Thickness, bDashed);
 
-		while (CurrentPos < MainLength)
-		{
-			const float DashStart = CurrentPos;
-			const float DashEnd = FMath::Min(CurrentPos + DashLength, MainLength);
-
-			const FVector SegStart = Start + Direction * DashStart;
-			const FVector SegEnd = Start + Direction * DashEnd;
-
-			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, Thickness);
-			CurrentPos += DashCycle;
-		}
-	}
-	else
-	{
-		// Solid line to main end point
-		PDI->DrawLine(Start, MainLineEnd, Color, SDPG_World, Thickness);
-	}
-
-	// Draw arrowhead at end if enabled
 	if (bDrawArrowhead)
 	{
-		const FVector Right = FVector::CrossProduct(Direction, FVector::UpVector).GetSafeNormal();
-		const FVector Up = FVector::CrossProduct(Right, Direction).GetSafeNormal();
-		const float ArrowSize = 10.0f;
-
-		// Four prongs for 3D arrowhead
-		PDI->DrawLine(End, End - Direction * ArrowSize + Right * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
-		PDI->DrawLine(End, End - Direction * ArrowSize - Right * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
-		PDI->DrawLine(End, End - Direction * ArrowSize + Up * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
-		PDI->DrawLine(End, End - Direction * ArrowSize - Up * ArrowSize * 0.5f, Color, SDPG_World, ThicknessArrow);
+		DrawArrowhead(PDI, End, Direction, Color, 10.0f, ThicknessArrow);
 	}
 }
 
@@ -643,24 +623,11 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 			// Refresh the cage
 			ContainingCage->ScanAndRegisterContainedAssets();
 
-			// Trigger auto-rebuild if enabled
-			for (const TWeakObjectPtr<AValencyContextVolume>& VolPtr : CachedVolumes)
-			{
-				if (AValencyContextVolume* Vol = VolPtr.Get())
-				{
-					if (Vol->bAutoRebuildOnChange && Vol->ContainsPoint(ContainingCage->GetActorLocation()))
-					{
-						UE_LOG(LogTemp, Log, TEXT("Valency: Auto-rebuilding rules for volume after asset deletion"));
-						Vol->BuildRulesFromCages();
-						break;
-					}
-				}
-			}
-
-			if (GEditor)
-			{
-				GEditor->RedrawAllViewports();
-			}
+			// Trigger auto-rebuild and redraw
+			TSet<APCGExValencyCage*> AffectedCages;
+			AffectedCages.Add(ContainingCage);
+			TriggerAutoRebuildForCages(AffectedCages);
+			RedrawViewports();
 		}
 
 		// Clean up tracking state for the deleted actor
@@ -742,9 +709,9 @@ int32 FPCGExValencyCageEditorMode::CleanupAllManualConnections()
 	}
 
 	// Redraw to reflect any changes
-	if (TotalRemoved > 0 && GEditor)
+	if (TotalRemoved > 0)
 	{
-		GEditor->RedrawAllViewports();
+		RedrawViewports();
 	}
 
 	return TotalRemoved;
@@ -964,48 +931,56 @@ void FPCGExValencyCageEditorMode::UpdateAssetTracking()
 		}
 	}
 
-	// Trigger auto-rebuild on volumes that have it enabled
+	// Trigger auto-rebuild and redraw if any cages were affected
 	if (CagesToRefresh.Num() > 0)
 	{
-		TSet<AValencyContextVolume*> VolumesToRebuild;
+		TriggerAutoRebuildForCages(CagesToRefresh);
+		RedrawViewports();
+	}
+}
 
-		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+void FPCGExValencyCageEditorMode::TriggerAutoRebuildForCages(const TSet<APCGExValencyCage*>& AffectedCages)
+{
+	TSet<AValencyContextVolume*> VolumesToRebuild;
+
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+	{
+		if (AValencyContextVolume* Volume = VolumePtr.Get())
 		{
-			if (AValencyContextVolume* Volume = VolumePtr.Get())
+			if (Volume->bAutoRebuildOnChange)
 			{
-				if (Volume->bAutoRebuildOnChange)
+				// Check if any affected cage is in this volume
+				for (APCGExValencyCage* Cage : AffectedCages)
 				{
-					// Check if any refreshed cage is in this volume
-					for (APCGExValencyCage* Cage : CagesToRefresh)
+					if (Cage && Volume->ContainsPoint(Cage->GetActorLocation()))
 					{
-						if (Cage && Volume->ContainsPoint(Cage->GetActorLocation()))
-						{
-							VolumesToRebuild.Add(Volume);
-							break;
-						}
+						VolumesToRebuild.Add(Volume);
+						break;
 					}
 				}
 			}
 		}
+	}
 
-		for (AValencyContextVolume* Volume : VolumesToRebuild)
+	for (AValencyContextVolume* Volume : VolumesToRebuild)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Valency: Auto-rebuilding rules for volume"));
+		Volume->BuildRulesFromCages();
+	}
+}
+
+void FPCGExValencyCageEditorMode::RedrawViewports()
+{
+	if (GEditor)
+	{
+		GEditor->RedrawAllViewports();
+
+		// Also invalidate all viewport clients to ensure HUD is redrawn
+		for (FLevelEditorViewportClient* ViewportClient : GEditor->GetLevelViewportClients())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Valency: Auto-rebuilding rules for volume"));
-			Volume->BuildRulesFromCages();
-		}
-
-		// Force redraw viewports
-		if (GEditor)
-		{
-			GEditor->RedrawAllViewports();
-
-			// Also invalidate all viewport clients to ensure HUD is redrawn
-			for (FLevelEditorViewportClient* ViewportClient : GEditor->GetLevelViewportClients())
+			if (ViewportClient)
 			{
-				if (ViewportClient)
-				{
-					ViewportClient->Invalidate();
-				}
+				ViewportClient->Invalidate();
 			}
 		}
 	}

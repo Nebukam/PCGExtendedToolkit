@@ -109,7 +109,7 @@ public:
 	 * Actors with any of these tags will be completely excluded from the building process.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Filtering")
-	TArray<FName> IgnoredActorTags;
+	TArray<FName> IgnoredActorTags = {FName("PCGEx_Ignore")};
 
 	/**
 	 * Check if an actor should be ignored based on the ignore rules.
