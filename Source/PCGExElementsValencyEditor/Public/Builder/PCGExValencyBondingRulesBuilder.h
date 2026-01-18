@@ -192,21 +192,12 @@ protected:
 	static FString GenerateVariantName(const FPCGExValencyAssetEntry& Entry, int64 OrbitalMask, bool bHasLocalTransform);
 
 	/**
-	 * Discover material variants from cage data.
-	 * Scans mesh components in source actors and tracks unique material configurations.
+	 * Collect material variants from all cages.
+	 * Cages discover variants during scanning; this merges them into TargetRules.
 	 * Stores results in TargetRules->DiscoveredMaterialVariants.
 	 */
 	void DiscoverMaterialVariants(
 		const TArray<FPCGExValencyCageData>& CageData,
 		UPCGExValencyBondingRules* TargetRules
-	);
-
-	/**
-	 * Extract material overrides from a static mesh component.
-	 * Only includes slots where material differs from mesh's default.
-	 */
-	static void ExtractMaterialOverrides(
-		const UStaticMeshComponent* MeshComponent,
-		TArray<FPCGExValencyMaterialOverride>& OutOverrides
 	);
 };

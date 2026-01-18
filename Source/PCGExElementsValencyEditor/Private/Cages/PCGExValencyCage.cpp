@@ -7,6 +7,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/Blueprint.h"
 #include "PCGDataAsset.h"
+#include "Components/StaticMeshComponent.h"
 
 APCGExValencyCage::APCGExValencyCage()
 {
@@ -166,8 +167,9 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		return;
 	}
 
-	// Clear previous registrations before rescanning
+	// Clear previous registrations and material variants before rescanning
 	RegisteredAssetEntries.Empty();
+	DiscoveredMaterialVariants.Empty();
 
 	// Scan for actors using virtual IsActorInside
 	TArray<AActor*> ContainedActors;
@@ -204,7 +206,7 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		}
 	}
 
-	// Register found actors
+	// Register found actors and discover material variants
 	for (AActor* Actor : ContainedActors)
 	{
 		// Try to get a meaningful asset reference
@@ -212,10 +214,21 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		// For blueprint actors, get the blueprint class
 		// For others, just reference the actor's class
 
-		if (const UStaticMeshComponent* SMC = Actor->FindComponentByClass<UStaticMeshComponent>())
+		if (UStaticMeshComponent* SMC = Actor->FindComponentByClass<UStaticMeshComponent>())
 		{
 			if (UStaticMesh* Mesh = SMC->GetStaticMesh())
 			{
+				const FSoftObjectPath MeshPath(Mesh);
+
+				// Always discover material variants, even for duplicate meshes
+				TArray<FPCGExValencyMaterialOverride> Overrides;
+				ExtractMaterialOverrides(SMC, Overrides);
+				if (Overrides.Num() > 0)
+				{
+					RecordMaterialVariant(MeshPath, Overrides);
+				}
+
+				// Register the asset (may skip if duplicate)
 				RegisterAsset(TSoftObjectPtr<UObject>(Mesh), Actor);
 			}
 		}
@@ -228,6 +241,9 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 			}
 		}
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("Cage '%s' scan complete: %d assets, %d meshes with material variants"),
+		*GetName(), RegisteredAssetEntries.Num(), DiscoveredMaterialVariants.Num());
 }
 
 void APCGExValencyCage::OnAssetRegistrationChanged()
@@ -237,4 +253,76 @@ void APCGExValencyCage::OnAssetRegistrationChanged()
 
 	// Mark as needing save
 	Modify();
+}
+
+void APCGExValencyCage::ExtractMaterialOverrides(
+	const UStaticMeshComponent* MeshComponent,
+	TArray<FPCGExValencyMaterialOverride>& OutOverrides)
+{
+	OutOverrides.Empty();
+
+	if (!MeshComponent)
+	{
+		return;
+	}
+
+	const UStaticMesh* StaticMesh = MeshComponent->GetStaticMesh();
+	if (!StaticMesh)
+	{
+		return;
+	}
+
+	const int32 NumMaterials = MeshComponent->GetNumMaterials();
+	for (int32 SlotIndex = 0; SlotIndex < NumMaterials; ++SlotIndex)
+	{
+		UMaterialInterface* CurrentMaterial = MeshComponent->GetMaterial(SlotIndex);
+		UMaterialInterface* DefaultMaterial = StaticMesh->GetMaterial(SlotIndex);
+
+		// Only track if material differs from mesh's default
+		if (CurrentMaterial && CurrentMaterial != DefaultMaterial)
+		{
+			FPCGExValencyMaterialOverride& Override = OutOverrides.AddDefaulted_GetRef();
+			Override.SlotIndex = SlotIndex;
+			Override.Material = CurrentMaterial;
+
+			UE_LOG(LogTemp, Log, TEXT("  Material override: slot %d = '%s' (default was '%s')"),
+				SlotIndex, *CurrentMaterial->GetName(),
+				DefaultMaterial ? *DefaultMaterial->GetName() : TEXT("NULL"));
+		}
+	}
+}
+
+void APCGExValencyCage::RecordMaterialVariant(
+	const FSoftObjectPath& MeshPath,
+	const TArray<FPCGExValencyMaterialOverride>& Overrides)
+{
+	if (Overrides.Num() == 0)
+	{
+		return;
+	}
+
+	// Find or create variants array for this mesh
+	TArray<FPCGExValencyMaterialVariant>& Variants = DiscoveredMaterialVariants.FindOrAdd(MeshPath);
+
+	// Check if this exact configuration already exists
+	FPCGExValencyMaterialVariant NewVariant;
+	NewVariant.Overrides = Overrides;
+	NewVariant.DiscoveryCount = 1;
+
+	for (FPCGExValencyMaterialVariant& ExistingVariant : Variants)
+	{
+		if (ExistingVariant == NewVariant)
+		{
+			// Increment discovery count (becomes weight)
+			ExistingVariant.DiscoveryCount++;
+			UE_LOG(LogTemp, Log, TEXT("  Existing material variant for '%s', count now %d"),
+				*MeshPath.GetAssetName(), ExistingVariant.DiscoveryCount);
+			return;
+		}
+	}
+
+	// New unique variant
+	UE_LOG(LogTemp, Log, TEXT("  NEW material variant for '%s' with %d overrides"),
+		*MeshPath.GetAssetName(), Overrides.Num());
+	Variants.Add(MoveTemp(NewVariant));
 }

@@ -32,6 +32,8 @@ public:
 	PCGEX_NODE_INFOS(WriteValencyOrbitals, "Valency : Write Orbitals", "Computes and writes orbital masks and indices for Valency solving.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(MiscWrite); }
+	
+	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
 protected:

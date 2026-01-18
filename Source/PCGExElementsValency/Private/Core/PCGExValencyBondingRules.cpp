@@ -161,6 +161,9 @@ bool UPCGExValencyBondingRules::Compile()
 
 void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 {
+	UE_LOG(LogTemp, Log, TEXT("RebuildGeneratedCollections: Starting with %d modules, %d discovered variant meshes"),
+		Modules.Num(), DiscoveredMaterialVariants.Num());
+
 	// Initialize module-to-entry mappings
 	ModuleToMeshEntryIndex.SetNum(Modules.Num());
 	ModuleToActorEntryIndex.SetNum(Modules.Num());
@@ -209,8 +212,12 @@ void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 
 				// Populate material variants if discovered
 				const FSoftObjectPath MeshPath = Module.Asset.ToSoftObjectPath();
+				UE_LOG(LogTemp, Log, TEXT("  Module %d mesh '%s' - looking for variants with path '%s'"),
+					ModuleIndex, *Module.Asset.GetAssetName(), *MeshPath.ToString());
+
 				if (const TArray<FPCGExValencyMaterialVariant>* Variants = DiscoveredMaterialVariants.Find(MeshPath))
 				{
+					UE_LOG(LogTemp, Log, TEXT("    Found %d variants!"), Variants->Num());
 					if (Variants->Num() > 0)
 					{
 						// Determine mode: Single if all variants override same single slot
@@ -249,6 +256,8 @@ void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 								SingleEntry.Weight = Variant.DiscoveryCount;
 								SingleEntry.Material = Variant.Overrides[0].Material;
 							}
+							UE_LOG(LogTemp, Log, TEXT("    Applied SINGLE mode variants (slot %d, %d entries)"),
+								CommonSlotIndex, Entry.MaterialOverrideVariants.Num());
 						}
 						else
 						{
@@ -270,8 +279,14 @@ void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 									OverrideEntry.Material = Override.Material;
 								}
 							}
+							UE_LOG(LogTemp, Log, TEXT("    Applied MULTI mode variants (%d entries)"),
+								Entry.MaterialOverrideVariantsList.Num());
 						}
 					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Verbose, TEXT("    No variants found for this mesh"));
 				}
 
 				// Store mapping

@@ -523,110 +523,75 @@ void UPCGExValencyBondingRulesBuilder::DiscoverMaterialVariants(
 {
 	if (!TargetRules)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("DiscoverMaterialVariants: No TargetRules provided"));
 		return;
 	}
 
 	// Clear previous discoveries
 	TargetRules->DiscoveredMaterialVariants.Empty();
 
-	// Iterate all cage data and their asset entries
+	UE_LOG(LogTemp, Log, TEXT("DiscoverMaterialVariants: Collecting from %d cages"), CageData.Num());
+
+	int32 TotalVariantsCollected = 0;
+
+	// Collect material variants from all cages
+	// Variants are discovered during cage scanning, we just need to merge them
 	for (const FPCGExValencyCageData& Data : CageData)
 	{
-		for (const FPCGExValencyAssetEntry& Entry : Data.AssetEntries)
+		APCGExValencyCage* Cage = Data.Cage.Get();
+		if (!Cage)
 		{
-			// Only process mesh assets
-			if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
+			continue;
+		}
+
+		const TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>>& CageVariants = Cage->GetDiscoveredMaterialVariants();
+
+		UE_LOG(LogTemp, Log, TEXT("  Cage '%s' has %d meshes with variants"),
+			*Cage->GetName(), CageVariants.Num());
+
+		// Merge cage variants into target rules
+		for (const auto& Pair : CageVariants)
+		{
+			const FSoftObjectPath& MeshPath = Pair.Key;
+			const TArray<FPCGExValencyMaterialVariant>& CageVariantList = Pair.Value;
+
+			TArray<FPCGExValencyMaterialVariant>& TargetVariants = TargetRules->DiscoveredMaterialVariants.FindOrAdd(MeshPath);
+
+			for (const FPCGExValencyMaterialVariant& CageVariant : CageVariantList)
 			{
-				continue;
-			}
-
-			// Need source actor to get material overrides
-			if (!Entry.SourceActor.IsValid())
-			{
-				continue;
-			}
-
-			AActor* SourceActor = Entry.SourceActor.Get();
-
-			// Find static mesh component on the actor
-			UStaticMeshComponent* MeshComp = SourceActor->FindComponentByClass<UStaticMeshComponent>();
-			if (!MeshComp || !MeshComp->GetStaticMesh())
-			{
-				continue;
-			}
-
-			// Extract material overrides
-			TArray<FPCGExValencyMaterialOverride> Overrides;
-			ExtractMaterialOverrides(MeshComp, Overrides);
-
-			// Skip if no overrides (default materials)
-			if (Overrides.Num() == 0)
-			{
-				continue;
-			}
-
-			// Get mesh asset path as key
-			const FSoftObjectPath MeshPath = Entry.Asset.ToSoftObjectPath();
-
-			// Find or create variants array for this mesh
-			TArray<FPCGExValencyMaterialVariant>& Variants = TargetRules->DiscoveredMaterialVariants.FindOrAdd(MeshPath);
-
-			// Check if this exact material config already exists
-			FPCGExValencyMaterialVariant NewVariant;
-			NewVariant.Overrides = MoveTemp(Overrides);
-			NewVariant.DiscoveryCount = 1;
-
-			bool bFound = false;
-			for (FPCGExValencyMaterialVariant& ExistingVariant : Variants)
-			{
-				if (ExistingVariant == NewVariant)
+				// Check if this exact configuration already exists in target
+				bool bFound = false;
+				for (FPCGExValencyMaterialVariant& ExistingVariant : TargetVariants)
 				{
-					// Increment discovery count (weight)
-					ExistingVariant.DiscoveryCount++;
-					bFound = true;
-					break;
+					if (ExistingVariant == CageVariant)
+					{
+						// Merge discovery counts
+						ExistingVariant.DiscoveryCount += CageVariant.DiscoveryCount;
+						bFound = true;
+						break;
+					}
+				}
+
+				if (!bFound)
+				{
+					TargetVariants.Add(CageVariant);
+					TotalVariantsCollected++;
+					UE_LOG(LogTemp, Log, TEXT("    Added variant for '%s' with %d overrides"),
+						*MeshPath.GetAssetName(), CageVariant.Overrides.Num());
 				}
 			}
-
-			if (!bFound)
-			{
-				Variants.Add(MoveTemp(NewVariant));
-			}
 		}
 	}
-}
 
-void UPCGExValencyBondingRulesBuilder::ExtractMaterialOverrides(
-	const UStaticMeshComponent* MeshComponent,
-	TArray<FPCGExValencyMaterialOverride>& OutOverrides)
-{
-	OutOverrides.Empty();
+	UE_LOG(LogTemp, Log, TEXT("DiscoverMaterialVariants Summary:"));
+	UE_LOG(LogTemp, Log, TEXT("  Total unique variants collected: %d"), TotalVariantsCollected);
+	UE_LOG(LogTemp, Log, TEXT("  Meshes with variants: %d"), TargetRules->DiscoveredMaterialVariants.Num());
 
-	if (!MeshComponent)
+	// Log all keys for debugging path matching
+	for (const auto& Pair : TargetRules->DiscoveredMaterialVariants)
 	{
-		return;
-	}
-
-	const UStaticMesh* StaticMesh = MeshComponent->GetStaticMesh();
-	if (!StaticMesh)
-	{
-		return;
-	}
-
-	const int32 NumMaterials = MeshComponent->GetNumMaterials();
-
-	for (int32 SlotIndex = 0; SlotIndex < NumMaterials; ++SlotIndex)
-	{
-		UMaterialInterface* CurrentMaterial = MeshComponent->GetMaterial(SlotIndex);
-		UMaterialInterface* DefaultMaterial = StaticMesh->GetMaterial(SlotIndex);
-
-		// Only track if material differs from mesh's default
-		if (CurrentMaterial && CurrentMaterial != DefaultMaterial)
-		{
-			FPCGExValencyMaterialOverride& Override = OutOverrides.AddDefaulted_GetRef();
-			Override.SlotIndex = SlotIndex;
-			Override.Material = CurrentMaterial;
-		}
+		UE_LOG(LogTemp, Log, TEXT("  Variant key: '%s' -> %d variants"),
+			*Pair.Key.ToString(), Pair.Value.Num());
 	}
 }
 

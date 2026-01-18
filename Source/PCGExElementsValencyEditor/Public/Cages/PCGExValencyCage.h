@@ -109,7 +109,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module")
 	FPCGExValencyModuleSettings ModuleSettings;
 
+	/**
+	 * Material variants discovered during asset scanning.
+	 * Key = mesh asset path, Value = array of unique material configurations.
+	 * Populated by ScanAndRegisterContainedAssets, consumed by builder.
+	 */
+	TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>> DiscoveredMaterialVariants;
+
+	/** Get discovered material variants for this cage */
+	const TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>>& GetDiscoveredMaterialVariants() const
+	{
+		return DiscoveredMaterialVariants;
+	}
+
 protected:
 	/** Called when asset registration changes */
 	virtual void OnAssetRegistrationChanged();
+
+	/** Extract material overrides from a static mesh component */
+	static void ExtractMaterialOverrides(const UStaticMeshComponent* MeshComponent, TArray<FPCGExValencyMaterialOverride>& OutOverrides);
+
+	/** Record a material variant for a mesh asset */
+	void RecordMaterialVariant(const FSoftObjectPath& MeshPath, const TArray<FPCGExValencyMaterialOverride>& Overrides);
 };

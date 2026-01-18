@@ -38,6 +38,8 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ValencyStaging, "Valency : Staging", "WFC-like asset staging on cluster vertices using orbital-based compatibility rules.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(MiscAdd); }
+	
+	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
 protected:
@@ -113,8 +115,8 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExCluste
 
 	/** Pick packer for collection entry hash writing (shared across all batches) */
 	TSharedPtr<PCGExCollections::FPickPacker> PickPacker;
-	
-	UPCGExMeshCollection* MeshCollection = nullptr; 
+
+	UPCGExMeshCollection* MeshCollection = nullptr;
 	UPCGExActorCollection* ActorCollection = nullptr;
 
 protected:
