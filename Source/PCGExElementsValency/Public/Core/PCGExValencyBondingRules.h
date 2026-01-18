@@ -177,12 +177,14 @@ public:
 	 * Mapping from module index to mesh collection entry index.
 	 * Only valid entries have their index stored; others are -1.
 	 */
+	UPROPERTY()
 	TArray<int32> ModuleToMeshEntryIndex;
 
 	/**
 	 * Mapping from module index to actor collection entry index.
 	 * Only valid entries have their index stored; others are -1.
 	 */
+	UPROPERTY()
 	TArray<int32> ModuleToActorEntryIndex;
 
 	/**
@@ -277,6 +279,10 @@ public:
 	{
 		return ModuleToActorEntryIndex.IsValidIndex(ModuleIndex) ? ModuleToActorEntryIndex[ModuleIndex] : -1;
 	}
+
+	//~ Begin UObject Interface
+	virtual void PostLoad() override;
+	//~ End UObject Interface
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

@@ -523,16 +523,11 @@ void UPCGExValencyBondingRulesBuilder::DiscoverMaterialVariants(
 {
 	if (!TargetRules)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DiscoverMaterialVariants: No TargetRules provided"));
 		return;
 	}
 
 	// Clear previous discoveries
 	TargetRules->DiscoveredMaterialVariants.Empty();
-
-	UE_LOG(LogTemp, Log, TEXT("DiscoverMaterialVariants: Collecting from %d cages"), CageData.Num());
-
-	int32 TotalVariantsCollected = 0;
 
 	// Collect material variants from all cages
 	// Variants are discovered during cage scanning, we just need to merge them
@@ -545,9 +540,6 @@ void UPCGExValencyBondingRulesBuilder::DiscoverMaterialVariants(
 		}
 
 		const TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>>& CageVariants = Cage->GetDiscoveredMaterialVariants();
-
-		UE_LOG(LogTemp, Log, TEXT("  Cage '%s' has %d meshes with variants"),
-			*Cage->GetName(), CageVariants.Num());
 
 		// Merge cage variants into target rules
 		for (const auto& Pair : CageVariants)
@@ -575,23 +567,9 @@ void UPCGExValencyBondingRulesBuilder::DiscoverMaterialVariants(
 				if (!bFound)
 				{
 					TargetVariants.Add(CageVariant);
-					TotalVariantsCollected++;
-					UE_LOG(LogTemp, Log, TEXT("    Added variant for '%s' with %d overrides"),
-						*MeshPath.GetAssetName(), CageVariant.Overrides.Num());
 				}
 			}
 		}
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("DiscoverMaterialVariants Summary:"));
-	UE_LOG(LogTemp, Log, TEXT("  Total unique variants collected: %d"), TotalVariantsCollected);
-	UE_LOG(LogTemp, Log, TEXT("  Meshes with variants: %d"), TargetRules->DiscoveredMaterialVariants.Num());
-
-	// Log all keys for debugging path matching
-	for (const auto& Pair : TargetRules->DiscoveredMaterialVariants)
-	{
-		UE_LOG(LogTemp, Log, TEXT("  Variant key: '%s' -> %d variants"),
-			*Pair.Key.ToString(), Pair.Value.Num());
 	}
 }
 

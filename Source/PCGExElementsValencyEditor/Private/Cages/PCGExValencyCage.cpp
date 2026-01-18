@@ -242,8 +242,6 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Cage '%s' scan complete: %d assets, %d meshes with material variants"),
-		*GetName(), RegisteredAssetEntries.Num(), DiscoveredMaterialVariants.Num());
 }
 
 void APCGExValencyCage::OnAssetRegistrationChanged()
@@ -284,10 +282,6 @@ void APCGExValencyCage::ExtractMaterialOverrides(
 			FPCGExValencyMaterialOverride& Override = OutOverrides.AddDefaulted_GetRef();
 			Override.SlotIndex = SlotIndex;
 			Override.Material = CurrentMaterial;
-
-			UE_LOG(LogTemp, Log, TEXT("  Material override: slot %d = '%s' (default was '%s')"),
-				SlotIndex, *CurrentMaterial->GetName(),
-				DefaultMaterial ? *DefaultMaterial->GetName() : TEXT("NULL"));
 		}
 	}
 }
@@ -315,14 +309,10 @@ void APCGExValencyCage::RecordMaterialVariant(
 		{
 			// Increment discovery count (becomes weight)
 			ExistingVariant.DiscoveryCount++;
-			UE_LOG(LogTemp, Log, TEXT("  Existing material variant for '%s', count now %d"),
-				*MeshPath.GetAssetName(), ExistingVariant.DiscoveryCount);
 			return;
 		}
 	}
 
 	// New unique variant
-	UE_LOG(LogTemp, Log, TEXT("  NEW material variant for '%s' with %d overrides"),
-		*MeshPath.GetAssetName(), Overrides.Num());
 	Variants.Add(MoveTemp(NewVariant));
 }

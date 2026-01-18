@@ -9,6 +9,8 @@
 
 #include "PCGExValencyCage.generated.h"
 
+class UStaticMeshComponent;
+
 /**
  * Abstract base for Valency cages that can register assets.
  * Subclasses must implement IsActorInside() for containment detection.
