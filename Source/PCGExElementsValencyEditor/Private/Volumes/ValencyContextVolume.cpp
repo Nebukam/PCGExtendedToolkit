@@ -12,6 +12,7 @@
 
 #if WITH_EDITOR
 #include "Editor.h"
+#include "Misc/MessageDialog.h"
 #endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogValencyVolume, Log, All);
@@ -122,16 +123,67 @@ void AValencyContextVolume::BuildRulesFromCages()
 		return;
 	}
 
+	// Find all volumes in this level that share the same BondingRules
+	TArray<AValencyContextVolume*> RelatedVolumes;
+	FindRelatedVolumes(RelatedVolumes);
+
+	// Get current level name for cross-level warning
+	UWorld* World = GetWorld();
+	FString CurrentLevelName;
+	if (World)
+	{
+		CurrentLevelName = World->GetMapName();
+	}
+
+#if WITH_EDITOR
+	// Check if this build is from a different level than the last one
+	if (!BondingRules->LastBuildLevelPath.IsEmpty() &&
+		!CurrentLevelName.IsEmpty() &&
+		BondingRules->LastBuildLevelPath != CurrentLevelName)
+	{
+		const FText WarningMessage = FText::Format(
+			NSLOCTEXT("ValencyVolume", "CrossLevelWarning",
+				"This BondingRules asset was last built from a different level:\n\n"
+				"Last build: {0}\n"
+				"Current level: {1}\n\n"
+				"Building from this level will overwrite the existing rules.\n"
+				"Are you sure you want to continue?"),
+			FText::FromString(BondingRules->LastBuildLevelPath),
+			FText::FromString(CurrentLevelName)
+		);
+
+		const EAppReturnType::Type Response = FMessageDialog::Open(
+			EAppMsgType::YesNo,
+			WarningMessage,
+			NSLOCTEXT("ValencyVolume", "CrossLevelWarningTitle", "Cross-Level Build Warning")
+		);
+
+		if (Response != EAppReturnType::Yes)
+		{
+			UE_LOG(LogValencyVolume, Log, TEXT("Build cancelled by user due to cross-level warning."));
+			return;
+		}
+	}
+#endif
+
+	UE_LOG(LogValencyVolume, Log, TEXT("Building rules from %d related volume(s)."), RelatedVolumes.Num());
+
 	UPCGExValencyBondingRulesBuilder* Builder = NewObject<UPCGExValencyBondingRulesBuilder>(GetTransientPackage());
-	FPCGExValencyBuildResult Result = Builder->BuildFromVolume(this);
+	FPCGExValencyBuildResult Result = Builder->BuildFromVolumes(RelatedVolumes, this);
 
 	// Log results
 	if (Result.bSuccess)
 	{
 		UE_LOG(LogValencyVolume, Log, TEXT("Build succeeded: %d modules from %d cages."), Result.ModuleCount, Result.CageCount);
 
-		// Regenerate PCG actors after successful build
-		RegeneratePCGActors();
+		// Regenerate PCG actors from ALL related volumes
+		for (AValencyContextVolume* Volume : RelatedVolumes)
+		{
+			if (Volume)
+			{
+				Volume->RegeneratePCGActors();
+			}
+		}
 	}
 	else
 	{
@@ -299,4 +351,30 @@ bool AValencyContextVolume::ShouldIgnoreActor(const AActor* Actor) const
 	}
 
 	return false;
+}
+
+void AValencyContextVolume::FindRelatedVolumes(TArray<AValencyContextVolume*>& OutVolumes) const
+{
+	OutVolumes.Empty();
+
+	if (!BondingRules)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	// Find all volumes that reference the same BondingRules asset
+	for (TActorIterator<AValencyContextVolume> It(World); It; ++It)
+	{
+		AValencyContextVolume* Volume = *It;
+		if (Volume && Volume->BondingRules == BondingRules)
+		{
+			OutVolumes.Add(Volume);
+		}
+	}
 }

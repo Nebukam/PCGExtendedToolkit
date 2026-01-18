@@ -110,6 +110,18 @@ public:
 	FPCGExValencyBuildResult BuildFromVolume(AValencyContextVolume* Volume);
 
 	/**
+	 * Build bonding rules from all cages within multiple volumes.
+	 * All volumes must reference the same BondingRules asset.
+	 * Updates the shared BondingRules asset in place.
+	 *
+	 * @param Volumes Array of volumes containing cages (must share same BondingRules)
+	 * @param TriggeringVolume The volume that initiated the build (for metadata)
+	 * @return Build result with success status and any warnings/errors
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Valency")
+	FPCGExValencyBuildResult BuildFromVolumes(const TArray<AValencyContextVolume*>& Volumes, AValencyContextVolume* TriggeringVolume = nullptr);
+
+	/**
 	 * Build bonding rules from a specific set of cages.
 	 *
 	 * @param Cages Array of cages to process

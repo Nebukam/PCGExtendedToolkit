@@ -13,47 +13,97 @@
 
 FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolume(AValencyContextVolume* Volume)
 {
-	FPCGExValencyBuildResult Result;
-
 	if (!Volume)
 	{
+		FPCGExValencyBuildResult Result;
 		Result.Errors.Add(LOCTEXT("NoVolume", "No volume provided."));
 		return Result;
 	}
 
-	UPCGExValencyBondingRules* TargetRules = Volume->GetBondingRules();
+	// Delegate to multi-volume version with single volume
+	return BuildFromVolumes({Volume}, Volume);
+}
+
+FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolumes(const TArray<AValencyContextVolume*>& Volumes, AValencyContextVolume* TriggeringVolume)
+{
+	FPCGExValencyBuildResult Result;
+
+	if (Volumes.Num() == 0)
+	{
+		Result.Errors.Add(LOCTEXT("NoVolumes", "No volumes provided."));
+		return Result;
+	}
+
+	// Use first volume to get shared resources, or triggering volume if provided
+	AValencyContextVolume* PrimaryVolume = TriggeringVolume ? TriggeringVolume : Volumes[0];
+
+	UPCGExValencyBondingRules* TargetRules = PrimaryVolume->GetBondingRules();
 	if (!TargetRules)
 	{
-		Result.Errors.Add(LOCTEXT("NoBondingRules", "Volume has no BondingRules asset assigned."));
+		Result.Errors.Add(LOCTEXT("NoBondingRules", "Primary volume has no BondingRules asset assigned."));
 		return Result;
 	}
 
-	UPCGExValencyOrbitalSet* OrbitalSet = Volume->GetEffectiveOrbitalSet();
+	UPCGExValencyOrbitalSet* OrbitalSet = PrimaryVolume->GetEffectiveOrbitalSet();
 	if (!OrbitalSet)
 	{
-		Result.Errors.Add(LOCTEXT("NoOrbitalSet", "Volume has no OrbitalSet (check BondingRules or override)."));
+		Result.Errors.Add(LOCTEXT("NoOrbitalSet", "Primary volume has no OrbitalSet (check BondingRules or override)."));
 		return Result;
 	}
 
-	// Ensure cage relationships are up-to-date before building
-	// This is critical for command-line builds where editor mode isn't active
-	Volume->RefreshCageRelationships();
-
-	// Collect cages from volume
-	TArray<APCGExValencyCageBase*> AllCages;
-	Volume->CollectContainedCages(AllCages);
-
-	// Filter to regular cages (not null cages)
-	TArray<APCGExValencyCage*> RegularCages;
-	for (APCGExValencyCageBase* CageBase : AllCages)
+	// Verify all volumes reference the same BondingRules
+	for (AValencyContextVolume* Volume : Volumes)
 	{
-		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CageBase))
+		if (Volume && Volume->GetBondingRules() != TargetRules)
 		{
-			RegularCages.Add(Cage);
+			Result.Warnings.Add(FText::Format(
+				LOCTEXT("MismatchedRules", "Volume '{0}' references different BondingRules - skipping."),
+				FText::FromString(Volume->GetName())
+			));
 		}
 	}
 
-	return BuildFromCages(RegularCages, TargetRules, OrbitalSet);
+	// Collect cages from ALL volumes that share the same BondingRules
+	TArray<APCGExValencyCage*> AllRegularCages;
+	for (AValencyContextVolume* Volume : Volumes)
+	{
+		if (!Volume || Volume->GetBondingRules() != TargetRules)
+		{
+			continue;
+		}
+
+		// Ensure cage relationships are up-to-date before building
+		Volume->RefreshCageRelationships();
+
+		// Collect cages from this volume
+		TArray<APCGExValencyCageBase*> VolumeCages;
+		Volume->CollectContainedCages(VolumeCages);
+
+		// Filter to regular cages (not null cages)
+		for (APCGExValencyCageBase* CageBase : VolumeCages)
+		{
+			if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CageBase))
+			{
+				AllRegularCages.AddUnique(Cage);
+			}
+		}
+	}
+
+	// Build from all collected cages
+	Result = BuildFromCages(AllRegularCages, TargetRules, OrbitalSet);
+
+	// Update build metadata on success
+	if (Result.bSuccess && PrimaryVolume)
+	{
+		if (UWorld* World = PrimaryVolume->GetWorld())
+		{
+			TargetRules->LastBuildLevelPath = World->GetMapName();
+		}
+		TargetRules->LastBuildVolumeName = PrimaryVolume->GetName();
+		TargetRules->LastBuildTime = FDateTime::Now();
+	}
+
+	return Result;
 }
 
 FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromCages(

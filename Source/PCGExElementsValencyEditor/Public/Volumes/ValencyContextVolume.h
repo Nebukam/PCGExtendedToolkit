@@ -118,6 +118,12 @@ public:
 	 */
 	bool ShouldIgnoreActor(const AActor* Actor) const;
 
+	/**
+	 * Find all volumes in the current level that reference the same BondingRules.
+	 * @param OutVolumes Array that will be filled with related volumes (includes this volume)
+	 */
+	void FindRelatedVolumes(TArray<AValencyContextVolume*>& OutVolumes) const;
+
 protected:
 	/** Regenerate PCG components on actors in PCGActorsToRegenerate list */
 	void RegeneratePCGActors();

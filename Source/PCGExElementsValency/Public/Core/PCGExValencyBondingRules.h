@@ -195,6 +195,28 @@ public:
 	 */
 	TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>> DiscoveredMaterialVariants;
 
+	// ========== Build Metadata ==========
+
+	/**
+	 * Path of the level where this ruleset was last built.
+	 * Used to warn when rebuilding from a different level.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Build Info")
+	FString LastBuildLevelPath;
+
+	/**
+	 * Name of the volume that triggered the last build.
+	 * For informational purposes only.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Build Info")
+	FString LastBuildVolumeName;
+
+	/**
+	 * Timestamp of the last build operation.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Build Info")
+	FDateTime LastBuildTime;
+
 	/** Compiled runtime data (generated, not serialized) */
 	TSharedPtr<FPCGExValencyBondingRulesCompiled> CompiledData;
 
