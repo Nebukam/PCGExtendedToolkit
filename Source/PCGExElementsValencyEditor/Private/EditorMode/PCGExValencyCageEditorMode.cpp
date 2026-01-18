@@ -132,9 +132,16 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 		{
 			const bool bIsSelected = SelectedCages.Contains(Cage);
 			const FLinearColor LabelColor = bIsSelected ? SelectedLabelColor : UnselectedLabelColor;
+			const FVector CageLocation = Cage->GetActorLocation();
+
+			// Null cages: just show "NULL Cage" label, no orbitals
+			if (Cage->IsNullCage())
+			{
+				DrawLabel(Canvas, View, CageLocation + FVector(0, 0, 50), TEXT("NULL Cage"), LabelColor);
+				continue;
+			}
 
 			// Draw cage name label
-			const FVector CageLocation = Cage->GetActorLocation();
 			const FString CageName = Cage->GetCageDisplayName();
 
 			if (!CageName.IsEmpty())
@@ -310,16 +317,6 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 		FVector WorldDir = CageTransform.TransformVectorNoScale(Direction);
 		WorldDir.Normalize();
 
-		// Arrow always starts offset from center
-		const FVector ArrowStart = CageLocation + WorldDir * StartOffset;
-
-		// Determine color, style, and endpoint based on connection state
-		FLinearColor ArrowColor;
-		bool bDashed = false;
-		bool bDrawArrowhead = true;
-		FVector ArrowEnd;
-		float Thickness = 1.5f;
-
 		if (!Orbital.bEnabled)
 		{
 			// Disabled orbital - skip drawing
@@ -328,50 +325,61 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 		else if (const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection())
 		{
 			const FVector ConnectedLocation = ConnectedCage->GetActorLocation();
+			const float ConnectionDistance = FVector::Dist(CageLocation, ConnectedLocation);
+			const FVector ToConnected = (ConnectedLocation - CageLocation).GetSafeNormal();
 
-			// Calculate midpoint between cages for arrow endpoint
-			const FVector Midpoint = (CageLocation + ConnectedLocation) * 0.5f;
+			// Thick arrow starts offset from center in direction toward connected cage
+			const FVector ArrowStart = CageLocation + ToConnected * StartOffset;
+
+			// Thin line length: shorter when connected to reduce noise
+			const float ThinLineLength = ProbeRadius * 0.5f;
+
+			FLinearColor ArrowColor;
+			bool bDashed = false;
+			bool bDrawArrowhead = true;
+			FVector ArrowEnd;
 
 			if (ConnectedCage->IsNullCage())
 			{
-				// Connection to null cage: dashed darkish red, no arrowhead
-				// Arrow goes to midpoint (null cages are boundary markers)
+				// Connection to null cage: dashed darkish red, no arrowhead on thick arrow
 				ArrowColor = NullConnectionColor;
 				bDashed = true;
 				bDrawArrowhead = false;
-				ArrowEnd = Midpoint;
-			}
-			else if (ConnectedCage->HasConnectionTo(Cage))
-			{
-				// Bidirectional connection: green with arrowhead
-				// Arrow ends at midpoint so both arrows meet there
-				ArrowColor = BidirectionalColor;
-				ArrowEnd = Midpoint;
+
+				// Thick arrow ends at null cage's sphere surface
+				const float NullSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
+				const float DistanceToSurface = ConnectionDistance - NullSphereRadius;
+				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, StartOffset + 10.0f);
 			}
 			else
 			{
-				// Unilateral connection: teal with arrowhead
-				// Arrow ends at midpoint
-				ArrowColor = UnilateralColor;
-				ArrowEnd = Midpoint;
+				// Thick arrow ends at midpoint for regular connections
+				ArrowEnd = CageLocation + ToConnected * (ConnectionDistance * 0.5f);
+
+				if (ConnectedCage->HasConnectionTo(Cage))
+				{
+					// Bidirectional connection: green with arrowhead
+					ArrowColor = BidirectionalColor;
+				}
+				else
+				{
+					// Unilateral connection: teal with arrowhead
+					ArrowColor = UnilateralColor;
+				}
 			}
 
-			// Draw thin connection line from center to center
-			DrawConnection(PDI, Cage, Orbital.OrbitalIndex, ConnectedCage);
+			// Draw thin line along orbital direction (WorldDir), shorter length when connected
+			DrawConnection(PDI, CageLocation, WorldDir, ThinLineLength, ArrowColor, false, false);
+
+			// Draw the thick arrow - points toward connected cage
+			DrawOrbitalArrow(PDI, ArrowStart, ArrowEnd, ArrowColor, bDashed, bDrawArrowhead, 1.5f);
 		}
 		else
 		{
-			// No connection: dashed light gray, no arrowhead
-			// Arrow extends full probe radius in direction
-			ArrowColor = NoConnectionColor;
-			bDashed = true;
-			bDrawArrowhead = false;
-			ArrowEnd = CageLocation + WorldDir * ProbeRadius;
-			Thickness = 0.5f;
+			// No connection: draw dashed thin line along orbital direction at full probe radius
+			// with arrowhead to show direction
+			DrawConnection(PDI, CageLocation, WorldDir, ProbeRadius, NoConnectionColor, true, true);
 		}
-
-		// Draw the orbital arrow
-		DrawOrbitalArrow(PDI, ArrowStart, ArrowEnd, ArrowColor, bDashed, bDrawArrowhead, Thickness);
 	}
 }
 
@@ -395,46 +403,41 @@ void FPCGExValencyCageEditorMode::DrawVolume(FPrimitiveDrawInterface* PDI, const
 	DrawWireBox(PDI, VolumeBox, DrawColor, SDPG_World);
 }
 
-void FPCGExValencyCageEditorMode::DrawConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* FromCage, int32 OrbitalIndex, const APCGExValencyCageBase* ToCage)
+void FPCGExValencyCageEditorMode::DrawConnection(FPrimitiveDrawInterface* PDI, const FVector& From, const FVector& Along, float Distance, const FLinearColor& Color, bool bDrawArrowhead, bool bDashed)
 {
-	if (!FromCage || !ToCage)
-	{
-		return;
-	}
+	const FVector To = From + Along * Distance;
 
-	const FVector From = FromCage->GetActorLocation();
-	const FVector To = ToCage->GetActorLocation();
-
-	// Determine connection type and color
-	const bool bToNullCage = ToCage->IsNullCage();
-	const bool bMutual = !bToNullCage && ToCage->HasConnectionTo(FromCage);
-
-	FLinearColor LineColor;
-	if (bToNullCage)
+	if (bDashed)
 	{
-		LineColor = NullConnectionColor;
-	}
-	else if (bMutual)
-	{
-		LineColor = BidirectionalColor;
+		// Draw dashed line
+		const float DashCycle = DashLength + DashGap;
+		float CurrentPos = 0.0f;
+
+		while (CurrentPos < Distance)
+		{
+			const float DashStart = CurrentPos;
+			const float DashEnd = FMath::Min(CurrentPos + DashLength, Distance);
+
+			const FVector SegStart = From + Along * DashStart;
+			const FVector SegEnd = From + Along * DashEnd;
+
+			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, ConnectionLineThickness);
+			CurrentPos += DashCycle;
+		}
 	}
 	else
 	{
-		LineColor = UnilateralColor;
+		PDI->DrawLine(From, To, Color, SDPG_World, ConnectionLineThickness);
 	}
 
-	PDI->DrawLine(From, To, LineColor, SDPG_World, ConnectionLineThickness);
-
-	// Draw arrowhead at midpoint pointing toward target (only for unilateral, not for null or bidirectional)
-	if (!bMutual && !bToNullCage)
+	// Draw arrowhead at end if requested
+	if (bDrawArrowhead)
 	{
-		const FVector Mid = (From + To) * 0.5f;
-		const FVector Dir = (To - From).GetSafeNormal();
-		const FVector Right = FVector::CrossProduct(Dir, FVector::UpVector).GetSafeNormal();
+		const FVector Right = FVector::CrossProduct(Along, FVector::UpVector).GetSafeNormal();
 
-		const float ArrowSize = 15.0f;
-		PDI->DrawLine(Mid, Mid - Dir * ArrowSize + Right * ArrowSize * 0.5f, LineColor, SDPG_World, ConnectionLineThickness);
-		PDI->DrawLine(Mid, Mid - Dir * ArrowSize - Right * ArrowSize * 0.5f, LineColor, SDPG_World, ConnectionLineThickness);
+		const float ArrowSize = 12.0f;
+		PDI->DrawLine(To, To - Along * ArrowSize + Right * ArrowSize * 0.5f, Color, SDPG_World, ConnectionLineThickness);
+		PDI->DrawLine(To, To - Along * ArrowSize - Right * ArrowSize * 0.5f, Color, SDPG_World, ConnectionLineThickness);
 	}
 }
 

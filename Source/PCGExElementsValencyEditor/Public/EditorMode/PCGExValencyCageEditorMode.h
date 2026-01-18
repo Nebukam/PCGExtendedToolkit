@@ -60,8 +60,8 @@ protected:
 	/** Draw a volume's boundaries */
 	void DrawVolume(FPrimitiveDrawInterface* PDI, const AValencyContextVolume* Volume);
 
-	/** Draw connection between two cages */
-	void DrawConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* FromCage, int32 OrbitalIndex, const APCGExValencyCageBase* ToCage);
+	/** Draw connection line along orbital direction */
+	void DrawConnection(FPrimitiveDrawInterface* PDI, const FVector& From, const FVector& Along, float Distance, const FLinearColor& Color, bool bDrawArrowhead = false, bool bDashed = false);
 
 	/** Draw orbital direction arrow - from Start to End with optional arrowhead */
 	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, bool bDashed = false, bool bDrawArrowhead = true, float Thickness = 1.5f, float ThicknessArrow = 2.0f);
