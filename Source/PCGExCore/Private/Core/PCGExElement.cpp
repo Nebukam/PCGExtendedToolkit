@@ -82,6 +82,12 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 	Context->bQuietCancellationError = Settings->bQuietCancellationError;
 	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
 
+	if (Settings->SupportsDataStealing()
+		&& Settings->StealData == EPCGExOptionState::Enabled)
+	{
+		Context->bWantsDataStealing = true;
+	}
+
 	Context->ElementHandle = this;
 
 	if (Context->bCleanupConsumableAttributes)

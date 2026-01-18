@@ -110,13 +110,22 @@ bool FPCGExValencySolverOperation::DoesModuleFitState(int32 ModuleIndex, const P
 		return false;
 	}
 
-	// Check all layers - module's required orbitals must match state's available connections
+	// Check all layers
 	for (int32 LayerIndex = 0; LayerIndex < CompiledBondingRules->GetLayerCount(); ++LayerIndex)
 	{
 		const int64 ModuleMask = CompiledBondingRules->GetModuleOrbitalMask(ModuleIndex, LayerIndex);
+		const int64 BoundaryMask = CompiledBondingRules->GetModuleBoundaryMask(ModuleIndex, LayerIndex);
 		const int64 StateMask = State.OrbitalMasks.IsValidIndex(LayerIndex) ? State.OrbitalMasks[LayerIndex] : 0;
 
+		// Module's required orbitals must be present in state
 		if ((ModuleMask & StateMask) != ModuleMask)
+		{
+			return false;
+		}
+
+		// Module's boundary orbitals must NOT have connections in state
+		// (BoundaryMask has bits set for orbitals that must be empty; StateMask has bits set for orbitals with neighbors)
+		if ((BoundaryMask & StateMask) != 0)
 		{
 			return false;
 		}

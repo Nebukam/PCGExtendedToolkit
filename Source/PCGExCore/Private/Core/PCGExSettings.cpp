@@ -50,6 +50,11 @@ void UPCGExSettings::EDITOR_OpenNodeDocumentation() const
 }
 #endif
 
+bool UPCGExSettings::SupportsDataStealing() const
+{
+	return false;
+}
+
 bool UPCGExSettings::ShouldCache() const
 {
 	if (!IsCacheable()) { return false; }

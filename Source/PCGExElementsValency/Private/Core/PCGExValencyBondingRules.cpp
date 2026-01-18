@@ -76,6 +76,7 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->ModuleLocalTransforms.SetNum(Modules.Num());
 	CompiledData->ModuleHasLocalTransform.SetNum(Modules.Num());
 	CompiledData->ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
+	CompiledData->ModuleBoundaryMasks.SetNum(Modules.Num() * LayerCount);
 
 	// Populate module data
 	for (int32 ModuleIndex = 0; ModuleIndex < Modules.Num(); ++ModuleIndex)
@@ -99,10 +100,12 @@ bool UPCGExValencyBondingRules::Compile()
 			if (const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(LayerName))
 			{
 				CompiledData->ModuleOrbitalMasks[MaskIndex] = LayerConfig->OrbitalMask;
+				CompiledData->ModuleBoundaryMasks[MaskIndex] = LayerConfig->BoundaryOrbitalMask;
 			}
 			else
 			{
 				CompiledData->ModuleOrbitalMasks[MaskIndex] = 0;
+				CompiledData->ModuleBoundaryMasks[MaskIndex] = 0;
 			}
 		}
 	}

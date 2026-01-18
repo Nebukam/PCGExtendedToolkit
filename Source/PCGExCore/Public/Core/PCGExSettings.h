@@ -46,7 +46,12 @@ public:
 	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState ScopedAttributeGet = EPCGExOptionState::Default;
-
+	
+	/** Steal input data and modify it in-place.
+	 * When enabling this you must make absolutely sure the data plugged into this node is not plugged in any other node. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="SupportsDataStealing()", EditConditionHides))
+	EPCGExOptionState StealData = EPCGExOptionState::Disabled;
+	
 	/** Forces the execution over a single frame.
 	 * Not safe on all nodes, some nodes will override this internally.
 	 * ONLY CHANGE THIS IF YOU KNOW WHAT YOU'RE DOING */
@@ -101,6 +106,8 @@ protected:
 	UPROPERTY()
 	int64 PCGExDataVersion = -1;
 
+	UFUNCTION()
+	virtual bool SupportsDataStealing() const;
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;
 	virtual bool WantsBulkInitData() const;

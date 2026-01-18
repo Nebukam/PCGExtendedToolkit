@@ -9,8 +9,8 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteValencyOrbitals"
 #define PCGEX_NAMESPACE WriteValencyOrbitals
 
-PCGExData::EIOInit UPCGExWriteValencyOrbitalsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-PCGExData::EIOInit UPCGExWriteValencyOrbitalsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExWriteValencyOrbitalsSettings::GetMainOutputInitMode() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExWriteValencyOrbitalsSettings::GetEdgeOutputInitMode() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExWriteValencyOrbitalsSettings::InputPinProperties() const
 {
