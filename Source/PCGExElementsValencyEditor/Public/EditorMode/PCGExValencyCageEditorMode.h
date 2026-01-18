@@ -5,16 +5,23 @@
 
 #include "CoreMinimal.h"
 #include "EdMode.h"
-#include "Cages/PCGExValencyCageOrbital.h"
+#include "EditorMode/PCGExValencyAssetTracker.h"
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
 class AValencyContextVolume;
-class UPCGExValencyOrbitalSet;
 
 /**
  * Editor mode for Valency Cage authoring.
  * Provides viewport visualization of orbital connections, cage states, and placement tools.
+ *
+ * This class orchestrates:
+ * - Cache management for cages and volumes
+ * - Visualization via FPCGExValencyDrawHelper
+ * - Asset tracking via FPCGExValencyAssetTracker
+ * - Input handling and actor lifecycle events
+ *
+ * Configuration is stored in UPCGExValencyEditorSettings (Project Settings > Plugins > PCGEx Valency Editor).
  */
 class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageEditorMode : public FEdMode
 {
@@ -28,62 +35,36 @@ public:
 	//~ Begin FEdMode Interface
 	virtual void Enter() override;
 	virtual void Exit() override;
-
-	/** Main 3D rendering callback - draws orbital connections, cage visuals */
 	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
-
-	/** HUD rendering callback - draws labels, status text */
 	virtual void DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas) override;
-
-	/** Handle viewport clicks for cage placement */
 	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
-
-	/** Process keyboard input */
 	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event) override;
-
-	/** Allow actor selection */
 	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const override;
-
-	/** Tick for any continuous updates */
 	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime) override;
 	//~ End FEdMode Interface
 
+	/** Get the cached cages array */
+	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& GetCachedCages() const { return CachedCages; }
+
+	/** Get the cached volumes array */
+	const TArray<TWeakObjectPtr<AValencyContextVolume>>& GetCachedVolumes() const { return CachedVolumes; }
+
 protected:
+	// ========== Cache Management ==========
+
 	/** Collect all cages in the current level */
 	void CollectCagesFromLevel();
 
 	/** Collect all volumes in the current level */
 	void CollectVolumesFromLevel();
 
-	/** Draw a single cage's visualization */
-	void DrawCage(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage);
+	/** Master refresh - ensures all cages are properly initialized and connected */
+	void RefreshAllCages();
 
-	/** Draw a volume's boundaries */
-	void DrawVolume(FPrimitiveDrawInterface* PDI, const AValencyContextVolume* Volume);
+	/** Initialize a single cage's orbitals and detect its connections */
+	void InitializeCage(APCGExValencyCageBase* Cage);
 
-	/** Draw connection line along orbital direction */
-	void DrawConnection(FPrimitiveDrawInterface* PDI, const FVector& From, const FVector& Along, float Distance, const FLinearColor& Color, bool bDrawArrowhead = false, bool bDashed = false);
-
-	/** Draw orbital direction arrow - from Start to End with optional arrowhead */
-	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, bool bDashed = false, bool bDrawArrowhead = true, float Thickness = 1.5f, float ThicknessArrow = 2.0f);
-
-	/** Helper: Draw a line segment (solid or dashed) */
-	void DrawLineSegment(FPrimitiveDrawInterface* PDI, const FVector& Start, const FVector& End, const FLinearColor& Color, float Thickness, bool bDashed);
-
-	/** Helper: Draw arrowhead at the end of a line */
-	void DrawArrowhead(FPrimitiveDrawInterface* PDI, const FVector& TipLocation, const FVector& Direction, const FLinearColor& Color, float Size, float Thickness);
-
-	/** Helper: Find volumes with asset tracking enabled and trigger auto-rebuild if needed */
-	void TriggerAutoRebuildForCages(const TSet<APCGExValencyCage*>& AffectedCages);
-
-	/** Helper: Redraw all viewports */
-	void RedrawViewports();
-
-	/** Draw text label in viewport */
-	void DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color);
-
-	/** Set visibility of all cage debug components */
-	void SetAllCageDebugComponentsVisible(bool bVisible);
+	// ========== Actor Lifecycle ==========
 
 	/** Callback when an actor is added to the level */
 	void OnLevelActorAdded(AActor* Actor);
@@ -91,32 +72,23 @@ protected:
 	/** Callback when an actor is deleted from the level */
 	void OnLevelActorDeleted(AActor* Actor);
 
-	/**
-	 * Master refresh function - ensures all cages are properly initialized and connected.
-	 * Call this whenever state might be stale (mode enter, actor changes, etc.)
-	 */
-	void RefreshAllCages();
+	/** Callback when selection changes */
+	void OnSelectionChanged();
 
-	/** Initialize a single cage's orbitals and detect its connections */
-	void InitializeCage(APCGExValencyCageBase* Cage);
+	// ========== Utilities ==========
 
-	/**
-	 * Cleanup stale manual connections from all cages.
-	 * Removes null/invalid entries from manual connection lists.
-	 * @return Total number of stale entries removed across all cages
-	 */
+	/** Set visibility of all cage debug components */
+	void SetAllCageDebugComponentsVisible(bool bVisible);
+
+	/** Cleanup stale manual connections from all cages */
 	int32 CleanupAllManualConnections();
 
-	/** Check if any volume has asset tracking enabled */
-	bool IsAssetTrackingEnabled() const;
-
-	/** Update asset tracking for selected actors */
-	void UpdateAssetTracking();
-
-	/** Callback when selection changes */
-	void OnSelectionChanged(UObject* Object);
+	/** Redraw all viewports and invalidate viewport clients */
+	void RedrawViewports();
 
 private:
+	// ========== Cache State ==========
+
 	/** Cached cages in level */
 	TArray<TWeakObjectPtr<APCGExValencyCageBase>> CachedCages;
 
@@ -126,32 +98,14 @@ private:
 	/** Whether cache needs refresh */
 	bool bCacheDirty = true;
 
-	/** Delegate handles for actor add/delete events */
+	// ========== Delegate Handles ==========
+
 	FDelegateHandle OnActorAddedHandle;
 	FDelegateHandle OnActorDeletedHandle;
 	FDelegateHandle OnSelectionChangedHandle;
 
-	/** Tracked actors and their last known containing cages (for change detection) */
-	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<APCGExValencyCage>> TrackedActorCageMap;
+	// ========== Asset Tracking ==========
 
-	/** Actors currently being tracked (selected non-cage actors) */
-	TArray<TWeakObjectPtr<AActor>> TrackedActors;
-
-	/** Last known positions of tracked actors */
-	TMap<TWeakObjectPtr<AActor>, FVector> TrackedActorPositions;
-
-	/** Visualization settings */
-	float OrbitalArrowLength = 100.0f;
-	float ConnectionLineThickness = 0.5f;          // Thin center-to-center lines (many of them)
-	float ArrowStartOffsetPct = 0.25f;             // Arrows start at 25% of probe radius from center
-	float DashLength = 8.0f;                      // Length of each dash segment
-	float DashGap = 12.0f;                          // Gap between dashes
-
-	/** Colors */
-	FLinearColor BidirectionalColor = FLinearColor(0.2f, 0.8f, 0.2f);      // Green - mutual connection
-	FLinearColor UnilateralColor = FLinearColor(0.0f, 0.6f, 0.6f);         // Teal - one-way connection
-	FLinearColor NullConnectionColor = FLinearColor(0.5f, 0.15f, 0.15f);   // Darkish red - connection to null
-	FLinearColor NoConnectionColor = FLinearColor(0.6f, 0.6f, 0.6f);       // Light gray - no connection
-	FLinearColor VolumeColor = FLinearColor(0.3f, 0.3f, 0.8f, 0.3f);
-	FLinearColor WarningColor = FLinearColor(1.0f, 0.5f, 0.0f);
+	/** Asset tracker for monitoring selected actors */
+	FPCGExValencyAssetTracker AssetTracker;
 };

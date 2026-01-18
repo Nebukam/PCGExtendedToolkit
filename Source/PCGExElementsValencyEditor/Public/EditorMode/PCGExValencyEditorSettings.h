@@ -1,0 +1,128 @@
+// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/DeveloperSettings.h"
+
+#include "PCGExValencyEditorSettings.generated.h"
+
+/**
+ * Settings for the Valency Cage Editor Mode.
+ * Configure visualization colors, line thicknesses, and other display options.
+ * Access via Project Settings > Plugins > PCGEx Valency Editor.
+ */
+UCLASS(Config=Editor, DefaultConfig, meta=(DisplayName="PCGEx Valency Editor"))
+class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyEditorSettings : public UDeveloperSettings
+{
+	GENERATED_BODY()
+
+public:
+	UPCGExValencyEditorSettings();
+
+	/** Get the singleton settings instance */
+	static const UPCGExValencyEditorSettings* Get();
+
+	//~ Begin UDeveloperSettings Interface
+	virtual FName GetCategoryName() const override { return FName("Plugins"); }
+	virtual FName GetSectionName() const override { return FName("PCGEx Valency Editor"); }
+	//~ End UDeveloperSettings Interface
+
+public:
+	// ========== Connection Colors ==========
+
+	/** Color for bidirectional connections (both cages connect to each other) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
+	FLinearColor BidirectionalColor = FLinearColor(0.2f, 0.8f, 0.2f);
+
+	/** Color for unilateral connections (only one cage connects to the other) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
+	FLinearColor UnilateralColor = FLinearColor(0.0f, 0.6f, 0.6f);
+
+	/** Color for connections to null cages (boundary markers) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
+	FLinearColor NullConnectionColor = FLinearColor(0.5f, 0.15f, 0.15f);
+
+	/** Color for orbitals with no connection */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
+	FLinearColor NoConnectionColor = FLinearColor(0.6f, 0.6f, 0.6f);
+
+	// ========== Other Colors ==========
+
+	/** Default color for volume wireframes */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|General")
+	FLinearColor VolumeColor = FLinearColor(0.3f, 0.3f, 0.8f, 0.3f);
+
+	/** Warning color for cages without orbital sets */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|General")
+	FLinearColor WarningColor = FLinearColor(1.0f, 0.5f, 0.0f);
+
+	// ========== Label Colors ==========
+
+	/** Label color for selected cages */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Labels")
+	FLinearColor SelectedLabelColor = FLinearColor::White;
+
+	/** Label color for unselected cages (should have lower alpha) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Labels")
+	FLinearColor UnselectedLabelColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.35f);
+
+	// ========== Line Thicknesses ==========
+
+	/** Thickness of thin connection lines */
+	UPROPERTY(Config, EditAnywhere, Category = "Lines", meta = (ClampMin = "0.1", ClampMax = "10.0"))
+	float ConnectionLineThickness = 0.5f;
+
+	/** Thickness of orbital arrow lines */
+	UPROPERTY(Config, EditAnywhere, Category = "Lines", meta = (ClampMin = "0.1", ClampMax = "10.0"))
+	float OrbitalArrowThickness = 1.5f;
+
+	/** Thickness of arrowhead lines */
+	UPROPERTY(Config, EditAnywhere, Category = "Lines", meta = (ClampMin = "0.1", ClampMax = "10.0"))
+	float ArrowheadThickness = 2.0f;
+
+	// ========== Arrow Geometry ==========
+
+	/** Percentage of probe radius where thick arrows start (0.0 - 1.0) */
+	UPROPERTY(Config, EditAnywhere, Category = "Geometry", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float ArrowStartOffsetPct = 0.25f;
+
+	/** Percentage of arrow length where the main line ends (arrowhead starts) */
+	UPROPERTY(Config, EditAnywhere, Category = "Geometry", meta = (ClampMin = "0.5", ClampMax = "1.0"))
+	float ArrowMainLinePct = 0.85f;
+
+	/** Size of arrowheads in world units */
+	UPROPERTY(Config, EditAnywhere, Category = "Geometry", meta = (ClampMin = "1.0", ClampMax = "50.0"))
+	float ArrowheadSize = 10.0f;
+
+	/** Size of connection arrowheads in world units */
+	UPROPERTY(Config, EditAnywhere, Category = "Geometry", meta = (ClampMin = "1.0", ClampMax = "50.0"))
+	float ConnectionArrowheadSize = 12.0f;
+
+	// ========== Dashed Lines ==========
+
+	/** Length of dash segments for dashed lines */
+	UPROPERTY(Config, EditAnywhere, Category = "Dashed Lines", meta = (ClampMin = "1.0", ClampMax = "50.0"))
+	float DashLength = 8.0f;
+
+	/** Gap between dash segments */
+	UPROPERTY(Config, EditAnywhere, Category = "Dashed Lines", meta = (ClampMin = "1.0", ClampMax = "50.0"))
+	float DashGap = 12.0f;
+
+	// ========== Labels ==========
+
+	/** Vertical offset for cage name labels above cage center */
+	UPROPERTY(Config, EditAnywhere, Category = "Labels", meta = (ClampMin = "0.0", ClampMax = "200.0"))
+	float CageLabelVerticalOffset = 50.0f;
+
+	/** Position of orbital labels as percentage of probe radius */
+	UPROPERTY(Config, EditAnywhere, Category = "Labels", meta = (ClampMin = "0.1", ClampMax = "1.0"))
+	float OrbitalLabelRadiusPct = 0.3f;
+
+	// ========== Thin Line Lengths ==========
+
+	/** Length of thin orbital lines when connected (as percentage of probe radius) */
+	UPROPERTY(Config, EditAnywhere, Category = "Geometry", meta = (ClampMin = "0.1", ClampMax = "1.0"))
+	float ConnectedThinLinePct = 0.5f;
+};

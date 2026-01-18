@@ -1,0 +1,103 @@
+// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+
+class APCGExValencyCageBase;
+class APCGExValencyCage;
+class AValencyContextVolume;
+
+/**
+ * Tracks selected actors and their containment in Valency cages.
+ * Detects when actors move into/out of cages and triggers cage refreshes.
+ *
+ * This class owns all asset tracking state and is used by the editor mode.
+ */
+class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyAssetTracker
+{
+public:
+	FPCGExValencyAssetTracker() = default;
+	~FPCGExValencyAssetTracker() = default;
+
+	// Non-copyable
+	FPCGExValencyAssetTracker(const FPCGExValencyAssetTracker&) = delete;
+	FPCGExValencyAssetTracker& operator=(const FPCGExValencyAssetTracker&) = delete;
+
+	/**
+	 * Initialize the tracker with references to cached data.
+	 * Must be called before using other methods.
+	 * @param InCachedCages Reference to the cached cages array
+	 * @param InCachedVolumes Reference to the cached volumes array
+	 */
+	void Initialize(
+		const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& InCachedCages,
+		const TArray<TWeakObjectPtr<AValencyContextVolume>>& InCachedVolumes);
+
+	/** Clear all tracking state */
+	void Reset();
+
+	/**
+	 * Check if asset tracking is enabled on any volume.
+	 * @return True if at least one volume has bAutoTrackAssetPlacement enabled
+	 */
+	bool IsEnabled() const;
+
+	/**
+	 * Called when the editor selection changes.
+	 * Rebuilds the tracked actors list from the current selection.
+	 */
+	void OnSelectionChanged();
+
+	/**
+	 * Called when an actor is deleted from the level.
+	 * Handles cleanup if the actor was being tracked.
+	 * @param DeletedActor The actor being deleted
+	 * @return True if the deleted actor was tracked and cages were affected
+	 */
+	bool OnActorDeleted(AActor* DeletedActor);
+
+	/**
+	 * Update tracking state - call every tick when enabled.
+	 * Checks for position changes and containment changes.
+	 * @param OutAffectedCages Set that will be populated with cages that need refresh
+	 * @return True if any cages were affected
+	 */
+	bool Update(TSet<APCGExValencyCage*>& OutAffectedCages);
+
+	/**
+	 * Trigger auto-rebuild for volumes containing the affected cages.
+	 * @param AffectedCages Set of cages that were modified
+	 */
+	void TriggerAutoRebuild(const TSet<APCGExValencyCage*>& AffectedCages);
+
+	/** Get the number of currently tracked actors */
+	int32 GetTrackedActorCount() const { return TrackedActors.Num(); }
+
+private:
+	/** Check if an actor should be ignored based on volume ignore rules */
+	bool ShouldIgnoreActor(AActor* Actor) const;
+
+	/** Find which cage contains an actor (or nullptr if none) */
+	APCGExValencyCage* FindContainingCage(AActor* Actor) const;
+
+	/** Collect non-null cages that can receive assets */
+	void CollectTrackingCages(TArray<APCGExValencyCage*>& OutCages) const;
+
+private:
+	/** Reference to cached cages (owned by editor mode) */
+	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>* CachedCages = nullptr;
+
+	/** Reference to cached volumes (owned by editor mode) */
+	const TArray<TWeakObjectPtr<AValencyContextVolume>>* CachedVolumes = nullptr;
+
+	/** Actors currently being tracked (selected non-cage actors) */
+	TArray<TWeakObjectPtr<AActor>> TrackedActors;
+
+	/** Map from tracked actor to its last known containing cage */
+	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<APCGExValencyCage>> TrackedActorCageMap;
+
+	/** Last known positions of tracked actors */
+	TMap<TWeakObjectPtr<AActor>, FVector> TrackedActorPositions;
+};
