@@ -5,6 +5,7 @@
 
 #include "EngineUtils.h"
 #include "Components/BrushComponent.h"
+#include "PCGComponent.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "Builder/PCGExValencyBondingRulesBuilder.h"
@@ -128,6 +129,9 @@ void AValencyContextVolume::BuildRulesFromCages()
 	if (Result.bSuccess)
 	{
 		UE_LOG(LogValencyVolume, Log, TEXT("Build succeeded: %d modules from %d cages."), Result.ModuleCount, Result.CageCount);
+
+		// Regenerate PCG actors after successful build
+		RegeneratePCGActors();
 	}
 	else
 	{
@@ -234,4 +238,46 @@ void AValencyContextVolume::RefreshCageRelationships()
 #endif
 
 	UE_LOG(LogValencyVolume, Log, TEXT("Cage relationships refreshed."));
+}
+
+void AValencyContextVolume::RegeneratePCGActors()
+{
+	if (PCGActorsToRegenerate.Num() == 0)
+	{
+		return;
+	}
+
+	int32 RegeneratedCount = 0;
+
+	for (const TObjectPtr<AActor>& ActorPtr : PCGActorsToRegenerate)
+	{
+		AActor* Actor = ActorPtr.Get();
+		if (!Actor)
+		{
+			continue;
+		}
+
+		// Find all PCG components on this actor
+		TArray<UPCGComponent*> PCGComponents;
+		Actor->GetComponents<UPCGComponent>(PCGComponents);
+
+		for (UPCGComponent* PCGComponent : PCGComponents)
+		{
+			if (!PCGComponent)
+			{
+				continue;
+			}
+
+			// Cleanup (removes generated components) and regenerate
+			PCGComponent->Cleanup(true);
+			PCGComponent->Generate(true);
+
+			RegeneratedCount++;
+		}
+	}
+
+	if (RegeneratedCount > 0)
+	{
+		UE_LOG(LogValencyVolume, Log, TEXT("Regenerated %d PCG component(s) on %d actor(s)."), RegeneratedCount, PCGActorsToRegenerate.Num());
+	}
 }

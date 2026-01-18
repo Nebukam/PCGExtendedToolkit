@@ -89,7 +89,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Building")
 	bool bAutoRebuildOnChange = false;
 
+	/**
+	 * Actors with PCG components to regenerate after building rules.
+	 * When BuildRulesFromCages completes, PCG components on these actors will be flushed and regenerated.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Building")
+	TArray<TObjectPtr<AActor>> PCGActorsToRegenerate;
+
 protected:
+	/** Regenerate PCG components on actors in PCGActorsToRegenerate list */
+	void RegeneratePCGActors();
 	/** Notify contained cages that volume properties changed */
 	void NotifyContainedCages();
 };
