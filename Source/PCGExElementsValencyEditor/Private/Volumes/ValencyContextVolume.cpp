@@ -13,6 +13,8 @@
 #if WITH_EDITOR
 #include "Editor.h"
 #include "Misc/MessageDialog.h"
+#include "EditorModeManager.h"
+#include "EditorMode/PCGExValencyCageEditorMode.h"
 #endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogValencyVolume, Log, All);
@@ -377,4 +379,15 @@ void AValencyContextVolume::FindRelatedVolumes(TArray<AValencyContextVolume*>& O
 			OutVolumes.Add(Volume);
 		}
 	}
+}
+
+bool AValencyContextVolume::IsValencyModeActive()
+{
+#if WITH_EDITOR
+	if (GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
+	{
+		return true;
+	}
+#endif
+	return false;
 }

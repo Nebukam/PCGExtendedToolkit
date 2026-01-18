@@ -8,10 +8,85 @@
 #include "Engine/Blueprint.h"
 #include "PCGDataAsset.h"
 #include "Components/StaticMeshComponent.h"
+#include "Volumes/ValencyContextVolume.h"
 
 APCGExValencyCage::APCGExValencyCage()
 {
 	// Standard cage setup
+}
+
+void APCGExValencyCage::PostEditMove(bool bFinished)
+{
+	// Capture current scanned assets before Super (which may trigger volume membership changes)
+	TArray<FPCGExValencyAssetEntry> OldScannedAssets;
+	if (bFinished && bAutoRegisterContainedAssets)
+	{
+		OldScannedAssets = ScannedAssetEntries;
+	}
+
+	// Let base class handle volume membership changes, connections, etc.
+	Super::PostEditMove(bFinished);
+
+	// After drag finishes, re-scan for assets if auto-registration is enabled
+	// Only trigger auto-rebuild when Valency mode is active
+	if (bFinished && bAutoRegisterContainedAssets && AValencyContextVolume::IsValencyModeActive())
+	{
+		// Re-scan contained assets
+		ScanAndRegisterContainedAssets();
+
+		// Check if scanned assets changed
+		bool bAssetsChanged = (OldScannedAssets.Num() != ScannedAssetEntries.Num());
+		if (!bAssetsChanged)
+		{
+			// Compare individual entries
+			for (int32 i = 0; i < ScannedAssetEntries.Num(); ++i)
+			{
+				const FPCGExValencyAssetEntry& NewEntry = ScannedAssetEntries[i];
+				bool bFound = false;
+				for (const FPCGExValencyAssetEntry& OldEntry : OldScannedAssets)
+				{
+					if (OldEntry.Asset == NewEntry.Asset)
+					{
+						// If preserving transforms, also check transform equality
+						if (bPreserveLocalTransforms)
+						{
+							if (OldEntry.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
+							{
+								bFound = true;
+								break;
+							}
+						}
+						else
+						{
+							bFound = true;
+							break;
+						}
+					}
+				}
+				if (!bFound)
+				{
+					bAssetsChanged = true;
+					break;
+				}
+			}
+		}
+
+		// If assets changed, trigger auto-rebuild for containing volumes
+		if (bAssetsChanged)
+		{
+			for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+			{
+				if (AValencyContextVolume* Volume = VolumePtr.Get())
+				{
+					if (Volume->bAutoRebuildOnChange)
+					{
+						Volume->BuildRulesFromCages();
+						break; // Only need to rebuild once (multi-volume aggregation handles the rest)
+					}
+				}
+			}
+		}
+	}
 }
 
 FString APCGExValencyCage::GetCageDisplayName() const

@@ -175,6 +175,9 @@ protected:
 	/** Whether orbital initialization is needed */
 	bool bNeedsOrbitalInit = true;
 
+	/** Flag set when cage is newly created (not loaded from disk) */
+	bool bIsNewlyCreated = false;
+
 	/** Last position used for live drag updates (throttling) */
 	FVector LastDragUpdatePosition = FVector::ZeroVector;
 
@@ -187,6 +190,16 @@ protected:
 	/** Position when drag started (for computing affected cages) */
 	FVector DragStartPosition = FVector::ZeroVector;
 
+	/** Volumes containing this cage before drag started (for membership change detection) */
+	TArray<TWeakObjectPtr<AValencyContextVolume>> VolumesBeforeDrag;
+
 	/** Update connections during drag using spatial registry */
 	void UpdateConnectionsDuringDrag();
+
+	/**
+	 * Check for volume membership changes and trigger auto-rebuild if needed.
+	 * Called after RefreshContainingVolumes() when drag finishes.
+	 * @param OldVolumes Volumes that contained this cage before the move
+	 */
+	void HandleVolumeMembershipChange(const TArray<TWeakObjectPtr<AValencyContextVolume>>& OldVolumes);
 };

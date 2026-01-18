@@ -124,6 +124,13 @@ public:
 	 */
 	void FindRelatedVolumes(TArray<AValencyContextVolume*>& OutVolumes) const;
 
+	/**
+	 * Check if the Valency editor mode is currently active.
+	 * Auto-rebuild features only trigger when this returns true.
+	 * @return True if the Valency editor mode is active
+	 */
+	static bool IsValencyModeActive();
+
 protected:
 	/** Regenerate PCG components on actors in PCGActorsToRegenerate list */
 	void RegeneratePCGActors();

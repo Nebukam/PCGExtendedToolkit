@@ -33,6 +33,9 @@ void APCGExValencyCageBase::PostActorCreated()
 {
 	Super::PostActorCreated();
 
+	// Mark as newly created (not loaded from disk)
+	bIsNewlyCreated = true;
+
 	// Auto-organize into Valency/Cages folder
 	SetFolderPath(PCGExValencyFolders::CagesFolder);
 }
@@ -58,6 +61,28 @@ void APCGExValencyCageBase::PostInitializeComponents()
 
 	// Initialize drag tracking
 	LastDragUpdatePosition = GetActorLocation();
+
+	// If this is a newly created cage (not loaded), trigger auto-rebuild for containing volumes
+	// Only when Valency mode is active to avoid unexpected rebuilds
+	if (bIsNewlyCreated)
+	{
+		bIsNewlyCreated = false; // Clear flag
+
+		if (AValencyContextVolume::IsValencyModeActive())
+		{
+			for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+			{
+				if (AValencyContextVolume* Volume = VolumePtr.Get())
+				{
+					if (Volume->bAutoRebuildOnChange)
+					{
+						Volume->BuildRulesFromCages();
+						break; // Only need to rebuild once (multi-volume aggregation handles the rest)
+					}
+				}
+			}
+		}
+	}
 }
 
 void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -119,10 +144,33 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 void APCGExValencyCageBase::BeginDestroy()
 {
-	// Unregister from spatial registry
+	// Unregister from spatial registry and trigger auto-rebuild if this is a user deletion
 	if (UWorld* World = GetWorld())
 	{
 		FPCGExValencyCageSpatialRegistry::Get(World).UnregisterCage(this);
+
+		// Only trigger auto-rebuild if:
+		// 1. World is still valid and not being torn down
+		// 2. We're in the editor (not PIE)
+		// 3. Valency mode is active
+		// 4. We had containing volumes
+#if WITH_EDITOR
+		if (!World->bIsTearingDown && !World->IsPlayInEditor() &&
+			AValencyContextVolume::IsValencyModeActive() && ContainingVolumes.Num() > 0)
+		{
+			for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+			{
+				if (AValencyContextVolume* Volume = VolumePtr.Get())
+				{
+					if (Volume->bAutoRebuildOnChange)
+					{
+						Volume->BuildRulesFromCages();
+						break; // Only need to rebuild once (multi-volume aggregation handles the rest)
+					}
+				}
+			}
+		}
+#endif
 	}
 
 	Super::BeginDestroy();
@@ -139,9 +187,10 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 		// Continuous drag - track state and do throttled live updates
 		if (!bIsDragging)
 		{
-			// Drag just started
+			// Drag just started - capture current state
 			bIsDragging = true;
 			DragStartPosition = LastDragUpdatePosition;
+			VolumesBeforeDrag = ContainingVolumes; // Capture volume membership before drag
 		}
 
 		// Check if we've moved enough to warrant an update
@@ -155,6 +204,7 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 	else
 	{
 		// Drag finished - do final update
+		const bool bWasDragging = bIsDragging;
 		bIsDragging = false;
 
 		// Update spatial registry with final position
@@ -163,14 +213,25 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 			FPCGExValencyCageSpatialRegistry::Get(World).UpdateCagePosition(this, DragStartPosition, CurrentPosition);
 		}
 
+		// Capture old volumes before refresh (only valid if we had a proper drag sequence)
+		TArray<TWeakObjectPtr<AValencyContextVolume>> OldVolumes = VolumesBeforeDrag;
+
 		// Position changed - refresh volumes and connections
 		RefreshContainingVolumes();
 		DetectNearbyConnections();
+
+		// Check for volume membership changes and trigger auto-rebuild if needed
+		// Only do this if we properly captured the "before" state during drag start
+		if (bWasDragging)
+		{
+			HandleVolumeMembershipChange(OldVolumes);
+		}
 
 		// Notify affected cages using spatial registry for efficiency
 		NotifyAffectedCagesOfMovement(DragStartPosition, CurrentPosition);
 
 		LastDragUpdatePosition = CurrentPosition;
+		VolumesBeforeDrag.Empty(); // Clear after use
 	}
 }
 
@@ -654,4 +715,68 @@ void APCGExValencyCageBase::NotifyAffectedCagesOfMovement(const FVector& OldPosi
 		GEditor->RedrawAllViewports();
 	}
 #endif
+}
+
+void APCGExValencyCageBase::HandleVolumeMembershipChange(const TArray<TWeakObjectPtr<AValencyContextVolume>>& OldVolumes)
+{
+	// Only process auto-rebuild when Valency mode is active
+	if (!AValencyContextVolume::IsValencyModeActive())
+	{
+		return;
+	}
+
+	// Build sets for comparison
+	TSet<AValencyContextVolume*> OldVolumeSet;
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : OldVolumes)
+	{
+		if (AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			OldVolumeSet.Add(Volume);
+		}
+	}
+
+	TSet<AValencyContextVolume*> NewVolumeSet;
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+	{
+		if (AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			NewVolumeSet.Add(Volume);
+		}
+	}
+
+	// Find volumes that need to rebuild
+	TSet<AValencyContextVolume*> VolumesToRebuild;
+
+	// Volumes that lost this cage (was in old, not in new)
+	for (AValencyContextVolume* OldVolume : OldVolumeSet)
+	{
+		if (!NewVolumeSet.Contains(OldVolume))
+		{
+			if (OldVolume->bAutoRebuildOnChange)
+			{
+				VolumesToRebuild.Add(OldVolume);
+			}
+		}
+	}
+
+	// Volumes that gained this cage (in new, not in old)
+	for (AValencyContextVolume* NewVolume : NewVolumeSet)
+	{
+		if (!OldVolumeSet.Contains(NewVolume))
+		{
+			if (NewVolume->bAutoRebuildOnChange)
+			{
+				VolumesToRebuild.Add(NewVolume);
+			}
+		}
+	}
+
+	// Trigger rebuild for affected volumes
+	for (AValencyContextVolume* Volume : VolumesToRebuild)
+	{
+		if (Volume)
+		{
+			Volume->BuildRulesFromCages();
+		}
+	}
 }
