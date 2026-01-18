@@ -31,6 +31,28 @@ void FPCGExValencyCageEditorMode::Enter()
 	bCacheDirty = true;
 	CollectCagesFromLevel();
 	CollectVolumesFromLevel();
+
+	// Only initialize cages that haven't been set up yet
+	// (Orbitals array is empty but cage has a valid orbital set)
+	// Saved cages should already have their orbitals and connections serialized
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		{
+			// Refresh containing volumes (transient, not saved)
+			Cage->RefreshContainingVolumes();
+
+			// Only initialize if orbitals are empty but should have data
+			if (Cage->GetOrbitals().Num() == 0 && Cage->GetEffectiveOrbitalSet())
+			{
+				Cage->InitializeOrbitalsFromSet();
+				Cage->DetectNearbyConnections();
+			}
+		}
+	}
+
+	// Note: We keep debug components visible for selection/interaction
+	// Our custom drawing overlays on top of them
 }
 
 void FPCGExValencyCageEditorMode::Exit()
@@ -198,9 +220,24 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 
 	const FVector CageLocation = Cage->GetActorLocation();
 	const FTransform CageTransform = Cage->GetActorTransform();
+	const bool bIsNullCage = Cage->IsNullCage();
 
 	// Get the orbital set for direction info
 	const UPCGExValencyOrbitalSet* OrbitalSet = Cage->GetEffectiveOrbitalSet();
+
+	// Null cages are valid without orbital sets - they're boundary markers
+	if (bIsNullCage)
+	{
+		// Draw null cage marker (X shape)
+		const float Size = 15.0f;
+		PDI->DrawLine(CageLocation + FVector(-Size, -Size, 0), CageLocation + FVector(Size, Size, 0), NullCageColor, SDPG_World, 2.0f);
+		PDI->DrawLine(CageLocation + FVector(-Size, Size, 0), CageLocation + FVector(Size, -Size, 0), NullCageColor, SDPG_World, 2.0f);
+		PDI->DrawLine(CageLocation + FVector(0, -Size, -Size), CageLocation + FVector(0, Size, Size), NullCageColor, SDPG_World, 2.0f);
+		PDI->DrawLine(CageLocation + FVector(0, -Size, Size), CageLocation + FVector(0, Size, -Size), NullCageColor, SDPG_World, 2.0f);
+		return;
+	}
+
+	// Non-null cages need an orbital set
 	if (!OrbitalSet)
 	{
 		// Draw warning box if no orbital set
@@ -208,14 +245,8 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 		return;
 	}
 
-	// Draw cage center marker
-	const bool bIsNullCage = Cage->IsNullCage();
-	const FLinearColor CenterColor = bIsNullCage ? NullCageColor : FLinearColor::White;
-
-	// Draw small sphere at cage center
-	DrawWireSphere(PDI, CageLocation, CenterColor, 10.0f, 8, SDPG_World);
-
 	// Note: Simple cages have their own debug shape components for bounds visualization
+	// We only draw orbital arrows and connections here
 
 	// Draw orbital arrows
 	const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
@@ -250,10 +281,10 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 			ArrowColor = DisconnectedColor * 0.5f;
 			bDashed = true;
 		}
-		else if (Orbital.ConnectedCage.IsValid())
+		else if (Orbital.ConnectedCage)
 		{
 			// Check if connection is mutual
-			const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage.Get();
+			const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage;
 			if (ConnectedCage && ConnectedCage->HasConnectionTo(Cage))
 			{
 				ArrowColor = MutualConnectionColor;
@@ -388,6 +419,23 @@ void FPCGExValencyCageEditorMode::DrawLabel(FCanvas* Canvas, const FSceneView* V
 			TextItem.bCentreY = true;
 			TextItem.EnableShadow(FLinearColor::Black);
 			Canvas->DrawItem(TextItem);
+		}
+	}
+}
+
+void FPCGExValencyCageEditorMode::SetAllCageDebugComponentsVisible(bool bVisible)
+{
+	// Use cached cages if available, otherwise collect from level
+	if (CachedCages.Num() == 0)
+	{
+		CollectCagesFromLevel();
+	}
+
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		{
+			Cage->SetDebugComponentsVisible(bVisible);
 		}
 	}
 }

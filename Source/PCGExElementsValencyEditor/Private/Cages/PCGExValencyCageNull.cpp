@@ -3,28 +3,18 @@
 
 #include "Cages/PCGExValencyCageNull.h"
 
-#include "Components/BillboardComponent.h"
-#include "UObject/ConstructorHelpers.h"
+#include "Components/SphereComponent.h"
 
 APCGExValencyCageNull::APCGExValencyCageNull()
 {
-	// Create billboard component for visualization
-	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("Billboard"));
-	BillboardComponent->SetupAttachment(RootComponent);
-
-	// Use a simple X icon texture for null cages
-	// This will be visible in editor only
-#if WITH_EDITORONLY_DATA
-	static ConstructorHelpers::FObjectFinder<UTexture2D> IconTexture(TEXT("/Engine/EditorMaterials/WidgetMaterial_X"));
-	if (IconTexture.Succeeded())
-	{
-		BillboardComponent->SetSprite(IconTexture.Object);
-	}
-#endif
-
-	BillboardComponent->SetRelativeScale3D(FVector(0.5f));
-	BillboardComponent->bIsScreenSizeScaled = true;
-	BillboardComponent->ScreenSize = 0.0015f;
+	// Create a small sphere for visualization and selection
+	DebugSphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("DebugSphere"));
+	DebugSphereComponent->SetupAttachment(RootComponent);
+	DebugSphereComponent->SetSphereRadius(15.0f);
+	DebugSphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	DebugSphereComponent->SetLineThickness(2.0f);
+	DebugSphereComponent->ShapeColor = FColor(255, 100, 100); // Reddish color for null cages
+	DebugSphereComponent->bHiddenInGame = true;
 }
 
 FString APCGExValencyCageNull::GetCageDisplayName() const
@@ -40,4 +30,12 @@ FString APCGExValencyCageNull::GetCageDisplayName() const
 	}
 
 	return TEXT("NULL Cage");
+}
+
+void APCGExValencyCageNull::SetDebugComponentsVisible(bool bVisible)
+{
+	if (DebugSphereComponent)
+	{
+		DebugSphereComponent->SetVisibility(bVisible);
+	}
 }

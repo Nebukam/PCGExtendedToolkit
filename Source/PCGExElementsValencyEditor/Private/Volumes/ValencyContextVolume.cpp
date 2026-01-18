@@ -6,7 +6,12 @@
 #include "EngineUtils.h"
 #include "Components/BrushComponent.h"
 #include "Cages/PCGExValencyCageBase.h"
+#include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "Builder/PCGExValencyBondingRulesBuilder.h"
+
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogValencyVolume, Log, All);
 
@@ -86,7 +91,7 @@ bool AValencyContextVolume::ContainsPoint(const FVector& WorldLocation, float To
 	return EncompassesPoint(WorldLocation, Tolerance, &OutDistanceToPoint);
 }
 
-void AValencyContextVolume::CollectContainedCages(TArray<APCGExValencyCageBase*>& OutCages) const
+void AValencyContextVolume:: CollectContainedCages(TArray<APCGExValencyCageBase*>& OutCages) const
 {
 	OutCages.Empty();
 
@@ -152,4 +157,81 @@ void AValencyContextVolume::NotifyContainedCages()
 			Cage->OnContainingVolumeChanged(this);
 		}
 	}
+}
+
+void AValencyContextVolume::RefreshCageRelationships()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	// Collect cages inside the volume
+	TArray<APCGExValencyCageBase*> ContainedCages;
+	CollectContainedCages(ContainedCages);
+
+	// Also collect ALL cages that might be spatially related (within max probe radius)
+	// This handles cages that were dragged in/out or are just outside the volume but connected
+	TSet<APCGExValencyCageBase*> AllAffectedCages;
+
+	// Add contained cages
+	for (APCGExValencyCageBase* Cage : ContainedCages)
+	{
+		AllAffectedCages.Add(Cage);
+	}
+
+	// For each contained cage, find cages within probe radius (even if outside volume)
+	FPCGExValencyCageSpatialRegistry& Registry = FPCGExValencyCageSpatialRegistry::Get(World);
+
+	for (APCGExValencyCageBase* Cage : ContainedCages)
+	{
+		if (!Cage)
+		{
+			continue;
+		}
+
+		const float ProbeRadius = Cage->GetEffectiveProbeRadius();
+		const float MaxRadius = FMath::Max(ProbeRadius, Registry.GetMaxProbeRadius());
+
+		TArray<APCGExValencyCageBase*> NearbyCages;
+		Registry.FindCagesNearPosition(Cage->GetActorLocation(), MaxRadius, NearbyCages, nullptr);
+
+		for (APCGExValencyCageBase* NearbyCage : NearbyCages)
+		{
+			AllAffectedCages.Add(NearbyCage);
+		}
+	}
+
+	UE_LOG(LogValencyVolume, Log, TEXT("Refreshing relationships for %d cages (%d in volume, %d total affected)."),
+		ContainedCages.Num(), ContainedCages.Num(), AllAffectedCages.Num());
+
+	// First pass: refresh all cages' volumes and initialize orbitals
+	for (APCGExValencyCageBase* Cage : AllAffectedCages)
+	{
+		if (Cage)
+		{
+			Cage->RefreshContainingVolumes();
+			Cage->InitializeOrbitalsFromSet();
+		}
+	}
+
+	// Second pass: detect connections for each cage
+	for (APCGExValencyCageBase* Cage : AllAffectedCages)
+	{
+		if (Cage)
+		{
+			Cage->DetectNearbyConnections();
+		}
+	}
+
+#if WITH_EDITOR
+	// Redraw viewports to show updated connections
+	if (GEditor)
+	{
+		GEditor->RedrawAllViewports();
+	}
+#endif
+
+	UE_LOG(LogValencyVolume, Log, TEXT("Cage relationships refreshed."));
 }

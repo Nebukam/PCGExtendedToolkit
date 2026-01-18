@@ -8,13 +8,13 @@
 
 #include "PCGExValencyCageNull.generated.h"
 
-class UBillboardComponent;
+class USphereComponent;
 
 /**
  * A null cage representing a boundary or intentional dead-end.
  * Null cages indicate "no neighbor here" for leaf nodes and edges.
  *
- * Visualized as a billboard sprite rather than a full cage.
+ * Visualized as a small sphere for easy selection.
  */
 UCLASS(Blueprintable, meta = (DisplayName = "Valency Cage (Null)"))
 class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageNull : public APCGExValencyCageBase
@@ -27,6 +27,7 @@ public:
 	//~ Begin APCGExValencyCageBase Interface
 	virtual FString GetCageDisplayName() const override;
 	virtual bool IsNullCage() const override { return true; }
+	virtual void SetDebugComponentsVisible(bool bVisible) override;
 	//~ End APCGExValencyCageBase Interface
 
 public:
@@ -38,7 +39,7 @@ public:
 	FString Description;
 
 protected:
-	/** Billboard component for visualization */
+	/** Sphere component for visualization and selection */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UBillboardComponent> BillboardComponent;
+	TObjectPtr<USphereComponent> DebugSphereComponent;
 };

@@ -6,6 +6,11 @@
 #include "Components/SceneComponent.h"
 #include "EngineUtils.h"
 #include "Volumes/ValencyContextVolume.h"
+#include "Cages/PCGExValencyCageSpatialRegistry.h"
+
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
 
 namespace PCGExValencyFolders
 {
@@ -36,6 +41,12 @@ void APCGExValencyCageBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	// Register with spatial registry
+	if (UWorld* World = GetWorld())
+	{
+		FPCGExValencyCageSpatialRegistry::Get(World).RegisterCage(this);
+	}
+
 	// Initial setup
 	RefreshContainingVolumes();
 
@@ -44,6 +55,9 @@ void APCGExValencyCageBase::PostInitializeComponents()
 		InitializeOrbitalsFromSet();
 		bNeedsOrbitalInit = false;
 	}
+
+	// Initialize drag tracking
+	LastDragUpdatePosition = GetActorLocation();
 }
 
 void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -66,15 +80,60 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 }
 
+void APCGExValencyCageBase::BeginDestroy()
+{
+	// Unregister from spatial registry
+	if (UWorld* World = GetWorld())
+	{
+		FPCGExValencyCageSpatialRegistry::Get(World).UnregisterCage(this);
+	}
+
+	Super::BeginDestroy();
+}
+
 void APCGExValencyCageBase::PostEditMove(bool bFinished)
 {
 	Super::PostEditMove(bFinished);
 
-	if (bFinished)
+	const FVector CurrentPosition = GetActorLocation();
+
+	if (!bFinished)
 	{
+		// Continuous drag - track state and do throttled live updates
+		if (!bIsDragging)
+		{
+			// Drag just started
+			bIsDragging = true;
+			DragStartPosition = LastDragUpdatePosition;
+		}
+
+		// Check if we've moved enough to warrant an update
+		const float DistanceMoved = FVector::Dist(CurrentPosition, LastDragUpdatePosition);
+		if (DistanceMoved >= DragUpdateThreshold)
+		{
+			UpdateConnectionsDuringDrag();
+			LastDragUpdatePosition = CurrentPosition;
+		}
+	}
+	else
+	{
+		// Drag finished - do final update
+		bIsDragging = false;
+
+		// Update spatial registry with final position
+		if (UWorld* World = GetWorld())
+		{
+			FPCGExValencyCageSpatialRegistry::Get(World).UpdateCagePosition(this, DragStartPosition, CurrentPosition);
+		}
+
 		// Position changed - refresh volumes and connections
 		RefreshContainingVolumes();
 		DetectNearbyConnections();
+
+		// Notify affected cages using spatial registry for efficiency
+		NotifyAffectedCagesOfMovement(DragStartPosition, CurrentPosition);
+
+		LastDragUpdatePosition = CurrentPosition;
 	}
 }
 
@@ -164,7 +223,7 @@ bool APCGExValencyCageBase::HasConnectionTo(const APCGExValencyCageBase* OtherCa
 
 	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 	{
-		if (Orbital.bEnabled && Orbital.ConnectedCage.Get() == OtherCage)
+		if (Orbital.bEnabled && Orbital.ConnectedCage == OtherCage)
 		{
 			return true;
 		}
@@ -182,7 +241,7 @@ int32 APCGExValencyCageBase::GetOrbitalIndexTo(const APCGExValencyCageBase* Othe
 
 	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 	{
-		if (Orbital.bEnabled && Orbital.ConnectedCage.Get() == OtherCage)
+		if (Orbital.bEnabled && Orbital.ConnectedCage == OtherCage)
 		{
 			return Orbital.OrbitalIndex;
 		}
@@ -238,7 +297,7 @@ void APCGExValencyCageBase::InitializeOrbitalsFromSet()
 	CachedOrbitalSet = const_cast<UPCGExValencyOrbitalSet*>(OrbitalSet);
 
 	// Preserve existing connections where possible
-	TMap<int32, TWeakObjectPtr<APCGExValencyCageBase>> ExistingConnections;
+	TMap<int32, TObjectPtr<APCGExValencyCageBase>> ExistingConnections;
 	TMap<int32, bool> ExistingEnabled;
 
 	for (const FPCGExValencyCageOrbital& Existing : Orbitals)
@@ -262,7 +321,7 @@ void APCGExValencyCageBase::InitializeOrbitalsFromSet()
 		Orbital.OrbitalName = Entry.GetOrbitalName();
 
 		// Restore existing connection if any
-		if (TWeakObjectPtr<APCGExValencyCageBase>* ExistingPtr = ExistingConnections.Find(i))
+		if (TObjectPtr<APCGExValencyCageBase>* ExistingPtr = ExistingConnections.Find(i))
 		{
 			Orbital.ConnectedCage = *ExistingPtr;
 		}
@@ -307,7 +366,7 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 	// Clear existing connections
 	for (FPCGExValencyCageOrbital& Orbital : Orbitals)
 	{
-		Orbital.ConnectedCage.Reset();
+		Orbital.ConnectedCage = nullptr;
 	}
 
 	// Find nearby cages
@@ -340,11 +399,123 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 		if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH && Orbitals.IsValidIndex(OrbitalIndex))
 		{
 			FPCGExValencyCageOrbital& Orbital = Orbitals[OrbitalIndex];
-			if (!Orbital.ConnectedCage.IsValid())
+			if (!Orbital.ConnectedCage)
 			{
 				// Connect to closest cage in this direction
 				Orbital.ConnectedCage = OtherCage;
 			}
 		}
 	}
+}
+
+void APCGExValencyCageBase::OnRelatedCageMoved(APCGExValencyCageBase* MovedCage)
+{
+	if (!MovedCage || MovedCage == this)
+	{
+		return;
+	}
+
+	// The spatial registry pre-filters to only call us if we're potentially affected,
+	// so we can directly refresh our connections
+	DetectNearbyConnections();
+}
+
+void APCGExValencyCageBase::NotifyAllCagesOfMovement()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	// Notify all other cages that we moved
+	for (TActorIterator<APCGExValencyCageBase> It(World); It; ++It)
+	{
+		APCGExValencyCageBase* OtherCage = *It;
+		if (OtherCage && OtherCage != this)
+		{
+			OtherCage->OnRelatedCageMoved(this);
+		}
+	}
+
+#if WITH_EDITOR
+	// Request viewport redraw to show updated connections
+	if (GEditor)
+	{
+		GEditor->RedrawAllViewports();
+	}
+#endif
+}
+
+void APCGExValencyCageBase::SetDebugComponentsVisible(bool bVisible)
+{
+	// Base implementation does nothing - subclasses override to hide their specific components
+}
+
+void APCGExValencyCageBase::UpdateConnectionsDuringDrag()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector CurrentPosition = GetActorLocation();
+	FPCGExValencyCageSpatialRegistry& Registry = FPCGExValencyCageSpatialRegistry::Get(World);
+
+	// Find cages that might be affected by our movement
+	TSet<APCGExValencyCageBase*> AffectedCages;
+	Registry.FindAffectedCages(this, LastDragUpdatePosition, CurrentPosition, AffectedCages);
+
+	// Update our own connections
+	DetectNearbyConnections();
+
+	// Update affected cages' connections
+	for (APCGExValencyCageBase* Cage : AffectedCages)
+	{
+		if (Cage)
+		{
+			Cage->DetectNearbyConnections();
+		}
+	}
+
+#if WITH_EDITOR
+	// Request viewport redraw for live feedback
+	if (GEditor)
+	{
+		GEditor->RedrawAllViewports();
+	}
+#endif
+}
+
+void APCGExValencyCageBase::NotifyAffectedCagesOfMovement(const FVector& OldPosition, const FVector& NewPosition)
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	FPCGExValencyCageSpatialRegistry& Registry = FPCGExValencyCageSpatialRegistry::Get(World);
+
+	// Find all cages affected by our movement
+	TSet<APCGExValencyCageBase*> AffectedCages;
+	Registry.FindAffectedCages(this, OldPosition, NewPosition, AffectedCages);
+
+	// Notify each affected cage
+	for (APCGExValencyCageBase* Cage : AffectedCages)
+	{
+		if (Cage)
+		{
+			Cage->OnRelatedCageMoved(this);
+		}
+	}
+
+#if WITH_EDITOR
+	// Request viewport redraw to show updated connections
+	if (GEditor)
+	{
+		GEditor->RedrawAllViewports();
+	}
+#endif
 }

@@ -34,6 +34,7 @@ public:
 
 	//~ Begin AActor Interface
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void PostInitializeComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	//~ End AActor Interface
 
@@ -41,6 +42,10 @@ public:
 	virtual bool IsActorInside_Implementation(AActor* Actor) const override;
 	virtual bool ContainsPoint_Implementation(const FVector& WorldLocation) const override;
 	//~ End APCGExValencyCage Interface
+
+	//~ Begin APCGExValencyCageBase Interface
+	virtual void SetDebugComponentsVisible(bool bVisible) override;
+	//~ End APCGExValencyCageBase Interface
 
 	/** Get the bounding box for this cage (used for visualization) */
 	FBox GetBoundingBox() const;
@@ -74,7 +79,7 @@ protected:
 	void UpdateDebugShapeDimensions();
 
 	/** Current debug visualization component (type depends on DetectionShape) */
-	UPROPERTY(VisibleAnywhere, Category = "Cage|Debug")
+	UPROPERTY(Transient, VisibleAnywhere, Category = "Cage|Debug")
 	TObjectPtr<UShapeComponent> DebugShapeComponent;
 
 	/** Cached shape type to detect when recreation is needed */

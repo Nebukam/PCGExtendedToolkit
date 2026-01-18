@@ -55,6 +55,13 @@ public:
 	UFUNCTION(CallInEditor, Category = "Valency")
 	void BuildRulesFromCages();
 
+	/**
+	 * Force refresh all cage relationships within this volume.
+	 * Useful when cages have been moved or modified externally.
+	 */
+	UFUNCTION(CallInEditor, Category = "Valency")
+	void RefreshCageRelationships();
+
 public:
 	/** The bonding rules data asset for this context. Required. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency")

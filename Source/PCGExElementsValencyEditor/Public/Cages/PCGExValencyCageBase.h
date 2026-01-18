@@ -34,6 +34,7 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
+	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
 	//~ Begin Cage Interface
@@ -79,6 +80,35 @@ public:
 	/** Detect and connect to nearby cages using probe radius */
 	void DetectNearbyConnections();
 
+	/**
+	 * Notify this cage that a related cage has moved or changed.
+	 * Triggers a refresh of connections if the moved cage affects us.
+	 * @param MovedCage The cage that was moved/changed
+	 */
+	void OnRelatedCageMoved(APCGExValencyCageBase* MovedCage);
+
+	/**
+	 * Notify all cages in the world that this cage has moved.
+	 * Called automatically from PostEditMove.
+	 * @deprecated Use NotifyAffectedCagesOfMovement for better performance
+	 */
+	void NotifyAllCagesOfMovement();
+
+	/**
+	 * Notify only cages affected by this cage's movement using spatial registry.
+	 * More efficient than NotifyAllCagesOfMovement for large scenes.
+	 * @param OldPosition Position before the move
+	 * @param NewPosition Position after the move
+	 */
+	void NotifyAffectedCagesOfMovement(const FVector& OldPosition, const FVector& NewPosition);
+
+	/**
+	 * Set visibility of internal debug components.
+	 * Called by editor mode to hide built-in visuals when custom mode drawing is active.
+	 * @param bVisible True to show components, false to hide
+	 */
+	virtual void SetDebugComponentsVisible(bool bVisible);
+
 public:
 	/** Optional display name for this cage */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage")
@@ -121,4 +151,19 @@ protected:
 
 	/** Whether orbital initialization is needed */
 	bool bNeedsOrbitalInit = true;
+
+	/** Last position used for live drag updates (throttling) */
+	FVector LastDragUpdatePosition = FVector::ZeroVector;
+
+	/** Minimum distance to trigger a live drag update */
+	static constexpr float DragUpdateThreshold = 10.0f;
+
+	/** Whether we're currently being dragged */
+	bool bIsDragging = false;
+
+	/** Position when drag started (for computing affected cages) */
+	FVector DragStartPosition = FVector::ZeroVector;
+
+	/** Update connections during drag using spatial registry */
+	void UpdateConnectionsDuringDrag();
 };

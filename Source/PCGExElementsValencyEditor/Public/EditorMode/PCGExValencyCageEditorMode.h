@@ -69,6 +69,9 @@ protected:
 	/** Draw text label in viewport */
 	void DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color);
 
+	/** Set visibility of all cage debug components */
+	void SetAllCageDebugComponentsVisible(bool bVisible);
+
 private:
 	/** Cached cages in level */
 	TArray<TWeakObjectPtr<APCGExValencyCageBase>> CachedCages;

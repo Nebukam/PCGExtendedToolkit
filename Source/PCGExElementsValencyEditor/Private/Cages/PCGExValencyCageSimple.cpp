@@ -28,6 +28,17 @@ void APCGExValencyCageSimple::OnConstruction(const FTransform& Transform)
 	}
 }
 
+void APCGExValencyCageSimple::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// Ensure debug shape exists after level load (it's Transient so not saved)
+	if (!DebugShapeComponent || !IsValid(DebugShapeComponent))
+	{
+		RecreateDebugShape();
+	}
+}
+
 void APCGExValencyCageSimple::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -213,5 +224,13 @@ FBox APCGExValencyCageSimple::GetBoundingBox() const
 
 	default:
 		return FBox(CageLocation, CageLocation);
+	}
+}
+
+void APCGExValencyCageSimple::SetDebugComponentsVisible(bool bVisible)
+{
+	if (DebugShapeComponent)
+	{
+		DebugShapeComponent->SetVisibility(bVisible);
 	}
 }

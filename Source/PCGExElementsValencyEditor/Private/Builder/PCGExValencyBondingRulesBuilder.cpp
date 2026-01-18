@@ -124,11 +124,13 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromCages(
 		return Result;
 	}
 
+	TargetRules->Modify();
+
 	// Generate synthetic collections from modules
 	TargetRules->RebuildGeneratedCollections();
 
 	// Mark asset as modified
-	TargetRules->Modify();
+	(void)TargetRules->MarkPackageDirty();
 
 	Result.bSuccess = Result.Errors.Num() == 0;
 	Result.CageCount = CageData.Num();
@@ -183,9 +185,9 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			}
 
 			// Only count connected orbitals (or null cage connections if enabled)
-			if (Orbital.ConnectedCage.IsValid())
+			if (Orbital.ConnectedCage)
 			{
-				const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage.Get();
+				const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage;
 
 				// Check if it's a null cage (boundary)
 				if (ConnectedCage->IsNullCage())
@@ -328,9 +330,9 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			// Get neighbor modules from connected cage
 			TArray<int32> NeighborModuleIndices;
 
-			if (Orbital.ConnectedCage.IsValid())
+			if (Orbital.ConnectedCage)
 			{
-				const APCGExValencyCageBase* ConnectedBase = Orbital.ConnectedCage.Get();
+				const APCGExValencyCageBase* ConnectedBase = Orbital.ConnectedCage;
 
 				if (ConnectedBase->IsNullCage())
 				{
@@ -355,7 +357,8 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 						for (const FPCGExValencyAssetEntry& ConnectedEntry : ConnectedData.AssetEntries)
 						{
 							const FTransform* ConnectedTransformPtr = ConnectedData.bPreserveLocalTransforms
-								? &ConnectedEntry.LocalTransform : nullptr;
+								                                          ? &ConnectedEntry.LocalTransform
+								                                          : nullptr;
 							const FString NeighborKey = FPCGExValencyCageData::MakeModuleKey(
 								ConnectedEntry.Asset.ToSoftObjectPath(), ConnectedData.OrbitalMask, ConnectedTransformPtr);
 							if (const int32* NeighborModuleIndex = ModuleKeyToIndex.Find(NeighborKey))
