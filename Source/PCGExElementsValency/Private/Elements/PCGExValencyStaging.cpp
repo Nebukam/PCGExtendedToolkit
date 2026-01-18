@@ -155,8 +155,8 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 		}
 	}
 
-	Context->EDITOR_TrackPath(Settings->BondingRules.ToSoftObjectPath());
-	Context->EDITOR_TrackPath(Settings->OrbitalSet.ToSoftObjectPath());
+	Settings->BondingRules->EDITOR_RegisterTrackingKeys(Context);
+	Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
 	
 	// Register solver from settings
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValencySolverInstancedFactory, Settings->Solver, NAME_None);

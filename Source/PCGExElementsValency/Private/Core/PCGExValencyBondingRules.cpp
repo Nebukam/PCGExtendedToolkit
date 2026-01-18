@@ -170,6 +170,15 @@ void UPCGExValencyBondingRules::PostLoad()
 	}
 }
 
+void UPCGExValencyBondingRules::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
+{
+#if WITH_EDITOR
+	Context->EDITOR_TrackPath(this);
+	if (GeneratedMeshCollection) { GeneratedMeshCollection->EDITOR_RegisterTrackingKeys(Context); }
+	if (GeneratedActorCollection) { GeneratedActorCollection->EDITOR_RegisterTrackingKeys(Context); }
+#endif
+}
+
 void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 {
 	// Initialize module-to-entry mappings

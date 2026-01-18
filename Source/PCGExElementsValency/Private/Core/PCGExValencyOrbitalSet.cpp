@@ -3,6 +3,7 @@
 
 #include "Core/PCGExValencyOrbitalSet.h"
 
+#include "Core/PCGExContext.h"
 #include "Math/PCGExMath.h"
 
 bool UPCGExValencyOrbitalSet::Validate(TArray<FText>& OutErrors) const
@@ -105,6 +106,13 @@ uint8 UPCGExValencyOrbitalSet::FindMatchingOrbital(const FVector& InDirection, b
 	}
 
 	return BestIndex >= 0 ? static_cast<uint8>(BestIndex) : PCGExValency::NO_ORBITAL_MATCH;
+}
+
+void UPCGExValencyOrbitalSet::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
+{
+#if WITH_EDITOR
+	Context->EDITOR_TrackPath(this);
+#endif
 }
 
 #if WITH_EDITOR

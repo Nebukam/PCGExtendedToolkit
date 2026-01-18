@@ -35,6 +35,10 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolume(AVale
 		return Result;
 	}
 
+	// Ensure cage relationships are up-to-date before building
+	// This is critical for command-line builds where editor mode isn't active
+	Volume->RefreshCageRelationships();
+
 	// Collect cages from volume
 	TArray<APCGExValencyCageBase*> AllCages;
 	Volume->CollectContainedCages(AllCages);
@@ -185,9 +189,9 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			}
 
 			// Only count connected orbitals (or null cage connections if enabled)
-			if (Orbital.ConnectedCage)
+			if (Orbital.ConnectedCage.IsValid())
 			{
-				const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage;
+				const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage.Get();
 
 				// Check if it's a null cage (boundary)
 				if (ConnectedCage->IsNullCage())
@@ -330,9 +334,9 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			// Get neighbor modules from connected cage
 			TArray<int32> NeighborModuleIndices;
 
-			if (Orbital.ConnectedCage)
+			if (Orbital.ConnectedCage.IsValid())
 			{
-				const APCGExValencyCageBase* ConnectedBase = Orbital.ConnectedCage;
+				const APCGExValencyCageBase* ConnectedBase = Orbital.ConnectedCage.Get();
 
 				if (ConnectedBase->IsNullCage())
 				{

@@ -297,7 +297,7 @@ void APCGExValencyCageBase::InitializeOrbitalsFromSet()
 	CachedOrbitalSet = const_cast<UPCGExValencyOrbitalSet*>(OrbitalSet);
 
 	// Preserve existing connections where possible
-	TMap<int32, TObjectPtr<APCGExValencyCageBase>> ExistingConnections;
+	TMap<int32, TWeakObjectPtr<APCGExValencyCageBase>> ExistingConnections;
 	TMap<int32, bool> ExistingEnabled;
 
 	for (const FPCGExValencyCageOrbital& Existing : Orbitals)
@@ -321,7 +321,7 @@ void APCGExValencyCageBase::InitializeOrbitalsFromSet()
 		Orbital.OrbitalName = Entry.GetOrbitalName();
 
 		// Restore existing connection if any
-		if (TObjectPtr<APCGExValencyCageBase>* ExistingPtr = ExistingConnections.Find(i))
+		if (TWeakObjectPtr<APCGExValencyCageBase>* ExistingPtr = ExistingConnections.Find(i))
 		{
 			Orbital.ConnectedCage = *ExistingPtr;
 		}
@@ -399,7 +399,7 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 		if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH && Orbitals.IsValidIndex(OrbitalIndex))
 		{
 			FPCGExValencyCageOrbital& Orbital = Orbitals[OrbitalIndex];
-			if (!Orbital.ConnectedCage)
+			if (!Orbital.ConnectedCage.IsValid())
 			{
 				// Connect to closest cage in this direction
 				Orbital.ConnectedCage = OtherCage;

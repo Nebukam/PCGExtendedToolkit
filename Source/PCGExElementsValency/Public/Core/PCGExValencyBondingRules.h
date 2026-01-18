@@ -284,6 +284,8 @@ public:
 	virtual void PostLoad() override;
 	//~ End UObject Interface
 
+	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
+	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

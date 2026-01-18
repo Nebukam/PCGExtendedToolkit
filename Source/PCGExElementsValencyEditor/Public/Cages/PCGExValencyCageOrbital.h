@@ -26,9 +26,9 @@ struct PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageOrbital
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Orbital")
 	FName OrbitalName;
 
-	/** The cage connected via this orbital (serialized with the level) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Orbital")
-	TObjectPtr<APCGExValencyCageBase> ConnectedCage;
+	/** The cage connected via this orbital (transient - rebuilt on level load) */
+	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = "Orbital")
+	TWeakObjectPtr<APCGExValencyCageBase> ConnectedCage;
 
 	/** Whether this orbital connection is enabled */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Orbital")
@@ -43,8 +43,8 @@ struct PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageOrbital
 	}
 
 	/** Check if this orbital has a valid connection */
-	bool HasConnection() const { return bEnabled && ConnectedCage != nullptr; }
+	bool HasConnection() const { return bEnabled && ConnectedCage.IsValid(); }
 
 	/** Get the connected cage (may be null) */
-	APCGExValencyCageBase* Get() const { return ConnectedCage; }
+	APCGExValencyCageBase* Get() const { return ConnectedCage.Get(); }
 };

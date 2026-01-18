@@ -226,14 +226,9 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 	const UPCGExValencyOrbitalSet* OrbitalSet = Cage->GetEffectiveOrbitalSet();
 
 	// Null cages are valid without orbital sets - they're boundary markers
+	// They have their own debug sphere component, no additional drawing needed
 	if (bIsNullCage)
 	{
-		// Draw null cage marker (X shape)
-		const float Size = 15.0f;
-		PDI->DrawLine(CageLocation + FVector(-Size, -Size, 0), CageLocation + FVector(Size, Size, 0), NullCageColor, SDPG_World, 2.0f);
-		PDI->DrawLine(CageLocation + FVector(-Size, Size, 0), CageLocation + FVector(Size, -Size, 0), NullCageColor, SDPG_World, 2.0f);
-		PDI->DrawLine(CageLocation + FVector(0, -Size, -Size), CageLocation + FVector(0, Size, Size), NullCageColor, SDPG_World, 2.0f);
-		PDI->DrawLine(CageLocation + FVector(0, -Size, Size), CageLocation + FVector(0, Size, -Size), NullCageColor, SDPG_World, 2.0f);
 		return;
 	}
 
@@ -281,11 +276,11 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 			ArrowColor = DisconnectedColor * 0.5f;
 			bDashed = true;
 		}
-		else if (Orbital.ConnectedCage)
+		else if (Orbital.ConnectedCage.IsValid())
 		{
 			// Check if connection is mutual
-			const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage;
-			if (ConnectedCage && ConnectedCage->HasConnectionTo(Cage))
+			const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage.Get();
+			if (ConnectedCage->HasConnectionTo(Cage))
 			{
 				ArrowColor = MutualConnectionColor;
 			}

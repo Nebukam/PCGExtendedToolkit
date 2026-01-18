@@ -48,7 +48,7 @@ TArray<FPCGPinProperties> UPCGExClusterCentralitySettings::InputPinProperties() 
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExClusterCentralitySettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExClusterCentralitySettings::GetMainOutputInitMode() const { return  StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 PCGExData::EIOInit UPCGExClusterCentralitySettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 bool FPCGExClusterCentralityElement::Boot(FPCGExContext* InContext) const

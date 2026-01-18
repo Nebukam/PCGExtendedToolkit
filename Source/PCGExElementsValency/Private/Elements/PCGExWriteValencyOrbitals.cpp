@@ -88,7 +88,7 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Context->EDITOR_TrackPath(Settings->OrbitalSet.ToSoftObjectPath());
+	Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
 
 	return true;
 }

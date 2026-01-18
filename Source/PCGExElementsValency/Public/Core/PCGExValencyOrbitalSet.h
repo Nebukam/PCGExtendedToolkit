@@ -169,6 +169,8 @@ public:
 	 */
 	uint8 FindMatchingOrbital(const FVector& InDirection, bool bUseTransform = false, const FTransform& InTransform = FTransform::Identity) const;
 
+	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
+	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
