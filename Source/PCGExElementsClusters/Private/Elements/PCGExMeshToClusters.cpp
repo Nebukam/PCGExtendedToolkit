@@ -496,7 +496,10 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 
 	Context->StaticMeshMap = MakeShared<PCGExMesh::FGeoStaticMeshMap>();
 	Context->StaticMeshMap->DesiredTriangulationType = Settings->GraphOutputType;
-	Context->StaticMeshMap->CWTolerance = FVector(Settings->VertexMergeHashTolerance);
+	
+	// Clusters currently require mesh merging, so the setting is clamped to be
+	// no less than a small nonzero value.
+	Context->StaticMeshMap->CWTolerance = PCGEx::SafeTolerance(FVector(Settings->VertexMergeHashTolerance));
 	Context->StaticMeshMap->bPreciseVertexMerge = Settings->bPreciseVertexMerge;
 	
 	Context->RootVtx = MakeShared<PCGExData::FPointIOCollection>(Context); // Make this pinless

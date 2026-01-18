@@ -8,6 +8,7 @@
 #include "Clusters/PCGExClusterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/External/PCGExMeshCommon.h"
+#include "Data/External/PCGExMesh.h"
 #include "Data/External/PCGExMeshImportDetails.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Fitting/PCGExFitting.h"
@@ -95,8 +96,7 @@ public:
 		
 	/**
 	 * Set tolerance for merging vertices, such as those found at split vertices along hard edges or UV seams.
-	 * Setting this value to zero disables vertex merging but may cause problems if the mesh has split vertices,
-	 * so do not disable merging unless you are very confident the input mesh has no split or duplicate vertices.
+	 * The value is clamped to be no less than a small positive value to prevent division by zero errors.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	float VertexMergeHashTolerance = PCGExMesh::DefaultVertexMergeHashTolerance;

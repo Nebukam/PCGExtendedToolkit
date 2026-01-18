@@ -22,6 +22,9 @@ struct FPCGPinProperties;
 
 namespace PCGExMesh
 {
+	/* Controls the default size of the spatial grid for vertex merges. */
+	static constexpr double DefaultVertexMergeHashTolerance = 0.001f;
+	
 	PCGEXCORE_API
 	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
@@ -52,7 +55,12 @@ namespace PCGExMesh
 		TArray<int32>* RawIndices = nullptr;
 		FVector HashTolerance = FVector(DefaultVertexMergeHashTolerance);
 		bool bPreciseVertexMerge = true;
-		/* This will be set false in the constructor if the hash tolerance is zero. */
+		/*
+		 * This will be set false in the constructor if the hash tolerance is zero.
+		 * That behavior is for future use in contexts other than Clusters, and the
+		 * MeshToClusters node intentionally clamps the tolerance nonzero to prevent
+		 * the behavior from triggering from that node.
+		 */
 		bool bEnableVertexMerge = true;
 
 	public:

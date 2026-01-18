@@ -16,14 +16,7 @@ enum class EPCGExTriangulationType : uint8
 	NoTriangulation = 42 UMETA(Hidden),
 };
 
-namespace PCGExMesh
+namespace PCGExMesh::Labels
 {
-	/* This is used by PCGExMeshToClusters to set the size of the spatial grid. */
-	constexpr float DefaultVertexMergeHashTolerance = 0.001f;
-
-	namespace Labels
-	{
-		const FName SourceUVImportRulesLabel = TEXT("UV Imports");
-	}
+	const FName SourceUVImportRulesLabel = TEXT("UV Imports");
 }
-
