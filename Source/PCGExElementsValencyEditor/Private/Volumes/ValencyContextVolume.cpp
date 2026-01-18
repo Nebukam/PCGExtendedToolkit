@@ -281,3 +281,22 @@ void AValencyContextVolume::RegeneratePCGActors()
 		UE_LOG(LogValencyVolume, Log, TEXT("Regenerated %d PCG component(s) on %d actor(s)."), RegeneratedCount, PCGActorsToRegenerate.Num());
 	}
 }
+
+bool AValencyContextVolume::ShouldIgnoreActor(const AActor* Actor) const
+{
+	if (!Actor)
+	{
+		return true;
+	}
+
+	// Check if actor has any of the ignored tags
+	for (const FName& IgnoredTag : IgnoredActorTags)
+	{
+		if (Actor->ActorHasTag(IgnoredTag))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}

@@ -14,25 +14,6 @@
 class AValencyContextVolume;
 
 /**
- * Flags controlling which transform components affect orbital matching.
- * No flags set = use OrbitalSet's default (inherit).
- * Any flag set = override OrbitalSet's setting with these specific components.
- */
-UENUM(BlueprintType, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
-enum class EPCGExCageTransformFlags : uint8
-{
-	None = 0 UMETA(Hidden),
-	/** Apply cage rotation to orbital direction matching */
-	Rotation = 1 << 0,
-	/** Apply cage scale to probe radius (uses average of XYZ for non-uniform) */
-	Scale = 1 << 1,
-
-	// Common combinations
-	All = Rotation | Scale UMETA(Hidden)
-};
-ENUM_CLASS_FLAGS(EPCGExCageTransformFlags);
-
-/**
  * Abstract base class for Valency cage actors.
  * Cages represent potential node positions in a Valency graph and define
  * orbital connections to neighboring cages.
@@ -98,6 +79,9 @@ public:
 
 	/** Recalculate which volumes contain this cage */
 	void RefreshContainingVolumes();
+
+	/** Check if an actor should be ignored based on containing volumes' ignore rules */
+	bool ShouldIgnoreActor(const AActor* Actor) const;
 
 	/** Initialize orbitals from the orbital set */
 	void InitializeOrbitalsFromSet();
@@ -168,16 +152,12 @@ public:
 	float ProbeRadius = -1.0f;
 
 	/**
-	 * Which transform components affect orbital matching.
-	 * None (0): Inherit from OrbitalSet's bTransformDirection setting.
-	 * Any flags set: Override OrbitalSet and use only the specified components.
-	 *
-	 * Use case: Set to None to inherit, or set specific flags to override.
-	 * For copy-paste patterns where rotation should create new variants, leave empty (inherit disabled from OrbitalSet)
-	 * or ensure OrbitalSet has bTransformDirection=false.
+	 * Whether to apply cage rotation to orbital directions.
+	 * If true, orbital directions are transformed by this cage's rotation.
+	 * If false, orbitals use world-space directions (useful for copy-paste patterns).
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Transform", meta = (Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExCageTransformFlags"))
-	uint8 TransformFlags = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Transform")
+	bool bTransformOrbitalDirections = true;
 
 	/** Orbital connections to other cages */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Orbitals", meta = (TitleProperty = "OrbitalName"))

@@ -10,8 +10,10 @@
 #include "SceneManagement.h"
 #include "Editor.h"
 #include "Selection.h"
+#include "LevelEditorViewport.h"
 
 #include "Cages/PCGExValencyCageBase.h"
+#include "Cages/PCGExValencyCage.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 
@@ -34,6 +36,12 @@ void FPCGExValencyCageEditorMode::Enter()
 	{
 		OnActorAddedHandle = GEditor->OnLevelActorAdded().AddRaw(this, &FPCGExValencyCageEditorMode::OnLevelActorAdded);
 		OnActorDeletedHandle = GEditor->OnLevelActorDeleted().AddRaw(this, &FPCGExValencyCageEditorMode::OnLevelActorDeleted);
+
+		// Bind to selection changes for asset tracking
+		OnSelectionChangedHandle = GEditor->GetSelectedActors()->SelectionChangedEvent.AddLambda([this](UObject*)
+		{
+			OnSelectionChanged(nullptr);
+		});
 	}
 
 	// Collect and fully initialize all cages
@@ -51,9 +59,18 @@ void FPCGExValencyCageEditorMode::Exit()
 	{
 		GEditor->OnLevelActorAdded().Remove(OnActorAddedHandle);
 		GEditor->OnLevelActorDeleted().Remove(OnActorDeletedHandle);
+
+		// Unbind selection changes
+		GEditor->GetSelectedActors()->SelectionChangedEvent.Remove(OnSelectionChangedHandle);
 	}
 	OnActorAddedHandle.Reset();
 	OnActorDeletedHandle.Reset();
+	OnSelectionChangedHandle.Reset();
+
+	// Clear tracking state
+	TrackedActors.Empty();
+	TrackedActorCageMap.Empty();
+	TrackedActorPositions.Empty();
 
 	CachedCages.Empty();
 	CachedVolumes.Empty();
@@ -227,8 +244,11 @@ void FPCGExValencyCageEditorMode::Tick(FEditorViewportClient* ViewportClient, fl
 {
 	FEdMode::Tick(ViewportClient, DeltaTime);
 
-	// Check for actor changes that would invalidate cache
-	// TODO: Hook into actor add/remove/move delegates
+	// Update asset tracking if enabled
+	if (IsAssetTrackingEnabled())
+	{
+		UpdateAssetTracking();
+	}
 }
 
 void FPCGExValencyCageEditorMode::CollectCagesFromLevel()
@@ -608,6 +628,49 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		});
 		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
 	}
+	// Check if it's a tracked asset actor being deleted
+	else if (IsAssetTrackingEnabled())
+	{
+		// Check if this actor was in a tracked cage
+		TWeakObjectPtr<APCGExValencyCage>* CagePtr = TrackedActorCageMap.Find(Actor);
+		if (CagePtr && CagePtr->IsValid())
+		{
+			APCGExValencyCage* ContainingCage = CagePtr->Get();
+			UE_LOG(LogTemp, Log, TEXT("Valency: Tracked actor '%s' deleted from cage '%s'"),
+				*Actor->GetName(),
+				*ContainingCage->GetCageDisplayName());
+
+			// Refresh the cage
+			ContainingCage->ScanAndRegisterContainedAssets();
+
+			// Trigger auto-rebuild if enabled
+			for (const TWeakObjectPtr<AValencyContextVolume>& VolPtr : CachedVolumes)
+			{
+				if (AValencyContextVolume* Vol = VolPtr.Get())
+				{
+					if (Vol->bAutoRebuildOnChange && Vol->ContainsPoint(ContainingCage->GetActorLocation()))
+					{
+						UE_LOG(LogTemp, Log, TEXT("Valency: Auto-rebuilding rules for volume after asset deletion"));
+						Vol->BuildRulesFromCages();
+						break;
+					}
+				}
+			}
+
+			if (GEditor)
+			{
+				GEditor->RedrawAllViewports();
+			}
+		}
+
+		// Clean up tracking state for the deleted actor
+		TrackedActors.RemoveAll([Actor](const TWeakObjectPtr<AActor>& ActorPtr)
+		{
+			return ActorPtr.Get() == Actor || !ActorPtr.IsValid();
+		});
+		TrackedActorCageMap.Remove(Actor);
+		TrackedActorPositions.Remove(Actor);
+	}
 }
 
 void FPCGExValencyCageEditorMode::RefreshAllCages()
@@ -685,4 +748,265 @@ int32 FPCGExValencyCageEditorMode::CleanupAllManualConnections()
 	}
 
 	return TotalRemoved;
+}
+
+bool FPCGExValencyCageEditorMode::IsAssetTrackingEnabled() const
+{
+	// Check if any volume has asset tracking enabled
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+	{
+		if (const AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			if (Volume->bAutoTrackAssetPlacement)
+			{
+				return true;
+			}
+		}
+	}
+
+	// Also check if there are volumes at all for debugging
+	if (CachedVolumes.Num() == 0)
+	{
+		UE_LOG(LogTemp, Verbose, TEXT("Valency: No volumes cached for asset tracking"));
+	}
+
+	return false;
+}
+
+void FPCGExValencyCageEditorMode::OnSelectionChanged(UObject* Object)
+{
+	if (!IsAssetTrackingEnabled())
+	{
+		return;
+	}
+
+	// Rebuild tracked actors list from current selection
+	TrackedActors.Empty();
+
+	if (!GEditor)
+	{
+		return;
+	}
+
+	USelection* Selection = GEditor->GetSelectedActors();
+	if (!Selection)
+	{
+		return;
+	}
+
+	for (FSelectionIterator It(*Selection); It; ++It)
+	{
+		AActor* Actor = Cast<AActor>(*It);
+		if (!Actor)
+		{
+			continue;
+		}
+
+		// Skip cages and volumes - we only track potential asset actors
+		if (Cast<APCGExValencyCageBase>(Actor) || Cast<AValencyContextVolume>(Actor))
+		{
+			continue;
+		}
+
+		// Skip actors that are ignored by any volume with tracking enabled
+		bool bShouldIgnore = false;
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+		{
+			if (const AValencyContextVolume* Volume = VolumePtr.Get())
+			{
+				if (Volume->bAutoTrackAssetPlacement && Volume->ShouldIgnoreActor(Actor))
+				{
+					bShouldIgnore = true;
+					break;
+				}
+			}
+		}
+		if (bShouldIgnore)
+		{
+			continue;
+		}
+
+		TrackedActors.Add(Actor);
+
+		// Initialize position tracking if not already tracked
+		if (!TrackedActorPositions.Contains(Actor))
+		{
+			TrackedActorPositions.Add(Actor, Actor->GetActorLocation());
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Valency: Selection changed, tracking %d actors"), TrackedActors.Num());
+
+	// Immediately check containment for newly selected actors
+	if (TrackedActors.Num() > 0)
+	{
+		UpdateAssetTracking();
+	}
+}
+
+void FPCGExValencyCageEditorMode::UpdateAssetTracking()
+{
+	if (TrackedActors.Num() == 0)
+	{
+		return;
+	}
+
+	// Collect cages that can receive assets (non-null cages)
+	TArray<APCGExValencyCage*> TrackingCages;
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
+		{
+			if (!Cage->IsNullCage())
+			{
+				TrackingCages.Add(Cage);
+			}
+		}
+	}
+
+	if (TrackingCages.Num() == 0)
+	{
+		UE_LOG(LogTemp, Verbose, TEXT("Valency: No trackable cages found"));
+		return;
+	}
+
+	TSet<APCGExValencyCage*> CagesToRefresh;
+
+	// Check each tracked actor
+	for (int32 i = TrackedActors.Num() - 1; i >= 0; --i)
+	{
+		AActor* Actor = TrackedActors[i].Get();
+		if (!Actor)
+		{
+			TrackedActors.RemoveAt(i);
+			continue;
+		}
+
+		const FVector CurrentPos = Actor->GetActorLocation();
+
+		// Check if this is a new actor or if position changed
+		FVector* LastPos = TrackedActorPositions.Find(Actor);
+		const bool bIsNewActor = (LastPos == nullptr);
+		const bool bHasMoved = LastPos && FVector::DistSquared(*LastPos, CurrentPos) > KINDA_SMALL_NUMBER;
+
+		// Update tracked position
+		TrackedActorPositions.Add(Actor, CurrentPos);
+
+		// Find which cage (if any) now contains this actor
+		APCGExValencyCage* NewContainingCage = nullptr;
+		for (APCGExValencyCage* Cage : TrackingCages)
+		{
+			if (Cage->IsActorInside(Actor))
+			{
+				NewContainingCage = Cage;
+				break;
+			}
+		}
+
+		// Check if containment changed (or this is first check for a new actor)
+		TWeakObjectPtr<APCGExValencyCage>* OldCagePtr = TrackedActorCageMap.Find(Actor);
+		APCGExValencyCage* OldContainingCage = OldCagePtr ? OldCagePtr->Get() : nullptr;
+
+		const bool bContainmentChanged = (NewContainingCage != OldContainingCage);
+		const bool bNeedsInitialCheck = bIsNewActor && NewContainingCage != nullptr;
+
+		// Also refresh if actor moved within a cage that preserves local transforms
+		const bool bMovedWithinTransformCage = bHasMoved &&
+			NewContainingCage &&
+			NewContainingCage == OldContainingCage &&
+			NewContainingCage->bPreserveLocalTransforms;
+
+		if (bContainmentChanged || bNeedsInitialCheck || bMovedWithinTransformCage)
+		{
+			if (bMovedWithinTransformCage)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' moved within cage '%s' (preserving local transforms)"),
+					*Actor->GetName(),
+					*NewContainingCage->GetCageDisplayName());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' containment changed - Old: %s, New: %s"),
+					*Actor->GetName(),
+					OldContainingCage ? *OldContainingCage->GetCageDisplayName() : TEXT("None"),
+					NewContainingCage ? *NewContainingCage->GetCageDisplayName() : TEXT("None"));
+			}
+
+			// Containment changed - mark both cages for refresh
+			if (OldContainingCage)
+			{
+				CagesToRefresh.Add(OldContainingCage);
+			}
+			if (NewContainingCage)
+			{
+				CagesToRefresh.Add(NewContainingCage);
+			}
+
+			// Update tracking map
+			if (NewContainingCage)
+			{
+				TrackedActorCageMap.Add(Actor, NewContainingCage);
+			}
+			else
+			{
+				TrackedActorCageMap.Remove(Actor);
+			}
+		}
+	}
+
+	// Refresh affected cages
+	for (APCGExValencyCage* Cage : CagesToRefresh)
+	{
+		if (Cage)
+		{
+			Cage->ScanAndRegisterContainedAssets();
+			UE_LOG(LogTemp, Log, TEXT("Valency: Refreshed scanned assets for cage '%s'"), *Cage->GetCageDisplayName());
+		}
+	}
+
+	// Trigger auto-rebuild on volumes that have it enabled
+	if (CagesToRefresh.Num() > 0)
+	{
+		TSet<AValencyContextVolume*> VolumesToRebuild;
+
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+		{
+			if (AValencyContextVolume* Volume = VolumePtr.Get())
+			{
+				if (Volume->bAutoRebuildOnChange)
+				{
+					// Check if any refreshed cage is in this volume
+					for (APCGExValencyCage* Cage : CagesToRefresh)
+					{
+						if (Cage && Volume->ContainsPoint(Cage->GetActorLocation()))
+						{
+							VolumesToRebuild.Add(Volume);
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		for (AValencyContextVolume* Volume : VolumesToRebuild)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Valency: Auto-rebuilding rules for volume"));
+			Volume->BuildRulesFromCages();
+		}
+
+		// Force redraw viewports
+		if (GEditor)
+		{
+			GEditor->RedrawAllViewports();
+
+			// Also invalidate all viewport clients to ensure HUD is redrawn
+			for (FLevelEditorViewportClient* ViewportClient : GEditor->GetLevelViewportClients())
+			{
+				if (ViewportClient)
+				{
+					ViewportClient->Invalidate();
+				}
+			}
+		}
+	}
 }

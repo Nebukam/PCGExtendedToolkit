@@ -8,6 +8,7 @@
 #include "Cages/PCGExValencyCageOrbital.h"
 
 class APCGExValencyCageBase;
+class APCGExValencyCage;
 class AValencyContextVolume;
 class UPCGExValencyOrbitalSet;
 
@@ -94,6 +95,15 @@ protected:
 	 */
 	int32 CleanupAllManualConnections();
 
+	/** Check if any volume has asset tracking enabled */
+	bool IsAssetTrackingEnabled() const;
+
+	/** Update asset tracking for selected actors */
+	void UpdateAssetTracking();
+
+	/** Callback when selection changes */
+	void OnSelectionChanged(UObject* Object);
+
 private:
 	/** Cached cages in level */
 	TArray<TWeakObjectPtr<APCGExValencyCageBase>> CachedCages;
@@ -107,6 +117,16 @@ private:
 	/** Delegate handles for actor add/delete events */
 	FDelegateHandle OnActorAddedHandle;
 	FDelegateHandle OnActorDeletedHandle;
+	FDelegateHandle OnSelectionChangedHandle;
+
+	/** Tracked actors and their last known containing cages (for change detection) */
+	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<APCGExValencyCage>> TrackedActorCageMap;
+
+	/** Actors currently being tracked (selected non-cage actors) */
+	TArray<TWeakObjectPtr<AActor>> TrackedActors;
+
+	/** Last known positions of tracked actors */
+	TMap<TWeakObjectPtr<AActor>, FVector> TrackedActorPositions;
 
 	/** Visualization settings */
 	float OrbitalArrowLength = 100.0f;

@@ -96,6 +96,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Building")
 	TArray<TObjectPtr<AActor>> PCGActorsToRegenerate;
 
+	/**
+	 * When enabled and in Valency Mode, automatically tracks selected actors.
+	 * When actors are moved into/out of cages, the cage's scanned assets are updated.
+	 * Only active when the Valency editor mode is enabled.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Detection")
+	bool bAutoTrackAssetPlacement = false;
+
+	/**
+	 * Actor tags to ignore during scanning and detection.
+	 * Actors with any of these tags will be completely excluded from the building process.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency|Filtering")
+	TArray<FName> IgnoredActorTags;
+
+	/**
+	 * Check if an actor should be ignored based on the ignore rules.
+	 * @param Actor The actor to check
+	 * @return True if the actor should be ignored/excluded
+	 */
+	bool ShouldIgnoreActor(const AActor* Actor) const;
+
 protected:
 	/** Regenerate PCG components on actors in PCGActorsToRegenerate list */
 	void RegeneratePCGActors();

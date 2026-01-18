@@ -12,6 +12,26 @@
 class UStaticMeshComponent;
 
 /**
+ * Flags controlling which local transform components are preserved when registering assets.
+ * Used when bPreserveLocalTransforms is enabled.
+ */
+UENUM(BlueprintType, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class EPCGExLocalTransformFlags : uint8
+{
+	None = 0 UMETA(Hidden),
+	/** Preserve local translation (position relative to cage center) */
+	Translation = 1 << 0,
+	/** Preserve local rotation (orientation relative to cage) */
+	Rotation = 1 << 1,
+	/** Preserve local scale */
+	Scale = 1 << 2,
+
+	// Common combinations
+	All = Translation | Rotation | Scale UMETA(Hidden)
+};
+ENUM_CLASS_FLAGS(EPCGExLocalTransformFlags);
+
+/**
  * Abstract base for Valency cages that can register assets.
  * Subclasses must implement IsActorInside() for containment detection.
  *
@@ -121,6 +141,14 @@ public:
 	bool bPreserveLocalTransforms = false;
 
 	/**
+	 * Which components of the local transform to preserve.
+	 * Only used when bPreserveLocalTransforms is enabled.
+	 * Default: All (Translation + Rotation + Scale).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta = (Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms"))
+	uint8 LocalTransformFlags = static_cast<uint8>(EPCGExLocalTransformFlags::All);
+
+	/**
 	 * Module settings applied to all assets in this cage.
 	 * These settings are copied to module definitions when building rules.
 	 */
@@ -139,6 +167,25 @@ public:
 	{
 		return DiscoveredMaterialVariants;
 	}
+
+	/** Check if a specific local transform component should be preserved */
+	bool ShouldPreserveTranslation() const
+	{
+		return bPreserveLocalTransforms && EnumHasAnyFlags(static_cast<EPCGExLocalTransformFlags>(LocalTransformFlags), EPCGExLocalTransformFlags::Translation);
+	}
+
+	bool ShouldPreserveRotation() const
+	{
+		return bPreserveLocalTransforms && EnumHasAnyFlags(static_cast<EPCGExLocalTransformFlags>(LocalTransformFlags), EPCGExLocalTransformFlags::Rotation);
+	}
+
+	bool ShouldPreserveScale() const
+	{
+		return bPreserveLocalTransforms && EnumHasAnyFlags(static_cast<EPCGExLocalTransformFlags>(LocalTransformFlags), EPCGExLocalTransformFlags::Scale);
+	}
+
+	/** Compute the local transform to preserve based on flags */
+	FTransform ComputePreservedLocalTransform(const FTransform& AssetWorldTransform) const;
 
 protected:
 	/** Called when asset registration changes */

@@ -103,7 +103,7 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		}
 #endif
 	}
-	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, TransformFlags))
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, bTransformOrbitalDirections))
 	{
 		// Transform settings changed - redetect connections and redraw
 		DetectNearbyConnections();
@@ -253,33 +253,12 @@ float APCGExValencyCageBase::GetEffectiveProbeRadius() const
 		}
 	}
 
-	// Apply scale if flags are set (not inheriting) and Scale flag is enabled
-	const EPCGExCageTransformFlags Flags = static_cast<EPCGExCageTransformFlags>(TransformFlags);
-	if (TransformFlags != 0 && EnumHasAnyFlags(Flags, EPCGExCageTransformFlags::Scale))
-	{
-		const FVector Scale = GetActorScale3D();
-		const float AvgScale = (Scale.X + Scale.Y + Scale.Z) / 3.0f;
-		return BaseRadius * AvgScale;
-	}
-
 	return BaseRadius;
 }
 
 bool APCGExValencyCageBase::ShouldTransformOrbitalDirections() const
 {
-	// If no flags set, inherit from OrbitalSet
-	if (TransformFlags == 0)
-	{
-		if (const UPCGExValencyOrbitalSet* OrbitalSet = GetEffectiveOrbitalSet())
-		{
-			return OrbitalSet->bTransformDirection;
-		}
-		return true; // Default to transforming if no orbital set
-	}
-
-	// Flags are set - check if Rotation flag is enabled
-	const EPCGExCageTransformFlags Flags = static_cast<EPCGExCageTransformFlags>(TransformFlags);
-	return EnumHasAnyFlags(Flags, EPCGExCageTransformFlags::Rotation);
+	return bTransformOrbitalDirections;
 }
 
 bool APCGExValencyCageBase::HasConnectionTo(const APCGExValencyCageBase* OtherCage) const
@@ -373,6 +352,28 @@ void APCGExValencyCageBase::RefreshContainingVolumes()
 			}
 		}
 	}
+}
+
+bool APCGExValencyCageBase::ShouldIgnoreActor(const AActor* Actor) const
+{
+	if (!Actor)
+	{
+		return true;
+	}
+
+	// Check against all containing volumes' ignore rules
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+	{
+		if (const AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			if (Volume->ShouldIgnoreActor(Actor))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void APCGExValencyCageBase::InitializeOrbitalsFromSet()

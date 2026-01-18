@@ -230,6 +230,12 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 			continue;
 		}
 
+		// Skip actors that should be ignored based on volume rules
+		if (ShouldIgnoreActor(Actor))
+		{
+			continue;
+		}
+
 		// Use virtual containment check
 		if (IsActorInside(Actor))
 		{
@@ -237,13 +243,13 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		}
 	}
 
-	// Also check child actors (always included regardless of bounds)
+	// Also check child actors (always included regardless of bounds, but still respect ignore rules)
 	TArray<AActor*> ChildActors;
 	GetAttachedActors(ChildActors);
 
 	for (AActor* Child : ChildActors)
 	{
-		if (Child && !Cast<APCGExValencyCageBase>(Child))
+		if (Child && !Cast<APCGExValencyCageBase>(Child) && !ShouldIgnoreActor(Child))
 		{
 			ContainedActors.AddUnique(Child);
 		}
@@ -262,11 +268,10 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		NewEntry.SourceActor = SourceActor;
 		NewEntry.AssetType = DetectAssetType(Asset);
 
-		if (bPreserveLocalTransforms && SourceActor)
+		// Compute preserved local transform based on flags
+		if (SourceActor)
 		{
-			const FTransform CageTransform = GetActorTransform();
-			const FTransform ActorTransform = SourceActor->GetActorTransform();
-			NewEntry.LocalTransform = ActorTransform.GetRelativeTransform(CageTransform);
+			NewEntry.LocalTransform = ComputePreservedLocalTransform(SourceActor->GetActorTransform());
 		}
 
 		// Check for duplicates in scanned entries
@@ -393,4 +398,35 @@ void APCGExValencyCage::RecordMaterialVariant(
 
 	// New unique variant
 	Variants.Add(MoveTemp(NewVariant));
+}
+
+FTransform APCGExValencyCage::ComputePreservedLocalTransform(const FTransform& AssetWorldTransform) const
+{
+	if (!bPreserveLocalTransforms)
+	{
+		return FTransform::Identity;
+	}
+
+	const FTransform CageTransform = GetActorTransform();
+	const FTransform LocalTransform = AssetWorldTransform.GetRelativeTransform(CageTransform);
+
+	// Build result transform based on which flags are set
+	FTransform Result = FTransform::Identity;
+
+	if (ShouldPreserveTranslation())
+	{
+		Result.SetTranslation(LocalTransform.GetTranslation());
+	}
+
+	if (ShouldPreserveRotation())
+	{
+		Result.SetRotation(LocalTransform.GetRotation());
+	}
+
+	if (ShouldPreserveScale())
+	{
+		Result.SetScale3D(LocalTransform.GetScale3D());
+	}
+
+	return Result;
 }
