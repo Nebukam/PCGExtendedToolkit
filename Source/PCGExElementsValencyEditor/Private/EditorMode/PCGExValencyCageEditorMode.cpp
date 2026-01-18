@@ -8,6 +8,8 @@
 #include "CanvasItem.h"
 #include "CanvasTypes.h"
 #include "SceneManagement.h"
+#include "Editor.h"
+#include "Selection.h"
 
 #include "Cages/PCGExValencyCageBase.h"
 #include "Volumes/ValencyContextVolume.h"
@@ -27,36 +29,32 @@ void FPCGExValencyCageEditorMode::Enter()
 {
 	FEdMode::Enter();
 
-	// Refresh caches on enter
-	bCacheDirty = true;
-	CollectCagesFromLevel();
-	CollectVolumesFromLevel();
-
-	// Only initialize cages that haven't been set up yet
-	// (Orbitals array is empty but cage has a valid orbital set)
-	// Saved cages should already have their orbitals and connections serialized
-	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	// Bind to actor add/delete events to keep cache up to date
+	if (GEditor)
 	{
-		if (APCGExValencyCageBase* Cage = CagePtr.Get())
-		{
-			// Refresh containing volumes (transient, not saved)
-			Cage->RefreshContainingVolumes();
-
-			// Only initialize if orbitals are empty but should have data
-			if (Cage->GetOrbitals().Num() == 0 && Cage->GetEffectiveOrbitalSet())
-			{
-				Cage->InitializeOrbitalsFromSet();
-				Cage->DetectNearbyConnections();
-			}
-		}
+		OnActorAddedHandle = GEditor->OnLevelActorAdded().AddRaw(this, &FPCGExValencyCageEditorMode::OnLevelActorAdded);
+		OnActorDeletedHandle = GEditor->OnLevelActorDeleted().AddRaw(this, &FPCGExValencyCageEditorMode::OnLevelActorDeleted);
 	}
 
-	// Note: We keep debug components visible for selection/interaction
-	// Our custom drawing overlays on top of them
+	// Collect and fully initialize all cages
+	CollectCagesFromLevel();
+	CollectVolumesFromLevel();
+	RefreshAllCages();
+
+	bCacheDirty = false;
 }
 
 void FPCGExValencyCageEditorMode::Exit()
 {
+	// Unbind actor add/delete events
+	if (GEditor)
+	{
+		GEditor->OnLevelActorAdded().Remove(OnActorAddedHandle);
+		GEditor->OnLevelActorDeleted().Remove(OnActorDeletedHandle);
+	}
+	OnActorAddedHandle.Reset();
+	OnActorDeletedHandle.Reset();
+
 	CachedCages.Empty();
 	CachedVolumes.Empty();
 
@@ -77,6 +75,7 @@ void FPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* View
 	{
 		CollectCagesFromLevel();
 		CollectVolumesFromLevel();
+		RefreshAllCages();
 		bCacheDirty = false;
 	}
 
@@ -108,18 +107,39 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 		return;
 	}
 
+	// Determine which cages are selected for label opacity
+	TSet<const APCGExValencyCageBase*> SelectedCages;
+	if (GEditor)
+	{
+		USelection* Selection = GEditor->GetSelectedActors();
+		for (FSelectionIterator It(*Selection); It; ++It)
+		{
+			if (const APCGExValencyCageBase* SelectedCage = Cast<APCGExValencyCageBase>(*It))
+			{
+				SelectedCages.Add(SelectedCage);
+			}
+		}
+	}
+
+	// Label colors - full opacity for selected, faint for unselected
+	const FLinearColor SelectedLabelColor = FLinearColor::White;
+	const FLinearColor UnselectedLabelColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.35f);
+
 	// Draw orbital labels on cages
 	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 	{
 		if (const APCGExValencyCageBase* Cage = CagePtr.Get())
 		{
+			const bool bIsSelected = SelectedCages.Contains(Cage);
+			const FLinearColor LabelColor = bIsSelected ? SelectedLabelColor : UnselectedLabelColor;
+
 			// Draw cage name label
 			const FVector CageLocation = Cage->GetActorLocation();
 			const FString CageName = Cage->GetCageDisplayName();
 
 			if (!CageName.IsEmpty())
 			{
-				DrawLabel(Canvas, View, CageLocation + FVector(0, 0, 50), CageName, FLinearColor::White);
+				DrawLabel(Canvas, View, CageLocation + FVector(0, 0, 50), CageName, LabelColor);
 			}
 
 			// Draw orbital labels if cage has an orbital set
@@ -128,6 +148,7 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 			{
 				const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
 				const FTransform CageTransform = Cage->GetActorTransform();
+				const float ProbeRadius = Cage->GetEffectiveProbeRadius();
 
 				for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 				{
@@ -143,8 +164,9 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 							FVector WorldDir = CageTransform.TransformVectorNoScale(Direction);
 							WorldDir.Normalize();
 
-							const FVector LabelPos = CageLocation + WorldDir * (OrbitalArrowLength * 0.5f);
-							DrawLabel(Canvas, View, LabelPos, Entry.GetDisplayName().ToString(), FLinearColor::White);
+							// Position at 30% of probe radius to avoid overlap with incoming labels
+							const FVector LabelPos = CageLocation + WorldDir * (ProbeRadius * 0.3f);
+							DrawLabel(Canvas, View, LabelPos, Entry.GetDisplayName().ToString(), LabelColor);
 						}
 					}
 				}
@@ -240,6 +262,9 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 		return;
 	}
 
+	// Use probe radius for arrow length
+	const float ArrowLength = Cage->GetEffectiveProbeRadius();
+
 	// Note: Simple cages have their own debug shape components for bounds visualization
 	// We only draw orbital arrows and connections here
 
@@ -267,42 +292,51 @@ void FPCGExValencyCageEditorMode::DrawCage(FPrimitiveDrawInterface* PDI, const A
 		FVector WorldDir = CageTransform.TransformVectorNoScale(Direction);
 		WorldDir.Normalize();
 
-		// Determine color based on connection state
+		// Determine color and style based on connection state
 		FLinearColor ArrowColor;
 		bool bDashed = false;
+		bool bDrawArrowhead = true;
 
 		if (!Orbital.bEnabled)
 		{
-			ArrowColor = DisconnectedColor * 0.5f;
-			bDashed = true;
+			// Disabled orbital - skip drawing
+			continue;
 		}
 		else if (Orbital.ConnectedCage.IsValid())
 		{
-			// Check if connection is mutual
 			const APCGExValencyCageBase* ConnectedCage = Orbital.ConnectedCage.Get();
-			if (ConnectedCage->HasConnectionTo(Cage))
+
+			if (ConnectedCage->IsNullCage())
 			{
-				ArrowColor = MutualConnectionColor;
+				// Connection to null cage: dashed darkish red, no arrowhead
+				ArrowColor = NullConnectionColor;
+				bDashed = true;
+				bDrawArrowhead = false;
+			}
+			else if (ConnectedCage->HasConnectionTo(Cage))
+			{
+				// Bidirectional connection: green with arrowhead
+				ArrowColor = BidirectionalColor;
 			}
 			else
 			{
-				ArrowColor = AsymmetricConnectionColor;
-				bDashed = true;
+				// Unilateral connection: teal with arrowhead
+				ArrowColor = UnilateralColor;
 			}
 
 			// Draw connection line to connected cage
-			if (ConnectedCage)
-			{
-				DrawConnection(PDI, Cage, Orbital.OrbitalIndex, ConnectedCage);
-			}
+			DrawConnection(PDI, Cage, Orbital.OrbitalIndex, ConnectedCage);
 		}
 		else
 		{
-			ArrowColor = DisconnectedColor;
+			// No connection: dashed light gray, no arrowhead
+			ArrowColor = NoConnectionColor;
+			bDashed = true;
+			bDrawArrowhead = false;
 		}
 
 		// Draw the orbital arrow
-		DrawOrbitalArrow(PDI, CageLocation, WorldDir, OrbitalArrowLength, ArrowColor, bDashed);
+		DrawOrbitalArrow(PDI, CageLocation, WorldDir, ArrowLength, ArrowColor, bDashed, bDrawArrowhead);
 	}
 }
 
@@ -336,14 +370,28 @@ void FPCGExValencyCageEditorMode::DrawConnection(FPrimitiveDrawInterface* PDI, c
 	const FVector From = FromCage->GetActorLocation();
 	const FVector To = ToCage->GetActorLocation();
 
-	// Check if mutual
-	const bool bMutual = ToCage->HasConnectionTo(FromCage);
-	const FLinearColor LineColor = bMutual ? MutualConnectionColor : AsymmetricConnectionColor;
+	// Determine connection type and color
+	const bool bToNullCage = ToCage->IsNullCage();
+	const bool bMutual = !bToNullCage && ToCage->HasConnectionTo(FromCage);
+
+	FLinearColor LineColor;
+	if (bToNullCage)
+	{
+		LineColor = NullConnectionColor;
+	}
+	else if (bMutual)
+	{
+		LineColor = BidirectionalColor;
+	}
+	else
+	{
+		LineColor = UnilateralColor;
+	}
 
 	PDI->DrawLine(From, To, LineColor, SDPG_World, ConnectionLineThickness);
 
-	// Draw arrowhead at midpoint pointing toward target
-	if (!bMutual)
+	// Draw arrowhead at midpoint pointing toward target (only for unilateral, not for null or bidirectional)
+	if (!bMutual && !bToNullCage)
 	{
 		const FVector Mid = (From + To) * 0.5f;
 		const FVector Dir = (To - From).GetSafeNormal();
@@ -355,15 +403,24 @@ void FPCGExValencyCageEditorMode::DrawConnection(FPrimitiveDrawInterface* PDI, c
 	}
 }
 
-void FPCGExValencyCageEditorMode::DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Origin, const FVector& Direction, float Length, const FLinearColor& Color, bool bDashed)
+void FPCGExValencyCageEditorMode::DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Origin, const FVector& Direction, float Length, const FLinearColor& Color, bool bDashed, bool bDrawArrowhead)
 {
-	const FVector EndPoint = Origin + Direction * Length;
+	// Arrow geometry when arrowhead is drawn:
+	// - 0% to 70%: thin line
+	// - 70% to 110%: thicker arrow line with arrowhead at 110%
+	// Without arrowhead: just draw to 100%
+	const float ThinEndPct = bDrawArrowhead ? 0.70f : 1.0f;
+	const float ArrowEndPct = 1.10f;
+
+	const FVector ThinEnd = Origin + Direction * (Length * ThinEndPct);
+	const FVector ArrowEnd = Origin + Direction * (Length * ArrowEndPct);
 
 	if (bDashed)
 	{
-		// Draw dashed line (segments)
-		const int32 NumSegments = 5;
-		const float SegmentLength = Length / (NumSegments * 2);
+		// Draw dashed line (0% to ThinEndPct)
+		const float ThinLength = Length * ThinEndPct;
+		const int32 NumSegments = FMath::Max(4, FMath::RoundToInt(ThinLength / 25.0f)); // Scale segments with length
+		const float SegmentLength = ThinLength / (NumSegments * 2);
 
 		for (int32 i = 0; i < NumSegments; ++i)
 		{
@@ -371,25 +428,54 @@ void FPCGExValencyCageEditorMode::DrawOrbitalArrow(FPrimitiveDrawInterface* PDI,
 			const float End = Start + SegmentLength;
 
 			const FVector SegStart = Origin + Direction * Start;
-			const FVector SegEnd = Origin + Direction * FMath::Min(End, Length);
+			const FVector SegEnd = Origin + Direction * FMath::Min(End, ThinLength);
 
-			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, 1.5f);
+			PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, 1.0f);
+		}
+
+		if (bDrawArrowhead)
+		{
+			// Draw dashed arrow line (70% to 110%)
+			const float ArrowLength = Length * (ArrowEndPct - ThinEndPct);
+			const int32 NumArrowSegments = 2;
+			const float ArrowSegmentLength = ArrowLength / (NumArrowSegments * 2);
+
+			for (int32 i = 0; i < NumArrowSegments; ++i)
+			{
+				const float Start = i * ArrowSegmentLength * 2;
+				const float End = Start + ArrowSegmentLength;
+
+				const FVector SegStart = ThinEnd + Direction * Start;
+				const FVector SegEnd = ThinEnd + Direction * FMath::Min(End, ArrowLength);
+
+				PDI->DrawLine(SegStart, SegEnd, Color, SDPG_World, 2.0f);
+			}
 		}
 	}
 	else
 	{
-		PDI->DrawLine(Origin, EndPoint, Color, SDPG_World, 1.5f);
+		// Solid thin line (0% to ThinEndPct)
+		PDI->DrawLine(Origin, ThinEnd, Color, SDPG_World, 1.0f);
+
+		if (bDrawArrowhead)
+		{
+			// Solid thicker arrow line (70% to 110%)
+			PDI->DrawLine(ThinEnd, ArrowEnd, Color, SDPG_World, 2.0f);
+		}
 	}
 
-	// Draw arrowhead
-	const FVector Right = FVector::CrossProduct(Direction, FVector::UpVector).GetSafeNormal();
-	const FVector Up = FVector::CrossProduct(Right, Direction).GetSafeNormal();
-	const float ArrowSize = 10.0f;
+	// Draw arrowhead at 110% if enabled
+	if (bDrawArrowhead)
+	{
+		const FVector Right = FVector::CrossProduct(Direction, FVector::UpVector).GetSafeNormal();
+		const FVector Up = FVector::CrossProduct(Right, Direction).GetSafeNormal();
+		const float ArrowSize = 10.0f;
 
-	PDI->DrawLine(EndPoint, EndPoint - Direction * ArrowSize + Right * ArrowSize * 0.5f, Color, SDPG_World, 1.5f);
-	PDI->DrawLine(EndPoint, EndPoint - Direction * ArrowSize - Right * ArrowSize * 0.5f, Color, SDPG_World, 1.5f);
-	PDI->DrawLine(EndPoint, EndPoint - Direction * ArrowSize + Up * ArrowSize * 0.5f, Color, SDPG_World, 1.5f);
-	PDI->DrawLine(EndPoint, EndPoint - Direction * ArrowSize - Up * ArrowSize * 0.5f, Color, SDPG_World, 1.5f);
+		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize + Right * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
+		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize - Right * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
+		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize + Up * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
+		PDI->DrawLine(ArrowEnd, ArrowEnd - Direction * ArrowSize - Up * ArrowSize * 0.5f, Color, SDPG_World, 2.0f);
+	}
 }
 
 void FPCGExValencyCageEditorMode::DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color)
@@ -433,4 +519,130 @@ void FPCGExValencyCageEditorMode::SetAllCageDebugComponentsVisible(bool bVisible
 			Cage->SetDebugComponentsVisible(bVisible);
 		}
 	}
+}
+
+void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
+{
+	if (!Actor)
+	{
+		return;
+	}
+
+	// Check if it's a cage
+	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Actor))
+	{
+		// Add to cache and initialize
+		CachedCages.Add(Cage);
+		InitializeCage(Cage);
+
+		// New cage might be a connection target for existing cages - refresh all connections
+		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+		{
+			if (APCGExValencyCageBase* OtherCage = CagePtr.Get())
+			{
+				if (OtherCage != Cage)
+				{
+					OtherCage->DetectNearbyConnections();
+				}
+			}
+		}
+	}
+	// Check if it's a volume
+	else if (AValencyContextVolume* Volume = Cast<AValencyContextVolume>(Actor))
+	{
+		CachedVolumes.Add(Volume);
+		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
+	}
+}
+
+void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
+{
+	if (!Actor)
+	{
+		return;
+	}
+
+	// Check if it's a cage being deleted
+	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Actor))
+	{
+		// Remove from cache
+		CachedCages.RemoveAll([Cage](const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr)
+		{
+			return CagePtr.Get() == Cage || !CagePtr.IsValid();
+		});
+
+		// Refresh connections on remaining cages (their connection to deleted cage is now invalid)
+		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+		{
+			if (APCGExValencyCageBase* OtherCage = CagePtr.Get())
+			{
+				OtherCage->DetectNearbyConnections();
+			}
+		}
+	}
+	// Check if it's a volume
+	else if (AValencyContextVolume* Volume = Cast<AValencyContextVolume>(Actor))
+	{
+		CachedVolumes.RemoveAll([Volume](const TWeakObjectPtr<AValencyContextVolume>& VolumePtr)
+		{
+			return VolumePtr.Get() == Volume || !VolumePtr.IsValid();
+		});
+		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
+	}
+}
+
+void FPCGExValencyCageEditorMode::RefreshAllCages()
+{
+	// Phase 1: Initialize all cages (orbitals setup, volume assignment)
+	// This must happen before connection detection since connections depend on orbitals
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		{
+			// Skip null cages - they don't have orbitals
+			if (Cage->IsNullCage())
+			{
+				continue;
+			}
+
+			// Refresh containing volumes (transient, not saved)
+			Cage->RefreshContainingVolumes();
+
+			// Always reinitialize orbitals to ensure clean state
+			// This handles: new cages, loaded cages, duplicated cages, volume changes
+			// InitializeOrbitalsFromSet preserves existing connections where indices match
+			Cage->InitializeOrbitalsFromSet();
+		}
+	}
+
+	// Phase 2: Detect connections for all cages
+	// Done as a separate pass so all cages have their orbitals ready
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		{
+			// Skip null cages - they don't detect connections
+			if (Cage->IsNullCage())
+			{
+				continue;
+			}
+
+			Cage->DetectNearbyConnections();
+		}
+	}
+}
+
+void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
+{
+	if (!Cage || Cage->IsNullCage())
+	{
+		return;
+	}
+
+	// Setup volumes and orbitals
+	Cage->RefreshContainingVolumes();
+	Cage->InitializeOrbitalsFromSet();
+
+	// Detect connections
+	Cage->DetectNearbyConnections();
 }

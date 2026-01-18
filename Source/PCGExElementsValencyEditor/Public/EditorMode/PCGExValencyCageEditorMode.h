@@ -64,13 +64,28 @@ protected:
 	void DrawConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* FromCage, int32 OrbitalIndex, const APCGExValencyCageBase* ToCage);
 
 	/** Draw orbital direction arrow from cage */
-	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Origin, const FVector& Direction, float Length, const FLinearColor& Color, bool bDashed = false);
+	void DrawOrbitalArrow(FPrimitiveDrawInterface* PDI, const FVector& Origin, const FVector& Direction, float Length, const FLinearColor& Color, bool bDashed = false, bool bDrawArrowhead = true);
 
 	/** Draw text label in viewport */
 	void DrawLabel(FCanvas* Canvas, const FSceneView* View, const FVector& WorldLocation, const FString& Text, const FLinearColor& Color);
 
 	/** Set visibility of all cage debug components */
 	void SetAllCageDebugComponentsVisible(bool bVisible);
+
+	/** Callback when an actor is added to the level */
+	void OnLevelActorAdded(AActor* Actor);
+
+	/** Callback when an actor is deleted from the level */
+	void OnLevelActorDeleted(AActor* Actor);
+
+	/**
+	 * Master refresh function - ensures all cages are properly initialized and connected.
+	 * Call this whenever state might be stale (mode enter, actor changes, etc.)
+	 */
+	void RefreshAllCages();
+
+	/** Initialize a single cage's orbitals and detect its connections */
+	void InitializeCage(APCGExValencyCageBase* Cage);
 
 private:
 	/** Cached cages in level */
@@ -82,16 +97,19 @@ private:
 	/** Whether cache needs refresh */
 	bool bCacheDirty = true;
 
+	/** Delegate handles for actor add/delete events */
+	FDelegateHandle OnActorAddedHandle;
+	FDelegateHandle OnActorDeletedHandle;
+
 	/** Visualization settings */
 	float OrbitalArrowLength = 100.0f;
 	float ConnectionLineThickness = 2.0f;
 
 	/** Colors */
-	FLinearColor ConnectedColor = FLinearColor::Green;
-	FLinearColor DisconnectedColor = FLinearColor::Red;
-	FLinearColor MutualConnectionColor = FLinearColor(0.2f, 0.8f, 0.2f);
-	FLinearColor AsymmetricConnectionColor = FLinearColor::Yellow;
-	FLinearColor NullCageColor = FLinearColor(0.5f, 0.5f, 0.5f);
+	FLinearColor BidirectionalColor = FLinearColor(0.2f, 0.8f, 0.2f);      // Green - mutual connection
+	FLinearColor UnilateralColor = FLinearColor(0.0f, 0.6f, 0.6f);         // Teal - one-way connection
+	FLinearColor NullConnectionColor = FLinearColor(0.5f, 0.15f, 0.15f);   // Darkish red - connection to null
+	FLinearColor NoConnectionColor = FLinearColor(0.6f, 0.6f, 0.6f);       // Light gray - no connection
 	FLinearColor VolumeColor = FLinearColor(0.3f, 0.3f, 0.8f, 0.3f);
 	FLinearColor WarningColor = FLinearColor(1.0f, 0.5f, 0.0f);
 };
