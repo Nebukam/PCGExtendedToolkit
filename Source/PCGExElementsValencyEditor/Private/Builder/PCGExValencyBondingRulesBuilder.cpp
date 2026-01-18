@@ -6,6 +6,8 @@
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageNull.h"
 #include "Volumes/ValencyContextVolume.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyBuilder"
 
@@ -98,6 +100,9 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromCages(
 		Result.bSuccess = true;
 		return Result;
 	}
+
+	// Step 1.5: Discover material variants from mesh components
+	DiscoverMaterialVariants(CageData, TargetRules);
 
 	// Step 2: Build module mapping (keyed by Asset + OrbitalMask)
 	TMap<FString, int32> ModuleKeyToIndex;
@@ -510,6 +515,119 @@ FString UPCGExValencyBondingRulesBuilder::GenerateVariantName(
 	}
 
 	return VariantName;
+}
+
+void UPCGExValencyBondingRulesBuilder::DiscoverMaterialVariants(
+	const TArray<FPCGExValencyCageData>& CageData,
+	UPCGExValencyBondingRules* TargetRules)
+{
+	if (!TargetRules)
+	{
+		return;
+	}
+
+	// Clear previous discoveries
+	TargetRules->DiscoveredMaterialVariants.Empty();
+
+	// Iterate all cage data and their asset entries
+	for (const FPCGExValencyCageData& Data : CageData)
+	{
+		for (const FPCGExValencyAssetEntry& Entry : Data.AssetEntries)
+		{
+			// Only process mesh assets
+			if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
+			{
+				continue;
+			}
+
+			// Need source actor to get material overrides
+			if (!Entry.SourceActor.IsValid())
+			{
+				continue;
+			}
+
+			AActor* SourceActor = Entry.SourceActor.Get();
+
+			// Find static mesh component on the actor
+			UStaticMeshComponent* MeshComp = SourceActor->FindComponentByClass<UStaticMeshComponent>();
+			if (!MeshComp || !MeshComp->GetStaticMesh())
+			{
+				continue;
+			}
+
+			// Extract material overrides
+			TArray<FPCGExValencyMaterialOverride> Overrides;
+			ExtractMaterialOverrides(MeshComp, Overrides);
+
+			// Skip if no overrides (default materials)
+			if (Overrides.Num() == 0)
+			{
+				continue;
+			}
+
+			// Get mesh asset path as key
+			const FSoftObjectPath MeshPath = Entry.Asset.ToSoftObjectPath();
+
+			// Find or create variants array for this mesh
+			TArray<FPCGExValencyMaterialVariant>& Variants = TargetRules->DiscoveredMaterialVariants.FindOrAdd(MeshPath);
+
+			// Check if this exact material config already exists
+			FPCGExValencyMaterialVariant NewVariant;
+			NewVariant.Overrides = MoveTemp(Overrides);
+			NewVariant.DiscoveryCount = 1;
+
+			bool bFound = false;
+			for (FPCGExValencyMaterialVariant& ExistingVariant : Variants)
+			{
+				if (ExistingVariant == NewVariant)
+				{
+					// Increment discovery count (weight)
+					ExistingVariant.DiscoveryCount++;
+					bFound = true;
+					break;
+				}
+			}
+
+			if (!bFound)
+			{
+				Variants.Add(MoveTemp(NewVariant));
+			}
+		}
+	}
+}
+
+void UPCGExValencyBondingRulesBuilder::ExtractMaterialOverrides(
+	const UStaticMeshComponent* MeshComponent,
+	TArray<FPCGExValencyMaterialOverride>& OutOverrides)
+{
+	OutOverrides.Empty();
+
+	if (!MeshComponent)
+	{
+		return;
+	}
+
+	const UStaticMesh* StaticMesh = MeshComponent->GetStaticMesh();
+	if (!StaticMesh)
+	{
+		return;
+	}
+
+	const int32 NumMaterials = MeshComponent->GetNumMaterials();
+
+	for (int32 SlotIndex = 0; SlotIndex < NumMaterials; ++SlotIndex)
+	{
+		UMaterialInterface* CurrentMaterial = MeshComponent->GetMaterial(SlotIndex);
+		UMaterialInterface* DefaultMaterial = StaticMesh->GetMaterial(SlotIndex);
+
+		// Only track if material differs from mesh's default
+		if (CurrentMaterial && CurrentMaterial != DefaultMaterial)
+		{
+			FPCGExValencyMaterialOverride& Override = OutOverrides.AddDefaulted_GetRef();
+			Override.SlotIndex = SlotIndex;
+			Override.Material = CurrentMaterial;
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -113,6 +113,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExCluste
 
 	/** Pick packer for collection entry hash writing (shared across all batches) */
 	TSharedPtr<PCGExCollections::FPickPacker> PickPacker;
+	
+	UPCGExMeshCollection* MeshCollection = nullptr; 
+	UPCGExActorCollection* ActorCollection = nullptr;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL

@@ -169,6 +169,57 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleLayerConfig
 };
 
 /**
+ * A single material override entry (slot index + material).
+ * Used during material variant discovery.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyMaterialOverride
+{
+	GENERATED_BODY()
+
+	/** Material slot index */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	int32 SlotIndex = 0;
+
+	/** The override material */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	TSoftObjectPtr<UMaterialInterface> Material;
+
+	bool operator==(const FPCGExValencyMaterialOverride& Other) const
+	{
+		return SlotIndex == Other.SlotIndex && Material == Other.Material;
+	}
+};
+
+/**
+ * A discovered material variant configuration.
+ * Represents a unique material configuration seen on a mesh during cage scanning.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyMaterialVariant
+{
+	GENERATED_BODY()
+
+	/** Material overrides for this variant (slot → material) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	TArray<FPCGExValencyMaterialOverride> Overrides;
+
+	/** Discovery count - how many times this configuration was seen (becomes weight) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	int32 DiscoveryCount = 1;
+
+	bool operator==(const FPCGExValencyMaterialVariant& Other) const
+	{
+		if (Overrides.Num() != Other.Overrides.Num()) { return false; }
+		for (int32 i = 0; i < Overrides.Num(); ++i)
+		{
+			if (!(Overrides[i] == Other.Overrides[i])) { return false; }
+		}
+		return true;
+	}
+};
+
+/**
  * A module definition - represents one placeable asset with its orbital configuration.
  * Modules are uniquely identified by Asset + OrbitalMask + LocalTransform combination.
  * Same asset with different connectivity or placement = different modules.

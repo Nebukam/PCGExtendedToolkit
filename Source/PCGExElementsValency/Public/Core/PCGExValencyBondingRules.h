@@ -185,6 +185,14 @@ public:
 	 */
 	TArray<int32> ModuleToActorEntryIndex;
 
+	/**
+	 * Transient: Discovered material variants per mesh asset.
+	 * Set by builder during cage scanning, consumed by RebuildGeneratedCollections.
+	 * Key = mesh asset soft object path, Value = array of discovered variants.
+	 * Not serialized - regenerated on each build.
+	 */
+	TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>> DiscoveredMaterialVariants;
+
 	/** Compiled runtime data (generated, not serialized) */
 	TSharedPtr<FPCGExValencyBondingRulesCompiled> CompiledData;
 

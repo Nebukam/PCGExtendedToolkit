@@ -207,6 +207,73 @@ void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 				Entry.StaticMesh = TSoftObjectPtr<UStaticMesh>(Module.Asset.ToSoftObjectPath());
 				Entry.Weight = FMath::Max(1, FMath::RoundToInt32(Module.Settings.Weight));
 
+				// Populate material variants if discovered
+				const FSoftObjectPath MeshPath = Module.Asset.ToSoftObjectPath();
+				if (const TArray<FPCGExValencyMaterialVariant>* Variants = DiscoveredMaterialVariants.Find(MeshPath))
+				{
+					if (Variants->Num() > 0)
+					{
+						// Determine mode: Single if all variants override same single slot
+						bool bCanUseSingleMode = true;
+						int32 CommonSlotIndex = -1;
+
+						for (const FPCGExValencyMaterialVariant& Variant : *Variants)
+						{
+							if (Variant.Overrides.Num() != 1)
+							{
+								bCanUseSingleMode = false;
+								break;
+							}
+							if (CommonSlotIndex < 0)
+							{
+								CommonSlotIndex = Variant.Overrides[0].SlotIndex;
+							}
+							else if (Variant.Overrides[0].SlotIndex != CommonSlotIndex)
+							{
+								bCanUseSingleMode = false;
+								break;
+							}
+						}
+
+						if (bCanUseSingleMode && CommonSlotIndex >= 0)
+						{
+							// Single slot mode
+							Entry.MaterialVariants = EPCGExMaterialVariantsMode::Single;
+							Entry.SlotIndex = CommonSlotIndex;
+							Entry.MaterialOverrideVariants.Empty();
+							Entry.MaterialOverrideVariants.Reserve(Variants->Num());
+
+							for (const FPCGExValencyMaterialVariant& Variant : *Variants)
+							{
+								FPCGExMaterialOverrideSingleEntry& SingleEntry = Entry.MaterialOverrideVariants.AddDefaulted_GetRef();
+								SingleEntry.Weight = Variant.DiscoveryCount;
+								SingleEntry.Material = Variant.Overrides[0].Material;
+							}
+						}
+						else
+						{
+							// Multi slot mode
+							Entry.MaterialVariants = EPCGExMaterialVariantsMode::Multi;
+							Entry.MaterialOverrideVariantsList.Empty();
+							Entry.MaterialOverrideVariantsList.Reserve(Variants->Num());
+
+							for (const FPCGExValencyMaterialVariant& Variant : *Variants)
+							{
+								FPCGExMaterialOverrideCollection& MultiEntry = Entry.MaterialOverrideVariantsList.AddDefaulted_GetRef();
+								MultiEntry.Weight = Variant.DiscoveryCount;
+								MultiEntry.Overrides.Reserve(Variant.Overrides.Num());
+
+								for (const FPCGExValencyMaterialOverride& Override : Variant.Overrides)
+								{
+									FPCGExMaterialOverrideEntry& OverrideEntry = MultiEntry.Overrides.AddDefaulted_GetRef();
+									OverrideEntry.SlotIndex = Override.SlotIndex;
+									OverrideEntry.Material = Override.Material;
+								}
+							}
+						}
+					}
+				}
+
 				// Store mapping
 				ModuleToMeshEntryIndex[ModuleIndex] = EntryIndex;
 				++EntryIndex;

@@ -165,6 +165,12 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 		Context->PickPacker = MakeShared<PCGExCollections::FPickPacker>(Context);
 	}
 
+	Context->MeshCollection = Context->BondingRules->GetMeshCollection();
+	if (Context->MeshCollection) { Context->MeshCollection->BuildCache(); }
+
+	Context->ActorCollection = Context->BondingRules->GetActorCollection();
+	if (Context->ActorCollection) { Context->ActorCollection->BuildCache(); }
+
 	return true;
 }
 
@@ -364,6 +370,7 @@ namespace PCGExValencyStaging
 		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->CompiledData.Get();
 		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
+		TConstPCGValueRange<int32> InSeeds = VtxDataFacade->GetIn()->GetConstSeedValueRange();
 
 		for (const PCGExValency::FValencyState& State : ValencyStates)
 		{
@@ -390,21 +397,29 @@ namespace PCGExValencyStaging
 					// Get the appropriate collection and entry index based on asset type
 					const UPCGExAssetCollection* Collection = nullptr;
 					int32 EntryIndex = -1;
+					int16 SecondaryIndex = -1;
 
 					if (AssetType == EPCGExValencyAssetType::Mesh)
 					{
-						Collection = Context->BondingRules->GetMeshCollection();
+						Collection = Context->MeshCollection;
 						EntryIndex = Context->BondingRules->GetMeshEntryIndex(State.ResolvedModule);
+						if (FPCGExEntryAccessResult Result = Collection->GetEntryAt(EntryIndex); Result.IsValid())
+						{
+							if (const PCGExAssetCollection::FMicroCache* MicroCache = Result.Entry->MicroCache.Get())
+							{
+								SecondaryIndex = MicroCache->GetPickRandomWeighted(InSeeds[Node.PointIndex]);
+							}
+						}
 					}
 					else if (AssetType == EPCGExValencyAssetType::Actor)
 					{
-						Collection = Context->BondingRules->GetActorCollection();
+						Collection = Context->ActorCollection;
 						EntryIndex = Context->BondingRules->GetActorEntryIndex(State.ResolvedModule);
 					}
 
 					if (Collection && EntryIndex >= 0)
 					{
-						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, -1);
+						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, SecondaryIndex);
 						EntryHashWriter->SetValue(Node.PointIndex, static_cast<int64>(Hash));
 					}
 				}
