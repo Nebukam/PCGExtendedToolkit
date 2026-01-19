@@ -107,6 +107,57 @@ namespace PCGExValency
 		/** True if solving completed without critical errors */
 		bool bSuccess = false;
 	};
+
+	/** Function type for checking if a module fits a state */
+	using FModuleFitChecker = TFunctionRef<bool(int32 ModuleIndex, const FValencyState& State)>;
+
+	/**
+	 * Tracks available slots per module for constraint-aware selection.
+	 * Enables forced selection when min spawns are at risk of not being met.
+	 */
+	struct PCGEXELEMENTSVALENCY_API FSlotBudget
+	{
+		/** Per-module: count of unresolved states where module could still fit */
+		TArray<int32> AvailableSlots;
+
+		/** Per-state: which modules fit this state (for fast slot decrement on collapse) */
+		TArray<TArray<int32>> StateToFittingModules;
+
+		/** Initialize slot tracking from compiled rules and states */
+		void Initialize(
+			const FPCGExValencyBondingRulesCompiled* Rules,
+			const TArray<FValencyState>& States,
+			FModuleFitChecker FitChecker);
+
+		/** Call when a state is collapsed - decrements AvailableSlots for all fitting modules */
+		void OnStateCollapsed(int32 StateIndex);
+
+		/**
+		 * Calculate urgency for a module: how critical is it to select this module now?
+		 * @return 0.0 = no urgency (min satisfied), 0.0-1.0 = some urgency, >=1.0 = must select now, >1.0 = impossible
+		 */
+		float GetUrgency(
+			int32 ModuleIndex,
+			const FDistributionTracker& Tracker,
+			const FPCGExValencyBondingRulesCompiled* Rules) const;
+
+		/**
+		 * Check if any candidate MUST be selected (urgency >= 1.0) to meet minimums.
+		 * @return Module index if forced selection needed, -1 otherwise
+		 */
+		int32 GetForcedSelection(
+			const TArray<int32>& Candidates,
+			const FDistributionTracker& Tracker,
+			const FPCGExValencyBondingRulesCompiled* Rules) const;
+
+		/**
+		 * Check if any module has become impossible to satisfy (urgency > 1.0).
+		 * @return true if constraints are still satisfiable
+		 */
+		bool AreConstraintsSatisfiable(
+			const FDistributionTracker& Tracker,
+			const FPCGExValencyBondingRulesCompiled* Rules) const;
+	};
 }
 
 /**
@@ -144,6 +195,18 @@ public:
 	/** Get the distribution tracker for inspection */
 	const PCGExValency::FDistributionTracker& GetDistributionTracker() const { return DistributionTracker; }
 
+	/** Weight boost multiplier for modules that need more spawns to meet minimum */
+	float MinimumSpawnWeightBoost = 2.0f;
+
+	/**
+	 * Check if a module's orbital mask matches a state's available orbitals.
+	 * Public because FSlotBudget needs to call this during initialization.
+	 * @param ModuleIndex Module to check
+	 * @param State The state to check against
+	 * @return True if module can fit in this state based on orbital geometry
+	 */
+	bool DoesModuleFitState(int32 ModuleIndex, const PCGExValency::FValencyState& State) const;
+
 protected:
 	/** The compiled bonding rules */
 	const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = nullptr;
@@ -164,12 +227,12 @@ protected:
 	bool IsModuleCompatibleWithNeighbor(int32 ModuleIndex, int32 OrbitalIndex, int32 NeighborModuleIndex) const;
 
 	/**
-	 * Check if a module's orbital mask matches a state's available orbitals.
-	 * @param ModuleIndex Module to check
-	 * @param State The state to check against
-	 * @return True if module can fit in this state based on orbital geometry
+	 * Select a module from candidates using weighted random.
+	 * Considers distribution constraints (boosts modules needing minimum spawns).
+	 * @param Candidates Array of valid module indices to choose from
+	 * @return Selected module index, or -1 if candidates is empty
 	 */
-	bool DoesModuleFitState(int32 ModuleIndex, const PCGExValency::FValencyState& State) const;
+	int32 SelectWeightedRandom(const TArray<int32>& Candidates);
 };
 
 /**

@@ -43,8 +43,7 @@ public:
 	FPCGExValencyEntropySolver() = default;
 	virtual ~FPCGExValencyEntropySolver() override = default;
 
-	/** Weight boost multiplier for modules that need more spawns to meet minimum */
-	float MinimumSpawnWeightBoost = 2.0f;
+	// MinimumSpawnWeightBoost inherited from base class
 
 	virtual void Initialize(
 		const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
@@ -112,11 +111,7 @@ protected:
 	 */
 	bool CheckArcConsistency(int32 StateIndex, int32 CandidateModule) const;
 
-	/**
-	 * Select a module from candidates using weighted random.
-	 * Considers distribution constraints (prefer modules needing minimum).
-	 */
-	int32 SelectWeightedRandom(const TArray<int32>& Candidates);
+	// SelectWeightedRandom inherited from base class
 };
 
 /**
