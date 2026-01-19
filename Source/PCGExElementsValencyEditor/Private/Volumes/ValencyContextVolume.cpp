@@ -97,12 +97,14 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 	// Check if any property in the chain has PCGEX_ValencyRebuild metadata
 	bool bShouldRebuild = false;
+	bool bFoundMetadata = false;
 
 	if (const FProperty* Property = PropertyChangedEvent.Property)
 	{
 		if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 		{
 			bShouldRebuild = true;
+			bFoundMetadata = true;
 		}
 	}
 
@@ -111,22 +113,28 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 		{
 			bShouldRebuild = true;
+			bFoundMetadata = true;
 		}
 	}
 
-	// Skip rebuild during interactive changes (dragging sliders) unless user opts in
-	// This prevents spamming FlushCache which could crash the engine with large rulesets
-	if (PropertyChangedEvent.ChangeType == EPropertyChangeType::Interactive)
+	UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume PostEditChangeProperty: Property=%s, FoundMetadata=%s, ChangeType=%d"),
+		*PropertyName.ToString(), bFoundMetadata ? TEXT("true") : TEXT("false"), (int32)PropertyChangedEvent.ChangeType);
+
+	// Debounce interactive changes (dragging sliders) to prevent spam
+	if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 	{
-		const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
-		if (!Settings || !Settings->bRebuildDuringInteractiveChanges)
-		{
-			bShouldRebuild = false;
-		}
+		UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume: Rebuild blocked by ShouldAllowRebuild"));
+		bShouldRebuild = false;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume: bShouldRebuild=%s, bAutoRebuildOnChange=%s, IsValencyModeActive=%s"),
+		bShouldRebuild ? TEXT("true") : TEXT("false"),
+		bAutoRebuildOnChange ? TEXT("true") : TEXT("false"),
+		IsValencyModeActive() ? TEXT("true") : TEXT("false"));
 
 	if (bShouldRebuild && bAutoRebuildOnChange && IsValencyModeActive())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume: TRIGGERING REBUILD"));
 		BuildRulesFromCages();
 	}
 }

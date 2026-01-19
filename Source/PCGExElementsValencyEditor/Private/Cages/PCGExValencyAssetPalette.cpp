@@ -155,14 +155,10 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 		}
 	}
 
-	// Skip rebuild during interactive changes (dragging sliders) unless user opts in
-	if (PropertyChangedEvent.ChangeType == EPropertyChangeType::Interactive)
+	// Debounce interactive changes (dragging sliders) to prevent spam
+	if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 	{
-		const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
-		if (!Settings || !Settings->bRebuildDuringInteractiveChanges)
-		{
-			bShouldRebuild = false;
-		}
+		bShouldRebuild = false;
 	}
 
 	if (bShouldRebuild)

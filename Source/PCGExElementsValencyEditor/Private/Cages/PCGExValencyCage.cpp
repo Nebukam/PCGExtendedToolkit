@@ -661,19 +661,15 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			}
 		}
 
-		// Skip rebuild during interactive changes (dragging sliders) unless user opts in
-		if (PropertyChangedEvent.ChangeType == EPropertyChangeType::Interactive)
+		// Debounce interactive changes (dragging sliders) to prevent spam
+		if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 		{
-			const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
-			if (!Settings || !Settings->bRebuildDuringInteractiveChanges)
-			{
-				bShouldRebuild = false;
-			}
+			bShouldRebuild = false;
 		}
 
 		if (bShouldRebuild)
 		{
-			PCGEX_VALENCY_INFO(Building, "Cage '%s': Property '%s' with PCGEX_ValencyRebuild metadata changed - triggering rebuild",
+			PCGEX_VALENCY_INFO(Building, "Cage '%s': Property '%s' with ValencyRebuild metadata changed - triggering rebuild",
 				*GetCageDisplayName(), *PropertyName.ToString());
 			TriggerAutoRebuildIfNeeded();
 		}

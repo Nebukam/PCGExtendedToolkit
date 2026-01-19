@@ -101,7 +101,35 @@ bool FPCGExValencySolverOperation::IsModuleCompatibleWithNeighbor(int32 ModuleIn
 
 	// Check first layer (primary compatibility)
 	const FPCGExValencyLayerCompiled& Layer = CompiledBondingRules->Layers[0];
-	return Layer.OrbitalAcceptsNeighbor(ModuleIndex, OrbitalIndex, NeighborModuleIndex);
+
+	// First try the explicit neighbor list
+	if (Layer.OrbitalAcceptsNeighbor(ModuleIndex, OrbitalIndex, NeighborModuleIndex))
+	{
+		return true;
+	}
+
+	// If orbital has no defined neighbors, check if it's a wildcard or boundary:
+	// - Null cage connection (boundary orbital) = must have NO neighbor → return false
+	// - No connection at all (wildcard) = accepts ANY neighbor → return true
+	const int32 HeaderIndex = ModuleIndex * Layer.OrbitalCount + OrbitalIndex;
+	if (Layer.NeighborHeaders.IsValidIndex(HeaderIndex))
+	{
+		const FIntPoint& Header = Layer.NeighborHeaders[HeaderIndex];
+		if (Header.Y == 0) // Empty neighbor list
+		{
+			// Check if this is a boundary orbital (connected to null cage)
+			const int64 BoundaryMask = CompiledBondingRules->GetModuleBoundaryMask(ModuleIndex, 0);
+			const bool bIsBoundary = (BoundaryMask & (1LL << OrbitalIndex)) != 0;
+
+			// If NOT a boundary, it's a wildcard - accept any neighbor
+			if (!bIsBoundary)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 bool FPCGExValencySolverOperation::DoesModuleFitState(int32 ModuleIndex, const PCGExValency::FValencyState& State) const

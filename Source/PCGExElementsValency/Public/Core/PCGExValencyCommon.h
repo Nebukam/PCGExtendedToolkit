@@ -57,15 +57,15 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleSettings
 	GENERATED_BODY()
 
 	/** Probability weight for selection (higher = more likely) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "0.001", ValencyRebuild))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "0.001", PCGEX_ValencyRebuild))
 	float Weight = 1.0f;
 
 	/** Minimum number of times this module must be placed (0 = no minimum) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "0", ValencyRebuild))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "0", PCGEX_ValencyRebuild))
 	int32 MinSpawns = 0;
 
 	/** Maximum number of times this module can be placed (-1 = unlimited) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "-1", ValencyRebuild))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "-1", PCGEX_ValencyRebuild))
 	int32 MaxSpawns = -1;
 };
 

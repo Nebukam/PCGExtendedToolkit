@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
+#include "UObject/UnrealType.h"
 
 #include "PCGExValencyEditorSettings.generated.h"
 
@@ -13,7 +14,7 @@
  * Configure visualization colors, line thicknesses, and other display options.
  * Access via Project Settings > Plugins > PCGEx Valency Editor.
  */
-UCLASS(Config=Editor, DefaultConfig, meta=(DisplayName="PCGEx Valency Editor"))
+UCLASS(Config=Editor, DefaultConfig, meta=(DisplayName="PCGEx | Valency Editor"))
 class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyEditorSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -24,9 +25,19 @@ public:
 	/** Get the singleton settings instance */
 	static const UPCGExValencyEditorSettings* Get();
 
+	/**
+	 * Check if a rebuild should proceed based on property change type.
+	 * Handles debouncing of interactive changes (slider dragging) to prevent spam.
+	 *
+	 * @param ChangeType The property change type from FPropertyChangedEvent
+	 * @return true if rebuild should proceed, false if it should be skipped
+	 */
+	static bool ShouldAllowRebuild(EPropertyChangeType::Type ChangeType);
+
 	//~ Begin UDeveloperSettings Interface
+	virtual FName GetContainerName() const override { return FName("Project"); }
 	virtual FName GetCategoryName() const override { return FName("Plugins"); }
-	virtual FName GetSectionName() const override { return FName("PCGEx Valency Editor"); }
+	virtual FName GetSectionName() const override { return FName("PCGEx | Valency Editor"); }
 	//~ End UDeveloperSettings Interface
 
 public:
@@ -154,5 +165,5 @@ public:
 	 * powerful hardware and small rulesets.
 	 */
 	UPROPERTY(Config, EditAnywhere, Category = "Behavior")
-	bool bRebuildDuringInteractiveChanges = false;
+	bool bRebuildDuringInteractiveChanges = true;
 };
