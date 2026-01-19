@@ -46,6 +46,28 @@ void AValencyContextVolume::PostActorCreated()
 	SetFolderPath(PCGExValencyFolders::VolumesFolder);
 }
 
+void AValencyContextVolume::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// Notify all cages in the world to check if they're now contained by us
+	// This handles the initialization order problem: cages may have initialized
+	// before volumes, so their ContainingVolumes list would be empty
+	if (UWorld* World = GetWorld())
+	{
+		for (TActorIterator<APCGExValencyCageBase> It(World); It; ++It)
+		{
+			APCGExValencyCageBase* Cage = *It;
+			if (Cage)
+			{
+				// Refresh this cage's containing volumes list
+				// This is cheap - just iterates volumes and checks containment
+				Cage->RefreshContainingVolumes();
+			}
+		}
+	}
+}
+
 void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

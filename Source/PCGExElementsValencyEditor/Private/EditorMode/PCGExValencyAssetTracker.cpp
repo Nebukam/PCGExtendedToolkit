@@ -89,11 +89,8 @@ void FPCGExValencyAssetTracker::OnSelectionChanged()
 
 		TrackedActors.Add(Actor);
 
-		// Initialize position tracking if not already tracked
-		if (!TrackedActorPositions.Contains(Actor))
-		{
-			TrackedActorPositions.Add(Actor, Actor->GetActorLocation());
-		}
+		// NOTE: Do NOT initialize position here - let Update() handle it
+		// so that bIsNewActor can be properly detected for initial containment check
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("Valency: Selection changed, tracking %d actors"), TrackedActors.Num());
