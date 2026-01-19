@@ -49,7 +49,10 @@ void FPCGExValencyCageEditorMode::Enter()
 	RefreshAllCages();
 
 	// Initialize asset tracker with our cache references
-	AssetTracker.Initialize(CachedCages, CachedVolumes);
+	AssetTracker.Initialize(CachedCages, CachedVolumes, CachedPalettes);
+
+	// Initialize dirty state manager with all cached actors
+	DirtyStateManager.Initialize(CachedCages, CachedVolumes, CachedPalettes);
 
 	// Capture current selection state - handles case where actors are already selected
 	// when entering Valency mode (OnSelectionChanged won't fire for existing selection)
@@ -73,6 +76,7 @@ void FPCGExValencyCageEditorMode::Exit()
 
 	// Clear tracking state
 	AssetTracker.Reset();
+	DirtyStateManager.Reset();
 
 	CachedCages.Empty();
 	CachedVolumes.Empty();
@@ -224,15 +228,36 @@ void FPCGExValencyCageEditorMode::Tick(FEditorViewportClient* ViewportClient, fl
 {
 	FEdMode::Tick(ViewportClient, DeltaTime);
 
-	// Update asset tracking if enabled
+	// Update asset tracking if enabled - this marks cages/palettes dirty
 	if (AssetTracker.IsEnabled())
 	{
 		TSet<APCGExValencyCage*> AffectedCages;
-		if (AssetTracker.Update(AffectedCages))
+		TSet<APCGExValencyAssetPalette*> AffectedPalettes;
+		if (AssetTracker.Update(AffectedCages, AffectedPalettes))
 		{
-			AssetTracker.TriggerAutoRebuild(AffectedCages);
-			RedrawViewports();
+			// Mark affected cages dirty
+			for (APCGExValencyCage* Cage : AffectedCages)
+			{
+				if (Cage)
+				{
+					DirtyStateManager.MarkCageDirty(Cage, EValencyDirtyFlags::Assets);
+				}
+			}
+			// Mark affected palettes dirty (will cascade to mirroring cages)
+			for (APCGExValencyAssetPalette* Palette : AffectedPalettes)
+			{
+				if (Palette)
+				{
+					DirtyStateManager.MarkPaletteDirty(Palette, EValencyDirtyFlags::Assets);
+				}
+			}
 		}
+	}
+
+	// Process all dirty state once per frame (coalesced rebuilds)
+	if (DirtyStateManager.ProcessDirty())
+	{
+		RedrawViewports();
 	}
 }
 
@@ -427,9 +452,16 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		});
 	}
 	// Check if it's a tracked asset actor being deleted
-	else if (AssetTracker.OnActorDeleted(Actor))
+	else
 	{
-		RedrawViewports();
+		APCGExValencyCage* AffectedCage = nullptr;
+		if (AssetTracker.OnActorDeleted(Actor, AffectedCage))
+		{
+			if (AffectedCage)
+			{
+				DirtyStateManager.MarkCageDirty(AffectedCage, EValencyDirtyFlags::Assets);
+			}
+		}
 	}
 }
 
@@ -441,10 +473,25 @@ void FPCGExValencyCageEditorMode::OnSelectionChanged()
 	if (AssetTracker.IsEnabled() && AssetTracker.GetTrackedActorCount() > 0)
 	{
 		TSet<APCGExValencyCage*> AffectedCages;
-		if (AssetTracker.Update(AffectedCages))
+		TSet<APCGExValencyAssetPalette*> AffectedPalettes;
+		if (AssetTracker.Update(AffectedCages, AffectedPalettes))
 		{
-			AssetTracker.TriggerAutoRebuild(AffectedCages);
-			RedrawViewports();
+			// Mark affected cages dirty - will be processed in next Tick
+			for (APCGExValencyCage* Cage : AffectedCages)
+			{
+				if (Cage)
+				{
+					DirtyStateManager.MarkCageDirty(Cage, EValencyDirtyFlags::Assets);
+				}
+			}
+			// Mark affected palettes dirty
+			for (APCGExValencyAssetPalette* Palette : AffectedPalettes)
+			{
+				if (Palette)
+				{
+					DirtyStateManager.MarkPaletteDirty(Palette, EValencyDirtyFlags::Assets);
+				}
+			}
 		}
 	}
 }

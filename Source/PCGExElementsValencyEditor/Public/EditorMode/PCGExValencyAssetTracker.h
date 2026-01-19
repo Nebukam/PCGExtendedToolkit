@@ -7,6 +7,7 @@
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
+class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 
 /**
@@ -30,10 +31,12 @@ public:
 	 * Must be called before using other methods.
 	 * @param InCachedCages Reference to the cached cages array
 	 * @param InCachedVolumes Reference to the cached volumes array
+	 * @param InCachedPalettes Reference to the cached palettes array
 	 */
 	void Initialize(
 		const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& InCachedCages,
-		const TArray<TWeakObjectPtr<AValencyContextVolume>>& InCachedVolumes);
+		const TArray<TWeakObjectPtr<AValencyContextVolume>>& InCachedVolumes,
+		const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& InCachedPalettes);
 
 	/** Clear all tracking state */
 	void Reset();
@@ -54,23 +57,19 @@ public:
 	 * Called when an actor is deleted from the level.
 	 * Handles cleanup if the actor was being tracked.
 	 * @param DeletedActor The actor being deleted
-	 * @return True if the deleted actor was tracked and cages were affected
+	 * @param OutAffectedCage Will be set to the cage that contained the deleted actor (if any)
+	 * @return True if the deleted actor was tracked and a cage was affected
 	 */
-	bool OnActorDeleted(AActor* DeletedActor);
+	bool OnActorDeleted(AActor* DeletedActor, APCGExValencyCage*& OutAffectedCage);
 
 	/**
 	 * Update tracking state - call every tick when enabled.
 	 * Checks for position changes and containment changes.
 	 * @param OutAffectedCages Set that will be populated with cages that need refresh
-	 * @return True if any cages were affected
+	 * @param OutAffectedPalettes Set that will be populated with palettes that need refresh
+	 * @return True if any cages or palettes were affected
 	 */
-	bool Update(TSet<APCGExValencyCage*>& OutAffectedCages);
-
-	/**
-	 * Trigger auto-rebuild for volumes containing the affected cages.
-	 * @param AffectedCages Set of cages that were modified
-	 */
-	void TriggerAutoRebuild(const TSet<APCGExValencyCage*>& AffectedCages);
+	bool Update(TSet<APCGExValencyCage*>& OutAffectedCages, TSet<APCGExValencyAssetPalette*>& OutAffectedPalettes);
 
 	/** Get the number of currently tracked actors */
 	int32 GetTrackedActorCount() const { return TrackedActors.Num(); }
@@ -82,8 +81,14 @@ private:
 	/** Find which cage contains an actor (or nullptr if none) */
 	APCGExValencyCage* FindContainingCage(AActor* Actor) const;
 
+	/** Find which palette contains an actor (or nullptr if none) */
+	APCGExValencyAssetPalette* FindContainingPalette(AActor* Actor) const;
+
 	/** Collect non-null cages that can receive assets */
 	void CollectTrackingCages(TArray<APCGExValencyCage*>& OutCages) const;
+
+	/** Collect palettes that can receive assets */
+	void CollectTrackingPalettes(TArray<APCGExValencyAssetPalette*>& OutPalettes) const;
 
 	/** Find all cages that mirror the given cage (have it in their MirrorSources) */
 	void FindCagesThatMirror(APCGExValencyCage* SourceCage, TArray<APCGExValencyCage*>& OutMirroringCages) const;
@@ -95,11 +100,17 @@ private:
 	/** Reference to cached volumes (owned by editor mode) */
 	const TArray<TWeakObjectPtr<AValencyContextVolume>>* CachedVolumes = nullptr;
 
+	/** Reference to cached palettes (owned by editor mode) */
+	const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>* CachedPalettes = nullptr;
+
 	/** Actors currently being tracked (selected non-cage actors) */
 	TArray<TWeakObjectPtr<AActor>> TrackedActors;
 
 	/** Map from tracked actor to its last known containing cage */
 	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<APCGExValencyCage>> TrackedActorCageMap;
+
+	/** Map from tracked actor to its last known containing palette */
+	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<APCGExValencyAssetPalette>> TrackedActorPaletteMap;
 
 	/** Last known positions of tracked actors */
 	TMap<TWeakObjectPtr<AActor>, FVector> TrackedActorPositions;

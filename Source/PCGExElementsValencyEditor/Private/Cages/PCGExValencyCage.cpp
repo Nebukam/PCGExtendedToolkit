@@ -634,12 +634,12 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	}
 	else
 	{
-		// Check if any property in the chain has ValencyRebuild metadata
+		// Check if any property in the chain has PCGEX_ValencyRebuild metadata
 		bool bShouldRebuild = false;
 
 		if (const FProperty* Property = PropertyChangedEvent.Property)
 		{
-			if (Property->HasMetaData(TEXT("ValencyRebuild")))
+			if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 			{
 				bShouldRebuild = true;
 			}
@@ -647,7 +647,7 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 		if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
 		{
-			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("ValencyRebuild")))
+			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 			{
 				bShouldRebuild = true;
 			}
@@ -655,7 +655,7 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 		if (bShouldRebuild)
 		{
-			PCGEX_VALENCY_INFO(Building, "Cage '%s': Property '%s' with ValencyRebuild metadata changed - triggering rebuild",
+			PCGEX_VALENCY_INFO(Building, "Cage '%s': Property '%s' with PCGEX_ValencyRebuild metadata changed - triggering rebuild",
 				*GetCageDisplayName(), *PropertyName.ToString());
 			TriggerAutoRebuildIfNeeded();
 		}

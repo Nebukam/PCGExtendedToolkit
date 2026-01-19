@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "EdMode.h"
 #include "EditorMode/PCGExValencyAssetTracker.h"
+#include "EditorMode/PCGExValencyDirtyState.h"
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
@@ -52,6 +53,9 @@ public:
 
 	/** Get the cached palettes array */
 	const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& GetCachedPalettes() const { return CachedPalettes; }
+
+	/** Get the dirty state manager for marking actors dirty */
+	FValencyDirtyStateManager& GetDirtyStateManager() { return DirtyStateManager; }
 
 protected:
 	// ========== Cache Management ==========
@@ -118,4 +122,9 @@ private:
 
 	/** Asset tracker for monitoring selected actors */
 	FPCGExValencyAssetTracker AssetTracker;
+
+	// ========== Dirty State Management ==========
+
+	/** Central dirty state manager for coalesced rebuilds */
+	FValencyDirtyStateManager DirtyStateManager;
 };

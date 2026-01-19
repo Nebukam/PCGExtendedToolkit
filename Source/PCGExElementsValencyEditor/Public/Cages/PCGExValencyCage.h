@@ -128,7 +128,7 @@ public:
 	 * Assets from all sources are combined with this cage's orbital configuration.
 	 * Supports both APCGExValencyCage and APCGExValencyAssetPalette actors.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta = (AllowedClasses = "/Script/PCGExElementsValencyEditor.PCGExValencyCage, /Script/PCGExElementsValencyEditor.PCGExValencyAssetPalette"))
 	TArray<TObjectPtr<AActor>> MirrorSources;
 
 	/**

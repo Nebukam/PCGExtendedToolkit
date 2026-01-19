@@ -8,20 +8,24 @@
 
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 
 void FPCGExValencyAssetTracker::Initialize(
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& InCachedCages,
-	const TArray<TWeakObjectPtr<AValencyContextVolume>>& InCachedVolumes)
+	const TArray<TWeakObjectPtr<AValencyContextVolume>>& InCachedVolumes,
+	const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& InCachedPalettes)
 {
 	CachedCages = &InCachedCages;
 	CachedVolumes = &InCachedVolumes;
+	CachedPalettes = &InCachedPalettes;
 }
 
 void FPCGExValencyAssetTracker::Reset()
 {
 	TrackedActors.Empty();
 	TrackedActorCageMap.Empty();
+	TrackedActorPaletteMap.Empty();
 	TrackedActorPositions.Empty();
 }
 
@@ -75,8 +79,8 @@ void FPCGExValencyAssetTracker::OnSelectionChanged()
 			continue;
 		}
 
-		// Skip cages and volumes - we only track potential asset actors
-		if (Cast<APCGExValencyCageBase>(Actor) || Cast<AValencyContextVolume>(Actor))
+		// Skip cages, volumes, and palettes - we only track potential asset actors
+		if (Cast<APCGExValencyCageBase>(Actor) || Cast<AValencyContextVolume>(Actor) || Cast<APCGExValencyAssetPalette>(Actor))
 		{
 			continue;
 		}
@@ -96,12 +100,16 @@ void FPCGExValencyAssetTracker::OnSelectionChanged()
 	UE_LOG(LogTemp, Log, TEXT("Valency: Selection changed, tracking %d actors"), TrackedActors.Num());
 }
 
-bool FPCGExValencyAssetTracker::OnActorDeleted(AActor* DeletedActor)
+bool FPCGExValencyAssetTracker::OnActorDeleted(AActor* DeletedActor, APCGExValencyCage*& OutAffectedCage)
 {
+	OutAffectedCage = nullptr;
+
 	if (!DeletedActor || !IsEnabled())
 	{
 		return false;
 	}
+
+	bool bAffectedAnything = false;
 
 	// Check if this actor was in a tracked cage
 	TWeakObjectPtr<APCGExValencyCage>* CagePtr = TrackedActorCageMap.Find(DeletedActor);
@@ -112,50 +120,58 @@ bool FPCGExValencyAssetTracker::OnActorDeleted(AActor* DeletedActor)
 			*DeletedActor->GetName(),
 			*ContainingCage->GetCageDisplayName());
 
-		// Refresh the cage
+		// Refresh the cage's scanned assets
 		ContainingCage->ScanAndRegisterContainedAssets();
 
-		// Trigger auto-rebuild
-		TSet<APCGExValencyCage*> AffectedCages;
-		AffectedCages.Add(ContainingCage);
-		TriggerAutoRebuild(AffectedCages);
-
-		// Clean up tracking state
-		TrackedActors.RemoveAll([DeletedActor](const TWeakObjectPtr<AActor>& ActorPtr)
-		{
-			return ActorPtr.Get() == DeletedActor || !ActorPtr.IsValid();
-		});
-		TrackedActorCageMap.Remove(DeletedActor);
-		TrackedActorPositions.Remove(DeletedActor);
-
-		return true;
+		// Return the affected cage - caller will mark it dirty
+		OutAffectedCage = ContainingCage;
+		bAffectedAnything = true;
 	}
 
-	// Clean up tracking state even if not in a cage
+	// Check if this actor was in a tracked palette
+	TWeakObjectPtr<APCGExValencyAssetPalette>* PalettePtr = TrackedActorPaletteMap.Find(DeletedActor);
+	if (PalettePtr && PalettePtr->IsValid())
+	{
+		APCGExValencyAssetPalette* ContainingPalette = PalettePtr->Get();
+		UE_LOG(LogTemp, Log, TEXT("Valency: Tracked actor '%s' deleted from palette '%s'"),
+			*DeletedActor->GetName(),
+			*ContainingPalette->GetPaletteDisplayName());
+
+		// Refresh the palette's scanned assets
+		ContainingPalette->ScanAndRegisterContainedAssets();
+		bAffectedAnything = true;
+		// Note: Palette dirty marking is handled by dirty state manager's mirror cascade
+	}
+
+	// Clean up tracking state
 	TrackedActors.RemoveAll([DeletedActor](const TWeakObjectPtr<AActor>& ActorPtr)
 	{
 		return ActorPtr.Get() == DeletedActor || !ActorPtr.IsValid();
 	});
 	TrackedActorCageMap.Remove(DeletedActor);
+	TrackedActorPaletteMap.Remove(DeletedActor);
 	TrackedActorPositions.Remove(DeletedActor);
 
-	return false;
+	return bAffectedAnything;
 }
 
-bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCages)
+bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCages, TSet<APCGExValencyAssetPalette*>& OutAffectedPalettes)
 {
 	OutAffectedCages.Empty();
+	OutAffectedPalettes.Empty();
 
 	if (TrackedActors.Num() == 0)
 	{
 		return false;
 	}
 
-	// Collect cages that can receive assets
+	// Collect containers that can receive assets
 	TArray<APCGExValencyCage*> TrackingCages;
+	TArray<APCGExValencyAssetPalette*> TrackingPalettes;
 	CollectTrackingCages(TrackingCages);
+	CollectTrackingPalettes(TrackingPalettes);
 
-	if (TrackingCages.Num() == 0)
+	if (TrackingCages.Num() == 0 && TrackingPalettes.Num() == 0)
 	{
 		return false;
 	}
@@ -180,56 +196,107 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 		// Update tracked position
 		TrackedActorPositions.Add(Actor, CurrentPos);
 
-		// Find which cage (if any) now contains this actor
-		APCGExValencyCage* NewContainingCage = FindContainingCage(Actor);
-
-		// Check if containment changed (or this is first check for a new actor)
-		TWeakObjectPtr<APCGExValencyCage>* OldCagePtr = TrackedActorCageMap.Find(Actor);
-		APCGExValencyCage* OldContainingCage = OldCagePtr ? OldCagePtr->Get() : nullptr;
-
-		const bool bContainmentChanged = (NewContainingCage != OldContainingCage);
-		const bool bNeedsInitialCheck = bIsNewActor && NewContainingCage != nullptr;
-
-		// Also refresh if actor moved within a cage that preserves local transforms
-		const bool bMovedWithinTransformCage = bHasMoved &&
-			NewContainingCage &&
-			NewContainingCage == OldContainingCage &&
-			NewContainingCage->bPreserveLocalTransforms;
-
-		if (bContainmentChanged || bNeedsInitialCheck || bMovedWithinTransformCage)
+		// ========== Cage Containment Tracking ==========
 		{
-			if (bMovedWithinTransformCage)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' moved within cage '%s' (preserving local transforms)"),
-					*Actor->GetName(),
-					*NewContainingCage->GetCageDisplayName());
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' containment changed - Old: %s, New: %s"),
-					*Actor->GetName(),
-					OldContainingCage ? *OldContainingCage->GetCageDisplayName() : TEXT("None"),
-					NewContainingCage ? *NewContainingCage->GetCageDisplayName() : TEXT("None"));
-			}
+			APCGExValencyCage* NewContainingCage = FindContainingCage(Actor);
 
-			// Containment changed - mark both cages for refresh
-			if (OldContainingCage)
-			{
-				OutAffectedCages.Add(OldContainingCage);
-			}
-			if (NewContainingCage)
-			{
-				OutAffectedCages.Add(NewContainingCage);
-			}
+			TWeakObjectPtr<APCGExValencyCage>* OldCagePtr = TrackedActorCageMap.Find(Actor);
+			APCGExValencyCage* OldContainingCage = OldCagePtr ? OldCagePtr->Get() : nullptr;
 
-			// Update tracking map
-			if (NewContainingCage)
+			const bool bContainmentChanged = (NewContainingCage != OldContainingCage);
+			const bool bNeedsInitialCheck = bIsNewActor && NewContainingCage != nullptr;
+
+			// Also refresh if actor moved within a cage that preserves local transforms
+			const bool bMovedWithinTransformCage = bHasMoved &&
+				NewContainingCage &&
+				NewContainingCage == OldContainingCage &&
+				NewContainingCage->bPreserveLocalTransforms;
+
+			if (bContainmentChanged || bNeedsInitialCheck || bMovedWithinTransformCage)
 			{
-				TrackedActorCageMap.Add(Actor, NewContainingCage);
+				if (bMovedWithinTransformCage)
+				{
+					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' moved within cage '%s' (preserving local transforms)"),
+						*Actor->GetName(),
+						*NewContainingCage->GetCageDisplayName());
+				}
+				else
+				{
+					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' cage containment changed - Old: %s, New: %s"),
+						*Actor->GetName(),
+						OldContainingCage ? *OldContainingCage->GetCageDisplayName() : TEXT("None"),
+						NewContainingCage ? *NewContainingCage->GetCageDisplayName() : TEXT("None"));
+				}
+
+				if (OldContainingCage)
+				{
+					OutAffectedCages.Add(OldContainingCage);
+				}
+				if (NewContainingCage)
+				{
+					OutAffectedCages.Add(NewContainingCage);
+				}
+
+				if (NewContainingCage)
+				{
+					TrackedActorCageMap.Add(Actor, NewContainingCage);
+				}
+				else
+				{
+					TrackedActorCageMap.Remove(Actor);
+				}
 			}
-			else
+		}
+
+		// ========== Palette Containment Tracking ==========
+		{
+			APCGExValencyAssetPalette* NewContainingPalette = FindContainingPalette(Actor);
+
+			TWeakObjectPtr<APCGExValencyAssetPalette>* OldPalettePtr = TrackedActorPaletteMap.Find(Actor);
+			APCGExValencyAssetPalette* OldContainingPalette = OldPalettePtr ? OldPalettePtr->Get() : nullptr;
+
+			const bool bContainmentChanged = (NewContainingPalette != OldContainingPalette);
+			const bool bNeedsInitialCheck = bIsNewActor && NewContainingPalette != nullptr;
+
+			// Also refresh if actor moved within a palette that preserves local transforms
+			const bool bMovedWithinTransformPalette = bHasMoved &&
+				NewContainingPalette &&
+				NewContainingPalette == OldContainingPalette &&
+				NewContainingPalette->bPreserveLocalTransforms;
+
+			if (bContainmentChanged || bNeedsInitialCheck || bMovedWithinTransformPalette)
 			{
-				TrackedActorCageMap.Remove(Actor);
+				if (bMovedWithinTransformPalette)
+				{
+					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' moved within palette '%s' (preserving local transforms)"),
+						*Actor->GetName(),
+						*NewContainingPalette->GetPaletteDisplayName());
+				}
+				else
+				{
+					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' palette containment changed - Old: %s, New: %s"),
+						*Actor->GetName(),
+						OldContainingPalette ? *OldContainingPalette->GetPaletteDisplayName() : TEXT("None"),
+						NewContainingPalette ? *NewContainingPalette->GetPaletteDisplayName() : TEXT("None"));
+				}
+
+				if (OldContainingPalette)
+				{
+					OutAffectedPalettes.Add(OldContainingPalette);
+				}
+				if (NewContainingPalette)
+				{
+					OutAffectedPalettes.Add(NewContainingPalette);
+				}
+
+				if (NewContainingPalette)
+				{
+					TrackedActorPaletteMap.Add(Actor, NewContainingPalette);
+				}
+				else
+				{
+					TrackedActorPaletteMap.Remove(Actor);
+				}
 			}
 		}
 	}
@@ -244,65 +311,17 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 		}
 	}
 
-	return OutAffectedCages.Num() > 0;
-}
-
-void FPCGExValencyAssetTracker::TriggerAutoRebuild(const TSet<APCGExValencyCage*>& AffectedCages)
-{
-	if (!CachedVolumes || AffectedCages.Num() == 0)
+	// Refresh affected palettes
+	for (APCGExValencyAssetPalette* Palette : OutAffectedPalettes)
 	{
-		return;
-	}
-
-	// Expand affected cages to include cages that mirror them (mirror cascade)
-	TSet<APCGExValencyCage*> ExpandedAffectedCages = AffectedCages;
-
-	for (APCGExValencyCage* AffectedCage : AffectedCages)
-	{
-		if (AffectedCage)
+		if (Palette)
 		{
-			TArray<APCGExValencyCage*> MirroringCages;
-			FindCagesThatMirror(AffectedCage, MirroringCages);
-
-			for (APCGExValencyCage* MirroringCage : MirroringCages)
-			{
-				if (MirroringCage && !ExpandedAffectedCages.Contains(MirroringCage))
-				{
-					UE_LOG(LogTemp, Log, TEXT("Valency: Mirror cascade - Cage '%s' mirrors affected cage '%s', adding to rebuild"),
-						*MirroringCage->GetCageDisplayName(),
-						*AffectedCage->GetCageDisplayName());
-					ExpandedAffectedCages.Add(MirroringCage);
-				}
-			}
+			Palette->ScanAndRegisterContainedAssets();
+			UE_LOG(LogTemp, Log, TEXT("Valency: Refreshed scanned assets for palette '%s'"), *Palette->GetPaletteDisplayName());
 		}
 	}
 
-	TSet<AValencyContextVolume*> VolumesToRebuild;
-
-	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : *CachedVolumes)
-	{
-		if (AValencyContextVolume* Volume = VolumePtr.Get())
-		{
-			if (Volume->bAutoRebuildOnChange)
-			{
-				// Check if any affected cage is in this volume
-				for (APCGExValencyCage* Cage : ExpandedAffectedCages)
-				{
-					if (Cage && Volume->ContainsPoint(Cage->GetActorLocation()))
-					{
-						VolumesToRebuild.Add(Volume);
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	for (AValencyContextVolume* Volume : VolumesToRebuild)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Valency: Auto-rebuilding rules for volume"));
-		Volume->BuildRulesFromCages();
-	}
+	return OutAffectedCages.Num() > 0 || OutAffectedPalettes.Num() > 0;
 }
 
 bool FPCGExValencyAssetTracker::ShouldIgnoreActor(AActor* Actor) const
@@ -396,6 +415,45 @@ void FPCGExValencyAssetTracker::FindCagesThatMirror(APCGExValencyCage* SourceCag
 					break;
 				}
 			}
+		}
+	}
+}
+
+APCGExValencyAssetPalette* FPCGExValencyAssetTracker::FindContainingPalette(AActor* Actor) const
+{
+	if (!Actor || !CachedPalettes)
+	{
+		return nullptr;
+	}
+
+	for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : *CachedPalettes)
+	{
+		if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+		{
+			if (Palette->IsActorInside(Actor))
+			{
+				return Palette;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+void FPCGExValencyAssetTracker::CollectTrackingPalettes(TArray<APCGExValencyAssetPalette*>& OutPalettes) const
+{
+	OutPalettes.Empty();
+
+	if (!CachedPalettes)
+	{
+		return;
+	}
+
+	for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : *CachedPalettes)
+	{
+		if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+		{
+			OutPalettes.Add(Palette);
 		}
 	}
 }

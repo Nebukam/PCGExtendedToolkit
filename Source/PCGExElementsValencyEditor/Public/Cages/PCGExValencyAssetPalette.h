@@ -47,6 +47,10 @@ class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyAssetPalette : public AActor
 public:
 	APCGExValencyAssetPalette();
 
+	//~ Begin UObject Interface
+	virtual void PostLoad() override;
+	//~ End UObject Interface
+
 	//~ Begin AActor Interface
 	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;

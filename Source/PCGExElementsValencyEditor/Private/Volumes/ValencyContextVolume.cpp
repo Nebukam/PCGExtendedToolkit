@@ -82,12 +82,12 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		NotifyContainedCages();
 	}
 
-	// Check if any property in the chain has ValencyRebuild metadata
+	// Check if any property in the chain has PCGEX_ValencyRebuild metadata
 	bool bShouldRebuild = false;
 
 	if (const FProperty* Property = PropertyChangedEvent.Property)
 	{
-		if (Property->HasMetaData(TEXT("ValencyRebuild")))
+		if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 		{
 			bShouldRebuild = true;
 		}
@@ -95,7 +95,7 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 	if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
 	{
-		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("ValencyRebuild")))
+		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 		{
 			bShouldRebuild = true;
 		}

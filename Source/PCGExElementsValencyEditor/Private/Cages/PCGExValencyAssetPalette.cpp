@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Cages/PCGExValencyAssetPalette.h"
+#include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Volumes/ValencyContextVolume.h"
 
@@ -34,6 +35,22 @@ APCGExValencyAssetPalette::APCGExValencyAssetPalette()
 	// Create root component
 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
+}
+
+void APCGExValencyAssetPalette::PostLoad()
+{
+	Super::PostLoad();
+
+#if WITH_EDITOR
+	// Restore transient state after level load
+	UpdateShapeComponent();
+
+	// Re-scan for contained assets if auto-registration is enabled
+	if (bAutoRegisterContainedAssets && GetWorld())
+	{
+		ScanAndRegisterContainedAssets();
+	}
+#endif
 }
 
 void APCGExValencyAssetPalette::PostActorCreated()
@@ -110,12 +127,12 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 		TriggerAutoRebuildForMirroringCages();
 	}
 
-	// Check if any property in the chain has ValencyRebuild metadata
+	// Check if any property in the chain has PCGEX_ValencyRebuild metadata
 	bool bShouldRebuild = false;
 
 	if (const FProperty* Property = PropertyChangedEvent.Property)
 	{
-		if (Property->HasMetaData(TEXT("ValencyRebuild")))
+		if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 		{
 			bShouldRebuild = true;
 		}
@@ -123,7 +140,7 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 
 	if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
 	{
-		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("ValencyRebuild")))
+		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 		{
 			bShouldRebuild = true;
 		}
@@ -385,8 +402,8 @@ void APCGExValencyAssetPalette::ScanAndRegisterContainedAssets()
 			continue;
 		}
 
-		// Skip other palettes and cages
-		if (Actor->IsA<APCGExValencyAssetPalette>())
+		// Skip other palettes, cages, and volumes
+		if (Actor->IsA<APCGExValencyAssetPalette>() || Actor->IsA<APCGExValencyCageBase>() || Actor->IsA<AValencyContextVolume>())
 		{
 			continue;
 		}
@@ -430,7 +447,7 @@ void APCGExValencyAssetPalette::ScanAndRegisterContainedAssets()
 
 	for (AActor* Child : ChildActors)
 	{
-		if (Child && !Child->IsA<APCGExValencyAssetPalette>())
+		if (Child && !Child->IsA<APCGExValencyAssetPalette>() && !Child->IsA<APCGExValencyCageBase>())
 		{
 			if (UStaticMeshComponent* SMC = Child->FindComponentByClass<UStaticMeshComponent>())
 			{
