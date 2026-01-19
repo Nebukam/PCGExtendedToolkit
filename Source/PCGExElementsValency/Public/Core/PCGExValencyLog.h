@@ -24,6 +24,8 @@ enum class EPCGExValencyLogCategory : uint8
 	EditorMode,
 	/** Cage detection and connections */
 	Cages,
+	/** Mirror source resolution and asset inheritance */
+	Mirror,
 
 	MAX UMETA(Hidden)
 };

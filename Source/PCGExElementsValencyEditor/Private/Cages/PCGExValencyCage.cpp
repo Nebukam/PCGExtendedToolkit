@@ -11,6 +11,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "EditorMode/PCGExValencyEditorSettings.h"
+#include "Core/PCGExValencyLog.h"
 
 APCGExValencyCage::APCGExValencyCage()
 {
@@ -525,12 +526,78 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	const FName MemberName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
-	// Update ghost meshes when mirror sources or visibility changes
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bShowMirrorGhostMeshes) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bRecursiveMirror) ||
-		MemberName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, MirrorSources))
+	// Handle MirrorSources changes
+	if (MemberName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, MirrorSources))
 	{
+		PCGEX_VALENCY_INFO(Mirror, "Cage '%s': MirrorSources changed, validating %d entries", *GetCageDisplayName(), MirrorSources.Num());
+
+		// Validate and filter MirrorSources - only allow cages and palettes
+		int32 RemovedCount = 0;
+		for (int32 i = MirrorSources.Num() - 1; i >= 0; --i)
+		{
+			AActor* Source = MirrorSources[i];
+			if (Source)
+			{
+				// Check if it's a valid type (cage or palette, but not self)
+				const bool bIsCage = Source->IsA<APCGExValencyCage>();
+				const bool bIsPalette = Source->IsA<APCGExValencyAssetPalette>();
+				const bool bIsSelf = (Source == this);
+
+				if (bIsSelf || (!bIsCage && !bIsPalette))
+				{
+					MirrorSources.RemoveAt(i);
+					RemovedCount++;
+
+					if (bIsSelf)
+					{
+						PCGEX_VALENCY_WARNING(Mirror, "  Cage '%s': Cannot mirror self - removed", *GetCageDisplayName());
+					}
+					else
+					{
+						PCGEX_VALENCY_WARNING(Mirror, "  Cage '%s': Invalid mirror source '%s' (type: %s) - must be Cage or AssetPalette",
+							*GetCageDisplayName(), *Source->GetName(), *Source->GetClass()->GetName());
+					}
+				}
+				else
+				{
+					PCGEX_VALENCY_VERBOSE(Mirror, "  Valid mirror source: '%s' (%s)",
+						*Source->GetName(), bIsCage ? TEXT("Cage") : TEXT("Palette"));
+				}
+			}
+		}
+
+		if (RemovedCount > 0)
+		{
+			PCGEX_VALENCY_INFO(Mirror, "  Removed %d invalid entries, %d valid sources remain", RemovedCount, MirrorSources.Num());
+		}
+
+		// Refresh ghost meshes
 		RefreshMirrorGhostMeshes();
+
+		// Trigger rebuild for containing volumes
+		PCGEX_VALENCY_INFO(Mirror, "  Triggering rebuild for cage '%s'", *GetCageDisplayName());
+		const bool bTriggeredRebuild = TriggerAutoRebuildIfNeeded();
+		PCGEX_VALENCY_VERBOSE(Mirror, "  Rebuild triggered: %s", bTriggeredRebuild ? TEXT("YES") : TEXT("NO (no volume with auto-rebuild or mode not active)"));
+
+		// Redraw viewports
+		if (GEditor)
+		{
+			GEditor->RedrawAllViewports();
+		}
+	}
+	// Handle other mirror-related property changes
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bShowMirrorGhostMeshes))
+	{
+		PCGEX_VALENCY_VERBOSE(Mirror, "Cage '%s': bShowMirrorGhostMeshes changed to %s",
+			*GetCageDisplayName(), bShowMirrorGhostMeshes ? TEXT("true") : TEXT("false"));
+		RefreshMirrorGhostMeshes();
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bRecursiveMirror))
+	{
+		PCGEX_VALENCY_INFO(Mirror, "Cage '%s': bRecursiveMirror changed to %s - triggering rebuild",
+			*GetCageDisplayName(), bRecursiveMirror ? TEXT("true") : TEXT("false"));
+		RefreshMirrorGhostMeshes();
+		TriggerAutoRebuildIfNeeded();
 	}
 }
 #endif

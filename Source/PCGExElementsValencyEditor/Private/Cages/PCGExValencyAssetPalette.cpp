@@ -18,13 +18,30 @@
 #include "Editor.h"
 #endif
 
+namespace PCGExValencyFolders
+{
+	const FName PalettesFolder = FName(TEXT("Valency/Palettes"));
+}
+
 APCGExValencyAssetPalette::APCGExValencyAssetPalette()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	// Configure as editor-only
+	bNetLoadOnClient = false;
+	bReplicates = false;
+
 	// Create root component
 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
+}
+
+void APCGExValencyAssetPalette::PostActorCreated()
+{
+	Super::PostActorCreated();
+
+	// Auto-organize into Valency/Palettes folder
+	SetFolderPath(PCGExValencyFolders::PalettesFolder);
 }
 
 void APCGExValencyAssetPalette::PostInitializeComponents()

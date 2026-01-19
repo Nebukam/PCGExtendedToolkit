@@ -572,7 +572,11 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 	TArray<FPCGExValencyAssetEntry> AllEntries;
 
 	// Start with cage's own assets
-	AllEntries.Append(Cage->GetAllAssetEntries());
+	const TArray<FPCGExValencyAssetEntry> OwnAssets = Cage->GetAllAssetEntries();
+	AllEntries.Append(OwnAssets);
+
+	PCGEX_VALENCY_VERBOSE(Mirror, "  GetEffectiveAssetEntries for '%s': %d own assets, %d mirror sources",
+		*Cage->GetCageDisplayName(), OwnAssets.Num(), Cage->MirrorSources.Num());
 
 	// If no mirror sources, return early
 	if (Cage->MirrorSources.Num() == 0)
@@ -590,8 +594,14 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 	// Lambda to collect entries from a source (with optional recursion)
 	TFunction<void(AActor*, bool)> CollectFromSource = [&](AActor* Source, bool bRecursive)
 	{
-		if (!Source || VisitedSources.Contains(Source))
+		if (!Source)
 		{
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source: NULL - skipping");
+			return;
+		}
+		if (VisitedSources.Contains(Source))
+		{
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source '%s': already visited - skipping (cycle prevention)", *Source->GetName());
 			return;
 		}
 		VisitedSources.Add(Source);
@@ -602,10 +612,12 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 		if (const APCGExValencyCage* SourceCage = Cast<APCGExValencyCage>(Source))
 		{
 			SourceEntries = SourceCage->GetAllAssetEntries();
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source CAGE '%s': %d assets", *SourceCage->GetCageDisplayName(), SourceEntries.Num());
 
 			// Recursively collect from cage's mirror sources
-			if (bRecursive)
+			if (bRecursive && SourceCage->MirrorSources.Num() > 0)
 			{
+				PCGEX_VALENCY_VERBOSE(Mirror, "      Recursing into %d nested mirror sources", SourceCage->MirrorSources.Num());
 				for (const TObjectPtr<AActor>& NestedSource : SourceCage->MirrorSources)
 				{
 					CollectFromSource(NestedSource, SourceCage->bRecursiveMirror);
@@ -616,6 +628,13 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 		else if (const APCGExValencyAssetPalette* SourcePalette = Cast<APCGExValencyAssetPalette>(Source))
 		{
 			SourceEntries = SourcePalette->GetAllAssetEntries();
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source PALETTE '%s': %d assets", *SourcePalette->GetPaletteDisplayName(), SourceEntries.Num());
+		}
+		else
+		{
+			PCGEX_VALENCY_WARNING(Mirror, "    Mirror source '%s': INVALID TYPE '%s' - not a Cage or Palette, skipping",
+				*Source->GetName(), *Source->GetClass()->GetName());
+			return;
 		}
 
 		// Apply cage rotation to mirrored local transforms and add to results
@@ -640,6 +659,9 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 	{
 		CollectFromSource(Source, Cage->bRecursiveMirror);
 	}
+
+	PCGEX_VALENCY_VERBOSE(Mirror, "  GetEffectiveAssetEntries for '%s': TOTAL %d assets (after mirror resolution)",
+		*Cage->GetCageDisplayName(), AllEntries.Num());
 
 	return AllEntries;
 }

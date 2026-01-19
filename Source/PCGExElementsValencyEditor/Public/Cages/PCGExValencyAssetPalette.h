@@ -48,6 +48,7 @@ public:
 	APCGExValencyAssetPalette();
 
 	//~ Begin AActor Interface
+	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
