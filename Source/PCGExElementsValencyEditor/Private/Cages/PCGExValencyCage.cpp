@@ -622,13 +622,13 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 		// Refresh ghost meshes
 		RefreshMirrorGhostMeshes();
 
-		// Trigger rebuild for containing volumes
-		PCGEX_VALENCY_INFO(Mirror, "  Triggering rebuild for cage '%s'", *GetCageDisplayName());
-		const bool bTriggeredRebuild = TriggerAutoRebuildIfNeeded();
-		PCGEX_VALENCY_VERBOSE(Mirror, "  Rebuild triggered: %s", bTriggeredRebuild ? TEXT("YES") : TEXT("NO (no volume with auto-rebuild or mode not active)"));
-
-		// Also cascade to cages that mirror THIS cage (their effective content has changed)
-		TriggerAutoRebuildForMirroringCages();
+		// Trigger rebuild for containing volumes (with debouncing for interactive changes)
+		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
+		{
+			TriggerAutoRebuildIfNeeded();
+			// Also cascade to cages that mirror THIS cage (their effective content has changed)
+			TriggerAutoRebuildForMirroringCages();
+		}
 
 		// Redraw viewports
 		if (GEditor)
@@ -645,10 +645,11 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bRecursiveMirror))
 	{
-		PCGEX_VALENCY_INFO(Mirror, "Cage '%s': bRecursiveMirror changed to %s - triggering rebuild",
-			*GetCageDisplayName(), bRecursiveMirror ? TEXT("true") : TEXT("false"));
 		RefreshMirrorGhostMeshes();
-		TriggerAutoRebuildIfNeeded();
+		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
+		{
+			TriggerAutoRebuildIfNeeded();
+		}
 	}
 	else
 	{
@@ -689,10 +690,10 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 void APCGExValencyCage::RefreshMirrorGhostMeshes()
 {
-	// Clear existing ghost meshes
+	// Clear existing ghost meshes first
 	ClearMirrorGhostMeshes();
 
-	// Only create ghosts if we have mirror sources and ghosting is enabled
+	// Early out if ghosting is disabled
 	if (!bShowMirrorGhostMeshes || MirrorSources.Num() == 0)
 	{
 		return;
@@ -760,8 +761,13 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 			continue;
 		}
 
-		// Try to load the mesh
-		UStaticMesh* Mesh = Cast<UStaticMesh>(Entry.Asset.LoadSynchronous());
+		// Try to get the mesh (prefer already-loaded, fallback to sync load)
+		UStaticMesh* Mesh = Cast<UStaticMesh>(Entry.Asset.Get());
+		if (!Mesh)
+		{
+			// Asset not loaded - try sync load (editor-only, game thread safe)
+			Mesh = Cast<UStaticMesh>(Entry.Asset.LoadSynchronous());
+		}
 		if (!Mesh)
 		{
 			continue;

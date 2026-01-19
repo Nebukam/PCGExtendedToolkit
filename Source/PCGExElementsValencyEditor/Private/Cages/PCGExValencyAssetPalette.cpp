@@ -114,19 +114,25 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 		}
 	}
 
-	// Trigger rebuild when manual assets change
+	// Trigger rebuild when manual assets change (with debouncing)
 	if (MemberName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, ManualAssetEntries))
 	{
-		OnAssetRegistrationChanged();
+		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
+		{
+			OnAssetRegistrationChanged();
+		}
 	}
 
-	// Trigger rebuild when module settings change
+	// Trigger rebuild when module settings change (with debouncing)
 	if (MemberName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, ModuleSettings))
 	{
-		TriggerAutoRebuildForMirroringCages();
+		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
+		{
+			TriggerAutoRebuildForMirroringCages();
+		}
 	}
 
-	// Trigger rebuild when transform preservation settings change
+	// Trigger rebuild when transform preservation settings change (with debouncing)
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, bPreserveLocalTransforms) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, LocalTransformFlags))
 	{
@@ -134,7 +140,10 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 		{
 			ScanAndRegisterContainedAssets();
 		}
-		TriggerAutoRebuildForMirroringCages();
+		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
+		{
+			TriggerAutoRebuildForMirroringCages();
+		}
 	}
 
 	// Check if any property in the chain has PCGEX_ValencyRebuild metadata

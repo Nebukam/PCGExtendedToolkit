@@ -39,15 +39,11 @@ bool UPCGExValencyEditorSettings::ShouldAllowRebuild(EPropertyChangeType::Type C
 	// Non-interactive changes always allowed
 	if (ChangeType != EPropertyChangeType::Interactive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Valency] ShouldAllowRebuild: Non-interactive change type %d - ALLOWED"), (int32)ChangeType);
 		return true;
 	}
 
 	// Interactive change - check settings
 	const UPCGExValencyEditorSettings* Settings = Get();
-	UE_LOG(LogTemp, Warning, TEXT("[Valency] ShouldAllowRebuild: Interactive change, Settings=%p, bRebuildDuring=%s"),
-		Settings, Settings ? (Settings->bRebuildDuringInteractiveChanges ? TEXT("true") : TEXT("false")) : TEXT("N/A"));
-
 	if (Settings && Settings->bRebuildDuringInteractiveChanges)
 	{
 		// User opted into continuous rebuilds during dragging
@@ -60,9 +56,6 @@ bool UPCGExValencyEditorSettings::ShouldAllowRebuild(EPropertyChangeType::Type C
 	constexpr double DebounceThreshold = 0.2; // 200ms
 
 	const bool bAllowed = (CurrentTime - LastInteractiveRebuildTime >= DebounceThreshold);
-	UE_LOG(LogTemp, Warning, TEXT("[Valency] ShouldAllowRebuild: Debounce check - elapsed=%.3f, threshold=%.3f, allowed=%s"),
-		CurrentTime - LastInteractiveRebuildTime, DebounceThreshold, bAllowed ? TEXT("true") : TEXT("false"));
-
 	if (!bAllowed)
 	{
 		return false;

@@ -80,6 +80,9 @@ public:
 	/** Recalculate which volumes contain this cage */
 	void RefreshContainingVolumes();
 
+	/** Get the list of volumes that contain this cage */
+	const TArray<TWeakObjectPtr<AValencyContextVolume>>& GetContainingVolumes() const { return ContainingVolumes; }
+
 	/** Check if an actor should be ignored based on containing volumes' ignore rules */
 	bool ShouldIgnoreActor(const AActor* Actor) const;
 

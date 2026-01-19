@@ -153,7 +153,22 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromCages(
 	if (CageData.Num() == 0)
 	{
 		Result.Warnings.Add(LOCTEXT("NoValidCages", "No cages with registered assets found."));
+
+		// Even with no valid cages, we need to compile and mark dirty
+		// This ensures the PCG graph sees the cleared modules
+		if (!TargetRules->Compile())
+		{
+			Result.Errors.Add(LOCTEXT("CompileFailedEmpty", "Failed to compile empty BondingRules."));
+			return Result;
+		}
+
+		TargetRules->Modify();
+		TargetRules->RebuildGeneratedCollections();
+		(void)TargetRules->MarkPackageDirty();
+
 		Result.bSuccess = true;
+		Result.CageCount = 0;
+		Result.ModuleCount = 0;
 		return Result;
 	}
 

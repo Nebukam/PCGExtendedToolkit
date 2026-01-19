@@ -7,6 +7,7 @@
 #include "Components/BrushComponent.h"
 #include "PCGComponent.h"
 #include "Cages/PCGExValencyCageBase.h"
+#include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "Builder/PCGExValencyBondingRulesBuilder.h"
 #include "Subsystems/PCGSubsystem.h"
@@ -117,24 +118,14 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume PostEditChangeProperty: Property=%s, FoundMetadata=%s, ChangeType=%d"),
-		*PropertyName.ToString(), bFoundMetadata ? TEXT("true") : TEXT("false"), (int32)PropertyChangedEvent.ChangeType);
-
 	// Debounce interactive changes (dragging sliders) to prevent spam
 	if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume: Rebuild blocked by ShouldAllowRebuild"));
 		bShouldRebuild = false;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume: bShouldRebuild=%s, bAutoRebuildOnChange=%s, IsValencyModeActive=%s"),
-		bShouldRebuild ? TEXT("true") : TEXT("false"),
-		bAutoRebuildOnChange ? TEXT("true") : TEXT("false"),
-		IsValencyModeActive() ? TEXT("true") : TEXT("false"));
-
 	if (bShouldRebuild && bAutoRebuildOnChange && IsValencyModeActive())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Valency] Volume: TRIGGERING REBUILD"));
 		BuildRulesFromCages();
 	}
 }
@@ -174,7 +165,7 @@ bool AValencyContextVolume::ContainsPoint(const FVector& WorldLocation, float To
 	return EncompassesPoint(WorldLocation, Tolerance, &OutDistanceToPoint);
 }
 
-void AValencyContextVolume:: CollectContainedCages(TArray<APCGExValencyCageBase*>& OutCages) const
+void AValencyContextVolume::CollectContainedCages(TArray<APCGExValencyCageBase*>& OutCages) const
 {
 	OutCages.Empty();
 
@@ -381,7 +372,12 @@ void AValencyContextVolume::RegeneratePCGActors()
 	}
 
 	int32 RegeneratedCount = 0;
-	UPCGSubsystem::GetActiveEditorInstance()->FlushCache();
+
+	// Flush the PCG cache first
+	if (UPCGSubsystem* Subsystem = UPCGSubsystem::GetActiveEditorInstance())
+	{
+		Subsystem->FlushCache();
+	}
 
 	for (const TObjectPtr<AActor>& ActorPtr : PCGActorsToRegenerate)
 	{
@@ -405,7 +401,6 @@ void AValencyContextVolume::RegeneratePCGActors()
 			// Cleanup (removes generated components) and regenerate
 			PCGComponent->Cleanup(true);
 			PCGComponent->Generate(true);
-
 			RegeneratedCount++;
 		}
 	}

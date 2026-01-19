@@ -92,7 +92,7 @@ bool FValencyReferenceTracker::PropagateContentChange(AActor* ChangedActor, bool
 		return false;
 	}
 
-	// Batch refresh ghost meshes
+	// First pass: refresh ghost meshes for all affected actors
 	if (bRefreshGhosts)
 	{
 		for (AActor* Affected : AffectedActors)
@@ -101,17 +101,37 @@ bool FValencyReferenceTracker::PropagateContentChange(AActor* ChangedActor, bool
 		}
 	}
 
-	// Trigger rebuild only once (the first cage will trigger volume rebuild,
-	// which handles all related volumes via multi-volume aggregation)
+	// Second pass: collect unique volumes that need rebuilding (avoid redundant rebuilds)
 	bool bAnyRebuilt = false;
 	if (bTriggerRebuild)
 	{
+		TSet<AValencyContextVolume*> VolumesToRebuild;
+
 		for (AActor* Affected : AffectedActors)
 		{
-			if (TriggerDependentRebuild(Affected))
+			if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Affected))
 			{
+				// Collect volumes this cage belongs to
+				for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : Cage->GetContainingVolumes())
+				{
+					if (AValencyContextVolume* Volume = VolumePtr.Get())
+					{
+						if (Volume->bAutoRebuildOnChange)
+						{
+							VolumesToRebuild.Add(Volume);
+						}
+					}
+				}
+			}
+		}
+
+		// Trigger one rebuild per unique volume
+		for (AValencyContextVolume* Volume : VolumesToRebuild)
+		{
+			if (Volume)
+			{
+				Volume->BuildRulesFromCages();
 				bAnyRebuilt = true;
-				break; // One rebuild is enough - multi-volume aggregation handles the rest
 			}
 		}
 	}
@@ -149,7 +169,7 @@ bool FValencyReferenceTracker::DependsOn(AActor* ActorA, AActor* ActorB) const
 
 	while (ToCheck.Num() > 0)
 	{
-		AActor* Current = ToCheck.Pop(false);
+		AActor* Current = ToCheck.Pop(EAllowShrinking::No);
 		if (!Current || Visited.Contains(Current))
 		{
 			continue;
@@ -194,7 +214,7 @@ void FValencyReferenceTracker::CollectAffectedActors(AActor* StartActor, TArray<
 
 	while (ToProcess.Num() > 0)
 	{
-		AActor* Current = ToProcess.Pop(false);
+		AActor* Current = ToProcess.Pop(EAllowShrinking::No);
 
 		// Get direct dependents from pre-built map (O(1))
 		if (const TArray<TWeakObjectPtr<AActor>>* Dependents = DependentsMap.Find(Current))
