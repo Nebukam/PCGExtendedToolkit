@@ -96,8 +96,6 @@ void FPCGExValencyAssetTracker::OnSelectionChanged()
 		// NOTE: Do NOT initialize position here - let Update() handle it
 		// so that bIsNewActor can be properly detected for initial containment check
 	}
-
-	UE_LOG(LogTemp, Log, TEXT("Valency: Selection changed, tracking %d actors"), TrackedActors.Num());
 }
 
 bool FPCGExValencyAssetTracker::OnActorDeleted(AActor* DeletedActor, APCGExValencyCage*& OutAffectedCage)
@@ -116,9 +114,6 @@ bool FPCGExValencyAssetTracker::OnActorDeleted(AActor* DeletedActor, APCGExValen
 	if (CagePtr && CagePtr->IsValid())
 	{
 		APCGExValencyCage* ContainingCage = CagePtr->Get();
-		UE_LOG(LogTemp, Log, TEXT("Valency: Tracked actor '%s' deleted from cage '%s'"),
-			*DeletedActor->GetName(),
-			*ContainingCage->GetCageDisplayName());
 
 		// Refresh the cage's scanned assets
 		ContainingCage->ScanAndRegisterContainedAssets();
@@ -133,9 +128,6 @@ bool FPCGExValencyAssetTracker::OnActorDeleted(AActor* DeletedActor, APCGExValen
 	if (PalettePtr && PalettePtr->IsValid())
 	{
 		APCGExValencyAssetPalette* ContainingPalette = PalettePtr->Get();
-		UE_LOG(LogTemp, Log, TEXT("Valency: Tracked actor '%s' deleted from palette '%s'"),
-			*DeletedActor->GetName(),
-			*ContainingPalette->GetPaletteDisplayName());
 
 		// Refresh the palette's scanned assets
 		ContainingPalette->ScanAndRegisterContainedAssets();
@@ -219,20 +211,6 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 			}
 			else if (bContainmentChanged || bMovedWithinTransformCage)
 			{
-				if (bMovedWithinTransformCage)
-				{
-					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' moved within cage '%s' (preserving local transforms)"),
-						*Actor->GetName(),
-						*NewContainingCage->GetCageDisplayName());
-				}
-				else
-				{
-					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' cage containment changed - Old: %s, New: %s"),
-						*Actor->GetName(),
-						OldContainingCage ? *OldContainingCage->GetCageDisplayName() : TEXT("None"),
-						NewContainingCage ? *NewContainingCage->GetCageDisplayName() : TEXT("None"));
-				}
-
 				if (OldContainingCage)
 				{
 					OutAffectedCages.Add(OldContainingCage);
@@ -276,20 +254,6 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 			}
 			else if (bContainmentChanged || bMovedWithinTransformPalette)
 			{
-				if (bMovedWithinTransformPalette)
-				{
-					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' moved within palette '%s' (preserving local transforms)"),
-						*Actor->GetName(),
-						*NewContainingPalette->GetPaletteDisplayName());
-				}
-				else
-				{
-					UE_LOG(LogTemp, Log, TEXT("Valency: Actor '%s' palette containment changed - Old: %s, New: %s"),
-						*Actor->GetName(),
-						OldContainingPalette ? *OldContainingPalette->GetPaletteDisplayName() : TEXT("None"),
-						NewContainingPalette ? *NewContainingPalette->GetPaletteDisplayName() : TEXT("None"));
-				}
-
 				if (OldContainingPalette)
 				{
 					OutAffectedPalettes.Add(OldContainingPalette);
@@ -317,7 +281,6 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 		if (Cage)
 		{
 			Cage->ScanAndRegisterContainedAssets();
-			UE_LOG(LogTemp, Log, TEXT("Valency: Refreshed scanned assets for cage '%s'"), *Cage->GetCageDisplayName());
 		}
 	}
 
@@ -327,7 +290,6 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 		if (Palette)
 		{
 			Palette->ScanAndRegisterContainedAssets();
-			UE_LOG(LogTemp, Log, TEXT("Valency: Refreshed scanned assets for palette '%s'"), *Palette->GetPaletteDisplayName());
 		}
 	}
 

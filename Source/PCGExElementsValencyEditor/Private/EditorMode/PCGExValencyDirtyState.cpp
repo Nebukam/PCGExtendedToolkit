@@ -186,7 +186,6 @@ int32 FValencyDirtyStateManager::ProcessDirty(bool bRebuildEnabled)
 		{
 			if (Volume && Volume->bAutoRebuildOnChange)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Valency: Processing dirty state - rebuilding volume"));
 				Volume->BuildRulesFromCages();
 				RebuildCount++;
 
@@ -200,11 +199,6 @@ int32 FValencyDirtyStateManager::ProcessDirty(bool bRebuildEnabled)
 	Reset();
 
 	bIsProcessing = false;
-
-	if (RebuildCount > 0)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Valency: ProcessDirty completed - %d volume(s) rebuilt"), RebuildCount);
-	}
 
 	return RebuildCount;
 }
@@ -340,8 +334,9 @@ void FValencyDirtyStateManager::RefreshCageIfNeeded(APCGExValencyCage* Cage, EVa
 		Cage->DetectNearbyConnections();
 	}
 
-	// Refresh mirror ghost meshes if mirror-related flags are set
-	if (EnumHasAnyFlags(Flags, EValencyDirtyFlags::MirrorSources | EValencyDirtyFlags::Assets))
+	// Refresh mirror ghost meshes only if mirror sources changed
+	// (Not on Assets flag - that would cause constant refresh during asset dragging)
+	if (EnumHasAnyFlags(Flags, EValencyDirtyFlags::MirrorSources))
 	{
 		Cage->RefreshMirrorGhostMeshes();
 	}
