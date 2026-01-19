@@ -9,6 +9,7 @@
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
+class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 
 /**
@@ -49,6 +50,9 @@ public:
 	/** Get the cached volumes array */
 	const TArray<TWeakObjectPtr<AValencyContextVolume>>& GetCachedVolumes() const { return CachedVolumes; }
 
+	/** Get the cached palettes array */
+	const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& GetCachedPalettes() const { return CachedPalettes; }
+
 protected:
 	// ========== Cache Management ==========
 
@@ -57,6 +61,9 @@ protected:
 
 	/** Collect all volumes in the current level */
 	void CollectVolumesFromLevel();
+
+	/** Collect all asset palettes in the current level */
+	void CollectPalettesFromLevel();
 
 	/** Master refresh - ensures all cages are properly initialized and connected */
 	void RefreshAllCages();
@@ -94,6 +101,9 @@ private:
 
 	/** Cached volumes in level */
 	TArray<TWeakObjectPtr<AValencyContextVolume>> CachedVolumes;
+
+	/** Cached asset palettes in level */
+	TArray<TWeakObjectPtr<APCGExValencyAssetPalette>> CachedPalettes;
 
 	/** Whether cache needs refresh */
 	bool bCacheDirty = true;

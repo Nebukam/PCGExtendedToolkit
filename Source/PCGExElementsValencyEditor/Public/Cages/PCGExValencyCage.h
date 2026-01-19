@@ -10,6 +10,7 @@
 #include "PCGExValencyCage.generated.h"
 
 class UStaticMeshComponent;
+class APCGExValencyAssetPalette;
 
 /**
  * Flags controlling which local transform components are preserved when registering assets.
@@ -123,16 +124,23 @@ public:
 	TArray<FPCGExValencyAssetEntry> ScannedAssetEntries;
 
 	/**
-	 * Mirror source cage.
-	 * If set, this cage is treated as having the same content as the source.
-	 * Useful for reusing configurations without duplicating assets.
+	 * Mirror sources - cages or asset palettes whose content this cage references.
+	 * Assets from all sources are combined with this cage's orbital configuration.
+	 * Supports both APCGExValencyCage and APCGExValencyAssetPalette actors.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror")
-	TObjectPtr<APCGExValencyCage> MirrorSource;
+	TArray<TObjectPtr<AActor>> MirrorSources;
 
 	/**
-	 * Whether to show ghost preview meshes when mirroring another cage.
-	 * Ghost meshes appear as translucent versions of the source cage's content.
+	 * When enabled, mirror sources are resolved recursively.
+	 * If source A mirrors source B, assets from B are also included.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror")
+	bool bRecursiveMirror = true;
+
+	/**
+	 * Whether to show ghost preview meshes when mirroring.
+	 * Ghost meshes appear as translucent versions of the mirrored content.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror")
 	bool bShowMirrorGhostMeshes = true;

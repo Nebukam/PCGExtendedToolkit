@@ -12,6 +12,7 @@
 #include "EditorMode/PCGExValencyDrawHelper.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 
 const FEditorModeID FPCGExValencyCageEditorMode::ModeID = TEXT("PCGExValencyCageEditorMode");
@@ -44,6 +45,7 @@ void FPCGExValencyCageEditorMode::Enter()
 	// Collect and fully initialize all cages
 	CollectCagesFromLevel();
 	CollectVolumesFromLevel();
+	CollectPalettesFromLevel();
 	RefreshAllCages();
 
 	// Initialize asset tracker with our cache references
@@ -70,6 +72,7 @@ void FPCGExValencyCageEditorMode::Exit()
 
 	CachedCages.Empty();
 	CachedVolumes.Empty();
+	CachedPalettes.Empty();
 
 	FEdMode::Exit();
 }
@@ -88,6 +91,7 @@ void FPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* View
 	{
 		CollectCagesFromLevel();
 		CollectVolumesFromLevel();
+		CollectPalettesFromLevel();
 		RefreshAllCages();
 		bCacheDirty = false;
 	}
@@ -98,6 +102,15 @@ void FPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* View
 		if (AValencyContextVolume* Volume = VolumePtr.Get())
 		{
 			FPCGExValencyDrawHelper::DrawVolume(PDI, Volume);
+		}
+	}
+
+	// Draw asset palettes
+	for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : CachedPalettes)
+	{
+		if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+		{
+			FPCGExValencyDrawHelper::DrawPalette(PDI, Palette);
 		}
 	}
 
@@ -141,6 +154,29 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 		{
 			const bool bIsSelected = SelectedCages.Contains(Cage);
 			FPCGExValencyDrawHelper::DrawCageLabels(Canvas, View, Cage, bIsSelected);
+		}
+	}
+
+	// Draw labels for asset palettes
+	TSet<const APCGExValencyAssetPalette*> SelectedPalettes;
+	if (GEditor)
+	{
+		USelection* Selection = GEditor->GetSelectedActors();
+		for (FSelectionIterator It(*Selection); It; ++It)
+		{
+			if (const APCGExValencyAssetPalette* SelectedPalette = Cast<APCGExValencyAssetPalette>(*It))
+			{
+				SelectedPalettes.Add(SelectedPalette);
+			}
+		}
+	}
+
+	for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : CachedPalettes)
+	{
+		if (const APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+		{
+			const bool bIsSelected = SelectedPalettes.Contains(Palette);
+			FPCGExValencyDrawHelper::DrawPaletteLabels(Canvas, View, Palette, bIsSelected);
 		}
 	}
 }
@@ -218,6 +254,19 @@ void FPCGExValencyCageEditorMode::CollectVolumesFromLevel()
 		for (TActorIterator<AValencyContextVolume> It(World); It; ++It)
 		{
 			CachedVolumes.Add(*It);
+		}
+	}
+}
+
+void FPCGExValencyCageEditorMode::CollectPalettesFromLevel()
+{
+	CachedPalettes.Empty();
+
+	if (UWorld* World = GetWorld())
+	{
+		for (TActorIterator<APCGExValencyAssetPalette> It(World); It; ++It)
+		{
+			CachedPalettes.Add(*It);
 		}
 	}
 }
@@ -324,6 +373,11 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 		CachedVolumes.Add(Volume);
 		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
 	}
+	// Check if it's an asset palette
+	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
+	{
+		CachedPalettes.Add(Palette);
+	}
 }
 
 void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
@@ -359,6 +413,14 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 			return VolumePtr.Get() == Volume || !VolumePtr.IsValid();
 		});
 		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
+	}
+	// Check if it's an asset palette
+	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
+	{
+		CachedPalettes.RemoveAll([Palette](const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr)
+		{
+			return PalettePtr.Get() == Palette || !PalettePtr.IsValid();
+		});
 	}
 	// Check if it's a tracked asset actor being deleted
 	else if (AssetTracker.OnActorDeleted(Actor))

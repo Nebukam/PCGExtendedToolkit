@@ -10,6 +10,7 @@ class FCanvas;
 class FSceneView;
 class APCGExValencyCageBase;
 class APCGExValencyCage;
+class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 class UPCGExValencyEditorSettings;
 
@@ -37,6 +38,22 @@ public:
 	static void DrawVolume(FPrimitiveDrawInterface* PDI, const AValencyContextVolume* Volume);
 
 	/**
+	 * Draw an asset palette's detection bounds.
+	 * @param PDI Primitive draw interface
+	 * @param Palette The palette to draw
+	 */
+	static void DrawPalette(FPrimitiveDrawInterface* PDI, const APCGExValencyAssetPalette* Palette);
+
+	/**
+	 * Draw labels for an asset palette.
+	 * @param Canvas Canvas for text rendering
+	 * @param View Current scene view
+	 * @param Palette The palette to label
+	 * @param bIsSelected Whether the palette is selected (affects label color)
+	 */
+	static void DrawPaletteLabels(FCanvas* Canvas, const FSceneView* View, const APCGExValencyAssetPalette* Palette, bool bIsSelected);
+
+	/**
 	 * Draw labels for a cage (name and orbital labels).
 	 * @param Canvas Canvas for text rendering
 	 * @param View Current scene view
@@ -49,9 +66,9 @@ public:
 	 * Draw mirror connection indicator (dashed line from mirror cage to source).
 	 * @param PDI Primitive draw interface
 	 * @param MirrorCage The cage that mirrors another
-	 * @param SourceCage The source cage being mirrored
+	 * @param SourceActor The source actor being mirrored (cage or palette)
 	 */
-	static void DrawMirrorConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCage* MirrorCage, const APCGExValencyCage* SourceCage);
+	static void DrawMirrorConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCage* MirrorCage, const AActor* SourceActor);
 
 	// ========== Low-Level Drawing Primitives ==========
 

@@ -11,6 +11,7 @@
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageOrbital.h"
+#include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 
@@ -38,12 +39,15 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 		return;
 	}
 
-	// Draw mirror connection if this cage mirrors another
+	// Draw mirror connections if this cage mirrors other actors
 	if (const APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
 	{
-		if (RegularCage->MirrorSource)
+		for (const TObjectPtr<AActor>& SourceActor : RegularCage->MirrorSources)
 		{
-			DrawMirrorConnection(PDI, RegularCage, RegularCage->MirrorSource);
+			if (SourceActor)
+			{
+				DrawMirrorConnection(PDI, RegularCage, SourceActor);
+			}
 		}
 	}
 
@@ -354,16 +358,75 @@ void FPCGExValencyDrawHelper::DrawLabel(FCanvas* Canvas, const FSceneView* View,
 	}
 }
 
-void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCage* MirrorCage, const APCGExValencyCage* SourceCage)
+void FPCGExValencyDrawHelper::DrawPalette(FPrimitiveDrawInterface* PDI, const APCGExValencyAssetPalette* Palette)
 {
-	if (!PDI || !MirrorCage || !SourceCage)
+	if (!PDI || !Palette)
+	{
+		return;
+	}
+
+	const FVector PaletteLocation = Palette->GetActorLocation();
+	const FTransform PaletteTransform = Palette->GetActorTransform();
+	const FLinearColor PaletteColor = Palette->PaletteColor;
+	const FVector Extent = Palette->DetectionExtent;
+
+	// Draw based on detection shape
+	switch (Palette->DetectionShape)
+	{
+	case EPCGExAssetPaletteShape::Box:
+		{
+			// Draw wireframe box using palette transform
+			const FBox LocalBox(-Extent, Extent);
+			DrawWireBox(PDI, PaletteTransform.ToMatrixWithScale(), LocalBox, PaletteColor, SDPG_World);
+		}
+		break;
+
+	case EPCGExAssetPaletteShape::Sphere:
+		{
+			// Draw wireframe sphere
+			DrawWireSphere(PDI, PaletteLocation, PaletteColor, Extent.X, 16, SDPG_World);
+		}
+		break;
+
+	case EPCGExAssetPaletteShape::Capsule:
+		{
+			// Draw wireframe capsule (radius = X, half-height = Z)
+			DrawWireCapsule(PDI, PaletteLocation, FVector::ForwardVector, FVector::RightVector, FVector::UpVector,
+				PaletteColor, Extent.X, Extent.Z + Extent.X, 16, SDPG_World);
+		}
+		break;
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawPaletteLabels(FCanvas* Canvas, const FSceneView* View, const APCGExValencyAssetPalette* Palette, bool bIsSelected)
+{
+	if (!Canvas || !View || !Palette)
+	{
+		return;
+	}
+
+	const UPCGExValencyEditorSettings* Settings = GetSettings();
+	const FLinearColor LabelColor = bIsSelected ? Settings->SelectedLabelColor : Palette->PaletteColor;
+	const FVector PaletteLocation = Palette->GetActorLocation();
+
+	// Draw palette display name
+	const FString PaletteName = Palette->GetPaletteDisplayName();
+	if (!PaletteName.IsEmpty())
+	{
+		DrawLabel(Canvas, View, PaletteLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), PaletteName, LabelColor);
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCage* MirrorCage, const AActor* SourceActor)
+{
+	if (!PDI || !MirrorCage || !SourceActor)
 	{
 		return;
 	}
 
 	const UPCGExValencyEditorSettings* Settings = GetSettings();
 	const FVector MirrorLocation = MirrorCage->GetActorLocation();
-	const FVector SourceLocation = SourceCage->GetActorLocation();
+	const FVector SourceLocation = SourceActor->GetActorLocation();
 
 	// Draw dashed line from mirror to source
 	DrawLineSegment(PDI, MirrorLocation, SourceLocation, Settings->MirrorConnectionColor, Settings->OrbitalArrowThickness, true);

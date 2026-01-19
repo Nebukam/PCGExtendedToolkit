@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyAssetPalette.h"
 
 #include "EngineUtils.h"
 #include "Engine/StaticMesh.h"
@@ -71,10 +72,21 @@ FString APCGExValencyCage::GetCageDisplayName() const
 		return FString::Printf(TEXT("Cage [%d assets]"), TotalCount);
 	}
 
-	// If mirroring another cage
-	if (MirrorSource)
+	// If mirroring other sources
+	if (MirrorSources.Num() > 0)
 	{
-		return FString::Printf(TEXT("Cage (Mirror: %s)"), *MirrorSource->GetCageDisplayName());
+		int32 ValidCount = 0;
+		for (const TObjectPtr<AActor>& Source : MirrorSources)
+		{
+			if (Source)
+			{
+				ValidCount++;
+			}
+		}
+		if (ValidCount > 0)
+		{
+			return FString::Printf(TEXT("Cage (Mirror: %d sources)"), ValidCount);
+		}
 	}
 
 	return TEXT("Cage (Empty)");
@@ -511,10 +523,12 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
+	const FName MemberName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
-	// Update ghost meshes when mirror source or visibility changes
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, MirrorSource) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bShowMirrorGhostMeshes))
+	// Update ghost meshes when mirror sources or visibility changes
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bShowMirrorGhostMeshes) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bRecursiveMirror) ||
+		MemberName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, MirrorSources))
 	{
 		RefreshMirrorGhostMeshes();
 	}
@@ -526,21 +540,8 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 	// Clear existing ghost meshes
 	ClearMirrorGhostMeshes();
 
-	// Only create ghosts if we have a valid mirror source and ghosting is enabled
-	if (!bShowMirrorGhostMeshes || !MirrorSource)
-	{
-		return;
-	}
-
-	const APCGExValencyCage* SourceCage = MirrorSource;
-	if (!SourceCage || SourceCage == this)
-	{
-		return;
-	}
-
-	// Get the source cage's scanned assets
-	const TArray<FPCGExValencyAssetEntry>& SourceEntries = SourceCage->GetScannedAssetEntries();
-	if (SourceEntries.Num() == 0)
+	// Only create ghosts if we have mirror sources and ghosting is enabled
+	if (!bShowMirrorGhostMeshes || MirrorSources.Num() == 0)
 	{
 		return;
 	}
@@ -549,8 +550,58 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
 	UMaterialInterface* GhostMaterial = Settings->GetGhostMaterial();
 
+	// Collect entries from all mirror sources
+	TArray<FPCGExValencyAssetEntry> AllEntries;
+	TSet<AActor*> VisitedSources; // Prevent infinite recursion
+
+	// Lambda to collect entries from a source (with optional recursion)
+	TFunction<void(AActor*)> CollectFromSource = [&](AActor* Source)
+	{
+		if (!Source || Source == this || VisitedSources.Contains(Source))
+		{
+			return;
+		}
+		VisitedSources.Add(Source);
+
+		// Check if it's a cage
+		if (APCGExValencyCage* SourceCage = Cast<APCGExValencyCage>(Source))
+		{
+			// Get entries from the cage
+			AllEntries.Append(SourceCage->GetAllAssetEntries());
+
+			// Recursively collect from cage's mirror sources
+			if (bRecursiveMirror)
+			{
+				for (const TObjectPtr<AActor>& NestedSource : SourceCage->MirrorSources)
+				{
+					CollectFromSource(NestedSource);
+				}
+			}
+		}
+		// Check if it's an asset palette
+		else if (APCGExValencyAssetPalette* SourcePalette = Cast<APCGExValencyAssetPalette>(Source))
+		{
+			AllEntries.Append(SourcePalette->GetAllAssetEntries());
+		}
+	};
+
+	// Collect from all mirror sources
+	for (const TObjectPtr<AActor>& Source : MirrorSources)
+	{
+		CollectFromSource(Source);
+	}
+
+	if (AllEntries.Num() == 0)
+	{
+		return;
+	}
+
+	// Get this cage's rotation for applying to local transforms
+	const FQuat CageRotation = GetActorQuat();
+	const FVector CageLocation = GetActorLocation();
+
 	// Create ghost mesh components for each mesh asset
-	for (const FPCGExValencyAssetEntry& Entry : SourceEntries)
+	for (const FPCGExValencyAssetEntry& Entry : AllEntries)
 	{
 		if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
 		{
@@ -582,13 +633,25 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 			}
 		}
 
-		// Compute transform: mirror cage location + source entry's local transform
-		FTransform GhostTransform = GetActorTransform();
+		// Compute transform: cage location + rotated local transform from source
+		FTransform GhostTransform;
 		if (!Entry.LocalTransform.Equals(FTransform::Identity, 0.1f))
 		{
-			// Apply local transform from source entry
-			GhostTransform = Entry.LocalTransform * GhostTransform;
+			// Rotate the source's local offset by this cage's rotation
+			const FVector RotatedOffset = CageRotation.RotateVector(Entry.LocalTransform.GetTranslation());
+			const FQuat CombinedRotation = CageRotation * Entry.LocalTransform.GetRotation();
+
+			GhostTransform.SetLocation(CageLocation + RotatedOffset);
+			GhostTransform.SetRotation(CombinedRotation);
+			GhostTransform.SetScale3D(Entry.LocalTransform.GetScale3D());
 		}
+		else
+		{
+			GhostTransform.SetLocation(CageLocation);
+			GhostTransform.SetRotation(CageRotation);
+			GhostTransform.SetScale3D(FVector::OneVector);
+		}
+
 		GhostComp->SetWorldTransform(GhostTransform);
 
 		// Attach and register

@@ -5,6 +5,7 @@
 
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageNull.h"
+#include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -568,14 +569,79 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 		return {};
 	}
 
-	// Check for mirror source
-	if (Cage->MirrorSource && Cage->MirrorSource != Cage)
+	TArray<FPCGExValencyAssetEntry> AllEntries;
+
+	// Start with cage's own assets
+	AllEntries.Append(Cage->GetAllAssetEntries());
+
+	// If no mirror sources, return early
+	if (Cage->MirrorSources.Num() == 0)
 	{
-		// Recursively get source's asset entries (handles chained mirrors)
-		return GetEffectiveAssetEntries(Cage->MirrorSource);
+		return AllEntries;
 	}
 
-	return Cage->GetAllAssetEntries();
+	// Get this cage's rotation for applying to mirrored local transforms
+	const FQuat CageRotation = Cage->GetActorQuat();
+
+	// Track visited sources to prevent infinite recursion
+	TSet<const AActor*> VisitedSources;
+	VisitedSources.Add(Cage);
+
+	// Lambda to collect entries from a source (with optional recursion)
+	TFunction<void(AActor*, bool)> CollectFromSource = [&](AActor* Source, bool bRecursive)
+	{
+		if (!Source || VisitedSources.Contains(Source))
+		{
+			return;
+		}
+		VisitedSources.Add(Source);
+
+		TArray<FPCGExValencyAssetEntry> SourceEntries;
+
+		// Check if it's a cage
+		if (const APCGExValencyCage* SourceCage = Cast<APCGExValencyCage>(Source))
+		{
+			SourceEntries = SourceCage->GetAllAssetEntries();
+
+			// Recursively collect from cage's mirror sources
+			if (bRecursive)
+			{
+				for (const TObjectPtr<AActor>& NestedSource : SourceCage->MirrorSources)
+				{
+					CollectFromSource(NestedSource, SourceCage->bRecursiveMirror);
+				}
+			}
+		}
+		// Check if it's an asset palette
+		else if (const APCGExValencyAssetPalette* SourcePalette = Cast<APCGExValencyAssetPalette>(Source))
+		{
+			SourceEntries = SourcePalette->GetAllAssetEntries();
+		}
+
+		// Apply cage rotation to mirrored local transforms and add to results
+		for (FPCGExValencyAssetEntry& Entry : SourceEntries)
+		{
+			if (!Entry.LocalTransform.Equals(FTransform::Identity, 0.1f))
+			{
+				// Rotate the source's local offset by this cage's rotation
+				const FVector RotatedOffset = CageRotation.RotateVector(Entry.LocalTransform.GetTranslation());
+				const FQuat CombinedRotation = CageRotation * Entry.LocalTransform.GetRotation();
+
+				Entry.LocalTransform.SetTranslation(RotatedOffset);
+				Entry.LocalTransform.SetRotation(CombinedRotation);
+			}
+
+			AllEntries.Add(Entry);
+		}
+	};
+
+	// Collect from all mirror sources
+	for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
+	{
+		CollectFromSource(Source, Cage->bRecursiveMirror);
+	}
+
+	return AllEntries;
 }
 
 FString UPCGExValencyBondingRulesBuilder::GenerateVariantName(
