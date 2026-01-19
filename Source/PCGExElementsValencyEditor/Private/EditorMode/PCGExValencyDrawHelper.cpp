@@ -365,37 +365,13 @@ void FPCGExValencyDrawHelper::DrawPalette(FPrimitiveDrawInterface* PDI, const AP
 		return;
 	}
 
-	const FVector PaletteLocation = Palette->GetActorLocation();
 	const FTransform PaletteTransform = Palette->GetActorTransform();
 	const FLinearColor PaletteColor = Palette->PaletteColor;
 	const FVector Extent = Palette->DetectionExtent;
 
-	// Draw based on detection shape
-	switch (Palette->DetectionShape)
-	{
-	case EPCGExAssetPaletteShape::Box:
-		{
-			// Draw wireframe box using palette transform
-			const FBox LocalBox(-Extent, Extent);
-			DrawWireBox(PDI, PaletteTransform.ToMatrixWithScale(), LocalBox, PaletteColor, SDPG_World);
-		}
-		break;
-
-	case EPCGExAssetPaletteShape::Sphere:
-		{
-			// Draw wireframe sphere
-			DrawWireSphere(PDI, PaletteLocation, PaletteColor, Extent.X, 16, SDPG_World);
-		}
-		break;
-
-	case EPCGExAssetPaletteShape::Capsule:
-		{
-			// Draw wireframe capsule (radius = X, half-height = Z)
-			DrawWireCapsule(PDI, PaletteLocation, FVector::ForwardVector, FVector::RightVector, FVector::UpVector,
-				PaletteColor, Extent.X, Extent.Z + Extent.X, 16, SDPG_World);
-		}
-		break;
-	}
+	// Draw wireframe box using palette transform
+	const FBox LocalBox(-Extent, Extent);
+	DrawWireBox(PDI, PaletteTransform.ToMatrixWithScale(), LocalBox, PaletteColor, SDPG_World);
 }
 
 void FPCGExValencyDrawHelper::DrawPaletteLabels(FCanvas* Canvas, const FSceneView* View, const APCGExValencyAssetPalette* Palette, bool bIsSelected)
@@ -428,6 +404,35 @@ void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI,
 	const FVector MirrorLocation = MirrorCage->GetActorLocation();
 	const FVector SourceLocation = SourceActor->GetActorLocation();
 
+	// Get color from source actor (cage or palette)
+	FLinearColor SourceColor = Settings->MirrorConnectionColor; // Fallback
+	if (const APCGExValencyCage* SourceCage = Cast<APCGExValencyCage>(SourceActor))
+	{
+		SourceColor = SourceCage->CageColor;
+	}
+	else if (const APCGExValencyAssetPalette* SourcePalette = Cast<APCGExValencyAssetPalette>(SourceActor))
+	{
+		SourceColor = SourcePalette->PaletteColor;
+	}
+
+	// Adjust brightness - darken light colors, lighten dark colors
+	// Calculate perceived luminance using standard coefficients
+	const float Luminance = 0.299f * SourceColor.R + 0.587f * SourceColor.G + 0.114f * SourceColor.B;
+	constexpr float BrightnessAdjust = 0.25f;
+
+	FLinearColor ArcColor;
+	if (Luminance > 0.5f)
+	{
+		// Light color - darken it
+		ArcColor = SourceColor * (1.0f - BrightnessAdjust);
+	}
+	else
+	{
+		// Dark color - lighten it
+		ArcColor = SourceColor + FLinearColor(BrightnessAdjust, BrightnessAdjust, BrightnessAdjust, 0.0f);
+	}
+	ArcColor.A = 1.0f; // Ensure full opacity
+
 	// Draw a soft arc from mirror to source instead of a straight line
 	// Arc curves upward to avoid overlapping with other debug elements
 	const FVector MidPoint = (MirrorLocation + SourceLocation) * 0.5f;
@@ -453,7 +458,7 @@ void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI,
 			2.0f * OneMinusT * T * ArcControl +
 			T * T * SourceLocation;
 
-		PDI->DrawLine(PrevPoint, CurrentPoint, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
+		PDI->DrawLine(PrevPoint, CurrentPoint, ArcColor, SDPG_World, ThinLineThickness);
 		PrevPoint = CurrentPoint;
 	}
 
@@ -463,8 +468,8 @@ void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI,
 	const FVector Right = FVector::RightVector * MarkerSize;
 
 	// Simple 2D diamond shape (less cluttered than 3D version)
-	PDI->DrawLine(MirrorLocation + Up, MirrorLocation + Right, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
-	PDI->DrawLine(MirrorLocation + Right, MirrorLocation - Up, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
-	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Right, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
-	PDI->DrawLine(MirrorLocation - Right, MirrorLocation + Up, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
+	PDI->DrawLine(MirrorLocation + Up, MirrorLocation + Right, ArcColor, SDPG_World, ThinLineThickness);
+	PDI->DrawLine(MirrorLocation + Right, MirrorLocation - Up, ArcColor, SDPG_World, ThinLineThickness);
+	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Right, ArcColor, SDPG_World, ThinLineThickness);
+	PDI->DrawLine(MirrorLocation - Right, MirrorLocation + Up, ArcColor, SDPG_World, ThinLineThickness);
 }

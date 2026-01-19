@@ -191,8 +191,9 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 
 bool FPCGExValencyCageEditorMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
 {
-	// TODO: Phase 2 - implement cage placement on click
-	return FEdMode::HandleClick(InViewportClient, HitProxy, Click);
+	// Don't consume clicks - let the standard selection system handle them
+	// This ensures volumes, palettes, and other actors remain selectable
+	return false;
 }
 
 bool FPCGExValencyCageEditorMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)

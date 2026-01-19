@@ -33,7 +33,10 @@ AValencyContextVolume::AValencyContextVolume()
 	// Set up brush component defaults
 	if (UBrushComponent* BrushComp = GetBrushComponent())
 	{
-		BrushComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// Enable query-only collision for editor selection (no physics)
+		BrushComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		BrushComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+		BrushComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 		BrushComp->SetMobility(EComponentMobility::Static);
 	}
 }
@@ -49,6 +52,15 @@ void AValencyContextVolume::PostActorCreated()
 void AValencyContextVolume::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	// Ensure brush collision is set for editor selection
+	// (Constructor settings may not persist through serialization)
+	if (UBrushComponent* BrushComp = GetBrushComponent())
+	{
+		BrushComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		BrushComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+		BrushComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	}
 
 	// Notify all cages in the world to check if they're now contained by us
 	// This handles the initialization order problem: cages may have initialized

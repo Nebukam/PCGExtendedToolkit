@@ -11,21 +11,7 @@
 #include "PCGExValencyAssetPalette.generated.h"
 
 class UBoxComponent;
-class USphereComponent;
-class UCapsuleComponent;
-class UShapeComponent;
 class APCGExValencyCage;
-
-/**
- * Shape types for asset palette detection bounds.
- */
-UENUM(BlueprintType)
-enum class EPCGExAssetPaletteShape : uint8
-{
-	Box,
-	Sphere,
-	Capsule
-};
 
 /**
  * A lightweight asset container for Valency.
@@ -98,8 +84,8 @@ public:
 	bool ShouldPreserveRotation() const;
 	bool ShouldPreserveScale() const;
 
-	/** Get the detection shape component */
-	UShapeComponent* GetShapeComponent() const { return ShapeComponent; }
+	/** Get the detection box component */
+	UBoxComponent* GetBoxComponent() const { return BoxComponent; }
 
 	/**
 	 * Find all cages in the world that mirror this palette.
@@ -147,11 +133,7 @@ public:
 
 	// ========== Detection ==========
 
-	/** Shape used for containment detection */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection")
-	EPCGExAssetPaletteShape DetectionShape = EPCGExAssetPaletteShape::Box;
-
-	/** Size of the detection bounds (interpretation depends on shape) */
+	/** Size of the detection box (half-extents) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection")
 	FVector DetectionExtent = FVector(100.0f);
 
@@ -183,7 +165,7 @@ public:
 	FPCGExValencyModuleSettings ModuleSettings;
 
 protected:
-	/** Update the shape component to match DetectionShape and DetectionExtent */
+	/** Update the box component to match DetectionExtent and PaletteColor */
 	void UpdateShapeComponent();
 
 	/** Called when asset registration changes */
@@ -195,11 +177,31 @@ protected:
 	/** Record a material variant for a mesh asset */
 	void RecordMaterialVariant(const FSoftObjectPath& MeshPath, const TArray<FPCGExValencyMaterialOverride>& Overrides);
 
+public:
+	/**
+	 * Ensure the palette's scanned content is up-to-date.
+	 * Called lazily when content is accessed after level load.
+	 * Safe to call multiple times - only scans if needed.
+	 */
+	void EnsureInitialized();
+
+	/**
+	 * Check if this palette needs initialization (first access after level load).
+	 */
+	bool NeedsInitialization() const { return bNeedsInitialScan; }
+
 private:
-	/** The shape component used for detection bounds visualization */
-	UPROPERTY(Transient)
-	TObjectPtr<UShapeComponent> ShapeComponent;
+	/** The box component used for detection bounds visualization */
+	UPROPERTY(VisibleAnywhere, Category = "Palette|Detection")
+	TObjectPtr<UBoxComponent> BoxComponent;
 
 	/** Material variants discovered during asset scanning */
 	TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>> DiscoveredMaterialVariants;
+
+	/**
+	 * Flag indicating palette needs initial scan after level load.
+	 * Transient = true after deserialization, cleared after first scan.
+	 */
+	UPROPERTY(Transient)
+	bool bNeedsInitialScan = true;
 };

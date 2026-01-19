@@ -11,8 +11,6 @@
 #include "Engine/Blueprint.h"
 #include "PCGDataAsset.h"
 #include "Components/BoxComponent.h"
-#include "Components/SphereComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 
 #if WITH_EDITOR
@@ -35,6 +33,18 @@ APCGExValencyAssetPalette::APCGExValencyAssetPalette()
 	// Create root component
 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
+
+	// Create box component as default subobject (persists with the actor)
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxBounds"));
+	BoxComponent->SetupAttachment(Root);
+	BoxComponent->SetBoxExtent(DetectionExtent);
+	BoxComponent->SetLineThickness(2.0f);
+	BoxComponent->ShapeColor = PaletteColor.ToFColor(true);
+	BoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	BoxComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	BoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	BoxComponent->SetHiddenInGame(true);
+	BoxComponent->bVisibleInReflectionCaptures = false;
 }
 
 void APCGExValencyAssetPalette::PostLoad()
@@ -42,14 +52,8 @@ void APCGExValencyAssetPalette::PostLoad()
 	Super::PostLoad();
 
 #if WITH_EDITOR
-	// Restore transient state after level load
+	// Update shape visibility and size to match current settings
 	UpdateShapeComponent();
-
-	// Re-scan for contained assets if auto-registration is enabled
-	if (bAutoRegisterContainedAssets && GetWorld())
-	{
-		ScanAndRegisterContainedAssets();
-	}
 #endif
 }
 
@@ -59,20 +63,24 @@ void APCGExValencyAssetPalette::PostActorCreated()
 
 	// Auto-organize into Valency/Palettes folder
 	SetFolderPath(PCGExValencyFolders::PalettesFolder);
+
+	// Ensure shape visibility matches current settings
+	UpdateShapeComponent();
+
+	// Newly created palettes don't need deferred initialization
+	// (they start empty and user adds content interactively)
+	bNeedsInitialScan = false;
 }
 
 void APCGExValencyAssetPalette::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// Ensure shape component exists (may be null after level load since it's transient)
+	// Update shape visibility to match current settings
 	UpdateShapeComponent();
 
-	// Initial scan if auto-registration is enabled
-	if (bAutoRegisterContainedAssets)
-	{
-		ScanAndRegisterContainedAssets();
-	}
+	// Note: We don't scan here anymore - palettes use lazy initialization via EnsureInitialized()
+	// This is called automatically when a cage accesses the palette's content
 }
 
 void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -82,9 +90,9 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	const FName MemberName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
-	// Update shape when detection settings change
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, DetectionShape) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, DetectionExtent))
+	// Update box when detection settings or color change
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, DetectionExtent) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, PaletteColor))
 	{
 		UpdateShapeComponent();
 
@@ -216,8 +224,21 @@ FString APCGExValencyAssetPalette::GetPaletteDisplayName() const
 	return TEXT("Palette (Empty)");
 }
 
+void APCGExValencyAssetPalette::EnsureInitialized()
+{
+	if (bNeedsInitialScan && bAutoRegisterContainedAssets)
+	{
+		ScanAndRegisterContainedAssets();
+		// Note: ScanAndRegisterContainedAssets clears bNeedsInitialScan
+	}
+}
+
 TArray<FPCGExValencyAssetEntry> APCGExValencyAssetPalette::GetAllAssetEntries() const
 {
+	// Ensure we're initialized before returning entries
+	// Cast away const for lazy initialization pattern
+	const_cast<APCGExValencyAssetPalette*>(this)->EnsureInitialized();
+
 	TArray<FPCGExValencyAssetEntry> AllEntries;
 	AllEntries.Reserve(ManualAssetEntries.Num() + ScannedAssetEntries.Num());
 
@@ -259,28 +280,9 @@ bool APCGExValencyAssetPalette::ContainsPoint_Implementation(const FVector& Worl
 {
 	const FVector LocalLocation = GetActorTransform().InverseTransformPosition(WorldLocation);
 
-	switch (DetectionShape)
-	{
-	case EPCGExAssetPaletteShape::Box:
-		return FMath::Abs(LocalLocation.X) <= DetectionExtent.X &&
-			   FMath::Abs(LocalLocation.Y) <= DetectionExtent.Y &&
-			   FMath::Abs(LocalLocation.Z) <= DetectionExtent.Z;
-
-	case EPCGExAssetPaletteShape::Sphere:
-		return LocalLocation.Size() <= DetectionExtent.X;
-
-	case EPCGExAssetPaletteShape::Capsule:
-		{
-			const float HalfHeight = DetectionExtent.Z;
-			const float Radius = DetectionExtent.X;
-			const float ClampedZ = FMath::Clamp(LocalLocation.Z, -HalfHeight, HalfHeight);
-			const FVector ClosestPoint(0, 0, ClampedZ);
-			return FVector::Dist(LocalLocation, ClosestPoint) <= Radius;
-		}
-
-	default:
-		return false;
-	}
+	return FMath::Abs(LocalLocation.X) <= DetectionExtent.X &&
+		   FMath::Abs(LocalLocation.Y) <= DetectionExtent.Y &&
+		   FMath::Abs(LocalLocation.Z) <= DetectionExtent.Z;
 }
 
 void APCGExValencyAssetPalette::ScanAndRegisterContainedAssets()
@@ -471,6 +473,9 @@ void APCGExValencyAssetPalette::ScanAndRegisterContainedAssets()
 		}
 	}
 
+	// Mark as initialized - no longer needs initial scan
+	bNeedsInitialScan = false;
+
 	OnAssetRegistrationChanged();
 }
 
@@ -524,54 +529,10 @@ bool APCGExValencyAssetPalette::ShouldPreserveScale() const
 
 void APCGExValencyAssetPalette::UpdateShapeComponent()
 {
-	// Destroy existing shape component
-	if (ShapeComponent)
+	if (BoxComponent)
 	{
-		ShapeComponent->DestroyComponent();
-		ShapeComponent = nullptr;
-	}
-
-	// Create appropriate shape component
-	switch (DetectionShape)
-	{
-	case EPCGExAssetPaletteShape::Box:
-		{
-			UBoxComponent* Box = NewObject<UBoxComponent>(this, NAME_None, RF_Transient);
-			Box->SetBoxExtent(DetectionExtent);
-			Box->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Box->SetLineThickness(2.0f);
-			Box->ShapeColor = PaletteColor.ToFColor(true);
-			ShapeComponent = Box;
-		}
-		break;
-
-	case EPCGExAssetPaletteShape::Sphere:
-		{
-			USphereComponent* Sphere = NewObject<USphereComponent>(this, NAME_None, RF_Transient);
-			Sphere->SetSphereRadius(DetectionExtent.X);
-			Sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Sphere->SetLineThickness(2.0f);
-			Sphere->ShapeColor = PaletteColor.ToFColor(true);
-			ShapeComponent = Sphere;
-		}
-		break;
-
-	case EPCGExAssetPaletteShape::Capsule:
-		{
-			UCapsuleComponent* Capsule = NewObject<UCapsuleComponent>(this, NAME_None, RF_Transient);
-			Capsule->SetCapsuleSize(DetectionExtent.X, DetectionExtent.Z);
-			Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Capsule->SetLineThickness(2.0f);
-			Capsule->ShapeColor = PaletteColor.ToFColor(true);
-			ShapeComponent = Capsule;
-		}
-		break;
-	}
-
-	if (ShapeComponent)
-	{
-		ShapeComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		ShapeComponent->RegisterComponent();
+		BoxComponent->SetBoxExtent(DetectionExtent);
+		BoxComponent->ShapeColor = PaletteColor.ToFColor(true);
 	}
 }
 

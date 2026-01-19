@@ -109,6 +109,10 @@ public:
 	void ScanAndRegisterContainedAssets();
 
 public:
+	/** Color for editor visualization (mirror connections, debug drawing) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage")
+	FLinearColor CageColor = FLinearColor(0.2f, 0.6f, 0.9f, 1.0f);
+
 	/**
 	 * Manually registered asset entries (user-defined via details panel).
 	 * These are persisted and not affected by auto-scanning.
