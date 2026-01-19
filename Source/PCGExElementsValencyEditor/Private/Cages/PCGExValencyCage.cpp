@@ -9,6 +9,7 @@
 #include "PCGDataAsset.h"
 #include "Components/StaticMeshComponent.h"
 #include "Volumes/ValencyContextVolume.h"
+#include "EditorMode/PCGExValencyEditorSettings.h"
 
 APCGExValencyCage::APCGExValencyCage()
 {
@@ -41,6 +42,14 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 	}
 }
 
+void APCGExValencyCage::BeginDestroy()
+{
+	// Clean up ghost mesh components before destruction
+	ClearMirrorGhostMeshes();
+
+	Super::BeginDestroy();
+}
+
 FString APCGExValencyCage::GetCageDisplayName() const
 {
 	// If we have a custom name, use it
@@ -63,7 +72,7 @@ FString APCGExValencyCage::GetCageDisplayName() const
 	}
 
 	// If mirroring another cage
-	if (MirrorSource.IsValid())
+	if (MirrorSource)
 	{
 		return FString::Printf(TEXT("Cage (Mirror: %s)"), *MirrorSource->GetCageDisplayName());
 	}
@@ -494,4 +503,110 @@ FTransform APCGExValencyCage::ComputePreservedLocalTransform(const FTransform& A
 	}
 
 	return Result;
+}
+
+#if WITH_EDITOR
+void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
+
+	// Update ghost meshes when mirror source or visibility changes
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, MirrorSource) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bShowMirrorGhostMeshes))
+	{
+		RefreshMirrorGhostMeshes();
+	}
+}
+#endif
+
+void APCGExValencyCage::RefreshMirrorGhostMeshes()
+{
+	// Clear existing ghost meshes
+	ClearMirrorGhostMeshes();
+
+	// Only create ghosts if we have a valid mirror source and ghosting is enabled
+	if (!bShowMirrorGhostMeshes || !MirrorSource)
+	{
+		return;
+	}
+
+	const APCGExValencyCage* SourceCage = MirrorSource;
+	if (!SourceCage || SourceCage == this)
+	{
+		return;
+	}
+
+	// Get the source cage's scanned assets
+	const TArray<FPCGExValencyAssetEntry>& SourceEntries = SourceCage->GetScannedAssetEntries();
+	if (SourceEntries.Num() == 0)
+	{
+		return;
+	}
+
+	// Get the shared ghost material from settings
+	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
+	UMaterialInterface* GhostMaterial = Settings->GetGhostMaterial();
+
+	// Create ghost mesh components for each mesh asset
+	for (const FPCGExValencyAssetEntry& Entry : SourceEntries)
+	{
+		if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
+		{
+			continue;
+		}
+
+		// Try to load the mesh
+		UStaticMesh* Mesh = Cast<UStaticMesh>(Entry.Asset.LoadSynchronous());
+		if (!Mesh)
+		{
+			continue;
+		}
+
+		// Create ghost mesh component
+		UStaticMeshComponent* GhostComp = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
+		GhostComp->SetStaticMesh(Mesh);
+		GhostComp->SetMobility(EComponentMobility::Movable);
+		GhostComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GhostComp->bSelectable = false;
+		GhostComp->SetCastShadow(false);
+
+		// Apply the shared ghost material to all slots
+		if (GhostMaterial)
+		{
+			const int32 NumMaterials = Mesh->GetStaticMaterials().Num();
+			for (int32 i = 0; i < NumMaterials; ++i)
+			{
+				GhostComp->SetMaterial(i, GhostMaterial);
+			}
+		}
+
+		// Compute transform: mirror cage location + source entry's local transform
+		FTransform GhostTransform = GetActorTransform();
+		if (!Entry.LocalTransform.Equals(FTransform::Identity, 0.1f))
+		{
+			// Apply local transform from source entry
+			GhostTransform = Entry.LocalTransform * GhostTransform;
+		}
+		GhostComp->SetWorldTransform(GhostTransform);
+
+		// Attach and register
+		GhostComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+		GhostComp->RegisterComponent();
+
+		GhostMeshComponents.Add(GhostComp);
+	}
+}
+
+void APCGExValencyCage::ClearMirrorGhostMeshes()
+{
+	for (TObjectPtr<UStaticMeshComponent>& GhostComp : GhostMeshComponents)
+	{
+		if (GhostComp)
+		{
+			GhostComp->DestroyComponent();
+		}
+	}
+	GhostMeshComponents.Empty();
 }

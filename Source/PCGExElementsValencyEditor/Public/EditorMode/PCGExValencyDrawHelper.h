@@ -9,6 +9,7 @@ class FPrimitiveDrawInterface;
 class FCanvas;
 class FSceneView;
 class APCGExValencyCageBase;
+class APCGExValencyCage;
 class AValencyContextVolume;
 class UPCGExValencyEditorSettings;
 
@@ -43,6 +44,14 @@ public:
 	 * @param bIsSelected Whether the cage is selected (affects label color)
 	 */
 	static void DrawCageLabels(FCanvas* Canvas, const FSceneView* View, const APCGExValencyCageBase* Cage, bool bIsSelected);
+
+	/**
+	 * Draw mirror connection indicator (dashed line from mirror cage to source).
+	 * @param PDI Primitive draw interface
+	 * @param MirrorCage The cage that mirrors another
+	 * @param SourceCage The source cage being mirrored
+	 */
+	static void DrawMirrorConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCage* MirrorCage, const APCGExValencyCage* SourceCage);
 
 	// ========== Low-Level Drawing Primitives ==========
 

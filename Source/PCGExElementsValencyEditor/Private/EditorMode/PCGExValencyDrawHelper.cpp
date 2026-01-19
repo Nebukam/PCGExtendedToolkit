@@ -9,6 +9,7 @@
 
 #include "EditorMode/PCGExValencyEditorSettings.h"
 #include "Cages/PCGExValencyCageBase.h"
+#include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageOrbital.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Core/PCGExValencyOrbitalSet.h"
@@ -35,6 +36,15 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 	if (bIsNullCage)
 	{
 		return;
+	}
+
+	// Draw mirror connection if this cage mirrors another
+	if (const APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
+	{
+		if (RegularCage->MirrorSource)
+		{
+			DrawMirrorConnection(PDI, RegularCage, RegularCage->MirrorSource);
+		}
 	}
 
 	// Get the orbital set for direction info
@@ -342,4 +352,37 @@ void FPCGExValencyDrawHelper::DrawLabel(FCanvas* Canvas, const FSceneView* View,
 			Canvas->DrawItem(TextItem);
 		}
 	}
+}
+
+void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCage* MirrorCage, const APCGExValencyCage* SourceCage)
+{
+	if (!PDI || !MirrorCage || !SourceCage)
+	{
+		return;
+	}
+
+	const UPCGExValencyEditorSettings* Settings = GetSettings();
+	const FVector MirrorLocation = MirrorCage->GetActorLocation();
+	const FVector SourceLocation = SourceCage->GetActorLocation();
+
+	// Draw dashed line from mirror to source
+	DrawLineSegment(PDI, MirrorLocation, SourceLocation, Settings->MirrorConnectionColor, Settings->OrbitalArrowThickness, true);
+
+	// Draw a small diamond marker at the mirror cage to indicate it's a mirror
+	const float MarkerSize = 15.0f;
+	const FVector Up = FVector::UpVector * MarkerSize;
+	const FVector Right = FVector::RightVector * MarkerSize;
+	const FVector Forward = FVector::ForwardVector * MarkerSize;
+
+	// Diamond shape around the cage
+	PDI->DrawLine(MirrorLocation + Up, MirrorLocation + Right, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+	PDI->DrawLine(MirrorLocation + Right, MirrorLocation - Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Right, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+	PDI->DrawLine(MirrorLocation - Right, MirrorLocation + Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+
+	// Vertical diamond
+	PDI->DrawLine(MirrorLocation + Up, MirrorLocation + Forward, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+	PDI->DrawLine(MirrorLocation + Forward, MirrorLocation - Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Forward, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+	PDI->DrawLine(MirrorLocation - Forward, MirrorLocation + Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
 }

@@ -48,6 +48,10 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
 	FLinearColor NoConnectionColor = FLinearColor(0.6f, 0.6f, 0.6f);
 
+	/** Color for mirror cage connection line (from mirror to source) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
+	FLinearColor MirrorConnectionColor = FLinearColor(0.6f, 0.2f, 0.8f);
+
 	// ========== Other Colors ==========
 
 	/** Default color for volume wireframes */
@@ -119,6 +123,19 @@ public:
 	/** Position of orbital labels as percentage of probe radius */
 	UPROPERTY(Config, EditAnywhere, Category = "Labels", meta = (ClampMin = "0.1", ClampMax = "1.0"))
 	float OrbitalLabelRadiusPct = 0.3f;
+
+	// ========== Mirror Ghost ==========
+
+	/**
+	 * Material used for ghost mesh preview in mirror cages.
+	 * All mirror cages share this single material for performance.
+	 * If null, uses the default world grid material.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost")
+	TSoftObjectPtr<UMaterialInterface> GhostMaterial;
+
+	/** Get the ghost material to use (resolves soft pointer, falls back to grid material) */
+	UMaterialInterface* GetGhostMaterial() const;
 
 	// ========== Thin Line Lengths ==========
 

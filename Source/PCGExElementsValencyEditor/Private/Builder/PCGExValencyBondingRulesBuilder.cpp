@@ -569,14 +569,10 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 	}
 
 	// Check for mirror source
-	if (Cage->MirrorSource.IsValid())
+	if (Cage->MirrorSource && Cage->MirrorSource != Cage)
 	{
-		const APCGExValencyCage* Source = Cage->MirrorSource.Get();
-		if (Source && Source != Cage)
-		{
-			// Recursively get source's asset entries (handles chained mirrors)
-			return GetEffectiveAssetEntries(Source);
-		}
+		// Recursively get source's asset entries (handles chained mirrors)
+		return GetEffectiveAssetEntries(Cage->MirrorSource);
 	}
 
 	return Cage->GetAllAssetEntries();

@@ -3,6 +3,8 @@
 
 #include "EditorMode/PCGExValencyEditorSettings.h"
 
+#include "Materials/MaterialInterface.h"
+
 UPCGExValencyEditorSettings::UPCGExValencyEditorSettings()
 {
 	// Default values are set in the header via UPROPERTY initializers
@@ -11,4 +13,22 @@ UPCGExValencyEditorSettings::UPCGExValencyEditorSettings()
 const UPCGExValencyEditorSettings* UPCGExValencyEditorSettings::Get()
 {
 	return GetDefault<UPCGExValencyEditorSettings>();
+}
+
+UMaterialInterface* UPCGExValencyEditorSettings::GetGhostMaterial() const
+{
+	// Try to load the configured ghost material
+	if (!GhostMaterial.IsNull())
+	{
+		if (UMaterialInterface* LoadedMaterial = GhostMaterial.LoadSynchronous())
+		{
+			return LoadedMaterial;
+		}
+	}
+
+	// Fallback to engine's world grid material
+	static UMaterialInterface* DefaultGridMaterial = LoadObject<UMaterialInterface>(
+		nullptr, TEXT("/Engine/EngineMaterials/WorldGridMaterial.WorldGridMaterial"));
+
+	return DefaultGridMaterial;
 }

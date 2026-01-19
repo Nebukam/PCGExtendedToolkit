@@ -259,6 +259,16 @@ void FPCGExValencyCageEditorMode::RefreshAllCages()
 			Cage->DetectNearbyConnections();
 		}
 	}
+
+	// Phase 3: Refresh mirror ghost meshes for all regular cages
+	// Done after all cages are initialized so source cage content is available
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
+		{
+			Cage->RefreshMirrorGhostMeshes();
+		}
+	}
 }
 
 void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
@@ -274,6 +284,12 @@ void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 
 	// Detect connections
 	Cage->DetectNearbyConnections();
+
+	// Refresh mirror ghost meshes if this is a regular cage
+	if (APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
+	{
+		RegularCage->RefreshMirrorGhostMeshes();
+	}
 }
 
 void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)

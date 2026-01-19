@@ -48,6 +48,7 @@ public:
 
 	//~ Begin AActor Interface
 	virtual void PostEditMove(bool bFinished) override;
+	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
 	//~ Begin APCGExValencyCageBase Interface
@@ -126,8 +127,15 @@ public:
 	 * If set, this cage is treated as having the same content as the source.
 	 * Useful for reusing configurations without duplicating assets.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets", AdvancedDisplay)
-	TWeakObjectPtr<APCGExValencyCage> MirrorSource;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror")
+	TObjectPtr<APCGExValencyCage> MirrorSource;
+
+	/**
+	 * Whether to show ghost preview meshes when mirroring another cage.
+	 * Ghost meshes appear as translucent versions of the source cage's content.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror")
+	bool bShowMirrorGhostMeshes = true;
 
 	/**
 	 * Whether to automatically scan for and register contained assets.
@@ -191,6 +199,21 @@ public:
 	/** Compute the local transform to preserve based on flags */
 	FTransform ComputePreservedLocalTransform(const FTransform& AssetWorldTransform) const;
 
+	/**
+	 * Rebuild ghost mesh components based on the mirror source's content.
+	 * Called automatically when MirrorSource changes or when entering Valency mode.
+	 */
+	void RefreshMirrorGhostMeshes();
+
+	/** Clear all ghost mesh components */
+	void ClearMirrorGhostMeshes();
+
+#if WITH_EDITOR
+	//~ Begin UObject Interface
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End UObject Interface
+#endif
+
 protected:
 	/** Called when asset registration changes */
 	virtual void OnAssetRegistrationChanged();
@@ -208,4 +231,9 @@ protected:
 
 	/** Record a material variant for a mesh asset */
 	void RecordMaterialVariant(const FSoftObjectPath& MeshPath, const TArray<FPCGExValencyMaterialOverride>& Overrides);
+
+private:
+	/** Transient ghost mesh components for mirror preview */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UStaticMeshComponent>> GhostMeshComponents;
 };
