@@ -17,7 +17,7 @@ PCGEX_CREATE_PROBE_FACTORY(
 			NewFactory->OrbitalSetHandle = PCGExHelpers::LoadBlocking_AnyThreadTpl(Config.OrbitalSet, InContext);
 			if (UPCGExValencyOrbitalSet* OrbitalSet = Config.OrbitalSet.Get())
 			{
-				if (!NewFactory->OrbitalCache.BuildFrom(OrbitalSet))
+				if (!NewFactory->OrbitalResolver.BuildFrom(OrbitalSet))
 				{
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to build orbital cache from Valency Orbital Set."));
 					return nullptr;
@@ -36,7 +36,7 @@ PCGEX_CREATE_PROBE_FACTORY(
 		}
 	},
 	{
-		NewOperation->OrbitalCache = OrbitalCache;
+		NewOperation->OrbitalResolver = OrbitalResolver;
 	})
 
 void UPCGExProbeValencyProviderSettings::RegisterAssetDependencies(FPCGExContext* InContext) const
@@ -54,14 +54,14 @@ namespace PCGExProbeValency
 	{
 	}
 
-	void FScopedContainer::Init(const PCGExValency::FOrbitalCache& OrbitalCache, const bool bCopyDirs)
+	void FScopedContainer::Init(const PCGExValency::FOrbitalDirectionResolver& OrbitalResolver, const bool bCopyDirs)
 	{
-		const int32 NumDirs = OrbitalCache.Num();
+		const int32 NumDirs = OrbitalResolver.Num();
 		BestDotsBuffer.SetNumUninitialized(NumDirs);
 		BestDistsBuffer.SetNumUninitialized(NumDirs);
 		BestIdxBuffer.SetNumUninitialized(NumDirs);
 
-		if (bCopyDirs) { WorkingDirs = OrbitalCache.Directions; }
+		if (bCopyDirs) { WorkingDirs = OrbitalResolver.Directions; }
 		else { WorkingDirs.SetNumUninitialized(NumDirs); }
 	}
 
@@ -79,7 +79,7 @@ namespace PCGExProbeValency
 TSharedPtr<PCGExMT::FScopedContainer> FPCGExProbeValency::GetScopedContainer(const PCGExMT::FScope& InScope) const
 {
 	TSharedPtr<PCGExProbeValency::FScopedContainer> ScopedContainer = MakeShared<PCGExProbeValency::FScopedContainer>(InScope);
-	ScopedContainer->Init(OrbitalCache, OrbitalCache.bTransformOrbital);
+	ScopedContainer->Init(OrbitalResolver, OrbitalResolver.bTransformOrbital);
 	return ScopedContainer;
 }
 
@@ -96,7 +96,7 @@ bool FPCGExProbeValency::Prepare(FPCGExContext* InContext)
 
 void FPCGExProbeValency::ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
-	const int32 DirCount = OrbitalCache.Num();
+	const int32 DirCount = OrbitalResolver.Num();
 	if (DirCount == 0) { return; }
 
 	PCGExProbeValency::FScopedContainer* LocalContainer = static_cast<PCGExProbeValency::FScopedContainer*>(Container);
@@ -107,15 +107,15 @@ void FPCGExProbeValency::ProcessCandidates(const int32 Index, TArray<PCGExProbin
 	TArray<int32>& BestIdxBuffer = LocalContainer->BestIdxBuffer;
 	TArray<FVector>& WorkingDirs = LocalContainer->WorkingDirs;
 
-	const double DotThreshold = OrbitalCache.DotThreshold;
+	const double DotThreshold = OrbitalResolver.DotThreshold;
 
 	// Precompute world dirs if using transform
-	if (OrbitalCache.bTransformOrbital)
+	if (OrbitalResolver.bTransformOrbital)
 	{
 		const FTransform& WorkingTransform = *(WorkingTransforms->GetData() + Index);
 		for (int32 d = 0; d < DirCount; ++d)
 		{
-			WorkingDirs[d] = WorkingTransform.TransformVectorNoScale(OrbitalCache.Directions[d]);
+			WorkingDirs[d] = WorkingTransform.TransformVectorNoScale(OrbitalResolver.Directions[d]);
 		}
 	}
 

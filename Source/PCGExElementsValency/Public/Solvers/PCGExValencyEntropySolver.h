@@ -48,6 +48,7 @@ public:
 	virtual void Initialize(
 		const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 		TArray<PCGExValency::FValencyState>& InValencyStates,
+		const PCGExValency::FOrbitalCache* InOrbitalCache,
 		int32 InSeed) override;
 
 	virtual PCGExValency::FSolveResult Solve() override;

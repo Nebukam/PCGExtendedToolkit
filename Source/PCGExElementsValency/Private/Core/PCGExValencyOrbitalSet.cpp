@@ -124,9 +124,9 @@ void UPCGExValencyOrbitalSet::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-//////// FOrbitalCache
+//////// FOrbitalDirectionResolver
 
-bool PCGExValency::FOrbitalCache::BuildFrom(const UPCGExValencyOrbitalSet* OrbitalSet)
+bool PCGExValency::FOrbitalDirectionResolver::BuildFrom(const UPCGExValencyOrbitalSet* OrbitalSet)
 {
 	if (!OrbitalSet || OrbitalSet->Orbitals.Num() == 0)
 	{
@@ -163,7 +163,7 @@ bool PCGExValency::FOrbitalCache::BuildFrom(const UPCGExValencyOrbitalSet* Orbit
 	return true;
 }
 
-uint8 PCGExValency::FOrbitalCache::FindMatchingOrbital(const FVector& InDirection, bool bUseTransform, const FTransform& InTransform) const
+uint8 PCGExValency::FOrbitalDirectionResolver::FindMatchingOrbital(const FVector& InDirection, bool bUseTransform, const FTransform& InTransform) const
 {
 	if (Directions.Num() == 0)
 	{

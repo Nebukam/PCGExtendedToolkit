@@ -10,11 +10,14 @@
 void FPCGExValencyEntropySolver::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
+	const PCGExValency::FOrbitalCache* InOrbitalCache,
 	int32 InSeed)
 {
 	VALENCY_LOG_SECTION(Solver, "ENTROPY SOLVER INITIALIZE");
-	PCGEX_VALENCY_INFO(Solver, "Seed: %d, States: %d, CompiledRules: %s",
-		InSeed, InValencyStates.Num(), InCompiledBondingRules ? TEXT("Valid") : TEXT("NULL"));
+	PCGEX_VALENCY_INFO(Solver, "Seed: %d, States: %d, CompiledRules: %s, OrbitalCache: %s",
+		InSeed, InValencyStates.Num(),
+		InCompiledBondingRules ? TEXT("Valid") : TEXT("NULL"),
+		InOrbitalCache ? TEXT("Valid") : TEXT("NULL"));
 
 	if (InCompiledBondingRules)
 	{
@@ -23,7 +26,7 @@ void FPCGExValencyEntropySolver::Initialize(
 	}
 
 	// Call base - marks boundary states
-	FPCGExValencySolverOperation::Initialize(InCompiledBondingRules, InValencyStates, InSeed);
+	FPCGExValencySolverOperation::Initialize(InCompiledBondingRules, InValencyStates, InOrbitalCache, InSeed);
 
 	// Initialize WFC-specific state
 	StateData.SetNum(ValencyStates->Num());
@@ -50,9 +53,9 @@ void FPCGExValencyEntropySolver::Initialize(
 
 void FPCGExValencyEntropySolver::InitializeAllCandidates()
 {
-	if (!CompiledBondingRules)
+	if (!CompiledBondingRules || !OrbitalCache)
 	{
-		PCGEX_VALENCY_ERROR(Solver, "InitializeAllCandidates: CompiledBondingRules is NULL!");
+		PCGEX_VALENCY_ERROR(Solver, "InitializeAllCandidates: CompiledBondingRules or OrbitalCache is NULL!");
 		return;
 	}
 
@@ -76,13 +79,13 @@ void FPCGExValencyEntropySolver::InitializeAllCandidates()
 
 		Data.Candidates.Empty();
 
-		// Get state orbital mask for logging
-		const int64 StateMask = State.OrbitalMasks.Num() > 0 ? State.OrbitalMasks[0] : 0;
+		// Get node orbital mask for logging (using cache)
+		const int64 NodeMask = GetOrbitalMask(StateIndex);
 
-		// For each module, check if it fits this state
+		// For each module, check if it fits this node
 		for (int32 ModuleIndex = 0; ModuleIndex < CompiledBondingRules->ModuleCount; ++ModuleIndex)
 		{
-			if (DoesModuleFitState(ModuleIndex, State))
+			if (DoesModuleFitNode(ModuleIndex, StateIndex))
 			{
 				Data.Candidates.Add(ModuleIndex);
 			}
@@ -90,16 +93,16 @@ void FPCGExValencyEntropySolver::InitializeAllCandidates()
 
 		TotalCandidates += Data.Candidates.Num();
 
-		if (Data.Candidates.Num() == 0 && State.HasOrbitals())
+		if (Data.Candidates.Num() == 0 && HasOrbitals(StateIndex))
 		{
-			PCGEX_VALENCY_WARNING(Solver, "  State[%d]: UNSOLVABLE - StateMask=0x%llX, no modules fit!", StateIndex, StateMask);
+			PCGEX_VALENCY_WARNING(Solver, "  State[%d]: UNSOLVABLE - NodeMask=0x%llX, no modules fit!", StateIndex, NodeMask);
 			(*ValencyStates)[StateIndex].ResolvedModule = PCGExValency::SlotState::UNSOLVABLE;
 			UnsolvableCount++;
 		}
 		else
 		{
-			PCGEX_VALENCY_VERBOSE(Solver, "  State[%d]: StateMask=0x%llX, %d candidates: [%s]",
-				StateIndex, StateMask, Data.Candidates.Num(),
+			PCGEX_VALENCY_VERBOSE(Solver, "  State[%d]: NodeMask=0x%llX, %d candidates: [%s]",
+				StateIndex, NodeMask, Data.Candidates.Num(),
 				*FString::JoinBy(Data.Candidates, TEXT(", "), [](int32 Idx) { return FString::FromInt(Idx); }));
 		}
 	}
@@ -110,7 +113,7 @@ void FPCGExValencyEntropySolver::InitializeAllCandidates()
 
 void FPCGExValencyEntropySolver::UpdateEntropy(int32 StateIndex)
 {
-	if (!ValencyStates->IsValidIndex(StateIndex))
+	if (!ValencyStates->IsValidIndex(StateIndex) || !OrbitalCache)
 	{
 		return;
 	}
@@ -131,8 +134,10 @@ void FPCGExValencyEntropySolver::UpdateEntropy(int32 StateIndex)
 	int32 ResolvedNeighbors = 0;
 	int32 TotalNeighbors = 0;
 
-	for (int32 NeighborIndex : State.OrbitalToNeighbor)
+	const int32 MaxOrbitals = GetMaxOrbitals();
+	for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals; ++OrbitalIndex)
 	{
+		const int32 NeighborIndex = GetNeighborAtOrbital(StateIndex, OrbitalIndex);
 		if (NeighborIndex >= 0 && ValencyStates->IsValidIndex(NeighborIndex))
 		{
 			TotalNeighbors++;
@@ -325,17 +330,16 @@ bool FPCGExValencyEntropySolver::CollapseState(int32 StateIndex)
 
 void FPCGExValencyEntropySolver::PropagateConstraints(int32 ResolvedStateIndex)
 {
-	if (!ValencyStates->IsValidIndex(ResolvedStateIndex))
+	if (!ValencyStates->IsValidIndex(ResolvedStateIndex) || !OrbitalCache)
 	{
 		return;
 	}
 
-	const PCGExValency::FValencyState& ResolvedState = (*ValencyStates)[ResolvedStateIndex];
-
 	// For each orbital, notify the neighbor
-	for (int32 OrbitalIndex = 0; OrbitalIndex < ResolvedState.OrbitalToNeighbor.Num(); ++OrbitalIndex)
+	const int32 MaxOrbitals = GetMaxOrbitals();
+	for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals; ++OrbitalIndex)
 	{
-		const int32 NeighborIndex = ResolvedState.OrbitalToNeighbor[OrbitalIndex];
+		const int32 NeighborIndex = GetNeighborAtOrbital(ResolvedStateIndex, OrbitalIndex);
 		if (NeighborIndex < 0 || !ValencyStates->IsValidIndex(NeighborIndex))
 		{
 			continue;
@@ -353,17 +357,18 @@ void FPCGExValencyEntropySolver::PropagateConstraints(int32 ResolvedStateIndex)
 
 bool FPCGExValencyEntropySolver::FilterCandidates(int32 StateIndex)
 {
-	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex))
+	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex) || !OrbitalCache)
 	{
 		return false;
 	}
 
-	const PCGExValency::FValencyState& State = (*ValencyStates)[StateIndex];
 	FWFCStateData& Data = StateData[StateIndex];
 
 	int32 RemovedByDistribution = 0;
 	int32 RemovedByNeighbor = 0;
 	int32 RemovedByArcConsistency = 0;
+
+	const int32 MaxOrbitals = GetMaxOrbitals();
 
 	// First pass: filter by distribution and resolved neighbor constraints
 	// These are hard constraints that must be respected
@@ -382,9 +387,9 @@ bool FPCGExValencyEntropySolver::FilterCandidates(int32 StateIndex)
 
 		// Check compatibility with each resolved neighbor
 		bool bCompatible = true;
-		for (int32 OrbitalIndex = 0; OrbitalIndex < State.OrbitalToNeighbor.Num() && bCompatible; ++OrbitalIndex)
+		for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals && bCompatible; ++OrbitalIndex)
 		{
-			const int32 NeighborIndex = State.OrbitalToNeighbor[OrbitalIndex];
+			const int32 NeighborIndex = GetNeighborAtOrbital(StateIndex, OrbitalIndex);
 			if (NeighborIndex < 0 || !ValencyStates->IsValidIndex(NeighborIndex))
 			{
 				continue;
@@ -456,17 +461,17 @@ bool FPCGExValencyEntropySolver::FilterCandidates(int32 StateIndex)
 
 bool FPCGExValencyEntropySolver::CheckArcConsistency(int32 StateIndex, int32 CandidateModule) const
 {
-	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex))
+	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex) || !OrbitalCache)
 	{
 		return false;
 	}
 
-	const PCGExValency::FValencyState& State = (*ValencyStates)[StateIndex];
+	const int32 MaxOrbitals = OrbitalCache->GetMaxOrbitals();
 
 	// For each unresolved neighbor, check if at least one of their candidates would be compatible
-	for (int32 OrbitalIndex = 0; OrbitalIndex < State.OrbitalToNeighbor.Num(); ++OrbitalIndex)
+	for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals; ++OrbitalIndex)
 	{
-		const int32 NeighborIndex = State.OrbitalToNeighbor[OrbitalIndex];
+		const int32 NeighborIndex = OrbitalCache->GetNeighborAtOrbital(StateIndex, OrbitalIndex);
 		if (NeighborIndex < 0 || !ValencyStates->IsValidIndex(NeighborIndex))
 		{
 			continue;
@@ -486,9 +491,9 @@ bool FPCGExValencyEntropySolver::CheckArcConsistency(int32 StateIndex, int32 Can
 
 		// Find which orbital of the neighbor points back to us
 		int32 ReverseOrbitalIndex = -1;
-		for (int32 NeighborOrbital = 0; NeighborOrbital < NeighborState.OrbitalToNeighbor.Num(); ++NeighborOrbital)
+		for (int32 NeighborOrbital = 0; NeighborOrbital < MaxOrbitals; ++NeighborOrbital)
 		{
-			if (NeighborState.OrbitalToNeighbor[NeighborOrbital] == StateIndex)
+			if (OrbitalCache->GetNeighborAtOrbital(NeighborIndex, NeighborOrbital) == StateIndex)
 			{
 				ReverseOrbitalIndex = NeighborOrbital;
 				break;

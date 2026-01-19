@@ -10,14 +10,17 @@
 void FPCGExValencyConstraintSolver::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
+	const PCGExValency::FOrbitalCache* InOrbitalCache,
 	int32 InSeed)
 {
 	VALENCY_LOG_SECTION(Solver, "CONSTRAINT SOLVER INITIALIZE");
-	PCGEX_VALENCY_INFO(Solver, "Seed: %d, States: %d, CompiledRules: %s",
-		InSeed, InValencyStates.Num(), InCompiledBondingRules ? TEXT("Valid") : TEXT("NULL"));
+	PCGEX_VALENCY_INFO(Solver, "Seed: %d, States: %d, CompiledRules: %s, OrbitalCache: %s",
+		InSeed, InValencyStates.Num(),
+		InCompiledBondingRules ? TEXT("Valid") : TEXT("NULL"),
+		InOrbitalCache ? TEXT("Valid") : TEXT("NULL"));
 
 	// Call base - marks boundary states
-	FPCGExValencySolverOperation::Initialize(InCompiledBondingRules, InValencyStates, InSeed);
+	FPCGExValencySolverOperation::Initialize(InCompiledBondingRules, InValencyStates, InOrbitalCache, InSeed);
 
 	// Initialize state data
 	StateData.SetNum(ValencyStates->Num());
@@ -30,10 +33,10 @@ void FPCGExValencyConstraintSolver::Initialize(
 	InitializeAllCandidates();
 
 	// Initialize slot budget AFTER candidates are known
-	SlotBudget.Initialize(CompiledBondingRules, *ValencyStates,
-		[this](int32 ModuleIndex, const PCGExValency::FValencyState& State) -> bool
+	SlotBudget.Initialize(CompiledBondingRules, *ValencyStates, OrbitalCache,
+		[this](int32 ModuleIndex, int32 NodeIndex) -> bool
 		{
-			return DoesModuleFitState(ModuleIndex, State);
+			return DoesModuleFitNode(ModuleIndex, NodeIndex);
 		});
 
 	// Check early unsolvability
@@ -57,9 +60,9 @@ void FPCGExValencyConstraintSolver::Initialize(
 
 void FPCGExValencyConstraintSolver::InitializeAllCandidates()
 {
-	if (!CompiledBondingRules)
+	if (!CompiledBondingRules || !OrbitalCache)
 	{
-		PCGEX_VALENCY_ERROR(Solver, "InitializeAllCandidates: CompiledBondingRules is NULL!");
+		PCGEX_VALENCY_ERROR(Solver, "InitializeAllCandidates: CompiledBondingRules or OrbitalCache is NULL!");
 		return;
 	}
 
@@ -83,10 +86,10 @@ void FPCGExValencyConstraintSolver::InitializeAllCandidates()
 
 		Data.Candidates.Empty();
 
-		// For each module, check if it fits this state
+		// For each module, check if it fits this node
 		for (int32 ModuleIndex = 0; ModuleIndex < CompiledBondingRules->ModuleCount; ++ModuleIndex)
 		{
-			if (DoesModuleFitState(ModuleIndex, State))
+			if (DoesModuleFitNode(ModuleIndex, StateIndex))
 			{
 				Data.Candidates.Add(ModuleIndex);
 			}
@@ -94,10 +97,10 @@ void FPCGExValencyConstraintSolver::InitializeAllCandidates()
 
 		TotalCandidates += Data.Candidates.Num();
 
-		if (Data.Candidates.Num() == 0 && State.HasOrbitals())
+		if (Data.Candidates.Num() == 0 && HasOrbitals(StateIndex))
 		{
-			const int64 StateMask = State.OrbitalMasks.Num() > 0 ? State.OrbitalMasks[0] : 0;
-			PCGEX_VALENCY_WARNING(Solver, "  State[%d]: UNSOLVABLE - StateMask=0x%llX, no modules fit!", StateIndex, StateMask);
+			const int64 NodeMask = GetOrbitalMask(StateIndex);
+			PCGEX_VALENCY_WARNING(Solver, "  State[%d]: UNSOLVABLE - NodeMask=0x%llX, no modules fit!", StateIndex, NodeMask);
 			(*ValencyStates)[StateIndex].ResolvedModule = PCGExValency::SlotState::UNSOLVABLE;
 			UnsolvableCount++;
 		}
@@ -113,7 +116,7 @@ void FPCGExValencyConstraintSolver::InitializeAllCandidates()
 
 void FPCGExValencyConstraintSolver::UpdateEntropy(int32 StateIndex)
 {
-	if (!ValencyStates->IsValidIndex(StateIndex))
+	if (!ValencyStates->IsValidIndex(StateIndex) || !OrbitalCache)
 	{
 		return;
 	}
@@ -134,8 +137,10 @@ void FPCGExValencyConstraintSolver::UpdateEntropy(int32 StateIndex)
 	int32 ResolvedNeighbors = 0;
 	int32 TotalNeighbors = 0;
 
-	for (int32 NeighborIndex : State.OrbitalToNeighbor)
+	const int32 MaxOrbitals = GetMaxOrbitals();
+	for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals; ++OrbitalIndex)
 	{
+		const int32 NeighborIndex = GetNeighborAtOrbital(StateIndex, OrbitalIndex);
 		if (NeighborIndex >= 0 && ValencyStates->IsValidIndex(NeighborIndex))
 		{
 			TotalNeighbors++;
@@ -334,17 +339,16 @@ bool FPCGExValencyConstraintSolver::CollapseState(int32 StateIndex)
 
 void FPCGExValencyConstraintSolver::PropagateConstraints(int32 ResolvedStateIndex)
 {
-	if (!ValencyStates->IsValidIndex(ResolvedStateIndex))
+	if (!ValencyStates->IsValidIndex(ResolvedStateIndex) || !OrbitalCache)
 	{
 		return;
 	}
 
-	const PCGExValency::FValencyState& ResolvedState = (*ValencyStates)[ResolvedStateIndex];
-
 	// For each orbital, notify the neighbor
-	for (int32 OrbitalIndex = 0; OrbitalIndex < ResolvedState.OrbitalToNeighbor.Num(); ++OrbitalIndex)
+	const int32 MaxOrbitals = GetMaxOrbitals();
+	for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals; ++OrbitalIndex)
 	{
-		const int32 NeighborIndex = ResolvedState.OrbitalToNeighbor[OrbitalIndex];
+		const int32 NeighborIndex = GetNeighborAtOrbital(ResolvedStateIndex, OrbitalIndex);
 		if (NeighborIndex < 0 || !ValencyStates->IsValidIndex(NeighborIndex))
 		{
 			continue;
@@ -362,17 +366,18 @@ void FPCGExValencyConstraintSolver::PropagateConstraints(int32 ResolvedStateInde
 
 bool FPCGExValencyConstraintSolver::FilterCandidates(int32 StateIndex)
 {
-	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex))
+	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex) || !OrbitalCache)
 	{
 		return false;
 	}
 
-	const PCGExValency::FValencyState& State = (*ValencyStates)[StateIndex];
 	FConstraintStateData& Data = StateData[StateIndex];
 
 	int32 RemovedByDistribution = 0;
 	int32 RemovedByNeighbor = 0;
 	int32 RemovedByArcConsistency = 0;
+
+	const int32 MaxOrbitals = GetMaxOrbitals();
 
 	// First pass: filter by distribution and resolved neighbor constraints
 	for (int32 i = Data.Candidates.Num() - 1; i >= 0; --i)
@@ -390,9 +395,9 @@ bool FPCGExValencyConstraintSolver::FilterCandidates(int32 StateIndex)
 
 		// Check compatibility with each resolved neighbor
 		bool bCompatible = true;
-		for (int32 OrbitalIndex = 0; OrbitalIndex < State.OrbitalToNeighbor.Num() && bCompatible; ++OrbitalIndex)
+		for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals && bCompatible; ++OrbitalIndex)
 		{
-			const int32 NeighborIndex = State.OrbitalToNeighbor[OrbitalIndex];
+			const int32 NeighborIndex = GetNeighborAtOrbital(StateIndex, OrbitalIndex);
 			if (NeighborIndex < 0 || !ValencyStates->IsValidIndex(NeighborIndex))
 			{
 				continue;
@@ -451,16 +456,16 @@ bool FPCGExValencyConstraintSolver::FilterCandidates(int32 StateIndex)
 
 bool FPCGExValencyConstraintSolver::CheckArcConsistency(int32 StateIndex, int32 CandidateModule) const
 {
-	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex))
+	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex) || !OrbitalCache)
 	{
 		return false;
 	}
 
-	const PCGExValency::FValencyState& State = (*ValencyStates)[StateIndex];
+	const int32 MaxOrbitals = OrbitalCache->GetMaxOrbitals();
 
-	for (int32 OrbitalIndex = 0; OrbitalIndex < State.OrbitalToNeighbor.Num(); ++OrbitalIndex)
+	for (int32 OrbitalIndex = 0; OrbitalIndex < MaxOrbitals; ++OrbitalIndex)
 	{
-		const int32 NeighborIndex = State.OrbitalToNeighbor[OrbitalIndex];
+		const int32 NeighborIndex = OrbitalCache->GetNeighborAtOrbital(StateIndex, OrbitalIndex);
 		if (NeighborIndex < 0 || !ValencyStates->IsValidIndex(NeighborIndex))
 		{
 			continue;
@@ -480,9 +485,9 @@ bool FPCGExValencyConstraintSolver::CheckArcConsistency(int32 StateIndex, int32 
 
 		// Find which orbital of the neighbor points back to us
 		int32 ReverseOrbitalIndex = -1;
-		for (int32 NeighborOrbital = 0; NeighborOrbital < NeighborState.OrbitalToNeighbor.Num(); ++NeighborOrbital)
+		for (int32 NeighborOrbital = 0; NeighborOrbital < MaxOrbitals; ++NeighborOrbital)
 		{
-			if (NeighborState.OrbitalToNeighbor[NeighborOrbital] == StateIndex)
+			if (OrbitalCache->GetNeighborAtOrbital(NeighborIndex, NeighborOrbital) == StateIndex)
 			{
 				ReverseOrbitalIndex = NeighborOrbital;
 				break;

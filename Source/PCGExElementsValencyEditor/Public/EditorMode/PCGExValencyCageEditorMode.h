@@ -7,6 +7,7 @@
 #include "EdMode.h"
 #include "EditorMode/PCGExValencyAssetTracker.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
+#include "EditorMode/PCGExValencyReferenceTracker.h"
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
@@ -56,6 +57,15 @@ public:
 
 	/** Get the dirty state manager for marking actors dirty */
 	FValencyDirtyStateManager& GetDirtyStateManager() { return DirtyStateManager; }
+
+	/** Get the reference tracker for change propagation */
+	FValencyReferenceTracker& GetReferenceTracker() { return ReferenceTracker; }
+
+	/**
+	 * Get the reference tracker from the active Valency editor mode.
+	 * @return Pointer to tracker if mode is active, nullptr otherwise
+	 */
+	static FValencyReferenceTracker* GetActiveReferenceTracker();
 
 protected:
 	// ========== Cache Management ==========
@@ -127,4 +137,12 @@ private:
 
 	/** Central dirty state manager for coalesced rebuilds */
 	FValencyDirtyStateManager DirtyStateManager;
+
+	/** Skip dirty processing for one frame after mode entry (allows system to stabilize) */
+	bool bSkipNextDirtyProcess = false;
+
+	// ========== Reference Tracking ==========
+
+	/** Central reference tracker for change propagation */
+	FValencyReferenceTracker ReferenceTracker;
 };

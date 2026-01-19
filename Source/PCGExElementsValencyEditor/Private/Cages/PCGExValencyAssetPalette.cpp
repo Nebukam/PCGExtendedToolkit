@@ -15,7 +15,8 @@
 
 #if WITH_EDITOR
 #include "Editor.h"
-#include "EditorMode/PCGExValencyEditorSettings.h"
+#include "PCGExValencyEditorSettings.h"
+#include "EditorMode/PCGExValencyCageEditorMode.h"
 #endif
 
 namespace PCGExValencyFolders
@@ -658,36 +659,11 @@ void APCGExValencyAssetPalette::FindMirroringCages(TArray<APCGExValencyCage*>& O
 
 bool APCGExValencyAssetPalette::TriggerAutoRebuildForMirroringCages()
 {
-	// Only process when Valency mode is active
-	if (!AValencyContextVolume::IsValencyModeActive())
+	// Use centralized reference tracker for recursive propagation
+	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 	{
-		return false;
+		return Tracker->PropagateContentChange(this);
 	}
-
-	// Find cages that mirror this palette
-	TArray<APCGExValencyCage*> MirroringCages;
-	FindMirroringCages(MirroringCages);
-
-	if (MirroringCages.Num() == 0)
-	{
-		return false;
-	}
-
-	// Trigger rebuild through one of the mirroring cages
-	// The multi-volume aggregation will handle all related volumes
-	for (APCGExValencyCage* Cage : MirroringCages)
-	{
-		if (Cage)
-		{
-			// Use the cage's existing rebuild mechanism
-			// This respects the volume's bAutoRebuildOnChange setting
-			if (Cage->TriggerAutoRebuildIfNeeded())
-			{
-				return true;
-			}
-		}
-	}
-
 	return false;
 }
 

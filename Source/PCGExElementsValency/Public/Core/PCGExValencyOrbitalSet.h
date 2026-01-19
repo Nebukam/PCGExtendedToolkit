@@ -65,7 +65,7 @@ namespace PCGExValency
 	 * Cached orbital data for fast lookup during processing.
 	 * Pre-resolves all BitmaskRef lookups once to avoid repeated asset access.
 	 */
-	struct PCGEXELEMENTSVALENCY_API FOrbitalCache
+	struct PCGEXELEMENTSVALENCY_API FOrbitalDirectionResolver
 	{
 		/** Pre-resolved directions (normalized) */
 		TArray<FVector> Directions;

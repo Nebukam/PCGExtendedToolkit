@@ -32,7 +32,7 @@ namespace PCGExProbeValency
 		TArray<int32> BestIdxBuffer;
 		TArray<FVector> WorkingDirs;
 
-		void Init(const PCGExValency::FOrbitalCache& OrbitalCache, bool bCopyDirs);
+		void Init(const PCGExValency::FOrbitalDirectionResolver& OrbitalResolver, bool bCopyDirs);
 		virtual void Reset() override;
 	};
 }
@@ -68,7 +68,7 @@ public:
 	virtual void ProcessCandidates(const int32 Index, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container) override;
 
 	FPCGExProbeConfigValency Config;
-	PCGExValency::FOrbitalCache OrbitalCache;
+	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
 
 protected:
 	bool bUseBestDot = false;
@@ -87,7 +87,7 @@ public:
 	UPROPERTY()
 	FPCGExProbeConfigValency Config;
 
-	PCGExValency::FOrbitalCache OrbitalCache;
+	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
 
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };

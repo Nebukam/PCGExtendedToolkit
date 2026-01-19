@@ -73,24 +73,27 @@ namespace PCGExValency
 	void FSlotBudget::Initialize(
 		const FPCGExValencyBondingRulesCompiled* Rules,
 		const TArray<FValencyState>& States,
+		const FOrbitalCache* Cache,
 		FModuleFitChecker FitChecker)
 	{
-		if (!Rules)
+		if (!Rules || !Cache)
 		{
 			return;
 		}
+
+		const int32 NumNodes = Cache->GetNumNodes();
 
 		// Initialize available slots per module
 		AvailableSlots.SetNumZeroed(Rules->ModuleCount);
 
 		// Initialize state-to-modules mapping
-		StateToFittingModules.SetNum(States.Num());
+		StateToFittingModules.SetNum(NumNodes);
 
-		// For each state, find which modules fit
-		for (int32 StateIndex = 0; StateIndex < States.Num(); ++StateIndex)
+		// For each node, find which modules fit
+		for (int32 NodeIndex = 0; NodeIndex < NumNodes; ++NodeIndex)
 		{
-			const FValencyState& State = States[StateIndex];
-			TArray<int32>& FittingModules = StateToFittingModules[StateIndex];
+			const FValencyState& State = States[NodeIndex];
+			TArray<int32>& FittingModules = StateToFittingModules[NodeIndex];
 			FittingModules.Empty();
 
 			// Skip already resolved states (boundaries)
@@ -99,10 +102,10 @@ namespace PCGExValency
 				continue;
 			}
 
-			// Find all modules that fit this state
+			// Find all modules that fit this node
 			for (int32 ModuleIndex = 0; ModuleIndex < Rules->ModuleCount; ++ModuleIndex)
 			{
-				if (FitChecker(ModuleIndex, State))
+				if (FitChecker(ModuleIndex, NodeIndex))
 				{
 					FittingModules.Add(ModuleIndex);
 					AvailableSlots[ModuleIndex]++;
@@ -110,7 +113,7 @@ namespace PCGExValency
 			}
 		}
 
-		PCGEX_VALENCY_VERBOSE(Solver, "SlotBudget initialized: %d modules, %d states", Rules->ModuleCount, States.Num());
+		PCGEX_VALENCY_VERBOSE(Solver, "SlotBudget initialized: %d modules, %d nodes", Rules->ModuleCount, NumNodes);
 		for (int32 i = 0; i < Rules->ModuleCount; ++i)
 		{
 			if (Rules->ModuleMinSpawns[i] > 0)
@@ -227,20 +230,25 @@ namespace PCGExValency
 void FPCGExValencySolverOperation::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
+	const PCGExValency::FOrbitalCache* InOrbitalCache,
 	int32 InSeed)
 {
 	CompiledBondingRules = InCompiledBondingRules;
 	ValencyStates = &InValencyStates;
+	OrbitalCache = InOrbitalCache;
 	RandomStream.Initialize(InSeed);
 
 	DistributionTracker.Initialize(CompiledBondingRules);
 
 	// Mark boundary states (no orbitals = NULL_SLOT)
-	for (PCGExValency::FValencyState& State : *ValencyStates)
+	if (OrbitalCache)
 	{
-		if (!State.HasOrbitals())
+		for (int32 NodeIndex = 0; NodeIndex < ValencyStates->Num(); ++NodeIndex)
 		{
-			State.ResolvedModule = PCGExValency::SlotState::NULL_SLOT;
+			if (!OrbitalCache->HasOrbitals(NodeIndex))
+			{
+				(*ValencyStates)[NodeIndex].ResolvedModule = PCGExValency::SlotState::NULL_SLOT;
+			}
 		}
 	}
 }
@@ -285,33 +293,37 @@ bool FPCGExValencySolverOperation::IsModuleCompatibleWithNeighbor(int32 ModuleIn
 	return false;
 }
 
-bool FPCGExValencySolverOperation::DoesModuleFitState(int32 ModuleIndex, const PCGExValency::FValencyState& State) const
+bool FPCGExValencySolverOperation::DoesModuleFitNode(int32 ModuleIndex, int32 NodeIndex) const
 {
-	if (!CompiledBondingRules)
+	if (!CompiledBondingRules || !OrbitalCache)
 	{
 		return false;
 	}
 
-	// Check all layers
+	// Get node's orbital mask from cache
+	const int64 NodeMask = OrbitalCache->GetOrbitalMask(NodeIndex);
+
+	// Check all layers (for now we only use layer 0 from cache)
 	for (int32 LayerIndex = 0; LayerIndex < CompiledBondingRules->GetLayerCount(); ++LayerIndex)
 	{
 		const int64 ModuleMask = CompiledBondingRules->GetModuleOrbitalMask(ModuleIndex, LayerIndex);
 		const int64 BoundaryMask = CompiledBondingRules->GetModuleBoundaryMask(ModuleIndex, LayerIndex);
-		const int64 StateMask = State.OrbitalMasks.IsValidIndex(LayerIndex) ? State.OrbitalMasks[LayerIndex] : 0;
+		// Currently cache only stores single layer mask; use it for all layers
+		const int64 StateMask = (LayerIndex == 0) ? NodeMask : 0;
 
-		// Module's required orbitals must be present in state
+		// Module's required orbitals must be present in node
 		if ((ModuleMask & StateMask) != ModuleMask)
 		{
-			PCGEX_VALENCY_VERBOSE(Solver, "    Module[%d] REJECTED at Layer[%d]: ModuleMask=0x%llX, StateMask=0x%llX, (ModuleMask & StateMask)=0x%llX != ModuleMask",
+			PCGEX_VALENCY_VERBOSE(Solver, "    Module[%d] REJECTED at Layer[%d]: ModuleMask=0x%llX, NodeMask=0x%llX, (ModuleMask & NodeMask)=0x%llX != ModuleMask",
 				ModuleIndex, LayerIndex, ModuleMask, StateMask, (ModuleMask & StateMask));
 			return false;
 		}
 
-		// Module's boundary orbitals must NOT have connections in state
-		// (BoundaryMask has bits set for orbitals that must be empty; StateMask has bits set for orbitals with neighbors)
+		// Module's boundary orbitals must NOT have connections in node
+		// (BoundaryMask has bits set for orbitals that must be empty; NodeMask has bits set for orbitals with neighbors)
 		if ((BoundaryMask & StateMask) != 0)
 		{
-			PCGEX_VALENCY_VERBOSE(Solver, "    Module[%d] REJECTED at Layer[%d]: BoundaryMask=0x%llX conflicts with StateMask=0x%llX",
+			PCGEX_VALENCY_VERBOSE(Solver, "    Module[%d] REJECTED at Layer[%d]: BoundaryMask=0x%llX conflicts with NodeMask=0x%llX",
 				ModuleIndex, LayerIndex, BoundaryMask, StateMask);
 			return false;
 		}

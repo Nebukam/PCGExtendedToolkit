@@ -14,7 +14,7 @@
  * Configure visualization colors, line thicknesses, and other display options.
  * Access via Project Settings > Plugins > PCGEx Valency Editor.
  */
-UCLASS(Config=Editor, DefaultConfig, meta=(DisplayName="PCGEx | Valency Editor"))
+UCLASS(Config=Editor, DefaultConfig, meta=(DisplayName="PCGEx | Valency"))
 class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyEditorSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -35,9 +35,9 @@ public:
 	static bool ShouldAllowRebuild(EPropertyChangeType::Type ChangeType);
 
 	//~ Begin UDeveloperSettings Interface
-	virtual FName GetContainerName() const override { return FName("Project"); }
-	virtual FName GetCategoryName() const override { return FName("Plugins"); }
-	virtual FName GetSectionName() const override { return FName("PCGEx | Valency Editor"); }
+	virtual FName GetContainerName() const override { return "Editor"; }
+	virtual FName GetCategoryName() const override { return "Plugins"; }
+	virtual FName GetSectionName() const override { return FName("PCGEx | Valency"); }
 	//~ End UDeveloperSettings Interface
 
 public:
@@ -72,16 +72,6 @@ public:
 	/** Warning color for cages without orbital sets */
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|General")
 	FLinearColor WarningColor = FLinearColor(1.0f, 0.5f, 0.0f);
-
-	// ========== Label Colors ==========
-
-	/** Label color for selected cages */
-	UPROPERTY(Config, EditAnywhere, Category = "Colors|Labels")
-	FLinearColor SelectedLabelColor = FLinearColor::White;
-
-	/** Label color for unselected cages (should have lower alpha) */
-	UPROPERTY(Config, EditAnywhere, Category = "Colors|Labels")
-	FLinearColor UnselectedLabelColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.35f);
 
 	// ========== Line Thicknesses ==========
 
@@ -127,25 +117,45 @@ public:
 
 	// ========== Labels ==========
 
+	/** Show cage name labels above cages */
+	UPROPERTY(Config, EditAnywhere, Category = "Labels")
+	bool bShowCageLabels = true;
+
+	/** Show orbital direction labels around cages */
+	UPROPERTY(Config, EditAnywhere, Category = "Labels")
+	bool bShowOrbitalLabels = true;
+
+	/** Only show labels for selected cages (when enabled, unselected cages have no labels) */
+	UPROPERTY(Config, EditAnywhere, Category = "Labels")
+	bool bOnlyShowSelectedLabels = true;
+
+	/** Label color for selected cages */
+	UPROPERTY(Config, EditAnywhere, Category = "Labels")
+	FLinearColor SelectedLabelColor = FLinearColor::White;
+
+	/** Label color for unselected cages (should have lower alpha) */
+	UPROPERTY(Config, EditAnywhere, Category = "Labels")
+	FLinearColor UnselectedLabelColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.35f);
+
 	/** Vertical offset for cage name labels above cage center */
 	UPROPERTY(Config, EditAnywhere, Category = "Labels", meta = (ClampMin = "0.0", ClampMax = "200.0"))
 	float CageLabelVerticalOffset = 50.0f;
 
 	/** Position of orbital labels as percentage of probe radius */
 	UPROPERTY(Config, EditAnywhere, Category = "Labels", meta = (ClampMin = "0.1", ClampMax = "1.0"))
-	float OrbitalLabelRadiusPct = 0.3f;
+	float OrbitalLabelRadiusPct = 0.45f;
 
 	// ========== Mirror Ghost ==========
 
 	/**
 	 * Material used for ghost mesh preview in mirror cages.
 	 * All mirror cages share this single material for performance.
-	 * If null, uses the default world grid material.
+	 * If null, uses the plugin's default ghost material (M_ValencyAssetGhost).
 	 */
 	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost")
 	TSoftObjectPtr<UMaterialInterface> GhostMaterial;
 
-	/** Get the ghost material to use (resolves soft pointer, falls back to grid material) */
+	/** Get the ghost material to use (resolves soft pointer, falls back to M_ValencyAssetGhost) */
 	UMaterialInterface* GetGhostMaterial() const;
 
 	// ========== Thin Line Lengths ==========

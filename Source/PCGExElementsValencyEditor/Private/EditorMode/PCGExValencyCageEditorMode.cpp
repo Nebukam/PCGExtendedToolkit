@@ -25,6 +25,18 @@ FPCGExValencyCageEditorMode::~FPCGExValencyCageEditorMode()
 {
 }
 
+FValencyReferenceTracker* FPCGExValencyCageEditorMode::GetActiveReferenceTracker()
+{
+	if (GLevelEditorModeTools().IsModeActive(ModeID))
+	{
+		if (FPCGExValencyCageEditorMode* Mode = static_cast<FPCGExValencyCageEditorMode*>(GLevelEditorModeTools().GetActiveMode(ModeID)))
+		{
+			return &Mode->ReferenceTracker;
+		}
+	}
+	return nullptr;
+}
+
 void FPCGExValencyCageEditorMode::Enter()
 {
 	FEdMode::Enter();
@@ -54,11 +66,17 @@ void FPCGExValencyCageEditorMode::Enter()
 	// Initialize dirty state manager with all cached actors
 	DirtyStateManager.Initialize(CachedCages, CachedVolumes, CachedPalettes);
 
+	// Initialize reference tracker for change propagation
+	ReferenceTracker.Initialize(&CachedCages, &CachedVolumes, &CachedPalettes);
+
 	// Capture current selection state - handles case where actors are already selected
 	// when entering Valency mode (OnSelectionChanged won't fire for existing selection)
 	OnSelectionChanged();
 
 	bCacheDirty = false;
+
+	// Skip first dirty process to allow system to stabilize after mode entry
+	bSkipNextDirtyProcess = true;
 }
 
 void FPCGExValencyCageEditorMode::Exit()
@@ -77,6 +95,7 @@ void FPCGExValencyCageEditorMode::Exit()
 	// Clear tracking state
 	AssetTracker.Reset();
 	DirtyStateManager.Reset();
+	ReferenceTracker.Reset();
 
 	CachedCages.Empty();
 	CachedVolumes.Empty();
@@ -256,7 +275,13 @@ void FPCGExValencyCageEditorMode::Tick(FEditorViewportClient* ViewportClient, fl
 	}
 
 	// Process all dirty state once per frame (coalesced rebuilds)
-	if (DirtyStateManager.ProcessDirty())
+	// Skip dirty processing on first frame after mode entry (system stabilization)
+	if (bSkipNextDirtyProcess)
+	{
+		bSkipNextDirtyProcess = false;
+		DirtyStateManager.Reset(); // Clear any dirty state accumulated during Enter()
+	}
+	else if (DirtyStateManager.ProcessDirty())
 	{
 		RedrawViewports();
 	}
@@ -396,6 +421,9 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 				}
 			}
 		}
+
+		// Rebuild dependency graph - new cage may have MirrorSources
+		ReferenceTracker.RebuildDependencyGraph();
 	}
 	// Check if it's a volume
 	else if (AValencyContextVolume* Volume = Cast<AValencyContextVolume>(Actor))
@@ -407,6 +435,8 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
 	{
 		CachedPalettes.Add(Palette);
+		// Palettes can be MirrorSources - rebuild dependency graph
+		ReferenceTracker.RebuildDependencyGraph();
 	}
 }
 
@@ -425,6 +455,9 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		{
 			return CagePtr.Get() == Cage || !CagePtr.IsValid();
 		});
+
+		// Rebuild dependency graph - removed cage may have been a dependency
+		ReferenceTracker.RebuildDependencyGraph();
 
 		// Refresh connections on remaining cages
 		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
@@ -451,6 +484,8 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		{
 			return PalettePtr.Get() == Palette || !PalettePtr.IsValid();
 		});
+		// Rebuild dependency graph - removed palette may have been a dependency
+		ReferenceTracker.RebuildDependencyGraph();
 	}
 	// Check if it's a tracked asset actor being deleted
 	else

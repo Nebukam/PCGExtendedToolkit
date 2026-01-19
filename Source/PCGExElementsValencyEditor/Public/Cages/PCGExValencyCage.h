@@ -220,6 +220,19 @@ public:
 	/** Clear all ghost mesh components */
 	void ClearMirrorGhostMeshes();
 
+	/**
+	 * Find all cages that have this cage in their MirrorSources array.
+	 * Used to cascade updates when this cage's content changes.
+	 */
+	void FindMirroringCages(TArray<APCGExValencyCage*>& OutCages) const;
+
+	/**
+	 * Trigger rebuild for cages that mirror this cage.
+	 * Called when this cage's MirrorSources changes to cascade the update.
+	 * @return True if any rebuild was triggered
+	 */
+	bool TriggerAutoRebuildForMirroringCages();
+
 #if WITH_EDITOR
 	//~ Begin UObject Interface
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

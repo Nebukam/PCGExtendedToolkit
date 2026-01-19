@@ -44,6 +44,29 @@ namespace PCGExValency
 		const FName SourceClustersLabel = FName("Clusters");
 		const FName OutputStagedLabel = FName("Staged");
 	}
+
+	/**
+	 * Minimal per-node state for valency processing.
+	 * Contains node identity and solver output only.
+	 * Orbital data is accessed via FOrbitalCache.
+	 */
+	struct PCGEXELEMENTSVALENCY_API FValencyState
+	{
+		/** Index in the cluster (node-space, not point-space) */
+		int32 NodeIndex = -1;
+
+		/** Output: resolved module index, or special SlotState value */
+		int32 ResolvedModule = SlotState::UNSET;
+
+		/** Check if this state has been resolved (success, boundary, or unsolvable) */
+		FORCEINLINE bool IsResolved() const { return ResolvedModule >= 0 || ResolvedModule == SlotState::NULL_SLOT || ResolvedModule == SlotState::UNSOLVABLE; }
+
+		/** Check if this is a boundary state (no orbitals, marked NULL) */
+		FORCEINLINE bool IsBoundary() const { return ResolvedModule == SlotState::NULL_SLOT; }
+
+		/** Check if this state failed to solve (contradiction) */
+		FORCEINLINE bool IsUnsolvable() const { return ResolvedModule == SlotState::UNSOLVABLE; }
+	};
 }
 
 

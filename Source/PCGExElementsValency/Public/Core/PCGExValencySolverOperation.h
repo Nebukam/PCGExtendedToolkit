@@ -8,54 +8,13 @@
 #include "Factories/PCGExOperation.h"
 #include "PCGExValencyCommon.h"
 #include "PCGExValencyBondingRules.h"
+#include "PCGExValencyOrbitalCache.h"
 
 #include "PCGExValencySolverOperation.generated.h"
 
 namespace PCGExValency
 {
-	/**
-	 * Minimal per-node data for solver input/output.
-	 * Solvers read orbital info and write ResolvedModule.
-	 * Solver-specific state (candidates, entropy, etc.) lives in the solver.
-	 */
-	struct PCGEXELEMENTSVALENCY_API FValencyState
-	{
-		/** Index in the cluster (node-space, not point-space) */
-		int32 NodeIndex = -1;
-
-		/** Orbital masks per layer (cached from buffer in node-order) */
-		TArray<int64> OrbitalMasks;
-
-		/** Neighbor node index per orbital bit position. -1 = no neighbor (boundary) */
-		TArray<int32> OrbitalToNeighbor;
-
-		/** Output: resolved module index, or special SlotState value */
-		int32 ResolvedModule = SlotState::UNSET;
-
-		/** Check if this state has been resolved (success, boundary, or unsolvable) */
-		bool IsResolved() const { return ResolvedModule >= 0 || ResolvedModule == SlotState::NULL_SLOT || ResolvedModule == SlotState::UNSOLVABLE; }
-
-		/** Check if this is a boundary state (no orbitals, marked NULL) */
-		bool IsBoundary() const { return ResolvedModule == SlotState::NULL_SLOT; }
-
-		/** Check if this state failed to solve (contradiction) */
-		bool IsUnsolvable() const { return ResolvedModule == SlotState::UNSOLVABLE; }
-
-		/** Get neighbor count */
-		int32 GetNeighborCount() const
-		{
-			int32 Count = 0;
-			for (int32 N : OrbitalToNeighbor) { if (N >= 0) { ++Count; } }
-			return Count;
-		}
-
-		/** Check if state has any orbitals */
-		bool HasOrbitals() const
-		{
-			for (int64 Mask : OrbitalMasks) { if (Mask != 0) { return true; } }
-			return false;
-		}
-	};
+	// FValencyState is now in PCGExValencyCommon.h
 
 	/**
 	 * Distribution constraint tracker for min/max spawn counts.
@@ -108,8 +67,8 @@ namespace PCGExValency
 		bool bSuccess = false;
 	};
 
-	/** Function type for checking if a module fits a state */
-	using FModuleFitChecker = TFunctionRef<bool(int32 ModuleIndex, const FValencyState& State)>;
+	/** Function type for checking if a module fits a node using orbital cache */
+	using FModuleFitChecker = TFunctionRef<bool(int32 ModuleIndex, int32 NodeIndex)>;
 
 	/**
 	 * Tracks available slots per module for constraint-aware selection.
@@ -123,10 +82,11 @@ namespace PCGExValency
 		/** Per-state: which modules fit this state (for fast slot decrement on collapse) */
 		TArray<TArray<int32>> StateToFittingModules;
 
-		/** Initialize slot tracking from compiled rules and states */
+		/** Initialize slot tracking from compiled rules and orbital cache */
 		void Initialize(
 			const FPCGExValencyBondingRulesCompiled* Rules,
 			const TArray<FValencyState>& States,
+			const FOrbitalCache* Cache,
 			FModuleFitChecker FitChecker);
 
 		/** Call when a state is collapsed - decrements AvailableSlots for all fitting modules */
@@ -174,15 +134,17 @@ public:
 	virtual ~FPCGExValencySolverOperation() override = default;
 
 	/**
-	 * Initialize the solver with bonding rules and states.
+	 * Initialize the solver with bonding rules, states, and orbital cache.
 	 * Override to set up solver-specific state.
 	 * @param InCompiledBondingRules The compiled bonding rules with module/orbital definitions
 	 * @param InValencyStates Array of states (one per cluster node) - solver writes ResolvedModule
+	 * @param InOrbitalCache Orbital cache providing orbital masks and neighbor mappings
 	 * @param InSeed Random seed for deterministic solving
 	 */
 	virtual void Initialize(
 		const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 		TArray<PCGExValency::FValencyState>& InValencyStates,
+		const PCGExValency::FOrbitalCache* InOrbitalCache,
 		int32 InSeed);
 
 	/**
@@ -199,13 +161,13 @@ public:
 	float MinimumSpawnWeightBoost = 2.0f;
 
 	/**
-	 * Check if a module's orbital mask matches a state's available orbitals.
+	 * Check if a module's orbital mask matches a node's available orbitals.
 	 * Public because FSlotBudget needs to call this during initialization.
 	 * @param ModuleIndex Module to check
-	 * @param State The state to check against
-	 * @return True if module can fit in this state based on orbital geometry
+	 * @param NodeIndex Node index to check against (uses OrbitalCache)
+	 * @return True if module can fit at this node based on orbital geometry
 	 */
-	bool DoesModuleFitState(int32 ModuleIndex, const PCGExValency::FValencyState& State) const;
+	bool DoesModuleFitNode(int32 ModuleIndex, int32 NodeIndex) const;
 
 protected:
 	/** The compiled bonding rules */
@@ -213,6 +175,9 @@ protected:
 
 	/** Valency states (owned externally by staging node) */
 	TArray<PCGExValency::FValencyState>* ValencyStates = nullptr;
+
+	/** Orbital cache providing orbital masks and neighbor mappings */
+	const PCGExValency::FOrbitalCache* OrbitalCache = nullptr;
 
 	/** Distribution constraint tracker (shared utility) */
 	PCGExValency::FDistributionTracker DistributionTracker;
@@ -225,6 +190,30 @@ protected:
 	 * Utility for solvers that need adjacency checking.
 	 */
 	bool IsModuleCompatibleWithNeighbor(int32 ModuleIndex, int32 OrbitalIndex, int32 NeighborModuleIndex) const;
+
+	/** Get neighbor node index at orbital for a node (-1 if no neighbor) */
+	FORCEINLINE int32 GetNeighborAtOrbital(int32 NodeIndex, int32 OrbitalIndex) const
+	{
+		return OrbitalCache ? OrbitalCache->GetNeighborAtOrbital(NodeIndex, OrbitalIndex) : -1;
+	}
+
+	/** Get orbital mask for a node */
+	FORCEINLINE int64 GetOrbitalMask(int32 NodeIndex) const
+	{
+		return OrbitalCache ? OrbitalCache->GetOrbitalMask(NodeIndex) : 0;
+	}
+
+	/** Check if a node has any orbitals (non-zero mask) */
+	FORCEINLINE bool HasOrbitals(int32 NodeIndex) const
+	{
+		return OrbitalCache ? OrbitalCache->HasOrbitals(NodeIndex) : false;
+	}
+
+	/** Get max orbital count from cache */
+	FORCEINLINE int32 GetMaxOrbitals() const
+	{
+		return OrbitalCache ? OrbitalCache->GetMaxOrbitals() : 0;
+	}
 
 	/**
 	 * Select a module from candidates using weighted random.

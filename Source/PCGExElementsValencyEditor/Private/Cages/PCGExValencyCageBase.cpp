@@ -492,8 +492,8 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 	const FTransform MyTransform = GetActorTransform();
 
 	// Build orbital cache for direction matching
-	PCGExValency::FOrbitalCache OrbitalCache;
-	if (!OrbitalCache.BuildFrom(OrbitalSet))
+	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
+	if (!OrbitalResolver.BuildFrom(OrbitalSet))
 	{
 		return;
 	}
@@ -544,7 +544,7 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 		const FVector Direction = (OtherLocation - MyLocation).GetSafeNormal();
 
 		// Find matching orbital (use per-cage transform setting)
-		const uint8 OrbitalIndex = OrbitalCache.FindMatchingOrbital(
+		const uint8 OrbitalIndex = OrbitalResolver.FindMatchingOrbital(
 			Direction,
 			ShouldTransformOrbitalDirections(),
 			MyTransform

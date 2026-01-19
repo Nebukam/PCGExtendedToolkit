@@ -204,7 +204,6 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 			APCGExValencyCage* OldContainingCage = OldCagePtr ? OldCagePtr->Get() : nullptr;
 
 			const bool bContainmentChanged = (NewContainingCage != OldContainingCage);
-			const bool bNeedsInitialCheck = bIsNewActor && NewContainingCage != nullptr;
 
 			// Also refresh if actor moved within a cage that preserves local transforms
 			const bool bMovedWithinTransformCage = bHasMoved &&
@@ -212,7 +211,13 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 				NewContainingCage == OldContainingCage &&
 				NewContainingCage->bPreserveLocalTransforms;
 
-			if (bContainmentChanged || bNeedsInitialCheck || bMovedWithinTransformCage)
+			// For newly selected actors, just record the mapping but don't trigger rebuild
+			// (they're already in the cage, selecting them shouldn't cause regeneration)
+			if (bIsNewActor && NewContainingCage != nullptr)
+			{
+				TrackedActorCageMap.Add(Actor, NewContainingCage);
+			}
+			else if (bContainmentChanged || bMovedWithinTransformCage)
 			{
 				if (bMovedWithinTransformCage)
 				{
@@ -256,7 +261,6 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 			APCGExValencyAssetPalette* OldContainingPalette = OldPalettePtr ? OldPalettePtr->Get() : nullptr;
 
 			const bool bContainmentChanged = (NewContainingPalette != OldContainingPalette);
-			const bool bNeedsInitialCheck = bIsNewActor && NewContainingPalette != nullptr;
 
 			// Also refresh if actor moved within a palette that preserves local transforms
 			const bool bMovedWithinTransformPalette = bHasMoved &&
@@ -264,7 +268,13 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 				NewContainingPalette == OldContainingPalette &&
 				NewContainingPalette->bPreserveLocalTransforms;
 
-			if (bContainmentChanged || bNeedsInitialCheck || bMovedWithinTransformPalette)
+			// For newly selected actors, just record the mapping but don't trigger rebuild
+			// (they're already in the palette, selecting them shouldn't cause regeneration)
+			if (bIsNewActor && NewContainingPalette != nullptr)
+			{
+				TrackedActorPaletteMap.Add(Actor, NewContainingPalette);
+			}
+			else if (bContainmentChanged || bMovedWithinTransformPalette)
 			{
 				if (bMovedWithinTransformPalette)
 				{

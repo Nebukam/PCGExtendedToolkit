@@ -7,7 +7,7 @@
 #include "CanvasTypes.h"
 #include "SceneManagement.h"
 
-#include "EditorMode/PCGExValencyEditorSettings.h"
+#include "PCGExValencyEditorSettings.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageOrbital.h"
@@ -184,21 +184,46 @@ void FPCGExValencyDrawHelper::DrawCageLabels(FCanvas* Canvas, const FSceneView* 
 	}
 
 	const UPCGExValencyEditorSettings* Settings = GetSettings();
+
+	// Check if labels should be shown at all
+	if (Settings->bOnlyShowSelectedLabels && !bIsSelected)
+	{
+		return;
+	}
+
+	// Check if any labels are enabled
+	if (!Settings->bShowCageLabels && !Settings->bShowOrbitalLabels)
+	{
+		return;
+	}
+
 	const FLinearColor LabelColor = bIsSelected ? Settings->SelectedLabelColor : Settings->UnselectedLabelColor;
 	const FVector CageLocation = Cage->GetActorLocation();
 
 	// Null cages: just show "NULL Cage" label, no orbitals
 	if (Cage->IsNullCage())
 	{
-		DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), TEXT("NULL Cage"), LabelColor);
+		if (Settings->bShowCageLabels)
+		{
+			DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), TEXT("NULL Cage"), LabelColor);
+		}
 		return;
 	}
 
 	// Draw cage name label
-	const FString CageName = Cage->GetCageDisplayName();
-	if (!CageName.IsEmpty())
+	if (Settings->bShowCageLabels)
 	{
-		DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), CageName, LabelColor);
+		const FString CageName = Cage->GetCageDisplayName();
+		if (!CageName.IsEmpty())
+		{
+			DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), CageName, LabelColor);
+		}
+	}
+
+	// Skip orbital labels if disabled
+	if (!Settings->bShowOrbitalLabels)
+	{
+		return;
 	}
 
 	// Draw orbital labels if cage has an orbital set
@@ -382,6 +407,18 @@ void FPCGExValencyDrawHelper::DrawPaletteLabels(FCanvas* Canvas, const FSceneVie
 	}
 
 	const UPCGExValencyEditorSettings* Settings = GetSettings();
+
+	// Check if labels should be shown at all
+	if (!Settings->bShowCageLabels)
+	{
+		return;
+	}
+
+	if (Settings->bOnlyShowSelectedLabels && !bIsSelected)
+	{
+		return;
+	}
+
 	const FLinearColor LabelColor = bIsSelected ? Settings->SelectedLabelColor : Palette->PaletteColor;
 	const FVector PaletteLocation = Palette->GetActorLocation();
 

@@ -1,7 +1,7 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "EditorMode/PCGExValencyEditorSettings.h"
+#include "PCGExValencyEditorSettings.h"
 
 #include "Materials/MaterialInterface.h"
 #include "HAL/PlatformTime.h"
@@ -27,11 +27,11 @@ UMaterialInterface* UPCGExValencyEditorSettings::GetGhostMaterial() const
 		}
 	}
 
-	// Fallback to engine's world grid material
-	static UMaterialInterface* DefaultGridMaterial = LoadObject<UMaterialInterface>(
-		nullptr, TEXT("/Engine/EngineMaterials/WorldGridMaterial.WorldGridMaterial"));
+	// Fallback to plugin's default ghost material
+	static UMaterialInterface* DefaultGhostMaterial = LoadObject<UMaterialInterface>(
+		nullptr, TEXT("/PCGExtendedToolkit/Data/Materials/M_ValencyAssetGhost.M_ValencyAssetGhost"));
 
-	return DefaultGridMaterial;
+	return DefaultGhostMaterial;
 }
 
 bool UPCGExValencyEditorSettings::ShouldAllowRebuild(EPropertyChangeType::Type ChangeType)

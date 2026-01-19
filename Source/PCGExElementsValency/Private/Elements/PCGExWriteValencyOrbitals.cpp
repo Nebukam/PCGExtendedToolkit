@@ -82,7 +82,7 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 	}
 
 	// Build orbital cache for fast processing
-	if (!Context->OrbitalCache.BuildFrom(Context->OrbitalSet))
+	if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
 		return false;
@@ -144,7 +144,7 @@ namespace PCGExWriteValencyOrbitals
 		TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges.Get();
 
 		// Use cached orbital data for fast lookup
-		const PCGExValency::FOrbitalCache& Cache = Context->OrbitalCache;
+		const PCGExValency::FOrbitalDirectionResolver& Cache = Context->OrbitalResolver;
 		const bool bUseTransform = Cache.bTransformOrbital;
 
 		PCGEX_SCOPE_LOOP(Index)

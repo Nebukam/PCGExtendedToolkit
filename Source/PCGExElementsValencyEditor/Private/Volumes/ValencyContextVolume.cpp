@@ -16,7 +16,7 @@
 #include "Misc/MessageDialog.h"
 #include "EditorModeManager.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
-#include "EditorMode/PCGExValencyEditorSettings.h"
+#include "PCGExValencyEditorSettings.h"
 #endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogValencyVolume, Log, All);

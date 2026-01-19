@@ -50,7 +50,7 @@ namespace PCGExPCGDataAssetLoader
 		explicit FSpatialTransformResult(const TSharedPtr<PCGExMT::FTask>& InTask);
 	};
 
-	static FSpatialTransformResult PrepareTransformTask(UPCGSpatialData* InData, const FTransform& InTransform);
+	static FSpatialTransformResult PrepareTransformTask(UPCGSpatialData* InData, const FTransform& InTransform, bool bOmitIfEmpty = false);
 }
 
 /**
@@ -87,6 +87,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (TitleProperty = "Label"))
 	TArray<FPCGPinProperties> CustomOutputPins;
 
+	/** If enabled, will refresh seeds on output points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bRefreshSeeds = false;
+	
+	/** If enabled, will not output empty data, even if they have possibly meaningful @Data attributes */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bOmitEmptyData = true;
+	
 	/** If enabled, only spawn data from the PCGDataAsset that matches these tags. Empty means all data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable))
 	bool bFilterByTags = false;

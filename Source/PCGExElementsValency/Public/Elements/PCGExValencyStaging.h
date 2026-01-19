@@ -4,10 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/PCGExClustersProcessor.h"
-#include "Core/PCGExValencyCommon.h"
+#include "Core/PCGExValencyProcessor.h"
 #include "Core/PCGExValencyBondingRules.h"
-#include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencySolverOperation.h"
 #include "Elements/PCGExAssetStaging.h"
 
@@ -25,7 +23,7 @@ namespace PCGExCollections
  * Uses orbital-based compatibility rules to place modules on cluster vertices.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "wfc wave function collapse valency staging", PCGExNodeLibraryDoc="valency/valency-staging"))
-class PCGEXELEMENTSVALENCY_API UPCGExValencyStagingSettings : public UPCGExClustersProcessorSettings
+class PCGEXELEMENTSVALENCY_API UPCGExValencyStagingSettings : public UPCGExValencyProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -37,8 +35,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ValencyStaging, "Valency : Staging", "WFC-like asset staging on cluster vertices using orbital-based compatibility rules.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(MiscAdd); }
-	
+
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
@@ -55,10 +52,6 @@ public:
 	/** The bonding rules data asset containing module configurations */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExValencyBondingRules> BondingRules;
-
-	/** Orbital set - determines which layer's orbital data to read (PCGEx/Valency/Mask/{LayerName}, PCGEx/Valency/Idx/{LayerName}) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
 	/** Solver algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
@@ -101,14 +94,13 @@ public:
 	bool bQuietMissingBondingRules = false;
 };
 
-struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExClustersProcessorContext
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValencyProcessorContext
 {
 	friend class FPCGExValencyStagingElement;
 
 	virtual void RegisterAssetDependencies() override;
 
 	TObjectPtr<UPCGExValencyBondingRules> BondingRules;
-	TObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
 	/** Solver factory (registered from settings) */
 	UPCGExValencySolverInstancedFactory* Solver = nullptr;
@@ -123,7 +115,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
-class PCGEXELEMENTSVALENCY_API FPCGExValencyStagingElement final : public FPCGExClustersProcessorElement
+class PCGEXELEMENTSVALENCY_API FPCGExValencyStagingElement final : public FPCGExValencyProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ValencyStaging)
@@ -138,7 +130,7 @@ namespace PCGExValencyStaging
 {
 	class FBatch;
 
-	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExValencyStagingContext, UPCGExValencyStagingSettings>
+	class FProcessor final : public PCGExValencyMT::TProcessor<FPCGExValencyStagingContext, UPCGExValencyStagingSettings>
 	{
 		friend class FBatch;
 
@@ -146,20 +138,11 @@ namespace PCGExValencyStaging
 		/** Solver instance */
 		TSharedPtr<FPCGExValencySolverOperation> Solver;
 
-		/** Valency states for solver input/output */
-		TArray<PCGExValency::FValencyState> ValencyStates;
-
 		/** Attribute writers (owned by batch, forwarded via PrepareSingle) */
 		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
-
-		/** Orbital mask reader (vertex attribute) */
-		TSharedPtr<PCGExData::TBuffer<int64>> OrbitalMaskReader;
-
-		/** Edge orbital indices reader (edge attribute) */
-		TSharedPtr<PCGExData::TBuffer<int64>> EdgeIndicesReader;
 
 		/** Solve result */
 		PCGExValency::FSolveResult SolveResult;
@@ -179,9 +162,6 @@ namespace PCGExValencyStaging
 		virtual void Write() override;
 
 	protected:
-		/** Build valency states from cluster data */
-		void BuildValencyStates();
-
 		/** Run the solver */
 		void RunSolver();
 
@@ -189,14 +169,8 @@ namespace PCGExValencyStaging
 		void WriteResults();
 	};
 
-	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
 	{
-		/** Orbital mask reader - vertex attribute (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int64>> OrbitalMaskReader;
-
-		/** Edge orbital indices reader - edge attribute (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int64>> EdgeIndicesReader;
-
 		/** Attribute writers (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;

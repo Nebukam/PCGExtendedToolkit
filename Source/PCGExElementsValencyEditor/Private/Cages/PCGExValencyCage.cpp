@@ -10,8 +10,9 @@
 #include "PCGDataAsset.h"
 #include "Components/StaticMeshComponent.h"
 #include "Volumes/ValencyContextVolume.h"
-#include "EditorMode/PCGExValencyEditorSettings.h"
+#include "PCGExValencyEditorSettings.h"
 #include "Core/PCGExValencyLog.h"
+#include "EditorMode/PCGExValencyCageEditorMode.h"
 
 APCGExValencyCage::APCGExValencyCage()
 {
@@ -612,6 +613,12 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			PCGEX_VALENCY_INFO(Mirror, "  Removed %d invalid entries, %d valid sources remain", RemovedCount, MirrorSources.Num());
 		}
 
+		// Notify tracker that our references changed (rebuilds dependency graph)
+		if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+		{
+			Tracker->OnActorReferencesChanged(this);
+		}
+
 		// Refresh ghost meshes
 		RefreshMirrorGhostMeshes();
 
@@ -619,6 +626,9 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 		PCGEX_VALENCY_INFO(Mirror, "  Triggering rebuild for cage '%s'", *GetCageDisplayName());
 		const bool bTriggeredRebuild = TriggerAutoRebuildIfNeeded();
 		PCGEX_VALENCY_VERBOSE(Mirror, "  Rebuild triggered: %s", bTriggeredRebuild ? TEXT("YES") : TEXT("NO (no volume with auto-rebuild or mode not active)"));
+
+		// Also cascade to cages that mirror THIS cage (their effective content has changed)
+		TriggerAutoRebuildForMirroringCages();
 
 		// Redraw viewports
 		if (GEditor)
@@ -814,4 +824,44 @@ void APCGExValencyCage::ClearMirrorGhostMeshes()
 		}
 	}
 	GhostMeshComponents.Empty();
+}
+
+void APCGExValencyCage::FindMirroringCages(TArray<APCGExValencyCage*>& OutCages) const
+{
+	OutCages.Empty();
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	// Find all cages that have this cage in their MirrorSources
+	for (TActorIterator<APCGExValencyCage> It(World); It; ++It)
+	{
+		APCGExValencyCage* Cage = *It;
+		if (!Cage || Cage == this)
+		{
+			continue;
+		}
+
+		for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
+		{
+			if (Source == this)
+			{
+				OutCages.Add(Cage);
+				break;
+			}
+		}
+	}
+}
+
+bool APCGExValencyCage::TriggerAutoRebuildForMirroringCages()
+{
+	// Use centralized reference tracker for recursive propagation
+	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+	{
+		return Tracker->PropagateContentChange(this);
+	}
+	return false;
 }

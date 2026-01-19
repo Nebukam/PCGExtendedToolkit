@@ -72,7 +72,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteValencyOrbitalsContext final : FPCGEx
 	TObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
 	/** Cached orbital data for fast lookup during processing */
-	PCGExValency::FOrbitalCache OrbitalCache;
+	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL

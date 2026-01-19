@@ -59,19 +59,12 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyStaging)
 
 void FPCGExValencyStagingContext::RegisterAssetDependencies()
 {
-	FPCGExClustersProcessorContext::RegisterAssetDependencies();
+	FPCGExValencyProcessorContext::RegisterAssetDependencies();
 
 	const UPCGExValencyStagingSettings* Settings = GetInputSettings<UPCGExValencyStagingSettings>();
-	if (Settings)
+	if (Settings && !Settings->BondingRules.IsNull())
 	{
-		if (!Settings->BondingRules.IsNull())
-		{
-			AddAssetDependency(Settings->BondingRules.ToSoftObjectPath());
-		}
-		if (!Settings->OrbitalSet.IsNull())
-		{
-			AddAssetDependency(Settings->OrbitalSet.ToSoftObjectPath());
-		}
+		AddAssetDependency(Settings->BondingRules.ToSoftObjectPath());
 	}
 }
 
@@ -82,7 +75,7 @@ FPCGElementPtr UPCGExValencyStagingSettings::CreateElement() const
 
 bool FPCGExValencyStagingElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExValencyProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
 
@@ -99,49 +92,32 @@ bool FPCGExValencyStagingElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	if (Settings->OrbitalSet.IsNull())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided."));
-		return false;
-	}
-
 	return true;
 }
 
 void FPCGExValencyStagingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
 {
-	FPCGExClustersProcessorElement::PostLoadAssetsDependencies(InContext);
+	FPCGExValencyProcessorElement::PostLoadAssetsDependencies(InContext);
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
 
-	// Get loaded assets
+	// Get loaded BondingRules (OrbitalSet is handled by base class)
 	if (!Settings->BondingRules.IsNull())
 	{
 		Context->BondingRules = Settings->BondingRules.Get();
-	}
-
-	if (!Settings->OrbitalSet.IsNull())
-	{
-		Context->OrbitalSet = Settings->OrbitalSet.Get();
 	}
 }
 
 bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 {
-	if (!FPCGExClustersProcessorElement::PostBoot(InContext)) { return false; }
+	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
 
-	// Validate loaded assets
+	// Validate loaded BondingRules (OrbitalSet validation is handled by base class)
 	if (!Context->BondingRules)
 	{
 		if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Valency Bonding Rules.")); }
-		return false;
-	}
-
-	if (!Context->OrbitalSet)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Valency Orbital Set."));
 		return false;
 	}
 
@@ -157,8 +133,7 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	}
 
 	Settings->BondingRules->EDITOR_RegisterTrackingKeys(Context);
-	Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
-	
+
 	// Register solver from settings
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValencySolverInstancedFactory, Settings->Solver, NAME_None);
 	if (!Context->Solver) { return false; }
@@ -184,10 +159,12 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-		{
-			NewBatch->bRequiresWriteStep = true;
-		}))
+		if (!Context->StartProcessingClusters(
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = true;
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -216,19 +193,6 @@ namespace PCGExValencyStaging
 
 		if (!TProcessor::Process(InTaskManager)) { return false; }
 
-		// Create edge indices reader for this processor's edge facade
-		const FName IdxAttributeName = Context->OrbitalSet->GetOrbitalIdxAttributeName();
-		EdgeIndicesReader = EdgeDataFacade->GetReadable<int64>(Context->OrbitalSet->GetOrbitalIdxAttributeName());
-
-		if (!EdgeIndicesReader)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Edge indices attribute '{0}' not found on edges. Run 'Write Valency Orbitals' first."), FText::FromName(IdxAttributeName)));
-			return false;
-		}
-
-		// Build valency states from pre-computed attributes
-		BuildValencyStates();
-
 		// Run solver
 		RunSolver();
 
@@ -248,110 +212,6 @@ namespace PCGExValencyStaging
 		// Not used
 	}
 
-	void FProcessor::BuildValencyStates()
-	{
-		if (!Cluster || !Context->OrbitalSet) { return; }
-
-		VALENCY_LOG_SECTION(Staging, "BUILDING VALENCY STATES");
-		PCGEX_VALENCY_INFO(Staging, "Cluster nodes: %d, MaxOrbitals: %d", NumNodes, Context->OrbitalSet->Num());
-
-		ValencyStates.SetNum(NumNodes);
-
-		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
-		const int32 MaxOrbitals = Context->OrbitalSet->Num();
-
-		// Build state for each node
-		for (int32 NodeIndex = 0; NodeIndex < NumNodes; ++NodeIndex)
-		{
-			PCGExValency::FValencyState& State = ValencyStates[NodeIndex];
-			State.NodeIndex = NodeIndex;
-
-			const PCGExClusters::FNode& Node = Nodes[NodeIndex];
-
-			// Read orbital mask from pre-computed vertex attribute
-			if (OrbitalMaskReader)
-			{
-				const int64 Mask = OrbitalMaskReader->Read(Node.PointIndex);
-				State.OrbitalMasks.Add(Mask);
-
-				// Log mask as binary
-				FString MaskBits;
-				for (int32 Bit = 0; Bit < MaxOrbitals; ++Bit)
-				{
-					MaskBits += (Mask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
-				}
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): OrbitalMask=%s (0x%llX), Links=%d",
-					NodeIndex, Node.PointIndex, *MaskBits, Mask, Node.Links.Num());
-			}
-			else
-			{
-				PCGEX_VALENCY_WARNING(Staging, "  Node[%d] (Point=%d): NO MASK READER, Links=%d",
-					NodeIndex, Node.PointIndex, Node.Links.Num());
-			}
-
-			// Initialize orbital-to-neighbor mapping with no neighbors
-			State.OrbitalToNeighbor.SetNum(MaxOrbitals);
-			for (int32 i = 0; i < MaxOrbitals; ++i)
-			{
-				State.OrbitalToNeighbor[i] = -1;
-			}
-
-			// Build orbital-to-neighbor from edge indices
-			for (const PCGExClusters::FLink& Link : Node.Links)
-			{
-				const int32 EdgeIndex = Link.Edge;
-				const int32 NeighborNodeIndex = Link.Node;
-
-				if (!EdgeIndicesReader || !Cluster->Edges->IsValidIndex(EdgeIndex))
-				{
-					continue;
-				}
-
-				const PCGExGraphs::FEdge& Edge = (*Cluster->Edges)[EdgeIndex];
-				const int64 PackedIndices = EdgeIndicesReader->Read(EdgeIndex);
-
-				// Unpack orbital indices (byte 0 = start, byte 1 = end)
-				const uint8 StartOrbitalIndex = static_cast<uint8>(PackedIndices & 0xFF);
-				const uint8 EndOrbitalIndex = static_cast<uint8>((PackedIndices >> 8) & 0xFF);
-
-				// Determine which orbital index applies to this node
-				uint8 OrbitalIndex;
-				if (Edge.Start == Node.PointIndex)
-				{
-					OrbitalIndex = StartOrbitalIndex;
-				}
-				else
-				{
-					OrbitalIndex = EndOrbitalIndex;
-				}
-
-				// Skip if no match (sentinel value)
-				if (OrbitalIndex == PCGExValency::NO_ORBITAL_MATCH)
-				{
-					PCGEX_VALENCY_VERBOSE(Staging, "    Link to Node[%d] via Edge[%d]: NO_ORBITAL_MATCH", NeighborNodeIndex, EdgeIndex);
-					continue;
-				}
-
-				// Store neighbor at this orbital
-				if (OrbitalIndex < MaxOrbitals)
-				{
-					State.OrbitalToNeighbor[OrbitalIndex] = NeighborNodeIndex;
-					PCGEX_VALENCY_VERBOSE(Staging, "    Orbital[%d] -> Neighbor Node[%d]", OrbitalIndex, NeighborNodeIndex);
-				}
-			}
-		}
-
-		// Summary: count states with/without orbitals
-		int32 WithOrbitals = 0;
-		int32 WithoutOrbitals = 0;
-		for (const PCGExValency::FValencyState& State : ValencyStates)
-		{
-			if (State.HasOrbitals()) { WithOrbitals++; } else { WithoutOrbitals++; }
-		}
-		VALENCY_LOG_SECTION(Staging, "STATE BUILDING COMPLETE");
-		PCGEX_VALENCY_INFO(Staging, "With orbitals: %d, Without: %d", WithOrbitals, WithoutOrbitals);
-	}
-
 	void FProcessor::RunSolver()
 	{
 		VALENCY_LOG_SECTION(Staging, "RUNNING VALENCY SOLVER");
@@ -363,8 +223,8 @@ namespace PCGExValencyStaging
 		}
 
 		PCGEX_VALENCY_INFO(Staging, "BondingRules: '%s', CompiledModules: %d",
-			*Context->BondingRules->GetName(),
-			Context->BondingRules->CompiledData->ModuleCount);
+		                   *Context->BondingRules->GetName(),
+		                   Context->BondingRules->CompiledData->ModuleCount);
 
 		// Create solver from factory
 		if (Context->Solver)
@@ -388,13 +248,13 @@ namespace PCGExValencyStaging
 
 		PCGEX_VALENCY_INFO(Staging, "Initializing solver with seed %d, %d states", SolveSeed, ValencyStates.Num());
 
-		Solver->Initialize(Context->BondingRules->CompiledData.Get(), ValencyStates, SolveSeed);
+		Solver->Initialize(Context->BondingRules->CompiledData.Get(), ValencyStates, OrbitalCache.Get(), SolveSeed);
 		SolveResult = Solver->Solve();
 
 		VALENCY_LOG_SECTION(Staging, "SOLVER RESULT");
 		PCGEX_VALENCY_INFO(Staging, "Resolved=%d, Unsolvable=%d, Boundary=%d, Success=%s",
-			SolveResult.ResolvedCount, SolveResult.UnsolvableCount, SolveResult.BoundaryCount,
-			SolveResult.bSuccess ? TEXT("true") : TEXT("false"));
+		                   SolveResult.ResolvedCount, SolveResult.UnsolvableCount, SolveResult.BoundaryCount,
+		                   SolveResult.bSuccess ? TEXT("true") : TEXT("false"));
 
 		if (SolveResult.UnsolvableCount > 0)
 		{
@@ -443,7 +303,7 @@ namespace PCGExValencyStaging
 				const FString AssetName = CompiledBondingRules->ModuleAssets[State.ResolvedModule].GetAssetName();
 
 				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)",
-					State.NodeIndex, Node.PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
+				                      State.NodeIndex, Node.PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
 
 				// Write asset path (Attributes mode) or entry hash (CollectionMap mode)
 				if (AssetPathWriter)
@@ -481,12 +341,12 @@ namespace PCGExValencyStaging
 						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, SecondaryIndex);
 						EntryHashWriter->SetValue(Node.PointIndex, static_cast<int64>(Hash));
 						PCGEX_VALENCY_VERBOSE(Staging, "    -> EntryHash=0x%llX (EntryIndex=%d, SecondaryIndex=%d)",
-							Hash, EntryIndex, SecondaryIndex);
+						                      Hash, EntryIndex, SecondaryIndex);
 					}
 					else
 					{
 						PCGEX_VALENCY_WARNING(Staging, "    -> NO COLLECTION/ENTRY (Collection=%s, EntryIndex=%d)",
-							Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
+						                      Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
 					}
 				}
 
@@ -561,23 +421,7 @@ namespace PCGExValencyStaging
 
 		const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
 
-		// Get attribute names from orbital set
-		const FName MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
-
-		// Create orbital mask reader (vertex attribute)
-		OrbitalMaskReader = OutputFacade->GetReadable<int64>(MaskAttributeName);
-
-		if (!OrbitalMaskReader)
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Orbital mask attribute '{0}' not found on vertices. Run 'Write Valency Orbitals' first."), FText::FromName(MaskAttributeName)));
-			bIsBatchValid = false;
-			return;
-		}
-
-		// Create edge indices reader (edge attribute) - need to get from edge facade
-		// Note: Edge reading is handled per-processor since each cluster has its own edges
-
-		// Create writers; inherit in case we run with a different layer
+		// Create staging-specific writers BEFORE calling base (base triggers PrepareSingle which forwards these)
 		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Settings->ModuleIndexAttributeName, -1, true, PCGExData::EBufferInit::Inherit);
 
 		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
@@ -597,19 +441,19 @@ namespace PCGExValencyStaging
 			UnsolvableWriter = OutputFacade->GetWritable<bool>(Settings->UnsolvableAttributeName, false, true, PCGExData::EBufferInit::Inherit);
 		}
 
+		// Call base class AFTER creating writers (base triggers PrepareSingle)
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
 	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
+		// Call base class first - forwards orbital readers to processor
+		// (Orbital cache is built by processor in Process() after cluster is available)
 		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
-
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
 
 		FProcessor* TypedProcessor = static_cast<FProcessor*>(InProcessor.Get());
 
-		// Forward reader and writers to processor
-		TypedProcessor->OrbitalMaskReader = OrbitalMaskReader;
+		// Forward staging-specific writers to processor
 		TypedProcessor->ModuleIndexWriter = ModuleIndexWriter;
 		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
