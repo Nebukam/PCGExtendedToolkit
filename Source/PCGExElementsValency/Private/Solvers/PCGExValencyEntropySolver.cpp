@@ -363,6 +363,7 @@ bool FPCGExValencyEntropySolver::FilterCandidates(int32 StateIndex)
 
 	int32 RemovedByDistribution = 0;
 	int32 RemovedByNeighbor = 0;
+	int32 RemovedByArcConsistency = 0;
 
 	// Filter out candidates that don't work with resolved neighbors
 	for (int32 i = Data.Candidates.Num() - 1; i >= 0; --i)
@@ -407,16 +408,93 @@ bool FPCGExValencyEntropySolver::FilterCandidates(int32 StateIndex)
 		{
 			Data.Candidates.RemoveAt(i);
 			RemovedByNeighbor++;
+			continue;
+		}
+
+		// Arc consistency check: would selecting this candidate leave any unresolved neighbor with zero candidates?
+		if (!CheckArcConsistency(StateIndex, CandidateModule))
+		{
+			PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates: Module[%d] rejected by arc consistency (would leave neighbor with no candidates)", CandidateModule);
+			Data.Candidates.RemoveAt(i);
+			RemovedByArcConsistency++;
 		}
 	}
 
-	if (RemovedByDistribution > 0 || RemovedByNeighbor > 0)
+	if (RemovedByDistribution > 0 || RemovedByNeighbor > 0 || RemovedByArcConsistency > 0)
 	{
-		PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates[%d]: Removed %d by distribution, %d by neighbor constraints",
-			StateIndex, RemovedByDistribution, RemovedByNeighbor);
+		PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates[%d]: Removed %d by distribution, %d by neighbor, %d by arc consistency",
+			StateIndex, RemovedByDistribution, RemovedByNeighbor, RemovedByArcConsistency);
 	}
 
 	return Data.Candidates.Num() > 0;
+}
+
+bool FPCGExValencyEntropySolver::CheckArcConsistency(int32 StateIndex, int32 CandidateModule) const
+{
+	if (!CompiledBondingRules || !ValencyStates->IsValidIndex(StateIndex))
+	{
+		return false;
+	}
+
+	const PCGExValency::FValencyState& State = (*ValencyStates)[StateIndex];
+
+	// For each unresolved neighbor, check if at least one of their candidates would be compatible
+	for (int32 OrbitalIndex = 0; OrbitalIndex < State.OrbitalToNeighbor.Num(); ++OrbitalIndex)
+	{
+		const int32 NeighborIndex = State.OrbitalToNeighbor[OrbitalIndex];
+		if (NeighborIndex < 0 || !ValencyStates->IsValidIndex(NeighborIndex))
+		{
+			continue;
+		}
+
+		const PCGExValency::FValencyState& NeighborState = (*ValencyStates)[NeighborIndex];
+		if (NeighborState.IsResolved())
+		{
+			continue; // Already resolved, no need to check
+		}
+
+		const FWFCStateData& NeighborData = StateData[NeighborIndex];
+		if (NeighborData.Candidates.Num() == 0)
+		{
+			continue; // Already empty (will be marked unsolvable elsewhere)
+		}
+
+		// Find which orbital of the neighbor points back to us
+		int32 ReverseOrbitalIndex = -1;
+		for (int32 NeighborOrbital = 0; NeighborOrbital < NeighborState.OrbitalToNeighbor.Num(); ++NeighborOrbital)
+		{
+			if (NeighborState.OrbitalToNeighbor[NeighborOrbital] == StateIndex)
+			{
+				ReverseOrbitalIndex = NeighborOrbital;
+				break;
+			}
+		}
+
+		if (ReverseOrbitalIndex < 0)
+		{
+			continue; // No reverse connection (unusual but possible)
+		}
+
+		// Check if any of the neighbor's candidates would be compatible with our candidate
+		bool bHasCompatibleNeighborCandidate = false;
+		for (int32 NeighborCandidate : NeighborData.Candidates)
+		{
+			// The neighbor candidate must accept our candidate module at its reverse orbital
+			if (IsModuleCompatibleWithNeighbor(NeighborCandidate, ReverseOrbitalIndex, CandidateModule))
+			{
+				bHasCompatibleNeighborCandidate = true;
+				break;
+			}
+		}
+
+		if (!bHasCompatibleNeighborCandidate)
+		{
+			// Selecting this candidate would leave this neighbor with no valid candidates
+			return false;
+		}
+	}
+
+	return true;
 }
 
 int32 FPCGExValencyEntropySolver::SelectWeightedRandom(const TArray<int32>& Candidates)

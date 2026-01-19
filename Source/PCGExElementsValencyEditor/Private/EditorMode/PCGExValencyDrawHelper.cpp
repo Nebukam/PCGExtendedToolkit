@@ -428,24 +428,43 @@ void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI,
 	const FVector MirrorLocation = MirrorCage->GetActorLocation();
 	const FVector SourceLocation = SourceActor->GetActorLocation();
 
-	// Draw dashed line from mirror to source
-	DrawLineSegment(PDI, MirrorLocation, SourceLocation, Settings->MirrorConnectionColor, Settings->OrbitalArrowThickness, true);
+	// Draw a soft arc from mirror to source instead of a straight line
+	// Arc curves upward to avoid overlapping with other debug elements
+	const FVector MidPoint = (MirrorLocation + SourceLocation) * 0.5f;
+	const float Distance = FVector::Dist(MirrorLocation, SourceLocation);
+	const float ArcHeight = Distance * 0.15f; // Subtle arc height
+
+	// Calculate arc control point (curves upward)
+	const FVector ArcControl = MidPoint + FVector::UpVector * ArcHeight;
+
+	// Draw arc as segments using quadratic bezier curve
+	constexpr int32 NumSegments = 16;
+	constexpr float ThinLineThickness = 1.0f;
+
+	FVector PrevPoint = MirrorLocation;
+	for (int32 i = 1; i <= NumSegments; ++i)
+	{
+		const float T = static_cast<float>(i) / static_cast<float>(NumSegments);
+
+		// Quadratic bezier: B(t) = (1-t)^2 * P0 + 2(1-t)t * P1 + t^2 * P2
+		const float OneMinusT = 1.0f - T;
+		const FVector CurrentPoint =
+			OneMinusT * OneMinusT * MirrorLocation +
+			2.0f * OneMinusT * T * ArcControl +
+			T * T * SourceLocation;
+
+		PDI->DrawLine(PrevPoint, CurrentPoint, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
+		PrevPoint = CurrentPoint;
+	}
 
 	// Draw a small diamond marker at the mirror cage to indicate it's a mirror
-	const float MarkerSize = 15.0f;
+	const float MarkerSize = 10.0f;
 	const FVector Up = FVector::UpVector * MarkerSize;
 	const FVector Right = FVector::RightVector * MarkerSize;
-	const FVector Forward = FVector::ForwardVector * MarkerSize;
 
-	// Diamond shape around the cage
-	PDI->DrawLine(MirrorLocation + Up, MirrorLocation + Right, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
-	PDI->DrawLine(MirrorLocation + Right, MirrorLocation - Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
-	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Right, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
-	PDI->DrawLine(MirrorLocation - Right, MirrorLocation + Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
-
-	// Vertical diamond
-	PDI->DrawLine(MirrorLocation + Up, MirrorLocation + Forward, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
-	PDI->DrawLine(MirrorLocation + Forward, MirrorLocation - Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
-	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Forward, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
-	PDI->DrawLine(MirrorLocation - Forward, MirrorLocation + Up, Settings->MirrorConnectionColor, SDPG_World, Settings->ConnectionLineThickness);
+	// Simple 2D diamond shape (less cluttered than 3D version)
+	PDI->DrawLine(MirrorLocation + Up, MirrorLocation + Right, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
+	PDI->DrawLine(MirrorLocation + Right, MirrorLocation - Up, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
+	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Right, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
+	PDI->DrawLine(MirrorLocation - Right, MirrorLocation + Up, Settings->MirrorConnectionColor, SDPG_World, ThinLineThickness);
 }

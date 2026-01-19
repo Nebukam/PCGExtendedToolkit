@@ -104,6 +104,15 @@ protected:
 	bool FilterCandidates(int32 StateIndex);
 
 	/**
+	 * Check if selecting a candidate would leave any unresolved neighbor with zero valid candidates.
+	 * This is an arc consistency check to prevent greedy choices that cause future contradictions.
+	 * @param StateIndex The state considering the candidate
+	 * @param CandidateModule The module being considered
+	 * @return True if selection is safe (neighbors would have at least one candidate), false otherwise
+	 */
+	bool CheckArcConsistency(int32 StateIndex, int32 CandidateModule) const;
+
+	/**
 	 * Select a module from candidates using weighted random.
 	 * Considers distribution constraints (prefer modules needing minimum).
 	 */

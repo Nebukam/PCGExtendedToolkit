@@ -51,6 +51,10 @@ void FPCGExValencyCageEditorMode::Enter()
 	// Initialize asset tracker with our cache references
 	AssetTracker.Initialize(CachedCages, CachedVolumes);
 
+	// Capture current selection state - handles case where actors are already selected
+	// when entering Valency mode (OnSelectionChanged won't fire for existing selection)
+	OnSelectionChanged();
+
 	bCacheDirty = false;
 }
 
