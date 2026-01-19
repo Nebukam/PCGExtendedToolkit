@@ -264,69 +264,39 @@ void UPCGExValencyBondingRules::RebuildGeneratedCollections()
 				Entry.StaticMesh = TSoftObjectPtr<UStaticMesh>(Module.Asset.ToSoftObjectPath());
 				Entry.Weight = FMath::Max(1, FMath::RoundToInt32(Module.Settings.Weight));
 
-				// Populate material variants if discovered
-				const FSoftObjectPath MeshPath = Module.Asset.ToSoftObjectPath();
-				if (const TArray<FPCGExValencyMaterialVariant>* Variants = DiscoveredMaterialVariants.Find(MeshPath))
+				// Populate material variant if this module has one
+				// Each module now has its own material variant stored directly, not looked up by mesh path
+				if (Module.bHasMaterialVariant && Module.MaterialVariant.Overrides.Num() > 0)
 				{
-					if (Variants->Num() > 0)
+					const FPCGExValencyMaterialVariant& Variant = Module.MaterialVariant;
+
+					// Determine mode based on number of overrides
+					if (Variant.Overrides.Num() == 1)
 					{
-						// Determine mode: Single if all variants override same single slot
-						bool bCanUseSingleMode = true;
-						int32 CommonSlotIndex = -1;
+						// Single slot mode
+						Entry.MaterialVariants = EPCGExMaterialVariantsMode::Single;
+						Entry.SlotIndex = Variant.Overrides[0].SlotIndex;
+						Entry.MaterialOverrideVariants.Empty();
 
-						for (const FPCGExValencyMaterialVariant& Variant : *Variants)
+						FPCGExMaterialOverrideSingleEntry& SingleEntry = Entry.MaterialOverrideVariants.AddDefaulted_GetRef();
+						SingleEntry.Weight = Variant.DiscoveryCount;
+						SingleEntry.Material = Variant.Overrides[0].Material;
+					}
+					else
+					{
+						// Multi slot mode
+						Entry.MaterialVariants = EPCGExMaterialVariantsMode::Multi;
+						Entry.MaterialOverrideVariantsList.Empty();
+
+						FPCGExMaterialOverrideCollection& MultiEntry = Entry.MaterialOverrideVariantsList.AddDefaulted_GetRef();
+						MultiEntry.Weight = Variant.DiscoveryCount;
+						MultiEntry.Overrides.Reserve(Variant.Overrides.Num());
+
+						for (const FPCGExValencyMaterialOverride& Override : Variant.Overrides)
 						{
-							if (Variant.Overrides.Num() != 1)
-							{
-								bCanUseSingleMode = false;
-								break;
-							}
-							if (CommonSlotIndex < 0)
-							{
-								CommonSlotIndex = Variant.Overrides[0].SlotIndex;
-							}
-							else if (Variant.Overrides[0].SlotIndex != CommonSlotIndex)
-							{
-								bCanUseSingleMode = false;
-								break;
-							}
-						}
-
-						if (bCanUseSingleMode && CommonSlotIndex >= 0)
-						{
-							// Single slot mode
-							Entry.MaterialVariants = EPCGExMaterialVariantsMode::Single;
-							Entry.SlotIndex = CommonSlotIndex;
-							Entry.MaterialOverrideVariants.Empty();
-							Entry.MaterialOverrideVariants.Reserve(Variants->Num());
-
-							for (const FPCGExValencyMaterialVariant& Variant : *Variants)
-							{
-								FPCGExMaterialOverrideSingleEntry& SingleEntry = Entry.MaterialOverrideVariants.AddDefaulted_GetRef();
-								SingleEntry.Weight = Variant.DiscoveryCount;
-								SingleEntry.Material = Variant.Overrides[0].Material;
-							}
-						}
-						else
-						{
-							// Multi slot mode
-							Entry.MaterialVariants = EPCGExMaterialVariantsMode::Multi;
-							Entry.MaterialOverrideVariantsList.Empty();
-							Entry.MaterialOverrideVariantsList.Reserve(Variants->Num());
-
-							for (const FPCGExValencyMaterialVariant& Variant : *Variants)
-							{
-								FPCGExMaterialOverrideCollection& MultiEntry = Entry.MaterialOverrideVariantsList.AddDefaulted_GetRef();
-								MultiEntry.Weight = Variant.DiscoveryCount;
-								MultiEntry.Overrides.Reserve(Variant.Overrides.Num());
-
-								for (const FPCGExValencyMaterialOverride& Override : Variant.Overrides)
-								{
-									FPCGExMaterialOverrideEntry& OverrideEntry = MultiEntry.Overrides.AddDefaulted_GetRef();
-									OverrideEntry.SlotIndex = Override.SlotIndex;
-									OverrideEntry.Material = Override.Material;
-								}
-							}
+							FPCGExMaterialOverrideEntry& OverrideEntry = MultiEntry.Overrides.AddDefaulted_GetRef();
+							OverrideEntry.SlotIndex = Override.SlotIndex;
+							OverrideEntry.Material = Override.Material;
 						}
 					}
 				}

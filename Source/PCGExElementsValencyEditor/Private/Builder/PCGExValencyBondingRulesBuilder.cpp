@@ -315,9 +315,11 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			}
 
 			// Include local transform in key if cage preserves transforms
+			// Include material variant to differentiate same mesh with different materials
 			const FTransform* TransformPtr = Data.bPreserveLocalTransforms ? &Entry.LocalTransform : nullptr;
+			const FPCGExValencyMaterialVariant* MaterialVariantPtr = Entry.bHasMaterialVariant ? &Entry.MaterialVariant : nullptr;
 			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
-				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr);
+				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr, MaterialVariantPtr);
 
 			if (OutModuleKeyToIndex.Contains(ModuleKey))
 			{
@@ -337,6 +339,13 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			{
 				NewModule.LocalTransform = Entry.LocalTransform;
 				NewModule.bHasLocalTransform = !Entry.LocalTransform.Equals(FTransform::Identity, 0.01f);
+			}
+
+			// Store material variant directly on the module
+			if (Entry.bHasMaterialVariant)
+			{
+				NewModule.MaterialVariant = Entry.MaterialVariant;
+				NewModule.bHasMaterialVariant = true;
 			}
 
 #if WITH_EDITORONLY_DATA
@@ -403,8 +412,9 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 		for (const FPCGExValencyAssetEntry& Entry : Data.AssetEntries)
 		{
 			const FTransform* TransformPtr = Data.bPreserveLocalTransforms ? &Entry.LocalTransform : nullptr;
+			const FPCGExValencyMaterialVariant* MaterialVariantPtr = Entry.bHasMaterialVariant ? &Entry.MaterialVariant : nullptr;
 			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
-				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr);
+				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr, MaterialVariantPtr);
 			if (const int32* ModuleIndex = ModuleKeyToIndex.Find(ModuleKey))
 			{
 				CageModuleIndices.AddUnique(*ModuleIndex);
@@ -463,8 +473,11 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 							const FTransform* ConnectedTransformPtr = ConnectedData.bPreserveLocalTransforms
 								                                          ? &ConnectedEntry.LocalTransform
 								                                          : nullptr;
+							const FPCGExValencyMaterialVariant* ConnectedMaterialVariantPtr = ConnectedEntry.bHasMaterialVariant
+								                                                                  ? &ConnectedEntry.MaterialVariant
+								                                                                  : nullptr;
 							const FString NeighborKey = FPCGExValencyCageData::MakeModuleKey(
-								ConnectedEntry.Asset.ToSoftObjectPath(), ConnectedData.OrbitalMask, ConnectedTransformPtr);
+								ConnectedEntry.Asset.ToSoftObjectPath(), ConnectedData.OrbitalMask, ConnectedTransformPtr, ConnectedMaterialVariantPtr);
 							if (const int32* NeighborModuleIndex = ModuleKeyToIndex.Find(NeighborKey))
 							{
 								NeighborModuleIndices.AddUnique(*NeighborModuleIndex);

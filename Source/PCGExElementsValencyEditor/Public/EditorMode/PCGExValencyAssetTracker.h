@@ -85,6 +85,9 @@ private:
 	/** Collect non-null cages that can receive assets */
 	void CollectTrackingCages(TArray<APCGExValencyCage*>& OutCages) const;
 
+	/** Find all cages that mirror the given cage (have it in their MirrorSources) */
+	void FindCagesThatMirror(APCGExValencyCage* SourceCage, TArray<APCGExValencyCage*>& OutMirroringCages) const;
+
 private:
 	/** Reference to cached cages (owned by editor mode) */
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>* CachedCages = nullptr;

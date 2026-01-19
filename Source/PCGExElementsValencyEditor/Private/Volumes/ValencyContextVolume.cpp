@@ -9,6 +9,7 @@
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "Builder/PCGExValencyBondingRulesBuilder.h"
+#include "Subsystems/PCGSubsystem.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -302,6 +303,7 @@ void AValencyContextVolume::RegeneratePCGActors()
 	}
 
 	int32 RegeneratedCount = 0;
+	UPCGSubsystem::GetActiveEditorInstance()->FlushCache();
 
 	for (const TObjectPtr<AActor>& ActorPtr : PCGActorsToRegenerate)
 	{

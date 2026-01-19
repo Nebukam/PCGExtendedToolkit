@@ -67,21 +67,37 @@ struct FPCGExValencyCageData
 
 	/**
 	 * Get a unique key for module lookup.
-	 * When local transforms are preserved, includes transform hash for unique variants.
+	 * Includes transform hash when transforms are preserved, and material variant hash when materials differ.
 	 */
-	static FString MakeModuleKey(const FSoftObjectPath& AssetPath, int64 Mask, const FTransform* LocalTransform = nullptr)
+	static FString MakeModuleKey(const FSoftObjectPath& AssetPath, int64 Mask, const FTransform* LocalTransform = nullptr, const FPCGExValencyMaterialVariant* MaterialVariant = nullptr)
 	{
+		FString Key = FString::Printf(TEXT("%s_%lld"), *AssetPath.ToString(), Mask);
+
+		// Include transform hash for unique variants
 		if (LocalTransform && !LocalTransform->Equals(FTransform::Identity, 0.01f))
 		{
-			// Include transform hash for unique variants
 			const FVector Loc = LocalTransform->GetLocation();
 			const FRotator Rot = LocalTransform->Rotator();
-			return FString::Printf(TEXT("%s_%lld_%.0f%.0f%.0f_%.0f%.0f%.0f"),
-				*AssetPath.ToString(), Mask,
+			Key += FString::Printf(TEXT("_T%.0f%.0f%.0f_%.0f%.0f%.0f"),
 				Loc.X, Loc.Y, Loc.Z,
 				Rot.Pitch, Rot.Yaw, Rot.Roll);
 		}
-		return FString::Printf(TEXT("%s_%lld"), *AssetPath.ToString(), Mask);
+
+		// Include material variant hash - each unique material configuration is a separate module
+		if (MaterialVariant && MaterialVariant->Overrides.Num() > 0)
+		{
+			Key += TEXT("_M");
+			for (const FPCGExValencyMaterialOverride& Override : MaterialVariant->Overrides)
+			{
+				// Use material path hash for uniqueness
+				const uint32 MatHash = Override.Material.IsValid()
+					? GetTypeHash(Override.Material.ToSoftObjectPath().ToString())
+					: 0;
+				Key += FString::Printf(TEXT("%d:%u"), Override.SlotIndex, MatHash);
+			}
+		}
+
+		return Key;
 	}
 };
 

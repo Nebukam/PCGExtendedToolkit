@@ -257,6 +257,29 @@ void FPCGExValencyAssetTracker::TriggerAutoRebuild(const TSet<APCGExValencyCage*
 		return;
 	}
 
+	// Expand affected cages to include cages that mirror them (mirror cascade)
+	TSet<APCGExValencyCage*> ExpandedAffectedCages = AffectedCages;
+
+	for (APCGExValencyCage* AffectedCage : AffectedCages)
+	{
+		if (AffectedCage)
+		{
+			TArray<APCGExValencyCage*> MirroringCages;
+			FindCagesThatMirror(AffectedCage, MirroringCages);
+
+			for (APCGExValencyCage* MirroringCage : MirroringCages)
+			{
+				if (MirroringCage && !ExpandedAffectedCages.Contains(MirroringCage))
+				{
+					UE_LOG(LogTemp, Log, TEXT("Valency: Mirror cascade - Cage '%s' mirrors affected cage '%s', adding to rebuild"),
+						*MirroringCage->GetCageDisplayName(),
+						*AffectedCage->GetCageDisplayName());
+					ExpandedAffectedCages.Add(MirroringCage);
+				}
+			}
+		}
+	}
+
 	TSet<AValencyContextVolume*> VolumesToRebuild;
 
 	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : *CachedVolumes)
@@ -266,7 +289,7 @@ void FPCGExValencyAssetTracker::TriggerAutoRebuild(const TSet<APCGExValencyCage*
 			if (Volume->bAutoRebuildOnChange)
 			{
 				// Check if any affected cage is in this volume
-				for (APCGExValencyCage* Cage : AffectedCages)
+				for (APCGExValencyCage* Cage : ExpandedAffectedCages)
 				{
 					if (Cage && Volume->ContainsPoint(Cage->GetActorLocation()))
 					{
@@ -343,6 +366,38 @@ void FPCGExValencyAssetTracker::CollectTrackingCages(TArray<APCGExValencyCage*>&
 			if (!Cage->IsNullCage())
 			{
 				OutCages.Add(Cage);
+			}
+		}
+	}
+}
+
+void FPCGExValencyAssetTracker::FindCagesThatMirror(APCGExValencyCage* SourceCage, TArray<APCGExValencyCage*>& OutMirroringCages) const
+{
+	OutMirroringCages.Empty();
+
+	if (!SourceCage || !CachedCages)
+	{
+		return;
+	}
+
+	// Find all cages that have SourceCage in their MirrorSources
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : *CachedCages)
+	{
+		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
+		{
+			if (Cage == SourceCage)
+			{
+				continue; // Skip the source cage itself
+			}
+
+			// Check if this cage mirrors the source cage
+			for (const TObjectPtr<AActor>& MirrorSource : Cage->MirrorSources)
+			{
+				if (MirrorSource == SourceCage)
+				{
+					OutMirroringCages.Add(Cage);
+					break;
+				}
 			}
 		}
 	}

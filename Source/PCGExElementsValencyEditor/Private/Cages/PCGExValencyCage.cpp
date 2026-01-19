@@ -304,8 +304,8 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		}
 	}
 
-	// Lambda to add scanned entry (with duplicate check)
-	auto AddScannedEntry = [this](const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor)
+	// Lambda to add scanned entry (with duplicate check, including material variants)
+	auto AddScannedEntry = [this](const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor, const FPCGExValencyMaterialVariant* InMaterialVariant)
 	{
 		if (Asset.IsNull())
 		{
@@ -317,6 +317,13 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		NewEntry.SourceActor = SourceActor;
 		NewEntry.AssetType = DetectAssetType(Asset);
 
+		// Store material variant on the entry if provided
+		if (InMaterialVariant && InMaterialVariant->Overrides.Num() > 0)
+		{
+			NewEntry.MaterialVariant = *InMaterialVariant;
+			NewEntry.bHasMaterialVariant = true;
+		}
+
 		// Compute preserved local transform based on flags
 		if (SourceActor)
 		{
@@ -324,22 +331,45 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		}
 
 		// Check for duplicates in scanned entries
-		for (const FPCGExValencyAssetEntry& Existing : ScannedAssetEntries)
+		// Now considers material variants as a differentiating factor
+		for (FPCGExValencyAssetEntry& Existing : ScannedAssetEntries)
 		{
 			if (Existing.Asset == Asset)
 			{
-				if (!bPreserveLocalTransforms)
+				// If both have material variants, check if they match
+				if (Existing.bHasMaterialVariant && NewEntry.bHasMaterialVariant)
 				{
-					return;
+					if (Existing.MaterialVariant == NewEntry.MaterialVariant)
+					{
+						// Same asset, same material variant - check transform
+						if (!bPreserveLocalTransforms || Existing.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
+						{
+							// Increment discovery count as weight
+							Existing.MaterialVariant.DiscoveryCount++;
+							return;
+						}
+					}
+					// Different material variants - continue to add as separate entry
 				}
-				if (Existing.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
+				else if (!Existing.bHasMaterialVariant && !NewEntry.bHasMaterialVariant)
 				{
-					return;
+					// Both have default materials - check transform
+					if (!bPreserveLocalTransforms || Existing.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
+					{
+						return;
+					}
 				}
+				// One has material variant, one doesn't - they are different entries, continue
 			}
 		}
 
 		ScannedAssetEntries.Add(NewEntry);
+
+		// Also record to legacy map for backward compatibility with existing builder code
+		if (NewEntry.bHasMaterialVariant)
+		{
+			RecordMaterialVariant(Asset.ToSoftObjectPath(), NewEntry.MaterialVariant.Overrides);
+		}
 	};
 
 	// Register found actors and discover material variants
@@ -349,18 +379,21 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		{
 			if (UStaticMesh* Mesh = SMC->GetStaticMesh())
 			{
-				const FSoftObjectPath MeshPath(Mesh);
-
-				// Always discover material variants, even for duplicate meshes
+				// Extract material overrides for this specific actor
 				TArray<FPCGExValencyMaterialOverride> Overrides;
 				ExtractMaterialOverrides(SMC, Overrides);
-				if (Overrides.Num() > 0)
+
+				// Create material variant if overrides exist
+				const bool bHasOverrides = Overrides.Num() > 0;
+				FPCGExValencyMaterialVariant Variant;
+				if (bHasOverrides)
 				{
-					RecordMaterialVariant(MeshPath, Overrides);
+					Variant.Overrides = MoveTemp(Overrides);
+					Variant.DiscoveryCount = 1;
 				}
 
-				// Add to scanned entries (may skip if duplicate)
-				AddScannedEntry(TSoftObjectPtr<UObject>(Mesh), Actor);
+				// Add to scanned entries with material variant info
+				AddScannedEntry(TSoftObjectPtr<UObject>(Mesh), Actor, bHasOverrides ? &Variant : nullptr);
 			}
 		}
 		else if (UClass* ActorClass = Actor->GetClass())
@@ -368,7 +401,7 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 			// Check if it's a Blueprint
 			if (UBlueprint* BP = Cast<UBlueprint>(ActorClass->ClassGeneratedBy))
 			{
-				AddScannedEntry(TSoftObjectPtr<UObject>(BP), Actor);
+				AddScannedEntry(TSoftObjectPtr<UObject>(BP), Actor, nullptr);
 			}
 		}
 	}

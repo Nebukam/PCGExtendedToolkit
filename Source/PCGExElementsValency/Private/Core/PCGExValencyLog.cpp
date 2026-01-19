@@ -88,7 +88,7 @@ void FPCGExValencyLog::Log(EPCGExValencyLogCategory Category, EPCGExValencyLogVe
 		UE_LOG(LogValency, Log, TEXT("%s"), *FormattedMessage);
 		break;
 	case EPCGExValencyLogVerbosity::Verbose:
-		UE_LOG(LogValency, Verbose, TEXT("%s"), *FormattedMessage);
+		UE_LOG(LogValency, Log, TEXT("%s"), *FormattedMessage);  // Use Log instead of Verbose so it actually shows
 		break;
 	default:
 		break;
