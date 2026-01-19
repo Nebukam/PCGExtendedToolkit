@@ -109,6 +109,30 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 		}
 		TriggerAutoRebuildForMirroringCages();
 	}
+
+	// Check if any property in the chain has ValencyRebuild metadata
+	bool bShouldRebuild = false;
+
+	if (const FProperty* Property = PropertyChangedEvent.Property)
+	{
+		if (Property->HasMetaData(TEXT("ValencyRebuild")))
+		{
+			bShouldRebuild = true;
+		}
+	}
+
+	if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
+	{
+		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("ValencyRebuild")))
+		{
+			bShouldRebuild = true;
+		}
+	}
+
+	if (bShouldRebuild)
+	{
+		TriggerAutoRebuildForMirroringCages();
+	}
 }
 
 void APCGExValencyAssetPalette::BeginDestroy()

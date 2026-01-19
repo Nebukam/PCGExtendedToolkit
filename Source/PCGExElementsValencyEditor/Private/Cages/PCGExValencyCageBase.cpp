@@ -197,6 +197,10 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 			HandleVolumeMembershipChange(OldVolumes);
 		}
 
+		// Always trigger rebuild after movement - connections may have changed
+		// HandleVolumeMembershipChange only covers in/out of volumes, not within-volume moves
+		TriggerAutoRebuildIfNeeded();
+
 		// Notify affected cages using spatial registry for efficiency
 		NotifyAffectedCagesOfMovement(DragStartPosition, CurrentPosition);
 

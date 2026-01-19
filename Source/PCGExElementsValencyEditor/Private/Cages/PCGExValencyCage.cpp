@@ -632,6 +632,34 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 		RefreshMirrorGhostMeshes();
 		TriggerAutoRebuildIfNeeded();
 	}
+	else
+	{
+		// Check if any property in the chain has ValencyRebuild metadata
+		bool bShouldRebuild = false;
+
+		if (const FProperty* Property = PropertyChangedEvent.Property)
+		{
+			if (Property->HasMetaData(TEXT("ValencyRebuild")))
+			{
+				bShouldRebuild = true;
+			}
+		}
+
+		if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
+		{
+			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("ValencyRebuild")))
+			{
+				bShouldRebuild = true;
+			}
+		}
+
+		if (bShouldRebuild)
+		{
+			PCGEX_VALENCY_INFO(Building, "Cage '%s': Property '%s' with ValencyRebuild metadata changed - triggering rebuild",
+				*GetCageDisplayName(), *PropertyName.ToString());
+			TriggerAutoRebuildIfNeeded();
+		}
+	}
 }
 #endif
 
