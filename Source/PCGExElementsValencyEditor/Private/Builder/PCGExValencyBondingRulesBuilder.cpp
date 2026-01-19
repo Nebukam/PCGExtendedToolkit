@@ -332,7 +332,10 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			FPCGExValencyModuleDefinition& NewModule = TargetRules->Modules.AddDefaulted_GetRef();
 			NewModule.Asset = Entry.Asset;
 			NewModule.AssetType = Entry.AssetType;
-			NewModule.Settings = Data.Settings; // Copy settings from cage
+
+			// Use entry-level settings if available (from mirror source), otherwise fall back to cage settings
+			// This allows mirrored entries to carry their source's weight/constraints
+			NewModule.Settings = Entry.bHasSettings ? Entry.Settings : Data.Settings;
 
 			// Set local transform if cage preserves them
 			if (Data.bPreserveLocalTransforms)
@@ -364,8 +367,8 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 				MaskBits += (Data.OrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
 			}
 
-			PCGEX_VALENCY_VERBOSE(Building, "  Module[%d]: Asset='%s', OrbitalMask=%s (0x%llX)",
-				NewModuleIndex, *Entry.Asset.GetAssetName(), *MaskBits, Data.OrbitalMask);
+			PCGEX_VALENCY_VERBOSE(Building, "  Module[%d]: Asset='%s', OrbitalMask=%s (0x%llX), Weight=%.2f",
+				NewModuleIndex, *Entry.Asset.GetAssetName(), *MaskBits, Data.OrbitalMask, NewModule.Settings.Weight);
 
 			OutModuleKeyToIndex.Add(ModuleKey, NewModuleIndex);
 		}

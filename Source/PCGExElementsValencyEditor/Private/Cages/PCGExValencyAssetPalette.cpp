@@ -15,6 +15,7 @@
 
 #if WITH_EDITOR
 #include "Editor.h"
+#include "EditorMode/PCGExValencyEditorSettings.h"
 #endif
 
 namespace PCGExValencyFolders
@@ -154,6 +155,16 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 		}
 	}
 
+	// Skip rebuild during interactive changes (dragging sliders) unless user opts in
+	if (PropertyChangedEvent.ChangeType == EPropertyChangeType::Interactive)
+	{
+		const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
+		if (!Settings || !Settings->bRebuildDuringInteractiveChanges)
+		{
+			bShouldRebuild = false;
+		}
+	}
+
 	if (bShouldRebuild)
 	{
 		TriggerAutoRebuildForMirroringCages();
@@ -261,6 +272,14 @@ TArray<FPCGExValencyAssetEntry> APCGExValencyAssetPalette::GetAllAssetEntries() 
 		{
 			AllEntries.Add(ScannedEntry);
 		}
+	}
+
+	// Stamp palette's ModuleSettings onto each entry
+	// This allows entries to carry their source's weight/constraints through mirroring
+	for (FPCGExValencyAssetEntry& Entry : AllEntries)
+	{
+		Entry.Settings = ModuleSettings;
+		Entry.bHasSettings = true;
 	}
 
 	return AllEntries;

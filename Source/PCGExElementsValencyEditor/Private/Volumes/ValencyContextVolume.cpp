@@ -16,6 +16,7 @@
 #include "Misc/MessageDialog.h"
 #include "EditorModeManager.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
+#include "EditorMode/PCGExValencyEditorSettings.h"
 #endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogValencyVolume, Log, All);
@@ -110,6 +111,17 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 		{
 			bShouldRebuild = true;
+		}
+	}
+
+	// Skip rebuild during interactive changes (dragging sliders) unless user opts in
+	// This prevents spamming FlushCache which could crash the engine with large rulesets
+	if (PropertyChangedEvent.ChangeType == EPropertyChangeType::Interactive)
+	{
+		const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
+		if (!Settings || !Settings->bRebuildDuringInteractiveChanges)
+		{
+			bShouldRebuild = false;
 		}
 	}
 

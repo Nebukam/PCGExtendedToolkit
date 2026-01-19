@@ -158,6 +158,18 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyAssetEntry
 	UPROPERTY(Transient)
 	bool bHasMaterialVariant = false;
 
+	/**
+	 * Module settings (weight, spawn constraints) for this entry.
+	 * Populated from the source cage/palette's ModuleSettings during collection.
+	 * When mirroring, carries the SOURCE's settings (not the primary cage's).
+	 */
+	UPROPERTY(Transient)
+	FPCGExValencyModuleSettings Settings;
+
+	/** Whether this entry has custom settings (vs using defaults) */
+	UPROPERTY(Transient)
+	bool bHasSettings = false;
+
 	bool IsValid() const { return !Asset.IsNull(); }
 };
 

@@ -142,4 +142,17 @@ public:
 	/** Length of thin orbital lines when connected (as percentage of probe radius) */
 	UPROPERTY(Config, EditAnywhere, Category = "Geometry", meta = (ClampMin = "0.1", ClampMax = "1.0"))
 	float ConnectedThinLinePct = 0.5f;
+
+	// ========== Behavior ==========
+
+	/**
+	 * When enabled, rebuilds happen continuously while dragging numeric sliders.
+	 * When disabled, rebuilds only happen when the slider is released.
+	 *
+	 * WARNING: Enabling this with large rulesets can cause performance issues
+	 * or crashes due to frequent PCG cache flushes. Only enable if you have
+	 * powerful hardware and small rulesets.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Behavior")
+	bool bRebuildDuringInteractiveChanges = false;
 };

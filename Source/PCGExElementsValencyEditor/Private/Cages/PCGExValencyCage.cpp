@@ -119,6 +119,14 @@ TArray<FPCGExValencyAssetEntry> APCGExValencyCage::GetAllAssetEntries() const
 		}
 	}
 
+	// Stamp cage's ModuleSettings onto each entry
+	// This allows entries to carry their source's weight/constraints through mirroring
+	for (FPCGExValencyAssetEntry& Entry : AllEntries)
+	{
+		Entry.Settings = ModuleSettings;
+		Entry.bHasSettings = true;
+	}
+
 	return AllEntries;
 }
 
@@ -650,6 +658,16 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
 			{
 				bShouldRebuild = true;
+			}
+		}
+
+		// Skip rebuild during interactive changes (dragging sliders) unless user opts in
+		if (PropertyChangedEvent.ChangeType == EPropertyChangeType::Interactive)
+		{
+			const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
+			if (!Settings || !Settings->bRebuildDuringInteractiveChanges)
+			{
+				bShouldRebuild = false;
 			}
 		}
 

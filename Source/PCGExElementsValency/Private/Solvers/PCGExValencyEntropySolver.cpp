@@ -365,7 +365,8 @@ bool FPCGExValencyEntropySolver::FilterCandidates(int32 StateIndex)
 	int32 RemovedByNeighbor = 0;
 	int32 RemovedByArcConsistency = 0;
 
-	// Filter out candidates that don't work with resolved neighbors
+	// First pass: filter by distribution and resolved neighbor constraints
+	// These are hard constraints that must be respected
 	for (int32 i = Data.Candidates.Num() - 1; i >= 0; --i)
 	{
 		const int32 CandidateModule = Data.Candidates[i];
@@ -408,15 +409,39 @@ bool FPCGExValencyEntropySolver::FilterCandidates(int32 StateIndex)
 		{
 			Data.Candidates.RemoveAt(i);
 			RemovedByNeighbor++;
-			continue;
 		}
+	}
 
-		// Arc consistency check: would selecting this candidate leave any unresolved neighbor with zero candidates?
-		if (!CheckArcConsistency(StateIndex, CandidateModule))
+	// Second pass: arc consistency (soft constraint - skip if it's our last option)
+	// If we only have one candidate left, we should try it rather than giving up
+	if (Data.Candidates.Num() > 1)
+	{
+		for (int32 i = Data.Candidates.Num() - 1; i >= 0; --i)
 		{
-			PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates: Module[%d] rejected by arc consistency (would leave neighbor with no candidates)", CandidateModule);
-			Data.Candidates.RemoveAt(i);
-			RemovedByArcConsistency++;
+			// Don't remove the last candidate via arc consistency - let it try
+			if (Data.Candidates.Num() <= 1)
+			{
+				break;
+			}
+
+			const int32 CandidateModule = Data.Candidates[i];
+
+			// Arc consistency check: would selecting this candidate leave any unresolved neighbor with zero candidates?
+			if (!CheckArcConsistency(StateIndex, CandidateModule))
+			{
+				PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates: Module[%d] rejected by arc consistency (would leave neighbor with no candidates)", CandidateModule);
+				Data.Candidates.RemoveAt(i);
+				RemovedByArcConsistency++;
+			}
+		}
+	}
+	else if (Data.Candidates.Num() == 1)
+	{
+		// Log that we're keeping the last candidate even if arc consistency fails
+		const int32 LastCandidate = Data.Candidates[0];
+		if (!CheckArcConsistency(StateIndex, LastCandidate))
+		{
+			PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates: Module[%d] would fail arc consistency but keeping it (last candidate)", LastCandidate);
 		}
 	}
 
