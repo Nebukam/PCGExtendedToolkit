@@ -7,6 +7,7 @@
 #include "Engine/DataAsset.h"
 #include "PCGExValencyCommon.h"
 #include "PCGExValencyOrbitalSet.h"
+#include "PCGExValencyPattern.h"
 
 #include "PCGExValencyBondingRules.generated.h"
 
@@ -110,6 +111,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	/** Compiled layer data */
 	TArray<FPCGExValencyLayerCompiled> Layers;
 
+	/** Compiled patterns for post-solve pattern matching */
+	FPCGExValencyPatternSetCompiled CompiledPatterns;
+
 	/**
 	 * Fast lookup: OrbitalMask -> array of candidate module indices.
 	 * Key is the combined mask from all layers (for single-layer, just the mask).
@@ -198,6 +202,15 @@ public:
 	 */
 	TMap<FSoftObjectPath, TArray<FPCGExValencyMaterialVariant>> DiscoveredMaterialVariants;
 
+	// ========== Patterns ==========
+
+	/**
+	 * Compiled patterns for post-solve pattern matching.
+	 * Built from pattern cages during BuildFromCages, serialized with the asset.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Valency|Patterns")
+	FPCGExValencyPatternSetCompiled Patterns;
+
 	// ========== Build Metadata ==========
 
 	/**
@@ -228,6 +241,12 @@ public:
 
 	/** Get module count */
 	int32 GetModuleCount() const { return Modules.Num(); }
+
+	/** Get pattern count */
+	int32 GetPatternCount() const { return Patterns.GetPatternCount(); }
+
+	/** Check if there are any patterns */
+	bool HasPatterns() const { return Patterns.HasPatterns(); }
 
 	/** Find an orbital set by layer name */
 	const UPCGExValencyOrbitalSet* FindOrbitalSet(const FName& LayerName) const

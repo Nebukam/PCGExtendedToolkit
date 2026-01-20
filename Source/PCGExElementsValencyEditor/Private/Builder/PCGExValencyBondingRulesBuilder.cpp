@@ -5,6 +5,7 @@
 
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageNull.h"
+#include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
@@ -93,6 +94,32 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolumes(cons
 
 	// Build from all collected cages
 	Result = BuildFromCages(AllRegularCages, TargetRules, OrbitalSet);
+
+	// Compile patterns if module build succeeded
+	if (Result.bSuccess && Result.ModuleCount > 0)
+	{
+		// Rebuild ModuleKeyToIndex from compiled modules for pattern compilation
+		TMap<FString, int32> ModuleKeyToIndex;
+		const FName LayerName = OrbitalSet->LayerName;
+
+		for (int32 ModuleIndex = 0; ModuleIndex < TargetRules->Modules.Num(); ++ModuleIndex)
+		{
+			const FPCGExValencyModuleDefinition& Module = TargetRules->Modules[ModuleIndex];
+			const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(LayerName);
+			const int64 OrbitalMask = LayerConfig ? LayerConfig->OrbitalMask : 0;
+
+			const FTransform* TransformPtr = Module.bHasLocalTransform ? &Module.LocalTransform : nullptr;
+			const FPCGExValencyMaterialVariant* MaterialVariantPtr = Module.bHasMaterialVariant ? &Module.MaterialVariant : nullptr;
+
+			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
+				Module.Asset.ToSoftObjectPath(), OrbitalMask, TransformPtr, MaterialVariantPtr);
+
+			ModuleKeyToIndex.Add(ModuleKey, ModuleIndex);
+		}
+
+		// Compile patterns from all volumes
+		CompilePatterns(Volumes, ModuleKeyToIndex, TargetRules, OrbitalSet, Result);
+	}
 
 	// Update build metadata on success
 	if (Result.bSuccess && PrimaryVolume)
@@ -807,6 +834,312 @@ void UPCGExValencyBondingRulesBuilder::DiscoverMaterialVariants(
 			}
 		}
 	}
+}
+
+void UPCGExValencyBondingRulesBuilder::CompilePatterns(
+	const TArray<AValencyContextVolume*>& Volumes,
+	const TMap<FString, int32>& ModuleKeyToIndex,
+	UPCGExValencyBondingRules* TargetRules,
+	const UPCGExValencyOrbitalSet* OrbitalSet,
+	FPCGExValencyBuildResult& OutResult)
+{
+	if (!TargetRules || !OrbitalSet)
+	{
+		return;
+	}
+
+	VALENCY_LOG_SECTION(Building, "COMPILING PATTERNS");
+
+	// Clear existing patterns
+	TargetRules->Patterns.Patterns.Empty();
+	TargetRules->Patterns.ExclusivePatternIndices.Empty();
+	TargetRules->Patterns.AdditivePatternIndices.Empty();
+
+	// Collect all pattern cages from all volumes
+	TArray<APCGExValencyCagePattern*> AllPatternCages;
+	TSet<APCGExValencyCagePattern*> ProcessedRoots;
+
+	for (AValencyContextVolume* Volume : Volumes)
+	{
+		if (!Volume || Volume->GetBondingRules() != TargetRules)
+		{
+			continue;
+		}
+
+		TArray<APCGExValencyCageBase*> VolumeCages;
+		Volume->CollectContainedCages(VolumeCages);
+
+		for (APCGExValencyCageBase* CageBase : VolumeCages)
+		{
+			if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(CageBase))
+			{
+				AllPatternCages.AddUnique(PatternCage);
+			}
+		}
+	}
+
+	PCGEX_VALENCY_INFO(Building, "Found %d pattern cages across %d volumes", AllPatternCages.Num(), Volumes.Num());
+
+	if (AllPatternCages.Num() == 0)
+	{
+		VALENCY_LOG_SECTION(Building, "NO PATTERNS TO COMPILE");
+		return;
+	}
+
+	// Find all pattern roots and compile each pattern
+	for (APCGExValencyCagePattern* PatternCage : AllPatternCages)
+	{
+		if (!PatternCage || !PatternCage->bIsPatternRoot)
+		{
+			continue;
+		}
+
+		if (ProcessedRoots.Contains(PatternCage))
+		{
+			continue;
+		}
+		ProcessedRoots.Add(PatternCage);
+
+		PCGEX_VALENCY_VERBOSE(Building, "Compiling pattern from root '%s'", *PatternCage->GetCageDisplayName());
+
+		FPCGExValencyPatternCompiled CompiledPattern;
+		if (CompileSinglePattern(PatternCage, ModuleKeyToIndex, TargetRules, OrbitalSet, CompiledPattern, OutResult))
+		{
+			const int32 PatternIndex = TargetRules->Patterns.Patterns.Num();
+			TargetRules->Patterns.Patterns.Add(MoveTemp(CompiledPattern));
+
+			// Sort into exclusive vs additive
+			if (CompiledPattern.Settings.bExclusive)
+			{
+				TargetRules->Patterns.ExclusivePatternIndices.Add(PatternIndex);
+			}
+			else
+			{
+				TargetRules->Patterns.AdditivePatternIndices.Add(PatternIndex);
+			}
+
+			PCGEX_VALENCY_INFO(Building, "  Pattern '%s' compiled: %d entries, %d active",
+				*CompiledPattern.Settings.PatternName.ToString(),
+				CompiledPattern.Entries.Num(),
+				CompiledPattern.ActiveEntryCount);
+		}
+	}
+
+	OutResult.PatternCount = TargetRules->Patterns.Patterns.Num();
+
+	VALENCY_LOG_SECTION(Building, "PATTERN COMPILATION COMPLETE");
+	PCGEX_VALENCY_INFO(Building, "Total patterns: %d (%d exclusive, %d additive)",
+		OutResult.PatternCount,
+		TargetRules->Patterns.ExclusivePatternIndices.Num(),
+		TargetRules->Patterns.AdditivePatternIndices.Num());
+}
+
+bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
+	APCGExValencyCagePattern* RootCage,
+	const TMap<FString, int32>& ModuleKeyToIndex,
+	UPCGExValencyBondingRules* TargetRules,
+	const UPCGExValencyOrbitalSet* OrbitalSet,
+	FPCGExValencyPatternCompiled& OutPattern,
+	FPCGExValencyBuildResult& OutResult)
+{
+	if (!RootCage || !TargetRules || !OrbitalSet)
+	{
+		return false;
+	}
+
+	const FName LayerName = OrbitalSet->LayerName;
+
+	// Get all connected pattern cages (traverses orbital connections)
+	TArray<APCGExValencyCagePattern*> ConnectedCages = RootCage->GetConnectedPatternCages();
+
+	if (ConnectedCages.Num() == 0)
+	{
+		OutResult.Warnings.Add(FText::Format(
+			LOCTEXT("PatternNoCages", "Pattern root '{0}' has no connected cages."),
+			FText::FromString(RootCage->GetCageDisplayName())
+		));
+		return false;
+	}
+
+	// Build cage to entry index mapping (root is always entry 0)
+	TMap<APCGExValencyCagePattern*, int32> CageToEntryIndex;
+	CageToEntryIndex.Add(RootCage, 0);
+
+	int32 NextEntryIndex = 1;
+	for (APCGExValencyCagePattern* Cage : ConnectedCages)
+	{
+		if (Cage != RootCage && !CageToEntryIndex.Contains(Cage))
+		{
+			CageToEntryIndex.Add(Cage, NextEntryIndex++);
+		}
+	}
+
+	// Allocate entries
+	OutPattern.Entries.SetNum(CageToEntryIndex.Num());
+	OutPattern.ActiveEntryCount = 0;
+
+	// Copy settings from root
+	const FPCGExValencyPatternSettings& RootSettings = RootCage->PatternSettings;
+	OutPattern.Settings.PatternName = RootSettings.PatternName;
+	OutPattern.Settings.Weight = RootSettings.Weight;
+	OutPattern.Settings.MinMatches = RootSettings.MinMatches;
+	OutPattern.Settings.MaxMatches = RootSettings.MaxMatches;
+	OutPattern.Settings.bExclusive = RootSettings.bExclusive;
+	OutPattern.Settings.OutputStrategy = RootSettings.OutputStrategy;
+	OutPattern.Settings.TransformMode = RootSettings.TransformMode;
+	OutPattern.ReplacementAsset = RootSettings.ReplacementAsset;
+
+	// Resolve SwapToModuleName to module index
+	if (OutPattern.Settings.OutputStrategy == EPCGExPatternOutputStrategy::Swap && !RootSettings.SwapToModuleName.IsNone())
+	{
+		OutPattern.SwapTargetModuleIndex = -1;
+		for (int32 ModuleIndex = 0; ModuleIndex < TargetRules->Modules.Num(); ++ModuleIndex)
+		{
+			if (TargetRules->Modules[ModuleIndex].ModuleName == RootSettings.SwapToModuleName)
+			{
+				OutPattern.SwapTargetModuleIndex = ModuleIndex;
+				break;
+			}
+		}
+
+		if (OutPattern.SwapTargetModuleIndex < 0)
+		{
+			OutResult.Warnings.Add(FText::Format(
+				LOCTEXT("SwapTargetNotFound", "Pattern '{0}': Swap target module '{1}' not found."),
+				FText::FromName(RootSettings.PatternName),
+				FText::FromName(RootSettings.SwapToModuleName)
+			));
+		}
+	}
+
+	// Compile each entry
+	for (const auto& Pair : CageToEntryIndex)
+	{
+		APCGExValencyCagePattern* Cage = Pair.Key;
+		const int32 EntryIndex = Pair.Value;
+
+		if (!Cage)
+		{
+			continue;
+		}
+
+		FPCGExValencyPatternEntryCompiled& Entry = OutPattern.Entries[EntryIndex];
+
+		// Copy flags
+		Entry.bIsWildcard = Cage->bIsWildcard;
+		Entry.bIsActive = Cage->bIsActiveInPattern;
+
+		if (Entry.bIsActive)
+		{
+			OutPattern.ActiveEntryCount++;
+		}
+
+		// Resolve proxied cages to module indices
+		if (!Entry.bIsWildcard)
+		{
+			for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : Cage->ProxiedCages)
+			{
+				if (!ProxiedCage)
+				{
+					continue;
+				}
+
+				// Get the proxied cage's orbital mask
+				const TArray<FPCGExValencyCageOrbital>& ProxiedOrbitals = ProxiedCage->GetOrbitals();
+				int64 ProxiedOrbitalMask = 0;
+				for (const FPCGExValencyCageOrbital& Orbital : ProxiedOrbitals)
+				{
+					if (Orbital.bEnabled && Orbital.GetDisplayConnection() && !Orbital.GetDisplayConnection()->IsNullCage())
+					{
+						ProxiedOrbitalMask |= (1LL << Orbital.OrbitalIndex);
+					}
+				}
+
+				// Find all modules that match this proxied cage
+				TArray<FPCGExValencyAssetEntry> ProxiedEntries = ProxiedCage->GetAllAssetEntries();
+				for (const FPCGExValencyAssetEntry& ProxiedEntry : ProxiedEntries)
+				{
+					if (!ProxiedEntry.IsValid())
+					{
+						continue;
+					}
+
+					const FTransform* TransformPtr = ProxiedCage->bPreserveLocalTransforms ? &ProxiedEntry.LocalTransform : nullptr;
+					const FPCGExValencyMaterialVariant* MaterialVariantPtr = ProxiedEntry.bHasMaterialVariant ? &ProxiedEntry.MaterialVariant : nullptr;
+
+					const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
+						ProxiedEntry.Asset.ToSoftObjectPath(), ProxiedOrbitalMask, TransformPtr, MaterialVariantPtr);
+
+					if (const int32* ModuleIndex = ModuleKeyToIndex.Find(ModuleKey))
+					{
+						Entry.ModuleIndices.AddUnique(*ModuleIndex);
+					}
+				}
+			}
+
+			if (Entry.ModuleIndices.Num() == 0 && !Entry.bIsWildcard)
+			{
+				OutResult.Warnings.Add(FText::Format(
+					LOCTEXT("PatternEntryNoModules", "Pattern '{0}', entry from cage '{1}': No matching modules found for proxied cages."),
+					FText::FromName(RootSettings.PatternName),
+					FText::FromString(Cage->GetCageDisplayName())
+				));
+			}
+		}
+
+		// Build adjacency from orbital connections
+		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
+		for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
+		{
+			if (!Orbital.bEnabled || Orbital.OrbitalIndex < 0)
+			{
+				continue;
+			}
+
+			APCGExValencyCageBase* ConnectedBase = Orbital.GetDisplayConnection();
+			if (!ConnectedBase)
+			{
+				continue;
+			}
+
+			// Check if connected to null cage (boundary constraint)
+			if (ConnectedBase->IsNullCage())
+			{
+				Entry.BoundaryOrbitalMask |= (1ULL << Orbital.OrbitalIndex);
+				continue;
+			}
+
+			// Check if connected to another pattern cage
+			if (APCGExValencyCagePattern* ConnectedPattern = Cast<APCGExValencyCagePattern>(ConnectedBase))
+			{
+				if (const int32* TargetEntryIndex = CageToEntryIndex.Find(ConnectedPattern))
+				{
+					// Find the reciprocal orbital on the target
+					int32 TargetOrbitalIndex = -1;
+					const TArray<FPCGExValencyCageOrbital>& TargetOrbitals = ConnectedPattern->GetOrbitals();
+					for (const FPCGExValencyCageOrbital& TargetOrbital : TargetOrbitals)
+					{
+						if (TargetOrbital.GetDisplayConnection() == Cage)
+						{
+							TargetOrbitalIndex = TargetOrbital.OrbitalIndex;
+							break;
+						}
+					}
+
+					Entry.Adjacency.Add(FIntVector(*TargetEntryIndex, Orbital.OrbitalIndex, TargetOrbitalIndex));
+				}
+			}
+		}
+
+		PCGEX_VALENCY_VERBOSE(Building, "    Entry[%d] from '%s': %s, %d modules, %d adjacencies, boundary=0x%llX",
+			EntryIndex, *Cage->GetCageDisplayName(),
+			Entry.bIsWildcard ? TEXT("WILDCARD") : (Entry.bIsActive ? TEXT("ACTIVE") : TEXT("CONSTRAINT")),
+			Entry.ModuleIndices.Num(),
+			Entry.Adjacency.Num(),
+			Entry.BoundaryOrbitalMask);
+	}
+
+	return OutPattern.Entries.Num() > 0;
 }
 
 #undef LOCTEXT_NAMESPACE

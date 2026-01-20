@@ -193,8 +193,15 @@ bool UPCGExValencyBondingRules::Compile()
 	// Build fast lookup
 	CompiledData->BuildCandidateLookup();
 
+	// Copy patterns (already compiled by builder, stored on this asset)
+	CompiledData->CompiledPatterns = Patterns;
+	PCGEX_VALENCY_INFO(Compilation, "Patterns: %d total (%d exclusive, %d additive)",
+		Patterns.GetPatternCount(),
+		Patterns.ExclusivePatternIndices.Num(),
+		Patterns.AdditivePatternIndices.Num());
+
 	VALENCY_LOG_SECTION(Compilation, "BONDING RULES COMPILATION COMPLETE");
-	PCGEX_VALENCY_INFO(Compilation, "Result: %d modules, %d layers", Modules.Num(), LayerCount);
+	PCGEX_VALENCY_INFO(Compilation, "Result: %d modules, %d layers, %d patterns", Modules.Num(), LayerCount, Patterns.GetPatternCount());
 	return true;
 }
 

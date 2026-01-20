@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExValencyCageBase.h"
+#include "Core/PCGExValencyPattern.h"
 
 #include "PCGExValencyCagePattern.generated.h"
 
@@ -14,31 +15,8 @@ class UBoxComponent;
 class UStaticMeshComponent;
 
 /**
- * Pattern output strategy - how matched points are processed.
- */
-UENUM(BlueprintType)
-enum class EPCGExPatternOutputStrategy : uint8
-{
-	Remove UMETA(ToolTip = "Remove matched points from main output, output to secondary pin"),
-	Collapse UMETA(ToolTip = "Collapse N matched points into 1 replacement point"),
-	Swap UMETA(ToolTip = "Swap matched points to different modules"),
-	Annotate UMETA(ToolTip = "Annotate matched points with metadata, no removal"),
-	Fork UMETA(ToolTip = "Fork matched points to separate collection for parallel processing")
-};
-
-/**
- * Transform mode for Collapse output strategy.
- */
-UENUM(BlueprintType)
-enum class EPCGExPatternTransformMode : uint8
-{
-	Centroid UMETA(ToolTip = "Compute centroid of all matched points"),
-	PatternRoot UMETA(ToolTip = "Use pattern root cage's position"),
-	FirstMatch UMETA(ToolTip = "Use first matched point's transform")
-};
-
-/**
  * Settings for a pattern, stored on the pattern root cage.
+ * Uses enums from PCGExValencyPattern.h (EPCGExPatternOutputStrategy, EPCGExPatternTransformMode)
  */
 USTRUCT(BlueprintType)
 struct PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyPatternSettings

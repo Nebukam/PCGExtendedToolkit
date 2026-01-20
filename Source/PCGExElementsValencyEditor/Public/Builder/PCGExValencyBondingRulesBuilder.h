@@ -11,6 +11,7 @@
 
 class APCGExValencyCage;
 class APCGExValencyCageBase;
+class APCGExValencyCagePattern;
 class AValencyContextVolume;
 
 /**
@@ -32,6 +33,10 @@ struct PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyBuildResult
 	/** Number of cages processed */
 	UPROPERTY(BlueprintReadOnly, Category = "Result")
 	int32 CageCount = 0;
+
+	/** Number of patterns compiled */
+	UPROPERTY(BlueprintReadOnly, Category = "Result")
+	int32 PatternCount = 0;
 
 	/** Warning messages */
 	UPROPERTY(BlueprintReadOnly, Category = "Result")
@@ -230,5 +235,45 @@ protected:
 	void DiscoverMaterialVariants(
 		const TArray<FPCGExValencyCageData>& CageData,
 		UPCGExValencyBondingRules* TargetRules
+	);
+
+	/**
+	 * Compile patterns from pattern cages.
+	 * Pattern cages are discovered within the volumes, grouped by connectivity,
+	 * and compiled into FPCGExValencyPatternSetCompiled.
+	 *
+	 * @param Volumes Array of volumes to search for pattern cages
+	 * @param ModuleKeyToIndex Mapping from module key to compiled module index
+	 * @param TargetRules The BondingRules asset to update with compiled patterns
+	 * @param OrbitalSet The orbital set to use for orbital index lookup
+	 * @param OutResult Build result for warnings/errors
+	 */
+	void CompilePatterns(
+		const TArray<AValencyContextVolume*>& Volumes,
+		const TMap<FString, int32>& ModuleKeyToIndex,
+		UPCGExValencyBondingRules* TargetRules,
+		const UPCGExValencyOrbitalSet* OrbitalSet,
+		FPCGExValencyBuildResult& OutResult
+	);
+
+	/**
+	 * Compile a single pattern from its root cage.
+	 * Traverses connected pattern cages and builds the compiled pattern.
+	 *
+	 * @param RootCage The pattern root cage
+	 * @param ModuleKeyToIndex Mapping from module key to compiled module index
+	 * @param TargetRules The BondingRules for module lookup
+	 * @param OrbitalSet The orbital set for orbital index lookup
+	 * @param OutPattern The compiled pattern
+	 * @param OutResult Build result for warnings/errors
+	 * @return true if compilation succeeded
+	 */
+	bool CompileSinglePattern(
+		APCGExValencyCagePattern* RootCage,
+		const TMap<FString, int32>& ModuleKeyToIndex,
+		UPCGExValencyBondingRules* TargetRules,
+		const UPCGExValencyOrbitalSet* OrbitalSet,
+		FPCGExValencyPatternCompiled& OutPattern,
+		FPCGExValencyBuildResult& OutResult
 	);
 };
