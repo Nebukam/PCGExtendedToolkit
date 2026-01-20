@@ -39,30 +39,37 @@ void FValencyReferenceTracker::RebuildDependencyGraph()
 		return;
 	}
 
-	// For each cage, register its MirrorSources as dependencies
-	// This builds the reverse lookup: Source → [Cages that mirror it]
+	// For each cage, register its dependencies
+	// This builds the reverse lookup: Source → [Cages that depend on it]
 	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : *CachedCages)
 	{
-		APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get());
-		if (!Cage)
+		// Regular cages: MirrorSources dependencies
+		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
 		{
-			continue;
-		}
-
-		for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
-		{
-			if (Source)
+			for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
 			{
-				// Source is depended upon by Cage
-				TArray<TWeakObjectPtr<AActor>>& Dependents = DependentsMap.FindOrAdd(Source);
-				Dependents.AddUnique(Cage);
+				if (Source)
+				{
+					// Source is depended upon by Cage
+					TArray<TWeakObjectPtr<AActor>>& Dependents = DependentsMap.FindOrAdd(Source);
+					Dependents.AddUnique(Cage);
+				}
+			}
+		}
+		// Pattern cages: ProxiedCages dependencies
+		else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(CagePtr.Get()))
+		{
+			for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : PatternCage->ProxiedCages)
+			{
+				if (ProxiedCage)
+				{
+					// ProxiedCage is depended upon by PatternCage
+					TArray<TWeakObjectPtr<AActor>>& Dependents = DependentsMap.FindOrAdd(ProxiedCage);
+					Dependents.AddUnique(PatternCage);
+				}
 			}
 		}
 	}
-
-	// Future: Add other reference types here
-	// - Nested volumes
-	// - Pattern rules
 }
 
 void FValencyReferenceTracker::OnActorReferencesChanged(AActor* Actor)

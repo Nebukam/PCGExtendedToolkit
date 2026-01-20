@@ -5,6 +5,7 @@
 
 #include "Components/SceneComponent.h"
 #include "EngineUtils.h"
+#include "PCGExValencyMacros.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 
@@ -84,46 +85,26 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		InitializeOrbitalsFromSet();
 		DetectNearbyConnections();
 
-#if WITH_EDITOR
-		if (GEditor)
-		{
-			GEditor->RedrawAllViewports();
-		}
-#endif
+		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, ProbeRadius))
 	{
 		// Probe radius changed - redetect connections and redraw
 		DetectNearbyConnections();
 
-#if WITH_EDITOR
-		if (GEditor)
-		{
-			GEditor->RedrawAllViewports();
-		}
-#endif
+		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, CageName))
 	{
 		// Display name changed - just redraw
-#if WITH_EDITOR
-		if (GEditor)
-		{
-			GEditor->RedrawAllViewports();
-		}
-#endif
+		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, bTransformOrbitalDirections))
 	{
 		// Transform settings changed - redetect connections and redraw
 		DetectNearbyConnections();
 
-#if WITH_EDITOR
-		if (GEditor)
-		{
-			GEditor->RedrawAllViewports();
-		}
-#endif
+		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 }
 
@@ -615,13 +596,7 @@ void APCGExValencyCageBase::NotifyAllCagesOfMovement()
 		}
 	}
 
-#if WITH_EDITOR
-	// Request viewport redraw to show updated connections
-	if (GEditor)
-	{
-		GEditor->RedrawAllViewports();
-	}
-#endif
+	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 }
 
 void APCGExValencyCageBase::SetDebugComponentsVisible(bool bVisible)
@@ -656,13 +631,7 @@ void APCGExValencyCageBase::UpdateConnectionsDuringDrag()
 		}
 	}
 
-#if WITH_EDITOR
-	// Request viewport redraw for live feedback
-	if (GEditor)
-	{
-		GEditor->RedrawAllViewports();
-	}
-#endif
+	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 }
 
 void APCGExValencyCageBase::NotifyAffectedCagesOfMovement(const FVector& OldPosition, const FVector& NewPosition)
@@ -688,13 +657,7 @@ void APCGExValencyCageBase::NotifyAffectedCagesOfMovement(const FVector& OldPosi
 		}
 	}
 
-#if WITH_EDITOR
-	// Request viewport redraw to show updated connections
-	if (GEditor)
-	{
-		GEditor->RedrawAllViewports();
-	}
-#endif
+	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 }
 
 void APCGExValencyCageBase::HandleVolumeMembershipChange(const TArray<TWeakObjectPtr<AValencyContextVolume>>& OldVolumes)

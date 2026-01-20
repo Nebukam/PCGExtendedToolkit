@@ -218,9 +218,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> PatternBoundsComponent;
 
-	/** Ghost mesh component for proxy preview */
+	/** Ghost mesh components for proxy preview */
 	UPROPERTY(Transient)
-	TObjectPtr<UStaticMeshComponent> ProxyGhostMeshComponent;
+	TArray<TObjectPtr<UStaticMeshComponent>> ProxyGhostMeshComponents;
 
 	/** Update the pattern bounds visualization */
 	void UpdatePatternBoundsVisualization();

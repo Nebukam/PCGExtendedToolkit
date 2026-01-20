@@ -6,6 +6,7 @@
 #include "EngineUtils.h"
 #include "Components/BrushComponent.h"
 #include "PCGComponent.h"
+#include "PCGExValencyMacros.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
@@ -356,13 +357,7 @@ void AValencyContextVolume::RefreshCageRelationships()
 		}
 	}
 
-#if WITH_EDITOR
-	// Redraw viewports to show updated connections
-	if (GEditor)
-	{
-		GEditor->RedrawAllViewports();
-	}
-#endif
+	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 
 	UE_LOG(LogValencyVolume, Log, TEXT("Cage relationships refreshed."));
 }

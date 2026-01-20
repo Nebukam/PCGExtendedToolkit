@@ -9,6 +9,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Volumes/ValencyContextVolume.h"
+#include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "PCGExValencyEditorSettings.h"
 
 APCGExValencyCagePattern::APCGExValencyCagePattern()
@@ -50,6 +51,15 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bIsWildcard))
 	{
 		RefreshProxyGhostMesh();
+
+		// Notify reference tracker when ProxiedCages changes (rebuilds dependency graph)
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages))
+		{
+			if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+			{
+				Tracker->OnActorReferencesChanged(this);
+			}
+		}
 	}
 
 	// Update sphere color based on role
@@ -241,9 +251,35 @@ FBox APCGExValencyCagePattern::ComputePatternBounds() const
 
 	TArray<APCGExValencyCagePattern*> Connected = GetConnectedPatternCages();
 
+	// Include all pattern cages
 	for (const APCGExValencyCagePattern* Cage : Connected)
 	{
 		Bounds += Cage->GetActorLocation();
+
+		// Also include connected null cages
+		for (const FPCGExValencyCageOrbital& Orbital : Cage->Orbitals)
+		{
+			// Check auto-connected null cage
+			if (APCGExValencyCageBase* AutoConnected = Orbital.AutoConnectedCage.Get())
+			{
+				if (AutoConnected->IsNullCage())
+				{
+					Bounds += AutoConnected->GetActorLocation();
+				}
+			}
+
+			// Check manual connections for null cages
+			for (const TWeakObjectPtr<APCGExValencyCageBase>& ManualConnection : Orbital.ManualConnections)
+			{
+				if (APCGExValencyCageBase* ManualConnected = ManualConnection.Get())
+				{
+					if (ManualConnected->IsNullCage())
+					{
+						Bounds += ManualConnected->GetActorLocation();
+					}
+				}
+			}
+		}
 	}
 
 	// Expand bounds slightly for visualization
@@ -291,25 +327,27 @@ void APCGExValencyCagePattern::UpdatePatternBoundsVisualization()
 
 void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 {
-	// Clear existing ghost mesh first
+	// Clear existing ghost meshes first
 	ClearProxyGhostMesh();
 
 	// Get settings
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
 
 	// Early out if ghosting is disabled
-	if (!Settings || !Settings->bEnableGhostMeshes || !bShowProxyGhostMesh || bIsWildcard || ProxiedCages.Num() == 0)
+	if (!Settings || !Settings->bEnableGhostMeshes || !bShowProxyGhostMesh || bIsWildcard || ProxiedCages.Num() == 0 || Settings->MaxPatternGhostMeshes == 0)
 	{
 		return;
 	}
 
 	// Get the shared ghost material from settings
 	UMaterialInterface* GhostMaterial = Settings->GetGhostMaterial();
+	const FQuat CageRotation = GetActorQuat();
 
-	// Find the first available mesh from proxied cages
-	UStaticMesh* FirstMesh = nullptr;
-	FTransform LocalTransform = FTransform::Identity;
+	// Get the limit (-1 = unlimited)
+	const int32 MaxGhosts = Settings->MaxPatternGhostMeshes;
+	int32 GhostCount = 0;
 
+	// Collect and create ghost meshes from all proxied cages
 	for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : ProxiedCages)
 	{
 		if (!ProxiedCage)
@@ -322,6 +360,12 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 
 		for (const FPCGExValencyAssetEntry& Entry : Entries)
 		{
+			// Check if we've hit the limit
+			if (MaxGhosts >= 0 && GhostCount >= MaxGhosts)
+			{
+				return; // Exit completely when limit reached
+			}
+
 			if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
 			{
 				continue;
@@ -335,61 +379,54 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 				Mesh = Cast<UStaticMesh>(Entry.Asset.LoadSynchronous());
 			}
 
-			if (Mesh)
+			if (!Mesh)
 			{
-				FirstMesh = Mesh;
-				LocalTransform = Entry.LocalTransform;
-				break;
+				continue;
 			}
-		}
 
-		if (FirstMesh)
-		{
-			break;
+			// Create the ghost mesh component
+			UStaticMeshComponent* GhostComp = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
+			GhostComp->SetStaticMesh(Mesh);
+			GhostComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GhostComp->SetCastShadow(false);
+			GhostComp->bSelectable = false;
+
+			// Apply ghost material to all slots
+			if (GhostMaterial)
+			{
+				const int32 NumMaterials = Mesh->GetStaticMaterials().Num();
+				for (int32 i = 0; i < NumMaterials; ++i)
+				{
+					GhostComp->SetMaterial(i, GhostMaterial);
+				}
+			}
+
+			// Apply local transform (rotated by cage rotation)
+			const FVector RotatedLocation = CageRotation.RotateVector(Entry.LocalTransform.GetLocation());
+			const FQuat RotatedRotation = CageRotation * Entry.LocalTransform.GetRotation();
+
+			GhostComp->SetRelativeLocation(RotatedLocation);
+			GhostComp->SetRelativeRotation(RotatedRotation.Rotator());
+			GhostComp->SetRelativeScale3D(Entry.LocalTransform.GetScale3D());
+
+			// Attach and register
+			GhostComp->SetupAttachment(RootComponent);
+			GhostComp->RegisterComponent();
+
+			ProxyGhostMeshComponents.Add(GhostComp);
+			GhostCount++;
 		}
 	}
-
-	if (!FirstMesh)
-	{
-		return;
-	}
-
-	// Create the ghost mesh component
-	ProxyGhostMeshComponent = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
-	ProxyGhostMeshComponent->SetStaticMesh(FirstMesh);
-	ProxyGhostMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ProxyGhostMeshComponent->SetCastShadow(false);
-	ProxyGhostMeshComponent->bSelectable = false;
-
-	// Apply ghost material to all slots
-	if (GhostMaterial)
-	{
-		const int32 NumMaterials = FirstMesh->GetStaticMaterials().Num();
-		for (int32 i = 0; i < NumMaterials; ++i)
-		{
-			ProxyGhostMeshComponent->SetMaterial(i, GhostMaterial);
-		}
-	}
-
-	// Apply local transform (rotated by cage rotation)
-	const FQuat CageRotation = GetActorQuat();
-	const FVector RotatedLocation = CageRotation.RotateVector(LocalTransform.GetLocation());
-	const FQuat RotatedRotation = CageRotation * LocalTransform.GetRotation();
-
-	ProxyGhostMeshComponent->SetRelativeLocation(RotatedLocation);
-	ProxyGhostMeshComponent->SetRelativeRotation(RotatedRotation.Rotator());
-	ProxyGhostMeshComponent->SetRelativeScale3D(LocalTransform.GetScale3D());
-
-	// Attach and register
-	ProxyGhostMeshComponent->SetupAttachment(RootComponent);
-	ProxyGhostMeshComponent->RegisterComponent();
 }
 
 void APCGExValencyCagePattern::ClearProxyGhostMesh()
 {
-	if (ProxyGhostMeshComponent)
+	for (TObjectPtr<UStaticMeshComponent>& GhostComp : ProxyGhostMeshComponents)
 	{
-		ProxyGhostMeshComponent->DestroyComponent();
-		ProxyGhostMeshComponent = nullptr;
+		if (GhostComp)
+		{
+			GhostComp->DestroyComponent();
+		}
 	}
+	ProxyGhostMeshComponents.Empty();
 }

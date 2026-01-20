@@ -11,6 +11,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "PCGExValencyEditorSettings.h"
+#include "PCGExValencyMacros.h"
 #include "Core/PCGExValencyLog.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 
@@ -422,6 +423,14 @@ void APCGExValencyCage::OnAssetRegistrationChanged()
 {
 	// Mark as needing save
 	Modify();
+
+	// Refresh ghost meshes for cages/patterns that depend on this cage (visuals only, no rebuild to avoid recursion)
+	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+	{
+		Tracker->PropagateContentChange(this, /*bRefreshGhosts=*/true, /*bTriggerRebuild=*/false);
+	}
+
+	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 }
 
 bool APCGExValencyCage::HaveScannedAssetsChanged(const TArray<FPCGExValencyAssetEntry>& OldScannedAssets) const
@@ -630,11 +639,7 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			TriggerAutoRebuildForMirroringCages();
 		}
 
-		// Redraw viewports
-		if (GEditor)
-		{
-			GEditor->RedrawAllViewports();
-		}
+		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 	// Handle other mirror-related property changes
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bShowMirrorGhostMeshes))
@@ -697,7 +702,7 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
 
 	// Early out if ghosting is disabled (either globally or per-cage)
-	if (!Settings || !Settings->bEnableGhostMeshes || !bShowMirrorGhostMeshes || MirrorSources.Num() == 0)
+	if (!Settings || !Settings->bEnableGhostMeshes || !bShowMirrorGhostMeshes || MirrorSources.Num() == 0 || Settings->MaxCageGhostMeshes == 0)
 	{
 		return;
 	}
@@ -755,9 +760,19 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 	const FQuat CageRotation = GetActorQuat();
 	const FVector CageLocation = GetActorLocation();
 
+	// Get the limit (-1 = unlimited)
+	const int32 MaxGhosts = Settings->MaxCageGhostMeshes;
+	int32 GhostCount = 0;
+
 	// Create ghost mesh components for each mesh asset
 	for (const FPCGExValencyAssetEntry& Entry : AllEntries)
 	{
+		// Check if we've hit the limit
+		if (MaxGhosts >= 0 && GhostCount >= MaxGhosts)
+		{
+			break;
+		}
+
 		if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
 		{
 			continue;
@@ -819,6 +834,7 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 		GhostComp->RegisterComponent();
 
 		GhostMeshComponents.Add(GhostComp);
+		GhostCount++;
 	}
 }
 

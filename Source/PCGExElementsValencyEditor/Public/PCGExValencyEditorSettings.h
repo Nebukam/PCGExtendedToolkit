@@ -184,6 +184,20 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost", meta = (EditCondition = "bEnableGhostMeshes"))
 	TSoftObjectPtr<UMaterialInterface> GhostMaterial;
 
+	/**
+	 * Maximum number of ghost meshes to show per regular cage.
+	 * -1 = show all, 0 = disabled, N = show up to N meshes (in order).
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost", meta = (EditCondition = "bEnableGhostMeshes", ClampMin = "-1"))
+	int32 MaxCageGhostMeshes = -1;
+
+	/**
+	 * Maximum number of ghost meshes to show per pattern cage.
+	 * -1 = show all, 0 = disabled, N = show up to N meshes (in order).
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost", meta = (EditCondition = "bEnableGhostMeshes", ClampMin = "-1"))
+	int32 MaxPatternGhostMeshes = -1;
+
 	/** Get the ghost material to use (resolves soft pointer, falls back to M_ValencyAssetGhost) */
 	UMaterialInterface* GetGhostMaterial() const;
 

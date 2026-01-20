@@ -10,6 +10,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/Blueprint.h"
 #include "PCGDataAsset.h"
+#include "PCGExValencyMacros.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 
@@ -568,13 +569,7 @@ void APCGExValencyAssetPalette::OnAssetRegistrationChanged()
 	// Trigger rebuild for cages that mirror this palette
 	TriggerAutoRebuildForMirroringCages();
 
-#if WITH_EDITOR
-	// Redraw viewports to show updated state
-	if (GEditor)
-	{
-		GEditor->RedrawAllViewports();
-	}
-#endif
+	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 }
 
 void APCGExValencyAssetPalette::ExtractMaterialOverrides(
