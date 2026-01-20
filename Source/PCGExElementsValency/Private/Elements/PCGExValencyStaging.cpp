@@ -530,10 +530,11 @@ namespace PCGExValencyStaging
 		{
 			const PCGExClusters::FNode& Node = Nodes[State.NodeIndex];
 
-			// Write module index
-			if (ModuleIndexWriter)
+			// Write packed module data (module index + flags)
+			if (ModuleDataWriter)
 			{
-				ModuleIndexWriter->SetValue(Node.PointIndex, State.ResolvedModule);
+				const int64 PackedData = PCGExValency::ModuleData::Pack(State.ResolvedModule);
+				ModuleDataWriter->SetValue(Node.PointIndex, PackedData);
 			}
 
 			if (State.ResolvedModule >= 0)
@@ -694,7 +695,13 @@ namespace PCGExValencyStaging
 
 		// Create staging-specific writers BEFORE calling base (base triggers PrepareSingle which forwards these)
 		// Module index attribute name comes from OrbitalSet (PCGEx/V/MIdx/{LayerName})
-		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Context->OrbitalSet->GetModuleIdxAttributeName(), -1, true, PCGExData::EBufferInit::Inherit);
+		// Create Module data writer (int64: module index in low bits, pattern flags in high bits)
+		// Only create if BondingRules has patterns defined
+		if (Context->BondingRules && Context->BondingRules->CompiledData && Context->BondingRules->CompiledData->CompiledPatterns.HasPatterns())
+		{
+			const int64 DefaultValue = PCGExValency::ModuleData::Pack(PCGExValency::SlotState::UNSET);
+			ModuleDataWriter = OutputFacade->GetWritable<int64>(Context->OrbitalSet->GetModuleIdxAttributeName(), DefaultValue, true, PCGExData::EBufferInit::Inherit);
+		}
 
 		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
 		{
@@ -750,7 +757,7 @@ namespace PCGExValencyStaging
 		TypedProcessor->SolverAllocations = SolverAllocations;
 
 		// Forward staging-specific writers to processor
-		TypedProcessor->ModuleIndexWriter = ModuleIndexWriter;
+		TypedProcessor->ModuleDataWriter = ModuleDataWriter;
 		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
 		TypedProcessor->EntryHashWriter = EntryHashWriter;

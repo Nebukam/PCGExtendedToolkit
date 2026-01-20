@@ -100,8 +100,9 @@ namespace PCGExValencyPatternReplacement
 		friend class FBatch;
 
 	protected:
-		/** Module index reader (from Staging output) */
-		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexReader;
+		/** Module data reader/writer (packed int64 from Staging output) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
+		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 
 		/** All matches found in this cluster */
 		TArray<FPCGExValencyPatternMatch> AllMatches;
@@ -118,14 +119,14 @@ namespace PCGExValencyPatternReplacement
 		/** Swap target module indices (NodeIdx -> TargetModuleIdx) */
 		TMap<int32, int32> SwapTargets;
 
+		/** Annotated node indices (all nodes that matched a pattern) */
+		TSet<int32> AnnotatedNodes;
+
 		/** Pattern name writer (for annotation) */
 		TSharedPtr<PCGExData::TBuffer<FName>> PatternNameWriter;
 
 		/** Pattern match index writer */
 		TSharedPtr<PCGExData::TBuffer<int32>> PatternMatchIndexWriter;
-
-		/** Module index writer (for Swap strategy) */
-		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -167,11 +168,9 @@ namespace PCGExValencyPatternReplacement
 
 	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
 	{
-		/** Module index reader (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexReader;
-
-		/** Module index writer for Swap strategy (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
+		/** Module data reader/writer (packed int64, owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
+		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 
 		/** Pattern name writer (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<FName>> PatternNameWriter;

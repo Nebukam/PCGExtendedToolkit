@@ -36,6 +36,66 @@ namespace PCGExValency
 		constexpr int32 PLACEHOLDER = -4;  // For ligature replacement
 	}
 
+	/**
+	 * Module attribute packing helpers.
+	 * The Module attribute is an int64 with:
+	 *   - Bits 0-31 (Low):  Module index (int32)
+	 *   - Bits 32-63 (High): Pattern flags
+	 */
+	namespace ModuleData
+	{
+		/** Pattern flags (stored in high 32 bits) */
+		namespace Flags
+		{
+			constexpr uint32 None = 0;
+			constexpr uint32 Consumed = 1 << 0;    // Point consumed by pattern (Remove/Fork/Collapse)
+			constexpr uint32 Swapped = 1 << 1;     // Module index was swapped by pattern
+			constexpr uint32 Collapsed = 1 << 2;   // This is the collapsed point (kept, transform updated)
+			constexpr uint32 Annotated = 1 << 3;   // Point was annotated by pattern (no removal)
+		}
+
+		/** Pack module index and flags into int64 */
+		FORCEINLINE int64 Pack(int32 ModuleIndex, uint32 PatternFlags = Flags::None)
+		{
+			// Store module index in low 32 bits, flags in high 32 bits
+			return (static_cast<int64>(PatternFlags) << 32) | static_cast<uint32>(ModuleIndex);
+		}
+
+		/** Unpack module index from int64 */
+		FORCEINLINE int32 GetModuleIndex(int64 PackedData)
+		{
+			return static_cast<int32>(PackedData & 0xFFFFFFFF);
+		}
+
+		/** Unpack pattern flags from int64 */
+		FORCEINLINE uint32 GetFlags(int64 PackedData)
+		{
+			return static_cast<uint32>(PackedData >> 32);
+		}
+
+		/** Check if a specific flag is set */
+		FORCEINLINE bool HasFlag(int64 PackedData, uint32 Flag)
+		{
+			return (GetFlags(PackedData) & Flag) != 0;
+		}
+
+		/** Set a flag on packed data */
+		FORCEINLINE int64 SetFlag(int64 PackedData, uint32 Flag)
+		{
+			uint32 Flags = GetFlags(PackedData) | Flag;
+			int32 ModuleIndex = GetModuleIndex(PackedData);
+			return Pack(ModuleIndex, Flags);
+		}
+
+		/** Clear a flag on packed data */
+		FORCEINLINE int64 ClearFlag(int64 PackedData, uint32 Flag)
+		{
+			uint32 Flags = GetFlags(PackedData) & ~Flag;
+			int32 ModuleIndex = GetModuleIndex(PackedData);
+			return Pack(ModuleIndex, Flags);
+		}
+	}
+
 	/** Pin labels */
 	namespace Labels
 	{

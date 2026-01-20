@@ -198,7 +198,7 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExValency::FSolverAllocations> SolverAllocations;
 
 		/** Attribute writers (owned by batch, forwarded via PrepareSingle) */
-		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
+		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
@@ -247,7 +247,7 @@ namespace PCGExValencyStaging
 	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
 	{
 		/** Attribute writers (owned here, shared with processors) */
-		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
+		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;

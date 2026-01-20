@@ -201,12 +201,6 @@ namespace PCGExValencyMT
 
 	bool IProcessor::BuildOrbitalCache()
 	{
-		UE_LOG(LogTemp, Warning, TEXT("IProcessor::BuildOrbitalCache called. this=%p, OrbitalMaskReader=%s, EdgeIndicesReader=%s, MaxOrbitals=%d"),
-			this,
-			OrbitalMaskReader ? TEXT("Valid") : TEXT("NULL"),
-			EdgeIndicesReader ? TEXT("Valid") : TEXT("NULL"),
-			MaxOrbitals);
-
 		// Check each requirement and log specific failure reason
 		if (!Cluster)
 		{
@@ -275,24 +269,13 @@ namespace PCGExValencyMT
 		// Create readers BEFORE calling parent (parent may trigger PrepareSingle)
 		FPCGExValencyProcessorContext* Context = GetContext<FPCGExValencyProcessorContext>();
 
-		UE_LOG(LogTemp, Warning, TEXT("IBatch::OnProcessingPreparationComplete called. Context=%s, OrbitalSet=%s"),
-			Context ? TEXT("Valid") : TEXT("NULL"),
-			(Context && Context->OrbitalSet) ? *Context->OrbitalSet->GetName() : TEXT("NULL"));
-
 		if (Context && Context->OrbitalSet)
 		{
 			MaxOrbitals = Context->OrbitalSet->Num();
 
 			// Create orbital mask reader from vertex facade
 			const FName MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
-
-			UE_LOG(LogTemp, Warning, TEXT("  Looking for orbital mask attribute: '%s' on VtxDataFacade with %d points"),
-				*MaskAttributeName.ToString(), VtxDataFacade->GetNum());
-
 			OrbitalMaskReader = VtxDataFacade->GetReadable<int64>(MaskAttributeName);
-
-			UE_LOG(LogTemp, Warning, TEXT("  OrbitalMaskReader after GetReadable: %s"),
-				OrbitalMaskReader ? TEXT("Valid") : TEXT("NULL"));
 
 			if (!OrbitalMaskReader)
 			{
@@ -301,17 +284,9 @@ namespace PCGExValencyMT
 					           FText::FromName(MaskAttributeName)));
 			}
 		}
-		else
+		else if (Context && !Context->OrbitalSet)
 		{
-			// Log why we're not creating the reader
-			if (!Context)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("IBatch::OnProcessingPreparationComplete: Context is null."));
-			}
-			else if (!Context->OrbitalSet)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("IBatch::OnProcessingPreparationComplete: OrbitalSet is null. Ensure BondingRules or OrbitalSet is configured."));
-			}
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("OrbitalSet is null. Ensure BondingRules or OrbitalSet is configured."));
 		}
 
 		PCGExClusterMT::IBatch::OnProcessingPreparationComplete();
@@ -324,15 +299,9 @@ namespace PCGExValencyMT
 		IProcessor* ValencyProcessor = static_cast<IProcessor*>(InProcessor.Get());
 		if (!ValencyProcessor) { return false; }
 
-		UE_LOG(LogTemp, Warning, TEXT("IBatch::PrepareSingle called. Processor=%p, this->OrbitalMaskReader=%s, MaxOrbitals=%d"),
-			ValencyProcessor, OrbitalMaskReader ? TEXT("Valid") : TEXT("NULL"), MaxOrbitals);
-
 		// Forward readers and config to processor - cache will be built after cluster is available
 		ValencyProcessor->OrbitalMaskReader = OrbitalMaskReader;
 		ValencyProcessor->MaxOrbitals = MaxOrbitals;
-
-		UE_LOG(LogTemp, Warning, TEXT("  After forwarding: Processor=%p, Processor->OrbitalMaskReader=%s"),
-			ValencyProcessor, ValencyProcessor->OrbitalMaskReader ? TEXT("Valid") : TEXT("NULL"));
 
 		return true;
 	}
