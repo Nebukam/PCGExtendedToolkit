@@ -3,10 +3,26 @@
 
 #include "Core/PCGExValencySolverOperation.h"
 #include "Core/PCGExValencyLog.h"
+#include "Data/PCGExData.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 
 void UPCGExValencySolverInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
+}
+
+void UPCGExValencySolverInstancedFactory::RegisterPrimaryBuffersDependencies(
+	FPCGExContext* InContext,
+	PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	// Default: no additional buffer dependencies
+}
+
+TSharedPtr<PCGExValency::FSolverAllocations> UPCGExValencySolverInstancedFactory::CreateAllocations(
+	const TSharedRef<PCGExData::FFacade>& VtxFacade) const
+{
+	// Default: no allocations needed
+	return nullptr;
 }
 
 namespace PCGExValency
@@ -231,11 +247,13 @@ void FPCGExValencySolverOperation::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
 	const PCGExValency::FOrbitalCache* InOrbitalCache,
-	int32 InSeed)
+	int32 InSeed,
+	const TSharedPtr<PCGExValency::FSolverAllocations>& InAllocations)
 {
 	CompiledBondingRules = InCompiledBondingRules;
 	ValencyStates = &InValencyStates;
 	OrbitalCache = InOrbitalCache;
+	Allocations = InAllocations;
 	RandomStream.Initialize(InSeed);
 
 	DistributionTracker.Initialize(CompiledBondingRules);

@@ -11,7 +11,8 @@ void FPCGExValencyEntropySolver::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
 	const PCGExValency::FOrbitalCache* InOrbitalCache,
-	int32 InSeed)
+	int32 InSeed,
+	const TSharedPtr<PCGExValency::FSolverAllocations>& InAllocations)
 {
 	VALENCY_LOG_SECTION(Solver, "ENTROPY SOLVER INITIALIZE");
 	PCGEX_VALENCY_INFO(Solver, "Seed: %d, States: %d, CompiledRules: %s, OrbitalCache: %s",
@@ -26,7 +27,7 @@ void FPCGExValencyEntropySolver::Initialize(
 	}
 
 	// Call base - marks boundary states
-	FPCGExValencySolverOperation::Initialize(InCompiledBondingRules, InValencyStates, InOrbitalCache, InSeed);
+	FPCGExValencySolverOperation::Initialize(InCompiledBondingRules, InValencyStates, InOrbitalCache, InSeed, InAllocations);
 
 	// Initialize WFC-specific state
 	StateData.SetNum(ValencyStates->Num());

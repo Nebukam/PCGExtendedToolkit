@@ -5,6 +5,7 @@
 
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGExData.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 
 void FPCGExValencyProcessorContext::RegisterAssetDependencies()
 {
@@ -80,7 +81,7 @@ bool FPCGExValencyProcessorElement::PostBoot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
+	// Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
 
 	return true;
 }
@@ -161,6 +162,18 @@ namespace PCGExValencyMT
 	               TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: PCGExClusterMT::IBatch(InContext, InVtx, InEdges)
 	{
+	}
+
+	void IBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		PCGExClusterMT::IBatch::RegisterBuffersDependencies(FacadePreloader);
+
+		// Register orbital mask attribute for preloading
+		FPCGExValencyProcessorContext* Context = GetContext<FPCGExValencyProcessorContext>();
+		if (Context && Context->OrbitalSet)
+		{
+			FacadePreloader.Register<int64>(ExecutionContext, Context->OrbitalSet->GetOrbitalMaskAttributeName());
+		}
 	}
 
 	void IBatch::OnProcessingPreparationComplete()

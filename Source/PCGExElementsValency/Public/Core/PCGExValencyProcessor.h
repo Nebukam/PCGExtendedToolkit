@@ -172,6 +172,7 @@ namespace PCGExValencyMT
 
 		virtual ~IBatch() override = default;
 
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 	};

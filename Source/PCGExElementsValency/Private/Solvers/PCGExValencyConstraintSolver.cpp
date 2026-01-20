@@ -11,13 +11,14 @@ void FPCGExValencyConstraintSolver::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 	TArray<PCGExValency::FValencyState>& InValencyStates,
 	const PCGExValency::FOrbitalCache* InOrbitalCache,
-	int32 InSeed)
+	int32 InSeed,
+	const TSharedPtr<PCGExValency::FSolverAllocations>& InAllocations)
 {
 	VALENCY_LOG_SECTION(Solver, "CONSTRAINT SOLVER INITIALIZE");
 	PCGEX_VALENCY_INFO(Solver, "Seed: %d, States: %d, CompiledRules: %s, OrbitalCache: %s",
-		InSeed, InValencyStates.Num(),
-		InCompiledBondingRules ? TEXT("Valid") : TEXT("NULL"),
-		InOrbitalCache ? TEXT("Valid") : TEXT("NULL"));
+	                   InSeed, InValencyStates.Num(),
+	                   InCompiledBondingRules ? TEXT("Valid") : TEXT("NULL"),
+	                   InOrbitalCache ? TEXT("Valid") : TEXT("NULL"));
 
 	// Call base - marks boundary states
 	FPCGExValencySolverOperation::Initialize(InCompiledBondingRules, InValencyStates, InOrbitalCache, InSeed);
@@ -34,10 +35,10 @@ void FPCGExValencyConstraintSolver::Initialize(
 
 	// Initialize slot budget AFTER candidates are known
 	SlotBudget.Initialize(CompiledBondingRules, *ValencyStates, OrbitalCache,
-		[this](int32 ModuleIndex, int32 NodeIndex) -> bool
-		{
-			return DoesModuleFitNode(ModuleIndex, NodeIndex);
-		});
+	                      [this](int32 ModuleIndex, int32 NodeIndex) -> bool
+	                      {
+		                      return DoesModuleFitNode(ModuleIndex, NodeIndex);
+	                      });
 
 	// Check early unsolvability
 	if (!SlotBudget.AreConstraintsSatisfiable(DistributionTracker, CompiledBondingRules))
@@ -245,7 +246,7 @@ PCGExValency::FSolveResult FPCGExValencyConstraintSolver::Solve()
 		}
 
 		PCGEX_VALENCY_VERBOSE(Solver, "--- Solve Iteration %d: Processing State[%d], Entropy=%.2f ---",
-			Iteration, StateIndex, StateData[StateIndex].Entropy);
+		                      Iteration, StateIndex, StateData[StateIndex].Entropy);
 
 		if (!CollapseState(StateIndex))
 		{
@@ -273,8 +274,8 @@ PCGExValency::FSolveResult FPCGExValencyConstraintSolver::Solve()
 
 	VALENCY_LOG_SECTION(Solver, "CONSTRAINT SOLVER SOLVE COMPLETE");
 	PCGEX_VALENCY_INFO(Solver, "Iterations: %d, Resolved: %d, Unsolvable: %d, Boundaries: %d, MinsSatisfied: %s",
-		Iteration, Result.ResolvedCount, Result.UnsolvableCount, Result.BoundaryCount,
-		Result.MinimumsSatisfied ? TEXT("YES") : TEXT("NO"));
+	                   Iteration, Result.ResolvedCount, Result.UnsolvableCount, Result.BoundaryCount,
+	                   Result.MinimumsSatisfied ? TEXT("YES") : TEXT("NO"));
 
 	return Result;
 }
@@ -327,8 +328,8 @@ bool FPCGExValencyConstraintSolver::CollapseState(int32 StateIndex)
 
 	// Log the selection with asset info
 	const FString AssetName = CompiledBondingRules->ModuleAssets.IsValidIndex(SelectedModule)
-		? CompiledBondingRules->ModuleAssets[SelectedModule].GetAssetName()
-		: TEXT("Unknown");
+		                          ? CompiledBondingRules->ModuleAssets[SelectedModule].GetAssetName()
+		                          : TEXT("Unknown");
 	PCGEX_VALENCY_VERBOSE(Solver, "  CollapseState[%d]: SELECTED Module[%d] = '%s'", StateIndex, SelectedModule, *AssetName);
 
 	// Propagate constraints to neighbors
@@ -412,7 +413,7 @@ bool FPCGExValencyConstraintSolver::FilterCandidates(int32 StateIndex)
 			if (!IsModuleCompatibleWithNeighbor(CandidateModule, OrbitalIndex, NeighborState.ResolvedModule))
 			{
 				PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates: Module[%d] incompatible with neighbor Module[%d] at orbital %d",
-					CandidateModule, NeighborState.ResolvedModule, OrbitalIndex);
+				                      CandidateModule, NeighborState.ResolvedModule, OrbitalIndex);
 				bCompatible = false;
 			}
 		}
@@ -448,7 +449,7 @@ bool FPCGExValencyConstraintSolver::FilterCandidates(int32 StateIndex)
 	if (RemovedByDistribution > 0 || RemovedByNeighbor > 0 || RemovedByArcConsistency > 0)
 	{
 		PCGEX_VALENCY_VERBOSE(Solver, "    FilterCandidates[%d]: Removed %d by distribution, %d by neighbor, %d by arc consistency",
-			StateIndex, RemovedByDistribution, RemovedByNeighbor, RemovedByArcConsistency);
+		                      StateIndex, RemovedByDistribution, RemovedByNeighbor, RemovedByArcConsistency);
 	}
 
 	return Data.Candidates.Num() > 0;
@@ -556,7 +557,7 @@ int32 FPCGExValencyConstraintSolver::SelectWithConstraints(const TArray<int32>& 
 		{
 			Weight *= (1.0f + Urgency * UrgencyBoostMultiplier);
 			PCGEX_VALENCY_VERBOSE(Solver, "    SelectWithConstraints: Module[%d] urgency=%.2f, boosted weight=%.2f",
-				ModuleIndex, Urgency, Weight);
+			                      ModuleIndex, Urgency, Weight);
 		}
 
 		TotalWeight += Weight;

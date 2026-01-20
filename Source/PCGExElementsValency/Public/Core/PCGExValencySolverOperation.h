@@ -12,9 +12,25 @@
 
 #include "PCGExValencySolverOperation.generated.h"
 
+namespace PCGExData
+{
+	class FFacade;
+	class FFacadePreloader;
+}
+
 namespace PCGExValency
 {
 	// FValencyState is now in PCGExValencyCommon.h
+
+	/**
+	 * Base class for solver-specific shared data/allocations.
+	 * Solvers that need access to point attributes (e.g., priority) should derive from this
+	 * and override CreateAllocations() in their factory to populate it.
+	 */
+	struct PCGEXELEMENTSVALENCY_API FSolverAllocations : TSharedFromThis<FSolverAllocations>
+	{
+		virtual ~FSolverAllocations() = default;
+	};
 
 	/**
 	 * Distribution constraint tracker for min/max spawn counts.
@@ -140,12 +156,14 @@ public:
 	 * @param InValencyStates Array of states (one per cluster node) - solver writes ResolvedModule
 	 * @param InOrbitalCache Orbital cache providing orbital masks and neighbor mappings
 	 * @param InSeed Random seed for deterministic solving
+	 * @param InAllocations Optional solver-specific allocations (e.g., priority data)
 	 */
 	virtual void Initialize(
 		const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 		TArray<PCGExValency::FValencyState>& InValencyStates,
 		const PCGExValency::FOrbitalCache* InOrbitalCache,
-		int32 InSeed);
+		int32 InSeed,
+		const TSharedPtr<PCGExValency::FSolverAllocations>& InAllocations = nullptr);
 
 	/**
 	 * Run the full solve algorithm.
@@ -178,6 +196,9 @@ protected:
 
 	/** Orbital cache providing orbital masks and neighbor mappings */
 	const PCGExValency::FOrbitalCache* OrbitalCache = nullptr;
+
+	/** Solver-specific allocations (optional, provided by factory) */
+	TSharedPtr<PCGExValency::FSolverAllocations> Allocations;
 
 	/** Distribution constraint tracker (shared utility) */
 	PCGExValency::FDistributionTracker DistributionTracker;
@@ -237,4 +258,23 @@ public:
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual TSharedPtr<FPCGExValencySolverOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation, nullptr);
+
+	/**
+	 * Register buffer dependencies for this solver.
+	 * Override to declare attributes that need preloading (e.g., priority attribute).
+	 * Called during batch's RegisterBuffersDependencies phase.
+	 */
+	virtual void RegisterPrimaryBuffersDependencies(
+		FPCGExContext* InContext,
+		PCGExData::FFacadePreloader& FacadePreloader) const override;
+
+	/**
+	 * Create solver-specific allocations from the vertex facade.
+	 * Override to read attributes and build data structures needed by the solver.
+	 * Called after buffers are preloaded, during OnProcessingPreparationComplete.
+	 * @param VtxFacade The vertex data facade with preloaded buffers
+	 * @return Allocations object, or nullptr if solver doesn't need allocations
+	 */
+	virtual TSharedPtr<PCGExValency::FSolverAllocations> CreateAllocations(
+		const TSharedRef<PCGExData::FFacade>& VtxFacade) const;
 };

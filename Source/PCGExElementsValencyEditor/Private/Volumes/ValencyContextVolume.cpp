@@ -248,12 +248,15 @@ void AValencyContextVolume::BuildRulesFromCages()
 	{
 		UE_LOG(LogValencyVolume, Log, TEXT("Build succeeded: %d modules from %d cages."), Result.ModuleCount, Result.CageCount);
 
-		// Regenerate PCG actors from ALL related volumes
-		for (AValencyContextVolume* Volume : RelatedVolumes)
+		// Regenerate PCG actors from ALL related volumes (if enabled)
+		if (UPCGExValencyEditorSettings::Get()->bAutoRegeneratePCG)
 		{
-			if (Volume)
+			for (AValencyContextVolume* Volume : RelatedVolumes)
 			{
-				Volume->RegeneratePCGActors();
+				if (Volume)
+				{
+					Volume->RegeneratePCGActors();
+				}
 			}
 		}
 	}
@@ -373,10 +376,13 @@ void AValencyContextVolume::RegeneratePCGActors()
 
 	int32 RegeneratedCount = 0;
 
-	// Flush the PCG cache first
-	if (UPCGSubsystem* Subsystem = UPCGSubsystem::GetActiveEditorInstance())
+	// Optionally flush the PCG cache (can cause GC spikes)
+	if (UPCGExValencyEditorSettings::Get()->bFlushPCGCacheOnRegenerate)
 	{
-		Subsystem->FlushCache();
+		if (UPCGSubsystem* Subsystem = UPCGSubsystem::GetActiveEditorInstance())
+		{
+			Subsystem->FlushCache();
+		}
 	}
 
 	for (const TObjectPtr<AActor>& ActorPtr : PCGActorsToRegenerate)

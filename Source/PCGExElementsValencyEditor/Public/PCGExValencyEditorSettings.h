@@ -148,11 +148,18 @@ public:
 	// ========== Mirror Ghost ==========
 
 	/**
+	 * Enable ghost mesh preview for mirror cages.
+	 * When disabled, no ghost mesh components are created, which can help with performance.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost")
+	bool bEnableGhostMeshes = true;
+
+	/**
 	 * Material used for ghost mesh preview in mirror cages.
 	 * All mirror cages share this single material for performance.
 	 * If null, uses the plugin's default ghost material (M_ValencyAssetGhost).
 	 */
-	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost")
+	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost", meta = (EditCondition = "bEnableGhostMeshes"))
 	TSoftObjectPtr<UMaterialInterface> GhostMaterial;
 
 	/** Get the ghost material to use (resolves soft pointer, falls back to M_ValencyAssetGhost) */
@@ -176,4 +183,23 @@ public:
 	 */
 	UPROPERTY(Config, EditAnywhere, Category = "Behavior")
 	bool bRebuildDuringInteractiveChanges = true;
+
+	/**
+	 * When enabled, flushes the entire PCG subsystem cache before regenerating.
+	 * This ensures PCG graphs see updated BondingRules data, but can cause
+	 * GC spikes due to cache invalidation.
+	 *
+	 * Try disabling this if you experience lag spikes during Valency operations.
+	 * If disabled, you may need to manually refresh PCG graphs in some cases.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Behavior", meta = (EditCondition = "bAutoRegeneratePCG"))
+	bool bFlushPCGCacheOnRegenerate = true;
+
+	/**
+	 * When enabled, automatically regenerates PCG graphs after building rules.
+	 * Disable this if you experience GC spikes during Valency operations.
+	 * You'll need to manually regenerate PCG graphs when disabled.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Behavior")
+	bool bAutoRegeneratePCG = true;
 };

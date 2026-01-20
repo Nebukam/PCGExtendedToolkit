@@ -138,6 +138,9 @@ namespace PCGExValencyStaging
 		/** Solver instance */
 		TSharedPtr<FPCGExValencySolverOperation> Solver;
 
+		/** Solver allocations (owned by batch, forwarded via PrepareSingle) */
+		TSharedPtr<PCGExValency::FSolverAllocations> SolverAllocations;
+
 		/** Attribute writers (owned by batch, forwarded via PrepareSingle) */
 		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
@@ -177,10 +180,14 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
 
+		/** Solver allocations (created from factory, shared with processors) */
+		TSharedPtr<PCGExValency::FSolverAllocations> SolverAllocations;
+
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FBatch() override;
 
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void Write() override;

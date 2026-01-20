@@ -49,7 +49,8 @@ public:
 		const FPCGExValencyBondingRulesCompiled* InCompiledBondingRules,
 		TArray<PCGExValency::FValencyState>& InValencyStates,
 		const PCGExValency::FOrbitalCache* InOrbitalCache,
-		int32 InSeed) override;
+		int32 InSeed,
+		const TSharedPtr<PCGExValency::FSolverAllocations>& InAllocations = nullptr) override;
 
 	virtual PCGExValency::FSolveResult Solve() override;
 

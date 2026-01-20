@@ -7,6 +7,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
+#include "Data/Utils/PCGExDataPreloader.h"
 #include "Helpers/PCGExCollectionsHelpers.h"
 #include "PCGExCollectionsCommon.h"
 #include "Collections/PCGExActorCollection.h"
@@ -132,7 +133,7 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 		}
 	}
 
-	Settings->BondingRules->EDITOR_RegisterTrackingKeys(Context);
+	// Settings->BondingRules->EDITOR_RegisterTrackingKeys(Context);
 
 	// Register solver from settings
 	Context->Solver = PCGEX_OPERATION_REGISTER_C(Context, UPCGExValencySolverInstancedFactory, Settings->Solver, NAME_None);
@@ -248,7 +249,7 @@ namespace PCGExValencyStaging
 
 		PCGEX_VALENCY_INFO(Staging, "Initializing solver with seed %d, %d states", SolveSeed, ValencyStates.Num());
 
-		Solver->Initialize(Context->BondingRules->CompiledData.Get(), ValencyStates, OrbitalCache.Get(), SolveSeed);
+		Solver->Initialize(Context->BondingRules->CompiledData.Get(), ValencyStates, OrbitalCache.Get(), SolveSeed, SolverAllocations);
 		SolveResult = Solver->Solve();
 
 		VALENCY_LOG_SECTION(Staging, "SOLVER RESULT");
@@ -415,11 +416,29 @@ namespace PCGExValencyStaging
 	{
 	}
 
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		PCGExValencyMT::IBatch::RegisterBuffersDependencies(FacadePreloader);
+
+		// Let solver register its buffer dependencies (e.g., priority attribute)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
+		if (Context->Solver)
+		{
+			Context->Solver->RegisterPrimaryBuffersDependencies(Context, FacadePreloader);
+		}
+	}
+
 	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
 
 		const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
+
+		// Create solver allocations (buffers are now preloaded)
+		if (Context->Solver)
+		{
+			SolverAllocations = Context->Solver->CreateAllocations(VtxDataFacade);
+		}
 
 		// Create staging-specific writers BEFORE calling base (base triggers PrepareSingle which forwards these)
 		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Settings->ModuleIndexAttributeName, -1, true, PCGExData::EBufferInit::Inherit);
@@ -452,6 +471,9 @@ namespace PCGExValencyStaging
 		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
 		FProcessor* TypedProcessor = static_cast<FProcessor*>(InProcessor.Get());
+
+		// Forward solver allocations to processor
+		TypedProcessor->SolverAllocations = SolverAllocations;
 
 		// Forward staging-specific writers to processor
 		TypedProcessor->ModuleIndexWriter = ModuleIndexWriter;

@@ -88,7 +88,7 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
+	// Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
 
 	return true;
 }

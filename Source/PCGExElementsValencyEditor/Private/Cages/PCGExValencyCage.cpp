@@ -693,14 +693,16 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 	// Clear existing ghost meshes first
 	ClearMirrorGhostMeshes();
 
-	// Early out if ghosting is disabled
-	if (!bShowMirrorGhostMeshes || MirrorSources.Num() == 0)
+	// Get settings
+	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
+
+	// Early out if ghosting is disabled (either globally or per-cage)
+	if (!Settings || !Settings->bEnableGhostMeshes || !bShowMirrorGhostMeshes || MirrorSources.Num() == 0)
 	{
 		return;
 	}
 
 	// Get the shared ghost material from settings
-	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
 	UMaterialInterface* GhostMaterial = Settings->GetGhostMaterial();
 
 	// Collect entries from all mirror sources
