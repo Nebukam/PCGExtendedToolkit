@@ -196,7 +196,7 @@ public:
 	 * -1 = show all, 0 = disabled, N = show up to N meshes (in order).
 	 */
 	UPROPERTY(Config, EditAnywhere, Category = "Mirror Ghost", meta = (EditCondition = "bEnableGhostMeshes", ClampMin = "-1"))
-	int32 MaxPatternGhostMeshes = -1;
+	int32 MaxPatternGhostMeshes = 5;
 
 	/** Get the ghost material to use (resolves soft pointer, falls back to M_ValencyAssetGhost) */
 	UMaterialInterface* GetGhostMaterial() const;

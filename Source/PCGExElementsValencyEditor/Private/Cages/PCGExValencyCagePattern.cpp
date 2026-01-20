@@ -11,6 +11,7 @@
 #include "Volumes/ValencyContextVolume.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "PCGExValencyEditorSettings.h"
+#include "Cages/PCGExValencyAssetPalette.h"
 
 APCGExValencyCagePattern::APCGExValencyCagePattern()
 {
@@ -347,75 +348,98 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 	const int32 MaxGhosts = Settings->MaxPatternGhostMeshes;
 	int32 GhostCount = 0;
 
-	// Collect and create ghost meshes from all proxied cages
+	// Collect all entries from proxied cages (including their mirror sources)
+	TArray<FPCGExValencyAssetEntry> AllEntries;
+	TSet<AActor*> VisitedSources;
+
+	// Lambda to collect entries from a source (with recursion for mirror sources)
+	TFunction<void(AActor*)> CollectFromSource = [&](AActor* Source)
+	{
+		if (!Source || VisitedSources.Contains(Source))
+		{
+			return;
+		}
+		VisitedSources.Add(Source);
+
+		if (APCGExValencyCage* SourceCage = Cast<APCGExValencyCage>(Source))
+		{
+			AllEntries.Append(SourceCage->GetAllAssetEntries());
+
+			// Recursively collect from cage's mirror sources
+			for (const TObjectPtr<AActor>& MirrorSource : SourceCage->MirrorSources)
+			{
+				CollectFromSource(MirrorSource);
+			}
+		}
+		else if (APCGExValencyAssetPalette* SourcePalette = Cast<APCGExValencyAssetPalette>(Source))
+		{
+			AllEntries.Append(SourcePalette->GetAllAssetEntries());
+		}
+	};
+
+	// Collect from all proxied cages and their mirror sources
 	for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : ProxiedCages)
 	{
-		if (!ProxiedCage)
+		CollectFromSource(ProxiedCage.Get());
+	}
+
+	for (const FPCGExValencyAssetEntry& Entry : AllEntries)
+	{
+		// Check if we've hit the limit
+		if (MaxGhosts >= 0 && GhostCount >= MaxGhosts)
+		{
+			break;
+		}
+
+		if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
 		{
 			continue;
 		}
 
-		// Get entries from the proxied cage
-		TArray<FPCGExValencyAssetEntry> Entries = ProxiedCage->GetAllAssetEntries();
-
-		for (const FPCGExValencyAssetEntry& Entry : Entries)
+		// Try to get the mesh
+		UStaticMesh* Mesh = Cast<UStaticMesh>(Entry.Asset.Get());
+		if (!Mesh)
 		{
-			// Check if we've hit the limit
-			if (MaxGhosts >= 0 && GhostCount >= MaxGhosts)
-			{
-				return; // Exit completely when limit reached
-			}
-
-			if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
-			{
-				continue;
-			}
-
-			// Try to get the mesh
-			UStaticMesh* Mesh = Cast<UStaticMesh>(Entry.Asset.Get());
-			if (!Mesh)
-			{
-				// Try sync load (editor-only)
-				Mesh = Cast<UStaticMesh>(Entry.Asset.LoadSynchronous());
-			}
-
-			if (!Mesh)
-			{
-				continue;
-			}
-
-			// Create the ghost mesh component
-			UStaticMeshComponent* GhostComp = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
-			GhostComp->SetStaticMesh(Mesh);
-			GhostComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			GhostComp->SetCastShadow(false);
-			GhostComp->bSelectable = false;
-
-			// Apply ghost material to all slots
-			if (GhostMaterial)
-			{
-				const int32 NumMaterials = Mesh->GetStaticMaterials().Num();
-				for (int32 i = 0; i < NumMaterials; ++i)
-				{
-					GhostComp->SetMaterial(i, GhostMaterial);
-				}
-			}
-
-			// Apply local transform (rotated by cage rotation)
-			const FVector RotatedLocation = CageRotation.RotateVector(Entry.LocalTransform.GetLocation());
-			const FQuat RotatedRotation = CageRotation * Entry.LocalTransform.GetRotation();
-
-			GhostComp->SetRelativeLocation(RotatedLocation);
-			GhostComp->SetRelativeRotation(RotatedRotation.Rotator());
-			GhostComp->SetRelativeScale3D(Entry.LocalTransform.GetScale3D());
-
-			// Attach and register
-			GhostComp->SetupAttachment(RootComponent);
-			GhostComp->RegisterComponent();
-
-			ProxyGhostMeshComponents.Add(GhostComp);
-			GhostCount++;
+			// Try sync load (editor-only)
+			Mesh = Cast<UStaticMesh>(Entry.Asset.LoadSynchronous());
 		}
+
+		if (!Mesh)
+		{
+			continue;
+		}
+
+		// Create the ghost mesh component
+		UStaticMeshComponent* GhostComp = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
+		GhostComp->SetStaticMesh(Mesh);
+		GhostComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GhostComp->SetCastShadow(false);
+		GhostComp->bSelectable = false;
+
+		// Apply ghost material to all slots
+		if (GhostMaterial)
+		{
+			const int32 NumMaterials = Mesh->GetStaticMaterials().Num();
+			for (int32 i = 0; i < NumMaterials; ++i)
+			{
+				GhostComp->SetMaterial(i, GhostMaterial);
+			}
+		}
+
+		// Apply local transform (rotated by cage rotation)
+		const FVector RotatedLocation = CageRotation.RotateVector(Entry.LocalTransform.GetLocation());
+		const FQuat RotatedRotation = CageRotation * Entry.LocalTransform.GetRotation();
+
+		GhostComp->SetRelativeLocation(RotatedLocation);
+		GhostComp->SetRelativeRotation(RotatedRotation.Rotator());
+		GhostComp->SetRelativeScale3D(Entry.LocalTransform.GetScale3D());
+
+		// Attach and register
+		GhostComp->SetupAttachment(RootComponent);
+		GhostComp->RegisterComponent();
+
+		ProxyGhostMeshComponents.Add(GhostComp);
+		GhostCount++;
 	}
 }
 
