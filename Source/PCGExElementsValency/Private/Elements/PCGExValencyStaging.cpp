@@ -62,12 +62,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyStaging)
 void FPCGExValencyStagingContext::RegisterAssetDependencies()
 {
 	FPCGExValencyProcessorContext::RegisterAssetDependencies();
-
-	const UPCGExValencyStagingSettings* Settings = GetInputSettings<UPCGExValencyStagingSettings>();
-	if (Settings && !Settings->BondingRules.IsNull())
-	{
-		AddAssetDependency(Settings->BondingRules.ToSoftObjectPath());
-	}
+	// Base class handles OrbitalSet and BondingRules registration via WantsOrbitalSet()/WantsBondingRules()
 }
 
 FPCGElementPtr UPCGExValencyStagingSettings::CreateElement() const
@@ -82,17 +77,8 @@ bool FPCGExValencyStagingElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
 
 	// Validate solver settings (doesn't require loaded assets)
+	// Base class handles OrbitalSet and BondingRules validation via WantsOrbitalSet()/WantsBondingRules()
 	PCGEX_OPERATION_VALIDATE(Solver)
-
-	// Check that asset references are provided (but don't load them yet)
-	if (Settings->BondingRules.IsNull())
-	{
-		if (!Settings->bQuietMissingBondingRules)
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Bonding Rules provided."));
-		}
-		return false;
-	}
 
 	return true;
 }
@@ -100,28 +86,15 @@ bool FPCGExValencyStagingElement::Boot(FPCGExContext* InContext) const
 void FPCGExValencyStagingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
 {
 	FPCGExValencyProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
-
-	// Get loaded BondingRules (OrbitalSet is handled by base class)
-	if (!Settings->BondingRules.IsNull())
-	{
-		Context->BondingRules = Settings->BondingRules.Get();
-	}
+	// Base class handles OrbitalSet and BondingRules loading via WantsOrbitalSet()/WantsBondingRules()
 }
 
 bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 {
+	// Base class validates OrbitalSet and BondingRules via WantsOrbitalSet()/WantsBondingRules()
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
-
-	// Validate loaded BondingRules (OrbitalSet validation is handled by base class)
-	if (!Context->BondingRules)
-	{
-		if (!Settings->bQuietMissingBondingRules) { PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to load Valency Bonding Rules.")); }
-		return false;
-	}
 
 	// Ensure bonding rules are compiled
 	if (!Context->BondingRules->IsCompiled())

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
-#include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencyPattern.h"
 
 #include "PCGExValencyPatternReplacement.generated.h"
@@ -44,12 +43,12 @@ protected:
 	//~End UPCGSettings
 
 public:
+	// This node requires BondingRules (which provides OrbitalSet)
+	virtual bool WantsOrbitalSet() const override { return true; }
+	virtual bool WantsBondingRules() const override { return true; }
+
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-
-	/** The bonding rules data asset containing compiled patterns */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
 	/** How to resolve overlapping pattern matches */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Matching", meta=(PCG_Overridable))
@@ -67,10 +66,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	FName PatternMatchIndexAttributeName = FName("PatternMatchIndex");
 
-	/** Suppress warnings about missing bonding rules */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietMissingBondingRules = false;
-
 	/** Suppress warnings about no patterns in bonding rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietNoPatterns = false;
@@ -79,10 +74,6 @@ public:
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternReplacementContext final : FPCGExValencyProcessorContext
 {
 	friend class FPCGExValencyPatternReplacementElement;
-
-	virtual void RegisterAssetDependencies() override;
-
-	TObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
 	/** Compiled patterns (reference from BondingRules) */
 	const FPCGExValencyPatternSetCompiled* CompiledPatterns = nullptr;
@@ -96,8 +87,6 @@ class PCGEXELEMENTSVALENCY_API FPCGExValencyPatternReplacementElement final : pu
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ValencyPatternReplacement)
 
-	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
@@ -120,11 +109,23 @@ namespace PCGExValencyPatternReplacement
 		/** Claimed node indices (for exclusive patterns) */
 		TSet<int32> ClaimedNodes;
 
+		/** Node indices to remove from main output (Remove/Fork/Collapse strategies) */
+		TSet<int32> NodesToRemove;
+
+		/** Collapse replacement transforms (NodeIdx -> ReplacementTransform) */
+		TMap<int32, FTransform> CollapseReplacements;
+
+		/** Swap target module indices (NodeIdx -> TargetModuleIdx) */
+		TMap<int32, int32> SwapTargets;
+
 		/** Pattern name writer (for annotation) */
 		TSharedPtr<PCGExData::TBuffer<FName>> PatternNameWriter;
 
 		/** Pattern match index writer */
 		TSharedPtr<PCGExData::TBuffer<int32>> PatternMatchIndexWriter;
+
+		/** Module index writer (for Swap strategy) */
+		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -168,6 +169,9 @@ namespace PCGExValencyPatternReplacement
 	{
 		/** Module index reader (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexReader;
+
+		/** Module index writer for Swap strategy (owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<int32>> ModuleIndexWriter;
 
 		/** Pattern name writer (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<FName>> PatternNameWriter;

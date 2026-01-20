@@ -8,12 +8,14 @@
 #include "Core/PCGExValencyCommon.h"
 #include "Core/PCGExValencyOrbitalCache.h"
 #include "Core/PCGExValencyOrbitalSet.h"
+#include "Core/PCGExValencyBondingRules.h"
 
 #include "PCGExValencyProcessor.generated.h"
 
 /**
  * Base settings for Valency cluster processors.
- * Provides common OrbitalSet property and validation.
+ * Provides common OrbitalSet and BondingRules properties with optional validation.
+ * Override WantsOrbitalSet() and WantsBondingRules() to control requirements.
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency")
 class PCGEXELEMENTSVALENCY_API UPCGExValencyProcessorSettings : public UPCGExClustersProcessorSettings
@@ -25,18 +27,34 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(MiscAdd); }
 #endif
 
+	/** Whether this node requires an OrbitalSet. Override in derived classes. */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Valency")
+	virtual bool WantsOrbitalSet() const { return true; }
+
+	/** Whether this node requires BondingRules. Override in derived classes. */
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Valency")
+	virtual bool WantsBondingRules() const { return false; }
+
 	/** Orbital set - determines which layer's orbital data to use */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WantsOrbitalSet()", EditConditionHides))
 	TSoftObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
+	/** The bonding rules data asset */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WantsBondingRules()", EditConditionHides))
+	TSoftObjectPtr<UPCGExValencyBondingRules> BondingRules;
+
 	/** Suppress warnings about missing orbital set */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition="WantsOrbitalSet()", EditConditionHides))
 	bool bQuietMissingOrbitalSet = false;
+
+	/** Suppress warnings about missing bonding rules */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition="WantsBondingRules()", EditConditionHides))
+	bool bQuietMissingBondingRules = false;
 };
 
 /**
  * Base context for Valency cluster processors.
- * Holds loaded OrbitalSet and orbital direction cache.
+ * Holds loaded OrbitalSet, BondingRules, and orbital direction cache.
  */
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyProcessorContext : FPCGExClustersProcessorContext
 {
@@ -46,6 +64,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyProcessorContext : FPCGExClustersPr
 
 	/** Loaded orbital set */
 	TObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
+
+	/** Loaded bonding rules */
+	TObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
 	/** Orbital direction cache (for computing orbital indices from directions) */
 	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;

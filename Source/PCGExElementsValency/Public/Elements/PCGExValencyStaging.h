@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
-#include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencySolverOperation.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Elements/PCGExAssetStaging.h"
@@ -68,12 +67,12 @@ protected:
 	//~End UPCGSettings
 
 public:
+	// This node requires both OrbitalSet and BondingRules
+	virtual bool WantsOrbitalSet() const override { return true; }
+	virtual bool WantsBondingRules() const override { return true; }
+
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
-
-	/** The bonding rules data asset containing module configurations */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
 	/** Solver algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
@@ -148,10 +147,6 @@ public:
 	/** Default filter value when no fixed pick filters are connected (true = all points eligible) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
 	bool bDefaultFixedPickFilterValue = true;
-
-	/** Warnings and errors */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietMissingBondingRules = false;
 };
 
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValencyProcessorContext
@@ -159,8 +154,6 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValenc
 	friend class FPCGExValencyStagingElement;
 
 	virtual void RegisterAssetDependencies() override;
-
-	TObjectPtr<UPCGExValencyBondingRules> BondingRules;
 
 	/** Solver factory (registered from settings) */
 	UPCGExValencySolverInstancedFactory* Solver = nullptr;

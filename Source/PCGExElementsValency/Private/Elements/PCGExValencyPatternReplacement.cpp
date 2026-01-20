@@ -8,7 +8,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Utils/PCGExDataPreloader.h"
-#include "Helpers/PCGExStreamingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyPatternReplacement"
 #define PCGEX_NAMESPACE ValencyPatternReplacement
@@ -46,100 +45,14 @@ PCGExData::EIOInit UPCGExValencyPatternReplacementSettings::GetEdgeOutputInitMod
 	return PCGExData::EIOInit::Forward;
 }
 
-void FPCGExValencyPatternReplacementContext::RegisterAssetDependencies()
-{
-	FPCGExValencyProcessorContext::RegisterAssetDependencies();
-
-	const UPCGExValencyPatternReplacementSettings* Settings = GetInputSettings<UPCGExValencyPatternReplacementSettings>();
-	if (Settings && !Settings->BondingRules.IsNull())
-	{
-		AddAssetDependency(Settings->BondingRules.ToSoftObjectPath());
-	}
-}
-
-PCGEX_ELEMENT_BATCH_EDGE_IMPL(ValencyPatternReplacement)
-
-bool FPCGExValencyPatternReplacementElement::Boot(FPCGExContext* InContext) const
-{
-	// Call grandparent Boot, skipping parent's OrbitalSet.IsNull() check.
-	// We get OrbitalSet from BondingRules in PostLoadAssetsDependencies instead.
-	if (!FPCGExClustersProcessorElement::Boot(InContext)) { return false; }
-
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
-
-	// BondingRules is required for this node
-	if (Settings->BondingRules.IsNull())
-	{
-		if (!Settings->bQuietMissingBondingRules)
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("No Bonding Rules provided."));
-		}
-		return false;
-	}
-
-	// Start loading BondingRules (registered in RegisterAssetDependencies)
-	PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->BondingRules, InContext);
-
-	// If user explicitly set OrbitalSet, load it too
-	if (!Settings->OrbitalSet.IsNull())
-	{
-		PCGExHelpers::LoadBlocking_AnyThreadTpl(Settings->OrbitalSet, InContext);
-	}
-
-	return true;
-}
-
-void FPCGExValencyPatternReplacementElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	// Call grandparent to skip base valency's OrbitalSet handling
-	FPCGExClustersProcessorElement::PostLoadAssetsDependencies(InContext);
-
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
-
-	// Get the loaded BondingRules
-	Context->BondingRules = Settings->BondingRules.Get();
-
-	// Get OrbitalSet - prefer explicit setting, fall back to BondingRules
-	if (!Settings->OrbitalSet.IsNull())
-	{
-		Context->OrbitalSet = Settings->OrbitalSet.Get();
-	}
-	else if (Context->BondingRules && Context->BondingRules->OrbitalSets.Num() > 0)
-	{
-		Context->OrbitalSet = Context->BondingRules->OrbitalSets[0];
-	}
-}
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyPatternReplacement)
 
 bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) const
 {
-	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
-
-	// Validate BondingRules first (before parent checks OrbitalSet)
-	if (!Context->BondingRules)
-	{
-		if (!Settings->bQuietMissingBondingRules)
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Bonding Rules asset not found or failed to load."));
-		}
-		return false;
-	}
-
-	// Check if OrbitalSet was resolved (from settings or BondingRules)
-	if (!Context->OrbitalSet)
-	{
-		if (Context->BondingRules->OrbitalSets.Num() == 0)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Bonding Rules has no OrbitalSets. Rebuild the Bonding Rules asset."));
-		}
-		else
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to get OrbitalSet from Bonding Rules."));
-		}
-		return false;
-	}
-
-	// Now call parent PostBoot (validates OrbitalSet and builds OrbitalResolver)
+	// Base class handles BondingRules and OrbitalSet validation
 	if (!FPCGExValencyProcessorElement::PostBoot(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
 
 	// Get compiled data
 	if (!Context->BondingRules->IsCompiled())
@@ -222,10 +135,13 @@ namespace PCGExValencyPatternReplacement
 		const UPCGExValencyPatternReplacementSettings* Settings = ExecutionContext->GetInputSettings<UPCGExValencyPatternReplacementSettings>();
 		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
 
-		// Create module index reader (attribute name from OrbitalSet)
+		// Create module index reader and writer (attribute name from OrbitalSet)
 		if (Context && Context->OrbitalSet)
 		{
-			ModuleIndexReader = VtxDataFacade->GetReadable<int32>(Context->OrbitalSet->GetModuleIdxAttributeName());
+			const FName ModuleIdxAttrName = Context->OrbitalSet->GetModuleIdxAttributeName();
+			ModuleIndexReader = VtxDataFacade->GetReadable<int32>(ModuleIdxAttrName);
+			// Writer uses inherit mode since we're modifying existing Staging output
+			ModuleIndexWriter = VtxDataFacade->GetWritable<int32>(ModuleIdxAttrName, -1, true, PCGExData::EBufferInit::Inherit);
 		}
 
 		// Create pattern name writer
@@ -243,6 +159,7 @@ namespace PCGExValencyPatternReplacement
 
 		FProcessor* Processor = static_cast<FProcessor*>(InProcessor.Get());
 		Processor->ModuleIndexReader = ModuleIndexReader;
+		Processor->ModuleIndexWriter = ModuleIndexWriter;
 		Processor->PatternNameWriter = PatternNameWriter;
 		Processor->PatternMatchIndexWriter = PatternMatchIndexWriter;
 
@@ -308,6 +225,28 @@ namespace PCGExValencyPatternReplacement
 	void FProcessor::Write()
 	{
 		TProcessor::Write();
+
+		// Apply collapse replacement transforms
+		if (!CollapseReplacements.IsEmpty())
+		{
+			TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
+			for (const auto& Pair : CollapseReplacements)
+			{
+				OutTransforms[Pair.Key] = Pair.Value;
+			}
+		}
+
+		// Apply swap module indices
+		if (!SwapTargets.IsEmpty() && ModuleIndexWriter)
+		{
+			for (const auto& Pair : SwapTargets)
+			{
+				ModuleIndexWriter->SetValue(Pair.Key, Pair.Value);
+			}
+		}
+
+		// Mark nodes for removal (actual removal happens in batch Write via point filtering)
+		// The NodesToRemove set is used by the batch to filter points
 	}
 
 	void FProcessor::FindMatchesForPattern(int32 PatternIndex, const FPCGExValencyPatternCompiled& Pattern)
@@ -570,10 +509,14 @@ namespace PCGExValencyPatternReplacement
 			}
 
 			const FPCGExValencyPatternCompiled& Pattern = Context->CompiledPatterns->Patterns[Match.PatternIndex];
+			const EPCGExPatternOutputStrategy Strategy = Pattern.Settings.OutputStrategy;
 
-			// Annotate matched nodes
+			// Annotate matched nodes (all strategies get annotation)
 			for (int32 EntryIdx = 0; EntryIdx < Match.EntryToNode.Num(); ++EntryIdx)
 			{
+				const FPCGExValencyPatternEntryCompiled& Entry = Pattern.Entries[EntryIdx];
+				if (!Entry.bIsActive) { continue; }
+
 				const int32 NodeIdx = Match.EntryToNode[EntryIdx];
 
 				// Write pattern name
@@ -589,8 +532,63 @@ namespace PCGExValencyPatternReplacement
 				}
 			}
 
-			// TODO: Apply output strategy (Remove, Collapse, Swap, etc.)
-			// For now, just annotate
+			// Apply output strategy
+			switch (Strategy)
+			{
+			case EPCGExPatternOutputStrategy::Remove:
+			case EPCGExPatternOutputStrategy::Fork:
+				// Mark active nodes for removal/forking
+				for (int32 EntryIdx = 0; EntryIdx < Match.EntryToNode.Num(); ++EntryIdx)
+				{
+					if (Pattern.Entries[EntryIdx].bIsActive)
+					{
+						NodesToRemove.Add(Match.EntryToNode[EntryIdx]);
+					}
+				}
+				break;
+
+			case EPCGExPatternOutputStrategy::Collapse:
+				// Mark all active nodes for removal except one (which gets the replacement transform)
+				{
+					bool bFirstActive = true;
+					for (int32 EntryIdx = 0; EntryIdx < Match.EntryToNode.Num(); ++EntryIdx)
+					{
+						if (!Pattern.Entries[EntryIdx].bIsActive) { continue; }
+
+						const int32 NodeIdx = Match.EntryToNode[EntryIdx];
+						if (bFirstActive)
+						{
+							// First active node becomes the collapsed point
+							CollapseReplacements.Add(NodeIdx, Match.ReplacementTransform);
+							bFirstActive = false;
+						}
+						else
+						{
+							// Other active nodes are removed
+							NodesToRemove.Add(NodeIdx);
+						}
+					}
+				}
+				break;
+
+			case EPCGExPatternOutputStrategy::Swap:
+				// Update module index to swap target
+				if (Pattern.SwapTargetModuleIndex >= 0)
+				{
+					for (int32 EntryIdx = 0; EntryIdx < Match.EntryToNode.Num(); ++EntryIdx)
+					{
+						if (Pattern.Entries[EntryIdx].bIsActive)
+						{
+							SwapTargets.Add(Match.EntryToNode[EntryIdx], Pattern.SwapTargetModuleIndex);
+						}
+					}
+				}
+				break;
+
+			case EPCGExPatternOutputStrategy::Annotate:
+				// Already done above, nothing more to do
+				break;
+			}
 
 			++MatchCounter;
 		}
