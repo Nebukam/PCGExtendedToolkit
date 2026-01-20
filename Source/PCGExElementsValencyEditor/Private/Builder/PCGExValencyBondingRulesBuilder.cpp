@@ -423,18 +423,6 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 	VALENCY_LOG_SECTION(Building, "MODULE MAP COMPLETE");
 	PCGEX_VALENCY_INFO(Building, "Total modules: %d", OutModuleKeyToIndex.Num());
-
-	// Dump all modules for debugging
-	UE_LOG(LogTemp, Warning, TEXT("[ModuleMap] === ALL MODULES ==="));
-	for (int32 ModuleIndex = 0; ModuleIndex < TargetRules->Modules.Num(); ++ModuleIndex)
-	{
-		const FPCGExValencyModuleDefinition& Module = TargetRules->Modules[ModuleIndex];
-		const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(OrbitalSet->LayerName);
-		const int64 Mask = LayerConfig ? LayerConfig->OrbitalMask : 0;
-		UE_LOG(LogTemp, Warning, TEXT("[ModuleMap] Module[%d]: Asset='%s', Mask=0x%llX"),
-			ModuleIndex, *Module.Asset.GetAssetName(), Mask);
-	}
-	UE_LOG(LogTemp, Warning, TEXT("[ModuleMap] === END MODULES ==="));
 }
 
 void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
@@ -1064,33 +1052,12 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 				}
 			}
 
-			UE_LOG(LogTemp, Warning, TEXT("[PatternCompile] Entry[%d] from pattern cage '%s': ProxiedCages=%d, PatternOrbitalMask=0x%llX"),
-				EntryIndex, *Cage->GetCageDisplayName(), Cage->ProxiedCages.Num(), PatternOrbitalMask);
-
-			// Log pattern cage's orbital connections for debugging
-			for (const FPCGExValencyCageOrbital& Orbital : PatternOrbitals)
-			{
-				const bool bHasConnection = Orbital.GetDisplayConnection() != nullptr;
-				const bool bIsNullCage = bHasConnection && Orbital.GetDisplayConnection()->IsNullCage();
-				const FString ConnectedTo = bHasConnection ?
-					(bIsNullCage ? TEXT("NULL") : Orbital.GetDisplayConnection()->GetCageDisplayName()) : TEXT("NONE");
-				UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   PatternCage Orbital[%d] '%s': Enabled=%d -> %s"),
-					Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString(), Orbital.bEnabled, *ConnectedTo);
-			}
-
 			for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : Cage->ProxiedCages)
 			{
-				if (!ProxiedCage)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   ProxiedCage is NULL"));
-					continue;
-				}
-
-				UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   ProxiedCage: '%s'"), *ProxiedCage->GetCageDisplayName());
+				if (!ProxiedCage) { continue; }
 
 				// Get all asset entries from the proxied cage
 				TArray<FPCGExValencyAssetEntry> ProxiedEntries = ProxiedCage->GetAllAssetEntries();
-				UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   ProxiedEntries: %d"), ProxiedEntries.Num());
 
 				for (const FPCGExValencyAssetEntry& ProxiedEntry : ProxiedEntries)
 				{
@@ -1102,9 +1069,6 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 					const FSoftObjectPath AssetPath = ProxiedEntry.Asset.ToSoftObjectPath();
 					const FTransform* TransformPtr = ProxiedCage->bPreserveLocalTransforms ? &ProxiedEntry.LocalTransform : nullptr;
 					const FPCGExValencyMaterialVariant* MaterialVariantPtr = ProxiedEntry.bHasMaterialVariant ? &ProxiedEntry.MaterialVariant : nullptr;
-
-					UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     Asset: '%s', RequiredMask: 0x%llX"),
-						*ProxiedEntry.Asset.GetAssetName(), PatternOrbitalMask);
 
 					// Find all modules that match by ASSET only.
 					// The pattern cage's orbital topology defines the ADJACENCY structure for matching,
@@ -1158,23 +1122,7 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 
 						// NO orbital mask check here - the pattern's adjacency structure handles
 						// connectivity constraints at runtime, not at compile time.
-						// Module matches by asset!
-						const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(OrbitalSet->LayerName);
-						const int64 ModuleMask = LayerConfig ? LayerConfig->OrbitalMask : 0;
-
-						UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     -> Found compatible Module[%d]: Mask=0x%llX"),
-							ModuleIndex, ModuleMask);
 						Entry.ModuleIndices.AddUnique(ModuleIndex);
-						MatchCount++;
-					}
-
-					if (MatchCount == 0)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     -> NO compatible modules found for asset!"));
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     -> Total compatible modules: %d"), MatchCount);
 					}
 				}
 			}
@@ -1205,18 +1153,6 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 
 		// Use the orbital set's transform setting to match runtime behavior
 		const bool bUseTransform = OrbitalSet->bTransformDirection;
-
-		// Log orbital resolver directions for debugging
-		if (EntryIndex == 0) // Only log once per pattern
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency] OrbitalSet directions (bTransformDirection=%d):"), bUseTransform);
-			for (int32 i = 0; i < OrbitalSet->Num(); ++i)
-			{
-				const FVector& Dir = OrbitalResolver.GetDirection(i);
-				UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency]   Orbital[%d] '%s': Direction=%s"),
-					i, *OrbitalSet->Orbitals[i].GetOrbitalName().ToString(), *Dir.ToString());
-			}
-		}
 
 		for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 		{
@@ -1274,9 +1210,6 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 						bUseTransform,
 						TargetTransform
 					);
-
-					UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency] Entry[%d] Orbital %d -> Entry[%d] Orbital %d (Direction: %s)"),
-						EntryIndex, ComputedOrbitalIndex, *TargetEntryIndex, ComputedTargetOrbitalIndex, *Direction.ToString());
 
 					Entry.Adjacency.Add(FIntVector(*TargetEntryIndex, ComputedOrbitalIndex, ComputedTargetOrbitalIndex));
 				}

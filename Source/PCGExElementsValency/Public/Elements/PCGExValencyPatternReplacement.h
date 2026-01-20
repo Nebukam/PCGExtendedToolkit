@@ -173,6 +173,6 @@ namespace PCGExValencyPatternReplacement
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
-		virtual void Write() override;
+		virtual void CompleteWork() override;
 	};
 }

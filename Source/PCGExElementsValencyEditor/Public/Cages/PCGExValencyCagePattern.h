@@ -136,13 +136,13 @@ public:
 	 * Match succeeds if solved module matches ANY of these cages' modules.
 	 * Empty = use bIsWildcard instead.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy", meta = (PCGEX_ValencyRebuild))
 	TArray<TObjectPtr<APCGExValencyCage>> ProxiedCages;
 
 	/**
 	 * If true, this position matches any module (ignores ProxiedCages).
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy", meta = (PCGEX_ValencyRebuild))
 	bool bIsWildcard = false;
 
 	/**
@@ -166,14 +166,14 @@ public:
 	 * If true, points matching this position are consumed by the pattern.
 	 * If false, this position is a neighbor constraint only (not consumed).
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Role")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Role", meta = (PCGEX_ValencyRebuild))
 	bool bIsActiveInPattern = true;
 
 	/**
 	 * If true, this cage is the pattern root (holds settings, identifies pattern).
 	 * Only one cage per connected pattern group should be the root.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Role")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Role", meta = (PCGEX_ValencyRebuild))
 	bool bIsPatternRoot = false;
 
 	// ==================== Pattern Settings (Root Only) ====================
@@ -181,7 +181,7 @@ public:
 	/**
 	 * Pattern settings. Only used when bIsPatternRoot is true.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Settings", meta = (EditCondition = "bIsPatternRoot", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Settings", meta = (PCGEX_ValencyRebuild, EditCondition = "bIsPatternRoot", EditConditionHides))
 	FPCGExValencyPatternSettings PatternSettings;
 
 protected:

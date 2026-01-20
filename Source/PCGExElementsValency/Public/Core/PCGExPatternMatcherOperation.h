@@ -131,6 +131,7 @@ public:
 
 	/**
 	 * Initialize the matcher with pattern data and cluster state.
+	 * @param InCluster
 	 * @param InCompiledPatterns All compiled patterns from BondingRules
 	 * @param InOrbitalCache Orbital cache for this cluster
 	 * @param InModuleDataReader Reader for module data attribute
@@ -140,13 +141,13 @@ public:
 	 * @param InAllocations Optional matcher-specific allocations
 	 */
 	virtual void Initialize(
+		const TSharedPtr<PCGExClusters::FCluster>& InCluster,
 		const FPCGExValencyPatternSetCompiled* InCompiledPatterns,
 		const PCGExValency::FOrbitalCache* InOrbitalCache,
 		const TSharedPtr<PCGExData::TBuffer<int64>>& InModuleDataReader,
 		int32 InNumNodes,
 		TSet<int32>* InClaimedNodes,
-		int32 InSeed,
-		const TSharedPtr<PCGExPatternMatcher::FMatcherAllocations>& InAllocations = nullptr);
+		int32 InSeed, const TSharedPtr<PCGExPatternMatcher::FMatcherAllocations>& InAllocations = nullptr);
 
 	/**
 	 * Find all matches. Must populate Matches array.
@@ -186,6 +187,8 @@ public:
 	TFunction<bool(int32 PatternIndex, const FPCGExValencyPatternSetCompiled* Patterns)> PatternFilter;
 
 protected:
+	TSharedPtr<PCGExClusters::FCluster> Cluster = nullptr;
+	
 	/** Compiled patterns (owned externally by BondingRules) */
 	const FPCGExValencyPatternSetCompiled* CompiledPatterns = nullptr;
 

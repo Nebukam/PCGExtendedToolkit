@@ -38,13 +38,7 @@ namespace PCGExValency
 		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 		const TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges;
 
-		// Debug counter for logging
-		static int32 DebugLogCount = 0;
-		const bool bShouldLog = (DebugLogCount == 0); // Only log first cluster
-		if (bShouldLog) { DebugLogCount++; }
-
 		// Build cache for each node (parallelized - each node writes to its own slice)
-		// Note: Using non-parallel version for debug logging
 		for (int32 NodeIndex = 0; NodeIndex < NumNodes; ++NodeIndex)
 		{
 			const PCGExClusters::FNode& Node = Nodes[NodeIndex];
@@ -53,15 +47,12 @@ namespace PCGExValency
 			NodeOrbitalMasks[NodeIndex] = OrbitalMaskReader->Read(Node.PointIndex);
 
 			// Build orbital-to-neighbor from edge indices
-			for (const PCGExGraphs::FLink& Link : Node.Links)
+			for (const PCGExClusters::FLink& Link : Node.Links)
 			{
 				const int32 EdgeIndex = Link.Edge;
 				const int32 NeighborNodeIndex = Link.Node;
 
-				if (!Edges.IsValidIndex(EdgeIndex))
-				{
-					continue;
-				}
+				if (!Edges.IsValidIndex(EdgeIndex)) { continue; }
 
 				const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
 				const int64 PackedIndices = EdgeIndicesReader->Read(EdgeIndex);
@@ -75,23 +66,8 @@ namespace PCGExValency
 					                           ? StartOrbitalIndex
 					                           : EndOrbitalIndex;
 
-				// Debug: Log first few edges
-				static int32 CacheDebugCount = 0;
-				if (bShouldLog && CacheDebugCount < 30)
-				{
-					const bool bIsStart = (Edge.Start == static_cast<uint32>(Node.PointIndex));
-					UE_LOG(LogTemp, Warning, TEXT("[OrbitalCache] Node[%d] (PointIdx=%d) Edge[%d]: Packed=0x%llX, Start=%d End=%d, StartOrb=%d EndOrb=%d, IsStart=%d -> OrbitalIdx=%d, Neighbor=%d"),
-						NodeIndex, Node.PointIndex, EdgeIndex, PackedIndices,
-						Edge.Start, Edge.End, StartOrbitalIndex, EndOrbitalIndex,
-						bIsStart, OrbitalIndex, NeighborNodeIndex);
-					CacheDebugCount++;
-				}
-
 				// Skip if no match (sentinel value)
-				if (OrbitalIndex == NO_ORBITAL_MATCH)
-				{
-					continue;
-				}
+				if (OrbitalIndex == NO_ORBITAL_MATCH) { continue; }
 
 				// Store neighbor at this orbital
 				if (OrbitalIndex < MaxOrbitals)

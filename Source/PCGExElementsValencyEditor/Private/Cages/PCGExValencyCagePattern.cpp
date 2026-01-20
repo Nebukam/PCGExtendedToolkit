@@ -88,6 +88,30 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 			DebugSphereComponent->ShapeColor = FColor(100, 200, 255); // Blue for active
 		}
 	}
+
+	// Check if any property in the chain has PCGEX_ValencyRebuild metadata
+	bool bShouldRebuild = false;
+
+	if (const FProperty* Property = PropertyChangedEvent.Property)
+	{
+		if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
+		{
+			bShouldRebuild = true;
+		}
+	}
+
+	if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
+	{
+		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
+		{
+			bShouldRebuild = true;
+		}
+	}
+
+	if (bShouldRebuild)
+	{
+		TriggerAutoRebuildIfNeeded();
+	}
 }
 
 void APCGExValencyCagePattern::PostEditMove(bool bFinished)
@@ -177,6 +201,10 @@ void APCGExValencyCagePattern::DetectNearbyConnections()
 
 	// Notify pattern network that connections may have changed
 	NotifyPatternNetworkChanged();
+
+	// Note: Don't call TriggerAutoRebuildIfNeeded() here - connection detection happens
+	// during mode entry and other batch operations. The dirty state system handles
+	// rebuild triggering via PCGEX_ValencyRebuild metadata on properties.
 }
 
 bool APCGExValencyCagePattern::ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const
