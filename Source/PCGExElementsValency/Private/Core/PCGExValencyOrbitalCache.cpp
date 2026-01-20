@@ -38,8 +38,8 @@ namespace PCGExValency
 		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
 		const TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges;
 
-		// Build cache for each node
-		for (int32 NodeIndex = 0; NodeIndex < NumNodes; ++NodeIndex)
+		// Build cache for each node (parallelized - each node writes to its own slice)
+		ParallelFor(NumNodes, [&](const int32 NodeIndex)
 		{
 			const PCGExClusters::FNode& Node = Nodes[NodeIndex];
 
@@ -81,7 +81,7 @@ namespace PCGExValency
 					FlatOrbitalToNeighbor[NodeIndex * MaxOrbitals + OrbitalIndex] = NeighborNodeIndex;
 				}
 			}
-		}
+		});
 
 		return true;
 	}

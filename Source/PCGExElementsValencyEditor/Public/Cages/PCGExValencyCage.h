@@ -180,6 +180,16 @@ public:
 	FPCGExValencyModuleSettings ModuleSettings;
 
 	/**
+	 * Optional name for modules created from this cage.
+	 * Used for fixed picks - vertices with a matching FixedPick attribute value
+	 * will be forced to use a module from this cage.
+	 * Multiple cages can share the same name (selection uses weights).
+	 * Empty = no name (cannot be fixed-picked by name).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module")
+	FName ModuleName;
+
+	/**
 	 * Material variants discovered during asset scanning.
 	 * Key = mesh asset path, Value = array of unique material configurations.
 	 * Populated by ScanAndRegisterContainedAssets, consumed by builder.

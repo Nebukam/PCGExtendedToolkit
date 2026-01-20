@@ -98,6 +98,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	/** Module asset types for routing to appropriate spawner */
 	TArray<EPCGExValencyAssetType> ModuleAssetTypes;
 
+	/** Module names for fixed pick lookup (parallel to ModuleWeights) */
+	TArray<FName> ModuleNames;
+
 	/** Module local transforms (relative to spawn point) */
 	TArray<FTransform> ModuleLocalTransforms;
 

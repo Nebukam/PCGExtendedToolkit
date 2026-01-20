@@ -104,6 +104,8 @@ namespace PCGExValencyMT
 		FPCGExValencyProcessorContext* Context = static_cast<FPCGExValencyProcessorContext*>(ExecutionContext);
 		if (!Context->OrbitalSet) { return false; }
 
+		FilterVtxScope(PCGExMT::FScope(0, NumNodes));
+		
 		// Get edge indices reader for this processor's edge facade
 		const FName IdxAttributeName = Context->OrbitalSet->GetOrbitalIdxAttributeName();
 		EdgeIndicesReader = EdgeDataFacade->GetReadable<int64>(IdxAttributeName);
@@ -129,6 +131,7 @@ namespace PCGExValencyMT
 
 		return true;
 	}
+	
 
 	bool IProcessor::BuildOrbitalCache()
 	{
@@ -162,6 +165,7 @@ namespace PCGExValencyMT
 	               TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: PCGExClusterMT::IBatch(InContext, InVtx, InEdges)
 	{
+		DefaultVtxFilterValue = false;
 	}
 
 	void IBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)

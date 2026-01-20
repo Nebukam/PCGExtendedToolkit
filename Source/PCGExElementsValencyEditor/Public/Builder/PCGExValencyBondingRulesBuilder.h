@@ -59,6 +59,9 @@ struct FPCGExValencyCageData
 	/** Module settings from the cage */
 	FPCGExValencyModuleSettings Settings;
 
+	/** Module name from the cage (for fixed picks) */
+	FName ModuleName;
+
 	/** Whether this cage preserves local transforms */
 	bool bPreserveLocalTransforms = false;
 

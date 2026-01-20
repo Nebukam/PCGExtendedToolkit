@@ -194,6 +194,9 @@ namespace PCGExValencyStaging
 
 		if (!TProcessor::Process(InTaskManager)) { return false; }
 
+		// Apply fixed picks before solver runs (pre-resolve specified nodes)
+		ApplyFixedPicks();
+
 		// Run solver
 		RunSolver();
 
@@ -211,6 +214,242 @@ namespace PCGExValencyStaging
 	void FProcessor::OnNodesProcessingComplete()
 	{
 		// Not used
+	}
+
+	void FProcessor::ApplyFixedPicks()
+	{
+		// Skip if no fixed pick reader or no compiled data
+		if (!FixedPickReader || !Context->BondingRules || !Context->BondingRules->CompiledData)
+		{
+			return;
+		}
+
+		const FPCGExValencyBondingRulesCompiled* CompiledRules = Context->BondingRules->CompiledData.Get();
+		if (CompiledRules->ModuleCount == 0)
+		{
+			return;
+		}
+
+		VALENCY_LOG_SECTION(Staging, "APPLYING FIXED PICKS");
+
+		// Build name to module indices map (once per processor)
+		TMap<FName, TArray<int32>> NameToModules;
+		for (int32 ModuleIndex = 0; ModuleIndex < CompiledRules->ModuleCount; ++ModuleIndex)
+		{
+			const FName& ModuleName = CompiledRules->ModuleNames[ModuleIndex];
+			if (!ModuleName.IsNone())
+			{
+				NameToModules.FindOrAdd(ModuleName).Add(ModuleIndex);
+			}
+		}
+
+		if (NameToModules.IsEmpty())
+		{
+			PCGEX_VALENCY_INFO(Staging, "No named modules found - skipping fixed picks");
+			return;
+		}
+
+		PCGEX_VALENCY_INFO(Staging, "Found %d named module groups", NameToModules.Num());
+
+		// Random stream for weighted selection (deterministic based on solver seed)
+		int32 FixedPickSeed = Settings->Seed;
+		if (Settings->bUsePerClusterSeed && Cluster)
+		{
+			FixedPickSeed = HashCombine(FixedPickSeed, GetTypeHash(VtxDataFacade->GetIn()->UID));
+		}
+		FRandomStream RandomStream(FixedPickSeed);
+
+		int32 FixedPicksApplied = 0;
+		int32 FixedPicksSkipped = 0;
+
+		// Get cluster nodes for point index lookup
+		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+
+		// Apply fixed picks to states
+		for (int32 StateIndex = 0; StateIndex < ValencyStates.Num(); ++StateIndex)
+		{
+			PCGExValency::FValencyState& State = ValencyStates[StateIndex];
+
+			// Skip already resolved states (boundaries)
+			if (State.IsResolved())
+			{
+				continue;
+			}
+
+			// Get the point index from cluster node
+			const int32 PointIndex = Nodes[State.NodeIndex].PointIndex;
+
+			// Read the fixed pick name for this node
+			const FName PickName = FixedPickReader->Read(PointIndex);
+			if (PickName.IsNone())
+			{
+				continue;
+			}
+
+			// Check VtxFilterCache if available (filter must pass for fixed pick to apply)
+			if (VtxFilterCache && !(*VtxFilterCache)[PointIndex])
+			{
+				PCGEX_VALENCY_VERBOSE(Staging, "  State[%d]: Fixed pick '%s' skipped (filter failed)", StateIndex, *PickName.ToString());
+				continue;
+			}
+
+			// Look up matching modules
+			const TArray<int32>* MatchingModules = NameToModules.Find(PickName);
+			if (!MatchingModules || MatchingModules->IsEmpty())
+			{
+				if (Settings->bWarnOnUnmatchedFixedPick)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
+						           FTEXT("Fixed pick '{0}' on node {1} doesn't match any module name."),
+						           FText::FromName(PickName), FText::AsNumber(StateIndex)));
+				}
+				FixedPicksSkipped++;
+				continue;
+			}
+
+			// Filter by orbital fit and select the best module
+			int32 SelectedModule = -1;
+			TArray<int32> FittingModules;
+
+			// Get node's orbital mask from cache
+			const int64 NodeOrbitalMask = OrbitalCache ? OrbitalCache->GetOrbitalMask(State.NodeIndex) : 0;
+
+			for (int32 ModuleIndex : *MatchingModules)
+			{
+				// Check if module fits the node's orbital configuration
+				bool bFits = true;
+				for (int32 LayerIndex = 0; LayerIndex < CompiledRules->GetLayerCount(); ++LayerIndex)
+				{
+					const int64 ModuleMask = CompiledRules->GetModuleOrbitalMask(ModuleIndex, LayerIndex);
+					const int64 ModuleBoundaryMask = CompiledRules->GetModuleBoundaryMask(ModuleIndex, LayerIndex);
+					const int64 NodeMask = NodeOrbitalMask;
+
+					// Module requires certain orbitals to be connected
+					if ((ModuleMask & NodeMask) != ModuleMask)
+					{
+						bFits = false;
+						break;
+					}
+
+					// Module requires certain orbitals to be disconnected (boundary)
+					if ((ModuleBoundaryMask & NodeMask) != 0)
+					{
+						bFits = false;
+						break;
+					}
+				}
+
+				if (bFits)
+				{
+					FittingModules.Add(ModuleIndex);
+				}
+			}
+
+			// Handle no fitting modules
+			if (FittingModules.IsEmpty())
+			{
+				if (Settings->IncompatibleFixedPickBehavior == EPCGExFixedPickIncompatibleBehavior::Force)
+				{
+					// Force: use first matching module regardless of fit
+					FittingModules = *MatchingModules;
+					PCGEX_VALENCY_VERBOSE(Staging, "  State[%d]: Forcing fixed pick '%s' (incompatible orbital config)", StateIndex, *PickName.ToString());
+				}
+				else
+				{
+					// Skip: let solver decide
+					if (Settings->bWarnOnIncompatibleFixedPick)
+					{
+						PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
+							           FTEXT("Fixed pick '{0}' on node {1} doesn't fit orbital configuration - skipping."),
+							           FText::FromName(PickName), FText::AsNumber(StateIndex)));
+					}
+					FixedPicksSkipped++;
+					continue;
+				}
+			}
+
+			// Select from fitting modules based on selection mode
+			if (FittingModules.Num() == 1)
+			{
+				SelectedModule = FittingModules[0];
+			}
+			else
+			{
+				switch (Settings->FixedPickSelectionMode)
+				{
+				case EPCGExFixedPickSelectionMode::FirstMatch:
+					SelectedModule = FittingModules[0];
+					break;
+
+				case EPCGExFixedPickSelectionMode::BestFit:
+					{
+						// Select module with most matching orbitals
+						int32 BestScore = -1;
+						for (int32 ModuleIndex : FittingModules)
+						{
+							int32 Score = 0;
+							for (int32 LayerIndex = 0; LayerIndex < CompiledRules->GetLayerCount(); ++LayerIndex)
+							{
+								const int64 ModuleMask = CompiledRules->GetModuleOrbitalMask(ModuleIndex, LayerIndex);
+								Score += FMath::CountBits(ModuleMask & NodeOrbitalMask);
+							}
+							if (Score > BestScore)
+							{
+								BestScore = Score;
+								SelectedModule = ModuleIndex;
+							}
+						}
+					}
+					break;
+
+				case EPCGExFixedPickSelectionMode::WeightedRandom:
+				default:
+					{
+						// Weighted random selection
+						float TotalWeight = 0.0f;
+						for (int32 ModuleIndex : FittingModules)
+						{
+							TotalWeight += CompiledRules->ModuleWeights[ModuleIndex];
+						}
+
+						if (TotalWeight > 0.0f)
+						{
+							float Pick = RandomStream.FRand() * TotalWeight;
+							for (int32 ModuleIndex : FittingModules)
+							{
+								Pick -= CompiledRules->ModuleWeights[ModuleIndex];
+								if (Pick <= 0.0f)
+								{
+									SelectedModule = ModuleIndex;
+									break;
+								}
+							}
+							// Fallback
+							if (SelectedModule < 0)
+							{
+								SelectedModule = FittingModules.Last();
+							}
+						}
+						else
+						{
+							// All weights zero, pick first
+							SelectedModule = FittingModules[0];
+						}
+					}
+					break;
+				}
+			}
+
+			// Apply the fixed pick
+			if (SelectedModule >= 0)
+			{
+				State.ResolvedModule = SelectedModule;
+				FixedPicksApplied++;
+				PCGEX_VALENCY_VERBOSE(Staging, "  State[%d]: Fixed pick '%s' -> Module[%d]", StateIndex, *PickName.ToString(), SelectedModule);
+			}
+		}
+
+		PCGEX_VALENCY_INFO(Staging, "Fixed picks: %d applied, %d skipped", FixedPicksApplied, FixedPicksSkipped);
 	}
 
 	void FProcessor::RunSolver()
@@ -420,11 +659,18 @@ namespace PCGExValencyStaging
 	{
 		PCGExValencyMT::IBatch::RegisterBuffersDependencies(FacadePreloader);
 
-		// Let solver register its buffer dependencies (e.g., priority attribute)
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
+
+		// Let solver register its buffer dependencies (e.g., priority attribute)
 		if (Context->Solver)
 		{
 			Context->Solver->RegisterPrimaryBuffersDependencies(Context, FacadePreloader);
+		}
+
+		// Register fixed pick attribute if enabled
+		if (Settings->bEnableFixedPicks)
+		{
+			FacadePreloader.TryRegister(Context, Settings->FixedPickAttribute);
 		}
 	}
 
@@ -460,6 +706,12 @@ namespace PCGExValencyStaging
 			UnsolvableWriter = OutputFacade->GetWritable<bool>(Settings->UnsolvableAttributeName, false, true, PCGExData::EBufferInit::Inherit);
 		}
 
+		// Get fixed pick reader if enabled
+		if (Settings->bEnableFixedPicks)
+		{
+			FixedPickReader = VtxDataFacade->GetBroadcaster<FName>(Settings->FixedPickAttribute);
+		}
+
 		// Call base class AFTER creating writers (base triggers PrepareSingle)
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
@@ -480,6 +732,9 @@ namespace PCGExValencyStaging
 		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
 		TypedProcessor->EntryHashWriter = EntryHashWriter;
+
+		// Forward fixed pick reader to processor
+		TypedProcessor->FixedPickReader = FixedPickReader;
 
 		return true;
 	}

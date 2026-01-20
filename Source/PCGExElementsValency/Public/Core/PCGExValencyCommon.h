@@ -318,6 +318,14 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	FPCGExValencyModuleSettings Settings;
 
+	/**
+	 * Optional name for this module (from source cage).
+	 * Used for fixed picks - allows pre-assigning specific modules to vertices.
+	 * Empty = no name (cannot be fixed-picked by name).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
+	FName ModuleName;
+
 	/** Per-layer orbital configuration */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	TMap<FName, FPCGExValencyModuleLayerConfig> Layers;

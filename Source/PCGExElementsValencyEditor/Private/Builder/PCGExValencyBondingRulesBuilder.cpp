@@ -248,6 +248,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 		Data.Cage = Cage;
 		Data.AssetEntries = MoveTemp(AssetEntries);
 		Data.Settings = Cage->ModuleSettings;
+		Data.ModuleName = Cage->ModuleName;
 		Data.bPreserveLocalTransforms = Cage->bPreserveLocalTransforms;
 
 		// Compute orbital mask from connections
@@ -351,6 +352,9 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			// Use entry-level settings if available (from mirror source), otherwise fall back to cage settings
 			// This allows mirrored entries to carry their source's weight/constraints
 			NewModule.Settings = Entry.bHasSettings ? Entry.Settings : Data.Settings;
+
+			// Copy module name from cage (for fixed picks)
+			NewModule.ModuleName = Data.ModuleName;
 
 			// Set local transform if cage preserves them
 			if (Data.bPreserveLocalTransforms)

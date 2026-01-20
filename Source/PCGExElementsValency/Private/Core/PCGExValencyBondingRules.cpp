@@ -80,6 +80,7 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->ModuleMaxSpawns.SetNum(Modules.Num());
 	CompiledData->ModuleAssets.SetNum(Modules.Num());
 	CompiledData->ModuleAssetTypes.SetNum(Modules.Num());
+	CompiledData->ModuleNames.SetNum(Modules.Num());
 	CompiledData->ModuleLocalTransforms.SetNum(Modules.Num());
 	CompiledData->ModuleHasLocalTransform.SetNum(Modules.Num());
 	CompiledData->ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
@@ -96,6 +97,7 @@ bool UPCGExValencyBondingRules::Compile()
 		CompiledData->ModuleMaxSpawns[ModuleIndex] = Module.Settings.MaxSpawns;
 		CompiledData->ModuleAssets[ModuleIndex] = Module.Asset;
 		CompiledData->ModuleAssetTypes[ModuleIndex] = Module.AssetType;
+		CompiledData->ModuleNames[ModuleIndex] = Module.ModuleName;
 		CompiledData->ModuleLocalTransforms[ModuleIndex] = Module.LocalTransform;
 		CompiledData->ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
 

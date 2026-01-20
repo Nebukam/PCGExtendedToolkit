@@ -209,7 +209,6 @@ namespace PCGExFilterVtx
 		TArray<PCGExClusters::FEdge>& Edges = *Cluster->Edges.Get();
 
 		const bool bNodeInvalidateEdges = Settings->bNodeInvalidateEdges;
-
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExClusters::FNode& Node = Nodes[Index];

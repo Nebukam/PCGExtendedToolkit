@@ -19,6 +19,27 @@ namespace PCGExCollections
 }
 
 /**
+ * Selection mode when multiple modules match a fixed pick name.
+ */
+UENUM(BlueprintType)
+enum class EPCGExFixedPickSelectionMode : uint8
+{
+	WeightedRandom UMETA(ToolTip = "Select from matching modules using weights (deterministic)"),
+	FirstMatch UMETA(ToolTip = "Select the first matching module (deterministic)"),
+	BestFit UMETA(ToolTip = "Select module with best orbital configuration match")
+};
+
+/**
+ * Behavior when fixed pick module doesn't fit the node's orbital configuration.
+ */
+UENUM(BlueprintType)
+enum class EPCGExFixedPickIncompatibleBehavior : uint8
+{
+	Skip UMETA(ToolTip = "Ignore fixed pick, let solver decide (with optional warning)"),
+	Force UMETA(ToolTip = "Force the module regardless of orbital fit")
+};
+
+/**
  * Valency Staging - WFC-like asset staging for cluster nodes.
  * Uses orbital-based compatibility rules to place modules on cluster vertices.
  */
@@ -89,6 +110,36 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bApplyLocalTransforms = true;
 
+	// ========== Fixed Picks ==========
+
+	/** Enable fixed picks - allows pre-assigning specific modules to vertices */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable))
+	bool bEnableFixedPicks = false;
+
+	/**
+	 * Attribute containing module names for fixed picks.
+	 * Vertices with a valid module name will be pre-assigned before solving.
+	 * Empty attribute = no fixed picks.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
+	FPCGAttributePropertyInputSelector FixedPickAttribute;
+
+	/** How to select when multiple modules match the fixed pick name */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
+	EPCGExFixedPickSelectionMode FixedPickSelectionMode = EPCGExFixedPickSelectionMode::WeightedRandom;
+
+	/** Behavior when fixed pick module doesn't fit the node's orbital configuration */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
+	EPCGExFixedPickIncompatibleBehavior IncompatibleFixedPickBehavior = EPCGExFixedPickIncompatibleBehavior::Skip;
+
+	/** Warn when fixed pick name doesn't match any module */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
+	bool bWarnOnUnmatchedFixedPick = false;
+
+	/** Warn when fixed pick module doesn't fit orbital configuration (only when Skip behavior) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks && IncompatibleFixedPickBehavior == EPCGExFixedPickIncompatibleBehavior::Skip"))
+	bool bWarnOnIncompatibleFixedPick = true;
+
 	/** Warnings and errors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietMissingBondingRules = false;
@@ -147,6 +198,9 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
 
+		/** Fixed pick reader (owned by batch, forwarded via PrepareSingle) */
+		TSharedPtr<PCGExData::TBuffer<FName>> FixedPickReader;
+
 		/** Solve result */
 		PCGExValency::FSolveResult SolveResult;
 
@@ -165,6 +219,9 @@ namespace PCGExValencyStaging
 		virtual void Write() override;
 
 	protected:
+		/** Apply fixed picks before solver runs */
+		void ApplyFixedPicks();
+
 		/** Run the solver */
 		void RunSolver();
 
@@ -179,6 +236,9 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
+
+		/** Fixed pick reader (owned here, shared with processors) */
+		TSharedPtr<PCGExData::TBuffer<FName>> FixedPickReader;
 
 		/** Solver allocations (created from factory, shared with processors) */
 		TSharedPtr<PCGExValency::FSolverAllocations> SolverAllocations;
