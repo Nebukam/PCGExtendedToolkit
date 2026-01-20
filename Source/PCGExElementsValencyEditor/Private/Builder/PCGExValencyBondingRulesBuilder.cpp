@@ -11,6 +11,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Core/PCGExValencyLog.h"
+#include "Core/PCGExValencyOrbitalSet.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyBuilder"
 
@@ -422,6 +423,18 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 	VALENCY_LOG_SECTION(Building, "MODULE MAP COMPLETE");
 	PCGEX_VALENCY_INFO(Building, "Total modules: %d", OutModuleKeyToIndex.Num());
+
+	// Dump all modules for debugging
+	UE_LOG(LogTemp, Warning, TEXT("[ModuleMap] === ALL MODULES ==="));
+	for (int32 ModuleIndex = 0; ModuleIndex < TargetRules->Modules.Num(); ++ModuleIndex)
+	{
+		const FPCGExValencyModuleDefinition& Module = TargetRules->Modules[ModuleIndex];
+		const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(OrbitalSet->LayerName);
+		const int64 Mask = LayerConfig ? LayerConfig->OrbitalMask : 0;
+		UE_LOG(LogTemp, Warning, TEXT("[ModuleMap] Module[%d]: Asset='%s', Mask=0x%llX"),
+			ModuleIndex, *Module.Asset.GetAssetName(), Mask);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("[ModuleMap] === END MODULES ==="));
 }
 
 void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
@@ -1035,28 +1048,50 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 		}
 
 		// Resolve proxied cages to module indices
+		// KEY INSIGHT: The PATTERN CAGE defines the TOPOLOGY (orbital connections),
+		// while the PROXIED CAGE defines the ASSET to match.
+		// We need to compute the orbital mask from the PATTERN CAGE, not the proxied cage!
 		if (!Entry.bIsWildcard)
 		{
+			// Compute orbital mask from the PATTERN CAGE's connections (not the proxied cage!)
+			const TArray<FPCGExValencyCageOrbital>& PatternOrbitals = Cage->GetOrbitals();
+			int64 PatternOrbitalMask = 0;
+			for (const FPCGExValencyCageOrbital& Orbital : PatternOrbitals)
+			{
+				if (Orbital.bEnabled && Orbital.GetDisplayConnection() && !Orbital.GetDisplayConnection()->IsNullCage())
+				{
+					PatternOrbitalMask |= (1LL << Orbital.OrbitalIndex);
+				}
+			}
+
+			UE_LOG(LogTemp, Warning, TEXT("[PatternCompile] Entry[%d] from pattern cage '%s': ProxiedCages=%d, PatternOrbitalMask=0x%llX"),
+				EntryIndex, *Cage->GetCageDisplayName(), Cage->ProxiedCages.Num(), PatternOrbitalMask);
+
+			// Log pattern cage's orbital connections for debugging
+			for (const FPCGExValencyCageOrbital& Orbital : PatternOrbitals)
+			{
+				const bool bHasConnection = Orbital.GetDisplayConnection() != nullptr;
+				const bool bIsNullCage = bHasConnection && Orbital.GetDisplayConnection()->IsNullCage();
+				const FString ConnectedTo = bHasConnection ?
+					(bIsNullCage ? TEXT("NULL") : Orbital.GetDisplayConnection()->GetCageDisplayName()) : TEXT("NONE");
+				UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   PatternCage Orbital[%d] '%s': Enabled=%d -> %s"),
+					Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString(), Orbital.bEnabled, *ConnectedTo);
+			}
+
 			for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : Cage->ProxiedCages)
 			{
 				if (!ProxiedCage)
 				{
+					UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   ProxiedCage is NULL"));
 					continue;
 				}
 
-				// Get the proxied cage's orbital mask
-				const TArray<FPCGExValencyCageOrbital>& ProxiedOrbitals = ProxiedCage->GetOrbitals();
-				int64 ProxiedOrbitalMask = 0;
-				for (const FPCGExValencyCageOrbital& Orbital : ProxiedOrbitals)
-				{
-					if (Orbital.bEnabled && Orbital.GetDisplayConnection() && !Orbital.GetDisplayConnection()->IsNullCage())
-					{
-						ProxiedOrbitalMask |= (1LL << Orbital.OrbitalIndex);
-					}
-				}
+				UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   ProxiedCage: '%s'"), *ProxiedCage->GetCageDisplayName());
 
-				// Find all modules that match this proxied cage
+				// Get all asset entries from the proxied cage
 				TArray<FPCGExValencyAssetEntry> ProxiedEntries = ProxiedCage->GetAllAssetEntries();
+				UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]   ProxiedEntries: %d"), ProxiedEntries.Num());
+
 				for (const FPCGExValencyAssetEntry& ProxiedEntry : ProxiedEntries)
 				{
 					if (!ProxiedEntry.IsValid())
@@ -1064,15 +1099,82 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 						continue;
 					}
 
+					const FSoftObjectPath AssetPath = ProxiedEntry.Asset.ToSoftObjectPath();
 					const FTransform* TransformPtr = ProxiedCage->bPreserveLocalTransforms ? &ProxiedEntry.LocalTransform : nullptr;
 					const FPCGExValencyMaterialVariant* MaterialVariantPtr = ProxiedEntry.bHasMaterialVariant ? &ProxiedEntry.MaterialVariant : nullptr;
 
-					const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
-						ProxiedEntry.Asset.ToSoftObjectPath(), ProxiedOrbitalMask, TransformPtr, MaterialVariantPtr);
+					UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     Asset: '%s', RequiredMask: 0x%llX"),
+						*ProxiedEntry.Asset.GetAssetName(), PatternOrbitalMask);
 
-					if (const int32* ModuleIndex = ModuleKeyToIndex.Find(ModuleKey))
+					// Find all modules that match by ASSET only.
+					// The pattern cage's orbital topology defines the ADJACENCY structure for matching,
+					// NOT a filter on which modules can be used. The runtime matcher checks if
+					// actual cluster connectivity matches the pattern's adjacency.
+					int32 MatchCount = 0;
+					for (int32 ModuleIndex = 0; ModuleIndex < TargetRules->Modules.Num(); ++ModuleIndex)
 					{
-						Entry.ModuleIndices.AddUnique(*ModuleIndex);
+						const FPCGExValencyModuleDefinition& Module = TargetRules->Modules[ModuleIndex];
+
+						// Check asset match
+						if (Module.Asset.ToSoftObjectPath() != AssetPath)
+						{
+							continue;
+						}
+
+						// Check transform match (if pattern cage preserves transforms)
+						if (TransformPtr)
+						{
+							if (!Module.bHasLocalTransform || !Module.LocalTransform.Equals(*TransformPtr))
+							{
+								continue;
+							}
+						}
+
+						// Check material variant match (if entry has material variant)
+						if (MaterialVariantPtr)
+						{
+							if (!Module.bHasMaterialVariant)
+							{
+								continue;
+							}
+							if (Module.MaterialVariant.Overrides.Num() != MaterialVariantPtr->Overrides.Num())
+							{
+								continue;
+							}
+							bool bMaterialMatch = true;
+							for (int32 i = 0; i < MaterialVariantPtr->Overrides.Num() && bMaterialMatch; ++i)
+							{
+								if (Module.MaterialVariant.Overrides[i].SlotIndex != MaterialVariantPtr->Overrides[i].SlotIndex ||
+									Module.MaterialVariant.Overrides[i].Material != MaterialVariantPtr->Overrides[i].Material)
+								{
+									bMaterialMatch = false;
+								}
+							}
+							if (!bMaterialMatch)
+							{
+								continue;
+							}
+						}
+
+						// NO orbital mask check here - the pattern's adjacency structure handles
+						// connectivity constraints at runtime, not at compile time.
+						// Module matches by asset!
+						const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(OrbitalSet->LayerName);
+						const int64 ModuleMask = LayerConfig ? LayerConfig->OrbitalMask : 0;
+
+						UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     -> Found compatible Module[%d]: Mask=0x%llX"),
+							ModuleIndex, ModuleMask);
+						Entry.ModuleIndices.AddUnique(ModuleIndex);
+						MatchCount++;
+					}
+
+					if (MatchCount == 0)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     -> NO compatible modules found for asset!"));
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("[PatternCompile]     -> Total compatible modules: %d"), MatchCount);
 					}
 				}
 			}
@@ -1088,7 +1190,34 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 		}
 
 		// Build adjacency from orbital connections
+		// IMPORTANT: We recompute orbital indices from spatial direction rather than trusting
+		// the stored Orbital.OrbitalIndex, because manual connections or auto-detection bugs
+		// could result in wrong orbital assignments.
+		// NOTE: We must use the orbital set's bTransformDirection setting to match runtime
+		// behavior in WriteValencyOrbitals, NOT the cage's ShouldTransformOrbitalDirections().
 		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
+		const FVector CageLocation = Cage->GetActorLocation();
+		const FTransform CageTransform = Cage->GetActorTransform();
+
+		// Build orbital resolver for direction-to-index lookup
+		PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
+		OrbitalResolver.BuildFrom(OrbitalSet);
+
+		// Use the orbital set's transform setting to match runtime behavior
+		const bool bUseTransform = OrbitalSet->bTransformDirection;
+
+		// Log orbital resolver directions for debugging
+		if (EntryIndex == 0) // Only log once per pattern
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency] OrbitalSet directions (bTransformDirection=%d):"), bUseTransform);
+			for (int32 i = 0; i < OrbitalSet->Num(); ++i)
+			{
+				const FVector& Dir = OrbitalResolver.GetDirection(i);
+				UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency]   Orbital[%d] '%s': Direction=%s"),
+					i, *OrbitalSet->Orbitals[i].GetOrbitalName().ToString(), *Dir.ToString());
+			}
+		}
+
 		for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 		{
 			if (!Orbital.bEnabled || Orbital.OrbitalIndex < 0)
@@ -1114,19 +1243,42 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 			{
 				if (const int32* TargetEntryIndex = CageToEntryIndex.Find(ConnectedPattern))
 				{
-					// Find the reciprocal orbital on the target
-					int32 TargetOrbitalIndex = -1;
-					const TArray<FPCGExValencyCageOrbital>& TargetOrbitals = ConnectedPattern->GetOrbitals();
-					for (const FPCGExValencyCageOrbital& TargetOrbital : TargetOrbitals)
+					// Compute actual direction from this cage to the connected cage
+					const FVector ConnectedLocation = ConnectedPattern->GetActorLocation();
+					const FVector Direction = (ConnectedLocation - CageLocation).GetSafeNormal();
+
+					// Find the correct orbital index based on spatial direction
+					// This ensures pattern adjacency matches runtime orbital detection
+					// NOTE: We use the orbital set's transform setting, not the cage's,
+					// to match how WriteValencyOrbitals computes orbital indices at runtime.
+					const uint8 ComputedOrbitalIndex = OrbitalResolver.FindMatchingOrbital(
+						Direction,
+						bUseTransform,
+						CageTransform
+					);
+
+					// Log if stored index differs from computed index
+					if (ComputedOrbitalIndex != Orbital.OrbitalIndex)
 					{
-						if (TargetOrbital.GetDisplayConnection() == Cage)
-						{
-							TargetOrbitalIndex = TargetOrbital.OrbitalIndex;
-							break;
-						}
+						UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency] Orbital index mismatch for '%s' -> '%s': stored=%d, computed=%d (direction=%s)"),
+							*Cage->GetCageDisplayName(), *ConnectedPattern->GetCageDisplayName(),
+							Orbital.OrbitalIndex, ComputedOrbitalIndex,
+							*Direction.ToString());
 					}
 
-					Entry.Adjacency.Add(FIntVector(*TargetEntryIndex, Orbital.OrbitalIndex, TargetOrbitalIndex));
+					// Find the reciprocal orbital on the target (also compute from direction)
+					const FVector ReverseDirection = -Direction;
+					const FTransform TargetTransform = ConnectedPattern->GetActorTransform();
+					const uint8 ComputedTargetOrbitalIndex = OrbitalResolver.FindMatchingOrbital(
+						ReverseDirection,
+						bUseTransform,
+						TargetTransform
+					);
+
+					UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency] Entry[%d] Orbital %d -> Entry[%d] Orbital %d (Direction: %s)"),
+						EntryIndex, ComputedOrbitalIndex, *TargetEntryIndex, ComputedTargetOrbitalIndex, *Direction.ToString());
+
+					Entry.Adjacency.Add(FIntVector(*TargetEntryIndex, ComputedOrbitalIndex, ComputedTargetOrbitalIndex));
 				}
 			}
 		}

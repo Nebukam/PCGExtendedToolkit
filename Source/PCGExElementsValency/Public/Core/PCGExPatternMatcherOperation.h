@@ -210,6 +210,35 @@ protected:
 	/** Matches found by this operation */
 	TArray<FPCGExValencyPatternMatch> Matches;
 
+	/** NodeIndex to PointIndex mapping (required for buffer access) */
+	TArray<int32> NodeToPointIndex;
+
+	/** Debug: Node positions for logging (optional, set via SetDebugNodePositions) */
+	TArray<FVector> DebugNodePositions;
+
+public:
+	/** Set NodeIndex to PointIndex mapping. REQUIRED - must be called before Match(). */
+	void SetNodeToPointMapping(const TArray<int32>& InMapping) { NodeToPointIndex = InMapping; }
+
+	/** Convert NodeIndex to PointIndex for buffer access */
+	FORCEINLINE int32 GetPointIndex(int32 NodeIndex) const
+	{
+		return NodeToPointIndex.IsValidIndex(NodeIndex) ? NodeToPointIndex[NodeIndex] : -1;
+	}
+
+	/** Set debug node positions for detailed logging. Must be called before Match(). */
+	void SetDebugNodePositions(const TArray<FVector>& InPositions) { DebugNodePositions = InPositions; }
+
+	/** Get debug node position (-1 index or empty array = zero vector) */
+	FVector GetDebugNodePosition(int32 NodeIndex) const
+	{
+		return DebugNodePositions.IsValidIndex(NodeIndex) ? DebugNodePositions[NodeIndex] : FVector::ZeroVector;
+	}
+
+	/** Check if debug positions are available */
+	bool HasDebugPositions() const { return DebugNodePositions.Num() > 0; }
+
+protected:
 	// === Utility methods for derived classes ===
 
 	/** Get module index for a node */

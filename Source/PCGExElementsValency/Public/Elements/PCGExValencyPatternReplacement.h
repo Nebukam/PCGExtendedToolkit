@@ -138,9 +138,6 @@ namespace PCGExValencyPatternReplacement
 		virtual ~FProcessor() override = default;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-
-		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
-		virtual void OnNodesProcessingComplete() override;
 		virtual void Write() override;
 
 	protected:

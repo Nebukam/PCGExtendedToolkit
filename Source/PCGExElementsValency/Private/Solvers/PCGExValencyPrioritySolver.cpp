@@ -230,6 +230,14 @@ int32 FPCGExValencyPrioritySolver::GetNextByPriority()
 		const int32 StateIndex = PriorityAllocations->SortedNodeIndices[CurrentSortedIndex];
 		CurrentSortedIndex++;
 
+		// Validate state index is in bounds
+		if (!ValencyStates->IsValidIndex(StateIndex) || !StateData.IsValidIndex(StateIndex))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[PrioritySolver] Invalid StateIndex %d (ValencyStates=%d, StateData=%d)"),
+				StateIndex, ValencyStates->Num(), StateData.Num());
+			continue;
+		}
+
 		// Skip already resolved states
 		if ((*ValencyStates)[StateIndex].IsResolved())
 		{

@@ -184,17 +184,31 @@ int32 FPCGExValencyEntropySolver::PopLowestEntropy()
 	}
 
 	// Find lowest entropy in queue (queue should be sorted, but re-check due to updates)
-	int32 BestQueueIndex = 0;
+	int32 BestQueueIndex = -1;
 	float BestEntropy = TNumericLimits<float>::Max();
 
 	for (int32 i = 0; i < EntropyQueue.Num(); ++i)
 	{
 		const int32 StateIndex = EntropyQueue[i];
+
+		// Validate state index is in bounds
+		if (!ValencyStates->IsValidIndex(StateIndex) || !StateData.IsValidIndex(StateIndex))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[EntropySolver] Invalid StateIndex %d in queue (ValencyStates=%d, StateData=%d)"),
+				StateIndex, ValencyStates->Num(), StateData.Num());
+			continue;
+		}
+
 		if (!(*ValencyStates)[StateIndex].IsResolved() && StateData[StateIndex].Entropy < BestEntropy)
 		{
 			BestEntropy = StateData[StateIndex].Entropy;
 			BestQueueIndex = i;
 		}
+	}
+
+	if (BestQueueIndex < 0)
+	{
+		return -1;
 	}
 
 	const int32 Result = EntropyQueue[BestQueueIndex];

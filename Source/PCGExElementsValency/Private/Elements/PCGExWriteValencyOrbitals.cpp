@@ -147,11 +147,25 @@ namespace PCGExWriteValencyOrbitals
 		const PCGExValency::FOrbitalDirectionResolver& Cache = Context->OrbitalResolver;
 		const bool bUseTransform = Cache.bTransformOrbital;
 
+		// Debug: Log orbital resolver directions once
+		static bool bLoggedDirections = false;
+		if (!bLoggedDirections)
+		{
+			bLoggedDirections = true;
+			UE_LOG(LogTemp, Warning, TEXT("[WriteValencyOrbitals] OrbitalResolver directions (bTransformOrbital=%d):"), bUseTransform);
+			for (int32 i = 0; i < Cache.Num(); ++i)
+			{
+				const FVector& Dir = Cache.GetDirection(i);
+				UE_LOG(LogTemp, Warning, TEXT("[WriteValencyOrbitals]   Orbital[%d]: Direction=%s"), i, *Dir.ToString());
+			}
+		}
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExClusters::FNode& Node = Nodes[Index];
 
 			const FTransform& DirTransform = bUseTransform ? InTransforms[Node.PointIndex] : FTransform::Identity;
+			const FVector NodePos = InTransforms[Node.PointIndex].GetLocation();
 
 			int64 OrbitalMask = 0;
 
@@ -174,6 +188,17 @@ namespace PCGExWriteValencyOrbitals
 				const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
 				uint8* PackedBytes = reinterpret_cast<uint8*>(EdgeIndices->GetData() + EdgeIndex);
 				const int32 ByteOffset = (Edge.Start == Node.PointIndex) ? 0 : 1;
+
+				// Debug: Log first few edges with orbital info
+				static int32 DebugEdgeCount = 0;
+				if (DebugEdgeCount < 20)
+				{
+					const FVector NeighborPos = InTransforms[Nodes[NeighborNodeIndex].PointIndex].GetLocation();
+					UE_LOG(LogTemp, Warning, TEXT("[WriteValencyOrbitals] Edge[%d]: Node[%d] pos=%s -> Neighbor[%d] pos=%s, Dir=%s, Orbital=%d, ByteOffset=%d (Edge.Start=%d, Node.PointIdx=%d)"),
+						EdgeIndex, Node.Index, *NodePos.ToString(), NeighborNodeIndex, *NeighborPos.ToString(),
+						*Direction.ToString(), OrbitalIndex, ByteOffset, Edge.Start, Node.PointIndex);
+					FPlatformAtomics::InterlockedIncrement(&DebugEdgeCount);
+				}
 
 				if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH)
 				{

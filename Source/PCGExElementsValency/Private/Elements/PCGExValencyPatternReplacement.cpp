@@ -161,15 +161,6 @@ namespace PCGExValencyPatternReplacement
 		return true;
 	}
 
-	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
-	{
-		// Not used - pattern matching is done in Process() since it needs full cluster data
-	}
-
-	void FProcessor::OnNodesProcessingComplete()
-	{
-		// Not used - pattern matching is done in Process()
-	}
 
 	void FProcessor::RunMatching()
 	{
@@ -200,6 +191,24 @@ namespace PCGExValencyPatternReplacement
 			&ClaimedNodes,
 			Seed,
 			MatcherAllocations);
+
+		// Set NodeIndex to PointIndex mapping (REQUIRED for buffer access)
+		// Also set debug node positions for detailed logging
+		{
+			TConstPCGValueRange<FTransform> Transforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+			TArray<int32> NodeToPointMapping;
+			TArray<FVector> NodePositions;
+			NodeToPointMapping.SetNum(NodesCount);
+			NodePositions.SetNum(NodesCount);
+			const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+			for (int32 i = 0; i < NodesCount; ++i)
+			{
+				NodeToPointMapping[i] = Nodes[i].PointIndex;
+				NodePositions[i] = Transforms[Nodes[i].PointIndex].GetLocation();
+			}
+			MatcherOperation->SetNodeToPointMapping(NodeToPointMapping);
+			MatcherOperation->SetDebugNodePositions(NodePositions);
+		}
 
 		// Run matching
 		PCGExPatternMatcher::FMatchResult Result = MatcherOperation->Match();
@@ -240,13 +249,24 @@ namespace PCGExValencyPatternReplacement
 	{
 		TProcessor::Write();
 
+		// Helper to convert NodeIndex to PointIndex
+		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+		auto GetPointIdx = [&Nodes](int32 NodeIdx) -> int32
+		{
+			return Nodes.IsValidIndex(NodeIdx) ? Nodes[NodeIdx].PointIndex : -1;
+		};
+
 		// Apply collapse replacement transforms
 		if (!CollapseReplacements.IsEmpty())
 		{
 			TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
 			for (const auto& Pair : CollapseReplacements)
 			{
-				OutTransforms[Pair.Key] = Pair.Value;
+				const int32 PointIdx = GetPointIdx(Pair.Key);
+				if (PointIdx >= 0)
+				{
+					OutTransforms[PointIdx] = Pair.Value;
+				}
 			}
 		}
 
@@ -256,35 +276,43 @@ namespace PCGExValencyPatternReplacement
 			// First pass: Set Annotated flag for all matched nodes
 			for (const int32 NodeIdx : AnnotatedNodes)
 			{
-				int64 PackedData = ModuleDataReader->Read(NodeIdx);
+				const int32 PointIdx = GetPointIdx(NodeIdx);
+				if (PointIdx < 0) { continue; }
+				int64 PackedData = ModuleDataReader->Read(PointIdx);
 				PackedData = PCGExValency::ModuleData::SetFlag(PackedData, PCGExValency::ModuleData::Flags::Annotated);
-				ModuleDataWriter->SetValue(NodeIdx, PackedData);
+				ModuleDataWriter->SetValue(PointIdx, PackedData);
 			}
 
 			// Second pass: Add Consumed flag for nodes being removed (preserves Annotated)
 			for (const int32 NodeIdx : NodesToRemove)
 			{
-				int64 PackedData = ModuleDataWriter->GetValue(NodeIdx); // Read from writer to get Annotated flag
+				const int32 PointIdx = GetPointIdx(NodeIdx);
+				if (PointIdx < 0) { continue; }
+				int64 PackedData = ModuleDataWriter->GetValue(PointIdx); // Read from writer to get Annotated flag
 				PackedData = PCGExValency::ModuleData::SetFlag(PackedData, PCGExValency::ModuleData::Flags::Consumed);
-				ModuleDataWriter->SetValue(NodeIdx, PackedData);
+				ModuleDataWriter->SetValue(PointIdx, PackedData);
 			}
 
 			// Add Collapsed flag for kept collapse nodes (preserves Annotated)
 			for (const auto& Pair : CollapseReplacements)
 			{
-				int64 PackedData = ModuleDataWriter->GetValue(Pair.Key);
+				const int32 PointIdx = GetPointIdx(Pair.Key);
+				if (PointIdx < 0) { continue; }
+				int64 PackedData = ModuleDataWriter->GetValue(PointIdx);
 				PackedData = PCGExValency::ModuleData::SetFlag(PackedData, PCGExValency::ModuleData::Flags::Collapsed);
-				ModuleDataWriter->SetValue(Pair.Key, PackedData);
+				ModuleDataWriter->SetValue(PointIdx, PackedData);
 			}
 
 			// Add Swapped flag and update module index (preserves Annotated)
 			for (const auto& Pair : SwapTargets)
 			{
-				int64 PackedData = ModuleDataWriter->GetValue(Pair.Key);
+				const int32 PointIdx = GetPointIdx(Pair.Key);
+				if (PointIdx < 0) { continue; }
+				int64 PackedData = ModuleDataWriter->GetValue(PointIdx);
 				uint32 ExistingFlags = PCGExValency::ModuleData::GetFlags(PackedData);
 				ExistingFlags |= PCGExValency::ModuleData::Flags::Swapped;
 				PackedData = PCGExValency::ModuleData::Pack(Pair.Value, ExistingFlags);
-				ModuleDataWriter->SetValue(Pair.Key, PackedData);
+				ModuleDataWriter->SetValue(PointIdx, PackedData);
 			}
 		}
 

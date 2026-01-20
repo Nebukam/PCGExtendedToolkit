@@ -30,13 +30,24 @@ void FPCGExPatternMatcherOperation::Annotate(
 	const TSharedPtr<PCGExData::TBuffer<FName>>& PatternNameWriter,
 	const TSharedPtr<PCGExData::TBuffer<int32>>& MatchIndexWriter)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Annotate] Called: CompiledPatterns=%d, Matches=%d, PatternNameWriter=%d, MatchIndexWriter=%d"),
+		CompiledPatterns != nullptr, Matches.Num(), PatternNameWriter.IsValid(), MatchIndexWriter.IsValid());
+
 	if (!CompiledPatterns) { return; }
 
 	int32 MatchCounter = 0;
+	int32 SkippedInvalid = 0;
+	int32 SkippedUnclaimedExclusive = 0;
+	int32 AnnotatedMatches = 0;
+	int32 AnnotatedNodes = 0;
 
 	for (const FPCGExValencyPatternMatch& Match : Matches)
 	{
-		if (!Match.IsValid()) { continue; }
+		if (!Match.IsValid())
+		{
+			SkippedInvalid++;
+			continue;
+		}
 
 		// Skip unclaimed exclusive matches
 		if (!Match.bClaimed)
@@ -44,39 +55,66 @@ void FPCGExPatternMatcherOperation::Annotate(
 			const FPCGExValencyPatternCompiled& Pattern = CompiledPatterns->Patterns[Match.PatternIndex];
 			if (Pattern.Settings.bExclusive)
 			{
+				SkippedUnclaimedExclusive++;
+				UE_LOG(LogTemp, Warning, TEXT("[Annotate] Skipping unclaimed exclusive match: PatternIdx=%d, bClaimed=%d, Pattern.bExclusive=%d"),
+					Match.PatternIndex, Match.bClaimed, Pattern.Settings.bExclusive);
 				continue;
 			}
 		}
 
 		const FPCGExValencyPatternCompiled& Pattern = CompiledPatterns->Patterns[Match.PatternIndex];
 
+		UE_LOG(LogTemp, Warning, TEXT("[Annotate] Processing match: PatternIdx=%d (%s), EntryCount=%d, bClaimed=%d"),
+			Match.PatternIndex, *Pattern.Settings.PatternName.ToString(), Match.EntryToNode.Num(), Match.bClaimed);
+
 		// Annotate all active entries in the match
 		for (int32 EntryIdx = 0; EntryIdx < Match.EntryToNode.Num(); ++EntryIdx)
 		{
 			const FPCGExValencyPatternEntryCompiled& Entry = Pattern.Entries[EntryIdx];
-			if (!Entry.bIsActive) { continue; }
+			if (!Entry.bIsActive)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[Annotate]   Entry %d: INACTIVE, skipping"), EntryIdx);
+				continue;
+			}
 
 			const int32 NodeIdx = Match.EntryToNode[EntryIdx];
+			const int32 PointIdx = GetPointIndex(NodeIdx);
+			UE_LOG(LogTemp, Warning, TEXT("[Annotate]   Entry %d: NodeIdx=%d, PointIdx=%d, writing PatternName=%s, MatchIndex=%d"),
+				EntryIdx, NodeIdx, PointIdx, *Pattern.Settings.PatternName.ToString(), MatchCounter);
+
+			if (PointIdx < 0)
+			{
+				UE_LOG(LogTemp, Error, TEXT("[Annotate]   Invalid PointIdx for NodeIdx=%d, skipping"), NodeIdx);
+				continue;
+			}
 
 			if (PatternNameWriter)
 			{
-				PatternNameWriter->SetValue(NodeIdx, Pattern.Settings.PatternName);
+				PatternNameWriter->SetValue(PointIdx, Pattern.Settings.PatternName);
 			}
 
 			if (MatchIndexWriter)
 			{
-				MatchIndexWriter->SetValue(NodeIdx, MatchCounter);
+				MatchIndexWriter->SetValue(PointIdx, MatchCounter);
 			}
+
+			AnnotatedNodes++;
 		}
 
+		AnnotatedMatches++;
 		++MatchCounter;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[Annotate] Done: AnnotatedMatches=%d, AnnotatedNodes=%d, SkippedInvalid=%d, SkippedUnclaimedExclusive=%d"),
+		AnnotatedMatches, AnnotatedNodes, SkippedInvalid, SkippedUnclaimedExclusive);
 }
 
 int32 FPCGExPatternMatcherOperation::GetModuleIndex(int32 NodeIndex) const
 {
 	if (!ModuleDataReader) { return -1; }
-	return PCGExValency::ModuleData::GetModuleIndex(ModuleDataReader->Read(NodeIndex));
+	const int32 PointIndex = GetPointIndex(NodeIndex);
+	if (PointIndex < 0) { return -1; }
+	return PCGExValency::ModuleData::GetModuleIndex(ModuleDataReader->Read(PointIndex));
 }
 
 void UPCGExPatternMatcherFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
