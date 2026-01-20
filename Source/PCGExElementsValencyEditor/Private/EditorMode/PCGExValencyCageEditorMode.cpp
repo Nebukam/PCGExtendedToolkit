@@ -365,8 +365,32 @@ void FPCGExValencyCageEditorMode::RefreshAllCages()
 		}
 	}
 
-	// Phase 3: Refresh ghost meshes for all cages
-	// Done after all cages are initialized so source cage content is available
+	// Phase 3: Scan contained assets for all cages and palettes
+	// Must happen before ghost mesh refresh so mirrored content is available
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
+		{
+			if (Cage->bAutoRegisterContainedAssets)
+			{
+				Cage->ScanAndRegisterContainedAssets();
+			}
+		}
+	}
+
+	for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : CachedPalettes)
+	{
+		if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+		{
+			if (Palette->bAutoRegisterContainedAssets)
+			{
+				Palette->ScanAndRegisterContainedAssets();
+			}
+		}
+	}
+
+	// Phase 4: Refresh ghost meshes for all cages
+	// Done after all cages have their scanned content available
 	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 	{
 		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
@@ -394,9 +418,13 @@ void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 	// Detect connections (uses virtual filter - pattern cages only connect to pattern cages)
 	Cage->DetectNearbyConnections();
 
-	// Refresh ghost meshes
+	// Scan and refresh ghost meshes
 	if (APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
 	{
+		if (RegularCage->bAutoRegisterContainedAssets)
+		{
+			RegularCage->ScanAndRegisterContainedAssets();
+		}
 		RegularCage->RefreshMirrorGhostMeshes();
 	}
 	else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Cage))

@@ -5,6 +5,7 @@
 
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 
@@ -245,8 +246,10 @@ void FValencyReferenceTracker::RefreshDependentVisuals(AActor* Dependent)
 	{
 		Cage->RefreshMirrorGhostMeshes();
 	}
-
-	// Future: other visual refreshes for new types
+	else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Dependent))
+	{
+		PatternCage->RefreshProxyGhostMesh();
+	}
 }
 
 bool FValencyReferenceTracker::TriggerDependentRebuild(AActor* Dependent)
