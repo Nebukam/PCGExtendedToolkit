@@ -10,6 +10,7 @@ class FCanvas;
 class FSceneView;
 class APCGExValencyCageBase;
 class APCGExValencyCage;
+class APCGExValencyCagePattern;
 class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 class UPCGExValencyEditorSettings;
@@ -69,6 +70,22 @@ public:
 	 * @param SourceActor The source actor being mirrored (cage or palette)
 	 */
 	static void DrawMirrorConnection(FPrimitiveDrawInterface* PDI, const APCGExValencyCage* MirrorCage, const AActor* SourceActor);
+
+	/**
+	 * Draw a pattern cage's proxy connections and pattern network.
+	 * @param PDI Primitive draw interface
+	 * @param PatternCage The pattern cage to draw
+	 */
+	static void DrawPatternCage(FPrimitiveDrawInterface* PDI, const APCGExValencyCagePattern* PatternCage);
+
+	/**
+	 * Draw labels for a pattern cage.
+	 * @param Canvas Canvas for text rendering
+	 * @param View Current scene view
+	 * @param PatternCage The pattern cage to label
+	 * @param bIsSelected Whether the cage is selected (affects label color)
+	 */
+	static void DrawPatternCageLabels(FCanvas* Canvas, const FSceneView* View, const APCGExValencyCagePattern* PatternCage, bool bIsSelected);
 
 	// ========== Low-Level Drawing Primitives ==========
 

@@ -532,6 +532,12 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 			continue;
 		}
 
+		// Virtual filter - allows subclasses to restrict connection targets
+		if (!ShouldConsiderCageForConnection(OtherCage))
+		{
+			continue;
+		}
+
 		const FVector OtherLocation = OtherCage->GetActorLocation();
 		const float Distance = FVector::Dist(MyLocation, OtherLocation);
 

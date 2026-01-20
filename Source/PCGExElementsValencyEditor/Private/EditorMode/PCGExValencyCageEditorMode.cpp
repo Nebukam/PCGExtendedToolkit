@@ -386,7 +386,7 @@ void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 	Cage->RefreshContainingVolumes();
 	Cage->InitializeOrbitalsFromSet();
 
-	// Detect connections
+	// Detect connections (uses virtual filter - pattern cages only connect to pattern cages)
 	Cage->DetectNearbyConnections();
 
 	// Refresh mirror ghost meshes if this is a regular cage
@@ -411,6 +411,7 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 		InitializeCage(Cage);
 
 		// New cage might be a connection target for existing cages - refresh all connections
+		// (ShouldConsiderCageForConnection filter ensures pattern cages only connect to pattern cages)
 		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 		{
 			if (APCGExValencyCageBase* OtherCage = CagePtr.Get())
@@ -460,6 +461,7 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		ReferenceTracker.RebuildDependencyGraph();
 
 		// Refresh connections on remaining cages
+		// (ShouldConsiderCageForConnection filter ensures pattern cages only connect to pattern cages)
 		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 		{
 			if (APCGExValencyCageBase* OtherCage = CagePtr.Get())

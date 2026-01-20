@@ -45,6 +45,9 @@ public:
 	/** Whether this is a null cage (boundary marker) */
 	virtual bool IsNullCage() const { return false; }
 
+	/** Whether this is a pattern cage (for filtering connections) */
+	virtual bool IsPatternCage() const { return false; }
+
 	/** Get the effective orbital set (from volume or override) */
 	UPCGExValencyOrbitalSet* GetEffectiveOrbitalSet() const;
 
@@ -90,7 +93,18 @@ public:
 	void InitializeOrbitalsFromSet();
 
 	/** Detect and connect to nearby cages using probe radius */
-	void DetectNearbyConnections();
+	virtual void DetectNearbyConnections();
+
+protected:
+	/**
+	 * Filter to determine if a candidate cage should be considered for auto-connection.
+	 * Override in subclasses to restrict connection targets (e.g., pattern cages only connect to pattern cages).
+	 * @param CandidateCage The cage being considered for connection
+	 * @return true if this cage should consider connecting to the candidate
+	 */
+	virtual bool ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const { return true; }
+
+public:
 
 	/**
 	 * Remove null/invalid entries from all orbital manual connection lists.

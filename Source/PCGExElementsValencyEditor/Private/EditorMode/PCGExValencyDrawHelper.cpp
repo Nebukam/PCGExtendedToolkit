@@ -10,6 +10,7 @@
 #include "PCGExValencyEditorSettings.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyCageOrbital.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
@@ -24,6 +25,13 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 {
 	if (!PDI || !Cage)
 	{
+		return;
+	}
+
+	// Pattern cages have their own dedicated drawing
+	if (const APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Cage))
+	{
+		DrawPatternCage(PDI, PatternCage);
 		return;
 	}
 
@@ -180,6 +188,13 @@ void FPCGExValencyDrawHelper::DrawCageLabels(FCanvas* Canvas, const FSceneView* 
 {
 	if (!Canvas || !View || !Cage)
 	{
+		return;
+	}
+
+	// Pattern cages have their own dedicated label drawing
+	if (const APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Cage))
+	{
+		DrawPatternCageLabels(Canvas, View, PatternCage, bIsSelected);
 		return;
 	}
 
@@ -509,4 +524,200 @@ void FPCGExValencyDrawHelper::DrawMirrorConnection(FPrimitiveDrawInterface* PDI,
 	PDI->DrawLine(MirrorLocation + Right, MirrorLocation - Up, ArcColor, SDPG_World, ThinLineThickness);
 	PDI->DrawLine(MirrorLocation - Up, MirrorLocation - Right, ArcColor, SDPG_World, ThinLineThickness);
 	PDI->DrawLine(MirrorLocation - Right, MirrorLocation + Up, ArcColor, SDPG_World, ThinLineThickness);
+}
+
+void FPCGExValencyDrawHelper::DrawPatternCage(FPrimitiveDrawInterface* PDI, const APCGExValencyCagePattern* PatternCage)
+{
+	if (!PDI || !PatternCage)
+	{
+		return;
+	}
+
+	const UPCGExValencyEditorSettings* Settings = GetSettings();
+	const FVector CageLocation = PatternCage->GetActorLocation();
+
+	// Determine the cage's role color (matches sphere component color logic)
+	FLinearColor RoleColor;
+	if (PatternCage->bIsWildcard)
+	{
+		RoleColor = Settings->PatternWildcardColor;
+	}
+	else if (!PatternCage->bIsActiveInPattern)
+	{
+		RoleColor = Settings->PatternConstraintColor;
+	}
+	else if (PatternCage->bIsPatternRoot)
+	{
+		RoleColor = Settings->PatternRootColor;
+	}
+	else
+	{
+		RoleColor = Settings->PatternConnectionColor;
+	}
+
+	// Draw proxy connections to regular cages (thin dashed lines)
+	for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : PatternCage->ProxiedCages)
+	{
+		if (ProxiedCage)
+		{
+			const FVector ProxiedLocation = ProxiedCage->GetActorLocation();
+
+			// Draw a soft arc from pattern cage to proxied cage
+			const FVector MidPoint = (CageLocation + ProxiedLocation) * 0.5f;
+			const float Distance = FVector::Dist(CageLocation, ProxiedLocation);
+			const float ArcHeight = Distance * 0.1f; // Subtle arc height
+
+			// Calculate arc control point (curves slightly to the side to avoid overlap)
+			const FVector ToProxied = (ProxiedLocation - CageLocation).GetSafeNormal();
+			const FVector SideDir = FVector::CrossProduct(ToProxied, FVector::UpVector).GetSafeNormal();
+			const FVector ArcControl = MidPoint + SideDir * ArcHeight + FVector::UpVector * ArcHeight * 0.5f;
+
+			// Draw arc as dashed segments using quadratic bezier curve
+			constexpr int32 NumSegments = 12;
+			constexpr float ThinLineThickness = 1.0f;
+
+			FVector PrevPoint = CageLocation;
+			for (int32 i = 1; i <= NumSegments; ++i)
+			{
+				const float T = static_cast<float>(i) / static_cast<float>(NumSegments);
+
+				// Quadratic bezier: B(t) = (1-t)^2 * P0 + 2(1-t)t * P1 + t^2 * P2
+				const float OneMinusT = 1.0f - T;
+				const FVector CurrentPoint =
+					OneMinusT * OneMinusT * CageLocation +
+					2.0f * OneMinusT * T * ArcControl +
+					T * T * ProxiedLocation;
+
+				// Alternating segments for dashed effect
+				if ((i % 2) == 1)
+				{
+					PDI->DrawLine(PrevPoint, CurrentPoint, Settings->PatternProxyColor, SDPG_World, ThinLineThickness);
+				}
+				PrevPoint = CurrentPoint;
+			}
+		}
+	}
+
+	// Draw connections to other pattern cages via orbitals (same system as regular cages)
+	const TArray<FPCGExValencyCageOrbital>& Orbitals = PatternCage->GetOrbitals();
+	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
+	{
+		if (!Orbital.bEnabled)
+		{
+			continue;
+		}
+
+		// Get the display connection (auto or manual)
+		const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection();
+		const APCGExValencyCagePattern* ConnectedPattern = Cast<APCGExValencyCagePattern>(ConnectedCage);
+
+		if (!ConnectedPattern)
+		{
+			continue;
+		}
+
+		const FVector ConnectedLocation = ConnectedPattern->GetActorLocation();
+		const FVector MidPoint = (CageLocation + ConnectedLocation) * 0.5f;
+
+		// Check if bidirectional connection
+		bool bBidirectional = ConnectedPattern->HasConnectionTo(PatternCage);
+		FLinearColor ConnectionColor = bBidirectional ? Settings->BidirectionalColor : RoleColor;
+
+		// Draw solid line to midpoint with arrowhead
+		DrawOrbitalArrow(PDI, CageLocation, MidPoint, ConnectionColor, false, true);
+	}
+
+	// Draw pattern root indicator (star shape around the cage)
+	if (PatternCage->bIsPatternRoot)
+	{
+		constexpr float StarRadius = 35.0f;
+		constexpr float InnerRadius = 15.0f;
+		constexpr int32 NumPoints = 4;
+		constexpr float ThinLineThickness = 1.5f;
+
+		for (int32 i = 0; i < NumPoints; ++i)
+		{
+			const float Angle = (static_cast<float>(i) / static_cast<float>(NumPoints)) * UE_TWO_PI;
+			const float AngleOffset = UE_PI / static_cast<float>(NumPoints);
+
+			const FVector OuterPoint = CageLocation + FVector(
+				FMath::Cos(Angle) * StarRadius,
+				FMath::Sin(Angle) * StarRadius,
+				0.0f
+			);
+			const FVector InnerPoint1 = CageLocation + FVector(
+				FMath::Cos(Angle - AngleOffset) * InnerRadius,
+				FMath::Sin(Angle - AngleOffset) * InnerRadius,
+				0.0f
+			);
+			const FVector InnerPoint2 = CageLocation + FVector(
+				FMath::Cos(Angle + AngleOffset) * InnerRadius,
+				FMath::Sin(Angle + AngleOffset) * InnerRadius,
+				0.0f
+			);
+
+			PDI->DrawLine(InnerPoint1, OuterPoint, Settings->PatternRootColor, SDPG_World, ThinLineThickness);
+			PDI->DrawLine(OuterPoint, InnerPoint2, Settings->PatternRootColor, SDPG_World, ThinLineThickness);
+		}
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawPatternCageLabels(FCanvas* Canvas, const FSceneView* View, const APCGExValencyCagePattern* PatternCage, bool bIsSelected)
+{
+	if (!Canvas || !View || !PatternCage)
+	{
+		return;
+	}
+
+	const UPCGExValencyEditorSettings* Settings = GetSettings();
+
+	// Check if labels should be shown at all
+	if (Settings->bOnlyShowSelectedLabels && !bIsSelected)
+	{
+		return;
+	}
+
+	if (!Settings->bShowCageLabels)
+	{
+		return;
+	}
+
+	// Determine label color based on role
+	FLinearColor LabelColor;
+	if (bIsSelected)
+	{
+		LabelColor = Settings->SelectedLabelColor;
+	}
+	else if (PatternCage->bIsPatternRoot)
+	{
+		LabelColor = Settings->PatternRootColor;
+	}
+	else if (PatternCage->bIsWildcard)
+	{
+		LabelColor = Settings->PatternWildcardColor;
+	}
+	else if (!PatternCage->bIsActiveInPattern)
+	{
+		LabelColor = Settings->PatternConstraintColor;
+	}
+	else
+	{
+		LabelColor = Settings->PatternConnectionColor;
+	}
+
+	const FVector CageLocation = PatternCage->GetActorLocation();
+
+	// Draw cage display name (already includes pattern prefix from GetCageDisplayName)
+	const FString CageName = PatternCage->GetCageDisplayName();
+	if (!CageName.IsEmpty())
+	{
+		DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), CageName, LabelColor);
+	}
+
+	// Show proxied cage count if proxying regular cages
+	if (PatternCage->ProxiedCages.Num() > 0 && !PatternCage->bIsWildcard)
+	{
+		const FString ProxyInfo = FString::Printf(TEXT("Proxies: %d"), PatternCage->ProxiedCages.Num());
+		DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset - 20.0f), ProxyInfo, LabelColor * 0.7f);
+	}
 }

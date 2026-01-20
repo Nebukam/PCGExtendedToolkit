@@ -63,6 +63,28 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
 	FLinearColor MirrorConnectionColor = FLinearColor(0.6f, 0.2f, 0.8f);
 
+	// ========== Pattern Cage Colors ==========
+
+	/** Color for pattern cage proxy connections (thin dashed lines to proxied cages) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Pattern Cages")
+	FLinearColor PatternProxyColor = FLinearColor(0.6f, 0.4f, 0.8f, 0.7f);
+
+	/** Color for pattern cage orbital connections (between pattern cages) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Pattern Cages")
+	FLinearColor PatternConnectionColor = FLinearColor(0.4f, 0.8f, 1.0f);
+
+	/** Color for pattern root cage indicator */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Pattern Cages")
+	FLinearColor PatternRootColor = FLinearColor(0.4f, 1.0f, 0.4f);
+
+	/** Color for pattern wildcard cage */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Pattern Cages")
+	FLinearColor PatternWildcardColor = FLinearColor(0.8f, 0.8f, 0.4f);
+
+	/** Color for pattern constraint-only cage (not active) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Pattern Cages")
+	FLinearColor PatternConstraintColor = FLinearColor(0.6f, 0.6f, 0.6f);
+
 	// ========== Other Colors ==========
 
 	/** Default color for volume wireframes */
