@@ -12,6 +12,7 @@
 #include "EditorMode/PCGExValencyDrawHelper.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 
@@ -364,13 +365,17 @@ void FPCGExValencyCageEditorMode::RefreshAllCages()
 		}
 	}
 
-	// Phase 3: Refresh mirror ghost meshes for all regular cages
+	// Phase 3: Refresh ghost meshes for all cages
 	// Done after all cages are initialized so source cage content is available
 	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 	{
 		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
 		{
 			Cage->RefreshMirrorGhostMeshes();
+		}
+		else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(CagePtr.Get()))
+		{
+			PatternCage->RefreshProxyGhostMesh();
 		}
 	}
 }
@@ -389,10 +394,14 @@ void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 	// Detect connections (uses virtual filter - pattern cages only connect to pattern cages)
 	Cage->DetectNearbyConnections();
 
-	// Refresh mirror ghost meshes if this is a regular cage
+	// Refresh ghost meshes
 	if (APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
 	{
 		RegularCage->RefreshMirrorGhostMeshes();
+	}
+	else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Cage))
+	{
+		PatternCage->RefreshProxyGhostMesh();
 	}
 }
 

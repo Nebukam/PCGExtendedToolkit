@@ -11,6 +11,7 @@
 class APCGExValencyCage;
 class USphereComponent;
 class UBoxComponent;
+class UStaticMeshComponent;
 
 /**
  * Pattern output strategy - how matched points are processed.
@@ -114,6 +115,7 @@ public:
 	//~ Begin AActor Interface
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
+	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
 	//~ Begin APCGExValencyCageBase Interface
@@ -124,9 +126,13 @@ public:
 	/** Check if this is a pattern cage (for type checking) */
 	virtual bool IsPatternCage() const { return true; }
 
+	//~ Begin APCGExValencyCageBase Interface
+	virtual void DetectNearbyConnections() override;
+	//~ End APCGExValencyCageBase Interface
+
 protected:
 	//~ Begin APCGExValencyCageBase Interface
-	/** Pattern cages only connect to other pattern cages */
+	/** Pattern cages connect to other pattern cages and null cages */
 	virtual bool ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const override;
 	//~ End APCGExValencyCageBase Interface
 
@@ -137,6 +143,9 @@ public:
 
 	/** Get the pattern root cage for this pattern (follows connections to find root) */
 	APCGExValencyCagePattern* FindPatternRoot() const;
+
+	/** Notify the pattern root that the network has changed (triggers bounds update) */
+	void NotifyPatternNetworkChanged();
 
 	/** Compute the bounding box encompassing all cages in this pattern */
 	FBox ComputePatternBounds() const;
@@ -157,6 +166,21 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy")
 	bool bIsWildcard = false;
+
+	/**
+	 * Show ghost mesh preview of first available asset from proxied cages.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy")
+	bool bShowProxyGhostMesh = true;
+
+	/**
+	 * Rebuild ghost mesh component based on the first proxied cage's content.
+	 * Called when ProxiedCages changes or when entering Valency mode.
+	 */
+	void RefreshProxyGhostMesh();
+
+	/** Clear the ghost mesh component */
+	void ClearProxyGhostMesh();
 
 	// ==================== Pattern Role ====================
 
@@ -193,6 +217,10 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> PatternBoundsComponent;
+
+	/** Ghost mesh component for proxy preview */
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMeshComponent> ProxyGhostMeshComponent;
 
 	/** Update the pattern bounds visualization */
 	void UpdatePatternBoundsVisualization();

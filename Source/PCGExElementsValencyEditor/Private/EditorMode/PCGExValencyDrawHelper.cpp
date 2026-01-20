@@ -598,8 +598,12 @@ void FPCGExValencyDrawHelper::DrawPatternCage(FPrimitiveDrawInterface* PDI, cons
 		}
 	}
 
-	// Draw connections to other pattern cages via orbitals (same system as regular cages)
+	// Draw orbital connections (same system as regular cages)
+	const UPCGExValencyOrbitalSet* OrbitalSet = PatternCage->GetEffectiveOrbitalSet();
 	const TArray<FPCGExValencyCageOrbital>& Orbitals = PatternCage->GetOrbitals();
+	const FTransform CageTransform = PatternCage->GetActorTransform();
+	const float ProbeRadius = PatternCage->GetEffectiveProbeRadius();
+
 	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
 	{
 		if (!Orbital.bEnabled)
@@ -607,24 +611,74 @@ void FPCGExValencyDrawHelper::DrawPatternCage(FPrimitiveDrawInterface* PDI, cons
 			continue;
 		}
 
-		// Get the display connection (auto or manual)
-		const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection();
-		const APCGExValencyCagePattern* ConnectedPattern = Cast<APCGExValencyCagePattern>(ConnectedCage);
-
-		if (!ConnectedPattern)
+		// Get orbital direction if we have an orbital set
+		FVector WorldDir = FVector::ForwardVector;
+		if (OrbitalSet && Orbital.OrbitalIndex >= 0 && Orbital.OrbitalIndex < OrbitalSet->Num())
 		{
-			continue;
+			const FPCGExValencyOrbitalEntry& Entry = OrbitalSet->Orbitals[Orbital.OrbitalIndex];
+			FVector Direction;
+			int64 Bitmask;
+			if (Entry.GetDirectionAndBitmask(Direction, Bitmask))
+			{
+				WorldDir = CageTransform.TransformVectorNoScale(Direction);
+				WorldDir.Normalize();
+			}
 		}
 
-		const FVector ConnectedLocation = ConnectedPattern->GetActorLocation();
-		const FVector MidPoint = (CageLocation + ConnectedLocation) * 0.5f;
+		// Get the display connection (auto or manual)
+		const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection();
 
-		// Check if bidirectional connection
-		bool bBidirectional = ConnectedPattern->HasConnectionTo(PatternCage);
-		FLinearColor ConnectionColor = bBidirectional ? Settings->BidirectionalColor : RoleColor;
+		if (ConnectedCage)
+		{
+			const FVector ConnectedLocation = ConnectedCage->GetActorLocation();
+			const FVector ToConnected = (ConnectedLocation - CageLocation).GetSafeNormal();
+			const float ConnectionDistance = FVector::Dist(CageLocation, ConnectedLocation);
 
-		// Draw solid line to midpoint with arrowhead
-		DrawOrbitalArrow(PDI, CageLocation, MidPoint, ConnectionColor, false, true);
+			// Arrow starts offset from center
+			const FVector ArrowStart = CageLocation + ToConnected * (ProbeRadius * Settings->ArrowStartOffsetPct);
+
+			FLinearColor ArrowColor;
+			bool bDashed = false;
+			bool bDrawArrowhead = true;
+			FVector ArrowEnd;
+
+			if (ConnectedCage->IsNullCage())
+			{
+				// Connection to null cage: dashed, no arrowhead
+				ArrowColor = Settings->NullConnectionColor;
+				bDashed = true;
+				bDrawArrowhead = false;
+				const float NullSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
+				const float DistanceToSurface = ConnectionDistance - NullSphereRadius;
+				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, ProbeRadius * Settings->ArrowStartOffsetPct + 10.0f);
+			}
+			else
+			{
+				// Arrow ends at midpoint for pattern connections
+				ArrowEnd = CageLocation + ToConnected * (ConnectionDistance * 0.5f);
+
+				if (ConnectedCage->HasConnectionTo(PatternCage))
+				{
+					ArrowColor = Settings->BidirectionalColor;
+				}
+				else
+				{
+					ArrowColor = Settings->UnilateralColor;
+				}
+			}
+
+			// Draw thin line along orbital direction
+			const float ThinLineLength = ProbeRadius * Settings->ConnectedThinLinePct;
+			DrawConnection(PDI, CageLocation, WorldDir, ThinLineLength, ArrowColor, false, false);
+
+			// Draw the thick arrow toward connected cage
+			DrawOrbitalArrow(PDI, ArrowStart, ArrowEnd, ArrowColor, bDashed, bDrawArrowhead);
+		}
+		else
+		{
+			// No connection: draw dashed thin line along orbital direction with arrowhead
+			DrawConnection(PDI, CageLocation, WorldDir, ProbeRadius, Settings->NoConnectionColor, true, true);
+		}
 	}
 
 	// Draw pattern root indicator (star shape around the cage)

@@ -6,8 +6,10 @@
 #include "EngineUtils.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Volumes/ValencyContextVolume.h"
+#include "PCGExValencyEditorSettings.h"
 
 APCGExValencyCagePattern::APCGExValencyCagePattern()
 {
@@ -40,6 +42,14 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bIsPatternRoot))
 	{
 		UpdatePatternBoundsVisualization();
+	}
+
+	// Update ghost mesh when proxy settings change
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bShowProxyGhostMesh) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bIsWildcard))
+	{
+		RefreshProxyGhostMesh();
 	}
 
 	// Update sphere color based on role
@@ -80,6 +90,12 @@ void APCGExValencyCagePattern::PostEditMove(bool bFinished)
 			Root->UpdatePatternBoundsVisualization();
 		}
 	}
+}
+
+void APCGExValencyCagePattern::BeginDestroy()
+{
+	ClearProxyGhostMesh();
+	Super::BeginDestroy();
 }
 
 FString APCGExValencyCagePattern::GetCageDisplayName() const
@@ -129,10 +145,28 @@ void APCGExValencyCagePattern::SetDebugComponentsVisible(bool bVisible)
 	}
 }
 
+void APCGExValencyCagePattern::DetectNearbyConnections()
+{
+	// Call base class implementation (uses ShouldConsiderCageForConnection filter)
+	Super::DetectNearbyConnections();
+
+	// Notify pattern network that connections may have changed
+	NotifyPatternNetworkChanged();
+}
+
 bool APCGExValencyCagePattern::ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const
 {
-	// Pattern cages only connect to other pattern cages
-	return CandidateCage && CandidateCage->IsPatternCage();
+	// Pattern cages connect to other pattern cages and null cages (boundary markers)
+	return CandidateCage && (CandidateCage->IsPatternCage() || CandidateCage->IsNullCage());
+}
+
+void APCGExValencyCagePattern::NotifyPatternNetworkChanged()
+{
+	// Find and notify the pattern root to update visualization
+	if (APCGExValencyCagePattern* Root = FindPatternRoot())
+	{
+		Root->UpdatePatternBoundsVisualization();
+	}
 }
 
 TArray<APCGExValencyCagePattern*> APCGExValencyCagePattern::GetConnectedPatternCages() const
@@ -252,5 +286,110 @@ void APCGExValencyCagePattern::UpdatePatternBoundsVisualization()
 	else
 	{
 		PatternBoundsComponent->SetVisibility(false);
+	}
+}
+
+void APCGExValencyCagePattern::RefreshProxyGhostMesh()
+{
+	// Clear existing ghost mesh first
+	ClearProxyGhostMesh();
+
+	// Get settings
+	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
+
+	// Early out if ghosting is disabled
+	if (!Settings || !Settings->bEnableGhostMeshes || !bShowProxyGhostMesh || bIsWildcard || ProxiedCages.Num() == 0)
+	{
+		return;
+	}
+
+	// Get the shared ghost material from settings
+	UMaterialInterface* GhostMaterial = Settings->GetGhostMaterial();
+
+	// Find the first available mesh from proxied cages
+	UStaticMesh* FirstMesh = nullptr;
+	FTransform LocalTransform = FTransform::Identity;
+
+	for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : ProxiedCages)
+	{
+		if (!ProxiedCage)
+		{
+			continue;
+		}
+
+		// Get entries from the proxied cage
+		TArray<FPCGExValencyAssetEntry> Entries = ProxiedCage->GetAllAssetEntries();
+
+		for (const FPCGExValencyAssetEntry& Entry : Entries)
+		{
+			if (Entry.AssetType != EPCGExValencyAssetType::Mesh)
+			{
+				continue;
+			}
+
+			// Try to get the mesh
+			UStaticMesh* Mesh = Cast<UStaticMesh>(Entry.Asset.Get());
+			if (!Mesh)
+			{
+				// Try sync load (editor-only)
+				Mesh = Cast<UStaticMesh>(Entry.Asset.LoadSynchronous());
+			}
+
+			if (Mesh)
+			{
+				FirstMesh = Mesh;
+				LocalTransform = Entry.LocalTransform;
+				break;
+			}
+		}
+
+		if (FirstMesh)
+		{
+			break;
+		}
+	}
+
+	if (!FirstMesh)
+	{
+		return;
+	}
+
+	// Create the ghost mesh component
+	ProxyGhostMeshComponent = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
+	ProxyGhostMeshComponent->SetStaticMesh(FirstMesh);
+	ProxyGhostMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ProxyGhostMeshComponent->SetCastShadow(false);
+	ProxyGhostMeshComponent->bSelectable = false;
+
+	// Apply ghost material to all slots
+	if (GhostMaterial)
+	{
+		const int32 NumMaterials = FirstMesh->GetStaticMaterials().Num();
+		for (int32 i = 0; i < NumMaterials; ++i)
+		{
+			ProxyGhostMeshComponent->SetMaterial(i, GhostMaterial);
+		}
+	}
+
+	// Apply local transform (rotated by cage rotation)
+	const FQuat CageRotation = GetActorQuat();
+	const FVector RotatedLocation = CageRotation.RotateVector(LocalTransform.GetLocation());
+	const FQuat RotatedRotation = CageRotation * LocalTransform.GetRotation();
+
+	ProxyGhostMeshComponent->SetRelativeLocation(RotatedLocation);
+	ProxyGhostMeshComponent->SetRelativeRotation(RotatedRotation.Rotator());
+	ProxyGhostMeshComponent->SetRelativeScale3D(LocalTransform.GetScale3D());
+
+	// Attach and register
+	ProxyGhostMeshComponent->SetupAttachment(RootComponent);
+	ProxyGhostMeshComponent->RegisterComponent();
+}
+
+void APCGExValencyCagePattern::ClearProxyGhostMesh()
+{
+	if (ProxyGhostMeshComponent)
+	{
+		ProxyGhostMeshComponent->DestroyComponent();
+		ProxyGhostMeshComponent = nullptr;
 	}
 }
