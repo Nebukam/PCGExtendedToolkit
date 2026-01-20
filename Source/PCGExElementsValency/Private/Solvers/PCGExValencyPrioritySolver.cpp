@@ -413,13 +413,27 @@ bool FPCGExValencyPrioritySolver::CheckArcConsistency(int32 StateIndex, int32 Ca
 
 		const FPriorityStateData& NeighborData = StateData[NeighborIndex];
 
+		// Find which orbital of the neighbor points back to us
+		int32 ReverseOrbital = -1;
+		for (int32 NeighborOrbital = 0; NeighborOrbital < MaxOrbitals; ++NeighborOrbital)
+		{
+			if (OrbitalCache->GetNeighborAtOrbital(NeighborIndex, NeighborOrbital) == StateIndex)
+			{
+				ReverseOrbital = NeighborOrbital;
+				break;
+			}
+		}
+
+		if (ReverseOrbital < 0)
+		{
+			continue; // No reverse connection (unusual but possible)
+		}
+
 		// Check if neighbor would have at least one valid candidate after this selection
 		bool bNeighborHasValidCandidate = false;
 		for (int32 NeighborCandidate : NeighborData.Candidates)
 		{
-			// Get the orbital from neighbor's perspective
-			const int32 ReverseOrbital = OrbitalCache->GetNeighborAtOrbital(NeighborIndex, StateIndex);
-			if (ReverseOrbital >= 0 && IsModuleCompatibleWithNeighbor(NeighborCandidate, ReverseOrbital, CandidateModule))
+			if (IsModuleCompatibleWithNeighbor(NeighborCandidate, ReverseOrbital, CandidateModule))
 			{
 				bNeighborHasValidCandidate = true;
 				break;
