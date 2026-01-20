@@ -42,6 +42,7 @@ namespace PCGExValency
 		const FName SourceBondingRulesLabel = FName("BondingRules");
 		const FName SourceSolverLabel = FName("Solver");
 		const FName SourceClustersLabel = FName("Clusters");
+		const FName SourceFixedPickFiltersLabel = FName("FixedPickFilters");
 		const FName OutputStagedLabel = FName("Staged");
 	}
 

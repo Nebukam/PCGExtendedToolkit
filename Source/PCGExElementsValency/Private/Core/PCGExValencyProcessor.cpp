@@ -165,7 +165,7 @@ namespace PCGExValencyMT
 	               TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: PCGExClusterMT::IBatch(InContext, InVtx, InEdges)
 	{
-		DefaultVtxFilterValue = false;
+		DefaultVtxFilterValue = true;
 	}
 
 	void IBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)

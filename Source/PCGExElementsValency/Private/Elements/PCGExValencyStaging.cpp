@@ -32,6 +32,7 @@ TArray<FPCGPinProperties> UPCGExValencyStagingSettings::InputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_PARAM(PCGExValency::Labels::SourceBondingRulesLabel, "Bonding rules data asset override", Advanced)
+	if (bEnableFixedPicks) { PCGEX_PIN_FILTERS(PCGExValency::Labels::SourceFixedPickFiltersLabel, "Filters controlling which points are eligible for fixed picking.", Normal) }
 	return PinProperties;
 }
 
@@ -151,6 +152,12 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	Context->ActorCollection = Context->BondingRules->GetActorCollection();
 	if (Context->ActorCollection) { Context->ActorCollection->BuildCache(); }
 
+	// Get fixed pick filter factories if enabled (optional - empty array is valid)
+	if (Settings->bEnableFixedPicks)
+	{
+		GetInputFactories(Context, PCGExValency::Labels::SourceFixedPickFiltersLabel, Context->FixedPickFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+	}
+
 	return true;
 }
 
@@ -165,6 +172,12 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
+
+				// Assign fixed pick filter factories to batch
+				if (Settings->bEnableFixedPicks && !Context->FixedPickFilterFactories.IsEmpty())
+				{
+					static_cast<PCGExValencyStaging::FBatch*>(NewBatch.Get())->FixedPickFilterFactories = &Context->FixedPickFilterFactories;
+				}
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -193,6 +206,20 @@ namespace PCGExValencyStaging
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExValencyStaging::Process);
 
 		if (!TProcessor::Process(InTaskManager)) { return false; }
+
+		// Initialize and run fixed pick filters if we have factories
+		if (FixedPickFilterFactories && !FixedPickFilterFactories->IsEmpty() && FixedPickFilterCache)
+		{
+			FixedPickFiltersManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
+			FixedPickFiltersManager->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
+
+			if (FixedPickFiltersManager->Init(ExecutionContext, *FixedPickFilterFactories))
+			{
+				// Run filters on all nodes to populate the cache
+				const PCGExMT::FScope AllNodesScope(0, Cluster->Nodes->Num());
+				FixedPickFiltersManager->Test(AllNodesScope.GetView(*Cluster->Nodes.Get()), *FixedPickFilterCache.Get(), true);
+			}
+		}
 
 		// Apply fixed picks before solver runs (pre-resolve specified nodes)
 		ApplyFixedPicks();
@@ -286,8 +313,8 @@ namespace PCGExValencyStaging
 				continue;
 			}
 
-			// Check VtxFilterCache if available (filter must pass for fixed pick to apply)
-			if (VtxFilterCache && !(*VtxFilterCache)[PointIndex])
+			// Check FixedPickFilterCache if available (filter must pass for fixed pick to apply)
+			if (FixedPickFilterCache && !(*FixedPickFilterCache)[PointIndex])
 			{
 				PCGEX_VALENCY_VERBOSE(Staging, "  State[%d]: Fixed pick '%s' skipped (filter failed)", StateIndex, *PickName.ToString());
 				continue;
@@ -542,6 +569,12 @@ namespace PCGExValencyStaging
 				const EPCGExValencyAssetType AssetType = CompiledBondingRules->ModuleAssetTypes[State.ResolvedModule];
 				const FString AssetName = CompiledBondingRules->ModuleAssets[State.ResolvedModule].GetAssetName();
 
+				// Write module name if enabled
+				if (ModuleNameWriter)
+				{
+					ModuleNameWriter->SetValue(Node.PointIndex, CompiledBondingRules->ModuleNames[State.ResolvedModule]);
+				}
+
 				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)",
 				                      State.NodeIndex, Node.PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
 
@@ -706,10 +739,25 @@ namespace PCGExValencyStaging
 			UnsolvableWriter = OutputFacade->GetWritable<bool>(Settings->UnsolvableAttributeName, false, true, PCGExData::EBufferInit::Inherit);
 		}
 
-		// Get fixed pick reader if enabled
+		if (Settings->bOutputModuleName)
+		{
+			ModuleNameWriter = OutputFacade->GetWritable<FName>(Settings->ModuleNameAttributeName, NAME_None, true, PCGExData::EBufferInit::Inherit);
+		}
+
+		// Get fixed pick reader and create filter cache if enabled
 		if (Settings->bEnableFixedPicks)
 		{
 			FixedPickReader = VtxDataFacade->GetBroadcaster<FName>(Settings->FixedPickAttribute);
+
+			// Create fixed pick filter cache
+			FixedPickFilterCache = MakeShared<TArray<int8>>();
+			FixedPickFilterCache->Init(Settings->bDefaultFixedPickFilterValue, VtxDataFacade->GetNum());
+
+			// Register consumable attributes if we have filter factories
+			if (FixedPickFilterFactories)
+			{
+				PCGExFactories::RegisterConsumableAttributesWithFacade(*FixedPickFilterFactories, VtxDataFacade);
+			}
 		}
 
 		// Call base class AFTER creating writers (base triggers PrepareSingle)
@@ -732,9 +780,12 @@ namespace PCGExValencyStaging
 		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
 		TypedProcessor->EntryHashWriter = EntryHashWriter;
+		TypedProcessor->ModuleNameWriter = ModuleNameWriter;
 
-		// Forward fixed pick reader to processor
+		// Forward fixed pick reader, filter cache, and factories to processor
 		TypedProcessor->FixedPickReader = FixedPickReader;
+		TypedProcessor->FixedPickFilterCache = FixedPickFilterCache;
+		TypedProcessor->FixedPickFilterFactories = FixedPickFilterFactories;
 
 		return true;
 	}

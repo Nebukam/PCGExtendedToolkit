@@ -7,6 +7,7 @@
 #include "Core/PCGExValencyProcessor.h"
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencySolverOperation.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Elements/PCGExAssetStaging.h"
 
 #include "PCGExValencyStaging.generated.h"
@@ -106,6 +107,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bPruneUnsolvable = false;
 
+	/** If enabled, output the resolved module name as an attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	bool bOutputModuleName = false;
+
+	/** Attribute name for the resolved module name */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bOutputModuleName"))
+	FName ModuleNameAttributeName = FName("ModuleName");
+
 	/** If enabled, applies the module's local transform offset to the point's transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bApplyLocalTransforms = true;
@@ -140,6 +149,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks && IncompatibleFixedPickBehavior == EPCGExFixedPickIncompatibleBehavior::Skip"))
 	bool bWarnOnIncompatibleFixedPick = true;
 
+	/** Default filter value when no fixed pick filters are connected (true = all points eligible) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
+	bool bDefaultFixedPickFilterValue = true;
+
 	/** Warnings and errors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietMissingBondingRules = false;
@@ -161,6 +174,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValenc
 
 	UPCGExMeshCollection* MeshCollection = nullptr;
 	UPCGExActorCollection* ActorCollection = nullptr;
+
+	/** Fixed pick filter factories (optional, controls which points are eligible for fixed picking) */
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FixedPickFilterFactories;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -197,9 +213,19 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
+		TSharedPtr<PCGExData::TBuffer<FName>> ModuleNameWriter;
 
 		/** Fixed pick reader (owned by batch, forwarded via PrepareSingle) */
 		TSharedPtr<PCGExData::TBuffer<FName>> FixedPickReader;
+
+		/** Fixed pick filter cache (owned by batch, forwarded via PrepareSingle) */
+		TSharedPtr<TArray<int8>> FixedPickFilterCache;
+
+		/** Fixed pick filter factories (forwarded from batch) */
+		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FixedPickFilterFactories = nullptr;
+
+		/** Fixed pick filter manager (created in Process) */
+		TSharedPtr<PCGExClusterFilter::FManager> FixedPickFiltersManager;
 
 		/** Solve result */
 		PCGExValency::FSolveResult SolveResult;
@@ -236,14 +262,20 @@ namespace PCGExValencyStaging
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
+		TSharedPtr<PCGExData::TBuffer<FName>> ModuleNameWriter;
 
 		/** Fixed pick reader (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<FName>> FixedPickReader;
+
+		/** Fixed pick filter factories and cache (owned here, shared with processors) */
+		TSharedPtr<TArray<int8>> FixedPickFilterCache;
 
 		/** Solver allocations (created from factory, shared with processors) */
 		TSharedPtr<PCGExValency::FSolverAllocations> SolverAllocations;
 
 	public:
+		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FixedPickFilterFactories = nullptr;
+		
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FBatch() override;
 
