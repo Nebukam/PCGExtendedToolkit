@@ -12,7 +12,6 @@
 class APCGExValencyCage;
 class USphereComponent;
 class UBoxComponent;
-class UStaticMeshComponent;
 
 /**
  * Settings for a pattern, stored on the pattern root cage.
@@ -93,6 +92,7 @@ public:
 	//~ Begin AActor Interface
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
+	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
@@ -195,10 +195,6 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> PatternBoundsComponent;
-
-	/** Ghost mesh components for proxy preview */
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UStaticMeshComponent>> ProxyGhostMeshComponents;
 
 	/** Update the pattern bounds visualization */
 	void UpdatePatternBoundsVisualization();

@@ -720,7 +720,8 @@ namespace PCGExValencyStaging
 		}
 
 		// Create staging-specific writers BEFORE calling base (base triggers PrepareSingle which forwards these)
-		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Settings->ModuleIndexAttributeName, -1, true, PCGExData::EBufferInit::Inherit);
+		// Module index attribute name comes from OrbitalSet (PCGEx/V/MIdx/{LayerName})
+		ModuleIndexWriter = OutputFacade->GetWritable<int32>(Context->OrbitalSet->GetModuleIdxAttributeName(), -1, true, PCGExData::EBufferInit::Inherit);
 
 		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
 		{

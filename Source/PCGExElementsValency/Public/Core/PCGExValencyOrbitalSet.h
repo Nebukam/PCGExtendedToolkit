@@ -119,7 +119,7 @@ class PCGEXELEMENTSVALENCY_API UPCGExValencyOrbitalSet : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	/** Layer name - determines attribute naming (PCGEx/Valency/Mask/{LayerName}, PCGEx/Valency/Idx/{LayerName}) */
+	/** Layer name - determines attribute naming (PCGEx/V/Mask/{LayerName}, PCGEx/V/Orbital/{LayerName}, PCGEx/V/MIdx/{LayerName}) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	FName LayerName = FName("Main");
 
@@ -144,13 +144,19 @@ public:
 	/** Get the attribute name for vertex orbital mask */
 	FName GetOrbitalMaskAttributeName() const
 	{
-		return FName(FString::Printf(TEXT("PCGEx/Valency/Mask/%s"), *LayerName.ToString()));
+		return FName(FString::Printf(TEXT("PCGEx/V/Mask/%s"), *LayerName.ToString()));
 	}
 
 	/** Get the attribute name for edge orbital indices */
 	FName GetOrbitalIdxAttributeName() const
 	{
-		return FName(FString::Printf(TEXT("PCGEx/Valency/Idx/%s"), *LayerName.ToString()));
+		return FName(FString::Printf(TEXT("PCGEx/V/Orbital/%s"), *LayerName.ToString()));
+	}
+
+	/** Get the attribute name for vertex module index (solved output) */
+	FName GetModuleIdxAttributeName() const
+	{
+		return FName(FString::Printf(TEXT("PCGEx/V/Module/%s"), *LayerName.ToString()));
 	}
 
 	/**

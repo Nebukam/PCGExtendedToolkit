@@ -13,6 +13,11 @@
 #include "PCGExValencyEditorSettings.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 
+namespace PCGExValencyTags
+{
+	const FName GhostMeshTag = FName(TEXT("PCGEx_Valency_Ghost"));
+}
+
 APCGExValencyCagePattern::APCGExValencyCagePattern()
 {
 	// Create sphere for visualization and selection
@@ -101,6 +106,15 @@ void APCGExValencyCagePattern::PostEditMove(bool bFinished)
 			Root->UpdatePatternBoundsVisualization();
 		}
 	}
+}
+
+void APCGExValencyCagePattern::PostDuplicate(EDuplicateMode::Type DuplicateMode)
+{
+	Super::PostDuplicate(DuplicateMode);
+
+	// Clear any orphaned ghost meshes and refresh
+	ClearProxyGhostMesh();
+	RefreshProxyGhostMesh();
 }
 
 void APCGExValencyCagePattern::BeginDestroy()
@@ -411,6 +425,7 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 
 		// Create the ghost mesh component
 		UStaticMeshComponent* GhostComp = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
+		GhostComp->ComponentTags.Add(PCGExValencyTags::GhostMeshTag);
 		GhostComp->SetStaticMesh(Mesh);
 		GhostComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GhostComp->SetCastShadow(false);
@@ -438,19 +453,21 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 		GhostComp->SetupAttachment(RootComponent);
 		GhostComp->RegisterComponent();
 
-		ProxyGhostMeshComponents.Add(GhostComp);
 		GhostCount++;
 	}
 }
 
 void APCGExValencyCagePattern::ClearProxyGhostMesh()
 {
-	for (TObjectPtr<UStaticMeshComponent>& GhostComp : ProxyGhostMeshComponents)
+	// Find and destroy all components with the ghost mesh tag
+	TArray<UActorComponent*> TaggedComponents;
+	GetComponents(TaggedComponents);
+
+	for (UActorComponent* Component : TaggedComponents)
 	{
-		if (GhostComp)
+		if (Component && Component->ComponentHasTag(PCGExValencyTags::GhostMeshTag))
 		{
-			GhostComp->DestroyComponent();
+			Component->DestroyComponent();
 		}
 	}
-	ProxyGhostMeshComponents.Empty();
 }

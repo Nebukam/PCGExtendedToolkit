@@ -87,10 +87,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::CollectionMap;
 
-	/** Attribute name for the resolved module index output */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	FName ModuleIndexAttributeName = FName("ModuleIndex");
-
 	/** Attribute name for the resolved asset path output (only used with Attributes mode) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExStagingOutputMode::Attributes", EditConditionHides))
 	FName AssetPathAttributeName = FName("AssetPath");
