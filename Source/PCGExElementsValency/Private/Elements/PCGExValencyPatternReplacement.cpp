@@ -8,6 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Utils/PCGExDataPreloader.h"
+#include "Matchers/PCGExDefaultPatternMatcher.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyPatternReplacement"
 #define PCGEX_NAMESPACE ValencyPatternReplacement
@@ -47,6 +48,17 @@ PCGExData::EIOInit UPCGExValencyPatternReplacementSettings::GetEdgeOutputInitMod
 
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyPatternReplacement)
 
+bool FPCGExValencyPatternReplacementElement::Boot(FPCGExContext* InContext) const
+{
+	if (!FPCGExValencyProcessorElement::Boot(InContext)){return false;}
+	
+	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
+	
+	PCGEX_OPERATION_VALIDATE(Matcher)
+	
+	return true;
+}
+
 bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) const
 {
 	// Base class handles BondingRules and OrbitalSet validation
@@ -80,6 +92,17 @@ bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) 
 
 	Context->CompiledPatterns = &CompiledData->CompiledPatterns;
 
+	// Register matcher factory from Settings
+	if (Settings->Matcher)
+	{
+		Context->MatcherFactory = PCGEX_OPERATION_REGISTER_C(Context, UPCGExPatternMatcherFactory, Settings->Matcher, NAME_None);
+	}
+
+	if (!Context->MatcherFactory && !Settings->bQuietNoMatcher)
+	{
+		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("No pattern matcher configured. Node will only annotate patterns using default subgraph matching."));
+	}
+
 	return true;
 }
 
@@ -109,79 +132,7 @@ bool FPCGExValencyPatternReplacementElement::AdvanceWork(FPCGExContext* InContex
 
 namespace PCGExValencyPatternReplacement
 {
-	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-		: TBatch(InContext, InVtx, InEdges)
-	{
-	}
-
-	FBatch::~FBatch()
-	{
-	}
-
-	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
-	{
-		TBatch::RegisterBuffersDependencies(FacadePreloader);
-
-		// Register module data reader (int64, attribute name from OrbitalSet)
-		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
-		if (Context && Context->OrbitalSet)
-		{
-			FacadePreloader.Register<int64>(ExecutionContext, Context->OrbitalSet->GetModuleIdxAttributeName());
-		}
-	}
-
-	void FBatch::OnProcessingPreparationComplete()
-	{
-		const UPCGExValencyPatternReplacementSettings* Settings = ExecutionContext->GetInputSettings<UPCGExValencyPatternReplacementSettings>();
-		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
-
-		// Create module data reader/writer (packed int64 from Staging)
-		if (Context && Context->OrbitalSet)
-		{
-			const FName ModuleAttrName = Context->OrbitalSet->GetModuleIdxAttributeName();
-			ModuleDataReader = VtxDataFacade->GetReadable<int64>(ModuleAttrName);
-
-			if (!ModuleDataReader)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, Context,
-					FText::Format(FTEXT("Module attribute '{0}' not found. Run Valency Staging with patterns first."),
-						FText::FromName(ModuleAttrName)));
-			}
-			else
-			{
-				// Writer uses inherit mode since we're modifying existing Staging output
-				const int64 DefaultValue = PCGExValency::ModuleData::Pack(PCGExValency::SlotState::UNSET);
-				ModuleDataWriter = VtxDataFacade->GetWritable<int64>(ModuleAttrName, DefaultValue, true, PCGExData::EBufferInit::Inherit);
-			}
-		}
-
-		// Create pattern name writer
-		PatternNameWriter = VtxDataFacade->GetWritable<FName>(Settings->PatternNameAttributeName, FName(NAME_None), true, PCGExData::EBufferInit::New);
-
-		// Create pattern match index writer
-		PatternMatchIndexWriter = VtxDataFacade->GetWritable<int32>(Settings->PatternMatchIndexAttributeName, -1, true, PCGExData::EBufferInit::New);
-
-		TBatch::OnProcessingPreparationComplete();
-	}
-
-	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
-	{
-		if (!TBatch::PrepareSingle(InProcessor)) { return false; }
-
-		FProcessor* Processor = static_cast<FProcessor*>(InProcessor.Get());
-		Processor->ModuleDataReader = ModuleDataReader;
-		Processor->ModuleDataWriter = ModuleDataWriter;
-		Processor->PatternNameWriter = PatternNameWriter;
-		Processor->PatternMatchIndexWriter = PatternMatchIndexWriter;
-
-		return true;
-	}
-
-	void FBatch::Write()
-	{
-		TBatch::Write();
-	}
-
+	
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		// Parent handles: edge indices reader, BuildOrbitalCache(), InitializeValencyStates()
@@ -194,43 +145,94 @@ namespace PCGExValencyPatternReplacement
 			return false;
 		}
 
+		if (!Context->CompiledPatterns || !Context->CompiledPatterns->HasPatterns())
+		{
+			return true; // No patterns = nothing to match, but not an error
+		}
+
+		if (!OrbitalCache)
+		{
+			return false;
+		}
+
+		// Run pattern matching
+		RunMatching();
+
 		return true;
 	}
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		// Pattern matching is done in OnNodesProcessingComplete since it needs all nodes
+		// Not used - pattern matching is done in Process() since it needs full cluster data
 	}
 
 	void FProcessor::OnNodesProcessingComplete()
 	{
-		TProcessor::OnNodesProcessingComplete();
+		// Not used - pattern matching is done in Process()
+	}
 
-		if (!Context->CompiledPatterns || !Context->CompiledPatterns->HasPatterns())
+	void FProcessor::RunMatching()
+	{
+		const int32 NodesCount = OrbitalCache->GetNumNodes();
+		const int32 Seed = VtxDataFacade->Source->IOIndex;
+
+		// Create matcher operation from factory (or use default if none provided)
+		if (Context->MatcherFactory)
 		{
-			return;
+			MatcherOperation = Context->MatcherFactory->CreateOperation();
 		}
 
-		const FPCGExValencyPatternSetCompiled& PatternSet = *Context->CompiledPatterns;
-
-		// Find matches for all exclusive patterns first
-		for (int32 PatternIdx : PatternSet.ExclusivePatternIndices)
+		// If no factory provided or factory failed, create a default subgraph matcher
+		if (!MatcherOperation)
 		{
-			const FPCGExValencyPatternCompiled& Pattern = PatternSet.Patterns[PatternIdx];
-			FindMatchesForPattern(PatternIdx, Pattern);
+			TSharedPtr<FPCGExDefaultPatternMatcherOperation> DefaultOp = MakeShared<FPCGExDefaultPatternMatcherOperation>();
+			DefaultOp->bExclusive = true;
+			DefaultOp->OverlapResolution = EPCGExPatternOverlapResolution::WeightBased;
+			MatcherOperation = DefaultOp;
 		}
 
-		// Then find matches for additive patterns
-		for (int32 PatternIdx : PatternSet.AdditivePatternIndices)
+		// Initialize the operation with shared state
+		MatcherOperation->Initialize(
+			Context->CompiledPatterns,
+			OrbitalCache.Get(),
+			ModuleDataReader,
+			NodesCount,
+			&ClaimedNodes,
+			Seed,
+			MatcherAllocations);
+
+		// Run matching
+		PCGExPatternMatcher::FMatchResult Result = MatcherOperation->Match();
+
+		if (Result.bSuccess)
 		{
-			const FPCGExValencyPatternCompiled& Pattern = PatternSet.Patterns[PatternIdx];
-			FindMatchesForPattern(PatternIdx, Pattern);
+			// Run annotation (writes PatternName and MatchIndex attributes)
+			MatcherOperation->Annotate(PatternNameWriter, PatternMatchIndexWriter);
+
+			// Track annotated nodes for flag writing
+			for (const FPCGExValencyPatternMatch& Match : MatcherOperation->GetMatches())
+			{
+				if (!Match.IsValid()) { continue; }
+
+				// Skip unclaimed exclusive matches
+				if (!Match.bClaimed)
+				{
+					const FPCGExValencyPatternCompiled& Pattern = Context->CompiledPatterns->Patterns[Match.PatternIndex];
+					if (Pattern.Settings.bExclusive) { continue; }
+				}
+
+				const FPCGExValencyPatternCompiled& Pattern = Context->CompiledPatterns->Patterns[Match.PatternIndex];
+				for (int32 EntryIdx = 0; EntryIdx < Match.EntryToNode.Num(); ++EntryIdx)
+				{
+					if (Pattern.Entries[EntryIdx].bIsActive)
+					{
+						AnnotatedNodes.Add(Match.EntryToNode[EntryIdx]);
+					}
+				}
+			}
 		}
 
-		// Resolve overlaps
-		ResolveOverlaps();
-
-		// Apply matches
+		// Apply matches (topology-altering - to be moved to separate nodes in Phase 4)
 		ApplyMatches();
 	}
 
@@ -290,291 +292,26 @@ namespace PCGExValencyPatternReplacement
 		// The NodesToRemove set is used by the batch to filter points
 	}
 
-	void FProcessor::FindMatchesForPattern(int32 PatternIndex, const FPCGExValencyPatternCompiled& Pattern)
-	{
-		if (!Pattern.IsValid()) { return; }
-
-		const FPCGExValencyPatternEntryCompiled& RootEntry = Pattern.Entries[0];
-		const int32 NodeCount = OrbitalCache->GetNumNodes();
-
-		// Try to match starting from each node that could match the root entry
-		for (int32 NodeIdx = 0; NodeIdx < NodeCount; ++NodeIdx)
-		{
-			// Skip already claimed nodes for exclusive patterns
-			if (Pattern.Settings.bExclusive && ClaimedNodes.Contains(NodeIdx))
-			{
-				continue;
-			}
-
-			// Check if this node's module matches the root entry
-			const int32 ModuleIndex = PCGExValency::ModuleData::GetModuleIndex(ModuleDataReader->Read(NodeIdx));
-			if (!RootEntry.MatchesModule(ModuleIndex))
-			{
-				continue;
-			}
-
-			// Check boundary constraints for root entry
-			// BoundaryOrbitalMask indicates orbitals that MUST be empty (no neighbor)
-			// OrbitalCache->GetOrbitalMask returns which orbitals have neighbors
-			if (RootEntry.BoundaryOrbitalMask != 0)
-			{
-				const int64 NodeOccupiedMask = OrbitalCache->GetOrbitalMask(NodeIdx);
-				if ((NodeOccupiedMask & RootEntry.BoundaryOrbitalMask) != 0)
-				{
-					continue; // Boundary orbital has a neighbor, skip
-				}
-			}
-
-			// Try to match the full pattern starting from this node
-			FPCGExValencyPatternMatch Match;
-			if (TryMatchPatternFromNode(PatternIndex, Pattern, NodeIdx, Match))
-			{
-				AllMatches.Add(MoveTemp(Match));
-			}
-		}
-	}
-
-	bool FProcessor::TryMatchPatternFromNode(int32 PatternIndex, const FPCGExValencyPatternCompiled& Pattern, int32 StartNodeIndex, FPCGExValencyPatternMatch& OutMatch)
-	{
-		const int32 NumEntries = Pattern.GetEntryCount();
-
-		// Initialize mapping
-		TArray<int32> EntryToNode;
-		EntryToNode.SetNum(NumEntries);
-		for (int32 i = 0; i < NumEntries; ++i)
-		{
-			EntryToNode[i] = -1;
-		}
-
-		// Start with root entry mapped to start node
-		EntryToNode[0] = StartNodeIndex;
-
-		TSet<int32> UsedNodes;
-		UsedNodes.Add(StartNodeIndex);
-
-		// DFS to match remaining entries
-		if (!MatchEntryRecursive(Pattern, 0, EntryToNode, UsedNodes))
-		{
-			return false;
-		}
-
-		// Verify all entries were matched
-		for (int32 i = 0; i < NumEntries; ++i)
-		{
-			if (EntryToNode[i] < 0)
-			{
-				return false;
-			}
-		}
-
-		// Build the match result
-		OutMatch.PatternIndex = PatternIndex;
-		OutMatch.EntryToNode = MoveTemp(EntryToNode);
-		OutMatch.ReplacementTransform = ComputeReplacementTransform(OutMatch, Pattern);
-		OutMatch.bClaimed = false;
-
-		return true;
-	}
-
-	bool FProcessor::MatchEntryRecursive(
-		const FPCGExValencyPatternCompiled& Pattern,
-		int32 EntryIndex,
-		TArray<int32>& EntryToNode,
-		TSet<int32>& UsedNodes)
-	{
-		const FPCGExValencyPatternEntryCompiled& Entry = Pattern.Entries[EntryIndex];
-		const int32 CurrentNode = EntryToNode[EntryIndex];
-
-		// Process all adjacencies from this entry
-		for (const FIntVector& Adj : Entry.Adjacency)
-		{
-			const int32 TargetEntryIdx = Adj.X;
-			const int32 SourceOrbital = Adj.Y;
-			const int32 TargetOrbital = Adj.Z;
-
-			// Check if target entry is already matched
-			if (EntryToNode[TargetEntryIdx] >= 0)
-			{
-				// Verify the existing match is correct
-				const int32 ExistingNode = EntryToNode[TargetEntryIdx];
-				const int32 NeighborAtOrbital = OrbitalCache->GetNeighborAtOrbital(CurrentNode, SourceOrbital);
-				if (NeighborAtOrbital != ExistingNode)
-				{
-					return false; // Inconsistent match
-				}
-				continue;
-			}
-
-			// Find the neighbor at the specified orbital
-			const int32 NeighborNode = OrbitalCache->GetNeighborAtOrbital(CurrentNode, SourceOrbital);
-			if (NeighborNode < 0)
-			{
-				return false; // No neighbor at required orbital
-			}
-
-			// Check if this node is already used by another entry
-			if (UsedNodes.Contains(NeighborNode))
-			{
-				// Could be a valid cycle - check if it's the expected node
-				// For now, treat as invalid (patterns shouldn't have cycles to same node)
-				return false;
-			}
-
-			// Check if the neighbor's module matches the target entry
-			const FPCGExValencyPatternEntryCompiled& TargetEntry = Pattern.Entries[TargetEntryIdx];
-			const int32 NeighborModule = PCGExValency::ModuleData::GetModuleIndex(ModuleDataReader->Read(NeighborNode));
-			if (!TargetEntry.MatchesModule(NeighborModule))
-			{
-				return false;
-			}
-
-			// Check boundary constraints for target entry
-			if (TargetEntry.BoundaryOrbitalMask != 0)
-			{
-				const int64 NeighborOccupiedMask = OrbitalCache->GetOrbitalMask(NeighborNode);
-				if ((NeighborOccupiedMask & TargetEntry.BoundaryOrbitalMask) != 0)
-				{
-					return false; // Boundary orbital has a neighbor
-				}
-			}
-
-			// Verify the reverse connection (neighbor connects back via expected orbital)
-			const int32 ReverseNeighbor = OrbitalCache->GetNeighborAtOrbital(NeighborNode, TargetOrbital);
-			if (ReverseNeighbor != CurrentNode)
-			{
-				return false; // Orbital connection is not bidirectional as expected
-			}
-
-			// Match found - assign and recurse
-			EntryToNode[TargetEntryIdx] = NeighborNode;
-			UsedNodes.Add(NeighborNode);
-
-			// Recursively match from the new entry
-			if (!MatchEntryRecursive(Pattern, TargetEntryIdx, EntryToNode, UsedNodes))
-			{
-				// Backtrack
-				EntryToNode[TargetEntryIdx] = -1;
-				UsedNodes.Remove(NeighborNode);
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	void FProcessor::ResolveOverlaps()
-	{
-		if (AllMatches.IsEmpty()) { return; }
-
-		// Sort matches based on resolution strategy
-		switch (Settings->OverlapResolution)
-		{
-		case EPCGExPatternOverlapResolution::WeightBased:
-			// Sort by weight (highest first)
-			AllMatches.Sort([this](const FPCGExValencyPatternMatch& A, const FPCGExValencyPatternMatch& B)
-			{
-				const float WeightA = Context->CompiledPatterns->Patterns[A.PatternIndex].Settings.Weight;
-				const float WeightB = Context->CompiledPatterns->Patterns[B.PatternIndex].Settings.Weight;
-				return WeightA > WeightB;
-			});
-			break;
-
-		case EPCGExPatternOverlapResolution::LargestFirst:
-			AllMatches.Sort([](const FPCGExValencyPatternMatch& A, const FPCGExValencyPatternMatch& B)
-			{
-				return A.EntryToNode.Num() > B.EntryToNode.Num();
-			});
-			break;
-
-		case EPCGExPatternOverlapResolution::SmallestFirst:
-			AllMatches.Sort([](const FPCGExValencyPatternMatch& A, const FPCGExValencyPatternMatch& B)
-			{
-				return A.EntryToNode.Num() < B.EntryToNode.Num();
-			});
-			break;
-
-		case EPCGExPatternOverlapResolution::FirstDefined:
-			// Keep original order
-			break;
-		}
-
-		// Claim nodes for exclusive patterns (in sorted order)
-		for (FPCGExValencyPatternMatch& Match : AllMatches)
-		{
-			const FPCGExValencyPatternCompiled& Pattern = Context->CompiledPatterns->Patterns[Match.PatternIndex];
-
-			if (!Pattern.Settings.bExclusive)
-			{
-				continue;
-			}
-
-			// Check if any active nodes are already claimed
-			bool bCanClaim = true;
-			for (int32 EntryIdx = 0; EntryIdx < Pattern.Entries.Num(); ++EntryIdx)
-			{
-				if (!Pattern.Entries[EntryIdx].bIsActive) { continue; }
-
-				const int32 NodeIdx = Match.EntryToNode[EntryIdx];
-				if (ClaimedNodes.Contains(NodeIdx))
-				{
-					bCanClaim = false;
-					break;
-				}
-			}
-
-			if (bCanClaim)
-			{
-				Match.bClaimed = true;
-
-				// Claim all active nodes
-				for (int32 EntryIdx = 0; EntryIdx < Pattern.Entries.Num(); ++EntryIdx)
-				{
-					if (!Pattern.Entries[EntryIdx].bIsActive) { continue; }
-					ClaimedNodes.Add(Match.EntryToNode[EntryIdx]);
-				}
-			}
-		}
-	}
-
 	void FProcessor::ApplyMatches()
 	{
-		if (AllMatches.IsEmpty()) { return; }
+		if (!MatcherOperation) { return; }
 
-		int32 MatchCounter = 0;
-
-		for (const FPCGExValencyPatternMatch& Match : AllMatches)
+		// Apply output strategies from matcher's matches
+		// Note: Annotation is already done by the matcher operation during Annotate()
+		// This method handles topology-altering operations (to be moved in Phase 4)
+		for (const FPCGExValencyPatternMatch& Match : MatcherOperation->GetMatches())
 		{
-			if (!Match.bClaimed && Context->CompiledPatterns->Patterns[Match.PatternIndex].Settings.bExclusive)
+			if (!Match.IsValid()) { continue; }
+
+			// Skip unclaimed exclusive matches
+			if (!Match.bClaimed)
 			{
-				continue; // Skip unclaimed exclusive matches
+				const FPCGExValencyPatternCompiled& Pattern = Context->CompiledPatterns->Patterns[Match.PatternIndex];
+				if (Pattern.Settings.bExclusive) { continue; }
 			}
 
 			const FPCGExValencyPatternCompiled& Pattern = Context->CompiledPatterns->Patterns[Match.PatternIndex];
 			const EPCGExPatternOutputStrategy Strategy = Pattern.Settings.OutputStrategy;
-
-			// Annotate matched nodes (all strategies get annotation)
-			for (int32 EntryIdx = 0; EntryIdx < Match.EntryToNode.Num(); ++EntryIdx)
-			{
-				const FPCGExValencyPatternEntryCompiled& Entry = Pattern.Entries[EntryIdx];
-				if (!Entry.bIsActive) { continue; }
-
-				const int32 NodeIdx = Match.EntryToNode[EntryIdx];
-
-				// Track annotated nodes for flag writing
-				AnnotatedNodes.Add(NodeIdx);
-
-				// Write pattern name
-				if (PatternNameWriter)
-				{
-					PatternNameWriter->SetValue(NodeIdx, Pattern.Settings.PatternName);
-				}
-
-				// Write match index
-				if (PatternMatchIndexWriter)
-				{
-					PatternMatchIndexWriter->SetValue(NodeIdx, MatchCounter);
-				}
-			}
 
 			// Apply output strategy
 			switch (Strategy)
@@ -630,11 +367,9 @@ namespace PCGExValencyPatternReplacement
 				break;
 
 			case EPCGExPatternOutputStrategy::Annotate:
-				// Already done above, nothing more to do
+				// Already done by matcher operations, nothing more to do
 				break;
 			}
-
-			++MatchCounter;
 		}
 	}
 
@@ -689,6 +424,94 @@ namespace PCGExValencyPatternReplacement
 		}
 
 		return FTransform::Identity;
+	}
+	
+	// FBatch 
+	
+	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+		: TBatch(InContext, InVtx, InEdges)
+	{
+	}
+
+	FBatch::~FBatch()
+	{
+	}
+
+	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		TBatch::RegisterBuffersDependencies(FacadePreloader);
+
+		// Register module data reader (int64, attribute name from OrbitalSet)
+		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
+		if (Context && Context->OrbitalSet)
+		{
+			FacadePreloader.Register<int64>(ExecutionContext, Context->OrbitalSet->GetModuleIdxAttributeName());
+		}
+
+		// Register buffer dependencies from matcher factory
+		if (Context && Context->MatcherFactory)
+		{
+			Context->MatcherFactory->RegisterPrimaryBuffersDependencies(ExecutionContext, FacadePreloader);
+		}
+	}
+
+	void FBatch::OnProcessingPreparationComplete()
+	{
+		const UPCGExValencyPatternReplacementSettings* Settings = ExecutionContext->GetInputSettings<UPCGExValencyPatternReplacementSettings>();
+		const FPCGExValencyPatternReplacementContext* Context = GetContext<FPCGExValencyPatternReplacementContext>();
+
+		// Create module data reader/writer (packed int64 from Staging)
+		if (Context && Context->OrbitalSet)
+		{
+			const FName ModuleAttrName = Context->OrbitalSet->GetModuleIdxAttributeName();
+			ModuleDataReader = VtxDataFacade->GetReadable<int64>(ModuleAttrName);
+
+			if (!ModuleDataReader)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context,
+					FText::Format(FTEXT("Module attribute '{0}' not found. Run Valency Staging with patterns first."),
+						FText::FromName(ModuleAttrName)));
+			}
+			else
+			{
+				// Writer uses inherit mode since we're modifying existing Staging output
+				const int64 DefaultValue = PCGExValency::ModuleData::Pack(PCGExValency::SlotState::UNSET);
+				ModuleDataWriter = VtxDataFacade->GetWritable<int64>(ModuleAttrName, DefaultValue, true, PCGExData::EBufferInit::Inherit);
+			}
+		}
+
+		// Create pattern name writer
+		PatternNameWriter = VtxDataFacade->GetWritable<FName>(Settings->PatternNameAttributeName, FName(NAME_None), true, PCGExData::EBufferInit::New);
+
+		// Create pattern match index writer
+		PatternMatchIndexWriter = VtxDataFacade->GetWritable<int32>(Settings->PatternMatchIndexAttributeName, -1, true, PCGExData::EBufferInit::New);
+
+		// Create matcher-specific allocations from factory
+		if (Context && Context->MatcherFactory)
+		{
+			MatcherAllocations = Context->MatcherFactory->CreateAllocations(VtxDataFacade);
+		}
+
+		TBatch::OnProcessingPreparationComplete();
+	}
+
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
+	{
+		if (!TBatch::PrepareSingle(InProcessor)) { return false; }
+
+		FProcessor* Processor = static_cast<FProcessor*>(InProcessor.Get());
+		Processor->ModuleDataReader = ModuleDataReader;
+		Processor->ModuleDataWriter = ModuleDataWriter;
+		Processor->PatternNameWriter = PatternNameWriter;
+		Processor->PatternMatchIndexWriter = PatternMatchIndexWriter;
+		Processor->MatcherAllocations = MatcherAllocations;
+
+		return true;
+	}
+
+	void FBatch::Write()
+	{
+		TBatch::Write();
 	}
 }
 

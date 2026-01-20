@@ -76,8 +76,6 @@ bool FPCGExValencyStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyStaging)
 
-	// Validate solver settings (doesn't require loaded assets)
-	// Base class handles OrbitalSet and BondingRules validation via WantsOrbitalSet()/WantsBondingRules()
 	PCGEX_OPERATION_VALIDATE(Solver)
 
 	return true;

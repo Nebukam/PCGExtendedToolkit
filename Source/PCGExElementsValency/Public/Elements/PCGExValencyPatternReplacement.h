@@ -6,24 +6,14 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
 #include "Core/PCGExValencyPattern.h"
+#include "Core/PCGExPatternMatcherOperation.h"
 
 #include "PCGExValencyPatternReplacement.generated.h"
 
 /**
- * Overlap resolution strategy when multiple patterns match the same nodes.
- */
-UENUM(BlueprintType)
-enum class EPCGExPatternOverlapResolution : uint8
-{
-	WeightBased UMETA(ToolTip = "Use pattern weights for probabilistic selection"),
-	LargestFirst UMETA(ToolTip = "Prefer patterns with more entries"),
-	SmallestFirst UMETA(ToolTip = "Prefer patterns with fewer entries"),
-	FirstDefined UMETA(ToolTip = "Use pattern definition order in BondingRules")
-};
-
-/**
  * Valency Pattern Replacement - Detects and transforms patterns in solved clusters.
  * Reads solved module indices and matches against compiled patterns from BondingRules.
+ * Uses pluggable matchers to define matching behavior.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "wfc wave function collapse valency pattern replacement", PCGExNodeLibraryDoc="valency/valency-pattern-replacement"))
 class PCGEXELEMENTSVALENCY_API UPCGExValencyPatternReplacementSettings : public UPCGExValencyProcessorSettings
@@ -50,10 +40,6 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
-	/** How to resolve overlapping pattern matches */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Matching", meta=(PCG_Overridable))
-	EPCGExPatternOverlapResolution OverlapResolution = EPCGExPatternOverlapResolution::WeightBased;
-
 	/** If enabled, output matched points to a secondary pin (for Remove/Fork strategies) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bOutputMatchedPoints = true;
@@ -69,6 +55,14 @@ public:
 	/** Suppress warnings about no patterns in bonding rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietNoPatterns = false;
+
+	/** Suppress warnings about no matcher connected */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
+	bool bQuietNoMatcher = false;
+
+	/** Pattern matcher to use for matching patterns. If none provided, uses default subgraph matcher. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Instanced, Category = "Settings|Matching", meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExPatternMatcherFactory> Matcher;
 };
 
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternReplacementContext final : FPCGExValencyProcessorContext
@@ -77,6 +71,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternReplacementContext final : F
 
 	/** Compiled patterns (reference from BondingRules) */
 	const FPCGExValencyPatternSetCompiled* CompiledPatterns = nullptr;
+
+	/** Registered matcher factory (from Settings) */
+	TObjectPtr<const UPCGExPatternMatcherFactory> MatcherFactory;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -87,6 +84,7 @@ class PCGEXELEMENTSVALENCY_API FPCGExValencyPatternReplacementElement final : pu
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ValencyPatternReplacement)
 
+	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
@@ -104,10 +102,13 @@ namespace PCGExValencyPatternReplacement
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataReader;
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
 
-		/** All matches found in this cluster */
-		TArray<FPCGExValencyPatternMatch> AllMatches;
+		/** Matcher operation (created from factory) */
+		TSharedPtr<FPCGExPatternMatcherOperation> MatcherOperation;
 
-		/** Claimed node indices (for exclusive patterns) */
+		/** Matcher-specific allocations */
+		TSharedPtr<PCGExPatternMatcher::FMatcherAllocations> MatcherAllocations;
+
+		/** Claimed node indices (for exclusive patterns, shared across matchers) */
 		TSet<int32> ClaimedNodes;
 
 		/** Node indices to remove from main output (Remove/Fork/Collapse strategies) */
@@ -143,23 +144,10 @@ namespace PCGExValencyPatternReplacement
 		virtual void Write() override;
 
 	protected:
-		/** Find all matches for a single pattern */
-		void FindMatchesForPattern(int32 PatternIndex, const FPCGExValencyPatternCompiled& Pattern);
+		/** Run pattern matching (called from Process) */
+		void RunMatching();
 
-		/** Try to match a pattern starting from a specific node */
-		bool TryMatchPatternFromNode(int32 PatternIndex, const FPCGExValencyPatternCompiled& Pattern, int32 StartNodeIndex, FPCGExValencyPatternMatch& OutMatch);
-
-		/** Recursive DFS matching helper */
-		bool MatchEntryRecursive(
-			const FPCGExValencyPatternCompiled& Pattern,
-			int32 EntryIndex,
-			TArray<int32>& EntryToNode,
-			TSet<int32>& UsedNodes);
-
-		/** Resolve overlapping matches */
-		void ResolveOverlaps();
-
-		/** Apply matches to output */
+		/** Apply matches to output (topology-altering - to be moved to separate nodes) */
 		void ApplyMatches();
 
 		/** Compute replacement transform for Collapse mode */
@@ -177,6 +165,9 @@ namespace PCGExValencyPatternReplacement
 
 		/** Pattern match index writer (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int32>> PatternMatchIndexWriter;
+
+		/** Matcher-specific allocations (created from factory, shared with processors) */
+		TSharedPtr<PCGExPatternMatcher::FMatcherAllocations> MatcherAllocations;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);

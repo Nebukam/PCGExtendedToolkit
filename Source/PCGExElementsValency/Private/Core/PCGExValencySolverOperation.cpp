@@ -4,7 +4,6 @@
 #include "Core/PCGExValencySolverOperation.h"
 #include "Core/PCGExValencyLog.h"
 #include "Data/PCGExData.h"
-#include "Data/Utils/PCGExDataPreloader.h"
 
 void UPCGExValencySolverInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
