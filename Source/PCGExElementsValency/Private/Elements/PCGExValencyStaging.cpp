@@ -185,6 +185,7 @@ namespace PCGExValencyStaging
 		ApplyFixedPicks();
 
 		// Run solver
+		// BUG : Annotation are somehow broken when enabling local transform
 		RunSolver();
 
 		if (ValencyStates.IsEmpty()) { return false; }
