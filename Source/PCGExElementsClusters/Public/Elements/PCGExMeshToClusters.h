@@ -8,6 +8,7 @@
 #include "Clusters/PCGExClusterCommon.h"
 #include "Core/PCGExPointsProcessor.h"
 #include "Data/External/PCGExMeshCommon.h"
+#include "Data/External/PCGExMesh.h"
 #include "Data/External/PCGExMeshImportDetails.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Fitting/PCGExFitting.h"
@@ -92,6 +93,21 @@ public:
 	/** Skip invalid meshes & do not throw warning about them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bIgnoreMeshWarnings = false;
+		
+	/**
+	 * Set tolerance for merging vertices, such as those found at split vertices along hard edges or UV seams.
+	 * The value is clamped to be no less than a small positive value to prevent division by zero errors.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	float VertexMergeHashTolerance = PCGExMesh::DefaultVertexMergeHashTolerance;
+		
+	/**
+	 * Use two overlapping spatial hashes to detect vertex proximity. True (default) is more accurate but
+	 * slightly slower and uses slightly more memory during processing. (Specifically, the overhead is two
+	 * hash lookups versus one per vertex, and memory overhead is on the order of 2 to 3 MB for 100K vertices.)
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bPreciseVertexMerge = true;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))

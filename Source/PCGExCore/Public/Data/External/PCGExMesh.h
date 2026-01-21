@@ -22,6 +22,9 @@ struct FPCGPinProperties;
 
 namespace PCGExMesh
 {
+	/* Controls the default size of the spatial grid for vertex merges. */
+	static constexpr double DefaultVertexMergeHashTolerance = 0.001f;
+	
 	PCGEXCORE_API
 	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
@@ -50,15 +53,34 @@ namespace PCGExMesh
 		uint32 InternalIdx = 0;
 		TArray<FVector>* Vertices = nullptr;
 		TArray<int32>* RawIndices = nullptr;
-		FVector HashTolerance = FVector(0.001);
+		FVector HashTolerance = FVector(DefaultVertexMergeHashTolerance);
+		bool bPreciseVertexMerge = true;
+		/*
+		 * This will be set false in the constructor if the hash tolerance is zero.
+		 * That behavior is for future use in contexts other than Clusters, and the
+		 * MeshToClusters node intentionally clamps the tolerance nonzero to prevent
+		 * the behavior from triggering from that node.
+		 */
+		bool bEnableVertexMerge = true;
 
 	public:
+		/* Primary vertex hash */
 		TMap<uint64, int32> Data;
+		/* Secondary vertex hash used in precise merge mode */
+		TMap<uint64, int32> DataOffset;
 
-		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance);
+		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices,
+			const FVector& InHashTolerance = FVector(DefaultVertexMergeHashTolerance), const bool bInPreciseVertexMerge = true);
 
 		uint32 Add_GetIdx(const FVector& Position, const int32 RawIndex);
 
+		/* Adds a vertex to the container and returns its index. */
+		FORCEINLINE int32 AddVertex(const FVector& Position, const int32 RawIndex)
+		{
+			const int32 Idx = Vertices->Emplace(Position);
+			if (RawIndices) { RawIndices->Emplace(RawIndex); }
+			return Idx;
+		}
 
 		FORCEINLINE int32 Num() const { return Data.Num(); }
 	};
@@ -93,13 +115,20 @@ namespace PCGExMesh
 	{
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
-		FVector CWTolerance = FVector(0.001);
+		FVector CWTolerance = FVector(DefaultVertexMergeHashTolerance);
+		bool bPreciseVertexMerge = true;
 
 		FMeshData RawData;
 
-		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh);
-		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh);
-		explicit FGeoStaticMesh(const FString& InSoftStaticMesh);
+		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh,
+			const FVector& InCWTolerance = FVector(DefaultVertexMergeHashTolerance),
+			const bool bInPreciseVertexMerge = true);
+		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh,
+			const FVector& InCWTolerance = FVector(DefaultVertexMergeHashTolerance),
+			const bool bInPreciseVertexMerge = true);
+		explicit FGeoStaticMesh(const FString& InSoftStaticMesh,
+			const FVector& InCWTolerance = FVector(DefaultVertexMergeHashTolerance),
+			const bool bInPreciseVertexMerge = true);
 
 		void ExtractMeshSynchronous();
 		void TriangulateMeshSynchronous();
@@ -119,6 +148,9 @@ namespace PCGExMesh
 		TArray<TSharedPtr<FGeoStaticMesh>> GSMs;
 
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
+			
+		FVector CWTolerance = FVector(DefaultVertexMergeHashTolerance);
+		bool bPreciseVertexMerge = true;
 
 		FGeoStaticMeshMap() = default;
 		~FGeoStaticMeshMap() = default;

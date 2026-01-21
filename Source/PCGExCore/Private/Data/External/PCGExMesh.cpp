@@ -68,27 +68,43 @@ namespace PCGExMesh
 		bIsValid = true;
 	}
 
-	FMeshLookup::FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance)
-		: Vertices(InVertices), RawIndices(InRawIndices), HashTolerance(PCGEx::SafeTolerance(InHashTolerance))
+	FMeshLookup::FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices,
+		const FVector& InHashTolerance, const bool bInPreciseVertexMerge)
+		: Vertices(InVertices), RawIndices(InRawIndices), HashTolerance(InHashTolerance)
 	{
-		Data.Reserve(Size);
+		/* Optimization to skip processing if tolerance is zero. */
+		this->bEnableVertexMerge = HashTolerance.SizeSquared() > 0.0f;
+		
+		this->HashTolerance = this->bEnableVertexMerge ? PCGEx::SafeTolerance(InHashTolerance) : FVector(0.0f);
+		this->bPreciseVertexMerge = bInPreciseVertexMerge;
 		Vertices->Reserve(Size);
 		if (RawIndices) { RawIndices->Reserve(Size); }
+		if (this->bEnableVertexMerge) {
+			Data.Reserve(Size);
+			if (bInPreciseVertexMerge) { DataOffset.Reserve(Size); }
+		}
 	}
 
 	uint32 FMeshLookup::Add_GetIdx(const FVector& Position, const int32 RawIndex)
 	{
-		const uint64 Key = PCGEx::GH3(Position, HashTolerance);
-		if (const int32* IdxPtr = Data.Find(Key)) { return *IdxPtr; }
+		if (this->bEnableVertexMerge)
+		{
+			const uint64 Key = PCGEx::GH3(Position, HashTolerance);
+			const uint64 OffsetKey = this->bPreciseVertexMerge ? PCGEx::GH3(Position + (0.5f * HashTolerance), HashTolerance) : 0;
+			if (const int32* IdxPtr = Data.Find(Key)) { return *IdxPtr; }
+			if (this->bPreciseVertexMerge)
+			{
+				if (const int32* IdxPtr = DataOffset.Find(OffsetKey)) { return *IdxPtr; }
+			}
+			const int32 Idx = AddVertex(Position, RawIndex);
+			Data.Add(Key, Idx);
+			if (this->bPreciseVertexMerge) { DataOffset.Add(OffsetKey, Idx); }
+			return Idx;
+		}
 
-		const int32 Idx = Vertices->Emplace(Position);
-		Data.Add(Key, Idx);
-
-		if (RawIndices) { RawIndices->Emplace(RawIndex); }
-
-		return Idx;
+		return AddVertex(Position, RawIndex);
 	}
-
+	
 	void FGeoMesh::MakeDual()
 	// Need triangulate first
 	{
@@ -152,8 +168,12 @@ namespace PCGExMesh
 		Tri_Adjacency.Empty();
 	}
 
-	FGeoStaticMesh::FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh)
+	FGeoStaticMesh::FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh,
+		const FVector& InCWTolerance, const bool bInPreciseVertexMerge)
 	{
+		this->CWTolerance = InCWTolerance;
+		this->bPreciseVertexMerge = bInPreciseVertexMerge;
+		
 		if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
 		if (!InSoftStaticMesh.Get()) { MeshHandle = PCGExHelpers::LoadBlocking_AnyThreadTpl(InSoftStaticMesh); }
 
@@ -164,13 +184,17 @@ namespace PCGExMesh
 		bIsValid = true;
 	}
 
-	FGeoStaticMesh::FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh)
-		: FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(InSoftStaticMesh))
+	FGeoStaticMesh::FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh,
+		const FVector& InCWTolerance, const bool bInPreciseVertexMerge)
+		: FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(InSoftStaticMesh),
+			InCWTolerance, bInPreciseVertexMerge)
 	{
 	}
 
-	FGeoStaticMesh::FGeoStaticMesh(const FString& InSoftStaticMesh)
-		: FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(InSoftStaticMesh)))
+	FGeoStaticMesh::FGeoStaticMesh(const FString& InSoftStaticMesh,
+		const FVector& InCWTolerance, const bool bInPreciseVertexMerge)
+		: FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(InSoftStaticMesh)),
+			InCWTolerance, bInPreciseVertexMerge)
 	{
 	}
 
@@ -191,7 +215,8 @@ namespace PCGExMesh
 		const FIndexArrayView Indices = RawData.Indices;
 		const int32 NumTriangles = RawData.NumTriangles();
 
-		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(PositionBuffer.GetNumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
+		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(PositionBuffer.GetNumVertices() / 3, &Vertices, &RawIndices,
+			CWTolerance, bPreciseVertexMerge);
 		Edges.Reserve(NumTriangles / 2);
 
 		for (int i = 0; i < Indices.Num(); i += 3)
@@ -233,7 +258,8 @@ namespace PCGExMesh
 
 		Edges.Empty();
 
-		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(RawData.NumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
+		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(RawData.NumVertices() / 3, &Vertices, &RawIndices,
+			CWTolerance, bPreciseVertexMerge);
 
 		Triangles.Init(FIntVector3(-1), NumTriangles);
 		Tri_Adjacency.Init(FIntVector3(-1), NumTriangles);
@@ -362,7 +388,7 @@ namespace PCGExMesh
 	{
 		if (const int32* GSMPtr = Map.Find(InPath)) { return *GSMPtr; }
 
-		PCGEX_MAKE_SHARED(GSM, FGeoStaticMesh, InPath)
+		PCGEX_MAKE_SHARED(GSM, FGeoStaticMesh, InPath, CWTolerance, bPreciseVertexMerge)
 		if (!GSM->bIsValid) { return -1; }
 
 		const int32 Index = GSMs.Add(GSM);
