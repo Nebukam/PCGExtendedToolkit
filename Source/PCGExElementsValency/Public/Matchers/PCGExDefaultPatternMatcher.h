@@ -27,7 +27,7 @@ public:
 	//~ End FPCGExPatternMatcherOperation Interface
 
 protected:
-	/** Find all matches for a single pattern */
+	/** Find all matches for a single pattern, respecting MaxMatches limit */
 	void FindMatchesForPattern(int32 PatternIndex, const FPCGExValencyPatternCompiled& Pattern);
 
 	/** Try to match a pattern starting from a specific node */
@@ -49,6 +49,12 @@ protected:
 
 	/** Claim nodes for exclusive matches (after overlap resolution) */
 	void ClaimMatchedNodes();
+
+	/** Validate MinMatches constraints and update result */
+	void ValidateMinMatches(PCGExPatternMatcher::FMatchResult& OutResult);
+
+	/** Track match counts per pattern (PatternIndex -> count) */
+	TMap<int32, int32> PatternMatchCounts;
 };
 
 /**

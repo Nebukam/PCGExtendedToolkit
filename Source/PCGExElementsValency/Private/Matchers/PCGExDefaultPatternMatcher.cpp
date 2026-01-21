@@ -30,6 +30,9 @@ PCGExPatternMatcher::FMatchResult FPCGExDefaultPatternMatcherOperation::Match()
 
 	const FPCGExValencyPatternSetCompiled& PatternSet = *CompiledPatterns;
 
+	// Reset match counts for this matching session
+	PatternMatchCounts.Reset();
+
 	// Find matches for exclusive patterns first
 	for (const int32 PatternIdx : PatternSet.ExclusivePatternIndices)
 	{
@@ -55,6 +58,9 @@ PCGExPatternMatcher::FMatchResult FPCGExDefaultPatternMatcherOperation::Match()
 
 	// Claim nodes for exclusive matches
 	ClaimMatchedNodes();
+
+	// Validate MinMatches constraints (must be done after claiming to get accurate counts)
+	ValidateMinMatches(Result);
 
 	// Compute statistics
 	TSet<int32> MatchedPatterns;
@@ -92,9 +98,24 @@ void FPCGExDefaultPatternMatcherOperation::FindMatchesForPattern(int32 PatternIn
 
 	const FPCGExValencyPatternEntryCompiled& RootEntry = Pattern.Entries[0];
 
+	// Get MaxMatches constraint (-1 = unlimited)
+	const int32 MaxMatches = Pattern.Settings.MaxMatches;
+
+	// Initialize match count for this pattern if not present
+	if (!PatternMatchCounts.Contains(PatternIndex))
+	{
+		PatternMatchCounts.Add(PatternIndex, 0);
+	}
+
 	// Try to match starting from each node that could match the root entry
 	for (int32 NodeIdx = 0; NodeIdx < NumNodes; ++NodeIdx)
 	{
+		// Check MaxMatches constraint before continuing
+		if (MaxMatches >= 0 && PatternMatchCounts[PatternIndex] >= MaxMatches)
+		{
+			break; // Reached max matches for this pattern
+		}
+
 		// Skip already claimed nodes for exclusive patterns
 		if (Pattern.Settings.bExclusive && IsNodeClaimed(NodeIdx)) { continue; }
 
@@ -118,6 +139,7 @@ void FPCGExDefaultPatternMatcherOperation::FindMatchesForPattern(int32 PatternIn
 		if (TryMatchPatternFromNode(PatternIndex, Pattern, NodeIdx, Match))
 		{
 			Matches.Add(MoveTemp(Match));
+			PatternMatchCounts[PatternIndex]++;
 		}
 	}
 }
@@ -321,6 +343,52 @@ void FPCGExDefaultPatternMatcherOperation::ClaimMatchedNodes()
 				if (!Pattern.Entries[EntryIdx].bIsActive) { continue; }
 				ClaimNode(Match.EntryToNode[EntryIdx]);
 			}
+		}
+	}
+}
+
+void FPCGExDefaultPatternMatcherOperation::ValidateMinMatches(PCGExPatternMatcher::FMatchResult& OutResult)
+{
+	if (!CompiledPatterns) { return; }
+
+	// Count effective matches per pattern (only claimed matches count for exclusive patterns)
+	TMap<int32, int32> EffectiveMatchCounts;
+
+	for (const FPCGExValencyPatternMatch& Match : Matches)
+	{
+		const FPCGExValencyPatternCompiled& Pattern = CompiledPatterns->Patterns[Match.PatternIndex];
+
+		// For exclusive patterns, only count claimed matches
+		if (Pattern.Settings.bExclusive && !Match.bClaimed)
+		{
+			continue;
+		}
+
+		int32& Count = EffectiveMatchCounts.FindOrAdd(Match.PatternIndex, 0);
+		Count++;
+	}
+
+	// Check each pattern's constraints
+	for (int32 PatternIdx = 0; PatternIdx < CompiledPatterns->Patterns.Num(); ++PatternIdx)
+	{
+		// Skip patterns not considered by this matcher
+		if (PatternFilter && !PatternFilter(PatternIdx, CompiledPatterns)) { continue; }
+
+		const FPCGExValencyPatternCompiled& Pattern = CompiledPatterns->Patterns[PatternIdx];
+		const int32 MinMatches = Pattern.Settings.MinMatches;
+		const int32 MaxMatches = Pattern.Settings.MaxMatches;
+		const int32 ActualCount = EffectiveMatchCounts.FindRef(PatternIdx);
+
+		// Check MinMatches constraint
+		if (MinMatches > 0 && ActualCount < MinMatches)
+		{
+			OutResult.MinMatchViolations.Add(PatternIdx, ActualCount);
+		}
+
+		// Track if MaxMatches was reached (informational)
+		if (MaxMatches >= 0 && ActualCount >= MaxMatches)
+		{
+			OutResult.MaxMatchLimitReached.Add(PatternIdx);
 		}
 	}
 }

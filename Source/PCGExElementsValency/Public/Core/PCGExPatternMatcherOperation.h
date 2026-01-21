@@ -68,6 +68,15 @@ namespace PCGExPatternMatcher
 
 		/** True if matching completed without errors */
 		bool bSuccess = false;
+
+		/** Patterns that didn't meet their MinMatches constraint (PatternIndex -> actual match count) */
+		TMap<int32, int32> MinMatchViolations;
+
+		/** Patterns that hit their MaxMatches limit (for informational purposes) */
+		TSet<int32> MaxMatchLimitReached;
+
+		/** Check if any MinMatches constraints were violated */
+		bool HasMinMatchViolations() const { return MinMatchViolations.Num() > 0; }
 	};
 
 	//
