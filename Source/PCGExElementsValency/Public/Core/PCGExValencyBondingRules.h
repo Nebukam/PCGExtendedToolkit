@@ -169,7 +169,7 @@ public:
 	 * Auto-created during BuildFromCages, never user-edited.
 	 * Used by downstream spawners via FPickPacker/FPickUnpacker.
 	 */
-	UPROPERTY(BlueprintReadOnly, Instanced)
+	UPROPERTY(Instanced)
 	TObjectPtr<UPCGExMeshCollection> GeneratedMeshCollection;
 
 	/**
@@ -177,7 +177,7 @@ public:
 	 * Auto-created during BuildFromCages, never user-edited.
 	 * Used by downstream spawners via FPickPacker/FPickUnpacker.
 	 */
-	UPROPERTY(BlueprintReadOnly, Instanced)
+	UPROPERTY(Instanced)
 	TObjectPtr<UPCGExActorCollection> GeneratedActorCollection;
 
 	/**
@@ -329,7 +329,7 @@ public:
 	//~ End UObject Interface
 
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

@@ -194,8 +194,6 @@ int32 FPCGExValencyEntropySolver::PopLowestEntropy()
 		// Validate state index is in bounds
 		if (!ValencyStates->IsValidIndex(StateIndex) || !StateData.IsValidIndex(StateIndex))
 		{
-			UE_LOG(LogTemp, Error, TEXT("[EntropySolver] Invalid StateIndex %d in queue (ValencyStates=%d, StateData=%d)"),
-				StateIndex, ValencyStates->Num(), StateData.Num());
 			continue;
 		}
 

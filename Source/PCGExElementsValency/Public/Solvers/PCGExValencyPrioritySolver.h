@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExValencySolverOperation.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExValencyPrioritySolver.generated.h"
 
 namespace PCGExData

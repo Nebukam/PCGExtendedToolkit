@@ -142,8 +142,6 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = true;
-
 				// Assign fixed pick filter factories to batch
 				if (Settings->bEnableFixedPicks && !Context->FixedPickFilterFactories.IsEmpty())
 				{
@@ -198,20 +196,139 @@ namespace PCGExValencyStaging
 		// Run solver
 		RunSolver();
 
-		// Write results (writers are forwarded from batch)
-		WriteResults();
+		if (ValencyStates.IsEmpty()) { return false; }
+
+		VALENCY_LOG_SECTION(Staging, "WRITING VALENCY RESULTS");
+
+		if (!Context->BondingRules || !Context->BondingRules->CompiledData)
+		{
+			PCGEX_VALENCY_ERROR(Staging, "FProcessor::Process Missing BondingRules or CompiledData!");
+			return false;
+		}
+
+		FittingHandler.ScaleToFit = Settings->ScaleToFit;
+		FittingHandler.Justification = Settings->Justification;
+
+		if (!FittingHandler.Init(ExecutionContext, VtxDataFacade)) { return false; }
+
+		Variations = Settings->Variations;
+		Variations.Init(Settings->Seed);
+
+		// Process valency states in parallel
+		StartParallelLoopForRange(ValencyStates.Num());
 
 		return true;
 	}
 
-	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		// Not used - we do everything in Process for now
+		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->CompiledData.Get();
+
+		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
+
+		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
+		TConstPCGValueRange<int32> InSeeds = VtxDataFacade->GetIn()->GetConstSeedValueRange();
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const PCGExValency::FValencyState& State = ValencyStates[Index];
+			const PCGExClusters::FNode& Node = Nodes[State.NodeIndex];
+
+			// Write packed module data (module index + flags)
+			if (ModuleDataWriter)
+			{
+				const int64 PackedData = PCGExValency::ModuleData::Pack(State.ResolvedModule);
+				ModuleDataWriter->SetValue(Node.PointIndex, PackedData);
+			}
+
+			if (State.ResolvedModule >= 0)
+			{
+				FPlatformAtomics::InterlockedIncrement(&ResolvedCount);
+				const EPCGExValencyAssetType AssetType = CompiledBondingRules->ModuleAssetTypes[State.ResolvedModule];
+				const FString AssetName = CompiledBondingRules->ModuleAssets[State.ResolvedModule].GetAssetName();
+
+				// Write module name if enabled
+				if (ModuleNameWriter)
+				{
+					ModuleNameWriter->SetValue(Node.PointIndex, CompiledBondingRules->ModuleNames[State.ResolvedModule]);
+				}
+
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)", State.NodeIndex, Node.PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
+
+				// Write asset path (Attributes mode) or entry hash (CollectionMap mode)
+				if (AssetPathWriter)
+				{
+					const TSoftObjectPtr<UObject>& Asset = CompiledBondingRules->ModuleAssets[State.ResolvedModule];
+					AssetPathWriter->SetValue(Node.PointIndex, Asset.ToSoftObjectPath());
+				}
+				else if (EntryHashWriter && Context->PickPacker)
+				{
+					// Get the appropriate collection and entry index based on asset type
+					const UPCGExAssetCollection* Collection = nullptr;
+					int32 EntryIndex = -1;
+					int16 SecondaryIndex = -1;
+
+					if (AssetType == EPCGExValencyAssetType::Mesh)
+					{
+						Collection = Context->MeshCollection;
+						EntryIndex = Context->BondingRules->GetMeshEntryIndex(State.ResolvedModule);
+						if (FPCGExEntryAccessResult Result = Collection->GetEntryAt(EntryIndex); Result.IsValid())
+						{
+							if (const PCGExAssetCollection::FMicroCache* MicroCache = Result.Entry->MicroCache.Get())
+							{
+								SecondaryIndex = MicroCache->GetPickRandomWeighted(InSeeds[Node.PointIndex]);
+							}
+						}
+					}
+					else if (AssetType == EPCGExValencyAssetType::Actor)
+					{
+						Collection = Context->ActorCollection;
+						EntryIndex = Context->BondingRules->GetActorEntryIndex(State.ResolvedModule);
+					}
+
+					if (Collection && EntryIndex >= 0)
+					{
+						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, SecondaryIndex);
+						EntryHashWriter->SetValue(Node.PointIndex, static_cast<int64>(Hash));
+						PCGEX_VALENCY_VERBOSE(Staging, "    -> EntryHash=0x%llX (EntryIndex=%d, SecondaryIndex=%d)", Hash, EntryIndex, SecondaryIndex);
+					}
+					else
+					{
+						PCGEX_VALENCY_WARNING(Staging, "    -> NO COLLECTION/ENTRY (Collection=%s, EntryIndex=%d)", Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
+					}
+				}
+
+				// Apply local transform if enabled
+				if (Settings->bApplyLocalTransforms && CompiledBondingRules->ModuleHasLocalTransform[State.ResolvedModule])
+				{
+					const FTransform& LocalTransform = CompiledBondingRules->ModuleLocalTransforms[State.ResolvedModule];
+					const FTransform& CurrentTransform = OutTransforms[Node.PointIndex];
+					OutTransforms[Node.PointIndex] = LocalTransform * CurrentTransform;
+				}
+			}
+			else if (State.IsUnsolvable())
+			{
+				FPlatformAtomics::InterlockedIncrement(&UnsolvableCount);
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): UNSOLVABLE", State.NodeIndex, Node.PointIndex);
+			}
+			else if (State.IsBoundary())
+			{
+				FPlatformAtomics::InterlockedIncrement(&BoundaryCount);
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): BOUNDARY", State.NodeIndex, Node.PointIndex);
+			}
+
+			// Write unsolvable marker
+			if (UnsolvableWriter)
+			{
+				UnsolvableWriter->SetValue(Node.PointIndex, State.IsUnsolvable());
+			}
+		}
 	}
 
-	void FProcessor::OnNodesProcessingComplete()
+	void FProcessor::OnRangeProcessingComplete()
 	{
-		// Not used
+		VALENCY_LOG_SECTION(Staging, "WRITE COMPLETE");
+		PCGEX_VALENCY_INFO(Staging, "Resolved=%d, Unsolvable=%d, Boundary=%d", ResolvedCount, UnsolvableCount, BoundaryCount);
 	}
 
 	void FProcessor::ApplyFixedPicks()
@@ -505,126 +622,6 @@ namespace PCGExValencyStaging
 		}
 	}
 
-	void FProcessor::WriteResults()
-	{
-		VALENCY_LOG_SECTION(Staging, "WRITING VALENCY RESULTS");
-
-		if (!Context->BondingRules || !Context->BondingRules->CompiledData)
-		{
-			PCGEX_VALENCY_ERROR(Staging, "WriteResults: Missing BondingRules or CompiledData!");
-			return;
-		}
-
-		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->CompiledData.Get();
-		TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
-		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
-		TConstPCGValueRange<int32> InSeeds = VtxDataFacade->GetIn()->GetConstSeedValueRange();
-
-		int32 ResolvedCount = 0;
-		int32 UnsolvableCount = 0;
-		int32 BoundaryCount = 0;
-
-		for (const PCGExValency::FValencyState& State : ValencyStates)
-		{
-			const PCGExClusters::FNode& Node = Nodes[State.NodeIndex];
-
-			// Write packed module data (module index + flags)
-			if (ModuleDataWriter)
-			{
-				const int64 PackedData = PCGExValency::ModuleData::Pack(State.ResolvedModule);
-				ModuleDataWriter->SetValue(Node.PointIndex, PackedData);
-			}
-
-			if (State.ResolvedModule >= 0)
-			{
-				ResolvedCount++;
-				const EPCGExValencyAssetType AssetType = CompiledBondingRules->ModuleAssetTypes[State.ResolvedModule];
-				const FString AssetName = CompiledBondingRules->ModuleAssets[State.ResolvedModule].GetAssetName();
-
-				// Write module name if enabled
-				if (ModuleNameWriter)
-				{
-					ModuleNameWriter->SetValue(Node.PointIndex, CompiledBondingRules->ModuleNames[State.ResolvedModule]);
-				}
-
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)",
-				                      State.NodeIndex, Node.PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
-
-				// Write asset path (Attributes mode) or entry hash (CollectionMap mode)
-				if (AssetPathWriter)
-				{
-					const TSoftObjectPtr<UObject>& Asset = CompiledBondingRules->ModuleAssets[State.ResolvedModule];
-					AssetPathWriter->SetValue(Node.PointIndex, Asset.ToSoftObjectPath());
-				}
-				else if (EntryHashWriter && Context->PickPacker)
-				{
-					// Get the appropriate collection and entry index based on asset type
-					const UPCGExAssetCollection* Collection = nullptr;
-					int32 EntryIndex = -1;
-					int16 SecondaryIndex = -1;
-
-					if (AssetType == EPCGExValencyAssetType::Mesh)
-					{
-						Collection = Context->MeshCollection;
-						EntryIndex = Context->BondingRules->GetMeshEntryIndex(State.ResolvedModule);
-						if (FPCGExEntryAccessResult Result = Collection->GetEntryAt(EntryIndex); Result.IsValid())
-						{
-							if (const PCGExAssetCollection::FMicroCache* MicroCache = Result.Entry->MicroCache.Get())
-							{
-								SecondaryIndex = MicroCache->GetPickRandomWeighted(InSeeds[Node.PointIndex]);
-							}
-						}
-					}
-					else if (AssetType == EPCGExValencyAssetType::Actor)
-					{
-						Collection = Context->ActorCollection;
-						EntryIndex = Context->BondingRules->GetActorEntryIndex(State.ResolvedModule);
-					}
-
-					if (Collection && EntryIndex >= 0)
-					{
-						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, SecondaryIndex);
-						EntryHashWriter->SetValue(Node.PointIndex, static_cast<int64>(Hash));
-						PCGEX_VALENCY_VERBOSE(Staging, "    -> EntryHash=0x%llX (EntryIndex=%d, SecondaryIndex=%d)",
-						                      Hash, EntryIndex, SecondaryIndex);
-					}
-					else
-					{
-						PCGEX_VALENCY_WARNING(Staging, "    -> NO COLLECTION/ENTRY (Collection=%s, EntryIndex=%d)",
-						                      Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
-					}
-				}
-
-				// Apply local transform if enabled
-				if (Settings->bApplyLocalTransforms && CompiledBondingRules->ModuleHasLocalTransform[State.ResolvedModule])
-				{
-					const FTransform& LocalTransform = CompiledBondingRules->ModuleLocalTransforms[State.ResolvedModule];
-					const FTransform& CurrentTransform = OutTransforms[Node.PointIndex];
-					OutTransforms[Node.PointIndex] = LocalTransform * CurrentTransform;
-				}
-			}
-			else if (State.IsUnsolvable())
-			{
-				UnsolvableCount++;
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): UNSOLVABLE", State.NodeIndex, Node.PointIndex);
-			}
-			else if (State.IsBoundary())
-			{
-				BoundaryCount++;
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): BOUNDARY", State.NodeIndex, Node.PointIndex);
-			}
-
-			// Write unsolvable marker
-			if (UnsolvableWriter)
-			{
-				UnsolvableWriter->SetValue(Node.PointIndex, State.IsUnsolvable());
-			}
-		}
-
-		VALENCY_LOG_SECTION(Staging, "WRITE COMPLETE");
-		PCGEX_VALENCY_INFO(Staging, "Resolved=%d, Unsolvable=%d, Boundary=%d", ResolvedCount, UnsolvableCount, BoundaryCount);
-	}
-
 	void FProcessor::Write()
 	{
 		TProcessor::Write();
@@ -682,6 +679,16 @@ namespace PCGExValencyStaging
 	void FBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ValencyStaging)
+
+		EPCGPointNativeProperties PointAllocations = EPCGPointNativeProperties::Transform;
+
+		if (Settings->ScaleToFit.IsEnabled())
+		{
+			PointAllocations |= EPCGPointNativeProperties::BoundsMin;
+			PointAllocations |= EPCGPointNativeProperties::BoundsMax;
+		}
+
+		VtxDataFacade->GetOut()->AllocateProperties(PointAllocations);
 
 		const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
 
@@ -769,10 +776,9 @@ namespace PCGExValencyStaging
 		return true;
 	}
 
-	void FBatch::Write()
+	void FBatch::CompleteWork()
 	{
 		VtxDataFacade->WriteFastest(TaskManager);
-		TBatch<FProcessor>::Write();
 	}
 }
 

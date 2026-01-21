@@ -147,6 +147,15 @@ public:
 	/** Default filter value when no fixed pick filters are connected (true = all points eligible) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fixed Picks", meta=(PCG_Overridable, EditCondition="bEnableFixedPicks"))
 	bool bDefaultFixedPickFilterValue = true;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
+	FPCGExScaleToFitDetails ScaleToFit =FPCGExScaleToFitDetails(EPCGExFitMode::None);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
+	FPCGExJustificationDetails Justification = FPCGExJustificationDetails(false);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_NotOverridable))
+	FPCGExFittingVariationsDetails Variations;
 };
 
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValencyProcessorContext
@@ -218,6 +227,15 @@ namespace PCGExValencyStaging
 
 		/** Solve result */
 		PCGExValency::FSolveResult SolveResult;
+		
+		FPCGExFittingDetailsHandler FittingHandler;
+		FPCGExFittingVariationsDetails Variations;
+		
+		//
+		
+		int32 ResolvedCount = 0;
+		int32 UnsolvableCount = 0;
+		int32 BoundaryCount = 0;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -229,8 +247,9 @@ namespace PCGExValencyStaging
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
-		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
-		virtual void OnNodesProcessingComplete() override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+		
 		virtual void Write() override;
 
 	protected:
@@ -239,9 +258,6 @@ namespace PCGExValencyStaging
 
 		/** Run the solver */
 		void RunSolver();
-
-		/** Write results to point attributes */
-		void WriteResults();
 	};
 
 	class FBatch final : public PCGExValencyMT::TBatch<FProcessor>
@@ -271,6 +287,6 @@ namespace PCGExValencyStaging
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
-		virtual void Write() override;
+		virtual void CompleteWork() override;
 	};
 }

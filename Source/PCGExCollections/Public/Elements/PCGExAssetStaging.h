@@ -115,16 +115,16 @@ public:
 	FPCGExFittingVariationsDetails Variations;
 
 	//** If enabled, filter output based on whether a staging has been applied or not (empty entry).  Current implementation is slow. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bPruneEmptyPoints = true;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bDoFilterEntryType = false;
 
 	/** Lets you filter which collection type gets staged. 
 	 * This is most useful when using per-point collections and you want to stage only certain types of assets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditions="bDoFilterEntryType"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditConditions="bDoFilterEntryType"))
 	FPCGExStagedTypeFilterDetails EntryTypeFilter;
 
 	/** */
@@ -207,6 +207,7 @@ namespace PCGExAssetStaging
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>
 	{
+	protected:
 		int32 NumPoints = 0;
 		int32 NumInvalid = 0;
 

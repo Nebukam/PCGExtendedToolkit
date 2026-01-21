@@ -4,7 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGData.h"
+#include "Materials/MaterialInterface.h"
+#include "UObject/SoftObjectPath.h"
 
 #include "PCGExValencyCommon.generated.h"
 
