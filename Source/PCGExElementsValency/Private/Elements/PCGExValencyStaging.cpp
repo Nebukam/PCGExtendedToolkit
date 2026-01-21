@@ -186,6 +186,7 @@ namespace PCGExValencyStaging
 
 		// Run solver
 		// BUG : Annotation are somehow broken when enabling local transform
+		// TODO : Need to support wildcard for regular cages
 		RunSolver();
 
 		if (ValencyStates.IsEmpty()) { return false; }

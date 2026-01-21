@@ -272,17 +272,16 @@ void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTra
 	//
 	check(TargetDataFacade);
 	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
-	const FTransform& InTransform = TargetPoint.GetTransform();
 
-	if (bWorldSpace) { OutTransform = InTransform; }
+	if (bWorldSpace) { OutTransform = TargetPoint.GetTransform(); }
 
-	FVector OutScale = InTransform.GetScale3D();
+	FVector OutScale = OutTransform.GetScale3D();
 	FVector OutTranslation = FVector::ZeroVector;
 
 	ScaleToFit.Process(TargetPoint, InOutBounds, OutScale, InOutBounds);
 	Justification.Process(TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint), FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale), OutTranslation);
 
-	OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
+	OutTransform.AddToTranslation(OutTransform.GetRotation().RotateVector(OutTranslation));
 	OutTransform.SetScale3D(OutScale);
 }
 
