@@ -714,13 +714,9 @@ void APCGExValencyCageBase::HandleVolumeMembershipChange(const TArray<TWeakObjec
 
 bool APCGExValencyCageBase::TriggerAutoRebuildIfNeeded()
 {
-	// DEBUG: Verify this function is called
-	UE_LOG(LogTemp, Error, TEXT("TriggerAutoRebuildIfNeeded called on '%s'"), *GetName());
-
 	// Only process when Valency mode is active
 	if (!AValencyContextVolume::IsValencyModeActive())
 	{
-		UE_LOG(LogTemp, Error, TEXT("  -> Valency mode NOT active, skipping"));
 		return false;
 	}
 
@@ -734,7 +730,6 @@ bool APCGExValencyCageBase::TriggerAutoRebuildIfNeeded()
 		}
 	}
 
-	UE_LOG(LogTemp, Error, TEXT("  -> Found %d containing volumes, calling TriggerAutoRebuildForVolumes"), Volumes.Num());
 	return TriggerAutoRebuildForVolumes(Volumes);
 }
 
@@ -743,7 +738,6 @@ bool APCGExValencyCageBase::TriggerAutoRebuildForVolumes(const TArray<AValencyCo
 	// Only process when Valency mode is active
 	if (!AValencyContextVolume::IsValencyModeActive())
 	{
-		UE_LOG(LogTemp, Error, TEXT("TriggerAutoRebuildForVolumes: Valency mode NOT active"));
 		return false;
 	}
 
@@ -753,16 +747,9 @@ bool APCGExValencyCageBase::TriggerAutoRebuildForVolumes(const TArray<AValencyCo
 	{
 		if (Volume && Volume->bAutoRebuildOnChange)
 		{
-			UE_LOG(LogTemp, Error, TEXT("TriggerAutoRebuildForVolumes: Calling BuildRulesFromCages on '%s'"), *Volume->GetName());
 			Volume->BuildRulesFromCages();
 			return true;
 		}
-		else if (Volume)
-		{
-			UE_LOG(LogTemp, Error, TEXT("TriggerAutoRebuildForVolumes: Volume '%s' has bAutoRebuildOnChange=false"), *Volume->GetName());
-		}
 	}
-
-	UE_LOG(LogTemp, Error, TEXT("TriggerAutoRebuildForVolumes: No volumes with auto-rebuild found"));
 	return false;
 }
