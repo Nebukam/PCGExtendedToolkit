@@ -243,7 +243,7 @@ public:
 
 	/** Cleanup */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
-	bool bSimplifyPaths = true;
+	bool bSimplifyPaths = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
