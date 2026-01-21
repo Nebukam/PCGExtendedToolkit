@@ -8,7 +8,7 @@
 #include "Details/PCGExStagedTypeFilterDetails.h"
 #include "Helpers/PCGExCollectionsHelpers.h"
 
-#include "PCGExStagedTypeFilter.generated.h"
+#include "PCGExStagingTypeFilter.generated.h"
 
 UENUM()
 enum class EPCGExStagedTypeFilterMode : uint8
@@ -30,7 +30,7 @@ class UPCGExStagedTypeFilterSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(StagedTypeFilter, "Staged Type Filter", "Filters staged points by their collection entry type.");
+	PCGEX_NODE_INFOS(StagedTypeFilter, "Staging : Type Filter", "Filters staged points by their collection entry type.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Filter); }
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -53,7 +53,7 @@ public:
 
 	/** If enabled, output filtered-out points to a separate pin */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bOutputFilteredOut = false;
+	bool bOutputDiscarded = false;
 };
 
 struct FPCGExStagedTypeFilterContext final : FPCGExPointsProcessorContext
@@ -79,8 +79,7 @@ protected:
 
 namespace PCGExStagedTypeFilter
 {
-	const FName SourceStagingMap = TEXT("Map");
-	const FName OutputFilteredOut = TEXT("Filtered Out");
+	const FName OutputFilteredOut = TEXT("Discarded");
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExStagedTypeFilterContext, UPCGExStagedTypeFilterSettings>
 	{

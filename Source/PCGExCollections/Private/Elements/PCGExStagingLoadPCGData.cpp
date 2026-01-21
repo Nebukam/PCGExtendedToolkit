@@ -1,7 +1,7 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Elements/PCGExPCGDataAssetLoader.h"
+#include "Elements/PCGExStagingLoadPCGData.h"
 
 #include "PCGDataAsset.h"
 #include "PCGParamData.h"
@@ -367,7 +367,7 @@ void FPCGExPCGDataAssetLoaderContext::RegisterNonSpatialData(const FPCGTaggedDat
 
 void UPCGExPCGDataAssetLoaderSettings::InputPinPropertiesBeforeFilters(TArray<FPCGPinProperties>& PinProperties) const
 {
-	PCGEX_PIN_PARAM(PCGExPCGDataAssetLoader::SourceStagingMap, "Collection map information from staging nodes.", Required)
+	PCGEX_PIN_PARAM(PCGExCollections::Labels::SourceCollectionMapLabel, "Collection map information from staging nodes.", Required)
 	Super::InputPinPropertiesBeforeFilters(PinProperties);
 }
 
@@ -404,7 +404,7 @@ bool FPCGExPCGDataAssetLoaderElement::Boot(FPCGExContext* InContext) const
 
 	// Setup collection unpacker
 	Context->CollectionUnpacker = MakeShared<PCGExCollections::FPickUnpacker>();
-	Context->CollectionUnpacker->UnpackPin(InContext, PCGExPCGDataAssetLoader::SourceStagingMap);
+	Context->CollectionUnpacker->UnpackPin(InContext);
 
 	if (!Context->CollectionUnpacker->HasValidMapping())
 	{

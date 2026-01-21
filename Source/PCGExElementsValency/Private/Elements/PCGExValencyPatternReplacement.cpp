@@ -50,12 +50,12 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ValencyPatternReplacement)
 
 bool FPCGExValencyPatternReplacementElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExValencyProcessorElement::Boot(InContext)){return false;}
-	
+	if (!FPCGExValencyProcessorElement::Boot(InContext)) { return false; }
+
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyPatternReplacement)
-	
+
 	PCGEX_OPERATION_VALIDATE(Matcher)
-	
+
 	return true;
 }
 
@@ -132,7 +132,6 @@ bool FPCGExValencyPatternReplacementElement::AdvanceWork(FPCGExContext* InContex
 
 namespace PCGExValencyPatternReplacement
 {
-	
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		// Parent handles: edge indices reader, BuildOrbitalCache(), InitializeValencyStates()
@@ -159,10 +158,10 @@ namespace PCGExValencyPatternReplacement
 		RunMatching();
 
 		Write();
-		
+
 		return true;
 	}
-	
+
 	void FProcessor::RunMatching()
 	{
 		const int32 NodesCount = OrbitalCache->GetNumNodes();
@@ -379,7 +378,7 @@ namespace PCGExValencyPatternReplacement
 
 		return FTransform::Identity;
 	}
-		
+
 	void FProcessor::Write()
 	{
 		TProcessor::Write();
@@ -454,9 +453,9 @@ namespace PCGExValencyPatternReplacement
 		// Mark nodes for removal (actual removal happens in batch Write via point filtering)
 		// The NodesToRemove set is used by the batch to filter points
 	}
-	
+
 	// FBatch 
-	
+
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: TBatch(InContext, InVtx, InEdges)
 	{
@@ -498,8 +497,8 @@ namespace PCGExValencyPatternReplacement
 			if (!ModuleDataReader)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context,
-					FText::Format(FTEXT("Module attribute '{0}' not found. Run Valency Staging with patterns first."),
-						FText::FromName(ModuleAttrName)));
+				           FText::Format(FTEXT("Module attribute '{0}' not found. Run Valency Staging with patterns first."),
+					           FText::FromName(ModuleAttrName)));
 			}
 			else
 			{

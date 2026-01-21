@@ -17,10 +17,12 @@
 
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
-#include "PCGExPathSplineMesh.generated.h"
+#include "PCGExStagingSplineMesh.generated.h"
 
 namespace PCGExCollections
 {
+	class FCollectionSource;
+	class FPickUnpacker;
 	class FMicroDistributionHelper;
 	class FDistributionHelper;
 }
@@ -33,11 +35,16 @@ namespace PCGExMT
 	class TScopedSet;
 }
 
+namespace PCGEx
+{
+	template <typename T>
+	class TAssetLoader;
+}
 
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/spline-mesh"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="assets-management/spline-mesh"))
 class UPCGExPathSplineMeshSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -47,9 +54,9 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 
-	PCGEX_NODE_INFOS(PathSplineMesh, "Path : Spline Mesh", "Create spline mesh components from paths.");
+	PCGEX_NODE_INFOS(PathSplineMesh, "Staging : Spline Mesh", "Create spline mesh components from paths using asset collections.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN(UPCGExPathProcessorSettings::GetNodeTitleColor()); }
 
@@ -67,20 +74,26 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bUseStagedPoints = true;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseStagedPoints", EditConditionHides))
 	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::Asset", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseStagedPoints && CollectionSource == EPCGExCollectionSource::Asset", EditConditionHides))
 	TSoftObjectPtr<UPCGExMeshCollection> AssetCollection;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseStagedPoints && CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
 	FPCGExRoamingAssetCollectionDetails AttributeSetDetails = FPCGExRoamingAssetCollectionDetails(UPCGExMeshCollection::StaticClass());
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Attribute", EditCondition="!bUseStagedPoints && CollectionSource == EPCGExCollectionSource::Attribute", EditConditionHides))
+	FName CollectionPathAttributeName = "CollectionPath";
+	
 	/** Distribution details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseStagedPoints", EditConditionHides))
 	FPCGExAssetDistributionDetails DistributionSettings;
 
 	/** How should materials be distributed and picked. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseStagedPoints", EditConditionHides))
 	FPCGExMicroCacheDistributionDetails MaterialDistributionSettings;
 
 #pragma region DEPRECATED
@@ -104,12 +117,20 @@ public:
 	FPCGExTangentsDetails Tangents;
 
 	/** If enabled, will break scaling interpolation across the spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable, EditCondition="!bUseStagedPoints", EditConditionHides))
 	FPCGExScaleToFitDetails ScaleToFit = FPCGExScaleToFitDetails(EPCGExFitMode::None);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable, EditCondition="!bUseStagedPoints", EditConditionHides))
 	FPCGExJustificationDetails Justification;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, EditCondition="bUseStagedPoints"))
+	bool bReadTranslation = false;
+
+	/** If enabled, applies staged fitting/justification to the spline mesh segment. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bUseStagedPoints && bReadTranslation"))
+	FName TranslationAttributeName = FName("FittingOffset");
+	
 	/** Push details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Expansion"))
 	FPCGExSplineMeshMutationDetails MutationDetails;
@@ -170,10 +191,15 @@ struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 	friend class FPCGExPathSplineMeshElement;
 
 	virtual void RegisterAssetDependencies() override;
-
+	
+	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionPickUnpacker;
+	
 	FPCGExTangentsDetails Tangents;
 
+	TSharedPtr<PCGEx::TAssetLoader<UPCGExAssetCollection>> CollectionsLoader;
+	
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
+	TSharedPtr<TSet<FSoftObjectPath>> AssetPaths;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -218,6 +244,7 @@ namespace PCGExPathSplineMesh
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 		int8 bHasValidSegments = false;
+		bool bLocalFitting = true;
 
 		bool bIsPreviewMode = false;
 		bool bClosedLoop = false;
@@ -228,8 +255,10 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
-		TSharedPtr<PCGExCollections::FDistributionHelper> Helper;
-		TSharedPtr<PCGExCollections::FMicroDistributionHelper> MicroHelper;
+		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashGetter;
+		TSharedPtr<TArray<PCGExValueHash>> SourceKeys;
+		TSharedPtr<PCGExCollections::FCollectionSource> Source;
+		TSharedPtr<PCGExData::TBuffer<FVector>> TranslationGetter;
 
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;

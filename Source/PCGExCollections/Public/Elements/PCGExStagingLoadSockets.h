@@ -5,11 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Helpers/PCGExCollectionsHelpers.h"
 #include "Core/PCGExPointFilter.h"
+#include "Helpers/PCGExCollectionsHelpers.h"
 #include "Details/PCGExSocketOutputDetails.h"
 
-#include "PCGExSocketStaging.generated.h"
+#include "PCGExStagingLoadSockets.generated.h"
 
 namespace PCGExMT
 {
@@ -25,7 +25,7 @@ class UPCGExSocketStagingSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SocketStaging, "Socket Staging", "Socket staging from Asset Staging' Collection Map.");
+	PCGEX_NODE_INFOS(SocketStaging, "Staging : Sockets", "Create points from staged data sockets.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 #endif
@@ -46,7 +46,7 @@ struct FPCGExSocketStagingContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSocketStagingElement;
 
-	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionPickDatasetUnpacker;
+	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionPickUnpacker;
 	FPCGExSocketOutputDetails OutputSocketDetails;
 	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
 
@@ -65,8 +65,6 @@ protected:
 
 namespace PCGExSocketStaging
 {
-	const FName SourceStagingMap = TEXT("Map");
-
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSocketStagingContext, UPCGExSocketStagingSettings>
 	{
 		TSharedPtr<PCGExCollections::FSocketHelper> SocketHelper;

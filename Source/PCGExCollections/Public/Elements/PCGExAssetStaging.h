@@ -17,6 +17,7 @@
 
 namespace PCGExCollections
 {
+	class FPickUnpacker;
 	class FSocketHelper;
 	class FCollectionSource;
 	class FPickPacker;
@@ -61,16 +62,19 @@ class UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Asset Staging", "Data staging from PCGEx Asset Collections.", FName(TEXT("[ ") + ( CollectionSource == EPCGExCollectionSource::Asset ? AssetCollection.GetAssetName() : TEXT("Attribute Set to Collection")) + TEXT(" ]")));
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Staging : Distribute", "Distribute PCGEx Asset Collection entries to points.", FName(TEXT("Staging [ ") + ( CollectionSource == EPCGExCollectionSource::Asset ? AssetCollection.GetAssetName() : TEXT("Attribute Set")) + TEXT(" ]")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscAdd); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-
-protected:
+	
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+	
+protected:
+	virtual bool SupportsDataStealing() const override { return true; }
+
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -135,10 +139,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteEntryType"))
 	FName EntryTypeAttributeName = FName("EntryType");
 
-	/** Tagging details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
-	FPCGExAssetTaggingDetails TaggingDetails;
-
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
@@ -166,6 +166,16 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, DisplayName="Output Sockets", EditCondition="bDoOutputSockets"))
 	FPCGExSocketOutputDetails OutputSocketDetails;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bWriteTranslation = false;
+
+	/** Name of the FVector attribute to write fitting offset to. 
+	 * This is the translation added to the point transform according to staging/justification rules.
+	 * Mostly useful for offsetting spline meshes.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteTranslation"))
+	FName TranslationAttributeName = FName("FittingOffset");
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
@@ -229,6 +239,7 @@ namespace PCGExAssetStaging
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 		TSharedPtr<PCGExData::TBuffer<FName>> EntryTypeWriter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> TranslationWriter;
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 

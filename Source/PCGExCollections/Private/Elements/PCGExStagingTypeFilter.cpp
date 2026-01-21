@@ -1,7 +1,7 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Elements/PCGExStagedTypeFilter.h"
+#include "Elements/PCGExStagingTypeFilter.h"
 
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
@@ -28,7 +28,7 @@ void UPCGExStagedTypeFilterSettings::PostEditChangeProperty(FPropertyChangedEven
 TArray<FPCGPinProperties> UPCGExStagedTypeFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAM(PCGExStagedTypeFilter::SourceStagingMap, "Collection map information from staging nodes.", Required)
+	PCGEX_PIN_PARAM(PCGExCollections::Labels::SourceCollectionMapLabel, "Collection map information from staging nodes.", Required)
 	return PinProperties;
 }
 
@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExStagedTypeFilterSettings::OutputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 
-	if (bOutputFilteredOut)
+	if (bOutputDiscarded)
 	{
 		PCGEX_PIN_POINTS(PCGExStagedTypeFilter::OutputFilteredOut, "Points that were filtered out.", Normal)
 	}
@@ -56,7 +56,7 @@ bool FPCGExStagedTypeFilterElement::Boot(FPCGExContext* InContext) const
 
 	// Setup collection unpacker
 	Context->CollectionUnpacker = MakeShared<PCGExCollections::FPickUnpacker>();
-	Context->CollectionUnpacker->UnpackPin(InContext, PCGExStagedTypeFilter::SourceStagingMap);
+	Context->CollectionUnpacker->UnpackPin(InContext);
 
 	if (!Context->CollectionUnpacker->HasValidMapping())
 	{
@@ -65,7 +65,7 @@ bool FPCGExStagedTypeFilterElement::Boot(FPCGExContext* InContext) const
 	}
 
 	// Setup filtered out collection if needed
-	if (Settings->bOutputFilteredOut)
+	if (Settings->bOutputDiscarded)
 	{
 		Context->FilteredOutCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 		Context->FilteredOutCollection->OutputPin = PCGExStagedTypeFilter::OutputFilteredOut;
@@ -193,7 +193,7 @@ namespace PCGExStagedTypeFilter
 		if (NumKept == 0)
 		{
 			// All points filtered out
-			if (Settings->bOutputFilteredOut && Context->FilteredOutCollection)
+			if (Settings->bOutputDiscarded && Context->FilteredOutCollection)
 			{
 				// Move entire dataset to filtered out
 				TSharedPtr<PCGExData::FPointIO> FilteredIO = Context->FilteredOutCollection->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Forward);
@@ -205,7 +205,7 @@ namespace PCGExStagedTypeFilter
 		}
 
 		// Output filtered out points if requested
-		if (Settings->bOutputFilteredOut && Context->FilteredOutCollection)
+		if (Settings->bOutputDiscarded && Context->FilteredOutCollection)
 		{
 			// Create inverted mask for filtered out points
 			TArray<int8> InvertedMask;

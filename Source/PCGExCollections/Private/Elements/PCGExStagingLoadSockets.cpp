@@ -1,7 +1,7 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Elements/PCGExSocketStaging.h"
+#include "Elements/PCGExStagingLoadSockets.h"
 
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
@@ -17,7 +17,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(SocketStaging)
 TArray<FPCGPinProperties> UPCGExSocketStagingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAM(PCGExSocketStaging::SourceStagingMap, "Collection map information from, or merged from, Staging nodes.", Required)
+	PCGEX_PIN_PARAM(PCGExCollections::Labels::SourceCollectionMapLabel, "Collection map information from, or merged from, Staging nodes.", Required)
 	return PinProperties;
 }
 
@@ -34,10 +34,10 @@ bool FPCGExSocketStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SocketStaging)
 
-	Context->CollectionPickDatasetUnpacker = MakeShared<PCGExCollections::FPickUnpacker>();
-	Context->CollectionPickDatasetUnpacker->UnpackPin(InContext, PCGExSocketStaging::SourceStagingMap);
+	Context->CollectionPickUnpacker = MakeShared<PCGExCollections::FPickUnpacker>();
+	Context->CollectionPickUnpacker->UnpackPin(InContext, PCGExCollections::Labels::SourceCollectionMapLabel);
 
-	if (!Context->CollectionPickDatasetUnpacker->HasValidMapping())
+	if (!Context->CollectionPickUnpacker->HasValidMapping())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid asset mapping from the provided map."));
 		return false;
@@ -91,6 +91,8 @@ namespace PCGExSocketStaging
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
 		EntryHashGetter = PointDataFacade->GetReadable<int64>(PCGExCollections::Labels::Tag_EntryIdx, PCGExData::EIOSide::In, true);
+		if (!EntryHashGetter) { return false; }
+		
 		SocketHelper = MakeShared<PCGExCollections::FSocketHelper>(&Context->OutputSocketDetails, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
@@ -112,7 +114,7 @@ namespace PCGExSocketStaging
 			if (!PointFilterCache[Index]) { continue; }
 
 			const uint64 Hash = EntryHashGetter->Read(Index);
-			if (FPCGExEntryAccessResult Result = Context->CollectionPickDatasetUnpacker->ResolveEntry(Hash, MaterialPick);
+			if (FPCGExEntryAccessResult Result = Context->CollectionPickUnpacker->ResolveEntry(Hash, MaterialPick);
 				Result.IsValid())
 			{
 				SocketHelper->Add(Index, PCGExStaging::GetSimplifiedEntryHash(Hash), Result.Entry);

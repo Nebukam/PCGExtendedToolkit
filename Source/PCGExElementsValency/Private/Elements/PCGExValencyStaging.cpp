@@ -287,7 +287,8 @@ namespace PCGExValencyStaging
 
 						// Apply fitting
 						FBox OutBounds = Result.Entry->Staging.Bounds;
-						FittingHandler.ComputeTransform(PointIndex, OutTransform, OutBounds);						
+						FVector Translation = FVector::ZeroVector;
+						FittingHandler.ComputeTransform(PointIndex, OutTransform, OutBounds, Translation);						
 						OutBoundsMin[Index] = OutBounds.Min;
 						OutBoundsMax[Index] = OutBounds.Max;
 						

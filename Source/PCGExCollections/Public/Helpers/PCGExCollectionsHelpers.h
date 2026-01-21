@@ -160,7 +160,7 @@ namespace PCGExCollections
 		bool UnpackDataset(FPCGContext* InContext, const UPCGParamData* InAttributeSet);
 
 		/** Unpack from a specific input pin */
-		void UnpackPin(FPCGContext* InContext, FName InPinLabel);
+		void UnpackPin(FPCGContext* InContext, FName InPinLabel = NAME_None);
 
 		/** Build point partitions from point data */
 		bool BuildPartitions(const UPCGBasePointData* InPointData, TArray<FPCGMeshInstanceList>& InstanceLists);

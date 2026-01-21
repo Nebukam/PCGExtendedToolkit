@@ -11,7 +11,7 @@
 #include "Fitting/PCGExFitting.h"
 #include "Helpers/PCGExCollectionsHelpers.h"
 
-#include "PCGExPCGDataAssetLoader.generated.h"
+#include "PCGExStagingLoadPCGData.generated.h"
 
 class UPCGLandscapeData;
 class UPCGVolumeData;
@@ -65,7 +65,7 @@ class UPCGExPCGDataAssetLoaderSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PCGDataAssetLoader, "PCGDataAsset Loader", "Loads and spawns PCGDataAsset contents from staged points.");
+	PCGEX_NODE_INFOS(PCGDataAssetLoader, "Staging : Load PCGData", "Loads and spawns PCGDataAsset contents from staged points.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
@@ -226,7 +226,6 @@ protected:
 
 namespace PCGExPCGDataAssetLoader
 {
-	const FName SourceStagingMap = TEXT("Map");
 	const FName OutputPinDefault = TEXT("Out");
 
 	/** Tracks cluster ID remapping for a single point's spawned data */
