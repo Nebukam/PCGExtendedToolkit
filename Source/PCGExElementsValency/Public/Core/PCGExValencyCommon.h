@@ -220,7 +220,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyAssetEntry
 	TSoftObjectPtr<UObject> Asset;
 
 	/** Detected type of the asset (for routing to appropriate spawner) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Asset")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Asset", meta=(PCGEX_ValencyRebuild))
 	EPCGExValencyAssetType AssetType = EPCGExValencyAssetType::Unknown;
 
 	/** Transform relative to cage center (used when cage has bPreserveLocalTransforms enabled) */

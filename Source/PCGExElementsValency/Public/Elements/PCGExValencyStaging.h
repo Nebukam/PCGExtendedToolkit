@@ -82,14 +82,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUsePerClusterSeed = false;
 
-	/** Output mode - determines how staging data is written */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::CollectionMap;
-
-	/** Attribute name for the resolved asset path output (only used with Attributes mode) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExStagingOutputMode::Attributes", EditConditionHides))
-	FName AssetPathAttributeName = FName("AssetPath");
-
 	/** If enabled, output an attribute marking unsolvable nodes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bOutputUnsolvableMarker = true;
@@ -154,8 +146,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
 	FPCGExJustificationDetails Justification = FPCGExJustificationDetails(false);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_NotOverridable))
-	FPCGExFittingVariationsDetails Variations;
 };
 
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyStagingContext final : FPCGExValencyProcessorContext
@@ -208,7 +198,6 @@ namespace PCGExValencyStaging
 
 		/** Attribute writers (owned by batch, forwarded via PrepareSingle) */
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
-		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
 		TSharedPtr<PCGExData::TBuffer<FName>> ModuleNameWriter;
@@ -264,7 +253,6 @@ namespace PCGExValencyStaging
 	{
 		/** Attribute writers (owned here, shared with processors) */
 		TSharedPtr<PCGExData::TBuffer<int64>> ModuleDataWriter;
-		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> UnsolvableWriter;
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter;
 		TSharedPtr<PCGExData::TBuffer<FName>> ModuleNameWriter;

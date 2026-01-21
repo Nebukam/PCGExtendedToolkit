@@ -40,10 +40,7 @@ TArray<FPCGPinProperties> UPCGExValencyStagingSettings::OutputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExValency::Labels::OutputStagedLabel, "Staged points with resolved module data", Required)
-	if (OutputMode == EPCGExStagingOutputMode::CollectionMap)
-	{
-		PCGEX_PIN_PARAMS(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map for resolving entry hashes", Required)
-	}
+	PCGEX_PIN_PARAMS(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map for resolving entry hashes", Required)
 	return PinProperties;
 }
 
@@ -112,10 +109,7 @@ bool FPCGExValencyStagingElement::PostBoot(FPCGExContext* InContext) const
 	if (!Context->Solver) { return false; }
 
 	// Create pick packer for CollectionMap mode
-	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)
-	{
-		Context->PickPacker = MakeShared<PCGExCollections::FPickPacker>(Context);
-	}
+	Context->PickPacker = MakeShared<PCGExCollections::FPickPacker>(Context);
 
 	Context->MeshCollection = Context->BondingRules->GetMeshCollection();
 	if (Context->MeshCollection) { Context->MeshCollection->BuildCache(); }
@@ -157,13 +151,10 @@ bool FPCGExValencyStagingElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	Context->OutputPointsAndEdges();
 
-	// Output collection map if in CollectionMap mode
-	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap && Context->PickPacker)
-	{
-		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
-		Context->PickPacker->PackToDataset(ParamData);
-		Context->StageOutput(ParamData, PCGExCollections::Labels::OutputCollectionMapLabel, PCGExData::EStaging::None);
-	}
+	// Output collection map 
+	UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
+	Context->PickPacker->PackToDataset(ParamData);
+	Context->StageOutput(ParamData, PCGExCollections::Labels::OutputCollectionMapLabel, PCGExData::EStaging::None);
 
 	return Context->TryComplete();
 }
@@ -211,9 +202,6 @@ namespace PCGExValencyStaging
 
 		if (!FittingHandler.Init(ExecutionContext, VtxDataFacade)) { return false; }
 
-		Variations = Settings->Variations;
-		Variations.Init(Settings->Seed);
-
 		// Process valency states in parallel
 		StartParallelLoopForRange(ValencyStates.Num());
 
@@ -227,18 +215,21 @@ namespace PCGExValencyStaging
 		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
 
 		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMin = VtxDataFacade->GetOut()->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMax = VtxDataFacade->GetOut()->GetBoundsMaxValueRange(false);
 		TConstPCGValueRange<int32> InSeeds = VtxDataFacade->GetIn()->GetConstSeedValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const PCGExValency::FValencyState& State = ValencyStates[Index];
 			const PCGExClusters::FNode& Node = Nodes[State.NodeIndex];
+			const int32 PointIndex = Node.PointIndex;
 
 			// Write packed module data (module index + flags)
 			if (ModuleDataWriter)
 			{
 				const int64 PackedData = PCGExValency::ModuleData::Pack(State.ResolvedModule);
-				ModuleDataWriter->SetValue(Node.PointIndex, PackedData);
+				ModuleDataWriter->SetValue(PointIndex, PackedData);
 			}
 
 			if (State.ResolvedModule >= 0)
@@ -250,33 +241,33 @@ namespace PCGExValencyStaging
 				// Write module name if enabled
 				if (ModuleNameWriter)
 				{
-					ModuleNameWriter->SetValue(Node.PointIndex, CompiledBondingRules->ModuleNames[State.ResolvedModule]);
+					ModuleNameWriter->SetValue(PointIndex, CompiledBondingRules->ModuleNames[State.ResolvedModule]);
 				}
 
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)", State.NodeIndex, Node.PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)", State.NodeIndex, PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
 
-				// Write asset path (Attributes mode) or entry hash (CollectionMap mode)
-				if (AssetPathWriter)
-				{
-					const TSoftObjectPtr<UObject>& Asset = CompiledBondingRules->ModuleAssets[State.ResolvedModule];
-					AssetPathWriter->SetValue(Node.PointIndex, Asset.ToSoftObjectPath());
-				}
-				else if (EntryHashWriter && Context->PickPacker)
+				if (EntryHashWriter && Context->PickPacker)
 				{
 					// Get the appropriate collection and entry index based on asset type
 					const UPCGExAssetCollection* Collection = nullptr;
+					FPCGExEntryAccessResult Result{};
+
 					int32 EntryIndex = -1;
 					int16 SecondaryIndex = -1;
+
+					FTransform& OutTransform = OutTransforms[PointIndex];
 
 					if (AssetType == EPCGExValencyAssetType::Mesh)
 					{
 						Collection = Context->MeshCollection;
 						EntryIndex = Context->BondingRules->GetMeshEntryIndex(State.ResolvedModule);
-						if (FPCGExEntryAccessResult Result = Collection->GetEntryAt(EntryIndex); Result.IsValid())
+						Result = Collection->GetEntryAt(EntryIndex);
+
+						if (Result.IsValid())
 						{
 							if (const PCGExAssetCollection::FMicroCache* MicroCache = Result.Entry->MicroCache.Get())
 							{
-								SecondaryIndex = MicroCache->GetPickRandomWeighted(InSeeds[Node.PointIndex]);
+								SecondaryIndex = MicroCache->GetPickRandomWeighted(InSeeds[PointIndex]);
 							}
 						}
 					}
@@ -284,43 +275,50 @@ namespace PCGExValencyStaging
 					{
 						Collection = Context->ActorCollection;
 						EntryIndex = Context->BondingRules->GetActorEntryIndex(State.ResolvedModule);
+						Result = Collection->GetEntryAt(EntryIndex);
 					}
 
-					if (Collection && EntryIndex >= 0)
+					if (Collection && Result.IsValid())
 					{
 						const uint64 Hash = Context->PickPacker->GetPickIdx(Collection, EntryIndex, SecondaryIndex);
-						EntryHashWriter->SetValue(Node.PointIndex, static_cast<int64>(Hash));
+						EntryHashWriter->SetValue(PointIndex, static_cast<int64>(Hash));
+
+						// Apply fitting
+						FBox OutBounds = Result.Entry->Staging.Bounds;
+						FittingHandler.ComputeTransform(PointIndex, OutTransform, OutBounds);						
+						OutBoundsMin[Index] = OutBounds.Min;
+						OutBoundsMax[Index] = OutBounds.Max;
+						
 						PCGEX_VALENCY_VERBOSE(Staging, "    -> EntryHash=0x%llX (EntryIndex=%d, SecondaryIndex=%d)", Hash, EntryIndex, SecondaryIndex);
 					}
 					else
 					{
 						PCGEX_VALENCY_WARNING(Staging, "    -> NO COLLECTION/ENTRY (Collection=%s, EntryIndex=%d)", Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
 					}
-				}
-
-				// Apply local transform if enabled
-				if (Settings->bApplyLocalTransforms && CompiledBondingRules->ModuleHasLocalTransform[State.ResolvedModule])
-				{
-					const FTransform& LocalTransform = CompiledBondingRules->ModuleLocalTransforms[State.ResolvedModule];
-					const FTransform& CurrentTransform = OutTransforms[Node.PointIndex];
-					OutTransforms[Node.PointIndex] = LocalTransform * CurrentTransform;
+					
+					// Apply local transform if enabled 
+					if (Settings->bApplyLocalTransforms && CompiledBondingRules->ModuleHasLocalTransform[State.ResolvedModule])
+					{
+						const FTransform& LocalTransform = CompiledBondingRules->ModuleLocalTransforms[State.ResolvedModule];
+						OutTransform = LocalTransform * OutTransform;
+					}
 				}
 			}
 			else if (State.IsUnsolvable())
 			{
 				FPlatformAtomics::InterlockedIncrement(&UnsolvableCount);
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): UNSOLVABLE", State.NodeIndex, Node.PointIndex);
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): UNSOLVABLE", State.NodeIndex, PointIndex);
 			}
 			else if (State.IsBoundary())
 			{
 				FPlatformAtomics::InterlockedIncrement(&BoundaryCount);
-				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): BOUNDARY", State.NodeIndex, Node.PointIndex);
+				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): BOUNDARY", State.NodeIndex, PointIndex);
 			}
 
 			// Write unsolvable marker
 			if (UnsolvableWriter)
 			{
-				UnsolvableWriter->SetValue(Node.PointIndex, State.IsUnsolvable());
+				UnsolvableWriter->SetValue(PointIndex, State.IsUnsolvable());
 			}
 		}
 	}
@@ -682,11 +680,10 @@ namespace PCGExValencyStaging
 
 		EPCGPointNativeProperties PointAllocations = EPCGPointNativeProperties::Transform;
 
-		if (Settings->ScaleToFit.IsEnabled())
-		{
-			PointAllocations |= EPCGPointNativeProperties::BoundsMin;
-			PointAllocations |= EPCGPointNativeProperties::BoundsMax;
-		}
+		//if (Settings->ScaleToFit.IsEnabled()){
+		PointAllocations |= EPCGPointNativeProperties::BoundsMin;
+		PointAllocations |= EPCGPointNativeProperties::BoundsMax;
+		//}
 
 		VtxDataFacade->GetOut()->AllocateProperties(PointAllocations);
 
@@ -708,17 +705,8 @@ namespace PCGExValencyStaging
 			ModuleDataWriter = OutputFacade->GetWritable<int64>(Context->OrbitalSet->GetModuleIdxAttributeName(), DefaultValue, true, PCGExData::EBufferInit::Inherit);
 		}
 
-		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
-		{
-			// Write asset path directly to points
-			AssetPathWriter = OutputFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, FSoftObjectPath(), true, PCGExData::EBufferInit::Inherit);
-		}
-		else
-		{
-			// Write collection entry hash for downstream spawners
-			const bool bInherit = OutputFacade->GetIn()->Metadata->HasAttribute(PCGExCollections::Labels::Tag_EntryIdx);
-			EntryHashWriter = OutputFacade->GetWritable<int64>(PCGExCollections::Labels::Tag_EntryIdx, 0, true, bInherit ? PCGExData::EBufferInit::Inherit : PCGExData::EBufferInit::New);
-		}
+		// Write collection entry hash for downstream spawners
+		EntryHashWriter = OutputFacade->GetWritable<int64>(PCGExCollections::Labels::Tag_EntryIdx, 0, true, PCGExData::EBufferInit::Inherit);
 
 		if (Settings->bOutputUnsolvableMarker)
 		{
@@ -763,7 +751,6 @@ namespace PCGExValencyStaging
 
 		// Forward staging-specific writers to processor
 		TypedProcessor->ModuleDataWriter = ModuleDataWriter;
-		TypedProcessor->AssetPathWriter = AssetPathWriter;
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
 		TypedProcessor->EntryHashWriter = EntryHashWriter;
 		TypedProcessor->ModuleNameWriter = ModuleNameWriter;
