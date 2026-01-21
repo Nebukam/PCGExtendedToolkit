@@ -41,9 +41,17 @@ APCGExValencyCagePattern::APCGExValencyCagePattern()
 
 void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	// DEBUG: Verify this function is called when pattern cage properties change
+	UE_LOG(LogTemp, Error, TEXT("PATTERN CAGE PostEditChangeProperty called on '%s'"), *GetName());
+
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	const FName PropertyName = PropertyChangedEvent.GetMemberPropertyName();
+
+	// DEBUG: Log the property being changed
+	UE_LOG(LogTemp, Error, TEXT("  -> Property: '%s', Member: '%s'"),
+		PropertyChangedEvent.Property ? *PropertyChangedEvent.Property->GetName() : TEXT("null"),
+		PropertyChangedEvent.MemberProperty ? *PropertyChangedEvent.MemberProperty->GetName() : TEXT("null"));
 
 	// Update bounds visualization when root status changes
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bIsPatternRoot))
@@ -91,10 +99,13 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 
 	// Check if any property in the chain has PCGEX_ValencyRebuild metadata
 	bool bShouldRebuild = false;
+	bool bPropertyHasMeta = false;
+	bool bMemberHasMeta = false;
 
 	if (const FProperty* Property = PropertyChangedEvent.Property)
 	{
-		if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
+		bPropertyHasMeta = Property->HasMetaData(TEXT("PCGEX_ValencyRebuild"));
+		if (bPropertyHasMeta)
 		{
 			bShouldRebuild = true;
 		}
@@ -102,14 +113,22 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 
 	if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
 	{
-		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
+		bMemberHasMeta = PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild"));
+		if (bMemberHasMeta)
 		{
 			bShouldRebuild = true;
 		}
 	}
 
+	// DEBUG: Log metadata check results
+	UE_LOG(LogTemp, Error, TEXT("  -> PropertyHasMeta=%s, MemberHasMeta=%s, bShouldRebuild=%s"),
+		bPropertyHasMeta ? TEXT("true") : TEXT("false"),
+		bMemberHasMeta ? TEXT("true") : TEXT("false"),
+		bShouldRebuild ? TEXT("true") : TEXT("false"));
+
 	if (bShouldRebuild)
 	{
+		UE_LOG(LogTemp, Error, TEXT("  -> TRIGGERING REBUILD"));
 		TriggerAutoRebuildIfNeeded();
 	}
 }

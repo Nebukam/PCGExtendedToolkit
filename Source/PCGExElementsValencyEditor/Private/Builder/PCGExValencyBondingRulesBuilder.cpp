@@ -899,6 +899,7 @@ void UPCGExValencyBondingRulesBuilder::CompilePatterns(
 		{
 			continue;
 		}
+		
 		ProcessedRoots.Add(PatternCage);
 
 		PCGEX_VALENCY_VERBOSE(Building, "Compiling pattern from root '%s'", *PatternCage->GetCageDisplayName());
@@ -1192,15 +1193,6 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 						bUseTransform,
 						CageTransform
 					);
-
-					// Log if stored index differs from computed index
-					if (ComputedOrbitalIndex != Orbital.OrbitalIndex)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("[PatternAdjacency] Orbital index mismatch for '%s' -> '%s': stored=%d, computed=%d (direction=%s)"),
-							*Cage->GetCageDisplayName(), *ConnectedPattern->GetCageDisplayName(),
-							Orbital.OrbitalIndex, ComputedOrbitalIndex,
-							*Direction.ToString());
-					}
 
 					// Find the reciprocal orbital on the target (also compute from direction)
 					const FVector ReverseDirection = -Direction;
