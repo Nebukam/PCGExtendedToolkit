@@ -71,40 +71,71 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyLayerCompiled
 };
 
 /**
- * Compiled bonding rules optimized for runtime solving.
- * This is a plain struct (not UObject) because it's generated at runtime
- * and Compile() may be called off the game thread where NewObject is unsafe.
+ * Wrapper for module tags array to support UPROPERTY serialization.
  */
+USTRUCT()
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleTags
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FName> Tags;
+
+	FPCGExValencyModuleTags() = default;
+	explicit FPCGExValencyModuleTags(const TArray<FName>& InTags) : Tags(InTags) {}
+
+	int32 Num() const { return Tags.Num(); }
+	const FName& operator[](int32 Index) const { return Tags[Index]; }
+};
+
+/**
+ * Compiled bonding rules optimized for runtime solving.
+ * Serialized with the asset to avoid runtime compilation cost.
+ * Can still be rebuilt via Compile() for runtime-created rulesets.
+ */
+USTRUCT()
 struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 {
+	GENERATED_BODY()
+
 	/** Total number of modules */
+	UPROPERTY()
 	int32 ModuleCount = 0;
 
 	/** Module weights (parallel array) */
+	UPROPERTY()
 	TArray<float> ModuleWeights;
 
 	/** Module orbital masks per layer (Index = ModuleIndex * LayerCount + LayerIndex) */
+	UPROPERTY()
 	TArray<int64> ModuleOrbitalMasks;
 
 	/** Module boundary orbital masks per layer - orbitals that must have NO neighbor (Index = ModuleIndex * LayerCount + LayerIndex) */
+	UPROPERTY()
 	TArray<int64> ModuleBoundaryMasks;
 
 	/** Module wildcard orbital masks per layer - orbitals that must have ANY neighbor (Index = ModuleIndex * LayerCount + LayerIndex) */
+	UPROPERTY()
 	TArray<int64> ModuleWildcardMasks;
 
 	/** Module min spawn constraints */
+	UPROPERTY()
 	TArray<int32> ModuleMinSpawns;
 
 	/** Module max spawn constraints (-1 = unlimited) */
+	UPROPERTY()
 	TArray<int32> ModuleMaxSpawns;
 
 	/** Module asset references */
+	UPROPERTY()
 	TArray<TSoftObjectPtr<UObject>> ModuleAssets;
 
 	/** Module asset types for routing to appropriate spawner */
+	UPROPERTY()
 	TArray<EPCGExValencyAssetType> ModuleAssetTypes;
 
 	/** Module names for fixed pick lookup (parallel to ModuleWeights) */
+	UPROPERTY()
 	TArray<FName> ModuleNames;
 
 	/**
@@ -112,12 +143,15 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	 * X = start index in AllLocalTransforms, Y = count of transforms.
 	 * Allows multiple transform variants per module for random selection.
 	 */
+	UPROPERTY()
 	TArray<FIntPoint> ModuleLocalTransformHeaders;
 
 	/** Flattened array of all local transforms for all modules */
+	UPROPERTY()
 	TArray<FTransform> AllLocalTransforms;
 
 	/** Whether each module has local transform offsets */
+	UPROPERTY()
 	TArray<bool> ModuleHasLocalTransform;
 
 	/**
@@ -125,9 +159,11 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	 * X = start index in AllModuleProperties, Y = count of properties.
 	 * Allows multiple properties per module with type-safe access.
 	 */
+	UPROPERTY()
 	TArray<FIntPoint> ModulePropertyHeaders;
 
 	/** Flattened array of all compiled properties for all modules */
+	UPROPERTY()
 	TArray<FInstancedStruct> AllModuleProperties;
 
 	/** Get a random local transform for a module based on seed */
@@ -190,30 +226,36 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	}
 
 	/** Per-module actor tags (inherited from cage + palette) */
-	TArray<TArray<FName>> ModuleTags;
+	UPROPERTY()
+	TArray<FPCGExValencyModuleTags> ModuleTags;
 
 	/** Compiled layer data */
+	UPROPERTY()
 	TArray<FPCGExValencyLayerCompiled> Layers;
 
 	/** Compiled patterns for post-solve pattern matching */
+	UPROPERTY()
 	FPCGExValencyPatternSetCompiled CompiledPatterns;
 
 	/**
 	 * Registry of all unique properties found in modules.
 	 * Built at compile time for efficient lookup and auto-populate.
 	 */
+	UPROPERTY()
 	TArray<FPCGExPropertyRegistryEntry> ModulePropertyRegistry;
 
 	/**
 	 * Registry of all unique properties found in pattern entries.
 	 * Built at compile time for efficient lookup.
 	 */
+	UPROPERTY()
 	TArray<FPCGExPropertyRegistryEntry> PatternPropertyRegistry;
 
 	/**
 	 * Fast lookup: OrbitalMask -> array of candidate module indices.
 	 * Key is the combined mask from all layers (for single-layer, just the mask).
 	 * This allows O(1) lookup of which modules could potentially fit a node.
+	 * Not serialized - rebuilt on demand via BuildCandidateLookup().
 	 */
 	TMap<int64, TArray<int32>> MaskToCandidates;
 
@@ -314,21 +356,22 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Valency|Patterns")
 	FPCGExValencyPatternSetCompiled Patterns;
 
-	// ========== Property Registries ==========
+	// ========== Compiled Data ==========
 
 	/**
-	 * Registry of all unique properties found in modules.
-	 * Read-only, built during compilation.
+	 * If true (default), Compile() is called during BuildFromCages and the result
+	 * is serialized with the asset. This avoids runtime compilation cost.
+	 * Disable for edge cases where compilation should happen at runtime.
 	 */
-	UPROPERTY(VisibleAnywhere, Category = "Valency|Properties")
-	TArray<FPCGExPropertyRegistryEntry> ModulePropertyRegistry;
+	UPROPERTY(EditAnywhere, Category = "Valency|Compilation")
+	bool bCompileOnRebuild = true;
 
 	/**
-	 * Registry of all unique properties found in pattern entries.
-	 * Read-only, built during compilation.
+	 * Compiled runtime data. Serialized when bCompileOnRebuild is true.
+	 * Contains flattened arrays optimized for cache-efficient runtime access.
 	 */
-	UPROPERTY(VisibleAnywhere, Category = "Valency|Properties")
-	TArray<FPCGExPropertyRegistryEntry> PatternPropertyRegistry;
+	UPROPERTY()
+	FPCGExValencyBondingRulesCompiled CompiledData;
 
 	// ========== Build Metadata ==========
 
@@ -351,9 +394,6 @@ public:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Build Info")
 	FDateTime LastBuildTime;
-
-	/** Compiled runtime data (generated, not serialized) */
-	TSharedPtr<FPCGExValencyBondingRulesCompiled> CompiledData;
 
 	/** Get layer count */
 	int32 GetLayerCount() const { return OrbitalSets.Num(); }
@@ -416,7 +456,10 @@ public:
 	bool Compile();
 
 	/** Check if the bonding rules have valid compiled data */
-	bool IsCompiled() const { return CompiledData.IsValid(); }
+	bool IsCompiled() const { return CompiledData.ModuleCount > 0; }
+
+	/** Get raw pointer to compiled data for runtime use */
+	const FPCGExValencyBondingRulesCompiled* GetCompiledData() const { return CompiledData.ModuleCount > 0 ? &CompiledData : nullptr; }
 
 	/**
 	 * Rebuild the generated collections from current modules.

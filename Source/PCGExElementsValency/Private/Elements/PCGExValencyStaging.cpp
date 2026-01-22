@@ -50,7 +50,7 @@ void UPCGExValencyStagingSettings::ImportBondingRulesPropertyOutputConfigs()
 		}
 	}
 
-	const FPCGExValencyBondingRulesCompiled* CompiledRules = LoadedRules->CompiledData.Get();
+	const FPCGExValencyBondingRulesCompiled* CompiledRules = LoadedRules->GetCompiledData();
 	if (!CompiledRules)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AutoPopulatePropertyOutputConfigs: No compiled data available."));
@@ -235,7 +235,7 @@ namespace PCGExValencyStaging
 
 		VALENCY_LOG_SECTION(Staging, "WRITING VALENCY RESULTS");
 
-		if (!Context->BondingRules || !Context->BondingRules->CompiledData)
+		if (!Context->BondingRules || !Context->BondingRules->IsCompiled())
 		{
 			PCGEX_VALENCY_ERROR(Staging, "FProcessor::Process Missing BondingRules or CompiledData!");
 			return false;
@@ -254,7 +254,7 @@ namespace PCGExValencyStaging
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->CompiledData.Get();
+		const FPCGExValencyBondingRulesCompiled* CompiledBondingRules = Context->BondingRules->GetCompiledData();
 
 		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
 
@@ -383,12 +383,12 @@ namespace PCGExValencyStaging
 	void FProcessor::ApplyFixedPicks()
 	{
 		// Skip if no fixed pick reader or no compiled data
-		if (!FixedPickReader || !Context->BondingRules || !Context->BondingRules->CompiledData)
+		if (!FixedPickReader || !Context->BondingRules || !Context->BondingRules->IsCompiled())
 		{
 			return;
 		}
 
-		const FPCGExValencyBondingRulesCompiled* CompiledRules = Context->BondingRules->CompiledData.Get();
+		const FPCGExValencyBondingRulesCompiled* CompiledRules = Context->BondingRules->GetCompiledData();
 		if (CompiledRules->ModuleCount == 0)
 		{
 			return;
@@ -620,7 +620,7 @@ namespace PCGExValencyStaging
 	{
 		VALENCY_LOG_SECTION(Staging, "RUNNING VALENCY SOLVER");
 
-		if (!Context->BondingRules || !Context->BondingRules->CompiledData)
+		if (!Context->BondingRules || !Context->BondingRules->IsCompiled())
 		{
 			PCGEX_VALENCY_ERROR(Staging, "RunSolver: Missing BondingRules or CompiledData!");
 			return;
@@ -628,7 +628,7 @@ namespace PCGExValencyStaging
 
 		PCGEX_VALENCY_INFO(Staging, "BondingRules: '%s', CompiledModules: %d",
 		                   *Context->BondingRules->GetName(),
-		                   Context->BondingRules->CompiledData->ModuleCount);
+		                   Context->BondingRules->CompiledData.ModuleCount);
 
 		// Create solver from factory
 		if (Context->Solver)
@@ -652,7 +652,7 @@ namespace PCGExValencyStaging
 
 		PCGEX_VALENCY_INFO(Staging, "Initializing solver with seed %d, %d states", SolveSeed, ValencyStates.Num());
 
-		Solver->Initialize(Context->BondingRules->CompiledData.Get(), ValencyStates, OrbitalCache.Get(), SolveSeed, SolverAllocations);
+		Solver->Initialize(Context->BondingRules->GetCompiledData(), ValencyStates, OrbitalCache.Get(), SolveSeed, SolverAllocations);
 		SolveResult = Solver->Solve();
 
 		VALENCY_LOG_SECTION(Staging, "SOLVER RESULT");
@@ -750,7 +750,7 @@ namespace PCGExValencyStaging
 		// Module index attribute name comes from OrbitalSet (PCGEx/V/MIdx/{LayerName})
 		// Create Module data writer (int64: module index in low bits, pattern flags in high bits)
 		// Only create if BondingRules has patterns defined
-		if (Context->BondingRules && Context->BondingRules->CompiledData && Context->BondingRules->CompiledData->CompiledPatterns.HasPatterns())
+		if (Context->BondingRules && Context->BondingRules->IsCompiled() && Context->BondingRules->CompiledData.CompiledPatterns.HasPatterns())
 		{
 			const int64 DefaultValue = PCGExValency::ModuleData::Pack(PCGExValency::SlotState::UNSET);
 			ModuleDataWriter = OutputFacade->GetWritable<int64>(Context->OrbitalSet->GetModuleIdxAttributeName(), DefaultValue, true, PCGExData::EBufferInit::Inherit);
@@ -770,11 +770,11 @@ namespace PCGExValencyStaging
 		}
 
 		// Initialize property writer
-		if (Context->BondingRules && Context->BondingRules->CompiledData)
+		if (Context->BondingRules && Context->BondingRules->IsCompiled())
 		{
 			PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>();
 			PropertyWriter->Initialize(
-				Context->BondingRules->CompiledData.Get(),
+				Context->BondingRules->GetCompiledData(),
 				VtxDataFacade,
 				Settings->PropertiesOutput);
 		}

@@ -126,12 +126,12 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolumes(cons
 		CompilePatterns(Volumes, ModuleKeyToIndex, TargetRules, OrbitalSet, Result);
 
 		// CRITICAL: Always sync patterns to CompiledData after CompilePatterns().
-		// This ensures the transient runtime data has the freshly compiled patterns.
+		// This ensures the runtime data has the freshly compiled patterns.
 		// Previously this was gated on ModuleCount > 0, causing stale pattern data
 		// when patterns were modified but no modules changed.
-		if (TargetRules->CompiledData)
+		if (TargetRules->IsCompiled())
 		{
-			TargetRules->CompiledData->CompiledPatterns = TargetRules->Patterns;
+			TargetRules->CompiledData.CompiledPatterns = TargetRules->Patterns;
 		}
 	}
 

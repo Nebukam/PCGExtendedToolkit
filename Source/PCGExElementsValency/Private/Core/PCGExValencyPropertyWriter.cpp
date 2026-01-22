@@ -149,7 +149,7 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 	// Write module tags as comma-separated string
 	if (TagsWriter)
 	{
-		const TArray<FName>& Tags = CompiledRules->ModuleTags[ModuleIndex];
+		const TArray<FName>& Tags = CompiledRules->ModuleTags[ModuleIndex].Tags;
 		if (Tags.Num() > 0)
 		{
 			FString TagString;

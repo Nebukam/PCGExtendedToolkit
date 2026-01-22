@@ -64,33 +64,30 @@ bool UPCGExValencyBondingRules::Compile()
 		}
 	}
 
-	// Create compiled data (using MakeShared - safe to call from any thread)
-	if (!CompiledData)
-	{
-		CompiledData = MakeShared<FPCGExValencyBondingRulesCompiled>();
-	}
+	// Reset compiled data for fresh compilation
+	CompiledData = FPCGExValencyBondingRulesCompiled();
 
 	const int32 LayerCount = OrbitalSets.Num();
 
-	CompiledData->ModuleCount = Modules.Num();
-	CompiledData->Layers.SetNum(LayerCount);
+	CompiledData.ModuleCount = Modules.Num();
+	CompiledData.Layers.SetNum(LayerCount);
 
 	// Initialize parallel arrays
-	CompiledData->ModuleWeights.SetNum(Modules.Num());
-	CompiledData->ModuleMinSpawns.SetNum(Modules.Num());
-	CompiledData->ModuleMaxSpawns.SetNum(Modules.Num());
-	CompiledData->ModuleAssets.SetNum(Modules.Num());
-	CompiledData->ModuleAssetTypes.SetNum(Modules.Num());
-	CompiledData->ModuleNames.SetNum(Modules.Num());
-	CompiledData->ModuleLocalTransformHeaders.SetNum(Modules.Num());
-	CompiledData->ModuleHasLocalTransform.SetNum(Modules.Num());
-	CompiledData->ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
-	CompiledData->ModuleBoundaryMasks.SetNum(Modules.Num() * LayerCount);
-	CompiledData->ModuleWildcardMasks.SetNum(Modules.Num() * LayerCount);
-	CompiledData->AllLocalTransforms.Empty();
-	CompiledData->ModulePropertyHeaders.SetNum(Modules.Num());
-	CompiledData->AllModuleProperties.Empty();
-	CompiledData->ModuleTags.SetNum(Modules.Num());
+	CompiledData.ModuleWeights.SetNum(Modules.Num());
+	CompiledData.ModuleMinSpawns.SetNum(Modules.Num());
+	CompiledData.ModuleMaxSpawns.SetNum(Modules.Num());
+	CompiledData.ModuleAssets.SetNum(Modules.Num());
+	CompiledData.ModuleAssetTypes.SetNum(Modules.Num());
+	CompiledData.ModuleNames.SetNum(Modules.Num());
+	CompiledData.ModuleLocalTransformHeaders.SetNum(Modules.Num());
+	CompiledData.ModuleHasLocalTransform.SetNum(Modules.Num());
+	CompiledData.ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
+	CompiledData.ModuleBoundaryMasks.SetNum(Modules.Num() * LayerCount);
+	CompiledData.ModuleWildcardMasks.SetNum(Modules.Num() * LayerCount);
+	CompiledData.AllLocalTransforms.Empty();
+	CompiledData.ModulePropertyHeaders.SetNum(Modules.Num());
+	CompiledData.AllModuleProperties.Empty();
+	CompiledData.ModuleTags.SetNum(Modules.Num());
 
 	// Populate module data
 	VALENCY_LOG_SUBSECTION(Compilation, "Compiling Module Data");
@@ -98,28 +95,28 @@ bool UPCGExValencyBondingRules::Compile()
 	{
 		const FPCGExValencyModuleDefinition& Module = Modules[ModuleIndex];
 
-		CompiledData->ModuleWeights[ModuleIndex] = Module.Settings.Weight;
-		CompiledData->ModuleMinSpawns[ModuleIndex] = Module.Settings.MinSpawns;
-		CompiledData->ModuleMaxSpawns[ModuleIndex] = Module.Settings.MaxSpawns;
-		CompiledData->ModuleAssets[ModuleIndex] = Module.Asset;
-		CompiledData->ModuleAssetTypes[ModuleIndex] = Module.AssetType;
-		CompiledData->ModuleNames[ModuleIndex] = Module.ModuleName;
-		CompiledData->ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
+		CompiledData.ModuleWeights[ModuleIndex] = Module.Settings.Weight;
+		CompiledData.ModuleMinSpawns[ModuleIndex] = Module.Settings.MinSpawns;
+		CompiledData.ModuleMaxSpawns[ModuleIndex] = Module.Settings.MaxSpawns;
+		CompiledData.ModuleAssets[ModuleIndex] = Module.Asset;
+		CompiledData.ModuleAssetTypes[ModuleIndex] = Module.AssetType;
+		CompiledData.ModuleNames[ModuleIndex] = Module.ModuleName;
+		CompiledData.ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
 
 		// Populate transform header and flattened transforms
-		const int32 TransformStartIndex = CompiledData->AllLocalTransforms.Num();
+		const int32 TransformStartIndex = CompiledData.AllLocalTransforms.Num();
 		const int32 TransformCount = Module.LocalTransforms.Num();
-		CompiledData->ModuleLocalTransformHeaders[ModuleIndex] = FIntPoint(TransformStartIndex, TransformCount);
-		CompiledData->AllLocalTransforms.Append(Module.LocalTransforms);
+		CompiledData.ModuleLocalTransformHeaders[ModuleIndex] = FIntPoint(TransformStartIndex, TransformCount);
+		CompiledData.AllLocalTransforms.Append(Module.LocalTransforms);
 
 		// Populate property header and flattened properties
-		const int32 PropertyStartIndex = CompiledData->AllModuleProperties.Num();
+		const int32 PropertyStartIndex = CompiledData.AllModuleProperties.Num();
 		const int32 PropertyCount = Module.Properties.Num();
-		CompiledData->ModulePropertyHeaders[ModuleIndex] = FIntPoint(PropertyStartIndex, PropertyCount);
-		CompiledData->AllModuleProperties.Append(Module.Properties);
+		CompiledData.ModulePropertyHeaders[ModuleIndex] = FIntPoint(PropertyStartIndex, PropertyCount);
+		CompiledData.AllModuleProperties.Append(Module.Properties);
 
 		// Copy module tags
-		CompiledData->ModuleTags[ModuleIndex] = Module.Tags;
+		CompiledData.ModuleTags[ModuleIndex] = FPCGExValencyModuleTags(Module.Tags);
 
 		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d, Properties=%d, Tags=%d",
 			ModuleIndex,
@@ -137,9 +134,9 @@ bool UPCGExValencyBondingRules::Compile()
 
 			if (const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(LayerName))
 			{
-				CompiledData->ModuleOrbitalMasks[MaskIndex] = LayerConfig->OrbitalMask;
-				CompiledData->ModuleBoundaryMasks[MaskIndex] = LayerConfig->BoundaryOrbitalMask;
-				CompiledData->ModuleWildcardMasks[MaskIndex] = LayerConfig->WildcardOrbitalMask;
+				CompiledData.ModuleOrbitalMasks[MaskIndex] = LayerConfig->OrbitalMask;
+				CompiledData.ModuleBoundaryMasks[MaskIndex] = LayerConfig->BoundaryOrbitalMask;
+				CompiledData.ModuleWildcardMasks[MaskIndex] = LayerConfig->WildcardOrbitalMask;
 
 				// Log orbital mask as binary for easier reading
 				FString OrbitalBits;
@@ -165,9 +162,9 @@ bool UPCGExValencyBondingRules::Compile()
 			}
 			else
 			{
-				CompiledData->ModuleOrbitalMasks[MaskIndex] = 0;
-				CompiledData->ModuleBoundaryMasks[MaskIndex] = 0;
-				CompiledData->ModuleWildcardMasks[MaskIndex] = 0;
+				CompiledData.ModuleOrbitalMasks[MaskIndex] = 0;
+				CompiledData.ModuleBoundaryMasks[MaskIndex] = 0;
+				CompiledData.ModuleWildcardMasks[MaskIndex] = 0;
 				PCGEX_VALENCY_VERBOSE(Compilation, "    Layer[%d] '%s': NO CONFIG (masks=0)", LayerIndex, *LayerName.ToString());
 			}
 		}
@@ -177,7 +174,7 @@ bool UPCGExValencyBondingRules::Compile()
 	for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)
 	{
 		const UPCGExValencyOrbitalSet* OrbitalSet = OrbitalSets[LayerIndex];
-		FPCGExValencyLayerCompiled& CompiledLayer = CompiledData->Layers[LayerIndex];
+		FPCGExValencyLayerCompiled& CompiledLayer = CompiledData.Layers[LayerIndex];
 
 		CompiledLayer.LayerName = OrbitalSet->LayerName;
 		CompiledLayer.OrbitalCount = OrbitalSet->Num();
@@ -216,7 +213,7 @@ bool UPCGExValencyBondingRules::Compile()
 	}
 
 	// Build fast lookup
-	CompiledData->BuildCandidateLookup();
+	CompiledData.BuildCandidateLookup();
 
 	// Build module property registry
 	VALENCY_LOG_SUBSECTION(Compilation, "Building Property Registries");
@@ -224,7 +221,7 @@ bool UPCGExValencyBondingRules::Compile()
 		TMap<FName, FPCGExPropertyRegistryEntry> ModulePropertiesMap;
 
 		// Scan all module properties
-		for (const FInstancedStruct& PropStruct : CompiledData->AllModuleProperties)
+		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
 		{
 			if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
 			{
@@ -236,23 +233,20 @@ bool UPCGExValencyBondingRules::Compile()
 		}
 
 		// Convert to array and sort by name for consistent ordering
-		ModulePropertiesMap.GenerateValueArray(CompiledData->ModulePropertyRegistry);
-		CompiledData->ModulePropertyRegistry.Sort([](const FPCGExPropertyRegistryEntry& A, const FPCGExPropertyRegistryEntry& B)
+		ModulePropertiesMap.GenerateValueArray(CompiledData.ModulePropertyRegistry);
+		CompiledData.ModulePropertyRegistry.Sort([](const FPCGExPropertyRegistryEntry& A, const FPCGExPropertyRegistryEntry& B)
 		{
 			return A.PropertyName.LexicalLess(B.PropertyName);
 		});
 
-		PCGEX_VALENCY_INFO(Compilation, "Module property registry: %d unique properties", CompiledData->ModulePropertyRegistry.Num());
-		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData->ModulePropertyRegistry)
+		PCGEX_VALENCY_INFO(Compilation, "Module property registry: %d unique properties", CompiledData.ModulePropertyRegistry.Num());
+		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData.ModulePropertyRegistry)
 		{
 			PCGEX_VALENCY_VERBOSE(Compilation, "  - %s (%s, output=%s)",
 				*Entry.PropertyName.ToString(),
 				*Entry.TypeName.ToString(),
 				Entry.bSupportsOutput ? TEXT("yes") : TEXT("no"));
 		}
-
-		// Copy to serialized asset property
-		ModulePropertyRegistry = CompiledData->ModulePropertyRegistry;
 	}
 
 	// Build pattern property registry
@@ -278,27 +272,24 @@ bool UPCGExValencyBondingRules::Compile()
 		}
 
 		// Convert to array and sort
-		PatternPropertiesMap.GenerateValueArray(CompiledData->PatternPropertyRegistry);
-		CompiledData->PatternPropertyRegistry.Sort([](const FPCGExPropertyRegistryEntry& A, const FPCGExPropertyRegistryEntry& B)
+		PatternPropertiesMap.GenerateValueArray(CompiledData.PatternPropertyRegistry);
+		CompiledData.PatternPropertyRegistry.Sort([](const FPCGExPropertyRegistryEntry& A, const FPCGExPropertyRegistryEntry& B)
 		{
 			return A.PropertyName.LexicalLess(B.PropertyName);
 		});
 
-		PCGEX_VALENCY_INFO(Compilation, "Pattern property registry: %d unique properties", CompiledData->PatternPropertyRegistry.Num());
-		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData->PatternPropertyRegistry)
+		PCGEX_VALENCY_INFO(Compilation, "Pattern property registry: %d unique properties", CompiledData.PatternPropertyRegistry.Num());
+		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData.PatternPropertyRegistry)
 		{
 			PCGEX_VALENCY_VERBOSE(Compilation, "  - %s (%s, output=%s)",
 				*Entry.PropertyName.ToString(),
 				*Entry.TypeName.ToString(),
 				Entry.bSupportsOutput ? TEXT("yes") : TEXT("no"));
 		}
-
-		// Copy to serialized asset property
-		PatternPropertyRegistry = CompiledData->PatternPropertyRegistry;
 	}
 
 	// Copy patterns (already compiled by builder, stored on this asset)
-	CompiledData->CompiledPatterns = Patterns;
+	CompiledData.CompiledPatterns = Patterns;
 	PCGEX_VALENCY_INFO(Compilation, "Patterns: %d total (%d exclusive, %d additive)",
 		Patterns.GetPatternCount(),
 		Patterns.ExclusivePatternIndices.Num(),
@@ -313,7 +304,14 @@ void UPCGExValencyBondingRules::PostLoad()
 {
 	Super::PostLoad();
 
-	// Recompile on load since CompiledData is not serialized
+	// If already compiled (serialized data), just rebuild the non-serialized lookup table
+	if (IsCompiled())
+	{
+		CompiledData.BuildCandidateLookup();
+		return;
+	}
+
+	// Otherwise compile if we have the required data
 	if (Modules.Num() > 0 && OrbitalSets.Num() > 0)
 	{
 		Compile();

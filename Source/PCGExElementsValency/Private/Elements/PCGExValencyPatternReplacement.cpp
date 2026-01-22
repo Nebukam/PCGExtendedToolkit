@@ -73,15 +73,10 @@ bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) 
 		return false;
 	}
 
-	const TSharedPtr<FPCGExValencyBondingRulesCompiled>& CompiledData = Context->BondingRules->CompiledData;
-	if (!CompiledData)
-	{
-		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Bonding Rules has no compiled data. Please rebuild."));
-		return false;
-	}
+	const FPCGExValencyBondingRulesCompiled& CompiledData = Context->BondingRules->CompiledData;
 
 	// Check for patterns - Pattern Replacement requires patterns to function
-	if (!CompiledData->CompiledPatterns.HasPatterns())
+	if (!CompiledData.CompiledPatterns.HasPatterns())
 	{
 		if (!Settings->bQuietNoPatterns)
 		{
@@ -90,7 +85,7 @@ bool FPCGExValencyPatternReplacementElement::PostBoot(FPCGExContext* InContext) 
 		return false;
 	}
 
-	Context->CompiledPatterns = &CompiledData->CompiledPatterns;
+	Context->CompiledPatterns = &CompiledData.CompiledPatterns;
 
 	// Register matcher factory from Settings
 	if (Settings->Matcher)
