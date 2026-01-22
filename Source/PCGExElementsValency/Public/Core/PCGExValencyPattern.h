@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StructUtils/InstancedStruct.h"
 #include "PCGExCommon.h"
 #include "Math/PCGExMathBounds.h"
 
@@ -67,6 +68,14 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternEntryCompiled
 	 */
 	UPROPERTY()
 	TArray<FIntVector> Adjacency;
+
+	/**
+	 * Properties attached to this pattern cage (not the proxied cage).
+	 * Pattern cages can have their own properties separate from the modules they proxy.
+	 * Access proxied cage properties via ModuleIndices -> BondingRules->GetModuleProperties().
+	 */
+	UPROPERTY()
+	TArray<FInstancedStruct> Properties;
 
 	/** Check if a module index matches this entry */
 	bool MatchesModule(int32 ModuleIndex) const

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/SoftObjectPath.h"
+#include "StructUtils/InstancedStruct.h"
 
 #include "PCGExValencyCommon.generated.h"
 
@@ -468,6 +469,13 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	/** Per-layer orbital configuration */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	TMap<FName, FPCGExValencyModuleLayerConfig> Layers;
+
+	/**
+	 * Compiled properties from cage property components.
+	 * Accessible at solver, matcher, and replacement stages.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
+	TArray<FInstancedStruct> Properties;
 
 	/** Check if this module can still be spawned given current spawn count */
 	bool CanSpawn(int32 CurrentSpawnCount) const

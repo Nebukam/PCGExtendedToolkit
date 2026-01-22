@@ -7,6 +7,8 @@
 #include "Cages/PCGExValencyCageNull.h"
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
+#include "Properties/PCGExCageProperty.h"
+#include "Core/PCGExCagePropertyCompiled.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -219,6 +221,9 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromCages(
 	TMap<FString, int32> ModuleKeyToIndex;
 	BuildModuleMap(CageData, TargetRules, OrbitalSet, ModuleKeyToIndex, Result);
 
+	// Step 2.5: Validate property name-type consistency across modules
+	ValidateModulePropertyTypes(TargetRules, Result);
+
 	// Step 3: Build neighbor relationships
 	BuildNeighborRelationships(CageData, ModuleKeyToIndex, TargetRules, OrbitalSet, Result);
 
@@ -290,6 +295,10 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 		Data.Settings = Cage->ModuleSettings;
 		Data.ModuleName = Cage->ModuleName;
 		Data.bPreserveLocalTransforms = Cage->bPreserveLocalTransforms;
+
+		// Collect properties from cage and its mirror sources (palettes act as data prefabs)
+		Data.Properties = GetEffectiveProperties(Cage);
+		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d properties collected", *Cage->GetCageDisplayName(), Data.Properties.Num());
 
 		// Compute orbital mask from connections
 		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
@@ -447,6 +456,9 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 				NewModule.bHasMaterialVariant = true;
 			}
 
+			// Copy cage properties to module
+			NewModule.Properties = Data.Properties;
+
 #if WITH_EDITORONLY_DATA
 			// Generate variant name for editor review
 			NewModule.VariantName = GenerateVariantName(Entry, Data.OrbitalMask, NewModule.bHasLocalTransform);
@@ -472,6 +484,62 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 	VALENCY_LOG_SECTION(Building, "MODULE MAP COMPLETE");
 	PCGEX_VALENCY_INFO(Building, "Total modules: %d", OutModuleKeyToIndex.Num());
+}
+
+void UPCGExValencyBondingRulesBuilder::ValidateModulePropertyTypes(
+	UPCGExValencyBondingRules* TargetRules,
+	FPCGExValencyBuildResult& OutResult)
+{
+	VALENCY_LOG_SECTION(Building, "VALIDATING MODULE PROPERTY TYPES");
+
+	// Map: PropertyName -> (StructType, first module name that defined it)
+	TMap<FName, TPair<const UScriptStruct*, FName>> NameToType;
+
+	for (int32 ModuleIndex = 0; ModuleIndex < TargetRules->Modules.Num(); ++ModuleIndex)
+	{
+		const FPCGExValencyModuleDefinition& Module = TargetRules->Modules[ModuleIndex];
+
+		for (const FInstancedStruct& Prop : Module.Properties)
+		{
+			// Get property name from the compiled property base
+			const FPCGExCagePropertyCompiled* Base = Prop.GetPtr<FPCGExCagePropertyCompiled>();
+			if (!Base)
+			{
+				continue;
+			}
+
+			const FName PropName = Base->PropertyName;
+			if (PropName.IsNone())
+			{
+				continue; // Unnamed properties don't participate in validation
+			}
+
+			const UScriptStruct* PropType = Prop.GetScriptStruct();
+
+			if (const auto* Existing = NameToType.Find(PropName))
+			{
+				if (Existing->Key != PropType)
+				{
+					OutResult.Errors.Add(FText::Format(
+						LOCTEXT("PropertyTypeConflict",
+							"Property name '{0}' has conflicting types across modules: '{1}' (from module '{2}') vs '{3}' (from module '{4}'). "
+							"Same property name must use same type across all cages."),
+						FText::FromName(PropName),
+						FText::FromString(Existing->Key->GetName()),
+						FText::FromName(Existing->Value),
+						FText::FromString(PropType->GetName()),
+						FText::FromName(Module.ModuleName.IsNone() ? FName(*FString::Printf(TEXT("Module_%d"), ModuleIndex)) : Module.ModuleName)
+					));
+				}
+			}
+			else
+			{
+				NameToType.Add(PropName, {PropType, Module.ModuleName.IsNone() ? FName(*FString::Printf(TEXT("Module_%d"), ModuleIndex)) : Module.ModuleName});
+			}
+		}
+	}
+
+	PCGEX_VALENCY_INFO(Building, "Validated %d unique property names", NameToType.Num());
 }
 
 void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
@@ -858,6 +926,104 @@ TArray<FPCGExValencyAssetEntry> UPCGExValencyBondingRulesBuilder::GetEffectiveAs
 		*Cage->GetCageDisplayName(), AllEntries.Num());
 
 	return AllEntries;
+}
+
+TArray<FInstancedStruct> UPCGExValencyBondingRulesBuilder::GetEffectiveProperties(const APCGExValencyCage* Cage)
+{
+	if (!Cage)
+	{
+		return {};
+	}
+
+	TArray<FInstancedStruct> AllProperties;
+
+	// Helper to collect properties from an actor's property components
+	auto CollectPropertiesFromActor = [](const AActor* Actor, TArray<FInstancedStruct>& OutProperties)
+	{
+		if (!Actor)
+		{
+			return;
+		}
+
+		TArray<UPCGExCagePropertyBase*> PropertyComponents;
+		Actor->GetComponents<UPCGExCagePropertyBase>(PropertyComponents);
+
+		for (UPCGExCagePropertyBase* PropComp : PropertyComponents)
+		{
+			if (PropComp)
+			{
+				FInstancedStruct Compiled;
+				if (PropComp->CompileProperty(Compiled))
+				{
+					OutProperties.Add(MoveTemp(Compiled));
+				}
+			}
+		}
+	};
+
+	// Start with cage's own properties
+	CollectPropertiesFromActor(Cage, AllProperties);
+	const int32 OwnPropertyCount = AllProperties.Num();
+
+	PCGEX_VALENCY_VERBOSE(Mirror, "  GetEffectiveProperties for '%s': %d own properties, %d mirror sources",
+		*Cage->GetCageDisplayName(), OwnPropertyCount, Cage->MirrorSources.Num());
+
+	// If no mirror sources, return early
+	if (Cage->MirrorSources.Num() == 0)
+	{
+		return AllProperties;
+	}
+
+	// Track visited sources to prevent infinite recursion
+	TSet<const AActor*> VisitedSources;
+	VisitedSources.Add(Cage);
+
+	// Lambda to collect properties from a source (with optional recursion)
+	TFunction<void(AActor*, bool)> CollectFromSource = [&](AActor* Source, bool bRecursive)
+	{
+		if (!Source)
+		{
+			return;
+		}
+		if (VisitedSources.Contains(Source))
+		{
+			return; // Cycle prevention
+		}
+		VisitedSources.Add(Source);
+
+		// Check if it's a cage
+		if (const APCGExValencyCage* SourceCage = Cast<APCGExValencyCage>(Source))
+		{
+			CollectPropertiesFromActor(SourceCage, AllProperties);
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source CAGE '%s': collecting properties", *SourceCage->GetCageDisplayName());
+
+			// Recursively collect from cage's mirror sources
+			if (bRecursive && SourceCage->MirrorSources.Num() > 0)
+			{
+				for (const TObjectPtr<AActor>& NestedSource : SourceCage->MirrorSources)
+				{
+					CollectFromSource(NestedSource, SourceCage->bRecursiveMirror);
+				}
+			}
+		}
+		// Check if it's an asset palette
+		else if (const APCGExValencyAssetPalette* SourcePalette = Cast<APCGExValencyAssetPalette>(Source))
+		{
+			CollectPropertiesFromActor(SourcePalette, AllProperties);
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source PALETTE '%s': collecting properties", *SourcePalette->GetPaletteDisplayName());
+		}
+	};
+
+	// Collect from all mirror sources
+	for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
+	{
+		CollectFromSource(Source, Cage->bRecursiveMirror);
+	}
+
+	PCGEX_VALENCY_VERBOSE(Mirror, "  GetEffectiveProperties for '%s': TOTAL %d properties (after mirror resolution)",
+		*Cage->GetCageDisplayName(), AllProperties.Num());
+
+	return AllProperties;
 }
 
 FString UPCGExValencyBondingRulesBuilder::GenerateVariantName(

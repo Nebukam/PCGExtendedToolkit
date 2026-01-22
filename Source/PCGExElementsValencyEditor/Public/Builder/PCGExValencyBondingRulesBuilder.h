@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "StructUtils/InstancedStruct.h"
 #include "Core/PCGExValencyBondingRules.h"
 
 #include "PCGExValencyBondingRulesBuilder.generated.h"
@@ -69,6 +70,9 @@ struct FPCGExValencyCageData
 
 	/** Whether this cage preserves local transforms */
 	bool bPreserveLocalTransforms = false;
+
+	/** Compiled properties from cage property components */
+	TArray<FInstancedStruct> Properties;
 
 	/** Per-orbital: module indices of valid neighbors (from connected cage's assets) */
 	TMap<int32, TArray<int32>> OrbitalToNeighborModules;
@@ -198,6 +202,15 @@ protected:
 	);
 
 	/**
+	 * Validate that property names map to consistent types across all modules.
+	 * Same property name with different types across cages = error.
+	 */
+	void ValidateModulePropertyTypes(
+		UPCGExValencyBondingRules* TargetRules,
+		FPCGExValencyBuildResult& OutResult
+	);
+
+	/**
 	 * Populate neighbor relationships for each module.
 	 */
 	void BuildNeighborRelationships(
@@ -221,6 +234,12 @@ protected:
 	 * Get effective asset entries for a cage (resolving mirror sources).
 	 */
 	TArray<FPCGExValencyAssetEntry> GetEffectiveAssetEntries(const APCGExValencyCage* Cage);
+
+	/**
+	 * Collect properties from a cage and its mirror sources.
+	 * Properties from palettes and mirrored cages are inherited.
+	 */
+	TArray<FInstancedStruct> GetEffectiveProperties(const APCGExValencyCage* Cage);
 
 	/**
 	 * Generate a variant name for a module based on its asset and configuration.

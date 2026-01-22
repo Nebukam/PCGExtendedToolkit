@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "StructUtils/InstancedStruct.h"
 #include "PCGExValencyCommon.h"
 #include "PCGExValencyOrbitalSet.h"
 #include "PCGExValencyPattern.h"
@@ -118,6 +119,16 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	/** Whether each module has local transform offsets */
 	TArray<bool> ModuleHasLocalTransform;
 
+	/**
+	 * Per-module property headers.
+	 * X = start index in AllModuleProperties, Y = count of properties.
+	 * Allows multiple properties per module with type-safe access.
+	 */
+	TArray<FIntPoint> ModulePropertyHeaders;
+
+	/** Flattened array of all compiled properties for all modules */
+	TArray<FInstancedStruct> AllModuleProperties;
+
 	/** Get a random local transform for a module based on seed */
 	FTransform GetModuleLocalTransform(int32 ModuleIndex, int32 Seed) const
 	{
@@ -148,6 +159,33 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	int32 GetModuleTransformCount(int32 ModuleIndex) const
 	{
 		return ModuleLocalTransformHeaders.IsValidIndex(ModuleIndex) ? ModuleLocalTransformHeaders[ModuleIndex].Y : 0;
+	}
+
+	/**
+	 * Get all properties for a module as a view into the flattened array.
+	 * @param ModuleIndex - Index of the module
+	 * @return Array view of the module's properties (empty if none)
+	 */
+	TConstArrayView<FInstancedStruct> GetModuleProperties(int32 ModuleIndex) const
+	{
+		if (!ModulePropertyHeaders.IsValidIndex(ModuleIndex))
+		{
+			return TConstArrayView<FInstancedStruct>();
+		}
+
+		const FIntPoint& Header = ModulePropertyHeaders[ModuleIndex];
+		if (Header.Y == 0 || !AllModuleProperties.IsValidIndex(Header.X))
+		{
+			return TConstArrayView<FInstancedStruct>();
+		}
+
+		return TConstArrayView<FInstancedStruct>(&AllModuleProperties[Header.X], Header.Y);
+	}
+
+	/** Get the number of properties for a module */
+	int32 GetModulePropertyCount(int32 ModuleIndex) const
+	{
+		return ModulePropertyHeaders.IsValidIndex(ModuleIndex) ? ModulePropertyHeaders[ModuleIndex].Y : 0;
 	}
 
 	/** Compiled layer data */
