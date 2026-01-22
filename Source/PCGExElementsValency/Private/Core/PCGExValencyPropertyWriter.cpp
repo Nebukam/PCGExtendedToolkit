@@ -6,15 +6,59 @@
 #include "Core/PCGExCagePropertyCompiledTypes.h"
 #include "Core/PCGExValencyLog.h"
 
-FPCGExValencyPropertyWriter::FPCGExValencyPropertyWriter(const FPCGExValencyPropertyWriterConfig& InConfig)
-	: Config(InConfig)
+int32 FPCGExValencyPropertyOutputSettings::AutoPopulateFromRules(const FPCGExValencyBondingRulesCompiled* CompiledRules)
 {
+	if (!CompiledRules || CompiledRules->ModuleCount == 0)
+	{
+		return 0;
+	}
+
+	// Collect existing enabled property names
+	TSet<FName> ExistingNames;
+	for (const FPCGExValencyPropertyOutputConfig& Config : Configs)
+	{
+		if (Config.bEnabled && !Config.PropertyName.IsNone())
+		{
+			ExistingNames.Add(Config.PropertyName);
+		}
+	}
+
+	// Collect unique property names that support output
+	TSet<FName> UniquePropertyNames;
+	for (int32 ModuleIndex = 0; ModuleIndex < CompiledRules->ModuleCount; ++ModuleIndex)
+	{
+		TConstArrayView<FInstancedStruct> ModuleProperties = CompiledRules->GetModuleProperties(ModuleIndex);
+		for (const FInstancedStruct& PropStruct : ModuleProperties)
+		{
+			if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
+			{
+				// Only add properties that support output and aren't already configured
+				if (Prop->SupportsOutput() && !Prop->PropertyName.IsNone() && !ExistingNames.Contains(Prop->PropertyName))
+				{
+					UniquePropertyNames.Add(Prop->PropertyName);
+				}
+			}
+		}
+	}
+
+	// Add new configs for each unique property
+	int32 AddedCount = 0;
+	for (const FName& PropName : UniquePropertyNames)
+	{
+		FPCGExValencyPropertyOutputConfig& NewConfig = Configs.AddDefaulted_GetRef();
+		NewConfig.bEnabled = true;
+		NewConfig.PropertyName = PropName;
+		// OutputAttributeName left empty - will use PropertyName as default
+		AddedCount++;
+	}
+
+	return AddedCount;
 }
 
 bool FPCGExValencyPropertyWriter::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledRules,
 	const TSharedRef<PCGExData::FFacade>& OutputFacade,
-	const TArray<FPCGExValencyPropertyOutputConfig>& OutputConfigs)
+	const FPCGExValencyPropertyOutputSettings& OutputSettings)
 {
 	if (!InCompiledRules)
 	{
@@ -22,9 +66,10 @@ bool FPCGExValencyPropertyWriter::Initialize(
 	}
 
 	CompiledRules = InCompiledRules;
+	Settings = OutputSettings;
 
 	// Initialize property writers from configs
-	for (const FPCGExValencyPropertyOutputConfig& OutputConfig : OutputConfigs)
+	for (const FPCGExValencyPropertyOutputConfig& OutputConfig : Settings.Configs)
 	{
 		if (!OutputConfig.IsValid())
 		{
@@ -67,25 +112,16 @@ bool FPCGExValencyPropertyWriter::Initialize(
 	}
 
 	// Create tags writer if configured
-	if (Config.bOutputTags)
+	if (Settings.bOutputModuleTags)
 	{
 		TagsWriter = OutputFacade->GetWritable<FString>(
-			Config.TagsAttributeName, FString(), true, PCGExData::EBufferInit::Inherit);
-		PCGEX_VALENCY_VERBOSE(Staging, "Created tags writer '%s'", *Config.TagsAttributeName.ToString());
+			Settings.ModuleTagsAttributeName, FString(), true, PCGExData::EBufferInit::Inherit);
+		PCGEX_VALENCY_VERBOSE(Staging, "Created tags writer '%s'", *Settings.ModuleTagsAttributeName.ToString());
 	}
 
 	PCGEX_VALENCY_INFO(Staging, "Initialized %d property outputs", WriterInstances.Num());
 
 	return HasOutputs();
-}
-
-bool FPCGExValencyPropertyWriter::Initialize(
-	const FPCGExValencyBondingRulesCompiled* InCompiledRules,
-	const TSharedRef<PCGExData::FFacade>& OutputFacade)
-{
-	// Legacy initialize - tags only, no property outputs
-	TArray<FPCGExValencyPropertyOutputConfig> EmptyConfigs;
-	return Initialize(InCompiledRules, OutputFacade, EmptyConfigs);
 }
 
 void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 ModuleIndex)

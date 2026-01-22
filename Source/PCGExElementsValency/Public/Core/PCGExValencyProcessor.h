@@ -205,18 +205,16 @@ namespace PCGExValencyMT
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 
 		/**
-		 * Initialize the property writer with the given configuration.
+		 * Initialize the property writer with the given output settings.
 		 * Call during OnProcessingPreparationComplete in derived batches.
 		 *
-		 * @param Config The property writer configuration (tags output)
 		 * @param CompiledRules The compiled bonding rules to scan for properties
-		 * @param OutputConfigs Array of property output configurations
+		 * @param OutputSettings The property output settings struct
 		 * @return true if initialization succeeded
 		 */
 		bool InitializePropertyWriter(
-			const FPCGExValencyPropertyWriterConfig& Config,
 			const FPCGExValencyBondingRulesCompiled* CompiledRules,
-			const TArray<FPCGExValencyPropertyOutputConfig>& OutputConfigs = {}
+			const FPCGExValencyPropertyOutputSettings& OutputSettings
 		);
 	};
 

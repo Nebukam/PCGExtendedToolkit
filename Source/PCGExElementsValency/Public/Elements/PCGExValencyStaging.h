@@ -109,23 +109,18 @@ public:
 
 	// ========== Property Output ==========
 
-	/**
-	 * Properties to output as point attributes.
-	 * Each config maps a cage property name to an output attribute name.
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable, TitleProperty="PropertyName"))
-	TArray<FPCGExValencyPropertyOutputConfig> PropertyOutputConfigs;
+	/** Property output configuration (cage properties and module tags) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExValencyPropertyOutputSettings PropertyOutput;
 
+#if WITH_EDITOR
 	/**
-	 * If enabled, outputs module actor tags as a single comma-separated string attribute.
-	 * Tags are inherited from cage + palette sources.
+	 * Auto-populate property output configs from bonding rules.
+	 * Scans all modules in the bonding rules and adds configs for each unique property.
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable))
-	bool bOutputModuleTags = false;
-
-	/** Attribute name for the module tags output */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable, EditCondition="bOutputModuleTags"))
-	FName ModuleTagsAttributeName = FName("ModuleTags");
+	UFUNCTION(CallInEditor, Category = "Settings|Property Output", meta=(DisplayName="Auto-Populate from Bonding Rules"))
+	void AutoPopulatePropertyOutputConfigs();
+#endif
 
 	// ========== Fixed Picks ==========
 

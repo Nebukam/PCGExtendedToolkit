@@ -19,12 +19,16 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPropertyOutputConfig
 {
 	GENERATED_BODY()
 
-	/** Property name to output (must match a property in bonding rules) */
+	/** Whether this output config is enabled */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output")
+	bool bEnabled = true;
+
+	/** Property name to output (must match a property in bonding rules) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output", meta=(EditCondition="bEnabled"))
 	FName PropertyName;
 
 	/** Attribute name for output (if empty, uses PropertyName) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Output", meta=(EditCondition="bEnabled"))
 	FName OutputAttributeName;
 
 	/**
@@ -43,20 +47,57 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPropertyOutputConfig
 
 	bool IsValid() const
 	{
-		return !PropertyName.IsNone() && !GetEffectiveOutputName().IsNone();
+		return bEnabled && !PropertyName.IsNone() && !GetEffectiveOutputName().IsNone();
 	}
 };
 
 /**
- * Configuration for property output (tags output).
+ * Reusable settings struct for property output configuration.
+ * Can be embedded in any node that needs to output cage properties.
+ * Includes both individual property configs and module tags output.
  */
-struct PCGEXELEMENTSVALENCY_API FPCGExValencyPropertyWriterConfig
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyPropertyOutputSettings
 {
-	/** Output module tags as comma-separated string attribute */
-	bool bOutputTags = false;
+	GENERATED_BODY()
 
-	/** Attribute name for tags output */
-	FName TagsAttributeName = FName("ModuleTags");
+	/**
+	 * Properties to output as point attributes.
+	 * Each config maps a cage property name to an output attribute name.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property Output", meta=(TitleProperty="PropertyName"))
+	TArray<FPCGExValencyPropertyOutputConfig> Configs;
+
+	/**
+	 * If enabled, outputs module actor tags as a single comma-separated string attribute.
+	 * Tags are inherited from cage + palette sources.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property Output")
+	bool bOutputModuleTags = false;
+
+	/** Attribute name for the module tags output */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property Output", meta=(EditCondition="bOutputModuleTags"))
+	FName ModuleTagsAttributeName = FName("ModuleTags");
+
+	/** Check if any outputs are configured */
+	bool HasOutputs() const
+	{
+		if (bOutputModuleTags) { return true; }
+		for (const FPCGExValencyPropertyOutputConfig& Config : Configs)
+		{
+			if (Config.IsValid()) { return true; }
+		}
+		return false;
+	}
+
+	/**
+	 * Auto-populate configs from compiled bonding rules.
+	 * Adds configs for all unique properties that support output.
+	 * Skips properties already configured (enabled configs only).
+	 * @param CompiledRules The compiled bonding rules to scan
+	 * @return Number of configs added
+	 */
+	int32 AutoPopulateFromRules(const FPCGExValencyBondingRulesCompiled* CompiledRules);
 };
 
 /**
@@ -65,39 +106,29 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPropertyWriterConfig
  * property-owned output interface.
  *
  * Usage:
- * 1. Create instance
- * 2. Call Initialize() during boot phase with output configs
+ * 1. Create instance with settings
+ * 2. Call Initialize() during boot phase
  * 3. Call WriteModuleProperties() during processing for each point
  */
 class PCGEXELEMENTSVALENCY_API FPCGExValencyPropertyWriter
 {
 public:
 	FPCGExValencyPropertyWriter() = default;
-	explicit FPCGExValencyPropertyWriter(const FPCGExValencyPropertyWriterConfig& InConfig);
 
 	/**
-	 * Initialize writers from compiled rules with output configs.
+	 * Initialize writers from compiled rules using output settings.
 	 * Creates writer instances for each configured property.
 	 * Call during OnProcessingPreparationComplete or similar boot phase.
 	 *
 	 * @param InCompiledRules The compiled bonding rules to scan
 	 * @param OutputFacade The facade to create writers on
-	 * @param OutputConfigs Array of property output configurations
+	 * @param OutputSettings The property output settings
 	 * @return true if at least one output was initialized
 	 */
 	bool Initialize(
 		const FPCGExValencyBondingRulesCompiled* InCompiledRules,
 		const TSharedRef<PCGExData::FFacade>& OutputFacade,
-		const TArray<FPCGExValencyPropertyOutputConfig>& OutputConfigs
-	);
-
-	/**
-	 * Legacy initialize for tags-only output.
-	 * @deprecated Use Initialize with OutputConfigs instead
-	 */
-	bool Initialize(
-		const FPCGExValencyBondingRulesCompiled* InCompiledRules,
-		const TSharedRef<PCGExData::FFacade>& OutputFacade
+		const FPCGExValencyPropertyOutputSettings& OutputSettings
 	);
 
 	/**
@@ -112,11 +143,12 @@ public:
 	/** Check if this writer has any active outputs */
 	bool HasOutputs() const;
 
-	/** Get the tags writer (for legacy support) */
+	/** Get the tags writer */
 	TSharedPtr<PCGExData::TBuffer<FString>> GetTagsWriter() const { return TagsWriter; }
 
 protected:
-	FPCGExValencyPropertyWriterConfig Config;
+	/** Cached output settings */
+	FPCGExValencyPropertyOutputSettings Settings;
 
 	/** Cached reference to compiled rules */
 	const FPCGExValencyBondingRulesCompiled* CompiledRules = nullptr;
@@ -127,7 +159,7 @@ protected:
 	 */
 	TMap<FName, FInstancedStruct> WriterInstances;
 
-	/** Tags writer (legacy) */
+	/** Tags writer */
 	TSharedPtr<PCGExData::TBuffer<FString>> TagsWriter;
 
 	/**

@@ -3,6 +3,7 @@
 
 #include "Elements/PCGExValencyStaging.h"
 
+#include "Core/PCGExCagePropertyCompiled.h"
 #include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"
@@ -27,6 +28,48 @@ void UPCGExValencyStagingSettings::PostInitProperties()
 	}
 	Super::PostInitProperties();
 }
+
+#if WITH_EDITOR
+void UPCGExValencyStagingSettings::AutoPopulatePropertyOutputConfigs()
+{
+	// Load bonding rules if not already loaded
+	UPCGExValencyBondingRules* LoadedRules = BondingRules.LoadSynchronous();
+	if (!LoadedRules)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AutoPopulatePropertyOutputConfigs: No Bonding Rules set."));
+		return;
+	}
+
+	// Compile if needed
+	if (!LoadedRules->IsCompiled())
+	{
+		if (!LoadedRules->Compile())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AutoPopulatePropertyOutputConfigs: Failed to compile Bonding Rules."));
+			return;
+		}
+	}
+
+	const FPCGExValencyBondingRulesCompiled* CompiledRules = LoadedRules->CompiledData.Get();
+	if (!CompiledRules)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AutoPopulatePropertyOutputConfigs: No compiled data available."));
+		return;
+	}
+
+	const int32 AddedCount = PropertyOutput.AutoPopulateFromRules(CompiledRules);
+
+	if (AddedCount > 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("AutoPopulatePropertyOutputConfigs: Added %d property output configs."), AddedCount);
+		Modify();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("AutoPopulatePropertyOutputConfigs: No new properties found to add."));
+	}
+}
+#endif
 
 TArray<FPCGPinProperties> UPCGExValencyStagingSettings::InputPinProperties() const
 {
@@ -727,19 +770,14 @@ namespace PCGExValencyStaging
 			ModuleNameWriter = OutputFacade->GetWritable<FName>(Settings->ModuleNameAttributeName, NAME_None, true, PCGExData::EBufferInit::Inherit);
 		}
 
-		// Initialize property writer via base class helper
+		// Initialize property writer
 		if (Context->BondingRules && Context->BondingRules->CompiledData)
 		{
-			FPCGExValencyPropertyWriterConfig PropertyConfig;
-			PropertyConfig.bOutputTags = Settings->bOutputModuleTags;
-			PropertyConfig.TagsAttributeName = Settings->ModuleTagsAttributeName;
-
-			// Create property writer and initialize with output configs
-			PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>(PropertyConfig);
+			PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>();
 			PropertyWriter->Initialize(
 				Context->BondingRules->CompiledData.Get(),
 				VtxDataFacade,
-				Settings->PropertyOutputConfigs);
+				Settings->PropertyOutput);
 		}
 
 		// Get fixed pick reader and create filter cache if enabled

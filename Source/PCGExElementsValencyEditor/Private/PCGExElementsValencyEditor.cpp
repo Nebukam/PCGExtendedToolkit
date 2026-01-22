@@ -4,7 +4,9 @@
 #include "PCGExElementsValencyEditor.h"
 
 #include "EditorModeRegistry.h"
+#include "PCGExAssetTypesMacros.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
+#include "Details/PCGExPropertyOutputConfigCustomization.h"
 
 void FPCGExElementsValencyEditorModule::StartupModule()
 {
@@ -18,9 +20,9 @@ void FPCGExElementsValencyEditorModule::StartupModule()
 		true // Visible in mode toolbar
 	);
 
-	// Property customizations will be registered here
-	// PCGEX_REGISTER_CUSTO_START
-	// PCGEX_REGISTER_CUSTO("StructName", FCustomizationClass)
+	// Property customizations
+	PCGEX_REGISTER_CUSTO_START
+	PCGEX_REGISTER_CUSTO("PCGExValencyPropertyOutputConfig", FPCGExPropertyOutputConfigCustomization)
 }
 
 void FPCGExElementsValencyEditorModule::ShutdownModule()
