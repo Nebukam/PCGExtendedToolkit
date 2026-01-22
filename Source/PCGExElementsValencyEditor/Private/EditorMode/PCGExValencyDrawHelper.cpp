@@ -42,13 +42,31 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 
 	// Null cages (placeholders) are valid without orbital sets when not participating in patterns
 	// Non-participating null cages have their own debug sphere component, no additional drawing needed
+	// For participating null cages, we cache the mode color to use for all orbital arrows
+	const APCGExValencyCageNull* SelfAsNullCage = nullptr;
+	FLinearColor NullCageModeColor = FLinearColor::White;
+	
 	if (Cage->IsNullCage())
 	{
-		if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(Cage))
+		SelfAsNullCage = Cast<APCGExValencyCageNull>(Cage);
+		if (SelfAsNullCage)
 		{
-			if (!NullCage->IsParticipatingInPatterns())
+			if (!SelfAsNullCage->IsParticipatingInPatterns())
 			{
 				return; // Passive placeholder - drawn by sphere component only
+			}
+			// Cache the mode color for orbital drawing
+			switch (SelfAsNullCage->GetPlaceholderMode())
+			{
+			case EPCGExPlaceholderMode::Boundary:
+				NullCageModeColor = Settings->BoundaryConnectionColor;
+				break;
+			case EPCGExPlaceholderMode::Wildcard:
+				NullCageModeColor = Settings->WildcardConnectionColor;
+				break;
+			case EPCGExPlaceholderMode::Any:
+				NullCageModeColor = Settings->AnyConnectionColor;
+				break;
 			}
 			// Participating null cages fall through to draw their orbitals
 		}
@@ -131,9 +149,28 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 			bool bDrawArrowhead = true;
 			FVector ArrowEnd;
 
-			if (ConnectedCage->IsNullCage())
+			// If the source cage is a null cage, use its mode color for all orbitals
+			if (SelfAsNullCage)
 			{
-				// Connection to null cage (placeholder): color based on mode, dashed, no arrowhead
+				ArrowColor = NullCageModeColor;
+				bDashed = true;
+				bDrawArrowhead = true; // Show direction for null cage orbitals
+
+				// Arrow ends at connected cage's surface or midpoint
+				if (ConnectedCage->IsNullCage())
+				{
+					const float TargetSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
+					const float DistanceToSurface = ConnectionDistance - TargetSphereRadius;
+					ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, StartOffset + 10.0f);
+				}
+				else
+				{
+					ArrowEnd = CageLocation + ToConnected * (ConnectionDistance * 0.5f);
+				}
+			}
+			else if (ConnectedCage->IsNullCage())
+			{
+				// Connection to null cage (placeholder): color based on target's mode, dashed, no arrowhead
 				if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(ConnectedCage))
 				{
 					switch (NullCage->GetPlaceholderMode())
@@ -188,7 +225,9 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 		{
 			// No connection: draw dashed thin line along orbital direction at full probe radius
 			// with arrowhead to show direction
-			DrawConnection(PDI, CageLocation, WorldDir, ProbeRadius, Settings->NoConnectionColor, true, true);
+			// For null cages, use the mode color; for regular cages, use NoConnectionColor
+			const FLinearColor NoConnColor = SelfAsNullCage ? NullCageModeColor : Settings->NoConnectionColor;
+			DrawConnection(PDI, CageLocation, WorldDir, ProbeRadius, NoConnColor, true, true);
 		}
 	}
 }
