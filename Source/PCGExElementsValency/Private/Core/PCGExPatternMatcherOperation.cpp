@@ -166,9 +166,6 @@ void UPCGExPatternMatcherFactory::InitOperation(const TSharedPtr<FPCGExPatternMa
 
 		const FPCGExValencyPatternCompiled& Pattern = Patterns->Patterns[PatternIndex];
 
-		// TODO: Get actual tags from compiled pattern data when available
-		TArray<FName> PatternTags;
-
-		return PassesPatternFilter(Pattern, PatternTags);
+		return PassesPatternFilter(Pattern, Pattern.Settings.Tags);
 	};
 }

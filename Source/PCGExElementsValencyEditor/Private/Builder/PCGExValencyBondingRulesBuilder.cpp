@@ -1151,6 +1151,12 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 	OutPattern.Settings.TransformMode = RootSettings.TransformMode;
 	OutPattern.ReplacementAsset = RootSettings.ReplacementAsset;
 
+	// Copy actor tags from root cage for pattern filtering
+	OutPattern.Settings.Tags = RootCage->Tags;
+
+	// Store root cage transform for rotated pattern matching
+	OutPattern.RootTransform = RootCage->GetActorTransform();
+
 	// Resolve SwapToModuleName to module index
 	if (OutPattern.Settings.OutputStrategy == EPCGExPatternOutputStrategy::Swap && !RootSettings.SwapToModuleName.IsNone())
 	{
