@@ -96,9 +96,6 @@ void FValencyReferenceTracker::OnMirrorSourcesChanged(APCGExValencyCage* Cage)
 			AddDependency(Cage, Source);
 		}
 	}
-
-	UE_LOG(LogTemp, Verbose, TEXT("Valency: Updated dependency graph for cage '%s' MirrorSources change"),
-		*Cage->GetCageDisplayName());
 }
 
 void FValencyReferenceTracker::OnProxiedCagesChanged(APCGExValencyCagePattern* PatternCage)
@@ -119,9 +116,6 @@ void FValencyReferenceTracker::OnProxiedCagesChanged(APCGExValencyCagePattern* P
 			AddDependency(PatternCage, ProxiedCage);
 		}
 	}
-
-	UE_LOG(LogTemp, Verbose, TEXT("Valency: Updated dependency graph for pattern cage '%s' ProxiedCages change"),
-		*PatternCage->GetCageDisplayName());
 }
 
 void FValencyReferenceTracker::OnActorRemoved(AActor* Actor)
@@ -142,8 +136,6 @@ void FValencyReferenceTracker::OnActorRemoved(AActor* Actor)
 			return DepPtr.Get() == Actor;
 		});
 	}
-
-	UE_LOG(LogTemp, Verbose, TEXT("Valency: Removed actor from dependency graph"));
 }
 
 void FValencyReferenceTracker::RemoveAllEdgesFrom(AActor* Dependent)

@@ -115,8 +115,8 @@ public:
 	/** Initialize orbitals from the orbital set */
 	void InitializeOrbitalsFromSet();
 
-	/** Detect and connect to nearby cages using probe radius */
-	virtual void DetectNearbyConnections();
+	/** Detect and connect to nearby cages using probe radius. Returns true if connections changed. */
+	virtual bool DetectNearbyConnections();
 
 protected:
 	/**
@@ -262,6 +262,15 @@ protected:
 
 	/** Volumes containing this cage before drag started (for membership change detection) */
 	TArray<TWeakObjectPtr<AValencyContextVolume>> VolumesBeforeDrag;
+
+	/** Auto-connections before drag started (for connection change detection) */
+	TArray<TWeakObjectPtr<APCGExValencyCageBase>> ConnectionsBeforeDrag;
+
+	/** Capture current auto-connections state (for later comparison) */
+	void CaptureConnectionState(TArray<TWeakObjectPtr<APCGExValencyCageBase>>& OutConnections) const;
+
+	/** Check if current connections differ from captured state */
+	bool HaveConnectionsChanged(const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& OldConnections) const;
 
 	/** Update connections during drag using spatial registry */
 	void UpdateConnectionsDuringDrag();

@@ -160,10 +160,11 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 		// Continuous drag - track state and do throttled live updates
 		if (!bIsDragging)
 		{
-			// Drag just started - capture current state
+			// Drag just started - capture current state BEFORE any updates
 			bIsDragging = true;
 			DragStartPosition = LastDragUpdatePosition;
 			VolumesBeforeDrag = ContainingVolumes; // Capture volume membership before drag
+			CaptureConnectionState(ConnectionsBeforeDrag); // Capture connections before drag
 		}
 
 		// Check if we've moved enough to warrant an update
@@ -186,12 +187,16 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 			FPCGExValencyCageSpatialRegistry::Get(World).UpdateCagePosition(this, DragStartPosition, CurrentPosition);
 		}
 
-		// Capture old volumes before refresh (only valid if we had a proper drag sequence)
+		// Capture old state before refresh (only valid if we had a proper drag sequence)
 		TArray<TWeakObjectPtr<AValencyContextVolume>> OldVolumes = VolumesBeforeDrag;
+		TArray<TWeakObjectPtr<APCGExValencyCageBase>> OldConnections = ConnectionsBeforeDrag;
 
 		// Position changed - refresh volumes and connections
 		RefreshContainingVolumes();
-		DetectNearbyConnections();
+		DetectNearbyConnections(); // Update to final state
+
+		// Compare connections with drag start state (not the intermediate drag state)
+		const bool bConnectionsChanged = bWasDragging && HaveConnectionsChanged(OldConnections);
 
 		// Check for volume membership changes and trigger auto-rebuild if needed
 		// Only do this if we properly captured the "before" state during drag start
@@ -200,16 +205,18 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 			HandleVolumeMembershipChange(OldVolumes);
 		}
 
-		// IMPORTANT: Notify affected cages BEFORE requesting rebuild
-		// This ensures other cages (like pattern roots) update their connections
-		// before the rebuild processes the dirty state
-		NotifyAffectedCagesOfMovement(DragStartPosition, CurrentPosition);
+		// Trigger rebuild if this cage's connections changed during the entire drag operation
+		if (bConnectionsChanged)
+		{
+			RequestRebuild(EValencyRebuildReason::ConnectionChange);
+		}
 
-		// Now trigger rebuild after all connections are updated
-		RequestRebuild(EValencyRebuildReason::Movement);
+		// Notify affected cages so they can update their connections
+		NotifyAffectedCagesOfMovement(DragStartPosition, CurrentPosition);
 
 		LastDragUpdatePosition = CurrentPosition;
 		VolumesBeforeDrag.Empty(); // Clear after use
+		ConnectionsBeforeDrag.Empty(); // Clear after use
 	}
 }
 
@@ -471,25 +478,25 @@ void APCGExValencyCageBase::InitializeOrbitalsFromSet()
 	}
 }
 
-void APCGExValencyCageBase::DetectNearbyConnections()
+bool APCGExValencyCageBase::DetectNearbyConnections()
 {
 	const float Radius = GetEffectiveProbeRadius();
 	if (Radius <= 0.0f)
 	{
 		// Radius 0 = receive-only, don't detect
-		return;
+		return false;
 	}
 
 	const UPCGExValencyOrbitalSet* OrbitalSet = GetEffectiveOrbitalSet();
 	if (!OrbitalSet || OrbitalSet->Num() == 0)
 	{
-		return;
+		return false;
 	}
 
 	UWorld* World = GetWorld();
 	if (!World)
 	{
-		return;
+		return false;
 	}
 
 	const FVector MyLocation = GetActorLocation();
@@ -499,7 +506,7 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
 	if (!OrbitalResolver.BuildFrom(OrbitalSet))
 	{
-		return;
+		return false;
 	}
 
 	// Build set of cages that are manual targets (excluded from auto-detection)
@@ -513,6 +520,14 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 				ManualTargets.Add(ManualCage);
 			}
 		}
+	}
+
+	// Capture old connections for change detection
+	TArray<TWeakObjectPtr<APCGExValencyCageBase>> OldConnections;
+	OldConnections.Reserve(Orbitals.Num());
+	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
+	{
+		OldConnections.Add(Orbital.AutoConnectedCage);
 	}
 
 	// Clear existing auto-connections (manual connections are preserved)
@@ -570,6 +585,16 @@ void APCGExValencyCageBase::DetectNearbyConnections()
 			}
 		}
 	}
+
+	// Check if connections changed
+	for (int32 i = 0; i < Orbitals.Num(); ++i)
+	{
+		if (OldConnections[i].Get() != Orbitals[i].AutoConnectedCage.Get())
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 int32 APCGExValencyCageBase::CleanupManualConnections()
@@ -596,13 +621,11 @@ void APCGExValencyCageBase::OnRelatedCageMoved(APCGExValencyCageBase* MovedCage)
 		return;
 	}
 
-	// The spatial registry pre-filters to only call us if we're potentially affected,
-	// so we can directly refresh our connections
-	DetectNearbyConnections();
-
-	// This cage's connections may have changed due to the other cage moving,
-	// so we also need to request a rebuild to ensure patterns/rules are updated
-	RequestRebuild(EValencyRebuildReason::ConnectionChange);
+	// Refresh connections and trigger rebuild only if connections actually changed
+	if (DetectNearbyConnections())
+	{
+		RequestRebuild(EValencyRebuildReason::ConnectionChange);
+	}
 }
 
 void APCGExValencyCageBase::NotifyAllCagesOfMovement()
@@ -629,6 +652,35 @@ void APCGExValencyCageBase::NotifyAllCagesOfMovement()
 void APCGExValencyCageBase::SetDebugComponentsVisible(bool bVisible)
 {
 	// Base implementation does nothing - subclasses override to hide their specific components
+}
+
+void APCGExValencyCageBase::CaptureConnectionState(TArray<TWeakObjectPtr<APCGExValencyCageBase>>& OutConnections) const
+{
+	OutConnections.Empty(Orbitals.Num());
+	for (const FPCGExValencyCageOrbital& Orbital : Orbitals)
+	{
+		OutConnections.Add(Orbital.AutoConnectedCage);
+	}
+}
+
+bool APCGExValencyCageBase::HaveConnectionsChanged(const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& OldConnections) const
+{
+	// If orbital count changed, connections definitely changed
+	if (OldConnections.Num() != Orbitals.Num())
+	{
+		return true;
+	}
+
+	// Compare each orbital's auto-connection
+	for (int32 i = 0; i < Orbitals.Num(); ++i)
+	{
+		if (OldConnections[i].Get() != Orbitals[i].AutoConnectedCage.Get())
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void APCGExValencyCageBase::UpdateConnectionsDuringDrag()

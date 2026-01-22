@@ -8,6 +8,7 @@
 #include "Editor.h"
 #include "Selection.h"
 #include "LevelEditorViewport.h"
+#include "UnrealEdGlobals.h"
 
 #include "EditorMode/PCGExValencyDrawHelper.h"
 #include "Cages/PCGExValencyCageBase.h"
@@ -53,6 +54,9 @@ void FPCGExValencyCageEditorMode::Enter()
 		{
 			OnSelectionChanged();
 		});
+
+		// Bind to Undo/Redo for handling state restoration
+		OnPostUndoRedoHandle = FEditorDelegates::PostUndoRedo.AddRaw(this, &FPCGExValencyCageEditorMode::OnPostUndoRedo);
 	}
 
 	// Collect and fully initialize all cages
@@ -89,9 +93,12 @@ void FPCGExValencyCageEditorMode::Exit()
 		GEditor->OnLevelActorDeleted().Remove(OnActorDeletedHandle);
 		GEditor->GetSelectedActors()->SelectionChangedEvent.Remove(OnSelectionChangedHandle);
 	}
+	FEditorDelegates::PostUndoRedo.Remove(OnPostUndoRedoHandle);
+
 	OnActorAddedHandle.Reset();
 	OnActorDeletedHandle.Reset();
 	OnSelectionChangedHandle.Reset();
+	OnPostUndoRedoHandle.Reset();
 
 	// Clear tracking state
 	AssetTracker.Reset();
@@ -223,15 +230,7 @@ bool FPCGExValencyCageEditorMode::InputKey(FEditorViewportClient* ViewportClient
 		// Ctrl+Shift+C: Cleanup stale manual connections
 		if (Key == EKeys::C && ViewportClient->IsCtrlPressed() && ViewportClient->IsShiftPressed())
 		{
-			const int32 RemovedCount = CleanupAllManualConnections();
-			if (RemovedCount > 0)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Valency: Cleaned up %d stale manual connection(s)"), RemovedCount);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Valency: No stale manual connections found"));
-			}
+			CleanupAllManualConnections();
 			return true;
 		}
 	}
@@ -598,6 +597,47 @@ void FPCGExValencyCageEditorMode::OnSelectionChanged()
 			}
 		}
 	}
+}
+
+void FPCGExValencyCageEditorMode::OnPostUndoRedo()
+{
+	// After Undo/Redo, the level state may have changed in ways that bypass OnLevelActorAdded/Deleted.
+	// We need to:
+	// 1. Re-collect cages (some may have been added/removed by undo)
+	// 2. Refresh all cage connections
+	// 3. Mark all volumes dirty to trigger rebuild
+
+	// Re-collect from level to catch any added/removed actors
+	CollectCagesFromLevel();
+	CollectVolumesFromLevel();
+	CollectPalettesFromLevel();
+
+	// Rebuild dependency graph
+	ReferenceTracker.RebuildDependencyGraph();
+
+	// Refresh ALL cage connections - undo/redo can affect any cage
+	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	{
+		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		{
+			if (!Cage->IsNullCage())
+			{
+				Cage->RefreshContainingVolumes();
+				Cage->DetectNearbyConnections();
+			}
+		}
+	}
+
+	// Mark ALL volumes dirty to trigger rebuild with fresh data
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+	{
+		if (AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			DirtyStateManager.MarkVolumeDirty(Volume, EValencyDirtyFlags::Structure);
+		}
+	}
+
+	RedrawViewports();
 }
 
 void FPCGExValencyCageEditorMode::SetAllCageDebugComponentsVisible(bool bVisible)

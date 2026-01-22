@@ -200,17 +200,18 @@ void APCGExValencyCagePattern::SetDebugComponentsVisible(bool bVisible)
 	}
 }
 
-void APCGExValencyCagePattern::DetectNearbyConnections()
+bool APCGExValencyCagePattern::DetectNearbyConnections()
 {
 	// Call base class implementation (uses ShouldConsiderCageForConnection filter)
-	Super::DetectNearbyConnections();
+	const bool bChanged = Super::DetectNearbyConnections();
 
 	// Notify pattern network that connections may have changed
-	NotifyPatternNetworkChanged();
+	if (bChanged)
+	{
+		NotifyPatternNetworkChanged();
+	}
 
-	// Note: Don't call TriggerAutoRebuildIfNeeded() here - connection detection happens
-	// during mode entry and other batch operations. The dirty state system handles
-	// rebuild triggering via PCGEX_ValencyRebuild metadata on properties.
+	return bChanged;
 }
 
 bool APCGExValencyCagePattern::ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const

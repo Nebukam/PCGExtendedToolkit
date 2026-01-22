@@ -424,10 +424,13 @@ void APCGExValencyCage::OnAssetRegistrationChanged()
 	// Mark as needing save
 	Modify();
 
-	// Refresh ghost meshes for cages/patterns that depend on this cage (visuals only, no rebuild to avoid recursion)
+	// Request rebuild for this cage (assets changed)
+	RequestRebuild(EValencyRebuildReason::AssetChange);
+
+	// Propagate to dependent cages/patterns (refreshes ghosts and triggers rebuild cascade)
 	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 	{
-		Tracker->PropagateContentChange(this, /*bRefreshGhosts=*/true, /*bTriggerRebuild=*/false);
+		Tracker->PropagateContentChange(this, /*bRefreshGhosts=*/true, /*bTriggerRebuild=*/true);
 	}
 
 	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT

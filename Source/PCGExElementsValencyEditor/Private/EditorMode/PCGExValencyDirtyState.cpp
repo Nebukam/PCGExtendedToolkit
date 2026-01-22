@@ -40,9 +40,6 @@ void FValencyDirtyStateManager::MarkCageDirty(APCGExValencyCageBase* Cage, EVale
 	// Merge with existing flags
 	EValencyDirtyFlags& ExistingFlags = DirtyCages.FindOrAdd(Cage);
 	ExistingFlags |= Flags;
-
-	UE_LOG(LogTemp, Verbose, TEXT("Valency: Marked cage '%s' dirty with flags 0x%02X"),
-		*Cage->GetCageDisplayName(), static_cast<uint8>(Flags));
 }
 
 void FValencyDirtyStateManager::MarkPaletteDirty(APCGExValencyAssetPalette* Palette, EValencyDirtyFlags Flags)
@@ -55,9 +52,6 @@ void FValencyDirtyStateManager::MarkPaletteDirty(APCGExValencyAssetPalette* Pale
 	// Merge with existing flags
 	EValencyDirtyFlags& ExistingFlags = DirtyPalettes.FindOrAdd(Palette);
 	ExistingFlags |= Flags;
-
-	UE_LOG(LogTemp, Verbose, TEXT("Valency: Marked palette '%s' dirty with flags 0x%02X"),
-		*Palette->GetPaletteDisplayName(), static_cast<uint8>(Flags));
 }
 
 void FValencyDirtyStateManager::MarkVolumeDirty(AValencyContextVolume* Volume, EValencyDirtyFlags Flags)
@@ -70,9 +64,6 @@ void FValencyDirtyStateManager::MarkVolumeDirty(AValencyContextVolume* Volume, E
 	// Merge with existing flags
 	EValencyDirtyFlags& ExistingFlags = DirtyVolumes.FindOrAdd(Volume);
 	ExistingFlags |= Flags;
-
-	UE_LOG(LogTemp, Verbose, TEXT("Valency: Marked volume dirty with flags 0x%02X"),
-		static_cast<uint8>(Flags));
 }
 
 void FValencyDirtyStateManager::MarkVolumeContentsDirty(AValencyContextVolume* Volume, EValencyDirtyFlags Flags)
@@ -282,14 +273,10 @@ void FValencyDirtyStateManager::ExpandDirtyThroughDependencies()
 
 		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(Affected))
 		{
-			UE_LOG(LogTemp, Verbose, TEXT("Valency: Dependency cascade - marking cage '%s' dirty"),
-				*Cage->GetCageDisplayName());
 			MarkCageDirty(Cage, EValencyDirtyFlags::Structure);
 		}
 		else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Affected))
 		{
-			UE_LOG(LogTemp, Verbose, TEXT("Valency: Dependency cascade - marking pattern cage '%s' dirty"),
-				*PatternCage->GetCageDisplayName());
 			MarkCageDirty(PatternCage, EValencyDirtyFlags::Structure);
 		}
 	}
@@ -334,17 +321,45 @@ void FValencyDirtyStateManager::CollectAffectedVolumes(TSet<AValencyContextVolum
 			continue;
 		}
 
+		bool bVolumeAffected = false;
+
 		// Check dirty cages
 		for (auto& Pair : DirtyCages)
 		{
+			if (bVolumeAffected)
+			{
+				break;
+			}
+
 			if (APCGExValencyCageBase* Cage = Pair.Key.Get())
 			{
+				// Direct containment check
 				if (Volume->ContainsPoint(Cage->GetActorLocation()))
 				{
-					OutVolumes.Add(Volume);
+					bVolumeAffected = true;
 					break;
 				}
+
+				// For pattern cages, check the entire connected pattern network
+				if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Cage))
+				{
+					// Check all connected pattern cages (includes self)
+					TArray<APCGExValencyCagePattern*> ConnectedCages = PatternCage->GetConnectedPatternCages();
+					for (APCGExValencyCagePattern* Connected : ConnectedCages)
+					{
+						if (Connected && Volume->ContainsPoint(Connected->GetActorLocation()))
+						{
+							bVolumeAffected = true;
+							break;
+						}
+					}
+				}
 			}
+		}
+
+		if (bVolumeAffected)
+		{
+			OutVolumes.Add(Volume);
 		}
 
 		// Check dirty palettes (palettes can affect volumes through mirroring cages)

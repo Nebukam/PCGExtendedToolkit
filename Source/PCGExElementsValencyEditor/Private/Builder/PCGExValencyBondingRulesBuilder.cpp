@@ -120,6 +120,12 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolumes(cons
 
 		// Compile patterns from all volumes
 		CompilePatterns(Volumes, ModuleKeyToIndex, TargetRules, OrbitalSet, Result);
+
+		// Update transient runtime data with freshly compiled patterns
+		if (TargetRules->CompiledData)
+		{
+			TargetRules->CompiledData->CompiledPatterns = TargetRules->Patterns;
+		}
 	}
 
 	// Update build metadata on success
@@ -885,6 +891,19 @@ void UPCGExValencyBondingRulesBuilder::CompilePatterns(
 	{
 		VALENCY_LOG_SECTION(Building, "NO PATTERNS TO COMPILE");
 		return;
+	}
+
+	// CRITICAL FIX: Refresh ALL pattern cages BEFORE compiling ANY pattern.
+	// This ensures we use current connection data, not stale pointers.
+	// The three-pass refresh in CompileSinglePattern is insufficient because it only
+	// refreshes cages in the current network - if a cage moved OUT of the network,
+	// it won't be refreshed and remaining cages might have stale references.
+	for (APCGExValencyCagePattern* PatternCage : AllPatternCages)
+	{
+		if (PatternCage)
+		{
+			PatternCage->DetectNearbyConnections();
+		}
 	}
 
 	// Find all pattern roots and compile each pattern

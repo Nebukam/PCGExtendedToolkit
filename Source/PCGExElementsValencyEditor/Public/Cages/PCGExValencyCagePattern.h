@@ -105,7 +105,7 @@ public:
 	virtual bool IsPatternCage() const { return true; }
 
 	//~ Begin APCGExValencyCageBase Interface
-	virtual void DetectNearbyConnections() override;
+	virtual bool DetectNearbyConnections() override;
 	//~ End APCGExValencyCageBase Interface
 
 protected:

@@ -96,6 +96,9 @@ protected:
 	/** Callback when selection changes */
 	void OnSelectionChanged();
 
+	/** Callback after Undo/Redo operation completes */
+	void OnPostUndoRedo();
+
 	// ========== Utilities ==========
 
 	/** Set visibility of all cage debug components */
@@ -127,6 +130,7 @@ private:
 	FDelegateHandle OnActorAddedHandle;
 	FDelegateHandle OnActorDeletedHandle;
 	FDelegateHandle OnSelectionChangedHandle;
+	FDelegateHandle OnPostUndoRedoHandle;
 
 	// ========== Asset Tracking ==========
 
