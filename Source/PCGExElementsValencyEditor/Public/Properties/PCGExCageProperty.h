@@ -33,6 +33,12 @@ public:
 	FName PropertyName;
 
 	/**
+	 * Get the effective property name.
+	 * Returns PropertyName if set, otherwise defaults to the component's name.
+	 */
+	FName GetEffectivePropertyName() const;
+
+	/**
 	 * Compile this property into a runtime-ready struct.
 	 * @param OutCompiled - FInstancedStruct to populate with compiled data
 	 * @return True if compilation succeeded

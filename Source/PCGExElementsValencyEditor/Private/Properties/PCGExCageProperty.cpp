@@ -10,6 +10,12 @@ UPCGExCagePropertyBase::UPCGExCagePropertyBase()
 	bWantsInitializeComponent = false;
 }
 
+FName UPCGExCagePropertyBase::GetEffectivePropertyName() const
+{
+	// If user specified a name, use it; otherwise default to component's name
+	return PropertyName.IsNone() ? GetFName() : PropertyName;
+}
+
 //
 // UPCGExCageProperty_AssetCollection
 //
@@ -17,7 +23,7 @@ UPCGExCagePropertyBase::UPCGExCagePropertyBase()
 bool UPCGExCageProperty_AssetCollection::CompileProperty(FInstancedStruct& OutCompiled) const
 {
 	FPCGExCagePropertyCompiled_AssetCollection Compiled;
-	Compiled.PropertyName = PropertyName;
+	Compiled.PropertyName = GetEffectivePropertyName();
 	Compiled.AssetCollection = AssetCollection;
 
 	OutCompiled.InitializeAs<FPCGExCagePropertyCompiled_AssetCollection>(MoveTemp(Compiled));
@@ -36,7 +42,7 @@ UScriptStruct* UPCGExCageProperty_AssetCollection::GetCompiledStructType() const
 bool UPCGExCageProperty_Tags::CompileProperty(FInstancedStruct& OutCompiled) const
 {
 	FPCGExCagePropertyCompiled_Tags Compiled;
-	Compiled.PropertyName = PropertyName;
+	Compiled.PropertyName = GetEffectivePropertyName();
 	Compiled.Tags = Tags;
 
 	OutCompiled.InitializeAs<FPCGExCagePropertyCompiled_Tags>(MoveTemp(Compiled));
@@ -55,7 +61,7 @@ UScriptStruct* UPCGExCageProperty_Tags::GetCompiledStructType() const
 bool UPCGExCageProperty_Metadata::CompileProperty(FInstancedStruct& OutCompiled) const
 {
 	FPCGExCagePropertyCompiled_Metadata Compiled;
-	Compiled.PropertyName = PropertyName;
+	Compiled.PropertyName = GetEffectivePropertyName();
 	Compiled.Metadata = Metadata;
 
 	OutCompiled.InitializeAs<FPCGExCagePropertyCompiled_Metadata>(MoveTemp(Compiled));
