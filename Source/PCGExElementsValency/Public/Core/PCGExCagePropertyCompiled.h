@@ -10,6 +10,42 @@
 #include "PCGExCagePropertyCompiled.generated.h"
 
 /**
+ * Entry in the property registry.
+ * Built at compile time to provide a read-only view of available properties.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExPropertyRegistryEntry
+{
+	GENERATED_BODY()
+
+	/** Property name */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
+	FName PropertyName;
+
+	/** Property type name (e.g., "String", "Int32", "Vector") */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
+	FName TypeName;
+
+	/** PCG metadata type for attribute output */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
+	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Unknown;
+
+	/** Whether this property supports attribute output */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
+	bool bSupportsOutput = false;
+
+	FPCGExPropertyRegistryEntry() = default;
+
+	FPCGExPropertyRegistryEntry(FName InName, FName InTypeName, EPCGMetadataTypes InOutputType, bool bInSupportsOutput)
+		: PropertyName(InName)
+		, TypeName(InTypeName)
+		, OutputType(InOutputType)
+		, bSupportsOutput(bInSupportsOutput)
+	{
+	}
+};
+
+/**
  * Base struct for compiled cage properties.
  * All property types derive from this and must include PropertyName.
  *
@@ -69,6 +105,20 @@ struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled
 	 * Return EPCGMetadataTypes::Unknown if not applicable or multi-valued.
 	 */
 	virtual EPCGMetadataTypes GetOutputType() const { return EPCGMetadataTypes::Unknown; }
+
+	/**
+	 * Get the human-readable type name for this property (e.g., "String", "Int32", "Vector").
+	 * Used for registry display.
+	 */
+	virtual FName GetTypeName() const { return FName("Unknown"); }
+
+	/**
+	 * Create a registry entry for this property.
+	 */
+	FPCGExPropertyRegistryEntry ToRegistryEntry() const
+	{
+		return FPCGExPropertyRegistryEntry(PropertyName, GetTypeName(), GetOutputType(), SupportsOutput());
+	}
 };
 
 /**

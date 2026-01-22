@@ -3,6 +3,7 @@
 
 #include "Core/PCGExValencyBondingRules.h"
 
+#include "Core/PCGExCagePropertyCompiledTypes.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Engine/Blueprint.h"
@@ -216,6 +217,85 @@ bool UPCGExValencyBondingRules::Compile()
 
 	// Build fast lookup
 	CompiledData->BuildCandidateLookup();
+
+	// Build module property registry
+	VALENCY_LOG_SUBSECTION(Compilation, "Building Property Registries");
+	{
+		TMap<FName, FPCGExPropertyRegistryEntry> ModulePropertiesMap;
+
+		// Scan all module properties
+		for (const FInstancedStruct& PropStruct : CompiledData->AllModuleProperties)
+		{
+			if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
+			{
+				if (!Prop->PropertyName.IsNone() && !ModulePropertiesMap.Contains(Prop->PropertyName))
+				{
+					ModulePropertiesMap.Add(Prop->PropertyName, Prop->ToRegistryEntry());
+				}
+			}
+		}
+
+		// Convert to array and sort by name for consistent ordering
+		ModulePropertiesMap.GenerateValueArray(CompiledData->ModulePropertyRegistry);
+		CompiledData->ModulePropertyRegistry.Sort([](const FPCGExPropertyRegistryEntry& A, const FPCGExPropertyRegistryEntry& B)
+		{
+			return A.PropertyName.LexicalLess(B.PropertyName);
+		});
+
+		PCGEX_VALENCY_INFO(Compilation, "Module property registry: %d unique properties", CompiledData->ModulePropertyRegistry.Num());
+		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData->ModulePropertyRegistry)
+		{
+			PCGEX_VALENCY_VERBOSE(Compilation, "  - %s (%s, output=%s)",
+				*Entry.PropertyName.ToString(),
+				*Entry.TypeName.ToString(),
+				Entry.bSupportsOutput ? TEXT("yes") : TEXT("no"));
+		}
+
+		// Copy to serialized asset property
+		ModulePropertyRegistry = CompiledData->ModulePropertyRegistry;
+	}
+
+	// Build pattern property registry
+	{
+		TMap<FName, FPCGExPropertyRegistryEntry> PatternPropertiesMap;
+
+		// Scan all pattern entry properties
+		for (const FPCGExValencyPatternCompiled& Pattern : Patterns.Patterns)
+		{
+			for (const FPCGExValencyPatternEntryCompiled& Entry : Pattern.Entries)
+			{
+				for (const FInstancedStruct& PropStruct : Entry.Properties)
+				{
+					if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
+					{
+						if (!Prop->PropertyName.IsNone() && !PatternPropertiesMap.Contains(Prop->PropertyName))
+						{
+							PatternPropertiesMap.Add(Prop->PropertyName, Prop->ToRegistryEntry());
+						}
+					}
+				}
+			}
+		}
+
+		// Convert to array and sort
+		PatternPropertiesMap.GenerateValueArray(CompiledData->PatternPropertyRegistry);
+		CompiledData->PatternPropertyRegistry.Sort([](const FPCGExPropertyRegistryEntry& A, const FPCGExPropertyRegistryEntry& B)
+		{
+			return A.PropertyName.LexicalLess(B.PropertyName);
+		});
+
+		PCGEX_VALENCY_INFO(Compilation, "Pattern property registry: %d unique properties", CompiledData->PatternPropertyRegistry.Num());
+		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData->PatternPropertyRegistry)
+		{
+			PCGEX_VALENCY_VERBOSE(Compilation, "  - %s (%s, output=%s)",
+				*Entry.PropertyName.ToString(),
+				*Entry.TypeName.ToString(),
+				Entry.bSupportsOutput ? TEXT("yes") : TEXT("no"));
+		}
+
+		// Copy to serialized asset property
+		PatternPropertyRegistry = CompiledData->PatternPropertyRegistry;
+	}
 
 	// Copy patterns (already compiled by builder, stored on this asset)
 	CompiledData->CompiledPatterns = Patterns;

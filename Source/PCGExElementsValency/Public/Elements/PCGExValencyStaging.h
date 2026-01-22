@@ -109,16 +109,16 @@ public:
 
 	// ========== Property Output ==========
 
-	/** Property output configuration (cage properties and module tags) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExValencyPropertyOutputSettings PropertyOutput;
+	/** Properties output configuration (cage properties and module tags) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	FPCGExValencyPropertyOutputSettings PropertiesOutput;
 
 #if WITH_EDITOR
 	/**
 	 * Auto-populate property output configs from bonding rules.
 	 * Scans all modules in the bonding rules and adds configs for each unique property.
 	 */
-	UFUNCTION(CallInEditor, Category = "Settings|Property Output", meta=(DisplayName="Auto-Populate from Bonding Rules"))
+	UFUNCTION(CallInEditor, Category = "Settings|Output", meta=(DisplayName="Auto-Populate from Bonding Rules"))
 	void AutoPopulatePropertyOutputConfigs();
 #endif
 

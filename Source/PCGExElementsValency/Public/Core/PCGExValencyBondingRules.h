@@ -9,6 +9,7 @@
 #include "PCGExValencyCommon.h"
 #include "PCGExValencyOrbitalSet.h"
 #include "PCGExValencyPattern.h"
+#include "PCGExCagePropertyCompiled.h"
 
 #include "PCGExValencyBondingRules.generated.h"
 
@@ -198,6 +199,18 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	FPCGExValencyPatternSetCompiled CompiledPatterns;
 
 	/**
+	 * Registry of all unique properties found in modules.
+	 * Built at compile time for efficient lookup and auto-populate.
+	 */
+	TArray<FPCGExPropertyRegistryEntry> ModulePropertyRegistry;
+
+	/**
+	 * Registry of all unique properties found in pattern entries.
+	 * Built at compile time for efficient lookup.
+	 */
+	TArray<FPCGExPropertyRegistryEntry> PatternPropertyRegistry;
+
+	/**
 	 * Fast lookup: OrbitalMask -> array of candidate module indices.
 	 * Key is the combined mask from all layers (for single-layer, just the mask).
 	 * This allows O(1) lookup of which modules could potentially fit a node.
@@ -300,6 +313,22 @@ public:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Valency|Patterns")
 	FPCGExValencyPatternSetCompiled Patterns;
+
+	// ========== Property Registries ==========
+
+	/**
+	 * Registry of all unique properties found in modules.
+	 * Read-only, built during compilation.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Valency|Properties")
+	TArray<FPCGExPropertyRegistryEntry> ModulePropertyRegistry;
+
+	/**
+	 * Registry of all unique properties found in pattern entries.
+	 * Read-only, built during compilation.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Valency|Properties")
+	TArray<FPCGExPropertyRegistryEntry> PatternPropertyRegistry;
 
 	// ========== Build Metadata ==========
 

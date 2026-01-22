@@ -24,6 +24,8 @@ struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_AssetCollection : pub
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
+
+	virtual FName GetTypeName() const override { return FName("AssetCollection"); }
 };
 
 #pragma endregion
@@ -50,6 +52,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::String; }
+	virtual FName GetTypeName() const override { return FName("String"); }
 };
 
 /**
@@ -72,6 +75,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Name; }
+	virtual FName GetTypeName() const override { return FName("Name"); }
 };
 
 /**
@@ -94,6 +98,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Integer32; }
+	virtual FName GetTypeName() const override { return FName("Int32"); }
 };
 
 /**
@@ -116,6 +121,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Integer64; }
+	virtual FName GetTypeName() const override { return FName("Int64"); }
 };
 
 /**
@@ -138,6 +144,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Float; }
+	virtual FName GetTypeName() const override { return FName("Float"); }
 };
 
 /**
@@ -160,6 +167,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Double; }
+	virtual FName GetTypeName() const override { return FName("Double"); }
 };
 
 /**
@@ -182,6 +190,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Boolean; }
+	virtual FName GetTypeName() const override { return FName("Bool"); }
 };
 
 /**
@@ -204,6 +213,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector; }
+	virtual FName GetTypeName() const override { return FName("Vector"); }
 };
 
 /**
@@ -226,6 +236,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector2; }
+	virtual FName GetTypeName() const override { return FName("Vector2D"); }
 };
 
 /**
@@ -248,6 +259,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector4; }
+	virtual FName GetTypeName() const override { return FName("Vector4"); }
 };
 
 /**
@@ -270,6 +282,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector4; }
+	virtual FName GetTypeName() const override { return FName("Color"); }
 };
 
 /**
@@ -292,6 +305,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Rotator; }
+	virtual FName GetTypeName() const override { return FName("Rotator"); }
 };
 
 /**
@@ -314,6 +328,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Quaternion; }
+	virtual FName GetTypeName() const override { return FName("Quat"); }
 };
 
 /**
@@ -336,6 +351,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Transform; }
+	virtual FName GetTypeName() const override { return FName("Transform"); }
 };
 
 /**
@@ -358,6 +374,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::SoftObjectPath; }
+	virtual FName GetTypeName() const override { return FName("SoftObjectPath"); }
 };
 
 /**
@@ -380,6 +397,7 @@ public:
 	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::SoftClassPath; }
+	virtual FName GetTypeName() const override { return FName("SoftClassPath"); }
 };
 
 #pragma endregion

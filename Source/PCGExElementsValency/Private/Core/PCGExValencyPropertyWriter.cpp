@@ -8,7 +8,13 @@
 
 int32 FPCGExValencyPropertyOutputSettings::AutoPopulateFromRules(const FPCGExValencyBondingRulesCompiled* CompiledRules)
 {
-	if (!CompiledRules || CompiledRules->ModuleCount == 0)
+	if (!CompiledRules)
+	{
+		return 0;
+	}
+
+	// Use the pre-built module property registry
+	if (CompiledRules->ModulePropertyRegistry.Num() == 0)
 	{
 		return 0;
 	}
@@ -23,33 +29,18 @@ int32 FPCGExValencyPropertyOutputSettings::AutoPopulateFromRules(const FPCGExVal
 		}
 	}
 
-	// Collect unique property names that support output
-	TSet<FName> UniquePropertyNames;
-	for (int32 ModuleIndex = 0; ModuleIndex < CompiledRules->ModuleCount; ++ModuleIndex)
-	{
-		TConstArrayView<FInstancedStruct> ModuleProperties = CompiledRules->GetModuleProperties(ModuleIndex);
-		for (const FInstancedStruct& PropStruct : ModuleProperties)
-		{
-			if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
-			{
-				// Only add properties that support output and aren't already configured
-				if (Prop->SupportsOutput() && !Prop->PropertyName.IsNone() && !ExistingNames.Contains(Prop->PropertyName))
-				{
-					UniquePropertyNames.Add(Prop->PropertyName);
-				}
-			}
-		}
-	}
-
-	// Add new configs for each unique property
+	// Add new configs for each registry entry that supports output and isn't already configured
 	int32 AddedCount = 0;
-	for (const FName& PropName : UniquePropertyNames)
+	for (const FPCGExPropertyRegistryEntry& Entry : CompiledRules->ModulePropertyRegistry)
 	{
-		FPCGExValencyPropertyOutputConfig& NewConfig = Configs.AddDefaulted_GetRef();
-		NewConfig.bEnabled = true;
-		NewConfig.PropertyName = PropName;
-		// OutputAttributeName left empty - will use PropertyName as default
-		AddedCount++;
+		if (Entry.bSupportsOutput && !ExistingNames.Contains(Entry.PropertyName))
+		{
+			FPCGExValencyPropertyOutputConfig& NewConfig = Configs.AddDefaulted_GetRef();
+			NewConfig.bEnabled = true;
+			NewConfig.PropertyName = Entry.PropertyName;
+			// OutputAttributeName left empty - will use PropertyName as default
+			AddedCount++;
+		}
 	}
 
 	return AddedCount;

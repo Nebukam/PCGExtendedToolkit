@@ -57,7 +57,7 @@ void UPCGExValencyStagingSettings::AutoPopulatePropertyOutputConfigs()
 		return;
 	}
 
-	const int32 AddedCount = PropertyOutput.AutoPopulateFromRules(CompiledRules);
+	const int32 AddedCount = PropertiesOutput.AutoPopulateFromRules(CompiledRules);
 
 	if (AddedCount > 0)
 	{
@@ -777,7 +777,7 @@ namespace PCGExValencyStaging
 			PropertyWriter->Initialize(
 				Context->BondingRules->CompiledData.Get(),
 				VtxDataFacade,
-				Settings->PropertyOutput);
+				Settings->PropertiesOutput);
 		}
 
 		// Get fixed pick reader and create filter cache if enabled
