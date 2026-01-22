@@ -731,11 +731,15 @@ namespace PCGExValencyStaging
 		if (Context->BondingRules && Context->BondingRules->CompiledData)
 		{
 			FPCGExValencyPropertyWriterConfig PropertyConfig;
-			PropertyConfig.bOutputMetadata = Settings->bOutputMetadataProperties;
 			PropertyConfig.bOutputTags = Settings->bOutputModuleTags;
 			PropertyConfig.TagsAttributeName = Settings->ModuleTagsAttributeName;
 
-			InitializePropertyWriter(PropertyConfig, Context->BondingRules->CompiledData.Get());
+			// Create property writer and initialize with output configs
+			PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>(PropertyConfig);
+			PropertyWriter->Initialize(
+				Context->BondingRules->CompiledData.Get(),
+				VtxDataFacade,
+				Settings->PropertyOutputConfigs);
 		}
 
 		// Get fixed pick reader and create filter cache if enabled

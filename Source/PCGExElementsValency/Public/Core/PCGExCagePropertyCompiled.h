@@ -5,12 +5,18 @@
 
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
+#include "Data/PCGExData.h"
 
 #include "PCGExCagePropertyCompiled.generated.h"
 
 /**
  * Base struct for compiled cage properties.
  * All property types derive from this and must include PropertyName.
+ *
+ * Properties support an output interface for writing values to point attributes:
+ * - InitializeOutput(): Creates buffer(s) on a facade
+ * - WriteOutput(): Writes value(s) to initialized buffer(s)
+ * - CopyValueFrom(): Copies value from another property of same type
  *
  * To add a new property type:
  * 1. Create derived struct in PCGExCagePropertyCompiledTypes.h (runtime module)
@@ -27,21 +33,58 @@ struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled
 	FName PropertyName;
 
 	virtual ~FPCGExCagePropertyCompiled() = default;
+
+	// --- Output Interface ---
+
+	/**
+	 * Initialize output buffer(s) on the facade.
+	 * Override in derived types that support output.
+	 * @param OutputFacade The facade to create buffers on
+	 * @param OutputName The attribute name to use
+	 * @return true if initialization succeeded
+	 */
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) { return false; }
+
+	/**
+	 * Write this property's value(s) to the initialized buffer(s).
+	 * Call after InitializeOutput() succeeded.
+	 * @param PointIndex The point index to write to
+	 */
+	virtual void WriteOutput(int32 PointIndex) const {}
+
+	/**
+	 * Copy value from another property of the same type.
+	 * Used when switching between modules that have the same property.
+	 * @param Source The source property to copy from (must be same concrete type)
+	 */
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) {}
+
+	/**
+	 * Check if this property type supports attribute output.
+	 */
+	virtual bool SupportsOutput() const { return false; }
+
+	/**
+	 * Get the PCG metadata type for this property (for UI/validation).
+	 * Return EPCGMetadataTypes::Unknown if not applicable or multi-valued.
+	 */
+	virtual EPCGMetadataTypes GetOutputType() const { return EPCGMetadataTypes::Unknown; }
 };
 
 /**
  * Query helpers for accessing properties from FInstancedStruct arrays.
+ * All functions accept TConstArrayView to work with both TArray and TArrayView.
  */
 namespace PCGExValency
 {
 	/**
 	 * Get first property of specified type, optionally filtered by name.
-	 * @param Properties - Array of FInstancedStruct containing compiled properties
+	 * @param Properties - Array view of FInstancedStruct containing compiled properties
 	 * @param PropertyName - Optional name filter (NAME_None matches any)
 	 * @return Pointer to property if found, nullptr otherwise
 	 */
 	template <typename T>
-	const T* GetProperty(const TArray<FInstancedStruct>& Properties, FName PropertyName = NAME_None)
+	const T* GetProperty(TConstArrayView<FInstancedStruct> Properties, FName PropertyName = NAME_None)
 	{
 		static_assert(TIsDerivedFrom<T, FPCGExCagePropertyCompiled>::Value,
 			"T must derive from FPCGExCagePropertyCompiled");
@@ -61,11 +104,11 @@ namespace PCGExValency
 
 	/**
 	 * Get all properties of specified type.
-	 * @param Properties - Array of FInstancedStruct containing compiled properties
+	 * @param Properties - Array view of FInstancedStruct containing compiled properties
 	 * @return Array of pointers to matching properties
 	 */
 	template <typename T>
-	TArray<const T*> GetAllProperties(const TArray<FInstancedStruct>& Properties)
+	TArray<const T*> GetAllProperties(TConstArrayView<FInstancedStruct> Properties)
 	{
 		static_assert(TIsDerivedFrom<T, FPCGExCagePropertyCompiled>::Value,
 			"T must derive from FPCGExCagePropertyCompiled");
@@ -83,11 +126,11 @@ namespace PCGExValency
 
 	/**
 	 * Get property by name regardless of type.
-	 * @param Properties - Array of FInstancedStruct containing compiled properties
+	 * @param Properties - Array view of FInstancedStruct containing compiled properties
 	 * @param PropertyName - Name to search for
 	 * @return Pointer to FInstancedStruct if found, nullptr otherwise
 	 */
-	inline const FInstancedStruct* GetPropertyByName(const TArray<FInstancedStruct>& Properties, FName PropertyName)
+	inline const FInstancedStruct* GetPropertyByName(TConstArrayView<FInstancedStruct> Properties, FName PropertyName)
 	{
 		if (PropertyName.IsNone())
 		{
@@ -110,7 +153,7 @@ namespace PCGExValency
 	/**
 	 * Check if properties array contains a property with given name.
 	 */
-	inline bool HasProperty(const TArray<FInstancedStruct>& Properties, FName PropertyName)
+	inline bool HasProperty(TConstArrayView<FInstancedStruct> Properties, FName PropertyName)
 	{
 		return GetPropertyByName(Properties, PropertyName) != nullptr;
 	}
@@ -119,7 +162,7 @@ namespace PCGExValency
 	 * Check if properties array contains any property of given type.
 	 */
 	template <typename T>
-	bool HasPropertyOfType(const TArray<FInstancedStruct>& Properties)
+	bool HasPropertyOfType(TConstArrayView<FInstancedStruct> Properties)
 	{
 		return GetProperty<T>(Properties) != nullptr;
 	}

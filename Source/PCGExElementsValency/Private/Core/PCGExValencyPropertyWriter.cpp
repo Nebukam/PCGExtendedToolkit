@@ -13,7 +13,8 @@ FPCGExValencyPropertyWriter::FPCGExValencyPropertyWriter(const FPCGExValencyProp
 
 bool FPCGExValencyPropertyWriter::Initialize(
 	const FPCGExValencyBondingRulesCompiled* InCompiledRules,
-	const TSharedRef<PCGExData::FFacade>& OutputFacade)
+	const TSharedRef<PCGExData::FFacade>& OutputFacade,
+	const TArray<FPCGExValencyPropertyOutputConfig>& OutputConfigs)
 {
 	if (!InCompiledRules)
 	{
@@ -22,39 +23,50 @@ bool FPCGExValencyPropertyWriter::Initialize(
 
 	CompiledRules = InCompiledRules;
 
-	// Create metadata writers by scanning all modules for unique metadata keys
-	if (Config.bOutputMetadata)
+	// Initialize property writers from configs
+	for (const FPCGExValencyPropertyOutputConfig& OutputConfig : OutputConfigs)
 	{
-		TSet<FName> UniqueMetadataKeys;
-
-		for (int32 ModuleIndex = 0; ModuleIndex < CompiledRules->ModuleCount; ++ModuleIndex)
+		if (!OutputConfig.IsValid())
 		{
-			TConstArrayView<FInstancedStruct> Properties = CompiledRules->GetModuleProperties(ModuleIndex);
-			for (const FInstancedStruct& Prop : Properties)
-			{
-				if (const FPCGExCagePropertyCompiled_Metadata* MetaProp = Prop.GetPtr<FPCGExCagePropertyCompiled_Metadata>())
-				{
-					for (const auto& KV : MetaProp->Metadata)
-					{
-						UniqueMetadataKeys.Add(KV.Key);
-					}
-				}
-			}
+			PCGEX_VALENCY_VERBOSE(Staging, "Skipping invalid output config for property '%s'", *OutputConfig.PropertyName.ToString());
+			continue;
 		}
 
-		// Create a writer for each unique metadata key
-		for (const FName& Key : UniqueMetadataKeys)
+		FName OutputName = OutputConfig.GetEffectiveOutputName();
+
+		// Find prototype property from any module
+		const FInstancedStruct* Prototype = FindPrototypeProperty(OutputConfig.PropertyName);
+		if (!Prototype)
 		{
-			TSharedPtr<PCGExData::TBuffer<FString>> Writer = OutputFacade->GetWritable<FString>(
-				Key, FString(), true, PCGExData::EBufferInit::Inherit);
-			MetadataWriters.Add(Key, Writer);
-			PCGEX_VALENCY_VERBOSE(Staging, "Created metadata writer for key '%s'", *Key.ToString());
+			PCGEX_VALENCY_VERBOSE(Staging, "Property '%s' not found in bonding rules", *OutputConfig.PropertyName.ToString());
+			continue;
 		}
 
-		PCGEX_VALENCY_INFO(Staging, "Created %d metadata property writers", MetadataWriters.Num());
+		// Check if property supports output
+		const FPCGExCagePropertyCompiled* ProtoBase = Prototype->GetPtr<FPCGExCagePropertyCompiled>();
+		if (!ProtoBase || !ProtoBase->SupportsOutput())
+		{
+			PCGEX_VALENCY_VERBOSE(Staging, "Property '%s' does not support output", *OutputConfig.PropertyName.ToString());
+			continue;
+		}
+
+		// Clone as writer instance
+		FInstancedStruct WriterInstance = *Prototype;
+
+		// Initialize output buffers
+		FPCGExCagePropertyCompiled* Writer = WriterInstance.GetMutablePtr<FPCGExCagePropertyCompiled>();
+		if (!Writer || !Writer->InitializeOutput(OutputFacade, OutputName))
+		{
+			PCGEX_VALENCY_VERBOSE(Staging, "Failed to initialize output for property '%s'", *OutputConfig.PropertyName.ToString());
+			continue;
+		}
+
+		WriterInstances.Add(OutputConfig.PropertyName, MoveTemp(WriterInstance));
+		PCGEX_VALENCY_VERBOSE(Staging, "Initialized property output '%s' -> attribute '%s'",
+			*OutputConfig.PropertyName.ToString(), *OutputName.ToString());
 	}
 
-	// Create tags writer
+	// Create tags writer if configured
 	if (Config.bOutputTags)
 	{
 		TagsWriter = OutputFacade->GetWritable<FString>(
@@ -62,7 +74,18 @@ bool FPCGExValencyPropertyWriter::Initialize(
 		PCGEX_VALENCY_VERBOSE(Staging, "Created tags writer '%s'", *Config.TagsAttributeName.ToString());
 	}
 
-	return true;
+	PCGEX_VALENCY_INFO(Staging, "Initialized %d property outputs", WriterInstances.Num());
+
+	return HasOutputs();
+}
+
+bool FPCGExValencyPropertyWriter::Initialize(
+	const FPCGExValencyBondingRulesCompiled* InCompiledRules,
+	const TSharedRef<PCGExData::FFacade>& OutputFacade)
+{
+	// Legacy initialize - tags only, no property outputs
+	TArray<FPCGExValencyPropertyOutputConfig> EmptyConfigs;
+	return Initialize(InCompiledRules, OutputFacade, EmptyConfigs);
 }
 
 void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 ModuleIndex)
@@ -72,32 +95,27 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 		return;
 	}
 
-	// Write metadata properties
-	if (MetadataWriters.Num() > 0)
+	// Write properties using property-owned output
+	if (WriterInstances.Num() > 0)
 	{
 		TConstArrayView<FInstancedStruct> ModuleProperties = CompiledRules->GetModuleProperties(ModuleIndex);
 
-		// Collect all metadata from this module's properties
-		TMap<FName, FString> AllMetadata;
-		for (const FInstancedStruct& Prop : ModuleProperties)
+		for (auto& KV : WriterInstances)
 		{
-			if (const FPCGExCagePropertyCompiled_Metadata* MetaProp = Prop.GetPtr<FPCGExCagePropertyCompiled_Metadata>())
+			const FName& PropName = KV.Key;
+			FPCGExCagePropertyCompiled* Writer = KV.Value.GetMutablePtr<FPCGExCagePropertyCompiled>();
+			if (!Writer) { continue; }
+
+			// Find actual property value for this module
+			if (const FInstancedStruct* SourceProp = PCGExValency::GetPropertyByName(ModuleProperties, PropName))
 			{
-				for (const auto& KV : MetaProp->Metadata)
+				if (const FPCGExCagePropertyCompiled* Source = SourceProp->GetPtr<FPCGExCagePropertyCompiled>())
 				{
-					AllMetadata.Add(KV.Key, KV.Value);
+					Writer->CopyValueFrom(Source);
 				}
 			}
-		}
 
-		// Write to each metadata writer
-		for (const auto& WriterKV : MetadataWriters)
-		{
-			if (const FString* Value = AllMetadata.Find(WriterKV.Key))
-			{
-				WriterKV.Value->SetValue(PointIndex, *Value);
-			}
-			// Note: if key not found, keeps default empty string
+			Writer->WriteOutput(PointIndex);
 		}
 	}
 
@@ -120,5 +138,25 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 
 bool FPCGExValencyPropertyWriter::HasOutputs() const
 {
-	return MetadataWriters.Num() > 0 || TagsWriter.IsValid();
+	return WriterInstances.Num() > 0 || TagsWriter.IsValid();
+}
+
+const FInstancedStruct* FPCGExValencyPropertyWriter::FindPrototypeProperty(FName PropertyName) const
+{
+	if (!CompiledRules || PropertyName.IsNone())
+	{
+		return nullptr;
+	}
+
+	// Search through all modules for a property with matching name
+	for (int32 ModuleIndex = 0; ModuleIndex < CompiledRules->ModuleCount; ++ModuleIndex)
+	{
+		TConstArrayView<FInstancedStruct> Properties = CompiledRules->GetModuleProperties(ModuleIndex);
+		if (const FInstancedStruct* Found = PCGExValency::GetPropertyByName(Properties, PropertyName))
+		{
+			return Found;
+		}
+	}
+
+	return nullptr;
 }

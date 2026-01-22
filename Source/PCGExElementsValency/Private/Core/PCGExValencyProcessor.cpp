@@ -311,7 +311,8 @@ namespace PCGExValencyMT
 
 	bool IBatch::InitializePropertyWriter(
 		const FPCGExValencyPropertyWriterConfig& Config,
-		const FPCGExValencyBondingRulesCompiled* CompiledRules)
+		const FPCGExValencyBondingRulesCompiled* CompiledRules,
+		const TArray<FPCGExValencyPropertyOutputConfig>& OutputConfigs)
 	{
 		if (!CompiledRules)
 		{
@@ -319,12 +320,12 @@ namespace PCGExValencyMT
 		}
 
 		// Only create if there's something to output
-		if (!Config.bOutputMetadata && !Config.bOutputTags)
+		if (OutputConfigs.IsEmpty() && !Config.bOutputTags)
 		{
 			return true; // Success but no writer needed
 		}
 
 		PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>(Config);
-		return PropertyWriter->Initialize(CompiledRules, VtxDataFacade);
+		return PropertyWriter->Initialize(CompiledRules, VtxDataFacade, OutputConfigs);
 	}
 }

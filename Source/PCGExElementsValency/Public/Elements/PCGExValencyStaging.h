@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
 #include "Core/PCGExValencySolverOperation.h"
+#include "Core/PCGExValencyPropertyWriter.h"
 #include "Core/PCGExClusterFilter.h"
 #include "Elements/PCGExAssetStaging.h"
 
@@ -109,12 +110,11 @@ public:
 	// ========== Property Output ==========
 
 	/**
-	 * If enabled, outputs cage Metadata properties as string attributes.
-	 * Each unique metadata key across all modules becomes an attribute.
-	 * Points receive values from their resolved module's metadata.
+	 * Properties to output as point attributes.
+	 * Each config maps a cage property name to an output attribute name.
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable))
-	bool bOutputMetadataProperties = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable, TitleProperty="PropertyName"))
+	TArray<FPCGExValencyPropertyOutputConfig> PropertyOutputConfigs;
 
 	/**
 	 * If enabled, outputs module actor tags as a single comma-separated string attribute.

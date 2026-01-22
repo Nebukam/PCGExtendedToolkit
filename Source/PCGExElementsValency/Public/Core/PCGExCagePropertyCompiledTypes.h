@@ -10,9 +10,12 @@
 
 class UPCGExAssetCollection;
 
+#pragma region AssetCollection
+
 /**
  * Compiled property referencing a PCGExAssetCollection.
  * Used for mesh/actor swapping based on pattern matches.
+ * Does not support direct attribute output.
  */
 USTRUCT(BlueprintType)
 struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_AssetCollection : public FPCGExCagePropertyCompiled
@@ -23,15 +26,360 @@ struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_AssetCollection : pub
 	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
 };
 
+#pragma endregion
+
+#pragma region Atomic Typed Properties
+
 /**
- * Compiled property containing generic key-value metadata.
- * For arbitrary user data that doesn't warrant a dedicated property type.
+ * String property - outputs as FString attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Metadata : public FPCGExCagePropertyCompiled
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_String : public FPCGExCagePropertyCompiled
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	TMap<FName, FString> Metadata;
+	FString Value;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FString>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::String; }
 };
+
+/**
+ * Name property - outputs as FName attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Name : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FName Value;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FName>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Name; }
+};
+
+/**
+ * Int32 property - outputs as int32 attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Int32 : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	int32 Value = 0;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<int32>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Integer32; }
+};
+
+/**
+ * Int64 property - outputs as int64 attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Int64 : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	int64 Value = 0;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<int64>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Integer64; }
+};
+
+/**
+ * Float property - outputs as float attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Float : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float Value = 0.0f;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<float>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Float; }
+};
+
+/**
+ * Double property - outputs as double attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Double : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	double Value = 0.0;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<double>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Double; }
+};
+
+/**
+ * Bool property - outputs as bool attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Bool : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	bool Value = false;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<bool>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Boolean; }
+};
+
+/**
+ * Vector property - outputs as FVector attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Vector : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FVector Value = FVector::ZeroVector;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FVector>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector; }
+};
+
+/**
+ * Vector2D property - outputs as FVector2D attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Vector2 : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FVector2D Value = FVector2D::ZeroVector;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FVector2D>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector2; }
+};
+
+/**
+ * Vector4 property - outputs as FVector4 attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Vector4 : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FVector4 Value = FVector4::Zero();
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FVector4>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector4; }
+};
+
+/**
+ * Color property - authored as FLinearColor, outputs as FVector4 attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Color : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FLinearColor Value = FLinearColor::White;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FVector4>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector4; }
+};
+
+/**
+ * Rotator property - outputs as FRotator attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Rotator : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FRotator Value = FRotator::ZeroRotator;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FRotator>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Rotator; }
+};
+
+/**
+ * Quaternion property - outputs as FQuat attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Quat : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FQuat Value = FQuat::Identity;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FQuat>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Quaternion; }
+};
+
+/**
+ * Transform property - outputs as FTransform attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Transform : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FTransform Value = FTransform::Identity;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FTransform>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Transform; }
+};
+
+/**
+ * SoftObjectPath property - outputs as FSoftObjectPath attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_SoftObjectPath : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FSoftObjectPath Value;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::SoftObjectPath; }
+};
+
+/**
+ * SoftClassPath property - outputs as FSoftClassPath attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_SoftClassPath : public FPCGExCagePropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FSoftClassPath Value;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FSoftClassPath>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::SoftClassPath; }
+};
+
+#pragma endregion

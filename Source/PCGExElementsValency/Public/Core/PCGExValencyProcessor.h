@@ -208,13 +208,15 @@ namespace PCGExValencyMT
 		 * Initialize the property writer with the given configuration.
 		 * Call during OnProcessingPreparationComplete in derived batches.
 		 *
-		 * @param Config The property writer configuration
+		 * @param Config The property writer configuration (tags output)
 		 * @param CompiledRules The compiled bonding rules to scan for properties
+		 * @param OutputConfigs Array of property output configurations
 		 * @return true if initialization succeeded
 		 */
 		bool InitializePropertyWriter(
 			const FPCGExValencyPropertyWriterConfig& Config,
-			const FPCGExValencyBondingRulesCompiled* CompiledRules
+			const FPCGExValencyBondingRulesCompiled* CompiledRules,
+			const TArray<FPCGExValencyPropertyOutputConfig>& OutputConfigs = {}
 		);
 	};
 
