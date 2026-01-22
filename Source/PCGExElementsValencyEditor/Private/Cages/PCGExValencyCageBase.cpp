@@ -84,29 +84,38 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, OrbitalSetOverride) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, BondingRulesOverride))
 	{
-		// Override changed - reinitialize orbitals and redraw
+		// Override changed - reinitialize orbitals, redetect connections, and trigger rebuild
 		CachedOrbitalSet.Reset();
 		InitializeOrbitalsFromSet();
 		DetectNearbyConnections();
+
+		// Structural change - needs rebuild
+		RequestRebuild(EValencyRebuildReason::PropertyChange);
 
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, ProbeRadius))
 	{
-		// Probe radius changed - redetect connections and redraw
-		DetectNearbyConnections();
+		// Probe radius changed - redetect connections
+		// This can change which cages are connected, so trigger rebuild if connections changed
+		if (DetectNearbyConnections())
+		{
+			RequestRebuild(EValencyRebuildReason::ConnectionChange);
+		}
 
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, CageName))
 	{
-		// Display name changed - just redraw
+		// Display name changed - just redraw, no rebuild needed
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, bTransformOrbitalDirections))
 	{
-		// Transform settings changed - redetect connections and redraw
+		// Transform settings changed - redetect connections and trigger rebuild
+		// This changes how orbital directions are computed, affecting connections
 		DetectNearbyConnections();
+		RequestRebuild(EValencyRebuildReason::ConnectionChange);
 
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}

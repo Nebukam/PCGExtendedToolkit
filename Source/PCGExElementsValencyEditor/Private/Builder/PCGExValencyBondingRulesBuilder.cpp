@@ -97,7 +97,10 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolumes(cons
 	Result = BuildFromCages(AllRegularCages, TargetRules, OrbitalSet);
 
 	// Compile patterns if module build succeeded
-	if (Result.bSuccess && Result.ModuleCount > 0)
+	// NOTE: We compile patterns even if ModuleCount == 0, because pattern topology
+	// (adjacency, boundary masks) is still valid and useful. The pattern entries
+	// just won't have ModuleIndices resolved until modules exist.
+	if (Result.bSuccess)
 	{
 		// Rebuild ModuleKeyToIndex from compiled modules for pattern compilation
 		TMap<FString, int32> ModuleKeyToIndex;
@@ -121,7 +124,10 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolumes(cons
 		// Compile patterns from all volumes
 		CompilePatterns(Volumes, ModuleKeyToIndex, TargetRules, OrbitalSet, Result);
 
-		// Update transient runtime data with freshly compiled patterns
+		// CRITICAL: Always sync patterns to CompiledData after CompilePatterns().
+		// This ensures the transient runtime data has the freshly compiled patterns.
+		// Previously this was gated on ModuleCount > 0, causing stale pattern data
+		// when patterns were modified but no modules changed.
 		if (TargetRules->CompiledData)
 		{
 			TargetRules->CompiledData->CompiledPatterns = TargetRules->Patterns;
