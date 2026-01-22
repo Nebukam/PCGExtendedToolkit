@@ -380,6 +380,9 @@ void APCGExValencyAssetPalette::ScanAndRegisterContainedAssets()
 			NewEntry.LocalTransform = ComputePreservedLocalTransform(SourceActor->GetActorTransform());
 		}
 
+		// Mark entry to preserve its local transform if the palette has that setting enabled
+		NewEntry.bPreserveLocalTransform = bPreserveLocalTransforms;
+
 		// Check for duplicates - material variants differentiate entries
 		for (FPCGExValencyAssetEntry& Existing : ScannedAssetEntries)
 		{

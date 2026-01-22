@@ -406,7 +406,8 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			if (const int32* ExistingIndex = OutModuleKeyToIndex.Find(ModuleKey))
 			{
 				// Module already exists - accumulate transform variant if applicable
-				if (Data.bPreserveLocalTransforms)
+				// Check both cage-level flag AND entry-level flag (for mirrored entries from palettes)
+				if (Data.bPreserveLocalTransforms || Entry.bPreserveLocalTransform)
 				{
 					FPCGExValencyModuleDefinition& ExistingModule = TargetRules->Modules[*ExistingIndex];
 					ExistingModule.AddLocalTransform(Entry.LocalTransform);
@@ -432,8 +433,9 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			// Copy module name from cage (for fixed picks)
 			NewModule.ModuleName = Data.ModuleName;
 
-			// Store local transform if cage preserves them
-			if (Data.bPreserveLocalTransforms)
+			// Store local transform if cage or entry preserves them
+			// Entry flag is set when mirrored from a source (palette/cage) with bPreserveLocalTransforms enabled
+			if (Data.bPreserveLocalTransforms || Entry.bPreserveLocalTransform)
 			{
 				NewModule.AddLocalTransform(Entry.LocalTransform);
 			}
@@ -1243,7 +1245,8 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 					}
 
 					const FSoftObjectPath AssetPath = ProxiedEntry.Asset.ToSoftObjectPath();
-					const FTransform* TransformPtr = ProxiedCage->bPreserveLocalTransforms ? &ProxiedEntry.LocalTransform : nullptr;
+					// Check both cage-level and entry-level preserve flags
+					const FTransform* TransformPtr = (ProxiedCage->bPreserveLocalTransforms || ProxiedEntry.bPreserveLocalTransform) ? &ProxiedEntry.LocalTransform : nullptr;
 					const FPCGExValencyMaterialVariant* MaterialVariantPtr = ProxiedEntry.bHasMaterialVariant ? &ProxiedEntry.MaterialVariant : nullptr;
 
 					// Find all modules that match by ASSET only.

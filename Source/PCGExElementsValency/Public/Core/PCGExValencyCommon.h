@@ -273,6 +273,14 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyAssetEntry
 	bool bHasMaterialVariant = false;
 
 	/**
+	 * Whether this entry's LocalTransform should be preserved in module building.
+	 * Set when the source cage/palette has bPreserveLocalTransforms enabled.
+	 * Carried through mirroring so palette transforms are respected.
+	 */
+	UPROPERTY(Transient)
+	bool bPreserveLocalTransform = false;
+
+	/**
 	 * Module settings (weight, spawn constraints) for this entry.
 	 * Populated from the source cage/palette's ModuleSettings during collection.
 	 * When mirroring, carries the SOURCE's settings (not the primary cage's).

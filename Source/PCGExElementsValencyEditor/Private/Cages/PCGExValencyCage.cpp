@@ -202,6 +202,7 @@ void APCGExValencyCage::RegisterManualAsset(const TSoftObjectPtr<UObject>& Asset
 		const FTransform CageTransform = GetActorTransform();
 		const FTransform ActorTransform = SourceActor->GetActorTransform();
 		NewEntry.LocalTransform = ActorTransform.GetRelativeTransform(CageTransform);
+		NewEntry.bPreserveLocalTransform = true;
 	}
 
 	// Check for duplicates in manual entries
@@ -339,6 +340,9 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		{
 			NewEntry.LocalTransform = ComputePreservedLocalTransform(SourceActor->GetActorTransform());
 		}
+
+		// Mark entry to preserve its local transform if the cage has that setting enabled
+		NewEntry.bPreserveLocalTransform = bPreserveLocalTransforms;
 
 		// Check for duplicates in scanned entries
 		// Now considers material variants as a differentiating factor
