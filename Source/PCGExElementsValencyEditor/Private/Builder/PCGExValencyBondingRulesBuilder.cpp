@@ -384,7 +384,9 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 	const FName LayerName = OrbitalSet->LayerName;
 
-	// Collect all unique Asset + OrbitalMask (+ LocalTransform) combinations from cages
+	// Collect all unique Asset + OrbitalMask (+ MaterialVariant) combinations from cages.
+	// IMPORTANT: LocalTransform is NOT part of module identity - transform variants share the same module.
+	// This ensures consistent module indices regardless of child mesh positioning.
 	// Each cage data already has its computed OrbitalMask
 	for (const FPCGExValencyCageData& Data : CageData)
 	{
@@ -395,17 +397,16 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 				continue;
 			}
 
-			// Include local transform in key if cage preserves transforms
-			// Include material variant to differentiate same mesh with different materials
-			const FTransform* TransformPtr = Data.bPreserveLocalTransforms ? &Entry.LocalTransform : nullptr;
+			// Module identity = Asset + OrbitalMask + MaterialVariant
+			// LocalTransform is NOT part of module identity - transform variants are the SAME module
 			const FPCGExValencyMaterialVariant* MaterialVariantPtr = Entry.bHasMaterialVariant ? &Entry.MaterialVariant : nullptr;
 			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
-				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr, MaterialVariantPtr);
+				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, nullptr, MaterialVariantPtr);
 
 			if (OutModuleKeyToIndex.Contains(ModuleKey))
 			{
-				PCGEX_VALENCY_VERBOSE(Building, "  Module key '%s' already exists", *ModuleKey);
-				continue; // Already have a module for this combo
+				PCGEX_VALENCY_VERBOSE(Building, "  Module key '%s' already exists (transform variant)", *ModuleKey);
+				continue; // Already have a module for this combo - transform variants share module
 			}
 
 			// Create new module
@@ -421,7 +422,7 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			// Copy module name from cage (for fixed picks)
 			NewModule.ModuleName = Data.ModuleName;
 
-			// Set local transform if cage preserves them
+			// Store local transform if cage preserves them (first transform encountered for this module)
 			if (Data.bPreserveLocalTransforms)
 			{
 				NewModule.LocalTransform = Entry.LocalTransform;
@@ -495,13 +496,13 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 		PCGEX_VALENCY_VERBOSE(Building, "  Processing cage '%s':", *Cage->GetCageDisplayName());
 
 		// Get module indices for this cage's asset entries
+		// Note: Transform is NOT part of module identity, so we don't include it in the key
 		TArray<int32> CageModuleIndices;
 		for (const FPCGExValencyAssetEntry& Entry : Data.AssetEntries)
 		{
-			const FTransform* TransformPtr = Data.bPreserveLocalTransforms ? &Entry.LocalTransform : nullptr;
 			const FPCGExValencyMaterialVariant* MaterialVariantPtr = Entry.bHasMaterialVariant ? &Entry.MaterialVariant : nullptr;
 			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
-				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, TransformPtr, MaterialVariantPtr);
+				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, nullptr, MaterialVariantPtr);
 			if (const int32* ModuleIndex = ModuleKeyToIndex.Find(ModuleKey))
 			{
 				CageModuleIndices.AddUnique(*ModuleIndex);
@@ -603,16 +604,14 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 						const FPCGExValencyCageData& ConnectedData = CageData[*ConnectedDataIndex];
 
 						// Add all of connected cage's modules as valid neighbors
+						// Note: Transform is NOT part of module identity
 						for (const FPCGExValencyAssetEntry& ConnectedEntry : ConnectedData.AssetEntries)
 						{
-							const FTransform* ConnectedTransformPtr = ConnectedData.bPreserveLocalTransforms
-								                                          ? &ConnectedEntry.LocalTransform
-								                                          : nullptr;
 							const FPCGExValencyMaterialVariant* ConnectedMaterialVariantPtr = ConnectedEntry.bHasMaterialVariant
 								                                                                  ? &ConnectedEntry.MaterialVariant
 								                                                                  : nullptr;
 							const FString NeighborKey = FPCGExValencyCageData::MakeModuleKey(
-								ConnectedEntry.Asset.ToSoftObjectPath(), ConnectedData.OrbitalMask, ConnectedTransformPtr, ConnectedMaterialVariantPtr);
+								ConnectedEntry.Asset.ToSoftObjectPath(), ConnectedData.OrbitalMask, nullptr, ConnectedMaterialVariantPtr);
 							if (const int32* NeighborModuleIndex = ModuleKeyToIndex.Find(NeighborKey))
 							{
 								NeighborModuleIndices.AddUnique(*NeighborModuleIndex);
