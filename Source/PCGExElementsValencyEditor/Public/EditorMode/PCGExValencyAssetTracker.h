@@ -112,6 +112,6 @@ private:
 	/** Map from tracked actor to its last known containing palette */
 	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<APCGExValencyAssetPalette>> TrackedActorPaletteMap;
 
-	/** Last known positions of tracked actors */
-	TMap<TWeakObjectPtr<AActor>, FVector> TrackedActorPositions;
+	/** Last known transforms of tracked actors (for detecting rotation/scale changes) */
+	TMap<TWeakObjectPtr<AActor>, FTransform> TrackedActorTransforms;
 };

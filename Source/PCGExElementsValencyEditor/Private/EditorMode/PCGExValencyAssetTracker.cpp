@@ -26,7 +26,7 @@ void FPCGExValencyAssetTracker::Reset()
 	TrackedActors.Empty();
 	TrackedActorCageMap.Empty();
 	TrackedActorPaletteMap.Empty();
-	TrackedActorPositions.Empty();
+	TrackedActorTransforms.Empty();
 }
 
 bool FPCGExValencyAssetTracker::IsEnabled() const
@@ -142,7 +142,7 @@ bool FPCGExValencyAssetTracker::OnActorDeleted(AActor* DeletedActor, APCGExValen
 	});
 	TrackedActorCageMap.Remove(DeletedActor);
 	TrackedActorPaletteMap.Remove(DeletedActor);
-	TrackedActorPositions.Remove(DeletedActor);
+	TrackedActorTransforms.Remove(DeletedActor);
 
 	return bAffectedAnything;
 }
@@ -178,15 +178,23 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 			continue;
 		}
 
-		const FVector CurrentPos = Actor->GetActorLocation();
+		const FTransform CurrentTransform = Actor->GetActorTransform();
+		const FVector CurrentPos = CurrentTransform.GetLocation();
 
-		// Check if this is a new actor or if position changed
-		FVector* LastPos = TrackedActorPositions.Find(Actor);
-		const bool bIsNewActor = (LastPos == nullptr);
-		const bool bHasMoved = LastPos && FVector::DistSquared(*LastPos, CurrentPos) > KINDA_SMALL_NUMBER;
+		// Check if this is a new actor or if transform changed
+		FTransform* LastTransform = TrackedActorTransforms.Find(Actor);
+		const bool bIsNewActor = (LastTransform == nullptr);
 
-		// Update tracked position
-		TrackedActorPositions.Add(Actor, CurrentPos);
+		// Check position change (for containment detection)
+		const bool bHasMoved = LastTransform &&
+			FVector::DistSquared(LastTransform->GetLocation(), CurrentPos) > KINDA_SMALL_NUMBER;
+
+		// Check full transform change (position, rotation, scale) for local transform preservation
+		// Use a small tolerance for floating point comparison
+		const bool bTransformChanged = LastTransform && !LastTransform->Equals(CurrentTransform, 0.01f);
+
+		// Update tracked transform
+		TrackedActorTransforms.Add(Actor, CurrentTransform);
 
 		// ========== Cage Containment Tracking ==========
 		{
@@ -197,8 +205,9 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 
 			const bool bContainmentChanged = (NewContainingCage != OldContainingCage);
 
-			// Also refresh if actor moved within a cage that preserves local transforms
-			const bool bMovedWithinTransformCage = bHasMoved &&
+			// Refresh if any part of transform changed within a cage that preserves local transforms
+			// This includes position, rotation, and scale changes
+			const bool bTransformChangedWithinCage = bTransformChanged &&
 				NewContainingCage &&
 				NewContainingCage == OldContainingCage &&
 				NewContainingCage->bPreserveLocalTransforms;
@@ -209,7 +218,7 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 			{
 				TrackedActorCageMap.Add(Actor, NewContainingCage);
 			}
-			else if (bContainmentChanged || bMovedWithinTransformCage)
+			else if (bContainmentChanged || bTransformChangedWithinCage)
 			{
 				if (OldContainingCage)
 				{
@@ -240,8 +249,9 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 
 			const bool bContainmentChanged = (NewContainingPalette != OldContainingPalette);
 
-			// Also refresh if actor moved within a palette that preserves local transforms
-			const bool bMovedWithinTransformPalette = bHasMoved &&
+			// Refresh if any part of transform changed within a palette that preserves local transforms
+			// This includes position, rotation, and scale changes
+			const bool bTransformChangedWithinPalette = bTransformChanged &&
 				NewContainingPalette &&
 				NewContainingPalette == OldContainingPalette &&
 				NewContainingPalette->bPreserveLocalTransforms;
@@ -252,7 +262,7 @@ bool FPCGExValencyAssetTracker::Update(TSet<APCGExValencyCage*>& OutAffectedCage
 			{
 				TrackedActorPaletteMap.Add(Actor, NewContainingPalette);
 			}
-			else if (bContainmentChanged || bMovedWithinTransformPalette)
+			else if (bContainmentChanged || bTransformChangedWithinPalette)
 			{
 				if (OldContainingPalette)
 				{
