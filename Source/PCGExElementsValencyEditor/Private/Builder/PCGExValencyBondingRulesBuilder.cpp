@@ -112,11 +112,11 @@ FPCGExValencyBuildResult UPCGExValencyBondingRulesBuilder::BuildFromVolumes(cons
 			const FPCGExValencyModuleLayerConfig* LayerConfig = Module.Layers.Find(LayerName);
 			const int64 OrbitalMask = LayerConfig ? LayerConfig->OrbitalMask : 0;
 
-			const FTransform* TransformPtr = Module.bHasLocalTransform ? &Module.LocalTransform : nullptr;
+			// LocalTransform is NOT part of module identity - always pass nullptr
 			const FPCGExValencyMaterialVariant* MaterialVariantPtr = Module.bHasMaterialVariant ? &Module.MaterialVariant : nullptr;
 
 			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
-				Module.Asset.ToSoftObjectPath(), OrbitalMask, TransformPtr, MaterialVariantPtr);
+				Module.Asset.ToSoftObjectPath(), OrbitalMask, nullptr, MaterialVariantPtr);
 
 			ModuleKeyToIndex.Add(ModuleKey, ModuleIndex);
 		}
@@ -403,9 +403,19 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			const FString ModuleKey = FPCGExValencyCageData::MakeModuleKey(
 				Entry.Asset.ToSoftObjectPath(), Data.OrbitalMask, nullptr, MaterialVariantPtr);
 
-			if (OutModuleKeyToIndex.Contains(ModuleKey))
+			if (const int32* ExistingIndex = OutModuleKeyToIndex.Find(ModuleKey))
 			{
-				PCGEX_VALENCY_VERBOSE(Building, "  Module key '%s' already exists (transform variant)", *ModuleKey);
+				// Module already exists - accumulate transform variant if applicable
+				if (Data.bPreserveLocalTransforms)
+				{
+					FPCGExValencyModuleDefinition& ExistingModule = TargetRules->Modules[*ExistingIndex];
+					ExistingModule.AddLocalTransform(Entry.LocalTransform);
+					PCGEX_VALENCY_VERBOSE(Building, "  Module[%d] added transform variant (now %d variants)", *ExistingIndex, ExistingModule.LocalTransforms.Num());
+				}
+				else
+				{
+					PCGEX_VALENCY_VERBOSE(Building, "  Module key '%s' already exists (transform variant)", *ModuleKey);
+				}
 				continue; // Already have a module for this combo - transform variants share module
 			}
 
@@ -422,11 +432,10 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 			// Copy module name from cage (for fixed picks)
 			NewModule.ModuleName = Data.ModuleName;
 
-			// Store local transform if cage preserves them (first transform encountered for this module)
+			// Store local transform if cage preserves them
 			if (Data.bPreserveLocalTransforms)
 			{
-				NewModule.LocalTransform = Entry.LocalTransform;
-				NewModule.bHasLocalTransform = !Entry.LocalTransform.Equals(FTransform::Identity, 0.01f);
+				NewModule.AddLocalTransform(Entry.LocalTransform);
 			}
 
 			// Store material variant directly on the module
@@ -1253,9 +1262,23 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 						}
 
 						// Check transform match (if pattern cage preserves transforms)
+						// Check if ANY of the module's transforms matches
 						if (TransformPtr)
 						{
-							if (!Module.bHasLocalTransform || !Module.LocalTransform.Equals(*TransformPtr))
+							if (!Module.bHasLocalTransform)
+							{
+								continue;
+							}
+							bool bFoundMatchingTransform = false;
+							for (const FTransform& ModuleTransform : Module.LocalTransforms)
+							{
+								if (ModuleTransform.Equals(*TransformPtr, 0.1f))
+								{
+									bFoundMatchingTransform = true;
+									break;
+								}
+							}
+							if (!bFoundMatchingTransform)
 							{
 								continue;
 							}

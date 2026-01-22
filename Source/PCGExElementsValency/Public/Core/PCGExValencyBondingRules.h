@@ -105,11 +105,50 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	/** Module names for fixed pick lookup (parallel to ModuleWeights) */
 	TArray<FName> ModuleNames;
 
-	/** Module local transforms (relative to spawn point) */
-	TArray<FTransform> ModuleLocalTransforms;
+	/**
+	 * Per-module local transform headers.
+	 * X = start index in AllLocalTransforms, Y = count of transforms.
+	 * Allows multiple transform variants per module for random selection.
+	 */
+	TArray<FIntPoint> ModuleLocalTransformHeaders;
 
-	/** Whether each module has a local transform offset */
+	/** Flattened array of all local transforms for all modules */
+	TArray<FTransform> AllLocalTransforms;
+
+	/** Whether each module has local transform offsets */
 	TArray<bool> ModuleHasLocalTransform;
+
+	/** Get a random local transform for a module based on seed */
+	FTransform GetModuleLocalTransform(int32 ModuleIndex, int32 Seed) const
+	{
+		if (!ModuleLocalTransformHeaders.IsValidIndex(ModuleIndex))
+		{
+			return FTransform::Identity;
+		}
+
+		const FIntPoint& Header = ModuleLocalTransformHeaders[ModuleIndex];
+		if (Header.Y == 0)
+		{
+			return FTransform::Identity;
+		}
+
+		// Use seed to select a transform variant
+		const int32 VariantIndex = FMath::Abs(Seed) % Header.Y;
+		const int32 TransformIndex = Header.X + VariantIndex;
+
+		if (AllLocalTransforms.IsValidIndex(TransformIndex))
+		{
+			return AllLocalTransforms[TransformIndex];
+		}
+
+		return FTransform::Identity;
+	}
+
+	/** Get the number of transform variants for a module */
+	int32 GetModuleTransformCount(int32 ModuleIndex) const
+	{
+		return ModuleLocalTransformHeaders.IsValidIndex(ModuleIndex) ? ModuleLocalTransformHeaders[ModuleIndex].Y : 0;
+	}
 
 	/** Compiled layer data */
 	TArray<FPCGExValencyLayerCompiled> Layers;

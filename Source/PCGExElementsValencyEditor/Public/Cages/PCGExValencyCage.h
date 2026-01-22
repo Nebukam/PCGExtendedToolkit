@@ -161,16 +161,16 @@ public:
 	 * Useful when asset placement within the cage matters (e.g., corner placement).
 	 * Each unique Asset + LocalTransform combination becomes a separate module variant.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta=(PCGEX_ValencyRebuild))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta=(PCGEX_ValencyRebuild, InlineEditConditionToggle))
 	bool bPreserveLocalTransforms = false;
 
 	/**
 	 * Which components of the local transform to preserve.
 	 * Only used when bPreserveLocalTransforms is enabled.
-	 * Default: All (Translation + Rotation + Scale).
+	 * Default: Rotation.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta = (Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms", PCGEX_ValencyRebuild))
-	uint8 LocalTransformFlags = static_cast<uint8>(EPCGExLocalTransformFlags::All);
+	uint8 LocalTransformFlags = static_cast<uint8>(EPCGExLocalTransformFlags::Rotation);
 
 	/**
 	 * Module settings applied to all assets in this cage.

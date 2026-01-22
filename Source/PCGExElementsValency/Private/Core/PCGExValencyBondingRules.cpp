@@ -81,11 +81,12 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->ModuleAssets.SetNum(Modules.Num());
 	CompiledData->ModuleAssetTypes.SetNum(Modules.Num());
 	CompiledData->ModuleNames.SetNum(Modules.Num());
-	CompiledData->ModuleLocalTransforms.SetNum(Modules.Num());
+	CompiledData->ModuleLocalTransformHeaders.SetNum(Modules.Num());
 	CompiledData->ModuleHasLocalTransform.SetNum(Modules.Num());
 	CompiledData->ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
 	CompiledData->ModuleBoundaryMasks.SetNum(Modules.Num() * LayerCount);
 	CompiledData->ModuleWildcardMasks.SetNum(Modules.Num() * LayerCount);
+	CompiledData->AllLocalTransforms.Empty();
 
 	// Populate module data
 	VALENCY_LOG_SUBSECTION(Compilation, "Compiling Module Data");
@@ -99,8 +100,13 @@ bool UPCGExValencyBondingRules::Compile()
 		CompiledData->ModuleAssets[ModuleIndex] = Module.Asset;
 		CompiledData->ModuleAssetTypes[ModuleIndex] = Module.AssetType;
 		CompiledData->ModuleNames[ModuleIndex] = Module.ModuleName;
-		CompiledData->ModuleLocalTransforms[ModuleIndex] = Module.LocalTransform;
 		CompiledData->ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
+
+		// Populate transform header and flattened transforms
+		const int32 TransformStartIndex = CompiledData->AllLocalTransforms.Num();
+		const int32 TransformCount = Module.LocalTransforms.Num();
+		CompiledData->ModuleLocalTransformHeaders[ModuleIndex] = FIntPoint(TransformStartIndex, TransformCount);
+		CompiledData->AllLocalTransforms.Append(Module.LocalTransforms);
 
 		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d",
 			ModuleIndex,

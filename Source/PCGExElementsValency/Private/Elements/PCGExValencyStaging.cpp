@@ -299,10 +299,10 @@ namespace PCGExValencyStaging
 						PCGEX_VALENCY_WARNING(Staging, "    -> NO COLLECTION/ENTRY (Collection=%s, EntryIndex=%d)", Collection ? TEXT("Valid") : TEXT("NULL"), EntryIndex);
 					}
 					
-					// Apply local transform if enabled 
+					// Apply local transform if enabled (uses point seed to select among variants)
 					if (Settings->bApplyLocalTransforms && CompiledBondingRules->ModuleHasLocalTransform[State.ResolvedModule])
 					{
-						const FTransform& LocalTransform = CompiledBondingRules->ModuleLocalTransforms[State.ResolvedModule];
+						const FTransform LocalTransform = CompiledBondingRules->GetModuleLocalTransform(State.ResolvedModule, InSeeds[PointIndex]);
 						OutTransform = LocalTransform * OutTransform;
 					}
 				}

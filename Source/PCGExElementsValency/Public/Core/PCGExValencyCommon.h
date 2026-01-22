@@ -401,15 +401,38 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	EPCGExValencyAssetType AssetType = EPCGExValencyAssetType::Unknown;
 
 	/**
-	 * Local transform relative to spawn point.
+	 * Local transforms relative to spawn point (variants).
 	 * Used when the source cage had bPreserveLocalTransforms enabled.
+	 * Multiple transforms allow different rotations/positions of the same asset
+	 * to be randomly selected at output time based on point seed.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
-	FTransform LocalTransform = FTransform::Identity;
+	TArray<FTransform> LocalTransforms;
 
-	/** Whether this module uses a local transform offset */
+	/** Whether this module uses local transform offsets */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Module")
 	bool bHasLocalTransform = false;
+
+	/** Add a local transform variant (skips near-duplicates) */
+	void AddLocalTransform(const FTransform& Transform)
+	{
+		// Skip near-duplicate transforms
+		for (const FTransform& Existing : LocalTransforms)
+		{
+			if (Existing.Equals(Transform, 0.1f))
+			{
+				return;
+			}
+		}
+
+		LocalTransforms.Add(Transform);
+
+		// Has local transform if we have any non-identity transforms
+		if (!bHasLocalTransform && !Transform.Equals(FTransform::Identity, 0.01f))
+		{
+			bHasLocalTransform = true;
+		}
+	}
 
 	/**
 	 * Material variant for this specific module.
