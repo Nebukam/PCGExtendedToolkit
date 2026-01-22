@@ -152,7 +152,7 @@ public:
 	 * When enabled, preserves the spatial relationship between assets and the palette center.
 	 * Each unique Asset + LocalTransform combination becomes a separate module variant.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta=(InlineEditConditionToggle))
 	bool bPreserveLocalTransforms = false;
 
 	/**
