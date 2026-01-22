@@ -65,11 +65,8 @@ public:
 	/** Get the display name for this cage (used in editor UI) */
 	virtual FString GetCageDisplayName() const;
 
-	/** Whether this is a null cage (boundary marker) */
+	/** Whether this is a null cage (placeholder - boundary/wildcard/any based on mode) */
 	virtual bool IsNullCage() const { return false; }
-
-	/** Whether this is a wildcard cage (any neighbor required) */
-	virtual bool IsWildcardCage() const { return false; }
 
 	/** Whether this is a pattern cage (for filtering connections) */
 	virtual bool IsPatternCage() const { return false; }

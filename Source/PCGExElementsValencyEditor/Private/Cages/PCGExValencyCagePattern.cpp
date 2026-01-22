@@ -8,6 +8,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyCageNull.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "PCGExValencyEditorSettings.h"
@@ -219,8 +220,30 @@ bool APCGExValencyCagePattern::DetectNearbyConnections()
 
 bool APCGExValencyCagePattern::ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const
 {
-	// Pattern cages connect to other pattern cages, null cages (boundary), and wildcard cages (any neighbor)
-	return CandidateCage && (CandidateCage->IsPatternCage() || CandidateCage->IsNullCage() || CandidateCage->IsWildcardCage());
+	if (!CandidateCage)
+	{
+		return false;
+	}
+
+	// Connect to other pattern cages
+	if (CandidateCage->IsPatternCage())
+	{
+		return true;
+	}
+
+	// Connect to null cages that are participating in patterns
+	// Non-participating null cages act as passive markers only
+	if (CandidateCage->IsNullCage())
+	{
+		if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(CandidateCage))
+		{
+			return NullCage->IsParticipatingInPatterns();
+		}
+		// Fallback: Legacy null cages without participation - accept them for backward compat
+		return true;
+	}
+
+	return false;
 }
 
 void APCGExValencyCagePattern::NotifyPatternNetworkChanged()

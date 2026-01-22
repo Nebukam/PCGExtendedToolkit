@@ -26,6 +26,35 @@ enum class EPCGExValencyAssetType : uint8
 	DataAsset
 };
 
+/**
+ * Mode for placeholder (null) cages - determines runtime constraint behavior.
+ *
+ * BITMASK INVARIANTS (see Orbital_Bitmask_Reference.md):
+ * - Boundary: BoundaryMask SET, OrbitalMask NOT set (must have NO neighbor)
+ * - Wildcard: WildcardMask SET, OrbitalMask SET (must have ANY neighbor)
+ * - Any: Neither mask set, OrbitalMask NOT set (no constraint)
+ * - INVARIANT: Boundary & Wildcard == 0 (mutually exclusive)
+ */
+UENUM(BlueprintType)
+enum class EPCGExPlaceholderMode : uint8
+{
+	Boundary UMETA(ToolTip = "Orbital must have NO neighbor at runtime"),
+	Wildcard UMETA(ToolTip = "Orbital must have ANY neighbor at runtime"),
+	Any UMETA(ToolTip = "No runtime constraint - spatial placeholder only")
+};
+
+/**
+ * Default behavior for cage orbitals without explicit connections.
+ * Applied during BuildNeighborRelationships when an orbital has no connected cage.
+ */
+UENUM(BlueprintType)
+enum class EPCGExMissingConnectionBehavior : uint8
+{
+	Unconstrained UMETA(ToolTip = "No constraint - any neighbor or none accepted"),
+	Boundary UMETA(ToolTip = "Treat as boundary - must have NO neighbor"),
+	Wildcard UMETA(ToolTip = "Treat as wildcard - must have ANY neighbor")
+};
+
 namespace PCGExValency
 {
 	/** Algorithm state constants */

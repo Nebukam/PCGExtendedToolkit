@@ -190,6 +190,16 @@ public:
 	FName ModuleName;
 
 	/**
+	 * Default behavior for orbitals without explicit connections.
+	 * Applied during BuildNeighborRelationships when an orbital has no connected cage.
+	 * - Unconstrained: No constraint (accepts any neighbor or none) - current default
+	 * - Boundary: Treat as boundary (must have NO neighbor at that orbital)
+	 * - Wildcard: Treat as wildcard (must have ANY neighbor at that orbital)
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module", AdvancedDisplay, meta = (PCGEX_ValencyRebuild))
+	EPCGExMissingConnectionBehavior MissingConnectionBehavior = EPCGExMissingConnectionBehavior::Unconstrained;
+
+	/**
 	 * Material variants discovered during asset scanning.
 	 * Key = mesh asset path, Value = array of unique material configurations.
 	 * Populated by ScanAndRegisterContainedAssets, consumed by builder.

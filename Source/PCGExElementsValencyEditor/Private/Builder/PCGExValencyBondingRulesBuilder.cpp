@@ -307,22 +307,40 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			// Only count connected orbitals (or null cage connections if enabled)
 			if (const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection())
 			{
-				// Check if it's a null cage (boundary)
+				// Check if it's a null cage (placeholder) - handle based on mode
+				// See Orbital_Bitmask_Reference.md for mask behavior per mode
 				if (ConnectedCage->IsNullCage())
 				{
-					// Null cage = boundary. Do NOT set orbital bit here.
-					// The boundary is tracked separately via BoundaryMask in BuildNeighborRelationships.
-					// OrbitalMask should only include REAL connections.
-					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NULL CAGE (boundary) - tracked as boundary, not in OrbitalMask",
-						Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
-				}
-				else if (ConnectedCage->IsWildcardCage())
-				{
-					// Wildcard cage = any neighbor required. Set the orbital bit.
-					// The wildcard is tracked separately via WildcardMask in BuildNeighborRelationships.
-					Data.OrbitalMask |= (1LL << Orbital.OrbitalIndex);
-					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': WILDCARD CAGE (any neighbor) - bit set",
-						Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
+					if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(ConnectedCage))
+					{
+						switch (NullCage->GetPlaceholderMode())
+						{
+						case EPCGExPlaceholderMode::Boundary:
+							// Boundary: Do NOT set OrbitalMask bit (tracked via BoundaryMask in BuildNeighborRelationships)
+							PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': BOUNDARY (null cage) - tracked as boundary, not in OrbitalMask",
+								Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
+							break;
+
+						case EPCGExPlaceholderMode::Wildcard:
+							// Wildcard: SET OrbitalMask bit (tracked via WildcardMask in BuildNeighborRelationships)
+							Data.OrbitalMask |= (1LL << Orbital.OrbitalIndex);
+							PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': WILDCARD (null cage) - bit set",
+								Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
+							break;
+
+						case EPCGExPlaceholderMode::Any:
+							// Any: Do NOT set OrbitalMask bit (no constraint - pure spatial placeholder)
+							PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': ANY (null cage) - no mask set, spatial placeholder only",
+								Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
+							break;
+						}
+					}
+					else
+					{
+						// Fallback for legacy null cages without mode - treat as Boundary
+						PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NULL CAGE (legacy, treating as boundary)",
+							Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
+					}
 				}
 				else
 				{
@@ -514,36 +532,68 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 
 			if (const APCGExValencyCageBase* ConnectedBase = Orbital.GetDisplayConnection())
 			{
+				// Handle null cages (placeholders) based on mode
+				// See Orbital_Bitmask_Reference.md for mask behavior per mode
 				if (ConnectedBase->IsNullCage())
 				{
-					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': BOUNDARY (null cage)",
-						Orbital.OrbitalIndex, *OrbitalName.ToString());
-
-					// Null cage = boundary, mark this orbital as boundary for all modules from this cage
-					for (int32 ModuleIndex : CageModuleIndices)
+					if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(ConnectedBase))
 					{
-						if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+						switch (NullCage->GetPlaceholderMode())
 						{
-							FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
-							LayerConfig.SetBoundaryOrbital(Orbital.OrbitalIndex);
+						case EPCGExPlaceholderMode::Boundary:
+							PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': BOUNDARY (null cage)",
+								Orbital.OrbitalIndex, *OrbitalName.ToString());
+
+							// Boundary: Set BoundaryMask, do NOT set OrbitalMask
+							for (int32 ModuleIndex : CageModuleIndices)
+							{
+								if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+								{
+									FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
+									LayerConfig.SetBoundaryOrbital(Orbital.OrbitalIndex);
+								}
+							}
+							break;
+
+						case EPCGExPlaceholderMode::Wildcard:
+							PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': WILDCARD (null cage)",
+								Orbital.OrbitalIndex, *OrbitalName.ToString());
+
+							// Wildcard: Set WildcardMask AND OrbitalMask (via SetWildcardOrbital)
+							for (int32 ModuleIndex : CageModuleIndices)
+							{
+								if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+								{
+									FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
+									LayerConfig.SetWildcardOrbital(Orbital.OrbitalIndex);
+								}
+							}
+							// Note: No specific neighbors added - any module is valid at this orbital
+							break;
+
+						case EPCGExPlaceholderMode::Any:
+							PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': ANY (null cage) - no constraint",
+								Orbital.OrbitalIndex, *OrbitalName.ToString());
+
+							// Any: Neither mask set - pure spatial placeholder, no runtime constraint
+							// No action needed - orbital exists but has no constraint
+							break;
 						}
 					}
-				}
-				else if (ConnectedBase->IsWildcardCage())
-				{
-					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': WILDCARD (any neighbor)",
-						Orbital.OrbitalIndex, *OrbitalName.ToString());
-
-					// Wildcard cage = any neighbor required, mark this orbital as wildcard for all modules from this cage
-					for (int32 ModuleIndex : CageModuleIndices)
+					else
 					{
-						if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+						// Fallback for legacy null cages without mode - treat as Boundary
+						PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': BOUNDARY (legacy null cage)",
+							Orbital.OrbitalIndex, *OrbitalName.ToString());
+						for (int32 ModuleIndex : CageModuleIndices)
 						{
-							FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
-							LayerConfig.SetWildcardOrbital(Orbital.OrbitalIndex);
+							if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+							{
+								FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
+								LayerConfig.SetBoundaryOrbital(Orbital.OrbitalIndex);
+							}
 						}
 					}
-					// Note: No specific neighbors added - any module is valid at this orbital
 				}
 				else if (const APCGExValencyCage* ConnectedCage = Cast<APCGExValencyCage>(ConnectedBase))
 				{
@@ -577,8 +627,44 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 			}
 			else
 			{
-				PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NO CONNECTION",
-					Orbital.OrbitalIndex, *OrbitalName.ToString());
+				// No explicit connection - apply MissingConnectionBehavior if configured
+				// See Orbital_Bitmask_Reference.md for mask behavior
+				switch (Cage->MissingConnectionBehavior)
+				{
+				case EPCGExMissingConnectionBehavior::Unconstrained:
+					// Default behavior - no constraint for unconnected orbitals
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NO CONNECTION (unconstrained)",
+						Orbital.OrbitalIndex, *OrbitalName.ToString());
+					break;
+
+				case EPCGExMissingConnectionBehavior::Boundary:
+					// Treat as boundary - must have NO neighbor
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NO CONNECTION -> BOUNDARY (via MissingConnectionBehavior)",
+						Orbital.OrbitalIndex, *OrbitalName.ToString());
+					for (int32 ModuleIndex : CageModuleIndices)
+					{
+						if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+						{
+							FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
+							LayerConfig.SetBoundaryOrbital(Orbital.OrbitalIndex);
+						}
+					}
+					break;
+
+				case EPCGExMissingConnectionBehavior::Wildcard:
+					// Treat as wildcard - must have ANY neighbor
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NO CONNECTION -> WILDCARD (via MissingConnectionBehavior)",
+						Orbital.OrbitalIndex, *OrbitalName.ToString());
+					for (int32 ModuleIndex : CageModuleIndices)
+					{
+						if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+						{
+							FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
+							LayerConfig.SetWildcardOrbital(Orbital.OrbitalIndex);
+						}
+					}
+					break;
+				}
 			}
 
 			// Update each of this cage's modules with the neighbor info
@@ -1105,16 +1191,30 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 		// We need to compute the orbital mask from the PATTERN CAGE, not the proxied cage!
 		{
 			// Compute orbital mask from the PATTERN CAGE's connections (not the proxied cage!)
-			// Include all real connections (pattern cages, wildcard cages) but NOT null cages (boundary)
+			// Include all real connections (pattern cages) and null cages in Wildcard mode
+			// See Orbital_Bitmask_Reference.md: Wildcard ⊆ OrbitalMask, Boundary ∩ OrbitalMask == ∅
 			const TArray<FPCGExValencyCageOrbital>& PatternOrbitals = Cage->GetOrbitals();
 			int64 PatternOrbitalMask = 0;
 			for (const FPCGExValencyCageOrbital& Orbital : PatternOrbitals)
 			{
+				if (!Orbital.bEnabled) continue;
+
 				if (const APCGExValencyCageBase* Connection = Orbital.GetDisplayConnection())
 				{
-					// Include orbital if connected to pattern cage or wildcard cage (not null cage)
-					if (Orbital.bEnabled && !Connection->IsNullCage())
+					if (Connection->IsNullCage())
 					{
+						// Only include if Wildcard mode (Boundary and Any are NOT in OrbitalMask)
+						if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(Connection))
+						{
+							if (NullCage->IsWildcardMode())
+							{
+								PatternOrbitalMask |= (1LL << Orbital.OrbitalIndex);
+							}
+						}
+					}
+					else
+					{
+						// Regular connection (pattern cage) - include in mask
 						PatternOrbitalMask |= (1LL << Orbital.OrbitalIndex);
 					}
 				}
@@ -1237,17 +1337,32 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 				continue;
 			}
 
-			// Check if connected to null cage (boundary constraint)
+			// Check if connected to null cage (placeholder) - handle based on mode
+			// See Orbital_Bitmask_Reference.md for mask behavior per mode
 			if (ConnectedBase->IsNullCage())
 			{
-				Entry.BoundaryOrbitalMask |= (1ULL << Orbital.OrbitalIndex);
-				continue;
-			}
+				if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(ConnectedBase))
+				{
+					switch (NullCage->GetPlaceholderMode())
+					{
+					case EPCGExPlaceholderMode::Boundary:
+						Entry.BoundaryOrbitalMask |= (1ULL << Orbital.OrbitalIndex);
+						break;
 
-			// Check if connected to wildcard cage (any neighbor required)
-			if (ConnectedBase->IsWildcardCage())
-			{
-				Entry.WildcardOrbitalMask |= (1ULL << Orbital.OrbitalIndex);
+					case EPCGExPlaceholderMode::Wildcard:
+						Entry.WildcardOrbitalMask |= (1ULL << Orbital.OrbitalIndex);
+						break;
+
+					case EPCGExPlaceholderMode::Any:
+						// Any mode: No mask set - pure spatial placeholder with no runtime constraint
+						break;
+					}
+				}
+				else
+				{
+					// Legacy fallback - treat as boundary
+					Entry.BoundaryOrbitalMask |= (1ULL << Orbital.OrbitalIndex);
+				}
 				continue;
 			}
 

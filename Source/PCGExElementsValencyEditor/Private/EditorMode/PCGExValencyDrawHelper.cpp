@@ -11,7 +11,7 @@
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
-#include "Cages/PCGExValencyCageWildcard.h"
+#include "Cages/PCGExValencyCageNull.h"
 #include "Cages/PCGExValencyCageOrbital.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
@@ -40,18 +40,22 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 	const FVector CageLocation = Cage->GetActorLocation();
 	const FTransform CageTransform = Cage->GetActorTransform();
 
-	// Null cages are valid without orbital sets - they're boundary markers
-	// They have their own debug sphere component, no additional drawing needed
+	// Null cages (placeholders) are valid without orbital sets when not participating in patterns
+	// Non-participating null cages have their own debug sphere component, no additional drawing needed
 	if (Cage->IsNullCage())
 	{
-		return;
-	}
-
-	// Wildcard cages are similar to null cages - they're "any neighbor required" markers
-	// They have their own debug sphere component, no additional drawing needed
-	if (Cage->IsWildcardCage())
-	{
-		return;
+		if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(Cage))
+		{
+			if (!NullCage->IsParticipatingInPatterns())
+			{
+				return; // Passive placeholder - drawn by sphere component only
+			}
+			// Participating null cages fall through to draw their orbitals
+		}
+		else
+		{
+			return; // Legacy fallback
+		}
 	}
 
 	// Draw mirror connections if this cage mirrors other actors
@@ -129,26 +133,32 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 
 			if (ConnectedCage->IsNullCage())
 			{
-				// Connection to null cage: dashed darkish red, no arrowhead on thick arrow
-				ArrowColor = Settings->NullConnectionColor;
+				// Connection to null cage (placeholder): color based on mode, dashed, no arrowhead
+				if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(ConnectedCage))
+				{
+					switch (NullCage->GetPlaceholderMode())
+					{
+					case EPCGExPlaceholderMode::Boundary:
+						ArrowColor = Settings->BoundaryConnectionColor;
+						break;
+					case EPCGExPlaceholderMode::Wildcard:
+						ArrowColor = Settings->WildcardConnectionColor;
+						break;
+					case EPCGExPlaceholderMode::Any:
+						ArrowColor = Settings->AnyConnectionColor;
+						break;
+					}
+				}
+				else
+				{
+					ArrowColor = Settings->BoundaryConnectionColor; // Legacy fallback
+				}
 				bDashed = true;
 				bDrawArrowhead = false;
 
 				// Thick arrow ends at null cage's sphere surface
 				const float NullSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
 				const float DistanceToSurface = ConnectionDistance - NullSphereRadius;
-				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, StartOffset + 10.0f);
-			}
-			else if (ConnectedCage->IsWildcardCage())
-			{
-				// Connection to wildcard cage: dashed magenta, no arrowhead on thick arrow
-				ArrowColor = Settings->WildcardConnectionColor;
-				bDashed = true;
-				bDrawArrowhead = false;
-
-				// Thick arrow ends at wildcard cage's sphere surface
-				const float WildcardSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
-				const float DistanceToSurface = ConnectionDistance - WildcardSphereRadius;
 				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, StartOffset + 10.0f);
 			}
 			else
@@ -234,24 +244,53 @@ void FPCGExValencyDrawHelper::DrawCageLabels(FCanvas* Canvas, const FSceneView* 
 	const FLinearColor LabelColor = bIsSelected ? Settings->SelectedLabelColor : Settings->UnselectedLabelColor;
 	const FVector CageLocation = Cage->GetActorLocation();
 
-	// Null cages: just show "NULL Cage" label, no orbitals
+	// Null cages (placeholder): show mode-based label
+	// If participating in patterns, fall through to draw orbitals
 	if (Cage->IsNullCage())
 	{
-		if (Settings->bShowCageLabels)
+		if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(Cage))
 		{
-			DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), TEXT("NULL Cage"), LabelColor);
-		}
-		return;
-	}
+			if (Settings->bShowCageLabels)
+			{
+				FString ModeLabel;
+				switch (NullCage->GetPlaceholderMode())
+				{
+				case EPCGExPlaceholderMode::Boundary:
+					ModeLabel = TEXT("Boundary");
+					break;
+				case EPCGExPlaceholderMode::Wildcard:
+					ModeLabel = TEXT("Wildcard");
+					break;
+				case EPCGExPlaceholderMode::Any:
+					ModeLabel = TEXT("Any");
+					break;
+				}
 
-	// Wildcard cages: just show "Wildcard Cage" label, no orbitals
-	if (Cage->IsWildcardCage())
-	{
-		if (Settings->bShowCageLabels)
-		{
-			DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), TEXT("Wildcard Cage"), LabelColor);
+				// Add participation indicator
+				if (NullCage->IsParticipatingInPatterns())
+				{
+					ModeLabel += TEXT(" [Pattern]");
+				}
+
+				DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), ModeLabel, LabelColor);
+			}
+
+			// If not participating in patterns, don't draw orbitals
+			if (!NullCage->IsParticipatingInPatterns())
+			{
+				return;
+			}
+			// Otherwise fall through to draw orbitals
 		}
-		return;
+		else
+		{
+			// Legacy fallback
+			if (Settings->bShowCageLabels)
+			{
+				DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), TEXT("Placeholder"), LabelColor);
+			}
+			return;
+		}
 	}
 
 	// Draw cage name label
@@ -676,22 +715,30 @@ void FPCGExValencyDrawHelper::DrawPatternCage(FPrimitiveDrawInterface* PDI, cons
 
 			if (ConnectedCage->IsNullCage())
 			{
-				// Connection to null cage: dashed, no arrowhead
-				ArrowColor = Settings->NullConnectionColor;
+				// Connection to null cage (placeholder): color based on mode, dashed, no arrowhead
+				if (const APCGExValencyCageNull* NullCage = Cast<APCGExValencyCageNull>(ConnectedCage))
+				{
+					switch (NullCage->GetPlaceholderMode())
+					{
+					case EPCGExPlaceholderMode::Boundary:
+						ArrowColor = Settings->BoundaryConnectionColor;
+						break;
+					case EPCGExPlaceholderMode::Wildcard:
+						ArrowColor = Settings->WildcardConnectionColor;
+						break;
+					case EPCGExPlaceholderMode::Any:
+						ArrowColor = Settings->AnyConnectionColor;
+						break;
+					}
+				}
+				else
+				{
+					ArrowColor = Settings->BoundaryConnectionColor; // Legacy fallback
+				}
 				bDashed = true;
 				bDrawArrowhead = false;
 				const float NullSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
 				const float DistanceToSurface = ConnectionDistance - NullSphereRadius;
-				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, ProbeRadius * Settings->ArrowStartOffsetPct + 10.0f);
-			}
-			else if (ConnectedCage->IsWildcardCage())
-			{
-				// Connection to wildcard cage: dashed magenta, no arrowhead
-				ArrowColor = Settings->WildcardConnectionColor;
-				bDashed = true;
-				bDrawArrowhead = false;
-				const float WildcardSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
-				const float DistanceToSurface = ConnectionDistance - WildcardSphereRadius;
 				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, ProbeRadius * Settings->ArrowStartOffsetPct + 10.0f);
 			}
 			else

@@ -51,13 +51,21 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
 	FLinearColor UnilateralColor = FLinearColor(0.0f, 0.6f, 0.6f);
 
-	/** Color for connections to null cages (boundary markers) */
+	/** Color for connections to null cages in Boundary mode (must have NO neighbor) */
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
-	FLinearColor NullConnectionColor = FLinearColor(0.5f, 0.15f, 0.15f);
+	FLinearColor BoundaryConnectionColor = FLinearColor(0.5f, 0.15f, 0.15f);
 
-	/** Color for connections to wildcard cages (any neighbor required) */
+	/** Color for connections to null cages in Wildcard mode (must have ANY neighbor) */
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
 	FLinearColor WildcardConnectionColor = FLinearColor(0.7f, 0.2f, 0.7f);
+
+	/** Color for connections to null cages in Any mode (no constraint - spatial placeholder) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
+	FLinearColor AnyConnectionColor = FLinearColor(0.4f, 0.8f, 1.0f);
+
+	/** DEPRECATED: Use BoundaryConnectionColor instead */
+	UPROPERTY(Config)
+	FLinearColor NullConnectionColor = FLinearColor(0.5f, 0.15f, 0.15f);
 
 	/** Color for orbitals with no connection */
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
