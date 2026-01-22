@@ -78,6 +78,104 @@ void FValencyReferenceTracker::OnActorReferencesChanged(AActor* Actor)
 	RebuildDependencyGraph();
 }
 
+void FValencyReferenceTracker::OnMirrorSourcesChanged(APCGExValencyCage* Cage)
+{
+	if (!Cage)
+	{
+		return;
+	}
+
+	// Remove existing edges from this cage
+	RemoveAllEdgesFrom(Cage);
+
+	// Add new edges based on current MirrorSources
+	for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
+	{
+		if (Source)
+		{
+			AddDependency(Cage, Source);
+		}
+	}
+
+	UE_LOG(LogTemp, Verbose, TEXT("Valency: Updated dependency graph for cage '%s' MirrorSources change"),
+		*Cage->GetCageDisplayName());
+}
+
+void FValencyReferenceTracker::OnProxiedCagesChanged(APCGExValencyCagePattern* PatternCage)
+{
+	if (!PatternCage)
+	{
+		return;
+	}
+
+	// Remove existing edges from this pattern cage
+	RemoveAllEdgesFrom(PatternCage);
+
+	// Add new edges based on current ProxiedCages
+	for (const TObjectPtr<APCGExValencyCage>& ProxiedCage : PatternCage->ProxiedCages)
+	{
+		if (ProxiedCage)
+		{
+			AddDependency(PatternCage, ProxiedCage);
+		}
+	}
+
+	UE_LOG(LogTemp, Verbose, TEXT("Valency: Updated dependency graph for pattern cage '%s' ProxiedCages change"),
+		*PatternCage->GetCageDisplayName());
+}
+
+void FValencyReferenceTracker::OnActorRemoved(AActor* Actor)
+{
+	if (!Actor)
+	{
+		return;
+	}
+
+	// Remove this actor from being a dependency source (remove from map keys)
+	DependentsMap.Remove(Actor);
+
+	// Remove this actor from all dependent lists (remove from map values)
+	for (auto& Pair : DependentsMap)
+	{
+		Pair.Value.RemoveAll([Actor](const TWeakObjectPtr<AActor>& DepPtr)
+		{
+			return DepPtr.Get() == Actor;
+		});
+	}
+
+	UE_LOG(LogTemp, Verbose, TEXT("Valency: Removed actor from dependency graph"));
+}
+
+void FValencyReferenceTracker::RemoveAllEdgesFrom(AActor* Dependent)
+{
+	if (!Dependent)
+	{
+		return;
+	}
+
+	// Remove Dependent from all dependents lists in the map
+	// (This is O(n) but happens rarely - only when references change)
+	for (auto& Pair : DependentsMap)
+	{
+		Pair.Value.RemoveAll([Dependent](const TWeakObjectPtr<AActor>& DepPtr)
+		{
+			return DepPtr.Get() == Dependent;
+		});
+	}
+}
+
+void FValencyReferenceTracker::AddDependency(AActor* Dependent, AActor* DependsOn)
+{
+	if (!Dependent || !DependsOn || Dependent == DependsOn)
+	{
+		return;
+	}
+
+	// DependsOn is depended upon by Dependent
+	TArray<TWeakObjectPtr<AActor>>& Dependents = DependentsMap.FindOrAdd(DependsOn);
+	Dependents.AddUnique(Dependent);
+}
+
 bool FValencyReferenceTracker::PropagateContentChange(AActor* ChangedActor, bool bRefreshGhosts, bool bTriggerRebuild)
 {
 	if (!ChangedActor)
@@ -109,42 +207,21 @@ bool FValencyReferenceTracker::PropagateContentChange(AActor* ChangedActor, bool
 		}
 	}
 
-	// Second pass: collect unique volumes that need rebuilding (avoid redundant rebuilds)
-	bool bAnyRebuilt = false;
+	// Second pass: mark affected cages dirty (dirty state system handles rebuild)
+	bool bAnyMarkedDirty = false;
 	if (bTriggerRebuild)
 	{
-		TSet<AValencyContextVolume*> VolumesToRebuild;
-
 		for (AActor* Affected : AffectedActors)
 		{
 			if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Affected))
 			{
-				// Collect volumes this cage belongs to
-				for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : Cage->GetContainingVolumes())
-				{
-					if (AValencyContextVolume* Volume = VolumePtr.Get())
-					{
-						if (Volume->bAutoRebuildOnChange)
-						{
-							VolumesToRebuild.Add(Volume);
-						}
-					}
-				}
-			}
-		}
-
-		// Trigger one rebuild per unique volume
-		for (AValencyContextVolume* Volume : VolumesToRebuild)
-		{
-			if (Volume)
-			{
-				Volume->BuildRulesFromCages();
-				bAnyRebuilt = true;
+				Cage->RequestRebuild(EValencyRebuildReason::ExternalCascade);
+				bAnyMarkedDirty = true;
 			}
 		}
 	}
 
-	return bAnyRebuilt || AffectedActors.Num() > 0;
+	return bAnyMarkedDirty || AffectedActors.Num() > 0;
 }
 
 const TArray<TWeakObjectPtr<AActor>>* FValencyReferenceTracker::GetDependents(AActor* Actor) const
@@ -266,10 +343,11 @@ bool FValencyReferenceTracker::TriggerDependentRebuild(AActor* Dependent)
 		return false;
 	}
 
-	// For cages, use existing rebuild mechanism
-	if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(Dependent))
+	// For cages, use unified rebuild mechanism
+	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Dependent))
 	{
-		return Cage->TriggerAutoRebuildIfNeeded();
+		Cage->RequestRebuild(EValencyRebuildReason::ExternalCascade);
+		return true;
 	}
 
 	return false;

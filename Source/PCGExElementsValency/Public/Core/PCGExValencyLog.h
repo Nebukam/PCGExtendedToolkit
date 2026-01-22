@@ -26,6 +26,8 @@ enum class EPCGExValencyLogCategory : uint8
 	Cages,
 	/** Mirror source resolution and asset inheritance */
 	Mirror,
+	/** Rebuild flow and dirty state cascade */
+	Rebuild,
 
 	MAX UMETA(Hidden)
 };

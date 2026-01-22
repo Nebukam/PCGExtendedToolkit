@@ -129,7 +129,7 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 	{
 		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 		{
-			TriggerAutoRebuildForMirroringCages();
+			RequestRebuildForMirroringCages();
 		}
 	}
 
@@ -143,7 +143,7 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 		}
 		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 		{
-			TriggerAutoRebuildForMirroringCages();
+			RequestRebuildForMirroringCages();
 		}
 	}
 
@@ -174,7 +174,7 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 
 	if (bShouldRebuild)
 	{
-		TriggerAutoRebuildForMirroringCages();
+		RequestRebuildForMirroringCages();
 	}
 }
 
@@ -214,7 +214,7 @@ void APCGExValencyAssetPalette::PostEditMove(bool bFinished)
 		// Check if assets changed and trigger rebuild for mirroring cages
 		if (AValencyContextVolume::IsValencyModeActive() && HaveScannedAssetsChanged(OldScannedAssets))
 		{
-			TriggerAutoRebuildForMirroringCages();
+			RequestRebuildForMirroringCages();
 		}
 	}
 }
@@ -566,8 +566,8 @@ void APCGExValencyAssetPalette::OnAssetRegistrationChanged()
 {
 	Modify();
 
-	// Trigger rebuild for cages that mirror this palette
-	TriggerAutoRebuildForMirroringCages();
+	// Trigger rebuild for cages that mirror this palette via unified dirty state system
+	RequestRebuildForMirroringCages();
 
 	PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 }
@@ -669,6 +669,21 @@ bool APCGExValencyAssetPalette::TriggerAutoRebuildForMirroringCages()
 		return Tracker->PropagateContentChange(this);
 	}
 	return false;
+}
+
+void APCGExValencyAssetPalette::RequestRebuildForMirroringCages()
+{
+	// Find all cages that mirror this palette and request rebuild on each
+	TArray<APCGExValencyCage*> MirroringCages;
+	FindMirroringCages(MirroringCages);
+
+	for (APCGExValencyCage* Cage : MirroringCages)
+	{
+		if (Cage)
+		{
+			Cage->RequestRebuild(EValencyRebuildReason::ExternalCascade);
+		}
+	}
 }
 
 bool APCGExValencyAssetPalette::HaveScannedAssetsChanged(const TArray<FPCGExValencyAssetEntry>& OldScannedAssets) const

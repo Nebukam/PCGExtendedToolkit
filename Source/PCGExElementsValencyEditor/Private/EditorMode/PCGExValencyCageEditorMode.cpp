@@ -64,11 +64,11 @@ void FPCGExValencyCageEditorMode::Enter()
 	// Initialize asset tracker with our cache references
 	AssetTracker.Initialize(CachedCages, CachedVolumes, CachedPalettes);
 
-	// Initialize dirty state manager with all cached actors
-	DirtyStateManager.Initialize(CachedCages, CachedVolumes, CachedPalettes);
-
-	// Initialize reference tracker for change propagation
+	// Initialize reference tracker FIRST (builds dependency graph for change propagation)
 	ReferenceTracker.Initialize(&CachedCages, &CachedVolumes, &CachedPalettes);
+
+	// Initialize dirty state manager with all cached actors and reference tracker
+	DirtyStateManager.Initialize(CachedCages, CachedVolumes, CachedPalettes, &ReferenceTracker);
 
 	// Capture current selection state - handles case where actors are already selected
 	// when entering Valency mode (OnSelectionChanged won't fire for existing selection)
@@ -277,10 +277,11 @@ void FPCGExValencyCageEditorMode::Tick(FEditorViewportClient* ViewportClient, fl
 
 	// Process all dirty state once per frame (coalesced rebuilds)
 	// Skip dirty processing on first frame after mode entry (system stabilization)
+	// NOTE: We do NOT reset dirty state - changes are queued for the next frame
 	if (bSkipNextDirtyProcess)
 	{
 		bSkipNextDirtyProcess = false;
-		DirtyStateManager.Reset(); // Clear any dirty state accumulated during Enter()
+		// Don't clear dirty state - let it accumulate for processing on next frame
 	}
 	else if (DirtyStateManager.ProcessDirty())
 	{
@@ -462,6 +463,16 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 
 		// Rebuild dependency graph - new cage may have MirrorSources
 		ReferenceTracker.RebuildDependencyGraph();
+
+		// CRITICAL: Mark the new cage's containing volumes dirty to trigger rebuild
+		// This ensures the build includes the newly added cage
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : Cage->GetContainingVolumes())
+		{
+			if (AValencyContextVolume* Volume = VolumePtr.Get())
+			{
+				DirtyStateManager.MarkVolumeDirty(Volume, EValencyDirtyFlags::Structure);
+			}
+		}
 	}
 	// Check if it's a volume
 	else if (AValencyContextVolume* Volume = Cast<AValencyContextVolume>(Actor))
@@ -488,6 +499,17 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 	// Check if it's a cage being deleted
 	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Actor))
 	{
+		// CRITICAL: Capture containing volumes BEFORE removing from cache
+		// We need to mark these dirty to trigger a rebuild without the deleted cage
+		TArray<AValencyContextVolume*> AffectedVolumes;
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : Cage->GetContainingVolumes())
+		{
+			if (AValencyContextVolume* Volume = VolumePtr.Get())
+			{
+				AffectedVolumes.Add(Volume);
+			}
+		}
+
 		// Remove from cache
 		CachedCages.RemoveAll([Cage](const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr)
 		{
@@ -505,6 +527,13 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 			{
 				OtherCage->DetectNearbyConnections();
 			}
+		}
+
+		// CRITICAL: Mark affected volumes dirty to trigger rebuild
+		// This ensures the build reflects the cage removal
+		for (AValencyContextVolume* Volume : AffectedVolumes)
+		{
+			DirtyStateManager.MarkVolumeDirty(Volume, EValencyDirtyFlags::Structure);
 		}
 	}
 	// Check if it's a volume

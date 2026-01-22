@@ -7,6 +7,7 @@
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
+class APCGExValencyCagePattern;
 class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 
@@ -46,6 +47,26 @@ public:
 	 */
 	void OnActorReferencesChanged(AActor* Actor);
 
+	//~ Incremental Update API
+
+	/**
+	 * Called when a cage's MirrorSources array changes.
+	 * Incrementally updates only that cage's edges in the dependency graph.
+	 */
+	void OnMirrorSourcesChanged(APCGExValencyCage* Cage);
+
+	/**
+	 * Called when a pattern cage's ProxiedCages array changes.
+	 * Incrementally updates only that pattern cage's edges in the dependency graph.
+	 */
+	void OnProxiedCagesChanged(APCGExValencyCagePattern* PatternCage);
+
+	/**
+	 * Called when an actor is removed from the level.
+	 * Removes all edges involving that actor from the dependency graph.
+	 */
+	void OnActorRemoved(AActor* Actor);
+
 	/**
 	 * Notify that an actor's content has changed and propagate to all dependents.
 	 * This is the main entry point for change propagation.
@@ -70,6 +91,17 @@ public:
 	bool DependsOn(AActor* ActorA, AActor* ActorB) const;
 
 private:
+	/**
+	 * Remove all dependency edges where Dependent is the dependent actor.
+	 * Used when an actor's references change (before adding new edges).
+	 */
+	void RemoveAllEdgesFrom(AActor* Dependent);
+
+	/**
+	 * Add a single dependency edge: Dependent depends on DependsOn.
+	 */
+	void AddDependency(AActor* Dependent, AActor* DependsOn);
+
 	/**
 	 * Collect all affected actors recursively (non-recursive iterative version).
 	 * More efficient than recursive calls for deep chains.

@@ -97,8 +97,15 @@ public:
 	 * Trigger auto-rebuild for cages that mirror this palette.
 	 * Only triggers if Valency mode is active and a mirroring cage's volume has bAutoRebuildOnChange.
 	 * @return True if a rebuild was triggered
+	 * @deprecated Use RequestRebuildForMirroringCages() instead
 	 */
 	bool TriggerAutoRebuildForMirroringCages();
+
+	/**
+	 * Request rebuild for all cages that mirror this palette through the unified dirty state system.
+	 * This is the preferred method for triggering rebuilds from palette changes.
+	 */
+	void RequestRebuildForMirroringCages();
 
 	/**
 	 * Check if scanned assets have changed compared to a previous snapshot.

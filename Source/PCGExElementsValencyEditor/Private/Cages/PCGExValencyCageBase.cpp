@@ -6,11 +6,15 @@
 #include "Components/SceneComponent.h"
 #include "EngineUtils.h"
 #include "PCGExValencyMacros.h"
+#include "Core/PCGExValencyLog.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
+#include "EditorMode/PCGExValencyDirtyState.h"
+#include "EditorMode/PCGExValencyCageEditorMode.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
+#include "EditorModeManager.h"
 #endif
 
 namespace PCGExValencyFolders
@@ -67,7 +71,7 @@ void APCGExValencyCageBase::PostInitializeComponents()
 	if (bIsNewlyCreated)
 	{
 		bIsNewlyCreated = false; // Clear flag
-		TriggerAutoRebuildIfNeeded();
+		RequestRebuild(EValencyRebuildReason::AssetChange);
 	}
 }
 
@@ -119,7 +123,25 @@ void APCGExValencyCageBase::BeginDestroy()
 #if WITH_EDITOR
 		if (!World->bIsTearingDown && !World->IsPlayInEditor() && ContainingVolumes.Num() > 0)
 		{
-			TriggerAutoRebuildIfNeeded();
+			// IMPORTANT: We can't use RequestRebuild(this) here because by the time ProcessDirty
+			// runs (next tick), this cage will already be destroyed and the weak pointer invalid.
+			// Instead, mark the containing VOLUMES dirty directly - they will persist and trigger rebuild.
+			if (FValencyDirtyStateManager* Manager = GetActiveDirtyStateManager())
+			{
+				for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+				{
+					if (AValencyContextVolume* Volume = VolumePtr.Get())
+					{
+						Manager->MarkVolumeDirty(Volume, EValencyDirtyFlags::Structure);
+						PCGEX_VALENCY_VERBOSE(Rebuild, "Cage '%s' being destroyed - marked volume dirty for rebuild", *GetCageDisplayName());
+					}
+				}
+			}
+			else
+			{
+				// Fallback: trigger direct rebuild since dirty state manager isn't available
+				TriggerAutoRebuildIfNeeded();
+			}
 		}
 #endif
 	}
@@ -178,12 +200,13 @@ void APCGExValencyCageBase::PostEditMove(bool bFinished)
 			HandleVolumeMembershipChange(OldVolumes);
 		}
 
-		// Always trigger rebuild after movement - connections may have changed
-		// HandleVolumeMembershipChange only covers in/out of volumes, not within-volume moves
-		TriggerAutoRebuildIfNeeded();
-
-		// Notify affected cages using spatial registry for efficiency
+		// IMPORTANT: Notify affected cages BEFORE requesting rebuild
+		// This ensures other cages (like pattern roots) update their connections
+		// before the rebuild processes the dirty state
 		NotifyAffectedCagesOfMovement(DragStartPosition, CurrentPosition);
+
+		// Now trigger rebuild after all connections are updated
+		RequestRebuild(EValencyRebuildReason::Movement);
 
 		LastDragUpdatePosition = CurrentPosition;
 		VolumesBeforeDrag.Empty(); // Clear after use
@@ -576,6 +599,10 @@ void APCGExValencyCageBase::OnRelatedCageMoved(APCGExValencyCageBase* MovedCage)
 	// The spatial registry pre-filters to only call us if we're potentially affected,
 	// so we can directly refresh our connections
 	DetectNearbyConnections();
+
+	// This cage's connections may have changed due to the other cage moving,
+	// so we also need to request a rebuild to ensure patterns/rules are updated
+	RequestRebuild(EValencyRebuildReason::ConnectionChange);
 }
 
 void APCGExValencyCageBase::NotifyAllCagesOfMovement()
@@ -708,8 +735,12 @@ void APCGExValencyCageBase::HandleVolumeMembershipChange(const TArray<TWeakObjec
 		}
 	}
 
-	// Trigger rebuild for affected volumes
-	TriggerAutoRebuildForVolumes(AffectedVolumes);
+	// Mark this cage dirty for volume membership change
+	// The dirty state system will handle the rebuild after all connections are updated
+	if (AffectedVolumes.Num() > 0)
+	{
+		RequestRebuild(EValencyRebuildReason::Movement);
+	}
 }
 
 bool APCGExValencyCageBase::TriggerAutoRebuildIfNeeded()
@@ -752,4 +783,77 @@ bool APCGExValencyCageBase::TriggerAutoRebuildForVolumes(const TArray<AValencyCo
 		}
 	}
 	return false;
+}
+
+void APCGExValencyCageBase::RequestRebuild(EValencyRebuildReason Reason)
+{
+	// Only process when Valency mode is active
+	if (!AValencyContextVolume::IsValencyModeActive())
+	{
+		return;
+	}
+
+	// Get the dirty state manager from the active editor mode
+	FValencyDirtyStateManager* Manager = GetActiveDirtyStateManager();
+	if (!Manager)
+	{
+		// Fallback to direct rebuild if manager not available
+		TriggerAutoRebuildIfNeeded();
+		return;
+	}
+
+	// Convert reason to dirty flags
+	EValencyDirtyFlags Flags = EValencyDirtyFlags::Structure; // Default
+	switch (Reason)
+	{
+	case EValencyRebuildReason::PropertyChange:
+		Flags = EValencyDirtyFlags::Structure;
+		break;
+	case EValencyRebuildReason::Movement:
+		Flags = EValencyDirtyFlags::Transform | EValencyDirtyFlags::Orbitals;
+		break;
+	case EValencyRebuildReason::AssetChange:
+		Flags = EValencyDirtyFlags::Assets;
+		break;
+	case EValencyRebuildReason::ConnectionChange:
+		Flags = EValencyDirtyFlags::Orbitals;
+		break;
+	case EValencyRebuildReason::ExternalCascade:
+		Flags = EValencyDirtyFlags::Structure;
+		break;
+	}
+
+	// Mark this cage as dirty - ProcessDirty will handle the rest
+	Manager->MarkCageDirty(this, Flags);
+
+	// Log rebuild request with reason
+	static const TCHAR* ReasonNames[] = {
+		TEXT("PropertyChange"),
+		TEXT("Movement"),
+		TEXT("AssetChange"),
+		TEXT("ConnectionChange"),
+		TEXT("ExternalCascade")
+	};
+	const int32 ReasonIndex = static_cast<int32>(Reason);
+	const TCHAR* ReasonName = (ReasonIndex >= 0 && ReasonIndex < UE_ARRAY_COUNT(ReasonNames))
+		? ReasonNames[ReasonIndex]
+		: TEXT("Unknown");
+	PCGEX_VALENCY_VERBOSE(Rebuild, "RequestRebuild from '%s' (reason: %s)", *GetCageDisplayName(), ReasonName);
+}
+
+FValencyDirtyStateManager* APCGExValencyCageBase::GetActiveDirtyStateManager()
+{
+	// Get the editor mode and return its dirty state manager
+	if (GEditor)
+	{
+		if (GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
+		{
+			if (FPCGExValencyCageEditorMode* Mode = static_cast<FPCGExValencyCageEditorMode*>(
+				GLevelEditorModeTools().GetActiveMode(FPCGExValencyCageEditorMode::ModeID)))
+			{
+				return &Mode->GetDirtyStateManager();
+			}
+		}
+	}
+	return nullptr;
 }

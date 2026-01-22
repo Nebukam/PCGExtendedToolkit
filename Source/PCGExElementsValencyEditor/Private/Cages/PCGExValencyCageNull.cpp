@@ -20,16 +20,9 @@ APCGExValencyCageNull::APCGExValencyCageNull()
 
 void APCGExValencyCageNull::PostEditMove(bool bFinished)
 {
-	// Let base class handle volume membership, connection updates, etc.
+	// Let base class handle volume membership, connection updates, and rebuild triggering
+	// Base class already calls RequestRebuild(Movement) when drag finishes
 	Super::PostEditMove(bFinished);
-
-	// After drag finishes, trigger auto-rebuild for containing volumes
-	// Null cages represent boundaries, so moving them affects which regular cages
-	// have boundary connections vs regular connections
-	if (bFinished && AValencyContextVolume::IsValencyModeActive())
-	{
-		TriggerAutoRebuildIfNeeded();
-	}
 }
 
 FString APCGExValencyCageNull::GetCageDisplayName() const

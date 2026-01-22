@@ -22,6 +22,7 @@ static const TCHAR* GCategoryNames[] = {
 	TEXT("EditorMode"),
 	TEXT("Cages"),
 	TEXT("Mirror"),
+	TEXT("Rebuild"),
 };
 static_assert(UE_ARRAY_COUNT(GCategoryNames) == static_cast<uint8>(EPCGExValencyLogCategory::MAX), "Category names must match enum count");
 
@@ -183,14 +184,14 @@ FString FPCGExValencyLog::GetCurrentReport()
 static FAutoConsoleCommand GValencyLogSetVerbosityCmd(
 	TEXT("PCGEx.Valency.Log.SetVerbosity"),
 	TEXT("Set verbosity for a Valency log category. Usage: PCGEx.Valency.Log.SetVerbosity <Category> <Verbosity>\n")
-	TEXT("  Categories: Building, Compilation, Solver, Staging, EditorMode, Cages, Mirror, All\n")
+	TEXT("  Categories: Building, Compilation, Solver, Staging, EditorMode, Cages, Mirror, Rebuild, All\n")
 	TEXT("  Verbosity: Off, Error, Warning, Info, Verbose"),
 	FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
 	{
 		if (Args.Num() < 2)
 		{
 			UE_LOG(LogValency, Warning, TEXT("Usage: PCGEx.Valency.Log.SetVerbosity <Category> <Verbosity>"));
-			UE_LOG(LogValency, Warning, TEXT("  Categories: Building, Compilation, Solver, Staging, EditorMode, Cages, All"));
+			UE_LOG(LogValency, Warning, TEXT("  Categories: Building, Compilation, Solver, Staging, EditorMode, Cages, Mirror, Rebuild, All"));
 			UE_LOG(LogValency, Warning, TEXT("  Verbosity: Off, Error, Warning, Info, Verbose"));
 			return;
 		}
@@ -258,6 +259,10 @@ static FAutoConsoleCommand GValencyLogSetVerbosityCmd(
 		else if (CategoryStr.Equals(TEXT("Mirror"), ESearchCase::IgnoreCase))
 		{
 			FPCGExValencyLog::SetVerbosity(EPCGExValencyLogCategory::Mirror, Verbosity);
+		}
+		else if (CategoryStr.Equals(TEXT("Rebuild"), ESearchCase::IgnoreCase))
+		{
+			FPCGExValencyLog::SetVerbosity(EPCGExValencyLogCategory::Rebuild, Verbosity);
 		}
 		else
 		{

@@ -41,7 +41,7 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 		// Check if scanned assets changed
 		if (HaveScannedAssetsChanged(OldScannedAssets))
 		{
-			TriggerAutoRebuildIfNeeded();
+			RequestRebuild(EValencyRebuildReason::AssetChange);
 		}
 	}
 }
@@ -622,21 +622,19 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			PCGEX_VALENCY_INFO(Mirror, "  Removed %d invalid entries, %d valid sources remain", RemovedCount, MirrorSources.Num());
 		}
 
-		// Notify tracker that our references changed (rebuilds dependency graph)
+		// Notify tracker that our MirrorSources changed (incrementally updates dependency graph)
 		if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 		{
-			Tracker->OnActorReferencesChanged(this);
+			Tracker->OnMirrorSourcesChanged(this);
 		}
 
 		// Refresh ghost meshes
 		RefreshMirrorGhostMeshes();
 
-		// Trigger rebuild for containing volumes (with debouncing for interactive changes)
+		// Request rebuild through unified dirty state system (with debouncing for interactive changes)
 		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 		{
-			TriggerAutoRebuildIfNeeded();
-			// Also cascade to cages that mirror THIS cage (their effective content has changed)
-			TriggerAutoRebuildForMirroringCages();
+			RequestRebuild(EValencyRebuildReason::PropertyChange);
 		}
 
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
@@ -653,7 +651,7 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 		RefreshMirrorGhostMeshes();
 		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 		{
-			TriggerAutoRebuildIfNeeded();
+			RequestRebuild(EValencyRebuildReason::PropertyChange);
 		}
 	}
 	else
@@ -687,7 +685,7 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 		{
 			PCGEX_VALENCY_INFO(Building, "Cage '%s': Property '%s' with ValencyRebuild metadata changed - triggering rebuild",
 				*GetCageDisplayName(), *PropertyName.ToString());
-			TriggerAutoRebuildIfNeeded();
+			RequestRebuild(EValencyRebuildReason::PropertyChange);
 		}
 	}
 }

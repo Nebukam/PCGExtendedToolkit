@@ -951,7 +951,23 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 
 	const FName LayerName = OrbitalSet->LayerName;
 
-	// Get all connected pattern cages (traverses orbital connections)
+	// CRITICAL: Refresh connections for all pattern cages in the network BEFORE traversing.
+	// This ensures the network traversal uses up-to-date orbital data.
+	// Without this, cages outside the volume or beyond probe radius might have stale connections.
+	//
+	// Pass 1: Get initial network (might include stale connections to moved cages)
+	TArray<APCGExValencyCagePattern*> InitialNetwork = RootCage->GetConnectedPatternCages();
+
+	// Pass 2: Refresh connections for ALL cages in the initial network
+	for (APCGExValencyCagePattern* PatternCage : InitialNetwork)
+	{
+		if (PatternCage)
+		{
+			PatternCage->DetectNearbyConnections();
+		}
+	}
+
+	// Pass 3: Get the UPDATED network with fresh orbital data
 	TArray<APCGExValencyCagePattern*> ConnectedCages = RootCage->GetConnectedPatternCages();
 
 	if (ConnectedCages.Num() == 0)

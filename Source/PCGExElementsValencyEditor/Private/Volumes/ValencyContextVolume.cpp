@@ -18,6 +18,7 @@
 #include "Misc/MessageDialog.h"
 #include "EditorModeManager.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
+#include "EditorMode/PCGExValencyDirtyState.h"
 #include "PCGExValencyEditorSettings.h"
 #endif
 
@@ -127,7 +128,16 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 	if (bShouldRebuild && bAutoRebuildOnChange && IsValencyModeActive())
 	{
-		BuildRulesFromCages();
+		// Use dirty state system for proper coalescing and deferred rebuild
+		if (FValencyDirtyStateManager* Manager = APCGExValencyCageBase::GetActiveDirtyStateManager())
+		{
+			Manager->MarkVolumeDirty(this, EValencyDirtyFlags::ModuleSettings);
+		}
+		else
+		{
+			// Fallback to direct rebuild if manager not available
+			BuildRulesFromCages();
+		}
 	}
 }
 

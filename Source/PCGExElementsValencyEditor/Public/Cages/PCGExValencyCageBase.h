@@ -12,6 +12,29 @@
 #include "PCGExValencyCageBase.generated.h"
 
 class AValencyContextVolume;
+class FValencyDirtyStateManager;
+
+/**
+ * Reason for requesting a rebuild - used for logging and debugging.
+ */
+UENUM()
+enum class EValencyRebuildReason : uint8
+{
+	/** A property with PCGEX_ValencyRebuild metadata changed */
+	PropertyChange,
+
+	/** The cage was moved */
+	Movement,
+
+	/** Assets were added/removed/changed */
+	AssetChange,
+
+	/** Orbital connections changed */
+	ConnectionChange,
+
+	/** Cascaded from another actor's change */
+	ExternalCascade
+};
 
 /**
  * Abstract base class for Valency cage actors.
@@ -181,10 +204,19 @@ public:
 	TArray<FPCGExValencyCageOrbital> Orbitals;
 
 	/**
+	 * Request a rebuild through the unified dirty state system.
+	 * This is the preferred method for triggering rebuilds - it goes through
+	 * the dirty state manager for proper coalescing and dependency cascade.
+	 * @param Reason The reason for the rebuild request (for logging)
+	 */
+	void RequestRebuild(EValencyRebuildReason Reason);
+
+	/**
 	 * Trigger auto-rebuild for containing volumes if conditions are met.
 	 * Consolidates the common rebuild triggering logic.
 	 * Checks: Valency mode active, bAutoRebuildOnChange enabled.
 	 * @return True if a rebuild was triggered
+	 * @deprecated Use RequestRebuild() instead for proper coalescing
 	 */
 	bool TriggerAutoRebuildIfNeeded();
 
@@ -194,6 +226,12 @@ public:
 	 * @return True if a rebuild was triggered
 	 */
 	static bool TriggerAutoRebuildForVolumes(const TArray<AValencyContextVolume*>& Volumes);
+
+	/**
+	 * Get the dirty state manager from the active Valency editor mode.
+	 * @return Pointer to manager if mode is active, nullptr otherwise
+	 */
+	static FValencyDirtyStateManager* GetActiveDirtyStateManager();
 
 protected:
 	/** Volumes that contain this cage (transient, not saved) */

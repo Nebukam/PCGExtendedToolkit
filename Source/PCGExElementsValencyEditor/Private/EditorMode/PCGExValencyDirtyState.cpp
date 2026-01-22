@@ -2,20 +2,24 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "EditorMode/PCGExValencyDirtyState.h"
+#include "EditorMode/PCGExValencyReferenceTracker.h"
 
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
+#include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 
 void FValencyDirtyStateManager::Initialize(
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& InCachedCages,
 	const TArray<TWeakObjectPtr<AValencyContextVolume>>& InCachedVolumes,
-	const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& InCachedPalettes)
+	const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& InCachedPalettes,
+	FValencyReferenceTracker* InReferenceTracker)
 {
 	CachedCages = &InCachedCages;
 	CachedVolumes = &InCachedVolumes;
 	CachedPalettes = &InCachedPalettes;
+	ReferenceTracker = InReferenceTracker;
 	Reset();
 }
 
@@ -145,8 +149,8 @@ int32 FValencyDirtyStateManager::ProcessDirty(bool bRebuildEnabled)
 
 	bIsProcessing = true;
 
-	// Step 1: Expand dirty set through mirror relationships
-	ExpandDirtyThroughMirrors();
+	// Step 1: Expand dirty set through transitive dependencies (via ReferenceTracker)
+	ExpandDirtyThroughDependencies();
 
 	// Step 2: Refresh dirty cages/palettes (re-scan assets if needed)
 	for (auto& Pair : DirtyCages)
@@ -154,6 +158,15 @@ int32 FValencyDirtyStateManager::ProcessDirty(bool bRebuildEnabled)
 		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(Pair.Key.Get()))
 		{
 			RefreshCageIfNeeded(Cage, Pair.Value);
+		}
+		else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Pair.Key.Get()))
+		{
+			// Pattern cages don't have assets to scan, but need orbital connection refresh
+			if (EnumHasAnyFlags(Pair.Value, EValencyDirtyFlags::Orbitals | EValencyDirtyFlags::VolumeMembership | EValencyDirtyFlags::Structure))
+			{
+				PatternCage->RefreshContainingVolumes();
+				PatternCage->DetectNearbyConnections();
+			}
 		}
 	}
 
@@ -203,43 +216,102 @@ int32 FValencyDirtyStateManager::ProcessDirty(bool bRebuildEnabled)
 	return RebuildCount;
 }
 
-void FValencyDirtyStateManager::ExpandDirtyThroughMirrors()
+void FValencyDirtyStateManager::ExpandDirtyThroughDependencies()
 {
-	if (!CachedCages)
+	if (!ReferenceTracker)
+	{
+		// No reference tracker - cannot expand transitively
+		return;
+	}
+
+	// Collect all currently dirty actors
+	TSet<AActor*> OriginalDirty;
+	GetAllDirtyActors(OriginalDirty);
+
+	if (OriginalDirty.Num() == 0)
 	{
 		return;
 	}
 
-	// Collect actors to check for mirroring (cages + palettes)
-	TArray<AActor*> DirtyActors;
-	for (auto& Pair : DirtyCages)
+	// Use ReferenceTracker to find all transitively affected actors
+	TSet<AActor*> AllAffected;
+	for (AActor* DirtyActor : OriginalDirty)
 	{
-		if (AActor* Actor = Pair.Key.Get())
+		// Get all dependents (actors that depend on this dirty actor)
+		if (const TArray<TWeakObjectPtr<AActor>>* Dependents = ReferenceTracker->GetDependents(DirtyActor))
 		{
-			DirtyActors.Add(Actor);
-		}
-	}
-	for (auto& Pair : DirtyPalettes)
-	{
-		if (AActor* Actor = Pair.Key.Get())
-		{
-			DirtyActors.Add(Actor);
+			for (const TWeakObjectPtr<AActor>& DepPtr : *Dependents)
+			{
+				if (AActor* Dependent = DepPtr.Get())
+				{
+					AllAffected.Add(Dependent);
+				}
+			}
 		}
 	}
 
-	// Find cages that mirror dirty actors
-	TArray<APCGExValencyCage*> MirroringCages;
-	for (AActor* DirtyActor : DirtyActors)
+	// BFS to find transitive dependents
+	TArray<AActor*> ToProcess = AllAffected.Array();
+	while (ToProcess.Num() > 0)
 	{
-		FindMirroringCages(DirtyActor, MirroringCages);
-		for (APCGExValencyCage* MirroringCage : MirroringCages)
+		AActor* Current = ToProcess.Pop(EAllowShrinking::No);
+
+		if (const TArray<TWeakObjectPtr<AActor>>* Dependents = ReferenceTracker->GetDependents(Current))
 		{
-			if (!DirtyCages.Contains(MirroringCage))
+			for (const TWeakObjectPtr<AActor>& DepPtr : *Dependents)
 			{
-				UE_LOG(LogTemp, Verbose, TEXT("Valency: Mirror cascade - marking cage '%s' dirty (mirrors dirty actor)"),
-					*MirroringCage->GetCageDisplayName());
-				MarkCageDirty(MirroringCage, EValencyDirtyFlags::Assets | EValencyDirtyFlags::MirrorSources);
+				if (AActor* Dependent = DepPtr.Get())
+				{
+					if (!AllAffected.Contains(Dependent) && !OriginalDirty.Contains(Dependent))
+					{
+						AllAffected.Add(Dependent);
+						ToProcess.Add(Dependent);
+					}
+				}
 			}
+		}
+	}
+
+	// Mark all affected actors as dirty
+	for (AActor* Affected : AllAffected)
+	{
+		if (OriginalDirty.Contains(Affected))
+		{
+			continue; // Already dirty
+		}
+
+		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(Affected))
+		{
+			UE_LOG(LogTemp, Verbose, TEXT("Valency: Dependency cascade - marking cage '%s' dirty"),
+				*Cage->GetCageDisplayName());
+			MarkCageDirty(Cage, EValencyDirtyFlags::Structure);
+		}
+		else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Affected))
+		{
+			UE_LOG(LogTemp, Verbose, TEXT("Valency: Dependency cascade - marking pattern cage '%s' dirty"),
+				*PatternCage->GetCageDisplayName());
+			MarkCageDirty(PatternCage, EValencyDirtyFlags::Structure);
+		}
+	}
+}
+
+void FValencyDirtyStateManager::GetAllDirtyActors(TSet<AActor*>& OutDirtyActors) const
+{
+	OutDirtyActors.Empty();
+
+	for (const auto& Pair : DirtyCages)
+	{
+		if (AActor* Actor = Pair.Key.Get())
+		{
+			OutDirtyActors.Add(Actor);
+		}
+	}
+
+	for (const auto& Pair : DirtyPalettes)
+	{
+		if (AActor* Actor = Pair.Key.Get())
+		{
+			OutDirtyActors.Add(Actor);
 		}
 	}
 }
@@ -277,37 +349,6 @@ void FValencyDirtyStateManager::CollectAffectedVolumes(TSet<AValencyContextVolum
 
 		// Check dirty palettes (palettes can affect volumes through mirroring cages)
 		// Note: Palettes themselves aren't in volumes, but cages that mirror them are
-	}
-}
-
-void FValencyDirtyStateManager::FindMirroringCages(AActor* SourceActor, TArray<APCGExValencyCage*>& OutMirroringCages) const
-{
-	OutMirroringCages.Empty();
-
-	if (!SourceActor || !CachedCages)
-	{
-		return;
-	}
-
-	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : *CachedCages)
-	{
-		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
-		{
-			if (Cage == SourceActor)
-			{
-				continue;
-			}
-
-			// Check if this cage mirrors the source actor
-			for (const TObjectPtr<AActor>& MirrorSource : Cage->MirrorSources)
-			{
-				if (MirrorSource == SourceActor)
-				{
-					OutMirroringCages.Add(Cage);
-					break;
-				}
-			}
-		}
 	}
 }
 

@@ -7,8 +7,10 @@
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
+class APCGExValencyCagePattern;
 class APCGExValencyAssetPalette;
 class AValencyContextVolume;
+class FValencyReferenceTracker;
 
 /**
  * Flags indicating what aspects of a Valency actor are dirty.
@@ -90,13 +92,14 @@ public:
 	FValencyDirtyStateManager& operator=(const FValencyDirtyStateManager&) = delete;
 
 	/**
-	 * Initialize the manager with references to cached actors.
+	 * Initialize the manager with references to cached actors and the reference tracker.
 	 * Must be called before using other methods.
 	 */
 	void Initialize(
 		const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& InCachedCages,
 		const TArray<TWeakObjectPtr<AValencyContextVolume>>& InCachedVolumes,
-		const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& InCachedPalettes);
+		const TArray<TWeakObjectPtr<APCGExValencyAssetPalette>>& InCachedPalettes,
+		FValencyReferenceTracker* InReferenceTracker);
 
 	/** Clear all dirty state */
 	void Reset();
@@ -144,10 +147,15 @@ public:
 	int32 ProcessDirty(bool bRebuildEnabled = true);
 
 	/**
-	 * Expand dirty set to include mirror relationships.
-	 * Cages that mirror dirty cages/palettes become dirty too.
+	 * Expand dirty set through transitive dependencies via ReferenceTracker.
+	 * All actors that depend on dirty actors (directly or transitively) become dirty.
 	 */
-	void ExpandDirtyThroughMirrors();
+	void ExpandDirtyThroughDependencies();
+
+	/**
+	 * Collect all currently dirty actors into a set.
+	 */
+	void GetAllDirtyActors(TSet<AActor*>& OutDirtyActors) const;
 
 	/**
 	 * Collect volumes that contain any dirty cages.
@@ -166,9 +174,6 @@ public:
 	int32 GetDirtyVolumeCount() const { return DirtyVolumes.Num(); }
 
 private:
-	/** Find all cages that mirror the given actor (cage or palette) */
-	void FindMirroringCages(AActor* SourceActor, TArray<APCGExValencyCage*>& OutMirroringCages) const;
-
 	/** Refresh a dirty cage's scanned assets if needed */
 	void RefreshCageIfNeeded(APCGExValencyCage* Cage, EValencyDirtyFlags Flags);
 
@@ -176,6 +181,9 @@ private:
 	void RefreshPaletteIfNeeded(APCGExValencyAssetPalette* Palette, EValencyDirtyFlags Flags);
 
 private:
+	/** Reference to the reference tracker (owned by editor mode) for transitive lookups */
+	FValencyReferenceTracker* ReferenceTracker = nullptr;
+
 	/** Reference to cached cages (owned by editor mode) */
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>* CachedCages = nullptr;
 
