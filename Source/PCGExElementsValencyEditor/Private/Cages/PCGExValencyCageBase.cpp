@@ -796,11 +796,23 @@ void APCGExValencyCageBase::HandleVolumeMembershipChange(const TArray<TWeakObjec
 		}
 	}
 
-	// Mark this cage dirty for volume membership change
-	// The dirty state system will handle the rebuild after all connections are updated
+	// Mark affected volumes dirty directly
+	// This is critical for cages dragged OUT of volumes - the cage is no longer inside,
+	// so CollectAffectedVolumes won't find it via containment check
 	if (AffectedVolumes.Num() > 0)
 	{
-		RequestRebuild(EValencyRebuildReason::Movement);
+		if (FValencyDirtyStateManager* Manager = GetActiveDirtyStateManager())
+		{
+			for (AValencyContextVolume* Volume : AffectedVolumes)
+			{
+				Manager->MarkVolumeDirty(Volume, EValencyDirtyFlags::Structure);
+			}
+		}
+		else
+		{
+			// Fallback: trigger direct rebuild
+			TriggerAutoRebuildForVolumes(AffectedVolumes);
+		}
 	}
 }
 
