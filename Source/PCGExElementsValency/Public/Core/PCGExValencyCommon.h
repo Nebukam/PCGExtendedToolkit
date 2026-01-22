@@ -477,6 +477,13 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	TArray<FInstancedStruct> Properties;
 
+	/**
+	 * Actor tags from source cage and mirrored palettes.
+	 * Useful for filtering during solving, pattern matching, etc.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
+	TArray<FName> Tags;
+
 	/** Check if this module can still be spawned given current spawn count */
 	bool CanSpawn(int32 CurrentSpawnCount) const
 	{

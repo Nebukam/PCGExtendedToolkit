@@ -9,6 +9,7 @@
 #include "Core/PCGExValencyOrbitalCache.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencyBondingRules.h"
+#include "Core/PCGExValencyPropertyWriter.h"
 
 #include "PCGExValencyProcessor.generated.h"
 
@@ -109,6 +110,9 @@ namespace PCGExValencyMT
 		/** Edge indices reader (created in PrepareSingle from edge facade) */
 		TSharedPtr<PCGExData::TBuffer<int64>> EdgeIndicesReader;
 
+		/** Property writer for cage property output (forwarded from batch, optional) */
+		TSharedPtr<FPCGExValencyPropertyWriter> PropertyWriter;
+
 		/** Max orbitals from orbital set */
 		int32 MaxOrbitals = 0;
 
@@ -184,6 +188,9 @@ namespace PCGExValencyMT
 		/** Orbital mask reader - vertex attribute (shared across processors) */
 		TSharedPtr<PCGExData::TBuffer<int64>> OrbitalMaskReader;
 
+		/** Property writer for cage property output (shared across processors, optional) */
+		TSharedPtr<FPCGExValencyPropertyWriter> PropertyWriter;
+
 		/** Max orbitals from context's orbital set */
 		int32 MaxOrbitals = 0;
 
@@ -196,6 +203,19 @@ namespace PCGExValencyMT
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
+
+		/**
+		 * Initialize the property writer with the given configuration.
+		 * Call during OnProcessingPreparationComplete in derived batches.
+		 *
+		 * @param Config The property writer configuration
+		 * @param CompiledRules The compiled bonding rules to scan for properties
+		 * @return true if initialization succeeded
+		 */
+		bool InitializePropertyWriter(
+			const FPCGExValencyPropertyWriterConfig& Config,
+			const FPCGExValencyBondingRulesCompiled* CompiledRules
+		);
 	};
 
 	/**

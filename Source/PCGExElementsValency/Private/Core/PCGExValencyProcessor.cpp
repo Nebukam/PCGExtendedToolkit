@@ -303,6 +303,28 @@ namespace PCGExValencyMT
 		ValencyProcessor->OrbitalMaskReader = OrbitalMaskReader;
 		ValencyProcessor->MaxOrbitals = MaxOrbitals;
 
+		// Forward property writer if initialized
+		ValencyProcessor->PropertyWriter = PropertyWriter;
+
 		return true;
+	}
+
+	bool IBatch::InitializePropertyWriter(
+		const FPCGExValencyPropertyWriterConfig& Config,
+		const FPCGExValencyBondingRulesCompiled* CompiledRules)
+	{
+		if (!CompiledRules)
+		{
+			return false;
+		}
+
+		// Only create if there's something to output
+		if (!Config.bOutputMetadata && !Config.bOutputTags)
+		{
+			return true; // Success but no writer needed
+		}
+
+		PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>(Config);
+		return PropertyWriter->Initialize(CompiledRules, VtxDataFacade);
 	}
 }

@@ -8,11 +8,14 @@
 
 #include "PCGExCagePropertyCompiled.generated.h"
 
-class UPCGExAssetCollection;
-
 /**
  * Base struct for compiled cage properties.
  * All property types derive from this and must include PropertyName.
+ *
+ * To add a new property type:
+ * 1. Create derived struct in PCGExCagePropertyCompiledTypes.h (runtime module)
+ * 2. Create derived component in PCGExCagePropertyTypes.h/.cpp (editor module)
+ * 3. See .claude/Cage_Property_System.md for full documentation
  */
 USTRUCT(BlueprintType)
 struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled
@@ -24,45 +27,6 @@ struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled
 	FName PropertyName;
 
 	virtual ~FPCGExCagePropertyCompiled() = default;
-};
-
-/**
- * Compiled property referencing a PCGExAssetCollection.
- * Used for mesh/actor swapping based on pattern matches.
- */
-USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_AssetCollection : public FPCGExCagePropertyCompiled
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
-};
-
-/**
- * Compiled property containing additional tags.
- * Supplements actor tags for more granular filtering.
- */
-USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Tags : public FPCGExCagePropertyCompiled
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	TArray<FName> Tags;
-};
-
-/**
- * Compiled property containing generic key-value metadata.
- * For arbitrary user data that doesn't warrant a dedicated property type.
- */
-USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Metadata : public FPCGExCagePropertyCompiled
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	TMap<FName, FString> Metadata;
 };
 
 /**

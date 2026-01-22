@@ -106,6 +106,27 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bApplyLocalTransforms = true;
 
+	// ========== Property Output ==========
+
+	/**
+	 * If enabled, outputs cage Metadata properties as string attributes.
+	 * Each unique metadata key across all modules becomes an attribute.
+	 * Points receive values from their resolved module's metadata.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable))
+	bool bOutputMetadataProperties = false;
+
+	/**
+	 * If enabled, outputs module actor tags as a single comma-separated string attribute.
+	 * Tags are inherited from cage + palette sources.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable))
+	bool bOutputModuleTags = false;
+
+	/** Attribute name for the module tags output */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Property Output", meta=(PCG_Overridable, EditCondition="bOutputModuleTags"))
+	FName ModuleTagsAttributeName = FName("ModuleTags");
+
 	// ========== Fixed Picks ==========
 
 	/** Enable fixed picks - allows pre-assigning specific modules to vertices */

@@ -188,6 +188,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 		return ModulePropertyHeaders.IsValidIndex(ModuleIndex) ? ModulePropertyHeaders[ModuleIndex].Y : 0;
 	}
 
+	/** Per-module actor tags (inherited from cage + palette) */
+	TArray<TArray<FName>> ModuleTags;
+
 	/** Compiled layer data */
 	TArray<FPCGExValencyLayerCompiled> Layers;
 

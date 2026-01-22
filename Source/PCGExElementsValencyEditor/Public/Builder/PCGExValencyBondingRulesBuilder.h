@@ -74,6 +74,9 @@ struct FPCGExValencyCageData
 	/** Compiled properties from cage property components */
 	TArray<FInstancedStruct> Properties;
 
+	/** Actor tags from cage and mirrored sources (palettes, other cages) */
+	TArray<FName> Tags;
+
 	/** Per-orbital: module indices of valid neighbors (from connected cage's assets) */
 	TMap<int32, TArray<int32>> OrbitalToNeighborModules;
 
@@ -240,6 +243,12 @@ protected:
 	 * Properties from palettes and mirrored cages are inherited.
 	 */
 	TArray<FInstancedStruct> GetEffectiveProperties(const APCGExValencyCage* Cage);
+
+	/**
+	 * Collect actor tags from a cage and its mirror sources.
+	 * Tags from palettes and mirrored cages are inherited.
+	 */
+	TArray<FName> GetEffectiveTags(const APCGExValencyCage* Cage);
 
 	/**
 	 * Generate a variant name for a module based on its asset and configuration.

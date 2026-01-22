@@ -246,6 +246,12 @@ namespace PCGExValencyStaging
 					ModuleNameWriter->SetValue(PointIndex, CompiledBondingRules->ModuleNames[State.ResolvedModule]);
 				}
 
+				// Write cage property outputs via helper
+				if (PropertyWriter)
+				{
+					PropertyWriter->WriteModuleProperties(PointIndex, State.ResolvedModule);
+				}
+
 				PCGEX_VALENCY_VERBOSE(Staging, "  Node[%d] (Point=%d): Module[%d] = '%s' (Type=%d)", State.NodeIndex, PointIndex, State.ResolvedModule, *AssetName, static_cast<int32>(AssetType));
 
 				if (EntryHashWriter && Context->PickPacker)
@@ -721,6 +727,17 @@ namespace PCGExValencyStaging
 			ModuleNameWriter = OutputFacade->GetWritable<FName>(Settings->ModuleNameAttributeName, NAME_None, true, PCGExData::EBufferInit::Inherit);
 		}
 
+		// Initialize property writer via base class helper
+		if (Context->BondingRules && Context->BondingRules->CompiledData)
+		{
+			FPCGExValencyPropertyWriterConfig PropertyConfig;
+			PropertyConfig.bOutputMetadata = Settings->bOutputMetadataProperties;
+			PropertyConfig.bOutputTags = Settings->bOutputModuleTags;
+			PropertyConfig.TagsAttributeName = Settings->ModuleTagsAttributeName;
+
+			InitializePropertyWriter(PropertyConfig, Context->BondingRules->CompiledData.Get());
+		}
+
 		// Get fixed pick reader and create filter cache if enabled
 		if (Settings->bEnableFixedPicks)
 		{
@@ -757,6 +774,8 @@ namespace PCGExValencyStaging
 		TypedProcessor->UnsolvableWriter = UnsolvableWriter;
 		TypedProcessor->EntryHashWriter = EntryHashWriter;
 		TypedProcessor->ModuleNameWriter = ModuleNameWriter;
+
+		// Note: PropertyWriter is forwarded by base class in TBatch::PrepareSingle
 
 		// Forward fixed pick reader, filter cache, and factories to processor
 		TypedProcessor->FixedPickReader = FixedPickReader;

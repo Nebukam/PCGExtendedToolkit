@@ -8,7 +8,6 @@
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Properties/PCGExCageProperty.h"
-#include "Core/PCGExCagePropertyCompiled.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -300,6 +299,10 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 		Data.Properties = GetEffectiveProperties(Cage);
 		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d properties collected", *Cage->GetCageDisplayName(), Data.Properties.Num());
 
+		// Collect actor tags from cage and its mirror sources
+		Data.Tags = GetEffectiveTags(Cage);
+		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d tags collected", *Cage->GetCageDisplayName(), Data.Tags.Num());
+
 		// Compute orbital mask from connections
 		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
 		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d assets, %d orbitals",
@@ -458,6 +461,9 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 			// Copy cage properties to module
 			NewModule.Properties = Data.Properties;
+
+			// Copy actor tags to module (inherited from cage + palette)
+			NewModule.Tags = Data.Tags;
 
 #if WITH_EDITORONLY_DATA
 			// Generate variant name for editor review
@@ -1024,6 +1030,84 @@ TArray<FInstancedStruct> UPCGExValencyBondingRulesBuilder::GetEffectivePropertie
 		*Cage->GetCageDisplayName(), AllProperties.Num());
 
 	return AllProperties;
+}
+
+TArray<FName> UPCGExValencyBondingRulesBuilder::GetEffectiveTags(const APCGExValencyCage* Cage)
+{
+	if (!Cage)
+	{
+		return {};
+	}
+
+	TArray<FName> AllTags;
+
+	// Start with cage's own actor tags
+	AllTags.Append(Cage->Tags);
+	const int32 OwnTagCount = AllTags.Num();
+
+	PCGEX_VALENCY_VERBOSE(Mirror, "  GetEffectiveTags for '%s': %d own tags, %d mirror sources",
+		*Cage->GetCageDisplayName(), OwnTagCount, Cage->MirrorSources.Num());
+
+	// If no mirror sources, return early
+	if (Cage->MirrorSources.Num() == 0)
+	{
+		return AllTags;
+	}
+
+	// Track visited sources to prevent infinite recursion
+	TSet<const AActor*> VisitedSources;
+	VisitedSources.Add(Cage);
+
+	// Lambda to collect tags from a source (with optional recursion)
+	TFunction<void(AActor*, bool)> CollectFromSource = [&](AActor* Source, bool bRecursive)
+	{
+		if (!Source)
+		{
+			return;
+		}
+		if (VisitedSources.Contains(Source))
+		{
+			return; // Cycle prevention
+		}
+		VisitedSources.Add(Source);
+
+		// Collect actor tags from source
+		for (const FName& Tag : Source->Tags)
+		{
+			AllTags.AddUnique(Tag);
+		}
+
+		// Check if it's a cage - recurse if needed
+		if (const APCGExValencyCage* SourceCage = Cast<APCGExValencyCage>(Source))
+		{
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source CAGE '%s': collecting %d tags", *SourceCage->GetCageDisplayName(), SourceCage->Tags.Num());
+
+			// Recursively collect from cage's mirror sources
+			if (bRecursive && SourceCage->MirrorSources.Num() > 0)
+			{
+				for (const TObjectPtr<AActor>& NestedSource : SourceCage->MirrorSources)
+				{
+					CollectFromSource(NestedSource, SourceCage->bRecursiveMirror);
+				}
+			}
+		}
+		// Check if it's an asset palette
+		else if (const APCGExValencyAssetPalette* SourcePalette = Cast<APCGExValencyAssetPalette>(Source))
+		{
+			PCGEX_VALENCY_VERBOSE(Mirror, "    Mirror source PALETTE '%s': collecting %d tags", *SourcePalette->GetPaletteDisplayName(), SourcePalette->Tags.Num());
+		}
+	};
+
+	// Collect from all mirror sources
+	for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
+	{
+		CollectFromSource(Source, Cage->bRecursiveMirror);
+	}
+
+	PCGEX_VALENCY_VERBOSE(Mirror, "  GetEffectiveTags for '%s': TOTAL %d tags (after mirror resolution)",
+		*Cage->GetCageDisplayName(), AllTags.Num());
+
+	return AllTags;
 }
 
 FString UPCGExValencyBondingRulesBuilder::GenerateVariantName(

@@ -89,6 +89,7 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->AllLocalTransforms.Empty();
 	CompiledData->ModulePropertyHeaders.SetNum(Modules.Num());
 	CompiledData->AllModuleProperties.Empty();
+	CompiledData->ModuleTags.SetNum(Modules.Num());
 
 	// Populate module data
 	VALENCY_LOG_SUBSECTION(Compilation, "Compiling Module Data");
@@ -116,12 +117,16 @@ bool UPCGExValencyBondingRules::Compile()
 		CompiledData->ModulePropertyHeaders[ModuleIndex] = FIntPoint(PropertyStartIndex, PropertyCount);
 		CompiledData->AllModuleProperties.Append(Module.Properties);
 
-		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d, Properties=%d",
+		// Copy module tags
+		CompiledData->ModuleTags[ModuleIndex] = Module.Tags;
+
+		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d, Properties=%d, Tags=%d",
 			ModuleIndex,
 			*Module.Asset.GetAssetName(),
 			Module.Settings.Weight,
 			static_cast<int32>(Module.AssetType),
-			PropertyCount);
+			PropertyCount,
+			Module.Tags.Num());
 
 		// Orbital masks per layer
 		for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)
