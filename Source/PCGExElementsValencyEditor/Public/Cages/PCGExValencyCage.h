@@ -139,7 +139,7 @@ public:
 	 * When enabled, mirror sources are resolved recursively.
 	 * If source A mirrors source B, assets from B are also included.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta=(PCGEX_ValencyRebuild))
 	bool bRecursiveMirror = true;
 
 	/**
@@ -153,7 +153,7 @@ public:
 	 * Whether to automatically scan for and register contained assets.
 	 * If false, assets must be manually registered.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta=(PCGEX_ValencyRebuild))
 	bool bAutoRegisterContainedAssets = true;
 
 	/**
@@ -161,7 +161,7 @@ public:
 	 * Useful when asset placement within the cage matters (e.g., corner placement).
 	 * Each unique Asset + LocalTransform combination becomes a separate module variant.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta=(PCGEX_ValencyRebuild))
 	bool bPreserveLocalTransforms = false;
 
 	/**
@@ -169,7 +169,7 @@ public:
 	 * Only used when bPreserveLocalTransforms is enabled.
 	 * Default: All (Translation + Rotation + Scale).
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta = (Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Detection", meta = (Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms", PCGEX_ValencyRebuild))
 	uint8 LocalTransformFlags = static_cast<uint8>(EPCGExLocalTransformFlags::All);
 
 	/**
@@ -186,7 +186,7 @@ public:
 	 * Multiple cages can share the same name (selection uses weights).
 	 * Empty = no name (cannot be fixed-picked by name).
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module", meta=(PCGEX_ValencyRebuild))
 	FName ModuleName;
 
 	/**
