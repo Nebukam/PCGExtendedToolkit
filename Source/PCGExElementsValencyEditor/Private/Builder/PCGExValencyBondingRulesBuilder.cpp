@@ -301,7 +301,6 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			// Only count connected orbitals (or null cage connections if enabled)
 			if (const APCGExValencyCageBase* ConnectedCage = Orbital.GetDisplayConnection())
 			{
-
 				// Check if it's a null cage (boundary)
 				if (ConnectedCage->IsNullCage())
 				{
@@ -309,6 +308,14 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 					// The boundary is tracked separately via BoundaryMask in BuildNeighborRelationships.
 					// OrbitalMask should only include REAL connections.
 					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': NULL CAGE (boundary) - tracked as boundary, not in OrbitalMask",
+						Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
+				}
+				else if (ConnectedCage->IsWildcardCage())
+				{
+					// Wildcard cage = any neighbor required. Set the orbital bit.
+					// The wildcard is tracked separately via WildcardMask in BuildNeighborRelationships.
+					Data.OrbitalMask |= (1LL << Orbital.OrbitalIndex);
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': WILDCARD CAGE (any neighbor) - bit set",
 						Orbital.OrbitalIndex, *Orbital.OrbitalName.ToString());
 				}
 				else
@@ -515,6 +522,22 @@ void UPCGExValencyBondingRulesBuilder::BuildNeighborRelationships(
 							LayerConfig.SetBoundaryOrbital(Orbital.OrbitalIndex);
 						}
 					}
+				}
+				else if (ConnectedBase->IsWildcardCage())
+				{
+					PCGEX_VALENCY_VERBOSE(Building, "    Orbital[%d] '%s': WILDCARD (any neighbor)",
+						Orbital.OrbitalIndex, *OrbitalName.ToString());
+
+					// Wildcard cage = any neighbor required, mark this orbital as wildcard for all modules from this cage
+					for (int32 ModuleIndex : CageModuleIndices)
+					{
+						if (TargetRules->Modules.IsValidIndex(ModuleIndex))
+						{
+							FPCGExValencyModuleLayerConfig& LayerConfig = TargetRules->Modules[ModuleIndex].Layers.FindOrAdd(LayerName);
+							LayerConfig.SetWildcardOrbital(Orbital.OrbitalIndex);
+						}
+					}
+					// Note: No specific neighbors added - any module is valid at this orbital
 				}
 				else if (const APCGExValencyCage* ConnectedCage = Cast<APCGExValencyCage>(ConnectedBase))
 				{
@@ -1063,7 +1086,6 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 		FPCGExValencyPatternEntryCompiled& Entry = OutPattern.Entries[EntryIndex];
 
 		// Copy flags
-		Entry.bIsWildcard = Cage->bIsWildcard;
 		Entry.bIsActive = Cage->bIsActiveInPattern;
 
 		if (Entry.bIsActive)
@@ -1075,16 +1097,20 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 		// KEY INSIGHT: The PATTERN CAGE defines the TOPOLOGY (orbital connections),
 		// while the PROXIED CAGE defines the ASSET to match.
 		// We need to compute the orbital mask from the PATTERN CAGE, not the proxied cage!
-		if (!Entry.bIsWildcard)
 		{
 			// Compute orbital mask from the PATTERN CAGE's connections (not the proxied cage!)
+			// Include all real connections (pattern cages, wildcard cages) but NOT null cages (boundary)
 			const TArray<FPCGExValencyCageOrbital>& PatternOrbitals = Cage->GetOrbitals();
 			int64 PatternOrbitalMask = 0;
 			for (const FPCGExValencyCageOrbital& Orbital : PatternOrbitals)
 			{
-				if (Orbital.bEnabled && Orbital.GetDisplayConnection() && !Orbital.GetDisplayConnection()->IsNullCage())
+				if (const APCGExValencyCageBase* Connection = Orbital.GetDisplayConnection())
 				{
-					PatternOrbitalMask |= (1LL << Orbital.OrbitalIndex);
+					// Include orbital if connected to pattern cage or wildcard cage (not null cage)
+					if (Orbital.bEnabled && !Connection->IsNullCage())
+					{
+						PatternOrbitalMask |= (1LL << Orbital.OrbitalIndex);
+					}
 				}
 			}
 
@@ -1163,7 +1189,9 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 				}
 			}
 
-			if (Entry.ModuleIndices.Num() == 0 && !Entry.bIsWildcard)
+			// Warn if no modules found but ProxiedCages were specified
+			// (Empty ModuleIndices + empty ProxiedCages = intentional wildcard)
+			if (Entry.ModuleIndices.IsEmpty() && Cage->ProxiedCages.Num() > 0)
 			{
 				OutResult.Warnings.Add(FText::Format(
 					LOCTEXT("PatternEntryNoModules", "Pattern '{0}', entry from cage '{1}': No matching modules found for proxied cages."),
@@ -1210,6 +1238,13 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 				continue;
 			}
 
+			// Check if connected to wildcard cage (any neighbor required)
+			if (ConnectedBase->IsWildcardCage())
+			{
+				Entry.WildcardOrbitalMask |= (1ULL << Orbital.OrbitalIndex);
+				continue;
+			}
+
 			// Check if connected to another pattern cage
 			if (APCGExValencyCagePattern* ConnectedPattern = Cast<APCGExValencyCagePattern>(ConnectedBase))
 			{
@@ -1243,12 +1278,13 @@ bool UPCGExValencyBondingRulesBuilder::CompileSinglePattern(
 			}
 		}
 
-		PCGEX_VALENCY_VERBOSE(Building, "    Entry[%d] from '%s': %s, %d modules, %d adjacencies, boundary=0x%llX",
+		PCGEX_VALENCY_VERBOSE(Building, "    Entry[%d] from '%s': %s, %d modules, %d adjacencies, boundary=0x%llX, wildcard=0x%llX",
 			EntryIndex, *Cage->GetCageDisplayName(),
-			Entry.bIsWildcard ? TEXT("WILDCARD") : (Entry.bIsActive ? TEXT("ACTIVE") : TEXT("CONSTRAINT")),
+			Entry.IsWildcard() ? TEXT("WILDCARD") : (Entry.bIsActive ? TEXT("ACTIVE") : TEXT("CONSTRAINT")),
 			Entry.ModuleIndices.Num(),
 			Entry.Adjacency.Num(),
-			Entry.BoundaryOrbitalMask);
+			Entry.BoundaryOrbitalMask,
+			Entry.WildcardOrbitalMask);
 	}
 
 	return OutPattern.Entries.Num() > 0;

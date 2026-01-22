@@ -134,6 +134,17 @@ void FPCGExDefaultPatternMatcherOperation::FindMatchesForPattern(int32 PatternIn
 			}
 		}
 
+		// Check wildcard constraints for root entry
+		// WildcardOrbitalMask indicates orbitals that MUST have a neighbor (any)
+		if (RootEntry.WildcardOrbitalMask != 0)
+		{
+			const int64 NodeOccupiedMask = GetOrbitalMask(NodeIdx);
+			if ((NodeOccupiedMask & RootEntry.WildcardOrbitalMask) != RootEntry.WildcardOrbitalMask)
+			{
+				continue; // Wildcard orbital missing a neighbor, skip
+			}
+		}
+
 		// Try to match the full pattern starting from this node
 		FPCGExValencyPatternMatch Match;
 		if (TryMatchPatternFromNode(PatternIndex, Pattern, NodeIdx, Match))
@@ -246,6 +257,16 @@ bool FPCGExDefaultPatternMatcherOperation::MatchEntryRecursive(
 			if ((NeighborOccupiedMask & TargetEntry.BoundaryOrbitalMask) != 0)
 			{
 				return false; // Boundary orbital has a neighbor
+			}
+		}
+
+		// Check wildcard constraints for target entry
+		if (TargetEntry.WildcardOrbitalMask != 0)
+		{
+			const int64 NeighborOccupiedMask = GetOrbitalMask(NeighborNode);
+			if ((NeighborOccupiedMask & TargetEntry.WildcardOrbitalMask) != TargetEntry.WildcardOrbitalMask)
+			{
+				return false; // Wildcard orbital missing a neighbor
 			}
 		}
 

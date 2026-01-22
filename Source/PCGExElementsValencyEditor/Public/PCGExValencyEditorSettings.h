@@ -55,6 +55,10 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
 	FLinearColor NullConnectionColor = FLinearColor(0.5f, 0.15f, 0.15f);
 
+	/** Color for connections to wildcard cages (any neighbor required) */
+	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
+	FLinearColor WildcardConnectionColor = FLinearColor(0.7f, 0.2f, 0.7f);
+
 	/** Color for orbitals with no connection */
 	UPROPERTY(Config, EditAnywhere, Category = "Colors|Connections")
 	FLinearColor NoConnectionColor = FLinearColor(0.6f, 0.6f, 0.6f);

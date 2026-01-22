@@ -11,6 +11,7 @@
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
+#include "Cages/PCGExValencyCageWildcard.h"
 #include "Cages/PCGExValencyCageOrbital.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
@@ -38,11 +39,17 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 	const UPCGExValencyEditorSettings* Settings = GetSettings();
 	const FVector CageLocation = Cage->GetActorLocation();
 	const FTransform CageTransform = Cage->GetActorTransform();
-	const bool bIsNullCage = Cage->IsNullCage();
 
 	// Null cages are valid without orbital sets - they're boundary markers
 	// They have their own debug sphere component, no additional drawing needed
-	if (bIsNullCage)
+	if (Cage->IsNullCage())
+	{
+		return;
+	}
+
+	// Wildcard cages are similar to null cages - they're "any neighbor required" markers
+	// They have their own debug sphere component, no additional drawing needed
+	if (Cage->IsWildcardCage())
 	{
 		return;
 	}
@@ -130,6 +137,18 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 				// Thick arrow ends at null cage's sphere surface
 				const float NullSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
 				const float DistanceToSurface = ConnectionDistance - NullSphereRadius;
+				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, StartOffset + 10.0f);
+			}
+			else if (ConnectedCage->IsWildcardCage())
+			{
+				// Connection to wildcard cage: dashed magenta, no arrowhead on thick arrow
+				ArrowColor = Settings->WildcardConnectionColor;
+				bDashed = true;
+				bDrawArrowhead = false;
+
+				// Thick arrow ends at wildcard cage's sphere surface
+				const float WildcardSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
+				const float DistanceToSurface = ConnectionDistance - WildcardSphereRadius;
 				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, StartOffset + 10.0f);
 			}
 			else
@@ -221,6 +240,16 @@ void FPCGExValencyDrawHelper::DrawCageLabels(FCanvas* Canvas, const FSceneView* 
 		if (Settings->bShowCageLabels)
 		{
 			DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), TEXT("NULL Cage"), LabelColor);
+		}
+		return;
+	}
+
+	// Wildcard cages: just show "Wildcard Cage" label, no orbitals
+	if (Cage->IsWildcardCage())
+	{
+		if (Settings->bShowCageLabels)
+		{
+			DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), TEXT("Wildcard Cage"), LabelColor);
 		}
 		return;
 	}
@@ -537,8 +566,11 @@ void FPCGExValencyDrawHelper::DrawPatternCage(FPrimitiveDrawInterface* PDI, cons
 	const FVector CageLocation = PatternCage->GetActorLocation();
 
 	// Determine the cage's role color (matches sphere component color logic)
+	// Pattern cage is visually "wildcard" if ProxiedCages is empty (matches any module)
+	const bool bIsVisualWildcard = PatternCage->ProxiedCages.IsEmpty();
+
 	FLinearColor RoleColor;
-	if (PatternCage->bIsWildcard)
+	if (bIsVisualWildcard)
 	{
 		RoleColor = Settings->PatternWildcardColor;
 	}
@@ -652,6 +684,16 @@ void FPCGExValencyDrawHelper::DrawPatternCage(FPrimitiveDrawInterface* PDI, cons
 				const float DistanceToSurface = ConnectionDistance - NullSphereRadius;
 				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, ProbeRadius * Settings->ArrowStartOffsetPct + 10.0f);
 			}
+			else if (ConnectedCage->IsWildcardCage())
+			{
+				// Connection to wildcard cage: dashed magenta, no arrowhead
+				ArrowColor = Settings->WildcardConnectionColor;
+				bDashed = true;
+				bDrawArrowhead = false;
+				const float WildcardSphereRadius = ConnectedCage->GetEffectiveProbeRadius();
+				const float DistanceToSurface = ConnectionDistance - WildcardSphereRadius;
+				ArrowEnd = CageLocation + ToConnected * FMath::Max(DistanceToSurface, ProbeRadius * Settings->ArrowStartOffsetPct + 10.0f);
+			}
 			else
 			{
 				// Arrow ends at midpoint for pattern connections
@@ -737,6 +779,9 @@ void FPCGExValencyDrawHelper::DrawPatternCageLabels(FCanvas* Canvas, const FScen
 	}
 
 	// Determine label color based on role
+	// Pattern cage is visually "wildcard" if ProxiedCages is empty (matches any module)
+	const bool bIsVisualWildcard = PatternCage->ProxiedCages.IsEmpty();
+
 	FLinearColor LabelColor;
 	if (bIsSelected)
 	{
@@ -746,7 +791,7 @@ void FPCGExValencyDrawHelper::DrawPatternCageLabels(FCanvas* Canvas, const FScen
 	{
 		LabelColor = Settings->PatternRootColor;
 	}
-	else if (PatternCage->bIsWildcard)
+	else if (bIsVisualWildcard)
 	{
 		LabelColor = Settings->PatternWildcardColor;
 	}
@@ -768,8 +813,8 @@ void FPCGExValencyDrawHelper::DrawPatternCageLabels(FCanvas* Canvas, const FScen
 		DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset), CageName, LabelColor);
 	}
 
-	// Show proxied cage count if proxying regular cages
-	if (PatternCage->ProxiedCages.Num() > 0 && !PatternCage->bIsWildcard)
+	// Show proxied cage count if proxying regular cages (not a wildcard)
+	if (!bIsVisualWildcard)
 	{
 		const FString ProxyInfo = FString::Printf(TEXT("Proxies: %d"), PatternCage->ProxiedCages.Num());
 		DrawLabel(Canvas, View, CageLocation + FVector(0, 0, Settings->CageLabelVerticalOffset - 20.0f), ProxyInfo, LabelColor * 0.7f);

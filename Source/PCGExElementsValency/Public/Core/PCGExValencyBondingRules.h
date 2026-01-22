@@ -87,6 +87,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	/** Module boundary orbital masks per layer - orbitals that must have NO neighbor (Index = ModuleIndex * LayerCount + LayerIndex) */
 	TArray<int64> ModuleBoundaryMasks;
 
+	/** Module wildcard orbital masks per layer - orbitals that must have ANY neighbor (Index = ModuleIndex * LayerCount + LayerIndex) */
+	TArray<int64> ModuleWildcardMasks;
+
 	/** Module min spawn constraints */
 	TArray<int32> ModuleMinSpawns;
 
@@ -136,6 +139,13 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	{
 		const int32 Index = ModuleIndex * Layers.Num() + LayerIndex;
 		return ModuleBoundaryMasks.IsValidIndex(Index) ? ModuleBoundaryMasks[Index] : 0;
+	}
+
+	/** Get a module's wildcard orbital mask for a specific layer (orbitals that must have any neighbor) */
+	int64 GetModuleWildcardMask(int32 ModuleIndex, int32 LayerIndex) const
+	{
+		const int32 Index = ModuleIndex * Layers.Num() + LayerIndex;
+		return ModuleWildcardMasks.IsValidIndex(Index) ? ModuleWildcardMasks[Index] : 0;
 	}
 
 	/** Build the MaskToCandidates lookup table */

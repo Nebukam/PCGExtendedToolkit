@@ -40,13 +40,12 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternEntryCompiled
 {
 	GENERATED_BODY()
 
-	/** Module indices that can match this entry (from proxied cages) */
+	/**
+	 * Module indices that can match this entry (from proxied cages).
+	 * Empty array = matches ANY module (wildcard behavior).
+	 */
 	UPROPERTY()
 	TArray<int32> ModuleIndices;
-
-	/** If true, matches any module (ignores ModuleIndices) */
-	UPROPERTY()
-	bool bIsWildcard = false;
 
 	/** If true, this entry is consumed by the pattern; if false, constraint-only */
 	UPROPERTY()
@@ -55,6 +54,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternEntryCompiled
 	/** Orbitals that must have NO neighbor (connections to null cages) */
 	UPROPERTY()
 	uint64 BoundaryOrbitalMask = 0;
+
+	/** Orbitals that must have ANY neighbor (connections to wildcard cages) */
+	UPROPERTY()
+	uint64 WildcardOrbitalMask = 0;
 
 	/**
 	 * Connections to other pattern entries.
@@ -66,9 +69,13 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyPatternEntryCompiled
 	/** Check if a module index matches this entry */
 	bool MatchesModule(int32 ModuleIndex) const
 	{
-		if (bIsWildcard) { return true; }
+		// Empty ModuleIndices = matches any module (wildcard)
+		if (ModuleIndices.IsEmpty()) { return true; }
 		return ModuleIndices.Contains(ModuleIndex);
 	}
+
+	/** Check if this entry is a wildcard (matches any module) */
+	bool IsWildcard() const { return ModuleIndices.IsEmpty(); }
 };
 
 /**

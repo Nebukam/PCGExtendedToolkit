@@ -134,16 +134,10 @@ public:
 	/**
 	 * Regular cages that this pattern position proxies.
 	 * Match succeeds if solved module matches ANY of these cages' modules.
-	 * Empty = use bIsWildcard instead.
+	 * Empty = matches any module (wildcard behavior).
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy", meta = (PCGEX_ValencyRebuild))
 	TArray<TObjectPtr<APCGExValencyCage>> ProxiedCages;
-
-	/**
-	 * If true, this position matches any module (ignores ProxiedCages).
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy", meta = (PCGEX_ValencyRebuild))
-	bool bIsWildcard = false;
 
 	/**
 	 * Show ghost mesh preview of first available asset from proxied cages.

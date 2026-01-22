@@ -53,8 +53,7 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 
 	// Update ghost mesh when proxy settings change
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bShowProxyGhostMesh) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bIsWildcard))
+		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bShowProxyGhostMesh))
 	{
 		RefreshProxyGhostMesh();
 
@@ -69,11 +68,12 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	}
 
 	// Update sphere color based on role
+	// Pattern cage is visually "wildcard" if ProxiedCages is empty (matches any module)
 	if (DebugSphereComponent)
 	{
-		if (bIsWildcard)
+		if (ProxiedCages.IsEmpty())
 		{
-			DebugSphereComponent->ShapeColor = FColor(200, 200, 100); // Yellow for wildcard
+			DebugSphereComponent->ShapeColor = FColor(200, 200, 100); // Yellow for wildcard (no proxied cages = matches any)
 		}
 		else if (!bIsActiveInPattern)
 		{
@@ -157,6 +157,9 @@ FString APCGExValencyCagePattern::GetCageDisplayName() const
 {
 	FString Prefix;
 
+	// Pattern cage is "wildcard" if ProxiedCages is empty (matches any module)
+	const bool bIsVisualWildcard = ProxiedCages.IsEmpty();
+
 	if (bIsPatternRoot)
 	{
 		Prefix = TEXT("PATTERN ROOT");
@@ -165,7 +168,7 @@ FString APCGExValencyCagePattern::GetCageDisplayName() const
 			Prefix = FString::Printf(TEXT("PATTERN [%s]"), *PatternSettings.PatternName.ToString());
 		}
 	}
-	else if (bIsWildcard)
+	else if (bIsVisualWildcard)
 	{
 		Prefix = TEXT("PATTERN (*)");
 	}
@@ -216,8 +219,8 @@ bool APCGExValencyCagePattern::DetectNearbyConnections()
 
 bool APCGExValencyCagePattern::ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const
 {
-	// Pattern cages connect to other pattern cages and null cages (boundary markers)
-	return CandidateCage && (CandidateCage->IsPatternCage() || CandidateCage->IsNullCage());
+	// Pattern cages connect to other pattern cages, null cages (boundary), and wildcard cages (any neighbor)
+	return CandidateCage && (CandidateCage->IsPatternCage() || CandidateCage->IsNullCage() || CandidateCage->IsWildcardCage());
 }
 
 void APCGExValencyCagePattern::NotifyPatternNetworkChanged()
@@ -383,8 +386,8 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 	// Get settings
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
 
-	// Early out if ghosting is disabled
-	if (!Settings || !Settings->bEnableGhostMeshes || !bShowProxyGhostMesh || bIsWildcard || ProxiedCages.Num() == 0 || Settings->MaxPatternGhostMeshes == 0)
+	// Early out if ghosting is disabled or no proxied cages (wildcard pattern cage)
+	if (!Settings || !Settings->bEnableGhostMeshes || !bShowProxyGhostMesh || ProxiedCages.IsEmpty() || Settings->MaxPatternGhostMeshes == 0)
 	{
 		return;
 	}

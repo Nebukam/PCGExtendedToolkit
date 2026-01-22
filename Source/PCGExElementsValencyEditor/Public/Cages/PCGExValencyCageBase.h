@@ -68,6 +68,9 @@ public:
 	/** Whether this is a null cage (boundary marker) */
 	virtual bool IsNullCage() const { return false; }
 
+	/** Whether this is a wildcard cage (any neighbor required) */
+	virtual bool IsWildcardCage() const { return false; }
+
 	/** Whether this is a pattern cage (for filtering connections) */
 	virtual bool IsPatternCage() const { return false; }
 

@@ -85,6 +85,7 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData->ModuleHasLocalTransform.SetNum(Modules.Num());
 	CompiledData->ModuleOrbitalMasks.SetNum(Modules.Num() * LayerCount);
 	CompiledData->ModuleBoundaryMasks.SetNum(Modules.Num() * LayerCount);
+	CompiledData->ModuleWildcardMasks.SetNum(Modules.Num() * LayerCount);
 
 	// Populate module data
 	VALENCY_LOG_SUBSECTION(Compilation, "Compiling Module Data");
@@ -117,19 +118,21 @@ bool UPCGExValencyBondingRules::Compile()
 			{
 				CompiledData->ModuleOrbitalMasks[MaskIndex] = LayerConfig->OrbitalMask;
 				CompiledData->ModuleBoundaryMasks[MaskIndex] = LayerConfig->BoundaryOrbitalMask;
+				CompiledData->ModuleWildcardMasks[MaskIndex] = LayerConfig->WildcardOrbitalMask;
 
 				// Log orbital mask as binary for easier reading
 				FString OrbitalBits;
 				FString BoundaryBits;
+				FString WildcardBits;
 				for (int32 Bit = 0; Bit < OrbitalSets[LayerIndex]->Num(); ++Bit)
 				{
 					OrbitalBits += (LayerConfig->OrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
 					BoundaryBits += (LayerConfig->BoundaryOrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
+					WildcardBits += (LayerConfig->WildcardOrbitalMask & (1LL << Bit)) ? TEXT("1") : TEXT("0");
 				}
-				PCGEX_VALENCY_VERBOSE(Compilation, "    Layer[%d] '%s': OrbitalMask=%s (0x%llX), BoundaryMask=%s (0x%llX)",
+				PCGEX_VALENCY_VERBOSE(Compilation, "    Layer[%d] '%s': OrbitalMask=%s, BoundaryMask=%s, WildcardMask=%s",
 					LayerIndex, *LayerName.ToString(),
-					*OrbitalBits, LayerConfig->OrbitalMask,
-					*BoundaryBits, LayerConfig->BoundaryOrbitalMask);
+					*OrbitalBits, *BoundaryBits, *WildcardBits);
 
 				// Log neighbor info
 				for (const auto& NeighborPair : LayerConfig->OrbitalNeighbors)
@@ -143,6 +146,7 @@ bool UPCGExValencyBondingRules::Compile()
 			{
 				CompiledData->ModuleOrbitalMasks[MaskIndex] = 0;
 				CompiledData->ModuleBoundaryMasks[MaskIndex] = 0;
+				CompiledData->ModuleWildcardMasks[MaskIndex] = 0;
 				PCGEX_VALENCY_VERBOSE(Compilation, "    Layer[%d] '%s': NO CONFIG (masks=0)", LayerIndex, *LayerName.ToString());
 			}
 		}
