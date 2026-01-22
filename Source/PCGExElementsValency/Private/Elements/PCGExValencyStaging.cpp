@@ -30,7 +30,7 @@ void UPCGExValencyStagingSettings::PostInitProperties()
 }
 
 #if WITH_EDITOR
-void UPCGExValencyStagingSettings::AutoPopulatePropertyOutputConfigs()
+void UPCGExValencyStagingSettings::ImportBondingRulesPropertyOutputConfigs()
 {
 	// Load bonding rules if not already loaded
 	UPCGExValencyBondingRules* LoadedRules = BondingRules.LoadSynchronous();
@@ -82,7 +82,6 @@ TArray<FPCGPinProperties> UPCGExValencyStagingSettings::InputPinProperties() con
 TArray<FPCGPinProperties> UPCGExValencyStagingSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExValency::Labels::OutputStagedLabel, "Staged points with resolved module data", Required)
 	PCGEX_PIN_PARAMS(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map for resolving entry hashes", Required)
 	return PinProperties;
 }

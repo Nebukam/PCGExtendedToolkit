@@ -118,8 +118,8 @@ public:
 	 * Auto-populate property output configs from bonding rules.
 	 * Scans all modules in the bonding rules and adds configs for each unique property.
 	 */
-	UFUNCTION(CallInEditor, Category = "Settings|Output", meta=(DisplayName="Auto-Populate from Bonding Rules"))
-	void AutoPopulatePropertyOutputConfigs();
+	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Import Bonding Rules Properties"))
+	void ImportBondingRulesPropertyOutputConfigs();
 #endif
 
 	// ========== Fixed Picks ==========
