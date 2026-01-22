@@ -174,7 +174,7 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();
 	const EPCGExExecutionPolicy LocalPolicy = DesiredPolicy == EPCGExExecutionPolicy::Default ? PCGEX_CORE_SETTINGS.ExecutionPolicy : DesiredPolicy;
 
-	if (!IsInGameThread()
+	if (IsInGameThread()
 		|| LocalPolicy == EPCGExExecutionPolicy::Ignored
 		|| LocalPolicy == EPCGExExecutionPolicy::Default
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButLoop && InContext->LoopIndex != INDEX_NONE)

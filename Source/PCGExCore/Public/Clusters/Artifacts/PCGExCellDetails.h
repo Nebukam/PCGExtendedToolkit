@@ -82,6 +82,13 @@ enum class EPCGExCellSeedBounds : uint8
 	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Cell (with rotation reset)", ToolTip="Seed bounds match cell bounds, and rotation is reset"),
 };
 
+UENUM()
+enum class EPCGExCellOutputMode : uint8
+{
+	Paths = 0 UMETA(DisplayName = "Paths", ToolTip="Output cells as paths"),
+	AABB  = 1 UMETA(DisplayName = "AABB Bounds", ToolTip="Output cells as AABB bounds"),
+	OOB   = 2 UMETA(DisplayName = "OOB Bounds", ToolTip="Output cells as OOB bounds"),
+};
 
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExCellConstraintsDetails
@@ -368,4 +375,5 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	bool Init(FPCGExContext* InContext);
 
 	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExClusters::FCell>& InCell) const;
+	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TArray<TSharedPtr<PCGExClusters::FCell>>& InCells) const;
 };

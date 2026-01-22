@@ -37,8 +37,6 @@ enum class EPCGExBoxCheckMode : uint8
 
 namespace PCGExMath
 {
-	PCGEXCORE_API bool IntersectOBB_OBB(const FBox& BoxA, const FTransform& TransformA, const FBox& BoxB, const FTransform& TransformB);
-
 	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, typename PointType>
 	FORCEINLINE static FBox GetLocalBounds(const PointType& Point)
 	{

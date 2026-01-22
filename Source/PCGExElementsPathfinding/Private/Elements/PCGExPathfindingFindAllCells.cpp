@@ -151,10 +151,7 @@ namespace PCGExFindAllCells
 
 		CellsIO.Reserve(NumCells);
 		Context->OutputPaths->IncreaseReserve(NumCells + 1);
-		for (int32 i = 0; i < NumCells; i++)
-		{
-			CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
-		}
+		for (int32 i = 0; i < NumCells; i++) { CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New)); }
 
 		// Process cells in parallel
 		StartParallelLoopForRange(NumCells);

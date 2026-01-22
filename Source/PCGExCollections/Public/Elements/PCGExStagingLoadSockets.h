@@ -47,6 +47,7 @@ struct FPCGExSocketStagingContext final : FPCGExPointsProcessorContext
 	friend class FPCGExSocketStagingElement;
 
 	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionPickUnpacker;
+	
 	FPCGExSocketOutputDetails OutputSocketDetails;
 	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
 

@@ -10,7 +10,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 
-#include "PCGExPathfindingFindContours.generated.h"
+#include "PCGExPathfindingFindCells.generated.h"
 
 namespace PCGExClusters
 {
@@ -63,6 +63,9 @@ public:
 
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExCellOutputMode OutputMode = EPCGExCellOutputMode::Paths;
+	
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;

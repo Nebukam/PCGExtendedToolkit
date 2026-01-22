@@ -52,6 +52,9 @@ public:
 
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExCellOutputMode OutputMode = EPCGExCellOutputMode::Paths;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
 

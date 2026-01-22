@@ -62,9 +62,9 @@ class UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Staging : Distribute", "Distribute PCGEx Asset Collection entries to points.", FName(TEXT("Staging [ ") + ( CollectionSource == EPCGExCollectionSource::Asset ? AssetCollection.GetAssetName() : TEXT("Attribute Set")) + TEXT(" ]")));
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscAdd); }
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Staging : Distribute", "Distribute PCGEx Asset Collection entries to points.", FName(GetDisplayName()));
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -180,6 +180,11 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietEmptyCollectionError = false;
+	
+#if WITH_EDITOR
+	FString GetDisplayName() const;
+#endif	
+	
 };
 
 struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext

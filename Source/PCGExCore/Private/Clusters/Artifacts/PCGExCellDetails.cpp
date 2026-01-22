@@ -133,3 +133,7 @@ void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluste
 		}
 	}
 }
+
+void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TArray<TSharedPtr<PCGExClusters::FCell>>& InCells) const
+{
+}

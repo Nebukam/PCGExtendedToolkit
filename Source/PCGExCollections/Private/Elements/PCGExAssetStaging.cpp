@@ -144,6 +144,26 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
+#if WITH_EDITOR
+FString UPCGExAssetStagingSettings::GetDisplayName() const
+{
+	FString DisplayName = TEXT("???");
+	switch (CollectionSource)
+	{
+	case EPCGExCollectionSource::Asset:
+		if (!AssetCollection.IsNull()) { DisplayName = AssetCollection.GetAssetName(); }
+		break;
+	case EPCGExCollectionSource::AttributeSet:
+		DisplayName = TEXT("Set");
+		break;
+	case EPCGExCollectionSource::Attribute:
+		DisplayName = CollectionPathAttributeName.ToString();
+		break;
+	}
+
+	return TEXT("Staging [ ") + DisplayName + TEXT(" ]");
+}
+#endif
 
 void FPCGExAssetStagingContext::RegisterAssetDependencies()
 {

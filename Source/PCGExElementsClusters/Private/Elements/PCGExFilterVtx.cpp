@@ -67,9 +67,10 @@ PCGExData::EIOInit UPCGExFilterVtxSettings::GetMainOutputInitMode() const
 {
 	switch (Mode)
 	{
-	default: case EPCGExVtxFilterOutput::Clusters: return PCGExData::EIOInit::New;
+	default:
+	case EPCGExVtxFilterOutput::Clusters: return PCGExData::EIOInit::New;
 	case EPCGExVtxFilterOutput::Points: return PCGExData::EIOInit::NoInit;
-	case EPCGExVtxFilterOutput::Attribute: return PCGExData::EIOInit::Duplicate;
+	case EPCGExVtxFilterOutput::Attribute: return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate;
 	}
 }
 
@@ -77,7 +78,8 @@ PCGExData::EIOInit UPCGExFilterVtxSettings::GetEdgeOutputInitMode() const
 {
 	switch (Mode)
 	{
-	default: case EPCGExVtxFilterOutput::Attribute:
+	default:
+	case EPCGExVtxFilterOutput::Attribute:
 	case EPCGExVtxFilterOutput::Clusters: return PCGExData::EIOInit::Forward;
 	case EPCGExVtxFilterOutput::Points: return PCGExData::EIOInit::NoInit;
 	}
