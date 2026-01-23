@@ -1,7 +1,7 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Elements/Constants/PCGExTuple.h"
+#include "Elements/PCGExTuple.h"
 
 #include "PCGGraph.h"
 #include "PCGParamData.h"

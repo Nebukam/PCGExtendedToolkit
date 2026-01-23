@@ -6,7 +6,9 @@
 #include "PropertyEditorModule.h"
 #include "Details/PCGExPropertyOverridesCustomization.h"
 #include "Details/PCGExPropertyOverrideEntryCustomization.h"
+#include "Details/PCGExTupleBodyCustomization.h"
 #include "PCGExPropertyCompiled.h"
+#include "Elements/PCGExTuple.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExPropertiesEditorModule"
 
@@ -26,6 +28,12 @@ void FPCGExPropertiesEditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FPCGExPropertyOverrideEntry::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyOverrideEntryCustomization::MakeInstance)
+	);
+
+	// Register FPCGExTupleBody customization - provides per-header UI for tuple values
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExTupleBody::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExTupleBodyCustomization::MakeInstance)
 	);
 }
 

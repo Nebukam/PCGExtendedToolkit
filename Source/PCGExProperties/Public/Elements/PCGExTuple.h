@@ -22,7 +22,7 @@ class FPCGMetadataAttributeBase;
 #pragma region Singles
 
 USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -54,7 +54,7 @@ virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const o
 FPCGExTupleValueWrap##_TYPE() = default;
 
 USTRUCT(BlueprintType, DisplayName="Boolean")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapBoolean : public FPCGExTupleValu
 };
 
 USTRUCT(BlueprintType, DisplayName="Float")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapFloat : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapFloat : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -76,7 +76,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapFloat : public FPCGExTupleValueW
 };
 
 USTRUCT(BlueprintType, DisplayName="Double")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapDouble : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapDouble : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Double)
@@ -86,7 +86,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapDouble : public FPCGExTupleValue
 };
 
 USTRUCT(BlueprintType, DisplayName="Integer 32")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapInteger32 : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapInteger32 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Integer32)
@@ -96,7 +96,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapInteger32 : public FPCGExTupleVa
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector2")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapVector2 : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapVector2 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Vector2)
@@ -106,7 +106,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapVector2 : public FPCGExTupleValu
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapVector : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapVector : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Vector)
@@ -116,7 +116,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapVector : public FPCGExTupleValue
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector4")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapVector4 : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapVector4 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Vector4)
@@ -126,7 +126,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapVector4 : public FPCGExTupleValu
 };
 
 USTRUCT(BlueprintType, DisplayName="Color")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapColor : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapColor : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Color)
@@ -136,7 +136,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapColor : public FPCGExTupleValueW
 };
 
 USTRUCT(BlueprintType, DisplayName="Transform")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapTransform : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapTransform : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Transform)
@@ -146,7 +146,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapTransform : public FPCGExTupleVa
 };
 
 USTRUCT(BlueprintType, DisplayName="Rotator")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapRotator : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapRotator : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Rotator)
@@ -156,7 +156,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapRotator : public FPCGExTupleValu
 };
 
 USTRUCT(BlueprintType, DisplayName="String")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapString : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapString : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(String)
@@ -166,7 +166,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapString : public FPCGExTupleValue
 };
 
 USTRUCT(BlueprintType, DisplayName="Name")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapName : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapName : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(Name)
@@ -176,7 +176,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapName : public FPCGExTupleValueWr
 };
 
 USTRUCT(BlueprintType, DisplayName="Soft Object Path")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapSoftObjectPath : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapSoftObjectPath : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(SoftObjectPath)
@@ -186,7 +186,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapSoftObjectPath : public FPCGExTu
 };
 
 USTRUCT(BlueprintType, DisplayName="Soft Class Path")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(SoftClassPath)
@@ -196,7 +196,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapSoftClassPath : public FPCGExTup
 };
 
 USTRUCT(BlueprintType, DisplayName="Enum Selector")
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
+struct PCGEXPROPERTIES_API FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 	PCGEX_TUPLEVALUEWRAP_CTR(EnumSelector)
@@ -210,7 +210,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueWrapEnumSelector : public FPCGExTupl
 #pragma endregion
 
 USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExTupleValueHeader
+struct PCGEXPROPERTIES_API FPCGExTupleValueHeader
 {
 	GENERATED_BODY()
 
@@ -234,7 +234,7 @@ struct PCGEXFOUNDATIONS_API FPCGExTupleValueHeader
 
 
 USTRUCT(BlueprintType)
-struct PCGEXFOUNDATIONS_API FPCGExTupleBody
+struct PCGEXPROPERTIES_API FPCGExTupleBody
 {
 	GENERATED_BODY()
 
