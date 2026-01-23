@@ -5,8 +5,14 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExConstantEnum.h"
+#include "Elements/ControlFlow/PCGControlFlow.h"
+#include "PCGExCoreMacros.h"
+#include "PCGExCoreSettingsCache.h"
+
 #include "PCGSettings.h"
+#include "Core/PCGExContext.h"
+#include "Core/PCGExElement.h"
+#include "Core/PCGExSettings.h"
 #include "StructUtils/InstancedStruct.h"
 
 #include "PCGExTuple.generated.h"

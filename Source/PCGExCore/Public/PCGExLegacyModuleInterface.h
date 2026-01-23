@@ -13,5 +13,5 @@ public:
 	virtual void StartupModule() override;
 
 protected:
-	void RegisterRedirectors() const;
+	virtual void RegisterRedirectors() const;
 };
