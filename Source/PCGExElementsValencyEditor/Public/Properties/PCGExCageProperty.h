@@ -11,6 +11,6 @@
 // Concrete property types
 #include "PCGExCagePropertyTypes.h"
 
-// Compiled structs (runtime)
+// Compiled structs (runtime) - uses shared property system
 #include "Core/PCGExCagePropertyCompiled.h"
-#include "Core/PCGExCagePropertyCompiledTypes.h"
+#include "PCGExPropertyTypes.h"

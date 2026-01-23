@@ -2,38 +2,39 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Properties/PCGExCagePropertyTypes.h"
-#include "Core/PCGExCagePropertyCompiledTypes.h"
+#include "PCGExPropertyTypes.h"
+#include "Collections/PCGExCollectionPropertyTypes.h"
 
 // Macro to generate standard typed property implementations
 #define PCGEX_CAGE_PROPERTY_EDITOR_IMPL(_NAME) \
 bool UPCGExCageProperty_##_NAME::CompileProperty(FInstancedStruct& OutCompiled) const \
 { \
-	FPCGExCagePropertyCompiled_##_NAME Compiled; \
+	FPCGExPropertyCompiled_##_NAME Compiled; \
 	Compiled.PropertyName = GetEffectivePropertyName(); \
 	Compiled.Value = Value; \
-	OutCompiled.InitializeAs<FPCGExCagePropertyCompiled_##_NAME>(MoveTemp(Compiled)); \
+	OutCompiled.InitializeAs<FPCGExPropertyCompiled_##_NAME>(MoveTemp(Compiled)); \
 	return true; \
 } \
 UScriptStruct* UPCGExCageProperty_##_NAME::GetCompiledStructType() const \
 { \
-	return FPCGExCagePropertyCompiled_##_NAME::StaticStruct(); \
+	return FPCGExPropertyCompiled_##_NAME::StaticStruct(); \
 }
 
 #pragma region UPCGExCageProperty_AssetCollection
 
 bool UPCGExCageProperty_AssetCollection::CompileProperty(FInstancedStruct& OutCompiled) const
 {
-	FPCGExCagePropertyCompiled_AssetCollection Compiled;
+	FPCGExPropertyCompiled_AssetCollection Compiled;
 	Compiled.PropertyName = GetEffectivePropertyName();
 	Compiled.AssetCollection = AssetCollection;
 
-	OutCompiled.InitializeAs<FPCGExCagePropertyCompiled_AssetCollection>(MoveTemp(Compiled));
+	OutCompiled.InitializeAs<FPCGExPropertyCompiled_AssetCollection>(MoveTemp(Compiled));
 	return true;
 }
 
 UScriptStruct* UPCGExCageProperty_AssetCollection::GetCompiledStructType() const
 {
-	return FPCGExCagePropertyCompiled_AssetCollection::StaticStruct();
+	return FPCGExPropertyCompiled_AssetCollection::StaticStruct();
 }
 
 #pragma endregion

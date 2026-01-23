@@ -3,7 +3,6 @@
 
 #include "Core/PCGExValencyBondingRules.h"
 
-#include "Core/PCGExCagePropertyCompiledTypes.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Engine/Blueprint.h"
@@ -223,7 +222,7 @@ bool UPCGExValencyBondingRules::Compile()
 		// Scan all module properties
 		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
 		{
-			if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
+			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
 			{
 				if (!Prop->PropertyName.IsNone() && !ModulePropertiesMap.Contains(Prop->PropertyName))
 				{
@@ -260,7 +259,7 @@ bool UPCGExValencyBondingRules::Compile()
 			{
 				for (const FInstancedStruct& PropStruct : Entry.Properties)
 				{
-					if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
+					if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
 					{
 						if (!Prop->PropertyName.IsNone() && !PatternPropertiesMap.Contains(Prop->PropertyName))
 						{
