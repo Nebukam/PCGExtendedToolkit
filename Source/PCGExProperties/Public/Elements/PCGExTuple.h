@@ -14,201 +14,21 @@
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
 #include "StructUtils/InstancedStruct.h"
+#include "PCGExPropertyCompiled.h"
 
 #include "PCGExTuple.generated.h"
 
 class FPCGMetadataAttributeBase;
 
-#pragma region Singles
+// Tuple now uses the unified property system (FPCGExPropertyCompiled types)
+// All value types (Boolean, Float, String, etc.) use FPCGExPropertyCompiled_* from PCGExPropertyCompiled.h
 
-USTRUCT(BlueprintType)
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
+#pragma region Tuple Header and Body
 
-	UPROPERTY(meta=(IgnoreForMemberInitializationTest))
-	int32 HeaderId = 0;
-
-	UPROPERTY()
-	bool bIsModel = false;
-
-	FPCGExTupleValueWrap() = default;
-	virtual ~FPCGExTupleValueWrap() = default;
-
-	virtual FPCGMetadataAttributeBase* CreateAttribute(UPCGMetadata* Metadata, FName Name) const;
-
-	/** Called once when row entry is initialized, because the header type has been changed */
-	virtual void InitEntry(const FPCGExTupleValueWrap* InHeader);
-
-	/** Called when the data is written to an attribute */
-	virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const;
-
-	/** Called on existing entries when a modification occurs*/
-	virtual void SanitizeEntry(const FPCGExTupleValueWrap* InHeader);
-};
-
-#define PCGEX_TUPLEVALUEWRAP_CTR(_TYPE)\
-virtual FPCGMetadataAttributeBase* CreateAttribute(UPCGMetadata* Metadata, FName Name) const override;\
-virtual void InitEntry(const FPCGExTupleValueWrap* InHeader);\
-virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const override;\
-FPCGExTupleValueWrap##_TYPE() = default;
-
-USTRUCT(BlueprintType, DisplayName="Boolean")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	bool Value = false;
-
-	PCGEX_TUPLEVALUEWRAP_CTR(Boolean)
-};
-
-USTRUCT(BlueprintType, DisplayName="Float")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapFloat : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	float Value = 0;
-
-	PCGEX_TUPLEVALUEWRAP_CTR(Float)
-};
-
-USTRUCT(BlueprintType, DisplayName="Double")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapDouble : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Double)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	double Value = 0;
-};
-
-USTRUCT(BlueprintType, DisplayName="Integer 32")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapInteger32 : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Integer32)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	int32 Value = 0;
-};
-
-USTRUCT(BlueprintType, DisplayName="Vector2")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapVector2 : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Vector2)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FVector2D Value = FVector2D::ZeroVector;
-};
-
-USTRUCT(BlueprintType, DisplayName="Vector")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapVector : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Vector)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FVector Value = FVector::ZeroVector;
-};
-
-USTRUCT(BlueprintType, DisplayName="Vector4")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapVector4 : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Vector4)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FVector4 Value = FVector4::Zero();
-};
-
-USTRUCT(BlueprintType, DisplayName="Color")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapColor : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Color)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FLinearColor Value = FLinearColor::White;
-};
-
-USTRUCT(BlueprintType, DisplayName="Transform")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapTransform : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Transform)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FTransform Value = FTransform::Identity;
-};
-
-USTRUCT(BlueprintType, DisplayName="Rotator")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapRotator : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Rotator)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FRotator Value = FRotator::ZeroRotator;
-};
-
-USTRUCT(BlueprintType, DisplayName="String")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapString : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(String)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FString Value = TEXT("");
-};
-
-USTRUCT(BlueprintType, DisplayName="Name")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapName : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(Name)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FName Value = NAME_None;
-};
-
-USTRUCT(BlueprintType, DisplayName="Soft Object Path")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapSoftObjectPath : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(SoftObjectPath)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FSoftObjectPath Value;
-};
-
-USTRUCT(BlueprintType, DisplayName="Soft Class Path")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(SoftClassPath)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FSoftClassPath Value;
-};
-
-USTRUCT(BlueprintType, DisplayName="Enum Selector")
-struct PCGEXPROPERTIES_API FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
-{
-	GENERATED_BODY()
-	PCGEX_TUPLEVALUEWRAP_CTR(EnumSelector)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
-	FEnumSelector Enum;
-
-	virtual void SanitizeEntry(const FPCGExTupleValueWrap* InHeader) override;
-};
-
-#pragma endregion
-
+/**
+ * Tuple header - defines column structure.
+ * Each header defines a named property type that applies to all rows.
+ */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExTupleValueHeader
 {
@@ -225,23 +45,11 @@ struct PCGEXPROPERTIES_API FPCGExTupleValueHeader
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FName Name = NAME_None;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(ExcludeBaseStruct, ShowOnlyInnerProperties, FullyExpand=true))
-	TInstancedStruct<FPCGExTupleValueWrap> DefaultData;
+	/** Default property value and type (uses unified property system) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct, ShowOnlyInnerProperties, FullyExpand=true))
+	FInstancedStruct DefaultData;
 
-	void SanitizeEntry(TInstancedStruct<FPCGExTupleValueWrap>& InData) const;
 	FPCGMetadataAttributeBase* CreateAttribute(FPCGExContext* InContext, UPCGParamData* TupleData) const;
-};
-
-
-USTRUCT(BlueprintType)
-struct PCGEXPROPERTIES_API FPCGExTupleBody
-{
-	GENERATED_BODY()
-
-	FPCGExTupleBody() = default;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, EditFixedSize, meta=(TitleProperty="{Name}", ExcludeBaseStruct, ShowOnlyInnerProperties, FullyExpand=true, ForceInlineRow))
-	TArray<TInstancedStruct<FPCGExTupleValueWrap>> Row;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/tuple"))
@@ -266,13 +74,13 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** Tuple composition */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{Name}", ToolTip="Tuple composition, per-row values are set in the values array."))
+	/** Tuple composition - defines the columns (property types and names) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{Name}", ToolTip="Tuple composition defines the columns (property types and names)."))
 	TArray<FPCGExTupleValueHeader> Composition;
 
-	/** Tuple values */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ToolTip="Per-row values. Do no change the type here, it will be reset internally; instead, change it in the composition.", FullyExpand=true))
-	TArray<FPCGExTupleBody> Values;
+	/** Tuple values - each row uses PropertyOverrides to enable/disable columns */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ToolTip="Tuple values. Toggle 'Enabled' per column to include/exclude values. Rows auto-sync with composition changes.", FullyExpand=true))
+	TArray<FPCGExPropertyOverrides> Values;
 
 	/** A list of tags separated by a comma, for easy overrides. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -285,5 +93,3 @@ protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
-
-#undef PCGEX_TUPLEVALUEWRAP_CTR

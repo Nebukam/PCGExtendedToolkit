@@ -27,6 +27,14 @@ void FPCGExPropertyCompiled_##_NAME::CopyValueFrom(const FPCGExPropertyCompiled*
 { \
 	const FPCGExPropertyCompiled_##_NAME* Typed = static_cast<const FPCGExPropertyCompiled_##_NAME*>(Source); \
 	Value = Typed->Value; \
+} \
+FPCGMetadataAttributeBase* FPCGExPropertyCompiled_##_NAME::CreateMetadataAttribute(UPCGMetadata* Metadata, FName AttributeName) const \
+{ \
+	return Metadata->CreateAttribute<_TYPE>(AttributeName, Value, true, true); \
+} \
+void FPCGExPropertyCompiled_##_NAME::WriteMetadataValue(FPCGMetadataAttributeBase* Attribute, int64 EntryKey) const \
+{ \
+	static_cast<FPCGMetadataAttribute<_TYPE>*>(Attribute)->SetValue(EntryKey, Value); \
 }
 
 #pragma region Standard Types
@@ -76,6 +84,16 @@ void FPCGExPropertyCompiled_Color::CopyValueFrom(const FPCGExPropertyCompiled* S
 	Value = Typed->Value;
 }
 
+FPCGMetadataAttributeBase* FPCGExPropertyCompiled_Color::CreateMetadataAttribute(UPCGMetadata* Metadata, FName AttributeName) const
+{
+	return Metadata->CreateAttribute<FVector4>(AttributeName, FVector4(Value), true, true);
+}
+
+void FPCGExPropertyCompiled_Color::WriteMetadataValue(FPCGMetadataAttributeBase* Attribute, int64 EntryKey) const
+{
+	static_cast<FPCGMetadataAttribute<FVector4>*>(Attribute)->SetValue(EntryKey, FVector4(Value));
+}
+
 #pragma endregion
 
 #pragma region Enum (FEnumSelector -> int64)
@@ -103,6 +121,16 @@ void FPCGExPropertyCompiled_Enum::CopyValueFrom(const FPCGExPropertyCompiled* So
 {
 	const FPCGExPropertyCompiled_Enum* Typed = static_cast<const FPCGExPropertyCompiled_Enum*>(Source);
 	Value = Typed->Value;
+}
+
+FPCGMetadataAttributeBase* FPCGExPropertyCompiled_Enum::CreateMetadataAttribute(UPCGMetadata* Metadata, FName AttributeName) const
+{
+	return Metadata->CreateAttribute<int64>(AttributeName, Value.Value, true, true);
+}
+
+void FPCGExPropertyCompiled_Enum::WriteMetadataValue(FPCGMetadataAttributeBase* Attribute, int64 EntryKey) const
+{
+	static_cast<FPCGMetadataAttribute<int64>*>(Attribute)->SetValue(EntryKey, Value.Value);
 }
 
 #pragma endregion

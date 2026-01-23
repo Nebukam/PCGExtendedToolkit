@@ -125,6 +125,33 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	 */
 	virtual FName GetTypeName() const { return FName("Unknown"); }
 
+	// --- Metadata Interface (for Tuple/ParamData) ---
+
+	/**
+	 * Create a metadata attribute on param data.
+	 * Override in derived types that support metadata output (most types do).
+	 * @param Metadata The metadata to create attribute on
+	 * @param AttributeName The attribute name to use
+	 * @return Pointer to created attribute, or nullptr if failed
+	 */
+	virtual FPCGMetadataAttributeBase* CreateMetadataAttribute(UPCGMetadata* Metadata, FName AttributeName) const { return nullptr; }
+
+	/**
+	 * Write this property's value to a metadata attribute.
+	 * @param Attribute The attribute to write to (must match type)
+	 * @param EntryKey The metadata entry key to write to
+	 */
+	virtual void WriteMetadataValue(FPCGMetadataAttributeBase* Attribute, int64 EntryKey) const {}
+
+	/**
+	 * Copy default value from another property (for Tuple header initialization).
+	 * Similar to CopyValueFrom but called during header initialization.
+	 * @param Source The source property to copy from
+	 */
+	virtual void InitializeFrom(const FPCGExPropertyCompiled* Source) { CopyValueFrom(Source); }
+
+	// --- Registry ---
+
 	/**
 	 * Create a registry entry for this property.
 	 */
