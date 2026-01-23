@@ -3,13 +3,12 @@
 
 using UnrealBuildTool;
 
-public class PCGExCollections : ModuleRules
+public class PCGExProperties : ModuleRules
 {
-	public PCGExCollections(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExProperties(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = false;
-		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(
 			new string[]
@@ -17,13 +16,11 @@ public class PCGExCollections : ModuleRules
 			}
 		);
 
-
 		PrivateIncludePaths.AddRange(
 			new string[]
 			{
 			}
 		);
-
 
 		PublicDependencyModuleNames.AddRange(
 			new[]
@@ -31,25 +28,17 @@ public class PCGExCollections : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"Niagara",
 				"PCG",
 				"PCGExCore",
-				"PCGExProperties",
-				"PCGExFilters",
-				"PCGExFoundations",
+				"StructUtils",
 			}
 		);
-
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"GeometryCore",
-				"GeometryFramework",
-				"DeveloperSettings"
 			}
 		);
-
 
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]

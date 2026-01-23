@@ -4,35 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCagePropertyCompiled.h"
+#include "PCGExPropertyCompiled.h"
 
-#include "PCGExCagePropertyCompiledTypes.generated.h"
+#include "PCGExPropertyTypes.generated.h"
 
-class UPCGExAssetCollection;
-
-#pragma region AssetCollection
-
-/**
- * Compiled property referencing a PCGExAssetCollection.
- * Used for mesh/actor swapping based on pattern matches.
- * Does not support direct attribute output.
- *
- * Note: PCGExCollections also defines FPCGExPropertyCompiled_AssetCollection for
- * collection-specific use cases. This Valency version derives from FPCGExCagePropertyCompiled
- * to maintain compatibility with Valency's query helpers.
- */
-USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_AssetCollection : public FPCGExCagePropertyCompiled
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
-
-	virtual FName GetTypeName() const override { return FName("AssetCollection"); }
-};
-
-#pragma endregion
+// Note: AssetCollection property type is defined in modules that depend on both
+// PCGExProperties and PCGExCollections (e.g., PCGExElementsValency)
 
 #pragma region Atomic Typed Properties
 
@@ -40,7 +17,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_AssetCollection : pub
  * String property - outputs as FString attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_String : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_String : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -63,7 +40,7 @@ public:
  * Name property - outputs as FName attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Name : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Name : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -86,7 +63,7 @@ public:
  * Int32 property - outputs as int32 attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Int32 : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Int32 : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -109,7 +86,7 @@ public:
  * Int64 property - outputs as int64 attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Int64 : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Int64 : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -132,7 +109,7 @@ public:
  * Float property - outputs as float attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Float : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Float : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -155,7 +132,7 @@ public:
  * Double property - outputs as double attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Double : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Double : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -178,7 +155,7 @@ public:
  * Bool property - outputs as bool attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Bool : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Bool : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -201,7 +178,7 @@ public:
  * Vector property - outputs as FVector attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Vector : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Vector : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -224,7 +201,7 @@ public:
  * Vector2D property - outputs as FVector2D attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Vector2 : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Vector2 : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -247,7 +224,7 @@ public:
  * Vector4 property - outputs as FVector4 attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Vector4 : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Vector4 : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -270,7 +247,7 @@ public:
  * Color property - authored as FLinearColor, outputs as FVector4 attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Color : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Color : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -293,7 +270,7 @@ public:
  * Rotator property - outputs as FRotator attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Rotator : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Rotator : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -316,7 +293,7 @@ public:
  * Quaternion property - outputs as FQuat attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Quat : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Quat : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -339,7 +316,7 @@ public:
  * Transform property - outputs as FTransform attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_Transform : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Transform : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -362,7 +339,7 @@ public:
  * SoftObjectPath property - outputs as FSoftObjectPath attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_SoftObjectPath : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_SoftObjectPath : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
@@ -385,7 +362,7 @@ public:
  * SoftClassPath property - outputs as FSoftClassPath attribute.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled_SoftClassPath : public FPCGExCagePropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_SoftClassPath : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 

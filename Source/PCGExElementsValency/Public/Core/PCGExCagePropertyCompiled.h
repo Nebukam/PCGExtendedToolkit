@@ -4,50 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "StructUtils/InstancedStruct.h"
-#include "Data/PCGExData.h"
+#include "PCGExPropertyCompiled.h"
 
 #include "PCGExCagePropertyCompiled.generated.h"
 
 /**
- * Entry in the property registry.
- * Built at compile time to provide a read-only view of available properties.
- */
-USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExPropertyRegistryEntry
-{
-	GENERATED_BODY()
-
-	/** Property name */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
-	FName PropertyName;
-
-	/** Property type name (e.g., "String", "Int32", "Vector") */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
-	FName TypeName;
-
-	/** PCG metadata type for attribute output */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
-	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Unknown;
-
-	/** Whether this property supports attribute output */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
-	bool bSupportsOutput = false;
-
-	FPCGExPropertyRegistryEntry() = default;
-
-	FPCGExPropertyRegistryEntry(FName InName, FName InTypeName, EPCGMetadataTypes InOutputType, bool bInSupportsOutput)
-		: PropertyName(InName)
-		, TypeName(InTypeName)
-		, OutputType(InOutputType)
-		, bSupportsOutput(bInSupportsOutput)
-	{
-	}
-};
-
-/**
  * Base struct for compiled cage properties.
- * All property types derive from this and must include PropertyName.
+ * Derives from the shared FPCGExPropertyCompiled to inherit the output interface.
+ *
+ * All Valency property types derive from this and must include PropertyName.
  *
  * Properties support an output interface for writing values to point attributes:
  * - InitializeOutput(): Creates buffer(s) on a facade
@@ -60,70 +25,21 @@ struct PCGEXELEMENTSVALENCY_API FPCGExPropertyRegistryEntry
  * 3. See .claude/Cage_Property_System.md for full documentation
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled
+struct PCGEXELEMENTSVALENCY_API FPCGExCagePropertyCompiled : public FPCGExPropertyCompiled
 {
 	GENERATED_BODY()
 
-	/** User-defined name for disambiguation when multiple properties exist */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	FName PropertyName;
-
 	virtual ~FPCGExCagePropertyCompiled() = default;
 
-	// --- Output Interface ---
-
-	/**
-	 * Initialize output buffer(s) on the facade.
-	 * Override in derived types that support output.
-	 * @param OutputFacade The facade to create buffers on
-	 * @param OutputName The attribute name to use
-	 * @return true if initialization succeeded
-	 */
-	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) { return false; }
-
-	/**
-	 * Write this property's value(s) to the initialized buffer(s).
-	 * Call after InitializeOutput() succeeded.
-	 * @param PointIndex The point index to write to
-	 */
-	virtual void WriteOutput(int32 PointIndex) const {}
-
-	/**
-	 * Copy value from another property of the same type.
-	 * Used when switching between modules that have the same property.
-	 * @param Source The source property to copy from (must be same concrete type)
-	 */
-	virtual void CopyValueFrom(const FPCGExCagePropertyCompiled* Source) {}
-
-	/**
-	 * Check if this property type supports attribute output.
-	 */
-	virtual bool SupportsOutput() const { return false; }
-
-	/**
-	 * Get the PCG metadata type for this property (for UI/validation).
-	 * Return EPCGMetadataTypes::Unknown if not applicable or multi-valued.
-	 */
-	virtual EPCGMetadataTypes GetOutputType() const { return EPCGMetadataTypes::Unknown; }
-
-	/**
-	 * Get the human-readable type name for this property (e.g., "String", "Int32", "Vector").
-	 * Used for registry display.
-	 */
-	virtual FName GetTypeName() const { return FName("Unknown"); }
-
-	/**
-	 * Create a registry entry for this property.
-	 */
-	FPCGExPropertyRegistryEntry ToRegistryEntry() const
-	{
-		return FPCGExPropertyRegistryEntry(PropertyName, GetTypeName(), GetOutputType(), SupportsOutput());
-	}
+	// Inherit all functionality from FPCGExPropertyCompiled
 };
 
 /**
  * Query helpers for accessing properties from FInstancedStruct arrays.
  * All functions accept TConstArrayView to work with both TArray and TArrayView.
+ *
+ * These are Valency-specific wrappers that work with FPCGExCagePropertyCompiled.
+ * For generic property access, use the PCGExProperties namespace.
  */
 namespace PCGExValency
 {

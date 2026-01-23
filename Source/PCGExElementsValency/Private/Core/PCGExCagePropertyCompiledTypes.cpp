@@ -14,7 +14,7 @@ void FPCGExCagePropertyCompiled_##_NAME::WriteOutput(int32 PointIndex) const \
 { \
 	if (OutputBuffer) { OutputBuffer->SetValue(PointIndex, Value); } \
 } \
-void FPCGExCagePropertyCompiled_##_NAME::CopyValueFrom(const FPCGExCagePropertyCompiled* Source) \
+void FPCGExCagePropertyCompiled_##_NAME::CopyValueFrom(const FPCGExPropertyCompiled* Source) \
 { \
 	if (const FPCGExCagePropertyCompiled_##_NAME* Typed = static_cast<const FPCGExCagePropertyCompiled_##_NAME*>(Source)) \
 	{ \
@@ -55,7 +55,7 @@ void FPCGExCagePropertyCompiled_Color::WriteOutput(int32 PointIndex) const
 	if (OutputBuffer) { OutputBuffer->SetValue(PointIndex, FVector4(Value)); }
 }
 
-void FPCGExCagePropertyCompiled_Color::CopyValueFrom(const FPCGExCagePropertyCompiled* Source)
+void FPCGExCagePropertyCompiled_Color::CopyValueFrom(const FPCGExPropertyCompiled* Source)
 {
 	if (const FPCGExCagePropertyCompiled_Color* Typed = static_cast<const FPCGExCagePropertyCompiled_Color*>(Source))
 	{
