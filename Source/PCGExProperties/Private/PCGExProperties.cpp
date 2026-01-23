@@ -76,6 +76,31 @@ bool FPCGExPropertySchemaCollection::ValidateUniqueNames(TArray<FName>& OutDupli
 	return OutDuplicates.IsEmpty();
 }
 
+void FPCGExPropertySchemaCollection::SyncAllSchemas()
+{
+	for (FPCGExPropertySchema& Schema : Schemas)
+	{
+		Schema.SyncPropertyName();
+	}
+}
+
+void FPCGExPropertySchemaCollection::SyncOverrides(FPCGExPropertyOverrides& Overrides)
+{
+	SyncAllSchemas();
+	TArray<FInstancedStruct> Schema = BuildSchema();
+	Overrides.SyncToSchema(Schema);
+}
+
+void FPCGExPropertySchemaCollection::SyncOverridesArray(TArray<FPCGExPropertyOverrides>& OverridesArray)
+{
+	SyncAllSchemas();
+	TArray<FInstancedStruct> Schema = BuildSchema();
+	for (FPCGExPropertyOverrides& Overrides : OverridesArray)
+	{
+		Overrides.SyncToSchema(Schema);
+	}
+}
+
 #pragma endregion
 
 #pragma region FPCGExPropertyOverrides

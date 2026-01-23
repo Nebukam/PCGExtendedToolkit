@@ -426,7 +426,6 @@ public:
 
 #pragma region Lifecycle
 
-	virtual void PostLoad() override;
 	virtual void PostDuplicate(bool bDuplicateForPIE) override;
 	virtual void PostEditImport() override;
 	virtual void BeginDestroy() override;

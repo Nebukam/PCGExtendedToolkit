@@ -620,14 +620,6 @@ void UPCGExAssetCollection::BuildCache()
 
 #pragma endregion
 
-void UPCGExAssetCollection::PostLoad()
-{
-	Super::PostLoad();
-#if WITH_EDITOR
-	EDITOR_SetDirty();
-#endif
-}
-
 void UPCGExAssetCollection::PostDuplicate(bool bDuplicateForPIE)
 {
 	Super::PostDuplicate(bDuplicateForPIE);
@@ -727,22 +719,78 @@ void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, PCGEx
 #if WITH_EDITOR
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (PropertyChangedEvent.Property)
+	bool bNeedsSync = false;
+	bool bNeedsUIRefresh = false;
+
+	if (PropertyChangedEvent.MemberProperty)
 	{
-		Super::PostEditChangeProperty(PropertyChangedEvent);
+		FName PropName = PropertyChangedEvent.MemberProperty->GetFName();
+		EPropertyChangeType::Type ChangeType = PropertyChangedEvent.ChangeType;
+
+		// Check for ANY changes in CollectionProperties
+		if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExAssetCollection, CollectionProperties))
+		{
+			bNeedsSync = true;
+			bNeedsUIRefresh = true;
+		}
+		// Also catch changes to schema array elements (add/remove/reorder/rename/type change)
+		else if (PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExPropertySchema::StaticStruct() ||
+		         PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExPropertySchemaCollection::StaticStruct())
+		{
+			bNeedsSync = true;
+			bNeedsUIRefresh = true;
+		}
 	}
 
-	// Check if CollectionProperties changed - sync to all entries and rebuild registry
-	if (PropertyChangedEvent.MemberProperty &&
-		PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UPCGExAssetCollection, CollectionProperties))
+	// Early return if no property-related changes needed
+	if (!bNeedsSync && !bNeedsUIRefresh)
+	{
+		Super::PostEditChangeProperty(PropertyChangedEvent);
+
+		ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
+		{
+			const UPCGExAssetCollection* Other = InEntry->GetSubCollectionPtr();
+			if (Other && HasCircularDependency(Other))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Prevented circular dependency trying to nest \"%s\" inside \"%s\""), *GetNameSafe(Other), *GetNameSafe(this));
+				InEntry->ClearSubCollection();
+				(void)MarkPackageDirty();
+			}
+		});
+
+		EDITOR_SetDirty();
+
+		if (bAutoRebuildStaging)
+		{
+			EDITOR_RebuildStagingData();
+		}
+
+		return;
+	}
+
+	// Sync and rebuild if needed
+	if (bNeedsSync)
 	{
 		RebuildPropertyRegistry();
 		SyncPropertyOverridesToEntries();
-
-		// Force details panel to refresh all entry PropertyOverrides
-		// This ensures the UI reflects the schema changes immediately
-		Modify(false);
 	}
+
+	(void)MarkPackageDirty();
+
+	// Force UI refresh BEFORE Super - this ensures details panel rebuilds customizations
+	if (bNeedsUIRefresh)
+	{
+		// Mark Entries as changed to force full customization rebuild
+		FProperty* EntriesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Entries"));
+		if (EntriesProperty)
+		{
+			// Use ArrayClear type to force aggressive rebuild
+			FPropertyChangedEvent RefreshEvent(EntriesProperty, EPropertyChangeType::ArrayClear);
+			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, RefreshEvent);
+		}
+	}
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
 	{
@@ -765,25 +813,13 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 void UPCGExAssetCollection::SyncPropertyOverridesToEntries()
 {
-	// Sync PropertyName and HeaderId before building schema
-	for (FPCGExPropertySchema& SchemaEntry : CollectionProperties.Schemas)
-	{
-		SchemaEntry.SyncPropertyName();
-	}
-
-	// Build schema and sync to all entries
+	// Sync schema to all entry overrides using shared utility
+	CollectionProperties.SyncAllSchemas();
 	TArray<FInstancedStruct> Schema = CollectionProperties.BuildSchema();
 	ForEachEntry([&Schema](FPCGExAssetCollectionEntry* InEntry, int32 i)
 	{
 		InEntry->PropertyOverrides.SyncToSchema(Schema);
 	});
-
-#if WITH_EDITOR
-	// Broadcast that this object changed to force UI refresh
-	FProperty* EntriesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Entries"));
-	FPropertyChangedEvent PropertyEvent(EntriesProperty);
-	FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, PropertyEvent);
-#endif
 }
 
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()

@@ -421,6 +421,24 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	/** Count valid schemas */
 	int32 Num() const { return Schemas.Num(); }
 	bool IsEmpty() const { return Schemas.IsEmpty(); }
+
+	/**
+	 * Sync all schemas - updates PropertyName and HeaderId into each Property.
+	 * Call this before BuildSchema() to ensure schema has current data.
+	 */
+	void SyncAllSchemas();
+
+	/**
+	 * Sync a single PropertyOverrides instance to this schema.
+	 * Convenience method that calls BuildSchema() then SyncToSchema().
+	 */
+	void SyncOverrides(FPCGExPropertyOverrides& Overrides);
+
+	/**
+	 * Sync an array of PropertyOverrides to this schema.
+	 * Convenience method that syncs all schemas then syncs each override.
+	 */
+	void SyncOverridesArray(TArray<FPCGExPropertyOverrides>& OverridesArray);
 };
 
 /**

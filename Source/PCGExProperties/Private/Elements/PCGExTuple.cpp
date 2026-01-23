@@ -56,22 +56,10 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 		return; // Skip processing
 	}
 
-	// Build schema array from composition (only if we need to sync)
+	// Sync composition schemas to values (only if we need to sync)
 	if (bNeedsSync)
 	{
-		// CRITICAL: Sync PropertyName and HeaderId into Property before building schema
-		// This ensures overrides get the correct PropertyName and HeaderId when synced
-		for (FPCGExPropertySchema& SchemaEntry : Composition.Schemas)
-		{
-			SchemaEntry.SyncPropertyName();
-		}
-
-		// Build schema and sync all rows
-		TArray<FInstancedStruct> Schema = Composition.BuildSchema();
-		for (FPCGExPropertyOverrides& Row : Values)
-		{
-			Row.SyncToSchema(Schema);
-		}
+		Composition.SyncOverridesArray(Values);
 	}
 
 	(void)MarkPackageDirty();
