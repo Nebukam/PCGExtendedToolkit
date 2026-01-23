@@ -142,7 +142,7 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 	 * Values here take precedence over collection-level defaults.
 	 * Only include properties you want to override.
 	 */
-	UPROPERTY(EditAnywhere, Category = "Properties")
+	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExPropertyOverrides PropertyOverrides;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))

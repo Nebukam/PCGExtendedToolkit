@@ -132,19 +132,13 @@ void FPCGExAssetEntryCustomization::CustomizeChildren(
 				}));
 	}
 
-	// Add PropertyOverrides with Properties filter visibility
-	// The FPCGExPropertyOverridesCustomization handles the internal display
-	static const FName PropertiesFilterId = FName("AssetEditor.Properties");
-	TSharedPtr<IPropertyHandle> OverridesHandle = PropertyHandle->GetChildHandle(TEXT("PropertyOverrides"));
-	if (OverridesHandle.IsValid())
+	// Add PropertyOverrides WITHOUT any visibility filter or customization
+	// The visibility lambda interferes with nested customizations - prevents value widgets from rendering
+	// PCGExPropertiesEditor module handles all PropertyOverrides UI via registered customizations
+	TSharedPtr<IPropertyHandle> PropertyOverridesHandle = PropertyHandle->GetChildHandle(TEXT("PropertyOverrides"));
+	if (PropertyOverridesHandle.IsValid())
 	{
-		IDetailPropertyRow& OverridesRow = ChildBuilder.AddProperty(OverridesHandle.ToSharedRef());
-		OverridesRow.Visibility(
-			MakeAttributeLambda([]()
-			{
-				return GetDefault<UPCGExCollectionsEditorSettings>()->GetIsPropertyVisible(PropertiesFilterId)
-					? EVisibility::Visible : EVisibility::Collapsed;
-			}));
+		ChildBuilder.AddProperty(PropertyOverridesHandle.ToSharedRef());
 	}
 }
 
@@ -154,7 +148,7 @@ void FPCGExAssetEntryCustomization::FillCustomizedTopLevelPropertiesNames()
 	CustomizedTopLevelProperties.Add(FName("Category"));
 	CustomizedTopLevelProperties.Add(FName("bIsSubCollection"));
 	CustomizedTopLevelProperties.Add(FName("SubCollection"));
-	CustomizedTopLevelProperties.Add(FName("PropertyOverrides"));
+	CustomizedTopLevelProperties.Add(FName("PropertyOverrides")); // Handled separately - no visibility filter
 }
 
 #define PCGEX_SUBCOLLECTION_VISIBLE \

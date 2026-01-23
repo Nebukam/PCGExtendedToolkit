@@ -777,20 +777,32 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 	(void)MarkPackageDirty();
 
-	// Force UI refresh BEFORE Super - this ensures details panel rebuilds customizations
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	// Force UI refresh AFTER Super - this ensures details panel rebuilds customizations
+	// Must happen after Super to ensure object state is consistent
 	if (bNeedsUIRefresh)
 	{
-		// Mark Entries as changed to force full customization rebuild
+		// Broadcast TWO events to force complete rebuild:
+
+		// 1. Entries ArrayClear - rebuilds all entry customizations
 		FProperty* EntriesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Entries"));
 		if (EntriesProperty)
 		{
-			// Use ArrayClear type to force aggressive rebuild
-			FPropertyChangedEvent RefreshEvent(EntriesProperty, EPropertyChangeType::ArrayClear);
-			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, RefreshEvent);
+			FPropertyChangedEvent EntriesEvent(EntriesProperty, EPropertyChangeType::ArrayClear);
+			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, EntriesEvent);
+		}
+
+		// 2. CollectionProperties ArrayClear - forces nested PropertyOverrides to rebuild
+		// This is needed because PropertyOverrides sync happens programmatically
+		// and nested customizations don't detect the change without this
+		FProperty* CollectionPropertiesProperty = FindFProperty<FProperty>(GetClass(), TEXT("CollectionProperties"));
+		if (CollectionPropertiesProperty)
+		{
+			FPropertyChangedEvent SchemaEvent(CollectionPropertiesProperty, EPropertyChangeType::ArrayClear);
+			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, SchemaEvent);
 		}
 	}
-
-	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
 	{
