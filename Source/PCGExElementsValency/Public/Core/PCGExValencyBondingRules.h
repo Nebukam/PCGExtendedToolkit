@@ -356,6 +356,23 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Valency|Patterns")
 	FPCGExValencyPatternSetCompiled Patterns;
 
+	// ========== Default Properties ==========
+
+	/**
+	 * Default property values for all modules.
+	 * Properties declared by cages override these defaults.
+	 * Synced during compilation - preserves user edits, adds new properties from cages, removes deprecated ones.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Valency|Properties", meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct))
+	TArray<FInstancedStruct> DefaultProperties;
+
+	/**
+	 * Registry of all unique properties (defaults + cage-declared).
+	 * Built at compile time for UI display and auto-populate.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Valency|Properties")
+	TArray<FPCGExPropertyRegistryEntry> PropertyRegistry;
+
 	// ========== Compiled Data ==========
 
 	/**

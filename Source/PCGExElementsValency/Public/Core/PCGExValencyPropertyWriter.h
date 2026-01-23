@@ -120,12 +120,14 @@ public:
 	 * Creates writer instances for each configured property.
 	 * Call during OnProcessingPreparationComplete or similar boot phase.
 	 *
+	 * @param InBondingRules The bonding rules asset (for live-editable defaults)
 	 * @param InCompiledRules The compiled bonding rules to scan
 	 * @param OutputFacade The facade to create writers on
 	 * @param OutputSettings The property output settings
 	 * @return true if at least one output was initialized
 	 */
 	bool Initialize(
+		const UPCGExValencyBondingRules* InBondingRules,
 		const FPCGExValencyBondingRulesCompiled* InCompiledRules,
 		const TSharedRef<PCGExData::FFacade>& OutputFacade,
 		const FPCGExValencyPropertyOutputSettings& OutputSettings
@@ -149,6 +151,9 @@ public:
 protected:
 	/** Cached output settings */
 	FPCGExValencyPropertyOutputSettings Settings;
+
+	/** Cached reference to bonding rules asset (for live-editable defaults) */
+	const UPCGExValencyBondingRules* BondingRules = nullptr;
 
 	/** Cached reference to compiled rules */
 	const FPCGExValencyBondingRulesCompiled* CompiledRules = nullptr;

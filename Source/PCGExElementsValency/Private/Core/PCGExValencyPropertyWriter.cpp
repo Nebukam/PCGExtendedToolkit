@@ -46,15 +46,17 @@ int32 FPCGExValencyPropertyOutputSettings::AutoPopulateFromRules(const FPCGExVal
 }
 
 bool FPCGExValencyPropertyWriter::Initialize(
+	const UPCGExValencyBondingRules* InBondingRules,
 	const FPCGExValencyBondingRulesCompiled* InCompiledRules,
 	const TSharedRef<PCGExData::FFacade>& OutputFacade,
 	const FPCGExValencyPropertyOutputSettings& OutputSettings)
 {
-	if (!InCompiledRules)
+	if (!InBondingRules || !InCompiledRules)
 	{
 		return false;
 	}
 
+	BondingRules = InBondingRules;
 	CompiledRules = InCompiledRules;
 	Settings = OutputSettings;
 
@@ -132,8 +134,16 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 			FPCGExPropertyCompiled* Writer = KV.Value.GetMutablePtr<FPCGExPropertyCompiled>();
 			if (!Writer) { continue; }
 
-			// Find actual property value for this module
-			if (const FInstancedStruct* SourceProp = PCGExProperties::GetPropertyByName(ModuleProperties, PropName))
+			// Find actual property value: try module first, fall back to defaults
+			const FInstancedStruct* SourceProp = PCGExProperties::GetPropertyByName(ModuleProperties, PropName);
+
+			if (!SourceProp && BondingRules)
+			{
+				// Module doesn't have this property - try default from bonding rules (live-editable)
+				SourceProp = PCGExProperties::GetPropertyByName(BondingRules->DefaultProperties, PropName);
+			}
+
+			if (SourceProp)
 			{
 				if (const FPCGExPropertyCompiled* Source = SourceProp->GetPtr<FPCGExPropertyCompiled>())
 				{

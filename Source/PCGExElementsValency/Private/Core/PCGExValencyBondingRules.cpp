@@ -214,10 +214,95 @@ bool UPCGExValencyBondingRules::Compile()
 	// Build fast lookup
 	CompiledData.BuildCandidateLookup();
 
-	// Build module property registry
+	// Sync DefaultProperties to match cage-declared properties
+	VALENCY_LOG_SUBSECTION(Compilation, "Syncing Default Properties");
+	{
+		// Collect all unique property names+types from cages
+		TMap<FName, FInstancedStruct> CageDeclaredProperties;
+		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
+		{
+			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
+			{
+				if (!Prop->PropertyName.IsNone() && !CageDeclaredProperties.Contains(Prop->PropertyName))
+				{
+					// Store first occurrence as prototype (for new properties)
+					CageDeclaredProperties.Add(Prop->PropertyName, PropStruct);
+				}
+			}
+		}
+
+		// Build map of existing defaults by name (to preserve user edits)
+		TMap<FName, FInstancedStruct> ExistingDefaultsByName;
+		for (FInstancedStruct& DefaultProp : DefaultProperties)
+		{
+			if (const FPCGExPropertyCompiled* Prop = DefaultProp.GetPtr<FPCGExPropertyCompiled>())
+			{
+				if (!Prop->PropertyName.IsNone())
+				{
+					ExistingDefaultsByName.Add(Prop->PropertyName, MoveTemp(DefaultProp));
+				}
+			}
+		}
+
+		// Rebuild DefaultProperties: keep existing (if still used), add new, remove deprecated
+		DefaultProperties.Reset();
+		for (const auto& CagePropPair : CageDeclaredProperties)
+		{
+			const FName& PropName = CagePropPair.Key;
+			const FInstancedStruct& CagePrototype = CagePropPair.Value;
+
+			if (FInstancedStruct* ExistingDefault = ExistingDefaultsByName.Find(PropName))
+			{
+				// Keep existing default (preserves user edits)
+				// But verify type matches - if type changed, use new cage prototype
+				if (ExistingDefault->GetScriptStruct() == CagePrototype.GetScriptStruct())
+				{
+					DefaultProperties.Add(MoveTemp(*ExistingDefault));
+					PCGEX_VALENCY_VERBOSE(Compilation, "  Preserved default for property '%s'", *PropName.ToString());
+				}
+				else
+				{
+					// Type changed - use cage prototype and warn
+					DefaultProperties.Add(CagePrototype);
+					PCGEX_VALENCY_WARNING(Compilation, "Property '%s' type changed, reset to cage default", *PropName.ToString());
+				}
+			}
+			else
+			{
+				// New property - add cage's value as initial default
+				DefaultProperties.Add(CagePrototype);
+				PCGEX_VALENCY_INFO(Compilation, "  Added new default property '%s'", *PropName.ToString());
+			}
+		}
+
+		// Log removed properties
+		for (const auto& ExistingPair : ExistingDefaultsByName)
+		{
+			if (!CageDeclaredProperties.Contains(ExistingPair.Key))
+			{
+				PCGEX_VALENCY_INFO(Compilation, "  Removed deprecated property '%s'", *ExistingPair.Key.ToString());
+			}
+		}
+
+		PCGEX_VALENCY_INFO(Compilation, "DefaultProperties synced: %d properties", DefaultProperties.Num());
+	}
+
+	// Build module property registry (includes defaults + cage properties)
 	VALENCY_LOG_SUBSECTION(Compilation, "Building Property Registries");
 	{
 		TMap<FName, FPCGExPropertyRegistryEntry> ModulePropertiesMap;
+
+		// Add defaults first
+		for (const FInstancedStruct& PropStruct : DefaultProperties)
+		{
+			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
+			{
+				if (!Prop->PropertyName.IsNone())
+				{
+					ModulePropertiesMap.Add(Prop->PropertyName, Prop->ToRegistryEntry());
+				}
+			}
+		}
 
 		// Scan all module properties
 		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
@@ -237,6 +322,9 @@ bool UPCGExValencyBondingRules::Compile()
 		{
 			return A.PropertyName.LexicalLess(B.PropertyName);
 		});
+
+		// Copy registry to bonding rules for UI display
+		PropertyRegistry = CompiledData.ModulePropertyRegistry;
 
 		PCGEX_VALENCY_INFO(Compilation, "Module property registry: %d unique properties", CompiledData.ModulePropertyRegistry.Num());
 		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData.ModulePropertyRegistry)

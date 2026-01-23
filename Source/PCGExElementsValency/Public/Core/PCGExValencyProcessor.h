@@ -208,11 +208,13 @@ namespace PCGExValencyMT
 		 * Initialize the property writer with the given output settings.
 		 * Call during OnProcessingPreparationComplete in derived batches.
 		 *
+		 * @param BondingRules The bonding rules asset (for live-editable defaults)
 		 * @param CompiledRules The compiled bonding rules to scan for properties
 		 * @param OutputSettings The property output settings struct
 		 * @return true if initialization succeeded
 		 */
 		bool InitializePropertyWriter(
+			const UPCGExValencyBondingRules* BondingRules,
 			const FPCGExValencyBondingRulesCompiled* CompiledRules,
 			const FPCGExValencyPropertyOutputSettings& OutputSettings
 		);
