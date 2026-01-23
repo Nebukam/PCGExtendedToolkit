@@ -765,10 +765,17 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 void UPCGExAssetCollection::SyncPropertyOverridesToEntries()
 {
-	// Use the wrapper's sync method for each entry
-	ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
+	// Sync PropertyName and HeaderId before building schema
+	for (FPCGExPropertySchema& SchemaEntry : CollectionProperties.Schemas)
 	{
-		InEntry->PropertyOverrides.SyncToSchema(CollectionProperties);
+		SchemaEntry.SyncPropertyName();
+	}
+
+	// Build schema and sync to all entries
+	TArray<FInstancedStruct> Schema = CollectionProperties.BuildSchema();
+	ForEachEntry([&Schema](FPCGExAssetCollectionEntry* InEntry, int32 i)
+	{
+		InEntry->PropertyOverrides.SyncToSchema(Schema);
 	});
 
 #if WITH_EDITOR

@@ -145,7 +145,7 @@ namespace PCGExStagingLoadProperties
 			{
 				if (const UPCGExAssetCollection* Collection = CollectionPair.Value)
 				{
-					if (const FInstancedStruct* Found = PCGExProperties::GetPropertyByName(Collection->CollectionProperties, PropName))
+					if (const FInstancedStruct* Found = Collection->CollectionProperties.GetPropertyByName(PropName))
 					{
 						Prototype = Found;
 						break;
@@ -202,7 +202,7 @@ namespace PCGExStagingLoadProperties
 					else if (Result.Host)
 					{
 						// Fallback to collection defaults
-						if (const FInstancedStruct* CollectionProp = PCGExProperties::GetPropertyByName(Result.Host->CollectionProperties, PropName))
+						if (const FInstancedStruct* CollectionProp = Result.Host->CollectionProperties.GetPropertyByName(PropName))
 						{
 							Source = CollectionProp->GetPtr<FPCGExPropertyCompiled>();
 						}

@@ -71,6 +71,19 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Settings, meta=(DisplayPriority = -1))
 	FName PropertyName;
 
+	#if WITH_EDITORONLY_DATA
+	/** Stable identity for override matching. Auto-generated, preserved by owners through type changes. */
+	UPROPERTY(meta=(IgnoreForMemberInitializationTest))
+	int32 HeaderId = 0;
+	#endif
+
+	FPCGExPropertyCompiled()
+	{
+		#if WITH_EDITOR
+		HeaderId = GetTypeHash(FGuid::NewGuid());
+		#endif
+	}
+
 	virtual ~FPCGExPropertyCompiled() = default;
 
 	// --- Output Interface ---
@@ -296,6 +309,118 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 		}
 		return nullptr;
 	}
+};
+
+/**
+ * Schema entry for property definitions.
+ * Used by Collections, Valency, and Tuple to define available properties with stable identity.
+ *
+ * HeaderId is preserved through type changes (outside FInstancedStruct), enabling:
+ * - Rename property → HeaderId stays same → override state preserved
+ * - Reorder properties → HeaderId stays same → values stay correct
+ * - Change type → HeaderId preserved → bEnabled state preserved
+ */
+USTRUCT(BlueprintType)
+struct PCGEXPROPERTIES_API FPCGExPropertySchema
+{
+	GENERATED_BODY()
+
+	#if WITH_EDITORONLY_DATA
+	/** Stable identity for override matching, preserved through type changes */
+	UPROPERTY(meta=(IgnoreForMemberInitializationTest))
+	int32 HeaderId = 0;
+	#endif
+
+	/** Property name (shown in UI, used for attribute output) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
+	FName Name = NAME_None;
+
+	/** The typed property definition */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct, ShowOnlyInnerProperties))
+	FInstancedStruct Property;
+
+	FPCGExPropertySchema();  // Implemented in .cpp (needs full type definitions)
+
+	/** Sync Name to Property.PropertyName and HeaderId */
+	void SyncPropertyName()
+	{
+		if (FPCGExPropertyCompiled* Prop = GetPropertyMutable())
+		{
+			Prop->PropertyName = Name;
+			#if WITH_EDITOR
+			Prop->HeaderId = HeaderId;
+			#endif
+		}
+	}
+
+	/** Get the compiled property from Property (may be nullptr) */
+	const FPCGExPropertyCompiled* GetProperty() const
+	{
+		return Property.GetPtr<FPCGExPropertyCompiled>();
+	}
+
+	FPCGExPropertyCompiled* GetPropertyMutable()
+	{
+		return Property.GetMutablePtr<FPCGExPropertyCompiled>();
+	}
+
+	bool IsValid() const
+	{
+		return Property.IsValid() && !Name.IsNone();
+	}
+};
+
+/**
+ * Collection of property schemas with embedded utilities.
+ * Used by Tuple (Composition), Collections (CollectionProperties), and Valency (schema component).
+ *
+ * Provides:
+ * - Encapsulated utilities (find, validate, build schema)
+ * - Single UI customization point
+ * - Consistent pattern across all modules
+ */
+USTRUCT(BlueprintType)
+struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
+{
+	GENERATED_BODY()
+
+	/** Schema array */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(TitleProperty="{Name}"))
+	TArray<FPCGExPropertySchema> Schemas;
+
+	/** Find schema by property name */
+	const FPCGExPropertySchema* FindByName(FName PropertyName) const;
+
+	/** Check if property exists by name */
+	bool HasProperty(FName PropertyName) const { return FindByName(PropertyName) != nullptr; }
+
+	/** Get property instance by name (returns FInstancedStruct for compatibility with existing code) */
+	const FInstancedStruct* GetPropertyByName(FName PropertyName) const
+	{
+		const FPCGExPropertySchema* Schema = FindByName(PropertyName);
+		return Schema ? &Schema->Property : nullptr;
+	}
+
+	/** Build FInstancedStruct array for SyncToSchema calls */
+	TArray<FInstancedStruct> BuildSchema() const;
+
+	/** Validate all property names are unique (returns true if valid) */
+	bool ValidateUniqueNames(TArray<FName>& OutDuplicates) const;
+
+	/** Get typed property by name */
+	template <typename T>
+	const T* GetProperty(FName PropertyName) const
+	{
+		static_assert(TIsDerivedFrom<T, FPCGExPropertyCompiled>::Value,
+			"T must derive from FPCGExPropertyCompiled");
+
+		const FPCGExPropertySchema* Schema = FindByName(PropertyName);
+		return Schema ? Schema->Property.GetPtr<T>() : nullptr;
+	}
+
+	/** Count valid schemas */
+	int32 Num() const { return Schemas.Num(); }
+	bool IsEmpty() const { return Schemas.IsEmpty(); }
 };
 
 /**

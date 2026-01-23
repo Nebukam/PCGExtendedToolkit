@@ -18,30 +18,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Tuple
 
-FPCGExTupleValueHeader::FPCGExTupleValueHeader()
-{
-	HeaderId = GetTypeHash(FGuid::NewGuid());
-	DefaultData.InitializeAs<FPCGExPropertyCompiled_Float>();
-}
-
-FPCGMetadataAttributeBase* FPCGExTupleValueHeader::CreateAttribute(FPCGExContext* InContext, UPCGParamData* TupleData) const
-{
-	// Create attribute
-	const FPCGMetadataAttributeBase* ExistingAttr = TupleData->Metadata->GetConstAttribute(Name);
-
-	if (ExistingAttr)
-	{
-		PCGEX_LOG_INVALID_ATTR_C(InContext, Header Name, Name)
-		return nullptr;
-	}
-
-	const FPCGExPropertyCompiled* CurrentData = DefaultData.GetPtr<FPCGExPropertyCompiled>();
-
-	if (!CurrentData) { return nullptr; }
-
-	return CurrentData->CreateMetadataAttribute(TupleData->Metadata, Name);
-}
-
 #if WITH_EDITOR
 void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -61,8 +37,8 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 			bNeedsSync = true;
 			bNeedsUIRefresh = true;
 		}
-		// Also catch changes to Composition array elements (e.g., changing DefaultData type or Name)
-		else if (PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExTupleValueHeader::StaticStruct())
+		// Also catch changes to Composition array elements (e.g., changing Property type or Name)
+		else if (PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExPropertySchema::StaticStruct())
 		{
 			bNeedsSync = true;
 			bNeedsUIRefresh = true;
@@ -80,29 +56,18 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 		return; // Skip processing
 	}
 
-	// Build schema array from composition headers (only if we need to sync)
+	// Build schema array from composition (only if we need to sync)
 	if (bNeedsSync)
 	{
-		TArray<FInstancedStruct> Schema;
-		Schema.Reserve(Composition.Num());
-		for (FPCGExTupleValueHeader& Header : Composition)
+		// CRITICAL: Sync PropertyName and HeaderId into Property before building schema
+		// This ensures overrides get the correct PropertyName and HeaderId when synced
+		for (FPCGExPropertySchema& SchemaEntry : Composition.Schemas)
 		{
-			// CRITICAL: Sync PropertyName from Name into DefaultData before building schema
-			// This ensures overrides get the correct PropertyName when synced
-			if (FPCGExPropertyCompiled* Prop = Header.DefaultData.GetMutablePtr<FPCGExPropertyCompiled>())
-			{
-				Prop->PropertyName = Header.Name;
-			}
-
-			// Update header order for UI
-			int32 Index = Schema.Add(Header.DefaultData);
-			if (Header.Order != Index)
-			{
-				Header.Order = Index;
-			}
+			SchemaEntry.SyncPropertyName();
 		}
 
-		// Sync all rows to match composition schema
+		// Build schema and sync all rows
+		TArray<FInstancedStruct> Schema = Composition.BuildSchema();
 		for (FPCGExPropertyOverrides& Row : Values)
 		{
 			Row.SyncToSchema(Schema);
@@ -158,7 +123,27 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 	Attributes.Reserve(Settings->Composition.Num());
 	Keys.Reserve(Settings->Composition.Num());
 
-	for (const FPCGExTupleValueHeader& Header : Settings->Composition) { Attributes.Add(Header.CreateAttribute(Context, TupleData)); }
+	// Create attributes from schema
+	for (const FPCGExPropertySchema& SchemaEntry : Settings->Composition.Schemas)
+	{
+		// Check for existing attribute
+		const FPCGMetadataAttributeBase* ExistingAttr = TupleData->Metadata->GetConstAttribute(SchemaEntry.Name);
+		if (ExistingAttr)
+		{
+			PCGEX_LOG_INVALID_ATTR_C(Context, Header Name, SchemaEntry.Name)
+			Attributes.Add(nullptr);
+			continue;
+		}
+
+		const FPCGExPropertyCompiled* Property = SchemaEntry.GetProperty();
+		if (!Property)
+		{
+			Attributes.Add(nullptr);
+			continue;
+		}
+
+		Attributes.Add(Property->CreateMetadataAttribute(TupleData->Metadata, SchemaEntry.Name));
+	}
 
 	// Create all keys
 	for (int i = 0; i < Settings->Values.Num(); ++i) { Keys.Add(TupleData->Metadata->AddEntry()); }

@@ -437,7 +437,8 @@ public:
 	/** Rebuild property registry from CollectionProperties. Called automatically during cache build. */
 	void RebuildPropertyRegistry()
 	{
-		PCGExProperties::BuildRegistry(CollectionProperties, PropertyRegistry);
+		TArray<FInstancedStruct> Schema = CollectionProperties.BuildSchema();
+		PCGExProperties::BuildRegistry(Schema, PropertyRegistry);
 	}
 
 	/**
@@ -448,7 +449,7 @@ public:
 	template <typename T>
 	const T* GetProperty(FName PropertyName = NAME_None) const
 	{
-		return PCGExProperties::GetProperty<T>(CollectionProperties, PropertyName);
+		return CollectionProperties.GetProperty<T>(PropertyName);
 	}
 
 	/**
@@ -456,7 +457,7 @@ public:
 	 */
 	bool HasProperty(FName PropertyName) const
 	{
-		return PCGExProperties::HasProperty(CollectionProperties, PropertyName);
+		return CollectionProperties.HasProperty(PropertyName);
 	}
 
 	bool HasCircularDependency(const UPCGExAssetCollection* OtherCollection) const;
@@ -531,8 +532,8 @@ public:
 	 * Collection-level properties with default values.
 	 * Entries inherit these unless they provide overrides.
 	 */
-	UPROPERTY(EditAnywhere, Category = "Properties", meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct))
-	TArray<FInstancedStruct> CollectionProperties;
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	FPCGExPropertySchemaCollection CollectionProperties;
 
 	/**
 	 * Read-only registry of available properties (built from CollectionProperties).

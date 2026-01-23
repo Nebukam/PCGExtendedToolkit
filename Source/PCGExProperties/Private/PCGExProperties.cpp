@@ -3,6 +3,7 @@
 
 #include "PCGExProperties.h"
 #include "PCGExPropertyCompiled.h"
+#include "PCGExPropertyTypes.h"
 
 #if WITH_EDITOR
 void FPCGExPropertiesModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
@@ -14,69 +15,120 @@ void FPCGExPropertiesModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& 
 
 PCGEX_IMPLEMENT_MODULE(FPCGExPropertiesModule, PCGExProperties)
 
+#pragma region FPCGExPropertySchema
+
+FPCGExPropertySchema::FPCGExPropertySchema()
+{
+	#if WITH_EDITOR
+	HeaderId = GetTypeHash(FGuid::NewGuid());
+	Property.InitializeAs<FPCGExPropertyCompiled_Float>();
+	#endif
+}
+
+#pragma endregion
+
+#pragma region FPCGExPropertySchemaCollection
+
+const FPCGExPropertySchema* FPCGExPropertySchemaCollection::FindByName(FName PropertyName) const
+{
+	if (PropertyName.IsNone()) { return nullptr; }
+
+	for (const FPCGExPropertySchema& Schema : Schemas)
+	{
+		if (Schema.Name == PropertyName) { return &Schema; }
+	}
+	return nullptr;
+}
+
+TArray<FInstancedStruct> FPCGExPropertySchemaCollection::BuildSchema() const
+{
+	TArray<FInstancedStruct> Result;
+	Result.Reserve(Schemas.Num());
+
+	for (const FPCGExPropertySchema& Schema : Schemas)
+	{
+		if (Schema.IsValid())
+		{
+			Result.Add(Schema.Property);
+		}
+	}
+	return Result;
+}
+
+bool FPCGExPropertySchemaCollection::ValidateUniqueNames(TArray<FName>& OutDuplicates) const
+{
+	OutDuplicates.Empty();
+	TSet<FName> Seen;
+
+	for (const FPCGExPropertySchema& Schema : Schemas)
+	{
+		if (Schema.Name.IsNone()) { continue; }
+
+		bool bAlreadyInSet = false;
+		Seen.Add(Schema.Name, &bAlreadyInSet);
+
+		if (bAlreadyInSet)
+		{
+			OutDuplicates.AddUnique(Schema.Name);
+		}
+	}
+
+	return OutDuplicates.IsEmpty();
+}
+
+#pragma endregion
+
 #pragma region FPCGExPropertyOverrides
 
 void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schema)
 {
-	// Save existing overrides (by index and by name for fallback)
+	// Save existing overrides
 	TArray<FPCGExPropertyOverrideEntry> OldOverrides = MoveTemp(Overrides);
 
-	// Build map by name for fallback matching
-	TMap<FName, int32> OldIndexByName;
-	for (int32 i = 0; i < OldOverrides.Num(); ++i)
+	// Build map by HeaderId (stable identity)
+	TMap<int32, FPCGExPropertyOverrideEntry> ExistingById;
+	#if WITH_EDITOR
+	for (FPCGExPropertyOverrideEntry& Entry : OldOverrides)
 	{
-		FName PropName = OldOverrides[i].GetPropertyName();
-		if (!PropName.IsNone())
+		if (const FPCGExPropertyCompiled* Prop = Entry.Value.GetPtr<FPCGExPropertyCompiled>())
 		{
-			OldIndexByName.Add(PropName, i);
+			if (Prop->HeaderId != 0)
+			{
+				ExistingById.Add(Prop->HeaderId, MoveTemp(Entry));
+			}
 		}
 	}
+	#endif
 
 	// Rebuild array to match schema exactly (parallel arrays)
 	Overrides.Reset(Schema.Num());
 
-	for (int32 SchemaIndex = 0; SchemaIndex < Schema.Num(); ++SchemaIndex)
+	for (const FInstancedStruct& SchemaProp : Schema)
 	{
-		const FInstancedStruct& SchemaProp = Schema[SchemaIndex];
 		const FPCGExPropertyCompiled* SchemaData = SchemaProp.GetPtr<FPCGExPropertyCompiled>();
 		if (!SchemaData) { continue; }
 
 		FPCGExPropertyOverrideEntry& NewEntry = Overrides.AddDefaulted_GetRef();
-
 		FPCGExPropertyOverrideEntry* Existing = nullptr;
 
-		// Strategy 1: Match by index (handles renames - same position = same logical property)
-		if (OldOverrides.IsValidIndex(SchemaIndex))
+		#if WITH_EDITOR
+		// Match by HeaderId (stable across rename/reorder/type change!)
+		if (SchemaData->HeaderId != 0)
 		{
-			FPCGExPropertyOverrideEntry& OldEntry = OldOverrides[SchemaIndex];
-			// Only use index match if type matches (otherwise it's a different property now)
-			if (OldEntry.Value.GetScriptStruct() == SchemaProp.GetScriptStruct())
-			{
-				Existing = &OldEntry;
-			}
+			Existing = ExistingById.Find(SchemaData->HeaderId);
 		}
-
-		// Strategy 2: Fallback to match by name (handles reordering/insertion)
-		if (!Existing)
-		{
-			if (int32* OldIndex = OldIndexByName.Find(SchemaData->PropertyName))
-			{
-				Existing = &OldOverrides[*OldIndex];
-			}
-		}
+		#endif
 
 		if (Existing)
 		{
-			// Preserve enabled state
+			// Found existing by HeaderId - preserve state
 			NewEntry.bEnabled = Existing->bEnabled;
 
-			// Check if type matches
 			if (Existing->Value.GetScriptStruct() == SchemaProp.GetScriptStruct())
 			{
-				// Same type - keep existing value
+				// Same type - preserve value, update PropertyName from schema
 				NewEntry.Value = MoveTemp(Existing->Value);
 
-				// CRITICAL: Ensure PropertyName stays synced with schema (handles renames)
 				if (FPCGExPropertyCompiled* Prop = NewEntry.GetPropertyMutable())
 				{
 					Prop->PropertyName = SchemaData->PropertyName;
@@ -84,7 +136,7 @@ void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 			}
 			else
 			{
-				// Type changed - use schema default (keep enabled state)
+				// Type changed - use schema default, preserve bEnabled
 				NewEntry.Value = SchemaProp;
 			}
 		}

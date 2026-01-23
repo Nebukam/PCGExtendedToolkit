@@ -71,15 +71,22 @@ void FPCGExPropertyOverridesCustomization::CustomizeChildren(
 	TSharedPtr<IPropertyHandle> OverridesArrayHandle = PropertyHandle->GetChildHandle(TEXT("Overrides"));
 	if (!OverridesArrayHandle.IsValid()) { return; }
 
-	// Watch for array size changes to force refresh (handles add/remove/reorder)
-	OverridesArrayHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([this]()
+	// Watch for array changes to force refresh
+	auto RefreshDelegate = FSimpleDelegate::CreateLambda([this]()
 	{
 		if (TSharedPtr<IPropertyUtilities> PropertyUtilities = WeakPropertyUtilities.Pin())
 		{
 			// Force complete rebuild of customizations when array changes
+			// This recreates FStructOnScope instances with fresh pointers
 			PropertyUtilities->ForceRefresh();
 		}
-	}));
+	});
+
+	// Handles add/remove/reorder
+	OverridesArrayHandle->SetOnPropertyValueChanged(RefreshDelegate);
+
+	// Handles value changes within entries (like bEnabled toggle or value edits)
+	OverridesArrayHandle->SetOnChildPropertyValueChanged(RefreshDelegate);
 
 	// Hide array controls (add/remove/reorder buttons) - manually iterate instead
 	uint32 NumElements = 0;

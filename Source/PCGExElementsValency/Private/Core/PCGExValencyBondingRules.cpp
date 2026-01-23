@@ -214,77 +214,97 @@ bool UPCGExValencyBondingRules::Compile()
 	// Build fast lookup
 	CompiledData.BuildCandidateLookup();
 
-	// Sync DefaultProperties to match cage-declared properties
-	VALENCY_LOG_SUBSECTION(Compilation, "Syncing Default Properties");
+	// Sync DefaultProperties schema to match cage-declared properties
+	VALENCY_LOG_SUBSECTION(Compilation, "Syncing Default Properties Schema");
 	{
-		// Collect all unique property names+types from cages
-		TMap<FName, FInstancedStruct> CageDeclaredProperties;
+		// Collect all unique properties from cages (by HeaderId for stable identity)
+		TMap<int32, FPCGExPropertySchema> CageDeclaredSchemas;
+
+		#if WITH_EDITOR
 		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
 		{
 			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
 			{
-				if (!Prop->PropertyName.IsNone() && !CageDeclaredProperties.Contains(Prop->PropertyName))
+				if (!Prop->PropertyName.IsNone() && Prop->HeaderId != 0)
 				{
-					// Store first occurrence as prototype (for new properties)
-					CageDeclaredProperties.Add(Prop->PropertyName, PropStruct);
+					if (!CageDeclaredSchemas.Contains(Prop->HeaderId))
+					{
+						// Create schema from first occurrence
+						FPCGExPropertySchema NewSchema;
+						NewSchema.HeaderId = Prop->HeaderId;
+						NewSchema.Name = Prop->PropertyName;
+						NewSchema.Property = PropStruct;
+						CageDeclaredSchemas.Add(Prop->HeaderId, MoveTemp(NewSchema));
+					}
 				}
 			}
 		}
+		#endif
 
-		// Build map of existing defaults by name (to preserve user edits)
-		TMap<FName, FInstancedStruct> ExistingDefaultsByName;
-		for (FInstancedStruct& DefaultProp : DefaultProperties)
+		// Build map of existing schemas by HeaderId (to preserve user edits)
+		TMap<int32, FPCGExPropertySchema> ExistingSchemasByHeaderId;
+		#if WITH_EDITOR
+		for (FPCGExPropertySchema& Schema : DefaultProperties.Schemas)
 		{
-			if (const FPCGExPropertyCompiled* Prop = DefaultProp.GetPtr<FPCGExPropertyCompiled>())
+			if (Schema.HeaderId != 0)
 			{
-				if (!Prop->PropertyName.IsNone())
-				{
-					ExistingDefaultsByName.Add(Prop->PropertyName, MoveTemp(DefaultProp));
-				}
+				ExistingSchemasByHeaderId.Add(Schema.HeaderId, MoveTemp(Schema));
 			}
 		}
+		#endif
 
-		// Rebuild DefaultProperties: keep existing (if still used), add new, remove deprecated
-		DefaultProperties.Reset();
-		for (const auto& CagePropPair : CageDeclaredProperties)
+		// Rebuild schema: keep existing (if still used), add new, remove deprecated
+		DefaultProperties.Schemas.Reset();
+
+		#if WITH_EDITOR
+		for (auto& CageSchemaPair : CageDeclaredSchemas)
 		{
-			const FName& PropName = CagePropPair.Key;
-			const FInstancedStruct& CagePrototype = CagePropPair.Value;
+			const int32 HeaderId = CageSchemaPair.Key;
+			FPCGExPropertySchema& CageSchema = CageSchemaPair.Value;
 
-			if (FInstancedStruct* ExistingDefault = ExistingDefaultsByName.Find(PropName))
+			if (FPCGExPropertySchema* ExistingSchema = ExistingSchemasByHeaderId.Find(HeaderId))
 			{
-				// Keep existing default (preserves user edits)
-				// But verify type matches - if type changed, use new cage prototype
-				if (ExistingDefault->GetScriptStruct() == CagePrototype.GetScriptStruct())
+				// Keep existing schema (preserves user-edited default values)
+				// Update name from cage (handles renames)
+				ExistingSchema->Name = CageSchema.Name;
+
+				// Check if type changed
+				if (ExistingSchema->Property.GetScriptStruct() == CageSchema.Property.GetScriptStruct())
 				{
-					DefaultProperties.Add(MoveTemp(*ExistingDefault));
-					PCGEX_VALENCY_VERBOSE(Compilation, "  Preserved default for property '%s'", *PropName.ToString());
+					// Same type - preserve value, update PropertyName
+					if (FPCGExPropertyCompiled* Prop = ExistingSchema->GetPropertyMutable())
+					{
+						Prop->PropertyName = CageSchema.Name;
+					}
+					DefaultProperties.Schemas.Add(MoveTemp(*ExistingSchema));
+					PCGEX_VALENCY_VERBOSE(Compilation, "  Preserved schema for property '%s'", *CageSchema.Name.ToString());
 				}
 				else
 				{
-					// Type changed - use cage prototype and warn
-					DefaultProperties.Add(CagePrototype);
-					PCGEX_VALENCY_WARNING(Compilation, "Property '%s' type changed, reset to cage default", *PropName.ToString());
+					// Type changed - use cage's default and warn
+					DefaultProperties.Schemas.Add(MoveTemp(CageSchema));
+					PCGEX_VALENCY_WARNING(Compilation, "Property '%s' type changed, reset to cage default", *CageSchema.Name.ToString());
 				}
 			}
 			else
 			{
-				// New property - add cage's value as initial default
-				DefaultProperties.Add(CagePrototype);
-				PCGEX_VALENCY_INFO(Compilation, "  Added new default property '%s'", *PropName.ToString());
+				// New property - add cage schema
+				DefaultProperties.Schemas.Add(MoveTemp(CageSchema));
+				PCGEX_VALENCY_INFO(Compilation, "  Added new property schema '%s'", *CageSchema.Name.ToString());
 			}
 		}
 
-		// Log removed properties
-		for (const auto& ExistingPair : ExistingDefaultsByName)
+		// Log removed schemas
+		for (const auto& ExistingPair : ExistingSchemasByHeaderId)
 		{
-			if (!CageDeclaredProperties.Contains(ExistingPair.Key))
+			if (!CageDeclaredSchemas.Contains(ExistingPair.Key))
 			{
-				PCGEX_VALENCY_INFO(Compilation, "  Removed deprecated property '%s'", *ExistingPair.Key.ToString());
+				PCGEX_VALENCY_INFO(Compilation, "  Removed deprecated property schema (HeaderId=%d)", ExistingPair.Key);
 			}
 		}
+		#endif
 
-		PCGEX_VALENCY_INFO(Compilation, "DefaultProperties synced: %d properties", DefaultProperties.Num());
+		PCGEX_VALENCY_INFO(Compilation, "DefaultProperties schema synced: %d properties", DefaultProperties.Num());
 	}
 
 	// Build module property registry (includes defaults + cage properties)
@@ -292,14 +312,14 @@ bool UPCGExValencyBondingRules::Compile()
 	{
 		TMap<FName, FPCGExPropertyRegistryEntry> ModulePropertiesMap;
 
-		// Add defaults first
-		for (const FInstancedStruct& PropStruct : DefaultProperties)
+		// Add defaults from schema
+		for (const FPCGExPropertySchema& Schema : DefaultProperties.Schemas)
 		{
-			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
+			if (const FPCGExPropertyCompiled* Prop = Schema.GetProperty())
 			{
-				if (!Prop->PropertyName.IsNone())
+				if (!Schema.Name.IsNone())
 				{
-					ModulePropertiesMap.Add(Prop->PropertyName, Prop->ToRegistryEntry());
+					ModulePropertiesMap.Add(Schema.Name, Prop->ToRegistryEntry());
 				}
 			}
 		}

@@ -9,7 +9,7 @@
 #include "PCGExValencyCommon.h"
 #include "PCGExValencyOrbitalSet.h"
 #include "PCGExValencyPattern.h"
-#include "PCGExCagePropertyCompiled.h"
+#include "PCGExPropertyCompiled.h"
 
 #include "PCGExValencyBondingRules.generated.h"
 
@@ -359,12 +359,13 @@ public:
 	// ========== Default Properties ==========
 
 	/**
-	 * Default property values for all modules.
-	 * Properties declared by cages override these defaults.
+	 * Property schema for all modules.
+	 * Defines available properties with stable HeaderId identity.
+	 * Module-specific values override these defaults.
 	 * Synced during compilation - preserves user edits, adds new properties from cages, removes deprecated ones.
 	 */
-	UPROPERTY(EditAnywhere, Category = "Valency|Properties", meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct))
-	TArray<FInstancedStruct> DefaultProperties;
+	UPROPERTY(EditAnywhere, Category = "Valency|Properties")
+	FPCGExPropertySchemaCollection DefaultProperties;
 
 	/**
 	 * Registry of all unique properties (defaults + cage-declared).

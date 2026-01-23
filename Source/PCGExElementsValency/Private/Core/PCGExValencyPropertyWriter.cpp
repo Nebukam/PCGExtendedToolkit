@@ -140,7 +140,7 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 			if (!SourceProp && BondingRules)
 			{
 				// Module doesn't have this property - try default from bonding rules (live-editable)
-				SourceProp = PCGExProperties::GetPropertyByName(BondingRules->DefaultProperties, PropName);
+				SourceProp = BondingRules->DefaultProperties.GetPropertyByName(PropName);
 			}
 
 			if (SourceProp)

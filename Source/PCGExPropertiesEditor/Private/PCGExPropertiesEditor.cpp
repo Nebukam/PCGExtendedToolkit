@@ -7,6 +7,8 @@
 #include "Details/PCGExPropertyOverridesCustomization.h"
 #include "Details/PCGExPropertyOverrideEntryCustomization.h"
 #include "Details/PCGExPropertyCompiledCustomization.h"
+#include "Details/PCGExPropertySchemaCollectionCustomization.h"
+#include "Details/PCGExPropertySchemaCustomization.h"
 #include "PCGExPropertyCompiled.h"
 #include "PCGExPropertyTypes.h"
 
@@ -17,6 +19,19 @@ void FPCGExPropertiesEditorModule::StartupModule()
 	IPCGExEditorModuleInterface::StartupModule();
 
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	// Register FPCGExPropertySchemaCollection customization - handles schema array changes
+	// Used by Tuple (Composition), Collections (CollectionProperties), Valency (DefaultProperties)
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExPropertySchemaCollection::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertySchemaCollectionCustomization::MakeInstance)
+	);
+
+	// Register FPCGExPropertySchema customization - handles individual schema entry changes
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExPropertySchema::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertySchemaCustomization::MakeInstance)
+	);
 
 	// Register FPCGExPropertyOverrides customization - provides toggle-checkbox UI
 	// Used by Collections (entry overrides) and Tuple (row values)
