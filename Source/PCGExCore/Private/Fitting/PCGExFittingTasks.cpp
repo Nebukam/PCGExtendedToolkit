@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExPointIO.h"
 #include "Fitting/PCGExFitting.h"
-#include "Async/ParallelFor.h"
 
 namespace PCGExFitting::Tasks
 {

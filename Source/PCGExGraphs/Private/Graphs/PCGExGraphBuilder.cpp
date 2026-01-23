@@ -14,7 +14,6 @@
 #include "Clusters/PCGExClusterCommon.h"
 #include "Graphs/PCGExSubGraph.h"
 #include "Sorting/PCGExSortingHelpers.h"
-#include "Async/ParallelFor.h"
 
 namespace PCGExGraphTask
 {

@@ -30,6 +30,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::String; }
@@ -53,6 +54,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Name; }
@@ -76,6 +78,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Integer32; }
@@ -99,6 +102,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Integer64; }
@@ -122,6 +126,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Float; }
@@ -145,6 +150,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Double; }
@@ -168,6 +174,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Boolean; }
@@ -191,6 +198,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector; }
@@ -214,6 +222,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector2; }
@@ -237,6 +246,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector4; }
@@ -260,6 +270,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Vector4; }
@@ -283,6 +294,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Rotator; }
@@ -306,6 +318,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Quaternion; }
@@ -329,6 +342,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Transform; }
@@ -352,6 +366,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::SoftObjectPath; }
@@ -375,6 +390,7 @@ protected:
 public:
 	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
 	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::SoftClassPath; }

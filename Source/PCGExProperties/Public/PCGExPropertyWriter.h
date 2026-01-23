@@ -64,7 +64,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOutputSettings
 	 * Properties to output as point attributes.
 	 * Each config maps a property name to an output attribute name.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property Output", meta=(TitleProperty="PropertyName"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="PropertyName"))
 	TArray<FPCGExPropertyOutputConfig> Configs;
 
 	/** Check if any outputs are configured */

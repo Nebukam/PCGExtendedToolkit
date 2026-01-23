@@ -87,13 +87,23 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	/**
 	 * Write this property's value(s) to the initialized buffer(s).
 	 * Call after InitializeOutput() succeeded.
+	 * WARNING: Not thread-safe if Value was modified. Use WriteOutputFrom() for parallel processing.
 	 * @param PointIndex The point index to write to
 	 */
 	virtual void WriteOutput(int32 PointIndex) const {}
 
 	/**
+	 * Thread-safe: Write value from source property directly to buffer.
+	 * Use this in parallel processing (PCGEX_SCOPE_LOOP) instead of CopyValueFrom + WriteOutput.
+	 * @param PointIndex The point index to write to
+	 * @param Source The source property to read value from (must be same concrete type)
+	 */
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const {}
+
+	/**
 	 * Copy value from another property of the same type.
-	 * Used when switching between modules that have the same property.
+	 * WARNING: Not thread-safe. Mutates this property's Value field.
+	 * For parallel processing, use WriteOutputFrom() instead.
 	 * @param Source The source property to copy from (must be same concrete type)
 	 */
 	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) {}

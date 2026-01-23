@@ -18,7 +18,6 @@
 #include "Collections/PCGExPCGDataAssetCollection.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/Utils/PCGExDataForward.h"
-#include "Async/ParallelFor.h"
 #include "Helpers/PCGExRandomHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPCGDataAssetLoaderElement"

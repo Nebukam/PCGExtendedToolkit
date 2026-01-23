@@ -3,9 +3,9 @@
 
 using UnrealBuildTool;
 
-public class PCGExCollectionsEditor : ModuleRules
+public class PCGExPropertiesEditor : ModuleRules
 {
-	public PCGExCollectionsEditor(ReadOnlyTargetRules Target) : base(Target)
+	public PCGExPropertiesEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = false;
@@ -16,62 +16,41 @@ public class PCGExCollectionsEditor : ModuleRules
 			}
 		);
 
-
 		PrivateIncludePaths.AddRange(
 			new string[]
 			{
 			}
 		);
 
-
 		PublicDependencyModuleNames.AddRange(
 			new[]
 			{
 				"Core",
 				"CoreUObject",
-				"UnrealEd",
-				"Settings",
 				"Engine",
 				"PCG",
 				"PCGExCore",
-				"PCGExCoreEditor",
-				"PCGExCollections", 
+				"PCGExProperties",
+				"StructUtils",
 			}
 		);
-
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"ContentBrowser",
-				"InputCore",
-				"AssetTools",
 				"Slate",
 				"SlateCore",
-				"PropertyPath",
-				"DeveloperSettings",
-				"Slate",
-				"SlateCore",
+				"UnrealEd",
 				"PropertyEditor",
-				"EditorWidgets",
-				"ToolMenus" 
+				"EditorStyle",
+				"InputCore",
 			}
 		);
-
 
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
 			}
 		);
-
-		if (Target.bBuildEditor == true)
-		{
-			PrivateDependencyModuleNames.AddRange(
-				new string[]
-				{
-					
-				});
-		}
 	}
 }

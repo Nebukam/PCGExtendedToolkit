@@ -12,7 +12,6 @@
 #include "Metadata/PCGMetadata.h"
 
 #include "Clusters/PCGExCluster.h"
-#include "Async/ParallelFor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExClusterData.h"

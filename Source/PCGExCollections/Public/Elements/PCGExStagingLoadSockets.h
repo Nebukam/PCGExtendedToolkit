@@ -25,7 +25,7 @@ class UPCGExSocketStagingSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SocketStaging, "Staging : Sockets", "Create points from staged data sockets.");
+	PCGEX_NODE_INFOS(SocketStaging, "Staging : Load Sockets", "Create points from staged data sockets.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 #endif

@@ -4,6 +4,8 @@
 #include "PCGExPropertyTypes.h"
 
 // Macro to generate standard typed property implementations
+// NOTE: OutputBuffer validity is guaranteed by InitializeOutput returning true.
+// Callers must exclude properties that failed initialization from processing.
 #define PCGEX_PROPERTY_IMPL(_TYPE, _NAME) \
 bool FPCGExPropertyCompiled_##_NAME::InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) \
 { \
@@ -12,14 +14,19 @@ bool FPCGExPropertyCompiled_##_NAME::InitializeOutput(const TSharedRef<PCGExData
 } \
 void FPCGExPropertyCompiled_##_NAME::WriteOutput(int32 PointIndex) const \
 { \
-	if (OutputBuffer) { OutputBuffer->SetValue(PointIndex, Value); } \
+	check(OutputBuffer); \
+	OutputBuffer->SetValue(PointIndex, Value); \
+} \
+void FPCGExPropertyCompiled_##_NAME::WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const \
+{ \
+	check(OutputBuffer); \
+	const FPCGExPropertyCompiled_##_NAME* Typed = static_cast<const FPCGExPropertyCompiled_##_NAME*>(Source); \
+	OutputBuffer->SetValue(PointIndex, Typed->Value); \
 } \
 void FPCGExPropertyCompiled_##_NAME::CopyValueFrom(const FPCGExPropertyCompiled* Source) \
 { \
-	if (const FPCGExPropertyCompiled_##_NAME* Typed = static_cast<const FPCGExPropertyCompiled_##_NAME*>(Source)) \
-	{ \
-		Value = Typed->Value; \
-	} \
+	const FPCGExPropertyCompiled_##_NAME* Typed = static_cast<const FPCGExPropertyCompiled_##_NAME*>(Source); \
+	Value = Typed->Value; \
 }
 
 #pragma region Standard Types
@@ -52,15 +59,21 @@ bool FPCGExPropertyCompiled_Color::InitializeOutput(const TSharedRef<PCGExData::
 
 void FPCGExPropertyCompiled_Color::WriteOutput(int32 PointIndex) const
 {
-	if (OutputBuffer) { OutputBuffer->SetValue(PointIndex, FVector4(Value)); }
+	check(OutputBuffer);
+	OutputBuffer->SetValue(PointIndex, FVector4(Value));
+}
+
+void FPCGExPropertyCompiled_Color::WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const
+{
+	check(OutputBuffer);
+	const FPCGExPropertyCompiled_Color* Typed = static_cast<const FPCGExPropertyCompiled_Color*>(Source);
+	OutputBuffer->SetValue(PointIndex, FVector4(Typed->Value));
 }
 
 void FPCGExPropertyCompiled_Color::CopyValueFrom(const FPCGExPropertyCompiled* Source)
 {
-	if (const FPCGExPropertyCompiled_Color* Typed = static_cast<const FPCGExPropertyCompiled_Color*>(Source))
-	{
-		Value = Typed->Value;
-	}
+	const FPCGExPropertyCompiled_Color* Typed = static_cast<const FPCGExPropertyCompiled_Color*>(Source);
+	Value = Typed->Value;
 }
 
 #pragma endregion
