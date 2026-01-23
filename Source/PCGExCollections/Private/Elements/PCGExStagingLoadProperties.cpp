@@ -195,7 +195,7 @@ namespace PCGExStagingLoadProperties
 					const FPCGExPropertyCompiled* Source = nullptr;
 
 					// Check entry overrides first
-					if (const FInstancedStruct* SourceProp = PCGExProperties::GetPropertyByName(Result.Entry->PropertyOverrides, PropName))
+					if (const FInstancedStruct* SourceProp = Result.Entry->PropertyOverrides.GetOverride(PropName))
 					{
 						Source = SourceProp->GetPtr<FPCGExPropertyCompiled>();
 					}

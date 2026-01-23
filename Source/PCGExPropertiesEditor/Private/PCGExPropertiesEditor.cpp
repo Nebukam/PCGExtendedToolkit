@@ -3,15 +3,32 @@
 
 #include "PCGExPropertiesEditor.h"
 
-#if WITH_EDITOR
-void FPCGExPropertiesEditorModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
-{
-	IPCGExModuleInterface::RegisterToEditor(InStyle);
+#include "PropertyEditorModule.h"
+#include "Details/PCGExPropertyOverridesCustomization.h"
+#include "Details/PCGExPropertyOverrideEntryCustomization.h"
+#include "PCGExPropertyCompiled.h"
 
-	// Property customizations can be registered here when needed
-	// FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	// PropertyModule.RegisterCustomPropertyTypeLayout(...);
+#define LOCTEXT_NAMESPACE "FPCGExPropertiesEditorModule"
+
+void FPCGExPropertiesEditorModule::StartupModule()
+{
+	IPCGExEditorModuleInterface::StartupModule();
+
+	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	// Register FPCGExPropertyOverrides customization - provides toggle-checkbox UI
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExPropertyOverrides::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyOverridesCustomization::MakeInstance)
+	);
+
+	// Register FPCGExPropertyOverrideEntry customization - handles individual entry display
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExPropertyOverrideEntry::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyOverrideEntryCustomization::MakeInstance)
+	);
 }
-#endif
+
+#undef LOCTEXT_NAMESPACE
 
 PCGEX_IMPLEMENT_MODULE(FPCGExPropertiesEditorModule, PCGExPropertiesEditor)

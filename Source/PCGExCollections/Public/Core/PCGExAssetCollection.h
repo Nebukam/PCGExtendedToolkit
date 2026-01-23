@@ -142,8 +142,8 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 	 * Values here take precedence over collection-level defaults.
 	 * Only include properties you want to override.
 	 */
-	UPROPERTY(EditAnywhere, Category = "Properties", meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct))
-	TArray<FInstancedStruct> PropertyOverrides;
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	FPCGExPropertyOverrides PropertyOverrides;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExEntryVariationMode GrammarSource = EPCGExEntryVariationMode::Local;
@@ -228,7 +228,7 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 	 */
 	bool HasPropertyOverride(FName PropertyName) const
 	{
-		return PCGExProperties::HasProperty(PropertyOverrides, PropertyName);
+		return PropertyOverrides.HasOverride(PropertyName);
 	}
 
 protected:
@@ -477,6 +477,9 @@ public:
 	void EDITOR_SanitizeAndRebuildStagingData(bool bRecursive);
 	void EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData);
 
+	/** Sync PropertyOverrides in all entries to match CollectionProperties schema */
+	void SyncPropertyOverridesToEntries();
+
 protected:
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData);
 
@@ -629,7 +632,7 @@ template <typename T>
 const T* FPCGExAssetCollectionEntry::GetResolvedProperty(const UPCGExAssetCollection* OwningCollection, FName PropertyName) const
 {
 	// Check entry overrides first
-	if (const T* Override = PCGExProperties::GetProperty<T>(PropertyOverrides, PropertyName))
+	if (const T* Override = PropertyOverrides.GetProperty<T>(PropertyName))
 	{
 		return Override;
 	}

@@ -3,6 +3,7 @@
 
 #include "Core/PCGExAssetCollection.h"
 
+#include "PCGExPropertyCompiled.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
@@ -731,6 +732,18 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		Super::PostEditChangeProperty(PropertyChangedEvent);
 	}
 
+	// Check if CollectionProperties changed - sync to all entries and rebuild registry
+	if (PropertyChangedEvent.MemberProperty &&
+		PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(UPCGExAssetCollection, CollectionProperties))
+	{
+		RebuildPropertyRegistry();
+		SyncPropertyOverridesToEntries();
+
+		// Force details panel to refresh all entry PropertyOverrides
+		// This ensures the UI reflects the schema changes immediately
+		Modify(false);
+	}
+
 	ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
 	{
 		const UPCGExAssetCollection* Other = InEntry->GetSubCollectionPtr();
@@ -748,6 +761,22 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	{
 		EDITOR_RebuildStagingData();
 	}
+}
+
+void UPCGExAssetCollection::SyncPropertyOverridesToEntries()
+{
+	// Use the wrapper's sync method for each entry
+	ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
+	{
+		InEntry->PropertyOverrides.SyncToSchema(CollectionProperties);
+	});
+
+#if WITH_EDITOR
+	// Broadcast that this object changed to force UI refresh
+	FProperty* EntriesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Entries"));
+	FPropertyChangedEvent PropertyEvent(EntriesProperty);
+	FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, PropertyEvent);
+#endif
 }
 
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()

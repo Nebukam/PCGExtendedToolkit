@@ -4,7 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGSettings.h"
 #include "PCGExPropertyCompiled.h"
+#include "Elements/ControlFlow/PCGControlFlow.h"
 
 #include "PCGExPropertyTypes.generated.h"
 
@@ -395,6 +397,30 @@ public:
 	virtual bool SupportsOutput() const override { return true; }
 	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::SoftClassPath; }
 	virtual FName GetTypeName() const override { return FName("SoftClassPath"); }
+};
+
+/**
+ * Enum property - uses FEnumSelector for type-safe enum selection, outputs as int64 attribute.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXPROPERTIES_API FPCGExPropertyCompiled_Enum : public FPCGExPropertyCompiled
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	FEnumSelector Value;
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<int64>> OutputBuffer;
+
+public:
+	virtual bool InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName) override;
+	virtual void WriteOutput(int32 PointIndex) const override;
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const override;
+	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) override;
+	virtual bool SupportsOutput() const override { return true; }
+	virtual EPCGMetadataTypes GetOutputType() const override { return EPCGMetadataTypes::Integer64; }
+	virtual FName GetTypeName() const override { return FName("Enum"); }
 };
 
 #pragma endregion

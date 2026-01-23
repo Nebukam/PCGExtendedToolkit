@@ -106,6 +106,9 @@ void FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>
 	Mapping.Add(FName("SubGrammarMode"), Grammar.Id);
 	Mapping.Add(FName("CollectionGrammar"), Grammar.Id);
 
+	PCGEX_DECL_ASSET_FILTER(Properties, "AssetEditor.Properties", "Properties", "Show/hide Property Overrides")
+	// Individual properties are dynamically mapped, but the section itself uses this filter ID
+
 #undef PCGEX_DECL_ASSET_FILTER
 }
 

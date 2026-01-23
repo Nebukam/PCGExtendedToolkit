@@ -78,4 +78,33 @@ void FPCGExPropertyCompiled_Color::CopyValueFrom(const FPCGExPropertyCompiled* S
 
 #pragma endregion
 
+#pragma region Enum (FEnumSelector -> int64)
+
+bool FPCGExPropertyCompiled_Enum::InitializeOutput(const TSharedRef<PCGExData::FFacade>& OutputFacade, FName OutputName)
+{
+	OutputBuffer = OutputFacade->GetWritable<int64>(OutputName, Value.Value, true, PCGExData::EBufferInit::Inherit);
+	return OutputBuffer.IsValid();
+}
+
+void FPCGExPropertyCompiled_Enum::WriteOutput(int32 PointIndex) const
+{
+	check(OutputBuffer);
+	OutputBuffer->SetValue(PointIndex, Value.Value);
+}
+
+void FPCGExPropertyCompiled_Enum::WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const
+{
+	check(OutputBuffer);
+	const FPCGExPropertyCompiled_Enum* Typed = static_cast<const FPCGExPropertyCompiled_Enum*>(Source);
+	OutputBuffer->SetValue(PointIndex, Typed->Value.Value);
+}
+
+void FPCGExPropertyCompiled_Enum::CopyValueFrom(const FPCGExPropertyCompiled* Source)
+{
+	const FPCGExPropertyCompiled_Enum* Typed = static_cast<const FPCGExPropertyCompiled_Enum*>(Source);
+	Value = Typed->Value;
+}
+
+#pragma endregion
+
 #undef PCGEX_PROPERTY_IMPL

@@ -4,15 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExModuleInterface.h"
-#include "Modules/ModuleManager.h"
+#include "PCGExEditorModuleInterface.h"
 
-class FPCGExPropertiesEditorModule final : public IPCGExModuleInterface
+class FPCGExPropertiesEditorModule final : public IPCGExEditorModuleInterface
 {
 	PCGEX_MODULE_BODY
 
 public:
-#if WITH_EDITOR
-	virtual void RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle) override;
-#endif
+	virtual void StartupModule() override;
 };

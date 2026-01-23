@@ -23,7 +23,7 @@ struct FPCGPinProperties;
 namespace PCGExMesh
 {
 	/* Controls the default size of the spatial grid for vertex merges. */
-	static constexpr double DefaultVertexMergeHashTolerance = 0.001f;
+	static constexpr double DefaultVertexMergeHashTolerance = 0.1;
 
 	PCGEXCORE_API
 	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);

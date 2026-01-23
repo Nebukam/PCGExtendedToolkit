@@ -68,7 +68,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	GENERATED_BODY()
 
 	/** User-defined name for disambiguation when multiple properties exist */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Settings, meta=(DisplayPriority = -1))
 	FName PropertyName;
 
 	virtual ~FPCGExPropertyCompiled() = default;
@@ -131,6 +131,143 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	FPCGExPropertyRegistryEntry ToRegistryEntry() const
 	{
 		return FPCGExPropertyRegistryEntry(PropertyName, GetTypeName(), GetOutputType(), SupportsOutput());
+	}
+};
+
+/**
+ * Single property override entry.
+ * Stores enabled state + typed value. PropertyName comes from the inner struct.
+ * Array is kept parallel with schema - same size, same order.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
+{
+	GENERATED_BODY()
+
+	/** Whether this override is active (false = use collection default) */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	bool bEnabled = false;
+
+	/** The typed property value (contains PropertyName internally) */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct))
+	FInstancedStruct Value;
+
+	FPCGExPropertyOverrideEntry() = default;
+
+	explicit FPCGExPropertyOverrideEntry(const FInstancedStruct& InValue, bool bInEnabled = false)
+		: bEnabled(bInEnabled)
+		, Value(InValue)
+	{
+	}
+
+	/** Get the property name from the inner struct */
+	FName GetPropertyName() const
+	{
+		if (const FPCGExPropertyCompiled* Prop = Value.GetPtr<FPCGExPropertyCompiled>())
+		{
+			return Prop->PropertyName;
+		}
+		return NAME_None;
+	}
+
+	/** Get the compiled property from Value (may be nullptr) */
+	const FPCGExPropertyCompiled* GetProperty() const
+	{
+		return Value.GetPtr<FPCGExPropertyCompiled>();
+	}
+
+	FPCGExPropertyCompiled* GetPropertyMutable()
+	{
+		return Value.GetMutablePtr<FPCGExPropertyCompiled>();
+	}
+
+	bool IsValid() const
+	{
+		return Value.IsValid() && !GetPropertyName().IsNone();
+	}
+};
+
+/**
+ * Wrapper struct for property overrides array.
+ * Used by Collections (entry-level overrides) and Tuple (value overrides).
+ *
+ * The Overrides array is kept parallel with the schema array:
+ * - Same size, same order
+ * - Each entry has bEnabled flag to toggle override
+ * - Disabled entries use collection defaults
+ *
+ * Schema Source: The customization looks for a "CollectionProperties" or "Properties"
+ * property on the outer object to determine available property types.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
+{
+	GENERATED_BODY()
+
+	/** Overrides array - parallel with schema (same size, same order) */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TArray<FPCGExPropertyOverrideEntry> Overrides;
+
+	/** Sync overrides to match schema - ensures parallel array structure */
+	void SyncToSchema(const TArray<FInstancedStruct>& Schema);
+
+	/** Check if override at index is enabled */
+	bool IsOverrideEnabled(int32 Index) const
+	{
+		return Overrides.IsValidIndex(Index) && Overrides[Index].bEnabled;
+	}
+
+	/** Set override enabled state at index */
+	void SetOverrideEnabled(int32 Index, bool bEnabled)
+	{
+		if (Overrides.IsValidIndex(Index))
+		{
+			Overrides[Index].bEnabled = bEnabled;
+		}
+	}
+
+	/** Check if an enabled override exists for the given property name */
+	bool HasOverride(FName PropertyName) const
+	{
+		return GetOverride(PropertyName) != nullptr;
+	}
+
+	/** Get enabled override by name (returns nullptr if not found or disabled) */
+	const FInstancedStruct* GetOverride(FName PropertyName) const;
+
+	/** Count enabled overrides */
+	int32 GetEnabledCount() const
+	{
+		int32 Count = 0;
+		for (const FPCGExPropertyOverrideEntry& Entry : Overrides)
+		{
+			if (Entry.bEnabled) { ++Count; }
+		}
+		return Count;
+	}
+
+	/**
+	 * Get typed property from enabled overrides by name.
+	 * @param PropertyName The property name to search for
+	 * @return Pointer to typed property if found and enabled, nullptr otherwise
+	 */
+	template <typename T>
+	const T* GetProperty(FName PropertyName) const
+	{
+		static_assert(TIsDerivedFrom<T, FPCGExPropertyCompiled>::Value,
+			"T must derive from FPCGExPropertyCompiled");
+
+		for (const FPCGExPropertyOverrideEntry& Entry : Overrides)
+		{
+			if (Entry.bEnabled && Entry.GetPropertyName() == PropertyName)
+			{
+				if (const T* Typed = Entry.Value.GetPtr<T>())
+				{
+					return Typed;
+				}
+			}
+		}
+		return nullptr;
 	}
 };
 

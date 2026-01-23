@@ -30,6 +30,7 @@ public class PCGExPropertiesEditor : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExCoreEditor",
 				"PCGExProperties",
 				"StructUtils",
 			}
