@@ -10,6 +10,11 @@
 #include "Helpers/PCGExArrayHelpers.h"
 #include "PCGExPropertyTypes.h"
 
+#if WITH_EDITOR
+#include "UObject/UObjectGlobals.h"
+#include "Editor.h"
+#endif
+
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Tuple
 
@@ -42,53 +47,86 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTupleSettings::PostEditChangeProperty);
 
-	bool bNeedsProcessing = false;
+	bool bNeedsSync = false;
+	bool bNeedsUIRefresh = false;
 
 	if (PropertyChangedEvent.MemberProperty)
 	{
 		FName PropName = PropertyChangedEvent.MemberProperty->GetFName();
 		EPropertyChangeType::Type ChangeType = PropertyChangedEvent.ChangeType;
 
-		// Check for changes in Composition
+		// Check for ANY changes in Composition
 		if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Composition))
 		{
-			bNeedsProcessing = true;
+			bNeedsSync = true;
+			bNeedsUIRefresh = true;
+		}
+		// Also catch changes to Composition array elements (e.g., changing DefaultData type or Name)
+		else if (PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExTupleValueHeader::StaticStruct())
+		{
+			bNeedsSync = true;
+			bNeedsUIRefresh = true;
 		}
 		// Check for structural values change
 		else if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExTupleSettings, Values) && (ChangeType == EPropertyChangeType::ArrayAdd || ChangeType == EPropertyChangeType::ArrayRemove || ChangeType == EPropertyChangeType::ArrayClear || ChangeType == EPropertyChangeType::ArrayMove))
 		{
-			bNeedsProcessing = true;
+			bNeedsSync = true;
 		}
 	}
 
-	if (!bNeedsProcessing)
+	if (!bNeedsSync && !bNeedsUIRefresh)
 	{
 		Super::PostEditChangeProperty(PropertyChangedEvent);
-		return; // Skip heavy processing
+		return; // Skip processing
 	}
 
-	// Build schema array from composition headers
-	TArray<FInstancedStruct> Schema;
-	Schema.Reserve(Composition.Num());
-	for (FPCGExTupleValueHeader& Header : Composition)
+	// Build schema array from composition headers (only if we need to sync)
+	if (bNeedsSync)
 	{
-		// Update header order for UI
-		int32 Index = Schema.Add(Header.DefaultData);
-		if (Header.Order != Index)
+		TArray<FInstancedStruct> Schema;
+		Schema.Reserve(Composition.Num());
+		for (FPCGExTupleValueHeader& Header : Composition)
 		{
-			Header.Order = Index;
-		}
-	}
+			// CRITICAL: Sync PropertyName from Name into DefaultData before building schema
+			// This ensures overrides get the correct PropertyName when synced
+			if (FPCGExPropertyCompiled* Prop = Header.DefaultData.GetMutablePtr<FPCGExPropertyCompiled>())
+			{
+				Prop->PropertyName = Header.Name;
+			}
 
-	// Sync all rows to match composition schema
-	for (FPCGExPropertyOverrides& Row : Values)
-	{
-		Row.SyncToSchema(Schema);
+			// Update header order for UI
+			int32 Index = Schema.Add(Header.DefaultData);
+			if (Header.Order != Index)
+			{
+				Header.Order = Index;
+			}
+		}
+
+		// Sync all rows to match composition schema
+		for (FPCGExPropertyOverrides& Row : Values)
+		{
+			Row.SyncToSchema(Schema);
+		}
 	}
 
 	(void)MarkPackageDirty();
+
+	// Force UI refresh BEFORE Super - this ensures details panel rebuilds customizations
+	if (bNeedsUIRefresh)
+	{
+		// Mark Values as changed to force full customization rebuild
+		FProperty* ValuesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Values"));
+		if (ValuesProperty)
+		{
+			// Use ArrayClear type to force aggressive rebuild
+			FPropertyChangedEvent RefreshEvent(ValuesProperty, EPropertyChangeType::ArrayClear);
+			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, RefreshEvent);
+		}
+	}
+
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+
 #endif
 
 TArray<FPCGPinProperties> UPCGExTupleSettings::InputPinProperties() const

@@ -11,6 +11,7 @@
 #include "PCGExPropertyCompiled.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Delegates/Delegate.h"
 
 TSharedRef<IPropertyTypeCustomization> FPCGExPropertyOverridesCustomization::MakeInstance()
 {
@@ -25,17 +26,8 @@ void FPCGExPropertyOverridesCustomization::CustomizeHeader(
 	// Store utilities for refresh
 	WeakPropertyUtilities = CustomizationUtils.GetPropertyUtilities();
 
-	// Get raw access to count enabled
-	TArray<void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
-	int32 EnabledCount = 0;
-	int32 TotalCount = 0;
-	if (!RawData.IsEmpty() && RawData[0])
-	{
-		const FPCGExPropertyOverrides* OverridesStruct = static_cast<FPCGExPropertyOverrides*>(RawData[0]);
-		TotalCount = OverridesStruct->Overrides.Num();
-		EnabledCount = OverridesStruct->GetEnabledCount();
-	}
+	// Store property handle for dynamic text
+	PropertyHandlePtr = PropertyHandle;
 
 	HeaderRow
 		.NameContent()
@@ -45,10 +37,29 @@ void FPCGExPropertyOverridesCustomization::CustomizeHeader(
 		.ValueContent()
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(FString::Printf(TEXT("%d / %d active"), EnabledCount, TotalCount)))
+			.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &FPCGExPropertyOverridesCustomization::GetHeaderText)))
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 			.ColorAndOpacity(FSlateColor(FLinearColor::Gray))
 		];
+}
+
+FText FPCGExPropertyOverridesCustomization::GetHeaderText() const
+{
+	if (!PropertyHandlePtr.IsValid()) { return FText::FromString(TEXT("0 / 0 active")); }
+
+	// Get raw access to count enabled
+	TArray<void*> RawData;
+	PropertyHandlePtr.Pin()->AccessRawData(RawData);
+	int32 EnabledCount = 0;
+	int32 TotalCount = 0;
+	if (!RawData.IsEmpty() && RawData[0])
+	{
+		const FPCGExPropertyOverrides* OverridesStruct = static_cast<FPCGExPropertyOverrides*>(RawData[0]);
+		TotalCount = OverridesStruct->Overrides.Num();
+		EnabledCount = OverridesStruct->GetEnabledCount();
+	}
+
+	return FText::FromString(FString::Printf(TEXT("%d / %d active"), EnabledCount, TotalCount));
 }
 
 void FPCGExPropertyOverridesCustomization::CustomizeChildren(
@@ -56,10 +67,32 @@ void FPCGExPropertyOverridesCustomization::CustomizeChildren(
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	// Just add the Overrides array as a child - each entry will be customized by FPCGExPropertyOverrideEntryCustomization
+	// Get the Overrides array handle
 	TSharedPtr<IPropertyHandle> OverridesArrayHandle = PropertyHandle->GetChildHandle(TEXT("Overrides"));
-	if (OverridesArrayHandle.IsValid())
+	if (!OverridesArrayHandle.IsValid()) { return; }
+
+	// Watch for array size changes to force refresh (handles add/remove/reorder)
+	OverridesArrayHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateLambda([this]()
 	{
-		ChildBuilder.AddProperty(OverridesArrayHandle.ToSharedRef());
+		if (TSharedPtr<IPropertyUtilities> PropertyUtilities = WeakPropertyUtilities.Pin())
+		{
+			// Force complete rebuild of customizations when array changes
+			PropertyUtilities->ForceRefresh();
+		}
+	}));
+
+	// Hide array controls (add/remove/reorder buttons) - manually iterate instead
+	uint32 NumElements = 0;
+	OverridesArrayHandle->GetNumChildren(NumElements);
+
+	for (uint32 i = 0; i < NumElements; ++i)
+	{
+		TSharedPtr<IPropertyHandle> ElementHandle = OverridesArrayHandle->GetChildHandle(i);
+		if (ElementHandle.IsValid())
+		{
+			// Add each entry - FPCGExPropertyOverrideEntryCustomization will handle display
+			IDetailPropertyRow& Row = ChildBuilder.AddProperty(ElementHandle.ToSharedRef());
+			Row.ShowPropertyButtons(false); // Hide reset/browse buttons
+		}
 	}
 }

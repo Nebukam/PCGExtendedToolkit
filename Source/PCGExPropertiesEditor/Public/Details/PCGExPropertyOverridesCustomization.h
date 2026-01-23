@@ -34,5 +34,8 @@ public:
 		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
 private:
+	FText GetHeaderText() const;
+
 	TWeakPtr<IPropertyUtilities> WeakPropertyUtilities;
+	TWeakPtr<IPropertyHandle> PropertyHandlePtr;
 };

@@ -18,29 +18,54 @@ PCGEX_IMPLEMENT_MODULE(FPCGExPropertiesModule, PCGExProperties)
 
 void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schema)
 {
-	// Build map of existing overrides by name (to preserve enabled state)
-	TMap<FName, FPCGExPropertyOverrideEntry> ExistingByName;
-	for (FPCGExPropertyOverrideEntry& Entry : Overrides)
+	// Save existing overrides (by index and by name for fallback)
+	TArray<FPCGExPropertyOverrideEntry> OldOverrides = MoveTemp(Overrides);
+
+	// Build map by name for fallback matching
+	TMap<FName, int32> OldIndexByName;
+	for (int32 i = 0; i < OldOverrides.Num(); ++i)
 	{
-		FName PropName = Entry.GetPropertyName();
+		FName PropName = OldOverrides[i].GetPropertyName();
 		if (!PropName.IsNone())
 		{
-			ExistingByName.Add(PropName, MoveTemp(Entry));
+			OldIndexByName.Add(PropName, i);
 		}
 	}
 
 	// Rebuild array to match schema exactly (parallel arrays)
 	Overrides.Reset(Schema.Num());
 
-	for (const FInstancedStruct& SchemaProp : Schema)
+	for (int32 SchemaIndex = 0; SchemaIndex < Schema.Num(); ++SchemaIndex)
 	{
+		const FInstancedStruct& SchemaProp = Schema[SchemaIndex];
 		const FPCGExPropertyCompiled* SchemaData = SchemaProp.GetPtr<FPCGExPropertyCompiled>();
 		if (!SchemaData) { continue; }
 
 		FPCGExPropertyOverrideEntry& NewEntry = Overrides.AddDefaulted_GetRef();
 
-		// Check if we had an existing override for this property
-		if (FPCGExPropertyOverrideEntry* Existing = ExistingByName.Find(SchemaData->PropertyName))
+		FPCGExPropertyOverrideEntry* Existing = nullptr;
+
+		// Strategy 1: Match by index (handles renames - same position = same logical property)
+		if (OldOverrides.IsValidIndex(SchemaIndex))
+		{
+			FPCGExPropertyOverrideEntry& OldEntry = OldOverrides[SchemaIndex];
+			// Only use index match if type matches (otherwise it's a different property now)
+			if (OldEntry.Value.GetScriptStruct() == SchemaProp.GetScriptStruct())
+			{
+				Existing = &OldEntry;
+			}
+		}
+
+		// Strategy 2: Fallback to match by name (handles reordering/insertion)
+		if (!Existing)
+		{
+			if (int32* OldIndex = OldIndexByName.Find(SchemaData->PropertyName))
+			{
+				Existing = &OldOverrides[*OldIndex];
+			}
+		}
+
+		if (Existing)
 		{
 			// Preserve enabled state
 			NewEntry.bEnabled = Existing->bEnabled;
@@ -51,7 +76,7 @@ void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 				// Same type - keep existing value
 				NewEntry.Value = MoveTemp(Existing->Value);
 
-				// CRITICAL: Ensure PropertyName stays synced with schema (user may have edited it in UI)
+				// CRITICAL: Ensure PropertyName stays synced with schema (handles renames)
 				if (FPCGExPropertyCompiled* Prop = NewEntry.GetPropertyMutable())
 				{
 					Prop->PropertyName = SchemaData->PropertyName;
@@ -59,9 +84,8 @@ void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 			}
 			else
 			{
-				// Type changed - use schema default, disable override
+				// Type changed - use schema default (keep enabled state)
 				NewEntry.Value = SchemaProp;
-				NewEntry.bEnabled = false;
 			}
 		}
 		else

@@ -7,7 +7,7 @@
 
 /**
  * Customizes FPCGExPropertyOverrideEntry to show PropertyName label + Value widget.
- * Uses the same pattern as PCGExTupleBodyCustomization for the inner FInstancedStruct.
+ * Uses dynamic text for PropertyName to update when schema changes.
  */
 class FPCGExPropertyOverrideEntryCustomization : public IPropertyTypeCustomization
 {
@@ -23,4 +23,9 @@ public:
 		TSharedRef<IPropertyHandle> PropertyHandle,
 		class IDetailChildrenBuilder& ChildBuilder,
 		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+
+private:
+	FText GetEntryLabelText() const;
+
+	TWeakPtr<IPropertyHandle> PropertyHandlePtr;
 };

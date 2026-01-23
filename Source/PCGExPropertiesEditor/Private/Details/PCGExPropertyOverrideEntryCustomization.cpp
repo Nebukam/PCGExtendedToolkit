@@ -15,21 +15,20 @@ TSharedRef<IPropertyTypeCustomization> FPCGExPropertyOverrideEntryCustomization:
 	return MakeShareable(new FPCGExPropertyOverrideEntryCustomization());
 }
 
-void FPCGExPropertyOverrideEntryCustomization::CustomizeHeader(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	FDetailWidgetRow& HeaderRow,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
+FText FPCGExPropertyOverrideEntryCustomization::GetEntryLabelText() const
 {
-	// Access entry data directly
+	if (!PropertyHandlePtr.IsValid()) { return FText::FromString(TEXT("None (Unknown)")); }
+
+	// Access entry data directly - THIS RUNS EACH FRAME, reads fresh data after sync
 	TArray<void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
+	PropertyHandlePtr.Pin()->AccessRawData(RawData);
 
 	FName PropertyName = NAME_None;
 	FString TypeName = TEXT("Unknown");
 
 	if (!RawData.IsEmpty() && RawData[0])
 	{
-		FPCGExPropertyOverrideEntry* Entry = static_cast<FPCGExPropertyOverrideEntry*>(RawData[0]);
+		const FPCGExPropertyOverrideEntry* Entry = static_cast<FPCGExPropertyOverrideEntry*>(RawData[0]);
 		if (Entry && Entry->Value.IsValid())
 		{
 			if (const FPCGExPropertyCompiled* Prop = Entry->Value.GetPtr<FPCGExPropertyCompiled>())
@@ -39,6 +38,17 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeHeader(
 			}
 		}
 	}
+
+	return FText::FromString(FString::Printf(TEXT("%s (%s)"), *PropertyName.ToString(), *TypeName));
+}
+
+void FPCGExPropertyOverrideEntryCustomization::CustomizeHeader(
+	TSharedRef<IPropertyHandle> PropertyHandle,
+	FDetailWidgetRow& HeaderRow,
+	IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+	// Store property handle for dynamic text
+	PropertyHandlePtr = PropertyHandle;
 
 	// Get bEnabled handle for checkbox widget
 	TSharedPtr<IPropertyHandle> EnabledHandle = PropertyHandle->GetChildHandle(TEXT("bEnabled"));
@@ -59,7 +69,7 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeHeader(
 			.VAlign(VAlign_Center)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(FString::Printf(TEXT("%s (%s)"), *PropertyName.ToString(), *TypeName)))
+				.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &FPCGExPropertyOverrideEntryCustomization::GetEntryLabelText)))
 				.Font(IDetailLayoutBuilder::GetDetailFont())
 			]
 		];
@@ -70,11 +80,42 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	// Get the Value handle (FInstancedStruct) and add it directly
-	// This will use the default FInstancedStruct UI which shows the inner struct's properties
+	// Get the Value handle (FInstancedStruct)
 	TSharedPtr<IPropertyHandle> ValueHandle = PropertyHandle->GetChildHandle(TEXT("Value"));
-	if (ValueHandle.IsValid())
+	if (!ValueHandle.IsValid()) { return; }
+
+	// Access raw data to get the FInstancedStruct
+	TArray<void*> RawData;
+	ValueHandle->AccessRawData(RawData);
+	if (RawData.IsEmpty() || !RawData[0]) { return; }
+
+	FInstancedStruct* Instance = static_cast<FInstancedStruct*>(RawData[0]);
+	if (!Instance || !Instance->IsValid()) { return; }
+
+	UScriptStruct* InnerStruct = const_cast<UScriptStruct*>(Instance->GetScriptStruct());
+	if (!InnerStruct) { return; }
+
+	uint8* StructMemory = Instance->GetMutableMemory();
+	if (!StructMemory) { return; }
+
+	// Create FStructOnScope for the inner struct (FPCGExPropertyCompiled_*)
+	// NOTE: This uses raw memory pointers - they become stale when arrays reorder
+	// The solution is to force UI rebuild (via PostEditChangeProperty broadcast) when schema changes
+	TSharedRef<FStructOnScope> StructOnScope = MakeShared<FStructOnScope>(InnerStruct, StructMemory);
+
+	// Iterate all properties in the inner struct, skip PropertyName
+	for (TFieldIterator<FProperty> It(InnerStruct); It; ++It)
 	{
-		ChildBuilder.AddProperty(ValueHandle.ToSharedRef());
+		const FProperty* Property = *It;
+		if (!Property) { continue; }
+
+		FName PropName = Property->GetFName();
+
+		// Skip PropertyName - it's shown in the header
+		if (PropName == TEXT("PropertyName")) { continue; }
+
+		// Add value field directly (bypasses FInstancedStruct nesting entirely)
+		// This works for all types: simple (Value), Vector (X/Y/Z), Color (R/G/B/A), etc.
+		ChildBuilder.AddExternalStructureProperty(StructOnScope, PropName);
 	}
 }
