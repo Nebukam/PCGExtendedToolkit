@@ -487,13 +487,7 @@ namespace PCGExClusters
 				const double Dist = GetPointDistToEdgeSquared(Item.Index, Position);
 				if (Dist < MaxDistance)
 				{
-					if (MinNeighbors > 0)
-					{
-						if (GetEdgeStart(Item.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Item.Index)->Links.Num() < MinNeighbors)
-						{
-							return;
-						}
-					}
+					if (MinNeighbors > 0 && !EdgeHasMinNeighbors(Item.Index, MinNeighbors)) { return; }
 					MaxDistance = Dist;
 					ClosestIndex = Item.Index;
 				}
@@ -508,11 +502,7 @@ namespace PCGExClusters
 				const double Dist = GetPointDistToEdgeSquared(Edge.Index, Position);
 				if (Dist < MaxDistance)
 				{
-					if (MinNeighbors > 0)
-					{
-						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors) { continue; }
-					}
-
+					if (MinNeighbors > 0 && !EdgeHasMinNeighbors(Edge.Index, MinNeighbors)) { continue; }
 					MaxDistance = Dist;
 					ClosestIndex = Edge.Index;
 				}
@@ -525,11 +515,7 @@ namespace PCGExClusters
 				const double Dist = GetPointDistToEdgeSquared(Edge, Position);
 				if (Dist < MaxDistance)
 				{
-					if (MinNeighbors > 0)
-					{
-						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors && GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors) { continue; }
-					}
-
+					if (MinNeighbors > 0 && !EdgeHasMinNeighbors(Edge.Index, MinNeighbors)) { continue; }
 					MaxDistance = Dist;
 					ClosestIndex = Edge.Index;
 				}
@@ -823,7 +809,7 @@ namespace PCGExClusters
 
 		for (const FEdge& Edge : (*Edges))
 		{
-			if (!Edge.bValid || !GetEdgeStart(Edge)->bValid || !GetEdgeEnd(Edge)->bValid) { continue; }
+			if (!IsEdgeFullyValid(Edge)) { continue; }
 			OutValidEdges.Add_GetRef(Edge).IOIndex = IOIndex;
 		}
 

@@ -160,6 +160,26 @@ namespace PCGExClusters
 		FORCEINLINE FNode* GetEdgeOtherNode(const int32 InEdgeIndex, const int32 InNodeIndex) const { return (NodesDataPtr + NodeIndexLookup->Get((EdgesDataPtr + InEdgeIndex)->Other((NodesDataPtr + InNodeIndex)->PointIndex))); }
 		FORCEINLINE FNode* GetEdgeOtherNode(const FLink Lk) const { return (NodesDataPtr + NodeIndexLookup->Get((EdgesDataPtr + Lk.Edge)->Other((NodesDataPtr + Lk.Node)->PointIndex))); }
 
+		// Returns true if at least one endpoint has >= MinNeighbors links (caches both node lookups)
+		FORCEINLINE bool EdgeHasMinNeighbors(const int32 InEdgeIndex, const int32 MinNeighbors) const
+		{
+			const FEdge* Edge = EdgesDataPtr + InEdgeIndex;
+			const FNode* Start = NodesDataPtr + NodeIndexLookup->Get(Edge->Start);
+			if (Start->Links.Num() >= MinNeighbors) { return true; }
+			const FNode* End = NodesDataPtr + NodeIndexLookup->Get(Edge->End);
+			return End->Links.Num() >= MinNeighbors;
+		}
+
+		// Returns true if edge and both endpoints are valid (caches both node lookups)
+		FORCEINLINE bool IsEdgeFullyValid(const FEdge& InEdge) const
+		{
+			if (!InEdge.bValid) { return false; }
+			const FNode* Start = NodesDataPtr + NodeIndexLookup->Get(InEdge.Start);
+			if (!Start->bValid) { return false; }
+			const FNode* End = NodesDataPtr + NodeIndexLookup->Get(InEdge.End);
+			return End->bValid != 0;
+		}
+
 		FORCEINLINE FVector GetStartPos(const FEdge& InEdge) const { return VtxTransforms[InEdge.Start].GetLocation(); }
 		FORCEINLINE FVector GetStartPos(const FEdge* InEdge) const { return VtxTransforms[InEdge->Start].GetLocation(); }
 		FORCEINLINE FVector GetStartPos(const int32 InEdgeIndex) const { return VtxTransforms[(EdgesDataPtr + InEdgeIndex)->Start].GetLocation(); }
