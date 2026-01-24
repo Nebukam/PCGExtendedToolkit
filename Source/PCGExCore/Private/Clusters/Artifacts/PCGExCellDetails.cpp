@@ -214,7 +214,8 @@ namespace PCGExClusters
 			// Build FBestFitPlane from cell vertices (thread-local, stack-allocated)
 			const PCGExMath::FBestFitPlane BFP = PCGExMath::FBestFitPlane(
 				Cell->Nodes.Num(),
-				[&](int32 j) { return ClusterTransforms[InCluster->GetNodePointIndex(Cell->Nodes[j])].GetLocation(); }
+				[&](int32 j) { return ClusterTransforms[InCluster->GetNodePointIndex(Cell->Nodes[j])].GetLocation(); },
+				ArtifactSettings.OBBAttributes.bUseMinBoxFit
 			);
 
 			// Get extents reordered to match axis order

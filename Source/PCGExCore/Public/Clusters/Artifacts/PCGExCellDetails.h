@@ -307,6 +307,10 @@ struct PCGEXCORE_API FPCGExCellOBBAttributesDetails
 	{
 	}
 
+	/** If enabled, use precise min box fit. **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bUseMinBoxFit = false;
+	
 	/** Axis order for OBB transform orientation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;

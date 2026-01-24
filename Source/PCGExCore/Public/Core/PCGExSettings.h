@@ -51,15 +51,15 @@ public:
 	 * When enabling this you must make absolutely sure the data plugged into this node is not plugged in any other node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="SupportsDataStealing()", EditConditionHides))
 	EPCGExOptionState StealData = EPCGExOptionState::Disabled;
-
+	
+	UFUNCTION()
+	virtual EPCGExExecutionPolicy GetExecutionPolicy() const { return ExecutionPolicy; }
+	
 	/** Forces the execution over a single frame.
 	 * Not safe on all nodes, some nodes will override this internally.
 	 * ONLY CHANGE THIS IF YOU KNOW WHAT YOU'RE DOING */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="GetExecutionPolicy() != EPCGExExecutionPolicy::Ignored"))
 	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
-
-	UFUNCTION()
-	virtual EPCGExExecutionPolicy GetExecutionPolicy() const { return ExecutionPolicy; }
 
 	/** Flatten the output of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))

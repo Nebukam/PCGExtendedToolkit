@@ -49,6 +49,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable))
 	bool bMutateVtxToOOB = false;
 
+	/** If enabled, use precise min box fit. **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Precise Fit", EditCondition="bMutateVtxToOOB", EditConditionHides))
+	bool bUseMinBoxFit = true;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bMutateVtxToOOB", EditConditionHides))
+	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
+	
 	/** Write normal from edges on vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxEdgeCount = false;
