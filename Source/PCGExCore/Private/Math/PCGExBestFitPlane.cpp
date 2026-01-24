@@ -52,7 +52,7 @@ namespace PCGExMath
 			return P;
 		});
 
-		Centroid /= InTransforms.Num();
+		Centroid /= InIndices.Num();
 
 		if (Box.IsSolutionAvailable())
 		{
@@ -152,7 +152,7 @@ namespace PCGExMath
 			return P;
 		});
 
-		Centroid /= NumElements;
+		Centroid /= NumElements + 1;
 
 		if (Box.IsSolutionAvailable())
 		{
