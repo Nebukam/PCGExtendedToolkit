@@ -50,8 +50,55 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeHeader(
 	// Store property handle for dynamic text
 	PropertyHandlePtr = PropertyHandle;
 
-	// Don't set any content on the header to try to hide it completely
-	// Everything will be shown in CustomizeChildren
+	// Get bEnabled handle for checkbox widget
+	TSharedPtr<IPropertyHandle> EnabledHandle = PropertyHandle->GetChildHandle(TEXT("bEnabled"));
+
+	// Check if this is an inline type
+	TSharedPtr<IPropertyHandle> ValueHandle = PropertyHandle->GetChildHandle(TEXT("Value"));
+	bool bShouldInline = false;
+	if (ValueHandle.IsValid())
+	{
+		TArray<void*> RawData;
+		ValueHandle->AccessRawData(RawData);
+		if (!RawData.IsEmpty() && RawData[0])
+		{
+			FInstancedStruct* Instance = static_cast<FInstancedStruct*>(RawData[0]);
+			if (Instance && Instance->IsValid())
+			{
+				UScriptStruct* InnerStruct = const_cast<UScriptStruct*>(Instance->GetScriptStruct());
+				if (InnerStruct)
+				{
+					bShouldInline = InnerStruct->HasMetaData(TEXT("PCGExInlineValue"));
+				}
+			}
+		}
+	}
+
+	// For complex (non-inline) types, show checkbox + label in header
+	// For simple (inline) types, header stays empty (everything in CustomizeChildren)
+	if (!bShouldInline)
+	{
+		HeaderRow
+			.NameContent()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(0, 0, 4, 0)
+				[
+					EnabledHandle.IsValid() ? EnabledHandle->CreatePropertyValueWidget() : SNullWidget::NullWidget
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &FPCGExPropertyOverrideEntryCustomization::GetEntryLabelText)))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+			];
+	}
 }
 
 void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
@@ -86,26 +133,26 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 	// Create FStructOnScope for the inner struct (FPCGExPropertyCompiled_*)
 	TSharedRef<FStructOnScope> StructOnScope = MakeShared<FStructOnScope>(InnerStruct, StructMemory);
 
-	// Find and add the "Value" property
-	if (const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value")))
+	// Create an attribute that checks if the override is enabled
+	TAttribute<bool> IsEnabledAttr = TAttribute<bool>::Create([EnabledHandle]()
 	{
-		// Create an attribute that checks if the override is enabled
-		TAttribute<bool> IsEnabledAttr = TAttribute<bool>::Create([EnabledHandle]()
+		if (EnabledHandle.IsValid())
 		{
-			if (EnabledHandle.IsValid())
-			{
-				bool bEnabled = false;
-				EnabledHandle->GetValue(bEnabled);
-				return bEnabled;
-			}
-			return true;
-		});
+			bool bEnabled = false;
+			EnabledHandle->GetValue(bEnabled);
+			return bEnabled;
+		}
+		return true;
+	});
 
-		// Only customize if this is a simple type that should be inlined
-		if (bShouldInline)
+	// Only customize if this is a simple type that should be inlined
+	if (bShouldInline)
+	{
+		// For inline types, only show the "Value" property
+		if (const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value")))
 		{
 			IDetailPropertyRow& Row = *ChildBuilder.AddExternalStructureProperty(StructOnScope, ValueProperty->GetFName());
-						
+
 			// Get the property handle for the value widget
 			TSharedPtr<IPropertyHandle> ValuePropertyHandle = Row.GetPropertyHandle();
 
@@ -139,33 +186,24 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 					]
 				];
 		}
-		else
+	}
+	else
+	{
+		// Complex type - iterate all non-metadata properties and add them as children
+		for (TFieldIterator<FProperty> It(InnerStruct); It; ++It)
 		{
-			// Complex type - add a custom row for checkbox + label, then the value property with default expansion
-			ChildBuilder.AddCustomRow(FText::GetEmpty())
-				.NameContent()
-				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					.Padding(0, 0, 4, 0)
-					[
-						EnabledHandle.IsValid() ? EnabledHandle->CreatePropertyValueWidget() : SNullWidget::NullWidget
-					]
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					[
-						SNew(STextBlock)
-						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &FPCGExPropertyOverrideEntryCustomization::GetEntryLabelText)))
-						.Font(IDetailLayoutBuilder::GetDetailFont())
-					]
-				];
+			const FProperty* Property = *It;
+			if (!Property) { continue; }
 
-			// Add the value property normally (will be expandable) and disable based on checkbox
-			IDetailPropertyRow& ValueRow = *ChildBuilder.AddExternalStructureProperty(StructOnScope, ValueProperty->GetFName());
-			ValueRow.IsEnabled(IsEnabledAttr);
+			FName PropName = Property->GetFName();
+
+			// Skip metadata properties
+			if (PropName == TEXT("PropertyName") || PropName == TEXT("HeaderId") || PropName == TEXT("OutputBuffer"))
+				continue;
+
+			// Add each property as a child row with enabled state
+			IDetailPropertyRow& PropRow = *ChildBuilder.AddExternalStructureProperty(StructOnScope, PropName);
+			PropRow.IsEnabled(IsEnabledAttr);
 		}
 	}
 }
