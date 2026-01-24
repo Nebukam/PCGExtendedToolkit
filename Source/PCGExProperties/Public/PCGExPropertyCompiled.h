@@ -189,7 +189,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 	bool bEnabled = false;
 
 	/** The typed property value (contains PropertyName internally) */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct, EditCondition="bEnabled"))
 	FInstancedStruct Value;
 
 	FPCGExPropertyOverrideEntry() = default;
