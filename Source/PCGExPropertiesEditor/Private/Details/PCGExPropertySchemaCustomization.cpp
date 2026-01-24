@@ -61,12 +61,29 @@ void FPCGExPropertySchemaCustomization::OnSchemaChanged()
 	// Note: Parent collection will handle ForceRefresh via its own listener
 }
 
+bool FPCGExPropertySchemaCustomization::IsReadOnlySchema(TSharedRef<IPropertyHandle> PropertyHandle) const
+{
+	// Walk up the property hierarchy to find if we're under a property with ReadOnlySchema metadata
+	TSharedPtr<IPropertyHandle> ParentHandle = PropertyHandle->GetParentHandle();
+	while (ParentHandle.IsValid())
+	{
+		const FProperty* Property = ParentHandle->GetProperty();
+		if (Property && Property->HasMetaData(TEXT("ReadOnlySchema")))
+		{
+			return true;
+		}
+		ParentHandle = ParentHandle->GetParentHandle();
+	}
+	return false;
+}
+
 void FPCGExPropertySchemaCustomization::CustomizeHeader(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	PropertyHandlePtr = PropertyHandle;
+	bIsReadOnly = IsReadOnlySchema(PropertyHandle);
 
 	HeaderRow
 		.NameContent()
@@ -86,17 +103,75 @@ void FPCGExPropertySchemaCustomization::CustomizeChildren(
 	TSharedPtr<IPropertyHandle> NameHandle = PropertyHandle->GetChildHandle(TEXT("Name"));
 	TSharedPtr<IPropertyHandle> PropertyInnerHandle = PropertyHandle->GetChildHandle(TEXT("Property"));
 
-	// Watch for changes and sync
-	if (NameHandle.IsValid())
+	if (bIsReadOnly)
 	{
-		NameHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));
-		ChildBuilder.AddProperty(NameHandle.ToSharedRef());
-	}
+		// Read-only mode: Only show the inner Value field from the FInstancedStruct
+		// Schema name and type are shown in header, struct type cannot be changed
 
-	if (PropertyInnerHandle.IsValid())
+		if (!PropertyInnerHandle.IsValid()) { return; }
+
+		// Access raw data to get the FInstancedStruct
+		TArray<void*> RawData;
+		PropertyInnerHandle->AccessRawData(RawData);
+		if (RawData.IsEmpty() || !RawData[0]) { return; }
+
+		FInstancedStruct* Instance = static_cast<FInstancedStruct*>(RawData[0]);
+		if (!Instance || !Instance->IsValid()) { return; }
+
+		UScriptStruct* InnerStruct = const_cast<UScriptStruct*>(Instance->GetScriptStruct());
+		if (!InnerStruct) { return; }
+
+		uint8* StructMemory = Instance->GetMutableMemory();
+		if (!StructMemory) { return; }
+
+		// Check if this type should be inlined (simple type)
+		const bool bShouldInline = InnerStruct->HasMetaData(TEXT("PCGExInlineValue"));
+
+		// Create FStructOnScope for the inner struct (FPCGExPropertyCompiled_*)
+		TSharedRef<FStructOnScope> StructOnScope = MakeShared<FStructOnScope>(InnerStruct, StructMemory);
+
+		if (bShouldInline)
+		{
+			// For simple types, just add the Value property directly
+			if (const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value")))
+			{
+				ChildBuilder.AddExternalStructureProperty(StructOnScope, ValueProperty->GetFName());
+			}
+		}
+		else
+		{
+			// For complex types, iterate all non-metadata properties
+			for (TFieldIterator<FProperty> It(InnerStruct); It; ++It)
+			{
+				const FProperty* Property = *It;
+				if (!Property) { continue; }
+
+				FName PropName = Property->GetFName();
+
+				// Skip metadata properties
+				if (PropName == TEXT("PropertyName") || PropName == TEXT("HeaderId") || PropName == TEXT("OutputBuffer"))
+					continue;
+
+				ChildBuilder.AddExternalStructureProperty(StructOnScope, PropName);
+			}
+		}
+	}
+	else
 	{
-		PropertyInnerHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));
-		PropertyInnerHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));
-		ChildBuilder.AddProperty(PropertyInnerHandle.ToSharedRef());
+		// Normal mode: Show Name and Property with full editing capabilities
+
+		// Watch for changes and sync
+		if (NameHandle.IsValid())
+		{
+			NameHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));
+			ChildBuilder.AddProperty(NameHandle.ToSharedRef());
+		}
+
+		if (PropertyInnerHandle.IsValid())
+		{
+			PropertyInnerHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));
+			PropertyInnerHandle->SetOnChildPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPCGExPropertySchemaCustomization::OnSchemaChanged));
+			ChildBuilder.AddProperty(PropertyInnerHandle.ToSharedRef());
+		}
 	}
 }

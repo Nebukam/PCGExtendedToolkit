@@ -9,6 +9,9 @@
  * Customizes FPCGExPropertySchema to:
  * - Show dynamic header with Name and type
  * - Sync PropertyName and HeaderId when Name or Property changes
+ * - When under a property with ReadOnlySchema metadata:
+ *   - Hides Name field and struct type picker (schema is synced from cage)
+ *   - Only allows editing the inner Value field (the default value)
  */
 class FPCGExPropertySchemaCustomization : public IPropertyTypeCustomization
 {
@@ -31,5 +34,9 @@ private:
 	/** Called when Name or Property changes - syncs PropertyName/HeaderId */
 	void OnSchemaChanged();
 
+	/** Check if this schema is under a property with ReadOnlySchema metadata */
+	bool IsReadOnlySchema(TSharedRef<IPropertyHandle> PropertyHandle) const;
+
 	TWeakPtr<IPropertyHandle> PropertyHandlePtr;
+	bool bIsReadOnly = false;
 };

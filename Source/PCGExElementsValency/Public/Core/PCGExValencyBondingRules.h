@@ -363,8 +363,9 @@ public:
 	 * Defines available properties with stable HeaderId identity.
 	 * Module-specific values override these defaults.
 	 * Synced during compilation - preserves user edits, adds new properties from cages, removes deprecated ones.
+	 * ReadOnlySchema metadata prevents users from changing property names/types (synced from cages).
 	 */
-	UPROPERTY(EditAnywhere, Category = "Valency|Properties")
+	UPROPERTY(EditAnywhere, Category = "Valency|Properties", meta=(ReadOnlySchema))
 	FPCGExPropertySchemaCollection DefaultProperties;
 
 	/**
