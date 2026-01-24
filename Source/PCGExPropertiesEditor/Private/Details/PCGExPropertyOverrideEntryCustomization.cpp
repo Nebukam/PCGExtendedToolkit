@@ -103,19 +103,28 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 	// The solution is to force UI rebuild (via PostEditChangeProperty broadcast) when schema changes
 	TSharedRef<FStructOnScope> StructOnScope = MakeShared<FStructOnScope>(InnerStruct, StructMemory);
 
-	// Iterate all properties in the inner struct, skip PropertyName
-	for (TFieldIterator<FProperty> It(InnerStruct); It; ++It)
+	// Find and add the "Value" property directly
+	// This works for ALL types (simple, complex, Enum, etc.) - Unreal handles the type-specific UI
+	if (const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value")))
 	{
-		const FProperty* Property = *It;
-		if (!Property) { continue; }
+		ChildBuilder.AddExternalStructureProperty(StructOnScope, ValueProperty->GetFName());
+	}
+	else
+	{
+		// Fallback: If there's no "Value" property, iterate all non-metadata properties
+		// This handles custom property types that might use different field names
+		for (TFieldIterator<FProperty> It(InnerStruct); It; ++It)
+		{
+			const FProperty* Property = *It;
+			if (!Property) { continue; }
 
-		FName PropName = Property->GetFName();
+			FName PropName = Property->GetFName();
 
-		// Skip PropertyName - it's shown in the header
-		if (PropName == TEXT("PropertyName")) { continue; }
+			// Skip metadata properties
+			if (PropName == TEXT("PropertyName") || PropName == TEXT("HeaderId") || PropName == TEXT("OutputBuffer"))
+				continue;
 
-		// Add value field directly (bypasses FInstancedStruct nesting entirely)
-		// This works for all types: simple (Value), Vector (X/Y/Z), Color (R/G/B/A), etc.
-		ChildBuilder.AddExternalStructureProperty(StructOnScope, PropName);
+			ChildBuilder.AddExternalStructureProperty(StructOnScope, PropName);
+		}
 	}
 }

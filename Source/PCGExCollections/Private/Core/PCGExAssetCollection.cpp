@@ -13,6 +13,8 @@
 #include "Helpers/PCGExArrayHelpers.h"
 
 #if WITH_EDITOR
+#include "Editor.h"
+#include "PropertyEditorModule.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #endif
@@ -779,30 +781,15 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	// Force UI refresh AFTER Super - this ensures details panel rebuilds customizations
-	// Must happen after Super to ensure object state is consistent
-	if (bNeedsUIRefresh)
+	#if WITH_EDITOR
+	// Force all details panels showing this object to rebuild
+	// This ensures nested PropertyOverrides customizations detect the schema changes
+	if (bNeedsSync)
 	{
-		// Broadcast TWO events to force complete rebuild:
-
-		// 1. Entries ArrayClear - rebuilds all entry customizations
-		FProperty* EntriesProperty = FindFProperty<FProperty>(GetClass(), TEXT("Entries"));
-		if (EntriesProperty)
-		{
-			FPropertyChangedEvent EntriesEvent(EntriesProperty, EPropertyChangeType::ArrayClear);
-			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, EntriesEvent);
-		}
-
-		// 2. CollectionProperties ArrayClear - forces nested PropertyOverrides to rebuild
-		// This is needed because PropertyOverrides sync happens programmatically
-		// and nested customizations don't detect the change without this
-		FProperty* CollectionPropertiesProperty = FindFProperty<FProperty>(GetClass(), TEXT("CollectionProperties"));
-		if (CollectionPropertiesProperty)
-		{
-			FPropertyChangedEvent SchemaEvent(CollectionPropertiesProperty, EPropertyChangeType::ArrayClear);
-			FCoreUObjectDelegates::OnObjectPropertyChanged.Broadcast(this, SchemaEvent);
-		}
+		FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyEditorModule.NotifyCustomizationModuleChanged();
 	}
+	#endif
 
 	ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
 	{
