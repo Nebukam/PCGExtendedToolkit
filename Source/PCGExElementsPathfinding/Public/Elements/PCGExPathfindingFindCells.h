@@ -63,9 +63,6 @@ public:
 
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExCellOutputMode OutputMode = EPCGExCellOutputMode::Paths;
-	
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
@@ -73,7 +70,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
 
-	/** Cell artifacts. */
+	/** Cell output settings (output mode, attributes, OBB settings) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellArtifactsDetails Artifacts;
 

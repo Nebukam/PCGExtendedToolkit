@@ -45,6 +45,8 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FindAllCells)
 
 	PCGEX_FWD(Artifacts)
+
+	// Initialize Artifacts (contains OutputMode + OBB settings)
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
 	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceHolesLabel, false, false);
@@ -144,17 +146,53 @@ namespace PCGExFindAllCells
 			// Check if we should output the wrapper cell as the sole cell
 			if (CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
 			{
-				ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
+				if (Settings->Artifacts.OutputMode == EPCGExCellOutputMode::CellBounds)
+				{
+					TSharedPtr<PCGExData::FPointIO> OBBPointIO =
+						Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+					OBBPointIO->Tags->Reset();
+					OBBPointIO->IOIndex = EdgeDataFacade->Source->IOIndex;
+					PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
+
+					PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
+
+					TArray<TSharedPtr<PCGExClusters::FCell>> WrapperArray;
+					WrapperArray.Add(CellsConstraints->WrapperCell);
+					PCGExClusters::ProcessCellsAsOBBPoints(Cluster, WrapperArray, OBBFacade,
+						Context->Artifacts, TaskManager);
+				}
+				else
+				{
+					ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
+				}
 			}
 			return true;
 		}
 
-		CellsIO.Reserve(NumCells);
-		Context->OutputPaths->IncreaseReserve(NumCells + 1);
-		for (int32 i = 0; i < NumCells; i++) { CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New)); }
+		if (Settings->Artifacts.OutputMode == EPCGExCellOutputMode::CellBounds)
+		{
+			// NEW: Single PointIO + Facade for cluster
+			TSharedPtr<PCGExData::FPointIO> OBBPointIO =
+				Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+			OBBPointIO->Tags->Reset();
+			OBBPointIO->IOIndex = EdgeDataFacade->Source->IOIndex;
+			PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
 
-		// Process cells in parallel
-		StartParallelLoopForRange(NumCells);
+			PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
+
+			PCGExClusters::ProcessCellsAsOBBPoints(Cluster, ValidCells, OBBFacade,
+				Context->Artifacts, TaskManager);
+		}
+		else
+		{
+			// EXISTING: Paths mode
+			CellsIO.Reserve(NumCells);
+			Context->OutputPaths->IncreaseReserve(NumCells + 1);
+			for (int32 i = 0; i < NumCells; i++) { CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New)); }
+
+			// Process cells in parallel
+			StartParallelLoopForRange(NumCells);
+		}
 
 		return true;
 	}

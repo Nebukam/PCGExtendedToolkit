@@ -51,6 +51,8 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 
 	PCGEX_FWD(Artifacts)
+
+	// Initialize Artifacts (contains OutputMode + OBB settings)
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
 	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExCommon::Labels::SourceSeedsLabel, false, true);
@@ -219,9 +221,6 @@ namespace PCGExFindContours
 		// No valid internal cells exist - check if exterior seeds can claim wrapper
 		if (!WrapperCell) { return; }
 
-		// Find an exterior seed within picking distance
-		Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
-
 		int32 BestSeedIdx = INDEX_NONE;
 		double BestDistSq = MAX_dbl;
 
@@ -336,30 +335,48 @@ namespace PCGExFindContours
 			return;
 		}
 
-		CellsIOIndices.Reserve(NumCells);
-
-		Context->OutputPaths->IncreaseReserve(NumCells + 1);
-		for (int i = 0; i < NumCells; i++)
+		if (Settings->Artifacts.OutputMode == EPCGExCellOutputMode::CellBounds)
 		{
-			CellsIOIndices.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			// NEW: Single PointIO + Facade for cluster
+			TSharedPtr<PCGExData::FPointIO> OBBPointIO =
+				Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+			OBBPointIO->Tags->Reset();
+			OBBPointIO->IOIndex = BatchIndex;
+			PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
+
+			PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
+
+			PCGExClusters::ProcessCellsAsOBBPoints(Cluster, ValidCells, OBBFacade,
+				Context->Artifacts, TaskManager);
 		}
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ProcessCellsTask)
-
-		ProcessCellsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		else
 		{
-			PCGEX_ASYNC_THIS
-			TArray<TSharedPtr<PCGExClusters::FCell>>& ValidCells_Ref = This->ValidCells;
-			const TArray<TSharedPtr<PCGExData::FPointIO>>& CellsIOIndices_Ref = This->CellsIOIndices;
+			// EXISTING: Paths mode
+			CellsIOIndices.Reserve(NumCells);
 
-			PCGEX_SCOPE_LOOP(Index)
+			Context->OutputPaths->IncreaseReserve(NumCells + 1);
+			for (int i = 0; i < NumCells; i++)
 			{
-				if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOIndices_Ref[Index]) { This->ProcessCell(ValidCells_Ref[Index], IO); }
-				ValidCells_Ref[Index] = nullptr;
+				CellsIOIndices.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 			}
-		};
 
-		ProcessCellsTask->StartSubLoops(CellsIOIndices.Num(), 64);
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, ProcessCellsTask)
+
+			ProcessCellsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				TArray<TSharedPtr<PCGExClusters::FCell>>& ValidCells_Ref = This->ValidCells;
+				const TArray<TSharedPtr<PCGExData::FPointIO>>& CellsIOIndices_Ref = This->CellsIOIndices;
+
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOIndices_Ref[Index]) { This->ProcessCell(ValidCells_Ref[Index], IO); }
+					ValidCells_Ref[Index] = nullptr;
+				}
+			};
+
+			ProcessCellsTask->StartSubLoops(CellsIOIndices.Num(), 64);
+		}
 	}
 
 	void FProcessor::ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO)
