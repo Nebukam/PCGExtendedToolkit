@@ -138,12 +138,7 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<PCGExAssetCollectionEditor::T
 	// Create the details view
 	TSharedPtr<IDetailsView> DetailsView = PropertyModule.CreateDetailView(DetailsArgs);
 	DetailsView->SetIsPropertyVisibleDelegate(
-		FIsPropertyVisible::CreateLambda(
-			[](const FPropertyAndParent& PropertyAndParent)
-			{
-				return PropertyAndParent.Property.GetFName() == PCGExAssetCollectionEditor::EntriesName
-					|| (!PropertyAndParent.ParentProperties.IsEmpty() && PropertyAndParent.ParentProperties.Last()->GetFName() == PCGExAssetCollectionEditor::EntriesName);
-			}));
+		FIsPropertyVisible::CreateStatic(&FPCGExAssetCollectionEditor::IsPropertyUnderEntries));
 
 	// Set the asset to display
 	DetailsView->SetObject(EditedCollection.Get());

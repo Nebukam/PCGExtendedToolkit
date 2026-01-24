@@ -194,6 +194,13 @@ namespace PCGExSelfPruning
 		// Build pre-computed OBBs for precise testing
 		if (Settings->bPreciseTest)
 		{
+			auto GetLocalBounds = [&](const int32 i, const FTransform& T)
+			{
+				const FBox LocalBounds = InData->GetLocalBounds(i);
+				const FVector Scale = T.GetScale3D();
+				return FBox(LocalBounds.Min * Scale, LocalBounds.Max * Scale);
+			};
+
 			// Build Secondary OBBs
 			// Note: Both Before and After modes expand the local box for the OBB test
 			// (the Before/After distinction only affects the world AABB in BoxSecondary)
@@ -201,9 +208,10 @@ namespace PCGExSelfPruning
 			{
 				PCGEX_SCOPE_LOOP(Index)
 				{
+					const FTransform& T = Transforms[Index];
 					SecondaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
-						Transforms[Index],
-						InData->GetLocalBounds(Index),
+						T,
+						GetLocalBounds(Index, T),
 						Index);
 				}
 			}
@@ -211,9 +219,10 @@ namespace PCGExSelfPruning
 			{
 				PCGEX_SCOPE_LOOP(Index)
 				{
+					const FTransform& T = Transforms[Index];
 					SecondaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
-						Transforms[Index],
-						InData->GetLocalBounds(Index).ExpandBy(SecondaryExpansion->Read(Index)),
+						T,
+						GetLocalBounds(Index, T).ExpandBy(SecondaryExpansion->Read(Index)),
 						Index);
 				}
 			}
@@ -224,9 +233,10 @@ namespace PCGExSelfPruning
 			{
 				PCGEX_SCOPE_LOOP(Index)
 				{
+					const FTransform& T = Transforms[Index];
 					PrimaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
-						Transforms[Index],
-						InData->GetLocalBounds(Index),
+						T,
+						GetLocalBounds(Index, T),
 						Index);
 				}
 			}
@@ -234,9 +244,10 @@ namespace PCGExSelfPruning
 			{
 				PCGEX_SCOPE_LOOP(Index)
 				{
+					const FTransform& T = Transforms[Index];
 					PrimaryOBBs[Index] = PCGExMath::OBB::Factory::FromTransform(
-						Transforms[Index],
-						InData->GetLocalBounds(Index).ExpandBy(PrimaryExpansion->Read(Index)),
+						T,
+						GetLocalBounds(Index, T).ExpandBy(PrimaryExpansion->Read(Index)),
 						Index);
 				}
 			}

@@ -3,6 +3,7 @@ Binaries/*
 Build/*
 Intermediate/*
 Plugins/*/Intermediate/*
+.claude/*
 *.generated.h
 
 # Cache files for the editor to use

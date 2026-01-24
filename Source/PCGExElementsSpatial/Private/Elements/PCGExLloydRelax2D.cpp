@@ -7,7 +7,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Math/Geo/PCGExDelaunay.h"
-#include "Async/ParallelFor.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Math/Geo/PCGExGeo.h"
 

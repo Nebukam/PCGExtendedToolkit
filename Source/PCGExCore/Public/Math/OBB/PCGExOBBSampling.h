@@ -32,7 +32,7 @@ namespace PCGExMath::OBB
 	FORCEINLINE void Sample(const FOBB& Box, const FVector& WorldPosition, FSample& OutSample)
 	{
 		const FVector Local = Box.ToLocal(WorldPosition);
-		const FVector& E = Box.Bounds.HalfExtents;
+		const FVector& E = Box.Bounds.Extents;
 
 		// Inside test
 		OutSample.bIsInside =
@@ -66,7 +66,7 @@ namespace PCGExMath::OBB
 	FORCEINLINE void SampleFast(const FOBB& Box, const FVector& WorldPosition, FSample& OutSample)
 	{
 		const FVector Local = Box.ToLocal(WorldPosition);
-		const FVector& E = Box.Bounds.HalfExtents;
+		const FVector& E = Box.Bounds.Extents;
 
 		OutSample.bIsInside =
 			FMath::Abs(Local.X) <= E.X &&
@@ -85,7 +85,7 @@ namespace PCGExMath::OBB
 	FORCEINLINE void SampleWithWeight(const FOBB& Box, const FVector& WorldPosition, FSample& OutSample, WeightFunc&& ComputeWeight)
 	{
 		const FVector Local = Box.ToLocal(WorldPosition);
-		const FVector& E = Box.Bounds.HalfExtents;
+		const FVector& E = Box.Bounds.Extents;
 
 		OutSample.bIsInside =
 			FMath::Abs(Local.X) <= E.X &&

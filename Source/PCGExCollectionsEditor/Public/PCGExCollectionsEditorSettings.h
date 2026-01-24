@@ -9,7 +9,7 @@
 
 #include "PCGExCollectionsEditorSettings.generated.h"
 
-UCLASS(Config=EditorUser, DefaultConfig, meta=(DisplayName="PCGEx - Editor", Description="PCGEx Editor Settings"))
+UCLASS(Config=EditorUser, DefaultConfig, meta=(DisplayName="PCGEx | Collections", Description="PCGEx Editor Collections Settings"))
 class PCGEXCOLLECTIONSEDITOR_API UPCGExCollectionsEditorSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -19,7 +19,7 @@ public:
 
 	virtual FName GetContainerName() const override { return "Editor"; }
 	virtual FName GetCategoryName() const override { return "Plugins"; }
-	virtual FName GetSectionName() const override { return "PCGEx"; }
+	virtual FName GetSectionName() const override { return "PCGEx | Collections"; }
 
 	static FSimpleMulticastDelegate OnHiddenAssetPropertyNamesChanged;
 

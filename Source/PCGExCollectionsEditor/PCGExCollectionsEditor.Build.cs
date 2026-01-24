@@ -33,8 +33,11 @@ public class PCGExCollectionsEditor : ModuleRules
 				"Settings",
 				"Engine",
 				"PCG",
+				"PCGExCore",
 				"PCGExCoreEditor",
-				"PCGExCollections", 
+				"PCGExCollections",
+				"PCGExProperties",
+				"PCGExPropertiesEditor", // For FPCGExPropertyOverrides customization
 			}
 		);
 

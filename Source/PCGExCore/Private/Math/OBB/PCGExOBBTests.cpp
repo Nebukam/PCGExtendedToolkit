@@ -11,8 +11,8 @@ namespace PCGExMath::OBB
 
 		const FVector AxesA[3] = {A.Orientation.GetAxisX(), A.Orientation.GetAxisY(), A.Orientation.GetAxisZ()};
 		const FVector AxesB[3] = {B.Orientation.GetAxisX(), B.Orientation.GetAxisY(), B.Orientation.GetAxisZ()};
-		const FVector& EA = A.Bounds.HalfExtents;
-		const FVector& EB = B.Bounds.HalfExtents;
+		const FVector& EA = A.Bounds.Extents;
+		const FVector& EB = B.Bounds.Extents;
 
 		float R[3][3]; // Rotation matrix expressing B in A's frame
 		float AbsR[3][3];

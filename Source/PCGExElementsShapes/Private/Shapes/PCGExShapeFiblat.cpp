@@ -7,7 +7,6 @@
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"
-#include "Async/ParallelFor.h"
 #include "Containers/PCGExManagedObjects.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderFiblat"

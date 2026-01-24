@@ -91,9 +91,11 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+	virtual bool SupportsDataStealing() const override { return true; }
 
 public:
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+	
 	/** Projection settings. Some path data must be computed on a 2D plane. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();

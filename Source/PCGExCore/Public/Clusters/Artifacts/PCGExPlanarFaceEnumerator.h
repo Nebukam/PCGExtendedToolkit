@@ -7,6 +7,11 @@
 #include "PCGExCommon.h"
 #include "PCGExH.h"
 
+namespace PCGExMath
+{
+	struct FBestFitPlane;
+}
+
 namespace PCGExClusters
 {
 	class FCluster;
@@ -102,7 +107,7 @@ namespace PCGExClusters
 		 * @param bDetectWrapper If true, detects wrapper by winding (CW face), stores in Constraints->WrapperCell, and excludes from OutCells
 		 */
 		void EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells = nullptr, bool bDetectWrapper = false);
-
+		
 		/**
 		 * Find the face containing a given 2D point.
 		 * @param Point The 2D point to test

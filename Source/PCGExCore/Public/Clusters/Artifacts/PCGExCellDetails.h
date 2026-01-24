@@ -8,7 +8,13 @@
 #include "Clusters/PCGExEdge.h"
 
 #include "Math/PCGExWinding.h"
+#include "Math/PCGExMathAxis.h"
 #include "PCGExCellDetails.generated.h"
+
+namespace PCGExMT
+{
+	class FTaskManager;
+}
 
 class UPCGBasePointData;
 
@@ -82,6 +88,12 @@ enum class EPCGExCellSeedBounds : uint8
 	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Cell (with rotation reset)", ToolTip="Seed bounds match cell bounds, and rotation is reset"),
 };
 
+UENUM()
+enum class EPCGExCellOutputMode : uint8
+{
+	Paths      = 0 UMETA(DisplayName = "Paths", ToolTip="Output cells as paths"),
+	CellBounds = 1 UMETA(DisplayName = "Cell Bounds", ToolTip="Output cells as OBB points"),
+};
 
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExCellConstraintsDetails
@@ -287,6 +299,28 @@ struct PCGEXCORE_API FPCGExCellSeedMutationDetails
 };
 
 USTRUCT(BlueprintType)
+struct PCGEXCORE_API FPCGExCellOBBAttributesDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCellOBBAttributesDetails()
+	{
+	}
+
+	/** If enabled, use precise min box fit. **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bUseMinBoxFit = false;
+	
+	/** Axis order for OBB transform orientation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
+
+	/** Min Extents */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FVector MinExtent = FVector(1);
+};
+
+USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExCellArtifactsDetails
 {
 	GENERATED_BODY()
@@ -295,11 +329,19 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	{
 	}
 
+	/** Output mode for cells */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExCellOutputMode OutputMode = EPCGExCellOutputMode::Paths;
+
+	/** OBB-specific settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExCellOutputMode::CellBounds", EditConditionHides))
+	FPCGExCellOBBAttributesDetails OBBAttributes;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCellHash = false;
 
-	/** Write cell unique hash as a @Data attribute */
+	/** Write cell unique hash to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Hash", EditCondition="bWriteCellHash"))
 	FName CellHashAttributeName = FName("@Data.CellHash");
 
@@ -307,7 +349,7 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteArea = false;
 
-	/** Write cell area as a @Data attribute */
+	/** Write cell area to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Area", EditCondition="bWriteArea"))
 	FName AreaAttributeName = FName("@Data.Area");
 
@@ -315,53 +357,64 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCompactness = false;
 
-	/** Write cell compactness as a @Data attribute */
+	/** Write cell compactness to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Compactness", EditCondition="bWriteCompactness"))
 	FName CompactnessAttributeName = FName("@Data.Compactness");
 
-	/**  */
+	/** Write number of nodes in cell (OBB_Points mode only) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteNumNodes = false;
+
+	/** Name of the num nodes attribute (Points mode only)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Num Nodes", EditCondition="bWriteNumNodes"))
+	FName NumNodesAttributeName = FName("NumNodes");
+
+	/** Vtx ID attribute (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxId = false;
 
-	/** Name of the attribute to write the vtx index of its point to. This is useful if you want to find contours, mutate the cluster it comes from and remap the updated cluster positions onto the original cell. */
+	/** Name of the attribute to write the vtx index of its point to. 
+	 * This is useful if you want to find contours, mutate the cluster it comes from and remap the updated cluster positions onto the original cell. 
+	 * (Paths mode only)
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Vtx ID", EditCondition="bWriteVtxId"))
 	FName VtxIdAttributeName = FName("VtxId");
 
-	/**  */
+	/** Flag terminal points (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagTerminalPoint = false;
 
-	/** Flag terminal points */
+	/** Flag terminal points (Paths mode only)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Flag Terminal", EditCondition="bFlagTerminalPoint"))
 	FName TerminalFlagAttributeName = FName("IsTerminal");
 
-	/**  */
+	/** Number of time a point is repeated in the cell (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumRepeat = false;
 
-	/** Number of time a point is repeated in the cell */
+	/** Number of time a point is repeated in the cell (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Repeat", EditCondition="bWriteNumRepeat"))
 	FName NumRepeatAttributeName = FName("Repeat");
 
 
-	/** . */
+	/** Tag concave cells (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagConcave = false;
 
-	/** . */
+	/** Concave cell tag (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConcave"))
 	FString ConcaveTag = TEXT("Concave");
 
-	/** . */
+	/** Tag convex cells (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagConvex = false;
 
-	/** . */
+	/** Convex cell tag (Paths mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagConvex"))
 	FString ConvexTag = TEXT("Convex");
 
-	/** Tags to be forwarded from clusters */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
+	/** Tags to be forwarded from clusters (Paths mode only) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExCellOutputMode::Paths", EditConditionHides))
 	FPCGExNameFiltersDetails TagForwarding;
 
 	bool WriteAny() const;
@@ -369,3 +422,14 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 
 	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExClusters::FCell>& InCell) const;
 };
+
+namespace PCGExClusters
+{
+	/** Process cells as OBB points - outputs one PointData per cluster with one point per cell */
+	PCGEXCORE_API void ProcessCellsAsOBBPoints(
+		const TSharedPtr<FCluster>& InCluster,
+		const TArray<TSharedPtr<FCell>>& InCells,
+		const TSharedPtr<PCGExData::FFacade>& OutFacade,
+		const FPCGExCellArtifactsDetails& ArtifactSettings,
+		const TSharedPtr<PCGExMT::FTaskManager>& TaskManager);
+}

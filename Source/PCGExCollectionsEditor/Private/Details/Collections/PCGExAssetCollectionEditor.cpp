@@ -12,6 +12,7 @@
 #include "ToolMenus.h"
 #include "Core/PCGExAssetCollection.h"
 #include "Details/Collections/PCGExCollectionEditorUtils.h"
+#include "PCGExPropertyCompiled.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -30,6 +31,57 @@ FPCGExAssetCollectionEditor::FPCGExAssetCollectionEditor()
 FPCGExAssetCollectionEditor::~FPCGExAssetCollectionEditor()
 {
 	UPCGExCollectionsEditorSettings::OnHiddenAssetPropertyNamesChanged.Remove(OnHiddenAssetPropertyNamesChanged);
+}
+
+bool FPCGExAssetCollectionEditor::IsPropertyUnderEntries(const FPropertyAndParent& PropertyAndParent)
+{
+	// Check if property IS "Entries"
+	if (PropertyAndParent.Property.GetFName() == PCGExAssetCollectionEditor::EntriesName)
+		return true;
+
+	// Check all parents for "Entries" OR "PropertyOverrides"
+	// PropertyOverrides and its children must always be visible (PCGExPropertiesEditor controls them)
+	for (const FProperty* Parent : PropertyAndParent.ParentProperties)
+	{
+		if (Parent)
+		{
+			const FName ParentName = Parent->GetFName();
+			if (ParentName == PCGExAssetCollectionEditor::EntriesName || ParentName == FName("PropertyOverrides") || ParentName == FName("Overrides"))
+				return true;
+		}
+	}
+
+	// CRITICAL: Properties created via AddExternalStructureProperty (used in PropertyOverrides value widgets)
+	// may have incomplete parent chains. Check if ANY parent property's OWNER STRUCT derives from FPCGExPropertyCompiled.
+	// This supports full extensibility - custom property types automatically work.
+
+	static UScriptStruct* PropertyCompiledStruct = FPCGExPropertyCompiled::StaticStruct();
+
+	// Check the property itself's owner struct
+	if (UStruct* OwnerStruct = PropertyAndParent.Property.GetOwnerStruct())
+	{
+		if (UScriptStruct* OwnerScriptStruct = Cast<UScriptStruct>(OwnerStruct))
+		{
+			if (OwnerScriptStruct->IsChildOf(PropertyCompiledStruct))
+				return true;
+		}
+	}
+
+	// Check all parent properties' owner structs
+	// Example: X property's parent is Value property, Value's owner is FPCGExPropertyCompiled_Vector
+	for (const FProperty* Parent : PropertyAndParent.ParentProperties)
+	{
+		if (UStruct* ParentOwnerStruct = Parent->GetOwnerStruct())
+		{
+			if (UScriptStruct* ParentOwnerScriptStruct = Cast<UScriptStruct>(ParentOwnerStruct))
+			{
+				if (ParentOwnerScriptStruct->IsChildOf(PropertyCompiledStruct))
+					return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost)
@@ -105,6 +157,9 @@ void FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>
 	Mapping.Add(FName("AssetGrammar"), Grammar.Id);
 	Mapping.Add(FName("SubGrammarMode"), Grammar.Id);
 	Mapping.Add(FName("CollectionGrammar"), Grammar.Id);
+
+	PCGEX_DECL_ASSET_FILTER(Properties, "AssetEditor.Properties", "Properties", "Show/hide Property Overrides")
+	Mapping.Add(FName("PropertyOverrides"), Properties.Id);
 
 #undef PCGEX_DECL_ASSET_FILTER
 }

@@ -395,11 +395,14 @@ namespace PCGExClusters
 		// Build polygon from the expanded nodes array (includes leaf duplicates)
 		const int32 NumOutputNodes = OutCell->Nodes.Num();
 		OutCell->Polygon.SetNumUninitialized(NumOutputNodes);
+		OutCell->Bounds2D = FBox2D(ForceInit);
 		for (int32 i = 0; i < NumOutputNodes; ++i)
 		{
 			const int32 NodeIdx = OutCell->Nodes[i];
 			const FNode& Node = (*Cluster->Nodes)[NodeIdx];
-			OutCell->Polygon[i] = (*ProjectedPositions)[Node.PointIndex];
+			const FVector2D& Point = (*ProjectedPositions)[Node.PointIndex];
+			OutCell->Polygon[i] = Point;
+			OutCell->Bounds2D += Point;
 		}
 
 		// Compute polygon properties (area, winding, compactness)
@@ -416,7 +419,7 @@ namespace PCGExClusters
 		}
 
 		// Check holes
-		if (Constraints->Holes && Constraints->Holes->Overlaps(OutCell->Polygon))
+		if (Constraints->Holes && Constraints->Holes->OverlapsPolygon(OutCell->Polygon, OutCell->Bounds2D))
 		{
 			return ECellResult::Hole;
 		}

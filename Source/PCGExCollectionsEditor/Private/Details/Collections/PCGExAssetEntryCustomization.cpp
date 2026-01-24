@@ -7,14 +7,13 @@
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "PCGExCollectionsEditorSettings.h"
+#include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Core/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Collections/PCGExPCGDataAssetCollection.h"
 #include "Widgets/Text/STextBlock.h"
-#include "Widgets/Input/SCheckBox.h"
-#include "Widgets/Input/SEditableTextBox.h"
 
 void FPCGExAssetEntryCustomization::CustomizeHeader(
 	TSharedRef<IPropertyHandle> PropertyHandle,
@@ -114,14 +113,6 @@ void FPCGExAssetEntryCustomization::CustomizeChildren(
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	// Grab owning collection
-	TArray<UObject*> OuterObjects;
-	PropertyHandle->GetOuterObjects(OuterObjects);
-	if (OuterObjects.Num() == 0) { return; }
-
-	const UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(OuterObjects[0]);
-	if (!Collection) { return; }
-
 	uint32 NumElements = 0;
 	PropertyHandle->GetNumChildren(NumElements);
 
@@ -140,6 +131,15 @@ void FPCGExAssetEntryCustomization::CustomizeChildren(
 					return GetDefault<UPCGExCollectionsEditorSettings>()->GetPropertyVisibility(ElementName);
 				}));
 	}
+
+	// Add PropertyOverrides WITHOUT any visibility filter or customization
+	// The visibility lambda interferes with nested customizations - prevents value widgets from rendering
+	// PCGExPropertiesEditor module handles all PropertyOverrides UI via registered customizations
+	TSharedPtr<IPropertyHandle> PropertyOverridesHandle = PropertyHandle->GetChildHandle(TEXT("PropertyOverrides"));
+	if (PropertyOverridesHandle.IsValid())
+	{
+		ChildBuilder.AddProperty(PropertyOverridesHandle.ToSharedRef());
+	}
 }
 
 void FPCGExAssetEntryCustomization::FillCustomizedTopLevelPropertiesNames()
@@ -148,6 +148,7 @@ void FPCGExAssetEntryCustomization::FillCustomizedTopLevelPropertiesNames()
 	CustomizedTopLevelProperties.Add(FName("Category"));
 	CustomizedTopLevelProperties.Add(FName("bIsSubCollection"));
 	CustomizedTopLevelProperties.Add(FName("SubCollection"));
+	CustomizedTopLevelProperties.Add(FName("PropertyOverrides")); // Handled separately - no visibility filter
 }
 
 #define PCGEX_SUBCOLLECTION_VISIBLE \

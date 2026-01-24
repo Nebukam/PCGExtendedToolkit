@@ -10,7 +10,6 @@
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Sorting/PCGExSortingDetails.h"
-#include "Async/ParallelFor.h"
 
 namespace PCGExSorting
 {

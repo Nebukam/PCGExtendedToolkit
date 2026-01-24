@@ -168,7 +168,7 @@ namespace PCGExPointsToBounds
 		}
 
 		Bounds = FBox(ForceInit);
-		BestFitPlane = PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
+		BestFitPlane = PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange(), Settings->bUseMinBoxFit);
 		FTransform InvTransform = BestFitPlane.GetTransform(Settings->AxisOrder).Inverse();
 
 		const UPCGBasePointData* InPointData = OutputIO->GetIn();

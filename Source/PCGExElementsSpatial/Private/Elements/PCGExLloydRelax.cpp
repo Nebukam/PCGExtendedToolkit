@@ -8,7 +8,6 @@
 #include "Data/PCGExPointIO.h"
 #include "Math/Geo/PCGExDelaunay.h"
 #include "Details/PCGExInfluenceDetails.h"
-#include "Async/ParallelFor.h"
 #include "Math/Geo/PCGExGeo.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"
@@ -109,10 +108,7 @@ namespace PCGExLloydRelax
 
 			if (InfluenceSettings->bProgressiveInfluence)
 			{
-				ParallelFor(NumPoints, [&](const int32 i)
-				{
-					Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i));
-				});
+				PCGEX_PARALLEL_FOR(NumPoints, Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i));)
 			}
 
 			Delaunay.Reset();

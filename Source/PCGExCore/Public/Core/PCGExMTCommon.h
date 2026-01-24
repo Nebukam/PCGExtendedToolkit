@@ -8,6 +8,27 @@
 
 namespace PCGExMT
 {
+	/** Default threshold below which we use sequential execution */
+	inline constexpr int32 DefaultParallelThreshold = 512;
+
+	/** Function signature for parallel/sequential loop body */
+	using FLoopBody = std::function<void(int32)>;
+
+	/**
+	 * Execute a loop body either in parallel or sequentially based on iteration count.
+	 * @param Num Number of iterations
+	 * @param Body Function taking (int32 i) to execute per iteration
+	 * @param Threshold Iteration count below which we use sequential execution (default 512)
+	 */
+	PCGEXCORE_API void ParallelOrSequential(int32 Num, const FLoopBody& Body, int32 Threshold = DefaultParallelThreshold);
+
+	/**
+	 * Force sequential execution regardless of iteration count.
+	 * @param Num Number of iterations
+	 * @param Body Function taking (int32 i) to execute per iteration
+	 */
+	PCGEXCORE_API void Sequential(int32 Num, const FLoopBody& Body);
+
 	using FExecuteCallback = std::function<void()>;
 	using FCompletionCallback = std::function<void()>;
 	using FEndCallback = std::function<void(const bool)>;
@@ -88,8 +109,9 @@ namespace PCGExMT
 #define PCGEX_SCOPE_LOOP(_VAR) for(int _VAR = Scope.Start; _VAR < Scope.End; _VAR++)
 #define PCGEX_SUBSCOPE_LOOP(_VAR) for(int _VAR = SubScope.Start; _VAR < SubScope.End; _VAR++)
 
-#define PCGEX_PARALLEL_FOR(_NUM, ...) { const int32 ITERATIONS = _NUM; if(ITERATIONS < 512){ for(int i = 0; i < ITERATIONS; i++){ __VA_ARGS__ }}else{ ParallelFor(ITERATIONS, [&](const int32 i){ __VA_ARGS__ }); }}
-#define PCGEX_PARALLEL_FOR_RET(_NUM, _RET, ...) { const int32 ITERATIONS = _NUM; if(ITERATIONS < 512){ for(int i = 0; i < ITERATIONS; i++){ __VA_ARGS__ }}else{ ParallelFor(ITERATIONS, [&](const int32 i){ __VA_ARGS__ return _RET;}); }}
+#define PCGEX_PARALLEL_FOR(_NUM, ...) PCGExMT::ParallelOrSequential(_NUM, [&](const int32 i){ __VA_ARGS__ });
+#define PCGEX_PARALLEL_FOR_THRESHOLD(_NUM, _THRESHOLD, ...) PCGExMT::ParallelOrSequential(_NUM, [&](const int32 i){ __VA_ARGS__ }, _THRESHOLD);
+#define PCGEX_SEQUENTIAL_FOR(_NUM, ...) PCGExMT::Sequential(_NUM, [&](const int32 i){ __VA_ARGS__ });
 
 #endif
 #pragma endregion
