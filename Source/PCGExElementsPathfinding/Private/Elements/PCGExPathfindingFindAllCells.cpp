@@ -52,7 +52,8 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceHolesLabel, false, false);
 	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
 	{
-		Context->Holes = MakeShared<PCGExClusters::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
+		Context->Holes = MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
+		Context->Holes->EnsureProjected(); // Project once upfront
 	}
 
 	//const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExCommon::Labels::SourceSeedsLabel, true);
@@ -124,7 +125,8 @@ namespace PCGExFindAllCells
 
 		if (Context->HolesFacade)
 		{
-			Holes = Context->Holes ? Context->Holes : MakeShared<PCGExClusters::FHoles>(Context, Context->HolesFacade.ToSharedRef(), ProjectionDetails);
+			Holes = Context->Holes ? Context->Holes : MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), ProjectionDetails);
+			if (Holes) { Holes->EnsureProjected(); } // Project once upfront if not already done
 		}
 
 		// Set up cell constraints

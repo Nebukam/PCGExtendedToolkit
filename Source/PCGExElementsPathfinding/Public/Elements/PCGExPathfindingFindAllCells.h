@@ -11,8 +11,9 @@
 
 namespace PCGExClusters
 {
+	class FProjectedPointSet;
 	class FCellConstraints;
-	class FHoles;
+	class FProjectedPointSet;
 }
 
 namespace PCGExFindAllCells
@@ -82,7 +83,7 @@ struct FPCGExFindAllCellsContext final : FPCGExClustersProcessorContext
 
 	FPCGExCellArtifactsDetails Artifacts;
 
-	TSharedPtr<PCGExClusters::FHoles> Holes;
+	TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
 
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
@@ -108,7 +109,7 @@ namespace PCGExFindAllCells
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindAllCellsContext, UPCGExFindAllCellsSettings>
 	{
 	protected:
-		TSharedPtr<PCGExClusters::FHoles> Holes;
+		TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIO;
 

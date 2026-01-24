@@ -147,16 +147,9 @@ namespace PCGExFindContours
 		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), &FailedCells, true);
 		WrapperCell = CellsConstraints->WrapperCell;
 
-		// Store 3D seed positions and project to 2D
-		TConstPCGValueRange<FTransform> InSeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
-		ProjectedSeeds.SetNumUninitialized(NumSeeds);
-		SeedPositions3D.SetNumUninitialized(NumSeeds);
-		for (int32 i = 0; i < NumSeeds; ++i)
-		{
-			SeedPositions3D[i] = InSeedTransforms[i].GetLocation();
-			const FVector ProjectedSeed3D = ProjectionDetails.ProjectFlat(SeedPositions3D[i]);
-			ProjectedSeeds[i] = FVector2D(ProjectedSeed3D.X, ProjectedSeed3D.Y);
-		}
+		// Create projected seed set (lazy projection with AABB)
+		Seeds = MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->SeedsDataFacade.ToSharedRef(), ProjectionDetails);
+		Seeds->EnsureProjected(); // Project once upfront before any loops
 
 		// Combine valid and failed internal cells for consumption tracking
 		// (seeds inside ANY internal cell polygon are "consumed" - can't claim wrapper)
@@ -186,7 +179,7 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const int32 NumSeeds = ProjectedSeeds.Num();
+		const int32 NumSeeds = Seeds->Num();
 
 		TArray<TSharedPtr<PCGExClusters::FCell>>& CellsContainer = ScopedValidCells->Get_Ref(Scope);
 		CellsContainer.Reserve(Scope.Count);
@@ -200,7 +193,13 @@ namespace PCGExFindContours
 			int32 ContainingSeedIndex = -1;
 			for (int32 SeedIdx = 0; SeedIdx < NumSeeds; ++SeedIdx)
 			{
-				if (PCGExMath::Geo::IsPointInPolygon(ProjectedSeeds[SeedIdx], Cell->Polygon))
+				const FVector2D& SeedPoint = Seeds->GetProjected(SeedIdx);
+
+				// AABB early-out
+				if (!Cell->Bounds2D.IsInside(SeedPoint)) { continue; }
+
+				// Fine polygon check
+				if (PCGExMath::Geo::IsPointInPolygon(SeedPoint, Cell->Polygon))
 				{
 					ContainingSeedIndex = SeedIdx;
 					break;
@@ -224,13 +223,19 @@ namespace PCGExFindContours
 		int32 BestSeedIdx = INDEX_NONE;
 		double BestDistSq = MAX_dbl;
 
+		TConstPCGValueRange<FTransform> SeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
+
 		for (int32 SeedIdx = 0; SeedIdx < NumSeeds; ++SeedIdx)
 		{
 			// Check if seed is inside any internal cell (consumed)
 			bool bConsumed = false;
+			const FVector2D& SeedPoint = Seeds->GetProjected(SeedIdx);
+
 			for (const TSharedPtr<PCGExClusters::FCell>& Cell : AllCellsIncludingFailed)
 			{
-				if (Cell && !Cell->Polygon.IsEmpty() && PCGExMath::Geo::IsPointInPolygon(ProjectedSeeds[SeedIdx], Cell->Polygon))
+				if (Cell && !Cell->Polygon.IsEmpty() &&
+					Cell->Bounds2D.IsInside(SeedPoint) &&
+					PCGExMath::Geo::IsPointInPolygon(SeedPoint, Cell->Polygon))
 				{
 					bConsumed = true;
 					break;
@@ -240,7 +245,7 @@ namespace PCGExFindContours
 			if (bConsumed) { continue; }
 
 			// Seed is exterior - find closest edge distance
-			const FVector& SeedPos = SeedPositions3D[SeedIdx];
+			const FVector& SeedPos = SeedTransforms[SeedIdx].GetLocation();
 			double ClosestEdgeDistSq = MAX_dbl;
 
 			Cluster->GetEdgeOctree()->FindNearbyElements(SeedPos, [&](const PCGExOctree::FItem& Item)
@@ -280,14 +285,18 @@ namespace PCGExFindContours
 			}
 
 			// Also mark seeds inside failed cells as consumed
-			const int32 NumSeeds = ProjectedSeeds.Num();
+			const int32 NumSeeds = Seeds->Num();
 			for (int32 SeedIdx = 0; SeedIdx < NumSeeds; ++SeedIdx)
 			{
 				if (ConsumedSeeds.Contains(SeedIdx)) { continue; }
 
+				const FVector2D& SeedPoint = Seeds->GetProjected(SeedIdx);
+
 				for (const TSharedPtr<PCGExClusters::FCell>& Cell : AllCellsIncludingFailed)
 				{
-					if (Cell && !Cell->Polygon.IsEmpty() && PCGExMath::Geo::IsPointInPolygon(ProjectedSeeds[SeedIdx], Cell->Polygon))
+					if (Cell && !Cell->Polygon.IsEmpty() &&
+						Cell->Bounds2D.IsInside(SeedPoint) &&
+						PCGExMath::Geo::IsPointInPolygon(SeedPoint, Cell->Polygon))
 					{
 						ConsumedSeeds.Add(SeedIdx);
 						break;
@@ -301,11 +310,13 @@ namespace PCGExFindContours
 			int32 BestSeedIdx = INDEX_NONE;
 			double BestDistSq = MAX_dbl;
 
+			TConstPCGValueRange<FTransform> SeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
+
 			for (int32 SeedIdx = 0; SeedIdx < NumSeeds; ++SeedIdx)
 			{
 				if (ConsumedSeeds.Contains(SeedIdx)) { continue; }
 
-				const FVector& SeedPos = SeedPositions3D[SeedIdx];
+				const FVector& SeedPos = SeedTransforms[SeedIdx].GetLocation();
 				double ClosestEdgeDistSq = MAX_dbl;
 
 				Cluster->GetEdgeOctree()->FindNearbyElements(SeedPos, [&](const PCGExOctree::FItem& Item)

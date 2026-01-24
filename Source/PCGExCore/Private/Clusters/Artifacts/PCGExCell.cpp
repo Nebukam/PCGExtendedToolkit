@@ -47,21 +47,44 @@ namespace PCGExClusters
 		}
 	}
 
-	bool FHoles::Overlaps(const TArray<FVector2D>& Polygon)
+	void FProjectedPointSet::EnsureProjected()
 	{
 		{
 			FReadScopeLock ReadScopeLock(ProjectionLock);
-			if (!ProjectedPoints.IsEmpty()) { return PCGExMath::Geo::IsAnyPointInPolygon(ProjectedPoints, Polygon); }
+			if (!ProjectedPoints.IsEmpty()) { return; }
 		}
 
 		{
 			FWriteScopeLock WriteScopeLock(ProjectionLock);
-			if (!ProjectedPoints.IsEmpty()) { return PCGExMath::Geo::IsAnyPointInPolygon(ProjectedPoints, Polygon); }
+			if (!ProjectedPoints.IsEmpty()) { return; }
 
+			// Project all points
 			ProjectionDetails.ProjectFlat(PointDataFacade, ProjectedPoints);
-			return PCGExMath::Geo::IsAnyPointInPolygon(ProjectedPoints, Polygon);
+
+			// Compute tight AABB
+			TightBounds = FBox2D(ForceInit);
+			for (const FVector2D& Point : ProjectedPoints)
+			{
+				TightBounds += Point;
+			}
 		}
 	}
+
+	bool FProjectedPointSet::OverlapsPolygon(const TArray<FVector2D>& Polygon, const FBox2D& PolygonBounds) const
+	{
+		const_cast<FProjectedPointSet*>(this)->EnsureProjected();
+
+		// Coarse: Do bounds even overlap?
+		if (!TightBounds.Intersect(PolygonBounds))
+		{
+			return false;
+		}
+
+		// Fine: Check individual points
+		return PCGExMath::Geo::IsAnyPointInPolygon(ProjectedPoints, Polygon);
+	}
+
+	int32 FProjectedPointSet::Num() const{ return PointDataFacade->GetNum(); }
 
 	FCellConstraints::FCellConstraints(const FPCGExCellConstraintsDetails& InDetails)
 	{
@@ -260,12 +283,15 @@ namespace PCGExClusters
 				WrapperCell->Polygon.Reserve(WrapperCell->Nodes.Num());
 				WrapperCell->Data.Bounds = FBox(ForceInit);
 				WrapperCell->Data.Centroid = FVector::ZeroVector;
+				WrapperCell->Bounds2D = FBox2D(ForceInit);
 
 				TSet<int32> UniqueNodes;
 				for (const int32 NodeIdx : WrapperCell->Nodes)
 				{
 					const int32 PointIdx = Nodes[NodeIdx].PointIndex;
-					WrapperCell->Polygon.Add((*ProjectedPositions)[PointIdx]);
+					const FVector2D& Point2D = (*ProjectedPositions)[PointIdx];
+					WrapperCell->Polygon.Add(Point2D);
+					WrapperCell->Bounds2D += Point2D;
 
 					if (!UniqueNodes.Contains(NodeIdx))
 					{

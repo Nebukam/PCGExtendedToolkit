@@ -14,6 +14,7 @@
 
 namespace PCGExClusters
 {
+	class FProjectedPointSet;
 	class FCellConstraints;
 }
 
@@ -137,8 +138,7 @@ namespace PCGExFindContours
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
 	protected:
-		TArray<FVector2D> ProjectedSeeds;
-		TArray<FVector> SeedPositions3D;
+		TSharedPtr<PCGExClusters::FProjectedPointSet> Seeds;
 		TArray<TSharedPtr<PCGExClusters::FCell>> EnumeratedCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCellsIncludingFailed; // For checking seed consumption
 		TSharedPtr<PCGExClusters::FCell> WrapperCell;

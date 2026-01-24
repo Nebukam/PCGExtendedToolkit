@@ -68,7 +68,11 @@ namespace PCGExClusters
 	class FCellConstraints;
 	struct FNode;
 
-	class PCGEXCORE_API FHoles : public TSharedFromThis<FHoles>
+	/**
+	 * Unified point set for Seeds/Holes - projects points to 2D and provides AABB-optimized overlap checks.
+	 * Thread-safe lazy projection with coarse AABB culling before fine polygon checks.
+	 */
+	class PCGEXCORE_API FProjectedPointSet : public TSharedFromThis<FProjectedPointSet>
 	{
 	protected:
 		mutable FRWLock ProjectionLock;
@@ -76,15 +80,29 @@ namespace PCGExClusters
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TArray<FVector2D> ProjectedPoints;
+		FBox2D TightBounds;
 
 	public:
-		explicit FHoles(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const FPCGExGeo2DProjectionDetails& InProjectionDetails)
-			: PointDataFacade(InPointDataFacade), ProjectionDetails(InProjectionDetails)
+		explicit FProjectedPointSet(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const FPCGExGeo2DProjectionDetails& InProjectionDetails)
+			: PointDataFacade(InPointDataFacade), ProjectionDetails(InProjectionDetails), TightBounds(ForceInit)
 		{
 			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(PointDataFacade); }
 		}
 
-		bool Overlaps(const TArray<FVector2D>& Polygon);
+		/** Lazy project all points + compute tight AABB (thread-safe) */
+		void EnsureProjected();
+
+		/** Check if any point overlaps polygon (with AABB early-out) */
+		bool OverlapsPolygon(const TArray<FVector2D>& Polygon, const FBox2D& PolygonBounds) const;
+
+		/** Get projected point by index (for FindCells seed tracking). Caller must call EnsureProjected() before using in loops. */
+		FORCEINLINE const FVector2D& GetProjected(int32 Index) const
+		{
+			return ProjectedPoints[Index];
+		}
+
+		int32 Num() const;
+		FORCEINLINE const FBox2D& GetBounds() const { return TightBounds; }
 	};
 
 	class PCGEXCORE_API FCellConstraints : public TSharedFromThis<FCellConstraints>
@@ -123,7 +141,7 @@ namespace PCGExClusters
 		bool bBuildWrapper = true;
 
 		TSharedPtr<FCell> WrapperCell;
-		TSharedPtr<FHoles> Holes;
+		TSharedPtr<FProjectedPointSet> Holes;
 		TSharedPtr<FPlanarFaceEnumerator> Enumerator;
 
 		FCellConstraints()
@@ -172,6 +190,7 @@ namespace PCGExClusters
 		uint64 CellHash = 0;
 
 	public:
+		FBox2D Bounds2D;
 		TArray<int32> Nodes;
 		TSharedRef<FCellConstraints> Constraints;
 
