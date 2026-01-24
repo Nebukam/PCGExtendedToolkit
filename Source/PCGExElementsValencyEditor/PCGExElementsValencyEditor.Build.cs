@@ -8,7 +8,7 @@ public class PCGExElementsValencyEditor : ModuleRules
 	public PCGExElementsValencyEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = false;
+		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
 
 		PublicIncludePaths.AddRange(
 			new string[]

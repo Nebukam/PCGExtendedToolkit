@@ -25,7 +25,7 @@ public class PCGExtendedToolkit : ModuleRules
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = false;
+		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
 
 		ConfigureBaseDependencies();
 

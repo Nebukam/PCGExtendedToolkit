@@ -9,7 +9,6 @@
 #include "Core/PCGExPathProcessor.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Paths/PCGExPath.h"
-#include "Paths/PCGExPathIntersectionDetails.h"
 #include "Paths/PCGExPathsCommon.h"
 
 #include "PCGExOffsetPath.generated.h"
@@ -18,17 +17,7 @@ namespace PCGExPaths
 {
 	class FPathEdgeHalfAngle;
 	class FPath;
-	struct FPathEdgeCrossings;
 }
-
-UENUM()
-enum class EPCGExOffsetCleanupMode : uint8
-{
-	None            = 0 UMETA(DisplayName = "None", ToolTip="No cleanup."),
-	CollapseFlipped = 1 UMETA(DisplayName = "Collapse Flipped Segments", ToolTip="Collapse flipped segments."),
-	SectionsFlipped = 2 UMETA(DisplayName = "Collapse Sections (Flipped)", ToolTip="Remove sections of the paths that self-intersect if that section contains flipped segments."),
-	Sections        = 3 UMETA(DisplayName = "Collapse Sections", ToolTip="Remove sections of the paths that are between self-intersections."),
-};
 
 UENUM()
 enum class EPCGExOffsetAdjustment : uint8
@@ -125,29 +114,6 @@ public:
 	/** Offset size.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetMethod == EPCGExOffsetMethod::Slide && Adjustment == EPCGExOffsetAdjustment::Mitre", EditConditionHides))
 	double MitreLimit = 4.0;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta = (PCG_NotOverridable))
-	EPCGExOffsetCleanupMode CleanupMode = EPCGExOffsetCleanupMode::None;
-
-	/** During cleanup, used as a tolerance to consider valid path segments as overlapping or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta = (PCG_Overridable, EditCondition="CleanupMode != EPCGExOffsetCleanupMode::None", EditConditionHides))
-	double IntersectionTolerance = 1;
-
-	/** Attempt to adjust offset on mutated edges .*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta = (PCG_Overridable, EditCondition="CleanupMode != EPCGExOffsetCleanupMode::None", EditConditionHides))
-	bool bFlagMutatedPoints = false;
-
-	/** Name of the 'bool' attribute to flag the nodes that are the result of a mutation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta=(PCG_Overridable, EditCondition="CleanupMode != EPCGExOffsetCleanupMode::None && bFlagMutatedPoints", EditConditionHides))
-	FName MutatedAttributeName = FName("IsMutated");
-
-	/** Whether to flag points that have been flipped during the offset.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta = (PCG_Overridable, EditCondition="CleanupMode == EPCGExOffsetCleanupMode::None"))
-	bool bFlagFlippedPoints = false;
-
-	/** Name of the 'bool' attribute to flag the points that are flipped. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta=(PCG_Overridable, EditCondition="CleanupMode == EPCGExOffsetCleanupMode::None && bFlagFlippedPoints"))
-	FName FlippedAttributeName = FName("IsFlipped");
 };
 
 struct FPCGExOffsetPathContext final : FPCGExPathProcessorContext
@@ -173,19 +139,9 @@ namespace PCGExOffsetPath
 	{
 		TConstPCGValueRange<FTransform> InTransforms;
 
-		FPCGExPathEdgeIntersectionDetails CrossingSettings;
-
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeHalfAngle> PathAngles;
 		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> OffsetDirection;
-
-		TBitArray<> CleanEdge;
-		TArray<TSharedPtr<PCGExPaths::FPathEdgeCrossings>> EdgeCrossings;
-
-		int32 FirstFlippedEdge = -1;
-		TSharedPtr<PCGExPaths::FPath> DirtyPath;
-		TSharedPtr<PCGExPaths::FPathEdgeLength> DirtyLength;
-		TBitArray<> Mutated;
 
 		double DirectionFactor = -1; // Default to -1 because the normal maths changed at some point, inverting all existing value. Sorry for the lack of elegance.
 		double OffsetConstant = 0;
@@ -202,13 +158,5 @@ namespace PCGExOffsetPath
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-
-		virtual void OnPointsProcessingComplete() override;
-		virtual void CompleteWork() override;
-
-		int32 CollapseFrom(const int32 StartIndex, TArray<int32>& KeptPoints, const bool bFlippedOnly);
-		void CollapseSections(const bool bFlippedOnly);
-
-		void MarkMutated();
 	};
 }
