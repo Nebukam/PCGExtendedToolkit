@@ -27,8 +27,8 @@ TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Contours", Required)
-	//if (bOutputSeeds) { PCGEX_PIN_POINT(PCGExFindAllCells::OutputGoodSeedsLabel, "GoodSeeds", Required, {}) }
+	PCGEX_PIN_POINTS(PCGExCells::OutputLabels::Paths, "Cell contours as closed paths", Required)
+	PCGEX_PIN_POINTS(PCGExCells::OutputLabels::CellBounds, "Cell OBB bounds as points", Required)
 	return PinProperties;
 }
 
@@ -46,7 +46,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(Artifacts)
 
-	// Initialize Artifacts (contains OutputMode + OBB settings)
+	// Initialize Artifacts (output settings + OBB settings)
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
 	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceHolesLabel, false, false);
@@ -60,7 +60,10 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	//if (!SeedsPoints) { return false; }
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExCells::OutputLabels::Paths;
+
+	Context->OutputCellBounds = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->OutputCellBounds->OutputPin = PCGExCells::OutputLabels::CellBounds;
 
 	/*
 	if (Settings->bOutputFilteredSeeds)
@@ -103,9 +106,19 @@ bool FPCGExFindAllCellsElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
-	// TODO : Output seeds?
+	uint64& Mask = Context->OutputData.InactiveOutputPinBitmask;
 
-	Context->OutputPaths->StageOutputs();
+	// Stage Paths output, disable pin if empty or disabled
+	if (!Settings->Artifacts.bOutputPaths || !Context->OutputPaths->StageOutputs())
+	{
+		Mask |= 1ULL << 0;
+	}
+
+	// Stage CellBounds output, disable pin if empty or disabled
+	if (!Settings->Artifacts.bOutputCellBounds || !Context->OutputCellBounds->StageOutputs())
+	{
+		Mask |= 1ULL << 1;
+	}
 
 	return Context->TryComplete();
 }
@@ -148,22 +161,25 @@ namespace PCGExFindAllCells
 			// Check if we should output the wrapper cell as the sole cell
 			if (CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
 			{
-				if (Settings->Artifacts.OutputMode == EPCGExCellOutputMode::CellBounds)
+				TArray<TSharedPtr<PCGExClusters::FCell>> WrapperArray;
+				WrapperArray.Add(CellsConstraints->WrapperCell);
+
+				// Output to CellBounds if enabled
+				if (Settings->Artifacts.bOutputCellBounds)
 				{
 					TSharedPtr<PCGExData::FPointIO> OBBPointIO =
-						Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+						Context->OutputCellBounds->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 					OBBPointIO->Tags->Reset();
 					OBBPointIO->IOIndex = EdgeDataFacade->Source->IOIndex;
 					PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
 
 					PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
-
-					TArray<TSharedPtr<PCGExClusters::FCell>> WrapperArray;
-					WrapperArray.Add(CellsConstraints->WrapperCell);
 					PCGExClusters::ProcessCellsAsOBBPoints(Cluster, WrapperArray, OBBFacade,
 						Context->Artifacts, TaskManager);
 				}
-				else
+
+				// Output to Paths if enabled
+				if (Settings->Artifacts.bOutputPaths)
 				{
 					ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 				}
@@ -171,23 +187,23 @@ namespace PCGExFindAllCells
 			return true;
 		}
 
-		if (Settings->Artifacts.OutputMode == EPCGExCellOutputMode::CellBounds)
+		// Output to CellBounds if enabled
+		if (Settings->Artifacts.bOutputCellBounds)
 		{
-			// NEW: Single PointIO + Facade for cluster
 			TSharedPtr<PCGExData::FPointIO> OBBPointIO =
-				Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+				Context->OutputCellBounds->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 			OBBPointIO->Tags->Reset();
 			OBBPointIO->IOIndex = EdgeDataFacade->Source->IOIndex;
 			PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
 
 			PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
-
 			PCGExClusters::ProcessCellsAsOBBPoints(Cluster, ValidCells, OBBFacade,
 				Context->Artifacts, TaskManager);
 		}
-		else
+
+		// Output to Paths if enabled
+		if (Settings->Artifacts.bOutputPaths)
 		{
-			// EXISTING: Paths mode
 			CellsIO.Reserve(NumCells);
 			Context->OutputPaths->IncreaseReserve(NumCells + 1);
 			for (int32 i = 0; i < NumCells; i++) { CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New)); }

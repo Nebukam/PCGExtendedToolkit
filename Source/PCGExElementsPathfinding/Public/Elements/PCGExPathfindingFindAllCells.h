@@ -41,6 +41,7 @@ public:
 #endif
 
 protected:
+	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
@@ -87,6 +88,7 @@ struct FPCGExFindAllCellsContext final : FPCGExClustersProcessorContext
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
 
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputCellBounds;
 	TSharedPtr<PCGExData::FPointIO> Seeds;
 
 	mutable FRWLock SeedOutputLock;

@@ -9,6 +9,7 @@
 
 #include "Math/PCGExWinding.h"
 #include "Math/PCGExMathAxis.h"
+#include "Types/PCGExAttributeIdentity.h"
 #include "PCGExCellDetails.generated.h"
 
 namespace PCGExMT
@@ -33,6 +34,15 @@ namespace PCGExMath
 namespace PCGExClusters
 {
 	class FCluster;
+}
+
+namespace PCGExCells
+{
+	namespace OutputLabels
+	{
+		const FName Paths = FName("Paths");
+		const FName CellBounds = FName("CellBounds");
+	}
 }
 
 UENUM()
@@ -86,13 +96,6 @@ enum class EPCGExCellSeedBounds : uint8
 	Original           = 0 UMETA(DisplayName = "Original", ToolTip="Seed bounds is unchanged"),
 	MatchCell          = 1 UMETA(DisplayName = "Match Cell", ToolTip="Seed bounds match cell bounds"),
 	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Cell (with rotation reset)", ToolTip="Seed bounds match cell bounds, and rotation is reset"),
-};
-
-UENUM()
-enum class EPCGExCellOutputMode : uint8
-{
-	Paths      = 0 UMETA(DisplayName = "Paths", ToolTip="Output cells as paths"),
-	CellBounds = 1 UMETA(DisplayName = "Cell Bounds", ToolTip="Output cells as OBB points"),
 };
 
 USTRUCT(BlueprintType)
@@ -329,12 +332,16 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	{
 	}
 
-	/** Output mode for cells */
+	/** Output cells as closed paths (one path per cell) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExCellOutputMode OutputMode = EPCGExCellOutputMode::Paths;
+	bool bOutputPaths = true;
+
+	/** Output cells as OBB points (one point per cell) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOutputCellBounds = false;
 
 	/** OBB-specific settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExCellOutputMode::CellBounds", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Settings", EditCondition="bOutputCellBounds", EditConditionHides))
 	FPCGExCellOBBAttributesDetails OBBAttributes;
 
 	/**  */
@@ -343,7 +350,7 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 
 	/** Write cell unique hash to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Hash", EditCondition="bWriteCellHash"))
-	FName CellHashAttributeName = FName("@Data.CellHash");
+	FName CellHashAttributeName = FName("CellHash");
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -351,7 +358,7 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 
 	/** Write cell area to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Area", EditCondition="bWriteArea"))
-	FName AreaAttributeName = FName("@Data.Area");
+	FName AreaAttributeName = FName("Area");
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -359,7 +366,7 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 
 	/** Write cell compactness to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Compactness", EditCondition="bWriteCompactness"))
-	FName CompactnessAttributeName = FName("@Data.Compactness");
+	FName CompactnessAttributeName = FName("Compactness");
 
 	/** Write number of nodes in cell (OBB_Points mode only) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -414,7 +421,7 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 	FString ConvexTag = TEXT("Convex");
 
 	/** Tags to be forwarded from clusters (Paths mode only) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExCellOutputMode::Paths", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bOutputPaths", EditConditionHides))
 	FPCGExNameFiltersDetails TagForwarding;
 
 	bool WriteAny() const;
