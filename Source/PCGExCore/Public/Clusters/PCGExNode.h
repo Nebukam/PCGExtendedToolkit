@@ -40,8 +40,15 @@ namespace PCGExGraphs
 		FORCEINLINE bool IsBinary() const { return Links.Num() == 2; }
 		FORCEINLINE bool IsComplex() const { return Links.Num() > 2; }
 
+		// AddUnique has O(N) overhead per link. Since cluster building is single-threaded
+		// and edges are pre-validated, we use Add() in non-debug builds for O(1) performance.
+#if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.AddUnique(FLink(0, EdgeIndex)); }
 		FORCEINLINE void Link(const int32 NodeIndex, const int32 EdgeIndex) { Links.AddUnique(FLink(NodeIndex, EdgeIndex)); }
+#else
+		FORCEINLINE void LinkEdge(const int32 EdgeIndex) { Links.Add(FLink(0, EdgeIndex)); }
+		FORCEINLINE void Link(const int32 NodeIndex, const int32 EdgeIndex) { Links.Add(FLink(NodeIndex, EdgeIndex)); }
+#endif
 
 		bool IsAdjacentTo(const int32 OtherNodeIndex) const;
 

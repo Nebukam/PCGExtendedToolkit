@@ -57,6 +57,12 @@ namespace PCGExClusters
 
 		mutable FRWLock ClusterLock;
 
+		// Internal helpers for O(1) visited tracking (uses TBitArray instead of TArray::Contains)
+		void GetConnectedNodesInternal(const int32 FromIndex, TArray<int32>& OutIndices, TBitArray<>& Visited, const int32 SearchDepth) const;
+		void GetConnectedNodesInternal(const int32 FromIndex, TArray<int32>& OutIndices, TBitArray<>& Visited, const int32 SearchDepth, const TSet<int32>& Skip) const;
+		void GetConnectedEdgesInternal(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, TBitArray<>& VisitedNodes, TBitArray<>& VisitedEdges, const int32 SearchDepth) const;
+		void GetConnectedEdgesInternal(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, TBitArray<>& VisitedNodes, TBitArray<>& VisitedEdges, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
+
 	public:
 		int32 NumRawVtx = 0;
 		int32 NumRawEdges = 0;

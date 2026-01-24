@@ -124,6 +124,8 @@ namespace PCGExClusters
 		NodeOctree.Reset();
 		EdgeOctree.Reset();
 		BoundedEdges.Reset();
+		EdgeLengths.Reset();
+		bEdgeLengthsDirty = true;
 	}
 
 	FCluster::~FCluster()
@@ -683,63 +685,99 @@ namespace PCGExClusters
 
 	void FCluster::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const
 	{
-		const int32 NextDepth = SearchDepth - 1;
-		const FNode& RootNode = (*Nodes)[FromIndex];
-
-		for (const FLink Lk : RootNode.Links)
-		{
-			if (OutIndices.Contains(Lk.Node)) { continue; }
-
-			OutIndices.Add(Lk.Node);
-			if (NextDepth > 0) { GetConnectedNodes(Lk.Node, OutIndices, NextDepth); }
-		}
+		TBitArray<> Visited(false, Nodes->Num());
+		Visited[FromIndex] = true; // Mark starting node as visited
+		GetConnectedNodesInternal(FromIndex, OutIndices, Visited, SearchDepth);
 	}
 
 	void FCluster::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const
+	{
+		TBitArray<> Visited(false, Nodes->Num());
+		Visited[FromIndex] = true; // Mark starting node as visited
+		GetConnectedNodesInternal(FromIndex, OutIndices, Visited, SearchDepth, Skip);
+	}
+
+	void FCluster::GetConnectedNodesInternal(const int32 FromIndex, TArray<int32>& OutIndices, TBitArray<>& Visited, const int32 SearchDepth) const
 	{
 		const int32 NextDepth = SearchDepth - 1;
 		const FNode& RootNode = (*Nodes)[FromIndex];
 
 		for (const FLink Lk : RootNode.Links)
 		{
-			if (Skip.Contains(Lk.Node) || OutIndices.Contains(Lk.Node)) { continue; }
+			if (Visited[Lk.Node]) { continue; }
 
+			Visited[Lk.Node] = true;
 			OutIndices.Add(Lk.Node);
-			if (NextDepth > 0) { GetConnectedNodes(Lk.Node, OutIndices, NextDepth, Skip); }
+			if (NextDepth > 0) { GetConnectedNodesInternal(Lk.Node, OutIndices, Visited, NextDepth); }
+		}
+	}
+
+	void FCluster::GetConnectedNodesInternal(const int32 FromIndex, TArray<int32>& OutIndices, TBitArray<>& Visited, const int32 SearchDepth, const TSet<int32>& Skip) const
+	{
+		const int32 NextDepth = SearchDepth - 1;
+		const FNode& RootNode = (*Nodes)[FromIndex];
+
+		for (const FLink Lk : RootNode.Links)
+		{
+			if (Skip.Contains(Lk.Node) || Visited[Lk.Node]) { continue; }
+
+			Visited[Lk.Node] = true;
+			OutIndices.Add(Lk.Node);
+			if (NextDepth > 0) { GetConnectedNodesInternal(Lk.Node, OutIndices, Visited, NextDepth, Skip); }
 		}
 	}
 
 	void FCluster::GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth) const
 	{
-		const int32 NextDepth = SearchDepth - 1;
-		const FNode& RootNode = (*Nodes)[FromNodeIndex];
-
-		for (const FLink Lk : RootNode.Links)
-		{
-			if (OutNodeIndices.Contains(Lk.Node)) { continue; }
-			if (OutEdgeIndices.Contains(Lk.Edge)) { continue; }
-
-			OutNodeIndices.Add(Lk.Node);
-			OutEdgeIndices.Add(Lk.Edge);
-
-			if (NextDepth > 0) { GetConnectedEdges(Lk.Node, OutNodeIndices, OutEdgeIndices, NextDepth); }
-		}
+		TBitArray<> VisitedNodes(false, Nodes->Num());
+		TBitArray<> VisitedEdges(false, Edges->Num());
+		VisitedNodes[FromNodeIndex] = true; // Mark starting node as visited
+		GetConnectedEdgesInternal(FromNodeIndex, OutNodeIndices, OutEdgeIndices, VisitedNodes, VisitedEdges, SearchDepth);
 	}
 
 	void FCluster::GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const
+	{
+		TBitArray<> VisitedNodes(false, Nodes->Num());
+		TBitArray<> VisitedEdges(false, Edges->Num());
+		VisitedNodes[FromNodeIndex] = true; // Mark starting node as visited
+		GetConnectedEdgesInternal(FromNodeIndex, OutNodeIndices, OutEdgeIndices, VisitedNodes, VisitedEdges, SearchDepth, SkipNodes, SkipEdges);
+	}
+
+	void FCluster::GetConnectedEdgesInternal(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, TBitArray<>& VisitedNodes, TBitArray<>& VisitedEdges, const int32 SearchDepth) const
 	{
 		const int32 NextDepth = SearchDepth - 1;
 		const FNode& RootNode = (*Nodes)[FromNodeIndex];
 
 		for (const FLink Lk : RootNode.Links)
 		{
-			if (SkipNodes.Contains(Lk.Node) || OutNodeIndices.Contains(Lk.Node)) { continue; }
-			if (SkipEdges.Contains(Lk.Edge) || OutEdgeIndices.Contains(Lk.Edge)) { continue; }
+			if (VisitedNodes[Lk.Node]) { continue; }
+			if (VisitedEdges[Lk.Edge]) { continue; }
 
+			VisitedNodes[Lk.Node] = true;
+			VisitedEdges[Lk.Edge] = true;
 			OutNodeIndices.Add(Lk.Node);
 			OutEdgeIndices.Add(Lk.Edge);
 
-			if (NextDepth > 0) { GetConnectedEdges(Lk.Node, OutNodeIndices, OutEdgeIndices, NextDepth, SkipNodes, SkipEdges); }
+			if (NextDepth > 0) { GetConnectedEdgesInternal(Lk.Node, OutNodeIndices, OutEdgeIndices, VisitedNodes, VisitedEdges, NextDepth); }
+		}
+	}
+
+	void FCluster::GetConnectedEdgesInternal(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, TBitArray<>& VisitedNodes, TBitArray<>& VisitedEdges, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const
+	{
+		const int32 NextDepth = SearchDepth - 1;
+		const FNode& RootNode = (*Nodes)[FromNodeIndex];
+
+		for (const FLink Lk : RootNode.Links)
+		{
+			if (SkipNodes.Contains(Lk.Node) || VisitedNodes[Lk.Node]) { continue; }
+			if (SkipEdges.Contains(Lk.Edge) || VisitedEdges[Lk.Edge]) { continue; }
+
+			VisitedNodes[Lk.Node] = true;
+			VisitedEdges[Lk.Edge] = true;
+			OutNodeIndices.Add(Lk.Node);
+			OutEdgeIndices.Add(Lk.Edge);
+
+			if (NextDepth > 0) { GetConnectedEdgesInternal(Lk.Node, OutNodeIndices, OutEdgeIndices, VisitedNodes, VisitedEdges, NextDepth, SkipNodes, SkipEdges); }
 		}
 	}
 
