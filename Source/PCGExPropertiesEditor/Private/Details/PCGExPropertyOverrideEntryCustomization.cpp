@@ -89,11 +89,23 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 	// Find and add the "Value" property
 	if (const FProperty* ValueProperty = InnerStruct->FindPropertyByName(TEXT("Value")))
 	{
+		// Create an attribute that checks if the override is enabled
+		TAttribute<bool> IsEnabledAttr = TAttribute<bool>::Create([EnabledHandle]()
+		{
+			if (EnabledHandle.IsValid())
+			{
+				bool bEnabled = false;
+				EnabledHandle->GetValue(bEnabled);
+				return bEnabled;
+			}
+			return true;
+		});
+
 		// Only customize if this is a simple type that should be inlined
 		if (bShouldInline)
 		{
 			IDetailPropertyRow& Row = *ChildBuilder.AddExternalStructureProperty(StructOnScope, ValueProperty->GetFName());
-
+						
 			// Get the property handle for the value widget
 			TSharedPtr<IPropertyHandle> ValuePropertyHandle = Row.GetPropertyHandle();
 
@@ -120,7 +132,11 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 				]
 				.ValueContent()
 				[
-					ValuePropertyHandle.IsValid() ? ValuePropertyHandle->CreatePropertyValueWidget() : SNullWidget::NullWidget
+					SNew(SBox)
+					.IsEnabled(IsEnabledAttr)
+					[
+						ValuePropertyHandle.IsValid() ? ValuePropertyHandle->CreatePropertyValueWidget() : SNullWidget::NullWidget
+					]
 				];
 		}
 		else
@@ -147,8 +163,9 @@ void FPCGExPropertyOverrideEntryCustomization::CustomizeChildren(
 					]
 				];
 
-			// Add the value property normally (will be expandable)
-			ChildBuilder.AddExternalStructureProperty(StructOnScope, ValueProperty->GetFName());
+			// Add the value property normally (will be expandable) and disable based on checkbox
+			IDetailPropertyRow& ValueRow = *ChildBuilder.AddExternalStructureProperty(StructOnScope, ValueProperty->GetFName());
+			ValueRow.IsEnabled(IsEnabledAttr);
 		}
 	}
 }
