@@ -3,7 +3,7 @@
 
 #include "Elements/PCGExValencyStaging.h"
 
-#include "Core/PCGExCagePropertyCompiled.h"
+#include "PCGExPropertyCompiled.h"
 #include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"
@@ -774,6 +774,7 @@ namespace PCGExValencyStaging
 		{
 			PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>();
 			PropertyWriter->Initialize(
+				Context->BondingRules,
 				Context->BondingRules->GetCompiledData(),
 				VtxDataFacade,
 				Settings->PropertiesOutput);

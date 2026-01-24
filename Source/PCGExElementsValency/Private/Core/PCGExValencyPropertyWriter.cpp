@@ -2,8 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Core/PCGExValencyPropertyWriter.h"
-#include "Core/PCGExCagePropertyCompiled.h"
-#include "Core/PCGExCagePropertyCompiledTypes.h"
+#include "PCGExPropertyCompiled.h"
 #include "Core/PCGExValencyLog.h"
 
 int32 FPCGExValencyPropertyOutputSettings::AutoPopulateFromRules(const FPCGExValencyBondingRulesCompiled* CompiledRules)
@@ -47,15 +46,17 @@ int32 FPCGExValencyPropertyOutputSettings::AutoPopulateFromRules(const FPCGExVal
 }
 
 bool FPCGExValencyPropertyWriter::Initialize(
+	const UPCGExValencyBondingRules* InBondingRules,
 	const FPCGExValencyBondingRulesCompiled* InCompiledRules,
 	const TSharedRef<PCGExData::FFacade>& OutputFacade,
 	const FPCGExValencyPropertyOutputSettings& OutputSettings)
 {
-	if (!InCompiledRules)
+	if (!InBondingRules || !InCompiledRules)
 	{
 		return false;
 	}
 
+	BondingRules = InBondingRules;
 	CompiledRules = InCompiledRules;
 	Settings = OutputSettings;
 
@@ -79,7 +80,7 @@ bool FPCGExValencyPropertyWriter::Initialize(
 		}
 
 		// Check if property supports output
-		const FPCGExCagePropertyCompiled* ProtoBase = Prototype->GetPtr<FPCGExCagePropertyCompiled>();
+		const FPCGExPropertyCompiled* ProtoBase = Prototype->GetPtr<FPCGExPropertyCompiled>();
 		if (!ProtoBase || !ProtoBase->SupportsOutput())
 		{
 			PCGEX_VALENCY_VERBOSE(Staging, "Property '%s' does not support output", *OutputConfig.PropertyName.ToString());
@@ -90,7 +91,7 @@ bool FPCGExValencyPropertyWriter::Initialize(
 		FInstancedStruct WriterInstance = *Prototype;
 
 		// Initialize output buffers
-		FPCGExCagePropertyCompiled* Writer = WriterInstance.GetMutablePtr<FPCGExCagePropertyCompiled>();
+		FPCGExPropertyCompiled* Writer = WriterInstance.GetMutablePtr<FPCGExPropertyCompiled>();
 		if (!Writer || !Writer->InitializeOutput(OutputFacade, OutputName))
 		{
 			PCGEX_VALENCY_VERBOSE(Staging, "Failed to initialize output for property '%s'", *OutputConfig.PropertyName.ToString());
@@ -130,13 +131,21 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 		for (auto& KV : WriterInstances)
 		{
 			const FName& PropName = KV.Key;
-			FPCGExCagePropertyCompiled* Writer = KV.Value.GetMutablePtr<FPCGExCagePropertyCompiled>();
+			FPCGExPropertyCompiled* Writer = KV.Value.GetMutablePtr<FPCGExPropertyCompiled>();
 			if (!Writer) { continue; }
 
-			// Find actual property value for this module
-			if (const FInstancedStruct* SourceProp = PCGExValency::GetPropertyByName(ModuleProperties, PropName))
+			// Find actual property value: try module first, fall back to defaults
+			const FInstancedStruct* SourceProp = PCGExProperties::GetPropertyByName(ModuleProperties, PropName);
+
+			if (!SourceProp && BondingRules)
 			{
-				if (const FPCGExCagePropertyCompiled* Source = SourceProp->GetPtr<FPCGExCagePropertyCompiled>())
+				// Module doesn't have this property - try default from bonding rules (live-editable)
+				SourceProp = BondingRules->DefaultProperties.GetPropertyByName(PropName);
+			}
+
+			if (SourceProp)
+			{
+				if (const FPCGExPropertyCompiled* Source = SourceProp->GetPtr<FPCGExPropertyCompiled>())
 				{
 					Writer->CopyValueFrom(Source);
 				}
@@ -179,7 +188,7 @@ const FInstancedStruct* FPCGExValencyPropertyWriter::FindPrototypeProperty(FName
 	for (int32 ModuleIndex = 0; ModuleIndex < CompiledRules->ModuleCount; ++ModuleIndex)
 	{
 		TConstArrayView<FInstancedStruct> Properties = CompiledRules->GetModuleProperties(ModuleIndex);
-		if (const FInstancedStruct* Found = PCGExValency::GetPropertyByName(Properties, PropertyName))
+		if (const FInstancedStruct* Found = PCGExProperties::GetPropertyByName(Properties, PropertyName))
 		{
 			return Found;
 		}

@@ -99,6 +99,29 @@
       ]
     },
     {
+      "Name": "PCGExProperties",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "PCGExPropertiesEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux"
+      ]
+    },
+    {
       "Name": "PCGExElementsActions",
       "Type": "Runtime",
       "LoadingPhase": "Default",

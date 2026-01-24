@@ -34,6 +34,7 @@ public class PCGExCollections : ModuleRules
 				"Niagara",
 				"PCG",
 				"PCGExCore",
+				"PCGExProperties",
 				"PCGExFilters",
 				"PCGExFoundations",
 			}

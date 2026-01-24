@@ -17,6 +17,7 @@ public class PCGExElementsValency : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExProperties",
 				"PCGExBlending",
 				"PCGExFilters",
 				"PCGExFoundations",

@@ -7,7 +7,6 @@
 
 #include "PCGContext.h"
 #include "Data/PCGPointArrayData.h"
-#include "Async/ParallelFor.h"
 #include "Core/PCGExMTCommon.h"
 #include "Helpers/PCGExArrayHelpers.h"
 

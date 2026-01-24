@@ -15,8 +15,6 @@
 #include "Core/PCGExProbingCandidates.h"
 #include "Graphs/PCGExGraphBuilder.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Math/PCGExBestFitPlane.h"
-#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectPointsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

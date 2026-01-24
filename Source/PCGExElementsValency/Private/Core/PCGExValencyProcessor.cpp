@@ -310,10 +310,11 @@ namespace PCGExValencyMT
 	}
 
 	bool IBatch::InitializePropertyWriter(
+		const UPCGExValencyBondingRules* BondingRules,
 		const FPCGExValencyBondingRulesCompiled* CompiledRules,
 		const FPCGExValencyPropertyOutputSettings& OutputSettings)
 	{
-		if (!CompiledRules)
+		if (!BondingRules || !CompiledRules)
 		{
 			return false;
 		}
@@ -325,6 +326,6 @@ namespace PCGExValencyMT
 		}
 
 		PropertyWriter = MakeShared<FPCGExValencyPropertyWriter>();
-		return PropertyWriter->Initialize(CompiledRules, VtxDataFacade, OutputSettings);
+		return PropertyWriter->Initialize(BondingRules, CompiledRules, VtxDataFacade, OutputSettings);
 	}
 }

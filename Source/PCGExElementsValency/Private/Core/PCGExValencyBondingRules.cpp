@@ -3,7 +3,6 @@
 
 #include "Core/PCGExValencyBondingRules.h"
 
-#include "Core/PCGExCagePropertyCompiledTypes.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Engine/Blueprint.h"
@@ -215,15 +214,120 @@ bool UPCGExValencyBondingRules::Compile()
 	// Build fast lookup
 	CompiledData.BuildCandidateLookup();
 
-	// Build module property registry
+	// Sync DefaultProperties schema to match cage-declared properties
+	VALENCY_LOG_SUBSECTION(Compilation, "Syncing Default Properties Schema");
+	{
+		// Collect all unique properties from cages (by HeaderId for stable identity)
+		TMap<int32, FPCGExPropertySchema> CageDeclaredSchemas;
+
+		#if WITH_EDITOR
+		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
+		{
+			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
+			{
+				if (!Prop->PropertyName.IsNone() && Prop->HeaderId != 0)
+				{
+					if (!CageDeclaredSchemas.Contains(Prop->HeaderId))
+					{
+						// Create schema from first occurrence
+						FPCGExPropertySchema NewSchema;
+						NewSchema.HeaderId = Prop->HeaderId;
+						NewSchema.Name = Prop->PropertyName;
+						NewSchema.Property = PropStruct;
+						CageDeclaredSchemas.Add(Prop->HeaderId, MoveTemp(NewSchema));
+					}
+				}
+			}
+		}
+		#endif
+
+		// Build map of existing schemas by HeaderId (to preserve user edits)
+		TMap<int32, FPCGExPropertySchema> ExistingSchemasByHeaderId;
+		#if WITH_EDITOR
+		for (FPCGExPropertySchema& Schema : DefaultProperties.Schemas)
+		{
+			if (Schema.HeaderId != 0)
+			{
+				ExistingSchemasByHeaderId.Add(Schema.HeaderId, MoveTemp(Schema));
+			}
+		}
+		#endif
+
+		// Rebuild schema: keep existing (if still used), add new, remove deprecated
+		DefaultProperties.Schemas.Reset();
+
+		#if WITH_EDITOR
+		for (auto& CageSchemaPair : CageDeclaredSchemas)
+		{
+			const int32 HeaderId = CageSchemaPair.Key;
+			FPCGExPropertySchema& CageSchema = CageSchemaPair.Value;
+
+			if (FPCGExPropertySchema* ExistingSchema = ExistingSchemasByHeaderId.Find(HeaderId))
+			{
+				// Keep existing schema (preserves user-edited default values)
+				// Update name from cage (handles renames)
+				ExistingSchema->Name = CageSchema.Name;
+
+				// Check if type changed
+				if (ExistingSchema->Property.GetScriptStruct() == CageSchema.Property.GetScriptStruct())
+				{
+					// Same type - preserve value, update PropertyName
+					if (FPCGExPropertyCompiled* Prop = ExistingSchema->GetPropertyMutable())
+					{
+						Prop->PropertyName = CageSchema.Name;
+					}
+					DefaultProperties.Schemas.Add(MoveTemp(*ExistingSchema));
+					PCGEX_VALENCY_VERBOSE(Compilation, "  Preserved schema for property '%s'", *CageSchema.Name.ToString());
+				}
+				else
+				{
+					// Type changed - use cage's default and warn
+					DefaultProperties.Schemas.Add(MoveTemp(CageSchema));
+					PCGEX_VALENCY_WARNING(Compilation, "Property '%s' type changed, reset to cage default", *CageSchema.Name.ToString());
+				}
+			}
+			else
+			{
+				// New property - add cage schema
+				DefaultProperties.Schemas.Add(MoveTemp(CageSchema));
+				PCGEX_VALENCY_INFO(Compilation, "  Added new property schema '%s'", *CageSchema.Name.ToString());
+			}
+		}
+
+		// Log removed schemas
+		for (const auto& ExistingPair : ExistingSchemasByHeaderId)
+		{
+			if (!CageDeclaredSchemas.Contains(ExistingPair.Key))
+			{
+				PCGEX_VALENCY_INFO(Compilation, "  Removed deprecated property schema (HeaderId=%d)", ExistingPair.Key);
+			}
+		}
+		#endif
+
+		PCGEX_VALENCY_INFO(Compilation, "DefaultProperties schema synced: %d properties", DefaultProperties.Num());
+	}
+
+	// Build module property registry (includes defaults + cage properties)
 	VALENCY_LOG_SUBSECTION(Compilation, "Building Property Registries");
 	{
 		TMap<FName, FPCGExPropertyRegistryEntry> ModulePropertiesMap;
 
+		// Add defaults from schema
+		for (const FPCGExPropertySchema& Schema : DefaultProperties.Schemas)
+		{
+			if (const FPCGExPropertyCompiled* Prop = Schema.GetProperty())
+			{
+				if (!Schema.Name.IsNone())
+				{
+					ModulePropertiesMap.Add(Schema.Name, Prop->ToRegistryEntry());
+				}
+			}
+		}
+
 		// Scan all module properties
 		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
 		{
-			if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
+			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
 			{
 				if (!Prop->PropertyName.IsNone() && !ModulePropertiesMap.Contains(Prop->PropertyName))
 				{
@@ -238,6 +342,9 @@ bool UPCGExValencyBondingRules::Compile()
 		{
 			return A.PropertyName.LexicalLess(B.PropertyName);
 		});
+
+		// Copy registry to bonding rules for UI display
+		PropertyRegistry = CompiledData.ModulePropertyRegistry;
 
 		PCGEX_VALENCY_INFO(Compilation, "Module property registry: %d unique properties", CompiledData.ModulePropertyRegistry.Num());
 		for (const FPCGExPropertyRegistryEntry& Entry : CompiledData.ModulePropertyRegistry)
@@ -260,7 +367,7 @@ bool UPCGExValencyBondingRules::Compile()
 			{
 				for (const FInstancedStruct& PropStruct : Entry.Properties)
 				{
-					if (const FPCGExCagePropertyCompiled* Prop = PropStruct.GetPtr<FPCGExCagePropertyCompiled>())
+					if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
 					{
 						if (!Prop->PropertyName.IsNone() && !PatternPropertiesMap.Contains(Prop->PropertyName))
 						{

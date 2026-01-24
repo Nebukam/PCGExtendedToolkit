@@ -9,7 +9,7 @@
 #include "PCGExValencyCommon.h"
 #include "PCGExValencyOrbitalSet.h"
 #include "PCGExValencyPattern.h"
-#include "PCGExCagePropertyCompiled.h"
+#include "PCGExPropertyCompiled.h"
 
 #include "PCGExValencyBondingRules.generated.h"
 
@@ -355,6 +355,25 @@ public:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Valency|Patterns")
 	FPCGExValencyPatternSetCompiled Patterns;
+
+	// ========== Default Properties ==========
+
+	/**
+	 * Property schema for all modules.
+	 * Defines available properties with stable HeaderId identity.
+	 * Module-specific values override these defaults.
+	 * Synced during compilation - preserves user edits, adds new properties from cages, removes deprecated ones.
+	 * ReadOnlySchema metadata prevents users from changing property names/types (synced from cages).
+	 */
+	UPROPERTY(EditAnywhere, Category = "Valency|Properties", meta=(ReadOnlySchema))
+	FPCGExPropertySchemaCollection DefaultProperties;
+
+	/**
+	 * Registry of all unique properties (defaults + cage-declared).
+	 * Built at compile time for UI display and auto-populate.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Valency|Properties")
+	TArray<FPCGExPropertyRegistryEntry> PropertyRegistry;
 
 	// ========== Compiled Data ==========
 

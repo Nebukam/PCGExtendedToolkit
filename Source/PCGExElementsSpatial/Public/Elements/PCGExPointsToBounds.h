@@ -97,7 +97,7 @@ struct FPCGExPointsToBoundsDataDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBestFitPlane"))
 	FName BestFitPlaneAttributeName = FName("@Data.BestFitPlane");
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bWriteBestFitPlane", EditConditionHides, HideInlineEditCondition))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bWriteBestFitPlane", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
 
 	void Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExMath::FBestFitPlane& Plane) const;

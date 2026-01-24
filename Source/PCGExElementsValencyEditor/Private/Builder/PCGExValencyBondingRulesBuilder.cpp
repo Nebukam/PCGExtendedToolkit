@@ -7,7 +7,7 @@
 #include "Cages/PCGExValencyCageNull.h"
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
-#include "Properties/PCGExCageProperty.h"
+#include "PCGExPropertyCollectionComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -508,7 +508,7 @@ void UPCGExValencyBondingRulesBuilder::ValidateModulePropertyTypes(
 		for (const FInstancedStruct& Prop : Module.Properties)
 		{
 			// Get property name from the compiled property base
-			const FPCGExCagePropertyCompiled* Base = Prop.GetPtr<FPCGExCagePropertyCompiled>();
+			const FPCGExPropertyCompiled* Base = Prop.GetPtr<FPCGExPropertyCompiled>();
 			if (!Base)
 			{
 				continue;
@@ -943,7 +943,7 @@ TArray<FInstancedStruct> UPCGExValencyBondingRulesBuilder::GetEffectivePropertie
 
 	TArray<FInstancedStruct> AllProperties;
 
-	// Helper to collect properties from an actor's property components
+	// Helper to collect properties from an actor's property collection component
 	auto CollectPropertiesFromActor = [](const AActor* Actor, TArray<FInstancedStruct>& OutProperties)
 	{
 		if (!Actor)
@@ -951,20 +951,22 @@ TArray<FInstancedStruct> UPCGExValencyBondingRulesBuilder::GetEffectivePropertie
 			return;
 		}
 
-		TArray<UPCGExCagePropertyBase*> PropertyComponents;
-		Actor->GetComponents<UPCGExCagePropertyBase>(PropertyComponents);
-
-		for (UPCGExCagePropertyBase* PropComp : PropertyComponents)
+		// Find property collection component
+		UPCGExPropertyCollectionComponent* PropCollectionComp = Actor->FindComponentByClass<UPCGExPropertyCollectionComponent>();
+		if (!PropCollectionComp)
 		{
-			if (PropComp)
-			{
-				FInstancedStruct Compiled;
-				if (PropComp->CompileProperty(Compiled))
-				{
-					OutProperties.Add(MoveTemp(Compiled));
-				}
-			}
+			return;
 		}
+
+		// Sync PropertyName and HeaderId for all schemas
+		for (FPCGExPropertySchema& Schema : PropCollectionComp->GetPropertiesMutable().Schemas)
+		{
+			Schema.SyncPropertyName();
+		}
+
+		// Build properties from schema
+		TArray<FInstancedStruct> CompiledProperties = PropCollectionComp->GetProperties().BuildSchema();
+		OutProperties.Append(MoveTemp(CompiledProperties));
 	};
 
 	// Start with cage's own properties

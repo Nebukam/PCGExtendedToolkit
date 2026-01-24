@@ -32,6 +32,7 @@ public class PCGExElementsValencyEditor : ModuleRules
 				"Engine",
 				"PCG",
 				"PCGExCore",
+				"PCGExProperties",
 				"PCGExCoreEditor",
 				"PCGExFoundations",
 				"PCGExCollections",

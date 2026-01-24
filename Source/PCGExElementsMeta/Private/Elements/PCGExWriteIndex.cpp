@@ -11,7 +11,6 @@
 #include "Data/PCGSplineData.h"
 #include "Types/PCGExTypes.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
-#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
