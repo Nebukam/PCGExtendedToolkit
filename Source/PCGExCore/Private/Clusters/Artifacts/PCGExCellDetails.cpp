@@ -217,7 +217,8 @@ namespace PCGExClusters
 				[&](int32 j) { return ClusterTransforms[InCluster->GetNodePointIndex(Cell->Nodes[j])].GetLocation(); }
 			);
 
-			FVector Extents = BFP.Extents;
+			// Get extents reordered to match axis order
+			FVector Extents = BFP.GetExtents(ArtifactSettings.OBBAttributes.AxisOrder);
 			for (int c = 0; c < 3; c++) {Extents[c] = FMath::Max(Extents[c], ArtifactSettings.OBBAttributes.MinExtent[c]);}
 
 			// Write OBB transform to unique index (thread-safe)

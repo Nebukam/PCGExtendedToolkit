@@ -313,7 +313,7 @@ struct PCGEXCORE_API FPCGExCellOBBAttributesDetails
 
 	/** Min Extents */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FVector MinExtent = FVector(10);
+	FVector MinExtent = FVector(1);
 };
 
 USTRUCT(BlueprintType)

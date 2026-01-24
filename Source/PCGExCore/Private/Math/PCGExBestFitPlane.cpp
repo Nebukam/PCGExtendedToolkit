@@ -180,6 +180,15 @@ namespace PCGExMath
 		return Transform;
 	}
 
+	FVector FBestFitPlane::GetExtents(const EPCGExAxisOrder Order) const
+	{
+		int32 Comps[3] = {0, 0, 0};
+		GetAxesOrder(Order, Comps);
+
+		// Reorder extents to match the axis order
+		return FVector(Extents[Comps[0]], Extents[Comps[1]], Extents[Comps[2]]);
+	}
+
 	void FBestFitPlane::ProcessBox(const UE::Geometry::FOrientedBox3d& Box)
 	{
 		Centroid = Box.Center();

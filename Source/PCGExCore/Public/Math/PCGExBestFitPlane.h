@@ -40,6 +40,12 @@ namespace PCGExMath
 		FTransform GetTransform() const;
 		FTransform GetTransform(EPCGExAxisOrder Order) const;
 
+		/** Get extents in default XYZ order */
+		FORCEINLINE FVector GetExtents() const { return Extents; }
+
+		/** Get extents reordered to match the specified axis order */
+		FVector GetExtents(EPCGExAxisOrder Order) const;
+
 	protected:
 		void ProcessBox(const UE::Geometry::FOrientedBox3d& Box);
 	};
