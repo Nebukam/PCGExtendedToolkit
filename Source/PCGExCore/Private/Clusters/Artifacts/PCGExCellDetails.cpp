@@ -15,6 +15,7 @@
 #include "Paths/PCGExPathsHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
 #include "Data/PCGPointArrayData.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExClusters::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const
 {
@@ -52,15 +53,11 @@ bool FPCGExCellArtifactsDetails::WriteAny() const
 	// Common attributes
 	if (bWriteCellHash || bWriteArea || bWriteCompactness) { return true; }
 
-	// Mode-specific attributes
-	if (OutputMode == EPCGExCellOutputMode::Paths)
-	{
-		return bWriteVtxId || bFlagTerminalPoint || bWriteNumRepeat;
-	}
-	else if (OutputMode == EPCGExCellOutputMode::CellBounds)
-	{
-		return bWriteNumNodes;
-	}
+	// Paths-specific
+	if (bOutputPaths && (bWriteVtxId || bFlagTerminalPoint || bWriteNumRepeat)) { return true; }
+
+	// CellBounds-specific
+	if (bOutputCellBounds && bWriteNumNodes) { return true; }
 
 	return false;
 }
@@ -72,10 +69,9 @@ bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
 	if (bWriteArea) { PCGEX_VALIDATE_NAME_C(InContext, AreaAttributeName); }
 	if (bWriteCompactness) { PCGEX_VALIDATE_NAME_C(InContext, CompactnessAttributeName); }
 
-	// Validate mode-specific attributes
-	if (OutputMode == EPCGExCellOutputMode::Paths)
+	// Validate paths-specific attributes
+	if (bOutputPaths)
 	{
-		// Paths-only attributes
 		if (bWriteVtxId) { PCGEX_VALIDATE_NAME_C(InContext, VtxIdAttributeName); }
 		if (bFlagTerminalPoint) { PCGEX_VALIDATE_NAME_C(InContext, TerminalFlagAttributeName); }
 		if (bWriteNumRepeat) { PCGEX_VALIDATE_NAME_C(InContext, NumRepeatAttributeName); }
@@ -85,9 +81,10 @@ bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
 		TagForwarding.bPreservePCGExData = false;
 		TagForwarding.Init();
 	}
-	else if (OutputMode == EPCGExCellOutputMode::CellBounds)
+
+	// Validate CellBounds-specific attributes
+	if (bOutputCellBounds)
 	{
-		// OBB-only attributes
 		if (bWriteNumNodes) { PCGEX_VALIDATE_NAME_C(InContext, NumNodesAttributeName); }
 	}
 
@@ -140,9 +137,9 @@ void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluste
 		}
 	}
 
-	if (bWriteCellHash) { InDataFacade->GetWritable<int64>(CellHashAttributeName, static_cast<int64>(InCell->GetCellHash()), true, PCGExData::EBufferInit::New); }
-	if (bWriteArea) { InDataFacade->GetWritable<double>(AreaAttributeName, InCell->Data.Area, true, PCGExData::EBufferInit::New); }
-	if (bWriteCompactness) { InDataFacade->GetWritable<double>(CompactnessAttributeName, InCell->Data.Compactness, true, PCGExData::EBufferInit::New); }
+	if (bWriteCellHash) { InDataFacade->GetWritable<int64>(PCGExMetaHelpers::MakeDataIdentifier(CellHashAttributeName), static_cast<int64>(InCell->GetCellHash()), true, PCGExData::EBufferInit::New); }
+	if (bWriteArea) { InDataFacade->GetWritable<double>(PCGExMetaHelpers::MakeDataIdentifier(AreaAttributeName), InCell->Data.Area, true, PCGExData::EBufferInit::New); }
+	if (bWriteCompactness) { InDataFacade->GetWritable<double>(PCGExMetaHelpers::MakeDataIdentifier(CompactnessAttributeName), InCell->Data.Compactness, true, PCGExData::EBufferInit::New); }
 	if (TerminalBuffer) { for (int i = 0; i < NumNodes; i++) { TerminalBuffer->SetValue(i, InCluster->GetNode(InCell->Nodes[i])->IsLeaf()); } }
 	if (RepeatBuffer) { for (int i = 0; i < NumNodes; i++) { RepeatBuffer->SetValue(i, NumRepeats[InCell->Nodes[i]] - 1); } }
 
@@ -196,14 +193,14 @@ namespace PCGExClusters
 		TPCGValueRange<FVector> OutBoundsMin = OutPointData->GetBoundsMinValueRange();
 		TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange();
 
-		// Create attribute writers (conditional based on ArtifactSettings)
-		TSharedPtr<PCGExData::TBuffer<int64>> CellHashWriter = ArtifactSettings.bWriteCellHash ? OutFacade->GetWritable<int64>(ArtifactSettings.CellHashAttributeName, static_cast<int64>(0), true, PCGExData::EBufferInit::New) : nullptr;
+		// Create attribute writers (conditional based on ArtifactSettings) - use Elements domain for OBB points
+		TSharedPtr<PCGExData::TBuffer<int64>> CellHashWriter = ArtifactSettings.bWriteCellHash ? OutFacade->GetWritable<int64>(PCGExMetaHelpers::MakeElementIdentifier(ArtifactSettings.CellHashAttributeName), static_cast<int64>(0), true, PCGExData::EBufferInit::New) : nullptr;
 
-		TSharedPtr<PCGExData::TBuffer<double>> AreaWriter = ArtifactSettings.bWriteArea ? OutFacade->GetWritable<double>(ArtifactSettings.AreaAttributeName, 0.0, true, PCGExData::EBufferInit::New) : nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> AreaWriter = ArtifactSettings.bWriteArea ? OutFacade->GetWritable<double>(PCGExMetaHelpers::MakeElementIdentifier(ArtifactSettings.AreaAttributeName), 0.0, true, PCGExData::EBufferInit::New) : nullptr;
 
-		TSharedPtr<PCGExData::TBuffer<double>> CompactnessWriter = ArtifactSettings.bWriteCompactness ? OutFacade->GetWritable<double>(ArtifactSettings.CompactnessAttributeName, 0.0, true, PCGExData::EBufferInit::New) : nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> CompactnessWriter = ArtifactSettings.bWriteCompactness ? OutFacade->GetWritable<double>(PCGExMetaHelpers::MakeElementIdentifier(ArtifactSettings.CompactnessAttributeName), 0.0, true, PCGExData::EBufferInit::New) : nullptr;
 
-		TSharedPtr<PCGExData::TBuffer<int32>> NumNodesWriter = ArtifactSettings.bWriteNumNodes ? OutFacade->GetWritable<int32>(ArtifactSettings.NumNodesAttributeName, 0, true, PCGExData::EBufferInit::New) : nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> NumNodesWriter = ArtifactSettings.bWriteNumNodes ? OutFacade->GetWritable<int32>(PCGExMetaHelpers::MakeElementIdentifier(ArtifactSettings.NumNodesAttributeName), 0, true, PCGExData::EBufferInit::New) : nullptr;
 
 		PCGEX_PARALLEL_FOR(
 			NumCells,

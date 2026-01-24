@@ -174,6 +174,33 @@ namespace PCGExMetaHelpers
 		return Selector;
 	}
 
+	FName StripDomainFromName(const FName& InName)
+	{
+		const FString NameStr = InName.ToString();
+
+		// Check for @{Domain}. pattern
+		if (NameStr.StartsWith(TEXT("@")))
+		{
+			const int32 DotIndex = NameStr.Find(TEXT("."), ESearchCase::CaseSensitive, ESearchDir::FromStart, 1);
+			if (DotIndex != INDEX_NONE)
+			{
+				return FName(NameStr.Mid(DotIndex + 1));
+			}
+		}
+
+		return InName;
+	}
+
+	FPCGAttributeIdentifier MakeDataIdentifier(const FName& BaseName)
+	{
+		return FPCGAttributeIdentifier(StripDomainFromName(BaseName), PCGMetadataDomainID::Data);
+	}
+
+	FPCGAttributeIdentifier MakeElementIdentifier(const FName& BaseName)
+	{
+		return FPCGAttributeIdentifier(StripDomainFromName(BaseName), PCGMetadataDomainID::Elements);
+	}
+
 	bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
 	{
 		if (!InMetadata) { return false; }
