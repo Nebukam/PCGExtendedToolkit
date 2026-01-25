@@ -53,8 +53,6 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	virtual bool SupportsDataStealing() const override { return true; }
-
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
@@ -140,8 +138,6 @@ namespace PCGExOffsetPath
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExOffsetPathContext, UPCGExOffsetPathSettings>
 	{
 		TConstPCGValueRange<FTransform> InTransforms;
-
-		TArray<FVector> OriginalPositions;
 		
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeHalfAngle> PathAngles;
