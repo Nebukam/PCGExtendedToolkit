@@ -45,6 +45,72 @@ namespace PCGExCells
 	}
 }
 
+///
+/// Cell Triage - for bounded cell finding nodes
+///
+
+UENUM()
+enum class EPCGExCellTriageOutput : uint8
+{
+	Separate = 0 UMETA(DisplayName = "Separate Pins", ToolTip="Output Inside/Touching/Outside to separate pins"),
+	Combined = 1 UMETA(DisplayName = "Combined", ToolTip="Output matching cells to a single pin with triage tags"),
+};
+
+UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
+enum class EPCGExCellTriageFlags : uint8
+{
+	None     = 0,
+	Inside   = 1 << 0 UMETA(DisplayName = "Inside", ToolTip="Output cells fully inside the bounds"),
+	Touching = 1 << 1 UMETA(DisplayName = "Touching", ToolTip="Output cells touching/intersecting the bounds"),
+	Outside  = 1 << 2 UMETA(DisplayName = "Outside", ToolTip="Output cells fully outside the bounds"),
+};
+ENUM_CLASS_FLAGS(EPCGExCellTriageFlags)
+
+UENUM()
+enum class EPCGExCellTriageResult : uint8
+{
+	Inside = 0,
+	Touching,
+	Outside
+};
+
+namespace PCGExCellTriage
+{
+	const FString TagInside = TEXT("CellTriage:Inside");
+	const FString TagTouching = TEXT("CellTriage:Touching");
+	const FString TagOutside = TEXT("CellTriage:Outside");
+
+	// Default: Inside + Touching
+	constexpr EPCGExCellTriageFlags DefaultFlags = static_cast<EPCGExCellTriageFlags>(
+		static_cast<uint8>(EPCGExCellTriageFlags::Inside) | static_cast<uint8>(EPCGExCellTriageFlags::Touching));
+
+	/** Classify a cell relative to bounds filter */
+	PCGEXGRAPHS_API EPCGExCellTriageResult ClassifyCell(const FBox& CellBounds, const FVector& CellCentroid, const FBox& BoundsFilter);
+
+	/** Get tag string for triage result */
+	FORCEINLINE const FString& GetTriageTag(EPCGExCellTriageResult InResult)
+	{
+		switch (InResult)
+		{
+		case EPCGExCellTriageResult::Inside: return TagInside;
+		case EPCGExCellTriageResult::Touching: return TagTouching;
+		default: return TagOutside;
+		}
+	}
+
+	/** Check if triage result is enabled by flags */
+	FORCEINLINE bool IsEnabled(EPCGExCellTriageResult InResult, uint8 InFlags)
+	{
+		switch (InResult)
+		{
+		case EPCGExCellTriageResult::Inside: return !!(InFlags & static_cast<uint8>(EPCGExCellTriageFlags::Inside));
+		case EPCGExCellTriageResult::Touching: return !!(InFlags & static_cast<uint8>(EPCGExCellTriageFlags::Touching));
+		case EPCGExCellTriageResult::Outside: return !!(InFlags & static_cast<uint8>(EPCGExCellTriageFlags::Outside));
+		default: return false;
+		}
+	}
+}
+
 UENUM()
 enum class EPCGExPointPropertyOutput : uint8
 {
@@ -99,7 +165,7 @@ enum class EPCGExCellSeedBounds : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExCellConstraintsDetails
+struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 {
 	GENERATED_BODY()
 
@@ -250,7 +316,7 @@ namespace PCGExClusters
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExCellSeedMutationDetails
+struct PCGEXGRAPHS_API FPCGExCellSeedMutationDetails
 {
 	GENERATED_BODY()
 
@@ -302,7 +368,7 @@ struct PCGEXCORE_API FPCGExCellSeedMutationDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExCellOBBAttributesDetails
+struct PCGEXGRAPHS_API FPCGExCellOBBAttributesDetails
 {
 	GENERATED_BODY()
 
@@ -324,7 +390,7 @@ struct PCGEXCORE_API FPCGExCellOBBAttributesDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXCORE_API FPCGExCellArtifactsDetails
+struct PCGEXGRAPHS_API FPCGExCellArtifactsDetails
 {
 	GENERATED_BODY()
 
@@ -433,7 +499,7 @@ struct PCGEXCORE_API FPCGExCellArtifactsDetails
 namespace PCGExClusters
 {
 	/** Process cells as OBB points - outputs one PointData per cluster with one point per cell */
-	PCGEXCORE_API void ProcessCellsAsOBBPoints(
+	PCGEXGRAPHS_API void ProcessCellsAsOBBPoints(
 		const TSharedPtr<FCluster>& InCluster,
 		const TArray<TSharedPtr<FCell>>& InCells,
 		const TSharedPtr<PCGExData::FFacade>& OutFacade,

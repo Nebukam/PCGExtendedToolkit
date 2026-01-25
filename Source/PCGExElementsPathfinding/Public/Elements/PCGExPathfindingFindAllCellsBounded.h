@@ -13,6 +13,7 @@ namespace PCGExClusters
 {
 	class FProjectedPointSet;
 	class FCellConstraints;
+	class FCellPathBuilder;
 }
 
 namespace PCGExFindAllCellsBounded
@@ -36,33 +37,7 @@ namespace PCGExMT
 	class TScopedArray;
 }
 
-UENUM()
-enum class EPCGExCellTriageOutput : uint8
-{
-	Separate = 0 UMETA(DisplayName = "Separate Pins", ToolTip="Output Inside/Touching/Outside to separate pins"),
-	Combined = 1 UMETA(DisplayName = "Combined", ToolTip="Output matching cells to a single pin with triage tags"),
-};
-
-UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
-enum class EPCGExCellTriageFlags : uint8
-{
-	None     = 0,
-	Inside   = 1 << 0 UMETA(DisplayName = "Inside", ToolTip="Output cells fully inside the bounds"),
-	Touching = 1 << 1 UMETA(DisplayName = "Touching", ToolTip="Output cells touching/intersecting the bounds"),
-	Outside  = 1 << 2 UMETA(DisplayName = "Outside", ToolTip="Output cells fully outside the bounds"),
-};
-ENUM_CLASS_FLAGS(EPCGExCellTriageFlags)
-
-namespace PCGExCellTriage
-{
-	const FString TagInside = TEXT("CellTriage::Inside");
-	const FString TagTouching = TEXT("CellTriage::Touching");
-	const FString TagOutside = TEXT("CellTriage::Outside");
-
-	// Default: Inside + Touching
-	constexpr EPCGExCellTriageFlags DefaultFlags = static_cast<EPCGExCellTriageFlags>(
-		static_cast<uint8>(EPCGExCellTriageFlags::Inside) | static_cast<uint8>(EPCGExCellTriageFlags::Touching));
-}
+// Triage enums and tags are now in PCGExCellDetails.h
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-all-cells-bounded"))
 class UPCGExFindAllCellsBoundedSettings : public UPCGExClustersProcessorSettings
@@ -96,7 +71,7 @@ public:
 	EPCGExCellTriageOutput OutputMode = EPCGExCellTriageOutput::Separate;
 
 	/** Which cell categories to output (Inside/Touching/Outside) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, Bitmask, BitmaskEnum = "/Script/PCGExElementsPathfinding.EPCGExCellTriageFlags"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, Bitmask, BitmaskEnum = "/Script/PCGExGraphs.EPCGExCellTriageFlags"))
 	uint8 TriageFlags = static_cast<uint8>(PCGExCellTriage::DefaultFlags);
 
 	FORCEINLINE bool OutputInside() const { return !!(TriageFlags & static_cast<uint8>(EPCGExCellTriageFlags::Inside)); }
@@ -158,17 +133,14 @@ protected:
 
 namespace PCGExFindAllCellsBounded
 {
-	enum class ECellTriageResult : uint8
-	{
-		Inside,
-		Touching,
-		Outside
-	};
+	// Use shared triage result enum from PCGExCellDetails.h
+	using ECellTriageResult = EPCGExCellTriageResult;
 
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindAllCellsBoundedContext, UPCGExFindAllCellsBoundedSettings>
 	{
 	protected:
 		TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
+		TSharedPtr<PCGExClusters::FCellPathBuilder> CellProcessor;
 
 		TArray<TSharedPtr<PCGExClusters::FCell>> CellsInside;
 		TArray<TSharedPtr<PCGExClusters::FCell>> CellsTouching;
@@ -194,7 +166,6 @@ namespace PCGExFindAllCellsBounded
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO, const FString& TriageTag = TEXT(""));
 
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 

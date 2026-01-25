@@ -11,6 +11,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/Artifacts/PCGExCell.h"
+#include "Clusters/Artifacts/PCGExCellPathBuilder.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
 
@@ -227,23 +228,7 @@ namespace PCGExFindAllCellsBounded
 
 	ECellTriageResult FProcessor::ClassifyCell(const TSharedPtr<PCGExClusters::FCell>& InCell) const
 	{
-		const FBox& CellBounds = InCell->Data.Bounds;
-		const FVector CellCenter = InCell->Data.Centroid;
-
-		// Inside: Cell center is inside the filter bounds
-		if (Context->BoundsFilter.IsInside(CellCenter))
-		{
-			return ECellTriageResult::Inside;
-		}
-
-		// Touching: Cell bounds intersect filter bounds but center is outside
-		if (Context->BoundsFilter.Intersect(CellBounds))
-		{
-			return ECellTriageResult::Touching;
-		}
-
-		// Outside: No intersection
-		return ECellTriageResult::Outside;
+		return PCGExCellTriage::ClassifyCell(InCell->Data.Bounds, InCell->Data.Centroid, Context->BoundsFilter);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -276,6 +261,13 @@ namespace PCGExFindAllCellsBounded
 		}
 
 		if (AllCells.IsEmpty()) { return true; }
+
+		// Initialize cell processor
+		CellProcessor = MakeShared<PCGExClusters::FCellPathBuilder>();
+		CellProcessor->Cluster = Cluster;
+		CellProcessor->TaskManager = TaskManager;
+		CellProcessor->Artifacts = &Context->Artifacts;
+		CellProcessor->EdgeDataFacade = EdgeDataFacade;
 
 		// Classify cells by bounds relationship, respecting enable flags
 		for (const TSharedPtr<PCGExClusters::FCell>& Cell : AllCells)
@@ -324,7 +316,6 @@ namespace PCGExFindAllCellsBounded
 			}
 			else
 			{
-				// Combined mode - all go to the same collection but with different tags
 				OutputCellBounds(CellsInside, Context->OutputCellBoundsInside, PCGExCellTriage::TagInside);
 				OutputCellBounds(CellsTouching, Context->OutputCellBoundsInside, PCGExCellTriage::TagTouching);
 				OutputCellBounds(CellsOutside, Context->OutputCellBoundsInside, PCGExCellTriage::TagOutside);
@@ -350,20 +341,17 @@ namespace PCGExFindAllCellsBounded
 		{
 			if (Settings->OutputMode == EPCGExCellTriageOutput::Separate)
 			{
-				// In Separate mode, no tagging needed (cells are already separated by pin)
 				PreparePathOutputs(CellsInside, CellsIOInside, CellTagsInside, Context->OutputPathsInside, TEXT(""));
 				PreparePathOutputs(CellsTouching, CellsIOTouching, CellTagsTouching, Context->OutputPathsTouching, TEXT(""));
 				PreparePathOutputs(CellsOutside, CellsIOOutside, CellTagsOutside, Context->OutputPathsOutside, TEXT(""));
 			}
 			else
 			{
-				// In Combined mode, output all to the same collection with triage tags
 				PreparePathOutputs(CellsInside, CellsIOInside, CellTagsInside, Context->OutputPathsInside, PCGExCellTriage::TagInside);
 				PreparePathOutputs(CellsTouching, CellsIOTouching, CellTagsTouching, Context->OutputPathsInside, PCGExCellTriage::TagTouching);
 				PreparePathOutputs(CellsOutside, CellsIOOutside, CellTagsOutside, Context->OutputPathsInside, PCGExCellTriage::TagOutside);
 			}
 
-			// Total cells to process in parallel
 			const int32 TotalCells = CellsIOInside.Num() + CellsIOTouching.Num() + CellsIOOutside.Num();
 			if (TotalCells > 0)
 			{
@@ -374,38 +362,8 @@ namespace PCGExFindAllCellsBounded
 		return true;
 	}
 
-	void FProcessor::ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO, const FString& TriageTag)
-	{
-		if (!PathIO) { return; }
-
-		PathIO->Tags->Reset();
-
-		// Add triage tag in Combined mode
-		if (!TriageTag.IsEmpty())
-		{
-			PathIO->Tags->AddRaw(TriageTag);
-		}
-
-		PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 1000000 + Cluster->GetNodePointIndex(InCell->Nodes[0]);
-
-		PCGExClusters::Helpers::CleanupClusterData(PathIO);
-
-		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
-
-		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(InCell->Nodes.Num());
-
-		for (int i = 0; i < InCell->Nodes.Num(); i++) { ReadIndices[i] = Cluster->GetNodePointIndex(InCell->Nodes[i]); }
-		PathIO->InheritPoints(ReadIndices, 0);
-		InCell->PostProcessPoints(PathIO->GetOut());
-
-		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->WriteFastest(TaskManager);
-	}
-
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		// Process cells from all three categories based on index offset
 		const int32 InsideCount = CellsIOInside.Num();
 		const int32 TouchingCount = CellsIOTouching.Num();
 
@@ -415,7 +373,7 @@ namespace PCGExFindAllCellsBounded
 			{
 				if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOInside[Index])
 				{
-					ProcessCell(CellsInside[Index], IO, CellTagsInside.IsValidIndex(Index) ? CellTagsInside[Index] : TEXT(""));
+					CellProcessor->ProcessCell(CellsInside[Index], IO, CellTagsInside.IsValidIndex(Index) ? CellTagsInside[Index] : TEXT(""));
 				}
 				CellsInside[Index] = nullptr;
 			}
@@ -424,7 +382,7 @@ namespace PCGExFindAllCellsBounded
 				const int32 LocalIndex = Index - InsideCount;
 				if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOTouching[LocalIndex])
 				{
-					ProcessCell(CellsTouching[LocalIndex], IO, CellTagsTouching.IsValidIndex(LocalIndex) ? CellTagsTouching[LocalIndex] : TEXT(""));
+					CellProcessor->ProcessCell(CellsTouching[LocalIndex], IO, CellTagsTouching.IsValidIndex(LocalIndex) ? CellTagsTouching[LocalIndex] : TEXT(""));
 				}
 				CellsTouching[LocalIndex] = nullptr;
 			}
@@ -433,7 +391,7 @@ namespace PCGExFindAllCellsBounded
 				const int32 LocalIndex = Index - InsideCount - TouchingCount;
 				if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOOutside[LocalIndex])
 				{
-					ProcessCell(CellsOutside[LocalIndex], IO, CellTagsOutside.IsValidIndex(LocalIndex) ? CellTagsOutside[LocalIndex] : TEXT(""));
+					CellProcessor->ProcessCell(CellsOutside[LocalIndex], IO, CellTagsOutside.IsValidIndex(LocalIndex) ? CellTagsOutside[LocalIndex] : TEXT(""));
 				}
 				CellsOutside[LocalIndex] = nullptr;
 			}

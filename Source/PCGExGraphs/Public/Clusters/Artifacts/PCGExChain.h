@@ -16,7 +16,7 @@ namespace PCGExClusters
 	class FCluster;
 	using PCGExGraphs::FLink;
 
-	class PCGEXCORE_API FNodeChain : public TSharedFromThis<FNodeChain>
+	class PCGEXGRAPHS_API FNodeChain : public TSharedFromThis<FNodeChain>
 	{
 	public:
 		FLink Seed;
@@ -45,7 +45,7 @@ namespace PCGExClusters
 		int32 GetNodes(const TSharedPtr<FCluster>& Cluster, TArray<int32>& OutNodes, bool bReverse);
 	};
 
-	class PCGEXCORE_API FNodeChainBuilder : public TSharedFromThis<FNodeChainBuilder>
+	class PCGEXGRAPHS_API FNodeChainBuilder : public TSharedFromThis<FNodeChainBuilder>
 	{
 	public:
 		TSharedRef<FCluster> Cluster;

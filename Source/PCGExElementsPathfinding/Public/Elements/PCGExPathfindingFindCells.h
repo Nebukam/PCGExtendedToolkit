@@ -16,6 +16,8 @@ namespace PCGExClusters
 {
 	class FProjectedPointSet;
 	class FCellConstraints;
+	class FCellPathBuilder;
+	class FCell;
 }
 
 namespace PCGExMT
@@ -141,6 +143,7 @@ namespace PCGExFindContours
 	{
 	protected:
 		TSharedPtr<PCGExClusters::FProjectedPointSet> Seeds;
+		TSharedPtr<PCGExClusters::FCellPathBuilder> CellProcessor;
 		TArray<TSharedPtr<PCGExClusters::FCell>> EnumeratedCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCellsIncludingFailed; // For checking seed consumption
 		TSharedPtr<PCGExClusters::FCell> WrapperCell;
@@ -166,7 +169,6 @@ namespace PCGExFindContours
 		virtual void OnRangeProcessingComplete() override;
 
 		void HandleWrapperOnlyCase(const int32 NumSeeds);
-		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 
 		virtual void Cleanup() override;
 	};

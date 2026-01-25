@@ -11,6 +11,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/Artifacts/PCGExCell.h"
+#include "Clusters/Artifacts/PCGExCellPathBuilder.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Math/Geo/PCGExGeo.h"
 #include "Paths/PCGExPath.h"
@@ -257,20 +258,7 @@ namespace PCGExFindContoursBounded
 
 	ECellTriageResult FProcessor::ClassifyCell(const TSharedPtr<PCGExClusters::FCell>& InCell) const
 	{
-		const FBox& CellBounds = InCell->Data.Bounds;
-		const FVector CellCenter = InCell->Data.Centroid;
-
-		if (Context->BoundsFilter.IsInside(CellCenter))
-		{
-			return ECellTriageResult::Inside;
-		}
-
-		if (Context->BoundsFilter.Intersect(CellBounds))
-		{
-			return ECellTriageResult::Touching;
-		}
-
-		return ECellTriageResult::Outside;
+		return PCGExCellTriage::ClassifyCell(InCell->Data.Bounds, InCell->Data.Centroid, Context->BoundsFilter);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
@@ -280,6 +268,23 @@ namespace PCGExFindContoursBounded
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		const int32 NumSeeds = Context->SeedsDataFacade->Source->GetNum();
+
+		// Initialize cell processor
+		CellProcessor = MakeShared<PCGExClusters::FCellPathBuilder>();
+		CellProcessor->Cluster = Cluster;
+		CellProcessor->TaskManager = TaskManager;
+		CellProcessor->Artifacts = &Context->Artifacts;
+		CellProcessor->BatchIndex = BatchIndex;
+		CellProcessor->SeedsDataFacade = Context->SeedsDataFacade;
+		CellProcessor->SeedAttributesToPathTags = &Context->SeedAttributesToPathTags;
+		CellProcessor->SeedForwardHandler = Context->SeedForwardHandler;
+
+		if (Settings->bOutputFilteredSeeds)
+		{
+			CellProcessor->SeedQuality = &Context->SeedQuality;
+			CellProcessor->GoodSeeds = Context->GoodSeeds;
+			CellProcessor->SeedMutations = &Settings->SeedMutations;
+		}
 
 		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->Reserve(Cluster->Edges->Num());
@@ -479,7 +484,7 @@ namespace PCGExFindContoursBounded
 
 		if (Settings->Artifacts.bOutputPaths && PathCollection)
 		{
-			ProcessCell(WrapperCell, PathCollection->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New), TriageTag);
+			CellProcessor->ProcessSeededCell(WrapperCell, PathCollection->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New), TriageTag);
 		}
 	}
 
@@ -665,6 +670,7 @@ namespace PCGExFindContoursBounded
 				ProcessCellsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
+					const TSharedPtr<PCGExClusters::FCellPathBuilder>& Processor = This->CellProcessor;
 
 					const int32 InsideCount = This->CellsIOInside.Num();
 					const int32 TouchingCount = This->CellsIOTouching.Num();
@@ -675,7 +681,7 @@ namespace PCGExFindContoursBounded
 						{
 							if (const TSharedPtr<PCGExData::FPointIO> IO = This->CellsIOInside[Index])
 							{
-								This->ProcessCell(This->CellsInside[Index], IO, This->CellTagsInside[Index]);
+								Processor->ProcessSeededCell(This->CellsInside[Index], IO, This->CellTagsInside[Index]);
 							}
 							This->CellsInside[Index] = nullptr;
 						}
@@ -684,7 +690,7 @@ namespace PCGExFindContoursBounded
 							const int32 LocalIndex = Index - InsideCount;
 							if (const TSharedPtr<PCGExData::FPointIO> IO = This->CellsIOTouching[LocalIndex])
 							{
-								This->ProcessCell(This->CellsTouching[LocalIndex], IO, This->CellTagsTouching[LocalIndex]);
+								Processor->ProcessSeededCell(This->CellsTouching[LocalIndex], IO, This->CellTagsTouching[LocalIndex]);
 							}
 							This->CellsTouching[LocalIndex] = nullptr;
 						}
@@ -693,7 +699,7 @@ namespace PCGExFindContoursBounded
 							const int32 LocalIndex = Index - InsideCount - TouchingCount;
 							if (const TSharedPtr<PCGExData::FPointIO> IO = This->CellsIOOutside[LocalIndex])
 							{
-								This->ProcessCell(This->CellsOutside[LocalIndex], IO, This->CellTagsOutside[LocalIndex]);
+								Processor->ProcessSeededCell(This->CellsOutside[LocalIndex], IO, This->CellTagsOutside[LocalIndex]);
 							}
 							This->CellsOutside[LocalIndex] = nullptr;
 						}
@@ -702,44 +708,6 @@ namespace PCGExFindContoursBounded
 
 				ProcessCellsTask->StartSubLoops(PathCount, 64);
 			}
-		}
-	}
-
-	void FProcessor::ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO, const FString& TriageTag)
-	{
-		if (!PathIO) { return; }
-
-		const int32 SeedIndex = InCell->CustomIndex;
-		const int32 NumCellPoints = InCell->Nodes.Num();
-		PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), NumCellPoints);
-
-		PathIO->Tags->Reset();
-		if (!TriageTag.IsEmpty()) { PathIO->Tags->AddRaw(TriageTag); }
-		PathIO->IOIndex = BatchIndex * 1000000 + SeedIndex;
-
-		PCGExClusters::Helpers::CleanupClusterData(PathIO);
-
-		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
-
-		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(NumCellPoints);
-
-		for (int i = 0; i < NumCellPoints; i++) { ReadIndices[i] = Cluster->GetNodePointIndex(InCell->Nodes[i]); }
-
-		PathIO->InheritPoints(ReadIndices, 0);
-		InCell->PostProcessPoints(PathIO->GetOut());
-
-		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(SeedIndex), PathIO);
-		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
-
-		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->WriteFastest(TaskManager);
-
-		if (Settings->bOutputFilteredSeeds)
-		{
-			Context->SeedQuality[SeedIndex] = true;
-			PCGExData::FMutablePoint SeedPoint = Context->GoodSeeds->GetOutPoint(SeedIndex);
-			Settings->SeedMutations.ApplyToPoint(InCell.Get(), SeedPoint, PathIO->GetOut());
 		}
 	}
 

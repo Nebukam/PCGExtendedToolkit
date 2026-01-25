@@ -17,6 +17,8 @@ namespace PCGExClusters
 {
 	class FProjectedPointSet;
 	class FCellConstraints;
+	class FCellPathBuilder;
+	class FCell;
 }
 
 namespace PCGExMT
@@ -74,7 +76,7 @@ public:
 	EPCGExCellTriageOutput OutputMode = EPCGExCellTriageOutput::Separate;
 
 	/** Which cell categories to output (Inside/Touching/Outside) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, Bitmask, BitmaskEnum = "/Script/PCGExElementsPathfinding.EPCGExCellTriageFlags"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, Bitmask, BitmaskEnum = "/Script/PCGExGraphs.EPCGExCellTriageFlags"))
 	uint8 TriageFlags = static_cast<uint8>(PCGExCellTriage::DefaultFlags);
 
 	FORCEINLINE bool OutputInside() const { return !!(TriageFlags & static_cast<uint8>(EPCGExCellTriageFlags::Inside)); }
@@ -162,12 +164,14 @@ protected:
 
 namespace PCGExFindContoursBounded
 {
-	using ECellTriageResult = PCGExFindAllCellsBounded::ECellTriageResult;
+	// Use shared triage result enum from PCGExCellDetails.h
+	using ECellTriageResult = EPCGExCellTriageResult;
 
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursBoundedContext, UPCGExFindContoursBoundedSettings>
 	{
 	protected:
 		TSharedPtr<PCGExClusters::FProjectedPointSet> Seeds;
+		TSharedPtr<PCGExClusters::FCellPathBuilder> CellProcessor;
 		TArray<TSharedPtr<PCGExClusters::FCell>> EnumeratedCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCellsIncludingFailed;
 		TSharedPtr<PCGExClusters::FCell> WrapperCell;
@@ -204,7 +208,6 @@ namespace PCGExFindContoursBounded
 		virtual void OnRangeProcessingComplete() override;
 
 		void HandleWrapperOnlyCase(const int32 NumSeeds);
-		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO, const FString& TriageTag = TEXT(""));
 
 		virtual void Cleanup() override;
 

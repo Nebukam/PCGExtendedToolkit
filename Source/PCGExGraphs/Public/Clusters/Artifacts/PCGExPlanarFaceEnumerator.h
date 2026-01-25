@@ -23,7 +23,7 @@ namespace PCGExClusters
 	 * Half-edge structure for DCEL-based planar face enumeration.
 	 * Each undirected edge becomes two half-edges pointing in opposite directions.
 	 */
-	struct PCGEXCORE_API FHalfEdge
+	struct PCGEXGRAPHS_API FHalfEdge
 	{
 		int32 OriginNode = -1;    // Node index where this half-edge starts
 		int32 TargetNode = -1;    // Node index where this half-edge ends
@@ -42,7 +42,7 @@ namespace PCGExClusters
 	/**
 	 * Raw face data - lightweight structure for parallel cell building
 	 */
-	struct PCGEXCORE_API FRawFace
+	struct PCGEXGRAPHS_API FRawFace
 	{
 		TArray<int32> Nodes;
 		int32 FaceIndex = -1;
@@ -55,7 +55,7 @@ namespace PCGExClusters
 	 * DCEL-based planar face enumerator.
 	 * Builds a proper half-edge structure and enumerates all faces by following next pointers.
 	 */
-	class PCGEXCORE_API FPlanarFaceEnumerator : public TSharedFromThis<FPlanarFaceEnumerator>
+	class PCGEXGRAPHS_API FPlanarFaceEnumerator : public TSharedFromThis<FPlanarFaceEnumerator>
 	{
 	protected:
 		TArray<FHalfEdge> HalfEdges;

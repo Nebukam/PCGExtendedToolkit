@@ -13,7 +13,7 @@ namespace PCGExClusters
 {
 	class FProjectedPointSet;
 	class FCellConstraints;
-	class FProjectedPointSet;
+	class FCellPathBuilder;
 }
 
 namespace PCGExFindAllCells
@@ -112,6 +112,7 @@ namespace PCGExFindAllCells
 	{
 	protected:
 		TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
+		TSharedPtr<PCGExClusters::FCellPathBuilder> CellProcessor;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIO;
 
@@ -126,7 +127,6 @@ namespace PCGExFindAllCells
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 

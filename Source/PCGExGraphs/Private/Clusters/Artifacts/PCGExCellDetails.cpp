@@ -162,6 +162,31 @@ void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluste
 }
 
 
+#pragma region Cell Triage
+
+namespace PCGExCellTriage
+{
+	EPCGExCellTriageResult ClassifyCell(const FBox& CellBounds, const FVector& CellCentroid, const FBox& BoundsFilter)
+	{
+		// Inside: Cell centroid is inside the filter bounds
+		if (BoundsFilter.IsInside(CellCentroid))
+		{
+			return EPCGExCellTriageResult::Inside;
+		}
+
+		// Touching: Cell bounds intersect filter bounds but centroid is outside
+		if (BoundsFilter.Intersect(CellBounds))
+		{
+			return EPCGExCellTriageResult::Touching;
+		}
+
+		// Outside: No intersection
+		return EPCGExCellTriageResult::Outside;
+	}
+}
+
+#pragma endregion
+
 #pragma region OBB Output
 
 namespace PCGExClusters

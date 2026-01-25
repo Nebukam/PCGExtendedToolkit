@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExArrayHelpers.h"
 #include "Paths/PCGExPathsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
@@ -15,7 +16,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExOffsetPathSettings, Offset, double, OffsetInput, 
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
-PCGExData::EIOInit UPCGExOffsetPathSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExOffsetPathSettings::GetMainDataInitializationPolicy() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(OffsetPath)
 
@@ -72,8 +73,15 @@ namespace PCGExOffsetPath
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->GetMainDataInitializationPolicy())
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
+
+		if (Settings->StealData == EPCGExOptionState::Enabled && PrimaryFilters)
+		{
+			TConstPCGValueRange<FTransform> T = PointDataFacade->GetIn()->GetConstTransformValueRange();
+			PCGExArrayHelpers::InitArray(OriginalPositions, PointDataFacade->GetNum());
+			PCGEX_PARALLEL_FOR(PointDataFacade->GetNum(), OriginalPositions[i] = T[i].GetLocation();)
+		}
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 
@@ -191,10 +199,9 @@ namespace PCGExOffsetPath
 				}
 			}
 
-			if (!PointFilterCache[Index]) { OutTransforms[Index].SetLocation(InTransforms[Index].GetLocation()); }
+			if (!PointFilterCache[Index]) { OutTransforms[Index].SetLocation(OriginalPositions[Index]); }
 		}
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

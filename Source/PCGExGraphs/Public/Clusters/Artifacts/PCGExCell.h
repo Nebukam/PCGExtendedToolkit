@@ -40,7 +40,7 @@ namespace PCGExClusters
 		const FName SourceHolesLabel = FName("Holes");
 	}
 
-	PCGEXCORE_API
+	PCGEXGRAPHS_API
 	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
 #pragma region Cell
@@ -72,7 +72,7 @@ namespace PCGExClusters
 	 * Unified point set for Seeds/Holes - projects points to 2D and provides AABB-optimized overlap checks.
 	 * Thread-safe lazy projection with coarse AABB culling before fine polygon checks.
 	 */
-	class PCGEXCORE_API FProjectedPointSet : public TSharedFromThis<FProjectedPointSet>
+	class PCGEXGRAPHS_API FProjectedPointSet : public TSharedFromThis<FProjectedPointSet>
 	{
 	protected:
 		mutable FRWLock ProjectionLock;
@@ -105,7 +105,7 @@ namespace PCGExClusters
 		FORCEINLINE const FBox2D& GetBounds() const { return TightBounds; }
 	};
 
-	class PCGEXCORE_API FCellConstraints : public TSharedFromThis<FCellConstraints>
+	class PCGEXGRAPHS_API FCellConstraints : public TSharedFromThis<FCellConstraints>
 	{
 	protected:
 		PCGExMT::TH64SetShards<> UniquePathsHashSet;
@@ -167,7 +167,7 @@ namespace PCGExClusters
 		void Cleanup();
 	};
 
-	struct PCGEXCORE_API FCellData
+	struct PCGEXGRAPHS_API FCellData
 	{
 		int8 bIsValid = 0;
 		uint32 CellHash = 0;
@@ -183,7 +183,7 @@ namespace PCGExClusters
 		FCellData() = default;
 	};
 
-	class PCGEXCORE_API FCell : public TSharedFromThis<FCell>
+	class PCGEXGRAPHS_API FCell : public TSharedFromThis<FCell>
 	{
 	protected:
 		int32 Sign = 0;
