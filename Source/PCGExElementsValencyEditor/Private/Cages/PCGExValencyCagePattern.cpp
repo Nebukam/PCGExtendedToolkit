@@ -289,7 +289,7 @@ TArray<APCGExValencyCagePattern*> APCGExValencyCagePattern::GetConnectedPatternC
 			}
 
 			// Check manual connections
-			for (const TWeakObjectPtr<APCGExValencyCageBase>& ManualConnection : Orbital.ManualConnections)
+			for (const TObjectPtr<APCGExValencyCageBase>& ManualConnection : Orbital.ManualConnections)
 			{
 				if (APCGExValencyCagePattern* ManualConnected = Cast<APCGExValencyCagePattern>(ManualConnection.Get()))
 				{
@@ -345,7 +345,7 @@ FBox APCGExValencyCagePattern::ComputePatternBounds() const
 			}
 
 			// Check manual connections for null cages
-			for (const TWeakObjectPtr<APCGExValencyCageBase>& ManualConnection : Orbital.ManualConnections)
+			for (const TObjectPtr<APCGExValencyCageBase>& ManualConnection : Orbital.ManualConnections)
 			{
 				if (APCGExValencyCageBase* ManualConnected = ManualConnection.Get())
 				{
