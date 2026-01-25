@@ -6,10 +6,41 @@
 #include "PCGPin.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExPointFilter.h"
+#include "Math/PCGExProjectionDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
+
+#if WITH_EDITOR
+void UPCGExPointsProcessorSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 73, 4)
+	{
+		for (TFieldIterator<FProperty> PropIt(GetClass()); PropIt; ++PropIt)
+		{
+			FProperty* Property = *PropIt;
+
+			// Update Geo 2D projection
+			if (FStructProperty* StructProp = CastField<FStructProperty>(Property))
+			{
+				if (StructProp->Struct == FPCGExGeo2DProjectionDetails::StaticStruct())
+				{
+					FPCGExGeo2DProjectionDetails* ProjectionDetails = StructProp->ContainerPtrToValuePtr<FPCGExGeo2DProjectionDetails>(this);
+
+					if (ProjectionDetails)
+					{
+						ProjectionDetails->ApplyDeprecation();
+						break; // There should be only one
+					}
+				}
+			}
+		}
+	}
+
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {

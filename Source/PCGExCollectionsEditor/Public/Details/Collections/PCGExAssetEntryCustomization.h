@@ -5,6 +5,8 @@
 
 #include "IPropertyTypeCustomization.h"
 
+class UPCGExAssetCollection;
+
 class FPCGExAssetEntryCustomization : public IPropertyTypeCustomization
 {
 public:
@@ -20,6 +22,7 @@ public:
 
 protected:
 	TSet<FName> CustomizedTopLevelProperties;
+
 	virtual void FillCustomizedTopLevelPropertiesNames();
 
 	virtual TSharedRef<SWidget> GetAssetPicker(TSharedRef<IPropertyHandle> PropertyHandle, TSharedPtr<IPropertyHandle> IsSubCollectionHandle) =0;

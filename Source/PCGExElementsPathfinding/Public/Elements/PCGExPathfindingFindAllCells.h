@@ -11,8 +11,9 @@
 
 namespace PCGExClusters
 {
+	class FProjectedPointSet;
 	class FCellConstraints;
-	class FHoles;
+	class FCellPathBuilder;
 }
 
 namespace PCGExFindAllCells
@@ -40,6 +41,7 @@ public:
 #endif
 
 protected:
+	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
@@ -55,7 +57,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
 
-	/** Cell artifacts. */
+	/** Cell output settings (output mode, attributes, OBB settings) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellArtifactsDetails Artifacts;
 
@@ -82,10 +84,11 @@ struct FPCGExFindAllCellsContext final : FPCGExClustersProcessorContext
 
 	FPCGExCellArtifactsDetails Artifacts;
 
-	TSharedPtr<PCGExClusters::FHoles> Holes;
+	TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
 
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputCellBounds;
 	TSharedPtr<PCGExData::FPointIO> Seeds;
 
 	mutable FRWLock SeedOutputLock;
@@ -107,15 +110,9 @@ namespace PCGExFindAllCells
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindAllCellsContext, UPCGExFindAllCellsSettings>
 	{
-		int32 NumAttempts = 0;
-		int32 LastBinary = -1;
-
 	protected:
-		TSharedPtr<PCGExClusters::FHoles> Holes;
-		bool bBuildExpandedNodes = false;
-		TSharedPtr<PCGExClusters::FCell> WrapperCell;
-
-		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>> ScopedValidCells;
+		TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
+		TSharedPtr<PCGExClusters::FCellPathBuilder> CellProcessor;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIO;
 
@@ -130,13 +127,7 @@ namespace PCGExFindAllCells
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
-		bool FindCell(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge, TArray<TSharedPtr<PCGExClusters::FCell>>& Scope, const bool bSkipBinary = true);
-		void ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
-		void EnsureRoamingClosedLoopProcessing();
 
-		virtual void OnEdgesProcessingComplete() override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 
 		virtual void Cleanup() override;

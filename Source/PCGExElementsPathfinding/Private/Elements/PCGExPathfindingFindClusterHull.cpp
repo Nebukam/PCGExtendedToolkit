@@ -26,7 +26,8 @@ TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::Labels::OutputPathsLabel, "Hulls", Required)
+	PCGEX_PIN_POINTS(PCGExCells::OutputLabels::Paths, "Cluster hulls as closed paths", Required)
+	PCGEX_PIN_POINTS(PCGExCells::OutputLabels::CellBounds, "Cluster hull OBB bounds as points", Required)
 	return PinProperties;
 }
 
@@ -46,7 +47,10 @@ bool FPCGExFindClusterHullElement::Boot(FPCGExContext* InContext) const
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->OutputPaths->OutputPin = PCGExPaths::Labels::OutputPathsLabel;
+	Context->OutputPaths->OutputPin = PCGExCells::OutputLabels::Paths;
+
+	Context->OutputCellBounds = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->OutputCellBounds->OutputPin = PCGExCells::OutputLabels::CellBounds;
 
 	return true;
 }
@@ -71,9 +75,19 @@ bool FPCGExFindClusterHullElement::AdvanceWork(FPCGExContext* InContext, const U
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
-	// TODO : Output seeds?
+	uint64& Mask = Context->OutputData.InactiveOutputPinBitmask;
 
-	Context->OutputPaths->StageOutputs();
+	// Stage Paths output, disable pin if empty or disabled
+	if (!Settings->Artifacts.bOutputPaths || !Context->OutputPaths->StageOutputs())
+	{
+		Mask |= 1ULL << 0;
+	}
+
+	// Stage CellBounds output, disable pin if empty or disabled
+	if (!Settings->Artifacts.bOutputCellBounds || !Context->OutputCellBounds->StageOutputs())
+	{
+		Mask |= 1ULL << 1;
+	}
 
 	return Context->TryComplete();
 }
@@ -94,7 +108,7 @@ namespace PCGExFindClusterHull
 		const TArray<FVector2D>& Proj = *ProjectedVtxPositions.Get();
 
 		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
-		CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), Proj, CellsConstraints);
+		CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), Proj);
 
 		if (!CellsConstraints->WrapperCell)
 		{
@@ -102,7 +116,28 @@ namespace PCGExFindClusterHull
 			return false;
 		}
 
-		ProcessCell(CellsConstraints->WrapperCell);
+		TArray<TSharedPtr<PCGExClusters::FCell>> HullArray;
+		HullArray.Add(CellsConstraints->WrapperCell);
+
+		// Output to CellBounds if enabled
+		if (Settings->Artifacts.bOutputCellBounds)
+		{
+			TSharedPtr<PCGExData::FPointIO> OBBPointIO =
+				Context->OutputCellBounds->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+			OBBPointIO->Tags->Reset();
+			OBBPointIO->IOIndex = EdgeDataFacade->Source->IOIndex;
+			PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
+
+			PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
+			PCGExClusters::ProcessCellsAsOBBPoints(Cluster, HullArray, OBBFacade,
+				Context->Artifacts, TaskManager);
+		}
+
+		// Output to Paths if enabled
+		if (Settings->Artifacts.bOutputPaths)
+		{
+			ProcessCell(CellsConstraints->WrapperCell);
+		}
 
 		CellsConstraints->Cleanup();
 		CellsConstraints.Reset();

@@ -19,69 +19,6 @@ FPCGExSortRuleConfig::FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
 {
 }
 
-FPCGExCollectionSortingDetails::FPCGExCollectionSortingDetails(const bool InEnabled)
-{
-	bEnabled = InEnabled;
-}
-
-bool FPCGExCollectionSortingDetails::Init(const FPCGContext* InContext)
-{
-	if (!bEnabled) { return true; }
-	return true;
-}
-
-void FPCGExCollectionSortingDetails::Sort(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::SortByTag);
-
-	if (!bEnabled) { return; }
-
-	const FString TagNameStr = TagName.ToString();
-	TArray<double> Scores;
-
-	TArray<TSharedPtr<PCGExData::FPointIO>>& Pairs = InCollection->Pairs;
-
-	Scores.SetNumUninitialized(Pairs.Num());
-
-#if WITH_EDITOR
-	if (!bQuietMissingTagWarning)
-	{
-		for (int i = 0; i < Pairs.Num(); i++)
-		{
-			Pairs[i]->IOIndex = i;
-			if (const TSharedPtr<PCGExData::IDataValue> Value = Pairs[i]->Tags->GetValue(TagNameStr))
-			{
-				Scores[i] = Value->GetValue<double>();
-			}
-			else
-			{
-				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Some data is missing the '{0}' value tag."), FText::FromString(TagNameStr)))
-				Scores[i] = (static_cast<double>(i) + FallbackOrderOffset) * FallbackOrderMultiplier;
-			}
-		}
-	}
-	else
-#endif
-	{
-		for (int i = 0; i < Pairs.Num(); i++)
-		{
-			Pairs[i]->IOIndex = i;
-			Scores[i] = Pairs[i]->Tags->GetValue(TagNameStr, (static_cast<double>(i) + FallbackOrderOffset) * FallbackOrderMultiplier);
-		}
-	}
-
-	if (Direction == EPCGExSortDirection::Ascending)
-	{
-		Pairs.Sort([&](const TSharedPtr<PCGExData::FPointIO>& A, const TSharedPtr<PCGExData::FPointIO>& B) { return Scores[A->IOIndex] < Scores[B->IOIndex]; });
-	}
-	else
-	{
-		Pairs.Sort([&](const TSharedPtr<PCGExData::FPointIO>& A, const TSharedPtr<PCGExData::FPointIO>& B) { return Scores[A->IOIndex] > Scores[B->IOIndex]; });
-	}
-
-	for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->IOIndex = i; }
-}
-
 namespace PCGExSorting
 {
 	void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus)

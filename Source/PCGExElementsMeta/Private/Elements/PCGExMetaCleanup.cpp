@@ -10,6 +10,8 @@
 
 PCGEX_INITIALIZE_ELEMENT(MetaCleanup)
 
+PCGExData::EIOInit UPCGExMetaCleanupSettings::GetMainDataInitializationPolicy() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
+
 bool FPCGExMetaCleanupElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -43,7 +45,7 @@ bool FPCGExMetaCleanupElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 		while (Context->AdvancePointsIO())
 		{
 			// TODO : Check if any attribute is affected first, and forward instead of duplicate if not.
-			Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			Context->CurrentIO->InitializeOutput(Settings->GetMainDataInitializationPolicy());
 			Context->Filters.Prune(Context->CurrentIO.Get());
 		}
 	}

@@ -16,7 +16,7 @@ struct FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
 	GENERATED_BODY()
 
 	FPCGExTensorInertiaConstantConfig()
-		: FPCGExTensorConfigBase(true, false)
+		: FPCGExTensorConfigBase(true, true)
 	{
 	}
 

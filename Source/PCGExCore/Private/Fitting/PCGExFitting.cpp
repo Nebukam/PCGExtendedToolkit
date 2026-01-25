@@ -267,26 +267,25 @@ bool FPCGExFittingDetailsHandler::Init(FPCGExContext* InContext, const TSharedRe
 	return Justification.Init(InContext, InTargetFacade);
 }
 
-void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds, const bool bWorldSpace) const
+void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds, FVector& OutTranslation, const bool bWorldSpace) const
 {
 	//
 	check(TargetDataFacade);
 	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
-	const FTransform& InTransform = TargetPoint.GetTransform();
 
-	if (bWorldSpace) { OutTransform = InTransform; }
+	if (bWorldSpace) { OutTransform = TargetPoint.GetTransform(); }
 
-	FVector OutScale = InTransform.GetScale3D();
-	FVector OutTranslation = FVector::ZeroVector;
+	FVector OutScale = OutTransform.GetScale3D();
+	OutTranslation = FVector::ZeroVector;
 
 	ScaleToFit.Process(TargetPoint, InOutBounds, OutScale, InOutBounds);
 	Justification.Process(TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint), FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale), OutTranslation);
 
-	OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
+	OutTransform.AddToTranslation(OutTransform.GetRotation().RotateVector(OutTranslation));
 	OutTransform.SetScale3D(OutScale);
 }
 
-void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex, const FTransform& InLocalXForm, FTransform& OutTransform, FBox& InOutBounds) const
+void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex, const FTransform& InLocalXForm, FTransform& OutTransform, FBox& InOutBounds, FVector& OutTranslation) const
 {
 	check(TargetDataFacade);
 	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
@@ -297,7 +296,7 @@ void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex,
 	const FVector LocalTranslation = InLocalXForm.GetTranslation();
 
 	FVector OutScale = TargetTransform.GetScale3D();
-	FVector OutTranslation = FVector::ZeroVector;
+	OutTranslation = FVector::ZeroVector;
 
 	// FITTING: Use only-scaled bounds to compute correct per-axis scale factors
 	const FBox ScaledBounds(InOutBounds.Min * LocalScale, InOutBounds.Max * LocalScale);

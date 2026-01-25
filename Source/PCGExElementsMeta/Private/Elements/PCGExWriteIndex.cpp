@@ -11,7 +11,6 @@
 #include "Data/PCGSplineData.h"
 #include "Types/PCGExTypes.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
-#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
@@ -85,6 +84,11 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
+EPCGExExecutionPolicy UPCGExWriteIndexSettings::GetExecutionPolicy() const
+{
+	return EPCGExExecutionPolicy::NoPause;
+}
+
 #if WITH_EDITOR
 FString UPCGExWriteIndexSettings::GetDisplayName() const
 {
@@ -94,7 +98,7 @@ FString UPCGExWriteIndexSettings::GetDisplayName() const
 
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
-PCGExData::EIOInit UPCGExWriteIndexSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExWriteIndexSettings::GetMainDataInitializationPolicy() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteIndex)
 
@@ -263,7 +267,7 @@ namespace PCGExWriteIndex
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->GetMainDataInitializationPolicy())
 
 		NumPoints = PointDataFacade->GetNum();
 		MaxIndex = NumPoints - 1;

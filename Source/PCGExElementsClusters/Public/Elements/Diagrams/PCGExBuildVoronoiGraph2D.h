@@ -103,6 +103,10 @@ public:
 	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
+	/** Distance metric used for the Voronoi diagram. Euclidean produces classic Voronoi, Manhattan/Chebyshev produce axis-aligned edge structures. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExVoronoiMetric Metric = EPCGExVoronoiMetric::Euclidean;
+
 	/** Method used to find Voronoi cell location */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Centroid;
@@ -211,5 +215,9 @@ namespace PCGExBuildVoronoiGraph2D
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 		virtual void Output() override;
+
+	protected:
+		/** Process non-Euclidean (L1/L∞) Voronoi with extended vertex/edge output */
+		bool ProcessNonEuclidean(const TArray<FVector>& ActivePositions);
 	};
 }

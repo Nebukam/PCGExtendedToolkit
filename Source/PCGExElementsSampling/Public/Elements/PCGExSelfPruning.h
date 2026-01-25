@@ -72,7 +72,7 @@ public:
 	bool bRandomize = true;
 
 	/** Sort over a random per-point value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ─└─ Range", EditCondition="bRandomize && Mode == EPCGExSelfPruningMode::Prune", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="  └─ Range", EditCondition="bRandomize && Mode == EPCGExSelfPruningMode::Prune", EditConditionHides, ClampMin=0, ClampMax=1))
 	double RandomRange = 0.05;
 
 	/** Name of the attribute to write the number of overlap to. */

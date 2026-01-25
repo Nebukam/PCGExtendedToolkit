@@ -7,7 +7,6 @@
 #include "Data/PCGExPointIO.h"
 #include "Clusters/PCGExEdge.h"
 #include "Clusters/PCGExClusterCommon.h"
-#include "Async/ParallelFor.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Helpers/PCGExBufferHelper.h"
 
@@ -51,10 +50,9 @@ namespace PCGExGraphs::Helpers
 		}
 		else
 		{
-			PCGEX_PARALLEL_FOR_RET(
+			PCGEX_PARALLEL_FOR(
 				NumEdges,
-				true,
-				if (!bValid){return false;}
+				if (!bValid){ return; }
 
 				uint32 A;
 				uint32 B;
@@ -65,8 +63,8 @@ namespace PCGExGraphs::Helpers
 
 				if ((!StartPointIndexPtr || !EndPointIndexPtr))
 				{
-				FPlatformAtomics::InterlockedExchange(&bValid, 1);
-				return false;
+					FPlatformAtomics::InterlockedExchange(&bValid, 1);
+					return;
 				}
 
 				OutEdges[i] = FEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);

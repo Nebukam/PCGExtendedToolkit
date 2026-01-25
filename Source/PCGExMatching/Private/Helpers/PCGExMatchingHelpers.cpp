@@ -51,49 +51,77 @@ namespace PCGExMatching::Helpers
 		}
 	}
 
-	int32 GetMatchingSourcePartitions(const TSharedPtr<FDataMatcher>& Matcher, const TArray<TSharedPtr<PCGExData::FFacade>>& Facades, TArray<TArray<int32>>& OutPartitions, bool bExclusive, const TSet<int32>* OnceIndices)
+	int32 GetMatchingSourcePartitions(const TSharedPtr<FDataMatcher>& Matcher, const TArray<TSharedPtr<PCGExData::FFacade>>& Facades, TArray<TArray<int32>>& OutPartitions, const bool bExclusive, const TSet<int32>* OnceIndices)
 	{
-		// NOTE : Uses Idx insted of IOIndex
+		// NOTE : Uses Idx instead of IOIndex
 		// This is primarily aimed to help clipper2 module to create sub-groups of paths
 		// as well as MergeByTags to deprecate existing API and support non-exclusive groups.
-		// Having a way to flag "exclusive" data  (some that can only belong to a single group) would be neat
 
 		const int32 NumSources = Matcher->GetNumSources();
 		check(NumSources == Facades.Num())
+
+		if (NumSources == 0) { return 0; }
+
 		OutPartitions.Reserve(NumSources);
 
 		if (bExclusive)
 		{
-			TSet<int32> DistributedIndices;
-			DistributedIndices.Reserve(NumSources);
+			TBitArray<> DistributedIndices(false, NumSources);
+			TSet<int32> DistributedIndicesSet;
+			DistributedIndicesSet.Reserve(NumSources);
 
-			for (int i = 0; i < NumSources; ++i)
+			for (int32 i = 0; i < NumSources; ++i)
 			{
-				bool bIsAlreadyInSet = false;
-				DistributedIndices.Add(i, &bIsAlreadyInSet);
-
-				if (bIsAlreadyInSet) { continue; }
+				if (DistributedIndices[i]) { continue; }
 
 				TArray<int32>& Partition = OutPartitions.Emplace_GetRef();
+				Partition.Reserve(NumSources);
 
 				FScope Scope = FScope(NumSources, true);
-				Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition, &DistributedIndices);
+				Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition, &DistributedIndicesSet);
 				Partition.AddUnique(i);
+
+				// Remove any indices that were already distributed (defensive check for recursive matching)
+				Partition.RemoveAll([&DistributedIndices](const int32 Idx) { return DistributedIndices[Idx]; });
+
+				// Mark all partition members as distributed
+				for (const int32 Idx : Partition)
+				{
+					DistributedIndices[Idx] = true;
+					DistributedIndicesSet.Add(Idx);
+				}
 			}
 
 			return OutPartitions.Num();
 		}
 
-		TSet<int32> DistributedIndices;
-		DistributedIndices.Reserve(NumSources);
+		// Non-exclusive mode: indices can appear in multiple partitions,
+		// except for OnceIndices which should only appear in one partition
+		TBitArray<> OnceDistributed(false, NumSources);
 
-		for (int i = 0; i < NumSources; ++i)
+		for (int32 i = 0; i < NumSources; ++i)
 		{
 			TArray<int32>& Partition = OutPartitions.Emplace_GetRef();
+			Partition.Reserve(NumSources);
 
 			FScope Scope = FScope(NumSources, true);
 			Matcher->GetMatchingSourcesIndices(Facades[i]->Source->GetTaggedData(), Scope, Partition);
 			Partition.AddUnique(i);
+
+			// Remove OnceIndices that have already been distributed to a previous partition
+			if (OnceIndices && !OnceIndices->IsEmpty())
+			{
+				Partition.RemoveAll([&OnceIndices, &OnceDistributed](const int32 Idx)
+				{
+					return OnceIndices->Contains(Idx) && OnceDistributed[Idx];
+				});
+
+				// Mark OnceIndices in this partition as distributed
+				for (const int32 Idx : Partition)
+				{
+					if (OnceIndices->Contains(Idx)) { OnceDistributed[Idx] = true; }
+				}
+			}
 		}
 
 		return OutPartitions.Num();

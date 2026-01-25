@@ -64,8 +64,12 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual bool SupportsDataStealing() const override{ return Mode == EPCGExUberFilterMode::Write;}
+	
 	//~Begin UPCGExPointsProcessorSettings
 public:
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+	
 	virtual FName GetMainOutputPin() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings

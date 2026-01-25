@@ -151,12 +151,14 @@ virtual FText GetNodeTooltipText() const override{ return FTEXT(_TOOLTIP); }
 #define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)
 #endif
 
+
 // Define point filter pin configuration for a node
 #define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED) \
 virtual FName GetPointFilterPin() const override { return _LABEL; } \
 virtual FString GetPointFilterTooltip() const override { return TEXT(_TOOLTIP); } \
 virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return _TYPE; } \
 virtual bool RequiresPointFilters() const override { return _REQUIRED; }
+
 
 /// CONTEXT & SETTINGS ACCESS
 /// Macros for retrieving and validating PCG context and settings objects

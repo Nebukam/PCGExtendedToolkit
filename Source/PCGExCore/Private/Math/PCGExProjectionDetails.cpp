@@ -9,7 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExSettingsDetails.h"
-#include "Async/ParallelFor.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Helpers/PCGExArrayHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
 
@@ -17,159 +17,89 @@ FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails()
 {
 	WorldUp = PCGEX_CORE_SETTINGS.WorldUp;
 	WorldFwd = PCGEX_CORE_SETTINGS.WorldForward;
-	ProjectionNormal = WorldUp;
-}
-
-FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
-	: bSupportLocalNormal(InSupportLocalNormal)
-{
-	WorldUp = PCGEX_CORE_SETTINGS.WorldUp;
-	ProjectionNormal = WorldUp;
+	
+	InitInternal(WorldUp);
+	ProjectionVector.Constant = Normal;
 }
 
 bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
 {
+	if (Method == EPCGExProjectionMethod::BestFit)
+	{
+		Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange()));
+		return true;
+	}
+	
 	FPCGExContext* Context = PointDataFacade->GetContext();
 	if (!Context) { return false; }
 
-	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, WorldUp);
-	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
-
-	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
-	if (bLocalProjectionNormal && PointDataFacade)
+	if (ProjectionVector.Input == EPCGExInputValueType::Attribute && !PCGExMetaHelpers::IsDataDomainAttribute(ProjectionVector.Attribute))
 	{
-		NormalGetter = PCGExDetails::MakeSettingValue<FVector>(EPCGExInputValueType::Attribute, LocalNormal, ProjectionNormal);
-		if (!NormalGetter->Init(PointDataFacade, false, false))
-		{
-			NormalGetter = nullptr;
-			return false;
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Only @Data domain attributes are supported for local projection."));
+		ProjectionVector.Input = EPCGExInputValueType::Constant;
 	}
+
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> NormalGetter = ProjectionVector.GetValueSetting(false);
+	if (!NormalGetter->Init(PointDataFacade)) { return false; }
+
+	InitInternal(NormalGetter->Read(0));
 
 	return true;
 }
 
 bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 {
+	if (Method == EPCGExProjectionMethod::BestFit)
+	{
+		Init(PCGExMath::FBestFitPlane(PointIO->GetIn()->GetConstTransformValueRange()));
+		return true;
+	}
+	
 	FPCGExContext* Context = PointIO->GetContext();
 	if (!Context) { return false; }
 
-	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, WorldUp);
-	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
-
-	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
-	if (bLocalProjectionNormal)
+	if (ProjectionVector.Input == EPCGExInputValueType::Attribute && !PCGExMetaHelpers::IsDataDomainAttribute(ProjectionVector.Attribute))
 	{
-		if (!PCGExMetaHelpers::IsDataDomainAttribute(LocalNormal))
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Only @Data domain attributes are supported for local projection."));
-		}
-		else
-		{
-			NormalGetter = PCGExDetails::MakeSettingValue<FVector>(PointIO, EPCGExInputValueType::Attribute, LocalNormal, ProjectionNormal);
-		}
-
-		if (!NormalGetter) { return false; }
+		UE_LOG(LogTemp, Warning, TEXT("Only @Data domain attributes are supported for local projection."));
+		ProjectionVector.Input = EPCGExInputValueType::Constant;
 	}
+
+	if (!PCGExData::Helpers::TryGetSettingDataValue(Context, PointIO->GetIn(), ProjectionVector.Input, ProjectionVector.Attribute, ProjectionVector.Constant, Normal)) { return false; }
+
+	InitInternal(Normal);
 
 	return true;
 }
 
 bool FPCGExGeo2DProjectionDetails::Init(const UPCGData* InData)
 {
-	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, WorldUp);
-	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
-
-	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
-	if (bLocalProjectionNormal)
+	if (ProjectionVector.Input == EPCGExInputValueType::Attribute && !PCGExMetaHelpers::IsDataDomainAttribute(ProjectionVector.Attribute))
 	{
-		if (!PCGExMetaHelpers::IsDataDomainAttribute(LocalNormal))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Only @Data domain attributes are supported for local projection."));
-		}
-		else
-		{
-			NormalGetter = PCGExDetails::MakeSettingValue<FVector>(nullptr, InData, EPCGExInputValueType::Attribute, LocalNormal, ProjectionNormal);
-		}
-
-		if (!NormalGetter) { return false; }
+		UE_LOG(LogTemp, Warning, TEXT("Only @Data domain attributes are supported for local projection."));
+		ProjectionVector.Input = EPCGExInputValueType::Constant;
 	}
+
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> NormalGetter = PCGExDetails::MakeSettingValue<FVector>(nullptr, InData, ProjectionVector.Input, ProjectionVector.Attribute, ProjectionVector.Constant);
+	if (!NormalGetter) { return false; }
+
+	InitInternal(NormalGetter->Read(0));
 
 	return true;
 }
 
 void FPCGExGeo2DProjectionDetails::Init(const PCGExMath::FBestFitPlane& InFitPlane)
 {
-	ProjectionNormal = InFitPlane.Normal();
-	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
+	InitInternal(InFitPlane.Normal());
+}
+
+void FPCGExGeo2DProjectionDetails::InitInternal(const FVector& InNormal)
+{
+	Normal = InNormal.GetSafeNormal(1E-08, WorldUp);
+	ProjectionQuat = FRotationMatrix::MakeFromZX(Normal, WorldFwd).ToQuat();
+	ProjectionQuatInv = ProjectionQuat.Inverse();
 }
 
 #define PCGEX_READ_QUAT(_INDEX) FRotationMatrix::MakeFromZX(NormalGetter->Read(_INDEX).GetSafeNormal(1E-08, FVector::UpVector), WorldFwd).ToQuat()
-
-FQuat FPCGExGeo2DProjectionDetails::GetQuat(const int32 PointIndex) const
-{
-	return NormalGetter ? PCGEX_READ_QUAT(PointIndex) : ProjectionQuat;
-}
-
-FTransform FPCGExGeo2DProjectionDetails::Project(const FTransform& InTransform, const int32 PointIndex) const
-{
-	const FQuat QInv = GetQuat(PointIndex).Inverse();
-
-	return FTransform(
-		QInv * InTransform.GetRotation(),
-		QInv.RotateVector(InTransform.GetLocation()),
-		InTransform.GetScale3D()
-	);
-}
-
-void FPCGExGeo2DProjectionDetails::ProjectInPlace(FTransform& InTransform, const int32 PointIndex) const
-{
-	const FQuat QInv = GetQuat(PointIndex).Inverse();
-	InTransform.SetRotation(QInv * InTransform.GetRotation());
-	InTransform.SetLocation(QInv.RotateVector(InTransform.GetLocation()));
-}
-
-FVector FPCGExGeo2DProjectionDetails::Project(const FVector& InPosition, const int32 PointIndex) const
-{
-	return GetQuat(PointIndex).UnrotateVector(InPosition);
-}
-
-FVector FPCGExGeo2DProjectionDetails::Project(const FVector& InPosition) const
-{
-	return ProjectionQuat.UnrotateVector(InPosition);
-}
-
-FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition) const
-{
-	FVector RotatedPosition = ProjectionQuat.UnrotateVector(InPosition);
-	RotatedPosition.Z = 0;
-	return RotatedPosition;
-}
-
-FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition, const int32 PointIndex) const
-{
-	//
-	FVector RotatedPosition = GetQuat(PointIndex).UnrotateVector(InPosition);
-	RotatedPosition.Z = 0;
-	return RotatedPosition;
-}
-
-FTransform FPCGExGeo2DProjectionDetails::ProjectFlat(const FTransform& InTransform) const
-{
-	FVector Position = ProjectionQuat.UnrotateVector(InTransform.GetLocation());
-	Position.Z = 0;
-	const FQuat Quat = InTransform.GetRotation();
-	return FTransform(Quat * ProjectionQuat, Position);
-}
-
-FTransform FPCGExGeo2DProjectionDetails::ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const
-{
-	const FQuat Q = GetQuat(PointIndex);
-	FVector Position = Q.UnrotateVector(InTransform.GetLocation());
-	Position.Z = 0;
-	const FQuat Quat = InTransform.GetRotation();
-	return FTransform(Quat * Q, Position);
-}
 
 template <typename T>
 void FPCGExGeo2DProjectionDetails::ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const
@@ -179,7 +109,7 @@ void FPCGExGeo2DProjectionDetails::ProjectFlat(const TSharedPtr<PCGExData::FFaca
 	PCGExArrayHelpers::InitArray(OutPositions, NumVectors);
 	PCGEX_PARALLEL_FOR(
 		NumVectors,
-		OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i));
+		OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation()));
 	)
 }
 
@@ -192,20 +122,10 @@ void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, T
 	const int32 NumVectors = InPositions.Num();
 	PCGExArrayHelpers::InitArray(OutPositions, NumVectors);
 
-	if (NormalGetter)
-	{
-		PCGEX_PARALLEL_FOR(
-			NumVectors,
-			OutPositions[i] = PCGEX_READ_QUAT(i).UnrotateVector(InPositions[i]);
-		)
-	}
-	else
-	{
-		PCGEX_PARALLEL_FOR(
-			NumVectors,
-			OutPositions[i] = ProjectionQuat.UnrotateVector(InPositions[i]);
-		)
-	}
+	PCGEX_PARALLEL_FOR(
+		NumVectors,
+		OutPositions[i] = ProjectionQuat.UnrotateVector(InPositions[i]);
+	)
 }
 
 void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
@@ -250,30 +170,11 @@ void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>
 	)
 }
 
-FTransform FPCGExGeo2DProjectionDetails::Unproject(const FTransform& InTransform, const int32 PointIndex) const
+#if WITH_EDITOR
+void FPCGExGeo2DProjectionDetails::ApplyDeprecation()
 {
-	const FQuat Q = GetQuat(PointIndex);
-
-	return FTransform(
-		Q * InTransform.GetRotation(),
-		Q.RotateVector(InTransform.GetLocation()),
-		InTransform.GetScale3D()
-	);
+	ProjectionVector.Constant = ProjectionNormal_DEPRECATED;
+	ProjectionVector.Attribute = LocalNormal_DEPRECATED;
+	ProjectionVector.Input = bLocalProjectionNormal_DEPRECATED ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant;
 }
-
-FVector FPCGExGeo2DProjectionDetails::Unproject(const FVector& InPosition, const int32 PointIndex) const
-{
-	return GetQuat(PointIndex).RotateVector(InPosition);
-}
-
-void FPCGExGeo2DProjectionDetails::UnprojectInPlace(FTransform& InTransform, const int32 PointIndex) const
-{
-	const FQuat Q = GetQuat(PointIndex);
-	InTransform.SetRotation(Q * InTransform.GetRotation());
-	InTransform.SetLocation(Q.RotateVector(InTransform.GetLocation()));
-}
-
-void FPCGExGeo2DProjectionDetails::UnprojectInPlace(FVector& InPosition, const int32 PointIndex) const
-{
-	InPosition = GetQuat(PointIndex).RotateVector(InPosition);
-}
+#endif

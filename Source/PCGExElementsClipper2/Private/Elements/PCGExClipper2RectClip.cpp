@@ -278,7 +278,7 @@ PCGExClipper2Lib::Rect64 FPCGExClipper2RectClipContext::ComputeClipRect(
 
 	for (const FVector& Corner : Corners)
 	{
-		const FVector Projected = ProjectionDetails.Project(Corner, 0);
+		const FVector Projected = ProjectionDetails.Project(Corner);
 		MinX = FMath::Min(MinX, Projected.X);
 		MaxX = FMath::Max(MaxX, Projected.X);
 		MinY = FMath::Min(MinY, Projected.Y);

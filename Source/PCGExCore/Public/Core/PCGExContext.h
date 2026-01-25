@@ -177,6 +177,7 @@ public:
 	bool bQuietMissingAttributeError = false;
 	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;
+	bool bWantsDataStealing = false;
 
 	TSharedPtr<PCGExData::IBufferProxyPool> BufferProxyPool;
 

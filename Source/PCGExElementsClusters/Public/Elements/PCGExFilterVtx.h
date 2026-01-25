@@ -46,6 +46,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual bool SupportsDataStealing() const override { return Mode == EPCGExVtxFilterOutput::Attribute; }
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;

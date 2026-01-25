@@ -5,68 +5,78 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExManagedObjects.h"
 
+void FPCGExHeuristicFeedback::PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
+{
+	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
+
+	const int32 NumNodes = InCluster->Nodes->Num();
+	const int32 NumEdges = InCluster->Edges->Num();
+
+	NodeFeedbackCounts.SetNumZeroed(NumNodes);
+	EdgeFeedbackCounts.SetNumZeroed(NumEdges);
+}
+
 double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
-	FReadScopeLock ReadScopeLock(FeedbackLock);
-
-	const uint32* N = NodeFeedbackNum.Find(From.Index);
-	return N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
+	const uint32 N = NodeFeedbackCounts[From.Index];
+	return N ? GetScoreInternal(NodeScale) * N : GetScoreInternal(0);
 }
 
 double FPCGExHeuristicFeedback::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
-	FReadScopeLock ReadScopeLock(FeedbackLock);
-
-	const uint32* N = NodeFeedbackNum.Find(To.Index);
-	const uint32* E = EdgeFeedbackNum.Find(Edge.Index);
+	const uint32 N = NodeFeedbackCounts[To.Index];
+	const uint32 E = EdgeFeedbackCounts[Edge.Index];
 
 	if (bBinary)
 	{
-		return N || E ? GetScoreInternal(1) : GetScoreInternal(0);
+		return (N || E) ? GetScoreInternal(1) : GetScoreInternal(0);
 	}
 
-	const double NW = N ? GetScoreInternal(NodeScale) * *N : GetScoreInternal(0);
-	const double EW = E ? GetScoreInternal(EdgeScale) * *E : GetScoreInternal(0);
+	const double NW = N ? GetScoreInternal(NodeScale) * N : GetScoreInternal(0);
+	const double EW = E ? GetScoreInternal(EdgeScale) * E : GetScoreInternal(0);
 
 	return (NW + EW);
 }
 
 void FPCGExHeuristicFeedback::FeedbackPointScore(const PCGExClusters::FNode& Node)
 {
-	FWriteScopeLock WriteScopeLock(FeedbackLock);
-
-	uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
-	N++;
+	NodeFeedbackCounts[Node.Index]++;
 
 	if (bBleed)
 	{
 		for (const PCGExGraphs::FLink Lk : Node.Links)
 		{
-			uint32& E = EdgeFeedbackNum.FindOrAdd(Lk.Edge, 0);
-			E++;
+			EdgeFeedbackCounts[Lk.Edge]++;
 		}
 	}
 }
 
 void FPCGExHeuristicFeedback::FeedbackScore(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge)
 {
-	FWriteScopeLock WriteScopeLock(FeedbackLock);
-
-	uint32& N = NodeFeedbackNum.FindOrAdd(Node.Index, 0);
-	N++;
+	NodeFeedbackCounts[Node.Index]++;
 
 	if (bBleed)
 	{
 		for (const PCGExGraphs::FLink Lk : Node.Links)
 		{
-			uint32& E = EdgeFeedbackNum.FindOrAdd(Lk.Edge, 0);
-			E++;
+			EdgeFeedbackCounts[Lk.Edge]++;
 		}
 	}
 	else
 	{
-		uint32& E = EdgeFeedbackNum.FindOrAdd(Edge.Index, 0);
-		E++;
+		EdgeFeedbackCounts[Edge.Index]++;
+	}
+}
+
+void FPCGExHeuristicFeedback::ResetFeedback()
+{
+	if (!NodeFeedbackCounts.IsEmpty())
+	{
+		FMemory::Memzero(NodeFeedbackCounts.GetData(), NodeFeedbackCounts.Num() * sizeof(uint32));
+	}
+	if (!EdgeFeedbackCounts.IsEmpty())
+	{
+		FMemory::Memzero(EdgeFeedbackCounts.GetData(), EdgeFeedbackCounts.Num() * sizeof(uint32));
 	}
 }
 

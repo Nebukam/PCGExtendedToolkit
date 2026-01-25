@@ -17,6 +17,7 @@
 
 namespace PCGExCollections
 {
+	class FPickUnpacker;
 	class FSocketHelper;
 	class FCollectionSource;
 	class FPickPacker;
@@ -61,16 +62,19 @@ class UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Asset Staging", "Data staging from PCGEx Asset Collections.", FName(TEXT("[ ") + ( CollectionSource == EPCGExCollectionSource::Asset ? AssetCollection.GetAssetName() : TEXT("Attribute Set to Collection")) + TEXT(" ]")));
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscAdd); }
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AssetStaging, "Staging : Distribute", "Distribute PCGEx Asset Collection entries to points.", FName(GetDisplayName()));
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(Sampling); }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-
-protected:
+	
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+	
+protected:
+	virtual bool SupportsDataStealing() const override { return true; }
+
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -115,16 +119,16 @@ public:
 	FPCGExFittingVariationsDetails Variations;
 
 	//** If enabled, filter output based on whether a staging has been applied or not (empty entry).  Current implementation is slow. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bPruneEmptyPoints = true;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bDoFilterEntryType = false;
 
 	/** Lets you filter which collection type gets staged. 
 	 * This is most useful when using per-point collections and you want to stage only certain types of assets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditions="bDoFilterEntryType"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditConditions="bDoFilterEntryType"))
 	FPCGExStagedTypeFilterDetails EntryTypeFilter;
 
 	/** */
@@ -134,10 +138,6 @@ public:
 	/** Name of the FName entry type will be written to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteEntryType"))
 	FName EntryTypeAttributeName = FName("EntryType");
-
-	/** Tagging details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
-	FPCGExAssetTaggingDetails TaggingDetails;
 
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
@@ -168,8 +168,23 @@ public:
 	FPCGExSocketOutputDetails OutputSocketDetails;
 
 	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bWriteTranslation = false;
+
+	/** Name of the FVector attribute to write fitting offset to. 
+	 * This is the translation added to the point transform according to staging/justification rules.
+	 * Mostly useful for offsetting spline meshes.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteTranslation"))
+	FName TranslationAttributeName = FName("FittingOffset");
+
+	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietEmptyCollectionError = false;
+	
+#if WITH_EDITOR
+	FString GetDisplayName() const;
+#endif	
+	
 };
 
 struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
@@ -207,6 +222,7 @@ namespace PCGExAssetStaging
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>
 	{
+	protected:
 		int32 NumPoints = 0;
 		int32 NumInvalid = 0;
 
@@ -228,6 +244,7 @@ namespace PCGExAssetStaging
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 		TSharedPtr<PCGExData::TBuffer<FName>> EntryTypeWriter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> TranslationWriter;
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 

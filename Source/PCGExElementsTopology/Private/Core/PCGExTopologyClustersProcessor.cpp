@@ -77,7 +77,8 @@ bool FPCGExTopologyClustersProcessorElement::Boot(FPCGExContext* InContext) cons
 	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceHolesLabel, false, false);
 	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
 	{
-		Context->Holes = MakeShared<PCGExClusters::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
+		Context->Holes = MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
+		Context->Holes->EnsureProjected(); // Project once upfront
 	}
 
 	PCGExArrayHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
@@ -118,7 +119,11 @@ namespace PCGExTopologyEdges
 
 		if (!PCGExClusterMT::IProcessor::Process(InTaskManager)) { return false; }
 
-		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExClusters::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
+		if (Context->HolesFacade)
+		{
+			Holes = Context->Holes ? Context->Holes : MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails);
+			if (Holes) { Holes->EnsureProjected(); } // Project once upfront if not already done
+		}
 
 		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(VtxDataFacade);

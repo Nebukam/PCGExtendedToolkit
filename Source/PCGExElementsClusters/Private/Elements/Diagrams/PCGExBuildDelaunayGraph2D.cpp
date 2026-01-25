@@ -291,8 +291,7 @@ namespace PCGExBuildDelaunayGraph2D
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		if (!ProjectionDetails.Init(PointDataFacade)) { return false; }
 
 		// Build delaunay
 

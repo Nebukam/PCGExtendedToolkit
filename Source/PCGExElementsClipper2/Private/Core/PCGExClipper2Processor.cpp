@@ -471,7 +471,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 								ProjectedZ
 							);
 
-							if (Projection) { Projection->UnprojectInPlace(UnprojectedPos, 0); }
+							if (Projection) { Projection->UnprojectInPlace(UnprojectedPos); }
 
 							// Interpolate rotation/scale from source transforms
 							auto GetSourceTransform = [this](uint32 PtIdx, uint32 SrcIdx, FTransform& OutT) -> bool
@@ -576,7 +576,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 							ProjectedZ
 						);
 
-						if (Projection) { Projection->UnprojectInPlace(UnprojectedPos, OriginalPointIdx); }
+						if (Projection) { Projection->UnprojectInPlace(UnprojectedPos); }
 
 						// Get rotation/scale from source
 						if (SourceArrayIdx >= 0 && SourceArrayIdx < AllOpData->Facades.Num())
@@ -825,8 +825,7 @@ int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 
 				// Initialize projection for this path
 				FPCGExGeo2DProjectionDetails LocalProjection = Context->ProjectionDetails;
-				if (LocalProjection.Method == EPCGExProjectionMethod::Normal) { if (!LocalProjection.Init(Facade)) { return; } }
-				else { LocalProjection.Init(PCGExMath::FBestFitPlane(IO->GetIn()->GetConstTransformValueRange())); }
+				if (!LocalProjection.Init(Facade)) { return; }
 
 				const int32 Scale = Settings->Precision;
 
@@ -840,7 +839,7 @@ int32 FPCGExClipper2ProcessorElement::BuildDataFromCollection(
 
 				for (int32 j = 0; j < NumPoints; j++)
 				{
-					FVector ProjectedLocation = LocalProjection.Project(InTransforms[j].GetLocation(), j);
+					FVector ProjectedLocation = LocalProjection.Project(InTransforms[j].GetLocation());
 
 					// Store projected Z for unprojection later
 					Result.ProjectedZValues[j] = ProjectedLocation.Z;

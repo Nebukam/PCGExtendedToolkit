@@ -6,7 +6,6 @@
 #include "Data/PCGExData.h"
 #include "Core/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
-#include "Async/ParallelFor.h"
 #include "Core/PCGExTensorFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExTensorsTransformElement"

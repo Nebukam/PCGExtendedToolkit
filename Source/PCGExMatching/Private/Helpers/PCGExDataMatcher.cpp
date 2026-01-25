@@ -115,6 +115,7 @@ namespace PCGExMatching
 		MatchableSources = InOtherDataMatcher->MatchableSources;
 		MatchableSourceFirstElements = InOtherDataMatcher->MatchableSourceFirstElements;
 		MatchableSourcesMap = InOtherDataMatcher->MatchableSourcesMap;
+		NumSources = InOtherDataMatcher->NumSources;
 
 		SetDetails(InOtherDataMatcher->Details);
 
@@ -163,7 +164,11 @@ namespace PCGExMatching
 			bMatch = false;
 			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations)
 			{
-				if (Op->Test(TargetElement, InDataCandidate, InMatchingScope)) { bMatch = true; }
+				if (Op->Test(TargetElement, InDataCandidate, InMatchingScope))
+				{
+					bMatch = true;
+					break;
+				}
 			}
 
 			if (bMatch)
@@ -227,7 +232,11 @@ namespace PCGExMatching
 			bMatch = false;
 			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations)
 			{
-				if (Op->Test(InInMatchableElement, InDataCandidate, InMatchingScope)) { bMatch = true; }
+				if (Op->Test(InInMatchableElement, InDataCandidate, InMatchingScope))
+				{
+					bMatch = true;
+					break;
+				}
 			}
 
 			if (bMatch)
@@ -281,19 +290,52 @@ namespace PCGExMatching
 		{
 			if (MatchMode == EPCGExMapMatchMode::Disabled)
 			{
-				for (int i = 0; i < NumSources; i++)
+				for (int32 i = 0; i < NumSources; i++)
 				{
 					if (InExcludedSources->Contains(i)) { continue; }
-					OutMatches.AddUnique(i);
+					OutMatches.Add(i);
 				}
 
 				return OutMatches.Num();
 			}
 
-			for (int i = 0; i < MatchableSourcesRef.Num(); i++)
+			for (int32 i = 0; i < NumSources; i++)
 			{
 				if (InExcludedSources->Contains(i)) { continue; }
-				if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.AddUnique(i); }
+				if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.Add(i); }
+			}
+
+			// Handle recursive/transitive matching
+			if (bWantsRecursion && !OutMatches.IsEmpty())
+			{
+				TBitArray<> Visited(false, NumSources);
+				for (const int32 Idx : OutMatches) { Visited[Idx] = true; }
+
+				TArray<int32> CurrentLevel = OutMatches;
+				TArray<int32> NextLevel;
+				int32 CurrentDepth = 0;
+
+				while (!CurrentLevel.IsEmpty() && (MaxRecursionDepth < 0 || CurrentDepth < MaxRecursionDepth))
+				{
+					NextLevel.Reset();
+
+					for (const int32 CurrentIdx : CurrentLevel)
+					{
+						for (int32 i = 0; i < NumSources; i++)
+						{
+							if (Visited[i] || InExcludedSources->Contains(i)) { continue; }
+							if (Test(MatchableSourcesRef[i].Data, MatchableSourcesRef[CurrentIdx], InMatchingScope))
+							{
+								Visited[i] = true;
+								OutMatches.Add(i);
+								NextLevel.Add(i);
+							}
+						}
+					}
+
+					CurrentLevel = MoveTemp(NextLevel);
+					CurrentDepth++;
+				}
 			}
 
 			return OutMatches.Num();
@@ -301,13 +343,46 @@ namespace PCGExMatching
 
 		if (MatchMode == EPCGExMapMatchMode::Disabled)
 		{
-			PCGExArrayHelpers::ArrayOfIndices(OutMatches, MatchableSourcesRef.Num());
+			PCGExArrayHelpers::ArrayOfIndices(OutMatches, NumSources);
 			return OutMatches.Num();
 		}
 
-		for (int i = 0; i < MatchableSourcesRef.Num(); i++)
+		for (int32 i = 0; i < NumSources; i++)
 		{
-			if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.AddUnique(i); }
+			if (Test(MatchableSourcesRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.Add(i); }
+		}
+
+		// Handle recursive/transitive matching
+		if (bWantsRecursion && !OutMatches.IsEmpty())
+		{
+			TBitArray<> Visited(false, NumSources);
+			for (const int32 Idx : OutMatches) { Visited[Idx] = true; }
+
+			TArray<int32> CurrentLevel = OutMatches;
+			TArray<int32> NextLevel;
+			int32 CurrentDepth = 0;
+
+			while (!CurrentLevel.IsEmpty() && (MaxRecursionDepth < 0 || CurrentDepth < MaxRecursionDepth))
+			{
+				NextLevel.Reset();
+
+				for (const int32 CurrentIdx : CurrentLevel)
+				{
+					for (int32 i = 0; i < NumSources; i++)
+					{
+						if (Visited[i]) { continue; }
+						if (Test(MatchableSourcesRef[i].Data, MatchableSourcesRef[CurrentIdx], InMatchingScope))
+						{
+							Visited[i] = true;
+							OutMatches.Add(i);
+							NextLevel.Add(i);
+						}
+					}
+				}
+
+				CurrentLevel = MoveTemp(NextLevel);
+				CurrentDepth++;
+			}
 		}
 
 		return OutMatches.Num();
@@ -395,6 +470,16 @@ namespace PCGExMatching
 
 			if (Factory->BaseConfig.Strictness == EPCGExMatchStrictness::Required) { RequiredOperations.Add(Operation); }
 			else { OptionalOperations.Add(Operation); }
+
+			if (Operation->WantsRecursion())
+			{
+				bWantsRecursion = true;
+				const int32 OpDepth = Operation->GetMaxRecursionDepth();
+				if (OpDepth >= 0)
+				{
+					MaxRecursionDepth = (MaxRecursionDepth < 0) ? OpDepth : FMath::Min(MaxRecursionDepth, OpDepth);
+				}
+			}
 		}
 
 		return true;

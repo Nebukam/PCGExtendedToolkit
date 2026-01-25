@@ -97,7 +97,7 @@ struct FPCGExPointsToBoundsDataDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBestFitPlane"))
 	FName BestFitPlaneAttributeName = FName("@Data.BestFitPlane");
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bWriteBestFitPlane", EditConditionHides, HideInlineEditCondition))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bWriteBestFitPlane", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
 
 	void Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExMath::FBestFitPlane& Plane) const;
@@ -127,6 +127,10 @@ public:
 	/** Output Object Oriented Bounds. Note that this only accounts for positions and will ignore point bounds. **/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputOrientedBoundingBox = false;
+	
+	/** If enabled, use precise min box fit. **/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Precise Fit", EditCondition="bOutputOrientedBoundingBox", EditConditionHides))
+	bool bUseMinBoxFit = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bOutputOrientedBoundingBox", EditConditionHides))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;

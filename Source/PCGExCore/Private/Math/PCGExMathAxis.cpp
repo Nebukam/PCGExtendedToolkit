@@ -252,9 +252,12 @@ namespace PCGExMath
 
 	double GetRadiansBetweenVectors(const FVector2D& A, const FVector2D& B)
 	{
-		return GetRadiansBetweenVectors(FVector(A, 0), FVector(B, 0));
-		//const double Radians = FMath::Atan2(FVector2D::CrossProduct(A, B), FVector2D::DotProduct(A, B));
-		//return (Radians >= 0) ? Radians : (Radians + TWO_PI);
+		// Use atan2 for robust signed angle calculation
+		// This computes the counter-clockwise angle from A to B in [0, 2π)
+		const double Cross = FVector2D::CrossProduct(A, B); // A.X * B.Y - A.Y * B.X
+		const double Dot = FVector2D::DotProduct(A, B);
+		const double Radians = FMath::Atan2(Cross, Dot);
+		return (Radians >= 0) ? Radians : (Radians + TWO_PI);
 	}
 
 	double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector)

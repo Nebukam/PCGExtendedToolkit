@@ -11,7 +11,7 @@ public class PCGExCore : ModuleRules
 		PublicDefinitions.Add("PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED=1");
 		
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = false;
+		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
 		
 		PublicIncludePaths.AddRange(
 			new string[]

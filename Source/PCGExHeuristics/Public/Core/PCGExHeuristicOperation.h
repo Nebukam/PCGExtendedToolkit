@@ -26,8 +26,21 @@ namespace PCGExClusters
 	class FCluster;
 }
 
+/** Categories for heuristic operations to enable fast-path optimizations */
+enum class EPCGExHeuristicCategory : uint8
+{
+	/** Stateless, cluster-level pre-computable (e.g., Distance edge scores, Attribute) */
+	FullyStatic,
+	/** Goal-dependent but stateless within a query (e.g., Azimuth, Distance global scores) */
+	GoalDependent,
+	/** Requires TravelStack for path history (e.g., Inertia, Steepness with accumulation) */
+	TravelDependent,
+	/** Feedback tracking operations */
+	Feedback
+};
+
 /**
- * 
+ *
  */
 class PCGEXHEURISTICS_API FPCGExHeuristicOperation : public FPCGExOperation
 {
@@ -44,6 +57,9 @@ public:
 	PCGExFloatLUT ScoreCurve = nullptr;
 
 	bool bHasCustomLocalWeightMultiplier = false;
+
+	/** Returns the category of this heuristic for optimization purposes */
+	virtual EPCGExHeuristicCategory GetCategory() const { return EPCGExHeuristicCategory::GoalDependent; }
 
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster);
 

@@ -13,7 +13,7 @@
 
 namespace PCGExClusters
 {
-	class FHoles;
+	class FProjectedPointSet;
 }
 
 
@@ -71,7 +71,7 @@ namespace PCGExTopologyPathSurface
 	class PCGEXELEMENTSTOPOLOGY_API FProcessor : public PCGExPointsMT::TProcessor<FPCGExTopologyPathSurfaceContext, UPCGExTopologyPathSurfaceSettings>
 	{
 	protected:
-		TSharedPtr<PCGExClusters::FHoles> Holes;
+		TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 
 		bool bIsPreviewMode = false;
 

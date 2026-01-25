@@ -16,6 +16,14 @@ namespace PCGExData
 	class TAttributeBroadcaster;
 }
 
+UENUM()
+enum class EPCGExTagMatchMode : uint8
+{
+	Specific  = 0 UMETA(DisplayName = "Specific Tag", ToolTip="Match a specific tag by name"),
+	AnyShared = 1 UMETA(DisplayName = "Any Shared", ToolTip="Match if ANY tag is shared between data"),
+	AllShared = 2 UMETA(DisplayName = "All Shared", ToolTip="Match if ALL tags from candidate exist in target"),
+};
+
 USTRUCT(BlueprintType)
 struct FPCGExMatchSharedTagConfig : public FPCGExMatchRuleConfigBase
 {
@@ -26,21 +34,29 @@ struct FPCGExMatchSharedTagConfig : public FPCGExMatchRuleConfigBase
 	{
 	}
 
-	/** Type of Tag Name value */
+	/** Tag matching mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExTagMatchMode Mode = EPCGExTagMatchMode::Specific;
+
+	/** Type of Tag Name value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExTagMatchMode::Specific", EditConditionHides))
 	EPCGExInputValueType TagNameInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read tag name value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name (Attr)", EditCondition="TagNameInput != EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name (Attr)", EditCondition="Mode == EPCGExTagMatchMode::Specific && TagNameInput != EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	FName TagNameAttribute = FName("ReadTagFrom");
 
 	/** Constant tag name value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name", EditCondition="TagNameInput == EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name", EditCondition="Mode == EPCGExTagMatchMode::Specific && TagNameInput == EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	FString TagName = TEXT("Tag");
 
 	/** Whether to do a tag value match or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExTagMatchMode::Specific", EditConditionHides))
 	bool bDoValueMatch = false;
+
+	/** Whether to also match tag values when checking shared tags. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode != EPCGExTagMatchMode::Specific", EditConditionHides))
+	bool bMatchTagValues = false;
 
 	virtual void Init() override;
 };

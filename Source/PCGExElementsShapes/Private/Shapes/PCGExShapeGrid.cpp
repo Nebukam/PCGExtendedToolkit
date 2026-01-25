@@ -8,7 +8,6 @@
 #include "Details/PCGExSettingsDetails.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsHelpers.h"
-#include "Async/ParallelFor.h"
 #include "Sampling/PCGExSamplingCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderGrid"

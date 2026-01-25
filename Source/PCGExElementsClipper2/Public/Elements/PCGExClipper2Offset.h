@@ -46,7 +46,7 @@ protected:
 public:
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	/** Number of iterations to apply */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Iterations", meta = (PCG_Overridable))

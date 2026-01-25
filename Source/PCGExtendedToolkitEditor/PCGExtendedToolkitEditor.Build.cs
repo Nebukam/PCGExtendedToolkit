@@ -8,7 +8,8 @@ public class PCGExtendedToolkitEditor : ModuleRules
 	public PCGExtendedToolkitEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
+		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		
 		PublicDependencyModuleNames.AddRange(
 			new[]
 			{

@@ -63,6 +63,8 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 class FPCGExHeuristicAttribute : public FPCGExHeuristicOperation
 {
 public:
+	virtual EPCGExHeuristicCategory GetCategory() const override { return EPCGExHeuristicCategory::FullyStatic; }
+
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster) override;
 
 	virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;

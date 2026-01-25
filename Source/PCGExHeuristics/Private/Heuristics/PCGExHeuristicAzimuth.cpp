@@ -7,6 +7,24 @@
 #include "Containers/PCGExManagedObjects.h"
 #include "Math/PCGExMath.h"
 
+void FPCGExHeuristicAzimuth::PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster)
+{
+	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
+
+	// Pre-compute edge directions for faster GetEdgeScore lookups
+	const int32 NumEdges = InCluster->Edges->Num();
+	CachedEdgeDirections.SetNumUninitialized(NumEdges);
+
+	const TArray<PCGExGraphs::FEdge>& EdgesRef = *InCluster->Edges;
+	for (int32 i = 0; i < NumEdges; i++)
+	{
+		const PCGExGraphs::FEdge& Edge = EdgesRef[i];
+		// Store direction from Start to End (normalized)
+		CachedEdgeDirections[i] = InCluster->GetDir(
+			InCluster->NodeIndexLookup->Get(Edge.Start),
+			InCluster->NodeIndexLookup->Get(Edge.End));
+	}
+}
 
 double FPCGExHeuristicAzimuth::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
@@ -17,7 +35,11 @@ double FPCGExHeuristicAzimuth::GetGlobalScore(const PCGExClusters::FNode& From, 
 
 double FPCGExHeuristicAzimuth::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
-	const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
+	// Use cached edge direction, but check if we're traversing in reverse
+	FVector EdgeDir = CachedEdgeDirections[Edge.Index];
+	if (Edge.Start != From.PointIndex) { EdgeDir = -EdgeDir; } // Reverse if traversing opposite direction
+
+	const double Dot = FVector::DotProduct(EdgeDir, Cluster->GetDir(From, Goal)) * -1;
 	return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 1, 0));
 }
 

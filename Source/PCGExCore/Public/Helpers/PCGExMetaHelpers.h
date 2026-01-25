@@ -131,6 +131,15 @@ namespace PCGExMetaHelpers
 
 	PCGEXCORE_API FPCGAttributePropertyInputSelector GetSelectorFromIdentifier(const FPCGAttributeIdentifier& InIdentifier);
 
+	/** Strip @Data. or @Elements. prefix from attribute name if present */
+	PCGEXCORE_API FName StripDomainFromName(const FName& InName);
+
+	/** Create a Data-domain attribute identifier from a base name (sanitizes any existing domain prefix) */
+	PCGEXCORE_API FPCGAttributeIdentifier MakeDataIdentifier(const FName& BaseName);
+
+	/** Create an Elements-domain attribute identifier from a base name (sanitizes any existing domain prefix) */
+	PCGEXCORE_API FPCGAttributeIdentifier MakeElementIdentifier(const FName& BaseName);
+
 	PCGEXCORE_API bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier);
 
 	static bool HasAttribute(const UPCGData* InData, const FPCGAttributeIdentifier& Identifier)

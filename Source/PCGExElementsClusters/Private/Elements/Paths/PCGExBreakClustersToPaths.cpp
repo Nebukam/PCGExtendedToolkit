@@ -245,11 +245,6 @@ namespace PCGExBreakClustersToPaths
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
-
-		if (Settings->Winding != EPCGExWindingMutation::Unchanged && Settings->ProjectionDetails.bLocalProjectionNormal)
-		{
-			FacadePreloader.Register<FVector>(Context, Settings->ProjectionDetails.LocalNormal);
-		}
 	}
 
 	void FBatch::OnProcessingPreparationComplete()
