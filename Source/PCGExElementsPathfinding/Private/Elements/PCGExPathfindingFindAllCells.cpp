@@ -3,7 +3,6 @@
 
 #include "Elements/PCGExPathfindingFindAllCells.h"
 
-
 #include "Data/PCGExData.h"
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataTags.h"
@@ -11,6 +10,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/Artifacts/PCGExCell.h"
+#include "Clusters/Artifacts/PCGExCellPathBuilder.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
 
@@ -139,7 +139,7 @@ namespace PCGExFindAllCells
 		if (Context->HolesFacade)
 		{
 			Holes = Context->Holes ? Context->Holes : MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), ProjectionDetails);
-			if (Holes) { Holes->EnsureProjected(); } // Project once upfront if not already done
+			if (Holes) { Holes->EnsureProjected(); }
 		}
 
 		// Set up cell constraints
@@ -147,13 +147,19 @@ namespace PCGExFindAllCells
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 		CellsConstraints->Holes = Holes;
 
-		// Build or get the shared enumerator from constraints (enables reuse)
+		// Build or get the shared enumerator from constraints
 		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 
-		// Enumerate all cells - wrapper detected by winding and stored in constraints if bOmitWrappingBounds
+		// Enumerate all cells
 		Enumerator->EnumerateAllFaces(ValidCells, CellsConstraints.ToSharedRef(), nullptr, Settings->Constraints.bOmitWrappingBounds);
 
-		// Prepare output
+		// Initialize cell processor
+		CellProcessor = MakeShared<PCGExClusters::FCellPathBuilder>();
+		CellProcessor->Cluster = Cluster;
+		CellProcessor->TaskManager = TaskManager;
+		CellProcessor->Artifacts = &Context->Artifacts;
+		CellProcessor->EdgeDataFacade = EdgeDataFacade;
+
 		const int32 NumCells = ValidCells.Num();
 
 		if (NumCells == 0)
@@ -164,7 +170,6 @@ namespace PCGExFindAllCells
 				TArray<TSharedPtr<PCGExClusters::FCell>> WrapperArray;
 				WrapperArray.Add(CellsConstraints->WrapperCell);
 
-				// Output to CellBounds if enabled
 				if (Settings->Artifacts.bOutputCellBounds)
 				{
 					TSharedPtr<PCGExData::FPointIO> OBBPointIO =
@@ -174,20 +179,17 @@ namespace PCGExFindAllCells
 					PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
 
 					PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
-					PCGExClusters::ProcessCellsAsOBBPoints(Cluster, WrapperArray, OBBFacade,
-						Context->Artifacts, TaskManager);
+					PCGExClusters::ProcessCellsAsOBBPoints(Cluster, WrapperArray, OBBFacade, Context->Artifacts, TaskManager);
 				}
 
-				// Output to Paths if enabled
 				if (Settings->Artifacts.bOutputPaths)
 				{
-					ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
+					CellProcessor->ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 				}
 			}
 			return true;
 		}
 
-		// Output to CellBounds if enabled
 		if (Settings->Artifacts.bOutputCellBounds)
 		{
 			TSharedPtr<PCGExData::FPointIO> OBBPointIO =
@@ -197,54 +199,29 @@ namespace PCGExFindAllCells
 			PCGExClusters::Helpers::CleanupClusterData(OBBPointIO);
 
 			PCGEX_MAKE_SHARED(OBBFacade, PCGExData::FFacade, OBBPointIO.ToSharedRef())
-			PCGExClusters::ProcessCellsAsOBBPoints(Cluster, ValidCells, OBBFacade,
-				Context->Artifacts, TaskManager);
+			PCGExClusters::ProcessCellsAsOBBPoints(Cluster, ValidCells, OBBFacade, Context->Artifacts, TaskManager);
 		}
 
-		// Output to Paths if enabled
 		if (Settings->Artifacts.bOutputPaths)
 		{
 			CellsIO.Reserve(NumCells);
 			Context->OutputPaths->IncreaseReserve(NumCells + 1);
 			for (int32 i = 0; i < NumCells; i++) { CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New)); }
 
-			// Process cells in parallel
 			StartParallelLoopForRange(NumCells);
 		}
 
 		return true;
 	}
 
-	void FProcessor::ProcessCell(const TSharedPtr<PCGExClusters::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO)
-	{
-		if (!PathIO) { return; }
-
-		// Tag forwarding handled by artifacts
-		PathIO->Tags->Reset();
-
-		// Enforce IO index based on edge IO + smallest node point index, for deterministic output order
-		PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 1000000 + Cluster->GetNodePointIndex(InCell->Nodes[0]);
-
-		PCGExClusters::Helpers::CleanupClusterData(PathIO);
-
-		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
-
-		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(InCell->Nodes.Num());
-
-		for (int i = 0; i < InCell->Nodes.Num(); i++) { ReadIndices[i] = Cluster->GetNodePointIndex(InCell->Nodes[i]); }
-		PathIO->InheritPoints(ReadIndices, 0);
-		InCell->PostProcessPoints(PathIO->GetOut());
-
-		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->WriteFastest(TaskManager);
-	}
-
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIO[Index]) { ProcessCell(ValidCells[Index], IO); }
+			if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIO[Index])
+			{
+				CellProcessor->ProcessCell(ValidCells[Index], IO);
+			}
 			ValidCells[Index] = nullptr;
 		}
 	}
