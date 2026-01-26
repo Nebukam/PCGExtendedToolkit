@@ -360,7 +360,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 		for (const int32 SrcIdx : RelevantSourceIndices)
 		{
-			if (SrcIdx < AllOpData->Facades.Num())
+			if (SrcIdx != INDEX_NONE && SrcIdx < AllOpData->Facades.Num())
 			{
 				const TSharedPtr<PCGExData::FFacade>& Facade = AllOpData->Facades[SrcIdx];
 				Allocations |= Facade->GetAllocations();
