@@ -3,6 +3,8 @@
 
 #include "Elements/PCGExWriteValencyOrbitals.h"
 
+#include "Core/PCGExCachedOrbitalCache.h"
+#include "Core/PCGExValencyOrbitalCache.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
 
@@ -206,6 +208,28 @@ namespace PCGExWriteValencyOrbitals
 				           FTEXT("Valency Orbitals: {0} edge directions did not match any orbital."),
 				           FText::AsNumber(NoMatchCount)));
 		}
+
+		// Build and cache OrbitalCache for downstream nodes
+		if (Settings->bBuildOrbitalCache && Context->OrbitalSet && Cluster && VertexMasks && IdxWriter)
+		{
+			const int32 MaxOrbitals = Context->OrbitalSet->Num();
+			const FName LayerName = Context->OrbitalSet->LayerName;
+			const uint32 ContextHash = PCGExValency::FOrbitalCacheFactory::ComputeContextHash(LayerName, MaxOrbitals);
+
+			// Get the raw edge indices array from the writer
+			TSharedPtr<PCGExData::TArrayBuffer<int64>> IdxArrayWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(IdxWriter);
+			TSharedPtr<TArray<int64>> EdgeIndices = IdxArrayWriter->GetOutValues();
+
+			TSharedPtr<PCGExValency::FOrbitalCache> OrbitalCache = MakeShared<PCGExValency::FOrbitalCache>();
+			if (OrbitalCache->BuildFromArrays(Cluster, *VertexMasks, *EdgeIndices, MaxOrbitals))
+			{
+				TSharedPtr<PCGExValency::FCachedOrbitalCache> Cached = MakeShared<PCGExValency::FCachedOrbitalCache>();
+				Cached->ContextHash = ContextHash;
+				Cached->OrbitalCache = OrbitalCache;
+				Cached->LayerName = LayerName;
+				Cluster->SetCachedData(PCGExValency::FOrbitalCacheFactory::CacheKey, Cached);
+			}
+		}
 	}
 
 	//////// BATCH
@@ -228,7 +252,7 @@ namespace PCGExWriteValencyOrbitals
 		const FName MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
 
 		// Create vertex mask writer
-		const TSharedPtr<PCGExData::TBuffer<int64>> MaskWriter = VtxDataFacade->GetWritable<int64>(MaskAttributeName, 0, false, PCGExData::EBufferInit::Inherit);
+		MaskWriter = VtxDataFacade->GetWritable<int64>(MaskAttributeName, 0, false, PCGExData::EBufferInit::Inherit);
 		const TSharedPtr<PCGExData::TArrayBuffer<int64>> MaskArrayWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(MaskWriter);
 		VertexMasks = MaskArrayWriter->GetOutValues();
 
@@ -241,6 +265,7 @@ namespace PCGExWriteValencyOrbitals
 
 		FProcessor* TypedProcessor = static_cast<FProcessor*>(InProcessor.Get());
 		TypedProcessor->VertexMasks = VertexMasks;
+		TypedProcessor->MaskWriter = MaskWriter;
 
 		return true;
 	}

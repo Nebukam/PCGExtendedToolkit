@@ -289,11 +289,18 @@ namespace PCGExFindContoursBounded
 		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 
-		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), ProjectionDetails);
 
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> FailedCells;
-		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), &FailedCells, true);
+		const bool bNeedOutside = Settings->OutputOutside();
+		Enumerator->EnumerateFacesWithinBounds(
+			AllCells,
+			CellsConstraints.ToSharedRef(),
+			Context->BoundsFilter,
+			bNeedOutside,  // Only include outside faces if user wants them
+			&FailedCells,
+			true);
 		WrapperCell = CellsConstraints->WrapperCell;
 
 		Seeds = MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->SeedsDataFacade.ToSharedRef(), ProjectionDetails);

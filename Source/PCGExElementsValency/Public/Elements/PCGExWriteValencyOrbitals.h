@@ -51,6 +51,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
+	/** Build and cache OrbitalCache for downstream valency nodes. Avoids redundant rebuilding. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bBuildOrbitalCache = true;
+
 	/** If enabled, will output warnings for edges that don't match any orbital */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Warnings", meta=(PCG_NotOverridable))
 	bool bWarnOnNoMatch = true;
@@ -96,6 +100,7 @@ namespace PCGExWriteValencyOrbitals
 		friend class FBatch;
 
 		TSharedPtr<TArray<int64>> VertexMasks;
+		TSharedPtr<PCGExData::TBuffer<int64>> MaskWriter;  // For OrbitalCache building
 		TSharedPtr<PCGExData::TBuffer<int64>> IdxWriter;
 
 		/** Count of edges with no orbital match (for warning) */
@@ -122,6 +127,7 @@ namespace PCGExWriteValencyOrbitals
 	{
 		/** Vertex orbital masks (shared with processors) */
 		TSharedPtr<TArray<int64>> VertexMasks;
+		TSharedPtr<PCGExData::TBuffer<int64>> MaskWriter;  // For OrbitalCache building
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);

@@ -7,6 +7,8 @@
 #include "PCGExCommon.h"
 #include "PCGExH.h"
 
+struct FPCGExGeo2DProjectionDetails;
+
 namespace PCGExMath
 {
 	struct FBestFitPlane;
@@ -46,6 +48,7 @@ namespace PCGExClusters
 	{
 		TArray<int32> Nodes;
 		int32 FaceIndex = -1;
+		FBox Bounds3D = FBox(ForceInit);  // Lightweight bounds for early culling
 
 		FRawFace() = default;
 		explicit FRawFace(int32 InFaceIndex) : FaceIndex(InFaceIndex) {}
@@ -62,7 +65,9 @@ namespace PCGExClusters
 		TMap<uint64, int32> HalfEdgeMap;  // Maps H64(origin, target) to half-edge index
 
 		const FCluster* Cluster = nullptr;
-		const TArray<FVector2D>* ProjectedPositions = nullptr;
+
+		/** Node-indexed projected positions (size = NumNodes, access via NodeIndex) */
+		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 
 		int32 NumFaces = 0;
 
@@ -74,11 +79,19 @@ namespace PCGExClusters
 		FPlanarFaceEnumerator() = default;
 
 		/**
-		 * Build the DCEL structure from a cluster.
+		 * Build the DCEL structure from a cluster using projection settings.
+		 * Internally builds node-indexed projected positions.
 		 * @param InCluster The cluster to build from
-		 * @param InProjectedPositions 2D projected positions indexed by point index
+		 * @param InProjection Projection settings for 2D transformation
 		 */
-		void Build(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& InProjectedPositions);
+		void Build(const TSharedRef<FCluster>& InCluster, const FPCGExGeo2DProjectionDetails& InProjection);
+
+		/**
+		 * Build the DCEL structure from a cluster with pre-computed node-indexed positions.
+		 * @param InCluster The cluster to build from
+		 * @param InNodeIndexedPositions Pre-computed 2D positions indexed by node index (size must equal cluster node count)
+		 */
+		void Build(const TSharedRef<FCluster>& InCluster, const TSharedPtr<TArray<FVector2D>>& InNodeIndexedPositions);
 
 		/**
 		 * Enumerate raw faces (serial operation).
@@ -107,6 +120,24 @@ namespace PCGExClusters
 		 * @param bDetectWrapper If true, detects wrapper by winding (CW face), stores in Constraints->WrapperCell, and excludes from OutCells
 		 */
 		void EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells = nullptr, bool bDetectWrapper = false);
+
+		/**
+		 * Enumerate faces that potentially match the bounds filter (skip definitely-Outside faces).
+		 * Uses early AABB culling to skip building full FCell objects for faces outside the bounds.
+		 * @param OutCells Output array of cells that pass constraints AND might be Inside/Touching
+		 * @param Constraints Cell constraints for filtering
+		 * @param BoundsFilter 3D bounds filter for early culling
+		 * @param bIncludeOutside If true, don't skip Outside faces (disables optimization, same as EnumerateAllFaces)
+		 * @param OutFailedCells Optional output for cells that failed constraints
+		 * @param bDetectWrapper If true, detect wrapper cell
+		 */
+		void EnumerateFacesWithinBounds(
+			TArray<TSharedPtr<FCell>>& OutCells,
+			const TSharedRef<FCellConstraints>& Constraints,
+			const FBox& BoundsFilter,
+			bool bIncludeOutside = false,
+			TArray<TSharedPtr<FCell>>* OutFailedCells = nullptr,
+			bool bDetectWrapper = false);
 		
 		/**
 		 * Find the face containing a given 2D point.
@@ -126,7 +157,9 @@ namespace PCGExClusters
 		FORCEINLINE int32 GetNumHalfEdges() const { return HalfEdges.Num(); }
 		FORCEINLINE int32 GetNumFaces() const { return NumFaces; }
 		FORCEINLINE const FCluster* GetCluster() const { return Cluster; }
-		FORCEINLINE const TArray<FVector2D>* GetProjectedPositions() const { return ProjectedPositions; }
+
+		/** Get node-indexed projected positions (access via NodeIndex, not PointIndex) */
+		FORCEINLINE const TSharedPtr<TArray<FVector2D>>& GetProjectedPositions() const { return ProjectedPositions; }
 
 		/**
 		 * Get half-edge index for a directed edge.

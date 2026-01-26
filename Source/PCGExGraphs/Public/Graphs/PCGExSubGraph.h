@@ -64,6 +64,8 @@ namespace PCGExGraphs
 
 		void Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<FGraphBuilder>& InBuilder);
 
+		TSharedPtr<FGraphBuilder> GetBuilder() const{ return WeakBuilder.Pin(); }
+		
 	protected:
 		TWeakPtr<PCGExMT::FTaskManager> WeakTaskManager;
 		TWeakPtr<FGraphBuilder> WeakBuilder;

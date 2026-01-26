@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "Math/PCGExMathAxis.h"
+#include "Math/PCGExProjectionDetails.h"
 
 #include "PCGExGraphDetails.generated.h"
 
@@ -102,6 +103,14 @@ struct PCGEXGRAPHS_API FPCGExGraphBuilderDetails
 	/** If the use of cached clusters is enabled, output clusters along with the graph data. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	EPCGExOptionState BuildAndCacheClusters = EPCGExOptionState::Default;
+
+	/** Pre-build planar face enumerator for cell-finding operations. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Pre-Built Cache", EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bPreBuildFaceEnumerator = false;
+
+	/** Projection settings for the pre-built face enumerator. Downstream nodes with matching projection will reuse the cache. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Pre-Built Cache", EditAnywhere, meta = (PCG_Overridable, EditCondition="bPreBuildFaceEnumerator"))
+	FPCGExGeo2DProjectionDetails FaceEnumeratorProjection;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Extra Data", EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
