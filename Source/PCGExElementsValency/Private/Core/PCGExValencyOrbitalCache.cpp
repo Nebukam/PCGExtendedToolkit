@@ -80,6 +80,79 @@ namespace PCGExValency
 		return true;
 	}
 
+	bool FOrbitalCache::BuildFromArrays(
+		const TSharedPtr<PCGExClusters::FCluster>& Cluster,
+		const TArray<int64>& VertexOrbitalMasks,
+		const TArray<int64>& EdgePackedIndices,
+		int32 InMaxOrbitals)
+	{
+		if (!Cluster || InMaxOrbitals <= 0)
+		{
+			return false;
+		}
+
+		NumNodes = Cluster->Nodes->Num();
+		MaxOrbitals = InMaxOrbitals;
+
+		if (NumNodes <= 0)
+		{
+			return false;
+		}
+
+		// Allocate flat arrays
+		NodeOrbitalMasks.SetNumUninitialized(NumNodes);
+		FlatOrbitalToNeighbor.SetNumUninitialized(NumNodes * MaxOrbitals);
+
+		// Initialize all neighbors to -1 (no neighbor)
+		FMemory::Memset(FlatOrbitalToNeighbor.GetData(), 0xFF, FlatOrbitalToNeighbor.Num() * sizeof(int32));
+
+		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes;
+		const TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges;
+
+		// Build cache for each node
+		for (int32 NodeIndex = 0; NodeIndex < NumNodes; ++NodeIndex)
+		{
+			const PCGExClusters::FNode& Node = Nodes[NodeIndex];
+
+			// Read orbital mask from raw array (indexed by PointIndex)
+			NodeOrbitalMasks[NodeIndex] = VertexOrbitalMasks.IsValidIndex(Node.PointIndex)
+				? VertexOrbitalMasks[Node.PointIndex]
+				: 0;
+
+			// Build orbital-to-neighbor from edge indices
+			for (const PCGExClusters::FLink& Link : Node.Links)
+			{
+				const int32 EdgeIndex = Link.Edge;
+				const int32 NeighborNodeIndex = Link.Node;
+
+				if (!Edges.IsValidIndex(EdgeIndex) || !EdgePackedIndices.IsValidIndex(EdgeIndex)) { continue; }
+
+				const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
+				const int64 PackedIndices = EdgePackedIndices[EdgeIndex];
+
+				// Unpack orbital indices (byte 0 = start node's orbital, byte 1 = end node's orbital)
+				const uint8 StartOrbitalIndex = static_cast<uint8>(PackedIndices & 0xFF);
+				const uint8 EndOrbitalIndex = static_cast<uint8>((PackedIndices >> 8) & 0xFF);
+
+				// Determine which orbital index applies to this node
+				const uint8 OrbitalIndex = (Edge.Start == static_cast<uint32>(Node.PointIndex))
+					                           ? StartOrbitalIndex
+					                           : EndOrbitalIndex;
+
+				// Skip if no match (sentinel value)
+				if (OrbitalIndex == NO_ORBITAL_MATCH) { continue; }
+
+				// Store neighbor at this orbital
+				if (OrbitalIndex < MaxOrbitals)
+				{
+					FlatOrbitalToNeighbor[NodeIndex * MaxOrbitals + OrbitalIndex] = NeighborNodeIndex;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	void FOrbitalCache::InitializeStates(TArray<FValencyState>& OutStates) const
 	{
 		OutStates.SetNum(NumNodes);
