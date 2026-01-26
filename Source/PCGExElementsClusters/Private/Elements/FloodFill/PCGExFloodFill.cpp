@@ -25,6 +25,14 @@ namespace PCGExFloodFill
 		: FillControlsHandler(InFillControlsHandler), SeedNode(InSeedNode), Cluster(InCluster)
 	{
 		TravelStack = MakeShared<PCGEx::FHashLookupMap>(0, 0);
+
+		// Pre-allocate visited array for O(1) lookups instead of TSet hashing
+		const int32 NumNodes = InCluster->Nodes->Num();
+		Visited.Init(false, NumNodes);
+
+		// Pre-reserve arrays to avoid reallocations during growth
+		Candidates.Reserve(NumNodes / 4); // Heuristic: ~25% of nodes as candidates at any time
+		Captured.Reserve(NumNodes / 2);   // Heuristic: ~50% of nodes may be captured
 	}
 
 	int32 FDiffusion::GetSettingsIndex(EPCGExFloodFillSettingSource Source) const
@@ -36,7 +44,10 @@ namespace PCGExFloodFill
 	{
 		SeedIndex = InSeedIndex;
 
-		Visited.Add(SeedNode->Index);
+		// Initialize heap comparator with sorting mode from config
+		HeapComparator = FCandidateHeapComparator(Config.Sorting);
+
+		Visited[SeedNode->Index] = true;
 		*(FillControlsHandler->InfluencesCount->GetData() + SeedNode->PointIndex) = 1;
 		FCandidate& SeedCandidate = Captured.Emplace_GetRef();
 		SeedCandidate.Link = PCGExGraphs::FLink(-1, -1);
@@ -55,17 +66,17 @@ namespace PCGExFloodFill
 		}
 
 		// Gather all neighbors, add to candidates for the first time only
-		bool bIsAlreadyInSet = false;
-
 		const PCGExClusters::FNode& FromNode = *From.Node;
 		FVector FromPosition = Cluster->GetPos(FromNode);
 
 		for (const PCGExGraphs::FLink& Lk : FromNode.Links)
 		{
 			PCGExClusters::FNode* OtherNode = Cluster->GetNode(Lk);
-			Visited.Add(OtherNode->Index, &bIsAlreadyInSet);
+			const int32 OtherIndex = OtherNode->Index;
 
-			if (bIsAlreadyInSet) { continue; }
+			// Fast array lookup instead of TSet hash lookup
+			if (Visited[OtherIndex]) { continue; }
+			Visited[OtherIndex] = true;
 
 			FVector OtherPosition = Cluster->GetPos(OtherNode);
 			double Dist = FVector::Dist(FromPosition, OtherPosition);
@@ -85,7 +96,8 @@ namespace PCGExFloodFill
 
 			if (FillControlsHandler->IsValidCandidate(this, From, Candidate))
 			{
-				Candidates.Add(Candidate);
+				// O(log n) heap insertion instead of O(1) array add + O(n log n) sort later
+				Candidates.HeapPush(Candidate, HeapComparator);
 			}
 		}
 	}
@@ -103,7 +115,9 @@ namespace PCGExFloodFill
 				break;
 			}
 
-			FCandidate Candidate = Candidates.Pop(EAllowShrinking::No);
+			// O(log n) heap pop instead of O(1) array pop (but we saved O(n log n) sort)
+			FCandidate Candidate;
+			Candidates.HeapPop(Candidate, HeapComparator, EAllowShrinking::No);
 
 			if (!FillControlsHandler->TryCapture(this, Candidate)) { continue; }
 
@@ -128,26 +142,8 @@ namespace PCGExFloodFill
 	void FDiffusion::PostGrow()
 	{
 		// Probe from last captured candidate
+		// New candidates are inserted via HeapPush, maintaining heap order - no sort needed
 		Probe(Captured.Last());
-
-		// Sort candidates
-		switch (Config.Sorting)
-		{
-		case EPCGExFloodFillPrioritization::Heuristics:
-			Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
-			{
-				if (A.Score == B.Score) { return A.Depth > B.Depth; }
-				return A.Score > B.Score;
-			});
-			break;
-		case EPCGExFloodFillPrioritization::Depth:
-			Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
-			{
-				if (A.Depth == B.Depth) { return A.Score > B.Score; }
-				return A.Depth > B.Depth;
-			});
-			break;
-		}
 	}
 
 	void DiffuseAndBlend(

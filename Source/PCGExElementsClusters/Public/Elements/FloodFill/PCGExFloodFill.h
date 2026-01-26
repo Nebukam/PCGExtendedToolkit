@@ -152,8 +152,9 @@ namespace PCGExFloodFill
 		FCandidate() = default;
 	};
 
-	// Heap comparator for candidate prioritization
-	// Returns true if A should be closer to the root (higher priority) than B
+	// Min-heap comparator for candidate prioritization
+	// Returns true if A should be closer to the root (higher priority = LOWER score/depth to pick first)
+	// This creates a min-heap where HeapPop returns the lowest scoring candidate
 	struct FCandidateHeapComparator
 	{
 		EPCGExFloodFillPrioritization Mode = EPCGExFloodFillPrioritization::Heuristics;
@@ -163,17 +164,17 @@ namespace PCGExFloodFill
 
 		FORCEINLINE bool operator()(const FCandidate& A, const FCandidate& B) const
 		{
-			// HeapPop returns the element where predicate(Element, Other) is true for all others
-			// We want highest score/depth at root, so return true when A > B
+			// Min-heap: return true when A has LOWER priority than B (A should sink, B rises)
+			// HeapPop will return the element with lowest score (highest priority for spreading)
 			if (Mode == EPCGExFloodFillPrioritization::Heuristics)
 			{
-				if (A.Score == B.Score) { return A.Depth > B.Depth; }
-				return A.Score > B.Score;
+				if (A.Score == B.Score) { return A.Depth < B.Depth; }
+				return A.Score < B.Score;
 			}
 			else // Depth
 			{
-				if (A.Depth == B.Depth) { return A.Score > B.Score; }
-				return A.Depth > B.Depth;
+				if (A.Depth == B.Depth) { return A.Score < B.Score; }
+				return A.Depth < B.Depth;
 			}
 		}
 	};
@@ -185,14 +186,14 @@ namespace PCGExFloodFill
 		friend class FFillControlsHandler;
 
 	protected:
-		TSet<int32> Visited;
-		// use map hash lookup to reduce memory overhead of a shared map + thread safety yay
+		TArray<bool> Visited; // Indexed by node index, faster than TSet for membership checks
 
 		int32 MaxDepth = 0;
 		double MaxDistance = 0;
 
 		TSharedPtr<FFillControlsHandler> FillControlsHandler;
 		FDiffusionConfig Config; // Local config snapshot, set by FFillControlsHandler::PrepareForDiffusions
+		FCandidateHeapComparator HeapComparator; // Cached comparator for heap operations
 
 	public:
 		int32 Index = -1;
