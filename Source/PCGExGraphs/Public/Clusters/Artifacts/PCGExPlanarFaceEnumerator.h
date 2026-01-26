@@ -48,6 +48,7 @@ namespace PCGExClusters
 	{
 		TArray<int32> Nodes;
 		int32 FaceIndex = -1;
+		FBox Bounds3D = FBox(ForceInit);  // Lightweight bounds for early culling
 
 		FRawFace() = default;
 		explicit FRawFace(int32 InFaceIndex) : FaceIndex(InFaceIndex) {}
@@ -119,6 +120,24 @@ namespace PCGExClusters
 		 * @param bDetectWrapper If true, detects wrapper by winding (CW face), stores in Constraints->WrapperCell, and excludes from OutCells
 		 */
 		void EnumerateAllFaces(TArray<TSharedPtr<FCell>>& OutCells, const TSharedRef<FCellConstraints>& Constraints, TArray<TSharedPtr<FCell>>* OutFailedCells = nullptr, bool bDetectWrapper = false);
+
+		/**
+		 * Enumerate faces that potentially match the bounds filter (skip definitely-Outside faces).
+		 * Uses early AABB culling to skip building full FCell objects for faces outside the bounds.
+		 * @param OutCells Output array of cells that pass constraints AND might be Inside/Touching
+		 * @param Constraints Cell constraints for filtering
+		 * @param BoundsFilter 3D bounds filter for early culling
+		 * @param bIncludeOutside If true, don't skip Outside faces (disables optimization, same as EnumerateAllFaces)
+		 * @param OutFailedCells Optional output for cells that failed constraints
+		 * @param bDetectWrapper If true, detect wrapper cell
+		 */
+		void EnumerateFacesWithinBounds(
+			TArray<TSharedPtr<FCell>>& OutCells,
+			const TSharedRef<FCellConstraints>& Constraints,
+			const FBox& BoundsFilter,
+			bool bIncludeOutside = false,
+			TArray<TSharedPtr<FCell>>* OutFailedCells = nullptr,
+			bool bDetectWrapper = false);
 		
 		/**
 		 * Find the face containing a given 2D point.

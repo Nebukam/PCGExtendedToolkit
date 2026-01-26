@@ -248,11 +248,18 @@ namespace PCGExFindAllCellsBounded
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 		CellsConstraints->Holes = Holes;
 
-		// Build enumerator and enumerate all cells
+		// Build enumerator and enumerate cells within bounds (early culling optimization)
 		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), ProjectionDetails);
 
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCells;
-		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), nullptr, Settings->Constraints.bOmitWrappingBounds);
+		const bool bNeedOutside = Settings->OutputOutside();
+		Enumerator->EnumerateFacesWithinBounds(
+			AllCells,
+			CellsConstraints.ToSharedRef(),
+			Context->BoundsFilter,
+			bNeedOutside,  // Only include outside faces if user wants them
+			nullptr,
+			Settings->Constraints.bOmitWrappingBounds);
 
 		// Handle wrapper cell if applicable
 		if (AllCells.IsEmpty() && CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)

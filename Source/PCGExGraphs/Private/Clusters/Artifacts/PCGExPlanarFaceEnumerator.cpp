@@ -204,6 +204,16 @@ namespace PCGExClusters
 			}
 		}
 
+		// Compute 3D bounds for each face (for early culling in bounded operations)
+		for (FRawFace& RawFace : CachedRawFaces)
+		{
+			RawFace.Bounds3D = FBox(ForceInit);
+			for (const int32 NodeIdx : RawFace.Nodes)
+			{
+				RawFace.Bounds3D += Cluster->GetPos(NodeIdx);
+			}
+		}
+
 		return CachedRawFaces;
 	}
 
@@ -315,6 +325,142 @@ namespace PCGExClusters
 		if (OutFailedCells)
 		{
 			OutFailedCells->Reserve(OutFailedCells->Num() + NumRawFaces);
+			for (TSharedPtr<FCell>& Cell : FailedCells)
+			{
+				if (Cell) { OutFailedCells->Add(MoveTemp(Cell)); }
+			}
+		}
+	}
+
+	void FPlanarFaceEnumerator::EnumerateFacesWithinBounds(
+		TArray<TSharedPtr<FCell>>& OutCells,
+		const TSharedRef<FCellConstraints>& Constraints,
+		const FBox& BoundsFilter,
+		bool bIncludeOutside,
+		TArray<TSharedPtr<FCell>>* OutFailedCells,
+		bool bDetectWrapper)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::EnumerateFacesWithinBounds);
+
+		const TArray<FRawFace>& RawFaces = EnumerateRawFaces();
+		const int32 NumRawFaces = RawFaces.Num();
+
+		if (NumRawFaces == 0) { return; }
+
+		// Early exit if no culling possible (include outside or invalid bounds)
+		if (bIncludeOutside || !BoundsFilter.IsValid)
+		{
+			EnumerateAllFaces(OutCells, Constraints, OutFailedCells, bDetectWrapper);
+			return;
+		}
+
+		// Count faces that pass bounds filter (for reserve sizing)
+		int32 PotentialCount = 0;
+		for (const FRawFace& RawFace : RawFaces)
+		{
+			if (BoundsFilter.Intersect(RawFace.Bounds3D)) { PotentialCount++; }
+		}
+
+		// For small face counts, serial is faster due to parallel overhead
+		constexpr int32 ParallelThreshold = 32;
+
+		if (PotentialCount < ParallelThreshold)
+		{
+			// Serial path
+			OutCells.Reserve(OutCells.Num() + PotentialCount);
+			double WrapperArea = -MAX_dbl;
+
+			for (const FRawFace& RawFace : RawFaces)
+			{
+				// EARLY CULLING: Skip faces whose bounds don't intersect filter
+				if (!BoundsFilter.Intersect(RawFace.Bounds3D)) { continue; }
+
+				TSharedPtr<FCell> Cell = MakeShared<FCell>(Constraints);
+				const ECellResult Result = BuildCellFromRawFace(RawFace, Cell, Constraints);
+
+				if (Result == ECellResult::Success)
+				{
+					// Detect wrapper by winding - CCW face is exterior (inverted due to projection)
+					if (bDetectWrapper && !Cell->Data.bIsClockwise && Cell->Data.Area > WrapperArea)
+					{
+						// Move previous wrapper candidate back to output if any
+						if (Constraints->WrapperCell)
+						{
+							OutCells.Add(Constraints->WrapperCell);
+						}
+						Constraints->WrapperCell = Cell;
+						WrapperArea = Cell->Data.Area;
+					}
+					else
+					{
+						OutCells.Add(Cell);
+					}
+				}
+				else if (OutFailedCells && !Cell->Polygon.IsEmpty())
+				{
+					OutFailedCells->Add(Cell);
+				}
+			}
+			return;
+		}
+
+		// Parallel path for larger counts
+		// Pre-allocate result arrays - each slot corresponds to a raw face index
+		TArray<TSharedPtr<FCell>> SuccessCells;
+		SuccessCells.SetNum(NumRawFaces);
+
+		TArray<TSharedPtr<FCell>> FailedCells;
+		if (OutFailedCells) { FailedCells.SetNum(NumRawFaces); }
+
+		// Process cells in parallel - each thread writes to its own index (no contention)
+		// Early culling happens inside the parallel loop
+		ParallelFor(NumRawFaces, [&](const int32 FaceIndex)
+		{
+			const FRawFace& RawFace = RawFaces[FaceIndex];
+
+			// EARLY CULLING: Skip faces whose bounds don't intersect filter
+			if (!BoundsFilter.Intersect(RawFace.Bounds3D)) { return; }
+
+			TSharedPtr<FCell> Cell = MakeShared<FCell>(Constraints);
+			const ECellResult Result = BuildCellFromRawFace(RawFace, Cell, Constraints);
+
+			if (Result == ECellResult::Success)
+			{
+				SuccessCells[FaceIndex] = Cell;
+			}
+			else if (OutFailedCells && !Cell->Polygon.IsEmpty())
+			{
+				FailedCells[FaceIndex] = Cell;
+			}
+		});
+
+		// Compact results - remove null entries, detect wrapper during compaction
+		OutCells.Reserve(OutCells.Num() + PotentialCount);
+		double WrapperArea = -MAX_dbl;
+
+		for (TSharedPtr<FCell>& Cell : SuccessCells)
+		{
+			if (!Cell) { continue; }
+
+			// Detect wrapper by winding - CCW face is exterior (inverted due to projection)
+			if (bDetectWrapper && !Cell->Data.bIsClockwise && Cell->Data.Area > WrapperArea)
+			{
+				if (Constraints->WrapperCell)
+				{
+					OutCells.Add(MoveTemp(Constraints->WrapperCell));
+				}
+				Constraints->WrapperCell = MoveTemp(Cell);
+				WrapperArea = Constraints->WrapperCell->Data.Area;
+			}
+			else
+			{
+				OutCells.Add(MoveTemp(Cell));
+			}
+		}
+
+		if (OutFailedCells)
+		{
+			OutFailedCells->Reserve(OutFailedCells->Num() + PotentialCount);
 			for (TSharedPtr<FCell>& Cell : FailedCells)
 			{
 				if (Cell) { OutFailedCells->Add(MoveTemp(Cell)); }
