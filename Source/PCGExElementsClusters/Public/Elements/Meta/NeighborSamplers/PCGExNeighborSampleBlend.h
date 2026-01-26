@@ -14,6 +14,13 @@
 
 ///
 
+class UPCGExBlendOpFactory;
+
+namespace PCGExBlending
+{
+	class FBlendOpsManager;
+}
+
 class UPCGExNeighborSamplerFactoryBlend;
 
 /**

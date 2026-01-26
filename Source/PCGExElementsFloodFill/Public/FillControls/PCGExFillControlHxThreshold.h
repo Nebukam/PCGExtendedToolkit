@@ -1,0 +1,134 @@
+// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "Core/PCGExFillControlOperation.h"
+#include "Core/PCGExFillControlsFactoryProvider.h"
+#include "PCGExHeuristicsHandler.h"
+#include "Core/PCGExHeuristicsFactoryProvider.h"
+#include "Details/PCGExSettingsMacros.h"
+#include "Utils/PCGExCompare.h"
+
+#include "PCGExFillControlHxThreshold.generated.h"
+
+UENUM(BlueprintType)
+enum class EPCGExFloodFillThresholdSource : uint8
+{
+	EdgeScore      UMETA(DisplayName = "Edge Score", ToolTip = "Current edge's heuristic score"),
+	GlobalScore    UMETA(DisplayName = "Global Score", ToolTip = "Heuristic distance from seed to candidate"),
+	ScoreDelta     UMETA(DisplayName = "Score Delta", ToolTip = "Change in score from previous candidate"),
+};
+
+USTRUCT(BlueprintType)
+struct FPCGExFillControlConfigHeuristicsThreshold : public FPCGExFillControlConfigBase
+{
+	GENERATED_BODY()
+
+	FPCGExFillControlConfigHeuristicsThreshold()
+		: FPCGExFillControlConfigBase()
+	{
+		bSupportSteps = false;
+	}
+
+	/** Threshold input type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
+
+	/** Threshold attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Threshold (Attr)", EditCondition = "ThresholdInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName ThresholdAttribute = FName("Threshold");
+
+	/** Threshold constant. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Threshold", EditCondition = "ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
+	double Threshold = 0.5;
+
+	PCGEX_SETTING_VALUE_DECL(Threshold, double)
+
+	/** Comparison mode. Candidate is valid if: ThresholdSource [Comparison] Threshold */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExComparison Comparison = EPCGExComparison::StrictlySmaller;
+
+	/** Tolerance for near-equal comparisons. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides, ClampMin = 0))
+	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	/** What value to compare against the threshold. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExFloodFillThresholdSource ThresholdSource = EPCGExFloodFillThresholdSource::EdgeScore;
+};
+
+/**
+ * Threshold control that stops diffusion when instantaneous heuristic crosses a threshold.
+ * Unlike Budget which tracks accumulated cost, this checks single edge/node values.
+ */
+class FPCGExFillControlHeuristicsThreshold : public FPCGExFillControlOperation
+{
+	friend class UPCGExFillControlsFactoryHxThreshold;
+
+public:
+	virtual bool DoesScoring() const override { return true; }
+	virtual bool ChecksCandidate() const override { return true; }
+
+	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler) override;
+	virtual void ScoreCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, PCGExFloodFill::FCandidate& OutCandidate) override;
+	virtual bool IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate) override;
+
+protected:
+	TSharedPtr<PCGExHeuristics::FHandler> HeuristicsHandler;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> Threshold;
+	EPCGExFloodFillThresholdSource ThresholdSource = EPCGExFloodFillThresholdSource::EdgeScore;
+	EPCGExComparison Comparison = EPCGExComparison::StrictlySmaller;
+	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	// Cached score from ScoreCandidate for use in IsValidCandidate
+	mutable double LastComputedEdgeScore = 0;
+	mutable double LastComputedGlobalScore = 0;
+};
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class UPCGExFillControlsFactoryHxThreshold : public UPCGExFillControlsFactoryData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	FPCGExFillControlConfigHeuristicsThreshold Config;
+
+	UPROPERTY()
+	TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> HeuristicsFactories;
+
+	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const override;
+
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
+};
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/flood-fill/fc-heuristics-threshold"))
+class UPCGExFillControlsHeuristicsThresholdProviderSettings : public UPCGExFillControlsFactoryProviderSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsHeuristicsThreshold, "Fill Control : Heuristics Threshold", "Stop diffusion when instantaneous heuristic crosses a threshold.", FName(GetDisplayName()))
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_BLEND(FillControl, Heuristics); }
+#endif
+	//~End UPCGSettings
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+
+public:
+	/** Control Config.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExFillControlConfigHeuristicsThreshold Config;
+
+	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
+};

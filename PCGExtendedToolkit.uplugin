@@ -151,6 +151,19 @@
       ]
     },
     {
+      "Name": "PCGExElementsFloodFill",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "IOS",
+        "Android",
+        "Linux",
+        "LinuxArm64"
+      ]
+    },
+    {
       "Name": "PCGExElementsMeta",
       "Type": "Runtime",
       "LoadingPhase": "Default",
