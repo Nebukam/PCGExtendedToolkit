@@ -102,7 +102,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsGradient, "Heuristics : Gradient", "Heuristics based on attribute gradient between nodes.", FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(HeuristicsAttribute); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_BLEND(Heuristics, ColorMisc); }
 
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

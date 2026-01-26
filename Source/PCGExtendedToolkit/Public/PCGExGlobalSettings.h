@@ -216,7 +216,7 @@ public:
 
 	/** Color associated with filter (generic) subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes|Filters", meta=(EditCondition="!bUseNativeColorsIfPossible"))
-	FLinearColor ColorFilter = FLinearColor(0.312910, 0.744792, 0.186198, 1.000000);
+	FLinearColor ColorFilter = FLinearColor(0.24, 0.09, 0.85, 1.000000);
 
 	/** Color associated with filter (points) subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes|Filters", meta=(EditCondition="!bUseNativeColorsIfPossible"))
@@ -249,14 +249,10 @@ public:
 	/** Color associated with Fill Control subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
 	FLinearColor ColorFillControl = FLinearColor(0.312910, 0.744792, 0.186198, 1.000000);
-
+	
 	/** Color associated with Heuristics subnodes. */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes|Heuristics")
 	FLinearColor ColorHeuristics = FLinearColor(0.203896, 0.508125, 0.371500, 1.000000);
-
-	/** Color associated with Heuristics subnodes relying on attributes. */
-	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes|Heuristics")
-	FLinearColor ColorHeuristicsAttribute = FLinearColor(0.497929, 0.515625, 0.246587, 1.000000);
 
 	/** Color associated with "Feedback" Heuristics subnodes. */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes|Heuristics")
