@@ -5,6 +5,7 @@
 #include "Misc/ScopeExit.h"
 
 #include "Clusters/Artifacts/PCGExCellDetails.h"
+#include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointElements.h"
@@ -141,13 +142,40 @@ namespace PCGExClusters
 		return !bAlreadyExists;
 	}
 
-	TSharedPtr<FPlanarFaceEnumerator> FCellConstraints::GetOrBuildEnumerator(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions)
+	TSharedPtr<FPlanarFaceEnumerator> FCellConstraints::GetOrBuildEnumerator(
+		const TSharedRef<FCluster>& InCluster,
+		const TArray<FVector2D>& ProjectedPositions,
+		const FPCGExGeo2DProjectionDetails* ProjectionDetails)
 	{
-		if (!Enumerator)
+		if (Enumerator) { return Enumerator; }
+
+		// Compute projection hash for cache lookup (0 if no details provided)
+		const uint32 ProjHash = ProjectionDetails
+			                        ? FFaceEnumeratorCacheFactory::ComputeProjectionHash(*ProjectionDetails)
+			                        : 0;
+
+		// Try cluster cache first
+		if (TSharedPtr<FCachedFaceEnumerator> Cached = InCluster->GetCachedData<FCachedFaceEnumerator>(
+			FFaceEnumeratorCacheFactory::CacheKey, ProjHash))
 		{
-			Enumerator = MakeShared<FPlanarFaceEnumerator>();
-			Enumerator->Build(InCluster, ProjectedPositions);
+			Enumerator = Cached->Enumerator;
+			return Enumerator;
 		}
+
+		// Build fresh
+		Enumerator = MakeShared<FPlanarFaceEnumerator>();
+		Enumerator->Build(InCluster, ProjectedPositions);
+
+		// Opportunistically cache for downstream (only if projection provided)
+		if (ProjectionDetails && Enumerator->IsBuilt())
+		{
+			TSharedPtr<FCachedFaceEnumerator> NewCached = MakeShared<FCachedFaceEnumerator>();
+			NewCached->ContextHash = ProjHash;
+			NewCached->Enumerator = Enumerator;
+			// Note: We don't store ProjectedPositions here since the caller owns them
+			InCluster->SetCachedData(FFaceEnumeratorCacheFactory::CacheKey, NewCached);
+		}
+
 		return Enumerator;
 	}
 

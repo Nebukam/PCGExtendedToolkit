@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExClusterCache.h"
 #include "PCGExEdge.h"
 #include "PCGExNode.h"
 #include "PCGExClusterCommon.h"
@@ -40,6 +41,7 @@ namespace PCGExSorting
 namespace PCGExClusters
 {
 	struct FBoundedEdge;
+	class ICachedClusterData;
 }
 
 namespace PCGExClusters
@@ -56,6 +58,8 @@ namespace PCGExClusters
 		TSharedPtr<FCluster> OriginalCluster = nullptr;
 
 		mutable FRWLock ClusterLock;
+
+		TMap<FName, TSharedPtr<ICachedClusterData>> CachedData;
 
 		// Internal helpers for O(1) visited tracking (uses TBitArray instead of TArray::Contains)
 		void GetConnectedNodesInternal(const int32 FromIndex, TArray<int32>& OutIndices, TBitArray<>& Visited, const int32 SearchDepth) const;
@@ -92,6 +96,29 @@ namespace PCGExClusters
 
 		TSharedPtr<PCGExOctree::FItemOctree> NodeOctree;
 		TSharedPtr<PCGExOctree::FItemOctree> EdgeOctree;
+
+		/**
+		 * Get cached data by key, optionally validating context hash.
+		 * @param Key Cache key (e.g., "FaceEnumerator")
+		 * @param ExpectedContextHash Expected hash, 0 = don't care
+		 * @return Cached data, nullptr if not found or hash mismatch
+		 */
+		template <typename T>
+		TSharedPtr<T> GetCachedData(FName Key, uint32 ExpectedContextHash = 0) const
+		{
+			FReadScopeLock ReadLock(ClusterLock);
+			if (const TSharedPtr<ICachedClusterData>* Entry = CachedData.Find(Key))
+			{
+				if (ExpectedContextHash == 0 || (*Entry)->ContextHash == ExpectedContextHash)
+				{
+					return StaticCastSharedPtr<T>(*Entry);
+				}
+			}
+			return nullptr;
+		}
+
+		void SetCachedData(FName Key, const TSharedPtr<ICachedClusterData>& Data);
+		void ClearCachedData();
 
 		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup);
 		FCluster(const TSharedRef<FCluster>& OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup, bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);

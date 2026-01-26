@@ -12,6 +12,8 @@
 #include "Metadata/PCGMetadata.h"
 
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClusterCache.h"
+#include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExClusterData.h"
@@ -48,6 +50,29 @@ namespace PCGExGraphTask
 			ClusterEdgesData->SetBoundCluster(NewCluster);
 
 			SubGraph->BuildCluster(NewCluster.ToSharedRef());
+
+			// Build pre-configured caches
+			if (const TSharedPtr<PCGExGraphs::FGraphBuilder> Builder = SubGraph->GetBuilder())
+			{
+				if (Builder->OutputDetails)
+				{
+					// Native: FaceEnumerator
+					if (Builder->OutputDetails->bPreBuildFaceEnumerator)
+					{
+						PCGExClusters::FClusterCacheBuildContext Context(NewCluster.ToSharedRef());
+						Context.Projection = &Builder->OutputDetails->FaceEnumeratorProjection;
+
+						if (PCGExClusters::IClusterCacheFactory* Factory = PCGExClusters::FClusterCacheRegistry::Get().GetFactory(
+							PCGExClusters::FFaceEnumeratorCacheFactory::CacheKey))
+						{
+							if (TSharedPtr<PCGExClusters::ICachedClusterData> CachedData = Factory->Build(Context))
+							{
+								NewCluster->SetCachedData(Factory->GetCacheKey(), CachedData);
+							}
+						}
+					}
+				}
+			}
 		}
 	};
 }

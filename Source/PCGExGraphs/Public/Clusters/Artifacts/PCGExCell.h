@@ -155,8 +155,16 @@ namespace PCGExClusters
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
 
-		/** Build or get the shared enumerator. Call this once to build the DCEL, then reuse. */
-		TSharedPtr<FPlanarFaceEnumerator> GetOrBuildEnumerator(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions);
+		/**
+		 * Build or get the shared enumerator. Call this once to build the DCEL, then reuse.
+		 * @param InCluster The cluster to build from
+		 * @param ProjectedPositions 2D projected vertex positions
+		 * @param ProjectionDetails Optional projection settings for cache lookup/storage
+		 */
+		TSharedPtr<FPlanarFaceEnumerator> GetOrBuildEnumerator(
+			const TSharedRef<FCluster>& InCluster,
+			const TArray<FVector2D>& ProjectedPositions,
+			const FPCGExGeo2DProjectionDetails* ProjectionDetails = nullptr);
 
 		/** Build wrapper cell using the shared enumerator */
 		void BuildWrapperCell(const TSharedPtr<FCellConstraints>& InConstraints = nullptr);

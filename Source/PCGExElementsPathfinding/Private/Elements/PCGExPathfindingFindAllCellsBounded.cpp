@@ -249,7 +249,7 @@ namespace PCGExFindAllCellsBounded
 		CellsConstraints->Holes = Holes;
 
 		// Build enumerator and enumerate all cells
-		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get(), &ProjectionDetails);
 
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCells;
 		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), nullptr, Settings->Constraints.bOmitWrappingBounds);

@@ -172,7 +172,7 @@ namespace PCGExFindContours
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 
 		// Build or get the shared enumerator from constraints (enables reuse)
-		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get(), &ProjectionDetails);
 
 		// Enumerate all cells, also get failed cells for consumption tracking
 		// Wrapper detected by winding (CW face) and stored in constraints
