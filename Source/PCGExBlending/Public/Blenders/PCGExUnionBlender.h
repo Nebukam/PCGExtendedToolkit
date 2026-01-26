@@ -69,7 +69,7 @@ namespace PCGExBlending
 			void SetNum(const int32 InNum) { SubBlenders.SetNum(InNum); }
 		};
 
-		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet = nullptr, FGetSourceIdx GetSourceIdxFn = nullptr);
+		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet = nullptr, FGetSourceIdx GetSourceIdxFn = nullptr, const TSet<int32>* RelevantIOIndices = nullptr);
 
 		// bWantsDirectAccess replaces the previous "soft blending" concept
 		// Blenders will be initialized with an attribute instead of a buffer if it is enabled
@@ -102,6 +102,7 @@ namespace PCGExBlending
 
 		TArray<TSharedPtr<PCGExData::FFacade>> Sources;
 		TArray<const UPCGBasePointData*> SourcesData;
+		TSet<int32> RelevantSourcePositions; // Optimization: if set, only these source positions get property blenders
 
 		TSharedPtr<PCGExData::FUnionMetadata> CurrentUnionMetadata;
 		TSharedPtr<PCGExData::FFacade> CurrentTargetData;
