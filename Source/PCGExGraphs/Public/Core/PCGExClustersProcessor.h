@@ -118,6 +118,7 @@ protected:
 
 public:
 	bool ProcessClusters(const PCGExCommon::ContextState NextStateId);
+	bool GetHasValidHeuristics() const { return bHasValidHeuristics; }
 
 protected:
 	bool CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId);

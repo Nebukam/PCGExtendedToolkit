@@ -85,6 +85,7 @@ void UPCGExGlobalSettings::UpdateSettingsCaches() const
 	PCGEX_PUSH_COLOR(VtxProperty)
 	PCGEX_PUSH_COLOR(NeighborSampler)
 	PCGEX_PUSH_COLOR(FillControl)
+	PCGEX_PUSH_COLOR(FillControlScore)
 	PCGEX_PUSH_COLOR(Heuristics)
 	PCGEX_PUSH_COLOR(HeuristicsAttribute)
 	PCGEX_PUSH_COLOR(HeuristicsFeedback)

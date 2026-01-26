@@ -14,6 +14,16 @@ bool FPCGExFillControlOperation::PrepareForDiffusions(FPCGExContext* InContext, 
 	return true;
 }
 
+bool FPCGExFillControlOperation::DoesScoring() const
+{
+	return false;
+}
+
+void FPCGExFillControlOperation::ScoreCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, PCGExFloodFill::FCandidate& OutCandidate)
+{
+	// Default implementation does nothing - override in scoring controls
+}
+
 bool FPCGExFillControlOperation::ChecksCapture() const
 {
 	return EnumHasAnyFlags(static_cast<EPCGExFloodFillControlStepsFlags>(Factory->ConfigBase.Steps), EPCGExFloodFillControlStepsFlags::Capture);
@@ -41,7 +51,7 @@ bool FPCGExFillControlOperation::ChecksCandidate() const
 
 bool FPCGExFillControlOperation::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)
 {
-	return false;
+	return true;
 }
 
 int32 FPCGExFillControlOperation::GetSettingsIndex(const PCGExFloodFill::FDiffusion* Diffusion) const

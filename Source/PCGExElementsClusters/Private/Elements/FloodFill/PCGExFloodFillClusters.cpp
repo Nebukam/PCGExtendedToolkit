@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics. Used to drive flooding.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "[DEPRECATED] Use 'Heuristics Scoring' fill control instead. Legacy heuristics input for backward compatibility.", Advanced, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seed points.", Required)
 	PCGEX_PIN_FACTORIES(PCGExFloodFill::SourceFillControlsLabel, "Fill controls, used to constraint & limit flood fill", Normal, FPCGExDataTypeInfoFillControl::AsId())
 	PCGExBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
@@ -66,8 +66,17 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 
 	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
-	// Fill controls are optional, actually
+	// Fill controls are optional
 	PCGExFactories::GetInputFactories<UPCGExFillControlsFactoryData>(Context, PCGExFloodFill::SourceFillControlsLabel, Context->FillControlFactories, {PCGExFactories::EType::FillControls}, false);
+
+	// Check for deprecated Heuristics pin usage
+	if (Context->bHasValidHeuristics)
+	{
+		PCGE_LOG_C(Warning, GraphAndLog, InContext,
+			FTEXT("The Heuristics pin on Cluster Diffusion is deprecated. "
+			      "Use 'Fill Control : Heuristics Scoring' instead for more granular control. "
+			      "The node-level Heuristics input will be removed in a future version."));
+	}
 
 	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExCommon::Labels::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
@@ -197,6 +206,7 @@ namespace PCGExClusterDiffusion
 		// since the init does a first probing pass
 		if (!FillControlsHandler->PrepareForDiffusions(OngoingDiffusions, Settings->Diffusion))
 		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Fill controls handler failed to prepare for diffusions. Check that all fill control inputs are valid."));
 			bIsProcessorValid = false;
 			return;
 		}
@@ -313,7 +323,7 @@ namespace PCGExClusterDiffusion
 		TArray<int32> Indices;
 
 		// Diffuse & blend
-		Diffusion->Diffuse(VtxDataFacade, BlendOpsManager, Indices);
+		PCGExFloodFill::DiffuseAndBlend(*Diffusion, VtxDataFacade, BlendOpsManager, Indices);
 		FPlatformAtomics::InterlockedAdd(&ExpectedPathCount, Diffusion->Endpoints.Num());
 		FPlatformAtomics::InterlockedAdd(&Context->ExpectedPathCount, ExpectedPathCount);
 
@@ -348,6 +358,9 @@ namespace PCGExClusterDiffusion
 			return;
 		}
 
+		// Create the path writer for output
+		PathWriter = MakeShared<PCGExFloodFill::FDiffusionPathWriter>(Cluster.ToSharedRef(), VtxDataFacade, Context->Paths.ToSharedRef());
+
 		if (Settings->PathOutput == EPCGExFloodFillPathOutput::Full)
 		{
 			// Output full path, rather straightforward
@@ -356,7 +369,14 @@ namespace PCGExClusterDiffusion
 			{
 				PCGEX_ASYNC_THIS
 				TSharedPtr<PCGExFloodFill::FDiffusion> Diff = This->Diffusions[Index];
-				for (const int32 EndpointIndex : Diff->Endpoints) { This->WriteFullPath(Index, Diff->Captured[EndpointIndex].Node->Index); }
+				for (const int32 EndpointIndex : Diff->Endpoints)
+				{
+					This->PathWriter->WriteFullPath(
+						*Diff,
+						Diff->Captured[EndpointIndex].Node->Index,
+						This->Context->SeedAttributesToPathTags,
+						This->Context->SeedsDataFacade.ToSharedRef());
+				}
 			};
 
 			PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
@@ -421,69 +441,15 @@ namespace PCGExClusterDiffusion
 					}
 				}
 
-				This->WritePath(Index, PathIndices);
+				This->PathWriter->WritePartitionedPath(
+					*Diff,
+					PathIndices,
+					This->Context->SeedAttributesToPathTags,
+					This->Context->SeedsDataFacade.ToSharedRef());
 			}
 		};
 
 		PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
-	}
-
-	void FProcessor::WriteFullPath(const int32 DiffusionIndex, const int32 EndpointNodeIndex)
-	{
-		TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = Diffusions[DiffusionIndex];
-
-		int32 PathNodeIndex = PCGEx::NH64A(Diffusion->TravelStack->Get(EndpointNodeIndex));
-		int32 PathEdgeIndex = -1;
-
-		TArray<int32> PathIndices;
-		if (PathNodeIndex != -1)
-		{
-			PathIndices.Add(Cluster->GetNodePointIndex(EndpointNodeIndex));
-
-			while (PathNodeIndex != -1)
-			{
-				const int32 CurrentIndex = PathNodeIndex;
-				PCGEx::NH64(Diffusion->TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
-				PathIndices.Add(Cluster->GetNodePointIndex(CurrentIndex));
-			}
-		}
-
-		if (PathIndices.Num() < 2) { return; }
-
-		Algo::Reverse(PathIndices);
-
-		// Create a copy of the final vtx, so we get all the goodies
-
-		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
-		PathIO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
-
-		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
-		PathIO->InheritPoints(PathIndices, 0);
-
-		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);
-
-		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + EndpointNodeIndex;
-	}
-
-	void FProcessor::WritePath(const int32 DiffusionIndex, TArray<int32>& PathIndices)
-	{
-		TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = Diffusions[DiffusionIndex];
-
-		if (PathIndices.Num() < 2) { return; }
-
-		Algo::Reverse(PathIndices);
-
-		// Create a copy of the final vtx, so we get all the goodies
-
-		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
-		PathIO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
-
-		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
-		PathIO->InheritPoints(PathIndices, 0);
-
-		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);
-
-		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + PathIndices[0];
 	}
 
 	void FProcessor::Cleanup()
@@ -496,13 +462,16 @@ namespace PCGExClusterDiffusion
 		Diffusions.Reset();
 		FillControlsHandler.Reset();
 		BlendOpsManager.Reset();
+		PathWriter.Reset();
 	}
 
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: TBatch(InContext, InVtx, InEdges)
 	{
-		SetWantsHeuristics(true);
+		// Only request heuristics if the deprecated pin is connected
+		// Modern approach is to use 'Heuristics Scoring' fill control instead
+		SetWantsHeuristics(static_cast<FPCGExClusterDiffusionContext*>(InContext)->GetHasValidHeuristics());
 	}
 
 	FBatch::~FBatch()
@@ -541,7 +510,7 @@ namespace PCGExClusterDiffusion
 		}
 
 		InfluencesCount = MakeShared<TArray<int8>>();
-		InfluencesCount->Init(-1, VtxDataFacade->GetNum());
+		InfluencesCount->Init(0, VtxDataFacade->GetNum());
 
 		// Diffusion rate
 

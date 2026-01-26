@@ -228,6 +228,7 @@ namespace PCGExClusterDiffusion
 		TArray<TSharedPtr<PCGExFloodFill::FDiffusion>> Diffusions;        // Stopped diffusions, as to not iterate over them needlessly
 
 		TSharedPtr<PCGExFloodFill::FFillControlsHandler> FillControlsHandler;
+		TSharedPtr<PCGExFloodFill::FDiffusionPathWriter> PathWriter;
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> FillRate;
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
@@ -257,8 +258,6 @@ namespace PCGExClusterDiffusion
 		void Diffuse(const TSharedPtr<PCGExFloodFill::FDiffusion>& Diffusion);
 
 		void OnDiffusionComplete();
-		void WriteFullPath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
-		void WritePath(const int32 DiffusionIndex, TArray<int32>& PathIndices);
 
 		virtual void Cleanup() override;
 	};

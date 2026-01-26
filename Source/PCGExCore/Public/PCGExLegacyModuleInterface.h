@@ -13,5 +13,6 @@ public:
 	virtual void StartupModule() override;
 
 protected:
+	TArray<FString> OldBaseModules = {TEXT("PCGExtendedToolkit")};
 	virtual void RegisterRedirectors() const;
 };

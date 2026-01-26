@@ -7,9 +7,14 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExHashLookup.h"
 #include "Core/PCGExBlendOpsManager.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Paths/PCGExPath.h"
 
 #include "Elements/FloodFill/FillControls/PCGExFillControlOperation.h"
 #include "Elements/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
+#include "Paths/PCGExPathsCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFloodFill"
 #define PCGEX_NAMESPACE FloodFill
@@ -49,15 +54,10 @@ namespace PCGExFloodFill
 			return;
 		}
 
-		// Gather all neighbors and compute heuristics, add to candidate for the first time only
+		// Gather all neighbors, add to candidates for the first time only
 		bool bIsAlreadyInSet = false;
 
-		TSharedPtr<PCGExHeuristics::FHandler> HeuristicsHandler = FillControlsHandler->HeuristicsHandler.Pin();
-		if (!HeuristicsHandler) { return; }
-
 		const PCGExClusters::FNode& FromNode = *From.Node;
-		const PCGExClusters::FNode& RoamingGoal = *HeuristicsHandler->GetRoamingGoal();
-
 		FVector FromPosition = Cluster->GetPos(FromNode);
 
 		for (const PCGExGraphs::FLink& Lk : FromNode.Links)
@@ -70,37 +70,21 @@ namespace PCGExFloodFill
 			FVector OtherPosition = Cluster->GetPos(OtherNode);
 			double Dist = FVector::Dist(FromPosition, OtherPosition);
 
-			const double LocalScore = HeuristicsHandler->GetEdgeScore(FromNode, *OtherNode, *Cluster->GetEdge(Lk), *SeedNode, RoamingGoal, nullptr, TravelStack);
-
 			FCandidate Candidate = FCandidate{};
 			Candidate.CaptureIndex = From.CaptureIndex;
 
 			Candidate.Link = PCGExGraphs::FLink(FromNode.Index, Lk.Edge);
 			Candidate.Node = OtherNode;
 
-			if (FillControlsHandler->bUseLocalScore || FillControlsHandler->bUsePreviousScore)
-			{
-				if (FillControlsHandler->bUsePreviousScore)
-				{
-					Candidate.PathScore = From.PathScore + LocalScore;
-					Candidate.Score += From.PathScore;
-				}
-
-				if (FillControlsHandler->bUseLocalScore)
-				{
-					Candidate.Score += LocalScore;
-				}
-			}
-
-			if (FillControlsHandler->bUseGlobalScore) { Candidate.Score += HeuristicsHandler->GetGlobalScore(FromNode, *SeedNode, *OtherNode); }
-
 			Candidate.Depth = From.Depth + 1;
 			Candidate.Distance = Dist;
 			Candidate.PathDistance = From.PathDistance + Dist;
 
+			// Scoring via fill controls (use 'Heuristics Score' fill control for heuristics-based scoring)
+			FillControlsHandler->ScoreCandidate(this, From, Candidate);
+
 			if (FillControlsHandler->IsValidCandidate(this, From, Candidate))
 			{
-				// Valid candidate
 				Candidates.Add(Candidate);
 			}
 		}
@@ -144,20 +128,20 @@ namespace PCGExFloodFill
 	void FDiffusion::PostGrow()
 	{
 		// Probe from last captured candidate
-
 		Probe(Captured.Last());
 
 		// Sort candidates
-
-		switch (FillControlsHandler->Sorting)
+		switch (Config.Sorting)
 		{
-		case EPCGExFloodFillPrioritization::Heuristics: Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
+		case EPCGExFloodFillPrioritization::Heuristics:
+			Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
 			{
 				if (A.Score == B.Score) { return A.Depth > B.Depth; }
 				return A.Score > B.Score;
 			});
 			break;
-		case EPCGExFloodFillPrioritization::Depth: Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
+		case EPCGExFloodFillPrioritization::Depth:
+			Candidates.Sort([&](const FCandidate& A, const FCandidate& B)
 			{
 				if (A.Depth == B.Depth) { return A.Score > B.Score; }
 				return A.Depth > B.Depth;
@@ -166,14 +150,18 @@ namespace PCGExFloodFill
 		}
 	}
 
-	void FDiffusion::Diffuse(const TSharedPtr<PCGExData::FFacade>& InVtxFacade, const TSharedPtr<PCGExBlending::FBlendOpsManager>& InBlendOps, TArray<int32>& OutIndices)
+	void DiffuseAndBlend(
+		const FDiffusion& Diffusion,
+		const TSharedPtr<PCGExData::FFacade>& InVtxFacade,
+		const TSharedPtr<PCGExBlending::FBlendOpsManager>& InBlendOps,
+		TArray<int32>& OutIndices)
 	{
-		OutIndices.SetNumUninitialized(Captured.Num());
-		const int32 SourceIndex = SeedNode->PointIndex;
+		OutIndices.SetNumUninitialized(Diffusion.Captured.Num());
+		const int32 SourceIndex = Diffusion.SeedNode->PointIndex;
 
 		for (int i = 0; i < OutIndices.Num(); i++)
 		{
-			const FCandidate& Candidate = Captured[i];
+			const FCandidate& Candidate = Diffusion.Captured[i];
 			const int32 TargetIndex = Candidate.Node->PointIndex;
 
 			OutIndices[i] = TargetIndex;
@@ -208,6 +196,7 @@ namespace PCGExFloodFill
 				if (!Op) { return false; }
 
 				Operations.Add(Op);
+				if (Op->DoesScoring()) { SubOpsScoring.Add(Op); }
 				if (Op->ChecksProbe()) { SubOpsProbe.Add(Op); }
 				if (Op->ChecksCandidate()) { SubOpsCandidate.Add(Op); }
 				if (Op->ChecksCapture()) { SubOpsCapture.Add(Op); }
@@ -219,7 +208,8 @@ namespace PCGExFloodFill
 
 	bool FFillControlsHandler::PrepareForDiffusions(const TArray<TSharedPtr<FDiffusion>>& Diffusions, const FPCGExFloodFillFlowDetails& Details)
 	{
-		check(HeuristicsHandler.Pin())
+		// Note: HeuristicsHandler is now optional - deprecated node-level heuristics
+		// Use 'Heuristics Scoring' fill control instead for modern approach
 
 		NumDiffusions = Diffusions.Num();
 
@@ -229,17 +219,17 @@ namespace PCGExFloodFill
 		SeedIndices->SetNumUninitialized(NumDiffusions);
 		SeedNodeIndices->SetNumUninitialized(NumDiffusions);
 
+		// Create shared config from details
+		DiffusionConfig = FDiffusionConfig(Details);
+
 		for (int i = 0; i < NumDiffusions; i++)
 		{
 			*(SeedIndices->GetData() + i) = Diffusions[i]->SeedIndex;
 			*(SeedNodeIndices->GetData() + i) = Diffusions[i]->SeedNode->PointIndex;
+
+			// Set config on each diffusion
+			Diffusions[i]->Config = DiffusionConfig;
 		}
-
-		Sorting = Details.Priority;
-
-		bUseLocalScore = (Details.Scoring & static_cast<uint8>(EPCGExFloodFillHeuristicFlags::LocalScore)) != 0;
-		bUseGlobalScore = (Details.Scoring & static_cast<uint8>(EPCGExFloodFillHeuristicFlags::GlobalScore)) != 0;
-		bUsePreviousScore = (Details.Scoring & static_cast<uint8>(EPCGExFloodFillHeuristicFlags::PreviousScore)) != 0;
 
 		PCGEX_SHARED_THIS_DECL
 		for (const TSharedPtr<FPCGExFillControlOperation>& Op : Operations)
@@ -249,6 +239,14 @@ namespace PCGExFloodFill
 		}
 
 		return true;
+	}
+
+	void FFillControlsHandler::ScoreCandidate(const FDiffusion* Diffusion, const FCandidate& From, FCandidate& OutCandidate)
+	{
+		for (const TSharedPtr<FPCGExFillControlOperation>& Op : SubOpsScoring)
+		{
+			Op->ScoreCandidate(Diffusion, From, OutCandidate);
+		}
 	}
 
 	bool FFillControlsHandler::TryCapture(const FDiffusion* Diffusion, const FCandidate& Candidate)
@@ -269,6 +267,80 @@ namespace PCGExFloodFill
 		for (const TSharedPtr<FPCGExFillControlOperation>& Op : SubOpsCandidate) { if (!Op->IsValidCandidate(Diffusion, From, Candidate)) { return false; } }
 		return true;
 	}
+
+#pragma region FDiffusionPathWriter
+
+	FDiffusionPathWriter::FDiffusionPathWriter(
+		const TSharedRef<PCGExClusters::FCluster>& InCluster,
+		const TSharedRef<PCGExData::FFacade>& InVtxDataFacade,
+		const TSharedRef<PCGExData::FPointIOCollection>& InPaths)
+		: Cluster(InCluster)
+		, VtxDataFacade(InVtxDataFacade)
+		, Paths(InPaths)
+	{
+	}
+
+	void FDiffusionPathWriter::WriteFullPath(
+		const FDiffusion& Diffusion,
+		const int32 EndpointNodeIndex,
+		const FPCGExAttributeToTagDetails& SeedTags,
+		const TSharedRef<PCGExData::FFacade>& SeedsDataFacade)
+	{
+		int32 PathNodeIndex = PCGEx::NH64A(Diffusion.TravelStack->Get(EndpointNodeIndex));
+		int32 PathEdgeIndex = -1;
+
+		TArray<int32> PathIndices;
+		if (PathNodeIndex != -1)
+		{
+			PathIndices.Add(Cluster->GetNodePointIndex(EndpointNodeIndex));
+
+			while (PathNodeIndex != -1)
+			{
+				const int32 CurrentIndex = PathNodeIndex;
+				PCGEx::NH64(Diffusion.TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
+				PathIndices.Add(Cluster->GetNodePointIndex(CurrentIndex));
+			}
+		}
+
+		if (PathIndices.Num() < 2) { return; }
+
+		Algo::Reverse(PathIndices);
+
+		// Create a copy of the final vtx, so we get all the goodies
+		TSharedPtr<PCGExData::FPointIO> PathIO = Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
+		PathIO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
+
+		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
+		PathIO->InheritPoints(PathIndices, 0);
+
+		SeedTags.Tag(SeedsDataFacade->GetInPoint(Diffusion.SeedIndex), PathIO);
+
+		PathIO->IOIndex = Diffusion.SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + EndpointNodeIndex;
+	}
+
+	void FDiffusionPathWriter::WritePartitionedPath(
+		const FDiffusion& Diffusion,
+		TArray<int32>& PathIndices,
+		const FPCGExAttributeToTagDetails& SeedTags,
+		const TSharedRef<PCGExData::FFacade>& SeedsDataFacade)
+	{
+		if (PathIndices.Num() < 2) { return; }
+
+		Algo::Reverse(PathIndices);
+
+		// Create a copy of the final vtx, so we get all the goodies
+		TSharedPtr<PCGExData::FPointIO> PathIO = Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
+		PathIO->DeleteAttribute(PCGExPaths::Labels::ClosedLoopIdentifier);
+
+		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
+		PathIO->InheritPoints(PathIndices, 0);
+
+		SeedTags.Tag(SeedsDataFacade->GetInPoint(Diffusion.SeedIndex), PathIO);
+
+		PathIO->IOIndex = Diffusion.SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + PathIndices[0];
+	}
+
+#pragma endregion
 }
 
 

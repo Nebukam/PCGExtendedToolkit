@@ -9,7 +9,7 @@
 #include "UObject/Object.h"
 
 /**
- * 
+ *
  */
 class PCGEXELEMENTSCLUSTERS_API FPCGExFillControlOperation : public FPCGExOperation
 {
@@ -20,6 +20,11 @@ public:
 
 	virtual bool PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler);
 
+	// Scoring capability - controls can contribute to candidate scores
+	virtual bool DoesScoring() const;
+	virtual void ScoreCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, PCGExFloodFill::FCandidate& OutCandidate);
+
+	// Validation capabilities
 	virtual bool ChecksCapture() const;
 	virtual bool IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate);
 
