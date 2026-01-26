@@ -4,7 +4,6 @@
 #include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
 #include "Clusters/Artifacts/PCGExPlanarFaceEnumerator.h"
 #include "Clusters/PCGExCluster.h"
-#include "Data/PCGBasePointData.h"
 #include "Math/PCGExProjectionDetails.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCachedFaceEnumerator"
@@ -31,24 +30,10 @@ namespace PCGExClusters
 			return nullptr;
 		}
 
-		// Create projected positions using the projection settings
-		TSharedPtr<TArray<FVector2D>> ProjectedPositions = MakeShared<TArray<FVector2D>>();
-
-		// Project cluster vertex positions
-		const FCluster& Cluster = Context.Cluster.Get();
-		const int32 NumVtx = Cluster.VtxPoints ? Cluster.VtxPoints->GetNumPoints() : 0;
-
-		if (NumVtx <= 0)
-		{
-			return nullptr;
-		}
-
-		ProjectedPositions->SetNumUninitialized(NumVtx);
-		Context.Projection->Project(Cluster.VtxTransforms, *ProjectedPositions);
-
-		// Build the face enumerator
+		// Build the face enumerator using projection details
+		// This internally builds node-indexed positions
 		TSharedPtr<FPlanarFaceEnumerator> Enumerator = MakeShared<FPlanarFaceEnumerator>();
-		Enumerator->Build(Context.Cluster, *ProjectedPositions);
+		Enumerator->Build(Context.Cluster, *Context.Projection);
 
 		if (!Enumerator->IsBuilt())
 		{
@@ -59,7 +44,8 @@ namespace PCGExClusters
 		TSharedPtr<FCachedFaceEnumerator> Cached = MakeShared<FCachedFaceEnumerator>();
 		Cached->ContextHash = ComputeProjectionHash(*Context.Projection);
 		Cached->Enumerator = Enumerator;
-		Cached->ProjectedPositions = ProjectedPositions;
+		// Enumerator owns the node-indexed positions
+		Cached->ProjectedPositions = Enumerator->GetProjectedPositions();
 
 		return Cached;
 	}

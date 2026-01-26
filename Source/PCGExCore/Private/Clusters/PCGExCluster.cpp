@@ -239,6 +239,12 @@ namespace PCGExClusters
 			(Nodes->GetData() + EndNode)->Link(StartNode, E.Index);
 		}
 
+		// Populate NodeIndexLookup from created nodes
+		if (NodeIndexLookup)
+		{
+			for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.Index; }
+		}
+
 		Bounds = Bounds.ExpandBy(10);
 
 		NodesDataPtr = Nodes->GetData();

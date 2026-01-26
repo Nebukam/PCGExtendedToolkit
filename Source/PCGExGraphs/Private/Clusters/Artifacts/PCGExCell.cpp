@@ -144,15 +144,12 @@ namespace PCGExClusters
 
 	TSharedPtr<FPlanarFaceEnumerator> FCellConstraints::GetOrBuildEnumerator(
 		const TSharedRef<FCluster>& InCluster,
-		const TArray<FVector2D>& ProjectedPositions,
-		const FPCGExGeo2DProjectionDetails* ProjectionDetails)
+		const FPCGExGeo2DProjectionDetails& ProjectionDetails)
 	{
 		if (Enumerator) { return Enumerator; }
 
-		// Compute projection hash for cache lookup (0 if no details provided)
-		const uint32 ProjHash = ProjectionDetails
-			                        ? FFaceEnumeratorCacheFactory::ComputeProjectionHash(*ProjectionDetails)
-			                        : 0;
+		// Compute projection hash for cache lookup
+		const uint32 ProjHash = FFaceEnumeratorCacheFactory::ComputeProjectionHash(ProjectionDetails);
 
 		// Try cluster cache first
 		if (TSharedPtr<FCachedFaceEnumerator> Cached = InCluster->GetCachedData<FCachedFaceEnumerator>(
@@ -162,17 +159,18 @@ namespace PCGExClusters
 			return Enumerator;
 		}
 
-		// Build fresh
+		// Build fresh with node-indexed positions
 		Enumerator = MakeShared<FPlanarFaceEnumerator>();
-		Enumerator->Build(InCluster, ProjectedPositions);
+		Enumerator->Build(InCluster, ProjectionDetails);
 
-		// Opportunistically cache for downstream (only if projection provided)
-		if (ProjectionDetails && Enumerator->IsBuilt())
+		// Opportunistically cache for downstream
+		if (Enumerator->IsBuilt())
 		{
 			TSharedPtr<FCachedFaceEnumerator> NewCached = MakeShared<FCachedFaceEnumerator>();
 			NewCached->ContextHash = ProjHash;
 			NewCached->Enumerator = Enumerator;
-			// Note: We don't store ProjectedPositions here since the caller owns them
+			// Enumerator now owns its projected positions (node-indexed)
+			NewCached->ProjectedPositions = Enumerator->GetProjectedPositions();
 			InCluster->SetCachedData(FFaceEnumeratorCacheFactory::CacheKey, NewCached);
 		}
 
@@ -195,12 +193,13 @@ namespace PCGExClusters
 		// Get cached raw faces
 		const TArray<FRawFace>& RawFaces = Enumerator->EnumerateRawFaces();
 		const FCluster* Cluster = Enumerator->GetCluster();
-		const TArray<FVector2D>* ProjectedPositions = Enumerator->GetProjectedPositions();
+		const TSharedPtr<TArray<FVector2D>>& ProjectedPositions = Enumerator->GetProjectedPositions();
 
 		if (!Cluster || !ProjectedPositions) { return; }
 
 		// Find the wrapper face by computing signed area directly from projected positions
 		// CCW face (positive signed area) is the exterior/wrapper due to coordinate system inversion.
+		// Note: ProjectedPositions is node-indexed, access directly via NodeIdx
 		int32 WrapperFaceIdx = INDEX_NONE;
 		double MostPositiveArea = 0; // Looking for most positive (CCW = wrapper)
 
@@ -215,8 +214,8 @@ namespace PCGExClusters
 			{
 				const int32 NodeA = FaceNodes[i];
 				const int32 NodeB = FaceNodes[(i + 1) % FaceNodes.Num()];
-				const FVector2D& PosA = (*ProjectedPositions)[(*Cluster->Nodes)[NodeA].PointIndex];
-				const FVector2D& PosB = (*ProjectedPositions)[(*Cluster->Nodes)[NodeB].PointIndex];
+				const FVector2D& PosA = (*ProjectedPositions)[NodeA];
+				const FVector2D& PosB = (*ProjectedPositions)[NodeB];
 				SignedArea += (PosA.X * PosB.Y - PosB.X * PosA.Y);
 			}
 			SignedArea *= 0.5;
@@ -316,8 +315,8 @@ namespace PCGExClusters
 				TSet<int32> UniqueNodes;
 				for (const int32 NodeIdx : WrapperCell->Nodes)
 				{
-					const int32 PointIdx = Nodes[NodeIdx].PointIndex;
-					const FVector2D& Point2D = (*ProjectedPositions)[PointIdx];
+					// ProjectedPositions is node-indexed, access directly via NodeIdx
+					const FVector2D& Point2D = (*ProjectedPositions)[NodeIdx];
 					WrapperCell->Polygon.Add(Point2D);
 					WrapperCell->Bounds2D += Point2D;
 
@@ -353,10 +352,10 @@ namespace PCGExClusters
 		}
 	}
 
-	void FCellConstraints::BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions)
+	void FCellConstraints::BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const FPCGExGeo2DProjectionDetails& ProjectionDetails)
 	{
 		// Build or get shared enumerator, then delegate to the overload that uses it
-		GetOrBuildEnumerator(InCluster, ProjectedPositions);
+		GetOrBuildEnumerator(InCluster, ProjectionDetails);
 		BuildWrapperCell(SharedThis(this));
 	}
 

@@ -378,10 +378,10 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 			NewPointIO = MainPoints->Emplace_GetRef(PCGExData::EIOInit::New);
 		}
 
+		if (!NewPointIO) { return; }
+
 		const int32 NumPoints = static_cast<int32>(Path.size());
 		UPCGBasePointData* OutPoints = NewPointIO->GetOut();
-
-		if (!OutPoints) { return; }
 
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPoints, Allocations);
 		NewPointIO->GetOutKeys(true); // Force valid entry keys for metadata -- TODO : Only do this if there are attributes to carry over

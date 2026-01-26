@@ -7,6 +7,8 @@
 #include "PCGExCommon.h"
 #include "PCGExH.h"
 
+struct FPCGExGeo2DProjectionDetails;
+
 namespace PCGExMath
 {
 	struct FBestFitPlane;
@@ -62,7 +64,9 @@ namespace PCGExClusters
 		TMap<uint64, int32> HalfEdgeMap;  // Maps H64(origin, target) to half-edge index
 
 		const FCluster* Cluster = nullptr;
-		const TArray<FVector2D>* ProjectedPositions = nullptr;
+
+		/** Node-indexed projected positions (size = NumNodes, access via NodeIndex) */
+		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 
 		int32 NumFaces = 0;
 
@@ -74,11 +78,19 @@ namespace PCGExClusters
 		FPlanarFaceEnumerator() = default;
 
 		/**
-		 * Build the DCEL structure from a cluster.
+		 * Build the DCEL structure from a cluster using projection settings.
+		 * Internally builds node-indexed projected positions.
 		 * @param InCluster The cluster to build from
-		 * @param InProjectedPositions 2D projected positions indexed by point index
+		 * @param InProjection Projection settings for 2D transformation
 		 */
-		void Build(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& InProjectedPositions);
+		void Build(const TSharedRef<FCluster>& InCluster, const FPCGExGeo2DProjectionDetails& InProjection);
+
+		/**
+		 * Build the DCEL structure from a cluster with pre-computed node-indexed positions.
+		 * @param InCluster The cluster to build from
+		 * @param InNodeIndexedPositions Pre-computed 2D positions indexed by node index (size must equal cluster node count)
+		 */
+		void Build(const TSharedRef<FCluster>& InCluster, const TSharedPtr<TArray<FVector2D>>& InNodeIndexedPositions);
 
 		/**
 		 * Enumerate raw faces (serial operation).
@@ -126,7 +138,9 @@ namespace PCGExClusters
 		FORCEINLINE int32 GetNumHalfEdges() const { return HalfEdges.Num(); }
 		FORCEINLINE int32 GetNumFaces() const { return NumFaces; }
 		FORCEINLINE const FCluster* GetCluster() const { return Cluster; }
-		FORCEINLINE const TArray<FVector2D>* GetProjectedPositions() const { return ProjectedPositions; }
+
+		/** Get node-indexed projected positions (access via NodeIndex, not PointIndex) */
+		FORCEINLINE const TSharedPtr<TArray<FVector2D>>& GetProjectedPositions() const { return ProjectedPositions; }
 
 		/**
 		 * Get half-edge index for a directed edge.

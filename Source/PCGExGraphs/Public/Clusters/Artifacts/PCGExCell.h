@@ -158,19 +158,17 @@ namespace PCGExClusters
 		/**
 		 * Build or get the shared enumerator. Call this once to build the DCEL, then reuse.
 		 * @param InCluster The cluster to build from
-		 * @param ProjectedPositions 2D projected vertex positions
-		 * @param ProjectionDetails Optional projection settings for cache lookup/storage
+		 * @param ProjectionDetails Projection settings for building node-indexed positions and cache lookup/storage
 		 */
 		TSharedPtr<FPlanarFaceEnumerator> GetOrBuildEnumerator(
 			const TSharedRef<FCluster>& InCluster,
-			const TArray<FVector2D>& ProjectedPositions,
-			const FPCGExGeo2DProjectionDetails* ProjectionDetails = nullptr);
+			const FPCGExGeo2DProjectionDetails& ProjectionDetails);
 
 		/** Build wrapper cell using the shared enumerator */
 		void BuildWrapperCell(const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
 
-		/** Legacy method - builds enumerator internally if needed */
-		void BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions);
+		/** Convenience method - builds enumerator internally if needed */
+		void BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const FPCGExGeo2DProjectionDetails& ProjectionDetails);
 
 		void Cleanup();
 	};

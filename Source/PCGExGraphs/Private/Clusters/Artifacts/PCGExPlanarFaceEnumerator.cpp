@@ -7,22 +7,51 @@
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "Math/PCGExMath.h"
+#include "Math/PCGExProjectionDetails.h"
 #include "Math/Geo/PCGExGeo.h"
 
 namespace PCGExClusters
 {
-	void FPlanarFaceEnumerator::Build(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& InProjectedPositions)
+	void FPlanarFaceEnumerator::Build(const TSharedRef<FCluster>& InCluster, const FPCGExGeo2DProjectionDetails& InProjection)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::Build);
 
 		Cluster = &InCluster.Get();
-		ProjectedPositions = &InProjectedPositions;
+
+		const TArray<FNode>& Nodes = *Cluster->Nodes;
+		const int32 NumNodes = Nodes.Num();
+
+		// Build node-indexed projected positions
+		ProjectedPositions = MakeShared<TArray<FVector2D>>();
+		ProjectedPositions->SetNumUninitialized(NumNodes);
+
+		TConstPCGValueRange<FTransform> VtxTransforms = Cluster->VtxTransforms;
+		TArray<FVector2D>& Positions = *ProjectedPositions;
+
+		for (int32 NodeIdx = 0; NodeIdx < NumNodes; ++NodeIdx)
+		{
+			const FVector Location = VtxTransforms[Nodes[NodeIdx].PointIndex].GetLocation();
+			const FVector Projected = InProjection.Project(Location);
+			Positions[NodeIdx] = FVector2D(Projected.X, Projected.Y);
+		}
+
+		// Delegate to the shared implementation
+		Build(InCluster, ProjectedPositions);
+	}
+
+	void FPlanarFaceEnumerator::Build(const TSharedRef<FCluster>& InCluster, const TSharedPtr<TArray<FVector2D>>& InNodeIndexedPositions)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPlanarFaceEnumerator::Build);
+
+		Cluster = &InCluster.Get();
+		ProjectedPositions = InNodeIndexedPositions;
 
 		const TArray<FNode>& Nodes = *Cluster->Nodes;
 		const TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges;
 		PCGEx::FIndexLookup* NodeLookup = Cluster->NodeIndexLookup.Get();
 		const int32 NumEdges = Edges.Num();
 		const int32 NumNodes = Nodes.Num();
+		const TArray<FVector2D>& Positions = *ProjectedPositions;
 
 		// Step 1: Create all half-edges (2 per edge)
 		HalfEdges.Reset();
@@ -37,9 +66,9 @@ namespace PCGExClusters
 			const int32 NodeA = NodeLookup->Get(Edge.Start);
 			const int32 NodeB = NodeLookup->Get(Edge.End);
 
-			// Get 2D positions using point indices directly
-			const FVector2D PosA = InProjectedPositions[Edge.Start];
-			const FVector2D PosB = InProjectedPositions[Edge.End];
+			// Get 2D positions using NODE indices (not point indices)
+			const FVector2D& PosA = Positions[NodeA];
+			const FVector2D& PosB = Positions[NodeB];
 
 			// Half-edge A → B
 			const FVector2D DirAB = (PosB - PosA).GetSafeNormal();
@@ -393,14 +422,14 @@ namespace PCGExClusters
 		}
 
 		// Build polygon from the expanded nodes array (includes leaf duplicates)
+		// Note: ProjectedPositions is node-indexed, access directly via NodeIdx
 		const int32 NumOutputNodes = OutCell->Nodes.Num();
 		OutCell->Polygon.SetNumUninitialized(NumOutputNodes);
 		OutCell->Bounds2D = FBox2D(ForceInit);
 		for (int32 i = 0; i < NumOutputNodes; ++i)
 		{
 			const int32 NodeIdx = OutCell->Nodes[i];
-			const FNode& Node = (*Cluster->Nodes)[NodeIdx];
-			const FVector2D& Point = (*ProjectedPositions)[Node.PointIndex];
+			const FVector2D& Point = (*ProjectedPositions)[NodeIdx];
 			OutCell->Polygon[i] = Point;
 			OutCell->Bounds2D += Point;
 		}
@@ -477,7 +506,7 @@ namespace PCGExClusters
 			}
 			if (bAlreadyTested) { continue; }
 
-			// Build face polygon
+			// Build face polygon (ProjectedPositions is node-indexed)
 			FacePolygon.Reset();
 			int32 CurrentHE = StartHE;
 			const int32 MaxSteps = HalfEdges.Num();
@@ -485,7 +514,7 @@ namespace PCGExClusters
 			for (int32 Step = 0; Step < MaxSteps; ++Step)
 			{
 				const FHalfEdge& HE = HalfEdges[CurrentHE];
-				FacePolygon.Add((*ProjectedPositions)[(*Cluster->Nodes)[HE.OriginNode].PointIndex]);
+				FacePolygon.Add((*ProjectedPositions)[HE.OriginNode]);
 				CurrentHE = HE.NextIndex;
 				if (CurrentHE == StartHE) { break; }
 			}
@@ -515,7 +544,7 @@ namespace PCGExClusters
 			if (FaceIdx < 0 || ProcessedFaces.Contains(FaceIdx)) { continue; }
 			ProcessedFaces.Add(FaceIdx);
 
-			// Build face polygon
+			// Build face polygon (ProjectedPositions is node-indexed)
 			FacePolygon.Reset();
 			int32 CurrentHE = StartHE;
 			const int32 MaxSteps = HalfEdges.Num();
@@ -523,7 +552,7 @@ namespace PCGExClusters
 			for (int32 Step = 0; Step < MaxSteps; ++Step)
 			{
 				const FHalfEdge& HE = HalfEdges[CurrentHE];
-				FacePolygon.Add((*ProjectedPositions)[(*Cluster->Nodes)[HE.OriginNode].PointIndex]);
+				FacePolygon.Add((*ProjectedPositions)[HE.OriginNode]);
 				CurrentHE = HE.NextIndex;
 				if (CurrentHE == StartHE) { break; }
 			}
