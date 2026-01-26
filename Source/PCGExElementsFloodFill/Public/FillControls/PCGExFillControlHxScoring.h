@@ -26,7 +26,7 @@ struct FPCGExFillControlConfigHeuristicsScoring : public FPCGExFillControlConfig
 	}
 
 	/** What components are used for scoring points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExElementsClusters.EPCGExFloodFillHeuristicFlags"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExElementsFloodFill.EPCGExFloodFillHeuristicFlags"))
 	uint8 Scoring = static_cast<uint8>(EPCGExFloodFillHeuristicFlags::LocalScore);
 
 	/** Weight multiplier applied to scores from this control. */

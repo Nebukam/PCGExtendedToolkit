@@ -88,9 +88,6 @@ struct PCGEXELEMENTSFLOODFILL_API FPCGExFloodFillFlowDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Fill Rate", EditCondition="FillRateInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 FillRateConstant = 1;
 
-	/** What components are used for scoring points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExElementsClusters.EPCGExFloodFillHeuristicFlags"))
-	uint8 Scoring = static_cast<uint8>(EPCGExFloodFillHeuristicFlags::LocalScore);
 };
 
 namespace PCGExData
