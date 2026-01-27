@@ -1,82 +1,208 @@
 ![UE 5.7](https://img.shields.io/badge/UE-5.7-darkgreen) ![5.6](https://img.shields.io/badge/5.6-darkgreen) ![5.5](https://img.shields.io/badge/5.5-gray) ![5.4](https://img.shields.io/badge/5.4-gray) ![5.3](https://img.shields.io/badge/5.3-gray) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Nebukam/PCGExtendedToolkit)
-# PCG Extended Toolkit 
 
-![PCGEx](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/refs/heads/docs/_sources/smol-logo.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/refs/heads/docs/_sources/smol-logo.png" alt="PCGEx Logo">
+</p>
 
-# What is it?
-### The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.7, + LTS on 5.6, archived for 5.5, 5.4, 5.3) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data in unique ways. Its primary focus is to create spatial relationships between points, and build around them; but it comes with a bunch of other super useful stuffs.
+<h1 align="center">PCG Extended Toolkit (PCGEx)</h1>
 
-PCGEx allows you to create edge-based structures from points dataset, inside of which you can do pathfinding to generate splines; relax positions, attributes, flag specific types of connections, and much much more. 
-It also comes with a set of lower-level, more generic features to manipulate attributes & points; as well as highly granular parameters & tweaks.
+<p align="center">
+  <strong>200+ nodes for advanced procedural generation in Unreal Engine</strong><br>
+  Graphs, pathfinding, spatial queries, sampling, and more.
+</p>
 
-## Getting Started
-— **[Documentation](https://pcgex.gitbook.io/pcgex)**  
-— **[Installation](https://nebukam.github.io/PCGExtendedToolkit/installation.html) in your own project** (FAB, Gumroad, Source)
-— Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)  
-
-For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2vC5gbE)!
-
-— Support the project on **[Patreon](https://www.patreon.com/c/pcgex)**  
-
-## **[Example Project](https://pcgex.gitbook.io/pcgex/basics/quickstart/example-project)**
-![image](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
-
-# Highlights
-### Vtx/Edge structures
-A new concept of connection between points, enabling entierely new ways of working with PCG
-
-![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-graphs.jpg)
-
-### Pathfinding
-Advanced pathfinding utilities with a completely modular heuristics system
-
-![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-pathfinding.jpg)
-
-### Sampling
-Powerful tool to extract, transfer and blend data between groups of points, splines, meshes
-
-![hl-sampling](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-samplers.jpg)
-
-### Path Manipulation
-Extensive toolset focusing on path manipulation & modification
-![hl-paths](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-paths.jpg)
-
-### Tensors & vector fields
-A very easy to use toolset to create & work with tensors, allowing to transform points & extrude paths using spatial effectors
-
-![hl-misc](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-tensors.jpg)
-
-### Low level utilities
-A lot of simple yet powerful utility nodes ranging from complex sorting, complex partitioning, remapping, advanced filters with chainable conditions, to bitmask operations.
-
-![hl-misc](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-miscjpg.jpg)
-
-#### *And so much more -- PCGEx has 180+ nodes!*
-
-# Interops
-PCGEx has a few additional interops plugins to interfaces with "other things":
-
-— **[PCGEx + Zone Graph](https://github.com/Nebukam/PCGExtendedToolkitZoneGraph)**  
-— **[PCGEx + Watabou](https://github.com/Nebukam/PCGExtendedToolkitWatabou)**  
+<p align="center">
+  <a href="https://pcgex.gitbook.io/pcgex">Documentation</a> •
+  <a href="https://nebukam.github.io/PCGExtendedToolkit/installation.html">Installation</a> •
+  <a href="https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html">Node Reference</a> •
+  <a href="https://discord.gg/mde2vC5gbE">Discord</a> •
+  <a href="https://www.patreon.com/c/pcgex">Support on Patreon</a>
+</p>
 
 ---
 
-### [Contributing](https://github.com/Nebukam/PCGExtendedToolkit/blob/main/CONTRIBUTING.md)
-### Disclaimer
-This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*).
+## What is PCGEx?
+
+PCGEx is a **low-level, use-case agnostic toolkit** extending Unreal Engine's PCG framework with **200+ nodes**.
+
+Vanilla PCG excels at scattering and rule-based placement. PCGEx adds what's missing: **structure**. Build graphs from points, find paths through them, analyze topology, and work with explicit connections—not just proximity. Delaunay, Voronoi, MST, convex hulls, A* pathfinding, and more.
+
+But graph theory is just the headline. PCGEx is also a comprehensive data manipulation toolkit: spatial queries, sampling, blending, path operations, polygon booleans, asset management, filtering, sorting—the low-level primitives that vanilla PCG doesn't provide. Reusable sub-nodes (filters, heuristics, blenders) plug into operations to keep your graphs clean. Parallel processing handles large datasets efficiently.
+
+It doesn't solve specific problems for you. It gives you the tools to solve them yourself.
+
+<!-- SCREENSHOT: Hero image showing a complex procedural generation result that highlights the variety of what's possible -->
+
+---
+
+## Getting Started
+
+### Installation
+
+PCGEx is available through multiple channels:
+
+- **[FAB](https://www.fab.com/)** — Epic's official marketplace
+- **[Gumroad](https://nebukam.gumroad.com/)** — Precompiled Binaries _(until FAB is back)_
+- **[Source](https://github.com/Nebukam/PCGExtendedToolkit)** — Build from GitHub
+
+See the [Installation Guide](https://nebukam.github.io/PCGExtendedToolkit/installation.html) for detailed instructions.
+
+### Example Project
+
+The best way to learn PCGEx is through the **[Example Project](https://pcgex.gitbook.io/pcgex/basics/quickstart/example-project)**, which contains hundred of annotated graphs and complex examples demonstrating PCGEx capabilities.
+
+<!-- SCREENSHOT: Overview of example project content - perhaps a grid of different example scenes -->
+
+![Example Project](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
+
+### Documentation
+
+- **[Gitbook Documentation](https://pcgex.gitbook.io/pcgex)** — Comprehensive guides and tutorials
+- **[Discord Server](https://discord.gg/mde2vC5gbE)** — Community support and discussion
+
+---
+
+## Key Features
+
+### Clusters & Graphs
+The heart of PCGEx. Transform points into connected networks via Delaunay, Voronoi, convex hulls, MST, and custom builders. Every connection is data you can query, filter, refine, and build upon. This is what vanilla PCG can't do.
+
+<!-- SCREENSHOT: Side-by-side: scattered points → Delaunay → refined graph → final result -->
+
+![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-graphs.jpg)
+
+### Filter Ecosystem
+Define selection logic once, reuse everywhere. AND/OR composition, attribute tests, spatial queries, bitmasks—all as portable sub-nodes that plug into operations. No more duplicating filter chains across your graph.
+
+### Asset Collections
+Curate meshes, actors, and data assets with weighted distribution, tags, and per-entry property overrides. Define a collection once, use it consistently everywhere. The asset management layer vanilla PCG lacks.
+
+### Paths
+Smooth, simplify, subdivide, cut, fuse, offset, bevel. Tangent operations for clean curves. Convert freely between points, paths, and splines. A complete path manipulation toolbox.
+
+<!-- SCREENSHOT: Path pipeline: raw → smoothed → subdivided → final -->
+
+![hl-paths](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-paths.jpg)
+
+### Pathfinding
+A*/Djikstra routing through your clusters with pluggable heuristics. Weight by distance, slope, attributes, or custom logic. Find optimal paths when you need them, _without a single loop_.
+
+<!-- SCREENSHOT: Weighted paths through a graph -->
+
+![hl-pathfinding](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-pathfinding.jpg)
+
+### Spatial Operations
+**Point fusion** is foundational—merge nearby points with attribute blending. Beyond that: Lloyd relaxation, bin packing, octree queries, bounds analysis. Power tools for when you need them.
+
+### Sampling & Blending
+Transfer data between point sets, surfaces, splines, textures. Configurable weighting and falloff. The glue that connects disparate data sources.
+
+![hl-sampling](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-samplers.jpg)
+
+### Tensors & Vector Fields
+Spatial effectors that influence transforms. Stack them for complex directional fields—orienting objects, extruding paths, guiding growth.
+
+![hl-tensors](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-tensors.jpg)
+
+### Probing
+Build clusters from connection rules—define how points should connect based on spatial relationships and let PCGEx figure out the graph.
+
+### Valency (WFC)
+Wave Function Collapse for modular generation. Impressive constraint solving with a dedicated editor mode. Eye candy that actually works.
+
+### Supporting Tools
+**Shapes** — 2D/3D primitives, Clipper2 polygon booleans.  
+**Topology** — Boundary detection, flood fill, island analysis.  
+**Noise** — 3D procedural noise for natural variation.  
+**Bridges** — Convert between meshes, clusters, and paths.  
+**Utilities** — Sorting, partitioning, attributes, hashes, so much more.  
+
+
+![hl-misc](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-miscjpg.jpg)
+
+
+---
+
+## Interop Plugins
+
+PCGEx has companion plugins for specialized integrations:
+
+| Plugin | Description |
+|--------|-------------|
+| **[PCGEx + ZoneGraph](https://github.com/Nebukam/PCGExtendedToolkitZoneGraph)** | Generate ZoneGraph data for AI navigation from PCGEx clusters |
+| **[PCGEx + Watabou](https://github.com/Nebukam/PCGExtendedToolkitWatabou)** | Import procedural maps from Watabou's generators |
+
+---
+
+## For C++ Developers
+
+PCGEx is designed for extensibility. The plugin provides a robust framework for creating custom PCG nodes with:
+
+- **Processor Pattern** — Per-input processing with automatic parallelization across threads
+- **Factory System** — Pluggable operations (filters, blenders, samplers) via a Settings → Factory → Operation pipeline
+- **Data Facades** — Type-safe, cached attribute access with thread-safe buffer management
+- **Cluster Infrastructure** — Full graph/topology data structures ready for custom algorithms
+
+### Architecture
+
+The plugin is organized into **core modules** (foundational infrastructure) and **element modules** (node implementations):
+
+**Core Modules:**
+```
+PCGExCore          → Data facades, threading primitives, macros, containers
+PCGExGraphs        → Graph/cluster structures, node/edge topology
+PCGExFilters       → Composable filter system with manager orchestration
+PCGExBlending      → Attribute blending with multiple blend modes
+PCGExCollections   → Asset collection management, weighted picking
+PCGExFoundations   → Polylines, tangents, geometric primitives
+PCGExProperties    → Unified property system across modules
+PCGExMatching      → Pattern matching framework
+PCGExHeuristics    → Heuristic calculations for pathfinding
+PCGExNoise3D       → Procedural noise
+```
+
+All processing runs **off the game thread** with pre-allocated buffers and parallel-safe patterns. Custom nodes inherit these capabilities automatically by extending the appropriate base classes.
+
+See [CONTRIBUTING.md](https://github.com/Nebukam/PCGExtendedToolkit/blob/main/CONTRIBUTING.md) for development guidelines.
+
+---
+
+## Support the Project
+
+PCGEx is free and open source under the MIT license. If it's useful to your work, consider:
+
+- ⭐ **Starring** the repository
+- 💬 **Joining** the [Discord community](https://discord.gg/mde2vC5gbE)
+- ❤️ **Supporting** on [Patreon](https://www.patreon.com/c/pcgex)
+
+---
+
+## Acknowledgments
 
 ### Supporters
--Check out the [Supporters](https://pcgex.gitbook.io/pcgex/supporters) page on gitbook!
-- Thanks to [Sine Nomine Associates](https://sinenomine.net/) for generously providing and maintaining the automated Linux build infrastructure that helps keep this project running smoothly.
+Check out the [Supporters page](https://pcgex.gitbook.io/pcgex/supporters) on Gitbook!
+
+Special thanks to [Sine Nomine Associates](https://sinenomine.net/) for generously providing and maintaining the automated Linux build infrastructure.
 
 ### Special Thanks
-- Kudo to [@MikeC](https://github.com/mikec316) for his reckless experiments with uncooked releases, feedbacks, suggestions. Without him this plugin wouldn't be as useful and stable as it is today.
-- The Epic staff in the person of [@Amathlog](https://github.com/Amathlog), for his availability and readiness to help with all things PCG.
-- [@Erlandys](https://github.com/Erlandys) for his invaluable insights into advanced C++.
-- [@Syscrusher](https://github.com/sna-scourtney) for his invaluable help and support on Linux
-- [@MaximeDup](https://github.com/MaximeDup) & [@EmSeta](https://github.com/EmSeta) for helping with the macOS version
-- And of course the contributors, but they have their own special place on the sidebar <3
 
-### Third party & Credits
-- This plugin includes [delaunator-cpp](https://github.com/delfrrr/delaunator-cpp)
-- The `PCGExElementsClipper2` module includes a C++ modified port of the [Clipper2](https://github.com/AngusJohnson/Clipper2) (2.0.1) library created by Angus Johnson
+| | |
+|---|---|
+| **[@MikeC](https://github.com/mikec316)** | Reckless experiments, feedback, and suggestions that shaped the plugin into what it is today |
+| **[@Amathlog](https://github.com/Amathlog)** | Epic Games staff, invaluable PCG framework guidance |
+| **[@Erlandys](https://github.com/Erlandys)** | Advanced C++ insights |
+| **[@Syscrusher](https://github.com/sna-scourtney)** | Linux support and maintenance |
+| **[@staminajim](https://github.com/staminajim), [@MaximeDup](https://github.com/MaximeDup)** and **[@EmSeta](https://github.com/EmSeta)** | macOS compatibility |
+
+And all the [contributors](https://github.com/Nebukam/PCGExtendedToolkit/graphs/contributors) who make this project better! ❤️
+
+### Third-Party Libraries
+
+- **[delaunator-cpp](https://github.com/delfrrr/delaunator-cpp)** — Fast Delaunay triangulation
+- **[Clipper2](https://github.com/AngusJohnson/Clipper2)** — Polygon clipping and offsetting (modified C++ port, v2.0.1) by Angus Johnson
+
+---
+
+## License
+
+**MIT License** — Free for personal and commercial use. Attribution appreciated but not required.
