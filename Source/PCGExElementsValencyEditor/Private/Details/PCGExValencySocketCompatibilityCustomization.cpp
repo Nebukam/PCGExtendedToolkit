@@ -11,8 +11,12 @@
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Input/SComboButton.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Styling/AppStyle.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencySocketCompatibility"
 
@@ -314,6 +318,25 @@ void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
 		.Padding(4, 1)
 		[
 			SNew(SHorizontalBox)
+			// Color dot indicator (rounded)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(0, 0, 4, 0)
+			[
+				SNew(SImage)
+				.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
+				.DesiredSizeOverride(FVector2D(10, 10))
+				.ColorAndOpacity_Lambda([this, TypeIndex]()
+				{
+					UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
+					if (Rules && Rules->SocketTypes.IsValidIndex(TypeIndex))
+					{
+						return FSlateColor(Rules->SocketTypes[TypeIndex].DebugColor);
+					}
+					return FSlateColor(FLinearColor::White);
+				})
+			]
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			.VAlign(VAlign_Center)
@@ -328,29 +351,91 @@ void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
 					ToggleTypeCompatibility(TypeId);
 				})
 			]
+			// Fixed-width symbol column for alignment
 			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
+			.AutoWidth()
 			.VAlign(VAlign_Center)
 			.Padding(4, 0, 0, 0)
 			[
+				SNew(SBox)
+				.WidthOverride(18) // Fixed width for symbol
+				.HAlign(HAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text_Lambda([this, TypeIndex, bIsSelf]()
+					{
+						UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
+						if (!Rules || !Rules->SocketTypes.IsValidIndex(TypeIndex))
+						{
+							return FText::FromString(TEXT(" "));
+						}
+
+						const FPCGExValencySocketDefinition& TypeDef = Rules->SocketTypes[TypeIndex];
+						const bool bWeConnectToThem = IsTypeCompatible(TypeDef.TypeId);
+						const bool bTheyConnectToUs = DoesTypeConnectToUs(TypeDef.TypeId);
+
+						if (bIsSelf)
+						{
+							return FText::FromString(TEXT("\u25C9")); // ◉ self
+						}
+						else if (bWeConnectToThem && bTheyConnectToUs)
+						{
+							return FText::FromString(TEXT("\u2194")); // ↔ bidirectional
+						}
+						else if (bWeConnectToThem)
+						{
+							return FText::FromString(TEXT("\u2192")); // → outgoing
+						}
+						else if (bTheyConnectToUs)
+						{
+							return FText::FromString(TEXT("\u2190")); // ← incoming
+						}
+						return FText::FromString(TEXT("\u25CB")); // ○ no connection
+					})
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
+			]
+			// Type name
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.VAlign(VAlign_Center)
+			.Padding(2, 0, 0, 0)
+			[
 				SNew(STextBlock)
-				.Text_Lambda([this, TypeIndex]()
+				.Text_Lambda([this, TypeIndex, bIsSelf]()
 				{
 					UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
-					if (Rules && Rules->SocketTypes.IsValidIndex(TypeIndex))
+					if (!Rules || !Rules->SocketTypes.IsValidIndex(TypeIndex))
 					{
-						const FText Name = Rules->SocketTypes[TypeIndex].GetDisplayName();
-						if (!Name.IsEmpty() && !Name.EqualTo(FText::FromName(NAME_None)))
-						{
-							return Name;
-						}
-						// Fallback for unnamed types
-						return FText::Format(LOCTEXT("UnnamedType", "Type {0}"), FText::AsNumber(TypeIndex));
+						return LOCTEXT("InvalidType", "<invalid>");
 					}
-					return LOCTEXT("InvalidType", "<invalid>");
+
+					const FPCGExValencySocketDefinition& TypeDef = Rules->SocketTypes[TypeIndex];
+
+					// Get display name
+					FString Name;
+					const FText DisplayNameText = TypeDef.GetDisplayName();
+					if (!DisplayNameText.IsEmpty() && !DisplayNameText.EqualTo(FText::FromName(NAME_None)))
+					{
+						Name = DisplayNameText.ToString();
+					}
+					else
+					{
+						Name = FString::Printf(TEXT("Type %d"), TypeIndex);
+					}
+
+					return FText::FromString(Name);
 				})
 				.Font(IDetailLayoutBuilder::GetDetailFont())
-				.ColorAndOpacity(bIsSelf ? FSlateColor(FLinearColor::Yellow) : FSlateColor::UseForeground())
+				.ColorAndOpacity_Lambda([bIsSelf]()
+				{
+					// Dim self, normal for others
+					if (bIsSelf)
+					{
+						return FSlateColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.0f));
+					}
+					return FSlateColor::UseForeground();
+				})
 			]
 		];
 	}
@@ -386,6 +471,27 @@ bool SValencySocketCompatibilityDropdown::IsTypeCompatible(int32 TypeId) const
 		if (StoredTypeId == TypeId)
 		{
 			return true;
+		}
+	}
+
+	return false;
+}
+
+bool SValencySocketCompatibilityDropdown::DoesTypeConnectToUs(int32 OtherTypeId) const
+{
+	UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get();
+	if (!SocketRules)
+	{
+		return false;
+	}
+
+	// Find the other type's definition and check if it has us in its compatible list
+	for (const FPCGExValencySocketDefinition& TypeDef : SocketRules->SocketTypes)
+	{
+		if (TypeDef.TypeId == OtherTypeId)
+		{
+			// Check if CurrentTypeId is in their CompatibleTypeIds
+			return TypeDef.CompatibleTypeIds.Contains(CurrentTypeId);
 		}
 	}
 

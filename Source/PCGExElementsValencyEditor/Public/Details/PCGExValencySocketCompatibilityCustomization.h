@@ -66,8 +66,11 @@ private:
 	/** Handle search text change */
 	void OnSearchTextChanged(const FText& NewText);
 
-	/** Check if a type ID is in the compatible list */
+	/** Check if a type ID is in the compatible list (we connect to them) */
 	bool IsTypeCompatible(int32 TypeId) const;
+
+	/** Check if another type connects to us (they connect to us) */
+	bool DoesTypeConnectToUs(int32 OtherTypeId) const;
 
 	/** Toggle compatibility for a type */
 	void ToggleTypeCompatibility(int32 TypeId);
