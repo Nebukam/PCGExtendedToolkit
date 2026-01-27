@@ -579,6 +579,8 @@ namespace PCGExFindContoursBounded
 				if (Cell && Cell->FaceIndex >= 0) { InitialFaceIndices.Add(Cell->FaceIndex); }
 			}
 
+			const TSharedPtr<PCGExCells::FSeedOwnershipHandler>& SeedOwnership = Context->SeedOwnership;
+
 			for (const auto& Pair : CellExpansionMap)
 			{
 				const int32 FaceIndex = Pair.Key;
@@ -604,8 +606,10 @@ namespace PCGExFindContoursBounded
 					{
 						if (*CellPtr)
 						{
-							// Set CustomIndex to first source seed for compatibility
-							(*CellPtr)->CustomIndex = ExpData.SourceIndices.Array()[0];
+							// Use ownership handler to pick winner among all seeds that expanded to this cell
+							TArray<int32> CandidateSeeds = ExpData.SourceIndices.Array();
+							const int32 WinnerSeedIndex = SeedOwnership->PickWinner(CandidateSeeds, (*CellPtr)->Data.Centroid);
+							(*CellPtr)->CustomIndex = WinnerSeedIndex;
 							(*CellPtr)->ExpansionPickCount = ExpData.PickCount;
 							(*CellPtr)->ExpansionMinDepth = ExpData.MinDepth;
 							ValidCells.Add(*CellPtr);
