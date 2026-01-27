@@ -25,7 +25,14 @@ TArray<FPCGPinProperties> UPCGExFindContoursBoundedSettings::InputPinProperties(
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGExCommon::Labels::SourceSeedsLabel, "Seeds associated with the main input points", Required)
 	PCGEX_PIN_SPATIAL(PCGExFindContoursBounded::SourceBoundsLabel, "Spatial data whose bounds will be used to triage cells", Required)
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SeedOwnership == EPCGExCellSeedOwnership::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 	return PinProperties;
+}
+
+bool UPCGExFindContoursBoundedSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExSorting::Labels::SourceSortingRules) { return SeedOwnership == EPCGExCellSeedOwnership::BestCandidate; }
+	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 TArray<FPCGPinProperties> UPCGExFindContoursBoundedSettings::OutputPinProperties() const
@@ -94,6 +101,15 @@ bool FPCGExFindContoursBoundedElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(SeedGrowth)
 	Context->SeedGrowth.Init(Context, Context->SeedsDataFacade);
+
+	// Initialize seed ownership handler
+	Context->SeedOwnership = MakeShared<PCGExCells::FSeedOwnershipHandler>();
+	Context->SeedOwnership->Method = Settings->SeedOwnership;
+	Context->SeedOwnership->SortDirection = Settings->SortDirection;
+	if (!Context->SeedOwnership->Init(Context, Context->SeedsDataFacade))
+	{
+		return false;
+	}
 
 	// Get required bounds
 	TArray<FPCGTaggedData> BoundsData = Context->InputData.GetSpatialInputsByPin(PCGExFindContoursBounded::SourceBoundsLabel);
@@ -348,16 +364,23 @@ namespace PCGExFindContoursBounded
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		const int32 NumSeeds = Seeds->Num();
+		const TSharedPtr<PCGExCells::FSeedOwnershipHandler>& SeedOwnership = Context->SeedOwnership;
+		const bool bNeedsAllCandidates = SeedOwnership->NeedsAllCandidates();
 
 		TArray<TSharedPtr<PCGExClusters::FCell>>& CellsContainer = ScopedValidCells->Get_Ref(Scope);
 		CellsContainer.Reserve(Scope.Count);
+
+		TArray<int32> CandidateSeeds; // Reused per cell
+		CandidateSeeds.Reserve(8);
 
 		PCGEX_SCOPE_LOOP(CellIndex)
 		{
 			const TSharedPtr<PCGExClusters::FCell>& Cell = EnumeratedCells[CellIndex];
 			if (!Cell || Cell->Polygon.IsEmpty()) { continue; }
 
-			int32 ContainingSeedIndex = -1;
+			CandidateSeeds.Reset();
+
+			// Find all seeds inside this cell
 			for (int32 SeedIdx = 0; SeedIdx < NumSeeds; ++SeedIdx)
 			{
 				const FVector2D& SeedPoint = Seeds->GetProjected(SeedIdx);
@@ -366,14 +389,18 @@ namespace PCGExFindContoursBounded
 
 				if (PCGExMath::Geo::IsPointInPolygon(SeedPoint, Cell->Polygon))
 				{
-					ContainingSeedIndex = SeedIdx;
-					break;
+					CandidateSeeds.Add(SeedIdx);
+
+					// For SeedOrder mode, first match wins - break early
+					if (!bNeedsAllCandidates) { break; }
 				}
 			}
 
-			if (ContainingSeedIndex != -1)
+			// Only output cells that contain at least one seed
+			if (!CandidateSeeds.IsEmpty())
 			{
-				Cell->CustomIndex = ContainingSeedIndex;
+				const int32 WinnerSeedIndex = SeedOwnership->PickWinner(CandidateSeeds, Cell->Data.Centroid);
+				Cell->CustomIndex = WinnerSeedIndex;
 				CellsContainer.Add(Cell);
 			}
 		}
@@ -403,8 +430,9 @@ namespace PCGExFindContoursBounded
 
 		if (!bCategoryEnabled) { return; }
 
-		int32 BestSeedIdx = INDEX_NONE;
-		double BestDistSq = MAX_dbl;
+		const TSharedPtr<PCGExCells::FSeedOwnershipHandler>& SeedOwnership = Context->SeedOwnership;
+		TArray<int32> CandidateSeeds;
+		CandidateSeeds.Reserve(NumSeeds);
 
 		TConstPCGValueRange<FTransform> SeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
 
@@ -435,12 +463,14 @@ namespace PCGExFindContoursBounded
 				if (DistSq < ClosestEdgeDistSq) { ClosestEdgeDistSq = DistSq; }
 			});
 
-			if (Settings->SeedPicking.WithinDistanceSquared(ClosestEdgeDistSq) && ClosestEdgeDistSq < BestDistSq)
+			if (Settings->SeedPicking.WithinDistanceSquared(ClosestEdgeDistSq))
 			{
-				BestDistSq = ClosestEdgeDistSq;
-				BestSeedIdx = SeedIdx;
+				CandidateSeeds.Add(SeedIdx);
 			}
 		}
+
+		// Pick winner using seed ownership handler
+		const int32 BestSeedIdx = SeedOwnership->PickWinner(CandidateSeeds, WrapperCell->Data.Centroid);
 
 		if (BestSeedIdx == INDEX_NONE) { return; }
 
@@ -636,8 +666,9 @@ namespace PCGExFindContoursBounded
 
 			Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
 
-			int32 BestSeedIdx = INDEX_NONE;
-			double BestDistSq = MAX_dbl;
+			const TSharedPtr<PCGExCells::FSeedOwnershipHandler>& SeedOwnership = Context->SeedOwnership;
+			TArray<int32> CandidateSeeds;
+			CandidateSeeds.Reserve(NumSeeds);
 
 			TConstPCGValueRange<FTransform> SeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
 
@@ -654,12 +685,14 @@ namespace PCGExFindContoursBounded
 					if (DistSq < ClosestEdgeDistSq) { ClosestEdgeDistSq = DistSq; }
 				});
 
-				if (Settings->SeedPicking.WithinDistanceSquared(ClosestEdgeDistSq) && ClosestEdgeDistSq < BestDistSq)
+				if (Settings->SeedPicking.WithinDistanceSquared(ClosestEdgeDistSq))
 				{
-					BestDistSq = ClosestEdgeDistSq;
-					BestSeedIdx = SeedIdx;
+					CandidateSeeds.Add(SeedIdx);
 				}
 			}
+
+			// Pick winner using seed ownership handler
+			const int32 BestSeedIdx = SeedOwnership->PickWinner(CandidateSeeds, WrapperCell->Data.Centroid);
 
 			if (BestSeedIdx != INDEX_NONE)
 			{

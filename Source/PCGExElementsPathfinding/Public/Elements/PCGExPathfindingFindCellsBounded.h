@@ -11,6 +11,8 @@
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "PCGExPathfindingFindAllCellsBounded.h"
 #include "Clusters/Artifacts/PCGExCell.h"
+#include "Helpers/PCGExCellSeedOwnership.h"
+#include "Sorting/PCGExSortingCommon.h"
 
 #include "PCGExPathfindingFindCellsBounded.generated.h"
 
@@ -27,6 +29,7 @@ namespace PCGExMT
 	template <typename T>
 	class TScopedArray;
 }
+
 
 namespace PCGExFindContoursBounded
 {
@@ -63,6 +66,7 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
@@ -87,6 +91,14 @@ public:
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
+
+	/** How to determine seed ownership when multiple seeds compete for a cell. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExCellSeedOwnership SeedOwnership = EPCGExCellSeedOwnership::SeedOrder;
+
+	/** Sort direction when using Best Candidate ownership. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Sort Direction", EditCondition="SeedOwnership==EPCGExCellSeedOwnership::BestCandidate", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
@@ -147,6 +159,7 @@ struct FPCGExFindContoursBoundedContext final : FPCGExClustersProcessorContext
 	FPCGExCellGrowthDetails SeedGrowth;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
+	TSharedPtr<PCGExCells::FSeedOwnershipHandler> SeedOwnership;
 
 	FBox BoundsFilter = FBox(ForceInit);
 

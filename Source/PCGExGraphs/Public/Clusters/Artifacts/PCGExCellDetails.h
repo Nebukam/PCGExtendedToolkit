@@ -166,6 +166,14 @@ enum class EPCGExCellSeedBounds : uint8
 	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Cell (with rotation reset)", ToolTip="Seed bounds match cell bounds, and rotation is reset"),
 };
 
+UENUM()
+enum class EPCGExCellSeedOwnership : uint8
+{
+	SeedOrder     = 0 UMETA(DisplayName = "Seed Order", ToolTip="First seed (by index order) wins ownership of a cell"),
+	Closest       = 1 UMETA(DisplayName = "Closest", ToolTip="Closest seed to cell centroid wins ownership"),
+	BestCandidate = 2 UMETA(DisplayName = "Best Candidate", ToolTip="Use sorting rules to determine which seed wins ownership"),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 {
