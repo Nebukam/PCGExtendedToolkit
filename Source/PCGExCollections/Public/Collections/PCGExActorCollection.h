@@ -59,7 +59,7 @@ struct PCGEXCOLLECTIONS_API FPCGExActorCollectionEntry : public FPCGExAssetColle
 };
 
 // Actor Collection
-UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")
+UCLASS(BlueprintType, DisplayName="[PCGEx] Collection | Actor")
 class PCGEXCOLLECTIONS_API UPCGExActorCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()

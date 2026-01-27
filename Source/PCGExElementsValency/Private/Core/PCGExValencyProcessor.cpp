@@ -4,6 +4,8 @@
 #include "Core/PCGExValencyProcessor.h"
 
 #include "Clusters/PCGExCluster.h"
+#include "Core/PCGExCachedOrbitalCache.h"
+#include "Core/PCGExValencyOrbitalSet.h"
 #include "Data/PCGExData.h"
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Helpers/PCGExStreamingHelpers.h"
@@ -223,6 +225,20 @@ namespace PCGExValencyMT
 			return false;
 		}
 
+		// Get OrbitalSet for layer name (for cache identification)
+		FPCGExValencyProcessorContext* Context = static_cast<FPCGExValencyProcessorContext*>(ExecutionContext);
+		const FName LayerName = Context->OrbitalSet ? Context->OrbitalSet->LayerName : NAME_None;
+		const uint32 ContextHash = PCGExValency::FOrbitalCacheFactory::ComputeContextHash(LayerName, MaxOrbitals);
+
+		// Try cluster cache first
+		if (TSharedPtr<PCGExValency::FCachedOrbitalCache> Cached = Cluster->GetCachedData<PCGExValency::FCachedOrbitalCache>(
+			PCGExValency::FOrbitalCacheFactory::CacheKey, ContextHash))
+		{
+			OrbitalCache = Cached->OrbitalCache;
+			return OrbitalCache && OrbitalCache->IsValid();
+		}
+
+		// Build fresh
 		OrbitalCache = MakeShared<PCGExValency::FOrbitalCache>();
 
 		if (!OrbitalCache->BuildFrom(Cluster, OrbitalMaskReader, EdgeIndicesReader, MaxOrbitals))
@@ -231,6 +247,13 @@ namespace PCGExValencyMT
 			OrbitalCache.Reset();
 			return false;
 		}
+
+		// Store in cluster cache for downstream reuse
+		TSharedPtr<PCGExValency::FCachedOrbitalCache> NewCached = MakeShared<PCGExValency::FCachedOrbitalCache>();
+		NewCached->ContextHash = ContextHash;
+		NewCached->OrbitalCache = OrbitalCache;
+		NewCached->LayerName = LayerName;
+		Cluster->SetCachedData(PCGExValency::FOrbitalCacheFactory::CacheKey, NewCached);
 
 		return true;
 	}

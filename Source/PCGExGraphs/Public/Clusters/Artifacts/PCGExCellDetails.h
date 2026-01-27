@@ -7,6 +7,8 @@
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Clusters/PCGExEdge.h"
 
+#include "Details/PCGExInputShorthandsDetails.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Math/PCGExWinding.h"
 #include "Math/PCGExMathAxis.h"
 #include "Types/PCGExAttributeIdentity.h"
@@ -162,6 +164,15 @@ enum class EPCGExCellSeedBounds : uint8
 	Original           = 0 UMETA(DisplayName = "Original", ToolTip="Seed bounds is unchanged"),
 	MatchCell          = 1 UMETA(DisplayName = "Match Cell", ToolTip="Seed bounds match cell bounds"),
 	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Cell (with rotation reset)", ToolTip="Seed bounds match cell bounds, and rotation is reset"),
+};
+
+UENUM()
+enum class EPCGExCellSeedOwnership : uint8
+{
+	SeedOrder        = 0 UMETA(DisplayName = "Seed Order", ToolTip="First seed (by index order) wins ownership of a cell"),
+	Closest          = 1 UMETA(DisplayName = "Closest", ToolTip="Closest seed to cell centroid (3D world distance) wins ownership"),
+	ClosestProjected = 2 UMETA(DisplayName = "Closest (Projected)", ToolTip="Closest seed to cell centroid (2D projected distance) wins ownership"),
+	BestCandidate    = 3 UMETA(DisplayName = "Best Candidate", ToolTip="Use sorting rules to determine which seed wins ownership"),
 };
 
 USTRUCT(BlueprintType)
@@ -494,6 +505,51 @@ struct PCGEXGRAPHS_API FPCGExCellArtifactsDetails
 	bool Init(FPCGExContext* InContext);
 
 	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExClusters::FCell>& InCell) const;
+};
+
+/**
+ * Growth settings for cell expansion.
+ * Allows seeds/holes to expand to adjacent cells.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXGRAPHS_API FPCGExCellGrowthDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCellGrowthDetails() = default;
+
+	explicit FPCGExCellGrowthDetails(const int32 DefaultGrowth)
+	{
+		Growth = FPCGExInputShorthandSelectorInteger32Abs(FName("Growth"), DefaultGrowth);
+	}
+
+	/** Growth depth for expansion. 0 = no expansion, 1 = immediate neighbors, 2 = neighbors of neighbors, etc. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExInputShorthandSelectorInteger32Abs Growth = FPCGExInputShorthandSelectorInteger32Abs(FName("Growth"), 0);
+
+	/** Initialize the growth reader from a facade (for per-point growth values). Captures min/max. */
+	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade);
+
+	/** Get growth value for a specific point index */
+	FORCEINLINE int32 GetGrowth(const int32 PointIndex) const
+	{
+		return GrowthValue ? FMath::Max(0, GrowthValue->Read(PointIndex)) : 0;
+	}
+
+	/** Check if any growth is possible (max > 0) */
+	FORCEINLINE bool HasPotentialGrowth() const
+	{
+		return GrowthValue && GrowthValue->Max() > 0;
+	}
+
+	/** Get the maximum possible growth value (for pre-allocation) */
+	FORCEINLINE int32 GetMaxGrowth() const
+	{
+		return GrowthValue ? FMath::Max(0, GrowthValue->Max()) : 0;
+	}
+
+private:
+	TSharedPtr<PCGExDetails::TSettingValue<int32>> GrowthValue;
 };
 
 namespace PCGExClusters

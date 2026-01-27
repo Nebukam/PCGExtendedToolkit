@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClusterCache.h"
 
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExData.h"
@@ -126,6 +127,7 @@ namespace PCGExClusters
 		BoundedEdges.Reset();
 		EdgeLengths.Reset();
 		bEdgeLengthsDirty = true;
+		ClearCachedData();
 	}
 
 	FCluster::~FCluster()
@@ -235,6 +237,12 @@ namespace PCGExClusters
 
 			(Nodes->GetData() + StartNode)->Link(EndNode, E.Index);
 			(Nodes->GetData() + EndNode)->Link(StartNode, E.Index);
+		}
+
+		// Populate NodeIndexLookup from created nodes
+		if (NodeIndexLookup)
+		{
+			for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.Index; }
 		}
 
 		Bounds = Bounds.ExpandBy(10);
@@ -903,5 +911,17 @@ namespace PCGExClusters
 		Bounds += VtxTransforms[PointIndex].GetLocation();
 
 		return NodeIndex;
+	}
+
+	void FCluster::SetCachedData(FName Key, const TSharedPtr<ICachedClusterData>& Data)
+	{
+		FWriteScopeLock WriteLock(ClusterLock);
+		CachedData.Add(Key, Data);
+	}
+
+	void FCluster::ClearCachedData()
+	{
+		FWriteScopeLock WriteLock(ClusterLock);
+		CachedData.Reset();
 	}
 }

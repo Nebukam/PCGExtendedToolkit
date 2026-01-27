@@ -31,7 +31,6 @@ void IPCGExLegacyModuleInterface::RegisterRedirectors() const
 	TArray<FCoreRedirect> Redirects;
 
 	const FString ThisModuleName = GetModuleName();
-	const FString OldModuleName = TEXT("PCGExtendedToolkit");
 
 	for (TObjectIterator<UClass> It; It; ++It)
 	{
@@ -47,11 +46,14 @@ void IPCGExLegacyModuleInterface::RegisterRedirectors() const
 		FString ClassName = Class->GetName();
 
 		//UE_LOG(LogPCGEx, Warning, TEXT("Dynamic Redirect : \"/Script/%s.%s\" -> \"/Script/%s.%s\""), *OldModuleName, *ClassName, *ThisModuleName, *ClassName);
-
-		Redirects.Emplace(
-			ECoreRedirectFlags::Type_Class,
-			*FString::Printf(TEXT("/Script/%s.%s"), *OldModuleName, *ClassName),
-			*FString::Printf(TEXT("/Script/%s.%s"), *ThisModuleName, *ClassName));
+		
+		for (const FString& OldModuleName : OldBaseModules)
+		{
+			Redirects.Emplace(
+				ECoreRedirectFlags::Type_Class,
+				*FString::Printf(TEXT("/Script/%s.%s"), *OldModuleName, *ClassName),
+				*FString::Printf(TEXT("/Script/%s.%s"), *ThisModuleName, *ClassName));
+		}
 	}
 
 	if (Redirects.Num() > 0)

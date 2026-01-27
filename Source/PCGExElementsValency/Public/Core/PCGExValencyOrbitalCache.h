@@ -31,7 +31,7 @@ namespace PCGExValency
 		~FOrbitalCache() = default;
 
 		/**
-		 * Build cache from cluster data and orbital attributes.
+		 * Build cache from cluster data and orbital attributes (via buffer readers).
 		 * @param Cluster The cluster providing topology (nodes, edges, links)
 		 * @param OrbitalMaskReader Vertex attribute reader for orbital masks
 		 * @param EdgeIndicesReader Edge attribute reader for packed orbital indices
@@ -42,6 +42,20 @@ namespace PCGExValency
 			const TSharedPtr<PCGExClusters::FCluster>& Cluster,
 			const TSharedPtr<PCGExData::TBuffer<int64>>& OrbitalMaskReader,
 			const TSharedPtr<PCGExData::TBuffer<int64>>& EdgeIndicesReader,
+			int32 InMaxOrbitals);
+
+		/**
+		 * Build cache from cluster data and raw arrays (for use immediately after writing).
+		 * @param Cluster The cluster providing topology (nodes, edges, links)
+		 * @param VertexOrbitalMasks Raw array of orbital masks indexed by PointIndex
+		 * @param EdgePackedIndices Raw array of packed orbital indices indexed by EdgeIndex
+		 * @param InMaxOrbitals Maximum orbital count from OrbitalSet
+		 * @return True if cache was built successfully
+		 */
+		bool BuildFromArrays(
+			const TSharedPtr<PCGExClusters::FCluster>& Cluster,
+			const TArray<int64>& VertexOrbitalMasks,
+			const TArray<int64>& EdgePackedIndices,
 			int32 InMaxOrbitals);
 
 		/** Get orbital mask for a node */

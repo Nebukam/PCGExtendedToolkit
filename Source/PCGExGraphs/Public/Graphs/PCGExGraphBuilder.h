@@ -44,7 +44,14 @@ namespace PCGExGraphs
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
 
 		FGraphCompilationEndCallback OnCompilationEndCallback;
+
+		/** Legacy callback - prefer context-based callbacks for new code */
 		FSubGraphPostProcessCallback OnSubGraphPostProcess;
+
+		/** Context-based callbacks for advanced subgraph processing */
+		FCreateSubGraphContextCallback OnCreateContext;
+		FSubGraphPreCompileCallback OnPreCompile;
+		FSubGraphPostCompileCallback OnPostCompile;
 
 		PCGExDataId PairId;
 		TSharedPtr<FGraph> Graph;

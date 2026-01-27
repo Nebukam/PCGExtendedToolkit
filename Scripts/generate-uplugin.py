@@ -418,7 +418,7 @@ def main():
 
     if has_changed:
         # Clean build artifacts before writing new uplugin
-        clean_build_artifacts()
+        # clean_build_artifacts()
 
         # Write new uplugin
         PATHS["uplugin"].write_text(new_content, encoding="utf-8")

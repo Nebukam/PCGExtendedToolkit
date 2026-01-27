@@ -3,6 +3,8 @@
 
 #include "PCGExGraphs.h"
 
+#include "Clusters/PCGExClusterCache.h"
+#include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
 
 #if WITH_EDITOR
 
@@ -18,10 +20,18 @@
 void FPCGExGraphsModule::StartupModule()
 {
 	IPCGExLegacyModuleInterface::StartupModule();
+
+	// Register cluster cache factories
+	PCGExClusters::FClusterCacheRegistry::Get().Register(
+		MakeShared<PCGExClusters::FFaceEnumeratorCacheFactory>());
 }
 
 void FPCGExGraphsModule::ShutdownModule()
 {
+	// Unregister cluster cache factories
+	PCGExClusters::FClusterCacheRegistry::Get().Unregister(
+		PCGExClusters::FFaceEnumeratorCacheFactory::CacheKey);
+
 	IPCGExLegacyModuleInterface::ShutdownModule();
 }
 

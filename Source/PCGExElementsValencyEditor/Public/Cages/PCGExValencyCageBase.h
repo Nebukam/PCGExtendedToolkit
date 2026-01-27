@@ -11,6 +11,8 @@
 
 #include "PCGExValencyCageBase.generated.h"
 
+class UPCGExValencySocketRules;
+
 class AValencyContextVolume;
 class FValencyDirtyStateManager;
 
@@ -202,6 +204,63 @@ public:
 	/** Orbital connections to other cages */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Orbitals", meta = (TitleProperty = "OrbitalName"))
 	TArray<FPCGExValencyCageOrbital> Orbitals;
+
+	// ========== Sockets ==========
+
+	/**
+	 * If enabled, automatically extract sockets from the cage's effective assets
+	 * (meshes from registered assets, palettes, and mirror sources) at compile time.
+	 * Mesh sockets matching SocketRules definitions are converted to module sockets.
+	 * Socket components can override auto-extracted sockets by name.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Sockets")
+	bool bReadSocketsFromAssets = false;
+
+	/**
+	 * Optional explicit SocketRules override for this cage.
+	 * If not set, uses the SocketRules from containing volume(s) or BondingRules.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Sockets", AdvancedDisplay)
+	TObjectPtr<UPCGExValencySocketRules> SocketRulesOverride;
+
+	/** Get the effective socket rules (from volume, bonding rules, or override) */
+	UPCGExValencySocketRules* GetEffectiveSocketRules() const;
+
+	/**
+	 * Get all socket components attached to this cage.
+	 * @param OutComponents Array to fill with socket components
+	 */
+	void GetSocketComponents(TArray<class UPCGExValencyCageSocketComponent*>& OutComponents) const;
+
+	/** Check if this cage has any socket components */
+	bool HasSockets() const;
+
+	/** Check if this cage has any output socket components */
+	bool HasOutputSockets() const;
+
+	/**
+	 * Find a socket component by name.
+	 * @param SocketName The socket name to search for
+	 * @return Pointer to the component, or nullptr if not found
+	 */
+	class UPCGExValencyCageSocketComponent* FindSocketByName(const FName& SocketName) const;
+
+	/**
+	 * Find a socket component by type (returns first match).
+	 * @param SocketType The socket type to search for
+	 * @return Pointer to the component, or nullptr if not found
+	 */
+	class UPCGExValencyCageSocketComponent* FindSocketByType(const FName& SocketType) const;
+
+	/**
+	 * Create socket components from a static mesh asset.
+	 * Extracts UStaticMeshSocket data and creates attached socket components.
+	 * @param Mesh The static mesh to extract sockets from
+	 * @param DefaultSocketType The socket type to assign to created components
+	 * @param bAsOutput Whether created sockets should be marked as output sockets
+	 * @return Number of socket components created
+	 */
+	int32 CreateSocketComponentsFromMesh(UStaticMesh* Mesh, const FName& DefaultSocketType, bool bAsOutput = false);
 
 	/**
 	 * Request a rebuild through the unified dirty state system.

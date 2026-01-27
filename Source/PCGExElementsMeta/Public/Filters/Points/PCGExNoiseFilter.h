@@ -91,6 +91,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NoiseFilterFactory, "Filter : Noise", "Compare a value against spatial noise.", PCGEX_FACTORY_NAME_PRIORITY)
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_BLEND(Filter, Noise3D); }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

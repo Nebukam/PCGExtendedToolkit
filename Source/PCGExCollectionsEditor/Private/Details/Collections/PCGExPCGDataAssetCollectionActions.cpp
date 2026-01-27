@@ -145,7 +145,7 @@ namespace PCGExPCGDataAssetCollectionActions
 
 FText FPCGExPCGDataAssetCollectionActions::GetName() const
 {
-	return INVTEXT("PCGEx PCGDataAsset Collection");
+	return INVTEXT("PCGEx Collection | PCGDataAsset");
 }
 
 FString FPCGExPCGDataAssetCollectionActions::GetObjectDisplayName(UObject* Object) const

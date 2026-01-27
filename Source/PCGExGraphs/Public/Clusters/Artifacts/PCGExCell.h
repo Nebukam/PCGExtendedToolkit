@@ -155,14 +155,20 @@ namespace PCGExClusters
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
 
-		/** Build or get the shared enumerator. Call this once to build the DCEL, then reuse. */
-		TSharedPtr<FPlanarFaceEnumerator> GetOrBuildEnumerator(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions);
+		/**
+		 * Build or get the shared enumerator. Call this once to build the DCEL, then reuse.
+		 * @param InCluster The cluster to build from
+		 * @param ProjectionDetails Projection settings for building node-indexed positions and cache lookup/storage
+		 */
+		TSharedPtr<FPlanarFaceEnumerator> GetOrBuildEnumerator(
+			const TSharedRef<FCluster>& InCluster,
+			const FPCGExGeo2DProjectionDetails& ProjectionDetails);
 
 		/** Build wrapper cell using the shared enumerator */
 		void BuildWrapperCell(const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
 
-		/** Legacy method - builds enumerator internally if needed */
-		void BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions);
+		/** Convenience method - builds enumerator internally if needed */
+		void BuildWrapperCell(const TSharedRef<FCluster>& InCluster, const FPCGExGeo2DProjectionDetails& ProjectionDetails);
 
 		void Cleanup();
 	};
@@ -181,6 +187,31 @@ namespace PCGExClusters
 		bool bIsClosedLoop = false;
 
 		FCellData() = default;
+	};
+
+	/**
+	 * Expansion tracking data for a cell.
+	 * Used when seeds/holes expand to adjacent cells via growth.
+	 */
+	struct PCGEXGRAPHS_API FCellExpansionData
+	{
+		int32 PickCount = 0;        // How many times this cell was selected
+		int32 MinDepth = MAX_int32; // Minimum depth at which selected (0 = direct match)
+		TSet<int32> SourceIndices;  // Which source indices (seed/hole) selected this cell
+
+		FORCEINLINE void RecordPick(const int32 SourceIndex, const int32 Depth)
+		{
+			PickCount++;
+			MinDepth = FMath::Min(MinDepth, Depth);
+			SourceIndices.Add(SourceIndex);
+		}
+
+		FORCEINLINE void Reset()
+		{
+			PickCount = 0;
+			MinDepth = MAX_int32;
+			SourceIndices.Reset();
+		}
 	};
 
 	class PCGEXGRAPHS_API FCell : public TSharedFromThis<FCell>
@@ -203,6 +234,11 @@ namespace PCGExClusters
 		TArray<FVector2D> Polygon;
 
 		int32 CustomIndex = -1;
+		int32 FaceIndex = -1;  // Index from the planar face enumerator (for adjacency lookups)
+
+		// Expansion tracking (populated when seeds grow)
+		int32 ExpansionPickCount = 0;  // Number of times this cell was selected (by seeds/growth)
+		int32 ExpansionMinDepth = 0;   // Minimum depth at which cell was picked (0 = direct seed)
 
 		explicit FCell(const TSharedRef<FCellConstraints>& InConstraints)
 			: Constraints(InConstraints)

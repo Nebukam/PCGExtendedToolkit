@@ -145,7 +145,7 @@ namespace PCGExMeshCollectionActions
 
 FText FPCGExMeshCollectionActions::GetName() const
 {
-	return INVTEXT("PCGEx Mesh Collection");
+	return INVTEXT("PCGEx Collection | Mesh");
 }
 
 FString FPCGExMeshCollectionActions::GetObjectDisplayName(UObject* Object) const

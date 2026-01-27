@@ -303,22 +303,6 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	TArray<int8> VisitedSources;
 	VisitedSources.Init(0, AllOpData->Num());
 
-	// Build sources list for blending
-	TArray<TSharedRef<PCGExData::FFacade>> BlendSources;
-	BlendSources.Reserve(Group->AllSourceIndices.Num());
-
-	EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::None;
-
-	for (const int32 SrcIdx : Group->AllSourceIndices)
-	{
-		if (SrcIdx < AllOpData->Facades.Num())
-		{
-			const TSharedPtr<PCGExData::FFacade>& Facade = AllOpData->Facades[SrcIdx];
-			Allocations |= Facade->GetAllocations();
-			BlendSources.Add(Facade.ToSharedRef());
-		}
-	}
-
 	// Process each output path
 	OutPaths.Reserve(InPaths.size());
 
@@ -336,24 +320,56 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		// Determine if this is a hole (counter-clockwise winding)
 		const bool bIsHole = !PCGExClipper2Lib::IsPositive(Path);
 
-		// Find the dominant source for this path (most points from same source)
+		// Collect relevant sources for this specific path (optimization: only initialize blenders for sources actually in the path)
+		TSet<int32> RelevantSourceIndices;
 		TMap<int32, int32> SourceCounts;
+
 		for (const PCGExClipper2Lib::Point64& Pt : Path)
 		{
 			uint32 PointIdx, SourceIdx;
 			PCGEx::H64(static_cast<uint64>(Pt.z), PointIdx, SourceIdx);
 
-			// Skip intersection markers
-			if (PointIdx == PCGExClipper2::INTERSECTION_MARKER) { continue; }
-
-			// SourceIdx is now directly the array index (Facade->Idx == ArrayIndex)
-			if (static_cast<int32>(SourceIdx) < AllOpData->Facades.Num())
+			if (PointIdx == PCGExClipper2::INTERSECTION_MARKER)
 			{
-				SourceCounts.FindOrAdd(static_cast<int32>(SourceIdx))++;
+				// Intersection point - add all 4 contributing sources
+				if (const PCGExClipper2::FIntersectionBlendInfo* BlendInfo = Group->GetIntersectionBlendInfo(Pt.x, Pt.y))
+				{
+					RelevantSourceIndices.Add(BlendInfo->E1BotSourceIdx);
+					RelevantSourceIndices.Add(BlendInfo->E1TopSourceIdx);
+					RelevantSourceIndices.Add(BlendInfo->E2BotSourceIdx);
+					RelevantSourceIndices.Add(BlendInfo->E2TopSourceIdx);
+				}
+			}
+			else
+			{
+				// Regular point - add its source
+				const int32 SrcIdx = static_cast<int32>(SourceIdx);
+				if (SrcIdx < AllOpData->Facades.Num())
+				{
+					RelevantSourceIndices.Add(SrcIdx);
+					SourceCounts.FindOrAdd(SrcIdx)++;
+				}
 			}
 		}
 
-		int32 DominantSourceIdx = Group->AllSourceIndices.IsEmpty() ? INDEX_NONE : Group->AllSourceIndices[0];
+		// Build per-path BlendSources and Allocations from only relevant sources
+		TArray<TSharedRef<PCGExData::FFacade>> BlendSources;
+		BlendSources.Reserve(RelevantSourceIndices.Num());
+
+		EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::None;
+
+		for (const int32 SrcIdx : RelevantSourceIndices)
+		{
+			if (SrcIdx != INDEX_NONE && SrcIdx < AllOpData->Facades.Num())
+			{
+				const TSharedPtr<PCGExData::FFacade>& Facade = AllOpData->Facades[SrcIdx];
+				Allocations |= Facade->GetAllocations();
+				BlendSources.Add(Facade.ToSharedRef());
+			}
+		}
+
+		// Find dominant source (most points from same source)
+		int32 DominantSourceIdx = RelevantSourceIndices.Num() > 0 ? *RelevantSourceIndices.CreateConstIterator() : INDEX_NONE;
 		int32 MaxCount = 0;
 		for (const auto& Pair : SourceCounts)
 		{
@@ -378,10 +394,11 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 			NewPointIO = MainPoints->Emplace_GetRef(PCGExData::EIOInit::New);
 		}
 
+		if (!NewPointIO) { return; }
+		
 		const int32 NumPoints = static_cast<int32>(Path.size());
 		UPCGBasePointData* OutPoints = NewPointIO->GetOut();
 
-		if (!OutPoints) { return; }
 
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPoints, NumPoints, Allocations);
 		NewPointIO->GetOutKeys(true); // Force valid entry keys for metadata -- TODO : Only do this if there are attributes to carry over

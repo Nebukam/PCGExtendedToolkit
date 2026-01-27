@@ -450,7 +450,7 @@ function main() {
 
 	if (hasChanged) {
 		// Clean build artifacts before writing new uplugin
-		cleanBuildArtifacts();
+		// cleanBuildArtifacts();
 		
 		// Write new uplugin
 		fs.writeFileSync(PATHS.uplugin, newContent, 'utf8');

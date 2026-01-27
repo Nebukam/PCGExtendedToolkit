@@ -99,7 +99,7 @@ struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAss
 
 // PCGDataAsset Collection
 
-UCLASS(BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection")
+UCLASS(BlueprintType, DisplayName="[PCGEx] Collection | PCGDataAsset")
 class PCGEXCOLLECTIONS_API UPCGExPCGDataAssetCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()

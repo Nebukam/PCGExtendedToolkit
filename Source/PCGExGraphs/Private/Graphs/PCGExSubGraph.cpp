@@ -12,6 +12,8 @@
 #include "Metadata/PCGMetadata.h"
 
 #include "Clusters/PCGExCluster.h"
+#include "Clusters/PCGExClusterCache.h"
+#include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExClusterData.h"
@@ -48,6 +50,29 @@ namespace PCGExGraphTask
 			ClusterEdgesData->SetBoundCluster(NewCluster);
 
 			SubGraph->BuildCluster(NewCluster.ToSharedRef());
+
+			// Build pre-configured caches
+			if (const TSharedPtr<PCGExGraphs::FGraphBuilder> Builder = SubGraph->GetBuilder())
+			{
+				if (Builder->OutputDetails)
+				{
+					// Native: FaceEnumerator
+					if (Builder->OutputDetails->bPreBuildFaceEnumerator)
+					{
+						PCGExClusters::FClusterCacheBuildContext Context(NewCluster.ToSharedRef());
+						Context.Projection = &Builder->OutputDetails->FaceEnumeratorProjection;
+
+						if (PCGExClusters::IClusterCacheFactory* Factory = PCGExClusters::FClusterCacheRegistry::Get().GetFactory(
+							PCGExClusters::FFaceEnumeratorCacheFactory::CacheKey))
+						{
+							if (TSharedPtr<PCGExClusters::ICachedClusterData> CachedData = Factory->Build(Context))
+							{
+								NewCluster->SetCachedData(Factory->GetCacheKey(), CachedData);
+							}
+						}
+					}
+				}
+			}
 		}
 	};
 }
@@ -94,6 +119,12 @@ namespace PCGExGraphs
 
 		WeakBuilder = InBuilder;
 		WeakTaskManager = TaskManager;
+
+		// Try to create user context - if nullptr, skip PreCompile/PostCompile callbacks
+		if (OnCreateContext)
+		{
+			UserContext = OnCreateContext();
+		}
 
 		const int32 NumEdges = Edges.Num();
 		PCGExSortingHelpers::RadixSort(Edges);
@@ -266,6 +297,19 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 		}
 
+		// PreCompile callback: after FlattenedEdges built, before CompileRange
+		if (UserContext && OnPreCompile)
+		{
+			FSubGraphPreCompileData PreCompileData;
+			PreCompileData.FlattenedEdges = FlattenedEdges;
+			PreCompileData.EdgeKeys = Edges;
+			PreCompileData.EdgesDataFacade = EdgesDataFacade;
+			PreCompileData.VtxDataFacade = VtxDataFacade;
+			PreCompileData.NumEdges = NumEdges;
+			PreCompileData.NumNodes = Nodes.Num();
+			OnPreCompile(*UserContext, PreCompileData);
+		}
+
 		if (NumEdges < 1024)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(CompileAll);
@@ -383,7 +427,15 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 		}
 
+		// Context-based PostCompile callback (new)
+		if (UserContext && OnPostCompile) { OnPostCompile(*UserContext, ThisPtr.ToSharedRef()); }
+
+		// Legacy callback (for backwards compatibility)
 		if (OnSubGraphPostProcess) { OnSubGraphPostProcess(ThisPtr.ToSharedRef()); }
+
+		// Clean up user context
+		UserContext.Reset();
+
 		EdgesDataFacade->WriteFastest(TaskManager);
 	}
 

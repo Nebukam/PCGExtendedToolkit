@@ -145,7 +145,7 @@ namespace PCGExActorCollectionActions
 
 FText FPCGExActorCollectionActions::GetName() const
 {
-	return INVTEXT("PCGEx Actor Collection");
+	return INVTEXT("PCGEx Collection | Actor");
 }
 
 FString FPCGExActorCollectionActions::GetObjectDisplayName(UObject* Object) const

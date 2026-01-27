@@ -4,8 +4,10 @@
 #include "Core/PCGExTopologyClustersProcessor.h"
 
 #include "CoreMinimal.h"
-#include "Core/PCGExContext.h"
 #include "PCGComponent.h"
+#include "PCGExLog.h"
+#include "UDynamicMesh.h"
+#include "Core/PCGExContext.h"
 #include "Data/PCGDynamicMeshData.h"
 #include "Core/PCGExClusterMT.h"
 #include "Core/PCGExClustersProcessor.h"
@@ -15,14 +17,12 @@
 #include "Async/ParallelFor.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
-#include "Components/PCGExDynamicMeshComponent.h"
-#include "Data/Descriptors/PCGExDynamicMeshDescriptor.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor
 
-PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetMainOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
-PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetEdgeOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExTopologyClustersProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::InputPinProperties() const
 {
@@ -37,8 +37,6 @@ TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::InputPinPrope
 
 TArray<FPCGPinProperties> UPCGExTopologyClustersProcessorSettings::OutputPinProperties() const
 {
-	if (OutputMode == EPCGExTopologyOutputMode::Legacy) { return Super::OutputPinProperties(); }
-
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_MESH(PCGExTopology::Labels::OutputMeshLabel, "PCG Dynamic Mesh", Normal)
 	return PinProperties;
@@ -49,8 +47,12 @@ void UPCGExTopologyClustersProcessorSettings::ApplyDeprecationBeforeUpdatePins(U
 {
 	for (TObjectPtr<UPCGPin>& OutPin : OutputPins)
 	{
-		// If vtx/edge pins are connected, set Legacy output mode
-		if ((OutPin->Properties.Label == PCGExClusters::Labels::OutputVerticesLabel || OutPin->Properties.Label == PCGExClusters::Labels::OutputEdgesLabel) && OutPin->EdgeCount() > 0) { OutputMode = EPCGExTopologyOutputMode::Legacy; }
+		// If vtx/edge pins are connected, set Legacy output mode and log warning
+		if ((OutPin->Properties.Label == PCGExClusters::Labels::OutputVerticesLabel || OutPin->Properties.Label == PCGExClusters::Labels::OutputEdgesLabel) && OutPin->EdgeCount() > 0)
+		{
+			OutputMode = EPCGExTopologyOutputMode::Legacy;
+			UE_LOG(LogPCGEx, Warning, TEXT("Legacy output mode is deprecated. Please reconnect to use PCG Dynamic Mesh output."));
+		}
 	}
 	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 }
@@ -74,14 +76,18 @@ bool FPCGExTopologyClustersProcessorElement::Boot(FPCGExContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(TopologyClustersProcessor)
 
+	if (Settings->OutputMode == EPCGExTopologyOutputMode::Legacy)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Legacy output mode is deprecated and no longer supported. Please use PCG Dynamic Mesh output mode."));
+		return false;
+	}
+
 	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExClusters::Labels::SourceHolesLabel, false, false);
 	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
 	{
 		Context->Holes = MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
 		Context->Holes->EnsureProjected(); // Project once upfront
 	}
-
-	PCGExArrayHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
 
 	GetInputFactories(Context, PCGExClusters::Labels::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
@@ -133,7 +139,7 @@ namespace PCGExTopologyEdges
 		CellsConstraints = MakeShared<PCGExClusters::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 
-		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *this->ProjectedVtxPositions.Get()); }
+		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), this->ProjectionDetails); }
 		CellsConstraints->Holes = Holes;
 
 		InitConstraints();
@@ -143,21 +149,15 @@ namespace PCGExTopologyEdges
 		// IMPORTANT : Need to wait for projection to be completed.
 		// Children should start work only in CompleteWork!!
 
-		if (Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh)
-		{
-			InternalMeshData = Context->ManagedObjects->New<UPCGDynamicMeshData>();
-			if (!InternalMeshData) { return false; }
-		}
+		InternalMeshData = Context->ManagedObjects->New<UPCGDynamicMeshData>();
+		if (!InternalMeshData) { return false; }
 
 		InternalMesh = Context->ManagedObjects->New<UDynamicMesh>();
 		InternalMesh->InitializeMesh();
 
-		if (InternalMeshData)
-		{
-			InternalMeshData->Initialize(InternalMesh, true);
-			InternalMesh = InternalMeshData->GetMutableDynamicMesh();
-			if (UMaterialInterface* Material = Settings->Topology.Material.Get()) { InternalMeshData->SetMaterials({Material}); }
-		}
+		InternalMeshData->Initialize(InternalMesh, true);
+		InternalMesh = InternalMeshData->GetMutableDynamicMesh();
+		if (UMaterialInterface* Material = Settings->Topology.Material.Get()) { InternalMeshData->SetMaterials({Material}); }
 
 		return true;
 	}
@@ -169,7 +169,6 @@ namespace PCGExTopologyEdges
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
 
 		FPCGExTopologyClustersProcessorContext* Context = static_cast<FPCGExTopologyClustersProcessorContext*>(ExecutionContext);
-		const UPCGExTopologyClustersProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyClustersProcessorSettings>();
 
 		if (InternalMeshData)
 		{
@@ -179,39 +178,7 @@ namespace PCGExTopologyEdges
 			VtxDataFacade->Source->Tags->DumpTo(MeshTags);
 
 			Context->StageOutput(InternalMeshData, PCGExTopology::MeshOutputLabel, PCGExData::EStaging::Managed, MeshTags);
-
-			return;
 		}
-
-		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-
-		if (!TargetActor)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
-			return;
-		}
-
-		const FString ComponentName = TEXT("PCGDynamicMeshComponent");
-		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-		UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
-
-		// Needed otherwise triggers updates in a loop
-		Context->GetMutableComponent()->IgnoreChangeOriginDuringGenerationWithScope(DynamicMeshComponent, [&]()
-		{
-			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
-			DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-			if (UMaterialInterface* Material = Settings->Topology.Material.Get())
-			{
-				DynamicMeshComponent->SetMaterial(0, Material);
-			}
-		});
-
-		DynamicMeshComponent->ComponentTags.Reserve(DynamicMeshComponent->ComponentTags.Num() + Context->ComponentTags.Num());
-		for (const FString& ComponentTag : Context->ComponentTags) { DynamicMeshComponent->ComponentTags.Add(FName(ComponentTag)); }
-
-		Context->ManagedObjects->Remove(InternalMesh);
-		Context->AttachManagedComponent(TargetActor, DynamicMeshComponent, Settings->AttachmentRules.GetRules());
-		Context->AddNotifyActor(TargetActor);
 	}
 
 	void IProcessor::Cleanup()
@@ -234,9 +201,7 @@ namespace PCGExTopologyEdges
 		FPCGExTopologyClustersProcessorContext* Context = static_cast<FPCGExTopologyClustersProcessorContext*>(ExecutionContext);
 		const UPCGExTopologyClustersProcessorSettings* Settings = ExecutionContext->GetInputSettings<UPCGExTopologyClustersProcessorSettings>();
 
-		FTransform Transform = Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh ? Context->GetComponent()->GetOwner()->GetTransform() : FTransform::Identity;
-		Transform.SetScale3D(FVector::OneVector);
-		Transform.SetRotation(FQuat::Identity);
+		FTransform Transform = PCGExTopology::GetCoordinateSpaceTransform(Settings->Topology.CoordinateSpace, Context);
 
 		InternalMesh->EditMesh([&](FDynamicMesh3& InMesh)
 		{

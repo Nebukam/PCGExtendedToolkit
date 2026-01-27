@@ -12,6 +12,8 @@
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "Clusters/Artifacts/PCGExCellPathBuilder.h"
+#include "Clusters/Artifacts/PCGExPlanarFaceEnumerator.h"
+#include "Math/Geo/PCGExGeo.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsCommon.h"
 
@@ -106,6 +108,13 @@ bool FPCGExFindAllCellsBoundedElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->Holes = MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
 		Context->Holes->EnsureProjected();
+	}
+
+	// Initialize hole growth (will read per-point growth attribute if needed)
+	PCGEX_FWD(HoleGrowth)
+	if (Context->HolesFacade)
+	{
+		Context->HoleGrowth.Init(Context, Context->HolesFacade);
 	}
 
 	// Initialize output collections based on mode
@@ -248,11 +257,71 @@ namespace PCGExFindAllCellsBounded
 		CellsConstraints->Reserve(Cluster->Edges->Num());
 		CellsConstraints->Holes = Holes;
 
-		// Build enumerator and enumerate all cells
-		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
+		// Build enumerator and enumerate cells within bounds (early culling optimization)
+		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> Enumerator = CellsConstraints->GetOrBuildEnumerator(Cluster.ToSharedRef(), ProjectionDetails);
 
 		TArray<TSharedPtr<PCGExClusters::FCell>> AllCells;
-		Enumerator->EnumerateAllFaces(AllCells, CellsConstraints.ToSharedRef(), nullptr, Settings->Constraints.bOmitWrappingBounds);
+		TArray<TSharedPtr<PCGExClusters::FCell>> FailedCells;
+		const bool bNeedOutside = Settings->OutputOutside();
+		const bool bNeedFailedCells = Context->HoleGrowth.HasPotentialGrowth() && Holes;
+		Enumerator->EnumerateFacesWithinBounds(
+			AllCells,
+			CellsConstraints.ToSharedRef(),
+			Context->BoundsFilter,
+			bNeedOutside,  // Only include outside faces if user wants them
+			bNeedFailedCells ? &FailedCells : nullptr,
+			Settings->Constraints.bOmitWrappingBounds);
+
+		// Process hole growth expansion if enabled
+		if (bNeedFailedCells && !FailedCells.IsEmpty())
+		{
+			// Build adjacency map
+			const int32 WrapperFaceIndex = Enumerator->GetWrapperFaceIndex();
+			CellAdjacencyMap = Enumerator->GetOrBuildAdjacencyMap(WrapperFaceIndex);
+
+			// Find cells that failed due to holes and expand exclusion
+			const int32 NumHoles = Context->HolesFacade->GetNum();
+			for (const TSharedPtr<PCGExClusters::FCell>& FailedCell : FailedCells)
+			{
+				if (!FailedCell || FailedCell->Polygon.IsEmpty() || FailedCell->FaceIndex < 0) { continue; }
+
+				// Check if this cell contains a hole
+				bool bContainsHole = false;
+				int32 HoleIndex = -1;
+				for (int32 i = 0; i < NumHoles && !bContainsHole; ++i)
+				{
+					const FVector2D& HolePoint = Holes->GetProjected(i);
+					if (FailedCell->Bounds2D.IsInside(HolePoint) &&
+						PCGExMath::Geo::IsPointInPolygon(HolePoint, FailedCell->Polygon))
+					{
+						bContainsHole = true;
+						HoleIndex = i;
+					}
+				}
+
+				if (bContainsHole && HoleIndex >= 0)
+				{
+					// Mark this cell for exclusion
+					ExcludedFaceIndices.Add(FailedCell->FaceIndex);
+
+					// Expand to adjacent cells
+					const int32 Growth = Context->HoleGrowth.GetGrowth(HoleIndex);
+					if (Growth > 0)
+					{
+						ExpandHoleExclusion(HoleIndex, FailedCell->FaceIndex, Growth);
+					}
+				}
+			}
+
+			// Remove excluded cells from AllCells
+			if (!ExcludedFaceIndices.IsEmpty())
+			{
+				AllCells.RemoveAll([this](const TSharedPtr<PCGExClusters::FCell>& Cell)
+				{
+					return Cell && Cell->FaceIndex >= 0 && ExcludedFaceIndices.Contains(Cell->FaceIndex);
+				});
+			}
+		}
 
 		// Handle wrapper cell if applicable
 		if (AllCells.IsEmpty() && CellsConstraints->WrapperCell && Settings->Constraints.bKeepWrapperIfSolePath)
@@ -394,6 +463,57 @@ namespace PCGExFindAllCellsBounded
 					CellProcessor->ProcessCell(CellsOutside[LocalIndex], IO, CellTagsOutside.IsValidIndex(LocalIndex) ? CellTagsOutside[LocalIndex] : TEXT(""));
 				}
 				CellsOutside[LocalIndex] = nullptr;
+			}
+		}
+	}
+
+	void FProcessor::ExpandHoleExclusion(int32 HoleIndex, int32 InitialFaceIndex, int32 MaxGrowth)
+	{
+		if (MaxGrowth <= 0) { return; }
+		if (CellAdjacencyMap.IsEmpty()) { return; }
+
+		TSet<int32> Visited;
+		Visited.Add(InitialFaceIndex); // Don't re-visit the initial cell
+
+		TQueue<TPair<int32, int32>> Queue; // FaceIndex, CurrentDepth
+
+		// Start with immediate neighbors (depth 1)
+		if (const TSet<int32>* Adjacent = CellAdjacencyMap.Find(InitialFaceIndex))
+		{
+			for (int32 AdjFace : *Adjacent)
+			{
+				if (AdjFace >= 0 && !Visited.Contains(AdjFace))
+				{
+					Queue.Enqueue({AdjFace, 1});
+					Visited.Add(AdjFace);
+				}
+			}
+		}
+
+		while (!Queue.IsEmpty())
+		{
+			TPair<int32, int32> Current;
+			Queue.Dequeue(Current);
+			const int32 FaceIndex = Current.Key;
+			const int32 Depth = Current.Value;
+
+			// Mark this face for exclusion
+			ExcludedFaceIndices.Add(FaceIndex);
+
+			// Continue BFS if not at max depth
+			if (Depth < MaxGrowth)
+			{
+				if (const TSet<int32>* Adjacent = CellAdjacencyMap.Find(FaceIndex))
+				{
+					for (int32 AdjFace : *Adjacent)
+					{
+						if (AdjFace >= 0 && !Visited.Contains(AdjFace))
+						{
+							Queue.Enqueue({AdjFace, Depth + 1});
+							Visited.Add(AdjFace);
+						}
+					}
+				}
 			}
 		}
 	}

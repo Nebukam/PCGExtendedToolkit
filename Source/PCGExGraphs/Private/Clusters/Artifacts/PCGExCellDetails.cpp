@@ -162,6 +162,30 @@ void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluste
 }
 
 
+#pragma region Cell Growth
+
+bool FPCGExCellGrowthDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade)
+{
+	GrowthValue.Reset();
+
+	if (!InFacade) { return false; }
+
+	// Use the value setting from the shorthand, capturing min/max
+	GrowthValue = Growth.GetValueSetting();
+	if (!GrowthValue->Init(InFacade, false, true)) // bSupportScoped=false, bCaptureMinMax=true
+	{
+		PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(
+			FTEXT("Growth attribute '{0}' not found, falling back to constant 0."),
+			FText::FromString(Growth.Attribute.GetName().ToString())));
+		GrowthValue.Reset();
+		return false;
+	}
+
+	return true;
+}
+
+#pragma endregion
+
 #pragma region Cell Triage
 
 namespace PCGExCellTriage

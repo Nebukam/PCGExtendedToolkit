@@ -93,6 +93,9 @@ namespace PCGExBlending
 
 			for (int i = 0; i < Sources.Num(); i++)
 			{
+				// Optimization: skip sources that aren't relevant (if filtering is enabled)
+				if (!SupportedSources.IsEmpty() && !SupportedSources.Contains(i)) { continue; }
+
 				TSharedPtr<PCGExData::FFacade> Source = Sources[i];
 				TSharedPtr<FProxyDataBlender> SubBlender = CreateProxyBlender(WorkingType, Param.Blending);
 				SubBlenders[i] = SubBlender;
@@ -123,7 +126,7 @@ namespace PCGExBlending
 	{
 	}
 
-	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet, FGetSourceIdx GetSourceIdxFn)
+	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet, FGetSourceIdx GetSourceIdxFn, const TSet<int32>* RelevantIOIndices)
 	{
 		if (!GetSourceIdxFn) { GetSourceIdxFn = [](const TSharedRef<PCGExData::FFacade>& InFacade) { return InFacade->Source->IOIndex; }; }
 
@@ -140,10 +143,18 @@ namespace PCGExBlending
 		for (int i = 0; i < InSources.Num(); i++)
 		{
 			const TSharedRef<PCGExData::FFacade>& Facade = InSources[i];
+			const int32 IOIndex = GetSourceIdxFn(Facade);
 
 			Sources.Add(Facade);
 			SourcesData[i] = Facade->GetIn();
-			IOLookup->Set(GetSourceIdxFn(Facade), i);
+			IOLookup->Set(IOIndex, i);
+
+			// Track which source positions are relevant for property blending
+			// If no filter provided, all sources are relevant
+			if (!RelevantIOIndices || RelevantIOIndices->Contains(IOIndex))
+			{
+				RelevantSourcePositions.Add(i);
+			}
 
 			EnumAddFlags(AllocatedProperties, Facade->GetAllocations());
 
@@ -193,7 +204,7 @@ namespace PCGExBlending
 				{
 					// Initialize new multi attribute
 					// We give it the first source attribute we found, this will be used
-					// to set the underlying default value of the attribute (as a best guess kind of move) 
+					// to set the underlying default value of the attribute (as a best guess kind of move)
 					MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Identity, Sources));
 					MultiAttribute->Param = Param;
 					MultiAttribute->DefaultValue = SourceAttribute;
@@ -228,6 +239,7 @@ namespace PCGExBlending
 			TSharedPtr<FMultiSourceBlender> MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Sources));
 			MultiAttribute->Param = Param;
 			MultiAttribute->SetNum(Sources.Num());
+			MultiAttribute->SupportedSources = RelevantSourcePositions; // Optimization: only create blenders for relevant sources
 		}
 
 		{
