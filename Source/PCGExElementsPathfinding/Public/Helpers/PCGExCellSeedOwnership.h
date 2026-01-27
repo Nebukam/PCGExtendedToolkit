@@ -24,7 +24,7 @@ namespace PCGExCells
 {
 	/**
 	 * Helper class for managing seed ownership selection.
-	 * Encapsulates the logic for different ownership methods (SeedOrder, Closest, BestCandidate).
+	 * Encapsulates the logic for different ownership methods (SeedOrder, Closest, ClosestProjected, BestCandidate).
 	 */
 	class PCGEXELEMENTSPATHFINDING_API FSeedOwnershipHandler
 	{

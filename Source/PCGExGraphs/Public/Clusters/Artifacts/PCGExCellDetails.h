@@ -169,9 +169,10 @@ enum class EPCGExCellSeedBounds : uint8
 UENUM()
 enum class EPCGExCellSeedOwnership : uint8
 {
-	SeedOrder     = 0 UMETA(DisplayName = "Seed Order", ToolTip="First seed (by index order) wins ownership of a cell"),
-	Closest       = 1 UMETA(DisplayName = "Closest", ToolTip="Closest seed to cell centroid wins ownership"),
-	BestCandidate = 2 UMETA(DisplayName = "Best Candidate", ToolTip="Use sorting rules to determine which seed wins ownership"),
+	SeedOrder        = 0 UMETA(DisplayName = "Seed Order", ToolTip="First seed (by index order) wins ownership of a cell"),
+	Closest          = 1 UMETA(DisplayName = "Closest", ToolTip="Closest seed to cell centroid (3D world distance) wins ownership"),
+	ClosestProjected = 2 UMETA(DisplayName = "Closest (Projected)", ToolTip="Closest seed to cell centroid (2D projected distance) wins ownership"),
+	BestCandidate    = 3 UMETA(DisplayName = "Best Candidate", ToolTip="Use sorting rules to determine which seed wins ownership"),
 };
 
 USTRUCT(BlueprintType)

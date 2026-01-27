@@ -61,6 +61,7 @@ namespace PCGExCells
 
 		case EPCGExCellSeedOwnership::Closest:
 			{
+				// Use full 3D world distance
 				int32 BestIdx = Candidates[0];
 				double BestDistSq = FVector::DistSquared(SeedTransforms[BestIdx].GetLocation(), CellCentroid);
 
@@ -68,6 +69,25 @@ namespace PCGExCells
 				{
 					const int32 CandidateIdx = Candidates[i];
 					const double DistSq = FVector::DistSquared(SeedTransforms[CandidateIdx].GetLocation(), CellCentroid);
+					if (DistSq < BestDistSq)
+					{
+						BestDistSq = DistSq;
+						BestIdx = CandidateIdx;
+					}
+				}
+				return BestIdx;
+			}
+
+		case EPCGExCellSeedOwnership::ClosestProjected:
+			{
+				// Use 2D distance (XY plane) to match the projected cell containment check
+				int32 BestIdx = Candidates[0];
+				double BestDistSq = FVector::DistSquaredXY(SeedTransforms[BestIdx].GetLocation(), CellCentroid);
+
+				for (int32 i = 1; i < Candidates.Num(); ++i)
+				{
+					const int32 CandidateIdx = Candidates[i];
+					const double DistSq = FVector::DistSquaredXY(SeedTransforms[CandidateIdx].GetLocation(), CellCentroid);
 					if (DistSq < BestDistSq)
 					{
 						BestDistSq = DistSq;
