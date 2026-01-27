@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExWriteVtxPropertiesSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExWriteVtxPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExWriteVtxPropertiesSettings::GetMainOutputInitMode() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 PCGExData::EIOInit UPCGExWriteVtxPropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 PCGEX_INITIALIZE_ELEMENT(WriteVtxProperties)
@@ -134,18 +134,29 @@ namespace PCGExWriteVtxProperties
 			Adjacency.Reset();
 			PCGExClusters::Helpers::GetAdjacencyData(Cluster.Get(), Node, Adjacency);
 
-			const PCGExMath::FBestFitPlane BestFitPlane = bWantsOOB ? Settings->bIncludeVtxInOOB ? PCGExMath::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) : PCGExMath::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) : PCGExMath::FBestFitPlane();
+			const PCGExMath::FBestFitPlane BestFitPlane =
+				bWantsOOB
+					? Settings->bIncludeVtxInOOB
+						  ? PCGExMath::FBestFitPlane(
+							  Adjacency.Num(),
+							  [&](int32 i)
+							  {
+								  return InTransforms[Adjacency[i].NodePointIndex].GetLocation();
+							  }, Cluster->GetPos(Node), Settings->bUseMinBoxFit)
+						  : PCGExMath::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Settings->bUseMinBoxFit)
+					: PCGExMath::FBestFitPlane();
 
-			const FTransform BFPT = BestFitPlane.GetTransform();
-
+			const FTransform BFPT = BestFitPlane.GetTransform(Settings->AxisOrder);
+			
 			if (VtxNormalWriter) { VtxNormalWriter->SetValue(Node.PointIndex, BFPT.GetUnitAxis(NormalAxis)); }
 
 			if (Settings->bMutateVtxToOOB)
 			{
 				const int32 PtIndex = Node.PointIndex;
+				FVector Extents = BestFitPlane.GetExtents(Settings->AxisOrder);
 				OutTransforms[PtIndex] = BFPT;
-				OutBoundsMin[PtIndex] = BestFitPlane.Extents * -1;
-				OutBoundsMax[PtIndex] = BestFitPlane.Extents;
+				OutBoundsMin[PtIndex] = Extents * -1;
+				OutBoundsMax[PtIndex] = Extents;
 			}
 
 			for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency, BestFitPlane); }

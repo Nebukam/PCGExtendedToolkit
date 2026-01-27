@@ -48,6 +48,8 @@ namespace PCGExMatching
 		const FPCGExMatchingDetails* Details = nullptr;
 
 		int32 NumSources = 0;
+		bool bWantsRecursion = false;
+		int32 MaxRecursionDepth = -1; // -1 = unlimited
 
 		TSharedPtr<TArray<FPCGExTaggedData>> MatchableSources;
 		TSharedPtr<TArray<PCGExData::FConstPoint>> MatchableSourceFirstElements;
@@ -81,6 +83,9 @@ namespace PCGExMatching
 		int32 GetMatchingSourcesIndices(const FPCGExTaggedData& InDataCandidate, FScope& InMatchingScope, TArray<int32>& OutMatches, const TSet<int32>* InExcludedSources = nullptr) const;
 
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
+
+		/** Returns true if any operation wants recursive/transitive matching */
+		FORCEINLINE bool WantsRecursion() const { return bWantsRecursion; }
 
 	protected:
 		int32 GetMatchLimitFor(const FPCGExTaggedData& InDataCandidate) const;

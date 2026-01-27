@@ -271,6 +271,9 @@ bool FPCGExSplineToPathElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 		for (int i = 0; i < Context->NumTargets; i++)
 		{
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EIOInit::New);
+
+			if (!NewOutput) { return true; }
+
 			PCGEX_MAKE_SHARED(PointDataFacade, PCGExData::FFacade, NewOutput.ToSharedRef())
 			PCGEX_LAUNCH(PCGExSplineToPath::FWriteTask, i, PointDataFacade)
 

@@ -45,6 +45,8 @@ class FPCGExHeuristicSteepness : public FPCGExHeuristicOperation
 	friend class UPCGExHeuristicsFactorySteepness;
 
 public:
+	virtual EPCGExHeuristicCategory GetCategory() const override { return bAccumulate ? EPCGExHeuristicCategory::TravelDependent : EPCGExHeuristicCategory::GoalDependent; }
+
 	virtual void PrepareForCluster(const TSharedPtr<const PCGExClusters::FCluster>& InCluster) override;
 
 	virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const override;

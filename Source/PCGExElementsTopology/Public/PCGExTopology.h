@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGCommon.h"
 #include "Data/Descriptors/PCGExComponentDescriptors.h"
-#include "Data/Descriptors/PCGExDynamicMeshDescriptor.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "GeometryScript/MeshRepairFunctions.h"
@@ -91,15 +91,15 @@ struct PCGEXELEMENTSTOPOLOGY_API FPCGExTopologyUVDetails
 
 	void Prepare(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
-	void Write(const TArray<int32>& TriangleIDs, FDynamicMesh3& InMesh) const;
-	void Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, FDynamicMesh3& InMesh) const;
+	void Write(const TArray<int32>& TriangleIDs, UE::Geometry::FDynamicMesh3& InMesh) const;
+	void Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, UE::Geometry::FDynamicMesh3& InMesh) const;
 	void Write(
 		const TArray<int32>& TriangleIDs,
 		const TArray<int32>& VertexIDs,
 		const TArray<int32>& SourceDataIndices,  // Per-vertex: which facade
 		const TArray<int32>& SourcePointIndices, // Per-vertex: which point in that facade
 		const TArray<TSharedPtr<PCGExData::FFacade>>& Facades,
-		FDynamicMesh3& InMesh) const;
+		UE::Geometry::FDynamicMesh3& InMesh) const;
 };
 
 USTRUCT(BlueprintType)
@@ -153,10 +153,9 @@ struct PCGEXELEMENTSTOPOLOGY_API FPCGExTopologyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable))
 	bool bFlipNormals = false;
 
-	/** Dynamic mesh component data. Only used by legacy output mode that spawned the component, prior to vanilla PCG interop.
-	 * This will be completely ignored in most usecases. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
-	FPCGExDynamicMeshDescriptor TemplateDescriptor;
+	/** Coordinate space for mesh vertices */
+	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGCoordinateSpace CoordinateSpace = EPCGCoordinateSpace::OriginalComponent;
 
 	void PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const;
 };
@@ -168,6 +167,9 @@ namespace PCGExTopology
 		const FName SourceMeshLabel = FName("Mesh");
 		const FName OutputMeshLabel = FName("Mesh");
 	}
+
+	/** Gets the transform to apply to mesh vertices based on coordinate space settings */
+	PCGEXELEMENTSTOPOLOGY_API FTransform GetCoordinateSpaceTransform(EPCGCoordinateSpace CoordinateSpace, FPCGExContext* Context);
 
 	PCGEXELEMENTSTOPOLOGY_API void MarkTriangle(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const PCGExMath::Geo::FTriangle& InTriangle);
 }

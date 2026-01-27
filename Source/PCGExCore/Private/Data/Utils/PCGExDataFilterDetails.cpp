@@ -137,7 +137,7 @@ void FPCGExCarryOverDetails::Prune(TArray<FString>& InValues) const
 
 void FPCGExCarryOverDetails::Prune(const PCGExData::FPointIO* PointIO) const
 {
-	Prune(PointIO->GetOut()->Metadata);
+	Prune(PointIO->GetOut()->MutableMetadata());
 	Prune(PointIO->Tags.Get());
 }
 

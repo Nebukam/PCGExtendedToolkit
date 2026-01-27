@@ -92,8 +92,7 @@ void FPCGExClipper2TriangulateContext::BuildVertexPoolFromGroup(const TSharedPtr
 					FVector(
 						static_cast<double>(Pt.x) * InvScale,
 						static_cast<double>(Pt.y) * InvScale,
-						0.0),
-					0);
+						0.0));
 				Vertex.Color = FVector4(1, 1, 1, 1);
 			}
 
@@ -203,13 +202,7 @@ void FPCGExClipper2TriangulateContext::BuildMesh()
 	}
 
 	// Get component transform for inverse transform
-	FTransform Transform = FTransform::Identity;
-	if (const UPCGComponent* Component = GetComponent())
-	{
-		Transform = Component->GetOwner()->GetTransform();
-		Transform.SetScale3D(FVector::OneVector);
-		Transform.SetRotation(FQuat::Identity);
-	}
+	FTransform Transform = PCGExTopology::GetCoordinateSpaceTransform(Settings->Topology.CoordinateSpace, this);
 
 	const int32 NumVertices = VertexPool.Num();
 	const int32 NumTriangles = Triangles.Num();

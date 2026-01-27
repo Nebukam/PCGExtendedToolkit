@@ -92,6 +92,13 @@ struct PCGEXBLENDING_API FPCGExPointPropertyBlendingOverrides
 	EPCGExBlendingType SeedBlending = EPCGExBlendingType::Average;
 
 #pragma endregion
+
+	bool HasAnyOverride() const
+	{
+		return bOverrideDensity || bOverrideBoundsMin || bOverrideBoundsMax ||
+		       bOverrideColor || bOverridePosition || bOverrideRotation ||
+		       bOverrideScale || bOverrideSteepness || bOverrideSeed;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -163,6 +170,14 @@ struct PCGEXBLENDING_API FPCGExBlendingDetails
 	TMap<FName, EPCGExBlendingType> AttributesOverrides;
 
 	FPCGExPropertiesBlendingDetails GetPropertiesBlendingDetails() const;
+
+	/** Returns true if any blending is configured (default, property overrides, or attribute overrides) */
+	bool HasAnyBlending() const
+	{
+		return DefaultBlending != EPCGExBlendingType::None ||
+		       PropertiesOverrides.HasAnyOverride() ||
+		       !AttributesOverrides.IsEmpty();
+	}
 
 	bool CanBlend(const FName AttributeName) const;
 	void Filter(TArray<PCGExData::FAttributeIdentity>& Identities) const;

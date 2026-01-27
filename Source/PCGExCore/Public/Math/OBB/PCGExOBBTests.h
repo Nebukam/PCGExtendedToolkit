@@ -32,9 +32,9 @@ namespace PCGExMath::OBB
 	FORCEINLINE bool PointInside(const FBounds& B, const FOrientation& O, const FVector& Point)
 	{
 		const FVector Local = O.ToLocal(Point, B.Origin);
-		return FMath::Abs(Local.X) <= B.HalfExtents.X
-			&& FMath::Abs(Local.Y) <= B.HalfExtents.Y
-			&& FMath::Abs(Local.Z) <= B.HalfExtents.Z;
+		return FMath::Abs(Local.X) <= B.Extents.X
+			&& FMath::Abs(Local.Y) <= B.Extents.Y
+			&& FMath::Abs(Local.Z) <= B.Extents.Z;
 	}
 
 	FORCEINLINE bool PointInside(const FOBB& Box, const FVector& Point)
@@ -45,9 +45,9 @@ namespace PCGExMath::OBB
 	FORCEINLINE bool PointInsideExpanded(const FBounds& B, const FOrientation& O, const FVector& Point, float Expansion)
 	{
 		const FVector Local = O.ToLocal(Point, B.Origin);
-		return FMath::Abs(Local.X) <= B.HalfExtents.X + Expansion
-			&& FMath::Abs(Local.Y) <= B.HalfExtents.Y + Expansion
-			&& FMath::Abs(Local.Z) <= B.HalfExtents.Z + Expansion;
+		return FMath::Abs(Local.X) <= B.Extents.X + Expansion
+			&& FMath::Abs(Local.Y) <= B.Extents.Y + Expansion
+			&& FMath::Abs(Local.Z) <= B.Extents.Z + Expansion;
 	}
 
 	// SAT overlap test
@@ -57,7 +57,7 @@ namespace PCGExMath::OBB
 	FORCEINLINE float SignedDistance(const FOBB& Box, const FVector& Point)
 	{
 		const FVector Local = Box.ToLocal(Point);
-		const FVector Q = FVector(FMath::Abs(Local.X), FMath::Abs(Local.Y), FMath::Abs(Local.Z)) - Box.Bounds.HalfExtents;
+		const FVector Q = FVector(FMath::Abs(Local.X), FMath::Abs(Local.Y), FMath::Abs(Local.Z)) - Box.Bounds.Extents;
 
 		const float Outside = FVector(FMath::Max(Q.X, 0.0f), FMath::Max(Q.Y, 0.0f), FMath::Max(Q.Z, 0.0f)).Size();
 		const float Inside = FMath::Min(FMath::Max(Q.X, FMath::Max(Q.Y, Q.Z)), 0.0f);
@@ -69,9 +69,9 @@ namespace PCGExMath::OBB
 	{
 		const FVector Local = Box.ToLocal(Point);
 		const FVector Clamped(
-			FMath::Clamp(Local.X, -Box.Bounds.HalfExtents.X, Box.Bounds.HalfExtents.X),
-			FMath::Clamp(Local.Y, -Box.Bounds.HalfExtents.Y, Box.Bounds.HalfExtents.Y),
-			FMath::Clamp(Local.Z, -Box.Bounds.HalfExtents.Z, Box.Bounds.HalfExtents.Z)
+			FMath::Clamp(Local.X, -Box.Bounds.Extents.X, Box.Bounds.Extents.X),
+			FMath::Clamp(Local.Y, -Box.Bounds.Extents.Y, Box.Bounds.Extents.Y),
+			FMath::Clamp(Local.Z, -Box.Bounds.Extents.Z, Box.Bounds.Extents.Z)
 		);
 		return Box.ToWorld(Clamped);
 	}

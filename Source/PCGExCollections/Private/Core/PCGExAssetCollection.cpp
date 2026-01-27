@@ -3,6 +3,7 @@
 
 #include "Core/PCGExAssetCollection.h"
 
+#include "PCGExPropertyCompiled.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
@@ -12,6 +13,8 @@
 #include "Helpers/PCGExArrayHelpers.h"
 
 #if WITH_EDITOR
+#include "Editor.h"
+#include "PropertyEditorModule.h"
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #endif
@@ -619,14 +622,6 @@ void UPCGExAssetCollection::BuildCache()
 
 #pragma endregion
 
-void UPCGExAssetCollection::PostLoad()
-{
-	Super::PostLoad();
-#if WITH_EDITOR
-	EDITOR_SetDirty();
-#endif
-}
-
 void UPCGExAssetCollection::PostDuplicate(bool bDuplicateForPIE)
 {
 	Super::PostDuplicate(bDuplicateForPIE);
@@ -726,10 +721,75 @@ void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, PCGEx
 #if WITH_EDITOR
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (PropertyChangedEvent.Property)
+	bool bNeedsSync = false;
+	bool bNeedsUIRefresh = false;
+
+	if (PropertyChangedEvent.MemberProperty)
+	{
+		FName PropName = PropertyChangedEvent.MemberProperty->GetFName();
+		EPropertyChangeType::Type ChangeType = PropertyChangedEvent.ChangeType;
+
+		// Check for ANY changes in CollectionProperties
+		if (PropName == GET_MEMBER_NAME_CHECKED(UPCGExAssetCollection, CollectionProperties))
+		{
+			bNeedsSync = true;
+			bNeedsUIRefresh = true;
+		}
+		// Also catch changes to schema array elements (add/remove/reorder/rename/type change)
+		else if (PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExPropertySchema::StaticStruct() ||
+		         PropertyChangedEvent.MemberProperty->GetOwnerStruct() == FPCGExPropertySchemaCollection::StaticStruct())
+		{
+			bNeedsSync = true;
+			bNeedsUIRefresh = true;
+		}
+	}
+
+	// Early return if no property-related changes needed
+	if (!bNeedsSync && !bNeedsUIRefresh)
 	{
 		Super::PostEditChangeProperty(PropertyChangedEvent);
+
+		ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
+		{
+			const UPCGExAssetCollection* Other = InEntry->GetSubCollectionPtr();
+			if (Other && HasCircularDependency(Other))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Prevented circular dependency trying to nest \"%s\" inside \"%s\""), *GetNameSafe(Other), *GetNameSafe(this));
+				InEntry->ClearSubCollection();
+				(void)MarkPackageDirty();
+			}
+		});
+
+		EDITOR_SetDirty();
+
+		if (bAutoRebuildStaging)
+		{
+			EDITOR_RebuildStagingData();
+		}
+
+		return;
 	}
+
+	// Sync and rebuild if needed
+	if (bNeedsSync)
+	{
+		RebuildPropertyRegistry();
+		SyncPropertyOverridesToEntries();
+	}
+
+	(void)MarkPackageDirty();
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	#if WITH_EDITOR
+	// Force all details panels showing this object to rebuild
+	// This ensures nested PropertyOverrides customizations detect the schema changes
+	if (bNeedsSync)
+	{
+		FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyEditorModule.NotifyCustomizationModuleChanged();
+	}
+	#endif
 
 	ForEachEntry([this](FPCGExAssetCollectionEntry* InEntry, int32 i)
 	{
@@ -748,6 +808,17 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	{
 		EDITOR_RebuildStagingData();
 	}
+}
+
+void UPCGExAssetCollection::SyncPropertyOverridesToEntries()
+{
+	// Sync schema to all entry overrides using shared utility
+	CollectionProperties.SyncAllSchemas();
+	TArray<FInstancedStruct> Schema = CollectionProperties.BuildSchema();
+	ForEachEntry([&Schema](FPCGExAssetCollectionEntry* InEntry, int32 i)
+	{
+		InEntry->PropertyOverrides.SyncToSchema(Schema);
+	});
 }
 
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()

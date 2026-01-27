@@ -8,6 +8,7 @@
 
 #include "PCGExAssetCollectionTypes.h"
 #include "PCGExAssetGrammar.h"
+#include "PCGExPropertyCompiled.h"
 #include "Core/PCGExContext.h"
 #include "Details/PCGExSocket.h"
 #include "Details/PCGExStagingDetails.h"
@@ -136,6 +137,14 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TSet<FName> Tags;
 
+	/**
+	 * Property overrides for this entry.
+	 * Values here take precedence over collection-level defaults.
+	 * Only include properties you want to override.
+	 */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FPCGExPropertyOverrides PropertyOverrides;
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExEntryVariationMode GrammarSource = EPCGExEntryVariationMode::Local;
 
@@ -201,6 +210,26 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
 
 	TSharedPtr<PCGExAssetCollection::FMicroCache> MicroCache;
 	virtual void BuildMicroCache();
+
+
+	// Property Resolution
+
+	/**
+	 * Get resolved property by type: checks entry overrides first, then collection defaults.
+	 * @param OwningCollection The collection this entry belongs to
+	 * @param PropertyName Optional name filter (NAME_None matches first of type)
+	 * @return Pointer to property if found, nullptr otherwise
+	 */
+	template <typename T>
+	const T* GetResolvedProperty(const UPCGExAssetCollection* OwningCollection, FName PropertyName = NAME_None) const;
+
+	/**
+	 * Check if this entry has an override for a specific property name.
+	 */
+	bool HasPropertyOverride(FName PropertyName) const
+	{
+		return PropertyOverrides.HasOverride(PropertyName);
+	}
 
 protected:
 	void ClearManagedSockets();
@@ -397,13 +426,38 @@ public:
 
 #pragma region Lifecycle
 
-	virtual void PostLoad() override;
 	virtual void PostDuplicate(bool bDuplicateForPIE) override;
 	virtual void PostEditImport() override;
 	virtual void BeginDestroy() override;
 
 	void RebuildStagingData(bool bRecursive);
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
+
+	/** Rebuild property registry from CollectionProperties. Called automatically during cache build. */
+	void RebuildPropertyRegistry()
+	{
+		TArray<FInstancedStruct> Schema = CollectionProperties.BuildSchema();
+		PCGExProperties::BuildRegistry(Schema, PropertyRegistry);
+	}
+
+	/**
+	 * Get property from collection defaults by type.
+	 * @param PropertyName Optional name filter (NAME_None matches first of type)
+	 * @return Pointer to property if found, nullptr otherwise
+	 */
+	template <typename T>
+	const T* GetProperty(FName PropertyName = NAME_None) const
+	{
+		return CollectionProperties.GetProperty<T>(PropertyName);
+	}
+
+	/**
+	 * Check if collection has a property with given name.
+	 */
+	bool HasProperty(FName PropertyName) const
+	{
+		return CollectionProperties.HasProperty(PropertyName);
+	}
 
 	bool HasCircularDependency(const UPCGExAssetCollection* OtherCollection) const;
 	bool HasCircularDependency(TSet<const UPCGExAssetCollection*>& InReferences) const;
@@ -422,6 +476,9 @@ public:
 
 	void EDITOR_SanitizeAndRebuildStagingData(bool bRecursive);
 	void EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData);
+
+	/** Sync PropertyOverrides in all entries to match CollectionProperties schema */
+	void SyncPropertyOverridesToEntries();
 
 protected:
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData);
@@ -470,6 +527,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bDoNotIgnoreInvalidEntries = false;
 
+	/**
+	 * Collection-level properties with default values.
+	 * Entries inherit these unless they provide overrides.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Properties")
+	FPCGExPropertySchemaCollection CollectionProperties;
+
+	/**
+	 * Read-only registry of available properties (built from CollectionProperties).
+	 * Used for UI display and validation.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Properties")
+	TArray<FPCGExPropertyRegistryEntry> PropertyRegistry;
+
 protected:
 	// Internal - Override in derived classes
 
@@ -496,6 +567,9 @@ bool UPCGExAssetCollection::BuildCacheFromEntries(TArray<T>& InEntries)
 	FWriteScopeLock WriteScopeLock(CacheLock);
 
 	if (Cache) { return true; }
+
+	// Rebuild property registry from collection properties
+	RebuildPropertyRegistry();
 
 	Cache = MakeShared<PCGExAssetCollection::FCache>();
 	bCacheNeedsRebuild = false;
@@ -552,3 +626,22 @@ protected: \
 	virtual FPCGExAssetCollectionEntry* GetMutableEntryAtRawIndex(int32 Index) override \
 	{ return Entries.IsValidIndex(Index) ? &Entries[Index] : nullptr; } \
 public:
+
+// Entry Property Resolution Implementation
+template <typename T>
+const T* FPCGExAssetCollectionEntry::GetResolvedProperty(const UPCGExAssetCollection* OwningCollection, FName PropertyName) const
+{
+	// Check entry overrides first
+	if (const T* Override = PropertyOverrides.GetProperty<T>(PropertyName))
+	{
+		return Override;
+	}
+
+	// Fall back to collection defaults
+	if (OwningCollection)
+	{
+		return OwningCollection->GetProperty<T>(PropertyName);
+	}
+
+	return nullptr;
+}

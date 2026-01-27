@@ -44,11 +44,12 @@ namespace PCGExPathfinding
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, PlotTasks)
 
-		LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
+		LocalFeedbackHandler = HeuristicsHandler->AcquireLocalFeedbackHandler(Cluster);
 
-		PlotTasks->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		PlotTasks->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, HeuristicsHandler]()
 		{
 			PCGEX_ASYNC_THIS
+			HeuristicsHandler->ReleaseLocalFeedbackHandler(This->LocalFeedbackHandler);
 			This->LocalFeedbackHandler.Reset();
 			if (This->OnCompleteCallback) { This->OnCompleteCallback(This); }
 		};

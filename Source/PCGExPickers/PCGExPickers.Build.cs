@@ -8,7 +8,7 @@ public class PCGExPickers : ModuleRules
 	public PCGExPickers(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = false;
+		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(

@@ -42,6 +42,18 @@ void UPCGExInclusionFilterFactory::InitConfig_Internal()
 	bIgnoreSelf = Config.bIgnoreSelf;
 }
 
+#if WITH_EDITOR
+void UPCGExInclusionFilterProviderSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 73, 4)
+	{
+		Config.ProjectionDetails.ApplyDeprecation();
+	}
+	
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 namespace PCGExPointFilter
 {
 	bool FInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)

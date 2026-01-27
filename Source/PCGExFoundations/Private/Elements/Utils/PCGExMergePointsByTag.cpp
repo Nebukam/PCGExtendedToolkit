@@ -211,9 +211,11 @@ namespace PCPGExMergePointsByTag
 PCGEX_INITIALIZE_ELEMENT(MergePointsByTag)
 
 bool FPCGExMergePointsByTagElement::Boot(FPCGExContext* InContext) const
-{
+{	
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
+	PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("MergePointsByTag is deprecated, use MergePoints with data matching rules instead."));
+	
 	PCGEX_CONTEXT_AND_SETTINGS(MergePointsByTag)
 
 	PCGEX_FWD(TagFilters)

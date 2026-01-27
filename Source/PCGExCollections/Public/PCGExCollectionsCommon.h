@@ -50,11 +50,14 @@ enum class EPCGExAssetTagInheritance : uint8
 {
 	None           = 0,
 	Asset          = 1 << 1 UMETA(DisplayName = "Asset"),
-	Hierarchy      = 1 << 2 UMETA(DisplayName = "Hierarchy"),
+	Hierarchy      = 1 << 2 UMETA(Hidden, DisplayName = "Hierarchy"),
 	Collection     = 1 << 3 UMETA(DisplayName = "Collection"),
-	RootCollection = 1 << 4 UMETA(DisplayName = "Root Collection"),
-	RootAsset      = 1 << 5 UMETA(DisplayName = "Root Asset"),
+	RootCollection = 1 << 4 UMETA(Hidden, DisplayName = "Root Collection"),
+	RootAsset      = 1 << 5 UMETA(Hidden, DisplayName = "Root Asset"),
 };
+
+ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)
+using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
 UENUM()
 enum class EPCGExEntryVariationMode : uint8
@@ -69,9 +72,6 @@ enum class EPCGExGlobalVariationRule : uint8
 	PerEntry = 0 UMETA(DisplayName = "Per Entry", ToolTip="Let the entry choose whether it's using collection settings or its own", ActionIcon="EntryRule"),
 	Overrule = 1 UMETA(DisplayName = "Overrule", ToolTip="Disregard the entry settings and enforce collection settings", ActionIcon="CollectionRule")
 };
-
-ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)
-using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
 namespace PCGExCollections::Labels
 {

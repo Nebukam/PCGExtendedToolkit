@@ -13,11 +13,6 @@
 
 class FPCGExIntTracker;
 
-namespace PCGEx
-{
-	class FPCGExIntTracker;
-}
-
 namespace PCGExMT
 {
 	class FAsyncToken;
@@ -39,6 +34,76 @@ enum class EPCGExRuntimeGenerationTriggerAction : uint8
 	AsIs         = 1 UMETA(DisplayName = "As-is", ToolTip="Grab the data as-is and doesnt'try to refresh it."),
 	RefreshFirst = 2 UMETA(DisplayName = "Refresh", ToolTip="Refresh and wait for completion"),
 };
+
+// Forward declaration for config structs
+class UPCGExWaitForPCGDataSettings;
+
+//
+// Internal config structs - Used to bundle settings for cleaner internal APIs.
+// These are populated from UPCGExWaitForPCGDataSettings during Boot/Process
+// and can be promoted to USTRUCT UPROPERTYs in a future major version.
+//
+
+namespace PCGExWaitForPCGData
+{
+	/** Filter configuration for component discovery */
+	struct FFilterConfig
+	{
+		bool bMustMatchTemplate = true;
+		FName MustHaveTag = NAME_None;
+		bool bDoMatchGenerationTrigger = false;
+		EPCGComponentGenerationTrigger MatchGenerationTrigger = EPCGComponentGenerationTrigger::GenerateOnLoad;
+		bool bInvertGenerationTrigger = false;
+
+		void InitFrom(const UPCGExWaitForPCGDataSettings* Settings);
+		bool PassesFilter(const UPCGComponent* Candidate, const UPCGGraph* TemplateGraph, const UPCGComponent* Self) const;
+	};
+
+	/** Timeout configuration for async waiting */
+	struct FTimeoutConfig
+	{
+		bool bWaitForMissingActors = true;
+		double WaitForActorTimeout = 1.0;
+		bool bWaitForMissingComponents = false;
+		double WaitForComponentTimeout = 1.0;
+
+		void InitFrom(const UPCGExWaitForPCGDataSettings* Settings);
+	};
+
+	/** Generation trigger action configuration */
+	struct FGenerationConfig
+	{
+		EPCGExGenerationTriggerAction GenerateOnLoadAction = EPCGExGenerationTriggerAction::Generate;
+		EPCGExGenerationTriggerAction GenerateOnDemandAction = EPCGExGenerationTriggerAction::Generate;
+		EPCGExRuntimeGenerationTriggerAction GenerateAtRuntimeAction = EPCGExRuntimeGenerationTriggerAction::AsIs;
+
+		void InitFrom(const UPCGExWaitForPCGDataSettings* Settings);
+		bool ShouldIgnore(EPCGComponentGenerationTrigger Trigger) const;
+		bool TriggerGeneration(UPCGComponent* Component, bool& bOutShouldWatch) const;
+	};
+
+	/** Output configuration */
+	struct FOutputConfig
+	{
+		bool bIgnoreRequiredPin = false;
+		bool bDedupeData = true;
+		bool bCarryOverTargetTags = true;
+		bool bOutputRoaming = true;
+		FName RoamingPin = FName("Roaming Data");
+
+		void InitFrom(const UPCGExWaitForPCGDataSettings* Settings);
+	};
+
+	/** Warning/error suppression configuration */
+	struct FWarningConfig
+	{
+		bool bQuietActorNotFoundWarning = false;
+		bool bQuietComponentNotFoundWarning = false;
+		bool bQuietTimeoutError = false;
+
+		void InitFrom(const UPCGExWaitForPCGDataSettings* Settings);
+	};
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
 class UPCGExWaitForPCGDataSettings : public UPCGExPointsProcessorSettings
@@ -200,6 +265,13 @@ struct FPCGExWaitForPCGDataContext final : FPCGExPointsProcessorContext
 	TArray<FSoftObjectPath> GraphInstancePaths;
 	TArray<UPCGGraph*> GraphInstances;
 
+	// Internal config structs - populated during Boot from Settings
+	PCGExWaitForPCGData::FFilterConfig FilterConfig;
+	PCGExWaitForPCGData::FTimeoutConfig TimeoutConfig;
+	PCGExWaitForPCGData::FGenerationConfig GenerationConfig;
+	PCGExWaitForPCGData::FOutputConfig OutputConfig;
+	PCGExWaitForPCGData::FWarningConfig WarningConfig;
+
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -216,28 +288,152 @@ protected:
 
 namespace PCGExWaitForPCGData
 {
-	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWaitForPCGDataContext, UPCGExWaitForPCGDataSettings>
+	//
+	// Component Discovery - Handles finding and filtering PCG components on target actors
+	//
+	// State Machine:
+	// [Start] -> GatherActors -> (wait for actors if needed) -> GatherComponents -> InspectComponents -> [Complete]
+	//                ^                                                                    |
+	//                +-----------------(retry if waiting for components)------------------+
+	//
+	class FComponentDiscovery final : public TSharedFromThis<FComponentDiscovery>
 	{
-		friend class FStageComponentDataTask;
+	public:
+		using FOnDiscoveryComplete = TFunction<void(UPCGComponent*)>;
 
-		FRWLock ValidComponentLock;
+		FComponentDiscovery(
+			FPCGExWaitForPCGDataContext* InContext,
+			const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager,
+			UPCGGraph* InTemplateGraph,
+			const FFilterConfig& InFilterConfig,
+			const FTimeoutConfig& InTimeoutConfig,
+			const FWarningConfig& InWarningConfig);
 
+		~FComponentDiscovery();
+
+		void SetOnComponentFound(FOnDiscoveryComplete&& InCallback) { OnComponentFound = MoveTemp(InCallback); }
+		void SetOnDiscoveryComplete(TFunction<void()>&& InCallback) { OnDiscoveryComplete = MoveTemp(InCallback); }
+
+		bool Start(const TSet<FSoftObjectPath>& InActorReferences);
+		void Stop();
+
+	private:
+		void GatherActors();
+		void GatherComponents();
+		void InspectGatheredComponents();
+		void Inspect(int32 Index);
+		void OnInspectionCompleteInternal();
+
+		bool IsValidCandidate(const UPCGComponent* Candidate) const;
+		bool HasRequiredPins(const UPCGGraph* CandidateGraph) const;
+
+		FPCGExWaitForPCGDataContext* Context = nullptr;
+		TWeakPtr<PCGExMT::FTaskManager> TaskManagerWeak;
 		TObjectPtr<UPCGGraph> TemplateGraph;
 
-		TWeakPtr<PCGExMT::FAsyncToken> SearchComponentsToken;
-		TWeakPtr<PCGExMT::FAsyncToken> SearchActorsToken;
-		TWeakPtr<PCGExMT::FAsyncToken> WatchToken;
-		TSharedPtr<FPCGExIntTracker> InspectionTracker;
-		TSharedPtr<FPCGExIntTracker> WatcherTracker;
-		double StartTime = 0;
+		FFilterConfig FilterConfig;
+		FTimeoutConfig TimeoutConfig;
+		FWarningConfig WarningConfig;
 
+		TWeakPtr<PCGExMT::FAsyncToken> SearchActorsToken;
+		TWeakPtr<PCGExMT::FAsyncToken> SearchComponentsToken;
+		TSharedPtr<FPCGExIntTracker> InspectionTracker;
+
+		double StartTime = 0;
 		TSet<FSoftObjectPath> UniqueActorReferences;
 		TArray<AActor*> QueuedActors;
 		TArray<TArray<UPCGComponent*>> PerActorGatheredComponents;
 
-		TMap<FSoftObjectPath, TSharedPtr<TArray<int32>>> PerActorPoints;
+		FOnDiscoveryComplete OnComponentFound;
+		TFunction<void()> OnDiscoveryComplete;
+	};
 
-		TArray<UPCGComponent*> ValidComponents;
+	//
+	// Generation Watcher - Handles triggering generation and waiting for completion
+	//
+	class FGenerationWatcher final : public TSharedFromThis<FGenerationWatcher>
+	{
+	public:
+		using FOnGenerationComplete = TFunction<void(UPCGComponent*, bool bSuccess)>;
+
+		FGenerationWatcher(
+			const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager,
+			const FGenerationConfig& InGenerationConfig);
+
+		~FGenerationWatcher();
+
+		void SetOnGenerationComplete(FOnGenerationComplete&& InCallback) { OnGenerationComplete = MoveTemp(InCallback); }
+		void SetOnAllComplete(TFunction<void()>&& InCallback) { OnAllComplete = MoveTemp(InCallback); }
+
+		/** Must be called after construction to initialize the tracker (cannot use SharedThis in constructor) */
+		void Initialize();
+
+		void Watch(UPCGComponent* InComponent);
+
+	private:
+		void ProcessComponent(UPCGComponent* InComponent);
+		void WatchComponentGeneration(UPCGComponent* InComponent);
+		void OnComponentReady(UPCGComponent* InComponent, bool bSuccess);
+
+		TWeakPtr<PCGExMT::FTaskManager> TaskManagerWeak;
+		FGenerationConfig GenerationConfig;
+
+		TWeakPtr<PCGExMT::FAsyncToken> WatchToken;
+		TSharedPtr<FPCGExIntTracker> WatcherTracker;
+
+		FOnGenerationComplete OnGenerationComplete;
+		TFunction<void()> OnAllComplete;
+	};
+
+	//
+	// Data Stager - Handles extracting and staging component output data
+	//
+	class FDataStager final
+	{
+	public:
+		FDataStager(
+			FPCGExWaitForPCGDataContext* InContext,
+			const TSharedRef<PCGExData::FFacade>& InPointDataFacade,
+			const FOutputConfig& InOutputConfig,
+			const FPCGExAttributeToTagDetails& InTagDetails);
+
+		void StageComponentData(
+			UPCGComponent* InComponent,
+			const TArray<int32>& MatchingPointIndices);
+
+	private:
+		void StageTaggedData(
+			const FPCGTaggedData& TaggedData,
+			const TSet<FString>& PointsTags);
+
+		FPCGExWaitForPCGDataContext* Context = nullptr;
+		TSharedRef<PCGExData::FFacade> PointDataFacade;
+		FOutputConfig OutputConfig;
+		FPCGExAttributeToTagDetails TagDetails;
+	};
+
+	//
+	// Processor - Orchestrates component discovery, generation watching, and data staging
+	//
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWaitForPCGDataContext, UPCGExWaitForPCGDataSettings>
+	{
+		friend class FStageComponentDataTask;
+
+		TObjectPtr<UPCGGraph> TemplateGraph;
+
+		// Sub-systems
+		TSharedPtr<FComponentDiscovery> Discovery;
+		TSharedPtr<FGenerationWatcher> Watcher;
+		TSharedPtr<FDataStager> Stager;
+
+		// Actor reference to point index mapping
+		TMap<FSoftObjectPath, TSharedPtr<TArray<int32>>> PerActorPoints;
+		TSet<FSoftObjectPath> UniqueActorReferences;
+
+		// Component tracking for data staging
+		FRWLock ComponentLock;
+		TMap<UPCGComponent*, int32> ComponentToIndex;
+		TArray<UPCGComponent*> IndexedComponents;
 
 		FPCGExAttributeToTagDetails TargetAttributesToDataTags;
 
@@ -247,27 +443,12 @@ namespace PCGExWaitForPCGData
 		{
 		}
 
-		virtual ~FProcessor() override;
-
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
-		void GatherActors();
-
-		void GatherComponents();
-
-		void StartComponentSearch();
-		void StopComponentSearch(bool bTimeout = false);
-
-		void InspectGatheredComponents();
-		void Inspect(int32 Index);
-
-		void OnInspectionComplete();
-
-	protected:
-		void AddValidComponent(UPCGComponent* InComponent);
-		void WatchComponent(UPCGComponent* TargetComponent, int32 Index);
-		void ProcessComponent(int32 Index);
-		void ScheduleComponentDataStaging(int32 Index);
-		void StageComponentData(int32 Index);
+	private:
+		void OnComponentFound(UPCGComponent* InComponent);
+		void OnGenerationComplete(UPCGComponent* InComponent, bool bSuccess);
+		void ScheduleDataStaging(UPCGComponent* InComponent);
+		void DoStageComponentData(UPCGComponent* InComponent);
 	};
 }

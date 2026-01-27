@@ -63,9 +63,11 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+	virtual bool SupportsDataStealing() const override { return true; }
 
 public:
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExUberNoiseMode Mode = EPCGExUberNoiseMode::New;
 

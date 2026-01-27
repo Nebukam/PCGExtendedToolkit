@@ -146,7 +146,7 @@ namespace PCGExClusterMT
 
 				for (const int32 i : PtIndices)
 				{
-					FVector2D V = FVector2D(ProjectionDetails.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+					FVector2D V = FVector2D(ProjectionDetails.ProjectFlat(InVtxTransforms[i].GetLocation()));
 					ProjectedVtx[i] = V;
 					Cluster->ProjectedCentroid += V;
 				}
@@ -328,11 +328,7 @@ namespace PCGExClusterMT
 
 		AllocateVtxPoints();
 
-		if (WantsProjection())
-		{
-			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(VtxDataFacade); }
-			else if (!WantsPerClusterProjection()) { ProjectionDetails.Init(PCGExMath::FBestFitPlane(VtxDataFacade->GetIn()->GetConstTransformValueRange())); }
-		}
+		if (WantsProjection()) { ProjectionDetails.Init(VtxDataFacade); }
 
 		if (!bScopedIndexLookupBuild || NumVtx < PCGEX_CORE_SETTINGS.SmallClusterSize)
 		{
@@ -368,7 +364,7 @@ namespace PCGExClusterMT
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation()));
 					}
 				};
 
@@ -437,7 +433,7 @@ namespace PCGExClusterMT
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+						Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation()));
 					}
 				}
 			};

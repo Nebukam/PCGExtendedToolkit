@@ -14,7 +14,6 @@
 #include "Clusters/PCGExClusterCommon.h"
 #include "Graphs/PCGExSubGraph.h"
 #include "Sorting/PCGExSortingHelpers.h"
-#include "Async/ParallelFor.h"
 
 namespace PCGExGraphTask
 {
@@ -307,7 +306,14 @@ namespace PCGExGraphs
 				EdgeIO->IOIndex = i;
 
 				SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
+
+				// Legacy callback
 				SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
+
+				// Context-based callbacks
+				SubGraph->OnCreateContext = OnCreateContext;
+				SubGraph->OnPreCompile = OnPreCompile;
+				SubGraph->OnPostCompile = OnPostCompile;
 
 				SubGraph->VtxDataFacade = NodeDataFacade;
 				SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());

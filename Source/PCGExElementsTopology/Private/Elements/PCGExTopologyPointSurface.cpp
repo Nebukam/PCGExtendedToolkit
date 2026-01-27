@@ -119,8 +119,7 @@ namespace PCGExTopologyPointSurface
 		// Project points
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		if (!ProjectionDetails.Init(PointDataFacade)) { return false; }
 
 		// Build delaunay
 
@@ -144,9 +143,7 @@ namespace PCGExTopologyPointSurface
 		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(PointDataFacade);
 
-		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
-		Transform.SetScale3D(FVector::OneVector);
-		Transform.SetRotation(FQuat::Identity);
+		FTransform Transform = PCGExTopology::GetCoordinateSpaceTransform(Settings->Topology.CoordinateSpace, Context);
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTopologyPointSurface::EditMesh)

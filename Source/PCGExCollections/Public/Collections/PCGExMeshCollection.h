@@ -186,7 +186,7 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollec
 };
 
 // Mesh Collection
-UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
+UCLASS(BlueprintType, DisplayName="[PCGEx] Collection | Mesh")
 class PCGEXCOLLECTIONS_API UPCGExMeshCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()

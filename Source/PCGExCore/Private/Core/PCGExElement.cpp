@@ -82,6 +82,12 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 	Context->bQuietCancellationError = Settings->bQuietCancellationError;
 	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
 
+	if (Settings->SupportsDataStealing()
+		&& Settings->StealData == EPCGExOptionState::Enabled)
+	{
+		Context->bWantsDataStealing = true;
+	}
+
 	Context->ElementHandle = this;
 
 	if (Context->bCleanupConsumableAttributes)
@@ -168,7 +174,7 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();
 	const EPCGExExecutionPolicy LocalPolicy = DesiredPolicy == EPCGExExecutionPolicy::Default ? PCGEX_CORE_SETTINGS.ExecutionPolicy : DesiredPolicy;
 
-	if (!IsInGameThread()
+	if (IsInGameThread()
 		|| LocalPolicy == EPCGExExecutionPolicy::Ignored
 		|| LocalPolicy == EPCGExExecutionPolicy::Default
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButLoop && InContext->LoopIndex != INDEX_NONE)

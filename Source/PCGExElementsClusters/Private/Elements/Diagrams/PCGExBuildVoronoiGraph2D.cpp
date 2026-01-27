@@ -177,8 +177,7 @@ namespace PCGExBuildVoronoiGraph2D
 		SitesOutputDetails = Settings->SitesOutputDetails;
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
-		else { ProjectionDetails.Init(PCGExMath::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+		if (!ProjectionDetails.Init(PointDataFacade)) { return false; }
 
 		// Build voronoi
 
@@ -188,9 +187,10 @@ namespace PCGExBuildVoronoiGraph2D
 		Voronoi = MakeShared<PCGExMath::Geo::TVoronoi2>();
 
 		const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
-		bool bSuccess = false;
 
-		bSuccess = Voronoi->Process(ActivePositions, ProjectionDetails, Bounds, WithinBounds);
+		// Use metric-aware processing for all metrics (uses 2D circumcenters for correct top-view)
+		const EPCGExVoronoiMetric Metric = Settings->Metric;
+		const bool bSuccess = Voronoi->Process(ActivePositions, ProjectionDetails, Bounds, WithinBounds, Metric, Settings->Method);
 
 		if (!bSuccess)
 		{
@@ -198,235 +198,8 @@ namespace PCGExBuildVoronoiGraph2D
 			return false;
 		}
 
-		const int32 NumSites = Voronoi->Centroids.Num();
-
-		ActivePositions.Empty();
-
-		SitesPositions.SetNumUninitialized(NumSites);
-
-
-		using UpdatePositionCallback = std::function<void(const int32)>;
-		UpdatePositionCallback UpdateSitePosition = [](const int32 SiteIndex)
-		{
-		};
-
-		auto MarkOOB = [&](const int32 SiteIndex)
-		{
-			const PCGExMath::Geo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
-			for (int i = 0; i < 3; i++) { IsVtxValid[Site.Vtx[i]] = false; }
-		};
-
-		const int32 DelaunaySitesNum = PointDataFacade->GetNum(PCGExData::EIOSide::In);
-
-		if (Settings->bOutputSites)
-		{
-			IsVtxValid.Init(true, DelaunaySitesNum);
-
-			for (int i = 0; i < IsVtxValid.Num(); i++) { IsVtxValid[i] = !Voronoi->Delaunay->DelaunayHull.Contains(i); }
-
-			UpdateSitePosition = [&](const int32 SiteIndex)
-			{
-				const PCGExMath::Geo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
-				const FVector& SitePos = SitesPositions[SiteIndex];
-				for (int i = 0; i < 3; i++) { SitesOutputDetails.AddInfluence(Site.Vtx[i], SitePos); }
-			};
-
-			SiteDataFacade = MakeShared<PCGExData::FFacade>(Context->SitesOutput->Pairs[PointDataFacade->Source->IOIndex].ToSharedRef());
-			PCGEX_INIT_IO(SiteDataFacade->Source, PCGExData::EIOInit::Duplicate)
-			SiteDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
-
-			SitesOutputDetails.Init(SiteDataFacade);
-
-			if (Settings->bPruneOutOfBounds && !Settings->bPruneOpenSites) { OpenSiteWriter = SiteDataFacade->GetWritable<bool>(Settings->OpenSiteFlag, PCGExData::EBufferInit::New); }
-		}
-
-		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New)) { return false; }
-
-		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
-		{
-			int32 NumCentroids = 0;
-
-			TArray<int32> RemappedIndices;
-			RemappedIndices.Init(-1, NumSites);
-
-			for (int i = 0; i < NumSites; i++)
-			{
-				SitesPositions[i] = Voronoi->Circumcenters[i];
-				if (!WithinBounds[i]) { continue; }
-				RemappedIndices[i] = NumCentroids++;
-			}
-
-			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
-			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(CentroidsPoints, NumCentroids, PointDataFacade->GetAllocations());
-
-			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(true);
-			TPCGValueRange<int32> OutSeeds = CentroidsPoints->GetSeedValueRange(true);
-
-			for (int i = 0; i < NumSites; i++)
-			{
-				if (const int32 Idx = RemappedIndices[i]; Idx != -1)
-				{
-					OutTransforms[Idx].SetLocation(SitesPositions[i]);
-					OutSeeds[Idx] = PCGExRandomHelpers::ComputeSpatialSeed(SitesPositions[i]);
-				}
-			}
-
-			TArray<uint64> ValidEdges;
-			ValidEdges.Reserve(Voronoi->VoronoiEdges.Num());
-
-			if (Settings->bOutputSites)
-			{
-				if (Settings->bPruneOpenSites)
-				{
-					for (const uint64 Hash : Voronoi->VoronoiEdges)
-					{
-						const int32 HA = PCGEx::H64A(Hash);
-						const int32 HB = PCGEx::H64B(Hash);
-						const int32 A = RemappedIndices[HA];
-						const int32 B = RemappedIndices[HB];
-
-						if (A == -1 || B == -1)
-						{
-							if (A == -1) { MarkOOB(HA); }
-							if (B == -1) { MarkOOB(HB); }
-							continue;
-						}
-						ValidEdges.Add(PCGEx::H64(A, B));
-
-						UpdateSitePosition(HA);
-						UpdateSitePosition(HB);
-					}
-				}
-				else
-				{
-					for (const uint64 Hash : Voronoi->VoronoiEdges)
-					{
-						const int32 HA = PCGEx::H64A(Hash);
-						const int32 HB = PCGEx::H64B(Hash);
-						const int32 A = RemappedIndices[HA];
-						const int32 B = RemappedIndices[HB];
-
-						UpdateSitePosition(HA);
-						UpdateSitePosition(HB);
-
-						if (A == -1 || B == -1)
-						{
-							if (A == -1) { MarkOOB(HA); }
-							if (B == -1) { MarkOOB(HB); }
-							continue;
-						}
-						ValidEdges.Add(PCGEx::H64(A, B));
-					}
-				}
-			}
-			else
-			{
-				for (const uint64 Hash : Voronoi->VoronoiEdges)
-				{
-					const int32 A = RemappedIndices[PCGEx::H64A(Hash)];
-					const int32 B = RemappedIndices[PCGEx::H64B(Hash)];
-					if (A == -1 || B == -1) { continue; }
-					ValidEdges.Add(PCGEx::H64(A, B));
-				}
-			}
-
-			RemappedIndices.Empty();
-
-			GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
-		}
-		else
-		{
-			UPCGBasePointData* Centroids = PointDataFacade->GetOut();
-			const int32 NumCentroids = Voronoi->Centroids.Num();
-			(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(Centroids, NumCentroids, PointDataFacade->GetAllocations());
-
-			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange(true);
-			TPCGValueRange<int32> OutSeeds = Centroids->GetSeedValueRange(true);
-
-#define PCGEX_UPDATE_VSITE_DATA\
-			SitesPositions[i] = CC;\
-			OutTransforms[i].SetLocation(CC);\
-			OutSeeds[i] = PCGExRandomHelpers::ComputeSpatialSeed(CC);
-			if (Settings->Method == EPCGExCellCenter::Circumcenter)
-			{
-				for (int i = 0; i < NumCentroids; i++)
-				{
-					const FVector CC = Voronoi->Circumcenters[i];
-					PCGEX_UPDATE_VSITE_DATA
-				}
-			}
-			else if (Settings->Method == EPCGExCellCenter::Centroid)
-			{
-				for (int i = 0; i < NumCentroids; i++)
-				{
-					const FVector CC = Voronoi->Centroids[i];
-					PCGEX_UPDATE_VSITE_DATA
-				}
-			}
-			else if (Settings->Method == EPCGExCellCenter::Balanced)
-			{
-				for (int i = 0; i < NumCentroids; i++)
-				{
-					const FVector CC = WithinBounds[i] ? Voronoi->Circumcenters[i] : Voronoi->Centroids[i];
-					PCGEX_UPDATE_VSITE_DATA
-				}
-			}
-
-#undef PCGEX_UPDATE_VSITE_DATA
-
-			if (Settings->bOutputSites)
-			{
-				for (const uint64 Hash : Voronoi->VoronoiEdges)
-				{
-					const int32 HA = PCGEx::H64A(Hash);
-					const int32 HB = PCGEx::H64B(Hash);
-
-					UpdateSitePosition(HA);
-					UpdateSitePosition(HB);
-
-					if (!WithinBounds[HA]) { MarkOOB(HA); }
-					if (!WithinBounds[HB]) { MarkOOB(HB); }
-				}
-			}
-
-
-			GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
-		}
-
-		Voronoi.Reset();
-
-		GraphBuilder->bInheritNodeData = false;
-		GraphBuilder->CompileAsync(TaskManager, false);
-
-		if (Settings->bOutputSites)
-		{
-			PCGEX_ASYNC_GROUP_CHKD(TaskManager, OutputSites)
-
-			OutputSites->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-
-				TPCGValueRange<FTransform> OutTransforms = This->SiteDataFacade->GetOut()->GetTransformValueRange(false);
-
-				const TArray<FVector>& SitesPositionsDetails = This->SitesOutputDetails.Locations;
-				const TArray<int32>& SitesInfluenceCountDetails = This->SitesOutputDetails.Influences;
-
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					const bool bIsWithinBounds = This->IsVtxValid[Index];
-					if (This->OpenSiteWriter) { This->OpenSiteWriter->SetValue(Index, bIsWithinBounds); }
-					This->SitesOutputDetails.Output(Index);
-					if (SitesInfluenceCountDetails[Index] == 0) { continue; }
-					OutTransforms[Index].SetLocation(SitesPositionsDetails[Index] / SitesInfluenceCountDetails[Index]);
-				}
-			};
-
-			OutputSites->StartSubLoops(DelaunaySitesNum, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
-		}
-
-		return true;
+		// All metrics now use the unified output path with 2D circumcenters
+		return ProcessNonEuclidean(ActivePositions);
 	}
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
@@ -470,6 +243,142 @@ namespace PCGExBuildVoronoiGraph2D
 	void FProcessor::Output()
 	{
 		GraphBuilder->StageEdgesOutputs();
+	}
+
+	bool FProcessor::ProcessNonEuclidean(const TArray<FVector>& ActivePositions)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoiGraph2D::ProcessNonEuclidean);
+
+		// For L1/L∞ metrics, we use OutputVertices (cell centers + bend points) and OutputEdges (subdivided edges)
+		const int32 NumOutputVertices = Voronoi->OutputVertices.Num();
+		const int32 NumCellCenters = Voronoi->NumCellCenters;
+		const int32 DelaunaySitesNum = PointDataFacade->GetNum(PCGExData::EIOSide::In);
+
+		if (NumOutputVertices == 0)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Non-Euclidean Voronoi produced no output vertices."));
+			return false;
+		}
+
+		// Setup site output if needed (based on original Delaunay sites, not Voronoi vertices)
+		if (Settings->bOutputSites)
+		{
+			IsVtxValid.Init(true, DelaunaySitesNum);
+			for (int i = 0; i < IsVtxValid.Num(); i++) { IsVtxValid[i] = !Voronoi->Delaunay->DelaunayHull.Contains(i); }
+
+			SiteDataFacade = MakeShared<PCGExData::FFacade>(Context->SitesOutput->Pairs[PointDataFacade->Source->IOIndex].ToSharedRef());
+			PCGEX_INIT_IO(SiteDataFacade->Source, PCGExData::EIOInit::Duplicate)
+			SiteDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
+
+			SitesOutputDetails.Init(SiteDataFacade);
+			SitesPositions.SetNumUninitialized(NumCellCenters);
+
+			// Populate SitesPositions from cell centers (first NumCellCenters entries in OutputVertices)
+			for (int32 i = 0; i < NumCellCenters; i++)
+			{
+				SitesPositions[i] = Voronoi->OutputVertices[i];
+			}
+
+			// Update site influence data using the original VoronoiEdges (cell-to-cell adjacency)
+			for (const uint64 Hash : Voronoi->VoronoiEdges)
+			{
+				const int32 HA = PCGEx::H64A(Hash);
+				const int32 HB = PCGEx::H64B(Hash);
+
+				const PCGExMath::Geo::FDelaunaySite2& SiteA = Voronoi->Delaunay->Sites[HA];
+				const PCGExMath::Geo::FDelaunaySite2& SiteB = Voronoi->Delaunay->Sites[HB];
+
+				const FVector& SitePosA = SitesPositions[HA];
+				const FVector& SitePosB = SitesPositions[HB];
+
+				for (int i = 0; i < 3; i++)
+				{
+					SitesOutputDetails.AddInfluence(SiteA.Vtx[i], SitePosA);
+					SitesOutputDetails.AddInfluence(SiteB.Vtx[i], SitePosB);
+				}
+
+				if (!WithinBounds[HA])
+				{
+					for (int i = 0; i < 3; i++) { IsVtxValid[SiteA.Vtx[i]] = false; }
+				}
+				if (!WithinBounds[HB])
+				{
+					for (int i = 0; i < 3; i++) { IsVtxValid[SiteB.Vtx[i]] = false; }
+				}
+			}
+
+			if (Settings->bPruneOutOfBounds && !Settings->bPruneOpenSites)
+			{
+				OpenSiteWriter = SiteDataFacade->GetWritable<bool>(Settings->OpenSiteFlag, PCGExData::EBufferInit::New);
+			}
+		}
+
+		// Initialize cluster output
+		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New)) { return false; }
+
+		// Create output points from OutputVertices
+		UPCGBasePointData* OutputPoints = PointDataFacade->GetOut();
+		(void)PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutputPoints, NumOutputVertices, PointDataFacade->GetAllocations());
+
+		TPCGValueRange<FTransform> OutTransforms = OutputPoints->GetTransformValueRange(true);
+		TPCGValueRange<int32> OutSeeds = OutputPoints->GetSeedValueRange(true);
+
+		for (int32 i = 0; i < NumOutputVertices; i++)
+		{
+			const FVector& Pos = Voronoi->OutputVertices[i];
+			OutTransforms[i].SetLocation(Pos);
+			OutSeeds[i] = PCGExRandomHelpers::ComputeSpatialSeed(Pos);
+		}
+
+		// Build graph from OutputEdges
+		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder->Graph->InsertEdges(Voronoi->OutputEdges, -1);
+
+		// Mark out-of-bounds cell centers as invalid - the builder will handle pruning
+		if (Settings->bPruneOutOfBounds)
+		{
+			for (int32 i = 0; i < NumCellCenters; i++)
+			{
+				if (!WithinBounds[i])
+				{
+					GraphBuilder->Graph->Nodes[i].bValid = false;
+				}
+			}
+		}
+
+		Voronoi.Reset();
+
+		GraphBuilder->bInheritNodeData = false;
+		GraphBuilder->CompileAsync(TaskManager, false);
+
+		// Process site output asynchronously if needed
+		if (Settings->bOutputSites)
+		{
+			PCGEX_ASYNC_GROUP_CHKD(TaskManager, OutputSites)
+
+			OutputSites->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+
+				TPCGValueRange<FTransform> SiteOutTransforms = This->SiteDataFacade->GetOut()->GetTransformValueRange(false);
+
+				const TArray<FVector>& SitesPositionsDetails = This->SitesOutputDetails.Locations;
+				const TArray<int32>& SitesInfluenceCountDetails = This->SitesOutputDetails.Influences;
+
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					const bool bIsWithinBounds = This->IsVtxValid[Index];
+					if (This->OpenSiteWriter) { This->OpenSiteWriter->SetValue(Index, bIsWithinBounds); }
+					This->SitesOutputDetails.Output(Index);
+					if (SitesInfluenceCountDetails[Index] == 0) { continue; }
+					SiteOutTransforms[Index].SetLocation(SitesPositionsDetails[Index] / SitesInfluenceCountDetails[Index]);
+				}
+			};
+
+			OutputSites->StartSubLoops(DelaunaySitesNum, PCGEX_CORE_SETTINGS.GetPointsBatchChunkSize());
+		}
+
+		return true;
 	}
 }
 

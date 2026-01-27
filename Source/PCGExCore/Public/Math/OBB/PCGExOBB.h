@@ -12,13 +12,13 @@ namespace PCGExMath::OBB
 	{
 		FVector Origin;
 		float Radius;
-		FVector HalfExtents;
+		FVector Extents;
 		int32 Index;
 
 		FBounds() = default;
 
-		FBounds(const FVector& InOrigin, const FVector& InHalfExtents, int32 InIndex)
-			: Origin(InOrigin), Radius(InHalfExtents.Size()), HalfExtents(InHalfExtents), Index(InIndex)
+		FBounds(const FVector& InOrigin, const FVector& InExtents, int32 InIndex)
+			: Origin(InOrigin), Radius(InExtents.Size()), Extents(InExtents), Index(InIndex)
 		{
 		}
 
@@ -76,7 +76,7 @@ namespace PCGExMath::OBB
 
 		// Convenience accessors
 		FORCEINLINE const FVector& GetOrigin() const { return Bounds.Origin; }
-		FORCEINLINE const FVector& GetHalfExtents() const { return Bounds.HalfExtents; }
+		FORCEINLINE const FVector& GetExtents() const { return Bounds.Extents; }
 		FORCEINLINE float GetRadius() const { return Bounds.Radius; }
 		FORCEINLINE int32 GetIndex() const { return Bounds.Index; }
 		FORCEINLINE const FQuat& GetRotation() const { return Orientation.Rotation; }
@@ -94,7 +94,7 @@ namespace PCGExMath::OBB
 		// Local box (always centered at origin)
 		FORCEINLINE FBox GetLocalBox() const
 		{
-			return FBox(-Bounds.HalfExtents, Bounds.HalfExtents);
+			return FBox(-Bounds.Extents, Bounds.Extents);
 		}
 
 		// Matrix - computed on demand for FMath::LineExtentBoxIntersection
@@ -120,18 +120,18 @@ namespace PCGExMath::OBB
 			const FVector LocalCenter = LocalBox.GetCenter();
 			const FQuat Rotation = Transform.GetRotation();
 			const FVector WorldOrigin = Transform.GetLocation() + Rotation.RotateVector(LocalCenter);
-			const FVector HalfExtents = LocalBox.GetExtent();
+			const FVector Extents = LocalBox.GetExtent();
 
 			return FOBB(
-				FBounds(WorldOrigin, HalfExtents, Index),
+				FBounds(WorldOrigin, Extents, Index),
 				FOrientation(Rotation)
 			);
 		}
 
-		FORCEINLINE FOBB FromTransform(const FTransform& Transform, const FVector& HalfExtents, int32 Index)
+		FORCEINLINE FOBB FromTransform(const FTransform& Transform, const FVector& Extents, int32 Index)
 		{
 			return FOBB(
-				FBounds(Transform.GetLocation(), HalfExtents, Index),
+				FBounds(Transform.GetLocation(), Extents, Index),
 				FOrientation(Transform.GetRotation())
 			);
 		}
@@ -147,8 +147,8 @@ namespace PCGExMath::OBB
 		FORCEINLINE FOBB Expanded(const FOBB& Source, float Expansion)
 		{
 			FBounds NewBounds = Source.Bounds;
-			NewBounds.HalfExtents += FVector(Expansion);
-			NewBounds.Radius = NewBounds.HalfExtents.Size();
+			NewBounds.Extents += FVector(Expansion);
+			NewBounds.Radius = NewBounds.Extents.Size();
 			return FOBB(NewBounds, Source.Orientation);
 		}
 	}

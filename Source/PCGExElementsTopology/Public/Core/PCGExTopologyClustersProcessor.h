@@ -8,7 +8,6 @@
 #include "PCGExTopology.h"
 #include "Clusters/Artifacts/PCGExCellDetails.h"
 #include "Core/PCGExClustersProcessor.h"
-#include "Details/PCGExAttachmentRules.h"
 
 #include "PCGExTopologyClustersProcessor.generated.h"
 
@@ -18,7 +17,7 @@ class UPCGDynamicMeshData;
 UENUM()
 enum class EPCGExTopologyOutputMode : uint8
 {
-	Legacy         = 0 UMETA(DisplayName = "Legacy (Spawn Mesh)", ToolTip="Spawns a dynamic mesh (Legacy)."),
+	Legacy         = 0 UMETA(DisplayName = "Legacy (Deprecated)", ToolTip="DEPRECATED: No longer supported. Use PCG Dynamic Mesh instead."),
 	PCGDynamicMesh = 1 UMETA(DisplayName = "PCG Dynamic Mesh", ToolTip="Creates a PCG dynamic mesh."),
 };
 
@@ -31,7 +30,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TopologyProcessor, "Topology", "Base processor to output meshes from clusters");
-	virtual EPCGSettingsType GetType() const override { return OutputMode == EPCGExTopologyOutputMode::Legacy ? EPCGSettingsType::Spawner : EPCGSettingsType::DynamicMesh; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::DynamicMesh; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor::White; }
 #endif
 
@@ -51,6 +50,7 @@ protected:
 	//~End UPCGSettings
 
 public:
+	/** Output mode. Legacy mode is deprecated and will log an error if used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTopologyOutputMode OutputMode = EPCGExTopologyOutputMode::PCGDynamicMesh;
 
@@ -61,23 +61,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints;
 
-	/** Topology settings. Some settings will be ignored based on selected output mode. */
+	/** Topology settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTopologyDetails Topology;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
-	TSoftObjectPtr<AActor> TargetActor;
-
-	/** Comma separated tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
-	FString CommaSeparatedComponentTags = TEXT("PCGExTopology");
-
-	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides), AdvancedDisplay)
-	TArray<FName> PostProcessFunctionNames;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides), AdvancedDisplay)
-	FPCGExAttachmentRules AttachmentRules;
 
 protected:
 	virtual bool IsCacheable() const override { return false; }
@@ -91,11 +77,9 @@ struct PCGEXELEMENTSTOPOLOGY_API FPCGExTopologyClustersProcessorContext : FPCGEx
 	friend class FPCGExTopologyClustersProcessorElement;
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeConstraintsFilterFactories;
 
-	TSharedPtr<PCGExClusters::FHoles> Holes;
+	TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
 	TArray<TSharedPtr<TMap<uint64, int32>>> HashMaps;
-
-	TArray<FString> ComponentTags;
 
 	virtual void RegisterAssetDependencies() override;
 };
@@ -116,7 +100,7 @@ namespace PCGExTopologyEdges
 		friend class IBatch;
 
 	protected:
-		TSharedPtr<PCGExClusters::FHoles> Holes;
+		TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 		FPCGExTopologyUVDetails UVDetails;
 
 		const FVector2D CWTolerance = FVector2D(0.001);

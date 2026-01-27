@@ -12,7 +12,8 @@ namespace PCGExShapes
 		Fit = FBox(FVector::OneVector * -0.5, FVector::OneVector * 0.5);
 		FTransform OutTransform = FTransform::Identity;
 
-		Config.Fitting.ComputeTransform(Seed.Index, OutTransform, Fit, false);
+		FVector Translation = FVector::ZeroVector;
+		Config.Fitting.ComputeTransform(Seed.Index, OutTransform, Fit, Translation, false);
 
 		Fit = Fit.TransformBy(OutTransform);
 		Fit = Fit.TransformBy(Config.LocalTransform);

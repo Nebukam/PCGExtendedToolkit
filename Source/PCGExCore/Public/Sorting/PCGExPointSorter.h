@@ -40,6 +40,11 @@ namespace PCGExSorting
 		double Tolerance = DBL_COMPARE_TOLERANCE;
 		bool bInvertRule = false;
 		bool bAbsolute = false;
+
+		// Tag-based sorting
+		bool bUseDataTag = false;
+		double CachedTagValue = 0.0;                // For single-facade sorting
+		TArray<double> CachedTagValues;             // For multi-facade sorting (indexed by Facade->Idx)
 	};
 
 	class PCGEXCORE_API FSorter : public TSharedFromThis<FSorter>
@@ -51,6 +56,16 @@ namespace PCGExSorting
 		TArray<TSharedPtr<FRuleHandler>> RuleHandlers;
 		TMap<uint32, int32> IdxMap;
 
+		// Cached for hot path - updated by UpdateCachedState()
+		int32 NumRules = 0;
+		bool bDescending = false;
+
+		void UpdateCachedState();
+
+		// Internal helper for facade Init (avoids code duplication)
+		template<typename FacadeArrayType>
+		bool InitFacadesInternal(FPCGExContext* InContext, const FacadeArrayType& InDataFacades);
+
 	public:
 		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 		TSharedPtr<PCGExData::FFacade> DataFacade;
@@ -60,6 +75,7 @@ namespace PCGExSorting
 
 		bool Init(FPCGExContext* InContext);
 		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades);
+		bool Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InDataFacades);
 		bool Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas);
 
 		bool Sort(const int32 A, const int32 B);
@@ -72,7 +88,7 @@ namespace PCGExSorting
 
 	/**
 	 * Pre-cached sorting values for high-performance bulk sorting.
-	 *  
+	 *
 	 * Usage:
 	 *   auto Cache = Sorter->BuildCache(NumPoints);
 	 *   Order.Sort([&](int32 A, int32 B) { return Cache->Compare(A, B); });
@@ -91,6 +107,7 @@ namespace PCGExSorting
 		TArray<FRuleCache> Rules;
 		bool bDescending = false;
 		int32 NumElements = 0;
+		int32 CachedNumRules = 0;
 
 	public:
 		FSortCache() = default;
@@ -102,30 +119,29 @@ namespace PCGExSorting
 		FORCEINLINE int32 Num() const { return NumElements; }
 
 		/** Get number of rules */
-		FORCEINLINE int32 NumRules() const { return Rules.Num(); }
+		FORCEINLINE int32 NumRules() const { return CachedNumRules; }
 
 		/** Fast comparison using cached values. No virtual calls. */
 		FORCEINLINE bool Compare(const int32 A, const int32 B) const
 		{
 			int32 Result = 0;
+			const FRuleCache* RulePtr = Rules.GetData();
 
-			for (const FRuleCache& Rule : Rules)
+			for (int32 i = 0; i < CachedNumRules; i++)
 			{
+				const FRuleCache& Rule = RulePtr[i];
 				const double ValueA = Rule.Values[A];
 				const double ValueB = Rule.Values[B];
 
 				if (FMath::IsNearlyEqual(ValueA, ValueB, Rule.Tolerance)) { continue; }
+
 				Result = ValueA < ValueB ? -1 : 1;
 				if (Rule.bInvertRule) { Result = -Result; }
 				break;
 			}
 
 			if (bDescending) { Result = -Result; }
-
 			return Result < 0;
 		}
 	};
 }
-
-#undef PCGEX_UNSUPPORTED_STRING_TYPES
-#undef PCGEX_UNSUPPORTED_PATH_TYPES

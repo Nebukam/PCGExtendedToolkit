@@ -3,6 +3,7 @@
 
 #include "PCGExTopology.h"
 
+#include "PCGComponent.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshRepairFunctions.h"
 
@@ -66,7 +67,7 @@ void FPCGExTopologyUVDetails::RegisterBuffersDependencies(FPCGExContext* InConte
 	}
 }
 
-void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, FDynamicMesh3& InMesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, UE::Geometry::FDynamicMesh3& InMesh) const
 {
 	if (!NumChannels) { return; }
 
@@ -93,7 +94,7 @@ void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, FDynamicMe
 	}
 }
 
-void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, FDynamicMesh3& InMesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, UE::Geometry::FDynamicMesh3& InMesh) const
 {
 	if (!NumChannels) { return; }
 
@@ -130,7 +131,7 @@ void FPCGExTopologyUVDetails::Write(
 	const TArray<int32>& SourceDataIndices,
 	const TArray<int32>& SourcePointIndices,
 	const TArray<TSharedPtr<PCGExData::FFacade>>& Facades,
-	FDynamicMesh3& InMesh) const
+	UE::Geometry::FDynamicMesh3& InMesh) const
 {
 	if (UVs.IsEmpty()) { return; }
 
@@ -205,4 +206,25 @@ void FPCGExTopologyUVDetails::Write(
 			UV->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 		}
 	}
+}
+
+FTransform PCGExTopology::GetCoordinateSpaceTransform(EPCGCoordinateSpace CoordinateSpace, FPCGExContext* Context)
+{
+	if (CoordinateSpace == EPCGCoordinateSpace::World) { return FTransform::Identity; }
+
+	FTransform LocalTransform = Context->ExecutionSource->GetExecutionState().GetTransform();
+
+	if (CoordinateSpace == EPCGCoordinateSpace::OriginalComponent)
+	{
+		if (UPCGComponent* SourceComponent = Cast<UPCGComponent>(Context->ExecutionSource.Get()))
+		{
+			check(SourceComponent->GetOriginalComponent() && SourceComponent->GetOriginalComponent()->GetOwner());
+			LocalTransform = SourceComponent->GetOriginalComponent()->GetOwner()->GetActorTransform();
+		}
+	}
+
+	// Strip rotation and scale - we only want translation offset
+	LocalTransform.SetScale3D(FVector::OneVector);
+	LocalTransform.SetRotation(FQuat::Identity);
+	return LocalTransform;
 }

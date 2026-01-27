@@ -21,14 +21,14 @@ namespace PCGExMath
 	{
 		FBestFitPlane() = default;
 
-		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms);
-		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, TArrayView<int32> InIndices);
-		explicit FBestFitPlane(const TArrayView<const FVector> InPositions);
-		explicit FBestFitPlane(const TArrayView<const FVector2D> InPositions);
+		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, bool bUsePreciseBounds = false);
+		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, TArrayView<int32> InIndices, bool bUsePreciseBounds = false);
+		explicit FBestFitPlane(const TArrayView<const FVector> InPositions, bool bUsePreciseBounds = false);
+		explicit FBestFitPlane(const TArrayView<const FVector2D> InPositions, bool bUsePreciseBounds = false);
 
 		using FGetElementPositionCallback = std::function<FVector(int32)>;
-		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc);
-		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc, const FVector& Extra);
+		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc, bool bUsePreciseBounds = false);
+		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc, const FVector& Extra, bool bUsePreciseBounds = false);
 
 		FVector Centroid = FVector::ZeroVector;
 		FVector Extents = FVector::OneVector;
@@ -39,6 +39,12 @@ namespace PCGExMath
 		FORCEINLINE FVector Normal() const { return Axis[2]; }
 		FTransform GetTransform() const;
 		FTransform GetTransform(EPCGExAxisOrder Order) const;
+
+		/** Get extents in default XYZ order */
+		FORCEINLINE FVector GetExtents() const { return Extents; }
+
+		/** Get extents reordered to match the specified axis order */
+		FVector GetExtents(EPCGExAxisOrder Order) const;
 
 	protected:
 		void ProcessBox(const UE::Geometry::FOrientedBox3d& Box);

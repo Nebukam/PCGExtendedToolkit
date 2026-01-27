@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExClusterCache.h"
 #include "PCGExEdge.h"
 #include "PCGExNode.h"
 #include "PCGExClusterCommon.h"
@@ -40,6 +41,7 @@ namespace PCGExSorting
 namespace PCGExClusters
 {
 	struct FBoundedEdge;
+	class ICachedClusterData;
 }
 
 namespace PCGExClusters
@@ -56,6 +58,14 @@ namespace PCGExClusters
 		TSharedPtr<FCluster> OriginalCluster = nullptr;
 
 		mutable FRWLock ClusterLock;
+
+		TMap<FName, TSharedPtr<ICachedClusterData>> CachedData;
+
+		// Internal helpers for O(1) visited tracking (uses TBitArray instead of TArray::Contains)
+		void GetConnectedNodesInternal(const int32 FromIndex, TArray<int32>& OutIndices, TBitArray<>& Visited, const int32 SearchDepth) const;
+		void GetConnectedNodesInternal(const int32 FromIndex, TArray<int32>& OutIndices, TBitArray<>& Visited, const int32 SearchDepth, const TSet<int32>& Skip) const;
+		void GetConnectedEdgesInternal(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, TBitArray<>& VisitedNodes, TBitArray<>& VisitedEdges, const int32 SearchDepth) const;
+		void GetConnectedEdgesInternal(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, TBitArray<>& VisitedNodes, TBitArray<>& VisitedEdges, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
 
 	public:
 		int32 NumRawVtx = 0;
@@ -86,6 +96,29 @@ namespace PCGExClusters
 
 		TSharedPtr<PCGExOctree::FItemOctree> NodeOctree;
 		TSharedPtr<PCGExOctree::FItemOctree> EdgeOctree;
+
+		/**
+		 * Get cached data by key, optionally validating context hash.
+		 * @param Key Cache key (e.g., "FaceEnumerator")
+		 * @param ExpectedContextHash Expected hash, 0 = don't care
+		 * @return Cached data, nullptr if not found or hash mismatch
+		 */
+		template <typename T>
+		TSharedPtr<T> GetCachedData(FName Key, uint32 ExpectedContextHash = 0) const
+		{
+			FReadScopeLock ReadLock(ClusterLock);
+			if (const TSharedPtr<ICachedClusterData>* Entry = CachedData.Find(Key))
+			{
+				if (ExpectedContextHash == 0 || (*Entry)->ContextHash == ExpectedContextHash)
+				{
+					return StaticCastSharedPtr<T>(*Entry);
+				}
+			}
+			return nullptr;
+		}
+
+		void SetCachedData(FName Key, const TSharedPtr<ICachedClusterData>& Data);
+		void ClearCachedData();
 
 		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup);
 		FCluster(const TSharedRef<FCluster>& OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup, bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
@@ -153,6 +186,26 @@ namespace PCGExClusters
 		FORCEINLINE FNode* GetEdgeEnd(const int32 InEdgeIndex) const { return (NodesDataPtr + NodeIndexLookup->Get((EdgesDataPtr + InEdgeIndex)->End)); }
 		FORCEINLINE FNode* GetEdgeOtherNode(const int32 InEdgeIndex, const int32 InNodeIndex) const { return (NodesDataPtr + NodeIndexLookup->Get((EdgesDataPtr + InEdgeIndex)->Other((NodesDataPtr + InNodeIndex)->PointIndex))); }
 		FORCEINLINE FNode* GetEdgeOtherNode(const FLink Lk) const { return (NodesDataPtr + NodeIndexLookup->Get((EdgesDataPtr + Lk.Edge)->Other((NodesDataPtr + Lk.Node)->PointIndex))); }
+
+		// Returns true if at least one endpoint has >= MinNeighbors links (caches both node lookups)
+		FORCEINLINE bool EdgeHasMinNeighbors(const int32 InEdgeIndex, const int32 MinNeighbors) const
+		{
+			const FEdge* Edge = EdgesDataPtr + InEdgeIndex;
+			const FNode* Start = NodesDataPtr + NodeIndexLookup->Get(Edge->Start);
+			if (Start->Links.Num() >= MinNeighbors) { return true; }
+			const FNode* End = NodesDataPtr + NodeIndexLookup->Get(Edge->End);
+			return End->Links.Num() >= MinNeighbors;
+		}
+
+		// Returns true if edge and both endpoints are valid (caches both node lookups)
+		FORCEINLINE bool IsEdgeFullyValid(const FEdge& InEdge) const
+		{
+			if (!InEdge.bValid) { return false; }
+			const FNode* Start = NodesDataPtr + NodeIndexLookup->Get(InEdge.Start);
+			if (!Start->bValid) { return false; }
+			const FNode* End = NodesDataPtr + NodeIndexLookup->Get(InEdge.End);
+			return End->bValid != 0;
+		}
 
 		FORCEINLINE FVector GetStartPos(const FEdge& InEdge) const { return VtxTransforms[InEdge.Start].GetLocation(); }
 		FORCEINLINE FVector GetStartPos(const FEdge* InEdge) const { return VtxTransforms[InEdge->Start].GetLocation(); }

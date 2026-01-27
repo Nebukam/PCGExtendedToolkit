@@ -26,7 +26,11 @@ void UPCGExAssetStagingSettings::PostEditChangeProperty(struct FPropertyChangedE
 }
 #endif
 
-PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainDataInitializationPolicy() const
+{
+	if (StealData == EPCGExOptionState::Enabled && !bPruneEmptyPoints) { return PCGExData::EIOInit::Forward; }
+	return PCGExData::EIOInit::Duplicate;
+}
 
 PCGEX_INITIALIZE_ELEMENT(AssetStaging)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AssetStaging)
@@ -140,6 +144,26 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
+#if WITH_EDITOR
+FString UPCGExAssetStagingSettings::GetDisplayName() const
+{
+	FString DisplayName = TEXT("???");
+	switch (CollectionSource)
+	{
+	case EPCGExCollectionSource::Asset:
+		if (!AssetCollection.IsNull()) { DisplayName = AssetCollection.GetAssetName(); }
+		break;
+	case EPCGExCollectionSource::AttributeSet:
+		DisplayName = TEXT("Set");
+		break;
+	case EPCGExCollectionSource::Attribute:
+		DisplayName = CollectionPathAttributeName.ToString();
+		break;
+	}
+
+	return TEXT("Staging [ ") + DisplayName + TEXT(" ]");
+}
+#endif
 
 void FPCGExAssetStagingContext::RegisterAssetDependencies()
 {
@@ -190,6 +214,7 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 	PCGEX_EXECUTION_CHECK
+
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		if (Context->CollectionsLoader)
@@ -269,7 +294,7 @@ namespace PCGExAssetStaging
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->GetMainDataInitializationPolicy())
 
 		NumPoints = PointDataFacade->GetNum();
 
@@ -321,6 +346,11 @@ namespace PCGExAssetStaging
 		if (Settings->bWriteEntryType)
 		{
 			EntryTypeWriter = PointDataFacade->GetWritable<FName>(Settings->EntryTypeAttributeName, NAME_None, true, PCGExData::EBufferInit::Inherit);
+		}
+
+		if (Settings->bWriteTranslation)
+		{
+			TranslationWriter = PointDataFacade->GetWritable<FVector>(Settings->TranslationAttributeName, FVector::ZeroVector, true, PCGExData::EBufferInit::Inherit);
 		}
 
 		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
@@ -435,6 +465,7 @@ namespace PCGExAssetStaging
 			const UPCGExAssetCollection* EntryHost = Result.Host;
 
 			FTransform& OutTransform = OutTransforms[Index];
+			FVector OutTranslation = FVector::ZeroVector;
 			FBox OutBounds = Entry->Staging.Bounds;
 			int16 SecondaryIndex = -1;
 
@@ -477,12 +508,14 @@ namespace PCGExAssetStaging
 			{
 				FTransform LocalXForm = FTransform::Identity;
 				Variations.Apply(RandomSource, LocalXForm, EntryVariations, EPCGExVariationMode::Before);
-				FittingHandler.ComputeLocalTransform(Index, LocalXForm, OutTransform, OutBounds);
+				FittingHandler.ComputeLocalTransform(Index, LocalXForm, OutTransform, OutBounds, OutTranslation);
 			}
 			else
 			{
-				FittingHandler.ComputeTransform(Index, OutTransform, OutBounds);
+				FittingHandler.ComputeTransform(Index, OutTransform, OutBounds, OutTranslation);
 			}
+
+			if (TranslationWriter) { TranslationWriter->SetValue(Index, OutTranslation); }
 
 			OutBoundsMin[Index] = OutBounds.Min;
 			OutBoundsMax[Index] = OutBounds.Max;
