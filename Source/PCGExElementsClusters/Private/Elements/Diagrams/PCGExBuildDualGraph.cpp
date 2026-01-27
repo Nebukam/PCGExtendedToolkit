@@ -8,12 +8,16 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExClusterData.h"
 #include "Data/PCGPointArrayData.h"
+#include "Blenders/PCGExUnionBlender.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/Artifacts/PCGExPlanarFaceEnumerator.h"
 #include "Graphs/PCGExGraph.h"
 #include "Graphs/PCGExGraphBuilder.h"
+#include "Graphs/PCGExSubGraph.h"
 #include "Helpers/PCGExRandomHelpers.h"
+#include "Math/PCGExMathDistances.h"
+#include "Sampling/PCGExSamplingUnionData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildDualGraph"
 #define PCGEX_NAMESPACE BuildDualGraph
@@ -111,6 +115,7 @@ namespace PCGExBuildDualGraph
 		}
 
 		// Build dual edges via DCEL half-edge traversal
+		// Track shared node's point index for each dual edge (for vertex→edge blending)
 		for (const PCGExClusters::FHalfEdge& HE : FaceEnumerator->GetHalfEdges())
 		{
 			if (HE.NextIndex < 0) { continue; }
@@ -120,7 +125,16 @@ namespace PCGExBuildDualGraph
 			const int32* VtxA = EdgeToDualVtx.Find(PCGEx::H64U(HE.OriginNode, HE.TargetNode));
 			const int32* VtxB = EdgeToDualVtx.Find(PCGEx::H64U(NextHE.OriginNode, NextHE.TargetNode));
 
-			if (VtxA && VtxB && *VtxA != *VtxB) { DualEdgeHashes.Add(PCGEx::H64U(*VtxA, *VtxB)); }
+			if (!VtxA || !VtxB || *VtxA == *VtxB) { continue; }
+
+			const uint64 DualHash = PCGEx::H64U(*VtxA, *VtxB);
+			if (DualEdgeHashes.Contains(DualHash)) { continue; }
+
+			DualEdgeHashes.Add(DualHash);
+
+			// The shared node is HE.TargetNode (= NextHE.OriginNode), get its point index
+			const int32 SharedPointIdx = (*Cluster->Nodes)[HE.TargetNode].PointIndex;
+			DualEdgeToSharedPointIdx.Add(DualHash, SharedPointIdx);
 		}
 
 		if (DualEdgeHashes.IsEmpty())
@@ -146,28 +160,147 @@ namespace PCGExBuildDualGraph
 
 		DualVtxFacade = MakeShared<PCGExData::FFacade>(DualVtxIO.ToSharedRef());
 
-		// Write dual vertex positions (edge midpoints)
+		// Set up vertex blending (original edges → dual vertices)
+		const bool bHasVtxBlending = Settings->VtxBlendingDetails.HasAnyBlending();
+		if (bHasVtxBlending)
+		{
+			VtxBlender = MakeShared<PCGExBlending::FUnionBlender>(
+				const_cast<FPCGExBlendingDetails*>(&Settings->VtxBlendingDetails),
+				&Context->VtxCarryOverDetails,
+				PCGExMath::GetNoneDistances());
+
+			TArray<TSharedRef<PCGExData::FFacade>> BlendSources;
+			BlendSources.Add(EdgeDataFacade);
+			VtxBlender->AddSources(BlendSources, &PCGExClusters::Labels::ProtectedClusterAttributes);
+
+			if (!VtxBlender->Init(Context, DualVtxFacade))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Failed to initialize vertex blender for dual graph."));
+				VtxBlender.Reset();
+			}
+		}
+
+		// Write dual vertex positions and blend attributes
 		TPCGValueRange<FTransform> OutTransforms = OutputPoints->GetTransformValueRange(true);
 		TPCGValueRange<int32> OutSeeds = OutputPoints->GetSeedValueRange(true);
 
+		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
+		if (VtxBlender) { VtxBlender->InitTrackers(Trackers); }
+
+		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const int32 EdgeSourceIOIndex = EdgeDataFacade->Source->IOIndex;
+
 		int32 DualIdx = 0;
+		int32 EdgeIdx = 0;
 		for (const PCGExGraphs::FEdge& Edge : ClusterEdges)
 		{
-			if (!Edge.bValid) { continue; }
+			if (!Edge.bValid)
+			{
+				++EdgeIdx;
+				continue;
+			}
 
 			const FVector Midpoint = (Cluster->VtxTransforms[Edge.Start].GetLocation() +
-			                          Cluster->VtxTransforms[Edge.End].GetLocation()) * 0.5;
+				Cluster->VtxTransforms[Edge.End].GetLocation()) * 0.5;
 
 			OutTransforms[DualIdx].SetLocation(Midpoint);
 			OutSeeds[DualIdx] = PCGExRandomHelpers::ComputeSpatialSeed(Midpoint);
+
+			// Blend attributes from original edge
+			if (VtxBlender)
+			{
+				Union->Reset();
+				Union->Reserve(1, 1);
+				Union->AddWeighted_Unsafe(PCGExData::FElement(EdgeIdx, EdgeSourceIOIndex), 1.0);
+				VtxBlender->ComputeWeights(DualIdx, Union, WeightedPoints);
+				VtxBlender->Blend(DualIdx, WeightedPoints, Trackers);
+			}
+
 			++DualIdx;
+			++EdgeIdx;
 		}
 
-		// Build graph
+		// Build graph with edge blending callback
 		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(DualVtxFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(DualEdgeHashes, BatchIndex);
 		GraphBuilder->bInheritNodeData = false;
 		GraphBuilder->EdgesIO = Context->MainEdges;
+
+		// Set up vertex→edge blending via subgraph callbacks
+		const bool bHasEdgeBlending = Settings->EdgeBlendingDetails.HasAnyBlending();
+		if (bHasEdgeBlending)
+		{
+			GraphBuilder->OnPreCompile = [PCGEX_ASYNC_THIS_CAPTURE](PCGExGraphs::FSubGraphUserContext& UserContext, const PCGExGraphs::FSubGraphPreCompileData& Data)
+			{
+				PCGEX_ASYNC_THIS
+
+				// Build mapping from output edge index to shared point index
+				TArray<int32>& EdgeToSharedPoint = static_cast<FEdgeBlendContext&>(UserContext).EdgeToSharedPoint;
+				EdgeToSharedPoint.SetNumUninitialized(Data.NumEdges);
+
+				for (int32 i = 0; i < Data.NumEdges; ++i)
+				{
+					const PCGExGraphs::FEdge& E = Data.FlattenedEdges[i];
+					const uint64 Hash = PCGEx::H64U(E.Start, E.End);
+					const int32* SharedPointIdx = This->DualEdgeToSharedPointIdx.Find(Hash);
+					EdgeToSharedPoint[i] = SharedPointIdx ? *SharedPointIdx : -1;
+				}
+
+				// Initialize edge blender
+				TSharedPtr<PCGExBlending::FUnionBlender>& EdgeBlender = static_cast<FEdgeBlendContext&>(UserContext).EdgeBlender;
+				EdgeBlender = MakeShared<PCGExBlending::FUnionBlender>(
+					const_cast<FPCGExBlendingDetails*>(&This->Settings->EdgeBlendingDetails),
+					&This->Context->EdgeCarryOverDetails,
+					PCGExMath::GetNoneDistances());
+
+				TArray<TSharedRef<PCGExData::FFacade>> BlendSources;
+				BlendSources.Add(This->VtxDataFacade);
+				EdgeBlender->AddSources(BlendSources, &PCGExClusters::Labels::ProtectedClusterAttributes);
+
+				if (!EdgeBlender->Init(This->Context, Data.EdgesDataFacade))
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, This->Context, FTEXT("Failed to initialize edge blender for dual graph."));
+					EdgeBlender.Reset();
+				}
+			};
+
+			GraphBuilder->OnPostCompile = [PCGEX_ASYNC_THIS_CAPTURE](PCGExGraphs::FSubGraphUserContext& UserContext, const TSharedRef<PCGExGraphs::FSubGraph>& SubGraph)
+			{
+				PCGEX_ASYNC_THIS
+
+				FEdgeBlendContext& Ctx = static_cast<FEdgeBlendContext&>(UserContext);
+				if (!Ctx.EdgeBlender) { return; }
+
+				const TArray<int32>& EdgeToSharedPoint = Ctx.EdgeToSharedPoint;
+				const int32 NumEdges = SubGraph->FlattenedEdges.Num();
+				const int32 VtxSourceIOIndex = This->VtxDataFacade->Source->IOIndex;
+
+				TArray<PCGExData::FWeightedPoint> WPoints;
+				TArray<PCGEx::FOpStats> Trk;
+				Ctx.EdgeBlender->InitTrackers(Trk);
+
+				const TSharedPtr<PCGExSampling::FSampingUnionData> U = MakeShared<PCGExSampling::FSampingUnionData>();
+
+				for (int32 i = 0; i < NumEdges; ++i)
+				{
+					const int32 SharedPoint = EdgeToSharedPoint[i];
+					if (SharedPoint < 0) { continue; }
+
+					U->Reset();
+					U->Reserve(1, 1);
+					U->AddWeighted_Unsafe(PCGExData::FElement(SharedPoint, VtxSourceIOIndex), 1.0);
+					Ctx.EdgeBlender->ComputeWeights(i, U, WPoints);
+					Ctx.EdgeBlender->Blend(i, WPoints, Trk);
+				}
+			};
+
+			GraphBuilder->OnCreateContext = []() -> TSharedPtr<PCGExGraphs::FSubGraphUserContext>
+			{
+				return MakeShared<FEdgeBlendContext>();
+			};
+		}
+
 		GraphBuilder->CompileAsync(TaskManager, false, nullptr);
 
 		return true;

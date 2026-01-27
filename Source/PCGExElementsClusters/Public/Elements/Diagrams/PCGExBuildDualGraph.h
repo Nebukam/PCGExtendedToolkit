@@ -12,6 +12,11 @@
 
 #include "PCGExBuildDualGraph.generated.h"
 
+namespace PCGExBlending
+{
+	class FUnionBlender;
+}
+
 namespace PCGExGraphs
 {
 	class FGraphBuilder;
@@ -20,6 +25,16 @@ namespace PCGExGraphs
 namespace PCGExClusters
 {
 	class FPlanarFaceEnumerator;
+}
+
+namespace PCGExBuildDualGraph
+{
+	/** Context for edge blending during subgraph compilation */
+	struct FEdgeBlendContext final : PCGExGraphs::FSubGraphUserContext
+	{
+		TArray<int32> EdgeToSharedPoint;
+		TSharedPtr<PCGExBlending::FUnionBlender> EdgeBlender;
+	};
 }
 
 /**
@@ -123,6 +138,12 @@ namespace PCGExBuildDualGraph
 
 		int32 NumValidEdges = 0;
 		TSet<uint64> DualEdgeHashes;
+
+		// Maps dual edge hash to shared node's point index (for edge blending)
+		TMap<uint64, int32> DualEdgeToSharedPointIdx;
+
+		// Blender for edge attributes → dual vertex attributes
+		TSharedPtr<PCGExBlending::FUnionBlender> VtxBlender;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
