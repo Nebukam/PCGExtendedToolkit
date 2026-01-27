@@ -35,9 +35,9 @@ bool FPCGExTopologyClusterSurfaceElement::AdvanceWork(FPCGExContext* InContext, 
 		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-		{
-			NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
-		}))
+			{
+				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -45,16 +45,7 @@ bool FPCGExTopologyClusterSurfaceElement::AdvanceWork(FPCGExContext* InContext, 
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
-	if (Settings->OutputMode == EPCGExTopologyOutputMode::Legacy)
-	{
-		Context->OutputPointsAndEdges();
-		Context->OutputBatches();
-		Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
-	}
-	else
-	{
-		Context->OutputBatches();
-	}
+	Context->OutputBatches();
 
 	return Context->TryComplete();
 }

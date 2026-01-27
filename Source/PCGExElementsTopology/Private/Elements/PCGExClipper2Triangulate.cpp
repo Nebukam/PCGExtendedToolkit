@@ -202,13 +202,7 @@ void FPCGExClipper2TriangulateContext::BuildMesh()
 	}
 
 	// Get component transform for inverse transform
-	FTransform Transform = FTransform::Identity;
-	if (const UPCGComponent* Component = GetComponent())
-	{
-		Transform = Component->GetOwner()->GetTransform();
-		Transform.SetScale3D(FVector::OneVector);
-		Transform.SetRotation(FQuat::Identity);
-	}
+	FTransform Transform = PCGExTopology::GetCoordinateSpaceTransform(Settings->Topology.CoordinateSpace, this);
 
 	const int32 NumVertices = VertexPool.Num();
 	const int32 NumTriangles = Triangles.Num();
