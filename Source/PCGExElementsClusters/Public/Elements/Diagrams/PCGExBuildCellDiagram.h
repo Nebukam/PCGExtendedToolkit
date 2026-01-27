@@ -8,7 +8,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "Graphs/PCGExGraphDetails.h"
 
-#include "PCGExPathfindingBuildCellDiagram.generated.h"
+#include "PCGExBuildCellDiagram.generated.h"
 
 namespace PCGExClusters
 {
