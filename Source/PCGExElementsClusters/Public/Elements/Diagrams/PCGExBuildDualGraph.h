@@ -12,11 +12,6 @@
 
 #include "PCGExBuildDualGraph.generated.h"
 
-namespace PCGExBlending
-{
-	class FUnionBlender;
-}
-
 namespace PCGExGraphs
 {
 	class FGraphBuilder;
@@ -25,27 +20,6 @@ namespace PCGExGraphs
 namespace PCGExClusters
 {
 	class FPlanarFaceEnumerator;
-}
-
-namespace PCGExBuildDualGraph
-{
-	class FProcessor;
-
-	/** SubGraph context for property copying and edge blending in Dual Graph */
-	struct FSubGraphContext final : PCGExGraphs::FSubGraphUserContext
-	{
-		/** Direct mapping: OutputEdgeIndex -> SharedNodeIndex */
-		TArray<int32> OutputEdgeToSharedNode;
-
-		/** Read indices (shared vertex point indices) for property copying */
-		TArray<int32> ReadIndices;
-
-		/** Write indices (output edge indices) for property copying */
-		TArray<int32> WriteIndices;
-
-		/** Edge blender initialized in PreCompile, used in PostCompile (optional) */
-		TSharedPtr<PCGExBlending::FUnionBlender> EdgeBlender;
-	};
 }
 
 /**
@@ -147,22 +121,8 @@ namespace PCGExBuildDualGraph
 		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
 		TSharedPtr<PCGExClusters::FPlanarFaceEnumerator> FaceEnumerator;
 
-		// Maps original edge index to contiguous dual vertex index (-1 for invalid edges)
-		TArray<int32> EdgeToVtxMap;
-
-		// Number of valid edges (= number of dual vertices)
 		int32 NumValidEdges = 0;
-
-		// Unique dual edge hashes for insertion
 		TSet<uint64> DualEdgeHashes;
-
-		// Maps dual edge hash to shared node index (in original cluster)
-		TMap<uint64, int32> DualEdgeToSharedNode;
-
-		TSharedPtr<PCGExBlending::FUnionBlender> VtxUnionBlender;
-
-		TSharedPtr<PCGExData::TBuffer<double>> EdgeLengthWriter = nullptr;
-		TSharedPtr<PCGExData::TBuffer<int32>> OriginalEdgeIndexWriter = nullptr;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
