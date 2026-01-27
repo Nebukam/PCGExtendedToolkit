@@ -153,10 +153,10 @@ namespace PCGExBuildCellDiagram
 			VtxFacade->GetWritable<int32>(PCGExMetaHelpers::MakeElementIdentifier(Settings->NumNodesAttributeName), 0, true, PCGExData::EBufferInit::New) : nullptr;
 
 		// Write cell centroids as points
-		for (int32 i = 0; i < NumCells; ++i)
-		{
+		PCGEX_PARALLEL_FOR(
+			NumCells,
 			const TSharedPtr<PCGExClusters::FCell>& Cell = ValidCells[i];
-			if (!Cell) { continue; }
+			if (!Cell) { return ; }
 
 			// Set transform at centroid
 			FTransform Transform = FTransform::Identity;
@@ -172,7 +172,7 @@ namespace PCGExBuildCellDiagram
 			if (AreaWriter) { AreaWriter->SetValue(i, Cell->Data.Area); }
 			if (CompactnessWriter) { CompactnessWriter->SetValue(i, Cell->Data.Compactness); }
 			if (NumNodesWriter) { NumNodesWriter->SetValue(i, Cell->Nodes.Num()); }
-		}
+		)
 
 		// Build edges from adjacency
 		TSet<uint64> UniqueEdges;
@@ -217,9 +217,6 @@ namespace PCGExBuildCellDiagram
 
 		// Compile graph
 		GraphBuilder->CompileAsync(TaskManager, true, nullptr);
-
-		// Write vertex facade
-		VtxFacade->WriteFastest(TaskManager);
 
 		return true;
 	}
