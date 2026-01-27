@@ -162,6 +162,74 @@ void FPCGExCellArtifactsDetails::Process(const TSharedPtr<PCGExClusters::FCluste
 }
 
 
+#pragma region Cell Growth
+
+bool FPCGExCellGrowthDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade)
+{
+	bInitialized = false;
+	GrowthBuffer.Reset();
+
+	if (!InFacade) { return false; }
+
+	bUseConstant = (Growth.Input == EPCGExInputValueType::Constant);
+
+	if (bUseConstant)
+	{
+		ConstantGrowth = FMath::Max(0, Growth.Constant);
+		MaxGrowthValue = ConstantGrowth;
+		bInitialized = true;
+		return true;
+	}
+
+	// Attribute mode - create buffer reader
+	GrowthBuffer = InFacade->GetBroadcaster<int32>(Growth.Attribute);
+	if (!GrowthBuffer)
+	{
+		PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(
+			FTEXT("Growth attribute '{0}' not found, falling back to constant 0."),
+			FText::FromString(Growth.Attribute.GetName().ToString())));
+		bUseConstant = true;
+		ConstantGrowth = 0;
+		MaxGrowthValue = 0;
+		bInitialized = true;
+		return true;
+	}
+
+	// Compute max growth value for pre-allocation
+	MaxGrowthValue = 0;
+	const int32 NumPoints = InFacade->GetNum();
+	for (int32 i = 0; i < NumPoints; ++i)
+	{
+		MaxGrowthValue = FMath::Max(MaxGrowthValue, FMath::Max(0, GrowthBuffer->Read(i)));
+	}
+
+	bInitialized = true;
+	return true;
+}
+
+int32 FPCGExCellGrowthDetails::GetGrowth(int32 PointIndex) const
+{
+	if (!bInitialized) { return 0; }
+	if (bUseConstant) { return ConstantGrowth; }
+	if (!GrowthBuffer) { return 0; }
+	return FMath::Max(0, GrowthBuffer->Read(PointIndex));
+}
+
+bool FPCGExCellGrowthDetails::HasPotentialGrowth() const
+{
+	if (!bInitialized) { return false; }
+	if (bUseConstant) { return ConstantGrowth > 0; }
+	return MaxGrowthValue > 0;
+}
+
+int32 FPCGExCellGrowthDetails::GetMaxGrowth() const
+{
+	if (!bInitialized) { return 0; }
+	return MaxGrowthValue;
+}
+
+#pragma endregion
+
 #pragma region Cell Triage
 
 namespace PCGExCellTriage

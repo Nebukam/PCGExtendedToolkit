@@ -7,6 +7,7 @@
 #include "Data/Utils/PCGExDataFilterDetails.h"
 #include "Clusters/PCGExEdge.h"
 
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Math/PCGExWinding.h"
 #include "Math/PCGExMathAxis.h"
 #include "Types/PCGExAttributeIdentity.h"
@@ -494,6 +495,48 @@ struct PCGEXGRAPHS_API FPCGExCellArtifactsDetails
 	bool Init(FPCGExContext* InContext);
 
 	void Process(const TSharedPtr<PCGExClusters::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExClusters::FCell>& InCell) const;
+};
+
+/**
+ * Growth settings for cell expansion.
+ * Allows seeds/holes to expand to adjacent cells.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXGRAPHS_API FPCGExCellGrowthDetails
+{
+	GENERATED_BODY()
+
+	FPCGExCellGrowthDetails()
+	{
+	}
+
+	explicit FPCGExCellGrowthDetails(const int32 DefaultGrowth)
+	{
+		Growth = FPCGExInputShorthandSelectorInteger32Abs(FName("Growth"), DefaultGrowth);
+	}
+
+	/** Growth depth for expansion. 0 = no expansion, 1 = immediate neighbors, 2 = neighbors of neighbors, etc. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExInputShorthandSelectorInteger32Abs Growth = FPCGExInputShorthandSelectorInteger32Abs(FName("Growth"), 0);
+
+	/** Initialize the growth reader from a facade (for per-point growth values) */
+	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade);
+
+	/** Get growth value for a specific point index */
+	int32 GetGrowth(int32 PointIndex) const;
+
+	/** Check if any growth is possible (constant > 0 or attribute mode) */
+	bool HasPotentialGrowth() const;
+
+	/** Get the maximum possible growth value (for pre-allocation) */
+	int32 GetMaxGrowth() const;
+
+private:
+	TSharedPtr<PCGExData::TBuffer<int32>> GrowthBuffer;
+	int32 ConstantGrowth = 0;
+	int32 MaxGrowthValue = 0;
+	bool bUseConstant = true;
+	bool bInitialized = false;
 };
 
 namespace PCGExClusters

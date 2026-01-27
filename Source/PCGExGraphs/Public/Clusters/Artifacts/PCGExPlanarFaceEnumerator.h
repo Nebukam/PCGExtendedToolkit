@@ -171,6 +171,31 @@ namespace PCGExClusters
 			return Found ? *Found : -1;
 		}
 
+		/**
+		 * Build adjacency map for all faces.
+		 * Uses twin half-edges: if HalfEdge[i].FaceIndex = A and HalfEdge[HalfEdge[i].TwinIndex].FaceIndex = B,
+		 * then faces A and B are adjacent.
+		 * @param WrapperFaceIndex Optional face index to exclude from adjacency (typically the unbounded exterior face)
+		 * @return Map of FaceIndex -> Set of adjacent FaceIndices
+		 */
+		TMap<int32, TSet<int32>> BuildCellAdjacencyMap(int32 WrapperFaceIndex = -1) const;
+
+		/**
+		 * Get adjacent face indices for a specific face.
+		 * Requires EnumerateRawFaces() to have been called first.
+		 * @param FaceIndex The face to query
+		 * @param OutAdjacentFaces Output array of adjacent face indices
+		 * @param WrapperFaceIndex Optional face index to exclude from results
+		 */
+		void GetAdjacentFaces(int32 FaceIndex, TArray<int32>& OutAdjacentFaces, int32 WrapperFaceIndex = -1) const;
+
+		/**
+		 * Get the half-edges that belong to a specific face.
+		 * @param FaceIndex The face to query
+		 * @param OutHalfEdgeIndices Output array of half-edge indices belonging to this face
+		 */
+		void GetFaceHalfEdges(int32 FaceIndex, TArray<int32>& OutHalfEdgeIndices) const;
+
 	protected:
 		/** Build a cell from a face (list of node indices) - internal use */
 		ECellResult BuildCellFromFace(

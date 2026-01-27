@@ -78,6 +78,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellArtifactsDetails Artifacts;
 
+	/** Seed growth settings. Expands seed selection to adjacent cells. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExCellGrowthDetails SeedGrowth;
+
+	/** If true, write expansion metadata to output cells */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion Attributes", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteExpansionAttributes = false;
+
+	/** Attribute name for pick count (how many times a cell was selected by seeds/growth) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion Attributes", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	FName PickCountAttributeName = FName("PCGEx/PickCount");
+
+	/** Attribute name for depth (minimum depth at which cell was picked, 0 = direct seed) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion Attributes", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	FName DepthAttributeName = FName("PCGEx/Depth");
+
 	/** Output a filtered set of points containing only seeds that generated a valid path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOutputFilteredSeeds = false;
@@ -111,6 +127,7 @@ struct FPCGExFindContoursContext final : FPCGExClustersProcessorContext
 	friend class FPCGExCreateBridgeTask;
 
 	FPCGExCellArtifactsDetails Artifacts;
+	FPCGExCellGrowthDetails SeedGrowth;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 
@@ -139,6 +156,21 @@ protected:
 
 namespace PCGExFindContours
 {
+	/** Expansion tracking data for a cell */
+	struct FCellExpansionData
+	{
+		int32 PickCount = 0;        // How many times this cell was selected
+		int32 MinDepth = MAX_int32; // Minimum depth at which selected (0 = direct seed)
+		TSet<int32> SourceSeeds;    // Which seed indices selected this cell
+
+		void RecordPick(int32 SeedIndex, int32 Depth)
+		{
+			PickCount++;
+			MinDepth = FMath::Min(MinDepth, Depth);
+			SourceSeeds.Add(SeedIndex);
+		}
+	};
+
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
 	protected:
@@ -151,6 +183,11 @@ namespace PCGExFindContours
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExClusters::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIOIndices;
+
+		// Expansion tracking
+		TMap<int32, FCellExpansionData> CellExpansionMap; // FaceIndex -> ExpansionData
+		TMap<int32, TSharedPtr<PCGExClusters::FCell>> FaceIndexToCellMap; // FaceIndex -> Cell
+		TMap<int32, TSet<int32>> CellAdjacencyMap; // Cached adjacency
 
 	public:
 		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
@@ -169,6 +206,9 @@ namespace PCGExFindContours
 		virtual void OnRangeProcessingComplete() override;
 
 		void HandleWrapperOnlyCase(const int32 NumSeeds);
+
+		/** Expand from a seed's initial cell to adjacent cells up to growth depth */
+		void ExpandSeedToAdjacentCells(int32 SeedIndex, int32 InitialFaceIndex, int32 MaxGrowth);
 
 		virtual void Cleanup() override;
 	};

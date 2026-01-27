@@ -209,6 +209,11 @@ namespace PCGExClusters
 		TArray<FVector2D> Polygon;
 
 		int32 CustomIndex = -1;
+		int32 FaceIndex = -1;  // Index from the planar face enumerator (for adjacency lookups)
+
+		// Expansion tracking (populated when seeds grow)
+		int32 ExpansionPickCount = 0;  // Number of times this cell was selected (by seeds/growth)
+		int32 ExpansionMinDepth = 0;   // Minimum depth at which cell was picked (0 = direct seed)
 
 		explicit FCell(const TSharedRef<FCellConstraints>& InConstraints)
 			: Constraints(InConstraints)
