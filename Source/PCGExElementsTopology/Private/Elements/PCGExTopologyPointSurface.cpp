@@ -143,9 +143,7 @@ namespace PCGExTopologyPointSurface
 		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(PointDataFacade);
 
-		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
-		Transform.SetScale3D(FVector::OneVector);
-		Transform.SetRotation(FQuat::Identity);
+		FTransform Transform = PCGExTopology::GetCoordinateSpaceTransform(Settings->Topology.CoordinateSpace, Context);
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTopologyPointSurface::EditMesh)

@@ -111,9 +111,7 @@ namespace PCGExTopologyPathSurface
 
 		/////
 
-		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
-		Transform.SetScale3D(FVector::OneVector);
-		Transform.SetRotation(FQuat::Identity);
+		FTransform Transform = PCGExTopology::GetCoordinateSpaceTransform(Settings->Topology.CoordinateSpace, Context);
 
 		InternalMesh->EditMesh([&](FDynamicMesh3& InMesh)
 		{
