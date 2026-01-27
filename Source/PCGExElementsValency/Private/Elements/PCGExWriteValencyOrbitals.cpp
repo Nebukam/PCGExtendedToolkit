@@ -4,6 +4,7 @@
 #include "Elements/PCGExWriteValencyOrbitals.h"
 
 #include "Core/PCGExCachedOrbitalCache.h"
+#include "Core/PCGExSocketRules.h"
 #include "Core/PCGExValencyOrbitalCache.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
@@ -25,9 +26,21 @@ void FPCGExWriteValencyOrbitalsContext::RegisterAssetDependencies()
 	FPCGExClustersProcessorContext::RegisterAssetDependencies();
 
 	const UPCGExWriteValencyOrbitalsSettings* Settings = GetInputSettings<UPCGExWriteValencyOrbitalsSettings>();
-	if (Settings && !Settings->OrbitalSet.IsNull())
+	if (!Settings) { return; }
+
+	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 	{
-		AddAssetDependency(Settings->OrbitalSet.ToSoftObjectPath());
+		if (!Settings->OrbitalSet.IsNull())
+		{
+			AddAssetDependency(Settings->OrbitalSet.ToSoftObjectPath());
+		}
+	}
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+	{
+		if (!Settings->SocketRules.IsNull())
+		{
+			AddAssetDependency(Settings->SocketRules.ToSoftObjectPath());
+		}
 	}
 }
 
@@ -40,13 +53,24 @@ bool FPCGExWriteValencyOrbitalsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
 
+	Context->AssignmentMode = Settings->AssignmentMode;
 
-	if (Settings->OrbitalSet.IsNull())
+	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 	{
-		if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
-		return false;
+		if (Settings->OrbitalSet.IsNull())
+		{
+			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
+			return false;
+		}
 	}
-
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+	{
+		if (Settings->SocketRules.IsNull())
+		{
+			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Socket Rules provided.")); }
+			return false;
+		}
+	}
 
 	return true;
 }
@@ -57,9 +81,19 @@ void FPCGExWriteValencyOrbitalsElement::PostLoadAssetsDependencies(FPCGExContext
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
 
-	if (!Context->OrbitalSet && !Settings->OrbitalSet.IsNull())
+	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 	{
-		Context->OrbitalSet = Settings->OrbitalSet.Get();
+		if (!Context->OrbitalSet && !Settings->OrbitalSet.IsNull())
+		{
+			Context->OrbitalSet = Settings->OrbitalSet.Get();
+		}
+	}
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+	{
+		if (!Context->SocketRules && !Settings->SocketRules.IsNull())
+		{
+			Context->SocketRules = Settings->SocketRules.Get();
+		}
 	}
 }
 
@@ -69,28 +103,59 @@ bool FPCGExWriteValencyOrbitalsElement::PostBoot(FPCGExContext* InContext) const
 
 	if (!FPCGExClustersProcessorElement::PostBoot(InContext)) { return false; }
 
-	if (!Context->OrbitalSet)
+	if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 	{
-		if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
-		return false;
-	}
+		if (!Context->OrbitalSet)
+		{
+			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Valency Orbital Set provided.")); }
+			return false;
+		}
 
-	// Validate orbital set
-	TArray<FText> ValidationErrors;
-	if (!Context->OrbitalSet->Validate(ValidationErrors))
+		// Validate orbital set
+		TArray<FText> ValidationErrors;
+		if (!Context->OrbitalSet->Validate(ValidationErrors))
+		{
+			for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+			return false;
+		}
+
+		// Build orbital cache for fast processing
+		if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
+			return false;
+		}
+	}
+	else if (Settings->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
 	{
-		for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
-		return false;
-	}
+		if (!Context->SocketRules)
+		{
+			if (!Settings->bQuietMissingOrbitalSet) { PCGE_LOG(Error, GraphAndLog, FTEXT("No Socket Rules provided.")); }
+			return false;
+		}
 
-	// Build orbital cache for fast processing
-	if (!Context->OrbitalResolver.BuildFrom(Context->OrbitalSet))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build orbital cache from orbital set."));
-		return false;
-	}
+		// Validate socket rules
+		TArray<FText> ValidationErrors;
+		if (!Context->SocketRules->Validate(ValidationErrors))
+		{
+			for (const FText& Error : ValidationErrors) { PCGE_LOG(Error, GraphAndLog, Error); }
+			return false;
+		}
 
-	// Settings->OrbitalSet->EDITOR_RegisterTrackingKeys(Context);
+		// Compile socket rules to assign bit indices
+		Context->SocketRules->Compile();
+
+		// Build socket type to orbital index mapping
+		// In socket mode, each socket type maps directly to an orbital index (0-63)
+		const int32 NumSocketTypes = Context->SocketRules->Num();
+		Context->SocketToOrbitalMap.SetNum(NumSocketTypes);
+		for (int32 i = 0; i < NumSocketTypes; ++i)
+		{
+			// Socket type index directly maps to orbital index
+			// This allows the solver to work identically - it just sees orbital indices
+			Context->SocketToOrbitalMap[i] = i;
+		}
+	}
 
 	return true;
 }
@@ -126,7 +191,30 @@ namespace PCGExWriteValencyOrbitals
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		const FName IdxAttributeName = Context->OrbitalSet->GetOrbitalIdxAttributeName();
+		// Determine attribute name based on mode
+		FName IdxAttributeName;
+		if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
+		{
+			IdxAttributeName = Context->OrbitalSet->GetOrbitalIdxAttributeName();
+		}
+		else // Socket mode
+		{
+			// In socket mode, we still write orbital indices to the same attribute pattern
+			// This ensures downstream solver compatibility
+			IdxAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Orbital/%s"), *Context->SocketRules->LayerName.ToString()));
+
+			// Create socket reader for input packed socket references
+			SocketReader = EdgeDataFacade->GetReadable<int64>(Settings->SocketAttributeName);
+			if (!SocketReader)
+			{
+				if (!Settings->bQuietMissingSocketAttribute)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
+						FTEXT("Socket attribute '{0}' not found on edges. Using fallback behavior."),
+						FText::FromName(Settings->SocketAttributeName)));
+				}
+			}
+		}
 
 		// Initialize all edge indices to sentinel values (no match)
 		constexpr int64 InitialValue = static_cast<int64>(PCGExValency::NO_ORBITAL_MATCH) | (static_cast<int64>(PCGExValency::NO_ORBITAL_MATCH) << 8);
@@ -145,55 +233,137 @@ namespace PCGExWriteValencyOrbitals
 		TArray<int64>* EdgeIndices = IdxArrayWriter->GetOutValues().Get();
 		TArray<PCGExGraphs::FEdge>& Edges = *Cluster->Edges.Get();
 
-		// Use cached orbital data for fast lookup
-		const PCGExValency::FOrbitalDirectionResolver& Cache = Context->OrbitalResolver;
-		const bool bUseTransform = Cache.bTransformOrbital;
-
-		PCGEX_SCOPE_LOOP(Index)
+		if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 		{
-			PCGExClusters::FNode& Node = Nodes[Index];
+			// ========== DIRECTION MODE ==========
+			// Use cached orbital data for fast lookup
+			const PCGExValency::FOrbitalDirectionResolver& Cache = Context->OrbitalResolver;
+			const bool bUseTransform = Cache.bTransformOrbital;
 
-			const FTransform& DirTransform = bUseTransform ? InTransforms[Node.PointIndex] : FTransform::Identity;
-
-			int64 OrbitalMask = 0;
-
-			// Process each link from this node
-			for (const PCGExClusters::FLink& Link : Node.Links)
+			PCGEX_SCOPE_LOOP(Index)
 			{
-				const int32 EdgeIndex = Link.Edge;
-				const int32 NeighborNodeIndex = Link.Node;
+				PCGExClusters::FNode& Node = Nodes[Index];
 
-				// Get direction to neighbor
-				// TODO : Optimize this we can use InTransform directly
-				const FVector Direction = Cluster->GetDir(Node.Index, NeighborNodeIndex);
+				const FTransform& DirTransform = bUseTransform ? InTransforms[Node.PointIndex] : FTransform::Identity;
 
-				// Find matching orbital using cached data
-				const uint8 OrbitalIndex = Cache.FindMatchingOrbital(Direction, bUseTransform, DirTransform);
+				int64 OrbitalMask = 0;
 
-				// Write orbital index directly to the appropriate byte offset
-				// Start node writes to byte 0, end node writes to byte 1
-				// This avoids race conditions since each node writes to a different byte
-				const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
-				uint8* PackedBytes = reinterpret_cast<uint8*>(EdgeIndices->GetData() + EdgeIndex);
-				const int32 ByteOffset = (Edge.Start == Node.PointIndex) ? 0 : 1;
-
-				if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH)
+				// Process each link from this node
+				for (const PCGExClusters::FLink& Link : Node.Links)
 				{
-					// Get the bitmask directly from cache
-					OrbitalMask |= Cache.GetBitmask(OrbitalIndex);
-					PackedBytes[ByteOffset] = OrbitalIndex;
+					const int32 EdgeIndex = Link.Edge;
+					const int32 NeighborNodeIndex = Link.Node;
+
+					// Get direction to neighbor
+					const FVector Direction = Cluster->GetDir(Node.Index, NeighborNodeIndex);
+
+					// Find matching orbital using cached data
+					const uint8 OrbitalIndex = Cache.FindMatchingOrbital(Direction, bUseTransform, DirTransform);
+
+					// Write orbital index directly to the appropriate byte offset
+					// Start node writes to byte 0, end node writes to byte 1
+					// This avoids race conditions since each node writes to a different byte
+					const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
+					uint8* PackedBytes = reinterpret_cast<uint8*>(EdgeIndices->GetData() + EdgeIndex);
+					const int32 ByteOffset = (Edge.Start == Node.PointIndex) ? 0 : 1;
+
+					if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH)
+					{
+						// Get the bitmask directly from cache
+						OrbitalMask |= Cache.GetBitmask(OrbitalIndex);
+						PackedBytes[ByteOffset] = OrbitalIndex;
+					}
+					else
+					{
+						PackedBytes[ByteOffset] = PCGExValency::NO_ORBITAL_MATCH;
+						FPlatformAtomics::InterlockedIncrement(&NoMatchCount);
+					}
 				}
-				else
+
+				// Write vertex orbital mask
+				if (VertexMasks)
 				{
-					PackedBytes[ByteOffset] = PCGExValency::NO_ORBITAL_MATCH;
-					FPlatformAtomics::InterlockedIncrement(&NoMatchCount);
+					(*VertexMasks)[Node.PointIndex] = OrbitalMask;
 				}
 			}
+		}
+		else // Socket mode
+		{
+			// ========== SOCKET MODE ==========
+			// Read socket references from edge attribute and map to orbital indices
+			const bool bHasSocketData = SocketReader != nullptr;
 
-			// Write vertex orbital mask
-			if (VertexMasks)
+			const TArray<int32>& SocketToOrbital = Context->SocketToOrbitalMap;
+			const int32 MaxSocketTypes = Context->SocketRules ? Context->SocketRules->Num() : 0;
+
+			PCGEX_SCOPE_LOOP(Index)
 			{
-				(*VertexMasks)[Node.PointIndex] = OrbitalMask;
+				PCGExClusters::FNode& Node = Nodes[Index];
+
+				int64 OrbitalMask = 0;
+
+				// Process each link from this node
+				for (const PCGExClusters::FLink& Link : Node.Links)
+				{
+					const int32 EdgeIndex = Link.Edge;
+					const PCGExGraphs::FEdge& Edge = Edges[EdgeIndex];
+
+					// Determine which byte offset this node writes to
+					uint8* PackedBytes = reinterpret_cast<uint8*>(EdgeIndices->GetData() + EdgeIndex);
+					const int32 ByteOffset = (Edge.Start == Node.PointIndex) ? 0 : 1;
+
+					uint8 OrbitalIndex = PCGExValency::NO_ORBITAL_MATCH;
+
+					if (bHasSocketData)
+					{
+						// Read the packed socket reference for this edge
+						const int64 PackedSocket = SocketReader->Read(EdgeIndex);
+
+						if (PCGExSocket::IsValid(PackedSocket))
+						{
+							// Extract socket index from packed reference
+							// Note: RulesIndex is ignored here - we assume single SocketRules context
+							const uint16 SocketTypeIndex = PCGExSocket::GetSocketIndex(PackedSocket);
+
+							// Map socket type to orbital index
+							if (SocketTypeIndex < MaxSocketTypes && SocketToOrbital.IsValidIndex(SocketTypeIndex))
+							{
+								OrbitalIndex = static_cast<uint8>(SocketToOrbital[SocketTypeIndex]);
+							}
+							else
+							{
+								FPlatformAtomics::InterlockedIncrement(&InvalidSocketCount);
+							}
+						}
+						else
+						{
+							FPlatformAtomics::InterlockedIncrement(&InvalidSocketCount);
+						}
+					}
+					else
+					{
+						// No socket data - mark as invalid
+						FPlatformAtomics::InterlockedIncrement(&InvalidSocketCount);
+					}
+
+					// Write orbital index
+					if (OrbitalIndex != PCGExValency::NO_ORBITAL_MATCH)
+					{
+						// Build orbital mask (socket type index = orbital index, so bitmask = 1 << index)
+						OrbitalMask |= (1LL << OrbitalIndex);
+						PackedBytes[ByteOffset] = OrbitalIndex;
+					}
+					else
+					{
+						PackedBytes[ByteOffset] = PCGExValency::NO_ORBITAL_MATCH;
+					}
+				}
+
+				// Write vertex orbital mask
+				if (VertexMasks)
+				{
+					(*VertexMasks)[Node.PointIndex] = OrbitalMask;
+				}
 			}
 		}
 	}
@@ -202,32 +372,50 @@ namespace PCGExWriteValencyOrbitals
 	{
 		EdgeDataFacade->WriteFastest(TaskManager);
 
-		if (NoMatchCount > 0 && Settings->bWarnOnNoMatch)
+		// Direction mode warnings
+		if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
-				           FTEXT("Valency Orbitals: {0} edge directions did not match any orbital."),
-				           FText::AsNumber(NoMatchCount)));
+			if (NoMatchCount > 0 && Settings->bWarnOnNoMatch)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
+					FTEXT("Valency Orbitals: {0} edge directions did not match any orbital."),
+					FText::AsNumber(NoMatchCount)));
+			}
+		}
+		// Socket mode warnings
+		else if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Socket)
+		{
+			if (InvalidSocketCount > 0 && Settings->bWarnOnNoMatch)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(
+					FTEXT("Valency Sockets: {0} edges had invalid or missing socket references."),
+					FText::AsNumber(InvalidSocketCount)));
+			}
 		}
 
 		// Build and cache OrbitalCache for downstream nodes
-		if (Settings->bBuildOrbitalCache && Context->OrbitalSet && Cluster && VertexMasks && IdxWriter)
+		if (Settings->bBuildOrbitalCache && Cluster && VertexMasks && IdxWriter)
 		{
-			const int32 MaxOrbitals = Context->OrbitalSet->Num();
-			const FName LayerName = Context->OrbitalSet->LayerName;
-			const uint32 ContextHash = PCGExValency::FOrbitalCacheFactory::ComputeContextHash(LayerName, MaxOrbitals);
+			const int32 MaxOrbitals = Context->GetOrbitalCount();
+			const FName LayerName = Context->GetLayerName();
 
-			// Get the raw edge indices array from the writer
-			TSharedPtr<PCGExData::TArrayBuffer<int64>> IdxArrayWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(IdxWriter);
-			TSharedPtr<TArray<int64>> EdgeIndices = IdxArrayWriter->GetOutValues();
-
-			TSharedPtr<PCGExValency::FOrbitalCache> OrbitalCache = MakeShared<PCGExValency::FOrbitalCache>();
-			if (OrbitalCache->BuildFromArrays(Cluster, *VertexMasks, *EdgeIndices, MaxOrbitals))
+			if (MaxOrbitals > 0)
 			{
-				TSharedPtr<PCGExValency::FCachedOrbitalCache> Cached = MakeShared<PCGExValency::FCachedOrbitalCache>();
-				Cached->ContextHash = ContextHash;
-				Cached->OrbitalCache = OrbitalCache;
-				Cached->LayerName = LayerName;
-				Cluster->SetCachedData(PCGExValency::FOrbitalCacheFactory::CacheKey, Cached);
+				const uint32 ContextHash = PCGExValency::FOrbitalCacheFactory::ComputeContextHash(LayerName, MaxOrbitals);
+
+				// Get the raw edge indices array from the writer
+				TSharedPtr<PCGExData::TArrayBuffer<int64>> IdxArrayWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(IdxWriter);
+				TSharedPtr<TArray<int64>> EdgeIndices = IdxArrayWriter->GetOutValues();
+
+				TSharedPtr<PCGExValency::FOrbitalCache> OrbitalCache = MakeShared<PCGExValency::FOrbitalCache>();
+				if (OrbitalCache->BuildFromArrays(Cluster, *VertexMasks, *EdgeIndices, MaxOrbitals))
+				{
+					TSharedPtr<PCGExValency::FCachedOrbitalCache> Cached = MakeShared<PCGExValency::FCachedOrbitalCache>();
+					Cached->ContextHash = ContextHash;
+					Cached->OrbitalCache = OrbitalCache;
+					Cached->LayerName = LayerName;
+					Cluster->SetCachedData(PCGExValency::FOrbitalCacheFactory::CacheKey, Cached);
+				}
 			}
 		}
 	}
@@ -247,9 +435,19 @@ namespace PCGExWriteValencyOrbitals
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteValencyOrbitals)
 
-		if (!Context->OrbitalSet) { return; }
-
-		const FName MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
+		// Determine mask attribute name based on mode
+		FName MaskAttributeName;
+		if (Context->AssignmentMode == EPCGExOrbitalAssignmentMode::Direction)
+		{
+			if (!Context->OrbitalSet) { return; }
+			MaskAttributeName = Context->OrbitalSet->GetOrbitalMaskAttributeName();
+		}
+		else // Socket mode
+		{
+			if (!Context->SocketRules) { return; }
+			// Use same attribute pattern as orbitals for solver compatibility
+			MaskAttributeName = FName(FString::Printf(TEXT("PCGEx/V/Mask/%s"), *Context->SocketRules->LayerName.ToString()));
+		}
 
 		// Create vertex mask writer
 		MaskWriter = VtxDataFacade->GetWritable<int64>(MaskAttributeName, 0, false, PCGExData::EBufferInit::Inherit);

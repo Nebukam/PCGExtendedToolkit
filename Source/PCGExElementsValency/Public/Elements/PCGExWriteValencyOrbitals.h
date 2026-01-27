@@ -6,9 +6,20 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExValencyOrbitalSet.h"
+#include "Core/PCGExSocketRules.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExWriteValencyOrbitals.generated.h"
+
+/**
+ * Determines how orbital indices are assigned to edges.
+ */
+UENUM(BlueprintType)
+enum class EPCGExOrbitalAssignmentMode : uint8
+{
+	Direction UMETA(ToolTip = "Match edge direction to orbital using dot product"),
+	Socket UMETA(ToolTip = "Match socket type from edge attribute to orbital index")
+};
 
 namespace PCGExData
 {
@@ -47,9 +58,28 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
+	/** How orbital indices are assigned to edges */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExOrbitalAssignmentMode AssignmentMode = EPCGExOrbitalAssignmentMode::Direction;
+
 	/** The orbital set defining layer name, orbitals, and matching parameters */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Direction", EditConditionHides))
 	TSoftObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
+
+	/**
+	 * Socket rules defining socket types and compatibility.
+	 * Each socket type maps to an orbital index for solver compatibility.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Socket", EditConditionHides))
+	TSoftObjectPtr<UPCGExSocketRules> SocketRules;
+
+	/**
+	 * Edge attribute containing packed socket references (int64).
+	 * Format: bits 0-15 = rules index, bits 16-31 = socket index.
+	 * Typically written by a previous solve step or user-defined.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Socket", EditConditionHides))
+	FName SocketAttributeName = FName("PCGEx/V/Socket/Main");
 
 	/** Build and cache OrbitalCache for downstream valency nodes. Avoids redundant rebuilding. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -59,9 +89,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Warnings", meta=(PCG_NotOverridable))
 	bool bWarnOnNoMatch = true;
 
-	/** Quiet mode - suppress missing orbital set errors */
+	/** Quiet mode - suppress missing orbital set/socket rules errors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietMissingOrbitalSet = false;
+
+	/** Quiet mode - suppress warnings when socket attribute is missing from edges */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Socket", EditConditionHides))
+	bool bQuietMissingSocketAttribute = false;
 
 private:
 	friend class FPCGExWriteValencyOrbitalsElement;
@@ -73,10 +107,50 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteValencyOrbitalsContext final : FPCGEx
 
 	virtual void RegisterAssetDependencies() override;
 
+	/** Assignment mode (cached from settings) */
+	EPCGExOrbitalAssignmentMode AssignmentMode = EPCGExOrbitalAssignmentMode::Direction;
+
+	// ========== Direction Mode ==========
+
 	TObjectPtr<UPCGExValencyOrbitalSet> OrbitalSet;
 
 	/** Cached orbital data for fast lookup during processing */
 	PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
+
+	// ========== Socket Mode ==========
+
+	TObjectPtr<UPCGExSocketRules> SocketRules;
+
+	/** Socket type index to orbital index mapping (built during PostBoot) */
+	TArray<int32> SocketToOrbitalMap;
+
+	/** Get the layer name based on current mode */
+	FName GetLayerName() const
+	{
+		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Direction && OrbitalSet)
+		{
+			return OrbitalSet->LayerName;
+		}
+		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Socket && SocketRules)
+		{
+			return SocketRules->LayerName;
+		}
+		return FName("Main");
+	}
+
+	/** Get the orbital/socket count based on current mode */
+	int32 GetOrbitalCount() const
+	{
+		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Direction && OrbitalSet)
+		{
+			return OrbitalSet->Num();
+		}
+		if (AssignmentMode == EPCGExOrbitalAssignmentMode::Socket && SocketRules)
+		{
+			return SocketRules->Num();
+		}
+		return 0;
+	}
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -103,8 +177,14 @@ namespace PCGExWriteValencyOrbitals
 		TSharedPtr<PCGExData::TBuffer<int64>> MaskWriter;  // For OrbitalCache building
 		TSharedPtr<PCGExData::TBuffer<int64>> IdxWriter;
 
+		/** Socket attribute reader (for socket mode) */
+		TSharedPtr<PCGExData::TBuffer<int64>> SocketReader;
+
 		/** Count of edges with no orbital match (for warning) */
 		int32 NoMatchCount = 0;
+
+		/** Count of edges with missing/invalid socket reference (for warning) */
+		int32 InvalidSocketCount = 0;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)

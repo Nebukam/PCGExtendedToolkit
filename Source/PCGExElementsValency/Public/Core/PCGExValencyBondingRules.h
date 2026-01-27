@@ -229,6 +229,45 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	UPROPERTY()
 	TArray<FPCGExValencyModuleTags> ModuleTags;
 
+	/**
+	 * Per-module socket headers.
+	 * X = start index in AllModuleSockets, Y = count of sockets.
+	 * Allows efficient socket lookup per module.
+	 */
+	UPROPERTY()
+	TArray<FIntPoint> ModuleSocketHeaders;
+
+	/** Flattened array of all sockets for all modules (with OrbitalIndex assigned) */
+	UPROPERTY()
+	TArray<FPCGExModuleSocket> AllModuleSockets;
+
+	/**
+	 * Get all sockets for a module as a view into the flattened array.
+	 * @param ModuleIndex - Index of the module
+	 * @return Array view of the module's sockets (empty if none)
+	 */
+	TConstArrayView<FPCGExModuleSocket> GetModuleSockets(int32 ModuleIndex) const
+	{
+		if (!ModuleSocketHeaders.IsValidIndex(ModuleIndex))
+		{
+			return TConstArrayView<FPCGExModuleSocket>();
+		}
+
+		const FIntPoint& Header = ModuleSocketHeaders[ModuleIndex];
+		if (Header.Y == 0 || !AllModuleSockets.IsValidIndex(Header.X))
+		{
+			return TConstArrayView<FPCGExModuleSocket>();
+		}
+
+		return TConstArrayView<FPCGExModuleSocket>(&AllModuleSockets[Header.X], Header.Y);
+	}
+
+	/** Get the number of sockets for a module */
+	int32 GetModuleSocketCount(int32 ModuleIndex) const
+	{
+		return ModuleSocketHeaders.IsValidIndex(ModuleIndex) ? ModuleSocketHeaders[ModuleIndex].Y : 0;
+	}
+
 	/** Compiled layer data */
 	UPROPERTY()
 	TArray<FPCGExValencyLayerCompiled> Layers;

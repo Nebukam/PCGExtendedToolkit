@@ -7,6 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "UObject/SoftObjectPath.h"
 #include "StructUtils/InstancedStruct.h"
+#include "Core/PCGExSocketRules.h"
 
 #include "PCGExValencyCommon.generated.h"
 
@@ -483,6 +484,15 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	TArray<FName> Tags;
 
+	/**
+	 * Socket definitions for this module.
+	 * Sockets are non-directional connection points that map to orbital indices.
+	 * Used for socket-based orbital assignment (alternative to direction-based).
+	 * Populated from cage socket components during building.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module|Sockets")
+	TArray<FPCGExModuleSocket> Sockets;
+
 	/** Check if this module can still be spawned given current spawn count */
 	bool CanSpawn(int32 CurrentSpawnCount) const
 	{
@@ -501,5 +511,60 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 		const FPCGExValencyModuleLayerConfig* LayerConfig = Layers.Find(PrimaryLayerName);
 		const int64 Mask = LayerConfig ? LayerConfig->OrbitalMask : 0;
 		return FString::Printf(TEXT("%s_%lld"), *Asset.ToSoftObjectPath().ToString(), Mask);
+	}
+
+	/** Check if this module has any sockets defined */
+	bool HasSockets() const { return Sockets.Num() > 0; }
+
+	/** Check if this module has any output sockets (for chaining) */
+	bool HasOutputSockets() const
+	{
+		for (const FPCGExModuleSocket& Socket : Sockets)
+		{
+			if (Socket.bIsOutputSocket) { return true; }
+		}
+		return false;
+	}
+
+	/** Find a socket by instance name */
+	const FPCGExModuleSocket* FindSocketByName(const FName& SocketName) const
+	{
+		for (const FPCGExModuleSocket& Socket : Sockets)
+		{
+			if (Socket.SocketName == SocketName) { return &Socket; }
+		}
+		return nullptr;
+	}
+
+	/** Find a socket by type (returns first match) */
+	const FPCGExModuleSocket* FindSocketByType(const FName& SocketType) const
+	{
+		for (const FPCGExModuleSocket& Socket : Sockets)
+		{
+			if (Socket.SocketType == SocketType) { return &Socket; }
+		}
+		return nullptr;
+	}
+
+	/** Get all output sockets */
+	TArray<const FPCGExModuleSocket*> GetOutputSockets() const
+	{
+		TArray<const FPCGExModuleSocket*> Result;
+		for (const FPCGExModuleSocket& Socket : Sockets)
+		{
+			if (Socket.bIsOutputSocket) { Result.Add(&Socket); }
+		}
+		return Result;
+	}
+
+	/** Get all input sockets */
+	TArray<const FPCGExModuleSocket*> GetInputSockets() const
+	{
+		TArray<const FPCGExModuleSocket*> Result;
+		for (const FPCGExModuleSocket& Socket : Sockets)
+		{
+			if (!Socket.bIsOutputSocket) { Result.Add(&Socket); }
+		}
+		return Result;
 	}
 };

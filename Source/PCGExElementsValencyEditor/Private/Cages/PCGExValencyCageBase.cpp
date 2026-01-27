@@ -4,8 +4,12 @@
 #include "Cages/PCGExValencyCageBase.h"
 
 #include "Components/SceneComponent.h"
+#include "Components/PCGExCageSocketComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshSocket.h"
 #include "EngineUtils.h"
 #include "PCGExValencyMacros.h"
+#include "Core/PCGExSocketRules.h"
 #include "Core/PCGExValencyLog.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
@@ -929,4 +933,152 @@ FValencyDirtyStateManager* APCGExValencyCageBase::GetActiveDirtyStateManager()
 		}
 	}
 	return nullptr;
+}
+
+// ========== Socket Methods (Component-based) ==========
+
+UPCGExSocketRules* APCGExValencyCageBase::GetEffectiveSocketRules() const
+{
+	// Check explicit override first
+	if (SocketRulesOverride)
+	{
+		return SocketRulesOverride;
+	}
+
+	// TODO: Check containing volumes for SocketRules
+	// For now, return nullptr - volumes don't have SocketRules yet
+	return nullptr;
+}
+
+void APCGExValencyCageBase::GetSocketComponents(TArray<UPCGExCageSocketComponent*>& OutComponents) const
+{
+	// Use const_cast because GetComponents doesn't have a const overload that returns non-const pointers
+	const_cast<APCGExValencyCageBase*>(this)->GetComponents<UPCGExCageSocketComponent>(OutComponents);
+}
+
+bool APCGExValencyCageBase::HasSockets() const
+{
+	TArray<UPCGExCageSocketComponent*> Components;
+	GetSocketComponents(Components);
+
+	for (const UPCGExCageSocketComponent* Comp : Components)
+	{
+		if (Comp && Comp->bEnabled)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool APCGExValencyCageBase::HasOutputSockets() const
+{
+	TArray<UPCGExCageSocketComponent*> Components;
+	GetSocketComponents(Components);
+
+	for (const UPCGExCageSocketComponent* Comp : Components)
+	{
+		if (Comp && Comp->bEnabled && Comp->bIsOutputSocket)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+UPCGExCageSocketComponent* APCGExValencyCageBase::FindSocketByName(const FName& SocketName) const
+{
+	TArray<UPCGExCageSocketComponent*> Components;
+	GetSocketComponents(Components);
+
+	for (UPCGExCageSocketComponent* Comp : Components)
+	{
+		if (Comp && Comp->SocketName == SocketName)
+		{
+			return Comp;
+		}
+	}
+	return nullptr;
+}
+
+UPCGExCageSocketComponent* APCGExValencyCageBase::FindSocketByType(const FName& SocketType) const
+{
+	TArray<UPCGExCageSocketComponent*> Components;
+	GetSocketComponents(Components);
+
+	for (UPCGExCageSocketComponent* Comp : Components)
+	{
+		if (Comp && Comp->SocketType == SocketType)
+		{
+			return Comp;
+		}
+	}
+	return nullptr;
+}
+
+int32 APCGExValencyCageBase::CreateSocketComponentsFromMesh(UStaticMesh* Mesh, const FName& DefaultSocketType, bool bAsOutput)
+{
+	if (!Mesh)
+	{
+		return 0;
+	}
+
+	int32 CreatedCount = 0;
+
+	// Get all sockets from the static mesh
+	const TArray<UStaticMeshSocket*>& MeshSockets = Mesh->Sockets;
+	for (const UStaticMeshSocket* MeshSocket : MeshSockets)
+	{
+		if (!MeshSocket)
+		{
+			continue;
+		}
+
+		// Check if a socket component with this name already exists
+		if (FindSocketByName(MeshSocket->SocketName))
+		{
+			continue; // Skip duplicate
+		}
+
+		// Create a new socket component
+		UPCGExCageSocketComponent* NewComponent = NewObject<UPCGExCageSocketComponent>(
+			this,
+			UPCGExCageSocketComponent::StaticClass(),
+			MakeUniqueObjectName(this, UPCGExCageSocketComponent::StaticClass(), MeshSocket->SocketName)
+		);
+
+		if (!NewComponent)
+		{
+			continue;
+		}
+
+		// Configure the component
+		NewComponent->SocketName = MeshSocket->SocketName;
+		NewComponent->SocketType = DefaultSocketType;
+		NewComponent->bIsOutputSocket = bAsOutput;
+		NewComponent->bEnabled = true;
+		NewComponent->MeshSocketName = MeshSocket->SocketName; // Link to mesh socket for sync
+
+		// Set transform from mesh socket
+		const FTransform SocketTransform(
+			MeshSocket->RelativeRotation,
+			MeshSocket->RelativeLocation,
+			MeshSocket->RelativeScale
+		);
+		NewComponent->SetRelativeTransform(SocketTransform);
+
+		// Attach to root component
+		NewComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		NewComponent->RegisterComponent();
+
+		CreatedCount++;
+	}
+
+	// Request rebuild if we created any socket components
+	if (CreatedCount > 0)
+	{
+		RequestRebuild(EValencyRebuildReason::AssetChange);
+	}
+
+	return CreatedCount;
 }
