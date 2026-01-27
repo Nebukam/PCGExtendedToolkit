@@ -207,6 +207,7 @@ namespace PCGExBuildCellDiagram
 
 		// Create graph and insert edges
 		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(VtxFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
+		GraphBuilder->bInheritNodeData = false; // We created new points from scratch, don't inherit from input
 		GraphBuilder->Graph = MakeShared<PCGExGraphs::FGraph>(NumCells);
 		GraphBuilder->Graph->InsertEdges(UniqueEdges, BatchIndex);
 
