@@ -120,6 +120,12 @@ namespace PCGExGraphs
 		WeakBuilder = InBuilder;
 		WeakTaskManager = TaskManager;
 
+		// Try to create user context - if nullptr, skip PreCompile/PostCompile callbacks
+		if (OnCreateContext)
+		{
+			UserContext = OnCreateContext();
+		}
+
 		const int32 NumEdges = Edges.Num();
 		PCGExSortingHelpers::RadixSort(Edges);
 
@@ -291,6 +297,19 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 		}
 
+		// PreCompile callback: after FlattenedEdges built, before CompileRange
+		if (UserContext && OnPreCompile)
+		{
+			FSubGraphPreCompileData PreCompileData;
+			PreCompileData.FlattenedEdges = FlattenedEdges;
+			PreCompileData.EdgeKeys = Edges;
+			PreCompileData.EdgesDataFacade = EdgesDataFacade;
+			PreCompileData.VtxDataFacade = VtxDataFacade;
+			PreCompileData.NumEdges = NumEdges;
+			PreCompileData.NumNodes = Nodes.Num();
+			OnPreCompile(*UserContext, PreCompileData);
+		}
+
 		if (NumEdges < 1024)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(CompileAll);
@@ -408,7 +427,15 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 		}
 
+		// Context-based PostCompile callback (new)
+		if (UserContext && OnPostCompile) { OnPostCompile(*UserContext, ThisPtr.ToSharedRef()); }
+
+		// Legacy callback (for backwards compatibility)
 		if (OnSubGraphPostProcess) { OnSubGraphPostProcess(ThisPtr.ToSharedRef()); }
+
+		// Clean up user context
+		UserContext.Reset();
+
 		EdgesDataFacade->WriteFastest(TaskManager);
 	}
 

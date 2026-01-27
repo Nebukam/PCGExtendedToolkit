@@ -164,6 +164,12 @@ namespace PCGExClusters
 		FORCEINLINE int32 GetNumFaces() const { return NumFaces; }
 		FORCEINLINE const FCluster* GetCluster() const { return Cluster; }
 
+		/** Get a half-edge by index */
+		FORCEINLINE const FHalfEdge& GetHalfEdge(int32 Index) const { return HalfEdges[Index]; }
+
+		/** Get read-only access to all half-edges */
+		FORCEINLINE const TArray<FHalfEdge>& GetHalfEdges() const { return HalfEdges; }
+
 		/** Get node-indexed projected positions (access via NodeIndex, not PointIndex) */
 		FORCEINLINE const TSharedPtr<TArray<FVector2D>>& GetProjectedPositions() const { return ProjectedPositions; }
 
