@@ -7,6 +7,7 @@
 #include "PCGExAssetTypesMacros.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "Details/PCGExPropertyOutputConfigCustomization.h"
+#include "Details/PCGExSocketCompatibilityCustomization.h"
 
 void FPCGExElementsValencyEditorModule::StartupModule()
 {
@@ -23,6 +24,7 @@ void FPCGExElementsValencyEditorModule::StartupModule()
 	// Property customizations
 	PCGEX_REGISTER_CUSTO_START
 	PCGEX_REGISTER_CUSTO("PCGExValencyPropertyOutputConfig", FPCGExPropertyOutputConfigCustomization)
+	PCGEX_REGISTER_CUSTO("PCGExSocketDefinition", FPCGExSocketDefinitionCustomization)
 }
 
 void FPCGExElementsValencyEditorModule::ShutdownModule()

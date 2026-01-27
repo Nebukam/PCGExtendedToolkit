@@ -50,10 +50,13 @@ void UPCGExSocketRules::Compile()
 		UE_LOG(LogTemp, Warning, TEXT("UPCGExSocketRules '%s': More than 64 socket types defined. Only the first 64 will be usable."), *GetName());
 	}
 
-	// Ensure compatibility matrix is sized correctly
+#if WITH_EDITOR
+	// Build compatibility matrix from CompatibleTypeIds (editor data)
+	BuildCompatibilityMatrixFromTypeIds();
+#else
+	// Ensure compatibility matrix is sized correctly (runtime - matrix should already be set)
 	if (CompatibilityMatrix.Num() != NumTypes)
 	{
-		// Preserve existing entries, add zeros for new ones
 		const int32 OldNum = CompatibilityMatrix.Num();
 		CompatibilityMatrix.SetNum(NumTypes);
 		for (int32 i = OldNum; i < NumTypes; ++i)
@@ -61,6 +64,7 @@ void UPCGExSocketRules::Compile()
 			CompatibilityMatrix[i] = 0;
 		}
 	}
+#endif
 }
 
 bool UPCGExSocketRules::Validate(TArray<FText>& OutErrors) const
@@ -156,6 +160,90 @@ void UPCGExSocketRules::InitializeSelfCompatible()
 	}
 }
 
+#if WITH_EDITOR
+int32 UPCGExSocketRules::FindSocketTypeIndexById(int32 TypeId) const
+{
+	for (int32 i = 0; i < SocketTypes.Num(); ++i)
+	{
+		if (SocketTypes[i].TypeId == TypeId)
+		{
+			return i;
+		}
+	}
+	return INDEX_NONE;
+}
+
+FName UPCGExSocketRules::GetSocketTypeNameById(int32 TypeId) const
+{
+	const int32 Index = FindSocketTypeIndexById(TypeId);
+	return SocketTypes.IsValidIndex(Index) ? SocketTypes[Index].SocketType : NAME_None;
+}
+
+FText UPCGExSocketRules::GetSocketTypeDisplayNameById(int32 TypeId) const
+{
+	const int32 Index = FindSocketTypeIndexById(TypeId);
+	return SocketTypes.IsValidIndex(Index) ? SocketTypes[Index].GetDisplayName() : FText::GetEmpty();
+}
+
+void UPCGExSocketRules::BuildCompatibilityMatrixFromTypeIds()
+{
+	const int32 NumTypes = FMath::Min(SocketTypes.Num(), 64);
+
+	// Reset and resize the matrix
+	CompatibilityMatrix.SetNum(NumTypes);
+	for (int32 i = 0; i < NumTypes; ++i)
+	{
+		CompatibilityMatrix[i] = 0;
+	}
+
+	// Build bitmask from each type's CompatibleTypeIds
+	for (int32 TypeIndexA = 0; TypeIndexA < NumTypes; ++TypeIndexA)
+	{
+		const FPCGExSocketDefinition& TypeA = SocketTypes[TypeIndexA];
+
+		for (const int32 CompatibleTypeId : TypeA.CompatibleTypeIds)
+		{
+			const int32 TypeIndexB = FindSocketTypeIndexById(CompatibleTypeId);
+			if (TypeIndexB != INDEX_NONE && TypeIndexB < 64)
+			{
+				// Set bit: TypeA is compatible with TypeB
+				CompatibilityMatrix[TypeIndexA] |= (1LL << TypeIndexB);
+			}
+		}
+	}
+}
+
+void UPCGExSocketRules::InitializeSelfCompatibleTypeIds()
+{
+	for (FPCGExSocketDefinition& TypeDef : SocketTypes)
+	{
+		TypeDef.CompatibleTypeIds.Reset();
+		TypeDef.CompatibleTypeIds.Add(TypeDef.TypeId);
+	}
+
+	Compile();
+}
+
+void UPCGExSocketRules::InitializeAllCompatibleTypeIds()
+{
+	// Collect all TypeIds first
+	TArray<int32> AllTypeIds;
+	AllTypeIds.Reserve(SocketTypes.Num());
+	for (const FPCGExSocketDefinition& TypeDef : SocketTypes)
+	{
+		AllTypeIds.Add(TypeDef.TypeId);
+	}
+
+	// Set all types to be compatible with all other types
+	for (FPCGExSocketDefinition& TypeDef : SocketTypes)
+	{
+		TypeDef.CompatibleTypeIds = AllTypeIds;
+	}
+
+	Compile();
+}
+#endif
+
 FName UPCGExSocketRules::FindMatchingSocketType(const FName& MeshSocketName, const FString& MeshSocketTag) const
 {
 	if (SocketTypes.Num() == 0)
@@ -222,7 +310,7 @@ void UPCGExSocketRules::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 	const FName PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 
-	// Auto-compile when socket types change
+	// Auto-compile when socket types or compatibility changes
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExSocketRules, SocketTypes))
 	{
 		Compile();

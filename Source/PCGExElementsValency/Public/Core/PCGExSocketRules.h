@@ -55,6 +55,16 @@ struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
 {
 	GENERATED_BODY()
 
+#if WITH_EDITORONLY_DATA
+	/**
+	 * Stable identity for this socket type.
+	 * Auto-generated, preserved through name changes.
+	 * Used by CompatibleTypeIds for rename-safe references.
+	 */
+	UPROPERTY(meta = (IgnoreForMemberInitializationTest))
+	int32 TypeId = 0;
+#endif
+
 	/** Socket type name - used for compatibility matrix lookup and matching */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	FName SocketType;
@@ -62,6 +72,16 @@ struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
 	/** Display name for UI (defaults to SocketType if empty) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	FText DisplayName;
+
+#if WITH_EDITORONLY_DATA
+	/**
+	 * Socket types this type is compatible with (stored by TypeId).
+	 * Displayed as type names in the editor via custom UI.
+	 * Compiled to CompatibilityMatrix bitmask at runtime.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Compatibility")
+	TArray<int32> CompatibleTypeIds;
+#endif
 
 	/** Default transform offset relative to module origin (can be overridden per-module) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
@@ -73,6 +93,13 @@ struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
 
 	/** Bit index in compatibility mask (0-63, assigned at compile time) */
 	int32 BitIndex = -1;
+
+	FPCGExSocketDefinition()
+	{
+#if WITH_EDITOR
+		TypeId = GetTypeHash(FGuid::NewGuid());
+#endif
+	}
 
 	/** Get the display name, falling back to socket type if empty */
 	FText GetDisplayName() const
@@ -190,6 +217,47 @@ public:
 	 * Each socket type is compatible only with itself.
 	 */
 	void InitializeSelfCompatible();
+
+#if WITH_EDITOR
+	/**
+	 * Find socket type index by TypeId.
+	 * @param TypeId The stable type identifier
+	 * @return Index in SocketTypes array, or INDEX_NONE if not found
+	 */
+	int32 FindSocketTypeIndexById(int32 TypeId) const;
+
+	/**
+	 * Get socket type name by TypeId.
+	 * @param TypeId The stable type identifier
+	 * @return Socket type name, or NAME_None if not found
+	 */
+	FName GetSocketTypeNameById(int32 TypeId) const;
+
+	/**
+	 * Get socket type display name by TypeId.
+	 * @param TypeId The stable type identifier
+	 * @return Display name text, or empty if not found
+	 */
+	FText GetSocketTypeDisplayNameById(int32 TypeId) const;
+
+	/**
+	 * Build compatibility matrix from CompatibleTypeIds on each socket definition.
+	 * Called during Compile() to convert user-friendly data to runtime bitmask.
+	 */
+	void BuildCompatibilityMatrixFromTypeIds();
+
+	/**
+	 * Initialize all socket types as self-compatible using CompatibleTypeIds.
+	 * Sets each type's CompatibleTypeIds to contain only its own TypeId.
+	 */
+	void InitializeSelfCompatibleTypeIds();
+
+	/**
+	 * Make all socket types compatible with each other using CompatibleTypeIds.
+	 * Sets each type's CompatibleTypeIds to contain all TypeIds.
+	 */
+	void InitializeAllCompatibleTypeIds();
+#endif
 
 	/**
 	 * Find a matching socket type for a mesh socket based on name and tag.
