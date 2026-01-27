@@ -119,9 +119,8 @@ TSharedRef<SWidget> FPCGExSocketDefinitionCustomization::BuildCompatibilityDropd
 	}
 
 	TSharedRef<SComboButton> ComboButton = SNew(SComboButton)
-		.ButtonStyle(FAppStyle::Get(), "PropertyEditor.AssetComboStyle")
-		.ForegroundColor(FAppStyle::GetColor("PropertyEditor.AssetName.ColorAndOpacity"))
-		.ContentPadding(FMargin(2, 2, 2, 1))
+		.ContentPadding(FMargin(4, 2))
+		.HasDownArrow(true)
 		.ButtonContent()
 		[
 			SNew(STextBlock)
@@ -175,9 +174,18 @@ FText FPCGExSocketDefinitionCustomization::GetCompatibilitySummary(
 		ElementHandle->GetValue(TypeId);
 
 		const FText DisplayName = SocketRules->GetSocketTypeDisplayNameById(TypeId);
-		if (!DisplayName.IsEmpty())
+		if (!DisplayName.IsEmpty() && !DisplayName.EqualTo(FText::FromName(NAME_None)))
 		{
 			TypeNames.Add(DisplayName.ToString());
+		}
+		else
+		{
+			// Try to find index for unnamed type
+			const int32 TypeIndex = SocketRules->FindSocketTypeIndexById(TypeId);
+			if (TypeIndex != INDEX_NONE)
+			{
+				TypeNames.Add(FString::Printf(TEXT("Type %d"), TypeIndex));
+			}
 		}
 	}
 
@@ -299,6 +307,7 @@ void SSocketCompatibilityDropdown::RebuildCheckboxList()
 
 		const int32 TypeId = TypeDef.TypeId;
 		const bool bIsSelf = (TypeId == CurrentTypeId);
+		const int32 TypeIndex = i; // Capture index for lambda
 
 		CheckboxContainer->AddSlot()
 		.AutoHeight()
@@ -325,7 +334,21 @@ void SSocketCompatibilityDropdown::RebuildCheckboxList()
 			.Padding(4, 0, 0, 0)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(DisplayName))
+				.Text_Lambda([this, TypeIndex]()
+				{
+					UPCGExSocketRules* Rules = SocketRulesWeak.Get();
+					if (Rules && Rules->SocketTypes.IsValidIndex(TypeIndex))
+					{
+						const FText Name = Rules->SocketTypes[TypeIndex].GetDisplayName();
+						if (!Name.IsEmpty() && !Name.EqualTo(FText::FromName(NAME_None)))
+						{
+							return Name;
+						}
+						// Fallback for unnamed types
+						return FText::Format(LOCTEXT("UnnamedType", "Type {0}"), FText::AsNumber(TypeIndex));
+					}
+					return LOCTEXT("InvalidType", "<invalid>");
+				})
 				.Font(IDetailLayoutBuilder::GetDetailFont())
 				.ColorAndOpacity(bIsSelf ? FSlateColor(FLinearColor::Yellow) : FSlateColor::UseForeground())
 			]
@@ -449,6 +472,9 @@ void SSocketCompatibilityDropdown::OnSelectAll()
 
 	SocketRules->Compile();
 	SocketRules->MarkPackageDirty();
+
+	// Rebuild to refresh checkbox states
+	RebuildCheckboxList();
 }
 
 void SSocketCompatibilityDropdown::OnClearAll()
@@ -469,6 +495,9 @@ void SSocketCompatibilityDropdown::OnClearAll()
 		SocketRules->Compile();
 		SocketRules->MarkPackageDirty();
 	}
+
+	// Rebuild to refresh checkbox states
+	RebuildCheckboxList();
 }
 
 void SSocketCompatibilityDropdown::OnSelfOnly()
@@ -501,6 +530,9 @@ void SSocketCompatibilityDropdown::OnSelfOnly()
 		SocketRules->Compile();
 		SocketRules->MarkPackageDirty();
 	}
+
+	// Rebuild to refresh checkbox states
+	RebuildCheckboxList();
 }
 
 #pragma endregion

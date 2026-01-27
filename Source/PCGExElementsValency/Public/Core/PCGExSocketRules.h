@@ -61,7 +61,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
 	 * Auto-generated, preserved through name changes.
 	 * Used by CompatibleTypeIds for rename-safe references.
 	 */
-	UPROPERTY(meta = (IgnoreForMemberInitializationTest))
+	UPROPERTY(VisibleAnywhere, Category = "Internal", meta = (IgnoreForMemberInitializationTest))
 	int32 TypeId = 0;
 #endif
 
