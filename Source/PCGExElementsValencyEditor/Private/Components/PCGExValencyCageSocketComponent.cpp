@@ -1,14 +1,14 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Components/PCGExCageSocketComponent.h"
+#include "Components/PCGExValencyCageSocketComponent.h"
 
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshSocket.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Cages/PCGExValencyCageBase.h"
 
-UPCGExCageSocketComponent::UPCGExCageSocketComponent()
+UPCGExValencyCageSocketComponent::UPCGExValencyCageSocketComponent()
 {
 	// Socket components are attached to cages, should be movable
 	Mobility = EComponentMobility::Movable;
@@ -20,7 +20,7 @@ UPCGExCageSocketComponent::UPCGExCageSocketComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UPCGExCageSocketComponent::OnRegister()
+void UPCGExValencyCageSocketComponent::OnRegister()
 {
 	Super::OnRegister();
 
@@ -32,23 +32,23 @@ void UPCGExCageSocketComponent::OnRegister()
 }
 
 #if WITH_EDITOR
-void UPCGExCageSocketComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExValencyCageSocketComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 
 	// Properties that affect compilation - request rebuild
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExCageSocketComponent, SocketType) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExCageSocketComponent, bIsOutputSocket) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExCageSocketComponent, bEnabled))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExValencyCageSocketComponent, SocketType) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExValencyCageSocketComponent, bIsOutputSocket) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExValencyCageSocketComponent, bEnabled))
 	{
 		RequestCageRebuild();
 	}
 }
 #endif
 
-FLinearColor UPCGExCageSocketComponent::GetEffectiveDebugColor(const UPCGExSocketRules* SocketRules) const
+FLinearColor UPCGExValencyCageSocketComponent::GetEffectiveDebugColor(const UPCGExValencySocketRules* SocketRules) const
 {
 	// Use override if set (non-zero alpha indicates intentional color)
 	if (DebugColorOverride.A > 0.0f)
@@ -70,7 +70,7 @@ FLinearColor UPCGExCageSocketComponent::GetEffectiveDebugColor(const UPCGExSocke
 	return FLinearColor::White;
 }
 
-bool UPCGExCageSocketComponent::SyncTransformFromMeshSocket(UStaticMesh* Mesh)
+bool UPCGExValencyCageSocketComponent::SyncTransformFromMeshSocket(UStaticMesh* Mesh)
 {
 	if (!Mesh || MeshSocketName.IsNone())
 	{
@@ -95,18 +95,18 @@ bool UPCGExCageSocketComponent::SyncTransformFromMeshSocket(UStaticMesh* Mesh)
 	return true;
 }
 
-void UPCGExCageSocketComponent::GenerateDefaultSocketName()
+void UPCGExValencyCageSocketComponent::GenerateDefaultSocketName()
 {
 	// Generate a name based on owning actor and component count
 	if (AActor* Owner = GetOwner())
 	{
-		TArray<UPCGExCageSocketComponent*> ExistingComponents;
-		Owner->GetComponents<UPCGExCageSocketComponent>(ExistingComponents);
+		TArray<UPCGExValencyCageSocketComponent*> ExistingComponents;
+		Owner->GetComponents<UPCGExValencyCageSocketComponent>(ExistingComponents);
 
 		// Find the next available index
 		int32 NextIndex = 0;
 		TSet<FName> ExistingNames;
-		for (const UPCGExCageSocketComponent* Comp : ExistingComponents)
+		for (const UPCGExValencyCageSocketComponent* Comp : ExistingComponents)
 		{
 			if (Comp && Comp != this)
 			{
@@ -130,7 +130,7 @@ void UPCGExCageSocketComponent::GenerateDefaultSocketName()
 	}
 }
 
-void UPCGExCageSocketComponent::RequestCageRebuild()
+void UPCGExValencyCageSocketComponent::RequestCageRebuild()
 {
 	// Get owning cage and request rebuild
 	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(GetOwner()))

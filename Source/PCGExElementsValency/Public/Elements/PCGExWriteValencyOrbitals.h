@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Core/PCGExClustersProcessor.h"
 #include "Core/PCGExValencyOrbitalSet.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExWriteValencyOrbitals.generated.h"
@@ -71,7 +71,7 @@ public:
 	 * Each socket type maps to an orbital index for solver compatibility.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition = "AssignmentMode == EPCGExOrbitalAssignmentMode::Socket", EditConditionHides))
-	TSoftObjectPtr<UPCGExSocketRules> SocketRules;
+	TSoftObjectPtr<UPCGExValencySocketRules> SocketRules;
 
 	/**
 	 * Edge attribute containing packed socket references (int64).
@@ -119,7 +119,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteValencyOrbitalsContext final : FPCGEx
 
 	// ========== Socket Mode ==========
 
-	TObjectPtr<UPCGExSocketRules> SocketRules;
+	TObjectPtr<UPCGExValencySocketRules> SocketRules;
 
 	/** Socket type index to orbital index mapping (built during PostBoot) */
 	TArray<int32> SocketToOrbitalMap;

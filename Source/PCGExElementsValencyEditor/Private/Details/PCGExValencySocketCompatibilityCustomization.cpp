@@ -1,29 +1,29 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Details/PCGExSocketCompatibilityCustomization.h"
+#include "Details/PCGExValencySocketCompatibilityCustomization.h"
 
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Input/SComboButton.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/STextBlock.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSocketCompatibility"
+#define LOCTEXT_NAMESPACE "PCGExValencySocketCompatibility"
 
-#pragma region FPCGExSocketDefinitionCustomization
+#pragma region FPCGExValencySocketDefinitionCustomization
 
-TSharedRef<IPropertyTypeCustomization> FPCGExSocketDefinitionCustomization::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FPCGExValencySocketDefinitionCustomization::MakeInstance()
 {
-	return MakeShareable(new FPCGExSocketDefinitionCustomization());
+	return MakeShareable(new FPCGExValencySocketDefinitionCustomization());
 }
 
-void FPCGExSocketDefinitionCustomization::CustomizeHeader(
+void FPCGExValencySocketDefinitionCustomization::CustomizeHeader(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
@@ -34,15 +34,15 @@ void FPCGExSocketDefinitionCustomization::CustomizeHeader(
 	];
 }
 
-void FPCGExSocketDefinitionCustomization::CustomizeChildren(
+void FPCGExValencySocketDefinitionCustomization::CustomizeChildren(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	UPCGExSocketRules* SocketRules = GetOuterSocketRules(PropertyHandle);
+	UPCGExValencySocketRules* SocketRules = GetOuterSocketRules(PropertyHandle);
 
 	// Get the TypeId for this socket definition
-	TSharedPtr<IPropertyHandle> TypeIdHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExSocketDefinition, TypeId));
+	TSharedPtr<IPropertyHandle> TypeIdHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExValencySocketDefinition, TypeId));
 	int32 CurrentTypeId = 0;
 	if (TypeIdHandle.IsValid())
 	{
@@ -63,13 +63,13 @@ void FPCGExSocketDefinitionCustomization::CustomizeChildren(
 		const FName PropertyName = ChildHandle->GetProperty()->GetFName();
 
 		// Hide TypeId (internal)
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExSocketDefinition, TypeId))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExValencySocketDefinition, TypeId))
 		{
 			continue;
 		}
 
 		// Custom widget for CompatibleTypeIds
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExSocketDefinition, CompatibleTypeIds))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(FPCGExValencySocketDefinition, CompatibleTypeIds))
 		{
 			ChildBuilder.AddCustomRow(LOCTEXT("CompatibleWith", "Compatible With"))
 				.NameContent()
@@ -92,14 +92,14 @@ void FPCGExSocketDefinitionCustomization::CustomizeChildren(
 	}
 }
 
-UPCGExSocketRules* FPCGExSocketDefinitionCustomization::GetOuterSocketRules(TSharedRef<IPropertyHandle> PropertyHandle) const
+UPCGExValencySocketRules* FPCGExValencySocketDefinitionCustomization::GetOuterSocketRules(TSharedRef<IPropertyHandle> PropertyHandle) const
 {
 	TArray<UObject*> OuterObjects;
 	PropertyHandle->GetOuterObjects(OuterObjects);
 
 	for (UObject* Outer : OuterObjects)
 	{
-		if (UPCGExSocketRules* SocketRules = Cast<UPCGExSocketRules>(Outer))
+		if (UPCGExValencySocketRules* SocketRules = Cast<UPCGExValencySocketRules>(Outer))
 		{
 			return SocketRules;
 		}
@@ -108,9 +108,9 @@ UPCGExSocketRules* FPCGExSocketDefinitionCustomization::GetOuterSocketRules(TSha
 	return nullptr;
 }
 
-TSharedRef<SWidget> FPCGExSocketDefinitionCustomization::BuildCompatibilityDropdown(
+TSharedRef<SWidget> FPCGExValencySocketDefinitionCustomization::BuildCompatibilityDropdown(
 	TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle,
-	UPCGExSocketRules* SocketRules,
+	UPCGExValencySocketRules* SocketRules,
 	int32 CurrentTypeId)
 {
 	if (!SocketRules)
@@ -132,7 +132,7 @@ TSharedRef<SWidget> FPCGExSocketDefinitionCustomization::BuildCompatibilityDropd
 		]
 		.MenuContent()
 		[
-			SNew(SSocketCompatibilityDropdown)
+			SNew(SValencySocketCompatibilityDropdown)
 			.CompatibleTypeIdsHandle(CompatibleTypeIdsHandle)
 			.SocketRules(SocketRules)
 			.CurrentTypeId(CurrentTypeId)
@@ -141,9 +141,9 @@ TSharedRef<SWidget> FPCGExSocketDefinitionCustomization::BuildCompatibilityDropd
 	return ComboButton;
 }
 
-FText FPCGExSocketDefinitionCustomization::GetCompatibilitySummary(
+FText FPCGExValencySocketDefinitionCustomization::GetCompatibilitySummary(
 	TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle,
-	UPCGExSocketRules* SocketRules) const
+	UPCGExValencySocketRules* SocketRules) const
 {
 	if (!CompatibleTypeIdsHandle.IsValid() || !SocketRules)
 	{
@@ -205,9 +205,9 @@ FText FPCGExSocketDefinitionCustomization::GetCompatibilitySummary(
 
 #pragma endregion
 
-#pragma region SSocketCompatibilityDropdown
+#pragma region SValencySocketCompatibilityDropdown
 
-void SSocketCompatibilityDropdown::Construct(const FArguments& InArgs)
+void SValencySocketCompatibilityDropdown::Construct(const FArguments& InArgs)
 {
 	CompatibleTypeIdsHandle = InArgs._CompatibleTypeIdsHandle;
 	SocketRulesWeak = InArgs._SocketRules;
@@ -224,10 +224,10 @@ void SSocketCompatibilityDropdown::Construct(const FArguments& InArgs)
 			SNew(SSearchBox)
 			.Visibility_Lambda([this]()
 			{
-				UPCGExSocketRules* Rules = SocketRulesWeak.Get();
+				UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
 				return (Rules && Rules->SocketTypes.Num() > 16) ? EVisibility::Visible : EVisibility::Collapsed;
 			})
-			.OnTextChanged(this, &SSocketCompatibilityDropdown::OnSearchTextChanged)
+			.OnTextChanged(this, &SValencySocketCompatibilityDropdown::OnSearchTextChanged)
 		]
 		// Quick action buttons
 		+ SVerticalBox::Slot()
@@ -284,11 +284,11 @@ void SSocketCompatibilityDropdown::Construct(const FArguments& InArgs)
 	RebuildCheckboxList();
 }
 
-void SSocketCompatibilityDropdown::RebuildCheckboxList()
+void SValencySocketCompatibilityDropdown::RebuildCheckboxList()
 {
 	CheckboxContainer->ClearChildren();
 
-	UPCGExSocketRules* SocketRules = SocketRulesWeak.Get();
+	UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get();
 	if (!SocketRules)
 	{
 		return;
@@ -296,7 +296,7 @@ void SSocketCompatibilityDropdown::RebuildCheckboxList()
 
 	for (int32 i = 0; i < SocketRules->SocketTypes.Num(); ++i)
 	{
-		const FPCGExSocketDefinition& TypeDef = SocketRules->SocketTypes[i];
+		const FPCGExValencySocketDefinition& TypeDef = SocketRules->SocketTypes[i];
 		const FString DisplayName = TypeDef.GetDisplayName().ToString();
 
 		// Apply search filter
@@ -336,7 +336,7 @@ void SSocketCompatibilityDropdown::RebuildCheckboxList()
 				SNew(STextBlock)
 				.Text_Lambda([this, TypeIndex]()
 				{
-					UPCGExSocketRules* Rules = SocketRulesWeak.Get();
+					UPCGExValencySocketRules* Rules = SocketRulesWeak.Get();
 					if (Rules && Rules->SocketTypes.IsValidIndex(TypeIndex))
 					{
 						const FText Name = Rules->SocketTypes[TypeIndex].GetDisplayName();
@@ -356,13 +356,13 @@ void SSocketCompatibilityDropdown::RebuildCheckboxList()
 	}
 }
 
-void SSocketCompatibilityDropdown::OnSearchTextChanged(const FText& NewText)
+void SValencySocketCompatibilityDropdown::OnSearchTextChanged(const FText& NewText)
 {
 	SearchFilter = NewText.ToString();
 	RebuildCheckboxList();
 }
 
-bool SSocketCompatibilityDropdown::IsTypeCompatible(int32 TypeId) const
+bool SValencySocketCompatibilityDropdown::IsTypeCompatible(int32 TypeId) const
 {
 	if (!CompatibleTypeIdsHandle.IsValid())
 	{
@@ -392,7 +392,7 @@ bool SSocketCompatibilityDropdown::IsTypeCompatible(int32 TypeId) const
 	return false;
 }
 
-void SSocketCompatibilityDropdown::ToggleTypeCompatibility(int32 TypeId)
+void SValencySocketCompatibilityDropdown::ToggleTypeCompatibility(int32 TypeId)
 {
 	if (!CompatibleTypeIdsHandle.IsValid())
 	{
@@ -437,16 +437,16 @@ void SSocketCompatibilityDropdown::ToggleTypeCompatibility(int32 TypeId)
 	}
 
 	// Trigger compile on the outer object
-	if (UPCGExSocketRules* SocketRules = SocketRulesWeak.Get())
+	if (UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get())
 	{
 		SocketRules->Compile();
 		SocketRules->MarkPackageDirty();
 	}
 }
 
-void SSocketCompatibilityDropdown::OnSelectAll()
+void SValencySocketCompatibilityDropdown::OnSelectAll()
 {
-	UPCGExSocketRules* SocketRules = SocketRulesWeak.Get();
+	UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get();
 	if (!SocketRules || !CompatibleTypeIdsHandle.IsValid())
 	{
 		return;
@@ -461,7 +461,7 @@ void SSocketCompatibilityDropdown::OnSelectAll()
 	// Clear and add all type IDs
 	ArrayHandle->EmptyArray();
 
-	for (const FPCGExSocketDefinition& TypeDef : SocketRules->SocketTypes)
+	for (const FPCGExValencySocketDefinition& TypeDef : SocketRules->SocketTypes)
 	{
 		ArrayHandle->AddItem();
 		uint32 NumElements = 0;
@@ -477,7 +477,7 @@ void SSocketCompatibilityDropdown::OnSelectAll()
 	RebuildCheckboxList();
 }
 
-void SSocketCompatibilityDropdown::OnClearAll()
+void SValencySocketCompatibilityDropdown::OnClearAll()
 {
 	if (!CompatibleTypeIdsHandle.IsValid())
 	{
@@ -490,7 +490,7 @@ void SSocketCompatibilityDropdown::OnClearAll()
 		ArrayHandle->EmptyArray();
 	}
 
-	if (UPCGExSocketRules* SocketRules = SocketRulesWeak.Get())
+	if (UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get())
 	{
 		SocketRules->Compile();
 		SocketRules->MarkPackageDirty();
@@ -500,7 +500,7 @@ void SSocketCompatibilityDropdown::OnClearAll()
 	RebuildCheckboxList();
 }
 
-void SSocketCompatibilityDropdown::OnSelfOnly()
+void SValencySocketCompatibilityDropdown::OnSelfOnly()
 {
 	if (!CompatibleTypeIdsHandle.IsValid())
 	{
@@ -525,7 +525,7 @@ void SSocketCompatibilityDropdown::OnSelfOnly()
 		NewElement->SetValue(CurrentTypeId);
 	}
 
-	if (UPCGExSocketRules* SocketRules = SocketRulesWeak.Get())
+	if (UPCGExValencySocketRules* SocketRules = SocketRulesWeak.Get())
 	{
 		SocketRules->Compile();
 		SocketRules->MarkPackageDirty();

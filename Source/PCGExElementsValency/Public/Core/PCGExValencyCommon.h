@@ -7,7 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "UObject/SoftObjectPath.h"
 #include "StructUtils/InstancedStruct.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 
 #include "PCGExValencyCommon.generated.h"
 
@@ -491,7 +491,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	 * Populated from cage socket components during building.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module|Sockets")
-	TArray<FPCGExModuleSocket> Sockets;
+	TArray<FPCGExValencyModuleSocket> Sockets;
 
 	/** Check if this module can still be spawned given current spawn count */
 	bool CanSpawn(int32 CurrentSpawnCount) const
@@ -519,7 +519,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	/** Check if this module has any output sockets (for chaining) */
 	bool HasOutputSockets() const
 	{
-		for (const FPCGExModuleSocket& Socket : Sockets)
+		for (const FPCGExValencyModuleSocket& Socket : Sockets)
 		{
 			if (Socket.bIsOutputSocket) { return true; }
 		}
@@ -527,9 +527,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	}
 
 	/** Find a socket by instance name */
-	const FPCGExModuleSocket* FindSocketByName(const FName& SocketName) const
+	const FPCGExValencyModuleSocket* FindSocketByName(const FName& SocketName) const
 	{
-		for (const FPCGExModuleSocket& Socket : Sockets)
+		for (const FPCGExValencyModuleSocket& Socket : Sockets)
 		{
 			if (Socket.SocketName == SocketName) { return &Socket; }
 		}
@@ -537,9 +537,9 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	}
 
 	/** Find a socket by type (returns first match) */
-	const FPCGExModuleSocket* FindSocketByType(const FName& SocketType) const
+	const FPCGExValencyModuleSocket* FindSocketByType(const FName& SocketType) const
 	{
-		for (const FPCGExModuleSocket& Socket : Sockets)
+		for (const FPCGExValencyModuleSocket& Socket : Sockets)
 		{
 			if (Socket.SocketType == SocketType) { return &Socket; }
 		}
@@ -547,10 +547,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	}
 
 	/** Get all output sockets */
-	TArray<const FPCGExModuleSocket*> GetOutputSockets() const
+	TArray<const FPCGExValencyModuleSocket*> GetOutputSockets() const
 	{
-		TArray<const FPCGExModuleSocket*> Result;
-		for (const FPCGExModuleSocket& Socket : Sockets)
+		TArray<const FPCGExValencyModuleSocket*> Result;
+		for (const FPCGExValencyModuleSocket& Socket : Sockets)
 		{
 			if (Socket.bIsOutputSocket) { Result.Add(&Socket); }
 		}
@@ -558,10 +558,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	}
 
 	/** Get all input sockets */
-	TArray<const FPCGExModuleSocket*> GetInputSockets() const
+	TArray<const FPCGExValencyModuleSocket*> GetInputSockets() const
 	{
-		TArray<const FPCGExModuleSocket*> Result;
-		for (const FPCGExModuleSocket& Socket : Sockets)
+		TArray<const FPCGExValencyModuleSocket*> Result;
+		for (const FPCGExValencyModuleSocket& Socket : Sockets)
 		{
 			if (!Socket.bIsOutputSocket) { Result.Add(&Socket); }
 		}

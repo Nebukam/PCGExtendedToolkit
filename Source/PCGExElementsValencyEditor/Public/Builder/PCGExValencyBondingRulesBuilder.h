@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "StructUtils/InstancedStruct.h"
 #include "Core/PCGExValencyBondingRules.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 
 #include "PCGExValencyBondingRulesBuilder.generated.h"
 
@@ -82,7 +82,7 @@ struct FPCGExValencyCageData
 	TMap<int32, TArray<int32>> OrbitalToNeighborModules;
 
 	/** Socket definitions collected from cage socket components and/or auto-extracted from assets */
-	TArray<FPCGExModuleSocket> Sockets;
+	TArray<FPCGExValencyModuleSocket> Sockets;
 
 	/** Whether this cage has auto-extraction enabled */
 	bool bReadSocketsFromAssets = false;

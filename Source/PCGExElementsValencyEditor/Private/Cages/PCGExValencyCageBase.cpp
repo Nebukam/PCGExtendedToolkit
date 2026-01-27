@@ -4,12 +4,12 @@
 #include "Cages/PCGExValencyCageBase.h"
 
 #include "Components/SceneComponent.h"
-#include "Components/PCGExCageSocketComponent.h"
+#include "Components/PCGExValencyCageSocketComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshSocket.h"
 #include "EngineUtils.h"
 #include "PCGExValencyMacros.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Core/PCGExValencyLog.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
@@ -937,7 +937,7 @@ FValencyDirtyStateManager* APCGExValencyCageBase::GetActiveDirtyStateManager()
 
 // ========== Socket Methods (Component-based) ==========
 
-UPCGExSocketRules* APCGExValencyCageBase::GetEffectiveSocketRules() const
+UPCGExValencySocketRules* APCGExValencyCageBase::GetEffectiveSocketRules() const
 {
 	// Check explicit override first
 	if (SocketRulesOverride)
@@ -950,18 +950,18 @@ UPCGExSocketRules* APCGExValencyCageBase::GetEffectiveSocketRules() const
 	return nullptr;
 }
 
-void APCGExValencyCageBase::GetSocketComponents(TArray<UPCGExCageSocketComponent*>& OutComponents) const
+void APCGExValencyCageBase::GetSocketComponents(TArray<UPCGExValencyCageSocketComponent*>& OutComponents) const
 {
 	// Use const_cast because GetComponents doesn't have a const overload that returns non-const pointers
-	const_cast<APCGExValencyCageBase*>(this)->GetComponents<UPCGExCageSocketComponent>(OutComponents);
+	const_cast<APCGExValencyCageBase*>(this)->GetComponents<UPCGExValencyCageSocketComponent>(OutComponents);
 }
 
 bool APCGExValencyCageBase::HasSockets() const
 {
-	TArray<UPCGExCageSocketComponent*> Components;
+	TArray<UPCGExValencyCageSocketComponent*> Components;
 	GetSocketComponents(Components);
 
-	for (const UPCGExCageSocketComponent* Comp : Components)
+	for (const UPCGExValencyCageSocketComponent* Comp : Components)
 	{
 		if (Comp && Comp->bEnabled)
 		{
@@ -973,10 +973,10 @@ bool APCGExValencyCageBase::HasSockets() const
 
 bool APCGExValencyCageBase::HasOutputSockets() const
 {
-	TArray<UPCGExCageSocketComponent*> Components;
+	TArray<UPCGExValencyCageSocketComponent*> Components;
 	GetSocketComponents(Components);
 
-	for (const UPCGExCageSocketComponent* Comp : Components)
+	for (const UPCGExValencyCageSocketComponent* Comp : Components)
 	{
 		if (Comp && Comp->bEnabled && Comp->bIsOutputSocket)
 		{
@@ -986,12 +986,12 @@ bool APCGExValencyCageBase::HasOutputSockets() const
 	return false;
 }
 
-UPCGExCageSocketComponent* APCGExValencyCageBase::FindSocketByName(const FName& SocketName) const
+UPCGExValencyCageSocketComponent* APCGExValencyCageBase::FindSocketByName(const FName& SocketName) const
 {
-	TArray<UPCGExCageSocketComponent*> Components;
+	TArray<UPCGExValencyCageSocketComponent*> Components;
 	GetSocketComponents(Components);
 
-	for (UPCGExCageSocketComponent* Comp : Components)
+	for (UPCGExValencyCageSocketComponent* Comp : Components)
 	{
 		if (Comp && Comp->SocketName == SocketName)
 		{
@@ -1001,12 +1001,12 @@ UPCGExCageSocketComponent* APCGExValencyCageBase::FindSocketByName(const FName& 
 	return nullptr;
 }
 
-UPCGExCageSocketComponent* APCGExValencyCageBase::FindSocketByType(const FName& SocketType) const
+UPCGExValencyCageSocketComponent* APCGExValencyCageBase::FindSocketByType(const FName& SocketType) const
 {
-	TArray<UPCGExCageSocketComponent*> Components;
+	TArray<UPCGExValencyCageSocketComponent*> Components;
 	GetSocketComponents(Components);
 
-	for (UPCGExCageSocketComponent* Comp : Components)
+	for (UPCGExValencyCageSocketComponent* Comp : Components)
 	{
 		if (Comp && Comp->SocketType == SocketType)
 		{
@@ -1041,10 +1041,10 @@ int32 APCGExValencyCageBase::CreateSocketComponentsFromMesh(UStaticMesh* Mesh, c
 		}
 
 		// Create a new socket component
-		UPCGExCageSocketComponent* NewComponent = NewObject<UPCGExCageSocketComponent>(
+		UPCGExValencyCageSocketComponent* NewComponent = NewObject<UPCGExValencyCageSocketComponent>(
 			this,
-			UPCGExCageSocketComponent::StaticClass(),
-			MakeUniqueObjectName(this, UPCGExCageSocketComponent::StaticClass(), MeshSocket->SocketName)
+			UPCGExValencyCageSocketComponent::StaticClass(),
+			MakeUniqueObjectName(this, UPCGExValencyCageSocketComponent::StaticClass(), MeshSocket->SocketName)
 		);
 
 		if (!NewComponent)

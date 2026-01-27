@@ -7,14 +7,14 @@
 #include "Cages/PCGExValencyCageNull.h"
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
-#include "Components/PCGExCageSocketComponent.h"
+#include "Components/PCGExValencyCageSocketComponent.h"
 #include "PCGExPropertyCollectionComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Core/PCGExValencyLog.h"
 #include "Core/PCGExValencyOrbitalSet.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Engine/StaticMeshSocket.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyBuilder"
@@ -314,7 +314,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 
 		// Build a map of mesh sockets from effective assets for both auto-extraction and transform matching
 		TMap<FName, FTransform> MeshSocketTransforms; // SocketName -> Transform
-		UPCGExSocketRules* EffectiveSocketRules = Cage->GetEffectiveSocketRules();
+		UPCGExValencySocketRules* EffectiveSocketRules = Cage->GetEffectiveSocketRules();
 
 		// Collect mesh sockets from all effective assets
 		for (const FPCGExValencyAssetEntry& AssetEntry : Data.AssetEntries)
@@ -353,7 +353,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 						{
 							// Check if we already have this socket (avoid duplicates)
 							bool bAlreadyExists = false;
-							for (const FPCGExModuleSocket& Existing : Data.Sockets)
+							for (const FPCGExValencyModuleSocket& Existing : Data.Sockets)
 							{
 								if (Existing.SocketName == MeshSocket->SocketName)
 								{
@@ -364,7 +364,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 
 							if (!bAlreadyExists)
 							{
-								FPCGExModuleSocket AutoSocket;
+								FPCGExValencyModuleSocket AutoSocket;
 								AutoSocket.SocketName = MeshSocket->SocketName;
 								AutoSocket.SocketType = MatchedType;
 								AutoSocket.LocalOffset = SocketTransform;
@@ -385,10 +385,10 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 		const int32 AutoExtractedCount = Data.Sockets.Num();
 
 		// Phase 2: Collect socket components (can override auto-extracted)
-		TArray<UPCGExCageSocketComponent*> SocketComponents;
+		TArray<UPCGExValencyCageSocketComponent*> SocketComponents;
 		Cage->GetSocketComponents(SocketComponents);
 
-		for (const UPCGExCageSocketComponent* SocketComp : SocketComponents)
+		for (const UPCGExValencyCageSocketComponent* SocketComp : SocketComponents)
 		{
 			if (!SocketComp || !SocketComp->bEnabled)
 			{
@@ -431,7 +431,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 				if (SocketComp->bOverrideAutoExtracted)
 				{
 					// Replace the auto-extracted socket with component data
-					FPCGExModuleSocket& ExistingSocket = Data.Sockets[ExistingIndex];
+					FPCGExValencyModuleSocket& ExistingSocket = Data.Sockets[ExistingIndex];
 					ExistingSocket.SocketType = SocketComp->SocketType;
 					ExistingSocket.LocalOffset = SocketTransform;
 					ExistingSocket.bOverrideOffset = true;
@@ -448,7 +448,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 			else
 			{
 				// New socket from component
-				FPCGExModuleSocket ModuleSocket;
+				FPCGExValencyModuleSocket ModuleSocket;
 				ModuleSocket.SocketName = SocketComp->SocketName;
 				ModuleSocket.SocketType = SocketComp->SocketType;
 				ModuleSocket.LocalOffset = SocketTransform;

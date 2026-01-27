@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 
-#include "PCGExSocketRules.generated.h"
+#include "PCGExValencySocketRules.generated.h"
 
 /**
  * Packed socket reference utilities.
@@ -15,7 +15,7 @@
  *   - Bits 16-31: Socket entry index within the rules
  *   - Bits 32-63: Reserved for future use
  */
-namespace PCGExSocket
+namespace PCGExValencySocket
 {
 	/** Invalid socket reference sentinel */
 	constexpr int64 INVALID_SOCKET = -1;
@@ -51,7 +51,7 @@ namespace PCGExSocket
  * Unlike directional orbitals, sockets are matched by type rather than spatial direction.
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
+struct PCGEXELEMENTSVALENCY_API FPCGExValencySocketDefinition
 {
 	GENERATED_BODY()
 
@@ -94,7 +94,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
 	/** Bit index in compatibility mask (0-63, assigned at compile time) */
 	int32 BitIndex = -1;
 
-	FPCGExSocketDefinition()
+	FPCGExValencySocketDefinition()
 	{
 #if WITH_EDITOR
 		TypeId = GetTypeHash(FGuid::NewGuid());
@@ -107,7 +107,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
 		return DisplayName.IsEmpty() ? FText::FromName(SocketType) : DisplayName;
 	}
 
-	bool operator==(const FPCGExSocketDefinition& Other) const
+	bool operator==(const FPCGExValencySocketDefinition& Other) const
 	{
 		return SocketType == Other.SocketType;
 	}
@@ -122,8 +122,8 @@ struct PCGEXELEMENTSVALENCY_API FPCGExSocketDefinition
  * - Mesh socket extraction: UStaticMesh sockets as connection points
  * - Non-directional module connections
  */
-UCLASS(BlueprintType, DisplayName="[PCGEx] Socket Rules")
-class PCGEXELEMENTSVALENCY_API UPCGExSocketRules : public UDataAsset
+UCLASS(BlueprintType, DisplayName="[PCGEx] Valency | Socket Rules")
+class PCGEXELEMENTSVALENCY_API UPCGExValencySocketRules : public UDataAsset
 {
 	GENERATED_BODY()
 
@@ -137,7 +137,7 @@ public:
 	 * Each socket type can be marked compatible with other types via the compatibility matrix.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta = (TitleProperty = "{SocketType}"))
-	TArray<FPCGExSocketDefinition> SocketTypes;
+	TArray<FPCGExValencySocketDefinition> SocketTypes;
 
 	/**
 	 * Compatibility matrix as bitmasks.
@@ -299,7 +299,7 @@ public:
  * - The solver then works identically to directional orbitals
  */
 USTRUCT(BlueprintType)
-struct PCGEXELEMENTSVALENCY_API FPCGExModuleSocket
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleSocket
 {
 	GENERATED_BODY()
 
@@ -334,16 +334,16 @@ struct PCGEXELEMENTSVALENCY_API FPCGExModuleSocket
 	 * @param SocketRules The socket rules asset containing default offsets
 	 * @return LocalOffset if bOverrideOffset is true, otherwise the default from SocketRules
 	 */
-	FTransform GetEffectiveOffset(const UPCGExSocketRules* SocketRules) const;
+	FTransform GetEffectiveOffset(const UPCGExValencySocketRules* SocketRules) const;
 
-	bool operator==(const FPCGExModuleSocket& Other) const
+	bool operator==(const FPCGExValencyModuleSocket& Other) const
 	{
 		return SocketName == Other.SocketName && SocketType == Other.SocketType;
 	}
 };
 
-/** Hash function for FPCGExModuleSocket */
-FORCEINLINE uint32 GetTypeHash(const FPCGExModuleSocket& Socket)
+/** Hash function for FPCGExValencyModuleSocket */
+FORCEINLINE uint32 GetTypeHash(const FPCGExValencyModuleSocket& Socket)
 {
 	return HashCombine(GetTypeHash(Socket.SocketName), GetTypeHash(Socket.SocketType));
 }

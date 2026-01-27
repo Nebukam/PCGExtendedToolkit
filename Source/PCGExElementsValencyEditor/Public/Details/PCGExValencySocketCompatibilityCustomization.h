@@ -7,13 +7,13 @@
 #include "IPropertyTypeCustomization.h"
 #include "Widgets/SCompoundWidget.h"
 
-class UPCGExSocketRules;
+class UPCGExValencySocketRules;
 
 /**
- * Customization for FPCGExSocketDefinition.
+ * Customization for FPCGExValencySocketDefinition.
  * Displays CompatibleTypeIds as a dropdown multi-select showing socket type names.
  */
-class FPCGExSocketDefinitionCustomization : public IPropertyTypeCustomization
+class FPCGExValencySocketDefinitionCustomization : public IPropertyTypeCustomization
 {
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
@@ -29,31 +29,31 @@ public:
 		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
 private:
-	/** Get the owning UPCGExSocketRules from the property handle */
-	UPCGExSocketRules* GetOuterSocketRules(TSharedRef<IPropertyHandle> PropertyHandle) const;
+	/** Get the owning UPCGExValencySocketRules from the property handle */
+	UPCGExValencySocketRules* GetOuterSocketRules(TSharedRef<IPropertyHandle> PropertyHandle) const;
 
 	/** Build the compatibility dropdown widget */
 	TSharedRef<SWidget> BuildCompatibilityDropdown(
 		TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle,
-		UPCGExSocketRules* SocketRules,
+		UPCGExValencySocketRules* SocketRules,
 		int32 CurrentTypeId);
 
 	/** Get summary text for the dropdown button */
 	FText GetCompatibilitySummary(
 		TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle,
-		UPCGExSocketRules* SocketRules) const;
+		UPCGExValencySocketRules* SocketRules) const;
 };
 
 /**
  * Widget for the compatibility dropdown menu content.
  * Shows checkboxes for each socket type with search filtering.
  */
-class SSocketCompatibilityDropdown : public SCompoundWidget
+class SValencySocketCompatibilityDropdown : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SSocketCompatibilityDropdown) {}
+	SLATE_BEGIN_ARGS(SValencySocketCompatibilityDropdown) {}
 		SLATE_ARGUMENT(TSharedPtr<IPropertyHandle>, CompatibleTypeIdsHandle)
-		SLATE_ARGUMENT(UPCGExSocketRules*, SocketRules)
+		SLATE_ARGUMENT(UPCGExValencySocketRules*, SocketRules)
 		SLATE_ARGUMENT(int32, CurrentTypeId)
 	SLATE_END_ARGS()
 
@@ -82,7 +82,7 @@ private:
 	void OnSelfOnly();
 
 	TSharedPtr<IPropertyHandle> CompatibleTypeIdsHandle;
-	TWeakObjectPtr<UPCGExSocketRules> SocketRulesWeak;
+	TWeakObjectPtr<UPCGExValencySocketRules> SocketRulesWeak;
 	int32 CurrentTypeId = 0;
 	FString SearchFilter;
 

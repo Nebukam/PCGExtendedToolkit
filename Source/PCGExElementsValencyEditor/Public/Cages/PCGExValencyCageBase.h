@@ -11,7 +11,7 @@
 
 #include "PCGExValencyCageBase.generated.h"
 
-class UPCGExSocketRules;
+class UPCGExValencySocketRules;
 
 class AValencyContextVolume;
 class FValencyDirtyStateManager;
@@ -221,16 +221,16 @@ public:
 	 * If not set, uses the SocketRules from containing volume(s) or BondingRules.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Sockets", AdvancedDisplay)
-	TObjectPtr<UPCGExSocketRules> SocketRulesOverride;
+	TObjectPtr<UPCGExValencySocketRules> SocketRulesOverride;
 
 	/** Get the effective socket rules (from volume, bonding rules, or override) */
-	UPCGExSocketRules* GetEffectiveSocketRules() const;
+	UPCGExValencySocketRules* GetEffectiveSocketRules() const;
 
 	/**
 	 * Get all socket components attached to this cage.
 	 * @param OutComponents Array to fill with socket components
 	 */
-	void GetSocketComponents(TArray<class UPCGExCageSocketComponent*>& OutComponents) const;
+	void GetSocketComponents(TArray<class UPCGExValencyCageSocketComponent*>& OutComponents) const;
 
 	/** Check if this cage has any socket components */
 	bool HasSockets() const;
@@ -243,14 +243,14 @@ public:
 	 * @param SocketName The socket name to search for
 	 * @return Pointer to the component, or nullptr if not found
 	 */
-	class UPCGExCageSocketComponent* FindSocketByName(const FName& SocketName) const;
+	class UPCGExValencyCageSocketComponent* FindSocketByName(const FName& SocketName) const;
 
 	/**
 	 * Find a socket component by type (returns first match).
 	 * @param SocketType The socket type to search for
 	 * @return Pointer to the component, or nullptr if not found
 	 */
-	class UPCGExCageSocketComponent* FindSocketByType(const FName& SocketType) const;
+	class UPCGExValencyCageSocketComponent* FindSocketByType(const FName& SocketType) const;
 
 	/**
 	 * Create socket components from a static mesh asset.

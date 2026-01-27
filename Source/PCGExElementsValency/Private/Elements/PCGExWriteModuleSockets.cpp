@@ -3,7 +3,7 @@
 
 #include "Elements/PCGExWriteModuleSockets.h"
 
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Core/PCGExValencyBondingRules.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -171,7 +171,7 @@ namespace PCGExWriteModuleSockets
 			if (ModuleIndex >= 0 && ModuleIndex < Context->BondingRules->Modules.Num())
 			{
 				const FPCGExValencyModuleDefinition& Module = Context->BondingRules->Modules[ModuleIndex];
-				for (const FPCGExModuleSocket& Socket : Module.Sockets)
+				for (const FPCGExValencyModuleSocket& Socket : Module.Sockets)
 				{
 					if (Socket.bIsOutputSocket)
 					{
@@ -200,7 +200,7 @@ namespace PCGExWriteModuleSockets
 
 		// Create output attributes
 		FPCGMetadataAttribute<int64>* SocketRefAttr = SocketOutput->CreateAttribute<int64>(
-			Settings->SocketOutputAttributeName, PCGExSocket::INVALID_SOCKET, true, true);
+			Settings->SocketOutputAttributeName, PCGExValencySocket::INVALID_SOCKET, true, true);
 
 		FPCGMetadataAttribute<int32>* SourceIndexAttr = nullptr;
 		if (Settings->bOutputSourceIndex)
@@ -244,7 +244,7 @@ namespace PCGExWriteModuleSockets
 
 			for (int32 SocketDefIdx = 0; SocketDefIdx < Module.Sockets.Num(); ++SocketDefIdx)
 			{
-				const FPCGExModuleSocket& Socket = Module.Sockets[SocketDefIdx];
+				const FPCGExValencyModuleSocket& Socket = Module.Sockets[SocketDefIdx];
 				if (!Socket.bIsOutputSocket)
 				{
 					continue;
@@ -259,7 +259,7 @@ namespace PCGExWriteModuleSockets
 
 				// Write socket reference
 				const int32 SocketTypeIndex = Context->SocketRules->FindSocketTypeIndex(Socket.SocketType);
-				const int64 PackedRef = (SocketTypeIndex >= 0) ? PCGExSocket::Pack(0, static_cast<uint16>(SocketTypeIndex)) : PCGExSocket::INVALID_SOCKET;
+				const int64 PackedRef = (SocketTypeIndex >= 0) ? PCGExValencySocket::Pack(0, static_cast<uint16>(SocketTypeIndex)) : PCGExValencySocket::INVALID_SOCKET;
 				SocketRefAttr->SetValue(SocketIndex, PackedRef);
 
 				// Write optional attributes

@@ -132,9 +132,9 @@ bool UPCGExValencyBondingRules::Compile()
 			PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
 			OrbitalResolver.BuildFrom(PrimaryOrbitalSet);
 
-			for (const FPCGExModuleSocket& Socket : Module.Sockets)
+			for (const FPCGExValencyModuleSocket& Socket : Module.Sockets)
 			{
-				FPCGExModuleSocket CompiledSocket = Socket;
+				FPCGExValencyModuleSocket CompiledSocket = Socket;
 
 				// Compute orbital index from socket direction
 				// The socket's LocalOffset translation defines its position relative to module origin

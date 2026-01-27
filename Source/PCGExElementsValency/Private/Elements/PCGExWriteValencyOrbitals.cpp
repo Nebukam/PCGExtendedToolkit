@@ -4,7 +4,7 @@
 #include "Elements/PCGExWriteValencyOrbitals.h"
 
 #include "Core/PCGExCachedOrbitalCache.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Core/PCGExValencyOrbitalCache.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
@@ -319,11 +319,11 @@ namespace PCGExWriteValencyOrbitals
 						// Read the packed socket reference for this edge
 						const int64 PackedSocket = SocketReader->Read(EdgeIndex);
 
-						if (PCGExSocket::IsValid(PackedSocket))
+						if (PCGExValencySocket::IsValid(PackedSocket))
 						{
 							// Extract socket index from packed reference
 							// Note: RulesIndex is ignored here - we assume single SocketRules context
-							const uint16 SocketTypeIndex = PCGExSocket::GetSocketIndex(PackedSocket);
+							const uint16 SocketTypeIndex = PCGExValencySocket::GetSocketIndex(PackedSocket);
 
 							// Map socket type to orbital index
 							if (SocketTypeIndex < MaxSocketTypes && SocketToOrbital.IsValidIndex(SocketTypeIndex))

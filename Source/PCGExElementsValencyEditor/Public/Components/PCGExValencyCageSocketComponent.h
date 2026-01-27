@@ -6,9 +6,9 @@
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 
-#include "PCGExCageSocketComponent.generated.h"
+#include "PCGExValencyCageSocketComponent.generated.h"
 
-class UPCGExSocketRules;
+class UPCGExValencySocketRules;
 class UStaticMesh;
 
 /**
@@ -27,12 +27,12 @@ class UStaticMesh;
  * - Actor component architecture (attach to any cage)
  */
 UCLASS(BlueprintType, ClassGroup = PCGEx, meta = (BlueprintSpawnableComponent), HideCategories = (Mobility, LOD, Collision, Physics, Rendering, Navigation, Cooking))
-class PCGEXELEMENTSVALENCYEDITOR_API UPCGExCageSocketComponent : public USceneComponent
+class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageSocketComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExCageSocketComponent();
+	UPCGExValencyCageSocketComponent();
 
 	//~ Begin UActorComponent Interface
 	virtual void OnRegister() override;
@@ -111,7 +111,7 @@ public:
 	 * @param SocketRules Optional socket rules to get default color from
 	 * @return DebugColorOverride if set (non-zero alpha), otherwise color from SocketRules or white
 	 */
-	FLinearColor GetEffectiveDebugColor(const UPCGExSocketRules* SocketRules) const;
+	FLinearColor GetEffectiveDebugColor(const UPCGExValencySocketRules* SocketRules) const;
 
 	/**
 	 * Get the socket's world transform (same as component world transform).

@@ -1,13 +1,13 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSocketRules"
+#define LOCTEXT_NAMESPACE "PCGExValencySocketRules"
 
-#pragma region UPCGExSocketRules
+#pragma region UPCGExValencySocketRules
 
-int32 UPCGExSocketRules::FindSocketTypeIndex(FName SocketType) const
+int32 UPCGExValencySocketRules::FindSocketTypeIndex(FName SocketType) const
 {
 	for (int32 i = 0; i < SocketTypes.Num(); ++i)
 	{
@@ -19,7 +19,7 @@ int32 UPCGExSocketRules::FindSocketTypeIndex(FName SocketType) const
 	return INDEX_NONE;
 }
 
-bool UPCGExSocketRules::AreTypesCompatible(int32 TypeIndexA, int32 TypeIndexB) const
+bool UPCGExValencySocketRules::AreTypesCompatible(int32 TypeIndexA, int32 TypeIndexB) const
 {
 	if (!CompatibilityMatrix.IsValidIndex(TypeIndexA) || TypeIndexB < 0 || TypeIndexB >= 64)
 	{
@@ -30,12 +30,12 @@ bool UPCGExSocketRules::AreTypesCompatible(int32 TypeIndexA, int32 TypeIndexB) c
 	return (Mask & (1LL << TypeIndexB)) != 0;
 }
 
-int64 UPCGExSocketRules::GetCompatibilityMask(int32 TypeIndex) const
+int64 UPCGExValencySocketRules::GetCompatibilityMask(int32 TypeIndex) const
 {
 	return CompatibilityMatrix.IsValidIndex(TypeIndex) ? CompatibilityMatrix[TypeIndex] : 0;
 }
 
-void UPCGExSocketRules::Compile()
+void UPCGExValencySocketRules::Compile()
 {
 	// Assign bit indices to socket types
 	const int32 NumTypes = FMath::Min(SocketTypes.Num(), 64);
@@ -47,7 +47,7 @@ void UPCGExSocketRules::Compile()
 	// Warn if we have more than 64 types (excess will be ignored)
 	if (SocketTypes.Num() > 64)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UPCGExSocketRules '%s': More than 64 socket types defined. Only the first 64 will be usable."), *GetName());
+		UE_LOG(LogTemp, Warning, TEXT("UPCGExValencySocketRules '%s': More than 64 socket types defined. Only the first 64 will be usable."), *GetName());
 	}
 
 #if WITH_EDITOR
@@ -67,7 +67,7 @@ void UPCGExSocketRules::Compile()
 #endif
 }
 
-bool UPCGExSocketRules::Validate(TArray<FText>& OutErrors) const
+bool UPCGExValencySocketRules::Validate(TArray<FText>& OutErrors) const
 {
 	bool bValid = true;
 
@@ -119,7 +119,7 @@ bool UPCGExSocketRules::Validate(TArray<FText>& OutErrors) const
 	return bValid;
 }
 
-void UPCGExSocketRules::SetCompatibility(int32 TypeIndexA, int32 TypeIndexB, bool bBidirectional)
+void UPCGExValencySocketRules::SetCompatibility(int32 TypeIndexA, int32 TypeIndexB, bool bBidirectional)
 {
 	if (!SocketTypes.IsValidIndex(TypeIndexA) || !SocketTypes.IsValidIndex(TypeIndexB))
 	{
@@ -142,7 +142,7 @@ void UPCGExSocketRules::SetCompatibility(int32 TypeIndexA, int32 TypeIndexB, boo
 	}
 }
 
-void UPCGExSocketRules::ClearCompatibility()
+void UPCGExValencySocketRules::ClearCompatibility()
 {
 	for (int64& Mask : CompatibilityMatrix)
 	{
@@ -150,7 +150,7 @@ void UPCGExSocketRules::ClearCompatibility()
 	}
 }
 
-void UPCGExSocketRules::InitializeSelfCompatible()
+void UPCGExValencySocketRules::InitializeSelfCompatible()
 {
 	Compile(); // Ensure proper sizing
 
@@ -161,7 +161,7 @@ void UPCGExSocketRules::InitializeSelfCompatible()
 }
 
 #if WITH_EDITOR
-int32 UPCGExSocketRules::FindSocketTypeIndexById(int32 TypeId) const
+int32 UPCGExValencySocketRules::FindSocketTypeIndexById(int32 TypeId) const
 {
 	for (int32 i = 0; i < SocketTypes.Num(); ++i)
 	{
@@ -173,19 +173,19 @@ int32 UPCGExSocketRules::FindSocketTypeIndexById(int32 TypeId) const
 	return INDEX_NONE;
 }
 
-FName UPCGExSocketRules::GetSocketTypeNameById(int32 TypeId) const
+FName UPCGExValencySocketRules::GetSocketTypeNameById(int32 TypeId) const
 {
 	const int32 Index = FindSocketTypeIndexById(TypeId);
 	return SocketTypes.IsValidIndex(Index) ? SocketTypes[Index].SocketType : NAME_None;
 }
 
-FText UPCGExSocketRules::GetSocketTypeDisplayNameById(int32 TypeId) const
+FText UPCGExValencySocketRules::GetSocketTypeDisplayNameById(int32 TypeId) const
 {
 	const int32 Index = FindSocketTypeIndexById(TypeId);
 	return SocketTypes.IsValidIndex(Index) ? SocketTypes[Index].GetDisplayName() : FText::GetEmpty();
 }
 
-void UPCGExSocketRules::BuildCompatibilityMatrixFromTypeIds()
+void UPCGExValencySocketRules::BuildCompatibilityMatrixFromTypeIds()
 {
 	const int32 NumTypes = FMath::Min(SocketTypes.Num(), 64);
 
@@ -199,7 +199,7 @@ void UPCGExSocketRules::BuildCompatibilityMatrixFromTypeIds()
 	// Build bitmask from each type's CompatibleTypeIds
 	for (int32 TypeIndexA = 0; TypeIndexA < NumTypes; ++TypeIndexA)
 	{
-		const FPCGExSocketDefinition& TypeA = SocketTypes[TypeIndexA];
+		const FPCGExValencySocketDefinition& TypeA = SocketTypes[TypeIndexA];
 
 		for (const int32 CompatibleTypeId : TypeA.CompatibleTypeIds)
 		{
@@ -213,9 +213,9 @@ void UPCGExSocketRules::BuildCompatibilityMatrixFromTypeIds()
 	}
 }
 
-void UPCGExSocketRules::InitializeSelfCompatibleTypeIds()
+void UPCGExValencySocketRules::InitializeSelfCompatibleTypeIds()
 {
-	for (FPCGExSocketDefinition& TypeDef : SocketTypes)
+	for (FPCGExValencySocketDefinition& TypeDef : SocketTypes)
 	{
 		TypeDef.CompatibleTypeIds.Reset();
 		TypeDef.CompatibleTypeIds.Add(TypeDef.TypeId);
@@ -224,18 +224,18 @@ void UPCGExSocketRules::InitializeSelfCompatibleTypeIds()
 	Compile();
 }
 
-void UPCGExSocketRules::InitializeAllCompatibleTypeIds()
+void UPCGExValencySocketRules::InitializeAllCompatibleTypeIds()
 {
 	// Collect all TypeIds first
 	TArray<int32> AllTypeIds;
 	AllTypeIds.Reserve(SocketTypes.Num());
-	for (const FPCGExSocketDefinition& TypeDef : SocketTypes)
+	for (const FPCGExValencySocketDefinition& TypeDef : SocketTypes)
 	{
 		AllTypeIds.Add(TypeDef.TypeId);
 	}
 
 	// Set all types to be compatible with all other types
-	for (FPCGExSocketDefinition& TypeDef : SocketTypes)
+	for (FPCGExValencySocketDefinition& TypeDef : SocketTypes)
 	{
 		TypeDef.CompatibleTypeIds = AllTypeIds;
 	}
@@ -244,7 +244,7 @@ void UPCGExSocketRules::InitializeAllCompatibleTypeIds()
 }
 #endif
 
-FName UPCGExSocketRules::FindMatchingSocketType(const FName& MeshSocketName, const FString& MeshSocketTag) const
+FName UPCGExValencySocketRules::FindMatchingSocketType(const FName& MeshSocketName, const FString& MeshSocketTag) const
 {
 	if (SocketTypes.Num() == 0)
 	{
@@ -255,7 +255,7 @@ FName UPCGExSocketRules::FindMatchingSocketType(const FName& MeshSocketName, con
 	if (!MeshSocketTag.IsEmpty())
 	{
 		const FName TagAsName = FName(*MeshSocketTag);
-		for (const FPCGExSocketDefinition& TypeDef : SocketTypes)
+		for (const FPCGExValencySocketDefinition& TypeDef : SocketTypes)
 		{
 			if (TypeDef.SocketType == TagAsName)
 			{
@@ -265,7 +265,7 @@ FName UPCGExSocketRules::FindMatchingSocketType(const FName& MeshSocketName, con
 	}
 
 	// Priority 2: Socket name exactly matches a socket type name
-	for (const FPCGExSocketDefinition& TypeDef : SocketTypes)
+	for (const FPCGExValencySocketDefinition& TypeDef : SocketTypes)
 	{
 		if (TypeDef.SocketType == MeshSocketName)
 		{
@@ -280,7 +280,7 @@ FName UPCGExSocketRules::FindMatchingSocketType(const FName& MeshSocketName, con
 	FName BestMatch = NAME_None;
 	int32 BestMatchLength = 0;
 
-	for (const FPCGExSocketDefinition& TypeDef : SocketTypes)
+	for (const FPCGExValencySocketDefinition& TypeDef : SocketTypes)
 	{
 		const FString TypeNameStr = TypeDef.SocketType.ToString();
 		const int32 TypeLen = TypeNameStr.Len();
@@ -304,14 +304,14 @@ FName UPCGExSocketRules::FindMatchingSocketType(const FName& MeshSocketName, con
 }
 
 #if WITH_EDITOR
-void UPCGExSocketRules::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExValencySocketRules::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	const FName PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 
 	// Auto-compile when socket types or compatibility changes
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExSocketRules, SocketTypes))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExValencySocketRules, SocketTypes))
 	{
 		Compile();
 	}
@@ -320,9 +320,9 @@ void UPCGExSocketRules::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 
 #pragma endregion
 
-#pragma region FPCGExModuleSocket
+#pragma region FPCGExValencyModuleSocket
 
-FTransform FPCGExModuleSocket::GetEffectiveOffset(const UPCGExSocketRules* SocketRules) const
+FTransform FPCGExValencyModuleSocket::GetEffectiveOffset(const UPCGExValencySocketRules* SocketRules) const
 {
 	if (bOverrideOffset)
 	{

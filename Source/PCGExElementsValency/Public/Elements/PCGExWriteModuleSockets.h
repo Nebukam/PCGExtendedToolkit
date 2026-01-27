@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Core/PCGExValencyProcessor.h"
-#include "Core/PCGExSocketRules.h"
+#include "Core/PCGExValencySocketRules.h"
 #include "Data/PCGExPointIO.h"
 
 #include "PCGExWriteModuleSockets.generated.h"
@@ -50,7 +50,7 @@ public:
 	 * Required for socket type → index mapping and compatibility data.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExSocketRules> SocketRules;
+	TSoftObjectPtr<UPCGExValencySocketRules> SocketRules;
 
 	/**
 	 * Attribute name for the module data (from staging output).
@@ -105,7 +105,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExWriteModuleSocketsContext final : FPCGExVa
 	virtual void RegisterAssetDependencies() override;
 
 	/** Socket rules (for type → index mapping) */
-	TObjectPtr<UPCGExSocketRules> SocketRules;
+	TObjectPtr<UPCGExValencySocketRules> SocketRules;
 
 	/** Output point collection for sockets */
 	TSharedPtr<PCGExData::FPointIOCollection> SocketOutputCollection;
