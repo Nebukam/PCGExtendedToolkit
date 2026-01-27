@@ -50,6 +50,7 @@ protected:
 public:
 	virtual bool SupportsEdgeSorting() const;
 	virtual bool RequiresEdgeSorting() const;
+	
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const;
 

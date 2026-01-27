@@ -32,7 +32,9 @@ bool FPCGExTopologyClusterSurfaceElement::AdvanceWork(FPCGExContext* InContext, 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		if (!Context->StartProcessingClusters(
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
 			NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
 		}))

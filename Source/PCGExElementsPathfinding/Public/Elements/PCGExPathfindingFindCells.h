@@ -4,11 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Clusters/Artifacts/PCGExCell.h"
 #include "Clusters/Artifacts/PCGExCellDetails.h"
 #include "Containers/PCGExScopedContainers.h"
 
 #include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
+#include "Helpers/PCGExCellSeedOwnership.h"
+#include "Sorting/PCGExSortingCommon.h"
 
 #include "PCGExPathfindingFindCells.generated.h"
 
@@ -58,6 +61,7 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
@@ -71,12 +75,36 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
 
+	/** How to determine seed ownership when multiple seeds compete for a cell. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExCellSeedOwnership SeedOwnership = EPCGExCellSeedOwnership::SeedOrder;
+
+	/** Sort direction when using Best Candidate ownership. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Sort Direction", EditCondition="SeedOwnership==EPCGExCellSeedOwnership::BestCandidate", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
 
 	/** Cell output settings (output mode, attributes, OBB settings) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellArtifactsDetails Artifacts;
+
+	/** Seed growth settings. Expands seed selection to adjacent cells. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable))
+	FPCGExCellGrowthDetails SeedGrowth;
+
+	/** If true, write expansion metadata to output cells */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteExpansionAttributes = false;
+
+	/** Attribute name for pick count (how many times a cell was selected by seeds/growth) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	FName PickCountAttributeName = FName("PCGEx/PickCount");
+
+	/** Attribute name for depth (minimum depth at which cell was picked, 0 = direct seed) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	FName DepthAttributeName = FName("PCGEx/Depth");
 
 	/** Output a filtered set of points containing only seeds that generated a valid path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -111,8 +139,10 @@ struct FPCGExFindContoursContext final : FPCGExClustersProcessorContext
 	friend class FPCGExCreateBridgeTask;
 
 	FPCGExCellArtifactsDetails Artifacts;
+	FPCGExCellGrowthDetails SeedGrowth;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
+	TSharedPtr<PCGExCells::FSeedOwnershipHandler> SeedOwnership;
 
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 	TSharedPtr<PCGExData::FPointIOCollection> OutputCellBounds;
@@ -152,6 +182,11 @@ namespace PCGExFindContours
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIOIndices;
 
+		// Expansion tracking
+		TMap<int32, PCGExClusters::FCellExpansionData> CellExpansionMap; // FaceIndex -> ExpansionData
+		TMap<int32, TSharedPtr<PCGExClusters::FCell>> FaceIndexToCellMap; // FaceIndex -> Cell
+		TMap<int32, TSet<int32>> CellAdjacencyMap; // Cached adjacency
+
 	public:
 		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
 
@@ -169,6 +204,9 @@ namespace PCGExFindContours
 		virtual void OnRangeProcessingComplete() override;
 
 		void HandleWrapperOnlyCase(const int32 NumSeeds);
+
+		/** Expand from a seed's initial cell to adjacent cells up to growth depth */
+		void ExpandSeedToAdjacentCells(int32 SeedIndex, int32 InitialFaceIndex, int32 MaxGrowth);
 
 		virtual void Cleanup() override;
 	};
