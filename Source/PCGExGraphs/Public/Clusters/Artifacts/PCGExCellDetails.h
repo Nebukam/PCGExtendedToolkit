@@ -8,6 +8,7 @@
 #include "Clusters/PCGExEdge.h"
 
 #include "Details/PCGExInputShorthandsDetails.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Math/PCGExWinding.h"
 #include "Math/PCGExMathAxis.h"
 #include "Types/PCGExAttributeIdentity.h"
@@ -506,9 +507,7 @@ struct PCGEXGRAPHS_API FPCGExCellGrowthDetails
 {
 	GENERATED_BODY()
 
-	FPCGExCellGrowthDetails()
-	{
-	}
+	FPCGExCellGrowthDetails() = default;
 
 	explicit FPCGExCellGrowthDetails(const int32 DefaultGrowth)
 	{
@@ -519,24 +518,29 @@ struct PCGEXGRAPHS_API FPCGExCellGrowthDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorInteger32Abs Growth = FPCGExInputShorthandSelectorInteger32Abs(FName("Growth"), 0);
 
-	/** Initialize the growth reader from a facade (for per-point growth values) */
+	/** Initialize the growth reader from a facade (for per-point growth values). Captures min/max. */
 	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade);
 
 	/** Get growth value for a specific point index */
-	int32 GetGrowth(int32 PointIndex) const;
+	FORCEINLINE int32 GetGrowth(const int32 PointIndex) const
+	{
+		return GrowthValue ? FMath::Max(0, GrowthValue->Read(PointIndex)) : 0;
+	}
 
-	/** Check if any growth is possible (constant > 0 or attribute mode) */
-	bool HasPotentialGrowth() const;
+	/** Check if any growth is possible (max > 0) */
+	FORCEINLINE bool HasPotentialGrowth() const
+	{
+		return GrowthValue && GrowthValue->Max() > 0;
+	}
 
 	/** Get the maximum possible growth value (for pre-allocation) */
-	int32 GetMaxGrowth() const;
+	FORCEINLINE int32 GetMaxGrowth() const
+	{
+		return GrowthValue ? FMath::Max(0, GrowthValue->Max()) : 0;
+	}
 
 private:
-	TSharedPtr<PCGExData::TBuffer<int32>> GrowthBuffer;
-	int32 ConstantGrowth = 0;
-	int32 MaxGrowthValue = 0;
-	bool bUseConstant = true;
-	bool bInitialized = false;
+	TSharedPtr<PCGExDetails::TSettingValue<int32>> GrowthValue;
 };
 
 namespace PCGExClusters

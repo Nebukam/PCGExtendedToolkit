@@ -169,7 +169,7 @@ namespace PCGExFindAllCells
 		{
 			// Build adjacency map
 			int32 WrapperFaceIndex = Enumerator->GetWrapperFaceIndex();
-			CellAdjacencyMap = Enumerator->BuildCellAdjacencyMap(WrapperFaceIndex);
+			CellAdjacencyMap = Enumerator->GetOrBuildAdjacencyMap(WrapperFaceIndex);
 
 			// Find cells that failed due to holes and expand exclusion
 			const int32 NumHoles = Context->HolesFacade->GetNum();

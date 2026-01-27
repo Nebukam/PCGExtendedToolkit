@@ -75,6 +75,12 @@ namespace PCGExClusters
 		TArray<FRawFace> CachedRawFaces;
 		bool bRawFacesEnumerated = false;
 
+		// Cached adjacency map (lazy-computed, thread-safe)
+		mutable FRWLock AdjacencyMapLock;
+		mutable TMap<int32, TSet<int32>> CachedAdjacencyMap;
+		mutable int32 CachedAdjacencyWrapperIndex = INDEX_NONE;
+		mutable bool bAdjacencyMapCached = false;
+
 	public:
 		FPlanarFaceEnumerator() = default;
 
@@ -179,6 +185,14 @@ namespace PCGExClusters
 		 * @return Map of FaceIndex -> Set of adjacent FaceIndices
 		 */
 		TMap<int32, TSet<int32>> BuildCellAdjacencyMap(int32 WrapperFaceIndex = -1) const;
+
+		/**
+		 * Get or build cached adjacency map for all faces.
+		 * Lazy-computes on first call, returns cached result on subsequent calls.
+		 * @param WrapperFaceIndex Optional face index to exclude from adjacency (typically the unbounded exterior face)
+		 * @return Reference to cached map of FaceIndex -> Set of adjacent FaceIndices
+		 */
+		const TMap<int32, TSet<int32>>& GetOrBuildAdjacencyMap(int32 WrapperFaceIndex = -1) const;
 
 		/**
 		 * Get adjacent face indices for a specific face.

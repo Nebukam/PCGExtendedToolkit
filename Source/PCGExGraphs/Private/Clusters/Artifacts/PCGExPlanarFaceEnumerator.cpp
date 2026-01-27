@@ -719,6 +719,35 @@ namespace PCGExClusters
 		return AdjacencyMap;
 	}
 
+	const TMap<int32, TSet<int32>>& FPlanarFaceEnumerator::GetOrBuildAdjacencyMap(int32 WrapperFaceIndex) const
+	{
+		// Fast path: check if already cached with same wrapper index
+		{
+			FRWScopeLock ReadLock(AdjacencyMapLock, SLT_ReadOnly);
+			if (bAdjacencyMapCached && CachedAdjacencyWrapperIndex == WrapperFaceIndex)
+			{
+				return CachedAdjacencyMap;
+			}
+		}
+
+		// Slow path: need to build or rebuild
+		{
+			FRWScopeLock WriteLock(AdjacencyMapLock, SLT_Write);
+
+			// Double-check after acquiring write lock
+			if (bAdjacencyMapCached && CachedAdjacencyWrapperIndex == WrapperFaceIndex)
+			{
+				return CachedAdjacencyMap;
+			}
+
+			CachedAdjacencyMap = BuildCellAdjacencyMap(WrapperFaceIndex);
+			CachedAdjacencyWrapperIndex = WrapperFaceIndex;
+			bAdjacencyMapCached = true;
+		}
+
+		return CachedAdjacencyMap;
+	}
+
 	void FPlanarFaceEnumerator::GetAdjacentFaces(int32 FaceIndex, TArray<int32>& OutAdjacentFaces, int32 WrapperFaceIndex) const
 	{
 		OutAdjacentFaces.Reset();

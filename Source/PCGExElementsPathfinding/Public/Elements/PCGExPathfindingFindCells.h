@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Clusters/Artifacts/PCGExCell.h"
 #include "Clusters/Artifacts/PCGExCellDetails.h"
 #include "Containers/PCGExScopedContainers.h"
 
@@ -79,19 +80,19 @@ public:
 	FPCGExCellArtifactsDetails Artifacts;
 
 	/** Seed growth settings. Expands seed selection to adjacent cells. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable))
 	FPCGExCellGrowthDetails SeedGrowth;
 
 	/** If true, write expansion metadata to output cells */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion Attributes", meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteExpansionAttributes = false;
 
 	/** Attribute name for pick count (how many times a cell was selected by seeds/growth) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion Attributes", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
 	FName PickCountAttributeName = FName("PCGEx/PickCount");
 
 	/** Attribute name for depth (minimum depth at which cell was picked, 0 = direct seed) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion Attributes", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
 	FName DepthAttributeName = FName("PCGEx/Depth");
 
 	/** Output a filtered set of points containing only seeds that generated a valid path */
@@ -156,21 +157,6 @@ protected:
 
 namespace PCGExFindContours
 {
-	/** Expansion tracking data for a cell */
-	struct FCellExpansionData
-	{
-		int32 PickCount = 0;        // How many times this cell was selected
-		int32 MinDepth = MAX_int32; // Minimum depth at which selected (0 = direct seed)
-		TSet<int32> SourceSeeds;    // Which seed indices selected this cell
-
-		void RecordPick(int32 SeedIndex, int32 Depth)
-		{
-			PickCount++;
-			MinDepth = FMath::Min(MinDepth, Depth);
-			SourceSeeds.Add(SeedIndex);
-		}
-	};
-
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
 	protected:
@@ -185,7 +171,7 @@ namespace PCGExFindContours
 		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIOIndices;
 
 		// Expansion tracking
-		TMap<int32, FCellExpansionData> CellExpansionMap; // FaceIndex -> ExpansionData
+		TMap<int32, PCGExClusters::FCellExpansionData> CellExpansionMap; // FaceIndex -> ExpansionData
 		TMap<int32, TSharedPtr<PCGExClusters::FCell>> FaceIndexToCellMap; // FaceIndex -> Cell
 		TMap<int32, TSet<int32>> CellAdjacencyMap; // Cached adjacency
 

@@ -7,13 +7,16 @@
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "Blenders/PCGExUnionBlender.h"
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Clusters/Artifacts/PCGExCell.h"
 #include "Clusters/Artifacts/PCGExPlanarFaceEnumerator.h"
+#include "Math/PCGExMathDistances.h"
 #include "Graphs/PCGExGraph.h"
 #include "Graphs/PCGExGraphBuilder.h"
 #include "Helpers/PCGExMetaHelpers.h"
+#include "Sampling/PCGExSamplingUnionData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildCellDiagram"
 #define PCGEX_NAMESPACE BuildCellDiagram
@@ -48,6 +51,9 @@ bool FPCGExBuildCellDiagramElement::Boot(FPCGExContext* InContext) const
 		Context->Holes = MakeShared<PCGExClusters::FProjectedPointSet>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
 		Context->Holes->EnsureProjected();
 	}
+
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
 
 	return true;
 }
@@ -115,9 +121,9 @@ namespace PCGExBuildCellDiagram
 			return true;
 		}
 
-		// Build adjacency map
+		// Get adjacency map (cached in enumerator)
 		int32 WrapperFaceIndex = Enumerator->GetWrapperFaceIndex();
-		CellAdjacencyMap = Enumerator->BuildCellAdjacencyMap(WrapperFaceIndex);
+		CellAdjacencyMap = Enumerator->GetOrBuildAdjacencyMap(WrapperFaceIndex);
 
 		// Build FaceIndex -> OutputIndex mapping
 		for (int32 i = 0; i < NumCells; ++i)
@@ -129,51 +135,105 @@ namespace PCGExBuildCellDiagram
 		}
 
 		// Create output vertex data (cell centroids)
-		TSharedPtr<PCGExData::FPointIO> VtxIO = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
-		VtxIO->Tags->Reset();
-		VtxIO->IOIndex = BatchIndex;
-		PCGExClusters::Helpers::CleanupClusterData(VtxIO);
+		TSharedPtr<PCGExData::FPointIO> CentroidIO = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		CentroidIO->Tags->Reset();
+		CentroidIO->IOIndex = BatchIndex;
+		PCGExClusters::Helpers::CleanupClusterData(CentroidIO);
 
-		UPCGBasePointData* VtxPointData = VtxIO->GetOut();
-		PCGExPointArrayDataHelpers::SetNumPointsAllocated(VtxPointData, NumCells);
+		PCGExPointArrayDataHelpers::SetNumPointsAllocated(CentroidIO->GetOut(), NumCells);
+
+		CentroidFacade = MakeShared<PCGExData::FFacade>(CentroidIO.ToSharedRef());
+
+		// Create and initialize union blender
+		UnionBlender = MakeShared<PCGExBlending::FUnionBlender>(
+			const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails),
+			&Context->CarryOverDetails,
+			PCGExMath::GetNoneDistances());
+
+		TArray<TSharedRef<PCGExData::FFacade>> BlendSources;
+		BlendSources.Add(VtxDataFacade);
+		UnionBlender->AddSources(BlendSources, &PCGExClusters::Labels::ProtectedClusterAttributes);
+
+		if (!UnionBlender->Init(Context, CentroidFacade))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Failed to initialize blender for cell diagram."));
+		}
+
+		// Create attribute writers (after blender init so they aren't captured)
+		if (Settings->bWriteArea)
+		{
+			AreaWriter = CentroidFacade->GetWritable<double>(Settings->AreaAttributeName, 0.0, true, PCGExData::EBufferInit::New);
+		}
+
+		if (Settings->bWriteCompactness)
+		{
+			CompactnessWriter = CentroidFacade->GetWritable<double>(Settings->CompactnessAttributeName, 0.0, true, PCGExData::EBufferInit::New);
+		}
+
+		if (Settings->bWriteNumNodes)
+		{
+			NumNodesWriter = CentroidFacade->GetWritable<int32>(Settings->NumNodesAttributeName, 0, true, PCGExData::EBufferInit::New);
+		}
+
+		StartParallelLoopForRange(NumCells);
+
+		return true;
+	}
+
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	{
+		UPCGBasePointData* CentroidIO = CentroidFacade->GetOut();
 
 		// Get value ranges for writing
-		TPCGValueRange<FTransform> OutTransforms = VtxPointData->GetTransformValueRange();
-		TPCGValueRange<FVector> OutBoundsMin = VtxPointData->GetBoundsMinValueRange();
-		TPCGValueRange<FVector> OutBoundsMax = VtxPointData->GetBoundsMaxValueRange();
+		TPCGValueRange<FTransform> OutTransforms = CentroidIO->GetTransformValueRange();
+		TPCGValueRange<FVector> OutBoundsMin = CentroidIO->GetBoundsMinValueRange();
+		TPCGValueRange<FVector> OutBoundsMax = CentroidIO->GetBoundsMaxValueRange();
 
-		PCGEX_MAKE_SHARED(VtxFacade, PCGExData::FFacade, VtxIO.ToSharedRef())
+		// Write cell centroids and blend attributes using reset-able union data
+		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
+		UnionBlender->InitTrackers(Trackers);
 
-		// Create attribute writers
-		TSharedPtr<PCGExData::TBuffer<double>> AreaWriter = Settings->bWriteArea ?
-			VtxFacade->GetWritable<double>(PCGExMetaHelpers::MakeElementIdentifier(Settings->AreaAttributeName), 0.0, true, PCGExData::EBufferInit::New) : nullptr;
-		TSharedPtr<PCGExData::TBuffer<double>> CompactnessWriter = Settings->bWriteCompactness ?
-			VtxFacade->GetWritable<double>(PCGExMetaHelpers::MakeElementIdentifier(Settings->CompactnessAttributeName), 0.0, true, PCGExData::EBufferInit::New) : nullptr;
-		TSharedPtr<PCGExData::TBuffer<int32>> NumNodesWriter = Settings->bWriteNumNodes ?
-			VtxFacade->GetWritable<int32>(PCGExMetaHelpers::MakeElementIdentifier(Settings->NumNodesAttributeName), 0, true, PCGExData::EBufferInit::New) : nullptr;
+		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		const int32 SourceIOIndex = VtxDataFacade->Source->IOIndex;
 
-		// Write cell centroids as points
-		PCGEX_PARALLEL_FOR(
-			NumCells,
-			const TSharedPtr<PCGExClusters::FCell>& Cell = ValidCells[i];
-			if (!Cell) { return ; }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const TSharedPtr<PCGExClusters::FCell>& Cell = ValidCells[Index];
+			if (!Cell) { continue; }
 
 			// Set transform at centroid
 			FTransform Transform = FTransform::Identity;
 			Transform.SetLocation(Cell->Data.Centroid);
-			OutTransforms[i] = Transform;
+			OutTransforms[Index] = Transform;
 
 			// Set bounds
 			const FVector HalfExtent = Cell->Data.Bounds.GetExtent();
-			OutBoundsMin[i] = -HalfExtent;
-			OutBoundsMax[i] = HalfExtent;
+			OutBoundsMin[Index] = -HalfExtent;
+			OutBoundsMax[Index] = HalfExtent;
 
-			// Write attributes
-			if (AreaWriter) { AreaWriter->SetValue(i, Cell->Data.Area); }
-			if (CompactnessWriter) { CompactnessWriter->SetValue(i, Cell->Data.Compactness); }
-			if (NumNodesWriter) { NumNodesWriter->SetValue(i, Cell->Nodes.Num()); }
-		)
+			// Blend attributes from cell vertices using reset-able union data
+			Union->Reset();
+			Union->Reserve(1, Cell->Nodes.Num());
+			for (const int32 NodeIdx : Cell->Nodes)
+			{
+				const int32 PointIdx = Cluster->GetNodePointIndex(NodeIdx);
+				// Use equal weight (1.0) for all vertices in the cell
+				Union->AddWeighted_Unsafe(PCGExData::FElement(PointIdx, SourceIOIndex), 1.0);
+			}
 
+			UnionBlender->ComputeWeights(Index, Union, WeightedPoints);
+			UnionBlender->Blend(Index, WeightedPoints, Trackers);
+
+			// Write cell-specific attributes
+			if (AreaWriter) { AreaWriter->SetValue(Index, Cell->Data.Area); }
+			if (CompactnessWriter) { CompactnessWriter->SetValue(Index, Cell->Data.Compactness); }
+			if (NumNodesWriter) { NumNodesWriter->SetValue(Index, Cell->Nodes.Num()); }
+		}
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
+	{
 		// Build edges from adjacency
 		TSet<uint64> UniqueEdges;
 		for (const TSharedPtr<PCGExClusters::FCell>& Cell : ValidCells)
@@ -202,23 +262,22 @@ namespace PCGExBuildCellDiagram
 		if (UniqueEdges.IsEmpty())
 		{
 			bIsProcessorValid = false;
-			return true;
+			return;
 		}
 
 		// Create graph and insert edges
-		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(VtxFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraphs::FGraphBuilder>(CentroidFacade.ToSharedRef(), &Settings->GraphBuilderDetails);
 		GraphBuilder->bInheritNodeData = false; // We created new points from scratch, don't inherit from input
-		GraphBuilder->Graph = MakeShared<PCGExGraphs::FGraph>(NumCells);
+
+		GraphBuilder->Graph = MakeShared<PCGExGraphs::FGraph>(CentroidFacade->GetNum(PCGExData::EIOSide::Out));
 		GraphBuilder->Graph->InsertEdges(UniqueEdges, BatchIndex);
 
 		// Set up edge output
 		GraphBuilder->EdgesIO = Context->MainEdges;
-		GraphBuilder->NodePointsTransforms = VtxPointData->GetConstTransformValueRange();
+		GraphBuilder->NodePointsTransforms = CentroidFacade->GetOut()->GetConstTransformValueRange();
 
 		// Compile graph
 		GraphBuilder->CompileAsync(TaskManager, true, nullptr);
-
-		return true;
 	}
 
 	void FProcessor::Cleanup()

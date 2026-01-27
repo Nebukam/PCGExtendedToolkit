@@ -6,9 +6,15 @@
 #include "CoreMinimal.h"
 #include "Clusters/Artifacts/PCGExCellDetails.h"
 #include "Core/PCGExClustersProcessor.h"
+#include "Details/PCGExBlendingDetails.h"
 #include "Graphs/PCGExGraphDetails.h"
 
 #include "PCGExBuildCellDiagram.generated.h"
+
+namespace PCGExBlending
+{
+	class FUnionBlender;
+}
 
 namespace PCGExClusters
 {
@@ -87,6 +93,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Attributes", meta = (PCG_Overridable, EditCondition="bWriteNumNodes"))
 	FName NumNodesAttributeName = FName("NumNodes");
 
+	/** Defines how cell vertex properties and attributes are blended to the centroid. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta = (PCG_Overridable))
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Average, EPCGExBlendingType::None);
+
+	/** Meta filter settings for attribute carry-over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
+
 private:
 	friend class FPCGExBuildCellDiagramElement;
 };
@@ -97,6 +111,7 @@ struct FPCGExBuildCellDiagramContext final : FPCGExClustersProcessorContext
 
 	TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
+	FPCGExCarryOverDetails CarryOverDetails;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -116,6 +131,9 @@ namespace PCGExBuildCellDiagram
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExBuildCellDiagramContext, UPCGExBuildCellDiagramSettings>
 	{
 	protected:
+		
+		TSharedPtr<PCGExData::FFacade> CentroidFacade;
+		
 		TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 		TArray<TSharedPtr<PCGExClusters::FCell>> ValidCells;
 		TSharedPtr<PCGExGraphs::FGraphBuilder> GraphBuilder;
@@ -123,6 +141,13 @@ namespace PCGExBuildCellDiagram
 		// Cell adjacency
 		TMap<int32, TSet<int32>> CellAdjacencyMap;
 		TMap<int32, int32> FaceIndexToOutputIndex; // Maps face index to output point index
+		
+		TSharedPtr<PCGExBlending::FUnionBlender> UnionBlender; 
+			
+		TSharedPtr<PCGExData::TBuffer<double>> AreaWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> CompactnessWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> NumNodesWriter = nullptr;
+
 
 	public:
 		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
@@ -136,6 +161,9 @@ namespace PCGExBuildCellDiagram
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+				
 		virtual void Cleanup() override;
 	};
 }

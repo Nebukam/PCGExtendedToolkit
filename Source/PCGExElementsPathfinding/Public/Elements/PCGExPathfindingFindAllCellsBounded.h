@@ -85,6 +85,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellArtifactsDetails Artifacts;
 
+	/** Hole growth settings. Expands hole exclusion to adjacent cells. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExCellGrowthDetails HoleGrowth;
+
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -103,6 +107,7 @@ struct FPCGExFindAllCellsBoundedContext final : FPCGExClustersProcessorContext
 	friend class FPCGExCreateBridgeTask;
 
 	FPCGExCellArtifactsDetails Artifacts;
+	FPCGExCellGrowthDetails HoleGrowth;
 
 	TSharedPtr<PCGExClusters::FProjectedPointSet> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
@@ -155,6 +160,10 @@ namespace PCGExFindAllCellsBounded
 		TArray<FString> CellTagsTouching;
 		TArray<FString> CellTagsOutside;
 
+		// Hole expansion tracking
+		TSet<int32> ExcludedFaceIndices; // Faces excluded due to hole expansion
+		TMap<int32, TSet<int32>> CellAdjacencyMap; // Cached adjacency
+
 	public:
 		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
 
@@ -170,6 +179,9 @@ namespace PCGExFindAllCellsBounded
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 
 		virtual void Cleanup() override;
+
+		/** Expand hole exclusion to adjacent cells */
+		void ExpandHoleExclusion(int32 HoleIndex, int32 InitialFaceIndex, int32 MaxGrowth);
 
 	protected:
 		ECellTriageResult ClassifyCell(const TSharedPtr<PCGExClusters::FCell>& InCell) const;

@@ -10,6 +10,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "PCGExPathfindingFindAllCellsBounded.h"
+#include "Clusters/Artifacts/PCGExCell.h"
 
 #include "PCGExPathfindingFindCellsBounded.generated.h"
 
@@ -94,6 +95,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellArtifactsDetails Artifacts;
 
+	/** Seed growth settings. Expands seed selection to adjacent cells. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable))
+	FPCGExCellGrowthDetails SeedGrowth;
+
+	/** If true, write expansion metadata to output cells */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteExpansionAttributes = false;
+
+	/** Attribute name for pick count (how many times a cell was selected by seeds/growth) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	FName PickCountAttributeName = FName("PCGEx/PickCount");
+
+	/** Attribute name for depth (minimum depth at which cell was picked, 0 = direct seed) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta = (PCG_Overridable, EditCondition="bWriteExpansionAttributes"))
+	FName DepthAttributeName = FName("PCGEx/Depth");
+
 	/** Output a filtered set of points containing only seeds that generated a valid path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOutputFilteredSeeds = false;
@@ -127,6 +144,7 @@ struct FPCGExFindContoursBoundedContext final : FPCGExClustersProcessorContext
 	friend class FPCGExCreateBridgeTask;
 
 	FPCGExCellArtifactsDetails Artifacts;
+	FPCGExCellGrowthDetails SeedGrowth;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 
@@ -191,6 +209,11 @@ namespace PCGExFindContoursBounded
 		TArray<FString> CellTagsTouching;
 		TArray<FString> CellTagsOutside;
 
+		// Expansion tracking
+		TMap<int32, PCGExClusters::FCellExpansionData> CellExpansionMap; // FaceIndex -> ExpansionData
+		TMap<int32, TSharedPtr<PCGExClusters::FCell>> FaceIndexToCellMap; // FaceIndex -> Cell
+		TMap<int32, TSet<int32>> CellAdjacencyMap; // Cached adjacency
+
 	public:
 		TSharedPtr<PCGExClusters::FCellConstraints> CellsConstraints;
 
@@ -208,6 +231,9 @@ namespace PCGExFindContoursBounded
 		virtual void OnRangeProcessingComplete() override;
 
 		void HandleWrapperOnlyCase(const int32 NumSeeds);
+
+		/** Expand from a seed's initial cell to adjacent cells up to growth depth */
+		void ExpandSeedToAdjacentCells(int32 SeedIndex, int32 InitialFaceIndex, int32 MaxGrowth);
 
 		virtual void Cleanup() override;
 

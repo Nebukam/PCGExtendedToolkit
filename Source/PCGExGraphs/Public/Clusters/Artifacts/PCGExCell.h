@@ -189,6 +189,31 @@ namespace PCGExClusters
 		FCellData() = default;
 	};
 
+	/**
+	 * Expansion tracking data for a cell.
+	 * Used when seeds/holes expand to adjacent cells via growth.
+	 */
+	struct PCGEXGRAPHS_API FCellExpansionData
+	{
+		int32 PickCount = 0;        // How many times this cell was selected
+		int32 MinDepth = MAX_int32; // Minimum depth at which selected (0 = direct match)
+		TSet<int32> SourceIndices;  // Which source indices (seed/hole) selected this cell
+
+		FORCEINLINE void RecordPick(const int32 SourceIndex, const int32 Depth)
+		{
+			PickCount++;
+			MinDepth = FMath::Min(MinDepth, Depth);
+			SourceIndices.Add(SourceIndex);
+		}
+
+		FORCEINLINE void Reset()
+		{
+			PickCount = 0;
+			MinDepth = MAX_int32;
+			SourceIndices.Reset();
+		}
+	};
+
 	class PCGEXGRAPHS_API FCell : public TSharedFromThis<FCell>
 	{
 	protected:

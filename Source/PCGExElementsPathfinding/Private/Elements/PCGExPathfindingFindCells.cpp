@@ -191,7 +191,7 @@ namespace PCGExFindContours
 		{
 			// Get wrapper face index to exclude from adjacency
 			int32 WrapperFaceIndex = Enumerator->GetWrapperFaceIndex();
-			CellAdjacencyMap = Enumerator->BuildCellAdjacencyMap(WrapperFaceIndex);
+			CellAdjacencyMap = Enumerator->GetOrBuildAdjacencyMap(WrapperFaceIndex);
 
 			// Build FaceIndex -> Cell map for all valid cells
 			for (const TSharedPtr<PCGExClusters::FCell>& Cell : AllCells)
@@ -362,7 +362,7 @@ namespace PCGExFindContours
 				const int32 FaceIndex = Cell->FaceIndex;
 
 				// Record initial match at depth 0
-				FCellExpansionData& Data = CellExpansionMap.FindOrAdd(FaceIndex);
+				PCGExClusters::FCellExpansionData& Data = CellExpansionMap.FindOrAdd(FaceIndex);
 				Data.RecordPick(SeedIndex, 0);
 
 				// Expand to adjacent cells
@@ -383,7 +383,7 @@ namespace PCGExFindContours
 			for (const auto& Pair : CellExpansionMap)
 			{
 				const int32 FaceIndex = Pair.Key;
-				const FCellExpansionData& ExpData = Pair.Value;
+				const PCGExClusters::FCellExpansionData& ExpData = Pair.Value;
 
 				if (InitialFaceIndices.Contains(FaceIndex))
 				{
@@ -406,7 +406,7 @@ namespace PCGExFindContours
 						if (*CellPtr)
 						{
 							// Set CustomIndex to first source seed for compatibility
-							(*CellPtr)->CustomIndex = ExpData.SourceSeeds.Array()[0];
+							(*CellPtr)->CustomIndex = ExpData.SourceIndices.Array()[0];
 							(*CellPtr)->ExpansionPickCount = ExpData.PickCount;
 							(*CellPtr)->ExpansionMinDepth = ExpData.MinDepth;
 							ValidCells.Add(*CellPtr);
@@ -567,7 +567,7 @@ namespace PCGExFindContours
 			const int32 Depth = Current.Value;
 
 			// Record this cell selection
-			FCellExpansionData& Data = CellExpansionMap.FindOrAdd(FaceIndex);
+			PCGExClusters::FCellExpansionData& Data = CellExpansionMap.FindOrAdd(FaceIndex);
 			Data.RecordPick(SeedIndex, Depth);
 
 			// Continue BFS if not at max depth
