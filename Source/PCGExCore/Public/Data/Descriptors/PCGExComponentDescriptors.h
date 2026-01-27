@@ -11,6 +11,10 @@
 #include "VT/RuntimeVirtualTextureEnum.h"
 #include "Engine/EngineTypes.h"
 #include "Paths/PCGExPathsCommon.h"
+#include "Materials/MaterialInterface.h"
+#include "UObject/SoftObjectPtr.h"
+#include "UObject/SoftObjectPath.h"
+
 
 #include "PCGExComponentDescriptors.generated.h"
 
