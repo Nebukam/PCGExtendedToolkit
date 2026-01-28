@@ -31,7 +31,8 @@ bool FPCGExFillControlHeuristicsThreshold::PrepareForDiffusions(FPCGExContext* I
 	}
 
 	// Build our own heuristics handler
-	HeuristicsHandler = MakeShared<PCGExHeuristics::FHandler>(
+	HeuristicsHandler = PCGExHeuristics::FHandler::CreateHandler(
+		EPCGExHeuristicScoreMode::WeightedAverage,
 		InContext,
 		InHandler->VtxDataFacade,
 		InHandler->EdgeDataFacade,
