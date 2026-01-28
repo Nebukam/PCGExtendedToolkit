@@ -43,7 +43,7 @@ PCGEx is available through multiple channels:
 - **[Gumroad](https://nebukam.gumroad.com/)** — Precompiled Binaries _(until FAB is back)_
 - **[Source](https://github.com/Nebukam/PCGExtendedToolkit)** — Build from GitHub
 
-See the [Installation Guide](https://nebukam.github.io/PCGExtendedToolkit/installation.html) for detailed instructions.
+See the [Installation Guide](https://pcgex.gitbook.io/pcgex/general/quickstart/installation) for detailed instructions.
 
 ### Example Project
 
