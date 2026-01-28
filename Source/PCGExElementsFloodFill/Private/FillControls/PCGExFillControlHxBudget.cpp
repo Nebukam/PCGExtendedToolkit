@@ -29,7 +29,8 @@ bool FPCGExFillControlHeuristicsBudget::PrepareForDiffusions(FPCGExContext* InCo
 	}
 
 	// Build our own heuristics handler
-	HeuristicsHandler = MakeShared<PCGExHeuristics::FHandler>(
+	HeuristicsHandler = PCGExHeuristics::FHandler::CreateHandler(
+		TypedFactory->Config.HeuristicScoreMode,
 		InContext,
 		InHandler->VtxDataFacade,
 		InHandler->EdgeDataFacade,

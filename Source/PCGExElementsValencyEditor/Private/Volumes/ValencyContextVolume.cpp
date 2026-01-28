@@ -11,7 +11,7 @@
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "Builder/PCGExValencyBondingRulesBuilder.h"
-#include "PCGSubsystem.h"
+#include "Subsystems/PCGSubsystem.h"
 
 #if WITH_EDITOR
 #include "Editor.h"

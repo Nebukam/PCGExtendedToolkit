@@ -80,7 +80,7 @@ bool FPCGExClusterCentralityElement::AdvanceWork(FPCGExContext* InContext, const
 	{
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
-			NewBatch->SetWantsHeuristics(true);
+			NewBatch->SetWantsHeuristics(true, Settings->HeuristicScoreMode);
 			NewBatch->bSkipCompletion = true;
 			NewBatch->bRequiresWriteStep = true;
 			if (Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)

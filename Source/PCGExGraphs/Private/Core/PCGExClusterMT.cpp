@@ -94,8 +94,9 @@ namespace PCGExClusterMT
 		}
 	}
 
-	void IProcessor::SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories)
+	void IProcessor::SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories, const EPCGExHeuristicScoreMode ScoreMode)
 	{
+		HeuristicScoreMode = ScoreMode;
 		HeuristicsFactories = InHeuristicsFactories;
 		bWantsHeuristics = bRequired;
 	}
@@ -166,7 +167,7 @@ namespace PCGExClusterMT
 		if (bWantsHeuristics)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
-			HeuristicsHandler = MakeShared<PCGExHeuristics::FHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade, *HeuristicsFactories);
+			HeuristicsHandler = PCGExHeuristics::FHandler::CreateHandler(HeuristicScoreMode, ExecutionContext, VtxDataFacade, EdgeDataFacade, *HeuristicsFactories);
 
 			if (!HeuristicsHandler->IsValidHandler()) { return false; }
 
@@ -510,7 +511,7 @@ namespace PCGExClusterMT
 
 			if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 
-			NewProcessor->SetWantsHeuristics(WantsHeuristics(), HeuristicsFactories);
+			NewProcessor->SetWantsHeuristics(WantsHeuristics(), HeuristicsFactories, HeuristicsScoreMode);
 
 			NewProcessor->RegisterConsumableAttributesWithFacade();
 
