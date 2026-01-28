@@ -127,6 +127,18 @@ namespace PCGExGraphs
 		}
 
 		const int32 NumEdges = Edges.Num();
+
+		// When edges come from union graphs, node indices are non-deterministic due to parallel insertion.
+		// Recompute sort keys using the now-remapped PointIndex values for deterministic ordering.
+		if (InBuilder->bRequiresEdgeResort)
+		{
+			PCGEX_PARALLEL_FOR(
+				Edges.Num(),
+				const FEdge& E = ParentGraphEdges[Edges[i].Index];
+				Edges[i].Key = PCGEx::H64U(ParentGraphNodes[E.Start].PointIndex, ParentGraphNodes[E.End].PointIndex);
+			)
+		}
+
 		PCGExSortingHelpers::RadixSort(Edges);
 
 		FlattenedEdges.SetNumUninitialized(NumEdges);
