@@ -7,6 +7,7 @@
 #include "Containers/PCGExHashLookup.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "UObject/ObjectMacros.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigHeuristicsThreshold, Threshold, double, ThresholdInput, ThresholdAttribute, Threshold)
 
@@ -32,7 +33,7 @@ bool FPCGExFillControlHeuristicsThreshold::PrepareForDiffusions(FPCGExContext* I
 
 	// Build our own heuristics handler
 	HeuristicsHandler = PCGExHeuristics::FHandler::CreateHandler(
-		EPCGExHeuristicScoreMode::WeightedAverage,
+		TypedFactory->Config.HeuristicScoreMode,
 		InContext,
 		InHandler->VtxDataFacade,
 		InHandler->EdgeDataFacade,

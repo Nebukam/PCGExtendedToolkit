@@ -109,10 +109,6 @@ public:
 	/** Diffusion settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExFloodFillFlowDetails Diffusion;
-
-	/** Scoring mode for combining multiple heuristics */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
-	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage; 
 	
 #pragma region  Outputs
 
@@ -183,9 +179,7 @@ private:
 struct FPCGExClusterDiffusionContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExClusterDiffusionElement;
-                                           
-	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage; 
-	
+                                           	
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	TArray<TObjectPtr<const UPCGExFillControlsFactoryData>> FillControlFactories;
 
