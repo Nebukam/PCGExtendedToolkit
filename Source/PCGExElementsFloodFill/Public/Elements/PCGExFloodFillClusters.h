@@ -109,7 +109,7 @@ public:
 	/** Diffusion settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExFloodFillFlowDetails Diffusion;
-
+	
 #pragma region  Outputs
 
 	/** Write the diffusion depth the vtx was subjected to. */
@@ -179,7 +179,7 @@ private:
 struct FPCGExClusterDiffusionContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExClusterDiffusionElement;
-
+                                           	
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	TArray<TObjectPtr<const UPCGExFillControlsFactoryData>> FillControlFactories;
 

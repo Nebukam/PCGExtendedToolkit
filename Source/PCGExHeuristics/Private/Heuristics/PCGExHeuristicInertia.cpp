@@ -40,7 +40,7 @@ double FPCGExHeuristicInertia::GetEdgeScore(const PCGExClusters::FNode& From, co
 			{
 				const double Dot = FVector::DotProduct((Avg / Sampled).GetSafeNormal(), Cluster->GetDir(From.Index, To.Index));
 
-				return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 1, 0)) * ReferenceWeight;
+				return GetScoreInternal(PCGExMath::Remap(Dot, -1, 1, 1, 0));
 			}
 		}
 	}

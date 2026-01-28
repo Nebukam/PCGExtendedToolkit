@@ -1,10 +1,11 @@
-﻿// Copyright 2026 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Core/PCGExHeuristicsFactoryProvider.h"
+#include "PCGExHeuristicsCommon.h"
 #include "Clusters/PCGExNode.h"
 
 class FPCGExHeuristicFeedback;
@@ -79,8 +80,12 @@ namespace PCGExHeuristics
 		void ResetFeedback();
 	};
 
+	/**
+	 * Base handler class for heuristics. Subclasses implement different score aggregation modes.
+	 */
 	class PCGEXHEURISTICS_API FHandler : public TSharedFromThis<FHandler>
 	{
+	protected:
 		FPCGExContext* ExecutionContext = nullptr;
 		bool bIsValidHandler = false;
 
@@ -109,17 +114,17 @@ namespace PCGExHeuristics
 		bool HasAnyFeedback() const { return HasGlobalFeedback() || HasLocalFeedback(); };
 
 		FHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
-		~FHandler();
+		virtual ~FHandler();
 
 		bool BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
 		void PrepareForCluster(const TSharedPtr<PCGExClusters::FCluster>& InCluster);
 		void CompleteClusterPreparation();
 
+		/** Override in subclasses to implement different score aggregation modes */
+		virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const = 0;
 
-		double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
-
-
-		double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
+		/** Override in subclasses to implement different score aggregation modes */
+		virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const = 0;
 
 		void FeedbackPointScore(const PCGExClusters::FNode& Node);
 		void FeedbackScore(const PCGExClusters::FNode& Node, const PCGExGraphs::FEdge& Edge);
@@ -138,6 +143,14 @@ namespace PCGExHeuristics
 		/** Release a local feedback handler back to pool for reuse */
 		void ReleaseLocalFeedbackHandler(const TSharedPtr<FLocalFeedbackHandler>& Handler);
 
+		/** Factory function to create a handler with the specified scoring mode */
+		static TSharedPtr<FHandler> CreateHandler(
+			EPCGExHeuristicScoreMode ScoreMode,
+			FPCGExContext* InContext,
+			const TSharedPtr<PCGExData::FFacade>& InVtxDataCache,
+			const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache,
+			const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>& InFactories);
+
 	protected:
 		PCGExClusters::FNode* RoamingSeedNode = nullptr;
 		PCGExClusters::FNode* RoamingGoalNode = nullptr;
@@ -145,5 +158,69 @@ namespace PCGExHeuristics
 		/** Pool of reusable local feedback handlers */
 		TArray<TSharedPtr<FLocalFeedbackHandler>> LocalFeedbackHandlerPool;
 		FCriticalSection PoolLock;
+	};
+
+	//
+	// Concrete handler implementations
+	//
+
+	/** Weighted average: sum(score × weight) / sum(weight) */
+	class PCGEXHEURISTICS_API FHandlerWeightedAverage final : public FHandler
+	{
+	public:
+		using FHandler::FHandler;
+
+		virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const override;
+		virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const override;
+	};
+
+	/** Geometric mean: product(score^weight)^(1/sum(weight)) */
+	class PCGEXHEURISTICS_API FHandlerGeometricMean final : public FHandler
+	{
+	public:
+		using FHandler::FHandler;
+
+		virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const override;
+		virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const override;
+	};
+
+	/** Weighted sum: sum(score × weight) - no normalization */
+	class PCGEXHEURISTICS_API FHandlerWeightedSum final : public FHandler
+	{
+	public:
+		using FHandler::FHandler;
+
+		virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const override;
+		virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const override;
+	};
+
+	/** Harmonic mean: sum(weight) / sum(weight/score) - heavily emphasizes low scores */
+	class PCGEXHEURISTICS_API FHandlerHarmonicMean final : public FHandler
+	{
+	public:
+		using FHandler::FHandler;
+
+		virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const override;
+		virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const override;
+	};
+
+	/** Minimum: returns the lowest weighted score - most permissive */
+	class PCGEXHEURISTICS_API FHandlerMin final : public FHandler
+	{
+	public:
+		using FHandler::FHandler;
+
+		virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const override;
+		virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const override;
+	};
+
+	/** Maximum: returns the highest weighted score - most restrictive */
+	class PCGEXHEURISTICS_API FHandlerMax final : public FHandler
+	{
+	public:
+		using FHandler::FHandler;
+
+		virtual double GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const override;
+		virtual double GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const override;
 	};
 }

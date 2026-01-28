@@ -107,7 +107,7 @@ bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, co
 	{
 		GUIDS.Empty();
 		FPCGExEntryAccessResult Result = MainCollection->GetEntryAt(i);
-		ProcessEntry(Result.Entry, Entries, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
+		ProcessEntry(InContext, Result.Entry, Entries, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
 	}
 
 	if (Entries.IsEmpty()) { return OutputToPin(); }
@@ -132,7 +132,14 @@ bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, co
 	return OutputToPin();
 }
 
-void FPCGExAssetCollectionToSetElement::ProcessEntry(const FPCGExAssetCollectionEntry* InEntry, TArray<const FPCGExAssetCollectionEntry*>& OutEntries, const bool bOmitInvalidAndEmpty, const bool bNoDuplicates, const EPCGExSubCollectionToSet SubHandling, TSet<uint64>& GUIDS)
+void FPCGExAssetCollectionToSetElement::ProcessEntry(
+FPCGExContext* InContext,
+	const FPCGExAssetCollectionEntry* InEntry, 
+	TArray<const FPCGExAssetCollectionEntry*>& OutEntries, 
+	const bool bOmitInvalidAndEmpty, 
+	const bool bNoDuplicates, 
+	const EPCGExSubCollectionToSet SubHandling, 
+	TSet<uint64>& GUIDS)
 {
 	if (bNoDuplicates) { if (OutEntries.Contains(InEntry)) { return; } }
 
@@ -158,7 +165,7 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(const FPCGExAssetCollection
 	{
 		if (SubHandling == EPCGExSubCollectionToSet::Ignore) { return; }
 
-		UPCGExAssetCollection* SubCollection = InEntry->Staging.LoadSync<UPCGExAssetCollection>();
+		UPCGExAssetCollection* SubCollection = InEntry->Staging.LoadSync<UPCGExAssetCollection>(InContext);
 		const PCGExAssetCollection::FCache* SubCache = SubCollection ? SubCollection->LoadCache() : nullptr;
 
 		if (!SubCache)
@@ -178,7 +185,7 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(const FPCGExAssetCollection
 		case EPCGExSubCollectionToSet::Expand: for (int i = 0; i < SubCache->Main->Order.Num(); i++)
 			{
 				SubResult = SubCollection->GetEntryAt(i);
-				ProcessEntry(SubResult.Entry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
+				ProcessEntry(InContext, SubResult.Entry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 			}
 			return;
 		case EPCGExSubCollectionToSet::PickRandom: SubResult = SubCollection->GetEntryRandom(0);
@@ -191,7 +198,7 @@ void FPCGExAssetCollectionToSetElement::ProcessEntry(const FPCGExAssetCollection
 			break;
 		}
 
-		ProcessEntry(SubResult.Entry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
+		ProcessEntry(InContext, SubResult.Entry, OutEntries, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 	}
 	else
 	{

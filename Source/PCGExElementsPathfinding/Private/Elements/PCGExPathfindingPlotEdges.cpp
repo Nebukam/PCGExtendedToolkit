@@ -270,7 +270,7 @@ bool FPCGExPathfindingPlotEdgesElement::AdvanceWork(FPCGExContext* InContext, co
 	{
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
-			NewBatch->SetWantsHeuristics(true);
+			NewBatch->SetWantsHeuristics(true, Settings->HeuristicScoreMode);
 		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));

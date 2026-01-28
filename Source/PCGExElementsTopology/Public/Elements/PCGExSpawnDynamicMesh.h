@@ -40,11 +40,12 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGObjectPropertyOverrideDescription> PropertyOverrideDescriptions;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
+	/** How to attach the component to their parent actor */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExAttachmentRules AttachmentRules = FPCGExAttachmentRules(EAttachmentRule::KeepRelative);
 
 	/** Specify a list of functions to be called on the target actor after instances are spawned. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
 };
 

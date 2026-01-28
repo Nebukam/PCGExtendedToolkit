@@ -165,7 +165,7 @@ bool FPCGExRefineEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
 			NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-			if (Context->Refinement->WantsHeuristics()) { NewBatch->SetWantsHeuristics(true); }
+			if (Context->Refinement->WantsHeuristics()) { NewBatch->SetWantsHeuristics(true, Settings->HeuristicScoreMode); }
 			NewBatch->bRequiresWriteStep = Settings->Mode == EPCGExRefineEdgesOutput::Attribute;
 		}))
 		{
