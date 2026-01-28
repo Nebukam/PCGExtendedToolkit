@@ -33,6 +33,10 @@ struct FPCGExFillControlConfigHeuristicsThreshold : public FPCGExFillControlConf
 		bSupportSteps = false;
 	}
 
+	/** Scoring mode for combining multiple heuristics */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
+	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage;
+	
 	/** Threshold input type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;

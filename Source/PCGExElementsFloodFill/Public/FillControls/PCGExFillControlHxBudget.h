@@ -32,6 +32,10 @@ struct FPCGExFillControlConfigHeuristicsBudget : public FPCGExFillControlConfigB
 		bSupportSteps = false;
 	}
 
+	/** Scoring mode for combining multiple heuristics */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
+	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage;
+	
 	/** Maximum accumulated heuristic cost allowed before stopping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueType MaxBudgetInput = EPCGExInputValueType::Constant;
