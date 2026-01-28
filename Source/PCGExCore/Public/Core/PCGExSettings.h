@@ -39,7 +39,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState BulkInitData = EPCGExOptionState::Default;
 
-	/** Cache the results of this node. */
+	/** Cache the results of this node. Cached data persists until inputs change, avoiding re-computation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState CacheData = EPCGExOptionState::Default;
 
@@ -61,7 +61,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="GetExecutionPolicy() != EPCGExExecutionPolicy::Ignored"))
 	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
 
-	/** Flatten the output of this node. */
+	/** Flatten the output of this node. Merges hierarchical data into a single flat collection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
 	bool bFlattenOutput = false;
 
@@ -73,7 +73,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_Overridable, DisplayName="Protected Attributes", EditCondition="bCleanupConsumableAttributes"))
 	FString CommaSeparatedProtectedAttributesName;
 
-	/** Hardcoded set for ease of use. Not mutually exclusive with the overridable string, just easier to edit. */
+	/** Attribute names to exclude from cleanup. Works alongside the comma-separated string list above. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable, DisplayName="Protected Attributes", EditCondition="bCleanupConsumableAttributes"))
 	TArray<FName> ProtectedAttributes;
 
@@ -81,15 +81,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bPropagateAbortedExecution = false;
 
-	/** */
+	/** Suppress warnings about invalid input data (e.g., missing attributes, wrong data types). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietInvalidInputWarning = false;
 
-	/** */
+	/** Suppress errors about missing required input connections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietMissingInputError = false;
 
-	/** */
+	/** Suppress error messages when node execution is cancelled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	bool bQuietCancellationError = false;
 

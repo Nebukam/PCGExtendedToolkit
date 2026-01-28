@@ -71,7 +71,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
 
-	/**  */
+	/** How the initial value is determined for Switch/Partition modes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SplitAction == EPCGExPathSplitAction::Switch || SplitAction == EPCGExPathSplitAction::Partition", EditConditionHides))
 	EPCGExPathSplitInitialValue InitialBehavior = EPCGExPathSplitInitialValue::Constant;
 
@@ -87,19 +87,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOmitSinglePointOutputs = true;
 
-	/** */
+	/** Tag even-numbered split results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfEvenSplit = true;
 
-	/** ... */
+	/** Tag to apply to even-numbered split paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfEvenSplit"))
 	FString IsEvenTag = TEXT("EvenSplit");
 
-	/** */
+	/** Tag odd-numbered split results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfOddSplit = false;
 
-	/** ... */
+	/** Tag to apply to odd-numbered split paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfOddSplit"))
 	FString IsOddTag = TEXT("OddSplit");
 };

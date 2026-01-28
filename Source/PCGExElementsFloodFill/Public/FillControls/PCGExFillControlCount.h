@@ -18,7 +18,7 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 
 	FPCGExFillControlConfigCount() = default;
 
-	/**  */
+	/** Whether the max count is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType MaxCountInput = EPCGExInputValueType::Constant;
 

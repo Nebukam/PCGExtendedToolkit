@@ -50,7 +50,7 @@ struct PCGEXELEMENTSPROBING_API FPCGExProbeConfigBase
 	UPROPERTY(meta=(PCG_NotOverridable))
 	bool bSupportRadius = true; // Internal toggle, hidden
 
-	/** */
+	/** Whether to read search radius from an attribute or use a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius", EditConditionHides, HideEditConditionToggle))
 	EPCGExInputValueType SearchRadiusInput = EPCGExInputValueType::Constant;
 

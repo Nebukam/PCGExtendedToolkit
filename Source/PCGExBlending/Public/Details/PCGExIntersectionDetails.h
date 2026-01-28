@@ -26,7 +26,7 @@ struct PCGEXBLENDING_API FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
 
-	/**  */
+	/** Write a boolean marking points as union results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsUnion = false;
 
@@ -34,7 +34,7 @@ struct PCGEXBLENDING_API FPCGExUnionMetadataDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Is Union", EditCondition="bWriteIsUnion"))
 	FName IsUnionAttributeName = "bIsUnion";
 
-	/**  */
+	/** Write the number of fused points to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteUnionSize = false;
 
@@ -57,7 +57,7 @@ struct PCGEXBLENDING_API FPCGExEdgeUnionMetadataDetails : public FPCGExUnionMeta
 {
 	GENERATED_BODY()
 
-	/**  */
+	/** Write a boolean marking edges created from subdivisions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsSubEdge = false;
 
@@ -117,7 +117,7 @@ struct PCGEXBLENDING_API FPCGExPointEdgeIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSnapOnEdge = false;
 
-	/**  */
+	/** Write a boolean marking points that intersected an edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsIntersector = false;
 
@@ -140,27 +140,27 @@ struct PCGEXBLENDING_API FPCGExEdgeEdgeIntersectionDetails
 	double Tolerance = DBL_INTERSECTION_TOLERANCE;
 	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
 
-	/** . */
+	/** Filter intersections by minimum angle between edges. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMinAngle = false;
 
-	/** Min angle. */
+	/** Minimum angle between edges to count as intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MinAngle = 0;
 	double MinDot = -1;
 
-	/** . */
+	/** Filter intersections by maximum angle between edges. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMaxAngle = false;
 
-	/** Maximum angle. */
+	/** Maximum angle between edges to count as intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MaxAngle = 90;
 	double MaxDot = 1;
 
 	//
 
-	/**  */
+	/** Write a boolean marking points created from edge crossings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCrossing = false;
 

@@ -117,7 +117,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-	/** TBD */
+	/** Copy seed point attributes as tags on output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 

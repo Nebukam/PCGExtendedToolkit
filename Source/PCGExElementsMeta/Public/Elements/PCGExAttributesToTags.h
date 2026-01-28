@@ -85,7 +85,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FString CommaSeparatedAttributeSelectors;
 
-	/** */
+	/** Suppress warning when source has more collections than target. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietTooManyCollectionsWarning = false;
 };

@@ -97,27 +97,27 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_Overridable))
 	bool bOutputDiscardedElements = true;
 
-	/** */
+	/** Add a tag if at least one point passed the filter. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfAnyPointPassed = false;
 
-	/** ... */
+	/** Tag to add when at least one point passes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfAnyPointPassed"))
 	FString HasAnyPointPassedTag = TEXT("SomePointsPassed");
 
-	/** */
+	/** Add a tag if all points passed the filter. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfAllPointsPassed = false;
 
-	/** ... */
+	/** Tag to add when all points pass. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfAllPointsPassed"))
 	FString AllPointsPassedTag = TEXT("AllPointsPassed");
 
-	/** */
+	/** Add a tag if no points passed the filter. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfNoPointPassed = false;
 
-	/** ... */
+	/** Tag to add when no points pass. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfNoPointPassed"))
 	FString NoPointPassedTag = TEXT("NoPointPassed");
 

@@ -73,7 +73,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(EditCondition="bFusePaths"))
 	FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
-	/**  */
+	/** Use custom blending settings for Point/Edge intersections instead of the default. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable, EditCondition="bFusePaths"))
 	bool bUseCustomPointEdgeBlending = false;
 
@@ -81,7 +81,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable, EditCondition="bFusePaths && bUseCustomPointEdgeBlending"))
 	FPCGExBlendingDetails CustomPointEdgeBlendingDetails;
 
-	/**  */
+	/** Use custom blending settings for Edge/Edge intersections (crossings) instead of the default. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable, EditCondition="bFusePaths"))
 	bool bUseCustomEdgeEdgeBlending = false;
 

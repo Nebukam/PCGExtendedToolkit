@@ -30,23 +30,23 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-	/** Target attribute */
+	/** Attribute to apply the bitmask operation to. Must be int64. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName FlagAttribute;
 
-	/** Target attribute */
+	/** Bitwise operation to apply. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBitOp Operation;
 
-	/** Type of Mask */
+	/** Where the mask value comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType MaskInput = EPCGExInputValueType::Constant;
 
-	/** Mask -- Must be int64. */
+	/** Attribute to read the mask from. Must be int64. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask (Attr)", EditCondition="MaskInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName MaskAttribute;
 
-	/**  */
+	/** Constant bitmask value to apply. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask;
 

@@ -78,7 +78,7 @@ struct PCGEXFOUNDATIONS_API FPCGExGUIDDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExGUIDUniquenessFlags"))
 	uint8 Uniqueness = static_cast<uint8>(EPCGExGUIDUniquenessFlags::All);
 
-	/**  */
+	/** Where the unique key base value comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType UniqueKeyInput = EPCGExInputValueType::Constant;
 

@@ -112,7 +112,7 @@ struct PCGEXGRAPHS_API FPCGExGraphBuilderDetails
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Pre-Built Cache", EditAnywhere, meta = (PCG_Overridable, EditCondition="bPreBuildFaceEnumerator"))
 	FPCGExGeo2DProjectionDetails FaceEnumeratorProjection;
 
-	/**  */
+	/** Write edge length to an attribute. */
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Extra Data", EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputEdgeLength = false;
 

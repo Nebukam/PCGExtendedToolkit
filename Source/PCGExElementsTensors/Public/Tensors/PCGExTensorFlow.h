@@ -31,7 +31,7 @@ struct FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction (Attr)", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
 
-	/** */
+	/** Flip the direction vector (multiply by -1). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	bool bInvertDirection = false;
 

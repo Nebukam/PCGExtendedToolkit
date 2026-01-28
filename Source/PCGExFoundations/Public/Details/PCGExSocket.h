@@ -17,15 +17,19 @@ struct PCGEXFOUNDATIONS_API FPCGExSocket
 	FPCGExSocket(const FName& InSocketName, const FTransform& InRelativeTransform, const FString& InTag);
 	~FPCGExSocket() = default;
 
+	/** Whether this socket is managed by the system. */
 	UPROPERTY(meta=(PCG_NotOverridable, EditCondition="false", EditConditionHides))
 	bool bManaged = false;
 
+	/** Unique name identifying this socket. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bManaged", HideEditConditionToggle))
 	FName SocketName = NAME_None;
 
+	/** Transform relative to the owning point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bManaged", HideEditConditionToggle))
 	FTransform RelativeTransform = FTransform::Identity;
 
+	/** Tag associated with this socket for filtering. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bManaged", HideEditConditionToggle))
 	FString Tag = TEXT("");
 };

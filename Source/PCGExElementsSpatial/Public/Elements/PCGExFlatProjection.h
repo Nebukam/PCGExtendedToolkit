@@ -65,7 +65,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRestorePreviousProjection"))
 	bool bAlignLocalTransform = false;
 
-	/**  */
+	/** Projection settings for flattening points to the XY plane. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bRestorePreviousProjection", DisplayName="Projection"))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };

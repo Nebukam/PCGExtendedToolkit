@@ -40,26 +40,27 @@ struct PCGEXCORE_API FPCGExPathEdgeIntersectionDetails
 	double Tolerance = DBL_INTERSECTION_TOLERANCE;
 	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE;
 
+	/** Enable minimum angle filter for intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMinAngle = false;
 
-	/** Min angle. */
+	/** Minimum angle between edges to be considered an intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=180))
 	double MinAngle = 0;
 	double MaxDot = -1;
 
-	/** . */
+	/** Enable maximum angle filter for intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMaxAngle = false;
 
-	/** Maximum angle. */
+	/** Maximum angle between edges to be considered an intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=180))
 	double MaxAngle = 90;
 	double MinDot = 1;
 
 	//
 
-	/**  */
+	/** Write an attribute to flag intersection points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCrossing = false;
 
@@ -111,20 +112,20 @@ struct PCGEXCORE_API FPCGExPathIntersectionDetails
 	double Tolerance = DBL_INTERSECTION_TOLERANCE;
 	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
 
-	/** . */
+	/** Enable minimum angle filter for intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMinAngle = false;
 
-	/** Min angle. */
+	/** Minimum angle between edges to be considered an intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MinAngle = 0;
 	double MinDot = -1;
 
-	/** . */
+	/** Enable maximum angle filter for intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMaxAngle = false;
 
-	/** Maximum angle. */
+	/** Maximum angle between edges to be considered an intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MaxAngle = 90;
 	double MaxDot = 1;

@@ -42,7 +42,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExMinimalAxis SymmetryAxis = EPCGExMinimalAxis::None;
 
-	/**  */
+	/** UVW coordinates for point placement on bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExUVW UVW;
 
@@ -50,7 +50,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetExtents = true;
 
-	/**  */
+	/** Extents to set on the generated point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetExtents"))
 	FVector Extents = FVector(0.5);
 
@@ -58,15 +58,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ As multiplier", EditCondition="bSetExtents", HideEditConditionToggle))
 	bool bMultiplyExtents = false;
 
-	/**  */
+	/** Set the scale of the generated point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetScale = true;
 
-	/**  */
+	/** Scale to set on the generated point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetScale"))
 	FVector Scale = FVector::OneVector;
 
-	/** TBD */
+	/** Copy source point attributes as tags on output collections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bGeneratePerPointData"))
 	FPCGExAttributeToTagDetails PointAttributesToOutputTags;
 

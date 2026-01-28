@@ -122,16 +122,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	bool bPruneEmptyPoints = true;
 
-	/** */
+	/** Filter output based on the type of collection entry. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bDoFilterEntryType = false;
 
-	/** Lets you filter which collection type gets staged. 
+	/** Lets you filter which collection type gets staged.
 	 * This is most useful when using per-point collections and you want to stage only certain types of assets. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditConditions="bDoFilterEntryType"))
 	FPCGExStagedTypeFilterDetails EntryTypeFilter;
 
-	/** */
+	/** Write the collection entry type (Mesh, Actor, etc.) to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteEntryType = false;
 
@@ -159,15 +159,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Prefix", EditCondition="bOutputMaterialPicks && OutputMode != EPCGExStagingOutputMode::CollectionMap"))
 	FName MaterialAttributePrefix = "Mat";
 
-	/** */
+	/** Output socket transforms from staged meshes as a separate point collection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoOutputSockets = false;
 
-	/** */
+	/** Socket output configuration. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, DisplayName="Output Sockets", EditCondition="bDoOutputSockets"))
 	FPCGExSocketOutputDetails OutputSocketDetails;
 
-	/** */
+	/** Write the fitting translation offset to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteTranslation = false;
 
@@ -177,7 +177,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteTranslation"))
 	FName TranslationAttributeName = FName("FittingOffset");
 
-	/** */
+	/** Suppress warnings when the asset collection is empty or has no valid entries. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietEmptyCollectionError = false;
 	

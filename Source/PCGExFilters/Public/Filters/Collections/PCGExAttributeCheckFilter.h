@@ -38,11 +38,11 @@ struct FPCGExAttributeCheckFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Match"))
 	EPCGExStringMatchMode Match = EPCGExStringMatchMode::Equals;
 
-	/** */
+	/** Also verify that the attribute is of a specific type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bDoCheckType = false;
 
-	/** */
+	/** Required attribute type when type checking is enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bDoCheckType"))
 	EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 

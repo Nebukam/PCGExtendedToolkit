@@ -151,19 +151,19 @@ public:
 	FPCGExForwardDetails SeedForwarding = FPCGExForwardDetails(true);
 
 
-	/** TBD */
+	/** Controls how flood fill results are output as paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths")
 	EPCGExFloodFillPathOutput PathOutput = EPCGExFloodFillPathOutput::None;
 
-	/** TBD */
+	/** Criteria used to partition paths into separate outputs. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(DisplayName=" ├─ Partition over", EditCondition="PathOutput == EPCGExFloodFillPathOutput::Partitions"))
 	EPCGExFloodFillPathPartitions PathPartitions = EPCGExFloodFillPathPartitions::Length;
 
-	/** TBD */
+	/** Sort direction for partitioned output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(DisplayName=" └─ Sorting", EditCondition="PathOutput == EPCGExFloodFillPathOutput::Partitions"))
 	EPCGExSortDirection PartitionSorting = EPCGExSortDirection::Ascending;
 
-	/** TBD */
+	/** Copy seed point attributes as tags on output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(EditCondition="PathOutput != EPCGExFloodFillPathOutput::None"))
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 

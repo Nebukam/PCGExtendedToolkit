@@ -49,7 +49,7 @@ public:
 	virtual FName GetMainOutputPin() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** Write result to point instead of split outputs */
+	/** Number of branch filter groups to evaluate. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 NumBranches = 3;
 

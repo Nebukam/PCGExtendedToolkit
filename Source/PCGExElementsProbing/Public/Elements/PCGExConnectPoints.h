@@ -51,18 +51,18 @@ public:
 	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
-	/**  */
+	/** Prevent connections between coincident points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bPreventCoincidence = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPreventCoincidence", ClampMin=0.00001, ClampMax=1))
 	double CoincidenceTolerance = 0.001;
 
-	/**  */
+	/** Project points to 2D for connection testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bProjectPoints = false;
 
-	/**  */
+	/** Projection settings for 2D testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bProjectPoints", DisplayName="Project Points"))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 

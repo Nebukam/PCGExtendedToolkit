@@ -366,15 +366,18 @@ struct PCGEXCORE_API FPCGExVectorHashComparisonDetails
 		HashToleranceConstant = InHashToleranceConstant;
 	}
 
-	/** Type of Tolerance value source */
+	/** Whether tolerance comes from a constant or per-point attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType HashToleranceInput = EPCGExInputValueType::Constant;
 
-	/** Tolerance value use for comparison */
+	/** Attribute to read tolerance from when using per-point values. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance (Attr)", EditCondition="HashToleranceInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector HashToleranceAttribute;
 
-	/** Tolerance value use for comparison */
+	/**
+	 * Tolerance used when hashing vectors for comparison.
+	 * Smaller values = more precise matching, larger values = more lenient.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Hash Tolerance", EditCondition="HashToleranceInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.00001))
 	double HashToleranceConstant = 0.001;
 
@@ -392,7 +395,8 @@ struct PCGEXCORE_API FPCGExVectorHashComparisonDetails
 };
 
 /**
- * Util object to encapsulate recurring dot comparison parameters, with no support for params
+ * Dot product comparison with constant threshold only.
+ * Use FPCGExDotComparisonDetails if you need per-point attribute thresholds.
  */
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExStaticDotComparisonDetails
@@ -404,31 +408,43 @@ struct PCGEXCORE_API FPCGExStaticDotComparisonDetails
 	}
 
 
-	/** Value domain (units) */
+	/**
+	 * How threshold values are interpreted.
+	 * Scalar = raw dot product (-1 to 1), Degrees = angular (0-180).
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAngularDomain Domain = EPCGExAngularDomain::Scalar;
 
-	/** Comparison */
+	/** The comparison operator to use. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
 
-	/** If enabled, the dot product will be made absolute before testing. */
+	/**
+	 * Use absolute value of dot product before comparing.
+	 * Treats opposite directions as equivalent.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUnsignedComparison = false;
 
-	/** Dot value use for comparison (In raw -1/1 range) */
+	/**
+	 * Threshold for comparison in scalar domain.
+	 * -1 = opposite, 0 = perpendicular, 1 = same direction.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Scalar", EditCondition="Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double DotConstant = 0.5;
 
-	/** Tolerance for dot comparison. */
+	/** Tolerance for ~= and !~= comparisons in scalar domain. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=0, ClampMax=1))
 	double DotTolerance = 0.1;
 
-	/** Dot value use for comparison (In degrees) */
+	/**
+	 * Threshold for comparison in degrees.
+	 * 0 = same direction, 90 = perpendicular, 180 = opposite.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesConstant = 90;
 
-	/** Tolerance for dot comparison. */
+	/** Tolerance for ~= and !~= comparisons in degrees. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesTolerance = 0.1;
 
@@ -439,7 +455,8 @@ struct PCGEXCORE_API FPCGExStaticDotComparisonDetails
 };
 
 /**
- * Util object to encapsulate recurring dot comparison parameters, including attribute-driven params
+ * Dot product comparison with support for per-point attribute thresholds.
+ * Use FPCGExStaticDotComparisonDetails if constant threshold is sufficient.
  */
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExDotComparisonDetails
@@ -450,39 +467,54 @@ struct PCGEXCORE_API FPCGExDotComparisonDetails
 	{
 	}
 
-	/** Value domain (units) */
+	/**
+	 * How threshold values are interpreted.
+	 * Scalar = raw dot product (-1 to 1), Degrees = angular (0-180).
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAngularDomain Domain = EPCGExAngularDomain::Scalar;
 
-	/** Comparison */
+	/** The comparison operator to use. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
 
-	/** If enabled, the dot product will be made absolute before testing. */
+	/**
+	 * Use absolute value of dot product before comparing.
+	 * Treats opposite directions as equivalent.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUnsignedComparison = false;
 
-	/** Type of Dot value source */
+	/** Whether threshold comes from a constant or per-point attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Threshold Input"))
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
-	/** Attribute value use for comparison, whether Scalar or Degrees */
+	/**
+	 * Attribute to read threshold from.
+	 * Value interpretation depends on Domain setting.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Attr)", EditCondition="ThresholdInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
-	/** Dot value use for comparison (In raw -1/1 range) */
+	/**
+	 * Threshold for comparison in scalar domain.
+	 * -1 = opposite, 0 = perpendicular, 1 = same direction.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Scalar", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double DotConstant = 0.5;
 
-	/** Tolerance for dot comparison. */
+	/** Tolerance for ~= and !~= comparisons in scalar domain. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=0, ClampMax=1))
 	double DotTolerance = 0.1;
 
-	/** Dot value use for comparison (In degrees) */
+	/**
+	 * Threshold for comparison in degrees.
+	 * 0 = same direction, 90 = perpendicular, 180 = opposite.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesConstant = 90;
 
-	/** Tolerance for dot comparison. */
+	/** Tolerance for ~= and !~= comparisons in degrees. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesTolerance = 0.1;
 

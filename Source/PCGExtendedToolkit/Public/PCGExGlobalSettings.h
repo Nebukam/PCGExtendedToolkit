@@ -45,7 +45,7 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bBulkInitData = false;
 
-	/**  */
+	/** Default execution policy for PCGEx nodes (synchronous, async, etc.). */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
 

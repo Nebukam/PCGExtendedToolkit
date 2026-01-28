@@ -15,9 +15,11 @@ struct PCGEXCORE_API FPCGExClampedBit
 {
 	GENERATED_BODY()
 
+	/** Bit position to modify (0-63). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta = (ClampMin = "0", ClampMax = "63"))
 	uint8 BitIndex;
 
+	/** Value to set at BitIndex (true = 1, false = 0). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bValue;
 
@@ -35,6 +37,7 @@ struct PCGEXCORE_API FPCGExClampedBitOp : public FPCGExClampedBit
 {
 	GENERATED_BODY()
 
+	/** Bitwise operation to apply (OR adds bit, NOT removes bit, XOR toggles). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
@@ -53,10 +56,11 @@ struct PCGEXCORE_API FPCGExSimpleBitmask
 
 	FPCGExSimpleBitmask() = default;
 
-	/** Base value, how it will be mutated, if at all, depends on chosen mode. */
+	/** The 64-bit mask value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 Bitmask = 0;
 
+	/** How this mask is combined with existing flags. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
@@ -71,12 +75,15 @@ struct PCGEXCORE_API FPCGExBitmaskRef
 	FPCGExBitmaskRef() = default;
 	explicit FPCGExBitmaskRef(TObjectPtr<UPCGExBitmaskCollection> InSource, const FName InIdentifier);
 
+	/** Bitmask collection asset to reference. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TObjectPtr<UPCGExBitmaskCollection> Source;
 
+	/** Named entry within the collection. */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(GetOptions="EDITOR_GetIdentifierOptions"))
 	FName Identifier = NAME_None;
 
+	/** How this referenced mask is combined with existing flags. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
@@ -98,19 +105,22 @@ struct PCGEXCORE_API FPCGExBitmask
 
 	FPCGExBitmask() = default;
 
+	/** How the bitmask value is constructed. Direct uses raw value, Mutations applies per-bit operations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Individual;
 
-	/** Base value, how it will be mutated, if at all, depends on chosen mode. */
+	/** Base 64-bit mask value. In Direct mode, used as-is. In Mutations mode, modified by operations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 Bitmask = 0;
 
 	UPROPERTY()
 	TArray<FPCGExClampedBit> Bits;
 
+	/** Per-bit operations applied to the base bitmask. Only used in Mutations mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", EditConditionHides))
 	TArray<FPCGExClampedBitOp> Mutations;
 
+	/** Additional bitmask references combined with the result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	TArray<FPCGExBitmaskRef> Compositions;
 
@@ -159,18 +169,23 @@ struct PCGEXCORE_API FPCGExBitmaskWithOperation
 
 	FPCGExBitmaskWithOperation() = default;
 
+	/** How the bitmask value is constructed. Direct uses raw value, Mutations applies per-bit operations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Direct;
 
+	/** Base 64-bit mask value. In Direct mode, used as-is. In Mutations mode, modified by operations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 Bitmask = 0;
 
+	/** How the final mask is combined with existing flags when applied. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides))
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
+	/** Per-bit operations applied to the base bitmask. Only used in Mutations mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
 	TArray<FPCGExClampedBitOp> Mutations;
 
+	/** Additional bitmask references combined with the result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	TArray<FPCGExBitmaskRef> Compositions;
 

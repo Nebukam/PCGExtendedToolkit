@@ -20,7 +20,7 @@ struct FPCGExMatchRandomConfig : public FPCGExMatchRuleConfigBase
 
 	FPCGExMatchRandomConfig();
 
-	/** TBD */
+	/** Seed used for random number generation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 RandomSeed = 42;
 
@@ -36,7 +36,7 @@ struct FPCGExMatchRandomConfig : public FPCGExMatchRuleConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1))
 	double Threshold = 0.5;
 
-	/** */
+	/** Invert the threshold comparison (pass becomes fail and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertThreshold = false;
 };

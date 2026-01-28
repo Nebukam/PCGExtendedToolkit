@@ -23,35 +23,35 @@ struct PCGEXFOUNDATIONS_API FPCGExSocketOutputDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails SocketNameFilters;
 
-	/**  */
+	/** Write socket name to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSocketName = false;
 
-	/** */
+	/** Attribute name to write socket name to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteSocketName"))
 	FName SocketNameAttributeName = "SocketName";
 
-	/**  */
+	/** Write socket tag to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSocketTag = false;
 
-	/** */
+	/** Attribute name to write socket tag to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteSocketTag"))
 	FName SocketTagAttributeName = "SocketTag";
 
-	/**  */
+	/** Write category to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCategory = false;
 
-	/** */
+	/** Attribute name to write category to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteCategory"))
 	FName CategoryAttributeName = "Category";
 
-	/**  */
+	/** Write asset path to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAssetPath = false;
 
-	/** */
+	/** Attribute name to write asset path to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteAssetPath"))
 	FName AssetPathAttributeName = "AssetPath";
 

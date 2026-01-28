@@ -196,11 +196,11 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellRotationMethod RotationMethod = EPCGExCellRotationMethod::Projection2D;
 
-	/**  */
+	/** Output winding order for cell paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUsedForPaths", EditConditionHides, HideEditConditionToggle))
 	EPCGExWinding OutputWinding = EPCGExWinding::CounterClockwise;
 
-	/**  */
+	/** Filter cells by convex/concave shape. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellShapeTypeOutput AspectFilter = EPCGExCellShapeTypeOutput::Both;
 
@@ -212,7 +212,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Duplicate Leaf points", EditCondition="bKeepCellsWithLeaves && bUsedForPaths", EditConditionHides, HideEditConditionToggle))
 	bool bDuplicateLeafPoints = false;
 
-	/**  */
+	/** Omit cells that represent the outer boundary of the graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOmitWrappingBounds = true;
 
@@ -220,11 +220,11 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Classification Tolerance", EditCondition="bOmitWrappingBounds", ClampMin=0, HideInDetailPanel))
 	double WrapperClassificationTolerance = 0.1;
 
-	/** */
+	/** Keep the wrapper cell if it's the only cell found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Keep if Sole", EditCondition="bOmitWrappingBounds", EditConditionHides))
 	bool bKeepWrapperIfSolePath = true;
 
-	/**  */
+	/** Omit cells below a minimum bounds size. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowBoundsSize = false;
 
@@ -232,7 +232,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Bounds Size", EditCondition="bOmitBelowBoundsSize", ClampMin=0))
 	double MinBoundsSize = 3;
 
-	/**  */
+	/** Omit cells above a maximum bounds size. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAboveBoundsSize = false;
 
@@ -240,7 +240,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Bounds Size", EditCondition="bOmitAboveBoundsSize", ClampMin=0))
 	double MaxBoundsSize = 500;
 
-	/**  */
+	/** Omit cells below a minimum point count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowPointCount = false;
 
@@ -248,7 +248,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Point Count", EditCondition="bOmitBelowPointCount", ClampMin=0))
 	int32 MinPointCount = 3;
 
-	/**  */
+	/** Omit cells above a maximum point count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAbovePointCount = false;
 
@@ -256,7 +256,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Point Count", EditCondition="bOmitAbovePointCount", ClampMin=0))
 	int32 MaxPointCount = 500;
 
-	/**  */
+	/** Omit cells below a minimum area. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowArea = false;
 
@@ -264,7 +264,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Area", EditCondition="bOmitBelowArea", ClampMin=0))
 	double MinArea = 3;
 
-	/**  */
+	/** Omit cells above a maximum area. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAboveArea = false;
 
@@ -272,7 +272,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Area", EditCondition="bOmitAboveArea", ClampMin=0))
 	double MaxArea = 500;
 
-	/**  */
+	/** Omit cells below a minimum perimeter. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowPerimeter = false;
 
@@ -280,7 +280,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Perimeter", EditCondition="bOmitBelowPerimeter", ClampMin=0))
 	double MinPerimeter = 3;
 
-	/**  */
+	/** Omit cells above a maximum perimeter. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAbovePerimeter = false;
 
@@ -288,7 +288,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Perimeter", EditCondition="bOmitAbovePerimeter", ClampMin=0))
 	double MaxPerimeter = 500;
 
-	/**  */
+	/** Omit cells with any segment below a minimum length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowSegmentLength = false;
 
@@ -296,7 +296,7 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Segment Length", EditCondition="bOmitBelowSegmentLength", ClampMin=0))
 	double MinSegmentLength = 3;
 
-	/**  */
+	/** Omit cells with any segment above a maximum length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAboveSegmentLength = false;
 
@@ -304,19 +304,19 @@ struct PCGEXGRAPHS_API FPCGExCellConstraintsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Segment Length", EditCondition="bOmitAboveSegmentLength", ClampMin=0))
 	double MaxSegmentLength = 500;
 
-	/**  */
+	/** Omit cells below a minimum compactness (0-1). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitBelowCompactness = false;
 
-	/** Omit cells that contains any segment which length is smaller than the specified amount */
+	/** Omit cells whose compactness is smaller than the specified amount (0-1 range). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Compactness", EditCondition="bOmitBelowCompactness", ClampMin=0, ClampMax=1))
 	double MinCompactness = 0;
 
-	/**  */
+	/** Omit cells above a maximum compactness (0-1). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAboveCompactness = false;
 
-	/** Omit cells that contains any segment which length is larger than the specified amount */
+	/** Omit cells whose compactness is larger than the specified amount (0-1 range). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Compactness", EditCondition="bOmitAboveCompactness", ClampMin=0, ClampMax=1))
 	double MaxCompactness = 1;
 };
@@ -343,7 +343,7 @@ struct PCGEXGRAPHS_API FPCGExCellSeedMutationDetails
 	UPROPERTY()
 	bool bUsedForPaths = false;
 
-	/**  */
+	/** Filter cells by convex/concave shape for seed mutation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellShapeTypeOutput AspectFilter = EPCGExCellShapeTypeOutput::Both;
 
@@ -351,27 +351,27 @@ struct PCGEXGRAPHS_API FPCGExCellSeedMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellSeedLocation Location = EPCGExCellSeedLocation::Centroid;
 
-	/** */
+	/** Match seed bounds to cell bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMatchCellBounds = true;
 
-	/** */
+	/** Reset seed scale to (1,1,1). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bResetScale = true;
 
-	/** */
+	/** Reset seed rotation to identity. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bResetRotation = true;
 
-	/** */
+	/** Output cell area to a point property. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPointPropertyOutput AreaTo = EPCGExPointPropertyOutput::None;
 
-	/** */
+	/** Output cell perimeter to a point property. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPointPropertyOutput PerimeterTo = EPCGExPointPropertyOutput::None;
 
-	/** */
+	/** Output cell compactness to a point property. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPointPropertyOutput CompactnessTo = EPCGExPointPropertyOutput::None;
 
@@ -421,7 +421,7 @@ struct PCGEXGRAPHS_API FPCGExCellArtifactsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Settings", EditCondition="bOutputCellBounds", EditConditionHides))
 	FPCGExCellOBBAttributesDetails OBBAttributes;
 
-	/**  */
+	/** Write cell unique hash to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCellHash = false;
 
@@ -429,7 +429,7 @@ struct PCGEXGRAPHS_API FPCGExCellArtifactsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Hash", EditCondition="bWriteCellHash"))
 	FName CellHashAttributeName = FName("CellHash");
 
-	/**  */
+	/** Write cell area to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteArea = false;
 
@@ -437,7 +437,7 @@ struct PCGEXGRAPHS_API FPCGExCellArtifactsDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Area", EditCondition="bWriteArea"))
 	FName AreaAttributeName = FName("Area");
 
-	/**  */
+	/** Write cell compactness (0-1) to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCompactness = false;
 

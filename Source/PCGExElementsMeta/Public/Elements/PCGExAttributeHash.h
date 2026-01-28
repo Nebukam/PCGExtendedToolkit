@@ -31,7 +31,7 @@ protected:
 	virtual bool GetIsMainTransactional() const override;
 
 public:
-	/** */
+	/** Configuration for which attributes to hash and how. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGExAttributeHashConfig HashConfig;
 

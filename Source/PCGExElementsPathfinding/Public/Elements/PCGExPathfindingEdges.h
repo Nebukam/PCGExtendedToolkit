@@ -83,7 +83,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
 	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage; 
 	
-	/** TBD */
+	/** Copy seed point attributes as tags on output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
@@ -91,11 +91,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardDetails SeedForwarding;
 
-	/** Which Goal attribute to use as tag. */
+	/** Copy goal point attributes as tags on output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
-	/** TBD */
+	/** Which Goal attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardDetails GoalForwarding;
 

@@ -155,7 +155,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** */
+	/** Unique name for this state definition. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName Name = FName("Flag");
 
