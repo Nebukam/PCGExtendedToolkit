@@ -40,7 +40,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CollicationNumAttributeName = "NumCollocations";
 
-	/** */
+	/** Write the linear index of occurrence for collocated points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLinearOccurences = false;
 
@@ -48,7 +48,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteLinearOccurences"))
 	FName LinearOccurencesAttributeName = "NumLinearOccurences";
 
-	/** */
+	/** Distance tolerance for considering two points as collocated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.01))
 	double Tolerance = DBL_COLLOCATION_TOLERANCE;
 };

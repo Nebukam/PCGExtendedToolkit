@@ -109,7 +109,7 @@ public:
 	/** Diffusion settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExFloodFillFlowDetails Diffusion;
-
+	
 #pragma region  Outputs
 
 	/** Write the diffusion depth the vtx was subjected to. */
@@ -151,19 +151,19 @@ public:
 	FPCGExForwardDetails SeedForwarding = FPCGExForwardDetails(true);
 
 
-	/** TBD */
+	/** Controls how flood fill results are output as paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths")
 	EPCGExFloodFillPathOutput PathOutput = EPCGExFloodFillPathOutput::None;
 
-	/** TBD */
+	/** Criteria used to partition paths into separate outputs. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(DisplayName=" ├─ Partition over", EditCondition="PathOutput == EPCGExFloodFillPathOutput::Partitions"))
 	EPCGExFloodFillPathPartitions PathPartitions = EPCGExFloodFillPathPartitions::Length;
 
-	/** TBD */
+	/** Sort direction for partitioned output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(DisplayName=" └─ Sorting", EditCondition="PathOutput == EPCGExFloodFillPathOutput::Partitions"))
 	EPCGExSortDirection PartitionSorting = EPCGExSortDirection::Ascending;
 
-	/** TBD */
+	/** Copy seed point attributes as tags on output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(EditCondition="PathOutput != EPCGExFloodFillPathOutput::None"))
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
@@ -179,7 +179,7 @@ private:
 struct FPCGExClusterDiffusionContext final : FPCGExClustersProcessorContext
 {
 	friend class FPCGExClusterDiffusionElement;
-
+                                           	
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	TArray<TObjectPtr<const UPCGExFillControlsFactoryData>> FillControlFactories;
 

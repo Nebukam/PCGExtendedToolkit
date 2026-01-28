@@ -41,18 +41,29 @@ struct PCGEXCORE_API FPCGExScaleToFitDetails
 		ScaleToFitMode = DefaultFit;
 	}
 
+	/**
+	 * How scaling is applied to fit within target bounds.
+	 * None = no scaling, Uniform = same scale all axes, Individual = per-axis control.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFitMode ScaleToFitMode = EPCGExFitMode::Uniform;
 
+	/**
+	 * Uniform scaling strategy.
+	 * Fill = stretch to fill, Min = fit smallest axis, Max = fit largest axis, Avg = average.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Uniform", EditConditionHides))
 	EPCGExScaleToFit ScaleToFit = EPCGExScaleToFit::Min;
 
+	/** Scaling strategy for X axis when using Individual mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitX = EPCGExScaleToFit::None;
 
+	/** Scaling strategy for Y axis when using Individual mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitY = EPCGExScaleToFit::None;
 
+	/** Scaling strategy for Z axis when using Individual mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitZ = EPCGExScaleToFit::None;
 
@@ -78,38 +89,56 @@ struct PCGEXCORE_API FPCGExSingleJustifyDetails
 
 	FPCGExSingleJustifyDetails();
 
-	/** Reference point inside the bounds getting justified */
+	/**
+	 * Reference point on the object being positioned.
+	 * Min/Center/Max/Pivot or Custom for attribute-driven.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExJustifyFrom From = EPCGExJustifyFrom::Center;
 
-	/**  */
+	/** Whether custom 'From' comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Input", EditCondition="From == EPCGExJustifyFrom::Custom", EditConditionHides))
 	EPCGExInputValueType FromInput = EPCGExInputValueType::Constant;
 
-	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
+	/**
+	 * Attribute for custom 'From' position.
+	 * 0 = bounds min, 0.5 = center, 1 = bounds max.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ From (Attr)", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector FromSourceAttribute;
 
-	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
+	/**
+	 * Custom 'From' position within bounds.
+	 * 0 = bounds min, 0.5 = center, 1 = bounds max.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ From", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double FromConstant = 0.5;
 
 	TSharedPtr<PCGExData::TBuffer<double>> FromGetter;
 	TSharedPtr<PCGExData::TBuffer<FVector>> SharedFromGetter;
 
-	/** Reference point inside the container bounds*/
+	/**
+	 * Target point in the container bounds to align to.
+	 * Same = match 'From', or Min/Center/Max/Pivot/Custom.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExJustifyTo To = EPCGExJustifyTo::Same;
 
-	/**  */
+	/** Whether custom 'To' comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Input", EditCondition="To == EPCGExJustifyTo::Custom", EditConditionHides))
 	EPCGExInputValueType ToInput = EPCGExInputValueType::Constant;
 
-	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
+	/**
+	 * Attribute for custom 'To' position.
+	 * 0 = bounds min, 0.5 = center, 1 = bounds max.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ To (Attr)", EditCondition="To == EPCGExJustifyTo::Custom && ToInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ToSourceAttribute;
 
-	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
+	/**
+	 * Custom 'To' position within container bounds.
+	 * 0 = bounds min, 0.5 = center, 1 = bounds max.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ To", EditCondition="To == EPCGExJustifyTo::Custom && ToInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ToConstant = 0.5;
 
@@ -133,37 +162,51 @@ struct PCGEXCORE_API FPCGExJustificationDetails
 	{
 	}
 
+	/** Enable justification on X axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoJustifyX = true;
 
+	/** X axis justification settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoJustifyX"))
 	FPCGExSingleJustifyDetails JustifyX;
 
+	/** Enable justification on Y axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoJustifyY = true;
 
+	/** Y axis justification settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoJustifyY"))
 	FPCGExSingleJustifyDetails JustifyY;
 
+	/** Enable justification on Z axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoJustifyZ = true;
 
+	/** Z axis justification settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoJustifyZ"))
 	FPCGExSingleJustifyDetails JustifyZ;
 
+	/** Use a single FVector attribute for all 'From' positions instead of per-axis attributes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSharedCustomFromAttribute = false;
 
-	/**  Whether to use matching component of this Vector attribute for custom 'From' justifications instead of setting local attribute. */
+	/**
+	 * Vector attribute where X/Y/Z components provide 'From' positions
+	 * for corresponding axes. Overrides per-axis attribute settings.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSharedCustomFromAttribute"))
 	FPCGAttributePropertyInputSelector CustomFromVectorAttribute;
 
 	TSharedPtr<PCGExData::TBuffer<FVector>> SharedFromGetter;
 
+	/** Use a single FVector attribute for all 'To' positions instead of per-axis attributes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSharedCustomToAttribute = false;
 
-	/**  Whether to use matching component of this Vector attribute for custom 'To' justifications instead of setting local attribute */
+	/**
+	 * Vector attribute where X/Y/Z components provide 'To' positions
+	 * for corresponding axes. Overrides per-axis attribute settings.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSharedCustomToAttribute"))
 	FPCGAttributePropertyInputSelector CustomToVectorAttribute;
 
@@ -184,12 +227,24 @@ struct PCGEXCORE_API FPCGExFittingVariationsDetails
 	{
 	}
 
+	/**
+	 * When to apply random offset variation.
+	 * Before = applied to asset before fitting, After = applied to result.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExVariationMode Offset = EPCGExVariationMode::Disabled;
 
+	/**
+	 * When to apply random rotation variation.
+	 * Before = applied to asset before fitting, After = applied to result.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExVariationMode Rotation = EPCGExVariationMode::Disabled;
 
+	/**
+	 * When to apply random scale variation.
+	 * Before = applied to asset before fitting, After = applied to result.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExVariationMode Scale = EPCGExVariationMode::Disabled;
 
@@ -213,9 +268,11 @@ struct PCGEXCORE_API FPCGExFittingDetailsHandler
 	{
 	}
 
+	/** How to scale objects to fit within target bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit;
 
+	/** How to align objects within target bounds after scaling. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExJustificationDetails Justification;
 
@@ -244,15 +301,18 @@ struct PCGEXCORE_API FPCGExTransformDetails : public FPCGExFittingDetailsHandler
 	{
 	}
 
-	/** If enabled, copied point will be scaled by the target' scale. */
+	/** Multiply result scale by the target point's scale. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="Justification"))
 	bool bInheritScale = false;
 
-	/** If enabled, copied points will be rotated by the target' rotation. */
+	/** Rotate result by the target point's rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
 	bool bInheritRotation = false;
 
-	/** If enabled, ignore bounds in calculations and only use position. */
+	/**
+	 * Skip bounds calculations and use position only.
+	 * Disables scale-to-fit and justification.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritRotation"))
 	bool bIgnoreBounds = false;
 };
@@ -266,11 +326,11 @@ struct PCGEXCORE_API FPCGExLeanTransformDetails
 	{
 	}
 
-	/** If enabled, point will be scaled by the parent' scale. */
+	/** Multiply result scale by the parent's scale. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInheritScale = true;
 
-	/** If enabled, points will be rotated by the parent' rotation. */
+	/** Rotate result by the parent's rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInheritRotation = true;
 };

@@ -95,21 +95,26 @@ public:
 	UPROPERTY(/*BlueprintReadWrite, EditAnywhere, Category=Settings*/)
 	EPCGExEnumConstantOutputType OutputType = EPCGExEnumConstantOutputType::EECOT_Attribute;
 
-	// Whether to output the enum value keys, which are the short names used in C++
+	/** Output the enum value keys (the short names used in C++). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Keys")
 	bool OutputEnumKeys = false;
 
-	// By default, most (but not all) enum value keys are returned as 'SomeEnum::SomeKey'. If this is true, the key will be output as just 'SomeKey' instead, without the 'SomeEnum::' part, if that is present.  
+	/**
+	 * Strip the namespace prefix from enum keys.
+	 * 'SomeEnum::SomeKey' becomes just 'SomeKey'.
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Keys", meta=(EditCondition="OutputEnumKeys"))
 	bool StripEnumNamespaceFromKey = true;
 
+	/** Attribute name for the enum key output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Keys", meta=(EditCondition="OutputEnumKeys"))
 	FName KeyAttribute = "Key";
 
-	// Whether to output the enum value descriptions, which are the human-readable names for values shown by the UI
+	/** Output the enum value descriptions (human-readable display names). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Descriptions")
 	bool OutputEnumDescriptions = false;
 
+	/** Attribute name for the description output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Descriptions", meta=(EditCondition="OutputEnumDescriptions"))
 	FName DescriptionAttribute = "Description";
 

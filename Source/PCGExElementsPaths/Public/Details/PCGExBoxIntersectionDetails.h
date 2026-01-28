@@ -72,15 +72,15 @@ struct PCGEXELEMENTSPATHS_API FPCGExBoxIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Normal", PCG_Overridable, EditCondition="bWriteNormal" ))
 	FName NormalAttributeName = FName("Normal");
 
-	/**  */
+	/** Write the index of the intersecting bounds to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteBoundIndex = false;
 
-	/** */
+	/** Attribute name for the intersecting bounds index. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="BoundIndex", PCG_Overridable, EditCondition="bWriteBoundIndex" ))
 	FName BoundIndexAttributeName = FName("BoundIndex");
 
-	/**  */
+	/** Forward attributes from intersecting bounds to intersection points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
 	FPCGExForwardDetails IntersectionForwarding;
 

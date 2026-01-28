@@ -8,6 +8,7 @@
 #include "Core/PCGExContext.h"
 #include "Graphs/PCGExGraphDetails.h"
 #include "Math/PCGExProjectionDetails.h"
+#include "PCGExHeuristicsHandler.h"
 
 #if PCGEX_ENGINE_VERSION > 506
 #include "PCGPointPropertiesTraits.h"
@@ -119,6 +120,7 @@ namespace PCGExClusterMT
 		bool bIsProcessorValid = false;
 
 		TSharedPtr<PCGExHeuristics::FHandler> HeuristicsHandler;
+		EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage;
 
 		bool bIsTrivial = false;
 		bool bIsOneToOne = false;
@@ -144,7 +146,7 @@ namespace PCGExClusterMT
 
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
-		void SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories);
+		void SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories, EPCGExHeuristicScoreMode ScoreMode);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager);
 
@@ -232,6 +234,7 @@ namespace PCGExClusterMT
 
 		bool bPreparationSuccessful = false;
 		bool bWantsHeuristics = false;
+		EPCGExHeuristicScoreMode HeuristicsScoreMode = EPCGExHeuristicScoreMode::WeightedAverage;
 		bool bRequiresGraphBuilder = false;
 
 		bool bWantsProjection = false;
@@ -277,7 +280,12 @@ namespace PCGExClusterMT
 		bool PreparationSuccessful() const { return bPreparationSuccessful; }
 		bool RequiresGraphBuilder() const { return bRequiresGraphBuilder; }
 		bool WantsHeuristics() const { return bWantsHeuristics; }
-		virtual void SetWantsHeuristics(const bool bRequired) { bWantsHeuristics = bRequired; }
+		EPCGExHeuristicScoreMode GetHeuristicsScoreMode() const { return HeuristicsScoreMode; }
+		virtual void SetWantsHeuristics(const bool bRequired, const EPCGExHeuristicScoreMode ScoreMode)
+		{
+			bWantsHeuristics = bRequired;
+			HeuristicsScoreMode = ScoreMode;
+		}
 
 		bool bForceSingleThreadedProcessing = false;
 		bool bForceSingleThreadedCompletion = false;

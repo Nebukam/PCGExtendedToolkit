@@ -32,7 +32,7 @@ struct PCGEXFOUNDATIONS_API FPCGExSocketFitDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bEnabled = false;
 
-	/** Type of Socket name input */
+	/** Where socket name comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bEnabled"))
 	EPCGExInputValueType SocketNameInput = EPCGExInputValueType::Attribute;
 
@@ -40,7 +40,7 @@ struct PCGEXFOUNDATIONS_API FPCGExSocketFitDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Socket Name (Attr)", EditCondition="bEnabled && SocketNameInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName SocketNameAttribute = NAME_None;
 
-	/** Socket name */
+	/** Name of the socket to fit to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Socket Name", EditCondition="bEnabled && SocketNameInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FName SocketName = NAME_None;
 

@@ -61,7 +61,7 @@ public:
 
 	virtual TSharedPtr<FPCGExSearchOperation> CreateOperation() const PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 
-	/** */
+	/** Exit the search early once a valid path is found. Disabling explores all possible paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bEarlyExit = true;
 };

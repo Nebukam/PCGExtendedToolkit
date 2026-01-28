@@ -41,59 +41,59 @@ struct FPCGExPointsToBoundsDataDetails
 	{
 	}
 
-	/** */
+	/** Write the computed transform to a data domain attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTransform = false;
 
-	/** */
+	/** Attribute name for the transform output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteTransform"))
 	FName TransformAttributeName = FName("@Data.Transform");
 
-	/** */
+	/** Write the blended density to a data domain attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDensity = true;
 
-	/** */
+	/** Attribute name for the density output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteDensity"))
 	FName DensityAttributeName = FName("@Data.Density");
 
-	/** */
+	/** Write the bounds minimum corner to a data domain attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteBoundsMin = true;
 
-	/** */
+	/** Attribute name for the bounds minimum output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBoundsMin"))
 	FName BoundsMinAttributeName = FName("@Data.BoundsMin");
 
-	/** */
+	/** Write the bounds maximum corner to a data domain attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteBoundsMax = true;
 
-	/** */
+	/** Attribute name for the bounds maximum output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBoundsMax"))
 	FName BoundsMaxAttributeName = FName("@Data.BoundsMax");
 
-	/** */
+	/** Write the blended color to a data domain attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteColor = true;
 
-	/** */
+	/** Attribute name for the color output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteColor"))
 	FName ColorAttributeName = FName("@Data.Color");
 
-	/** */
+	/** Write the blended steepness to a data domain attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSteepness = true;
 
-	/** */
+	/** Attribute name for the steepness output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteSteepness"))
 	FName SteepnessAttributeName = FName("@Data.Steepness");
 
-	/** */
+	/** Write the best-fit plane transform to a data domain attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteBestFitPlane = true;
 
-	/** */
+	/** Attribute name for the best-fit plane transform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBestFitPlane"))
 	FName BestFitPlaneAttributeName = FName("@Data.BestFitPlane");
 

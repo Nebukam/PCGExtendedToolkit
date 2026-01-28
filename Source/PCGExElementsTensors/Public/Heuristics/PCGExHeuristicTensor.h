@@ -21,7 +21,7 @@ struct FPCGExHeuristicConfigTensor : public FPCGExHeuristicConfigBase
 	{
 	}
 
-	/**  */
+	/** Use absolute dot product value (ignores direction sign). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAbsolute = true;
 

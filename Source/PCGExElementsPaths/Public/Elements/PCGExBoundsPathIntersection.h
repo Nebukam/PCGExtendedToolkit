@@ -66,23 +66,23 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
-	/** */
+	/** Output settings for intersection points and attributes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Output"))
 	FPCGExBoxIntersectionDetails OutputSettings;
 
-	/** */
+	/** Tag paths that were cut by bounds intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfHasCuts = true;
 
-	/** ... */
+	/** Tag to apply to paths with intersection cuts. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasCuts"))
 	FString HasCutsTag = TEXT("HasCuts");
 
-	/** */
+	/** Tag paths that had no bounds intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfUncut = false;
 
-	/** ... */
+	/** Tag to apply to uncut paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfUncut"))
 	FString UncutTag = TEXT("Uncut");
 

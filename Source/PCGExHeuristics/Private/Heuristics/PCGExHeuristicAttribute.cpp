@@ -32,7 +32,8 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 		return;
 	}
 
-	const double Factor = ReferenceWeight * WeightFactor;
+	// Note: ReferenceWeight already includes WeightFactor from the init macro
+	const double Factor = ReferenceWeight;
 
 	if (Mode == EPCGExAttributeHeuristicInputMode::Raw)
 	{

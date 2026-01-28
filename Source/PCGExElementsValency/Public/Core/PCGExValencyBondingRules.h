@@ -229,6 +229,45 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	UPROPERTY()
 	TArray<FPCGExValencyModuleTags> ModuleTags;
 
+	/**
+	 * Per-module socket headers.
+	 * X = start index in AllModuleSockets, Y = count of sockets.
+	 * Allows efficient socket lookup per module.
+	 */
+	UPROPERTY()
+	TArray<FIntPoint> ModuleSocketHeaders;
+
+	/** Flattened array of all sockets for all modules (with OrbitalIndex assigned) */
+	UPROPERTY()
+	TArray<FPCGExValencyModuleSocket> AllModuleSockets;
+
+	/**
+	 * Get all sockets for a module as a view into the flattened array.
+	 * @param ModuleIndex - Index of the module
+	 * @return Array view of the module's sockets (empty if none)
+	 */
+	TConstArrayView<FPCGExValencyModuleSocket> GetModuleSockets(int32 ModuleIndex) const
+	{
+		if (!ModuleSocketHeaders.IsValidIndex(ModuleIndex))
+		{
+			return TConstArrayView<FPCGExValencyModuleSocket>();
+		}
+
+		const FIntPoint& Header = ModuleSocketHeaders[ModuleIndex];
+		if (Header.Y == 0 || !AllModuleSockets.IsValidIndex(Header.X))
+		{
+			return TConstArrayView<FPCGExValencyModuleSocket>();
+		}
+
+		return TConstArrayView<FPCGExValencyModuleSocket>(&AllModuleSockets[Header.X], Header.Y);
+	}
+
+	/** Get the number of sockets for a module */
+	int32 GetModuleSocketCount(int32 ModuleIndex) const
+	{
+		return ModuleSocketHeaders.IsValidIndex(ModuleIndex) ? ModuleSocketHeaders[ModuleIndex].Y : 0;
+	}
+
 	/** Compiled layer data */
 	UPROPERTY()
 	TArray<FPCGExValencyLayerCompiled> Layers;
@@ -291,7 +330,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
  * Main bonding rules data asset - the user-facing configuration.
  * Contains orbital set references and module definitions.
  */
-UCLASS(BlueprintType, DisplayName="[PCGEx] Valency Orbital Set")
+UCLASS(BlueprintType, DisplayName="[PCGEx] Valency | Bonding Rules")
 class PCGEXELEMENTSVALENCY_API UPCGExValencyBondingRules : public UDataAsset
 {
 	GENERATED_BODY()

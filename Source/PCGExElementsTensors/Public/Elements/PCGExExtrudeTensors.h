@@ -111,19 +111,19 @@ public:
 	virtual FName GetMainOutputPin() const override;
 	//~End UPCGExPathProcessorSettings
 
-	/**  */
+	/** Whether to update point rotations during extrusion. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Transforms", meta=(PCG_Overridable))
 	bool bTransformRotation = true;
 
-	/**  */
+	/** How rotation transform is applied. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Transforms", meta=(PCG_Overridable, EditCondition="bTransformRotation"))
 	EPCGExTensorTransformMode Rotation = EPCGExTensorTransformMode::Align;
 
-	/**  */
+	/** The axis to align with movement direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Transforms", meta=(PCG_Overridable, EditCondition="bTransformRotation && Rotation == EPCGExTensorTransformMode::Align"))
 	EPCGExAxis AlignAxis = EPCGExAxis::Forward;
 
-	/** */
+	/** Use a per-point attribute to control max iterations instead of a global value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bUsePerPointMaxIterations = false;
 
@@ -145,7 +145,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bUseMaxLength = false;
 
-	/**  */
+	/** Whether the max length is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable, EditCondition="bUseMaxLength", EditConditionHides))
 	EPCGExInputValueType MaxLengthInput = EPCGExInputValueType::Constant;
 
@@ -163,7 +163,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bUseMaxPointsCount = false;
 
-	/**  */
+	/** Whether the max points count is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable, EditCondition="bUseMaxPointsCount", EditConditionHides))
 	EPCGExInputValueType MaxPointsCountInput = EPCGExInputValueType::Constant;
 
@@ -193,7 +193,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bIgnoreStoppedSeeds = false;
 
-	/**  */
+	/** Test for intersections with external path data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Ext)", meta=(PCG_Overridable))
 	bool bDoExternalPathIntersections = false;
 
@@ -226,7 +226,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, EditCondition="bDoSelfPathIntersections"))
 	bool bMergeOnProximity = false;
 
-	/** */
+	/** Whether to resolve crossing or merge detection first. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)", meta=(PCG_Overridable, DisplayName=" ├─ Priority", EditCondition="bDoSelfPathIntersections && bMergeOnProximity", ClampMin = 0, ClampMax =1))
 	EPCGExSelfIntersectionPriority SelfIntersectionPriority = EPCGExSelfIntersectionPriority::Crossing;
 
@@ -251,55 +251,55 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Angle", EditCondition="bDetectClosedLoops", Units="Degrees", ClampMin=0, ClampMax=90))
 	double ClosedLoopSearchAngle = 11.25;
 
-	/** TBD */
+	/** Copy source point attributes as tags on output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails AttributesToPathTags;
 
-	/** */
+	/** Tag paths that were spawned from another extrusion (child extrusions). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfChildExtrusion = false;
 
-	/** ... */
+	/** Tag to apply to child extrusion paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfChildExtrusion"))
 	FString IsChildExtrusionTag = TEXT("Child");
 
-	/** */
+	/** Tag paths that were stopped by stop filters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfIsStoppedByFilters = false;
 
-	/** ... */
+	/** Tag to apply to paths stopped by filters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedByFilters"))
 	FString IsStoppedByFiltersTag = TEXT("StoppedByFilters");
 
-	/** */
+	/** Tag paths that were stopped by external path intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfIsStoppedByIntersection = false;
 
-	/** ... */
+	/** Tag to apply to paths stopped by external intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedByIntersection"))
 	FString IsStoppedByIntersectionTag = TEXT("StoppedByPath");
 
-	/** */
+	/** Tag paths that were stopped by self-intersection with another extruding path. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfIsStoppedBySelfIntersection = false;
 
-	/** ... */
+	/** Tag to apply to paths stopped by self-intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsStoppedBySelfIntersection"))
 	FString IsStoppedBySelfIntersectionTag = TEXT("SelfCrossed");
 
-	/** */
+	/** Tag paths that were merged with another extruding path. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfSelfMerged = false;
 
-	/** ... */
+	/** Tag to apply to merged paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfSelfMerged"))
 	FString IsSelfMergedTag = TEXT("SelfMerged");
 
-	/** */
+	/** Tag paths that are continuations from a previous extrusion. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
 	bool bTagIfIsFollowUp = false;
 
-	/** ... */
+	/** Tag to apply to follow-up paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsFollowUp"))
 	FString IsFollowUpTag = TEXT("IsFollowUp");
 

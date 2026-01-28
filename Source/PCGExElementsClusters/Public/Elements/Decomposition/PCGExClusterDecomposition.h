@@ -48,7 +48,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExConvexDecompositionDetails DecompositionSettings;
 
-	/** */
+	/** Attribute name for the decomposition cell ID written to each node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CellIDAttributeName = FName("CellID");
 

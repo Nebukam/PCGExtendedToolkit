@@ -71,15 +71,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable, EditCondition="bApplyCustomPointType || DefaultPointType == EPCGExSplinePointType::CurveCustomTangent"))
 	FPCGExTangentsDetails Tangents;
 
-	/**  */
+	/** Which point property to use for bounds calculation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Bounds", meta = (PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Center;
 
-	/**  */
+	/** Minimum bounds offset for deformation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Bounds", meta = (PCG_Overridable))
 	FVector MinBoundsOffset = FVector::OneVector * -1;
 
-	/**  */
+	/** Maximum bounds offset for deformation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Bounds", meta = (PCG_Overridable))
 	FVector MaxBoundsOffset = FVector::OneVector;
 

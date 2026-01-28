@@ -36,11 +36,11 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 	{
 	}
 
-	/** TBD */
+	/** How to use the resolved index for probing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExProbeTargetMode Mode = EPCGExProbeTargetMode::Target;
 
-	/** TBD */
+	/** How to handle out-of-range indices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Ignore;
 

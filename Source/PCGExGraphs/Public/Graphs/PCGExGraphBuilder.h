@@ -44,7 +44,14 @@ namespace PCGExGraphs
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
 
 		FGraphCompilationEndCallback OnCompilationEndCallback;
+
+		/** Legacy callback - prefer context-based callbacks for new code */
 		FSubGraphPostProcessCallback OnSubGraphPostProcess;
+
+		/** Context-based callbacks for advanced subgraph processing */
+		FCreateSubGraphContextCallback OnCreateContext;
+		FSubGraphPreCompileCallback OnPreCompile;
+		FSubGraphPostCompileCallback OnPostCompile;
 
 		PCGExDataId PairId;
 		TSharedPtr<FGraph> Graph;
@@ -73,6 +80,10 @@ namespace PCGExGraphs
 
 		// This will be set to true post-graph compilation, if compilation was a success
 		bool bCompiledSuccessfully = false;
+
+		// When true, edge sort keys will be recomputed using remapped node indices before sorting.
+		// Required for union graphs where node indices are non-deterministic due to parallel insertion.
+		bool bRequiresEdgeResort = false;
 
 		FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails);
 

@@ -25,7 +25,7 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUsePathLength = true;
 
-	/**  */
+	/** Whether the max length is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType MaxLengthInput = EPCGExInputValueType::Constant;
 

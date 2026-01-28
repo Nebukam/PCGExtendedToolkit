@@ -53,7 +53,7 @@ struct FPCGExMatchOverlapConfig : public FPCGExMatchRuleConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinOverlapRatio"))
 	FPCGExInputShorthandNameDouble01 MinOverlapRatio = FPCGExInputShorthandNameDouble01(FName("@Data.MinOverlapRatio"), 0.5, false);
 
-	/**  */
+	/** Enable recursive/transitive matching through overlapping chains. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bRecursive = false;
 

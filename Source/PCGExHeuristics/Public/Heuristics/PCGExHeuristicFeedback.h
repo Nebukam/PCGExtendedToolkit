@@ -37,7 +37,7 @@ struct FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bGlobalFeedback = false;
 
-	/** */
+	/** Apply feedback to all edges connected to a visited node, not just the traversed edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAffectAllConnectedEdges = true;
 };

@@ -73,6 +73,7 @@ struct PCGEXFOUNDATIONS_API FPCGExRemapDetails
 
 	PCGExFloatLUT RemapLUT = nullptr;
 
+	/** Settings for how the curve is sampled (resolution, caching). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExCurveLookupDetails RemapCurveLookup;
 
@@ -88,9 +89,11 @@ struct PCGEXFOUNDATIONS_API FPCGExRemapDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Offset = 0;
 
+	/** How to snap the output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExVariationSnapping Snapping = EPCGExVariationSnapping::None;
 
+	/** Increment for value snapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Snapping != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandSelectorDouble Snap = FPCGExInputShorthandSelectorDouble(FName("Step"), 10, false);
 

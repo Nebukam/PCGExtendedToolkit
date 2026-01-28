@@ -86,7 +86,7 @@ public:
 		}
 	}
 
-	/** */
+	/** Invert the refinement result (keep edges that would be removed and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 

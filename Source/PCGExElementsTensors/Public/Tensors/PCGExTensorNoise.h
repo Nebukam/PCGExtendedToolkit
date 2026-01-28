@@ -81,11 +81,11 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	/**  */
+	/** Base weight multiplier for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double TensorWeight = 1;
 
-	/**  */
+	/** Base potency multiplier for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Potency = 1;
 

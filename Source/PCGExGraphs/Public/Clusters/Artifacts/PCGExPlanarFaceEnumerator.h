@@ -75,6 +75,12 @@ namespace PCGExClusters
 		TArray<FRawFace> CachedRawFaces;
 		bool bRawFacesEnumerated = false;
 
+		// Cached adjacency map (lazy-computed, thread-safe)
+		mutable FRWLock AdjacencyMapLock;
+		mutable TMap<int32, TSet<int32>> CachedAdjacencyMap;
+		mutable int32 CachedAdjacencyWrapperIndex = INDEX_NONE;
+		mutable bool bAdjacencyMapCached = false;
+
 	public:
 		FPlanarFaceEnumerator() = default;
 
@@ -158,6 +164,12 @@ namespace PCGExClusters
 		FORCEINLINE int32 GetNumFaces() const { return NumFaces; }
 		FORCEINLINE const FCluster* GetCluster() const { return Cluster; }
 
+		/** Get a half-edge by index */
+		FORCEINLINE const FHalfEdge& GetHalfEdge(int32 Index) const { return HalfEdges[Index]; }
+
+		/** Get read-only access to all half-edges */
+		FORCEINLINE const TArray<FHalfEdge>& GetHalfEdges() const { return HalfEdges; }
+
 		/** Get node-indexed projected positions (access via NodeIndex, not PointIndex) */
 		FORCEINLINE const TSharedPtr<TArray<FVector2D>>& GetProjectedPositions() const { return ProjectedPositions; }
 
@@ -170,6 +182,39 @@ namespace PCGExClusters
 			const int32* Found = HalfEdgeMap.Find(PCGEx::H64(FromNode, ToNode));
 			return Found ? *Found : -1;
 		}
+
+		/**
+		 * Build adjacency map for all faces.
+		 * Uses twin half-edges: if HalfEdge[i].FaceIndex = A and HalfEdge[HalfEdge[i].TwinIndex].FaceIndex = B,
+		 * then faces A and B are adjacent.
+		 * @param WrapperFaceIndex Optional face index to exclude from adjacency (typically the unbounded exterior face)
+		 * @return Map of FaceIndex -> Set of adjacent FaceIndices
+		 */
+		TMap<int32, TSet<int32>> BuildCellAdjacencyMap(int32 WrapperFaceIndex = -1) const;
+
+		/**
+		 * Get or build cached adjacency map for all faces.
+		 * Lazy-computes on first call, returns cached result on subsequent calls.
+		 * @param WrapperFaceIndex Optional face index to exclude from adjacency (typically the unbounded exterior face)
+		 * @return Reference to cached map of FaceIndex -> Set of adjacent FaceIndices
+		 */
+		const TMap<int32, TSet<int32>>& GetOrBuildAdjacencyMap(int32 WrapperFaceIndex = -1) const;
+
+		/**
+		 * Get adjacent face indices for a specific face.
+		 * Requires EnumerateRawFaces() to have been called first.
+		 * @param FaceIndex The face to query
+		 * @param OutAdjacentFaces Output array of adjacent face indices
+		 * @param WrapperFaceIndex Optional face index to exclude from results
+		 */
+		void GetAdjacentFaces(int32 FaceIndex, TArray<int32>& OutAdjacentFaces, int32 WrapperFaceIndex = -1) const;
+
+		/**
+		 * Get the half-edges that belong to a specific face.
+		 * @param FaceIndex The face to query
+		 * @param OutHalfEdgeIndices Output array of half-edge indices belonging to this face
+		 */
+		void GetFaceHalfEdges(int32 FaceIndex, TArray<int32>& OutHalfEdgeIndices) const;
 
 	protected:
 		/** Build a cell from a face (list of node indices) - internal use */

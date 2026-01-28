@@ -20,11 +20,11 @@ struct FPCGExTensorInertiaConstantConfig : public FPCGExTensorConfigBase
 	{
 	}
 
-	/**  */
+	/** The axis to use for inertia direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 
-	/**  */
+	/** Rotational offset to apply to the inertia. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FRotator Offset = FRotator::ZeroRotator;
 
@@ -75,19 +75,19 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/**  */
+	/** The axis to use for inertia direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 
-	/**  */
+	/** Rotational offset to apply to the inertia. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FRotator Offset = FRotator::ZeroRotator;
 
-	/**  */
+	/** Base weight multiplier for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double TensorWeight = 1;
 
-	/**  */
+	/** Base potency multiplier for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Potency = 1;
 

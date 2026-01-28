@@ -57,7 +57,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSlideMode Mode = EPCGExSlideMode::Slide;
 
-	/**  */
+	/** Slide toward the next or previous point on the path. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode != EPCGExSlideMode::Restore", EditConditionHides))
 	EPCGExSlideDirection Direction = EPCGExSlideDirection::Next;
 

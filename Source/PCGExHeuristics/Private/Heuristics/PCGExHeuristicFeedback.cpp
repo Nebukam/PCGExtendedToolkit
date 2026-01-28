@@ -19,7 +19,8 @@ void FPCGExHeuristicFeedback::PrepareForCluster(const TSharedPtr<const PCGExClus
 double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal) const
 {
 	const uint32 N = NodeFeedbackCounts[From.Index];
-	return N ? GetScoreInternal(NodeScale) * N : GetScoreInternal(0);
+	// Use logarithmic scaling to prevent unbounded growth from visit counts
+	return N ? GetScoreInternal(NodeScale * FMath::Loge(static_cast<double>(N) + 1.0)) : 0.0;
 }
 
 double FPCGExHeuristicFeedback::GetEdgeScore(const PCGExClusters::FNode& From, const PCGExClusters::FNode& To, const PCGExGraphs::FEdge& Edge, const PCGExClusters::FNode& Seed, const PCGExClusters::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
@@ -32,8 +33,10 @@ double FPCGExHeuristicFeedback::GetEdgeScore(const PCGExClusters::FNode& From, c
 		return (N || E) ? GetScoreInternal(1) : GetScoreInternal(0);
 	}
 
-	const double NW = N ? GetScoreInternal(NodeScale) * N : GetScoreInternal(0);
-	const double EW = E ? GetScoreInternal(EdgeScale) * E : GetScoreInternal(0);
+	// Use logarithmic scaling to prevent unbounded growth from visit counts
+	// This keeps feedback influence meaningful without dominating other heuristics
+	const double NW = N ? GetScoreInternal(NodeScale * FMath::Loge(static_cast<double>(N) + 1.0)) : 0.0;
+	const double EW = E ? GetScoreInternal(EdgeScale * FMath::Loge(static_cast<double>(E) + 1.0)) : 0.0;
 
 	return (NW + EW);
 }

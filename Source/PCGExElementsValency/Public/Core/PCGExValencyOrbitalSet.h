@@ -113,7 +113,7 @@ namespace PCGExValency
  * A collection of orbital definitions for a Valency layer.
  * Used by "Write Valency Orbitals" node to compute orbital masks and indices.
  */
-UCLASS(BlueprintType, DisplayName="[PCGEx] Valency Orbital Set")
+UCLASS(BlueprintType, DisplayName="[PCGEx] Valency | Orbital Set")
 class PCGEXELEMENTSVALENCY_API UPCGExValencyOrbitalSet : public UDataAsset
 {
 	GENERATED_BODY()

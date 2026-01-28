@@ -80,10 +80,10 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetStagingData
 	FBox Bounds = FBox(ForceInit);
 
 	template <typename T>
-	T* LoadSync() const
+	T* LoadSync(FPCGExContext* InContext = nullptr) const
 	{
 		TSoftObjectPtr<T> SoftObjectPtr = TSoftObjectPtr<T>(Path);
-		PCGExHelpers::LoadBlocking_AnyThreadTpl<T>(SoftObjectPtr);
+		PCGExHelpers::LoadBlocking_AnyThreadTpl<T>(SoftObjectPtr, InContext);
 		return SoftObjectPtr.Get();
 	}
 

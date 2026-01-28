@@ -7,12 +7,15 @@
 #include "Cages/PCGExValencyCageNull.h"
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
+#include "Components/PCGExValencyCageSocketComponent.h"
 #include "PCGExPropertyCollectionComponent.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Core/PCGExValencyLog.h"
 #include "Core/PCGExValencyOrbitalSet.h"
+#include "Core/PCGExValencySocketRules.h"
+#include "Engine/StaticMeshSocket.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyBuilder"
 
@@ -303,6 +306,164 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 		Data.Tags = GetEffectiveTags(Cage);
 		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d tags collected", *Cage->GetCageDisplayName(), Data.Tags.Num());
 
+		// ========== Socket Collection ==========
+		// Phase 1: Auto-extract sockets from mesh assets (if enabled)
+		// Phase 2: Collect socket components (can override auto-extracted)
+
+		Data.bReadSocketsFromAssets = Cage->bReadSocketsFromAssets;
+
+		// Build a map of mesh sockets from effective assets for both auto-extraction and transform matching
+		TMap<FName, FTransform> MeshSocketTransforms; // SocketName -> Transform
+		UPCGExValencySocketRules* EffectiveSocketRules = Cage->GetEffectiveSocketRules();
+
+		// Collect mesh sockets from all effective assets
+		for (const FPCGExValencyAssetEntry& AssetEntry : Data.AssetEntries)
+		{
+			if (AssetEntry.AssetType != EPCGExValencyAssetType::Mesh)
+			{
+				continue;
+			}
+
+			if (UStaticMesh* Mesh = Cast<UStaticMesh>(AssetEntry.Asset.LoadSynchronous()))
+			{
+				for (const UStaticMeshSocket* MeshSocket : Mesh->Sockets)
+				{
+					if (!MeshSocket)
+					{
+						continue;
+					}
+
+					// Store transform for later use (component transform matching)
+					const FTransform SocketTransform(
+						MeshSocket->RelativeRotation,
+						MeshSocket->RelativeLocation,
+						MeshSocket->RelativeScale
+					);
+					MeshSocketTransforms.Add(MeshSocket->SocketName, SocketTransform);
+
+					// Auto-extract if enabled and socket matches rules
+					if (Data.bReadSocketsFromAssets && EffectiveSocketRules)
+					{
+						const FName MatchedType = EffectiveSocketRules->FindMatchingSocketType(
+							MeshSocket->SocketName,
+							MeshSocket->Tag
+						);
+
+						if (!MatchedType.IsNone())
+						{
+							// Check if we already have this socket (avoid duplicates)
+							bool bAlreadyExists = false;
+							for (const FPCGExValencyModuleSocket& Existing : Data.Sockets)
+							{
+								if (Existing.SocketName == MeshSocket->SocketName)
+								{
+									bAlreadyExists = true;
+									break;
+								}
+							}
+
+							if (!bAlreadyExists)
+							{
+								FPCGExValencyModuleSocket AutoSocket;
+								AutoSocket.SocketName = MeshSocket->SocketName;
+								AutoSocket.SocketType = MatchedType;
+								AutoSocket.LocalOffset = SocketTransform;
+								AutoSocket.bOverrideOffset = true;
+								AutoSocket.bIsOutputSocket = false; // Auto-extracted default to input
+								AutoSocket.OrbitalIndex = -1;
+
+								Data.Sockets.Add(AutoSocket);
+								PCGEX_VALENCY_VERBOSE(Building, "    Auto-extracted socket '%s' (type=%s) from mesh",
+									*MeshSocket->SocketName.ToString(), *MatchedType.ToString());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		const int32 AutoExtractedCount = Data.Sockets.Num();
+
+		// Phase 2: Collect socket components (can override auto-extracted)
+		TArray<UPCGExValencyCageSocketComponent*> SocketComponents;
+		Cage->GetSocketComponents(SocketComponents);
+
+		for (const UPCGExValencyCageSocketComponent* SocketComp : SocketComponents)
+		{
+			if (!SocketComp || !SocketComp->bEnabled)
+			{
+				continue;
+			}
+
+			// Determine the transform to use
+			FTransform SocketTransform = SocketComp->GetSocketLocalTransform();
+
+			// Handle bMatchMeshSocketTransform - inherit transform from matching mesh socket
+			if (SocketComp->bMatchMeshSocketTransform)
+			{
+				// First try explicit MeshSocketName, then fall back to SocketName
+				const FName NameToMatch = SocketComp->MeshSocketName.IsNone()
+					? SocketComp->SocketName
+					: SocketComp->MeshSocketName;
+
+				if (const FTransform* MeshTransform = MeshSocketTransforms.Find(NameToMatch))
+				{
+					SocketTransform = *MeshTransform;
+					PCGEX_VALENCY_VERBOSE(Building, "    Socket '%s' matched mesh socket transform from '%s'",
+						*SocketComp->SocketName.ToString(), *NameToMatch.ToString());
+				}
+			}
+
+			// Check if this component overrides an auto-extracted socket
+			int32 ExistingIndex = INDEX_NONE;
+			for (int32 i = 0; i < Data.Sockets.Num(); ++i)
+			{
+				if (Data.Sockets[i].SocketName == SocketComp->SocketName)
+				{
+					ExistingIndex = i;
+					break;
+				}
+			}
+
+			if (ExistingIndex != INDEX_NONE)
+			{
+				// Socket with this name already exists (from auto-extraction)
+				if (SocketComp->bOverrideAutoExtracted)
+				{
+					// Replace the auto-extracted socket with component data
+					FPCGExValencyModuleSocket& ExistingSocket = Data.Sockets[ExistingIndex];
+					ExistingSocket.SocketType = SocketComp->SocketType;
+					ExistingSocket.LocalOffset = SocketTransform;
+					ExistingSocket.bOverrideOffset = true;
+					ExistingSocket.bIsOutputSocket = SocketComp->bIsOutputSocket;
+					PCGEX_VALENCY_VERBOSE(Building, "    Socket component '%s' overrides auto-extracted",
+						*SocketComp->SocketName.ToString());
+				}
+				else
+				{
+					PCGEX_VALENCY_VERBOSE(Building, "    Socket component '%s' skipped (auto-extracted takes precedence)",
+						*SocketComp->SocketName.ToString());
+				}
+			}
+			else
+			{
+				// New socket from component
+				FPCGExValencyModuleSocket ModuleSocket;
+				ModuleSocket.SocketName = SocketComp->SocketName;
+				ModuleSocket.SocketType = SocketComp->SocketType;
+				ModuleSocket.LocalOffset = SocketTransform;
+				ModuleSocket.bOverrideOffset = true;
+				ModuleSocket.bIsOutputSocket = SocketComp->bIsOutputSocket;
+				ModuleSocket.OrbitalIndex = -1;
+
+				Data.Sockets.Add(ModuleSocket);
+			}
+		}
+
+		const int32 ComponentCount = SocketComponents.Num();
+		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d sockets total (%d auto-extracted, %d from components)",
+			*Cage->GetCageDisplayName(), Data.Sockets.Num(), AutoExtractedCount, ComponentCount);
+
 		// Compute orbital mask from connections
 		const TArray<FPCGExValencyCageOrbital>& Orbitals = Cage->GetOrbitals();
 		PCGEX_VALENCY_VERBOSE(Building, "  Cage '%s': %d assets, %d orbitals",
@@ -464,6 +625,9 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 			// Copy actor tags to module (inherited from cage + palette)
 			NewModule.Tags = Data.Tags;
+
+			// Copy socket definitions from cage (will have orbital indices assigned in compilation)
+			NewModule.Sockets = Data.Sockets;
 
 #if WITH_EDITORONLY_DATA
 			// Generate variant name for editor review

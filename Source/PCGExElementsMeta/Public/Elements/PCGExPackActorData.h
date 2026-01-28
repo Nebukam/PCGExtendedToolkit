@@ -588,11 +588,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExCustomActorDataPacker> Packer;
 
-	/** */
+	/** Skip entries where the actor reference could not be resolved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bOmitUnresolvedEntries = true;
 
-	/** */
+	/** Skip outputting empty data collections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bOmitEmptyOutputs = true;
 

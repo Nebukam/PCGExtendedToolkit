@@ -20,7 +20,7 @@ struct FPCGExHeuristicConfigSteepness : public FPCGExHeuristicConfigBase
 	{
 	}
 
-	/** */
+	/** Accumulate steepness over multiple previous edges for smoother terrain evaluation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bAccumulateScore = false;
 

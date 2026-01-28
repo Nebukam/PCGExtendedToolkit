@@ -110,7 +110,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Direction;
 
-	/** */
+	/** Invert the trace direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Invert"))
 	bool bInvertDirection = false;
 
@@ -198,7 +198,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="IsInside", PCG_Overridable, EditCondition="bWriteIsInside"))
 	FName IsInsideAttributeName = FName("IsInside");
 
-	/** */
+	/** Write UV coordinates of the hit surface to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteUVCoords = false;
 
@@ -211,7 +211,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName=" └─ UV Channel", EditCondition = "bWriteUVCoords", EditConditionHides, HideEditConditionToggle))
 	int32 UVChannel = 0;
 
-	/** */
+	/** Write the index of the hit triangle to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteFaceIndex = false;
 
@@ -295,7 +295,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bPruneFailedSamples = false;
 
-	/** */
+	/** Suppress warnings about UV query settings not being enabled in project settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietUVSettingsWarning = false;
 };

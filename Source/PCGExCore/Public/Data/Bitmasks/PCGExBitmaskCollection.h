@@ -11,7 +11,7 @@
 
 class UPCGExBitmaskCollection;
 
-USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Collection Entry")
+USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Library Entry")
 struct PCGEXCORE_API FPCGExBitmaskCollectionEntry
 {
 	GENERATED_BODY()
@@ -19,12 +19,15 @@ struct PCGEXCORE_API FPCGExBitmaskCollectionEntry
 
 	FPCGExBitmaskCollectionEntry() = default;
 
+	/** Unique name to reference this bitmask entry. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Identifier = NAME_None;
 
+	/** The bitmask value for this entry. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExBitmask Bitmask;
 
+	/** Optional direction associated with this entry (used for directional adjacency). */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FVector Direction = FVector::UpVector;
 
@@ -56,7 +59,7 @@ namespace PCGExBitmaskCollection
 	};
 }
 
-UCLASS(BlueprintType, DisplayName="[PCGEx] Bitmask Collection")
+UCLASS(BlueprintType, DisplayName="[PCGEx] Bitmask Library")
 class PCGEXCORE_API UPCGExBitmaskCollection : public UDataAsset
 {
 	mutable FRWLock CacheLock;
@@ -96,6 +99,7 @@ public:
 	virtual bool IsValidIndex(const int32 InIndex) const { return false; }
 	virtual int32 NumEntries() const { return 0; }
 
+	/** Named bitmask entries in this collection. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="{Identifier}   |   {Direction}"))
 	TArray<FPCGExBitmaskCollectionEntry> Entries;
 

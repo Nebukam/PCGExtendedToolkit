@@ -46,19 +46,19 @@ struct FPCGExShrinkPathEndpointDistanceDetails
 {
 	GENERATED_BODY()
 
-	/** TBD */
+	/** Whether the distance is a constant or read from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType AmountInput = EPCGExInputValueType::Constant;
 
-	/** Distance or count */
+	/** Attribute to read the shrink distance from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance (Attr)", EditCondition="AmountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DistanceAttribute;
 
-	/** TBD */
+	/** Distance to shrink the path endpoint by. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Distance", EditCondition="AmountInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double Distance = 10;
 
-	/** TBD */
+	/** How to handle the cut point when shrinking by distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
 
@@ -70,15 +70,15 @@ struct FPCGExShrinkPathEndpointCountDetails
 {
 	GENERATED_BODY()
 
-	/** TBD */
+	/** Whether the count is a constant or read from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType ValueSource = EPCGExInputValueType::Constant;
 
-	/** Distance or count */
+	/** Attribute to read the point count from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Count (Attr)", EditCondition="ValueSource != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector CountAttribute;
 
-	/** TBD */
+	/** Number of points to remove from the path endpoint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Count", EditCondition="ValueSource == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 Count = 10;
 
@@ -112,37 +112,37 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceStopConditionLabel, "", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-	/** TBD */
+	/** Which endpoints to shrink (start, end, or both). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
 	EPCGExShrinkEndpoint ShrinkEndpoint = EPCGExShrinkEndpoint::Both;
 
-	/** TBD */
+	/** Whether both endpoints use shared settings or separate settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkEndpoint == EPCGExShrinkEndpoint::Both", EditConditionHides))
 	EPCGExShrinkConstantMode SettingsMode = EPCGExShrinkConstantMode::Shared;
 
-	/** TBD */
+	/** Shrink by distance traveled or by point count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathShrinkMode ShrinkMode = EPCGExPathShrinkMode::Distance;
 
 
-	/** TBD */
+	/** Distance-based shrink settings for the first endpoint (or both if shared). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode == EPCGExPathShrinkMode::Distance", EditConditionHides))
 	FPCGExShrinkPathEndpointDistanceDetails PrimaryDistanceDetails;
 
-	/** TBD */
+	/** Distance-based shrink settings for the second endpoint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode == EPCGExPathShrinkMode::Distance && ShrinkEndpoint == EPCGExShrinkEndpoint::Both && SettingsMode == EPCGExShrinkConstantMode::Separate", EditConditionHides))
 	FPCGExShrinkPathEndpointDistanceDetails SecondaryDistanceDetails;
 
 
-	/** TBD */
+	/** Count-based shrink settings for the first endpoint (or both if shared). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode == EPCGExPathShrinkMode::Count", EditConditionHides))
 	FPCGExShrinkPathEndpointCountDetails PrimaryCountDetails;
 
-	/** TBD */
+	/** Count-based shrink settings for the second endpoint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode == EPCGExPathShrinkMode::Count && ShrinkEndpoint == EPCGExShrinkEndpoint::Both && SettingsMode == EPCGExShrinkConstantMode::Separate", EditConditionHides))
 	FPCGExShrinkPathEndpointCountDetails SecondaryCountDetails;
 
-	/** TBD */
+	/** If enabled, endpoint points themselves won't trigger stop conditions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bEndpointsIgnoreStopConditions = false;
 
@@ -154,7 +154,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bPreserveLastMetadata = false;
 
-	/** */
+	/** Suppress warning when attempting to shrink a closed loop path. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietClosedLoopWarning = false;
 };

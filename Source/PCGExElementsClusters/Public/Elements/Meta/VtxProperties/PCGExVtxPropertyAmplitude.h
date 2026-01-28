@@ -49,67 +49,67 @@ struct FPCGExAmplitudeConfig
 
 	FPCGExAmplitudeConfig();
 
-	/**  */
+	/** Write the minimum amplitude to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteMinAmplitude = false;
 
-	/** */
+	/** Name of the attribute to write minimum amplitude to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Min", PCG_Overridable, EditCondition="bWriteMinAmplitude"))
 	FName MinAmplitudeAttributeName = "MinAmplitude";
 
-	/** Up vector to use for amplitude sign */
+	/** Use absolute values for minimum amplitude. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteMinAmplitude && MinMode == EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteMin = true;
 
-	/** */
+	/** How the minimum amplitude is computed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Mode", EditCondition="bWriteMinAmplitude", EditConditionHides, HideEditConditionToggle))
 	EPCGExVtxAmplitudeMode MinMode = EPCGExVtxAmplitudeMode::Length;
 
-	/**  */
+	/** Write the maximum amplitude to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteMaxAmplitude = false;
 
-	/** */
+	/** Name of the attribute to write maximum amplitude to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Max", PCG_Overridable, EditCondition="bWriteMaxAmplitude"))
 	FName MaxAmplitudeAttributeName = "MaxAmplitude";
 
-	/** Up vector to use for amplitude sign */
+	/** Use absolute values for maximum amplitude. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteMaxAmplitude && MaxMode == EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteMax = true;
 
-	/** */
+	/** How the maximum amplitude is computed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Mode", EditCondition="bWriteMaxAmplitude", EditConditionHides, HideEditConditionToggle))
 	EPCGExVtxAmplitudeMode MaxMode = EPCGExVtxAmplitudeMode::Length;
 
-	/**  */
+	/** Write the amplitude range to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAmplitudeRange = false;
 
-	/** */
+	/** Name of the attribute to write amplitude range to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Range", PCG_Overridable, EditCondition="bWriteAmplitudeRange"))
 	FName AmplitudeRangeAttributeName = "AmplitudeRange";
 
-	/**  */
+	/** Use absolute values for amplitude range. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteAmplitudeRange && RangeMode == EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteRange = true;
 
-	/** */
+	/** How the amplitude range is computed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Mode", EditCondition="bWriteAmplitudeRange", EditConditionHides, HideEditConditionToggle))
 	EPCGExVtxAmplitudeMode RangeMode = EPCGExVtxAmplitudeMode::Length;
 
-	/**  */
+	/** Write the amplitude sign to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAmplitudeSign = false;
 
-	/**  */
+	/** Name of the attribute to write amplitude sign to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Sign", PCG_Overridable, EditCondition="bWriteAmplitudeSign"))
 	FName AmplitudeSignAttributeName = "AmplitudeSign";
 
-	/**  */
+	/** How the sign value is computed and output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteAmplitudeSign", EditConditionHides, HideEditConditionToggle))
 	EPCGExVtxAmplitudeSignOutput SignOutputMode = EPCGExVtxAmplitudeSignOutput::Size;
 
-	/**  */
+	/** Use absolute value for sign calculation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteAmplitudeSign", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteSign = true;
 

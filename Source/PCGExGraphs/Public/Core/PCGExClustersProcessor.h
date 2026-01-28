@@ -50,6 +50,7 @@ protected:
 public:
 	virtual bool SupportsEdgeSorting() const;
 	virtual bool RequiresEdgeSorting() const;
+	
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const;
 
@@ -63,7 +64,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExOptionState ScopedIndexLookupBuild = EPCGExOptionState::Default;
 
-	/** */
+	/** Suppress warning when a cluster pair (vtx/edges) cannot be found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingClusterPairElement = false;
 

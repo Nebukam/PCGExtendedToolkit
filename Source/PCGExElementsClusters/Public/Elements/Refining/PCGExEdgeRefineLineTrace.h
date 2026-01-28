@@ -103,7 +103,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTwoWayCheck = true;
 
-	/** */
+	/** Scatter multiple traces around the endpoint to improve hit detection reliability. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bScatter = false;
 
@@ -114,7 +114,7 @@ public:
 	double ScatterRadius = 10;
 
 
-	/** */
+	/** Invert the refinement result (keep edges that hit and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 

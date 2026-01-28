@@ -39,7 +39,7 @@ struct FPCGExEdgeEndpointsCheckFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison", EditCondition="Mode != EPCGExEdgeEndpointsCheckMode::SeeSaw"))
 	EPCGExFilterResult Expects = EPCGExFilterResult::Pass;
 
-	/** */
+	/** Invert the filter result (pass becomes fail and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 };

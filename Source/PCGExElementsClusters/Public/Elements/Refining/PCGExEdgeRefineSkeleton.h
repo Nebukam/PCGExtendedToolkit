@@ -97,11 +97,11 @@ public:
 
 	virtual bool WantsIndividualEdgeProcessing() const override { return true; }
 
-	/** */
+	/** Beta parameter for the skeleton algorithm. Values ≤1 use lune-based tests, >1 use circle-based tests. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Beta = 1;
 
-	/** */
+	/** Invert the refinement result (keep edges that would be removed and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 

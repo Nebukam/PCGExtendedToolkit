@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Misc/ScopeRWLock.h"
 #include "PCGExClusterCache.generated.h"
 
 struct FPCGExGeo2DProjectionDetails;

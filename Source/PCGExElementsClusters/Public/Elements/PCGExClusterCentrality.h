@@ -61,6 +61,10 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
+	/** Scoring mode for combining multiple heuristics */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
+	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage; 
+	
 	/** Name of the attribute */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName CentralityValueAttributeName = FName("Centrality");
@@ -73,7 +77,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ OneMinus", EditCondition="bNormalize", EditConditionHides))
 	bool bOutputOneMinus = false;
 
-	/** */
+	/** Downsampling strategy to reduce processing time on large clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExCentralityDownsampling DownsamplingMode = EPCGExCentralityDownsampling::None;
 

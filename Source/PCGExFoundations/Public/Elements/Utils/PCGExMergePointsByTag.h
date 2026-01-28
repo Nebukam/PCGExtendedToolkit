@@ -87,7 +87,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** TBD */
+	/** How overlapping tags are resolved when multiple data share tags. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMergeByTagOverlapResolutionMode Mode = EPCGExMergeByTagOverlapResolutionMode::Strict;
 

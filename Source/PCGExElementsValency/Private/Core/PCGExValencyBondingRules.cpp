@@ -87,6 +87,8 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData.ModulePropertyHeaders.SetNum(Modules.Num());
 	CompiledData.AllModuleProperties.Empty();
 	CompiledData.ModuleTags.SetNum(Modules.Num());
+	CompiledData.ModuleSocketHeaders.SetNum(Modules.Num());
+	CompiledData.AllModuleSockets.Empty();
 
 	// Populate module data
 	VALENCY_LOG_SUBSECTION(Compilation, "Compiling Module Data");
@@ -117,13 +119,64 @@ bool UPCGExValencyBondingRules::Compile()
 		// Copy module tags
 		CompiledData.ModuleTags[ModuleIndex] = FPCGExValencyModuleTags(Module.Tags);
 
-		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d, Properties=%d, Tags=%d",
+		// Populate socket header and flattened sockets with orbital index assignment
+		const int32 SocketStartIndex = CompiledData.AllModuleSockets.Num();
+		int32 SocketCount = 0;
+
+		if (Module.Sockets.Num() > 0 && OrbitalSets.Num() > 0)
+		{
+			// Use primary orbital set for socket-to-orbital mapping
+			const UPCGExValencyOrbitalSet* PrimaryOrbitalSet = OrbitalSets[0];
+
+			// Build orbital direction resolver
+			PCGExValency::FOrbitalDirectionResolver OrbitalResolver;
+			OrbitalResolver.BuildFrom(PrimaryOrbitalSet);
+
+			for (const FPCGExValencyModuleSocket& Socket : Module.Sockets)
+			{
+				FPCGExValencyModuleSocket CompiledSocket = Socket;
+
+				// Compute orbital index from socket direction
+				// The socket's LocalOffset translation defines its position relative to module origin
+				const FVector SocketDirection = Socket.LocalOffset.GetTranslation().GetSafeNormal();
+
+				if (!SocketDirection.IsNearlyZero())
+				{
+					// Use the orbital resolver to find matching orbital
+					// Note: For sockets, we typically don't transform by module rotation (sockets are module-local)
+					CompiledSocket.OrbitalIndex = OrbitalResolver.FindMatchingOrbital(
+						SocketDirection,
+						false, // Don't transform - sockets are in module-local space
+						FTransform::Identity
+					);
+				}
+				else
+				{
+					// Socket at origin - assign to orbital 0 as fallback, or -1 for invalid
+					CompiledSocket.OrbitalIndex = PrimaryOrbitalSet->Num() > 0 ? 0 : -1;
+				}
+
+				CompiledData.AllModuleSockets.Add(CompiledSocket);
+				SocketCount++;
+
+				PCGEX_VALENCY_VERBOSE(Compilation, "    Socket '%s' (type=%s, output=%s) -> OrbitalIndex=%d",
+					*Socket.SocketName.ToString(),
+					*Socket.SocketType.ToString(),
+					Socket.bIsOutputSocket ? TEXT("true") : TEXT("false"),
+					CompiledSocket.OrbitalIndex);
+			}
+		}
+
+		CompiledData.ModuleSocketHeaders[ModuleIndex] = FIntPoint(SocketStartIndex, SocketCount);
+
+		PCGEX_VALENCY_VERBOSE(Compilation, "  Module[%d]: Asset='%s', Weight=%.2f, Type=%d, Properties=%d, Tags=%d, Sockets=%d",
 			ModuleIndex,
 			*Module.Asset.GetAssetName(),
 			Module.Settings.Weight,
 			static_cast<int32>(Module.AssetType),
 			PropertyCount,
-			Module.Tags.Num());
+			Module.Tags.Num(),
+			SocketCount);
 
 		// Orbital masks per layer
 		for (int32 LayerIndex = 0; LayerIndex < LayerCount; ++LayerIndex)

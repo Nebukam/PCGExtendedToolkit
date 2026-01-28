@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "StructUtils/InstancedStruct.h"
 #include "Core/PCGExValencyBondingRules.h"
+#include "Core/PCGExValencySocketRules.h"
 
 #include "PCGExValencyBondingRulesBuilder.generated.h"
 
@@ -79,6 +80,12 @@ struct FPCGExValencyCageData
 
 	/** Per-orbital: module indices of valid neighbors (from connected cage's assets) */
 	TMap<int32, TArray<int32>> OrbitalToNeighborModules;
+
+	/** Socket definitions collected from cage socket components and/or auto-extracted from assets */
+	TArray<FPCGExValencyModuleSocket> Sockets;
+
+	/** Whether this cage has auto-extraction enabled */
+	bool bReadSocketsFromAssets = false;
 
 	/**
 	 * Get a unique key for module lookup.

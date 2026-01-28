@@ -47,7 +47,7 @@ struct PCGEXFILTERS_API FPCGExBitmaskFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	TArray<FPCGExBitmaskRef> Compositions;
 
-	/** TBD */
+	/** Invert the filter result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
 

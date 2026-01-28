@@ -23,7 +23,7 @@ struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 		bSupportSteps = false;
 	}
 
-	/**  */
+	/** Whether the window size is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType WindowSizeInput = EPCGExInputValueType::Constant;
 

@@ -39,7 +39,7 @@ struct FPCGExProbeConfigKNN : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorInteger32Abs K = FPCGExInputShorthandSelectorInteger32Abs(FName("K"), 5, false);
 
-	/** TBD */
+	/** How K-nearest neighbors are connected. Mutual requires both points to be nearest. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExProbeKNNMode Mode = EPCGExProbeKNNMode::Mutual;
 };

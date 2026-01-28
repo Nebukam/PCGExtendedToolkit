@@ -60,7 +60,7 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-	/** */
+	/** Algorithm used to compute the offset direction at each point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExOffsetMethod OffsetMethod = EPCGExOffsetMethod::Slide;
 

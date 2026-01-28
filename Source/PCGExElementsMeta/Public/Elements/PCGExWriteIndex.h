@@ -50,7 +50,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputPointIndex"))
 	FName OutputAttributeName = "CurrentIndex";
 
-	/**  */
+	/** Invert the index (MaxIndex - Index) before writing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ One Minus", EditCondition="bOutputPointIndex", HideEditConditionToggle))
 	bool bOneMinus = false;
 
@@ -66,7 +66,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Collection Index", EditCondition="bOutputCollectionIndex"))
 	FName CollectionIndexAttributeName = "@Data.CollectionIndex";
 
-	/** */
+	/** Output data type for the collection index attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Type", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
 	EPCGExNumericOutput CollectionIndexOutputType = EPCGExNumericOutput::Int32;
 
@@ -83,7 +83,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Num Entries", EditCondition="bOutputCollectionNumEntries"))
 	FName NumEntriesAttributeName = "@Data.NumEntries";
 
-	/** */
+	/** Output data type for the num entries attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Type", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))
 	EPCGExNumericOutput NumEntriesOutputType = EPCGExNumericOutput::Int32;
 

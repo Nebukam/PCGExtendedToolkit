@@ -56,7 +56,7 @@ struct FPCGExNumericCompareNearestFilterConfig
 
 	PCGEX_SETTING_VALUE_DECL(OperandB, double)
 
-	/**  */
+	/** Exclude the point's own data from the nearest search. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bIgnoreSelf = true;
 };

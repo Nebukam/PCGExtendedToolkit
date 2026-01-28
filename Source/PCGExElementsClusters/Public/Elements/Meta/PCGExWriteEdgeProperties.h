@@ -103,9 +103,12 @@ public:
 	FName HeuristicsAttributeName = FName("Heuristics");
 
 	/** Heuristic write mode. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Heuristics Mode", EditCondition="bWriteHeuristics", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Heuristics Mode", EditCondition="bWriteHeuristics", EditConditionHides, HideEditConditionToggle))
 	EPCGExHeuristicsWriteMode HeuristicsMode = EPCGExHeuristicsWriteMode::EndpointsOrder;
 
+	/** Scoring mode for combining multiple heuristics */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Heuristics Score Mode", EditCondition="bWriteHeuristics", EditConditionHides, HideEditConditionToggle))                                                                    
+	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage; 
 
 	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable))
@@ -155,7 +158,7 @@ public:
 	double RadiusXConstant = 1;
 
 
-	/**  */
+	/** Whether or not to write the edge extents over the local Y axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusY = false;
 
@@ -176,7 +179,7 @@ public:
 	double RadiusYConstant = 1;
 
 
-	/**  */
+	/** Whether or not to write the edge extents over the local Z axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusZ = false;
 

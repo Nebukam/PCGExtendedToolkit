@@ -107,7 +107,7 @@ public:
 	 * hash lookups versus one per vertex, and memory overhead is on the order of 2 to 3 MB for 100K vertices.)
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
-	bool bPreciseVertexMerge = true;
+	bool bPreciseVertexMerge = false;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))

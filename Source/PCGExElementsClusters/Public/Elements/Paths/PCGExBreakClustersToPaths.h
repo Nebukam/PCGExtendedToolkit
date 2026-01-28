@@ -85,7 +85,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=2))
 	int32 MinPointCount = 2;
 
-	/** */
+	/** Enable maximum point count filtering for output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAbovePointCount = false;
 

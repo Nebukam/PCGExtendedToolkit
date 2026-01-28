@@ -49,7 +49,7 @@ struct PCGEXMATCHING_API FPCGExMatchRuleConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExMatchStrictness Strictness = EPCGExMatchStrictness::Any;
 
-	/** */
+	/** Invert the match result (match becomes no-match and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInvert = false;
 

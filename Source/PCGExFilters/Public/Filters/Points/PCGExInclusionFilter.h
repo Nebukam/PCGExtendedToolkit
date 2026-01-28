@@ -30,7 +30,7 @@ struct FPCGExInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
 
-	/** */
+	/** Type of inclusion check to perform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSplineCheckType CheckType = EPCGExSplineCheckType::IsInside;
 
@@ -50,19 +50,19 @@ struct FPCGExInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double InclusionOffset = 0;
 
-	/** */
+	/** Require a minimum number of inclusions to pass. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMinInclusionCount = false;
 
-	/**  */
+	/** Minimum number of shapes the point must be inside. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinInclusionCount"))
 	int32 MinInclusionCount = 2;
 
-	/**  */
+	/** Limit the maximum number of inclusions to pass. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMaxInclusionCount = false;
 
-	/**  */
+	/** Maximum number of shapes the point can be inside. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxInclusionCount"))
 	int32 MaxInclusionCount = 10;
 
@@ -70,7 +70,7 @@ struct FPCGExInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	/** */
+	/** Expansion on Z axis for 3D tolerance. -1 means infinite height. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	double ExpandZAxis = -1;
 

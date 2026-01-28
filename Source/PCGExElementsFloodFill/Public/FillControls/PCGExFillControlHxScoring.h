@@ -25,6 +25,10 @@ struct FPCGExFillControlConfigHeuristicsScoring : public FPCGExFillControlConfig
 		Steps = static_cast<uint8>(EPCGExFloodFillControlStepsFlags::None); // Scoring only, no validation
 	}
 
+	/** Scoring mode for combining multiple heuristics */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
+	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage;
+	
 	/** What components are used for scoring points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExElementsFloodFill.EPCGExFloodFillHeuristicFlags"))
 	uint8 Scoring = static_cast<uint8>(EPCGExFloodFillHeuristicFlags::LocalScore);

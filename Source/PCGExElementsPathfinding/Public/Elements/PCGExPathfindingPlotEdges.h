@@ -73,6 +73,10 @@ public:
 #endif
 	//~End UObject interface
 
+	/** Scoring mode for combining multiple heuristics */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
+	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage; 
+	
 	/** If enabled, allows you to filter out which plots get associated to which clusters */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Cluster);
@@ -135,7 +139,7 @@ public:
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="PathComposition==EPCGExPathComposition::Edges"))
 	FPCGExForwardDetails EdgesDataForwarding;
 
-	/** */
+	/** Suppress warning when a plot could not be resolved to valid paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietInvalidPlotWarning = false;
 

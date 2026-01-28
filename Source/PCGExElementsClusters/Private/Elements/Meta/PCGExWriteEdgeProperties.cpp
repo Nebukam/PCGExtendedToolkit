@@ -63,10 +63,12 @@ bool FPCGExWriteEdgePropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-		{
-			NewBatch->SetWantsHeuristics(Settings->bWriteHeuristics);
-		}))
+		if (!Context->StartProcessingClusters(
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+			{
+				NewBatch->SetWantsHeuristics(Settings->bWriteHeuristics, Settings->HeuristicScoreMode);
+			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}

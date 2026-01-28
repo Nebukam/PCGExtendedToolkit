@@ -58,23 +58,23 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExFilters::Labels::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-	/**  */
+	/** Whether to update point positions using tensor sampling. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformPosition = true;
 
-	/**  */
+	/** Whether to update point rotations using tensor sampling. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformRotation = true;
 
-	/**  */
+	/** How rotation transform is applied. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTransformRotation"))
 	EPCGExTensorTransformMode Rotation = EPCGExTensorTransformMode::Align;
 
-	/**  */
+	/** The axis to align with movement direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTransformRotation && Rotation == EPCGExTensorTransformMode::Align"))
 	EPCGExAxis AlignAxis = EPCGExAxis::Forward;
 
-	/**  */
+	/** Number of iterations to apply tensor transforms. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Iterations = 1;
 
@@ -82,7 +82,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))
 	EPCGExTensorStopConditionHandling StopConditionHandling = EPCGExTensorStopConditionHandling::Exclude;
 
-	/**  */
+	/** Write the total effector pings to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEffectorsPings = false;
 
@@ -90,7 +90,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Effectors Pings", PCG_Overridable, EditCondition="bWriteEffectorsPings"))
 	FName EffectorsPingsAttributeName = FName("EffectorsPings");
 
-	/**  */
+	/** Write the update count to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteUpdateCount = false;
 
@@ -98,7 +98,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Update Count", PCG_Overridable, EditCondition="bWriteUpdateCount"))
 	FName UpdateCountAttributeName = FName("UpdateCount");
 
-	/**  */
+	/** Write the traveled distance to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTraveledDistance = false;
 
@@ -106,7 +106,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Traveled Distance", PCG_Overridable, EditCondition="bWriteTraveledDistance"))
 	FName TraveledDistanceAttributeName = FName("TraveledDistance");
 
-	/**  */
+	/** Write whether transform stopped gracefully to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteGracefullyStopped = false;
 
@@ -114,7 +114,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Gracefully Stopped", PCG_Overridable, EditCondition="bWriteGracefullyStopped"))
 	FName GracefullyStoppedAttributeName = FName("GracefullyStopped");
 
-	/**  */
+	/** Write whether max iterations was reached to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteMaxIterationsReached = false;
 
