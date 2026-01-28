@@ -8,13 +8,13 @@
 
 <p align="center">
   <strong>200+ nodes for advanced procedural generation in Unreal Engine</strong><br>
-  Graphs, pathfinding, spatial queries, sampling, and more.
+  Graph theory, pathfinding, spatial queries, asset management, and more.
 </p>
 
 <p align="center">
   <a href="https://pcgex.gitbook.io/pcgex">Documentation</a> •
-  <a href="https://nebukam.github.io/PCGExtendedToolkit/installation.html">Installation</a> •
-  <a href="https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html">Node Reference</a> •
+  <a href="https://pcgex.gitbook.io/pcgex/general/quickstart/installation">Installation</a> •
+  <a href="https://pcgex.gitbook.io/pcgex/changelogs">Changelogs</a> •
   <a href="https://discord.gg/mde2vC5gbE">Discord</a> •
   <a href="https://www.patreon.com/c/pcgex">Support on Patreon</a>
 </p>
@@ -23,13 +23,14 @@
 
 ## What is PCGEx?
 
-PCGEx is a **low-level, use-case agnostic toolkit** extending Unreal Engine's PCG framework with **200+ nodes**.
+### PCGEx is a **low-level, use-case agnostic toolkit** extending Unreal Engine's PCG framework with **200+ nodes**.
 
 Vanilla PCG excels at scattering and rule-based placement. PCGEx adds what's missing: **structure**. Build graphs from points, find paths through them, analyze topology, and work with explicit connections—not just proximity. Delaunay, Voronoi, MST, convex hulls, A* pathfinding, and more.
 
-But graph theory is just the headline. PCGEx is also a comprehensive data manipulation toolkit: spatial queries, sampling, blending, path operations, polygon booleans, asset management, filtering, sorting—the low-level primitives that vanilla PCG doesn't provide. Reusable sub-nodes (filters, heuristics, blenders) plug into operations to keep your graphs clean. Parallel processing handles large datasets efficiently.
+Graph theory is just the headline. PCGEx is also a comprehensive data manipulation toolkit: spatial queries, sampling, blending, path operations, polygon booleans, asset management, filtering, sorting—the low-level primitives that vanilla PCG doesn't provide. Reusable sub-nodes (filters, heuristics, blenders) plug into operations to keep your graphs clean. 
 
-It doesn't solve specific problems for you. It gives you the tools to solve them yourself.
+> _It doesn't solve specific problems for you._  
+_It gives you the tools to solve them yourself._
 
 <!-- SCREENSHOT: Hero image showing a complex procedural generation result that highlights the variety of what's possible -->
 
