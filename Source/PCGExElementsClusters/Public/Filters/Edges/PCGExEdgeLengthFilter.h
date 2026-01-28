@@ -27,7 +27,7 @@ struct FPCGExEdgeLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Attr)", EditCondition="ThresholdInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
-	/**  */
+	/** Edge length threshold value. Edges are tested against this distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", ClampMin=1, EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ThresholdConstant = 100;
 
@@ -42,7 +42,7 @@ struct FPCGExEdgeLengthFilterConfig
 	double Tolerance = 0;
 
 
-	/** */
+	/** Invert the filter result (pass becomes fail and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 };

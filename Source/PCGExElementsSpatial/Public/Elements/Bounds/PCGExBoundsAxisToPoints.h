@@ -68,7 +68,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bGeneratePerPointData = false;
 
-	/** */
+	/** Which point property to use for bounds calculation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsReference = EPCGExPointBoundsSource::ScaledBounds;
 
@@ -80,7 +80,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxisDirectionConstraint DirectionConstraint = EPCGExAxisDirectionConstraint::Avoid;
 
-	/**  */
+	/** Reference direction for the direction constraint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Direction", EditCondition="DirectionConstraint != EPCGExAxisDirectionConstraint::None", EditConditionHides))
 	FVector Direction = FVector::UpVector;
 
@@ -88,7 +88,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxisSizeConstraint SizeConstraint = EPCGExAxisSizeConstraint::Greater;
 
-	/**  */
+	/** Size threshold for the size constraint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Threshold", EditCondition="SizeConstraint != EPCGExAxisSizeConstraint::None", EditConditionHides))
 	double SizeThreshold = 0.1;
 
@@ -100,7 +100,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double U = 1;
 
-	/**  */
+	/** Set the extents of output points to a custom value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetExtents = true;
 
@@ -108,7 +108,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetExtents"))
 	FVector Extents = FVector(0.5);
 
-	/**  */
+	/** Set the scale of output points to a custom value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetScale = true;
 
@@ -116,7 +116,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetScale"))
 	FVector Scale = FVector::OneVector;
 
-	/** TBD */
+	/** Copy source point attributes as tags on output collections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bGeneratePerPointData"))
 	FPCGExAttributeToTagDetails PointAttributesToOutputTags;
 

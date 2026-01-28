@@ -63,19 +63,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-	/** */
+	/** Write the number of bridges connected to each vertex. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagVtxConnector = false;
 
-	/** */
+	/** Attribute name for the vertex bridge count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bFlagVtxConnector"))
 	FName VtxConnectorFlagName = "NumBridges";
 
-	/** */
+	/** Flag edges that are bridges between clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagEdgeConnector = false;
 
-	/** */
+	/** Attribute name for the bridge edge flag. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bFlagEdgeConnector"))
 	FName EdgeConnectorFlagName = "IsBridge";
 

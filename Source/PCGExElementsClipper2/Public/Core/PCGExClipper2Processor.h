@@ -245,11 +245,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	bool bSimplifyPaths = false;
 
-	/**  */
+	/** Keep collinear points in the output instead of simplifying them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	bool bPreserveCollinear = true;
 
-	/**  */
+	/** Tolerance for arc approximation when generating curved offsets. Higher values = fewer points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tweaks", meta = (PCG_Overridable))
 	double ArcTolerance = 5.0;
 
@@ -263,7 +263,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
 	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExBlendingType::Average, EPCGExBlendingType::None);
 
-	/** */
+	/** How to handle open paths in the output (ignore, output to main pin, or separate pin). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_NotOverridable))
 	EPCGExClipper2OpenPathOutput OpenPathsOutput = EPCGExClipper2OpenPathOutput::Output;
 

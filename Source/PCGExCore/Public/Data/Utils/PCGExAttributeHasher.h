@@ -48,7 +48,7 @@ struct PCGEXCORE_API FPCGExAttributeHashConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDataHashScope Scope = EPCGExDataHashScope::Uniques;
 
-	/** */
+	/** Sort values before combining into hash. Ensures consistent hashes regardless of point order. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSortInputValues = true;
 

@@ -33,7 +33,7 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-	/**  */
+	/** Normalized position within bounds where the pivot should be placed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExUVW UVW;
 

@@ -48,7 +48,7 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-	/** */
+	/** How the path is resampled. Sweep walks along the path at fixed intervals, Redistribute keeps point count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExResampleMode Mode = EPCGExResampleMode::Sweep;
 
@@ -56,7 +56,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
 	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
 
-	/** */
+	/** Adjust sample spacing so all samples are evenly distributed across the path length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep && ResolutionMode == EPCGExResolutionMode::Distance"))
 	bool bRedistributeEvenly = true;
 
@@ -71,7 +71,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
 	FPCGExInputShorthandNameDoubleAbs SampleLength = FPCGExInputShorthandNameDoubleAbs(NAME_None, 100, false);
 
-	/**  */
+	/** How to handle fractional sample counts (round, floor, or ceiling). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
 
@@ -79,7 +79,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExBlendingType::Lerp, EPCGExBlendingType::None);
 
-	/** */
+	/** Ensure each resampled point gets a unique random seed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bEnsureUniqueSeeds = true;
 };

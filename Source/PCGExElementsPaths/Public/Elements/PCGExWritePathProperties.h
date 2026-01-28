@@ -283,7 +283,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(DisplayName="PointTime", PCG_Overridable, EditCondition="bWritePointTime"))
 	FName PointTimeAttributeName = FName("PointTime");
 
-	/**  */
+	/** Output (1 - time) instead of time, so 0 is at end and 1 is at start. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, DisplayName=" └─ One Minus", EditCondition="bWritePointTime", HideEditConditionToggle))
 	bool bTimeOneMinus = false;
 

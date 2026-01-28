@@ -19,19 +19,19 @@ struct PCGEXFOUNDATIONS_API FPCGExClampDetails
 	{
 	}
 
-	/** Clamp minimum value. */
+	/** Enable minimum value clamping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bApplyClampMin = false;
 
-	/** Clamp minimum value. */
+	/** Values below this will be clamped up to this minimum. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyClampMin"))
 	double ClampMinValue = 0;
 
-	/** Clamp maximum value. */
+	/** Enable maximum value clamping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bApplyClampMax = false;
 
-	/** Clamp maximum value. */
+	/** Values above this will be clamped down to this maximum. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyClampMax"))
 	double ClampMaxValue = 0;
 

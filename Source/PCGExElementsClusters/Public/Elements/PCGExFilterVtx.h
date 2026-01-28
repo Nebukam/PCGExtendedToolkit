@@ -87,27 +87,27 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExVtxFilterOutput::Points", EditConditionHides))
 	bool bSwap = false;
 
-	/** */
+	/** Tag clusters where at least one vertex passed the filter. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfAnyPointPassed = false;
 
-	/** ... */
+	/** Tag to apply when some points passed. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfAnyPointPassed"))
 	FString HasAnyPointPassedTag = TEXT("SomePointsPassed");
 
-	/** */
+	/** Tag clusters where all vertices passed the filter. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfAllPointsPassed = false;
 
-	/** ... */
+	/** Tag to apply when all points passed. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfAllPointsPassed"))
 	FString AllPointsPassedTag = TEXT("AllPointsPassed");
 
-	/** */
+	/** Tag clusters where no vertices passed the filter. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfNoPointPassed = false;
 
-	/** ... */
+	/** Tag to apply when no points passed. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfNoPointPassed"))
 	FString NoPointPassedTag = TEXT("NoPointPassed");
 

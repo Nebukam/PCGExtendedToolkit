@@ -94,23 +94,29 @@ struct PCGEXFOUNDATIONS_API FPCGExTangentsScalingDetails
 
 	FPCGExTangentsScalingDetails() = default;
 
+	/** Where the arrive tangent scale comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType ArriveScaleInput = EPCGExInputValueType::Constant;
 
+	/** Attribute to read arrive tangent scale from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Arrive Scale (Attr)", EditCondition="ArriveScaleInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ArriveScaleAttribute;
 
+	/** Scale multiplier for arrive tangents. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Arrive Scale", EditCondition="ArriveScaleInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ArriveScaleConstant = 1;
 
 	PCGEX_SETTING_VALUE_DECL(ArriveScale, FVector)
 
+	/** Where the leave tangent scale comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType LeaveScaleInput = EPCGExInputValueType::Constant;
 
+	/** Attribute to read leave tangent scale from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Leave Scale (Attr)", EditCondition="LeaveScaleInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LeaveScaleAttribute;
 
+	/** Scale multiplier for leave tangents. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Leave Scale", EditCondition="LeaveScaleInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double LeaveScaleConstant = 1;
 
@@ -124,20 +130,20 @@ struct PCGEXFOUNDATIONS_API FPCGExTangentsDetails
 
 	FPCGExTangentsDetails() = default;
 
-	/**  */
+	/** Where tangent data comes from. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable))
 	EPCGExTangentSource Source = EPCGExTangentSource::Attribute;
 
-	/**  */
+	/** Attribute containing arrive tangent vectors. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Source == EPCGExTangentSource::Attribute", EditConditionHides))
 	FName ArriveTangentAttribute = "ArriveTangent";
 
-	/**  */
+	/** Attribute containing leave tangent vectors. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Source == EPCGExTangentSource::Attribute", EditConditionHides))
 	FName LeaveTangentAttribute = "LeaveTangent";
 
 
-	/**  */
+	/** Factory used to calculate tangents in-place. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, EditCondition = "Source == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsInstancedFactory> Tangents;
 

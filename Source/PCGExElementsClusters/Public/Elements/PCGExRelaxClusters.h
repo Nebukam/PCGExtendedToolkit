@@ -48,7 +48,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** */
+	/** Number of relaxation iterations to perform. More iterations = smoother result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
 	int32 Iterations = 10;
 

@@ -50,7 +50,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTopologyDetails Topology;
 
-	/** */
+	/** Suppress warning when the mesh contains degenerate or bad vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietBadVerticesWarning = false;
 

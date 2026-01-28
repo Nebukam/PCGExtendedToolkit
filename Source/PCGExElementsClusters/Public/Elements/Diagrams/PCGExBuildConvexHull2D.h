@@ -41,7 +41,7 @@ public:
 	virtual FName GetMainOutputPin() const override { return PCGExClusters::Labels::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
-	/** */
+	/** Output the hull as a cluster (vtx + edges) instead of paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bOutputClusters = true;
 

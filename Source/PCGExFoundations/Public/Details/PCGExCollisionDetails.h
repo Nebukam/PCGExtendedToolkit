@@ -31,10 +31,11 @@ struct PCGEXFOUNDATIONS_API FPCGExCollisionDetails
 	{
 	}
 
+	/** Trace against complex collision geometry instead of simple bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTraceComplex = false;
 
-	/** Collision type to check against */
+	/** Collision type to check against. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 
@@ -58,6 +59,7 @@ struct PCGEXFOUNDATIONS_API FPCGExCollisionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bIgnoreActors = false;
 
+	/** Actor selection criteria for actors to ignore in collision checks. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGActorSelectorSettings IgnoredActorSelector;
 

@@ -32,15 +32,15 @@ struct PCGEXFOUNDATIONS_API FPCGExInfluenceDetails
 	{
 	}
 
-	/** Type of Weight */
+	/** Where the influence value comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType InfluenceInput = EPCGExInputValueType::Constant;
 
-	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
+	/** Attribute to read influence values from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Influence (Attr)", EditCondition="InfluenceInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalInfluence;
 
-	/** Draw size. What it means depends on the selected debug type. */
+	/** How much effect is applied. Range is -1 to 1. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Influence", EditCondition="InfluenceInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double Influence = 1.0;
 

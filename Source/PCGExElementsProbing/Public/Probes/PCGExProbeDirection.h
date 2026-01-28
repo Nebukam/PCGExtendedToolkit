@@ -28,7 +28,7 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	{
 	}
 
-	/**  */
+	/** Use separate angle thresholds for pitch, yaw, and roll instead of a single max angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUseComponentWiseAngle = false;
 
@@ -40,7 +40,7 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseComponentWiseAngle", ClampMin=0, ClampMax=180))
 	FRotator MaxAngles = FRotator(45);
 
-	/**  */
+	/** Use absolute angle values (ignores direction sign, treating opposite directions as equivalent). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUnsignedCheck = false;
 
@@ -51,7 +51,7 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction (Attr)", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
 
-	/** */
+	/** Invert the probe direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	bool bInvertDirection = false;
 

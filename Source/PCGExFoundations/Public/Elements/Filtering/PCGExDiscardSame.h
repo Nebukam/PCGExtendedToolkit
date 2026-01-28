@@ -57,16 +57,16 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/**  */
+	/** Which duplicate to keep when matches are found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDiscardSameMode Mode = EPCGExDiscardSameMode::FIFO;
 
-	/**  */
+	/** How to combine multiple test conditions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFilterGroupMode TestMode = EPCGExFilterGroupMode::AND;
 
 
-	/**  */
+	/** Test collection bounds for equality. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTestBounds = false;
 
@@ -75,7 +75,7 @@ public:
 	double TestBoundsTolerance = 0.1;
 
 
-	/**  */
+	/** Test collection point count for equality. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTestPointCount = true;
 
@@ -84,7 +84,7 @@ public:
 	int32 TestPointCountTolerance = 0;
 
 
-	/**  */
+	/** Test point positions for equality. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTestPositions = true;
 
@@ -107,7 +107,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestAttributesHash == EPCGExDiscardAttributeHashMode::List", EditConditionHides))
 	TArray<FPCGExAttributeHashConfig> AttributeHashConfigs;
 
-	/**  */
+	/** Also include the single overridable attribute config below. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Append Overridable", EditCondition="TestAttributesHash == EPCGExDiscardAttributeHashMode::List", EditConditionHides))
 	bool bIncludeSingleAttribute = false;
 

@@ -33,6 +33,7 @@ struct PCGEXCORE_API FPCGExPrimitiveComponentDescriptor
 
 #pragma region Properties
 
+	/** Controls whether the component is rendered in the scene. */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=Rendering)
 	bool bVisible = true;
 
@@ -555,6 +556,7 @@ struct PCGEXCORE_API FPCGExStaticMeshComponentDescriptor : public FPCGExMeshComp
 	UPROPERTY(EditAnywhere, Category = Collision)
 	uint8 bUseDefaultCollision : 1;
 
+	/** If true, this component will generate overlap events when other components overlap with it. */
 	UPROPERTY(EditAnywhere, Category = Collision)
 	uint8 bGenerateOverlapEvents : 1;
 

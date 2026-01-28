@@ -167,7 +167,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable))
 	FName MustHaveTag = NAME_None;
 
-	/**  */
+	/** Filter components by their generation trigger type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bDoMatchGenerationTrigger = false;
 
@@ -223,7 +223,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output")
 	FPCGExAttributeToTagDetails TargetAttributesToDataTags;
 
-	/**  */
+	/** Output data that doesn't match any template pin to a separate roaming pin. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bOutputRoaming = true;
 
@@ -231,15 +231,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bOutputRoaming"))
 	FName RoamingPin = FName("Roaming Data");
 
-	/** */
+	/** Suppress warnings when referenced actors are not found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietActorNotFoundWarning = false;
 
-	/** */
+	/** Suppress warnings when no matching PCG components are found on actors. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietComponentNotFoundWarning = false;
 
-	/** */
+	/** Suppress errors when waiting for components times out. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietTimeoutError = false;
 

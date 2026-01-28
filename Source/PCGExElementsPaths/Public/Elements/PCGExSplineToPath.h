@@ -54,7 +54,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
 
-	/** */
+	/** Write the spline arrive tangent to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteArriveTangent = true;
 
@@ -62,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Arrive Tangent", PCG_Overridable, EditCondition="bWriteArriveTangent"))
 	FName ArriveTangentAttributeName = FName("ArriveTangent");
 
-	/** */
+	/** Write the spline leave tangent to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLeaveTangent = true;
 
@@ -74,7 +74,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExTagsToDataAction TagsToData = EPCGExTagsToDataAction::ToData;
 
-	/** */
+	/** Write the cumulative spline length at each point to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLengthAtPoint = false;
 
@@ -82,7 +82,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Length at Point", PCG_Overridable, EditCondition="bWriteLengthAtPoint"))
 	FName LengthAtPointAttributeName = FName("LengthAtPoint");
 
-	/** */
+	/** Write the normalized position along the spline (0-1) to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAlpha = false;
 
@@ -90,7 +90,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Alpha", PCG_Overridable, EditCondition="bWriteAlpha"))
 	FName AlphaAttributeName = FName("Alpha");
 
-	/** */
+	/** Write the original spline point type (Linear, Curve, etc.) to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePointType = false;
 

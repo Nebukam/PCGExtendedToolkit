@@ -36,7 +36,7 @@ struct FPCGExTimeFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSplineFilterPick Pick = EPCGExSplineFilterPick::Closest;
 
-	/**  */
+	/** How to consolidate time values when multiple paths match. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Pick != EPCGExSplineFilterPick::Closest", EditConditionHides))
 	EPCGExSplineTimeConsolidation TimeConsolidation = EPCGExSplineTimeConsolidation::Min;
 

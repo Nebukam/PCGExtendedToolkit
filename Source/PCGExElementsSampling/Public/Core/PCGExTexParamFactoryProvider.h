@@ -162,7 +162,7 @@ public:
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 	//~End UPCGExFactoryProviderSettings
 
-	/**  */
+	/** Texture parameter configuration for sampling and output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ShowOnlyInnerProperties))
 	FPCGExTextureParamConfig Config;
 };

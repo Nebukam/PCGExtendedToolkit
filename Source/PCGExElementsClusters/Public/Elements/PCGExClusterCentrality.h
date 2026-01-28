@@ -77,7 +77,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ OneMinus", EditCondition="bNormalize", EditConditionHides))
 	bool bOutputOneMinus = false;
 
-	/** */
+	/** Downsampling strategy to reduce processing time on large clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExCentralityDownsampling DownsamplingMode = EPCGExCentralityDownsampling::None;
 

@@ -51,13 +51,15 @@ struct FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	bool bEnabled = true;
 
-	/** Draw line thickness. */
+	/** How the attribute value is interpreted for debug visualization. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDebugExpression ExpressedAs = EPCGExDebugExpression::Direction;
 
+	/** Treat the value as an offset from the point rather than absolute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs == EPCGExDebugExpression::ConnectionToIndex || ExpressedAs == EPCGExDebugExpression::ConnectionToPosition || ExpressedAs == EPCGExDebugExpression::Point", EditConditionHides))
 	bool bAsOffset = false;
 
+	/** Normalize direction vectors before applying size multiplier. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs == EPCGExDebugExpression::Direction", EditConditionHides))
 	bool bNormalizeBeforeSizing = true;
 
@@ -77,10 +79,11 @@ struct FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Size, meta = (PCG_Overridable, EditCondition="bSizeFromAttribute"))
 	FPCGAttributePropertyInputSelector LocalSizeAttribute;
 
-	/** Draw color. */
+	/** Draw color for the debug visualization. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta=(PCG_Overridable))
-	FColor Color = FColor(255, 0, 0); /** Draw color. */
+	FColor Color = FColor(255, 0, 0);
 
+	/** Secondary color used for boolean false values. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta=(PCG_Overridable, EditConditionHides, EditCondition="ExpressedAs == EPCGExDebugExpression::Boolean"))
 	FColor SecondaryColor = FColor(0, 255, 0);
 
