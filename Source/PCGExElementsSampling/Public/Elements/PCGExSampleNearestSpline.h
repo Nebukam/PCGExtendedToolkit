@@ -356,7 +356,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Time", PCG_Overridable, EditCondition="bWriteTime"))
 	FName TimeAttributeName = FName("WeightedTime");
 
-	/**  */
+	/** Write the arrive tangent at the sampled spline location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteArriveTangent = false;
 
@@ -364,7 +364,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Arrive Tangent", PCG_Overridable, EditCondition="bWriteArriveTangent"))
 	FName ArriveTangentAttributeName = "ArriveTangent";
 
-	/**  */
+	/** Write the leave tangent at the sampled spline location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLeaveTangent = false;
 

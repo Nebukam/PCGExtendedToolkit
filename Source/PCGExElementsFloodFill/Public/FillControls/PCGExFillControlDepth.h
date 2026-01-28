@@ -18,7 +18,7 @@ struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
 
 	FPCGExFillControlConfigDepth() = default;
 
-	/**  */
+	/** Whether the max depth is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType MaxDepthInput = EPCGExInputValueType::Constant;
 

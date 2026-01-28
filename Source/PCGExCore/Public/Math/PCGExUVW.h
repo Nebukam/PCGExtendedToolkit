@@ -41,45 +41,45 @@ struct PCGEXCORE_API FPCGExUVW
 	{
 	}
 
-	/** */
+	/** Which bounds to use for UVW coordinate calculations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsReference = EPCGExPointBoundsSource::ScaledBounds;
 
-	/** U Source */
+	/** Whether U comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType UInput = EPCGExInputValueType::Constant;
 
-	/** U Attribute */
+	/** Attribute to read U from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U (Attr)", EditCondition="UInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector UAttribute;
 
-	/** U Constant */
+	/** U coordinate within bounds (0 = min X, 1 = max X). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double UConstant = 0;
 
 
-	/** V Source */
+	/** Whether V comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType VInput = EPCGExInputValueType::Constant;
 
-	/** V Attribute */
+	/** Attribute to read V from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V (Attr)", EditCondition="VInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector VAttribute;
 
-	/** V Constant */
+	/** V coordinate within bounds (0 = min Y, 1 = max Y). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double VConstant = 0;
 
 
-	/** W Source */
+	/** Whether W comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType WInput = EPCGExInputValueType::Constant;
 
-	/** W Attribute */
+	/** Attribute to read W from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W (Attr)", EditCondition="WInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector WAttribute;
 
-	/** W Constant */
+	/** W coordinate within bounds (0 = min Z, 1 = max Z). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double WConstant = 0;
 

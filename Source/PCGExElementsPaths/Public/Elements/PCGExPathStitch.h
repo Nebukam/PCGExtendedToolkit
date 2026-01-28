@@ -84,7 +84,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOnlyMatchStartAndEnds = false;
 
-	/** */
+	/** Require paths to be aligned within an angular threshold before stitching. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoRequireAlignment = false;
 
@@ -92,7 +92,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Requires Alignment", EditCondition="bDoRequireAlignment"))
 	FPCGExStaticDotComparisonDetails DotComparisonDetails;
 
-	/** */
+	/** Maximum distance between endpoints for stitching to occur. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Tolerance = 10;
 

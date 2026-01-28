@@ -40,7 +40,7 @@ struct FPCGExMatchByIndexConfig : public FPCGExMatchRuleConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexAttribute;
 
-	/**  */
+	/** How to handle out-of-range indices when matching. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 

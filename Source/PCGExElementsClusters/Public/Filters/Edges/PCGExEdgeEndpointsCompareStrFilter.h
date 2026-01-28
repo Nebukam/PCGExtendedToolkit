@@ -27,7 +27,7 @@ struct FPCGExEdgeEndpointsCompareStrFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison"))
 	EPCGExStringComparison Comparison = EPCGExStringComparison::StrictlyEqual;
 
-	/** */
+	/** Invert the filter result (pass becomes fail and vice versa). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 };

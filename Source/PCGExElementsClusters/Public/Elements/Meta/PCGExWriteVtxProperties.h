@@ -76,7 +76,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName=" └─ Axis", PCG_Overridable, EditCondition="bWriteVtxNormal", HideEditConditionToggle))
 	EPCGExMinimalAxis NormalAxis = EPCGExMinimalAxis::Z;
 
-	/** */
+	/** Include the vertex position in the oriented bounding box calculation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable))
 	bool bIncludeVtxInOOB = false;
 

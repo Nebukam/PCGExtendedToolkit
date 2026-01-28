@@ -39,23 +39,23 @@ public:
 
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
-	// Used by the preconfigured settings to load the right constants
+	/** Used by the preconfigured settings to load the right constants. */
 	UPROPERTY(BlueprintReadWrite, Category=Settings)
 	EPCGExConstantListID ConstantList;
 
-	// Export the negative of the constant instead of the constant itself
+	/** Export the negative of the constant instead of the constant itself. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	bool NegateOutput = false;
 
-	// Output 1/x instead of x (e.g. 2 becomes 1/2)
+	/** Output 1/x instead of x (e.g. 2 becomes 1/2). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	bool OutputReciprocal = false;
 
-	// Apply a custom (constant, numeric) multiplier to the output
+	/** Apply a custom multiplier to the output. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(PCG_Overridable))
 	double CustomMultiplier = 1.0;
 
-	// Cast to a specific type (double will be used by default, ignored for vectors)
+	/** Cast to a specific type. Double is used by default, ignored for vectors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	EPCGExNumericOutput NumericOutputType;
 

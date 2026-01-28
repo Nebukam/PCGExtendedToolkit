@@ -123,7 +123,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable, EditCondition="!bUseStagedPoints", EditConditionHides))
 	FPCGExJustificationDetails Justification;
 
-	/** */
+	/** Read the fitting translation offset from staged points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, EditCondition="bUseStagedPoints"))
 	bool bReadTranslation = false;
 
@@ -151,15 +151,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute != EPCGExWeightOutputMode::NoOutput && WeightToAttribute != EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute != EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
 
-	/** */
+	/** How the spline mesh up vector is determined. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExSplineMeshUpMode SplineMeshUpMode = EPCGExSplineMeshUpMode::Constant;
 
-	/** */
+	/** Attribute to read the spline mesh up vector from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector (Attr)", EditCondition="SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SplineMeshUpVectorAttribute;
 
-	/** */
+	/** Constant up vector for all spline mesh segments. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector", EditCondition="SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant", EditConditionHides))
 	FVector SplineMeshUpVector = FVector::UpVector;
 

@@ -61,7 +61,7 @@ struct PCGEXFILTERS_API FPCGExFilterResultDetails
 	UPROPERTY()
 	bool bOptional = false;
 
-	/** */
+	/** Enable or disable result writing. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOptional", EditConditionHides, HideEditConditionToggle))
 	bool bEnabled = true;
 

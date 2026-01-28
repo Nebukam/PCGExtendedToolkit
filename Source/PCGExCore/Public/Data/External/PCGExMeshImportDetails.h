@@ -17,9 +17,11 @@ struct PCGEXCORE_API FPCGExGeoMeshImportDetails
 
 	FPCGExGeoMeshImportDetails() = default;
 
+	/** Import vertex colors from mesh as point attribute. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bImportVertexColor = true;
 
+	/** Import UV coordinates from mesh as point attributes. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bImportUVs = false;
 

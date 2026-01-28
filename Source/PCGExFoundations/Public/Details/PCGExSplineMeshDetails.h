@@ -50,19 +50,19 @@ struct PCGEXFOUNDATIONS_API FPCGExSplineMeshMutationDetails
 
 	FPCGExSplineMeshMutationDetails() = default;
 
-	/** */
+	/** Push the start point of the spline mesh segment. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPushStart = false;
 
-	/** */
+	/** Whether push amount comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPushStart", EditConditionHides))
 	EPCGExInputValueType StartPushInput = EPCGExInputValueType::Constant;
 
-	/** */
+	/** Attribute to read start push amount from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushStart && StartPushInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector StartPushInputAttribute;
 
-	/** */
+	/** How far to push the start point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double StartPushConstant = 0.1;
 
@@ -72,19 +72,19 @@ struct PCGEXFOUNDATIONS_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
 	bool bRelativeStart = true;
 
-	/** */
+	/** Push the end point of the spline mesh segment. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPushEnd = false;
 
-	/** */
+	/** Whether push amount comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPushEnd", EditConditionHides))
 	EPCGExInputValueType EndPushInput = EPCGExInputValueType::Constant;
 
-	/** */
+	/** Attribute to read end push amount from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushEnd && EndPushInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector EndPushInputAttribute;
 
-	/** */
+	/** How far to push the end point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double EndPushConstant = 0.1;
 

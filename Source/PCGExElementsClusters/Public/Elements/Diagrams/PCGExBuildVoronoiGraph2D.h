@@ -33,27 +33,27 @@ struct FPCGExVoronoiSitesOutputDetails
 
 	FPCGExVoronoiSitesOutputDetails() = default;
 
-	/** */
+	/** Write the number of Voronoi cell vertices influenced by each site. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteInfluencesCount = false;
 
-	/** */
+	/** Attribute name for the influences count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bWriteInfluencesCount"))
 	FName InfluencesCountAttributeName = "InfluencesCount";
 
-	/** */
+	/** Write the minimum distance from each site to its cell vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteMinRadius = false;
 
-	/** */
+	/** Attribute name for the minimum radius. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bWriteMinRadius"))
 	FName MinRadiusAttributeName = "MinRadius";
 
-	/** */
+	/** Write the maximum distance from each site to its cell vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteMaxRadius = false;
 
-	/** */
+	/** Attribute name for the maximum radius. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bWriteMaxRadius"))
 	FName MaxRadiusAttributeName = "MaxRadius";
 
@@ -152,7 +152,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bOutputSites && bPruneOutOfBounds && !bPruneOpenSites"))
 	FName OpenSiteFlag = "OpenSite";
 
-	/** */
+	/** Additional data to output for each Voronoi site. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bOutputSites", ShowOnlyInnerProperties))
 	FPCGExVoronoiSitesOutputDetails SitesOutputDetails;
 

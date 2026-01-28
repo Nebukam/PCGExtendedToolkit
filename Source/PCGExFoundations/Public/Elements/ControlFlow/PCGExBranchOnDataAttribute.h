@@ -106,7 +106,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings)
 	EPCGExControlFlowSelectionMode SelectionMode = EPCGExControlFlowSelectionMode::UserDefined;
 
-	/** */
+	/** User-defined branch conditions and output pins. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SelectionMode == EPCGExControlFlowSelectionMode::UserDefined", EditConditionHides))
 	TArray<FPCGExBranchOnDataPin> Branches;
 

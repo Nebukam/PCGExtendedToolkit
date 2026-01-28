@@ -109,7 +109,7 @@ struct PCGEXBLENDING_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
 
-	/**  */
+	/** Use a separate source for Operand B. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bUseOperandB = false;
 

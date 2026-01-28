@@ -160,7 +160,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Manhattan", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Manhattan", EditConditionHides))
 	FPCGExManhattanDetails ManhattanDetails;
 
-	/**  */
+	/** Write a flag marking bevel pole points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagPoles = false;
 
@@ -168,7 +168,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagPoles"))
 	FName PoleFlagName = "IsBevelPole";
 
-	/**  */
+	/** Write a flag marking bevel start points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagStartPoint = false;
 
@@ -176,7 +176,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagStartPoint"))
 	FName StartPointFlagName = "IsBevelStart";
 
-	/**  */
+	/** Write a flag marking bevel end points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagEndPoint = false;
 
@@ -184,7 +184,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagEndPoint"))
 	FName EndPointFlagName = "IsBevelEnd";
 
-	/**  */
+	/** Write a flag marking subdivision points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubdivision = false;
 

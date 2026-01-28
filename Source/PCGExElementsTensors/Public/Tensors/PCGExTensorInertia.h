@@ -22,7 +22,7 @@ struct FPCGExTensorInertiaConfig : public FPCGExTensorConfigBase
 	{
 	}
 
-	/**  */
+	/** Which axis of the point transform represents the inertia direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 

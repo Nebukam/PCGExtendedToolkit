@@ -305,7 +305,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
 
-	/**  */
+	/** Write the sampled index to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSampledIndex = false;
 
@@ -339,7 +339,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bPruneFailedSamples = false;
 
-	/**  */
+	/** If enabled, source points won't sample themselves as targets. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bIgnoreSelf = true;
 };

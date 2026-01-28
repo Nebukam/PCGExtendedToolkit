@@ -31,7 +31,7 @@ struct FPCGExProbeConfigTensor : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExProbeDirectionPriorization Favor = EPCGExProbeDirectionPriorization::Dot;
 
-	/**  */
+	/** Use separate angle thresholds for pitch, yaw, and roll instead of a single max angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUseComponentWiseAngle = false;
 

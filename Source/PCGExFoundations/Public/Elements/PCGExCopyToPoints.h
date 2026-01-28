@@ -48,7 +48,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(true, true);
 
-	/** TBD */
+	/** Target attributes to copy as tags onto output points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails TargetsAttributesToCopyTags;
 

@@ -50,11 +50,11 @@ public:
 	bool bSnapToPath = false;
 
 
-	/** */
+	/** Only insert points that are within a specified range of the path. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bWithinRange = false;
 
-	/**  */
+	/** Whether the range is a constant or read from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bWithinRange"))
 	EPCGExInputValueType RangeInput = EPCGExInputValueType::Constant;
 

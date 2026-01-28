@@ -80,7 +80,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExRollingValueControl ValueControl = EPCGExRollingValueControl::Previous;
 
-	/**  */
+	/** How the initial rolling value is determined. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExRollingToggleInitialValue InitialValueMode = EPCGExRollingToggleInitialValue::Constant;
 
@@ -96,11 +96,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bBlendOutsideRange = false;
 
-	/**  */
+	/** Include the stop element in blending. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="!bBlendOutsideRange"))
 	bool bBlendStopElement = false;
 
-	/**  */
+	/** Write the range start to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteRangeStart = false;
 
@@ -108,7 +108,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Range Start", PCG_Overridable, EditCondition="bWriteRangeStart"))
 	FName RangeStartAttributeName = FName("RangeStart");
 
-	/**  */
+	/** Write the range stop to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteRangeStop = false;
 
@@ -116,7 +116,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Range Stop", PCG_Overridable, EditCondition="bWriteRangeStop"))
 	FName RangeStopAttributeName = FName("RangeStop");
 
-	/**  */
+	/** Write the range pole to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteRangePole = false;
 
@@ -124,7 +124,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Range Pole", PCG_Overridable, EditCondition="bWriteRangePole"))
 	FName RangePoleAttributeName = FName("RangePole");
 
-	/**  */
+	/** Write the range index to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteRangeIndex = false;
 
@@ -136,7 +136,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Output", EditAnywhere, meta = (PCG_Overridable, DisplayName=" └─ Index Offset", EditCondition="bWriteRangeIndex", HideEditConditionToggle))
 	int32 RangeIndexOffset = 0;
 
-	/**  */
+	/** Write whether the point is inside a range. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsInsideRange = false;
 
@@ -145,7 +145,7 @@ public:
 	FName IsInsideRangeAttributeName = FName("IsInsideRange");
 
 
-	/**  */
+	/** Write the index inside range to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIndexInsideRange = false;
 

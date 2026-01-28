@@ -139,7 +139,7 @@ public:
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="PathComposition==EPCGExPathComposition::Edges"))
 	FPCGExForwardDetails EdgesDataForwarding;
 
-	/** */
+	/** Suppress warning when a plot could not be resolved to valid paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietInvalidPlotWarning = false;
 

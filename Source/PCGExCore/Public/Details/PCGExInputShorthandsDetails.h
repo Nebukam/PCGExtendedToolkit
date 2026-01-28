@@ -16,6 +16,10 @@ namespace PCGExData
 	class FPointIO;
 }
 
+/**
+ * Base struct for input shorthands that can read from constant or attribute.
+ * Derived types add typed Constant and Attribute fields.
+ */
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExInputShorthandBase
 {
@@ -23,6 +27,7 @@ struct PCGEXCORE_API FPCGExInputShorthandBase
 
 	FPCGExInputShorthandBase() = default;
 
+	/** Whether to use the constant value or read from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueType Input = EPCGExInputValueType::Constant;
 };
@@ -40,6 +45,7 @@ bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue
 bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
+/** Name-based shorthand where attribute is specified by FName. */
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExInputShorthandNameBase : public FPCGExInputShorthandBase
 {
@@ -47,6 +53,7 @@ struct PCGEXCORE_API FPCGExInputShorthandNameBase : public FPCGExInputShorthandB
 
 	FPCGExInputShorthandNameBase() = default;
 
+	/** Attribute name to read from when Input is set to Attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName Attribute = NAME_None;
 };
@@ -162,6 +169,7 @@ struct PCGEXCORE_API FPCGExInputShorthandNameVector : public FPCGExInputShorthan
 	FVector Constant = FVector::ZeroVector;
 };
 
+/** Direction vector shorthand with optional inversion. */
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExInputShorthandNameDirection : public FPCGExInputShorthandNameVector
 {
@@ -169,6 +177,7 @@ struct PCGEXCORE_API FPCGExInputShorthandNameDirection : public FPCGExInputShort
 
 	PCGEX_SHORTHAND_NAME_CTR(Direction, FVector)
 
+	/** Negate the direction vector after reading. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bFlip = false;
 };
@@ -242,6 +251,7 @@ bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue
 bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
+/** Selector-based shorthand where attribute is specified by full PCG selector (supports properties). */
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExInputShorthandSelectorBase : public FPCGExInputShorthandBase
 {
@@ -249,6 +259,7 @@ struct PCGEXCORE_API FPCGExInputShorthandSelectorBase : public FPCGExInputShorth
 
 	FPCGExInputShorthandSelectorBase() = default;
 
+	/** Attribute or property selector to read from when Input is set to Attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector Attribute;
 };
@@ -363,6 +374,7 @@ struct PCGEXCORE_API FPCGExInputShorthandSelectorVector : public FPCGExInputShor
 	FVector Constant = FVector::ZeroVector;
 };
 
+/** Direction vector shorthand with optional inversion. */
 USTRUCT(BlueprintType)
 struct PCGEXCORE_API FPCGExInputShorthandSelectorDirection : public FPCGExInputShorthandSelectorBase
 {
@@ -370,9 +382,11 @@ struct PCGEXCORE_API FPCGExInputShorthandSelectorDirection : public FPCGExInputS
 
 	PCGEX_SHORTHAND_SELECTOR_CTR(Direction, FVector)
 
+	/** Direction vector when using constant input. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FVector Constant = FVector::ZeroVector;
 
+	/** Negate the direction vector after reading. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bFlip = false;
 };

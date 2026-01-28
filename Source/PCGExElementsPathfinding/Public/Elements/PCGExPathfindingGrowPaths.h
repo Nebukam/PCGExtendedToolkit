@@ -193,7 +193,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GrowthMaxDistance == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	double GrowthMaxDistanceConstant = 500;
 
-	/**  */
+	/** Enable growth stop points that terminate paths when reached. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable))
 	bool bUseGrowthStop = false;
 
@@ -205,7 +205,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
 	bool bInvertGrowthStop = false;
 
-	/**  */
+	/** Enable no-growth points that paths cannot traverse (but can be used as seeds). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta = (PCG_Overridable))
 	bool bUseNoGrowth = false;
 
@@ -221,7 +221,7 @@ public:
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	//double VisitedStopThreshold = -1;
 
-	/** TBD */
+	/** Copy seed point attributes as tags on output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 

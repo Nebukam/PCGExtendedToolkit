@@ -117,11 +117,32 @@ namespace PCGExMesh
 			{
 				if constexpr (bCollapse)
 				{
-					const uint64 Key = PCGEx::GH3(bPrecise ? Position + (0.5f * HashTolerance) : Position, HashTolerance);
+					const uint64 Key = PCGEx::SH3(Position, HashTolerance);
+
+					// Check if exact cell has a match
 					if (const int32* IdxPtr = Data.Find(Key)) { return *IdxPtr; }
-					const int32 Idx = AddVertex(Position, RawIndex);
-					Data.Add(Key, Idx);
-					return Idx;
+
+					if constexpr (bPrecise)
+					{
+						// Check offset cell to catch vertices straddling cell boundaries
+						const uint64 OffsetKey = PCGEx::SH3(Position + (0.5 * HashTolerance), HashTolerance);
+						if (OffsetKey != Key)
+						{
+							if (const int32* IdxPtr = Data.Find(OffsetKey)) { return *IdxPtr; }
+						}
+
+						// Register under both keys so future vertices can find us from either cell
+						const int32 Idx = AddVertex(Position, RawIndex);
+						Data.Add(Key, Idx);
+						if (OffsetKey != Key) { Data.Add(OffsetKey, Idx); }
+						return Idx;
+					}
+					else
+					{
+						const int32 Idx = AddVertex(Position, RawIndex);
+						Data.Add(Key, Idx);
+						return Idx;
+					}
 				}
 				else
 				{

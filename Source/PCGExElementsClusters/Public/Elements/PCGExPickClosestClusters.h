@@ -54,23 +54,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFilterDataAction Action = EPCGExFilterDataAction::Keep;
 
-	/**  */
+	/** Expand target bounds by this amount when searching for nearby clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TargetBoundsExpansion = 10;
 
-	/**  */
+	/** If enabled, search beyond target bounds if no cluster is found within. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bExpandSearchOutsideTargetBounds = true;
 
-	/**  */
+	/** Tag to apply to kept clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
 	FName KeepTag = NAME_None;
 
-	/**  */
+	/** Tag to apply to omitted clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
 	FName OmitTag = NAME_None;
 
-	/** TBD */
+	/** Copy target point attributes as tags on output clusters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExAttributeToTagDetails TargetAttributesToTags;
 

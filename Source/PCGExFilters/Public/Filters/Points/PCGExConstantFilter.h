@@ -19,11 +19,11 @@ struct FPCGExConstantFilterConfig
 	{
 	}
 
-	/** TBD */
+	/** The constant value returned by this filter. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool Value = true;
 
-	/** TBD */
+	/** Invert the filter result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 };

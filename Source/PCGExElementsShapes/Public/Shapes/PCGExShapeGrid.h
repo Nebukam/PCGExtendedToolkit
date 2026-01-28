@@ -33,14 +33,14 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="X - Clamp Count"))
 	FPCGExClampDetails AxisClampDetailsX;
 
-	/** */
+	/** Rounding mode for Y-axis cell count when using distance-based resolution. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Y - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
 	EPCGExTruncateMode TruncateY = EPCGExTruncateMode::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable, DisplayName="Y - Clamp Count"))
 	FPCGExClampDetails AxisClampDetailsY;
 
-	/** */
+	/** Rounding mode for Z-axis cell count when using distance-based resolution. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable, DisplayName="Z - Round", EditCondition="ResolutionMode == EPCGExResolutionMode::Distance", EditConditionHides))
 	EPCGExTruncateMode TruncateZ = EPCGExTruncateMode::None;
 

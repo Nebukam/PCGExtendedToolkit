@@ -48,7 +48,7 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExAttributeHeuristicInputMode::ManualCurve", EditConditionHides))
 	double InMax = 1;
 
-	/** */
+	/** Use a custom fallback value when normalization fails (e.g., all values are identical). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bUseCustomFallback = false;
 

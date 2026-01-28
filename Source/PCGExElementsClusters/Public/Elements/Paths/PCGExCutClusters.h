@@ -55,7 +55,7 @@ public:
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/**  */
+	/** Intersection detection settings for path-to-edge overlap. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails = FPCGExPathEdgeIntersectionDetails(false);
 
@@ -74,19 +74,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExCutEdgesMode::Edges"))
 	double NodeExpansion = 1;
 
-	/** */
+	/** How to measure distance from path to node center vs bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExCutEdgesMode::Edges"))
 	EPCGExDistance NodeDistanceSettings = EPCGExDistance::Center;
 
-	/** */
+	/** When a node is affected, also mark its connected edges as affected. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExCutEdgesMode::Edges"))
 	bool bAffectedNodesAffectConnectedEdges = false;
 
-	/** */
+	/** When an edge is affected, also mark its endpoint nodes as affected. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bInvert && Mode != EPCGExCutEdgesMode::Nodes"))
 	bool bAffectedEdgesAffectEndpoints = false;
 
-	/** */
+	/** When inverting, keep edges that connect two preserved nodes even if the edge itself wasn't preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bInvert && Mode != EPCGExCutEdgesMode::Edges"))
 	bool bKeepEdgesThatConnectValidNodes = false;
 
