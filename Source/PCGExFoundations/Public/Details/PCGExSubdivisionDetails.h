@@ -62,13 +62,15 @@ struct PCGEXFOUNDATIONS_API FPCGExManhattanDetails
 	UPROPERTY()
 	bool bSupportAttribute = false;
 
+	/** How Manhattan subdivision is calculated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExManhattanMethod Method = EPCGExManhattanMethod::Simple;
 
+	/** Order in which axes are processed for subdivision. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAxisOrder Order = EPCGExAxisOrder::XYZ;
 
-	/**  */
+	/** Whether grid size comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bSupportAttribute", EditConditionHides))
 	EPCGExInputValueType GridSizeInput = EPCGExInputValueType::Constant;
 
@@ -82,10 +84,11 @@ struct PCGEXFOUNDATIONS_API FPCGExManhattanDetails
 
 	PCGEX_SETTING_VALUE_DECL(GridSize, FVector)
 
-	/**  */
+	/** How subdivision space is aligned. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExManhattanAlign SpaceAlign = EPCGExManhattanAlign::World;
 
+	/** Whether orientation comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportAttribute && SpaceAlign == EPCGExManhattanAlign::Custom", EditConditionHides))
 	EPCGExInputValueType OrientInput = EPCGExInputValueType::Constant;
 

@@ -24,7 +24,7 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 		Operand.Update("$Position.Z");
 	}
 
-	/**  */
+	/** Whether the window size is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType WindowSizeInput = EPCGExInputValueType::Constant;
 
@@ -38,7 +38,7 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 
 	PCGEX_SETTING_VALUE_DECL(WindowSize, int32)
 
-	/**  */
+	/** Whether the tolerance is a constant or from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType ToleranceInput = EPCGExInputValueType::Constant;
 

@@ -216,7 +216,7 @@ public:
 
 	//
 
-	/**  */
+	/** Exclude self from sampling when source points are also paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bIgnoreSelf = true;
 };

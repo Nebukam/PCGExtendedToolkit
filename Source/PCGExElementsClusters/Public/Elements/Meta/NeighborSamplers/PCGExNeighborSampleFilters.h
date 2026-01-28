@@ -21,7 +21,7 @@ struct FPCGExSamplerFilterConfig
 	{
 	}
 
-	/** */
+	/** Write the count of neighbors that passed filters to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteInsideNum = false;
 
@@ -33,7 +33,7 @@ struct FPCGExSamplerFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName = " └─ Normalize", EditCondition="bWriteInsideNum", EditConditionHides, HideEditConditionToggle))
 	bool bNormalizeInsideNum = false;
 
-	/** */
+	/** Write the count of neighbors that failed filters to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle, InlineEditConditionToggle))
 	bool bWriteOutsideNum = false;
 
@@ -45,7 +45,7 @@ struct FPCGExSamplerFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName = " └─ Normalize", EditCondition="bWriteOutsideNum", EditConditionHides, HideEditConditionToggle))
 	bool bNormalizeOutsideNum = false;
 
-	/** */
+	/** Write the total number of neighbors tested to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTotalNum = false;
 
@@ -54,7 +54,7 @@ struct FPCGExSamplerFilterConfig
 	FName TotalNumAttributeName = FName(FName("TotalNum"));
 
 
-	/** */
+	/** Write the weighted sum of neighbors that passed filters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteInsideWeight = false;
 
@@ -67,7 +67,7 @@ struct FPCGExSamplerFilterConfig
 	bool bNormalizeInsideWeight = false;
 
 
-	/** */
+	/** Write the weighted sum of neighbors that failed filters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteOutsideWeight = false;
 
@@ -80,7 +80,7 @@ struct FPCGExSamplerFilterConfig
 	bool bNormalizeOutsideWeight = false;
 
 
-	/** */
+	/** Write the total weight of all neighbors tested. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteTotalWeight = false;
 

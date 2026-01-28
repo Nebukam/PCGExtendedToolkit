@@ -78,7 +78,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bCreatePointAtCrossings = true;
 
-	/**  */
+	/** Configuration for how edge intersections are detected and processed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 

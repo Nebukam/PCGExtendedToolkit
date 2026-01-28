@@ -158,7 +158,7 @@ public:
 	double RadiusXConstant = 1;
 
 
-	/**  */
+	/** Whether or not to write the edge extents over the local Y axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusY = false;
 
@@ -179,7 +179,7 @@ public:
 	double RadiusYConstant = 1;
 
 
-	/**  */
+	/** Whether or not to write the edge extents over the local Z axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusZ = false;
 

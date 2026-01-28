@@ -66,7 +66,7 @@ protected:
 	bool bOmitInvalidAndEmpty = true;
 
 
-	/**  */
+	/** Write the asset path to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAssetPath = true;
 
@@ -80,7 +80,7 @@ protected:
 	UPROPERTY()
 	FName AssetClassAttributeName = NAME_None;
 
-	/**  */
+	/** Write the asset weight to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteWeight = true;
 
@@ -88,7 +88,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="bWriteWeight"))
 	FName WeightAttributeName = FName("Weight");
 
-	/**  */
+	/** Write the asset category to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCategory = false;
 
@@ -96,7 +96,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Category", EditCondition="bWriteCategory"))
 	FName CategoryAttributeName = FName("Category");
 
-	/**  */
+	/** Write the asset bounds extents to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteExtents = false;
 
@@ -104,7 +104,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Extents", EditCondition="bWriteExtents"))
 	FName ExtentsAttributeName = FName("Extents");
 
-	/**  */
+	/** Write the asset minimum bounds to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteBoundsMin = false;
 
@@ -112,7 +112,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="BoundsMin", EditCondition="bWriteBoundsMin"))
 	FName BoundsMinAttributeName = FName("BoundsMin");
 
-	/**  */
+	/** Write the asset maximum bounds to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteBoundsMax = false;
 
@@ -120,7 +120,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="BoundsMax", EditCondition="bWriteBoundsMax"))
 	FName BoundsMaxAttributeName = FName("BoundsMax");
 
-	/**  */
+	/** Write the asset nesting depth to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNestingDepth = false;
 

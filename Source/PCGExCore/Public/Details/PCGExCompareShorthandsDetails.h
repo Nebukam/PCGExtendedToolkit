@@ -34,16 +34,19 @@ struct PCGEXCORE_API FPCGExCompareSelectorDouble
 	PCGEX_SETTING_VALUE_DECL(, double)
 	bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, double& OutValue, const bool bQuiet = false) const;
 
-	/** Comparison */
+	/** The comparison operator to use. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
 
+	/** Whether value comes from constant or attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType Input = EPCGExInputValueType::Constant;
 
+	/** Attribute to read comparison value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector Attribute;
 
+	/** Constant comparison value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Constant = 0;
 

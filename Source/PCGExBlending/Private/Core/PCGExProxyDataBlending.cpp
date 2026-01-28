@@ -250,7 +250,11 @@ namespace PCGExBlending
 
 		Desc_A.AddFlags(InProxyFlags | PCGExData::EProxyFlags::Shared);
 		Desc_B.AddFlags(InProxyFlags | PCGExData::EProxyFlags::Shared);
-		Desc_C.AddFlags(InProxyFlags);
+
+		// Remove direct write
+		PCGExData::EProxyFlags WriteFlags = InProxyFlags;
+		EnumRemoveFlags(WriteFlags, PCGExData::EProxyFlags::Direct);
+		Desc_C.AddFlags(WriteFlags);
 
 		// Set type info
 		UnderlyingType = Desc_A.WorkingType;

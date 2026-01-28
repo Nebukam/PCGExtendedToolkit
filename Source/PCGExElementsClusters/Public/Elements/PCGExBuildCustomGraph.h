@@ -494,11 +494,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-	/** */
+	/** Suppress warnings when graph settings remain unprocessed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietUnprocessedSettingsWarning = false;
 
-	/**  */
+	/** Suppress warnings when BuildGraph returns false. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietFailedBuildGraphWarning = false;
 };

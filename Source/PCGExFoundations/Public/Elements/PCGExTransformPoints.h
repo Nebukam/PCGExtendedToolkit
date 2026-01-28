@@ -42,22 +42,27 @@ protected:
 public:
 #pragma region Translation
 
+	/** Minimum random offset per axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorVector OffsetMin = FPCGExInputShorthandSelectorVector(FName("OffsetMin"));
 
+	/** Maximum random offset per axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorVector OffsetMax = FPCGExInputShorthandSelectorVector(FName("OffsetMax"));
 
-	/** Scale applied to both Offset Min & Offset Max */
+	/** Scale applied to both Offset Min & Offset Max. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable, DisplayName=" └─ Scaling"))
 	FPCGExInputShorthandSelectorVector OffsetScaling = FPCGExInputShorthandSelectorVector(FName("Scaling"), FVector(1));
 
+	/** How to snap the random offset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	EPCGExVariationSnapping SnapPosition = EPCGExVariationSnapping::None;
 
+	/** Grid size for offset snapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable, EditCondition="SnapPosition != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandSelectorVector OffsetSnap = FPCGExInputShorthandSelectorVector(FName("OffsetStep"), FVector(100));
 
+	/** Apply offset in world space instead of local space. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorBoolean AbsoluteOffset = FPCGExInputShorthandSelectorBoolean(FName("AbsoluteOffset"), false, false);
 
@@ -65,26 +70,31 @@ public:
 
 #pragma region Rotation
 
-	/** If enabled will first reset rotation to 0, then apply variation. */
+	/** Reset rotation to zero before applying variation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
 	bool bResetRotation = false;
 
+	/** Minimum random rotation per axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorRotator RotationMin = FPCGExInputShorthandSelectorRotator(FName("RotationMin"));
 
+	/** Maximum random rotation per axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorRotator RotationMax = FPCGExInputShorthandSelectorRotator(FName("RotationMax"));
 
-	/** Scale applied to both Rotation Min & Rotation Max */
+	/** Scale applied to both Rotation Min & Rotation Max. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable, DisplayName=" └─ Scaling"))
 	FPCGExInputShorthandSelectorVector RotationScaling = FPCGExInputShorthandSelectorVector(FName("Scaling"), FVector(1));
 
+	/** How to snap the random rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
 	EPCGExVariationSnapping SnapRotation = EPCGExVariationSnapping::None;
 
+	/** Angular increment for rotation snapping (degrees). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable, EditCondition="SnapRotation != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandSelectorRotator RotationSnap = FPCGExInputShorthandSelectorRotator(FName("RotationStep"), FRotator(90));
 
+	/** Replace rotation instead of adding to it on the selected axes. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExCore.EPCGExAbsoluteRotationFlags"))
 	uint8 AbsoluteRotation = 0;
 
@@ -92,34 +102,41 @@ public:
 
 #pragma region Scale
 
-	/** If enabled will first reset scale to 1, then apply variation. */
+	/** Reset scale to one before applying variation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	bool bResetScale = false;
 
+	/** Minimum random scale per axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorVector ScaleMin = FPCGExInputShorthandSelectorVector(FName("ScaleMin"), FVector::OneVector);
 
+	/** Maximum random scale per axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorVector ScaleMax = FPCGExInputShorthandSelectorVector(FName("ScaleMax"), FVector::OneVector);
 
-	/** Scale applied to both Scale Min & Scale Max */
+	/** Scale applied to both Scale Min & Scale Max. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable, DisplayName=" └─ Scaling"))
 	FPCGExInputShorthandSelectorVector ScaleScaling = FPCGExInputShorthandSelectorVector(FName("Scaling"), FVector(1));
 
+	/** Use same scale on all axes (X component only). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorBoolean UniformScale = FPCGExInputShorthandSelectorBoolean(FName("UniformScale"), false, false);
 
+	/** How to snap the random scale. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	EPCGExVariationSnapping SnapScale = EPCGExVariationSnapping::None;
 
+	/** Increment for scale snapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable, EditCondition="SnapScale != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandSelectorVector ScaleSnap = FPCGExInputShorthandSelectorVector(FName("ScaleStep"), FVector(0.1));
 
 #pragma endregion
 
+	/** Apply the new scale to point bounds as well. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extras", meta=(PCG_Overridable))
 	bool bApplyScaleToBounds = false;
 
+	/** Reposition point center within its bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extras", meta=(PCG_Overridable))
 	bool bResetPointCenter = false;
 

@@ -66,7 +66,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	/**  */
+	/** Suppress warning about attribute type mismatches during merging. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bQuietAttributeMismatchWarning = false;
 

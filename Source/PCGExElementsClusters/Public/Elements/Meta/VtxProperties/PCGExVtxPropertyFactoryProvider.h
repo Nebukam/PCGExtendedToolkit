@@ -55,7 +55,7 @@ struct FPCGExSimpleEdgeOutputSettings
 	{
 	}
 
-	/**  */
+	/** Write edge direction to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDirection = false;
 
@@ -68,7 +68,7 @@ struct FPCGExSimpleEdgeOutputSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bWriteDirection", HideEditConditionToggle))
 	bool bInvertDirection = false;
 
-	/**  */
+	/** Write edge length to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLength = false;
 
@@ -100,29 +100,29 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 	{
 	}
 
-	/**  */
+	/** Write the edge index to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="LengthAttribute"))
 	bool bWriteEdgeIndex = false;
 
-	/** TBD */
+	/** Name of the attribute to output the edge index to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteEdgeIndex", DisplayAfter="bWriteEdgeIndex"))
 	FName EdgeIndexAttribute = "EdgeIndex";
 	TSharedPtr<PCGExData::TBuffer<int32>> EIdxWriter;
 
-	/**  */
+	/** Write the connected vertex index to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="EdgeIndexAttribute"))
 	bool bWriteVtxIndex = false;
 
-	/** TBD */
+	/** Name of the attribute to output the vertex index to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteVtxIndex", DisplayAfter="bWriteVtxIndex"))
 	FName VtxIndexAttribute = "VtxIndex";
 	TSharedPtr<PCGExData::TBuffer<int32>> VIdxWriter;
 
-	/**  */
+	/** Write the neighbor count to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="VtxIndexAttribute"))
 	bool bWriteNeighborCount = false;
 
-	/** TBD */
+	/** Name of the attribute to output the neighbor count to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteNeighborCount", DisplayAfter="bWriteNeighborCount"))
 	FName NeighborCountAttribute = "Count";
 	TSharedPtr<PCGExData::TBuffer<int32>> NCountWriter;

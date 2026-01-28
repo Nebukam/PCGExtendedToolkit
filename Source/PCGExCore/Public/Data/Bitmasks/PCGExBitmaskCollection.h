@@ -19,12 +19,15 @@ struct PCGEXCORE_API FPCGExBitmaskCollectionEntry
 
 	FPCGExBitmaskCollectionEntry() = default;
 
+	/** Unique name to reference this bitmask entry. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Identifier = NAME_None;
 
+	/** The bitmask value for this entry. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExBitmask Bitmask;
 
+	/** Optional direction associated with this entry (used for directional adjacency). */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FVector Direction = FVector::UpVector;
 
@@ -96,6 +99,7 @@ public:
 	virtual bool IsValidIndex(const int32 InIndex) const { return false; }
 	virtual int32 NumEntries() const { return 0; }
 
+	/** Named bitmask entries in this collection. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="{Identifier}   |   {Direction}"))
 	TArray<FPCGExBitmaskCollectionEntry> Entries;
 

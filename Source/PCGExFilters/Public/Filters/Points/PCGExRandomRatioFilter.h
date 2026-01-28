@@ -23,11 +23,11 @@ struct FPCGExRandomRatioFilterConfig
 	{
 	}
 
-	/**  */
+	/** Random selection settings (seed, ratio, mode). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExRandomRatioDetails Random;
 
-	/** TBD */
+	/** Invert the filter result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
 };

@@ -65,15 +65,15 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bFlipDirection = false;
 
-	/**  */
+	/** How to use the computed orientation. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOrientUsage Output = EPCGExOrientUsage::ApplyToPoint;
 
-	/**  */
+	/** Name of the attribute to output orientation to. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Output == EPCGExOrientUsage::OutputToAttribute", EditConditionHides))
 	FName OutputAttribute = "Orient";
 
-	/** */
+	/** Write the dot product between prev/next points to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDot = false;
 

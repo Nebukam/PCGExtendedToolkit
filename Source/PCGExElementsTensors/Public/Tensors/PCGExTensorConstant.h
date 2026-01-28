@@ -20,7 +20,7 @@ struct FPCGExTensorConstantConfig : public FPCGExTensorConfigBase
 	{
 	}
 
-	/**  */
+	/** The constant direction vector for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector Direction = FVector::ForwardVector;
 };
@@ -69,15 +69,15 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/**  */
+	/** Base weight multiplier for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double TensorWeight = 1;
 
-	/**  */
+	/** The constant direction vector for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector Direction = FVector::ForwardVector;
 
-	/**  */
+	/** Base potency multiplier for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Potency = 1;
 

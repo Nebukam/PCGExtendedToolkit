@@ -96,7 +96,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
 	FString RemoveTags = TEXT("");
 
-	/**  */
+	/** Value to add to the counter each update. Negative values decrement. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides), AdvancedDisplay)
 	int32 CounterUpdate = -1;
 
@@ -112,7 +112,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Outputs", meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
 	bool bOutputRemainder = false;
 
-	/**  */
+	/** Output (1 - Progress) instead of Progress. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ One Minus", EditCondition="Mode != EPCGExRecursionTrackerMode::Create && bOutputProgress", EditConditionHides))
 	bool bOneMinus = false;
 
@@ -124,7 +124,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create && Type == EPCGExRecursionTrackerType::Simple", EditConditionHides))
 	bool bDoAdditionalDataTesting = false;
 
-	/** . */
+	/** Add metadata entry when creating a tracker from existing attribute set data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides), AdvancedDisplay)
 	bool bAddEntryWhenCreatingFromExistingData = false;
 

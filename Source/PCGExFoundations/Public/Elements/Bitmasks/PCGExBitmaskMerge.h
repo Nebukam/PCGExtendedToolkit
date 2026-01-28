@@ -33,7 +33,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	/**  */
+	/** Bitwise operation to apply when merging input bitmasks. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitOp Operation = EPCGExBitOp::OR;
 };

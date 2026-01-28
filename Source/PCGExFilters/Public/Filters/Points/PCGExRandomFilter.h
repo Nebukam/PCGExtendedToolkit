@@ -26,7 +26,7 @@ struct FPCGExRandomFilterConfig
 		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
 	}
 
-	/** TBD */
+	/** Seed for random number generation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 RandomSeed = 42;
 
@@ -48,7 +48,7 @@ struct FPCGExRandomFilterConfig
 
 	PCGEX_SETTING_VALUE_DECL(Threshold, double)
 
-	/**  */
+	/** Use per-point weight values from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bPerPointWeight = false;
 
@@ -80,7 +80,7 @@ struct FPCGExRandomFilterConfig
 
 	PCGExFloatLUT WeightLUT = nullptr;
 
-	/** TBD */
+	/** Invert the filter result. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
 };

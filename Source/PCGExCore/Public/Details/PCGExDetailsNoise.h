@@ -66,35 +66,35 @@ struct PCGEXCORE_API FPCGExRandomRatioDetails
 		Amount_DEPRECATED = DefaultAmount;
 	}
 
-	/** Type of seed input */
+	/** Seed for random number generation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExInputShorthandSelectorInteger32 BaseSeed = FPCGExInputShorthandSelectorInteger32(FName("@Data.Seed"), 42);
 
-	/**  */
+	/** How amount is interpreted: Relative = 0-1 percentage, Discrete = fixed count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExMeanMeasure Units = EPCGExMeanMeasure::Relative;
 
-	/** Amount (relative) */
+	/** Percentage of items to pick (0 = none, 1 = all). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Relative)", EditCondition="Units == EPCGExMeanMeasure::Relative", EditConditionHides))
 	FPCGExInputShorthandSelectorDouble01 RelativeAmount = FPCGExInputShorthandSelectorDouble01(FName("@Data.Amount"), 0.5, false);
 
-	/** Amount (fixed) */
+	/** Exact number of items to pick. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Fixed)", EditCondition="Units == EPCGExMeanMeasure::Discrete", EditConditionHides))
 	FPCGExInputShorthandSelectorInteger32Abs DiscreteAmount = FPCGExInputShorthandSelectorInteger32Abs(FName("@Data.Amount"), 42, false);
 
-	/**  */
+	/** Enable minimum count constraint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoClampMin = false;
 
-	/** Min Amount (fixed) */
+	/** Minimum number of items to pick regardless of relative amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoClampMin"))
 	FPCGExInputShorthandSelectorInteger32Abs ClampMin = FPCGExInputShorthandSelectorInteger32Abs(FName("@Data.ClampMin"), 1, false);
 
-	/**  */
+	/** Enable maximum count constraint. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoClampMax = false;
 
-	/** Max Amount (fixed) */
+	/** Maximum number of items to pick regardless of relative amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoClampMax"))
 	FPCGExInputShorthandSelectorInteger32Abs ClampMax = FPCGExInputShorthandSelectorInteger32Abs(FName("@Data.ClampMax"), 500, false);
 

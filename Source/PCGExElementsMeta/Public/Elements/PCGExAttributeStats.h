@@ -61,11 +61,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails Filters = FPCGExNameFiltersDetails(true);
 
-	/** */
+	/** Output a separate data collection for each unique value with occurrence counts. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOutputPerUniqueValuesStats = false;
 
-	/** */
+	/** How stats are written to point attributes (None, Prefix, or Suffix to attribute name). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExStatsOutputToPoints OutputToPoints = EPCGExStatsOutputToPoints::None;
 
@@ -73,160 +73,160 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExStatsOutputToPoints OutputToTags = EPCGExStatsOutputToPoints::None;
 
-	/** */
+	/** Write a unique identifier for the source data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputIdentifier = true;
 
-	/** */
+	/** Attribute name for the unique identifier. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Identifier", EditCondition="bOutputIdentifier"))
 	FName IdentifierAttributeName = FName(TEXT("Identifier"));
 
-	/** */
+	/** Write the attribute's default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDefaultValue = true;
 
-	/** */
+	/** Attribute name for the default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Default", EditCondition="bOutputDefaultValue"))
 	FName DefaultValueAttributeName = FName(TEXT("Default"));
 
-	/** */
+	/** Write the minimum value found across all points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputMinValue = true;
 
-	/** */
+	/** Attribute name for the minimum value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Min", EditCondition="bOutputMinValue"))
 	FName MinValueAttributeName = FName(TEXT("Min"));
 
-	/** */
+	/** Write the maximum value found across all points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputMaxValue = true;
 
-	/** */
+	/** Attribute name for the maximum value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Max", EditCondition="bOutputMaxValue"))
 	FName MaxValueAttributeName = FName(TEXT("Max"));
 
-	/** */
+	/** Write the minimum value excluding points with the default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputSetMinValue = true;
 
-	/** */
+	/** Attribute name for the non-default minimum value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Non-Default Min", EditCondition="bOutputSetMinValue"))
 	FName SetMinValueAttributeName = FName(TEXT("SetMin"));
 
-	/** */
+	/** Write the maximum value excluding points with the default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputSetMaxValue = true;
 
-	/** */
+	/** Attribute name for the non-default maximum value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Non-Default Max", EditCondition="bOutputSetMaxValue"))
 	FName SetMaxValueAttributeName = FName(TEXT("SetMax"));
 
-	/** */
+	/** Write the average value across all points. For non-numeric types, outputs the most frequent value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputAverageValue = true;
 
-	/** */
+	/** Attribute name for the average value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Average", EditCondition="bOutputAverageValue"))
 	FName AverageValueAttributeName = FName(TEXT("Average"));
 
-	/** */
+	/** Write the count of values that appear exactly once. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputUniqueValuesNum = true;
 
-	/** */
+	/** Attribute name for the unique values count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Unique Values Num", EditCondition="bOutputUniqueValuesNum"))
 	FName UniqueValuesNumAttributeName = FName(TEXT("UniqueValues"));
 
-	/** */
+	/** Write the count of non-default values that appear exactly once. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputUniqueSetValuesNum = true;
 
-	/** */
+	/** Attribute name for the unique non-default values count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Unique Set Values Num", EditCondition="bOutputUniqueSetValuesNum"))
 	FName UniqueSetValuesNumAttributeName = FName(TEXT("UniqueSetValues"));
 
-	/** */
+	/** Write the total number of distinct values found. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDifferentValuesNum = true;
 
-	/** */
+	/** Attribute name for the different values count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Different Values Num", EditCondition="bOutputDifferentValuesNum"))
 	FName DifferentValuesNumAttributeName = FName(TEXT("DifferentValues"));
 
-	/** */
+	/** Write the total number of distinct non-default values. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDifferentSetValuesNum = true;
 
-	/** */
+	/** Attribute name for the different non-default values count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Different Set Values Num", EditCondition="bOutputDifferentSetValuesNum"))
 	FName DifferentSetValuesNumAttributeName = FName(TEXT("DifferentSetValues"));
 
-	/** */
+	/** Write the count of points with the default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDefaultValuesNum = true;
 
-	/** */
+	/** Attribute name for the default values count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Default Values Num", EditCondition="bOutputDefaultValuesNum"))
 	FName DefaultValuesNumAttributeName = FName(TEXT("DefaultValues"));
 
-	/** */
+	/** Write whether all points have the default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputHasOnlyDefaultValues = true;
 
-	/** */
+	/** Attribute name for the all-default-values flag. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Has only Default Values", EditCondition="bOutputHasOnlyDefaultValues"))
 	FName HasOnlyDefaultValuesAttributeName = FName(TEXT("HasOnlyDefaultValues"));
 
-	/** */
+	/** Write whether no points have the default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputHasOnlySetValues = true;
 
-	/** */
+	/** Attribute name for the no-default-values flag. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Has only Set Values", EditCondition="bOutputHasOnlySetValues"))
 	FName HasOnlySetValuesAttributeName = FName(TEXT("HasOnlySetValues"));
 
-	/** */
+	/** Write whether every point has a unique value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputHasOnlyUniqueValues = true;
 
-	/** */
+	/** Attribute name for the all-unique-values flag. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Has only Unique Values", EditCondition="bOutputHasOnlyUniqueValues"))
 	FName HasOnlyUniqueValuesAttributeName = FName(TEXT("HasOnlyUniqueValues"));
 
-	/** */
+	/** Write the total number of sampled points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputSamples = true;
 
-	/** */
+	/** Attribute name for the sample count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Samples", EditCondition="bOutputSamples"))
 	FName SamplesAttributeName = FName(TEXT("Samples"));
 
-	/** */
+	/** Write whether the attribute was valid for stats computation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputIsValid = true;
 
-	/** */
+	/** Attribute name for the validity flag. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, DisplayName = "Is Valid", EditCondition="bOutputIsValid"))
 	FName IsValidAttributeName = FName(TEXT("IsValid"));
 
 
-	/** */
+	/** Attribute name for the unique value column in per-value stats output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs (Unique Values)", meta = (PCG_Overridable, DisplayName = "Value Column", EditCondition="bOutputPerUniqueValuesStats"))
 	FName UniqueValueAttributeName = FName(TEXT("Value"));
 
-	/** */
+	/** Exclude the default value from unique values output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs (Unique Values)", meta = (PCG_Overridable, EditCondition="bOutputPerUniqueValuesStats"))
 	bool bOmitDefaultValue = false;
 
-	/** */
+	/** Attribute name for the occurrence count in per-value stats output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs (Unique Values)", meta = (PCG_Overridable, DisplayName = "Value Count", EditCondition="bOutputPerUniqueValuesStats"))
 	FName ValueCountAttributeName = FName(TEXT("Count"));
 
-	/** */
+	/** Suppress warnings when attribute type doesn't support stats computation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTypeMismatchWarning = false;
 
-	/** */
+	/** Prevent feedback loops when stats output is used as input. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bFeedbackLoopFailsafe = true;
 

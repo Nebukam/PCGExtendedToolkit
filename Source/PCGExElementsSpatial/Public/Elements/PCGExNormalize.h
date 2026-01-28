@@ -43,15 +43,15 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-	/**  */
+	/** Which point property to use for bounds calculation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Center;
 
-	/**  */
+	/** Offset applied to the normalized position. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector Offset = FVector::ZeroVector;
 
-	/**  */
+	/** Tiling factor applied to the normalized position. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector Tile = FVector::OneVector;
 
@@ -76,7 +76,7 @@ public:
 
 	PCGEX_SETTING_VALUE_DECL(Transform, FTransform)
 
-	/**  */
+	/** Attribute to write the normalized position to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Output;
 

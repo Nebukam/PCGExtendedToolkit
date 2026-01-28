@@ -69,27 +69,27 @@ public:
 	PCGEX_NODE_POINT_FILTER(InputMode == EPCGExShiftPathMode::Filter ? PCGExPaths::Labels::SourceShiftFilters : NAME_None, "Filters used to find the shift starting point.", PCGExFactories::PointFilters, InputMode == EPCGExShiftPathMode::Filter)
 	//~End UPCGExPointsProcessorSettings
 
-	/**  */
+	/** What data is shifted (index, metadata, properties, etc.). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExShiftType ShiftType = EPCGExShiftType::MetadataAndProperties;
 
-	/**  */
+	/** How the shift amount is determined. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExShiftPathMode InputMode = EPCGExShiftPathMode::Relative;
 
-	/**  */
+	/** Relative shift amount as a fraction of path length (0-1). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode == EPCGExShiftPathMode::Relative", EditConditionHides))
 	double RelativeConstant = 0.5;
 
-	/**  */
+	/** How to truncate the computed index. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode == EPCGExShiftPathMode::Relative", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
 
-	/**  */
+	/** Number of positions to shift by. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode == EPCGExShiftPathMode::Discrete", EditConditionHides))
 	int32 DiscreteConstant = 0;
 
-	/**  */
+	/** How to handle out-of-range indices after shift. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InputMode != EPCGExShiftPathMode::Filter", EditConditionHides))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
@@ -105,7 +105,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="ShiftType == EPCGExShiftType::CherryPick", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExCore.EPCGExPointNativeProperties"))
 	TArray<FName> CherryPickedAttributes;
 
-	/** */
+	/** Suppress warning when path data has already been shifted. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietDoubleShiftWarning = false;
 };

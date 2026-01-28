@@ -47,6 +47,7 @@ struct PCGEXCORE_API FPCGExGeo2DProjectionDetails
 
 	FPCGExGeo2DProjectionDetails();
 
+	/** How to determine the projection plane. Normal uses explicit vector, BestFit computes from points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExProjectionMethod Method = EPCGExProjectionMethod::Normal;
 
@@ -63,7 +64,7 @@ struct PCGEXCORE_API FPCGExGeo2DProjectionDetails
 
 #pragma endregion
 
-	/** Projection normal from */
+	/** Normal vector defining the projection plane. Points project perpendicular to this direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Method == EPCGExProjectionMethod::Normal", EditConditionHides))
 	FPCGExInputShorthandSelectorVector ProjectionVector = FPCGExInputShorthandSelectorVector(FName("@Data.Projection"), FVector::UpVector, false);
 

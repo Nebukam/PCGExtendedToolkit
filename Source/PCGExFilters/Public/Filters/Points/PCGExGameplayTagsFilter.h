@@ -51,7 +51,7 @@ struct FPCGExGameplayTagsFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fallbacks")
 	bool bFallbackPropertyPath = false;
 
-	/** */
+	/** Suppress warning when the property path cannot be resolved on an actor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietMissingPropertyWarning = false;
 };

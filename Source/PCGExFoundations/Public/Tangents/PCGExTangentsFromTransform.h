@@ -54,6 +54,7 @@ class UPCGExFromTransformTangents : public UPCGExTangentsInstancedFactory
 	GENERATED_BODY()
 
 public:
+	/** Which axis of the point transform to use for the tangent direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents)
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 

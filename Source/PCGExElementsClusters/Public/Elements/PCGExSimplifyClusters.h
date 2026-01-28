@@ -62,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSimplifyClusterEdgeFilterRole EdgeFilterRole = EPCGExSimplifyClusterEdgeFilterRole::Preserve;
 
-	/**  */
+	/** Enable angular threshold filtering for chain simplification. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bMergeAboveAngularThreshold = false;
 

@@ -44,19 +44,19 @@ struct PCGEXELEMENTSPATHS_API FPCGExSwapAttributePairDetails
 	{
 	}
 
-	/**  */
+	/** First attribute in the swap pair. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName FirstAttributeName = NAME_None;
 	PCGExData::FAttributeIdentity* FirstIdentity = nullptr;
 	TSharedPtr<PCGExData::IBuffer> FirstWriter;
 
-	/**  */
+	/** Second attribute in the swap pair. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName SecondAttributeName = NAME_None;
 	PCGExData::FAttributeIdentity* SecondIdentity = nullptr;
 	TSharedPtr<PCGExData::IBuffer> SecondWriter;
 
-	/**  */
+	/** Multiply swapped numeric values by -1. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMultiplyByMinusOne = false;
 
@@ -84,7 +84,7 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-	/**  */
+	/** Method used to determine when to reverse point order. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPointReverseMethod Method = EPCGExPointReverseMethod::None;
 
@@ -100,23 +100,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method == EPCGExPointReverseMethod::Winding", EditConditionHides))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
 
-	/**  */
+	/** Attribute pairs to swap values between when reversing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TArray<FPCGExSwapAttributePairDetails> SwapAttributesValues;
 
-	/** */
+	/** Tag data that was reversed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfReversed = true;
 
-	/** ... */
+	/** Tag to apply when points were reversed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfReversed"))
 	FString IsReversedTag = TEXT("Reversed");
 
-	/** */
+	/** Tag data that was not reversed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfNotReversed = false;
 
-	/** ... */
+	/** Tag to apply when points were not reversed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfNotReversed"))
 	FString IsNotReversedTag = TEXT("NotReversed");
 };

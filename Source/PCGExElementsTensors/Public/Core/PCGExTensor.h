@@ -113,7 +113,7 @@ struct PCGEXELEMENTSTENSORS_API FPCGExTensorConfigBase
 	UPROPERTY()
 	bool bSupportMutations = false;
 
-	/**  */
+	/** Base weight multiplier for this tensor. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=-1))
 	double TensorWeight = 1;
 

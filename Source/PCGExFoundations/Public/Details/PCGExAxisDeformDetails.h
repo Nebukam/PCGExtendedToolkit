@@ -41,10 +41,11 @@ struct PCGEXFOUNDATIONS_API FPCGExAxisDeformDetails
 	FPCGExAxisDeformDetails() = default;
 	FPCGExAxisDeformDetails(const FString InFirst, const FString InSecond, const double InFirstValue = 0, const double InSecondValue = 1);
 
+	/** How the two alpha values define the deformation range. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTransformAlphaUsage Usage = EPCGExTransformAlphaUsage::StartAndEnd;
 
-	/** */
+	/** Where first alpha value comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSampleSource FirstAlphaInput = EPCGExSampleSource::Constant;
 
@@ -59,7 +60,7 @@ struct PCGEXFOUNDATIONS_API FPCGExAxisDeformDetails
 	PCGEX_SETTING_DATA_VALUE_DECL(FirstAlpha, double)
 	PCGEX_SETTING_VALUE_DECL(FirstAlpha, double)
 
-	/** */
+	/** Where second alpha value comes from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSampleSource SecondAlphaInput = EPCGExSampleSource::Constant;
 

@@ -39,7 +39,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	int32 Index = 0;
 
-	/**  */
+	/** How to handle out-of-range indices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Ignore;
 
