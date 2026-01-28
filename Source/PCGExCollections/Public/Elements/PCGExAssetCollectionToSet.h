@@ -138,5 +138,12 @@ protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
-	static void ProcessEntry(const FPCGExAssetCollectionEntry* InEntry, TArray<const FPCGExAssetCollectionEntry*>& OutEntries, const bool bOmitInvalidAndEmpty, const bool bNoDuplicates, const EPCGExSubCollectionToSet SubHandling, TSet<uint64>& GUIDS);
+	static void ProcessEntry(
+	FPCGExContext* InContext,
+		const FPCGExAssetCollectionEntry* InEntry, 
+		TArray<const FPCGExAssetCollectionEntry*>& OutEntries, 
+		const bool bOmitInvalidAndEmpty, 
+		const bool bNoDuplicates, 
+		const EPCGExSubCollectionToSet SubHandling,
+		TSet<uint64>& GUIDS);
 };
