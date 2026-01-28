@@ -29,10 +29,7 @@ Vanilla PCG excels at scattering and rule-based placement. PCGEx adds what's mis
 
 Graph theory is just the headline. PCGEx is also a comprehensive data manipulation toolkit: spatial queries, sampling, blending, path operations, polygon booleans, asset management, filtering, sorting—the low-level primitives that vanilla PCG doesn't provide. Reusable sub-nodes (filters, heuristics, blenders) plug into operations to keep your graphs clean. 
 
-> _It doesn't solve specific problems for you._  
-_It gives you the tools to solve them yourself._
-
-<!-- SCREENSHOT: Hero image showing a complex procedural generation result that highlights the variety of what's possible -->
+_It doesn't solve specific problems for you. _It gives you the tools to solve them yourself._
 
 ---
 
@@ -52,9 +49,7 @@ See the [Installation Guide](https://nebukam.github.io/PCGExtendedToolkit/instal
 
 The best way to learn PCGEx is through the **[Example Project](https://pcgex.gitbook.io/pcgex/basics/quickstart/example-project)**, which contains hundred of annotated graphs and complex examples demonstrating PCGEx capabilities.
 
-<!-- SCREENSHOT: Overview of example project content - perhaps a grid of different example scenes -->
-
-![Example Project](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
+<img width="1256" height="902" alt="image" src="https://github.com/user-attachments/assets/017164af-ac4c-4ff2-b0ae-a76a32d40ed2" />
 
 ### Documentation
 
@@ -68,45 +63,55 @@ The best way to learn PCGEx is through the **[Example Project](https://pcgex.git
 ### Clusters & Graphs
 The heart of PCGEx. Transform points into connected networks via Delaunay, Voronoi, convex hulls, MST, and custom builders. Every connection is data you can query, filter, refine, and build upon. This is what vanilla PCG can't do.
 
-<!-- SCREENSHOT: Side-by-side: scattered points → Delaunay → refined graph → final result -->
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/09d29b95-b7f5-4e77-87b0-56d1b4b7d86e" />
 
-![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-graphs.jpg)
 
 ### Filter Ecosystem
 Define selection logic once, reuse everywhere. AND/OR composition, attribute tests, spatial queries, bitmasks—all as portable sub-nodes that plug into operations. No more duplicating filter chains across your graph.
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/556df727-c17a-4cb7-835b-653a8411d74e" />
+
 ### Asset Collections
 Curate meshes, actors, and data assets with weighted distribution, tags, and per-entry property overrides. Define a collection once, use it consistently everywhere. The asset management layer vanilla PCG lacks.
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6f1c453b-8010-496f-bdf8-5a809e36849d" />
+
 
 ### Paths
 Smooth, simplify, subdivide, cut, fuse, offset, bevel. Tangent operations for clean curves. Convert freely between points, paths, and splines. A complete path manipulation toolbox.
 
-<!-- SCREENSHOT: Path pipeline: raw → smoothed → subdivided → final -->
+<img width="3840" height="1080" alt="image" src="https://github.com/user-attachments/assets/698a107c-6429-4310-89b1-ddf52c032f27" />
 
-![hl-paths](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-paths.jpg)
 
 ### Pathfinding
 A*/Djikstra routing through your clusters with pluggable heuristics. Weight by distance, slope, attributes, or custom logic. Find optimal paths when you need them, _without a single loop_.
 
-<!-- SCREENSHOT: Weighted paths through a graph -->
+<img width="3840" height="1080" alt="image" src="https://github.com/user-attachments/assets/7686097c-ee02-42b4-85bc-dfc9e763a265" />
 
-![hl-pathfinding](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-pathfinding.jpg)
 
 ### Spatial Operations
 **Point fusion** is foundational—merge nearby points with attribute blending. Beyond that: Lloyd relaxation, bin packing, octree queries, bounds analysis. Power tools for when you need them.
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/1e36d60e-0830-4a5c-aa6c-ad99fc0f542d" />
+
+
 ### Sampling & Blending
 Transfer data between point sets, surfaces, splines, textures. Configurable weighting and falloff. The glue that connects disparate data sources.
 
-![hl-sampling](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-samplers.jpg)
+<img width="3840" height="1080" alt="image" src="https://github.com/user-attachments/assets/664a0725-9e76-4593-9e1e-81dc7814199d" />
+
 
 ### Tensors & Vector Fields
 Spatial effectors that influence transforms. Stack them for complex directional fields—orienting objects, extruding paths, guiding growth.
 
-![hl-tensors](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-tensors.jpg)
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/85bd53fa-c9f1-42d7-a278-ec3da68b1804" />
+
 
 ### Probing
 Build clusters from connection rules—define how points should connect based on spatial relationships and let PCGEx figure out the graph.
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ffcf4a0f-f05b-4c66-bd83-7165379ada3c" />
+
 
 ### Valency (WFC)
 Wave Function Collapse for modular generation. Impressive constraint solving with a dedicated editor mode. Eye candy that actually works.
@@ -119,7 +124,8 @@ Wave Function Collapse for modular generation. Impressive constraint solving wit
 **Utilities** — Sorting, partitioning, attributes, hashes, so much more.  
 
 
-![hl-misc](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-miscjpg.jpg)
+<img width="3840" height="1080" alt="image" src="https://github.com/user-attachments/assets/487c9a31-7af2-4e10-b10c-919d92c80c70" />
+
 
 
 ---
