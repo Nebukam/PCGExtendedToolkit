@@ -87,11 +87,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType EdgeStiffnessInput = EPCGExInputValueType::Constant;
 
-	/** Attribute to read edge stiffness value from. Note that this value is expected to be in the [0..1] range and will be divided by 3 internally. */
+	/** Attribute to read edge stiffness value from. Expected to be in the [0..1] range. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness (Attr)", EditCondition="EdgeStiffnessInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector EdgeStiffnessAttribute;
 
-	/** Constant Edge stiffness value. Note that this value is expected to be in the [0..1] range and will be divided by 3 internally.  */
+	/** Constant Edge stiffness value. Expected to be in the [0..1] range. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness", EditCondition="EdgeStiffnessInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1, UIMin=0, UIMax=1))
 	double EdgeStiffness = 0.5;
 
@@ -100,6 +100,10 @@ public:
 	/** If this was a physic simulation, represent the time advance each iteration */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TimeStep = 0.1;
+
+	/** Velocity damping multiplier applied each iteration. Lower values = more damping, smoother convergence. Higher values retain momentum for more natural sag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, ClampMax=1, UIMin=0, UIMax=1))
+	double DampingScale = 0.99;
 
 	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster) override
 	{
@@ -117,7 +121,6 @@ public:
 		StiffnessBuffer = GetValueSettingEdgeStiffness();
 		if (!StiffnessBuffer->Init(SecondaryDataFacade)) { return false; }
 
-		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		Deltas.Init(FInt64Vector3(0), Cluster->Nodes->Num());
 
 		Cluster->ComputeEdgeLengths();
@@ -151,17 +154,16 @@ public:
 
 	virtual void Step1(const PCGExClusters::FNode& Node) override
 	{
-		const double F = (1 - FrictionBuffer->Read(Node.PointIndex)) * 0.99;
+		const double F = (1 - FrictionBuffer->Read(Node.PointIndex)) * DampingScale;
 
 		const FVector G = GravityBuffer->Read(Node.PointIndex);
 		const FVector P = (*ReadBuffer)[Node.Index].GetLocation();
-		AddDelta(Node.Index, G * (TimeStep * TimeStep)); // Add delta of force
 
 		// Write buffer is the old position at this point
 		const FVector V = (P - (*WriteBuffer)[Node.Index].GetLocation()) * F;
 
-		// Compute predicted position, NOT accounting for deltas, only verlet velocity
-		(*WriteBuffer)[Node.Index].SetLocation(P + V);
+		// Compute predicted position INCLUDING gravity, so springs can properly counteract it
+		(*WriteBuffer)[Node.Index].SetLocation(P + V + G * (TimeStep * TimeStep));
 	}
 
 	virtual void Step2(const PCGExGraphs::FEdge& Edge) override
@@ -179,7 +181,7 @@ public:
 		const double RestLength = *(EdgeLengths->GetData() + Edge.Index) * ScalingBuffer->Read(Edge.PointIndex);
 		const double L = FVector::Dist(PA, PB);
 
-		const double Stiffness = (StiffnessBuffer->Read(Edge.Index)) * 0.32;
+		const double Stiffness = (StiffnessBuffer->Read(Edge.PointIndex)) * 0.32;
 
 		FVector Correction = (L > RestLength ? (PA - PB) : (PB - PA)).GetSafeNormal() * FMath::Abs(L - RestLength);
 
@@ -190,7 +192,7 @@ public:
 	virtual void Step3(const PCGExClusters::FNode& Node) override
 	{
 		// Update positions based on accumulated forces
-		if (FrictionBuffer->Read(Node.Index) >= 1) { return; }
+		if (FrictionBuffer->Read(Node.PointIndex) >= 1) { return; }
 		(*WriteBuffer)[Node.Index].SetLocation((*WriteBuffer)[Node.Index].GetLocation() + GetDelta(Node.Index));
 	}
 

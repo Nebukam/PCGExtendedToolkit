@@ -31,10 +31,18 @@ public:
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
 		FVector Force = FVector::ZeroVector;
 
+		// Attractive forces: only between connected nodes (edges act as springs)
 		for (const PCGExGraphs::FLink& Lk : Node.Links)
 		{
 			const FVector OtherPosition = (ReadBuffer->GetData() + Lk.Node)->GetLocation();
 			CalculateAttractiveForce(Force, Position, OtherPosition);
+		}
+
+		// Repulsive forces: between ALL node pairs (electrostatic repulsion)
+		for (int32 OtherNodeIndex = 0; OtherNodeIndex < Cluster->Nodes->Num(); OtherNodeIndex++)
+		{
+			if (OtherNodeIndex == Node.Index) { continue; }
+			const FVector OtherPosition = (ReadBuffer->GetData() + OtherNodeIndex)->GetLocation();
 			CalculateRepulsiveForce(Force, Position, OtherPosition);
 		}
 
