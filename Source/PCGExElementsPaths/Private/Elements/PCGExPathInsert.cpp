@@ -149,6 +149,26 @@ namespace PCGExPathInsert
 
 		TConstPCGValueRange<FTransform> PathTransforms = PointIO->GetIn()->GetConstTransformValueRange();
 
+		// Cache first/last edge info for extension checks
+		const bool bCanExtend = !bClosedLoop && Settings->bAllowPathExtension;
+		FVector FirstEdgeStart = FVector::ZeroVector;
+		FVector FirstEdgeDir = FVector::ZeroVector;
+		FVector LastEdgeEnd = FVector::ZeroVector;
+		FVector LastEdgeDir = FVector::ZeroVector;
+
+		if (bCanExtend && Path->NumEdges > 0)
+		{
+			const PCGExPaths::FPathEdge& FirstEdge = Path->Edges[0];
+			FirstEdgeStart = PathTransforms[FirstEdge.Start].GetLocation();
+			const FVector FirstEdgeEnd = PathTransforms[FirstEdge.End].GetLocation();
+			FirstEdgeDir = (FirstEdgeEnd - FirstEdgeStart).GetSafeNormal();
+
+			const PCGExPaths::FPathEdge& LastEdge = Path->Edges[Path->LastEdge];
+			const FVector LastEdgeStart = PathTransforms[LastEdge.Start].GetLocation();
+			LastEdgeEnd = PathTransforms[LastEdge.End].GetLocation();
+			LastEdgeDir = (LastEdgeEnd - LastEdgeStart).GetSafeNormal();
+		}
+
 		Context->TargetsHandler->ForEachTargetPoint([&](const PCGExData::FConstPoint& TargetPoint)
 		{
 			const FVector TargetLocation = TargetPoint.GetLocation();
@@ -199,7 +219,53 @@ namespace PCGExPathInsert
 				return;
 			}
 
-			// Add candidate
+			// Check for path extension (open paths only)
+			if (bCanExtend)
+			{
+				// Check if target is beyond path start
+				if (BestEdgeIndex == 0 && BestAlpha < KINDA_SMALL_NUMBER)
+				{
+					const double ProjectionDist = FVector::DotProduct(TargetLocation - FirstEdgeStart, FirstEdgeDir);
+					if (ProjectionDist < 0)
+					{
+						// Target is before path start - add to pre-path inserts
+						FInsertCandidate Candidate;
+						Candidate.TargetIOIndex = TargetPoint.IO;
+						Candidate.TargetPointIndex = TargetPoint.Index;
+						Candidate.EdgeIndex = -1; // Special marker for pre-path
+						Candidate.Alpha = ProjectionDist; // Negative distance for sorting
+						Candidate.Distance = BestDist;
+						Candidate.PathLocation = FirstEdgeStart + FirstEdgeDir * ProjectionDist;
+						Candidate.OriginalLocation = TargetLocation;
+
+						PrePathInserts.Add(Candidate);
+						return;
+					}
+				}
+
+				// Check if target is beyond path end
+				if (BestEdgeIndex == Path->LastEdge && BestAlpha > (1.0 - KINDA_SMALL_NUMBER))
+				{
+					const double ProjectionDist = FVector::DotProduct(TargetLocation - LastEdgeEnd, LastEdgeDir);
+					if (ProjectionDist > 0)
+					{
+						// Target is after path end - add to post-path inserts
+						FInsertCandidate Candidate;
+						Candidate.TargetIOIndex = TargetPoint.IO;
+						Candidate.TargetPointIndex = TargetPoint.Index;
+						Candidate.EdgeIndex = Path->NumEdges; // Special marker for post-path
+						Candidate.Alpha = ProjectionDist; // Positive distance for sorting
+						Candidate.Distance = BestDist;
+						Candidate.PathLocation = LastEdgeEnd + LastEdgeDir * ProjectionDist;
+						Candidate.OriginalLocation = TargetLocation;
+
+						PostPathInserts.Add(Candidate);
+						return;
+					}
+				}
+			}
+
+			// Add as regular interior candidate
 			FInsertCandidate Candidate;
 			Candidate.TargetIOIndex = TargetPoint.IO;
 			Candidate.TargetPointIndex = TargetPoint.Index;
@@ -218,8 +284,20 @@ namespace PCGExPathInsert
 			if (!EI.IsEmpty()) { EI.SortByAlpha(); }
 		}
 
+		// Sort extension inserts by projection distance
+		if (!PrePathInserts.IsEmpty())
+		{
+			// Sort ascending (most negative first = furthest from start comes first in path order)
+			PrePathInserts.Sort([](const FInsertCandidate& A, const FInsertCandidate& B) { return A.Alpha < B.Alpha; });
+		}
+		if (!PostPathInserts.IsEmpty())
+		{
+			// Sort ascending (smallest positive first = closest to end comes first)
+			PostPathInserts.Sort([](const FInsertCandidate& A, const FInsertCandidate& B) { return A.Alpha < B.Alpha; });
+		}
+
 		// Count total inserts
-		TotalInserts = 0;
+		TotalInserts = PrePathInserts.Num() + PostPathInserts.Num();
 		for (const FEdgeInserts& EI : EdgeInserts)
 		{
 			TotalInserts += EI.Num();
@@ -241,21 +319,11 @@ namespace PCGExPathInsert
 		}
 
 		// Calculate output size and start indices
+		// Output order: [PrePathInserts] [Point0] [Edge0 Inserts] [Point1] ... [PointN] [PostPathInserts]
 		const int32 NumOriginalPoints = PointDataFacade->GetNum();
+		const int32 NumPreInserts = PrePathInserts.Num();
+		const int32 NumPostInserts = PostPathInserts.Num();
 		const int32 NumOutputPoints = NumOriginalPoints + TotalInserts;
-
-		int32 WriteIndex = 0;
-		for (int32 i = 0; i < Path->NumEdges; i++)
-		{
-			StartIndices[i] = WriteIndex++;
-			WriteIndex += EdgeInserts[i].Num();
-		}
-
-		// Handle last point for open paths
-		if (!bClosedLoop)
-		{
-			StartIndices[LastIndex] = WriteIndex;
-		}
 
 		// Allocate output
 		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::New)
@@ -273,10 +341,21 @@ namespace PCGExPathInsert
 		TArray<int32> WriteIndices;
 		WriteIndices.SetNum(NumOriginalPoints);
 
-		WriteIndex = 0;
+		int32 WriteIndex = 0;
+
+		// Pre-path inserts (inherit from first point)
+		for (int32 i = 0; i < NumPreInserts; i++)
+		{
+			OutMetadataEntries[WriteIndex] = PCGInvalidEntryKey;
+			Metadata->InitializeOnSet(OutMetadataEntries[WriteIndex], InMetadataEntries[0], InPoints->Metadata);
+			WriteIndex++;
+		}
+
+		// Original points and edge inserts
 		for (int32 i = 0; i < Path->NumEdges; i++)
 		{
 			WriteIndices[i] = WriteIndex;
+			StartIndices[i] = WriteIndex;
 
 			// Copy original point's metadata
 			OutMetadataEntries[WriteIndex] = InMetadataEntries[i];
@@ -297,8 +376,18 @@ namespace PCGExPathInsert
 		if (!bClosedLoop)
 		{
 			WriteIndices[LastIndex] = WriteIndex;
+			StartIndices[LastIndex] = WriteIndex;
 			OutMetadataEntries[WriteIndex] = InMetadataEntries[LastIndex];
 			Metadata->InitializeOnSet(OutMetadataEntries[WriteIndex]);
+			WriteIndex++;
+
+			// Post-path inserts (inherit from last point)
+			for (int32 i = 0; i < NumPostInserts; i++)
+			{
+				OutMetadataEntries[WriteIndex] = PCGInvalidEntryKey;
+				Metadata->InitializeOnSet(OutMetadataEntries[WriteIndex], InMetadataEntries[LastIndex], InPoints->Metadata);
+				WriteIndex++;
+			}
 		}
 
 		// Copy original points to new locations
@@ -314,7 +403,76 @@ namespace PCGExPathInsert
 		// Tag output
 		if (Settings->bTagIfHasInserts) { PointIO->Tags->AddRaw(Settings->HasInsertsTag); }
 
-		// Process ranges to set positions and blend
+		// Process extension inserts (single-threaded, before parallel edge processing)
+		TPCGValueRange<FTransform> OutTransforms = PointIO->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeeds = PointIO->GetOut()->GetSeedValueRange(false);
+		TConstPCGValueRange<FTransform> InTransforms = PointIO->GetIn()->GetConstTransformValueRange();
+
+		// Pre-path extensions
+		if (NumPreInserts > 0)
+		{
+			const FVector FirstPointPos = InTransforms[0].GetLocation();
+			const int32 FirstPointOutIdx = StartIndices[0];
+
+			PCGExPaths::FPathMetrics PreMetrics = PCGExPaths::FPathMetrics(
+				Settings->bSnapToPath ? PrePathInserts[0].PathLocation : PrePathInserts[0].OriginalLocation);
+
+			for (int32 i = 0; i < NumPreInserts; i++)
+			{
+				const FInsertCandidate& Insert = PrePathInserts[i];
+				const FVector Position = Settings->bSnapToPath ? Insert.PathLocation : Insert.OriginalLocation;
+
+				OutTransforms[i].SetLocation(Position);
+				OutSeeds[i] = PCGExRandomHelpers::ComputeSpatialSeed(Position);
+
+				if (i > 0) { PreMetrics.Add(Position); }
+			}
+
+			PreMetrics.Add(FirstPointPos);
+
+			if (NumPreInserts > 1)
+			{
+				PCGExData::FScope PreScope = PointDataFacade->GetOutScope(1, NumPreInserts - 1);
+				SubBlending->ProcessSubPoints(
+					PointDataFacade->GetOutPoint(0),
+					PointDataFacade->GetOutPoint(FirstPointOutIdx),
+					PreScope,
+					PreMetrics);
+			}
+		}
+
+		// Post-path extensions
+		if (!bClosedLoop && NumPostInserts > 0)
+		{
+			const int32 LastPointOutIdx = StartIndices[LastIndex];
+			const FVector LastPointPos = InTransforms[LastIndex].GetLocation();
+
+			PCGExPaths::FPathMetrics PostMetrics = PCGExPaths::FPathMetrics(LastPointPos);
+
+			for (int32 i = 0; i < NumPostInserts; i++)
+			{
+				const FInsertCandidate& Insert = PostPathInserts[i];
+				const int32 InsertIndex = LastPointOutIdx + 1 + i;
+				const FVector Position = Settings->bSnapToPath ? Insert.PathLocation : Insert.OriginalLocation;
+
+				OutTransforms[InsertIndex].SetLocation(Position);
+				OutSeeds[InsertIndex] = PCGExRandomHelpers::ComputeSpatialSeed(Position);
+
+				PostMetrics.Add(Position);
+			}
+
+			if (NumPostInserts > 1)
+			{
+				PCGExData::FScope PostScope = PointDataFacade->GetOutScope(LastPointOutIdx + 1, NumPostInserts - 1);
+				SubBlending->ProcessSubPoints(
+					PointDataFacade->GetOutPoint(LastPointOutIdx),
+					PointDataFacade->GetOutPoint(LastPointOutIdx + NumPostInserts),
+					PostScope,
+					PostMetrics);
+			}
+		}
+
+		// Process edge inserts in parallel
 		StartParallelLoopForRange(Path->NumEdges);
 	}
 
@@ -327,6 +485,7 @@ namespace PCGExPathInsert
 
 		TConstPCGValueRange<FTransform> InTransforms = PointIO->GetIn()->GetConstTransformValueRange();
 
+		// Process regular edge inserts
 		PCGEX_SCOPE_LOOP(EdgeIndex)
 		{
 			const FEdgeInserts& EI = EdgeInserts[EdgeIndex];

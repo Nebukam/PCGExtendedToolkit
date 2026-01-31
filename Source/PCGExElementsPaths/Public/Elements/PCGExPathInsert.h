@@ -61,6 +61,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSnapToPath = false;
 
+	/** If enabled, targets beyond path endpoints can extend the path (open paths only). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAllowPathExtension = true;
+
 	/** Only insert points that are within a specified range of the path. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bWithinRange = false;
@@ -153,6 +157,10 @@ namespace PCGExPathInsert
 
 		// Stage 1: Candidates per edge
 		TArray<FEdgeInserts> EdgeInserts;
+
+		// Path extension inserts (open paths only)
+		TArray<FInsertCandidate> PrePathInserts;
+		TArray<FInsertCandidate> PostPathInserts;
 
 		// Stage 3: Output indices
 		TArray<int32> StartIndices;
