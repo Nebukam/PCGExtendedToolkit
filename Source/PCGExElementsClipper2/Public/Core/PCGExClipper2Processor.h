@@ -156,6 +156,9 @@ namespace PCGExClipper2
 	 */
 	struct FProcessingGroup : TSharedFromThis<FProcessingGroup>
 	{
+		// Group index for deterministic output ordering
+		int32 GroupIndex = 0;
+
 		// Indices into AllOpData
 		TArray<int32> SubjectIndices;
 		TArray<int32> OperandIndices;
@@ -314,11 +317,12 @@ struct PCGEXELEMENTSCLIPPER2_API FPCGExClipper2ProcessorContext : FPCGExPathProc
 
 	/**
 	 * Convert Clipper2 Paths64 results back to PCGEx point data with metadata blending.
-	 * 
+	 *
 	 * @param InPaths - The Clipper2 output paths to convert
 	 * @param Group - The processing group containing source info and intersection blend data
 	 * @param OutPaths - Output array of point IO objects
 	 * @param bClosedPaths
+	 * @param CallSiteIndex - Deterministic identifier for this call site within the group (e.g., 0=closed, 1=open)
 	 * @param TransformMode - How to compute output transforms (FromSource for booleans, Unproject for offset/inflate)
 	 */
 	void OutputPaths64(
@@ -326,6 +330,7 @@ struct PCGEXELEMENTSCLIPPER2_API FPCGExClipper2ProcessorContext : FPCGExPathProc
 		const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
 		TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
 		bool bClosedPaths,
+		int32 CallSiteIndex,
 		PCGExClipper2::ETransformRestoration TransformMode = PCGExClipper2::ETransformRestoration::FromSource);
 
 	/**
