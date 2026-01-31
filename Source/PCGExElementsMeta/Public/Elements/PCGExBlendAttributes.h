@@ -42,9 +42,6 @@ protected:
 public:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
-	/** Whther to write the index as a normalized output value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bOutputNormalizedIndex = false;
 };
 
 struct FPCGExBlendAttributesContext final : FPCGExPointsProcessorContext
