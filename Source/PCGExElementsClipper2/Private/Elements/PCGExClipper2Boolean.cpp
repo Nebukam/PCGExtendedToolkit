@@ -108,13 +108,13 @@ void FPCGExClipper2BooleanContext::Process(const TSharedPtr<PCGExClipper2::FProc
 	if (!ClosedResults.empty())
 	{
 		TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-		OutputPaths64(ClosedResults, Group, OutputPaths, true);
+		OutputPaths64(ClosedResults, Group, OutputPaths, true, 0);
 	}
 
 	if (Settings->OpenPathsOutput != EPCGExClipper2OpenPathOutput::Ignore && !OpenResults.empty())
 	{
 		TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-		OutputPaths64(OpenResults, Group, OutputPaths, false);
+		OutputPaths64(OpenResults, Group, OutputPaths, false, 1);
 	}
 }
 
