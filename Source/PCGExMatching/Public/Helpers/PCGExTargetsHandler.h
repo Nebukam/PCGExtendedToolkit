@@ -95,6 +95,11 @@ namespace PCGExMatching
 		PCGExData::FConstPoint GetPoint(const int32 IO, const int32 Index) const;
 		PCGExData::FConstPoint GetPoint(const PCGExData::FPoint& Point) const;
 
+		// Parallel iteration support
+		int32 GetTotalTargetPointCount(const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void BuildFlatTargetMap(TArray<int32>& OutPrefixSums, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		PCGExData::FConstPoint GetPointByFlatIndex(int32 FlatIndex, const TArray<int32>& PrefixSums, const TSet<const UPCGData*>* Exclude = nullptr) const;
+
 		double GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const;
 		FVector GetSourceCenter(const PCGExData::FPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const;
 

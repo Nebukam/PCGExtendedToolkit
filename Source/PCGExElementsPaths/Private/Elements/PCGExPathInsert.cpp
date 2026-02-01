@@ -131,6 +131,184 @@ bool FPCGExPathInsertElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 
 namespace PCGExPathInsert
 {
+	void FProcessor::GatherCandidates()
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathInsert::GatherCandidates);
+
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		TConstPCGValueRange<FTransform> PathTransforms = PointIO->GetIn()->GetConstTransformValueRange();
+
+		// Cache first/last edge info for extension checks
+		const bool bCanExtend = !bClosedLoop && !Settings->bEdgeInteriorOnly && Settings->bAllowPathExtension;
+		FVector FirstEdgeStart = FVector::ZeroVector;
+		FVector FirstEdgeDir = FVector::ZeroVector;
+		FVector LastEdgeEnd = FVector::ZeroVector;
+		FVector LastEdgeDir = FVector::ZeroVector;
+
+		if (bCanExtend && Path->NumEdges > 0)
+		{
+			const PCGExPaths::FPathEdge& FirstEdge = Path->Edges[0];
+			FirstEdgeStart = PathTransforms[FirstEdge.Start].GetLocation();
+			const FVector FirstEdgeEndPos = PathTransforms[FirstEdge.End].GetLocation();
+			FirstEdgeDir = (FirstEdgeEndPos - FirstEdgeStart).GetSafeNormal();
+
+			const PCGExPaths::FPathEdge& LastEdge = Path->Edges[Path->LastEdge];
+			const FVector LastEdgeStart = PathTransforms[LastEdge.Start].GetLocation();
+			LastEdgeEnd = PathTransforms[LastEdge.End].GetLocation();
+			LastEdgeDir = (LastEdgeEnd - LastEdgeStart).GetSafeNormal();
+		}
+
+		// Build flat target map for parallel iteration
+		TArray<int32> TargetPrefixSums;
+		Context->TargetsHandler->BuildFlatTargetMap(TargetPrefixSums, &IgnoreList);
+		const int32 TotalTargets = TargetPrefixSums.Last();
+
+		if (TotalTargets == 0) { return; }
+
+		// Read range value once if constant (optimization for most common case)
+		const double MaxRange = RangeGetter ? RangeGetter->Read(0) : MAX_dbl;
+
+		// Lock-free approach: pre-allocate flat array, use atomic counter, partition afterward
+		TArray<FInsertCandidate> AllCandidates;
+		AllCandidates.SetNumUninitialized(TotalTargets);
+		TAtomic<int32> CandidateCount(0);
+
+		// Parallel iteration over all target points
+		PCGEX_PARALLEL_FOR(TotalTargets,
+			const PCGExData::FConstPoint TargetPoint = Context->TargetsHandler->GetPointByFlatIndex(i, TargetPrefixSums, &IgnoreList);
+			const FVector TargetLocation = TargetPoint.GetLocation();
+
+			double BestDistSq = MAX_dbl;
+			int32 BestEdgeIndex = -1;
+			double BestAlpha = 0;
+			FVector BestPathLocation = FVector::ZeroVector;
+
+			// Find closest point on any edge
+			for (int32 EdgeIdx = 0; EdgeIdx < Path->NumEdges; EdgeIdx++)
+			{
+				const PCGExPaths::FPathEdge& Edge = Path->Edges[EdgeIdx];
+
+				const FVector Start = PathTransforms[Edge.Start].GetLocation();
+				const FVector End = PathTransforms[Edge.End].GetLocation();
+
+				// Find closest point on segment
+				const FVector ClosestPoint = FMath::ClosestPointOnSegment(TargetLocation, Start, End);
+				const double DistSq = FVector::DistSquared(TargetLocation, ClosestPoint);
+
+				if (DistSq < BestDistSq)
+				{
+					BestDistSq = DistSq;
+					BestEdgeIndex = EdgeIdx;
+					BestPathLocation = ClosestPoint;
+
+					// Compute alpha (0-1 along edge)
+					const double EdgeLength = FVector::Dist(Start, End);
+					if (EdgeLength > KINDA_SMALL_NUMBER)
+					{
+						BestAlpha = FVector::Dist(Start, ClosestPoint) / EdgeLength;
+					}
+					else
+					{
+						BestAlpha = 0;
+					}
+				}
+			}
+
+			if (BestEdgeIndex < 0) { return; }
+
+			const double BestDist = FMath::Sqrt(BestDistSq);
+
+			// Check range filter if enabled
+			if (RangeGetter && BestDist > MaxRange)
+			{
+				return;
+			}
+
+			// Build candidate
+			FInsertCandidate Candidate;
+			Candidate.TargetIOIndex = TargetPoint.IO;
+			Candidate.TargetPointIndex = TargetPoint.Index;
+			Candidate.Distance = BestDist;
+			Candidate.OriginalLocation = TargetLocation;
+
+			// Check for path extension (open paths only)
+			if (bCanExtend)
+			{
+				// Check if target is beyond path start
+				if (BestEdgeIndex == 0 && BestAlpha < KINDA_SMALL_NUMBER)
+				{
+					const double ProjectionDist = FVector::DotProduct(TargetLocation - FirstEdgeStart, FirstEdgeDir);
+					if (ProjectionDist < 0)
+					{
+						// Target is before path start
+						Candidate.EdgeIndex = -1; // Special marker for pre-path
+						Candidate.Alpha = ProjectionDist;
+						Candidate.PathLocation = FirstEdgeStart + FirstEdgeDir * ProjectionDist;
+
+						const int32 Idx = CandidateCount++;
+						AllCandidates[Idx] = Candidate;
+						return;
+					}
+				}
+
+				// Check if target is beyond path end
+				if (BestEdgeIndex == Path->LastEdge && BestAlpha > (1.0 - KINDA_SMALL_NUMBER))
+				{
+					const double ProjectionDist = FVector::DotProduct(TargetLocation - LastEdgeEnd, LastEdgeDir);
+					if (ProjectionDist > 0)
+					{
+						// Target is after path end
+						Candidate.EdgeIndex = Path->NumEdges; // Special marker for post-path
+						Candidate.Alpha = ProjectionDist;
+						Candidate.PathLocation = LastEdgeEnd + LastEdgeDir * ProjectionDist;
+
+						const int32 Idx = CandidateCount++;
+						AllCandidates[Idx] = Candidate;
+						return;
+					}
+				}
+			}
+
+			// Skip endpoint candidates if edge interior only is enabled
+			if (Settings->bEdgeInteriorOnly)
+			{
+				const bool bAtStart = BestAlpha < KINDA_SMALL_NUMBER;
+				const bool bAtEnd = BestAlpha > (1.0 - KINDA_SMALL_NUMBER);
+				if (bAtStart || bAtEnd) { return; }
+			}
+
+			// Add as regular edge candidate
+			Candidate.EdgeIndex = BestEdgeIndex;
+			Candidate.Alpha = BestAlpha;
+			Candidate.PathLocation = BestPathLocation;
+
+			const int32 Idx = CandidateCount++;
+			AllCandidates[Idx] = Candidate;
+		)
+
+		// Trim to actual count and partition into destination arrays
+		const int32 NumCandidates = CandidateCount.Load();
+		if (NumCandidates == 0) { return; }
+
+		// Partition candidates into PrePath, PostPath, and per-edge arrays
+		for (int32 Idx = 0; Idx < NumCandidates; Idx++)
+		{
+			const FInsertCandidate& Candidate = AllCandidates[Idx];
+			if (Candidate.EdgeIndex < 0)
+			{
+				PrePathInserts.Add(Candidate);
+			}
+			else if (Candidate.EdgeIndex >= Path->NumEdges)
+			{
+				PostPathInserts.Add(Candidate);
+			}
+			else
+			{
+				EdgeInserts[Candidate.EdgeIndex].Add(Candidate);
+			}
+		}
+	}
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathInsert::Process);
@@ -180,147 +358,8 @@ namespace PCGExPathInsert
 			return false;
 		}
 
-		// Stage 1: Gather candidates from all targets
-		// For each target point, find closest edge and alpha
-
-		TConstPCGValueRange<FTransform> PathTransforms = PointIO->GetIn()->GetConstTransformValueRange();
-
-		// Cache first/last edge info for extension checks
-		const bool bCanExtend = !bClosedLoop && !Settings->bEdgeInteriorOnly && Settings->bAllowPathExtension;
-		FVector FirstEdgeStart = FVector::ZeroVector;
-		FVector FirstEdgeDir = FVector::ZeroVector;
-		FVector LastEdgeEnd = FVector::ZeroVector;
-		FVector LastEdgeDir = FVector::ZeroVector;
-
-		if (bCanExtend && Path->NumEdges > 0)
-		{
-			const PCGExPaths::FPathEdge& FirstEdge = Path->Edges[0];
-			FirstEdgeStart = PathTransforms[FirstEdge.Start].GetLocation();
-			const FVector FirstEdgeEnd = PathTransforms[FirstEdge.End].GetLocation();
-			FirstEdgeDir = (FirstEdgeEnd - FirstEdgeStart).GetSafeNormal();
-
-			const PCGExPaths::FPathEdge& LastEdge = Path->Edges[Path->LastEdge];
-			const FVector LastEdgeStart = PathTransforms[LastEdge.Start].GetLocation();
-			LastEdgeEnd = PathTransforms[LastEdge.End].GetLocation();
-			LastEdgeDir = (LastEdgeEnd - LastEdgeStart).GetSafeNormal();
-		}
-
-		Context->TargetsHandler->ForEachTargetPoint([&](const PCGExData::FConstPoint& TargetPoint)
-		{
-			const FVector TargetLocation = TargetPoint.GetLocation();
-
-			double BestDistSq = MAX_dbl;
-			int32 BestEdgeIndex = -1;
-			double BestAlpha = 0;
-			FVector BestPathLocation = FVector::ZeroVector;
-
-			// Find closest point on any edge
-			for (int32 EdgeIdx = 0; EdgeIdx < Path->NumEdges; EdgeIdx++)
-			{
-				const PCGExPaths::FPathEdge& Edge = Path->Edges[EdgeIdx];
-
-				const FVector Start = PathTransforms[Edge.Start].GetLocation();
-				const FVector End = PathTransforms[Edge.End].GetLocation();
-
-				// Find closest point on segment
-				const FVector ClosestPoint = FMath::ClosestPointOnSegment(TargetLocation, Start, End);
-				const double DistSq = FVector::DistSquared(TargetLocation, ClosestPoint);
-
-				if (DistSq < BestDistSq)
-				{
-					BestDistSq = DistSq;
-					BestEdgeIndex = EdgeIdx;
-					BestPathLocation = ClosestPoint;
-
-					// Compute alpha (0-1 along edge)
-					const double EdgeLength = FVector::Dist(Start, End);
-					if (EdgeLength > KINDA_SMALL_NUMBER)
-					{
-						BestAlpha = FVector::Dist(Start, ClosestPoint) / EdgeLength;
-					}
-					else
-					{
-						BestAlpha = 0;
-					}
-				}
-			}
-
-			if (BestEdgeIndex < 0) { return; }
-
-			const double BestDist = FMath::Sqrt(BestDistSq);
-
-			// Check range filter if enabled
-			if (RangeGetter && BestDist > RangeGetter->Read(0))
-			{
-				return;
-			}
-
-			// Check for path extension (open paths only)
-			if (bCanExtend)
-			{
-				// Check if target is beyond path start
-				if (BestEdgeIndex == 0 && BestAlpha < KINDA_SMALL_NUMBER)
-				{
-					const double ProjectionDist = FVector::DotProduct(TargetLocation - FirstEdgeStart, FirstEdgeDir);
-					if (ProjectionDist < 0)
-					{
-						// Target is before path start - add to pre-path inserts
-						FInsertCandidate Candidate;
-						Candidate.TargetIOIndex = TargetPoint.IO;
-						Candidate.TargetPointIndex = TargetPoint.Index;
-						Candidate.EdgeIndex = -1; // Special marker for pre-path
-						Candidate.Alpha = ProjectionDist; // Negative distance for sorting
-						Candidate.Distance = BestDist;
-						Candidate.PathLocation = FirstEdgeStart + FirstEdgeDir * ProjectionDist;
-						Candidate.OriginalLocation = TargetLocation;
-
-						PrePathInserts.Add(Candidate);
-						return;
-					}
-				}
-
-				// Check if target is beyond path end
-				if (BestEdgeIndex == Path->LastEdge && BestAlpha > (1.0 - KINDA_SMALL_NUMBER))
-				{
-					const double ProjectionDist = FVector::DotProduct(TargetLocation - LastEdgeEnd, LastEdgeDir);
-					if (ProjectionDist > 0)
-					{
-						// Target is after path end - add to post-path inserts
-						FInsertCandidate Candidate;
-						Candidate.TargetIOIndex = TargetPoint.IO;
-						Candidate.TargetPointIndex = TargetPoint.Index;
-						Candidate.EdgeIndex = Path->NumEdges; // Special marker for post-path
-						Candidate.Alpha = ProjectionDist; // Positive distance for sorting
-						Candidate.Distance = BestDist;
-						Candidate.PathLocation = LastEdgeEnd + LastEdgeDir * ProjectionDist;
-						Candidate.OriginalLocation = TargetLocation;
-
-						PostPathInserts.Add(Candidate);
-						return;
-					}
-				}
-			}
-
-			// Skip endpoint candidates if edge interior only is enabled
-			if (Settings->bEdgeInteriorOnly)
-			{
-				const bool bAtStart = BestAlpha < KINDA_SMALL_NUMBER;
-				const bool bAtEnd = BestAlpha > (1.0 - KINDA_SMALL_NUMBER);
-				if (bAtStart || bAtEnd) { return; }
-			}
-
-			// Add as regular interior candidate
-			FInsertCandidate Candidate;
-			Candidate.TargetIOIndex = TargetPoint.IO;
-			Candidate.TargetPointIndex = TargetPoint.Index;
-			Candidate.EdgeIndex = BestEdgeIndex;
-			Candidate.Alpha = BestAlpha;
-			Candidate.Distance = BestDist;
-			Candidate.PathLocation = BestPathLocation;
-			Candidate.OriginalLocation = TargetLocation;
-
-			EdgeInserts[BestEdgeIndex].Add(Candidate);
-		}, &IgnoreList);
+		// Stage 1: Gather candidates from all targets (parallel)
+		GatherCandidates();
 
 		// Apply insert limits per edge if enabled
 		if (LimitGetter)
@@ -375,6 +414,7 @@ namespace PCGExPathInsert
 		if (Settings->bPreventCollocation)
 		{
 			const double ToleranceSq = FMath::Square(Settings->CollocationTolerance);
+			TConstPCGValueRange<FTransform> PathTransforms = PointIO->GetIn()->GetConstTransformValueRange();
 
 			for (int32 EdgeIdx = 0; EdgeIdx < Path->NumEdges; EdgeIdx++)
 			{

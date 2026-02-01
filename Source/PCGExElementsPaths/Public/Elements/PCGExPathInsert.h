@@ -320,6 +320,8 @@ namespace PCGExPathInsert
 		TSharedPtr<PCGExData::TBuffer<double>> DistanceWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> TargetIndexWriter;
 
+		void GatherCandidates();
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)
