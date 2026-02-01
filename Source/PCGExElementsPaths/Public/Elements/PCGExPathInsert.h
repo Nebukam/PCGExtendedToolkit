@@ -93,23 +93,23 @@ public:
 	bool bSnapToPath = false;
 
 	/** If enabled, only insert targets that project to edge interiors (not endpoints). Targets at alpha 0 or 1 are skipped. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bEdgeInteriorOnly = false;
 
 	/** If enabled, targets beyond path endpoints can extend the path (open paths only). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_Overridable, EditCondition="!bEdgeInteriorOnly", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bEdgeInteriorOnly", EditConditionHides))
 	bool bAllowPathExtension = true;
 
 	/** Only insert points that are within a specified range of the path. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bWithinRange = false;
 
 	/** Maximum distance from path for a point to be inserted. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_Overridable, EditCondition="bWithinRange", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWithinRange", EditConditionHides))
 	FPCGExInputShorthandNameDoubleAbs Range = FPCGExInputShorthandNameDoubleAbs(FName("Range"), 100, false);
 
 	/** Limit how many points can be inserted per edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bLimitInsertsPerEdge = false;
 	
 	/** How to interpret the limit value. */
