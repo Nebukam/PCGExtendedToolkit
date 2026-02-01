@@ -204,7 +204,7 @@ namespace PCGExPathInsert
 		{
 			const int32 Start = ChunkIndex * ChunkSize;
 			const int32 End = FMath::Min(Start + ChunkSize, TotalTargets);
-
+			
 			TArray<FCompactCandidate>& LocalCandidates = ChunkResults[ChunkIndex];
 
 			for (int32 i = Start; i < End; i++)
@@ -346,7 +346,8 @@ namespace PCGExPathInsert
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathInsert::Process);
 
-		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		// Can't support scoped here
+		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
@@ -686,6 +687,12 @@ namespace PCGExPathInsert
 			ProtectedAttributes.Add(Settings->TargetIndexAttributeName);
 		}
 
+		if (Settings->bWriteDirection)
+		{
+			DirectionWriter = PointDataFacade->GetWritable<FVector>(Settings->DirectionAttributeName, Settings->DefaultDirection, true, PCGExData::EBufferInit::New);
+			ProtectedAttributes.Add(Settings->DirectionAttributeName);
+		}
+
 		// Prepare blending
 		if (!SubBlending->PrepareForData(Context, PointDataFacade, &ProtectedAttributes))
 		{
@@ -731,6 +738,12 @@ namespace PCGExPathInsert
 				if (AlphaWriter) { AlphaWriter->SetValue(i, Insert.Alpha); } // Negative = before start
 				if (DistanceWriter) { DistanceWriter->SetValue(i, Insert.Distance); }
 				if (TargetIndexWriter) { TargetIndexWriter->SetValue(i, Insert.TargetIOIndex); }
+				if (DirectionWriter)
+				{
+					FVector Direction = (Insert.PathLocation - Insert.OriginalLocation).GetSafeNormal();
+					if (Settings->bInvertDirection) { Direction = -Direction; }
+					DirectionWriter->SetValue(i, Direction);
+				}
 
 				// Forward attributes from target
 				if (const TSharedPtr<PCGExData::FDataForwardHandler>& Handler = ForwardHandlers[Insert.TargetIOIndex])
@@ -776,6 +789,12 @@ namespace PCGExPathInsert
 				if (AlphaWriter) { AlphaWriter->SetValue(InsertIndex, 1.0 + Insert.Alpha); } // > 1 = after end
 				if (DistanceWriter) { DistanceWriter->SetValue(InsertIndex, Insert.Distance); }
 				if (TargetIndexWriter) { TargetIndexWriter->SetValue(InsertIndex, Insert.TargetIOIndex); }
+				if (DirectionWriter)
+				{
+					FVector Direction = (Insert.PathLocation - Insert.OriginalLocation).GetSafeNormal();
+					if (Settings->bInvertDirection) { Direction = -Direction; }
+					DirectionWriter->SetValue(InsertIndex, Direction);
+				}
 
 				// Forward attributes from target
 				if (const TSharedPtr<PCGExData::FDataForwardHandler>& Handler = ForwardHandlers[Insert.TargetIOIndex])
@@ -853,6 +872,12 @@ namespace PCGExPathInsert
 				if (AlphaWriter) { AlphaWriter->SetValue(InsertIndex, Insert.Alpha); }
 				if (DistanceWriter) { DistanceWriter->SetValue(InsertIndex, Insert.Distance); }
 				if (TargetIndexWriter) { TargetIndexWriter->SetValue(InsertIndex, Insert.TargetIOIndex); }
+				if (DirectionWriter)
+				{
+					FVector Direction = (Insert.PathLocation - Insert.OriginalLocation).GetSafeNormal();
+					if (Settings->bInvertDirection) { Direction = -Direction; }
+					DirectionWriter->SetValue(InsertIndex, Direction);
+				}
 
 				// Forward attributes from target
 				if (const TSharedPtr<PCGExData::FDataForwardHandler>& Handler = ForwardHandlers[Insert.TargetIOIndex])

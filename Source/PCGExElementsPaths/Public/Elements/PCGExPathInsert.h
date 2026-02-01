@@ -79,64 +79,67 @@ protected:
 	//~End UPCGSettings
 
 public:
+	
+	/** If enabled, allows you to filter which targets get inserted into which paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
+	
+	/** If enabled, each target can only be inserted into one path (the closest one). Otherwise, a target may be inserted into multiple paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bExclusiveTargets = false;
+	
 	/** If enabled, inserted points will be snapped to the path. Otherwise, they retain their original position. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSnapToPath = false;
 
 	/** If enabled, only insert targets that project to edge interiors (not endpoints). Targets at alpha 0 or 1 are skipped. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_Overridable))
 	bool bEdgeInteriorOnly = false;
 
 	/** If enabled, targets beyond path endpoints can extend the path (open paths only). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bEdgeInteriorOnly", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_Overridable, EditCondition="!bEdgeInteriorOnly", EditConditionHides))
 	bool bAllowPathExtension = true;
 
 	/** Only insert points that are within a specified range of the path. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_NotOverridable))
 	bool bWithinRange = false;
 
 	/** Maximum distance from path for a point to be inserted. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWithinRange", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_Overridable, EditCondition="bWithinRange", EditConditionHides))
 	FPCGExInputShorthandNameDoubleAbs Range = FPCGExInputShorthandNameDoubleAbs(FName("Range"), 100, false);
 
 	/** Limit how many points can be inserted per edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Search", meta=(PCG_NotOverridable))
 	bool bLimitInsertsPerEdge = false;
-
+	
 	/** How to interpret the limit value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bLimitInsertsPerEdge", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable, EditCondition="bLimitInsertsPerEdge", EditConditionHides))
 	EPCGExInsertLimitMode LimitMode = EPCGExInsertLimitMode::Discrete;
 
 	/** The limit value. For Count mode: max inserts. For Spacing mode: minimum distance between inserts. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bLimitInsertsPerEdge", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, EditCondition="bLimitInsertsPerEdge", EditConditionHides))
 	FPCGExInputShorthandNameDoubleAbs InsertLimit = FPCGExInputShorthandNameDoubleAbs(FName("InsertLimit"), 5, false);
 
 	/** How to round fractional insert counts when using Spacing mode. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bLimitInsertsPerEdge && LimitMode == EPCGExInsertLimitMode::Distance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable, EditCondition="bLimitInsertsPerEdge && LimitMode == EPCGExInsertLimitMode::Distance", EditConditionHides))
 	EPCGExTruncateMode LimitTruncate = EPCGExTruncateMode::Round;
 
 	/** Skip insertions that would create collocated points (within tolerance of path vertices or other inserts). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
 	bool bPreventCollocation = false;
 
 	/** Minimum distance between inserted points and path vertices. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventCollocation", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, EditCondition="bPreventCollocation", EditConditionHides, ClampMin=0))
 	double CollocationTolerance = 1.0;
 
+	
 	/** Blending applied on inserted points using path's prev and next point. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
-	/** If enabled, each target can only be inserted into one path (the closest one). Otherwise, a target may be inserted into multiple paths. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	bool bExclusiveTargets = false;
-
-	/** If enabled, allows you to filter which targets get inserted into which paths. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
 
 	/** Forward attributes from target points to inserted points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExForwardDetails TargetForwarding;
 
 	//
@@ -156,7 +159,7 @@ public:
 	FName AlphaAttributeName = FName("InsertAlpha");
 
 	/** Alpha value for non-inserted (original) points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteAlpha", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteAlpha", EditConditionHides, HideEditConditionToggle))
 	double DefaultAlpha = -1;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -167,7 +170,7 @@ public:
 	FName DistanceAttributeName = FName("InsertDistance");
 
 	/** Distance value for non-inserted (original) points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteDistance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
 	double DefaultDistance = -1;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -178,8 +181,23 @@ public:
 	FName TargetIndexAttributeName = FName("TargetIndex");
 
 	/** Target index value for non-inserted (original) points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteTargetIndex", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteTargetIndex", EditConditionHides, HideEditConditionToggle))
 	int32 DefaultTargetIndex = -1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDirection = false;
+
+	/** Attribute name for the direction from target point to path location (or inverted). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bWriteDirection"))
+	FName DirectionAttributeName = FName("InsertDirection");
+
+	/** If enabled, writes direction from path to target instead of target to path. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Invert Direction", EditCondition="bWriteDirection", EditConditionHides))
+	bool bInvertDirection = false;
+
+	/** Direction value for non-inserted (original) points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteDirection", EditConditionHides))
+	FVector DefaultDirection = FVector::ZeroVector;
 
 	//
 
@@ -333,6 +351,7 @@ namespace PCGExPathInsert
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> DistanceWriter;
 		TSharedPtr<PCGExData::TBuffer<int32>> TargetIndexWriter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionWriter;
 
 		void GatherCandidates();
 
