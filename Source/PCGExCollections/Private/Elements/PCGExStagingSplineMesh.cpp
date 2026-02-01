@@ -11,7 +11,6 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExVersion.h"
 #include "PCGParamData.h"
-#include "Chaos/Character/CharacterGroundConstraintContainer.h"
 #include "Containers/PCGExScopedContainers.h"
 #include "Helpers/PCGExAssetLoader.h"
 #include "Helpers/PCGExCollectionsHelpers.h"
