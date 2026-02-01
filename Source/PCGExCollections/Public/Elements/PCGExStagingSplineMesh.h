@@ -65,7 +65,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual void InputPinPropertiesBeforeFilters(TArray<FPCGPinProperties>& PinProperties) const override;
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
@@ -212,6 +212,7 @@ public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathSplineMesh)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
@@ -286,7 +287,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
-
+		
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
@@ -294,5 +295,9 @@ namespace PCGExPathSplineMesh
 		void ProcessSegment(const int32 Index);
 
 		virtual void CompleteWork() override;
+		
+	protected:
+		void HandleInvalidPoint(const int32 Index) const;
+		
 	};
 }

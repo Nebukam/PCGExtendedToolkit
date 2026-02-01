@@ -152,10 +152,4 @@ public:
 
 protected:
 	TSharedPtr<TArray<double>> EdgeLengths;
-
-	FVector GetDelta(const int32 Index) const
-	{
-		const FInt64Vector3& P = Deltas[Index];
-		return FVector(P.X, P.Y, P.Z) / Precision;
-	}
 };

@@ -208,6 +208,13 @@ namespace PCGExWritePathProperties
 
 			PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev*-1, Current.ToNext));
 			PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::Helpers::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
+
+			// Compute distance from start using pre-computed cumulative length prefix sum
+			// CumulativeLength[i] = sum of edge lengths 0..i, so DistanceToStart[i] = CumulativeLength[i-1] for i > 0
+			const double DistToStart = Index == 0 ? 0.0 : PathLength->CumulativeLength[Index - 1];
+			PCGEX_OUTPUT_VALUE(DistanceToStart, Index, DistToStart);
+			PCGEX_OUTPUT_VALUE(DistanceToEnd, Index, PathLength->TotalLength - DistToStart);
+			PCGEX_OUTPUT_VALUE(PointTime, Index, Settings->bTimeOneMinus ? 1.0 - (DistToStart / PathLength->TotalLength) : DistToStart / PathLength->TotalLength);
 		}
 	}
 
@@ -218,23 +225,12 @@ namespace PCGExWritePathProperties
 		FVector PathCentroid = FVector::ZeroVector;
 		FVector PathDir = Details[0].ToNext;
 
-		// Compute path-wide data
-
-		// Compute path-wide, per-point stuff
-		double TraversedDistance = 0;
+		// Compute path-wide data (DistanceToStart/DistanceToEnd/PointTime are now computed in parallel in ProcessPoints)
 		for (int i = 0; i < Path->NumPoints; i++)
 		{
 			if (Settings->bTagConcave || Settings->bTagConvex) { Path->UpdateConvexity(i); }
 
-			const FPointDetails& Detail = Details[i];
-			PathDir += Detail.ToNext;
-
-			PCGEX_OUTPUT_VALUE(PointTime, i, Settings->bTimeOneMinus ? 1 - (TraversedDistance / PathLength->TotalLength) : TraversedDistance / PathLength->TotalLength);
-
-			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
-			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, PathLength->TotalLength - TraversedDistance);
-
-			TraversedDistance += !Path->IsClosedLoop() && i == Path->LastIndex ? 0 : PathLength->Get(i);
+			PathDir += Details[i].ToNext;
 			PathCentroid += Path->GetPos_Unsafe(i);
 		}
 

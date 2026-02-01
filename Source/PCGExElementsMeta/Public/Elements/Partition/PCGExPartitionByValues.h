@@ -12,38 +12,18 @@
 
 namespace PCGExPartition
 {
-	class FKPartition;
-
-	class FKPartition : public TSharedFromThis<FKPartition>
+	/** Simple struct representing a contiguous range of points belonging to a partition */
+	struct FPartitionRange
 	{
-	protected:
-		mutable FRWLock LayersLock;
-		mutable FRWLock PointLock;
+		int32 Start = 0;  // First index in SortedIndices
+		int32 Count = 0;  // Number of points in this partition
+		int32 IOIndex = -1; // Output index (assigned during output creation)
 
-	public:
-		FKPartition(const TWeakPtr<FKPartition>& InParent, int64 InKey, FRule* InRule, int32 InPartitionIndex);
-		~FKPartition();
-
-		TWeakPtr<FKPartition> Parent;
-		int32 IOIndex = -1;
-		int32 PartitionIndex = 0;
-		int64 PartitionKey = 0;
-		FRule* Rule = nullptr;
-
-		TSet<int64> UniquePartitionKeys;
-		TMap<int64, TSharedPtr<FKPartition>> SubLayers;
-		TArray<int32> Points;
-
-		int32 GetNum() const { return Points.Num(); }
-		int32 GetSubPartitionsNum();
-
-		TSharedPtr<FKPartition> GetPartition(int64 Key, FRule* InRule);
-
-		void Add(const int64 Index);
-
-		void Register(TArray<TSharedPtr<FKPartition>>& Partitions);
-
-		void SortPartitions();
+		FPartitionRange() = default;
+		FPartitionRange(const int32 InStart, const int32 InCount)
+			: Start(InStart), Count(InCount)
+		{
+		}
 	};
 }
 
@@ -142,10 +122,8 @@ namespace PCGExPartitionByValuesBase
 		TArray<PCGExPartition::FRule> Rules;
 		TArray<int64> KeySums;
 
-		TSharedPtr<PCGExPartition::FKPartition> RootPartition;
-
-		int32 NumPartitions = -1;
-		TArray<TSharedPtr<PCGExPartition::FKPartition>> Partitions;
+		TArray<int32> SortedIndices;
+		TArray<PCGExPartition::FPartitionRange> PartitionRanges;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
@@ -157,5 +135,9 @@ namespace PCGExPartitionByValuesBase
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
+
+	protected:
+		bool KeysChanged(int32 IndexA, int32 IndexB) const;
+		void BuildKeyToPartitionIndexMaps();
 	};
 }

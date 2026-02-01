@@ -16,7 +16,7 @@ namespace PCGExMT
 	private:
 		const int32 Log2NumShards = FMath::FloorLog2(NumShards);
 		TStaticArray<TSet<uint64>, NumShards> Shards;
-		TStaticArray<FRWLock, NumShards> Locks;
+		mutable TStaticArray<FRWLock, NumShards> Locks;
 		const uint32 ShardMask = NumShards - 1;
 
 	public:
@@ -56,7 +56,7 @@ namespace PCGExMT
 			return Shards[Index].Remove(Value);
 		}
 
-		bool Contains(uint64 Value)
+		bool Contains(uint64 Value) const
 		{
 			const uint32 Index = FastHashToShard(Value);
 			FReadScopeLock ScopeLock(Locks[Index]);
@@ -92,7 +92,7 @@ namespace PCGExMT
 	private:
 		const int32 Log2NumShards = FMath::FloorLog2(NumShards);
 		TStaticArray<TMap<uint64, T>, NumShards> Shards;
-		TStaticArray<FRWLock, NumShards> Locks;
+		mutable TStaticArray<FRWLock, NumShards> Locks;
 		const uint32 ShardMask = NumShards - 1;
 
 	public:
@@ -125,6 +125,13 @@ namespace PCGExMT
 			return Shards[Index].Find(Key);
 		}
 
+		const T* Find(uint64 Key) const
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FReadScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].Find(Key);
+		}
+
 		T& FindOrAdd(uint64 Key, T& Value)
 		{
 			const uint32 Index = FastHashToShard(Key);
@@ -139,7 +146,29 @@ namespace PCGExMT
 			return Shards[Index].Remove(Key);
 		}
 
-		bool Contains(uint64 Key)
+		// Atomic find-and-update: finds or creates entry, then calls UpdateFunc with reference to value
+		// UpdateFunc signature: void(T& Value, bool bIsNew)
+		template <typename TUpdateFunc>
+		void FindOrAddAndUpdate(uint64 Key, T DefaultValue, TUpdateFunc&& UpdateFunc)
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			const bool bIsNew = !Shards[Index].Contains(Key);
+			T& Value = Shards[Index].FindOrAdd(Key, DefaultValue);
+			UpdateFunc(Value, bIsNew);
+		}
+
+		// Simpler variant without bIsNew flag
+		template <typename TUpdateFunc>
+		void FindOrAddAndUpdate(uint64 Key, TUpdateFunc&& UpdateFunc)
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			T& Value = Shards[Index].FindOrAdd(Key);
+			UpdateFunc(Value);
+		}
+
+		bool Contains(uint64 Key) const
 		{
 			const uint32 Index = FastHashToShard(Key);
 			FReadScopeLock ScopeLock(Locks[Index]);

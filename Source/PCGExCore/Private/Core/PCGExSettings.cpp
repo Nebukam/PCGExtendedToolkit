@@ -27,9 +27,19 @@ void UPCGExSettings::PostEditChangeProperty(struct FPropertyChangedEvent& Proper
 		if (bIsInstanced) { DirtyCache(); }
 	}
 
+	bCachedSupportsDataStealing = SupportsDataStealing();
+	bCachedSupportsInitPolicy = GetExecutionPolicy() != EPCGExExecutionPolicy::Ignored;
+	
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+
+void UPCGExSettings::PostLoad()
+{
+	Super::PostLoad();
+	bCachedSupportsDataStealing = SupportsDataStealing();
+	bCachedSupportsInitPolicy = GetExecutionPolicy() != EPCGExExecutionPolicy::Ignored;
+}
 
 bool UPCGExSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {

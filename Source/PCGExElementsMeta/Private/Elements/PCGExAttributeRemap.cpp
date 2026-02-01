@@ -52,7 +52,7 @@ void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
-PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainDataInitializationPolicy() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRemap)
 

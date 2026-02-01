@@ -344,13 +344,13 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 		if (!ClosedResults.empty())
 		{
 			TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-			OutputPaths64(ClosedResults, Group, OutputPaths, true);
+			OutputPaths64(ClosedResults, Group, OutputPaths, true, 0);
 		}
 
 		if (Settings->OpenPathsOutput != EPCGExClipper2OpenPathOutput::Ignore && !OpenResults.empty())
 		{
 			TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-			OutputPaths64(OpenResults, Group, OutputPaths, false);
+			OutputPaths64(OpenResults, Group, OutputPaths, false, 1);
 		}
 	}
 	else
@@ -494,13 +494,13 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 		if (!ClosedResults.empty())
 		{
 			TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-			OutputPaths64(ClosedResults, Group, OutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
+			OutputPaths64(ClosedResults, Group, OutputPaths, true, 0, PCGExClipper2::ETransformRestoration::Unproject);
 		}
 
 		if (Settings->OpenPathsOutput != EPCGExClipper2OpenPathOutput::Ignore && !OpenResults.empty())
 		{
 			TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
-			OutputPaths64(OpenResults, Group, OutputPaths, false, PCGExClipper2::ETransformRestoration::Unproject);
+			OutputPaths64(OpenResults, Group, OutputPaths, false, 1, PCGExClipper2::ETransformRestoration::Unproject);
 		}
 	}
 }

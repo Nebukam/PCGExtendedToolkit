@@ -26,6 +26,8 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Clipper2Triangulate, "Clipper2 : Triangulate", "Performs Constrained Delaunay Triangulation on closed paths and outputs a Dynamic Mesh.");
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::DynamicMesh; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor::White; }
 #endif
 
 protected:
@@ -88,34 +90,34 @@ struct FPCGExTriangulationVertex
 	}
 };
 
+/** Staged mesh output for deterministic ordering */
+struct FPCGExStagedMeshOutput
+{
+	TObjectPtr<UPCGDynamicMeshData> MeshData;
+	TSet<FString> Tags;
+	int32 OrderIndex = 0;
+
+	FPCGExStagedMeshOutput() = default;
+	FPCGExStagedMeshOutput(UPCGDynamicMeshData* InMeshData, const TSet<FString>& InTags, int32 InOrderIndex)
+		: MeshData(InMeshData), Tags(InTags), OrderIndex(InOrderIndex)
+	{
+	}
+};
+
 struct FPCGExClipper2TriangulateContext final : FPCGExClipper2ProcessorContext
 {
 	friend class FPCGExClipper2TriangulateElement;
 
-	// Mesh output
-	TObjectPtr<UPCGDynamicMeshData> MeshData;
-	TObjectPtr<UDynamicMesh> Mesh;
-
-	// Accumulated vertex and triangle data across all groups
-	TArray<FPCGExTriangulationVertex> VertexPool;
-	TArray<FIntVector> Triangles;
-	TMap<uint64, int32> VertexMap; // Hash(x,y) -> pool index
-
-	// Tag accumulator for output
-	TSharedPtr<PCGExData::FTags> OutputTags;
+	// Staged outputs for deterministic ordering
+	TArray<FPCGExStagedMeshOutput> StagedOutputs;
+	mutable FCriticalSection StagedOutputsLock;
 
 	virtual void Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group) override;
 
-	// Build the final mesh from accumulated data
-	void BuildMesh();
+	// Add a mesh to staged outputs (thread-safe)
+	void AddStagedOutput(UPCGDynamicMeshData* MeshData, const TSet<FString>& Tags, int32 OrderIndex);
 
 protected:
-	// Build vertex pool from input paths, tracking source indices
-	void BuildVertexPoolFromGroup(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group);
-
-	// Find vertex in pool by Clipper2 coordinates, returns index or -1
-	int32 FindVertexIndex(int64 X, int64 Y) const;
-
 	// Hash a Clipper2 point for fast lookup
 	static uint64 HashPoint(int64 X, int64 Y);
 };
@@ -125,6 +127,5 @@ class FPCGExClipper2TriangulateElement final : public FPCGExClipper2ProcessorEle
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Clipper2Triangulate)
 
-	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void OutputWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };

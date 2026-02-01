@@ -17,93 +17,6 @@ namespace PCGExPartitionByValuesBase
 	const FName SourceLabel = TEXT("Source");
 }
 
-namespace PCGExPartition
-{
-	FKPartition::FKPartition(const TWeakPtr<FKPartition>& InParent, const int64 InKey, FRule* InRule, const int32 InPartitionIndex)
-		: Parent(InParent), PartitionIndex(InPartitionIndex), PartitionKey(InKey), Rule(InRule)
-	{
-	}
-
-	FKPartition::~FKPartition()
-	{
-	}
-
-	int32 FKPartition::GetSubPartitionsNum()
-	{
-		if (SubLayers.IsEmpty()) { return 1; }
-
-		int32 Num = 0;
-		for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers) { Num += Pair.Value->GetSubPartitionsNum(); }
-		return Num;
-	}
-
-	TSharedPtr<FKPartition> FKPartition::GetPartition(const int64 Key, FRule* InRule)
-	{
-		TSharedPtr<FKPartition>* LayerPtr;
-
-		{
-			FReadScopeLock ReadLock(LayersLock);
-			LayerPtr = SubLayers.Find(Key);
-			if (LayerPtr) { return *LayerPtr; }
-		}
-
-		{
-			FWriteScopeLock WriteLock(LayersLock);
-			LayerPtr = SubLayers.Find(Key);
-
-			if (LayerPtr) { return *LayerPtr; }
-
-			PCGEX_SHARED_THIS_DECL
-			TSharedPtr<FKPartition> Partition = MakeShared<FKPartition>(ThisPtr, Key, InRule, SubLayers.Num());
-
-			UniquePartitionKeys.Add(Key);
-			SubLayers.Add(Key, Partition);
-			return Partition;
-		}
-	}
-
-	void FKPartition::Add(const int64 Index)
-	{
-		FWriteScopeLock WriteLock(PointLock);
-		Points.Add(Index);
-	}
-
-	void FKPartition::Register(TArray<TSharedPtr<FKPartition>>& Partitions)
-	{
-		if (!SubLayers.IsEmpty())
-		{
-			for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers) { Pair.Value->Register(Partitions); }
-		}
-		else
-		{
-			PCGEX_SHARED_THIS_DECL
-			Partitions.Add(ThisPtr);
-		}
-	}
-
-	void FKPartition::SortPartitions()
-	{
-		TMap<int64, int64> ValuesIndices;
-		TArray<int64> UValues = UniquePartitionKeys.Array();
-		UValues.Sort();
-
-		int64 PIndex = 0;
-		for (int64 UniquePartitionKey : UValues) { ValuesIndices.Add(UniquePartitionKey, PIndex++); }
-		UValues.Empty();
-
-		for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers)
-		{
-			Pair.Value->SortPartitions();
-			Pair.Value->PartitionIndex = *ValuesIndices.Find(Pair.Value->PartitionKey); //Ordered index
-		}
-
-		Points.Sort([](const int32& A, const int32& B) { return A < B; });
-
-		ValuesIndices.Empty();
-		UniquePartitionKeys.Empty();
-	}
-}
-
 #if WITH_EDITOR
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -191,18 +104,21 @@ bool FPCGExPartitionByValuesBaseElement::AdvanceWork(FPCGExContext* InContext, c
 
 namespace PCGExPartitionByValuesBase
 {
+#pragma region FProcessor
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bSplitOutput ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::Duplicate)
 
-		RootPartition = MakeShared<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
-
 		Rules.Empty();
 		const int32 NumPoints = PointDataFacade->GetNum();
 
 		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGExArrayHelpers::InitArray(KeySums, NumPoints); }
+
+		// Initialize sorted indices array
+		PCGExArrayHelpers::ArrayOfIndices(SortedIndices, NumPoints);
 
 		FName Consumable = NAME_None;
 
@@ -217,7 +133,7 @@ namespace PCGExPartitionByValuesBase
 			NewRule.DataCache = DataCache;
 		}
 
-		// Prepare each rule so it cache the filter key by index
+		// Prepare each rule so it can cache the filter key by index
 		for (PCGExPartition::FRule& Rule : Rules) { Rule.FilteredValues.SetNumZeroed(NumPoints); }
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
@@ -231,17 +147,46 @@ namespace PCGExPartitionByValuesBase
 
 		PointDataFacade->Fetch(Scope);
 
+		// Lock-free parallel computation of partition keys
+		// Each thread writes to unique indices in FilteredValues arrays
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			TSharedPtr<PCGExPartition::FKPartition> Partition = RootPartition;
 			for (PCGExPartition::FRule& Rule : Rules)
 			{
-				const int64 KeyValue = Rule.Filter(Index);
-				Partition = Partition->GetPartition(KeyValue, &Rule);
-				Rule.FilteredValues[Index] = KeyValue;
+				Rule.FilteredValues[Index] = Rule.Filter(Index);
 			}
+		}
+	}
 
-			Partition->Add(Index);
+	bool FProcessor::KeysChanged(const int32 IndexA, const int32 IndexB) const
+	{
+		for (const PCGExPartition::FRule& Rule : Rules)
+		{
+			if (Rule.FilteredValues[IndexA] != Rule.FilteredValues[IndexB]) { return true; }
+		}
+		return false;
+	}
+
+	void FProcessor::BuildKeyToPartitionIndexMaps()
+	{
+		// Build per-rule key-to-partition-index maps for rules that need them
+		for (PCGExPartition::FRule& Rule : Rules)
+		{
+			if (!Rule.RuleConfig->bWriteKey && !Rule.RuleConfig->bWriteTag) { continue; }
+			if (!Rule.RuleConfig->bUsePartitionIndexAsKey && !Rule.RuleConfig->bTagUsePartitionIndexAsKey) { continue; }
+
+			// Build key-to-index map for this rule based on sorted order
+			TMap<int64, int32> KeyToIndex;
+			int32 NextIndex = 0;
+			for (const int32 SortedIdx : SortedIndices)
+			{
+				const int64 Key = Rule.FilteredValues[SortedIdx];
+				if (!KeyToIndex.Contains(Key))
+				{
+					KeyToIndex.Add(Key, NextIndex++);
+				}
+			}
+			Rule.KeyToPartitionIndex = MoveTemp(KeyToIndex);
 		}
 	}
 
@@ -249,33 +194,52 @@ namespace PCGExPartitionByValuesBase
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			TSharedPtr<PCGExPartition::FKPartition> Partition = Partitions[Index];
+			const PCGExPartition::FPartitionRange& Range = PartitionRanges[Index];
 
-			//Manually create & insert partition at the sorted IO Index
-			const TSharedRef<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex].ToSharedRef();
-			PCGExPointArrayDataHelpers::SetNumPointsAllocated(PartitionIO->GetOut(), Partition->Points.Num(), PartitionIO->GetAllocations());
-			PartitionIO->InheritProperties(Partition->Points, EPCGPointNativeProperties::All);
+			// Get the partition IO
+			const TSharedRef<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Range.IOIndex].ToSharedRef();
+
+			// Get point indices for this partition as array view
+			TArrayView<const int32> PointIndices = MakeArrayView(&SortedIndices[Range.Start], Range.Count);
+
+			// Allocate and copy points
+			PCGExPointArrayDataHelpers::SetNumPointsAllocated(PartitionIO->GetOut(), Range.Count, PartitionIO->GetAllocations());
+			PartitionIO->InheritProperties(PointIndices, EPCGPointNativeProperties::All);
 
 			// Force creation of valid keys once
 			PartitionIO->GetOutKeys(true);
 
+			// Get representative point for this partition (first point in range)
+			const int32 RepresentativePointIdx = SortedIndices[Range.Start];
+
+			// Write keys and tags for each rule
 			int64 Sum = 0;
-			while (Partition->Parent.Pin())
+			for (const PCGExPartition::FRule& Rule : Rules)
 			{
-				const PCGExPartition::FRule* Rule = Partition->Rule;
-				Sum += Partition->PartitionKey;
+				const int64 PartitionKey = Rule.FilteredValues[RepresentativePointIdx];
+				Sum += PartitionKey;
 
-				if (Rule->RuleConfig->bWriteKey)
+				if (Rule.RuleConfig->bWriteKey)
 				{
-					PCGExData::WriteMark<int64>(PartitionIO, Rule->RuleConfig->KeyAttributeName, Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+					int64 WriteValue = PartitionKey;
+					if (Rule.RuleConfig->bUsePartitionIndexAsKey)
+					{
+						const int32* PartitionIdx = Rule.KeyToPartitionIndex.Find(PartitionKey);
+						WriteValue = PartitionIdx ? *PartitionIdx : 0;
+					}
+					PCGExData::WriteMark<int64>(PartitionIO, Rule.RuleConfig->KeyAttributeName, WriteValue);
 				}
 
-				if (Rule->RuleConfig->bWriteTag)
+				if (Rule.RuleConfig->bWriteTag)
 				{
-					PartitionIO->Tags->Set<int64>(Rule->RuleConfig->TagPrefixName.ToString(), Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+					int64 TagValue = PartitionKey;
+					if (Rule.RuleConfig->bTagUsePartitionIndexAsKey)
+					{
+						const int32* PartitionIdx = Rule.KeyToPartitionIndex.Find(PartitionKey);
+						TagValue = PartitionIdx ? *PartitionIdx : 0;
+					}
+					PartitionIO->Tags->Set<int64>(Rule.RuleConfig->TagPrefixName.ToString(), TagValue);
 				}
-
-				Partition = Partition->Parent.Pin();
 			}
 
 			if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(PartitionIO, Settings->KeySumAttributeName, Sum); }
@@ -285,31 +249,57 @@ namespace PCGExPartitionByValuesBase
 	void FProcessor::CompleteWork()
 	{
 		IProcessor::CompleteWork();
-		RootPartition->SortPartitions();
 
 		if (Settings->bSplitOutput)
 		{
-			NumPartitions = RootPartition->GetSubPartitionsNum();
-			Partitions.Reserve(NumPartitions);
-			RootPartition->Register(Partitions);
+			const int32 NumPoints = SortedIndices.Num();
 
-			// Sort by point index & ensure consistent output partition order
+			// Sort indices by lexicographic comparison of keys across all rules
+			SortedIndices.Sort(
+				[this](const int32 A, const int32 B)
+				{
+					for (const PCGExPartition::FRule& Rule : Rules)
+					{
+						const int64 KeyA = Rule.FilteredValues[A];
+						const int64 KeyB = Rule.FilteredValues[B];
+						if (KeyA != KeyB) { return KeyA < KeyB; }
+					}
+					return A < B; // Stable tiebreaker by original index
+				});
 
-			Partitions.Sort([](const TSharedPtr<PCGExPartition::FKPartition>& A, const TSharedPtr<PCGExPartition::FKPartition>& B) { return A->Points[0] < B->Points[0]; });
-			const int32 InsertOffset = Context->MainPoints->Pairs.Num();
-
-			int32 SumPts = 0;
-			for (int i = 0; i < Partitions.Num(); i++)
+			// Scan for partition boundaries
+			PartitionRanges.Empty();
+			if (NumPoints > 0)
 			{
-				Partitions[i]->IOIndex = InsertOffset + i;
-				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
-				SumPts += Partitions[i]->Points.Num();
+				int32 CurrentStart = 0;
+				for (int32 i = 1; i < NumPoints; i++)
+				{
+					if (KeysChanged(SortedIndices[i - 1], SortedIndices[i]))
+					{
+						PartitionRanges.Emplace(CurrentStart, i - CurrentStart);
+						CurrentStart = i;
+					}
+				}
+				// Add last partition
+				PartitionRanges.Emplace(CurrentStart, NumPoints - CurrentStart);
 			}
 
-			StartParallelLoopForRange(NumPartitions, 64); // Too low maybe?
+			// Build key-to-partition-index maps for rules that need them
+			BuildKeyToPartitionIndexMaps();
+
+			// Create output IOs for each partition
+			const int32 InsertOffset = Context->MainPoints->Pairs.Num();
+			for (int32 i = 0; i < PartitionRanges.Num(); i++)
+			{
+				PartitionRanges[i].IOIndex = InsertOffset + i;
+				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
+			}
+
+			StartParallelLoopForRange(PartitionRanges.Num(), 64);
 			return;
 		}
 
+		// Non-split mode: write attributes directly to points
 		TMap<int64, int64> IndiceMap;
 		for (PCGExPartition::FRule& Rule : Rules)
 		{
@@ -351,6 +341,8 @@ namespace PCGExPartitionByValuesBase
 
 		PointDataFacade->WriteFastest(TaskManager);
 	}
+
+#pragma endregion
 }
 
 #undef LOCTEXT_NAMESPACE
