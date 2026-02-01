@@ -393,6 +393,31 @@ namespace PCGExPathInsert
 		// Copy original points to new locations
 		PointIO->InheritPoints(WriteIndices);
 
+		// Create output writers and write default values for original points
+		if (Settings->bFlagInsertedPoints)
+		{
+			FlagWriter = PointDataFacade->GetWritable<bool>(Settings->InsertedFlagName, false, true, PCGExData::EBufferInit::New);
+			ProtectedAttributes.Add(Settings->InsertedFlagName);
+		}
+
+		if (Settings->bWriteAlpha)
+		{
+			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->AlphaAttributeName, Settings->DefaultAlpha, true, PCGExData::EBufferInit::New);
+			ProtectedAttributes.Add(Settings->AlphaAttributeName);
+		}
+
+		if (Settings->bWriteDistance)
+		{
+			DistanceWriter = PointDataFacade->GetWritable<double>(Settings->DistanceAttributeName, Settings->DefaultDistance, true, PCGExData::EBufferInit::New);
+			ProtectedAttributes.Add(Settings->DistanceAttributeName);
+		}
+
+		if (Settings->bWriteTargetIndex)
+		{
+			TargetIndexWriter = PointDataFacade->GetWritable<int32>(Settings->TargetIndexAttributeName, Settings->DefaultTargetIndex, true, PCGExData::EBufferInit::New);
+			ProtectedAttributes.Add(Settings->TargetIndexAttributeName);
+		}
+
 		// Prepare blending
 		if (!SubBlending->PrepareForData(Context, PointDataFacade, &ProtectedAttributes))
 		{
@@ -424,6 +449,12 @@ namespace PCGExPathInsert
 
 				OutTransforms[i].SetLocation(Position);
 				OutSeeds[i] = PCGExRandomHelpers::ComputeSpatialSeed(Position);
+
+				// Write output attributes for pre-path extension
+				if (FlagWriter) { FlagWriter->SetValue(i, true); }
+				if (AlphaWriter) { AlphaWriter->SetValue(i, Insert.Alpha); } // Negative = before start
+				if (DistanceWriter) { DistanceWriter->SetValue(i, Insert.Distance); }
+				if (TargetIndexWriter) { TargetIndexWriter->SetValue(i, Insert.TargetIOIndex); }
 
 				if (i > 0) { PreMetrics.Add(Position); }
 			}
@@ -457,6 +488,12 @@ namespace PCGExPathInsert
 
 				OutTransforms[InsertIndex].SetLocation(Position);
 				OutSeeds[InsertIndex] = PCGExRandomHelpers::ComputeSpatialSeed(Position);
+
+				// Write output attributes for post-path extension
+				if (FlagWriter) { FlagWriter->SetValue(InsertIndex, true); }
+				if (AlphaWriter) { AlphaWriter->SetValue(InsertIndex, 1.0 + Insert.Alpha); } // > 1 = after end
+				if (DistanceWriter) { DistanceWriter->SetValue(InsertIndex, Insert.Distance); }
+				if (TargetIndexWriter) { TargetIndexWriter->SetValue(InsertIndex, Insert.TargetIOIndex); }
 
 				PostMetrics.Add(Position);
 			}
@@ -523,6 +560,12 @@ namespace PCGExPathInsert
 				OutTransforms[InsertIndex].SetLocation(Position);
 				OutSeeds[InsertIndex] = PCGExRandomHelpers::ComputeSpatialSeed(Position);
 
+				// Write output attributes
+				if (FlagWriter) { FlagWriter->SetValue(InsertIndex, true); }
+				if (AlphaWriter) { AlphaWriter->SetValue(InsertIndex, Insert.Alpha); }
+				if (DistanceWriter) { DistanceWriter->SetValue(InsertIndex, Insert.Distance); }
+				if (TargetIndexWriter) { TargetIndexWriter->SetValue(InsertIndex, Insert.TargetIOIndex); }
+
 				Metrics.Add(Position);
 			}
 
@@ -536,6 +579,11 @@ namespace PCGExPathInsert
 				SubScope,
 				Metrics);
 		}
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		PointDataFacade->WriteFastest(TaskManager);
 	}
 }
 

@@ -32,6 +32,12 @@ namespace PCGExDetails
 	class TSettingValue;
 }
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 
 /**
  *
@@ -80,6 +86,48 @@ public:
 	/** Carry over settings for attributes from target sources. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
+
+	//
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bFlagInsertedPoints = false;
+
+	/** Attribute name to mark inserted points (true) vs original path points (false). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bFlagInsertedPoints"))
+	FName InsertedFlagName = FName("IsInserted");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteAlpha = false;
+
+	/** Attribute name for the alpha value (0-1 position along edge where inserted). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bWriteAlpha"))
+	FName AlphaAttributeName = FName("InsertAlpha");
+
+	/** Alpha value for non-inserted (original) points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteAlpha", EditConditionHides))
+	double DefaultAlpha = -1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDistance = false;
+
+	/** Attribute name for the distance from target point to path location. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
+	FName DistanceAttributeName = FName("InsertDistance");
+
+	/** Distance value for non-inserted (original) points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteDistance", EditConditionHides))
+	double DefaultDistance = -1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteTargetIndex = false;
+
+	/** Attribute name for the source target collection index. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bWriteTargetIndex"))
+	FName TargetIndexAttributeName = FName("TargetIndex");
+
+	/** Target index value for non-inserted (original) points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteTargetIndex", EditConditionHides))
+	int32 DefaultTargetIndex = -1;
 
 	//
 
@@ -170,6 +218,12 @@ namespace PCGExPathInsert
 		TSet<FName> ProtectedAttributes;
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
+		// Output writers
+		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> DistanceWriter;
+		TSharedPtr<PCGExData::TBuffer<int32>> TargetIndexWriter;
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)
@@ -181,5 +235,6 @@ namespace PCGExPathInsert
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
 		virtual void CompleteWork() override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
 	};
 }
