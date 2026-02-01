@@ -150,7 +150,7 @@ namespace PCGExPathInsert
 		TConstPCGValueRange<FTransform> PathTransforms = PointIO->GetIn()->GetConstTransformValueRange();
 
 		// Cache first/last edge info for extension checks
-		const bool bCanExtend = !bClosedLoop && Settings->bAllowPathExtension;
+		const bool bCanExtend = !bClosedLoop && !Settings->bEdgeInteriorOnly && Settings->bAllowPathExtension;
 		FVector FirstEdgeStart = FVector::ZeroVector;
 		FVector FirstEdgeDir = FVector::ZeroVector;
 		FVector LastEdgeEnd = FVector::ZeroVector;
