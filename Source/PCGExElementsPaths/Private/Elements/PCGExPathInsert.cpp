@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Helpers/PCGExTargetsHandler.h"
@@ -138,6 +139,13 @@ namespace PCGExPathInsert
 		{
 			RangeGetter = Settings->Range.GetValueSetting();
 			if (!RangeGetter->Init(PointDataFacade)) { return false; }
+		}
+
+		// Initialize limit getter if limiting inserts per edge
+		if (Settings->bLimitInsertsPerEdge)
+		{
+			LimitGetter = Settings->InsertLimit.GetValueSetting();
+			if (!LimitGetter->Init(PointDataFacade)) { return false; }
 		}
 
 		// Create sub-blending operation
@@ -286,10 +294,53 @@ namespace PCGExPathInsert
 			EdgeInserts[BestEdgeIndex].Add(Candidate);
 		});
 
-		// Sort each edge's inserts by alpha
-		for (FEdgeInserts& EI : EdgeInserts)
+		// Apply insert limits per edge if enabled
+		if (LimitGetter)
 		{
-			if (!EI.IsEmpty()) { EI.SortByAlpha(); }
+			const double LimitValue = LimitGetter->Read(0);
+
+			for (int32 EdgeIdx = 0; EdgeIdx < Path->NumEdges; EdgeIdx++)
+			{
+				FEdgeInserts& EI = EdgeInserts[EdgeIdx];
+				if (EI.IsEmpty()) { continue; }
+
+				int32 MaxInserts;
+				if (Settings->LimitMode == EPCGExInsertLimitMode::Discrete)
+				{
+					MaxInserts = FMath::Max(0, static_cast<int32>(LimitValue));
+				}
+				else // Distance/Spacing mode
+				{
+					const double EdgeLength = PathLength->Get(EdgeIdx);
+					if (LimitValue > KINDA_SMALL_NUMBER)
+					{
+						const double FractionalMax = EdgeLength / LimitValue;
+						MaxInserts = FMath::Max(0, static_cast<int32>(PCGExMath::TruncateDbl(FractionalMax, Settings->LimitTruncate)));
+					}
+					else
+					{
+						MaxInserts = MAX_int32; // No effective limit if spacing is 0
+					}
+				}
+
+				if (EI.Num() > MaxInserts)
+				{
+					// Sort by distance (closest to path wins)
+					EI.Inserts.Sort([](const FInsertCandidate& A, const FInsertCandidate& B) { return A.Distance < B.Distance; });
+					// Truncate
+					EI.Inserts.SetNum(MaxInserts);
+					// Re-sort by alpha for output order
+					EI.SortByAlpha();
+				}
+			}
+		}
+		else
+		{
+			// Just sort by alpha (no limits)
+			for (FEdgeInserts& EI : EdgeInserts)
+			{
+				if (!EI.IsEmpty()) { EI.SortByAlpha(); }
+			}
 		}
 
 		// Sort extension inserts by projection distance
@@ -433,6 +484,14 @@ namespace PCGExPathInsert
 			return;
 		}
 
+		// Initialize forward handlers for target attributes
+		const int32 NumTargets = Context->TargetsHandler->Num();
+		ForwardHandlers.Init(nullptr, NumTargets);
+		Context->TargetsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 Index)
+		{
+			ForwardHandlers[Index] = Settings->TargetForwarding.TryGetHandler(InTarget, PointDataFacade, false);
+		});
+
 		// Tag output
 		if (Settings->bTagIfHasInserts) { PointIO->Tags->AddRaw(Settings->HasInsertsTag); }
 
@@ -463,6 +522,12 @@ namespace PCGExPathInsert
 				if (AlphaWriter) { AlphaWriter->SetValue(i, Insert.Alpha); } // Negative = before start
 				if (DistanceWriter) { DistanceWriter->SetValue(i, Insert.Distance); }
 				if (TargetIndexWriter) { TargetIndexWriter->SetValue(i, Insert.TargetIOIndex); }
+
+				// Forward attributes from target
+				if (const TSharedPtr<PCGExData::FDataForwardHandler>& Handler = ForwardHandlers[Insert.TargetIOIndex])
+				{
+					Handler->Forward(Insert.TargetPointIndex, i);
+				}
 
 				if (i > 0) { PreMetrics.Add(Position); }
 			}
@@ -502,6 +567,12 @@ namespace PCGExPathInsert
 				if (AlphaWriter) { AlphaWriter->SetValue(InsertIndex, 1.0 + Insert.Alpha); } // > 1 = after end
 				if (DistanceWriter) { DistanceWriter->SetValue(InsertIndex, Insert.Distance); }
 				if (TargetIndexWriter) { TargetIndexWriter->SetValue(InsertIndex, Insert.TargetIOIndex); }
+
+				// Forward attributes from target
+				if (const TSharedPtr<PCGExData::FDataForwardHandler>& Handler = ForwardHandlers[Insert.TargetIOIndex])
+				{
+					Handler->Forward(Insert.TargetPointIndex, InsertIndex);
+				}
 
 				PostMetrics.Add(Position);
 			}
@@ -573,6 +644,12 @@ namespace PCGExPathInsert
 				if (AlphaWriter) { AlphaWriter->SetValue(InsertIndex, Insert.Alpha); }
 				if (DistanceWriter) { DistanceWriter->SetValue(InsertIndex, Insert.Distance); }
 				if (TargetIndexWriter) { TargetIndexWriter->SetValue(InsertIndex, Insert.TargetIOIndex); }
+
+				// Forward attributes from target
+				if (const TSharedPtr<PCGExData::FDataForwardHandler>& Handler = ForwardHandlers[Insert.TargetIOIndex])
+				{
+					Handler->Forward(Insert.TargetPointIndex, InsertIndex);
+				}
 
 				Metrics.Add(Position);
 			}

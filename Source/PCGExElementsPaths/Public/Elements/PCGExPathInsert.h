@@ -7,7 +7,8 @@
 #include "PCGExH.h"
 
 #include "Core/PCGExPathProcessor.h"
-#include "Data/Utils/PCGExDataFilterDetails.h"
+#include "Math/PCGExMath.h"
+#include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Details/PCGExInputShorthandsDetails.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "PCGExPathInsert.generated.h"
@@ -36,8 +37,16 @@ namespace PCGExData
 {
 	template <typename T>
 	class TBuffer;
+
+	class FDataForwardHandler;
 }
 
+UENUM()
+enum class EPCGExInsertLimitMode : uint8
+{
+	Discrete = 0 UMETA(DisplayName = "Count", ToolTip="Limit value is the maximum number of inserts per edge"),
+	Distance = 1 UMETA(DisplayName = "Spacing", ToolTip="Limit value is the minimum spacing; max inserts = EdgeLength / Spacing"),
+};
 
 /**
  *
@@ -83,13 +92,29 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWithinRange", EditConditionHides))
 	FPCGExInputShorthandNameDoubleAbs Range = FPCGExInputShorthandNameDoubleAbs(FName("Range"), 100, false);
 
+	/** Limit how many points can be inserted per edge. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bLimitInsertsPerEdge = false;
+
+	/** How to interpret the limit value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bLimitInsertsPerEdge", EditConditionHides))
+	EPCGExInsertLimitMode LimitMode = EPCGExInsertLimitMode::Discrete;
+
+	/** The limit value. For Count mode: max inserts. For Spacing mode: minimum distance between inserts. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bLimitInsertsPerEdge", EditConditionHides))
+	FPCGExInputShorthandNameDoubleAbs InsertLimit = FPCGExInputShorthandNameDoubleAbs(FName("InsertLimit"), 5, false);
+
+	/** How to round fractional insert counts when using Spacing mode. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bLimitInsertsPerEdge && LimitMode == EPCGExInsertLimitMode::Distance", EditConditionHides))
+	EPCGExTruncateMode LimitTruncate = EPCGExTruncateMode::Round;
+
 	/** Blending applied on inserted points using path's prev and next point. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
-	/** Carry over settings for attributes from target sources. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
-	FPCGExCarryOverDetails CarryOverDetails;
+	/** Forward attributes from target points to inserted points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta = (PCG_Overridable))
+	FPCGExForwardDetails TargetForwarding;
 
 	//
 
@@ -206,6 +231,7 @@ namespace PCGExPathInsert
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> LimitGetter;
 
 		// Stage 1: Candidates per edge
 		TArray<FEdgeInserts> EdgeInserts;
@@ -221,6 +247,9 @@ namespace PCGExPathInsert
 		// Blending
 		TSet<FName> ProtectedAttributes;
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
+
+		// Target attribute forwarding
+		TArray<TSharedPtr<PCGExData::FDataForwardHandler>> ForwardHandlers;
 
 		// Output writers
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
