@@ -71,6 +71,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAllowPathExtension = true;
 
+	/** If enabled, only insert targets that project to edge interiors (not endpoints). Targets at alpha 0 or 1 are skipped. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bEdgeInteriorOnly = false;
+
 	/** Only insert points that are within a specified range of the path. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bWithinRange = false;

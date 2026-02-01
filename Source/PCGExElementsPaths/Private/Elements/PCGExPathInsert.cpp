@@ -265,6 +265,14 @@ namespace PCGExPathInsert
 				}
 			}
 
+			// Skip endpoint candidates if edge interior only is enabled
+			if (Settings->bEdgeInteriorOnly)
+			{
+				const bool bAtStart = BestAlpha < KINDA_SMALL_NUMBER;
+				const bool bAtEnd = BestAlpha > (1.0 - KINDA_SMALL_NUMBER);
+				if (bAtStart || bAtEnd) { return; }
+			}
+
 			// Add as regular interior candidate
 			FInsertCandidate Candidate;
 			Candidate.TargetIOIndex = TargetPoint.IO;
