@@ -19,6 +19,7 @@
 #include "Paths/PCGExPathsCommon.h"
 #include "Paths/PCGExPathsHelpers.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathInsertElement"
 #define PCGEX_NAMESPACE PathInsert
