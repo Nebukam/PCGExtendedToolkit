@@ -45,10 +45,12 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+	virtual bool SupportsDataStealing() const override { return true; }
 
 	//~Begin UPCGExPointProcessorSettings
 public:
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+
 	PCGEX_NODE_POINT_FILTER(FName("Flip Conditions"), "Filters used to know whether an orientation should be flipped or not", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointProcessorSettings
 
