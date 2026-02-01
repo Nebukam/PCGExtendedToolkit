@@ -6,12 +6,18 @@
 #include "CoreMinimal.h"
 #include "PCGExH.h"
 
+#include "Containers/PCGExScopedContainers.h"
 #include "Core/PCGExPathProcessor.h"
 #include "Math/PCGExMath.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Details/PCGExInputShorthandsDetails.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "PCGExPathInsert.generated.h"
+
+namespace PCGExPathInsert
+{
+	struct FTargetClaimMap;
+}
 
 class UPCGExSubPointsBlendInstancedFactory;
 class FPCGExSubPointsBlendOperation;
@@ -68,6 +74,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -108,9 +115,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bLimitInsertsPerEdge && LimitMode == EPCGExInsertLimitMode::Distance", EditConditionHides))
 	EPCGExTruncateMode LimitTruncate = EPCGExTruncateMode::Round;
 
+	/** Skip insertions that would create collocated points (within tolerance of path vertices or other inserts). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bPreventCollocation = false;
+
+	/** Minimum distance between inserted points and path vertices. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventCollocation", EditConditionHides, ClampMin=0))
+	double CollocationTolerance = 1.0;
+
 	/** Blending applied on inserted points using path's prev and next point. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
+
+	/** If enabled, each target can only be inserted into one path (the closest one). Otherwise, a target may be inserted into multiple paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bExclusiveTargets = false;
+
+	/** If enabled, allows you to filter which targets get inserted into which paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
 
 	/** Forward attributes from target points to inserted points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta = (PCG_Overridable))
@@ -182,6 +205,9 @@ struct FPCGExPathInsertContext final : FPCGExPathProcessorContext
 
 	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
+	// Shared state for exclusive target resolution
+	TSharedPtr<PCGExPathInsert::FTargetClaimMap> TargetClaimMap;
+
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -197,6 +223,41 @@ protected:
 
 namespace PCGExPathInsert
 {
+	// Shared state for exclusive target resolution using sharded map
+	struct FTargetClaimMap
+	{
+		struct FClaim
+		{
+			int32 ProcessorIdx = -1;
+			double Distance = MAX_dbl;
+		};
+
+		PCGExMT::TH64MapShards<FClaim> Claims;
+
+		void Reserve(const int32 TotalReserve) { Claims.Reserve(TotalReserve); }
+
+		void RegisterCandidate(const uint64 TargetHash, const int32 ProcessorIdx, const double Distance)
+		{
+			Claims.FindOrAddAndUpdate(TargetHash, FClaim{ProcessorIdx, Distance}, [&](FClaim& Claim, bool bIsNew)
+			{
+				if (bIsNew || Distance < Claim.Distance)
+				{
+					Claim.ProcessorIdx = ProcessorIdx;
+					Claim.Distance = Distance;
+				}
+			});
+		}
+
+		bool IsClaimedBy(const uint64 TargetHash, const int32 ProcessorIdx) const
+		{
+			if (const FClaim* Claim = Claims.Find(TargetHash))
+			{
+				return Claim->ProcessorIdx == ProcessorIdx;
+			}
+			return false;
+		}
+	};
+
 	struct FInsertCandidate
 	{
 		int32 TargetIOIndex = -1;
@@ -224,6 +285,8 @@ namespace PCGExPathInsert
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathInsertContext, UPCGExPathInsertSettings>
 	{
+		TSet<const UPCGData*> IgnoreList;
+
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
 

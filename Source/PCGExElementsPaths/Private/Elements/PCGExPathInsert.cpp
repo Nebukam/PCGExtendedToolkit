@@ -3,12 +3,15 @@
 
 #include "Elements/PCGExPathInsert.h"
 
+#include "Algo/RemoveIf.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Utils/PCGExDataForward.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExDataMatcher.h"
+#include "Helpers/PCGExMatchingHelpers.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Helpers/PCGExTargetsHandler.h"
 #include "Paths/PCGExPath.h"
@@ -34,7 +37,15 @@ TArray<FPCGPinProperties> UPCGExPathInsertSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExCommon::Labels::SourceTargetsLabel, "The point data to insert into paths.", Required)
+	PCGExMatching::Helpers::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBlending::Labels::SourceOverridesBlendingOps)
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExPathInsertSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::Helpers::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -58,6 +69,13 @@ bool FPCGExPathInsertElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	// Initialize claim map for exclusive targets mode
+	if (Settings->bExclusiveTargets)
+	{
+		Context->TargetClaimMap = MakeShared<PCGExPathInsert::FTargetClaimMap>();
+		Context->TargetClaimMap->Reserve(Context->NumMaxTargets);
+	}
+
 	return true;
 }
 
@@ -75,6 +93,8 @@ bool FPCGExPathInsertElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
+
+			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
 
 			PCGEX_ON_INVALILD_INPUTS_C(SharedContext.Get(), FTEXT("Some inputs have less than 2 points and won't be processed."))
 
@@ -151,6 +171,14 @@ namespace PCGExPathInsert
 		// Create sub-blending operation
 		SubBlending = Context->Blending->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;
+
+		// Populate ignore list based on matching rules
+		IgnoreList.Add(PointDataFacade->GetIn());
+		if (PCGExMatching::FScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		{
+			(void)Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true);
+			return false;
+		}
 
 		// Stage 1: Gather candidates from all targets
 		// For each target point, find closest edge and alpha
@@ -292,7 +320,7 @@ namespace PCGExPathInsert
 			Candidate.OriginalLocation = TargetLocation;
 
 			EdgeInserts[BestEdgeIndex].Add(Candidate);
-		});
+		}, &IgnoreList);
 
 		// Apply insert limits per edge if enabled
 		if (LimitGetter)
@@ -343,6 +371,56 @@ namespace PCGExPathInsert
 			}
 		}
 
+		// Apply collocation filtering if enabled
+		if (Settings->bPreventCollocation)
+		{
+			const double ToleranceSq = FMath::Square(Settings->CollocationTolerance);
+
+			for (int32 EdgeIdx = 0; EdgeIdx < Path->NumEdges; EdgeIdx++)
+			{
+				FEdgeInserts& EI = EdgeInserts[EdgeIdx];
+				if (EI.IsEmpty()) { continue; }
+
+				const PCGExPaths::FPathEdge& Edge = Path->Edges[EdgeIdx];
+				const FVector EdgeStart = PathTransforms[Edge.Start].GetLocation();
+				const FVector EdgeEnd = PathTransforms[Edge.End].GetLocation();
+
+				// Filter out inserts that are too close to vertices or each other
+				TArray<FInsertCandidate> FilteredInserts;
+				FilteredInserts.Reserve(EI.Num());
+
+				for (const FInsertCandidate& Insert : EI.Inserts)
+				{
+					const FVector InsertPos = Settings->bSnapToPath ? Insert.PathLocation : Insert.OriginalLocation;
+
+					// Check distance to edge start
+					if (FVector::DistSquared(InsertPos, EdgeStart) < ToleranceSq) { continue; }
+
+					// Check distance to edge end
+					if (FVector::DistSquared(InsertPos, EdgeEnd) < ToleranceSq) { continue; }
+
+					// Check distance to already accepted inserts
+					bool bTooClose = false;
+					for (const FInsertCandidate& Accepted : FilteredInserts)
+					{
+						const FVector AcceptedPos = Settings->bSnapToPath ? Accepted.PathLocation : Accepted.OriginalLocation;
+						if (FVector::DistSquared(InsertPos, AcceptedPos) < ToleranceSq)
+						{
+							bTooClose = true;
+							break;
+						}
+					}
+
+					if (!bTooClose)
+					{
+						FilteredInserts.Add(Insert);
+					}
+				}
+
+				EI.Inserts = MoveTemp(FilteredInserts);
+			}
+		}
+
 		// Sort extension inserts by projection distance
 		if (!PrePathInserts.IsEmpty())
 		{
@@ -355,7 +433,31 @@ namespace PCGExPathInsert
 			PostPathInserts.Sort([](const FInsertCandidate& A, const FInsertCandidate& B) { return A.Alpha < B.Alpha; });
 		}
 
-		// Count total inserts
+		// Register candidates to claim map for exclusive targets mode
+		if (Context->TargetClaimMap)
+		{
+			const int32 ProcessorIdx = BatchIndex;
+
+			for (const FInsertCandidate& Insert : PrePathInserts)
+			{
+				Context->TargetClaimMap->RegisterCandidate(Insert.GetTargetHash(), ProcessorIdx, Insert.Distance);
+			}
+
+			for (const FInsertCandidate& Insert : PostPathInserts)
+			{
+				Context->TargetClaimMap->RegisterCandidate(Insert.GetTargetHash(), ProcessorIdx, Insert.Distance);
+			}
+
+			for (const FEdgeInserts& EI : EdgeInserts)
+			{
+				for (const FInsertCandidate& Insert : EI.Inserts)
+				{
+					Context->TargetClaimMap->RegisterCandidate(Insert.GetTargetHash(), ProcessorIdx, Insert.Distance);
+				}
+			}
+		}
+
+		// Count total inserts (will be recalculated in CompleteWork if exclusive mode filters some out)
 		TotalInserts = PrePathInserts.Num() + PostPathInserts.Num();
 		for (const FEdgeInserts& EI : EdgeInserts)
 		{
@@ -368,6 +470,40 @@ namespace PCGExPathInsert
 	void FProcessor::CompleteWork()
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
+		// Filter candidates for exclusive targets mode
+		if (Context->TargetClaimMap)
+		{
+			const int32 ProcessorIdx = BatchIndex;
+
+			// Filter pre-path inserts
+			PrePathInserts.SetNum(Algo::StableRemoveIf(PrePathInserts, [&](const FInsertCandidate& Insert)
+			{
+				return !Context->TargetClaimMap->IsClaimedBy(Insert.GetTargetHash(), ProcessorIdx);
+			}));
+
+			// Filter post-path inserts
+			PostPathInserts.SetNum(Algo::StableRemoveIf(PostPathInserts, [&](const FInsertCandidate& Insert)
+			{
+				return !Context->TargetClaimMap->IsClaimedBy(Insert.GetTargetHash(), ProcessorIdx);
+			}));
+
+			// Filter edge inserts
+			for (FEdgeInserts& EI : EdgeInserts)
+			{
+				EI.Inserts.SetNum(Algo::StableRemoveIf(EI.Inserts, [&](const FInsertCandidate& Insert)
+				{
+					return !Context->TargetClaimMap->IsClaimedBy(Insert.GetTargetHash(), ProcessorIdx);
+				}));
+			}
+
+			// Recalculate total inserts
+			TotalInserts = PrePathInserts.Num() + PostPathInserts.Num();
+			for (const FEdgeInserts& EI : EdgeInserts)
+			{
+				TotalInserts += EI.Num();
+			}
+		}
 
 		// No inserts? Just forward the data
 		if (TotalInserts == 0)
