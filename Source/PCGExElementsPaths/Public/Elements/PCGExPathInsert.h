@@ -208,6 +208,11 @@ struct FPCGExPathInsertContext final : FPCGExPathProcessorContext
 	// Shared state for exclusive target resolution
 	TSharedPtr<PCGExPathInsert::FTargetClaimMap> TargetClaimMap;
 
+	// Shared target map (when data matching is disabled, all processors share the same target set)
+	TArray<int32> SharedTargetPrefixSums;
+	int32 SharedTotalTargets = 0;
+	bool bUseSharedTargetMap = false;
+
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -256,6 +261,15 @@ namespace PCGExPathInsert
 			}
 			return false;
 		}
+	};
+
+	// Compact candidate for parallel gathering (16 bytes vs 76 bytes for full candidate)
+	struct FCompactCandidate
+	{
+		int32 TargetFlatIndex = -1;  // Reconstruct IO/PointIndex from prefix sums
+		int32 EdgeIndex = -1;        // -1 for pre-path, NumEdges for post-path
+		float Alpha = 0;
+		float Distance = 0;
 	};
 
 	struct FInsertCandidate
