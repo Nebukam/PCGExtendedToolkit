@@ -198,6 +198,7 @@ public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
+	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathSplineMeshSimple)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;

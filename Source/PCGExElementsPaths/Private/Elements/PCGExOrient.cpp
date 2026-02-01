@@ -33,7 +33,7 @@ TArray<FPCGPinProperties> UPCGExOrientSettings::InputPinProperties() const
 
 PCGEX_INITIALIZE_ELEMENT(Orient)
 
-PCGExData::EIOInit UPCGExOrientSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExOrientSettings::GetMainDataInitializationPolicy() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(Orient)
 
@@ -111,7 +111,7 @@ namespace PCGExOrient
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->GetMainDataInitializationPolicy())
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
