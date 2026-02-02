@@ -186,6 +186,17 @@ namespace PCGExSampleSurfaceGuided
 			}
 		}
 
+		if (Context->CollisionSettings.TraceMode == EPCGExTraceMode::Sphere)
+		{
+			SphereRadiusGetter = Context->CollisionSettings.SphereRadius.GetValueSetting();
+			if (!SphereRadiusGetter->Init(PointDataFacade)) { return false; }
+		}
+		else if (Context->CollisionSettings.TraceMode == EPCGExTraceMode::Box)
+		{
+			BoxHalfExtentsGetter = Context->CollisionSettings.BoxHalfExtents.GetValueSetting();
+			if (!BoxHalfExtentsGetter->Init(PointDataFacade)) { return false; }
+		}
+
 		World = Context->GetWorld();
 		StartParallelLoopForPoints();
 
@@ -361,48 +372,168 @@ namespace PCGExSampleSurfaceGuided
 
 			switch (Context->CollisionSettings.CollisionType)
 			{
-			case EPCGExCollisionFilterType::Channel: if (Context->bUseInclude)
+			case EPCGExCollisionFilterType::Channel:
+				if (Context->bUseInclude)
 				{
-					if (World->LineTraceMultiByChannel(HitResults, Origin, End, Context->CollisionSettings.CollisionChannel, CollisionParams))
+					bool bHit = false;
+					switch (Context->CollisionSettings.TraceMode)
 					{
-						ProcessMultipleTraceResult();
+					case EPCGExTraceMode::Line:
+						bHit = World->LineTraceMultiByChannel(HitResults, Origin, End, Context->CollisionSettings.CollisionChannel, CollisionParams);
+						break;
+					case EPCGExTraceMode::Sphere:
+						{
+							const double Radius = SphereRadiusGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+							bHit = World->SweepMultiByChannel(HitResults, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionChannel, Shape, CollisionParams);
+						}
+						break;
+					case EPCGExTraceMode::Box:
+						{
+							const FVector HalfExtents = BoxHalfExtentsGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+							bHit = World->SweepMultiByChannel(HitResults, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionChannel, Shape, CollisionParams);
+						}
+						break;
 					}
+					if (bHit) { ProcessMultipleTraceResult(); }
 				}
 				else
 				{
-					if (World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionSettings.CollisionChannel, CollisionParams))
+					bool bHit = false;
+					switch (Context->CollisionSettings.TraceMode)
+					{
+					case EPCGExTraceMode::Line:
+						bHit = World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionSettings.CollisionChannel, CollisionParams);
+						break;
+					case EPCGExTraceMode::Sphere:
+						{
+							const double Radius = SphereRadiusGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+							bHit = World->SweepSingleByChannel(HitResult, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionChannel, Shape, CollisionParams);
+						}
+						break;
+					case EPCGExTraceMode::Box:
+						{
+							const FVector HalfExtents = BoxHalfExtentsGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+							bHit = World->SweepSingleByChannel(HitResult, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionChannel, Shape, CollisionParams);
+						}
+						break;
+					}
+					if (bHit)
 					{
 						ProcessTraceResult(Scope, HitResult, Index, Origin, Direction, MutablePoint);
 						bSuccess = true;
 					}
 				}
 				break;
-			case EPCGExCollisionFilterType::ObjectType: if (Context->bUseInclude)
+			case EPCGExCollisionFilterType::ObjectType:
+				if (Context->bUseInclude)
 				{
-					if (World->LineTraceMultiByObjectType(HitResults, Origin, End, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
+					bool bHit = false;
+					switch (Context->CollisionSettings.TraceMode)
 					{
-						ProcessMultipleTraceResult();
+					case EPCGExTraceMode::Line:
+						bHit = World->LineTraceMultiByObjectType(HitResults, Origin, End, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams);
+						break;
+					case EPCGExTraceMode::Sphere:
+						{
+							const double Radius = SphereRadiusGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+							bHit = World->SweepMultiByObjectType(HitResults, Origin, End, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), Shape, CollisionParams);
+						}
+						break;
+					case EPCGExTraceMode::Box:
+						{
+							const FVector HalfExtents = BoxHalfExtentsGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+							bHit = World->SweepMultiByObjectType(HitResults, Origin, End, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), Shape, CollisionParams);
+						}
+						break;
 					}
+					if (bHit) { ProcessMultipleTraceResult(); }
 				}
 				else
 				{
-					if (World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
+					bool bHit = false;
+					switch (Context->CollisionSettings.TraceMode)
+					{
+					case EPCGExTraceMode::Line:
+						bHit = World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams);
+						break;
+					case EPCGExTraceMode::Sphere:
+						{
+							const double Radius = SphereRadiusGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+							bHit = World->SweepSingleByObjectType(HitResult, Origin, End, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), Shape, CollisionParams);
+						}
+						break;
+					case EPCGExTraceMode::Box:
+						{
+							const FVector HalfExtents = BoxHalfExtentsGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+							bHit = World->SweepSingleByObjectType(HitResult, Origin, End, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), Shape, CollisionParams);
+						}
+						break;
+					}
+					if (bHit)
 					{
 						ProcessTraceResult(Scope, HitResult, Index, Origin, Direction, MutablePoint);
 						bSuccess = true;
 					}
 				}
 				break;
-			case EPCGExCollisionFilterType::Profile: if (Context->bUseInclude)
+			case EPCGExCollisionFilterType::Profile:
+				if (Context->bUseInclude)
 				{
-					if (World->LineTraceMultiByProfile(HitResults, Origin, End, Context->CollisionSettings.CollisionProfileName, CollisionParams))
+					bool bHit = false;
+					switch (Context->CollisionSettings.TraceMode)
 					{
-						ProcessMultipleTraceResult();
+					case EPCGExTraceMode::Line:
+						bHit = World->LineTraceMultiByProfile(HitResults, Origin, End, Context->CollisionSettings.CollisionProfileName, CollisionParams);
+						break;
+					case EPCGExTraceMode::Sphere:
+						{
+							const double Radius = SphereRadiusGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+							bHit = World->SweepMultiByProfile(HitResults, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, Shape, CollisionParams);
+						}
+						break;
+					case EPCGExTraceMode::Box:
+						{
+							const FVector HalfExtents = BoxHalfExtentsGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+							bHit = World->SweepMultiByProfile(HitResults, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, Shape, CollisionParams);
+						}
+						break;
 					}
+					if (bHit) { ProcessMultipleTraceResult(); }
 				}
 				else
 				{
-					if (World->LineTraceSingleByProfile(HitResult, Origin, End, Context->CollisionSettings.CollisionProfileName, CollisionParams))
+					bool bHit = false;
+					switch (Context->CollisionSettings.TraceMode)
+					{
+					case EPCGExTraceMode::Line:
+						bHit = World->LineTraceSingleByProfile(HitResult, Origin, End, Context->CollisionSettings.CollisionProfileName, CollisionParams);
+						break;
+					case EPCGExTraceMode::Sphere:
+						{
+							const double Radius = SphereRadiusGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+							bHit = World->SweepSingleByProfile(HitResult, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, Shape, CollisionParams);
+						}
+						break;
+					case EPCGExTraceMode::Box:
+						{
+							const FVector HalfExtents = BoxHalfExtentsGetter->Read(Index);
+							const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+							bHit = World->SweepSingleByProfile(HitResult, Origin, End, FQuat::Identity, Context->CollisionSettings.CollisionProfileName, Shape, CollisionParams);
+						}
+						break;
+					}
+					if (bHit)
 					{
 						ProcessTraceResult(Scope, HitResult, Index, Origin, Direction, MutablePoint);
 						bSuccess = true;

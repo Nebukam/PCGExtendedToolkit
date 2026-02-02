@@ -345,6 +345,8 @@ namespace PCGExSampleSurfaceGuided
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> OriginGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> CrossAxis;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> SphereRadiusGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> BoxHalfExtentsGetter;
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxSampledDistance = 0;
