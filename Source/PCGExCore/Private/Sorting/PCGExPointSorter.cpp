@@ -89,10 +89,9 @@ namespace PCGExSorting
 
 			if (!Buffer)
 			{
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 				RuleHandlers.RemoveAt(i);
 				i--;
-
-				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 				continue;
 			}
 
@@ -174,9 +173,9 @@ namespace PCGExSorting
 
 				if (!Buffer && !RuleHandler->DataValues[InFacade->Idx])
 				{
+					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 					RuleHandlers.RemoveAt(i);
 					i--;
-					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 					break;
 				}
 				RuleHandler->Buffers[InFacade->Idx] = Buffer;
@@ -216,9 +215,9 @@ namespace PCGExSorting
 				TSharedPtr<PCGExData::IDataValue> DataValue = PCGExData::TryGetValueFromData(Data, RuleHandler->Selector);
 				if (!DataValue)
 				{
+					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 					RuleHandlers.RemoveAt(i);
 					i--;
-					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 					break;
 				}
 

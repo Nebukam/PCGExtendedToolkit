@@ -1,6 +1,9 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
+// Asset Staging - Picks assets from collections and assigns them to points.
+// Handles weighted distribution, fitting/scaling, material picking, and socket extraction.
+
 #include "Elements/PCGExAssetStaging.h"
 
 #include "PCGParamData.h"
@@ -18,6 +21,8 @@
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
 
+#pragma region UPCGExAssetStagingSettings
+
 #if WITH_EDITOR
 void UPCGExAssetStagingSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -28,6 +33,7 @@ void UPCGExAssetStagingSettings::PostEditChangeProperty(struct FPropertyChangedE
 
 PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainDataInitializationPolicy() const
 {
+	// Forward is more efficient but we need Duplicate when pruning since we'll remove points
 	if (StealData == EPCGExOptionState::Enabled && !bPruneEmptyPoints) { return PCGExData::EIOInit::Forward; }
 	return PCGExData::EIOInit::Duplicate;
 }
@@ -62,6 +68,10 @@ TArray<FPCGPinProperties> UPCGExAssetStagingSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
+#pragma endregion
+
+#pragma region FPCGExAssetStagingElement
+
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -93,6 +103,8 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	}
 	else if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
+		// CollectionMap can't work with attribute sets because the collection is built at runtime
+		// and doesn't have stable asset references to pack
 		if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Collection Map output is not supported with collections built from attribute sets."));
@@ -108,6 +120,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	}
 	else if (Settings->CollectionSource == EPCGExCollectionSource::Attribute)
 	{
+		// Per-point mode: defer loading to AdvanceWork since each point may reference a different collection
 		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->CollectionPathAttributeName)
 
 		TArray<FName> Names = {Settings->CollectionPathAttributeName};
@@ -165,18 +178,27 @@ FString UPCGExAssetStagingSettings::GetDisplayName() const
 }
 #endif
 
+#pragma endregion
+
+#pragma region FPCGExAssetStagingContext
+
 void FPCGExAssetStagingContext::RegisterAssetDependencies()
 {
 	FPCGExPointsProcessorContext::RegisterAssetDependencies();
 
 	PCGEX_SETTINGS_LOCAL(AssetStaging)
 
+	// For AttributeSet mode, we built the collection in Boot but assets aren't loaded yet.
+	// Register them so PCG's dependency system will preload before we process.
 	if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
 		MainCollection->GetAssetPaths(GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::Recursive);
 	}
 }
 
+#pragma endregion
+
+#pragma region FPCGExAssetStagingElement (continued)
 
 void FPCGExAssetStagingElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
 {
@@ -186,7 +208,7 @@ void FPCGExAssetStagingElement::PostLoadAssetsDependencies(FPCGExContext* InCont
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
-		// Internal collection, assets have been loaded at this point
+		// Now that PCG has loaded the assets, rebuild staging data (bounds, paths, etc.)
 		Context->MainCollection->RebuildStagingData(true);
 	}
 }
@@ -195,14 +217,19 @@ bool FPCGExAssetStagingElement::PostBoot(FPCGExContext* InContext) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
-	if (Context->MainCollection->LoadCache()->IsEmpty())
+	// Skip validation for Attribute mode - collections load per-point in AdvanceWork
+	if (Settings->CollectionSource != EPCGExCollectionSource::Attribute)
 	{
-		if (!Settings->bQuietEmptyCollectionError)
+		check(Context->MainCollection)
+		if (Context->MainCollection->LoadCache()->IsEmpty())
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Selected asset collection is empty."));
-		}
+			if (!Settings->bQuietEmptyCollectionError)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Selected asset collection is empty."));
+			}
 
-		return false;
+			return false;
+		}
 	}
 
 	return FPCGExPointsProcessorElement::PostBoot(InContext);
@@ -247,7 +274,6 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 			return Context->CancelExecution(TEXT("Failed to load any collection from points."));
 		}
 
-		// Make sure cache is built for all collections
 		for (const TPair<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& Pair : Context->CollectionsLoader->AssetsMap)
 		{
 			Pair.Value->LoadCache();
@@ -283,13 +309,16 @@ bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	return Context->TryComplete();
 }
 
+#pragma endregion
+
+#pragma region PCGExAssetStaging::FProcessor
+
 namespace PCGExAssetStaging
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAssetStaging::Process);
 
-		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
@@ -353,6 +382,7 @@ namespace PCGExAssetStaging
 			TranslationWriter = PointDataFacade->GetWritable<FVector>(Settings->TranslationAttributeName, FVector::ZeroVector, true, PCGExData::EBufferInit::Inherit);
 		}
 
+		// bInherit: if the attribute already exists, preserve values for invalid points instead of clearing them
 		if (Settings->OutputMode == EPCGExStagingOutputMode::Attributes)
 		{
 			bInherit = PointDataFacade->GetIn()->Metadata->HasAttribute(Settings->AssetPathAttributeName);
@@ -364,8 +394,6 @@ namespace PCGExAssetStaging
 			HashWriter = PointDataFacade->GetWritable<int64>(PCGExCollections::Labels::Tag_EntryIdx, bInherit ? PCGExData::EBufferInit::Inherit : PCGExData::EBufferInit::New);
 		}
 
-		// Cherry pick native properties allocations
-
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
 
 		AllocateFor |= EPCGPointNativeProperties::BoundsMin;
@@ -373,6 +401,7 @@ namespace PCGExAssetStaging
 		AllocateFor |= EPCGPointNativeProperties::Transform;
 		if (bOutputWeight && !WeightWriter && !NormalizedWeightWriter)
 		{
+			// No explicit weight attribute - fall back to writing weight into Density
 			bUsesDensity = true;
 			AllocateFor |= EPCGPointNativeProperties::Density;
 		}
@@ -388,6 +417,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
+		// Thread-safe per-scope max tracking for material slot indices
 		HighestSlotIndex = MakeShared<PCGExMT::TScopedNumericValue<int8>>(Loops, -1);
 	}
 
@@ -408,9 +438,12 @@ namespace PCGExAssetStaging
 
 		int32 LocalNumInvalid = 0;
 
+		// Handles points that fail distribution or filtering.
+		// When bInherit is true, we preserve existing attribute values (from previous staging pass).
+		// Otherwise we either mark for pruning or write sentinel values.
 		auto InvalidPoint = [&](const int32 Index)
 		{
-			if (bInherit) { return; }
+			if (bInherit) { return; } // Keep existing values from upstream staging
 
 			if (Settings->bPruneEmptyPoints)
 			{
@@ -419,6 +452,7 @@ namespace PCGExAssetStaging
 				return;
 			}
 
+			// Write sentinel values so downstream nodes can detect unstaged points
 			if (PathWriter) { PathWriter->SetValue(Index, FSoftObjectPath{}); }
 			else { HashWriter->SetValue(Index, -1); }
 
@@ -467,11 +501,13 @@ namespace PCGExAssetStaging
 			FTransform& OutTransform = OutTransforms[Index];
 			FVector OutTranslation = FVector::ZeroVector;
 			FBox OutBounds = Entry->Staging.Bounds;
-			int16 SecondaryIndex = -1;
+			int16 SecondaryIndex = -1; // Material variant index within the entry
 
 			const FPCGExAssetStagingData& Staging = Entry->Staging;
 			const FPCGExFittingVariations& EntryVariations = Entry->GetVariations(EntryHost);
 
+			// MicroCache holds per-entry sub-distribution data (e.g., material variants for meshes).
+			// SecondaryIndex selects which variant to use for this point.
 			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get();
 				MicroHelper && MicroCache && MicroCache->GetTypeId() == PCGExAssetCollection::TypeIds::Mesh)
 			{
@@ -482,6 +518,7 @@ namespace PCGExAssetStaging
 				{
 					MaterialPick[Index] = SecondaryIndex;
 					CachedPicks[Index] = Entry;
+					// Track highest slot index seen so we know how many material attributes to create
 					LocalHighestSlotIndex = FMath::Max(LocalHighestSlotIndex, EntryMicroCache->GetHighestIndex());
 				}
 			}
@@ -504,6 +541,8 @@ namespace PCGExAssetStaging
 
 			RandomSource.Initialize(PCGExRandomHelpers::GetSeed(Seed, Variations.Seed));
 
+			// "Before" variations modify asset bounds before fitting, affecting scale-to-fit calculation.
+			// "After" variations apply to the final transform without changing bounds.
 			if (Variations.bEnabledBefore)
 			{
 				FTransform LocalXForm = FTransform::Identity;
@@ -527,7 +566,6 @@ namespace PCGExAssetStaging
 
 			if (SocketHelper)
 			{
-				// Register entry
 				uint64 EntryHash = PCGEx::H64(EntryHost->GetUniqueID(), Staging.InternalIndex);
 				SocketHelper->Add(Index, EntryHash, Entry);
 			}
@@ -538,6 +576,7 @@ namespace PCGExAssetStaging
 			}
 		}
 
+		// Merge per-scope max into shared tracker (thread-safe)
 		HighestSlotIndex->Set(Scope, FMath::Max(LocalHighestSlotIndex, HighestSlotIndex->Get(Scope)));
 		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
 	}
@@ -548,6 +587,8 @@ namespace PCGExAssetStaging
 
 		if (Context->bPickMaterials)
 		{
+			// Create one attribute per material slot used across all picked entries.
+			// HighestSlotIndex was tracked during ProcessPoints to know how many we need.
 			int8 WriterCount = HighestSlotIndex->Max() + 1;
 			if (Settings->MaxMaterialPicks > 0) { WriterCount = Settings->MaxMaterialPicks; }
 
@@ -561,6 +602,7 @@ namespace PCGExAssetStaging
 					MaterialWriters[i] = PointDataFacade->GetWritable<FSoftObjectPath>(AttributeName, FSoftObjectPath(), true, PCGExData::EBufferInit::New);
 				}
 
+				// Second parallel pass to write material picks (separate from main loop for buffer allocation)
 				StartParallelLoopForRange(NumPoints);
 				return;
 			}
@@ -568,9 +610,10 @@ namespace PCGExAssetStaging
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
 		}
 
-		OnRangeProcessingComplete(); // for writing
+		OnRangeProcessingComplete();
 	}
 
+	// Writes material override paths to per-slot attributes based on the picks made in ProcessPoints
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		PCGEX_SCOPE_LOOP(Index)
@@ -581,11 +624,14 @@ namespace PCGExAssetStaging
 
 			const FPCGExMeshCollectionEntry* Entry = static_cast<const FPCGExMeshCollectionEntry*>(CachedPicks[Index]);
 			if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::None) { continue; }
+
+			// Single mode: one material slot override
 			if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
 			{
 				if (!MaterialWriters.IsValidIndex(Entry->SlotIndex)) { continue; }
 				MaterialWriters[Entry->SlotIndex]->SetValue(Index, Entry->MaterialOverrideVariants[Pick].Material.ToSoftObjectPath());
 			}
+			// Multi mode: multiple material slot overrides per variant
 			else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Multi)
 			{
 				const FPCGExMaterialOverrideCollection& MEntry = Entry->MaterialOverrideVariantsList[Pick];
@@ -617,11 +663,14 @@ namespace PCGExAssetStaging
 	{
 		if (Settings->bPruneEmptyPoints)
 		{
+			// Release Source before Gather since Gather will invalidate indices it references
 			Source.Reset();
 			(void)PointDataFacade->Source->Gather(Mask);
 		}
 	}
 }
+
+#pragma endregion
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
