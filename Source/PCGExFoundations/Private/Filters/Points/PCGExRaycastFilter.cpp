@@ -53,7 +53,10 @@ void UPCGExRaycastFilterFactory::RegisterBuffersDependencies(FPCGExContext* InCo
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 
-	Config.OriginOffset.RegisterBufferDependencies(InContext, FacadePreloader);
+	if (Config.OriginMode != EPCGExRaycastOriginMode::PointPosition)
+	{
+		Config.Origin.RegisterBufferDependencies(InContext, FacadePreloader);
+	}
 	Config.Direction.RegisterBufferDependencies(InContext, FacadePreloader);
 	Config.MaxDistance.RegisterBufferDependencies(InContext, FacadePreloader);
 
@@ -84,8 +87,11 @@ bool PCGExPointFilter::FRaycastFilter::Init(FPCGExContext* InContext, const TSha
 
 	CollisionSettings = Config.CollisionSettings;
 
-	OriginOffsetGetter = Config.OriginOffset.GetValueSetting();
-	if (!OriginOffsetGetter->Init(InPointDataFacade)) { return false; }
+	if (Config.OriginMode != EPCGExRaycastOriginMode::PointPosition)
+	{
+		OriginGetter = Config.Origin.GetValueSetting();
+		if (!OriginGetter->Init(InPointDataFacade)) { return false; }
+	}
 
 	DirectionGetter = Config.Direction.GetValueSetting();
 	if (!DirectionGetter->Init(InPointDataFacade)) { return false; }
@@ -178,7 +184,24 @@ bool PCGExPointFilter::FRaycastFilter::Test(const int32 PointIndex) const
 
 	const FTransform& Transform = InTransforms[PointIndex];
 	const FVector PointPosition = Transform.GetLocation();
-	const FVector OriginOffset = OriginOffsetGetter->Read(PointIndex);
+
+	FVector Start;
+	switch (Config.OriginMode)
+	{
+	default:
+	case EPCGExRaycastOriginMode::PointPosition:
+		Start = PointPosition;
+		break;
+	case EPCGExRaycastOriginMode::OffsetWorld:
+		Start = PointPosition + OriginGetter->Read(PointIndex);
+		break;
+	case EPCGExRaycastOriginMode::OffsetRelative:
+		Start = PointPosition + Transform.TransformVector(OriginGetter->Read(PointIndex));
+		break;
+	case EPCGExRaycastOriginMode::WorldPosition:
+		Start = OriginGetter->Read(PointIndex);
+		break;
+	}
 
 	FVector Direction = DirectionGetter->Read(PointIndex);
 	if (Config.Direction.bFlip) { Direction *= -1; }
@@ -186,8 +209,6 @@ bool PCGExPointFilter::FRaycastFilter::Test(const int32 PointIndex) const
 	Direction = Direction.GetSafeNormal();
 
 	const double MaxDistance = MaxDistanceGetter->Read(PointIndex);
-
-	const FVector Start = PointPosition + OriginOffset;
 	const FVector End = Start + Direction * MaxDistance;
 	const FQuat Orientation = Config.bTransformDirection ? Transform.GetRotation() : FQuat::Identity;
 

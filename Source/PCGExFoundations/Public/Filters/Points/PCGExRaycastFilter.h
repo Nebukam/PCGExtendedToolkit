@@ -28,6 +28,15 @@ enum class EPCGExRaycastTestMode : uint8
 	CompareDistance = 1 UMETA(DisplayName = "Compare Distance", Tooltip="Compare hit distance against a threshold"),
 };
 
+UENUM()
+enum class EPCGExRaycastOriginMode : uint8
+{
+	PointPosition   = 0 UMETA(DisplayName = "Point Position", Tooltip="Use the point's position directly"),
+	OffsetWorld     = 1 UMETA(DisplayName = "Offset (World)", Tooltip="Point position + offset in world space"),
+	OffsetRelative  = 2 UMETA(DisplayName = "Offset (Relative)", Tooltip="Point position + offset transformed by point rotation/scale"),
+	WorldPosition   = 3 UMETA(DisplayName = "World Position", Tooltip="Use offset value as absolute world position"),
+};
+
 USTRUCT(BlueprintType)
 struct FPCGExRaycastFilterConfig
 {
@@ -70,9 +79,13 @@ struct FPCGExRaycastFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExCollisionDetails CollisionSettings;
 
-	/** Trace origin offset from point position */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Ray", meta=(PCG_Overridable))
-	FPCGExInputShorthandSelectorVector OriginOffset = FPCGExInputShorthandSelectorVector(FName("OriginOffset"), FVector::ZeroVector);
+	/** How to determine the ray origin */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Ray", meta=(PCG_NotOverridable))
+	EPCGExRaycastOriginMode OriginMode = EPCGExRaycastOriginMode::PointPosition;
+
+	/** Origin offset or world position depending on mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Ray", meta=(PCG_Overridable, EditCondition="OriginMode != EPCGExRaycastOriginMode::PointPosition", EditConditionHides))
+	FPCGExInputShorthandSelectorVector Origin = FPCGExInputShorthandSelectorVector(FName("OriginOffset"), FVector::ZeroVector);
 
 	/** Trace direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Ray", meta=(PCG_Overridable))
@@ -131,7 +144,7 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SphereRadiusGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> BoxHalfExtentsGetter;
-		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OriginOffsetGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OriginGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> DirectionGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> MaxDistanceGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;
