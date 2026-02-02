@@ -104,3 +104,93 @@ bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To, bo
 	if (bStrong) { return StrongLinecast(From, To); }
 	return Linecast(From, To);
 }
+
+bool FPCGExCollisionDetails::LinecastMulti(const FVector& From, const FVector& To, TArray<FHitResult>& OutHits) const
+{
+	FCollisionQueryParams CollisionParams;
+	Update(CollisionParams);
+
+	switch (CollisionType)
+	{
+	case EPCGExCollisionFilterType::Channel: return World->LineTraceMultiByChannel(OutHits, From, To, CollisionChannel, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType: return World->LineTraceMultiByObjectType(OutHits, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
+	case EPCGExCollisionFilterType::Profile: return World->LineTraceMultiByProfile(OutHits, From, To, CollisionProfileName, CollisionParams);
+	default: return false;
+	}
+}
+
+bool FPCGExCollisionDetails::SphereSweep(const FVector& From, const FVector& To, const double Radius, FHitResult& HitResult, const FQuat& Orientation) const
+{
+	FCollisionQueryParams CollisionParams;
+	Update(CollisionParams);
+
+	const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+
+	switch (CollisionType)
+	{
+	case EPCGExCollisionFilterType::Channel: return World->SweepSingleByChannel(HitResult, From, To, Orientation, CollisionChannel, Shape, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType: return World->SweepSingleByObjectType(HitResult, From, To, Orientation, FCollisionObjectQueryParams(CollisionObjectType), Shape, CollisionParams);
+	case EPCGExCollisionFilterType::Profile: return World->SweepSingleByProfile(HitResult, From, To, Orientation, CollisionProfileName, Shape, CollisionParams);
+	default: return false;
+	}
+}
+
+bool FPCGExCollisionDetails::SphereSweep(const FVector& From, const FVector& To, const double Radius, const FQuat& Orientation) const
+{
+	FHitResult HitResult;
+	return SphereSweep(From, To, Radius, HitResult, Orientation);
+}
+
+bool FPCGExCollisionDetails::SphereSweepMulti(const FVector& From, const FVector& To, const double Radius, TArray<FHitResult>& OutHits, const FQuat& Orientation) const
+{
+	FCollisionQueryParams CollisionParams;
+	Update(CollisionParams);
+
+	const FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);
+
+	switch (CollisionType)
+	{
+	case EPCGExCollisionFilterType::Channel: return World->SweepMultiByChannel(OutHits, From, To, Orientation, CollisionChannel, Shape, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType: return World->SweepMultiByObjectType(OutHits, From, To, Orientation, FCollisionObjectQueryParams(CollisionObjectType), Shape, CollisionParams);
+	case EPCGExCollisionFilterType::Profile: return World->SweepMultiByProfile(OutHits, From, To, Orientation, CollisionProfileName, Shape, CollisionParams);
+	default: return false;
+	}
+}
+
+bool FPCGExCollisionDetails::BoxSweep(const FVector& From, const FVector& To, const FVector& HalfExtents, FHitResult& HitResult, const FQuat& Orientation) const
+{
+	FCollisionQueryParams CollisionParams;
+	Update(CollisionParams);
+
+	const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+
+	switch (CollisionType)
+	{
+	case EPCGExCollisionFilterType::Channel: return World->SweepSingleByChannel(HitResult, From, To, Orientation, CollisionChannel, Shape, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType: return World->SweepSingleByObjectType(HitResult, From, To, Orientation, FCollisionObjectQueryParams(CollisionObjectType), Shape, CollisionParams);
+	case EPCGExCollisionFilterType::Profile: return World->SweepSingleByProfile(HitResult, From, To, Orientation, CollisionProfileName, Shape, CollisionParams);
+	default: return false;
+	}
+}
+
+bool FPCGExCollisionDetails::BoxSweep(const FVector& From, const FVector& To, const FVector& HalfExtents, const FQuat& Orientation) const
+{
+	FHitResult HitResult;
+	return BoxSweep(From, To, HalfExtents, HitResult, Orientation);
+}
+
+bool FPCGExCollisionDetails::BoxSweepMulti(const FVector& From, const FVector& To, const FVector& HalfExtents, TArray<FHitResult>& OutHits, const FQuat& Orientation) const
+{
+	FCollisionQueryParams CollisionParams;
+	Update(CollisionParams);
+
+	const FCollisionShape Shape = FCollisionShape::MakeBox(HalfExtents);
+
+	switch (CollisionType)
+	{
+	case EPCGExCollisionFilterType::Channel: return World->SweepMultiByChannel(OutHits, From, To, Orientation, CollisionChannel, Shape, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType: return World->SweepMultiByObjectType(OutHits, From, To, Orientation, FCollisionObjectQueryParams(CollisionObjectType), Shape, CollisionParams);
+	case EPCGExCollisionFilterType::Profile: return World->SweepMultiByProfile(OutHits, From, To, Orientation, CollisionProfileName, Shape, CollisionParams);
+	default: return false;
+	}
+}

@@ -29,6 +29,9 @@ namespace PCGExDetails
 			return false;
 		}
 
+		// Register as consumable
+		Context->AddConsumableAttributeName(Name);
+
 		return true;
 	}
 
@@ -56,6 +59,13 @@ namespace PCGExDetails
 		Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax, this->bQuiet);
 		if (!Buffer) { return false; }
 
+		// Register as consumable if it's an attribute
+		FName AttributeName = NAME_None;
+		if (PCGExMetaHelpers::TryGetAttributeName(Selector, InDataFacade->GetIn(), AttributeName))
+		{
+			Context->AddConsumableAttributeName(AttributeName);
+		}
+
 		return true;
 	}
 
@@ -80,6 +90,13 @@ namespace PCGExDetails
 
 		if (!PCGExData::Helpers::TryReadDataValue(Context, InDataFacade->GetIn(), Selector, this->Constant, this->bQuiet)) { return false; }
 
+		// Register as consumable if it's an attribute
+		FName AttributeName = NAME_None;
+		if (PCGExMetaHelpers::TryGetAttributeName(Selector, InDataFacade->GetIn(), AttributeName))
+		{
+			Context->AddConsumableAttributeName(AttributeName);
+		}
+
 		return true;
 	}
 
@@ -92,6 +109,9 @@ namespace PCGExDetails
 		PCGEX_VALIDATE_NAME_C(Context, Name)
 
 		if (!PCGExData::Helpers::TryReadDataValue(Context, InDataFacade->GetIn(), Name, this->Constant, this->bQuiet)) { return false; }
+
+		// Register as consumable
+		Context->AddConsumableAttributeName(Name);
 
 		return true;
 	}
