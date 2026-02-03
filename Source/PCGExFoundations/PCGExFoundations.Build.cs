@@ -8,7 +8,8 @@ public class PCGExFoundations : ModuleRules
 	public PCGExFoundations(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = true;                                                                                                     
+		PrivatePCHHeaderFile = "PCGExMinimalPCH.h";
+		bUseUnity = true;
 		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;
 

@@ -3,6 +3,8 @@
 
 #include "Relaxations/PCGExBoxFittingRelax.h"
 
+#include "Data/PCGBasePointData.h"
+
 #pragma region UPCGExBoxFittingRelax
 
 bool UPCGExBoxFittingRelax::PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExClusters::FCluster>& InCluster)

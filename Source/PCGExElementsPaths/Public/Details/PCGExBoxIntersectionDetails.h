@@ -18,6 +18,8 @@ MACRO(CutType, int32, CutTypeValueMapping[EPCGExCutType::Undefined])\
 MACRO(Normal, FVector, FVector::ZeroVector)\
 MACRO(BoundIndex, int32, -1)
 
+struct FPCGContext;
+
 namespace PCGExMath
 {
 	namespace OBB

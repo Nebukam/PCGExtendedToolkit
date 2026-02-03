@@ -3,6 +3,7 @@
 
 #include "Math/PCGExUVW.h"
 
+#include "Data/PCGBasePointData.h"
 #include "Math/PCGExMathBounds.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointElements.h"

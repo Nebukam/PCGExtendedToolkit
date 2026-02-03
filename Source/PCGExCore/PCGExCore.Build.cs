@@ -11,7 +11,10 @@ public class PCGExCore : ModuleRules
 		PublicDefinitions.Add("PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED=1");
 		
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PrivatePCHHeaderFile = "PCGExSharedPCH.h";
+		PrivatePCHHeaderFile = "PCGExMinimalPCH.h";
+		
+		// Uncomment if you get PCH memory exhaustion errors (C3859/C1076):
+		// PublicDefinitions.Add("PCGEX_FAT_PCH=0");
 		bUseUnity = true;
 		MinSourceFilesForUnityBuildOverride = 4;
 		

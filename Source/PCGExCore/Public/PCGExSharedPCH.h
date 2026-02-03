@@ -1,16 +1,17 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-// Ultra-minimal shared PCH - ONLY core UE headers
-// PCG headers are excluded to keep PCH size within MSVC limits
-// Each module includes PCG headers as needed in their source files
+// Shared PCH - precompile common UE and PCG headers once for all modules
+// PCG headers MUST be here (not in individual headers) to avoid PCH memory overflow
 
 #pragma once
 
-// Core UE only - these are the biggest compilation time savers
+// Core UE
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
 
-// NOTE: PCG headers intentionally excluded to reduce PCH memory footprint
-// If you need PCG types, include them directly in your .cpp files
+// PCG core - precompiled here so modules don't re-process them
+#include "Metadata/PCGMetadataCommon.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
+#include "Compute/PCGDataDescription.h"

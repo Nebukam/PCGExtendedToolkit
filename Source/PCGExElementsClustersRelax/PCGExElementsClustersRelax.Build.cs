@@ -8,7 +8,6 @@ public class PCGExElementsClustersRelax : ModuleRules
 	public PCGExElementsClustersRelax(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PrivatePCHHeaderFile = "PCGExSharedPCH.h";
 		bUseUnity = true;
 		MinSourceFilesForUnityBuildOverride = 4;
 

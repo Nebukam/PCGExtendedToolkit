@@ -7,6 +7,7 @@
 #include "Data/Utils/PCGExDataPreloader.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
+#include "Data/PCGBasePointData.h"
 #include "Sorting/PCGExPointSorter.h"
 #include "Sorting/PCGExSortingDetails.h"
 

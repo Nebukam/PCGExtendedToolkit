@@ -8,7 +8,7 @@ public class PCGExElementsClusters : ModuleRules
 	public PCGExElementsClusters(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PrivatePCHHeaderFile = "PCGExSharedPCH.h";
+		PrivatePCHHeaderFile = "PCGExMinimalPCH.h";
 		bUseUnity = true;
 		MinSourceFilesForUnityBuildOverride = 4;
 

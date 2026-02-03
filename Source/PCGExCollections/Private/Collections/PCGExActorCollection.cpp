@@ -86,7 +86,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 		// Destroy the temporary actor
 		TempActor->Destroy();
 
-		Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
+		Staging.Bounds = FBox(Origin - Extents, Origin + Extents);
 
 #else
 		Staging.Bounds = FBox(ForceInit);

@@ -4,6 +4,7 @@
 #include "Details/PCGExAxisDeformDetails.h"
 
 #include "Core/PCGExContext.h"
+#include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExTaggedData.h"

@@ -10,6 +10,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointElements.h"
 #include "Clusters/PCGExCluster.h"
+#include "Data/PCGBasePointData.h"
 #include "Math/Geo/PCGExGeo.h"
 
 namespace PCGExClusters

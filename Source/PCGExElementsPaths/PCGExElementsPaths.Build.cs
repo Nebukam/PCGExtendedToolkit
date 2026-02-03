@@ -8,6 +8,7 @@ public class PCGExElementsPaths : ModuleRules
 	public PCGExElementsPaths(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		PrivatePCHHeaderFile = "PCGExMinimalPCH.h";
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;
