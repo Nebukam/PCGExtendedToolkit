@@ -3,7 +3,7 @@
 
 #include "PCGExFoundationsEditor.h"
 
-#include "SlateBasics.h"
+
 #include "PCGExAssetTypesMacros.h"
 #include "PropertyEditorModule.h"
 #include "Details/Bitmask/PCGExBitmaskCustomization.h"

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "IPropertyTypeCustomization.h"
-#include "SlateBasics.h"
+
 
 /**
  * Customizes FPCGExPropertyOverrideEntry to show PropertyName label + Value widget.

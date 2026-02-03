@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Toolkits/AssetEditorToolkit.h"
-#include "SlateBasics.h"
+
 #include "Widgets/Docking/SDockTab.h"
 
 class UPCGExAssetCollection;
