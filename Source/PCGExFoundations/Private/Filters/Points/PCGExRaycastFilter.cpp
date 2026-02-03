@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Sampling/PCGExSamplingHelpers.h"
+#include "Engine/HitResult.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRaycastFilterDefinition"
 #define PCGEX_NAMESPACE PCGExRaycastFilterDefinition
@@ -28,7 +29,7 @@ bool UPCGExRaycastFilterFactory::Init(FPCGExContext* InContext)
 				PCGEX_LOG_INVALID_ATTR_C(InContext, Actor Reference, Config.ActorReference)
 				return false;
 			}
-			
+
 			InContext->AddConsumableAttributeName(Config.ActorReference);
 		}
 

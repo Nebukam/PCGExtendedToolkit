@@ -7,8 +7,9 @@ public class PCGExBlending : ModuleRules
 {
 	public PCGExBlending(ReadOnlyTargetRules Target) : base(Target)
 	{;
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		PCHUsage = PCHUsageMode.NoPCHs;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;
 		
 		PublicIncludePaths.AddRange(

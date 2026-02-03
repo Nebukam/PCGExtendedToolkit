@@ -4,6 +4,7 @@
 #pragma once
 
 #include "IPropertyTypeCustomization.h"
+#include "SlateBasics.h"
 
 class SUniformGridPanel;
 

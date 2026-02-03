@@ -7,8 +7,9 @@ public class PCGExElementsValency : ModuleRules
 {
 	public PCGExElementsValency(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		PCHUsage = PCHUsageMode.NoPCHs;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]

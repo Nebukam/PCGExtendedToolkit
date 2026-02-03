@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "IPropertyTypeCustomization.h"
 #include "Widgets/SCompoundWidget.h"
+#include "SlateBasics.h"
 
 class UPCGExValencySocketRules;
 

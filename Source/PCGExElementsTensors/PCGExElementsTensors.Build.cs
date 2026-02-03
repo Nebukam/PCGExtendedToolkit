@@ -7,8 +7,9 @@ public class PCGExElementsTensors : ModuleRules
 {
 	public PCGExElementsTensors(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		PCHUsage = PCHUsageMode.NoPCHs;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(

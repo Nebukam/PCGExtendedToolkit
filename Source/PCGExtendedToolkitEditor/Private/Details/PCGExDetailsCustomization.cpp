@@ -4,6 +4,7 @@
 
 #include "Details/PCGExDetailsCustomization.h"
 
+#include "PropertyEditorModule.h"
 #include "PCGExCoreEditor/Public/PCGExAssetTypesMacros.h"
 #include "PCGExCoreEditor/Public/Details/Enums/PCGExGridEnumCustomization.h"
 #include "PCGExCoreEditor/Public/Details/Enums/PCGExInlineEnumCustomization.h"

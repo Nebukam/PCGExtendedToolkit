@@ -439,6 +439,16 @@
         "Mac",
         "Linux"
       ]
+    },
+    {
+      "Name": "PCGExtendedToolkitTest",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux"
+      ]
     }
   ],
   "Plugins": [

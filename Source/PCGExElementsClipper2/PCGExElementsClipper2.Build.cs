@@ -8,8 +8,9 @@ public class PCGExElementsClipper2 : ModuleRules
 {
 	public PCGExElementsClipper2(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		PCHUsage = PCHUsageMode.NoPCHs;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]

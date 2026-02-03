@@ -7,6 +7,7 @@
 #include "ContentBrowserMenuContexts.h"
 #include "PCGExAssetTypesMacros.h"
 #include "PCGExCollectionsEditorMenuUtils.h"
+#include "PropertyEditorModule.h"
 #include "Details/Collections/PCGExActorCollectionActions.h"
 #include "Details/Collections/PCGExAssetEntryCustomization.h"
 #include "Details/Collections/PCGExAssetGrammarCustomization.h"

@@ -7,8 +7,9 @@ public class PCGExElementsFloodFill : ModuleRules
 {
 	public PCGExElementsFloodFill(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		PCHUsage = PCHUsageMode.NoPCHs;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 
 		PublicIncludePaths.AddRange(
 			new string[]

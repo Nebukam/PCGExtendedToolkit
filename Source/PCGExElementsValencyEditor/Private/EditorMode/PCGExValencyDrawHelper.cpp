@@ -8,6 +8,7 @@
 #include "SceneManagement.h"
 
 #include "PCGExValencyEditorSettings.h"
+#include "SceneView.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
@@ -16,6 +17,7 @@
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "Core/PCGExValencyOrbitalSet.h"
+#include "Engine/Engine.h"
 
 const UPCGExValencyEditorSettings* FPCGExValencyDrawHelper::GetSettings()
 {

@@ -5,6 +5,7 @@
 
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"
+#include "Engine/World.h"
 #endif
 
 #include "PCGExLog.h"

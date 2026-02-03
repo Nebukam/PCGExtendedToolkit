@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+
 #ifndef PCGEX_CLIPPER_H_TRIANGULATION
 #define PCGEX_CLIPPER_H_TRIANGULATION
 

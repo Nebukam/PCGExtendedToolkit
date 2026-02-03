@@ -8,6 +8,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshSocket.h"
 #include "EngineUtils.h"
+#include "PCGExValencyEditorCommon.h"
 #include "PCGExValencyMacros.h"
 #include "Core/PCGExValencySocketRules.h"
 #include "Core/PCGExValencyLog.h"
@@ -20,12 +21,6 @@
 #include "Editor.h"
 #include "EditorModeManager.h"
 #endif
-
-namespace PCGExValencyFolders
-{
-	const FName CagesFolder = FName(TEXT("Valency/Cages"));
-	const FName VolumesFolder = FName(TEXT("Valency/Volumes"));
-}
 
 APCGExValencyCageBase::APCGExValencyCageBase()
 {

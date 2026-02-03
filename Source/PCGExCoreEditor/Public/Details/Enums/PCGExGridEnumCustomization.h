@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-
+#include "SlateBasics.h" 
 #include "IPropertyTypeCustomization.h"
 
 class PCGEXCOREEDITOR_API FPCGExGridEnumCustomization : public IPropertyTypeCustomization

@@ -7,8 +7,10 @@ public class PCGExCollectionsEditor : ModuleRules
 {
 	public PCGExCollectionsEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		PCHUsage = PCHUsageMode.NoPCHs;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
+		bUseUnity = false;
 
 		PublicIncludePaths.AddRange(
 			new string[]
