@@ -84,9 +84,9 @@ namespace PCGExTest
 		// Allocate points using 5.7 API
 		PointData->SetNumPoints(NumPoints);
 
-		// Get mutable value ranges
-		TPCGValueRange<FTransform> Transforms = PointData->GetTransformValueRange(false);
-		TPCGValueRange<int32> Seeds = PointData->GetSeedValueRange(false);
+		// Get mutable value ranges (no parameter = default behavior for writing)
+		TPCGValueRange<FTransform> Transforms = PointData->GetTransformValueRange();
+		TPCGValueRange<int32> Seeds = PointData->GetSeedValueRange();
 
 		// Set transforms for each point
 		for (int32 i = 0; i < NumPoints; ++i)

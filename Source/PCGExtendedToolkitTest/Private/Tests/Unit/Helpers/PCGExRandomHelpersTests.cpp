@@ -315,10 +315,12 @@ bool FPCGExRandomSpatialSeedOriginTest::RunTest(const FString& Parameters)
 	// Should be deterministic at origin
 	TestEqual(TEXT("Origin produces consistent seed"), SeedOrigin1, SeedOrigin2);
 
-	// Should be different from a nearby point
-	FVector Nearby(0.001, 0.001, 0.001);
-	int32 SeedNearby = PCGExRandomHelpers::ComputeSpatialSeed(Nearby);
-	TestTrue(TEXT("Origin differs from nearby point"), SeedOrigin1 != SeedNearby);
+	// Should be different from a distant point
+	// Note: PCGHelpers::ComputeSeedFromPosition uses integer-based hashing,
+	// so very small offsets (< 1 unit) may produce the same seed
+	FVector Distant(100, 100, 100);
+	int32 SeedDistant = PCGExRandomHelpers::ComputeSpatialSeed(Distant);
+	TestTrue(TEXT("Origin differs from distant point"), SeedOrigin1 != SeedDistant);
 
 	return true;
 }

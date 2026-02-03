@@ -192,10 +192,11 @@ bool FPCGExOBBPointInsideRotatedTest::RunTest(const FString& Parameters)
 	         PointInside(Box, RotatedXPoint));
 
 	// Point that would be inside axis-aligned but outside rotated
-	// At 45 degrees, (35, 35, 0) is actually outside the rotated box
-	// The box's local X now points diagonally
-	TestFalse(TEXT("Point (35,35,0) is outside rotated box"),
-	          PointInside(Box, FVector(35, 35, 0)));
+	// At 45 degrees, point (x,x,0) transforms to local space as (x*sqrt(2), 0, 0)
+	// Box X extent is 50, so x*sqrt(2) > 50 means x > 35.36
+	// Use (40, 40, 0) which gives local x ≈ 56.6 > 50, so it's outside
+	TestFalse(TEXT("Point (40,40,0) is outside rotated box"),
+	          PointInside(Box, FVector(40, 40, 0)));
 
 	return true;
 }

@@ -81,7 +81,7 @@ bool FPCGExBestFitPlaneXYPlaneTest::RunTest(const FString& Parameters)
 		FVector(0, 1, 0)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Centroid should be at center of square
 	FVector ExpectedCentroid(0.5, 0.5, 0.0);
@@ -116,7 +116,7 @@ bool FPCGExBestFitPlaneElevatedXYTest::RunTest(const FString& Parameters)
 		FVector(0, 10, 100)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Centroid Z should be 100
 	TestTrue(TEXT("Elevated XY centroid Z = 100"),
@@ -154,7 +154,7 @@ bool FPCGExBestFitPlaneXZPlaneTest::RunTest(const FString& Parameters)
 		FVector(0, 0, 1)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Centroid Y should be 0
 	TestTrue(TEXT("XZ plane centroid Y = 0"),
@@ -192,7 +192,7 @@ bool FPCGExBestFitPlaneYZPlaneTest::RunTest(const FString& Parameters)
 		FVector(0, 0, 1)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Centroid X should be 0
 	TestTrue(TEXT("YZ plane centroid X = 0"),
@@ -229,7 +229,7 @@ bool FPCGExBestFitPlaneTriangleTest::RunTest(const FString& Parameters)
 		FVector(0, 4, 0)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Centroid is average of points
 	FVector ExpectedCentroid(1.0, 4.0 / 3.0, 0.0);
@@ -268,7 +268,7 @@ bool FPCGExBestFitPlaneTiltedTest::RunTest(const FString& Parameters)
 		FVector(1, 1, 1)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Normal should have both X and Z components
 	FVector Normal = Plane.Normal();
@@ -303,7 +303,7 @@ bool FPCGExBestFitPlaneExtentsTest::RunTest(const FString& Parameters)
 		FVector(0, 4, 0)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	FVector Extents = Plane.GetExtents();
 
@@ -338,7 +338,7 @@ bool FPCGExBestFitPlaneGetTransformTest::RunTest(const FString& Parameters)
 		FVector(-1, 1, 0)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 	FTransform Transform = Plane.GetTransform();
 
 	// Translation should be at centroid (origin in this case)
@@ -369,7 +369,7 @@ bool FPCGExBestFitPlaneGetTransformWithOrderTest::RunTest(const FString& Paramet
 		FVector(0, 1, 0)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Different axis orders should produce different transforms
 	FTransform TransformXYZ = Plane.GetTransform(EPCGExAxisOrder::XYZ);
@@ -406,7 +406,7 @@ bool FPCGExBestFitPlaneExtentsWithOrderTest::RunTest(const FString& Parameters)
 		FVector(0, 4, 0)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	FVector ExtentsDefault = Plane.GetExtents();
 	FVector ExtentsXYZ = Plane.GetExtents(EPCGExAxisOrder::XYZ);
@@ -448,7 +448,7 @@ bool FPCGExBestFitPlane2DPointsTest::RunTest(const FString& Parameters)
 		FVector2D(0, 1)
 	};
 
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector2D>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector2D>(Points)};
 
 	// Centroid should be at center
 	TestTrue(TEXT("2D centroid X"),
@@ -560,7 +560,7 @@ bool FPCGExBestFitPlaneCollinearTest::RunTest(const FString& Parameters)
 	};
 
 	// This might produce undefined results, but shouldn't crash
-	PCGExMath::FBestFitPlane Plane(TArrayView<const FVector>(Points));
+	PCGExMath::FBestFitPlane Plane{TArrayView<const FVector>(Points)};
 
 	// Centroid should still be valid (middle of line)
 	TestTrue(TEXT("Collinear centroid is finite"),
