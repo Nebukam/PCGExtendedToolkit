@@ -241,9 +241,13 @@ bool FPCGExMathSegmentConstructionTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("Direction is (1,0,0)"),
 		         Segment.Direction.Equals(FVector(1, 0, 0), KINDA_SMALL_NUMBER));
 
-		// Bounds should contain both endpoints
-		TestTrue(TEXT("Bounds contains A"), Segment.Bounds.IsInside(A));
-		TestTrue(TEXT("Bounds contains B"), Segment.Bounds.IsInside(B));
+		// Bounds should span from A to B
+		// Note: For axis-aligned segments, bounds are degenerate (zero volume),
+		// so we check Min/Max directly rather than using IsInside
+		TestTrue(TEXT("Bounds Min <= A"),
+		         Segment.Bounds.Min.X <= A.X && Segment.Bounds.Min.Y <= A.Y && Segment.Bounds.Min.Z <= A.Z);
+		TestTrue(TEXT("Bounds Max >= B"),
+		         Segment.Bounds.Max.X >= B.X && Segment.Bounds.Max.Y >= B.Y && Segment.Bounds.Max.Z >= B.Z);
 	}
 
 	// Diagonal segment

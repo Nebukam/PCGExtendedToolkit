@@ -211,11 +211,6 @@ bool FPCGExGraphDataTransformTest::RunTest(const FString& Parameters)
 	FVector TransformedPos = TransformedTransforms[4].GetLocation();
 	FVector ExpectedPos = OriginalPos * Scale;
 
-	AddInfo(FString::Printf(TEXT("NumPoints: %d"), NumPoints));
-	AddInfo(FString::Printf(TEXT("OriginalPos[4]: (%.2f, %.2f, %.2f)"), OriginalPos.X, OriginalPos.Y, OriginalPos.Z));
-	AddInfo(FString::Printf(TEXT("TransformedPos[4]: (%.2f, %.2f, %.2f)"), TransformedPos.X, TransformedPos.Y, TransformedPos.Z));
-	AddInfo(FString::Printf(TEXT("ExpectedPos: (%.2f, %.2f, %.2f)"), ExpectedPos.X, ExpectedPos.Y, ExpectedPos.Z));
-
 	TestTrue(TEXT("Center point scaled correctly"),
 	         TransformedPos.Equals(ExpectedPos, KINDA_SMALL_NUMBER));
 

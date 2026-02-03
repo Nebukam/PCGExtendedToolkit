@@ -430,22 +430,23 @@ bool FPCGExMathGetAngleTest::RunTest(const FString& Parameters)
 {
 	const double Tolerance = 0.01;
 
-	// Same direction - 0 degrees
+	// GetAngle returns radians, not degrees
+	// Same direction - 0 radians
 	TestTrue(TEXT("GetAngle(X, X) ~ 0"),
 	         FMath::IsNearlyEqual(PCGExMath::GetAngle(FVector::ForwardVector, FVector::ForwardVector), 0.0, Tolerance));
 
-	// Perpendicular - 90 degrees
-	TestTrue(TEXT("GetAngle(X, Y) ~ 90"),
-	         FMath::IsNearlyEqual(PCGExMath::GetAngle(FVector::ForwardVector, FVector::RightVector), 90.0, Tolerance));
+	// Perpendicular - PI/2 radians
+	TestTrue(TEXT("GetAngle(X, Y) ~ PI/2"),
+	         FMath::IsNearlyEqual(PCGExMath::GetAngle(FVector::ForwardVector, FVector::RightVector), UE_HALF_PI, Tolerance));
 
-	// Opposite direction - 180 degrees
-	TestTrue(TEXT("GetAngle(X, -X) ~ 180"),
-	         FMath::IsNearlyEqual(PCGExMath::GetAngle(FVector::ForwardVector, FVector::BackwardVector), 180.0, Tolerance));
+	// Opposite direction - PI radians
+	TestTrue(TEXT("GetAngle(X, -X) ~ PI"),
+	         FMath::IsNearlyEqual(PCGExMath::GetAngle(FVector::ForwardVector, FVector::BackwardVector), UE_PI, Tolerance));
 
-	// 45 degree angle
+	// 45 degree angle - PI/4 radians
 	FVector Diagonal = FVector(1, 1, 0).GetSafeNormal();
-	TestTrue(TEXT("GetAngle(X, XY diagonal) ~ 45"),
-	         FMath::IsNearlyEqual(PCGExMath::GetAngle(FVector::ForwardVector, Diagonal), 45.0, Tolerance));
+	TestTrue(TEXT("GetAngle(X, XY diagonal) ~ PI/4"),
+	         FMath::IsNearlyEqual(PCGExMath::GetAngle(FVector::ForwardVector, Diagonal), UE_PI / 4.0, Tolerance));
 
 	return true;
 }
@@ -501,11 +502,11 @@ bool FPCGExMathGetRadiansBetweenVectors2DTest::RunTest(const FString& Parameters
 		         PCGExMath::GetRadiansBetweenVectors(FVector2D(1, 0), FVector2D(0, 1)),
 		         UE_HALF_PI, Tolerance));
 
-	// 90 degrees CW (negative)
-	TestTrue(TEXT("Radians2D((1,0), (0,-1)) ~ -PI/2"),
+	// 90 degrees CW - function returns [0, 2π), so CW 90° = 3π/2
+	TestTrue(TEXT("Radians2D((1,0), (0,-1)) ~ 3*PI/2"),
 	         FMath::IsNearlyEqual(
 		         PCGExMath::GetRadiansBetweenVectors(FVector2D(1, 0), FVector2D(0, -1)),
-		         -UE_HALF_PI, Tolerance));
+		         UE_PI + UE_HALF_PI, Tolerance));
 
 	return true;
 }
