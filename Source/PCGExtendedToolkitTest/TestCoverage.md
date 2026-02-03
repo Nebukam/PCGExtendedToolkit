@@ -51,7 +51,7 @@ Test files: `Tests/Unit/Math/`, `Tests/Unit/Containers/`
 | **PCGExBestFitPlane.h** | [x] | PCGExBestFitPlaneTests | Plane fitting, centroid, normal, extents |
 | **PCGExDelaunay.h** | [ ] | | |
 | **PCGExVoronoi.h** | [ ] | | |
-| **PCGExGeo.h** | [ ] | | |
+| **PCGExGeo.h** | [x] | PCGExGeoTests | Det, Centroid, Circumcenter, Barycentric, PointInTriangle/Polygon, L-inf transforms, edge paths, sphere fitting |
 | **PCGExOBB.h** | [~] | PCGExOBBTests | |
 | **PCGExOBBCollection.h** | [ ] | | |
 | **PCGExOBBSampling.h** | [ ] | | |
@@ -85,9 +85,11 @@ Test files: `Tests/Unit/Helpers/`
 | PCGExFunctionPrototypes.h | [N/A] | | Forward decls |
 
 #### Types (9 headers)
-| Component | Status | Notes |
-|-----------|--------|-------|
-| PCGExTypeOpsNumeric.h | [ ] | |
+Test files: `Tests/Unit/Types/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **PCGExTypeOpsNumeric.h** | [x] | PCGExTypeOpsNumericTests | bool, int32, float, double ops; conversions, blends, hash |
 | PCGExTypeOpsVector.h | [ ] | |
 | PCGExTypeOpsRotation.h | [ ] | |
 | PCGExTypeOpsString.h | [ ] | |
@@ -109,6 +111,13 @@ Test files: `Tests/Unit/Helpers/`
 | Paths (~5 headers) | [ ] | |
 | Sorting (~4 headers) | [ ] | |
 | Factories (~4 headers) | [ ] | |
+
+#### Utils
+Test files: `Tests/Unit/Utils/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **PCGExCompare.h** | [x] | PCGExCompareTests | All comparison ops (==, !=, >=, <=, >, <, ~=, !~=), string comparisons, ToString |
 
 ---
 
@@ -140,16 +149,16 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 | **PCGExConstantFilter.h** | [x] | PCGExConstantFilterTests | Full coverage |
 | PCGExNumericCompareFilter.h | [ ] | | |
 | PCGExStringCompareFilter.h | [ ] | | |
-| PCGExBooleanCompareFilter.h | [ ] | | |
+| **PCGExBooleanCompareFilter.h** | [~] | PCGExFilterLogicTests | Logic simulation (Equal/NotEqual) |
 | PCGExDistanceFilter.h | [ ] | | |
 | PCGExDotFilter.h | [ ] | | |
 | PCGExAngleFilter.h | [ ] | | |
 | PCGExAttributeCheckFilter.h | [ ] | | |
 | PCGExBitmaskFilter.h | [ ] | | |
-| PCGExWithinRangeFilter.h | [ ] | | |
+| **PCGExWithinRangeFilter.h** | [~] | PCGExFilterLogicTests | Logic simulation (inclusive/exclusive, invert) |
 | PCGExRandomFilter.h | [ ] | | |
 | PCGExRandomRatioFilter.h | [ ] | | |
-| PCGExModuloCompareFilter.h | [ ] | | |
+| **PCGExModuloCompareFilter.h** | [~] | PCGExFilterLogicTests | Logic simulation (modulo ops, zero handling) |
 | PCGExBoundsFilter.h | [ ] | | |
 | PCGExMeanFilter.h | [ ] | | |
 | (remaining ~15 filters) | [ ] | | |
@@ -280,3 +289,7 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 | 2026-02-03 | Added PCGExArrayHelpers tests (string parsing, reverse, reorder, indices) |
 | 2026-02-03 | Added PCGExRandomHelpers tests (FastRand01, ComputeSpatialSeed) |
 | 2026-02-03 | Added PCGExBestFitPlane tests (plane fitting, centroid, normal, extents) |
+| 2026-02-03 | Added PCGExGeo tests (Det, Centroid, Circumcenter, Barycentric, PointInTriangle/Polygon, L-inf transforms, edge paths, sphere fitting) |
+| 2026-02-03 | Added PCGExCompare tests (all numeric comparisons, string comparisons, vector/transform comparisons) |
+| 2026-02-03 | Added PCGExFilterLogic tests (BooleanCompare, WithinRange, ModuloCompare logic simulation) |
+| 2026-02-03 | Added PCGExTypeOpsNumeric tests (bool, int32, float, double operations; conversions, blends, hash) |

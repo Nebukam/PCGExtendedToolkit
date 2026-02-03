@@ -116,10 +116,40 @@ namespace PCGExCompare
 #pragma region Numeric comparisons ops
 
 	template <typename T>
-	FORCEINLINE static bool StrictlyEqual(const T& A, const T& B) { return A == B; }
+	FORCEINLINE static bool StrictlyEqual(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return A.X == B.X && A.Y == B.Y;
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return A.X == B.X && A.Y == B.Y && A.Z == B.Z;
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return A.X == B.X && A.Y == B.Y && A.Z == B.Z && A.W == B.W;
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return A.Equals(B);
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return A.Equals(B);
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return A.Equals(B);
+		}
+		else
+		{
+			return A == B;
+		}
+	}
 
 	template <typename T>
-	FORCEINLINE static bool StrictlyNotEqual(const T& A, const T& B) { return A != B; }
+	FORCEINLINE static bool StrictlyNotEqual(const T& A, const T& B) { return !StrictlyEqual(A, B); }
 
 	template <typename T>
 	FORCEINLINE static bool EqualOrGreater(const T& A, const T& B)
@@ -280,7 +310,7 @@ namespace PCGExCompare
 		{
 			return NearlyEqual(A.X, B.X, Tolerance) && NearlyEqual(A.Y, B.Y, Tolerance);
 		}
-		else if constexpr (std::is_same_v<T, FVector2D>)
+		else if constexpr (std::is_same_v<T, FVector>)
 		{
 			return NearlyEqual(A.X, B.X, Tolerance) && NearlyEqual(A.Y, B.Y, Tolerance) && NearlyEqual(A.Z, B.Z, Tolerance);
 		}
