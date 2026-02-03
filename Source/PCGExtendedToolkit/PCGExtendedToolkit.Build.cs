@@ -24,7 +24,7 @@ public class PCGExtendedToolkit : ModuleRules
 
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.NoPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 

@@ -8,7 +8,7 @@ public class PCGExtendedToolkitTest : ModuleRules
 	public PCGExtendedToolkitTest(ReadOnlyTargetRules Target) : base(Target)
 	{
 		// Disable PCH to reduce compiler memory pressure - test module is not performance-critical
-		PCHUsage = PCHUsageMode.NoPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 

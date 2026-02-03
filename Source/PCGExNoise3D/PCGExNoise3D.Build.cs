@@ -7,7 +7,7 @@ public class PCGExNoise3D : ModuleRules
 {
 	public PCGExNoise3D(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.NoPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;

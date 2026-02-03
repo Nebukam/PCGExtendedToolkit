@@ -11,8 +11,8 @@ public class PCGExCore : ModuleRules
 		PublicDefinitions.Add("PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED=1");
 		
 		PCHUsage = PCHUsageMode.NoPCHs;
-		
-		bUseUnity = false;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 		
 		PublicIncludePaths.AddRange(
 			new string[]

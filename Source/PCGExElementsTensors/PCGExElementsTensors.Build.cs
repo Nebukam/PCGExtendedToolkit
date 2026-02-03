@@ -7,7 +7,7 @@ public class PCGExElementsTensors : ModuleRules
 {
 	public PCGExElementsTensors(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.NoPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;

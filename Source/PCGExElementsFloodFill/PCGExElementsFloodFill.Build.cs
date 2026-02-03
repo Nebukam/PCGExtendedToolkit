@@ -7,7 +7,7 @@ public class PCGExElementsFloodFill : ModuleRules
 {
 	public PCGExElementsFloodFill(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.NoPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 

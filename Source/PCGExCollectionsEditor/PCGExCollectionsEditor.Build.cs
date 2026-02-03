@@ -7,7 +7,7 @@ public class PCGExCollectionsEditor : ModuleRules
 {
 	public PCGExCollectionsEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.NoPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 		bUseUnity = false;
