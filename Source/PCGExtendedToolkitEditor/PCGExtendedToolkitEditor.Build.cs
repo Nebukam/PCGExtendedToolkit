@@ -1,15 +1,17 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
+using System.IO;
 using UnrealBuildTool;
 
 public class PCGExtendedToolkitEditor : ModuleRules
 {
 	public PCGExtendedToolkitEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
+		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 8;
+		MinSourceFilesForUnityBuildOverride = 4;
 		
 		PublicDependencyModuleNames.AddRange(
 			new[]

@@ -5,6 +5,8 @@
  
 #include "IPropertyTypeCustomization.h"
 
+class SWidget;
+
 class PCGEXCOREEDITOR_API FPCGExGridEnumCustomization : public IPropertyTypeCustomization
 {
 public:

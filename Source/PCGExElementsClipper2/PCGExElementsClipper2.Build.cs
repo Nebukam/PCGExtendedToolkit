@@ -2,15 +2,17 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 // Originally ported from cavalier_contours by jbuckmccready (https://github.com/jbuckmccready/cavalier_contours)
 
+using System.IO;
 using UnrealBuildTool;
 
 public class PCGExElementsClipper2 : ModuleRules
 {
 	public PCGExElementsClipper2(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
+		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 8;
+		MinSourceFilesForUnityBuildOverride = 4;
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]

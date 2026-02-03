@@ -15,6 +15,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Modules/ModuleManager.h"
+#include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
 FPCGExMeshCollectionEditor::FPCGExMeshCollectionEditor()

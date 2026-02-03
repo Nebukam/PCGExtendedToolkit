@@ -24,9 +24,10 @@ public class PCGExtendedToolkit : ModuleRules
 
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
+		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 8;
+		MinSourceFilesForUnityBuildOverride = 4;
 
 		ConfigureBaseDependencies();
 

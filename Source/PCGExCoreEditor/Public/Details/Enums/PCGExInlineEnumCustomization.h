@@ -6,6 +6,8 @@
 #include "IPropertyTypeCustomization.h"
 
 
+class SWidget;
+
 namespace PCGExEnumCustomization
 {
 	PCGEXCOREEDITOR_API

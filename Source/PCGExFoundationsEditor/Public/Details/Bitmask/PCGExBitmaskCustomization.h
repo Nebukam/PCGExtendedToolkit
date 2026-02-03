@@ -7,6 +7,7 @@
 
 
 class SUniformGridPanel;
+class SWidget;
 
 namespace PCGExBitmaskCustomization
 {
