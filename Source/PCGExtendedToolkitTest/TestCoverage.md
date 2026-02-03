@@ -44,11 +44,11 @@ Test files: `Tests/Unit/Math/`, `Tests/Unit/Containers/`
 | ├─ ReverseRange | [x] | PCGExMathUtilTests | |
 | └─ (remaining functions) | [ ] | | FastRand, ConeBox, etc. |
 | **PCGExMathDistances.h** | [ ] | | |
-| **PCGExMathAxis.h** | [ ] | | |
+| **PCGExMathAxis.h** | [x] | PCGExMathAxisTests | Axis order, direction, swizzle, angles |
 | **PCGExMathBounds.h** | [ ] | | |
-| **PCGExMathMean.h** | [ ] | | |
-| **PCGExWinding.h** | [ ] | | |
-| **PCGExBestFitPlane.h** | [ ] | | |
+| **PCGExMathMean.h** | [x] | PCGExMathMeanTests | Average, Median, QuickSelect |
+| **PCGExWinding.h** | [x] | PCGExWindingTests | IsWinded, FPolygonInfos, AngleCCW |
+| **PCGExBestFitPlane.h** | [x] | PCGExBestFitPlaneTests | Plane fitting, centroid, normal, extents |
 | **PCGExDelaunay.h** | [ ] | | |
 | **PCGExVoronoi.h** | [ ] | | |
 | **PCGExGeo.h** | [ ] | | |
@@ -67,20 +67,22 @@ Test files: `Tests/Unit/Math/`, `Tests/Unit/Containers/`
 | **PCGExManagedObjectsInterfaces.h** | [N/A] | | Interface only |
 
 #### Helpers (12 headers)
-| Component | Status | Notes |
-|-----------|--------|-------|
-| PCGExArrayHelpers.h | [ ] | |
-| PCGExMetaHelpers.h | [ ] | |
-| PCGExMetaHelpersMacros.h | [N/A] | Macros |
-| PCGExPointArrayDataHelpers.h | [ ] | |
-| PCGExBufferHelper.h | [ ] | |
-| PCGExAttributeMapHelpers.h | [ ] | |
-| PCGExStreamingHelpers.h | [ ] | |
-| PCGExAssetLoader.h | [ ] | |
-| PCGExAsyncHelpers.h | [ ] | |
-| PCGExRandomHelpers.h | [ ] | |
-| PCGExPropertyHelpers.h | [ ] | |
-| PCGExFunctionPrototypes.h | [N/A] | Forward decls |
+Test files: `Tests/Unit/Helpers/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **PCGExArrayHelpers.h** | [x] | PCGExArrayHelpersTests | String parsing, reverse, reorder, indices |
+| PCGExMetaHelpers.h | [ ] | | |
+| PCGExMetaHelpersMacros.h | [N/A] | | Macros |
+| PCGExPointArrayDataHelpers.h | [ ] | | |
+| PCGExBufferHelper.h | [ ] | | |
+| PCGExAttributeMapHelpers.h | [ ] | | |
+| PCGExStreamingHelpers.h | [ ] | | |
+| PCGExAssetLoader.h | [ ] | | |
+| PCGExAsyncHelpers.h | [ ] | | |
+| **PCGExRandomHelpers.h** | [x] | PCGExRandomHelpersTests | FastRand01, ComputeSpatialSeed |
+| PCGExPropertyHelpers.h | [ ] | | |
+| PCGExFunctionPrototypes.h | [N/A] | | Forward decls |
 
 #### Types (9 headers)
 | Component | Status | Notes |
@@ -272,3 +274,9 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 | 2026-02-03 | Added PCGExConstantFilter tests |
 | 2026-02-03 | Added sharded container tests (TH64SetShards, TH64MapShards) |
 | 2026-02-03 | Reorganized tiers based on actual usage priorities |
+| 2026-02-03 | Added PCGExMathAxis tests (GetAxesOrder, GetDirection, Swizzle, angle functions) |
+| 2026-02-03 | Added PCGExMathMean tests (GetAverage, GetMedian, QuickSelect) |
+| 2026-02-03 | Added PCGExWinding tests (IsWinded, FPolygonInfos, AngleCCW) |
+| 2026-02-03 | Added PCGExArrayHelpers tests (string parsing, reverse, reorder, indices) |
+| 2026-02-03 | Added PCGExRandomHelpers tests (FastRand01, ComputeSpatialSeed) |
+| 2026-02-03 | Added PCGExBestFitPlane tests (plane fitting, centroid, normal, extents) |
