@@ -24,7 +24,7 @@ public class PCGExCore : ModuleRules
 		} 
 		
 		// Uncomment if you get PCH memory exhaustion errors (C3859/C1076):
-		PublicDefinitions.Add("PCGEX_FAT_PCH=0");
+		//PublicDefinitions.Add("PCGEX_FAT_PCH=0");
 		bUseUnity = true;
 		MinSourceFilesForUnityBuildOverride = 4;
 		

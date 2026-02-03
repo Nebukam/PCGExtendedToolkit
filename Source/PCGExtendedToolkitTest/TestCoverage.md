@@ -45,7 +45,7 @@ Test files: `Tests/Unit/Math/`, `Tests/Unit/Containers/`
 | └─ (remaining functions) | [ ] | | FastRand, ConeBox, etc. |
 | **PCGExMathDistances.h** | [ ] | | |
 | **PCGExMathAxis.h** | [x] | PCGExMathAxisTests | Axis order, direction, swizzle, angles |
-| **PCGExMathBounds.h** | [ ] | | |
+| **PCGExMathBounds.h** | [~] | PCGExMathBoundsTests | SanitizeBounds, EPCGExBoxCheckMode enum |
 | **PCGExMathMean.h** | [x] | PCGExMathMeanTests | Average, Median, QuickSelect |
 | **PCGExWinding.h** | [x] | PCGExWindingTests | IsWinded, FPolygonInfos, AngleCCW |
 | **PCGExBestFitPlane.h** | [x] | PCGExBestFitPlaneTests | Plane fitting, centroid, normal, extents |
@@ -72,7 +72,7 @@ Test files: `Tests/Unit/Helpers/`
 | Component | Status | Test File | Notes |
 |-----------|--------|-----------|-------|
 | **PCGExArrayHelpers.h** | [x] | PCGExArrayHelpersTests | String parsing, reverse, reorder, indices |
-| PCGExMetaHelpers.h | [ ] | | |
+| **PCGExMetaHelpers.h** | [x] | PCGExMetaHelpersTests | IsPCGExAttribute, MakePCGExAttributeName, IsWritableAttributeName, IsDataDomainAttribute, StripDomainFromName, GetPropertyType, GetPropertyNativeTypes |
 | PCGExMetaHelpersMacros.h | [N/A] | | Macros |
 | PCGExPointArrayDataHelpers.h | [ ] | | |
 | PCGExBufferHelper.h | [ ] | | |
@@ -90,10 +90,10 @@ Test files: `Tests/Unit/Types/`
 | Component | Status | Test File | Notes |
 |-----------|--------|-----------|-------|
 | **PCGExTypeOpsNumeric.h** | [x] | PCGExTypeOpsNumericTests | bool, int32, float, double ops; conversions, blends, hash |
-| PCGExTypeOpsVector.h | [ ] | |
-| PCGExTypeOpsRotation.h | [ ] | |
-| PCGExTypeOpsString.h | [ ] | |
-| PCGExTypeTraits.h | [ ] | |
+| **PCGExTypeOpsVector.h** | [x] | PCGExTypeOpsVectorTests | FVector2D, FVector, FVector4 ops; conversions, blends, modulo |
+| **PCGExTypeOpsRotation.h** | [x] | PCGExTypeOpsRotationTests | FRotator, FQuat, FTransform ops; conversions, blends, modulo, hash |
+| **PCGExTypeOpsString.h** | [x] | PCGExTypeOpsStringTests | FString, FName, FSoftObjectPath, FSoftClassPath ops; conversions, blends |
+| **PCGExTypeTraits.h** | [x] | PCGExTypeTraitsTests | TTraits<T> for all types; Type, TypeId, feature flags (bIsNumeric, bIsVector, bSupportsLerp, etc.) |
 | PCGExAttributeIdentity.h | [ ] | |
 | PCGExTypes.h | [ ] | |
 | PCGExTypesCore.h | [ ] | |
@@ -109,7 +109,7 @@ Test files: `Tests/Unit/Types/`
 |-----------|--------|-------|
 | Clusters (~9 headers) | [ ] | |
 | Paths (~5 headers) | [ ] | |
-| Sorting (~4 headers) | [ ] | |
+| Sorting (~4 headers) | [~] | PCGExSortingHelpersTests - FVectorKey, RadixSort |
 | Factories (~4 headers) | [ ] | |
 
 #### Utils
@@ -293,3 +293,10 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 | 2026-02-03 | Added PCGExCompare tests (all numeric comparisons, string comparisons, vector/transform comparisons) |
 | 2026-02-03 | Added PCGExFilterLogic tests (BooleanCompare, WithinRange, ModuloCompare logic simulation) |
 | 2026-02-03 | Added PCGExTypeOpsNumeric tests (bool, int32, float, double operations; conversions, blends, hash) |
+| 2026-02-03 | Added PCGExTypeOpsVector tests (FVector2D, FVector, FVector4 operations; conversions, blends, modulo) |
+| 2026-02-03 | Added PCGExTypeOpsRotation tests (FRotator, FQuat, FTransform operations; conversions, blends, modulo, hash) |
+| 2026-02-03 | Added PCGExTypeOpsString tests (FString, FName, FSoftObjectPath, FSoftClassPath operations; conversions, blends) |
+| 2026-02-03 | Added PCGExSortingHelpers tests (FVectorKey comparison/sorting, RadixSort for FIndexKey arrays) |
+| 2026-02-03 | Added PCGExMathBounds tests (SanitizeBounds function, EPCGExBoxCheckMode enum) |
+| 2026-02-03 | Added PCGExMetaHelpers tests (IsPCGExAttribute, MakePCGExAttributeName, IsWritableAttributeName, IsDataDomainAttribute, StripDomainFromName, GetPropertyType, GetPropertyNativeTypes) |
+| 2026-02-03 | Added PCGExTypeTraits tests (TTraits<T> for all types; Type, TypeId, feature flags for bool, int32, int64, float, double, FVector2D, FVector, FVector4, FRotator, FQuat, FTransform, FString, FName, FSoftObjectPath, FSoftClassPath) |
