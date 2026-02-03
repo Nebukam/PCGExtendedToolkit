@@ -9,7 +9,7 @@ public class PCGExElementsShapes : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 4;
+		MinSourceFilesForUnityBuildOverride = 8;
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(

@@ -10,7 +10,7 @@ public class PCGExtendedToolkitTest : ModuleRules
 		// Disable PCH to reduce compiler memory pressure - test module is not performance-critical
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 4;
+		MinSourceFilesForUnityBuildOverride = 8;
 
 		PublicIncludePaths.AddRange(
 			new string[]

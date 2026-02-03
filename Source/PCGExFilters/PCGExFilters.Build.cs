@@ -10,7 +10,7 @@ public class PCGExFilters : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		PrivatePCHHeaderFile = "PCGExMinimalPCH.h";
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 4;
+		MinSourceFilesForUnityBuildOverride = 8;
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(

@@ -9,7 +9,7 @@ public class PCGExFoundationsEditor : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 4;
+		MinSourceFilesForUnityBuildOverride = 8;
 
 		PublicIncludePaths.AddRange(
 			new string[]

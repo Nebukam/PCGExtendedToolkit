@@ -9,7 +9,7 @@ public class PCGExCollectionsEditor : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 4;
+		MinSourceFilesForUnityBuildOverride = 8;
 		bUseUnity = false;
 
 		PublicIncludePaths.AddRange(

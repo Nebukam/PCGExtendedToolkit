@@ -9,7 +9,7 @@ public class PCGExtendedToolkitEditor : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
-		MinSourceFilesForUnityBuildOverride = 4;
+		MinSourceFilesForUnityBuildOverride = 8;
 		
 		PublicDependencyModuleNames.AddRange(
 			new[]
