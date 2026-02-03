@@ -14,6 +14,7 @@
 #include "PCGExPointElements.h"
 #include "PCGExTaggedData.h"
 #include "Containers/PCGExManagedObjects.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Helpers/PCGExPointArrayDataHelpers.h"
 
 namespace PCGExData

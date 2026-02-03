@@ -11,7 +11,7 @@
 #include "PCGExCommon.h"
 #include "PCGExDataCommon.h"
 #include "Core/PCGExMTCommon.h"
-#include "Helpers/PCGExMetaHelpers.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
 
 #pragma region DATA MACROS
 

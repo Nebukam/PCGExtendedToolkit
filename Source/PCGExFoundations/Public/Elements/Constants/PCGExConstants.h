@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "PCGSettings.h"
-#include "Helpers/PCGExMetaHelpers.h"
 #include "PCGExConstantsDefinitions.h"
 #include "Core/PCGExContext.h"
 
@@ -16,6 +15,7 @@
 #include "Containers/PCGExManagedObjects.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
+#include "Elements/Debug/PCGExDrawAttributes.h"
 #include "PCGExConstants.generated.h"
 
 

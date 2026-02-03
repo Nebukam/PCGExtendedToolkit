@@ -11,7 +11,6 @@
 #include "Types/PCGExTypeOps.h"
 #include "UObject/Object.h"
 #include "Data/PCGExCachedSubSelection.h"
-#include "Helpers/PCGExMetaHelpers.h"
 #include "Misc/ScopeRWLock.h"
 
 struct FPCGExContext;

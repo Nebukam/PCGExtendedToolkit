@@ -6,6 +6,7 @@
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Elements/Debug/PCGExDrawAttributes.h"
 #include "Sampling/PCGExSamplingHelpers.h"
 #include "Engine/HitResult.h"
 

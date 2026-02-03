@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Helpers/PCGExMetaHelpers.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "UObject/Object.h"
 

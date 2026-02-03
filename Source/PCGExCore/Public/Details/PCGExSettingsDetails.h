@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSettingsMacros.h" // Boilerplate dependency
-#include "Helpers/PCGExMetaHelpers.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 namespace PCGExMT

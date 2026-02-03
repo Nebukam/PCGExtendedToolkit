@@ -1,0 +1,31 @@
+// Copyright 2026 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Core/PCGExRelaxClusterOperation.h"
+#include "PCGExForceDirectedRelax.generated.h"
+
+/**
+ *
+ */
+UCLASS(MinimalAPI, meta=(DisplayName="Force Directed", PCGExNodeLibraryDoc="clusters/relax-cluster/force-directed"))
+class UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
+	virtual void Step1(const PCGExClusters::FNode& Node) override;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double SpringConstant = 0.1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double ElectrostaticConstant = 1000;
+
+protected:
+	void CalculateAttractiveForce(FVector& Force, const FVector& A, const FVector& B) const;
+	void CalculateRepulsiveForce(FVector& Force, const FVector& A, const FVector& B) const;
+};

@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExSubSelectionOps.h"
 #include "Types/PCGExTypeOpsImpl.h"
-#include "Helpers/PCGExMetaHelpers.h"
 
 /**
  * PCGEx Sub-Selection Operations Implementation

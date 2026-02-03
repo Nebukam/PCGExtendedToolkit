@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Clusters/Artifacts/PCGExCellDetails.h"
 #include "Sorting/PCGExSortingCommon.h"
+#include "Utils/PCGValueRange.h"
 
 struct FPCGExContext;
 

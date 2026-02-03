@@ -10,8 +10,9 @@ public class PCGExCore : ModuleRules
 		// Set this to 0 once migration is complete
 		PublicDefinitions.Add("PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED=1");
 		
-		PCHUsage = PCHUsageMode.NoPCHs;
-		bUseUnity = true;                                                                                                     
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		PrivatePCHHeaderFile = "PCGExSharedPCH.h";
+		bUseUnity = true;
 		MinSourceFilesForUnityBuildOverride = 4;
 		
 		PublicIncludePaths.AddRange(
