@@ -220,9 +220,29 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 
 ## Tier 2: Commonly Used
 
+### PCGExCollections
+Test files: `Tests/Unit/Collections/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **Core/PCGExAssetCollection.h** | [~] | PCGExCollectionCacheTests | Cache system (FCategory, FMicroCache, FCache) |
+| ├─ FCategory | [x] | PCGExCollectionCacheTests | Empty, single, multi-entry, ascending/descending/weight order, random/weighted random |
+| ├─ FMicroCache | [x] | PCGExCollectionCacheTests | Empty, single, multi-entry, weight sum, pick modes |
+| ├─ FCache | [~] | PCGExCollectionCacheTests | Constructor, Main category initialization |
+| └─ FPCGExEntryAccessResult | [x] | PCGExCollectionCacheTests | Default state, validity checks |
+| **Core/PCGExAssetCollectionTypes.h** | [~] | PCGExCollectionCacheTests | FPCGExCollectionTypeSet, TypeIds |
+| ├─ FPCGExCollectionTypeSet | [x] | PCGExCollectionCacheTests | Empty, single, initializer list, add/remove, union/intersection |
+| └─ TypeIds | [x] | PCGExCollectionCacheTests | None, Base, Mesh, Actor, PCGDataAsset values |
+| **PCGExCollectionsCommon.h** | [x] | PCGExCollectionCacheTests | EPCGExIndexPickMode, EPCGExDistribution, EPCGExAssetTagInheritance enums |
+| **FPCGExAssetStagingData** | [x] | PCGExCollectionEntryTests | Default state, FindSocket (by name, by name+tag, first match) |
+| **FPCGExAssetCollectionEntry** | [~] | PCGExCollectionEntryTests | Default state, GetTypeId, HasValidSubCollection, HasPropertyOverride, ClearSubCollection |
+| **Details/PCGExStagingDetails.h** | [~] | PCGExCollectionEntryTests | FPCGExAssetTaggingDetails, FPCGExAssetDistributionDetails, FPCGExMicroCacheDistributionDetails, FPCGExAssetAttributeSetDetails, FPCGExAssetDistributionIndexDetails defaults |
+| Helpers/PCGExCollectionsHelpers.h | [ ] | | FDistributionHelper, FMicroDistributionHelper |
+| Collections/*.h | [ ] | | Mesh, Actor, PCGDataAsset collections |
+| Elements/*.h | [ ] | | Staging elements |
+
 | Module | Headers | Status | Notes |
 |--------|---------|--------|-------|
-| PCGExCollections | ~26 | [ ] | |
 | PCGExMatching | ~14 | [ ] | |
 | PCGExProperties | ~6 | [ ] | |
 | PCGExElementsMeta | ~20 | [ ] | |
@@ -300,3 +320,5 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 | 2026-02-03 | Added PCGExMathBounds tests (SanitizeBounds function, EPCGExBoxCheckMode enum) |
 | 2026-02-03 | Added PCGExMetaHelpers tests (IsPCGExAttribute, MakePCGExAttributeName, IsWritableAttributeName, IsDataDomainAttribute, StripDomainFromName, GetPropertyType, GetPropertyNativeTypes) |
 | 2026-02-03 | Added PCGExTypeTraits tests (TTraits<T> for all types; Type, TypeId, feature flags for bool, int32, int64, float, double, FVector2D, FVector, FVector4, FRotator, FQuat, FTransform, FString, FName, FSoftObjectPath, FSoftClassPath) |
+| 2026-02-03 | Added PCGExCollectionCache tests (FCategory, FMicroCache, FCache, FPCGExEntryAccessResult, FPCGExCollectionTypeSet, TypeIds, EPCGExIndexPickMode, EPCGExDistribution, EPCGExAssetTagInheritance) |
+| 2026-02-03 | Added PCGExCollectionEntry tests (FPCGExAssetStagingData FindSocket, FPCGExAssetCollectionEntry type/validation, staging details defaults) |

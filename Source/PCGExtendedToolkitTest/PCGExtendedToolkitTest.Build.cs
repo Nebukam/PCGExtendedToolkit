@@ -40,7 +40,10 @@ public class PCGExtendedToolkitTest : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"PCGExFilters" // Only for filter enum tests
+				"PCGExFilters",
+				"PCGExFoundations",
+				"PCGExProperties",
+				"PCGExCollections"
 			}
 		);
 
