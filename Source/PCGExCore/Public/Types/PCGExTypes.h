@@ -9,12 +9,11 @@
 #include "Types/PCGExTypeOps.h"
 
 // Type-specific implementations
+#include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Types/PCGExTypeOpsNumeric.h"
 #include "Types/PCGExTypeOpsVector.h"
 #include "Types/PCGExTypeOpsRotation.h"
 #include "Types/PCGExTypeOpsString.h"
-
-#include "Helpers/PCGExMetaHelpers.h"
 
 // Type-erased buffers
 //#include "PCGExTypeErasedBuffer.h"

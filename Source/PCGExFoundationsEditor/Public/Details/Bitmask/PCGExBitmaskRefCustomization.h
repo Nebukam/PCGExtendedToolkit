@@ -4,6 +4,8 @@
 #pragma once
 
 #include "IPropertyTypeCustomization.h"
+#include "Widgets/Input/SComboBox.h"
+
 
 class FPCGExBitmaskRefCustomization : public IPropertyTypeCustomization
 {

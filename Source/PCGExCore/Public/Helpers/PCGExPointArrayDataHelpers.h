@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMetaHelpers.h"
+#include "PCGExMetaHelpersMacros.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "Utils/PCGValueRange.h"
 

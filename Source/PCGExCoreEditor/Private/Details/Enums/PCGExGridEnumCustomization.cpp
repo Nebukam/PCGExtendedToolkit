@@ -4,6 +4,8 @@
 #include "Details/Enums/PCGExGridEnumCustomization.h"
 #include "DetailWidgetRow.h"
 #include "PropertyHandle.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Input/SButton.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"

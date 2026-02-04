@@ -5,6 +5,8 @@
 
 #include "Toolkits/AssetEditorToolkit.h"
 
+#include "Widgets/Docking/SDockTab.h"
+
 class UPCGExAssetCollection;
 
 namespace PCGExAssetCollectionEditor

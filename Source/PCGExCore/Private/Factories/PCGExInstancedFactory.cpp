@@ -12,6 +12,7 @@
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExAttributeBroadcaster.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Helpers/PCGExPropertyHelpers.h"
 
 void UPCGExInstancedFactory::BindContext(FPCGExContext* InContext)

@@ -14,6 +14,7 @@
 
 #include "PCGExGlobalSettings.h"
 #include "PCGExModuleInterface.h"
+#include "AssetRegistry/AssetData.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 

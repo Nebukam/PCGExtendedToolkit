@@ -10,8 +10,11 @@
 #include "PCGExPointElements.h"
 #include "PCGExCommon.h"
 #include "PCGExDataCommon.h"
+#include "Compute/PCGDataDescription.h"
 #include "Core/PCGExMTCommon.h"
-#include "Helpers/PCGExMetaHelpers.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
+#include "Metadata/PCGMetadataCommon.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
 
 #pragma region DATA MACROS
 
@@ -27,6 +30,11 @@
 #endif
 #pragma endregion
 
+struct FPCGContext;
+class UPCGMetadata;
+struct FPCGAttributePropertyInputSelector;
+struct FPCGAttributeIdentifier;
+class FPCGMetadataAttributeBase;
 struct FPCGExContext;
 
 namespace PCGExMT
@@ -34,6 +42,9 @@ namespace PCGExMT
 	class FTaskGroup;
 	class FTaskManager;
 }
+
+template<typename T>
+class FPCGMetadataAttribute;
 
 namespace PCGExData
 {

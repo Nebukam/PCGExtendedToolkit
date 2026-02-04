@@ -16,8 +16,9 @@ namespace PCGExMath
 
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise)
 	{
+		if (Winding == EPCGExWindingMutation::Unchanged) { return true; }
 		if (Winding == EPCGExWindingMutation::Clockwise) { return bIsInputClockwise; }
-		return !bIsInputClockwise;
+		return !bIsInputClockwise; // CounterClockwise
 	}
 
 	FPolygonInfos::FPolygonInfos(const TArray<FVector2D>& InPolygon)

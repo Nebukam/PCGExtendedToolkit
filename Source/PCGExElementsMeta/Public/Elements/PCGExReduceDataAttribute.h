@@ -10,6 +10,7 @@
 #include "Types/PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExAttributesDetails.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #include "PCGExReduceDataAttribute.generated.h"
 

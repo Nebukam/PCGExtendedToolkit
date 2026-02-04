@@ -43,24 +43,36 @@ namespace PCGExMath
 			for (int32 i = 0; i < 6; i++) { Cov[i] *= Scale; }
 
 			// Find largest eigenvalue/eigenvector using power iteration (primary axis)
-			// Optimization: Only normalize every few iterations and at the end to reduce sqrt calls
-			FVector V0(1, 0, 0);
-			for (int32 Iter = 0; Iter < 8; Iter++)
+			// Try different starting vectors in case one aligns with a zero-variance direction
+			const FVector StartVectors[3] = { FVector(1, 0, 0), FVector(0, 1, 0), FVector(0, 0, 1) };
+			FVector V0 = StartVectors[0];
+
+			for (int32 StartIdx = 0; StartIdx < 3; StartIdx++)
 			{
-				V0 = FVector(
-					Cov[0] * V0.X + Cov[3] * V0.Y + Cov[4] * V0.Z,
-					Cov[3] * V0.X + Cov[1] * V0.Y + Cov[5] * V0.Z,
-					Cov[4] * V0.X + Cov[5] * V0.Y + Cov[2] * V0.Z
-				);
-				// Normalize every 4th iteration to prevent numerical overflow while reducing sqrt calls
-				if ((Iter & 3) == 3) { V0 = V0.GetSafeNormal(); }
+				V0 = StartVectors[StartIdx];
+				for (int32 Iter = 0; Iter < 8; Iter++)
+				{
+					V0 = FVector(
+						Cov[0] * V0.X + Cov[3] * V0.Y + Cov[4] * V0.Z,
+						Cov[3] * V0.X + Cov[1] * V0.Y + Cov[5] * V0.Z,
+						Cov[4] * V0.X + Cov[5] * V0.Y + Cov[2] * V0.Z
+					);
+					// Normalize every 4th iteration to prevent numerical overflow while reducing sqrt calls
+					if ((Iter & 3) == 3) { V0 = V0.GetSafeNormal(); }
+				}
+				V0 = V0.GetSafeNormal();
+
+				// If we found a non-zero eigenvector, we're done
+				if (V0.SizeSquared() > KINDA_SMALL_NUMBER) { break; }
 			}
-			V0 = V0.GetSafeNormal(); // Final normalization
 
 			// Find second eigenvector perpendicular to first
 			FVector V1 = FVector::CrossProduct(V0, FVector::UpVector);
 			if (V1.SizeSquared() < KINDA_SMALL_NUMBER) { V1 = FVector::CrossProduct(V0, FVector::ForwardVector); }
 			V1 = V1.GetSafeNormal();
+
+			// Store initial perpendicular vector - needed if this direction has zero variance
+			const FVector V1Initial = V1;
 
 			for (int32 Iter = 0; Iter < 8; Iter++)
 			{
@@ -69,7 +81,17 @@ namespace PCGExMath
 					Cov[3] * V1.X + Cov[1] * V1.Y + Cov[5] * V1.Z,
 					Cov[4] * V1.X + Cov[5] * V1.Y + Cov[2] * V1.Z
 				);
-				V1 = Temp - FVector::DotProduct(Temp, V0) * V0; // Gram-Schmidt
+				Temp = Temp - FVector::DotProduct(Temp, V0) * V0; // Gram-Schmidt
+
+				// If covariance sends V1 to near-zero, this direction has zero variance
+				// Keep the initial perpendicular vector as it's already the correct eigenvector
+				if (Temp.SizeSquared() < KINDA_SMALL_NUMBER)
+				{
+					V1 = V1Initial;
+					break;
+				}
+
+				V1 = Temp;
 				// Normalize every 4th iteration
 				if ((Iter & 3) == 3) { V1 = V1.GetSafeNormal(); }
 			}
@@ -91,11 +113,13 @@ namespace PCGExMath
 				Variance[AxisIdx] = FVector::DotProduct(V, Temp);
 			}
 
-			// Sort axes by variance (largest to smallest)
+			// Sort axes by variance (largest to smallest) with index tie-breaker for determinism
 			OutSwizzle[0] = 0; OutSwizzle[1] = 1; OutSwizzle[2] = 2;
-			if (Variance[1] > Variance[0]) { Swap(OutSwizzle[0], OutSwizzle[1]); }
-			if (Variance[2] > Variance[OutSwizzle[0]]) { Swap(OutSwizzle[0], OutSwizzle[2]); }
-			if (Variance[OutSwizzle[2]] > Variance[OutSwizzle[1]]) { Swap(OutSwizzle[1], OutSwizzle[2]); }
+			Algo::Sort(TArrayView<int32>(OutSwizzle, 3), [&](const int32 A, const int32 B)
+			{
+				if (Variance[A] != Variance[B]) { return Variance[A] > Variance[B]; }
+				return A < B; // Tie-breaker by index for determinism
+			});
 
 			FVector TempAxes[3] = {V0, V1, V2};
 			FVector X = TempAxes[OutSwizzle[0]]; // Largest variance
@@ -380,7 +404,12 @@ namespace PCGExMath
 	{
 		Centroid = Box.Center();
 
-		Algo::Sort(Swizzle, [&](const int32 A, const int32 B) { return Box.Extents[A] > Box.Extents[B]; });
+		// Sort by extents with index tie-breaker for determinism
+		Algo::Sort(Swizzle, [&](const int32 A, const int32 B)
+		{
+			if (Box.Extents[A] != Box.Extents[B]) { return Box.Extents[A] > Box.Extents[B]; }
+			return A < B; // Tie-breaker by index for determinism
+		});
 
 		Extents[0] = Box.Extents[Swizzle[0]];
 		Extents[1] = Box.Extents[Swizzle[1]];

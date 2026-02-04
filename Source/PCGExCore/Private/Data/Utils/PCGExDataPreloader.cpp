@@ -8,6 +8,7 @@
 #include "PCGExSettingsCacheBody.h"
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGBasePointData.h"
 #include "Types/PCGExTypeTraits.h"
 
 namespace PCGExData

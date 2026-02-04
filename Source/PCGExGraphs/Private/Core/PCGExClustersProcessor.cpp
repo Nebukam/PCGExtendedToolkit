@@ -319,6 +319,7 @@ void FPCGExClustersProcessorContext::AdvanceBatch(const PCGExCommon::ContextStat
 	{
 		CurrentBatch = Batches[CurrentBatchIndex];
 		SetState(PCGExClusterMT::MTState_ClusterProcessing);
+		PCGEX_SCHEDULING_SCOPE(GetTaskManager(),)
 		ScheduleBatch(GetTaskManager(), CurrentBatch, bScopedIndexLookupBuild);
 	}
 }

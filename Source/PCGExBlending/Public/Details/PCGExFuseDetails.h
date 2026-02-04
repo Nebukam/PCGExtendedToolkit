@@ -111,9 +111,9 @@ struct PCGEXBLENDING_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 
 	const PCGExMath::IDistances* Distances;
 
-	/** Check this box if you're fusing over a very large radius and want to ensure insertion order to avoid snapping to different points. NOTE : Will make things considerably slower. */
+	/** Slow but deterministic. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Stabilize Insertion Order"))
-	bool bInlineInsertion = false;
+	bool bInlineInsertion = true;
 
 	virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade) override;
 

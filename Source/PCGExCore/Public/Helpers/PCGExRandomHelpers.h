@@ -37,5 +37,10 @@ namespace PCGExRandomHelpers
 
 	PCGEXCORE_API FRandomStream GetRandomStreamFromPoint(const int32 BaseSeed, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
 
+	/**
+	 * Computes a deterministic seed from a spatial position.
+	 * Note: Uses integer-based hashing internally (via PCGHelpers::ComputeSeedFromPosition),
+	 * so positions within ~1 unit of each other may produce identical seeds.
+	 */
 	PCGEXCORE_API int ComputeSpatialSeed(const FVector& Origin, const FVector& Offset = FVector::ZeroVector);
 }

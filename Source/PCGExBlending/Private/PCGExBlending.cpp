@@ -3,8 +3,8 @@
 
 #include "PCGExBlending.h"
 
-
 #if WITH_EDITOR
+#include "Styling/AppStyle.h"
 #include "Core/PCGExBlendOpFactory.h"
 
 #if PCGEX_ENGINE_VERSION > 506

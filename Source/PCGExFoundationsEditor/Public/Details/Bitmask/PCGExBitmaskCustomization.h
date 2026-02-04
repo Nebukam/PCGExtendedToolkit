@@ -5,7 +5,9 @@
 
 #include "IPropertyTypeCustomization.h"
 
+
 class SUniformGridPanel;
+class SWidget;
 
 namespace PCGExBitmaskCustomization
 {

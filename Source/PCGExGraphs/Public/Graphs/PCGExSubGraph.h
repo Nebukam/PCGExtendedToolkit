@@ -35,6 +35,7 @@ namespace PCGExData
 
 namespace PCGExGraphs
 {
+	struct FNode;
 	struct FGraphMetadataDetails;
 	class FGraph;
 
@@ -49,6 +50,7 @@ namespace PCGExGraphs
 		TSharedPtr<PCGExData::FFacade> EdgesDataFacade;
 		TArray<FEdge> FlattenedEdges;
 		int32 UID = 0;
+		int32 MinPointIndex = MAX_int32;
 
 		/** Legacy callback - prefer context-based callbacks for new code */
 		FSubGraphPostProcessCallback OnSubGraphPostProcess;
@@ -65,6 +67,7 @@ namespace PCGExGraphs
 
 		void Add(const FEdge& Edge);
 		void Shrink();
+		void ComputeMinPointIndex(const TArray<FNode>& ParentNodes);
 
 		void BuildCluster(const TSharedRef<PCGExClusters::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();

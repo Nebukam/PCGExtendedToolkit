@@ -13,6 +13,7 @@
 #include "Clusters/PCGExEdge.h"
 #include "Data/Utils/PCGExDataForwardDetails.h"
 #include "Details/PCGExFuseDetails.h"
+#include "Utils/PCGValueRange.h"
 
 struct FPCGExEdgeEdgeIntersectionDetails;
 struct FPCGExPointEdgeIntersectionDetails;

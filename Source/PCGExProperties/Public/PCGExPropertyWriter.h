@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExData.h"
-#include "Helpers/PCGExMetaHelpers.h"
 #include "PCGExPropertyCompiled.h"
 
 #include "PCGExPropertyWriter.generated.h"
@@ -35,16 +34,8 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOutputConfig
 	 * Get effective output name, validated for PCG compatibility.
 	 * Returns NAME_None if the name is invalid.
 	 */
-	FName GetEffectiveOutputName() const
-	{
-		FName Name = OutputAttributeName.IsNone() ? PropertyName : OutputAttributeName;
-		if (Name.IsNone() || !PCGExMetaHelpers::IsWritableAttributeName(Name))
-		{
-			return NAME_None;
-		}
-		return Name;
-	}
-
+	FName GetEffectiveOutputName() const;
+	
 	bool IsValid() const
 	{
 		return bEnabled && !PropertyName.IsNone() && !GetEffectiveOutputName().IsNone();

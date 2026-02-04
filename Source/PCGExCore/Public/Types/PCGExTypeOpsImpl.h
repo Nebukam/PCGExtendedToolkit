@@ -10,7 +10,7 @@
 #include "PCGExTypeOpsRotation.h"
 #include "PCGExTypeOpsString.h"
 #include "PCGExTypeTraits.h"
-#include "Helpers/PCGExMetaHelpers.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
 
 namespace PCGExTypeOps
 {

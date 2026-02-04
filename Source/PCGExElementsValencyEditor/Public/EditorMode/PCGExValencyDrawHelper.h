@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 
+class AActor;
 class FPrimitiveDrawInterface;
 class FCanvas;
 class FSceneView;

@@ -9,7 +9,6 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGExArrayHelpers.h"
-#include "Helpers/PCGExMetaHelpers.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Types/PCGExAttributeIdentity.h"
 

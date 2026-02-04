@@ -1,15 +1,26 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
+using System.IO;
 using UnrealBuildTool;
 
 public class PCGExElementsClusters : ModuleRules
 {
 	public PCGExElementsClusters(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
-		//IWYUSupport = IWYUSupport.Full;
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
+		if (bNoPCH)                                                                    
+		{                                                                                                                     
+			PCHUsage = PCHUsageMode.NoPCHs;                                                                                   
+		}                                                                                                                     
+		else                                                                                                                  
+		{                                                                                                                     
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;                                                                  
+			PrivatePCHHeaderFile = "PCGExMinimalPCH.h";                                           
+		} 
+		
+		bUseUnity = true;
+		MinSourceFilesForUnityBuildOverride = 4;
 
 		PublicIncludePaths.AddRange(
 			new string[]

@@ -32,7 +32,7 @@ namespace PCGExMath
 	{
 		T Sum = 0;
 		for (const T Value : Values) { Sum += Value; }
-		return Div(Sum, Values.Num());
+		return Sum / Values.Num();
 	}
 
 	// Quickselect partition helper - O(n) average for finding k-th element

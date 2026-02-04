@@ -6,6 +6,7 @@
 
 
 #include "Blenders/PCGExMetadataBlender.h"
+#include "Data/PCGBasePointData.h"
 #include "Data/PCGExPointElements.h"
 
 

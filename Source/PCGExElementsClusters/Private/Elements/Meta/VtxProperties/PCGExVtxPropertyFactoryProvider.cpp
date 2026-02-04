@@ -5,6 +5,7 @@
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"

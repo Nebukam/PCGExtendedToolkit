@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
+class FSlateStyleSet;
+
 namespace PCGExDetailsCustomization
 {
 	PCGEXTENDEDTOOLKITEDITOR_API void RegisterDetailsCustomization(const TSharedPtr<FSlateStyleSet>& Style);

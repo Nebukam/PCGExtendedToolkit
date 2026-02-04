@@ -48,10 +48,11 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const PCGE
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
 
-	if (IsWorkCancelled() || IsWorkCompleted()) { return; }
-
 	{
 		FWriteScopeLock WriteScopeLock(StagingLock);
+
+		// Check inside lock to prevent race with OnComplete
+		if (IsWorkCancelled() || IsWorkCompleted()) { return; }
 
 		FPCGTaggedData& Output = StagedData.Emplace_GetRef();
 		Output.Data = InData;
@@ -199,6 +200,42 @@ void FPCGExContext::Done()
 	SetState(PCGExCommon::States::State_Done);
 }
 
+bool FPCGExContext::DriveAdvanceWork(const UPCGExSettings* InSettings)
+{
+	// This pattern short-circuits the PCG scheduler to avoid frame delays.
+	// OnAsyncWorkEnd calls this directly so work continues immediately when async completes,
+	// rather than waiting for PCG's next-frame scheduling. The compare_exchange ensures
+	// only one caller drives at a time, with others setting bPendingAsyncWorkEnd for pickup.
+
+	// Try to become the driver - only one caller can drive at a time
+	bool bExpected = false;
+	if (!bAdvanceWorkInProgress.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
+	{
+		// Someone else is driving - request they do another round when done
+		bPendingAsyncWorkEnd.store(true, std::memory_order_release);
+		return false;
+	}
+
+	// We're the driver - keep advancing until no more pending completions
+	bool bResult;
+	do
+	{
+		bPendingAsyncWorkEnd.store(false, std::memory_order_release);
+		bResult = ElementHandle->AdvanceWork(this, InSettings);
+	}
+	while (bPendingAsyncWorkEnd.load(std::memory_order_acquire));
+
+	bAdvanceWorkInProgress.store(false, std::memory_order_release);
+
+	// Final check: pending may have been set between the do-while check and clearing the flag
+	if (bPendingAsyncWorkEnd.exchange(false, std::memory_order_acq_rel))
+	{
+		return DriveAdvanceWork(InSettings);
+	}
+
+	return bResult;
+}
+
 bool FPCGExContext::TryComplete(const bool bForce)
 {
 	if (IsWorkCancelled() || IsWorkCompleted()) { return true; }
@@ -219,32 +256,24 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 
 	if (bWasCancelled || IsWorkCancelled()) { return; }
 
-	// Try to become the processor
-	bool bExpected = false;
-	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
-	{
-		// Someone else is processing - they'll see our pending flag
-		//UE_LOG(LogTemp, Error, TEXT("Double Call : %s"), *GetNameSafe(GetInputSettings<UPCGExSettings>()))
-	}
-
+	// Use DriveAdvanceWork which handles all coordination
+	// If someone else is driving, it will set bPendingAsyncWorkEnd for them to pick up
 	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
 	switch (CurrentPhase)
 	{
-	case EPCGExecutionPhase::PrepareData: ElementHandle->AdvancePreparation(this, Settings);
+	case EPCGExecutionPhase::PrepareData:
+		ElementHandle->AdvancePreparation(this, Settings);
 		break;
-	case EPCGExecutionPhase::Execute: ElementHandle->AdvanceWork(this, Settings);
+	case EPCGExecutionPhase::Execute:
+		DriveAdvanceWork(Settings);
 		break;
 	default: break;
 	}
-
-	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
 }
 
 void FPCGExContext::OnComplete()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
-
-	//UE_LOG(LogTemp, Warning, TEXT(">> OnComplete @%s"), *GetInputSettings<UPCGExSettings>()->GetName());
 
 	if (ElementHandle) { ElementHandle->CompleteWork(this); }
 

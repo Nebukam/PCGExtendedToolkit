@@ -13,7 +13,6 @@
 
 namespace PCGExClusters
 {
-	class FNodeChainBuilder;
 	class FNodeChain;
 }
 
@@ -126,7 +125,7 @@ namespace PCGExBreakClustersToPaths
 		friend class FBatch;
 
 	protected:
-		TSharedPtr<PCGExClusters::FNodeChainBuilder> ChainBuilder;
+		TArray<TSharedPtr<PCGExClusters::FNodeChain>> ProcessedChains;
 		TArray<TSharedPtr<PCGExData::FPointIO>> ChainsIO;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
