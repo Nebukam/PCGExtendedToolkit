@@ -24,6 +24,7 @@
 #include "PCGInputOutputSettings.h"
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGPointData.h"
+#include "UObject/Package.h"
 
 using namespace PCGExTest;
 
@@ -139,7 +140,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FPCGExGraphStructureTest::RunTest(const FString& Parameters)
 {
 	// Create a basic PCG graph
-	UPCGGraph* Graph = NewObject<UPCGGraph>();
+	UPCGGraph* Graph = NewObject<UPCGGraph>(GetTransientPackage(), NAME_None, RF_Transient);
 	TestNotNull(TEXT("PCG Graph created"), Graph);
 
 	if (Graph)
@@ -188,7 +189,7 @@ bool FPCGExGraphDataTransformTest::RunTest(const FString& Parameters)
 	TConstPCGValueRange<FTransform> SourceTransforms = SourceData->GetConstTransformValueRange();
 
 	// Simulate a transform operation (scale all positions)
-	UPCGBasePointData* TransformedData = NewObject<UPCGPointArrayData>();
+	UPCGBasePointData* TransformedData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 	TransformedData->SetNumPoints(NumPoints);
 	TPCGValueRange<FTransform> OutTransforms = TransformedData->GetTransformValueRange();
 
@@ -252,7 +253,7 @@ bool FPCGExGraphDataFilterTest::RunTest(const FString& Parameters)
 	}
 
 	// Create filtered data with exact size
-	UPCGBasePointData* FilteredData = NewObject<UPCGPointArrayData>();
+	UPCGBasePointData* FilteredData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 	FilteredData->SetNumPoints(PassingIndices.Num());
 	TPCGValueRange<FTransform> FilteredTransforms = FilteredData->GetTransformValueRange();
 

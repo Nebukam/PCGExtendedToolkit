@@ -12,6 +12,7 @@
  */
 
 #include "Misc/AutomationTest.h"
+#include "UObject/Package.h"
 #include "Filters/Points/PCGExConstantFilter.h"
 
 // =============================================================================
@@ -155,7 +156,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FPCGExConstantFilterFactoryTest::RunTest(const FString& Parameters)
 {
 	// Create a filter factory
-	UPCGExConstantFilterFactory* Factory = NewObject<UPCGExConstantFilterFactory>();
+	UPCGExConstantFilterFactory* Factory = NewObject<UPCGExConstantFilterFactory>(GetTransientPackage(), NAME_None, RF_Transient);
 	TestNotNull(TEXT("Factory created"), Factory);
 
 	if (Factory)
@@ -201,7 +202,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FPCGExConstantFilterProviderSettingsTest::RunTest(const FString& Parameters)
 {
 	// Create provider settings
-	UPCGExConstantFilterProviderSettings* Settings = NewObject<UPCGExConstantFilterProviderSettings>();
+	UPCGExConstantFilterProviderSettings* Settings = NewObject<UPCGExConstantFilterProviderSettings>(GetTransientPackage(), NAME_None, RF_Transient);
 	TestNotNull(TEXT("Provider settings created"), Settings);
 
 	if (Settings)

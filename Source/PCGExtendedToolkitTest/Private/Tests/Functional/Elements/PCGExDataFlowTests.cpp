@@ -18,6 +18,7 @@
 #include "PCGComponent.h"
 #include "PCGGraph.h"
 #include "Data/PCGPointArrayData.h"
+#include "UObject/Package.h"
 
 // PCGEx includes
 #include "Core/PCGExContext.h"
@@ -88,7 +89,7 @@ bool FPCGExPointDataDuplicateTest::RunTest(const FString& Parameters)
 	if (!SourceData) return false;
 
 	// Create new output data (simulating Collapse mode)
-	UPCGPointArrayData* OutputData = NewObject<UPCGPointArrayData>();
+	UPCGPointArrayData* OutputData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 	TestNotNull(TEXT("Output data created"), OutputData);
 	if (!OutputData) return false;
 
@@ -130,7 +131,7 @@ bool FPCGExStagingConditionTest::RunTest(const FString& Parameters)
 {
 	// Test 1: Data with points should pass
 	{
-		UPCGPointArrayData* DataWithPoints = NewObject<UPCGPointArrayData>();
+		UPCGPointArrayData* DataWithPoints = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 		DataWithPoints->SetNumPoints(1);
 
 		bool IsEmpty = DataWithPoints->IsEmpty();
@@ -140,7 +141,7 @@ bool FPCGExStagingConditionTest::RunTest(const FString& Parameters)
 
 	// Test 2: Empty data should fail staging (unless bAllowEmptyOutput)
 	{
-		UPCGPointArrayData* EmptyData = NewObject<UPCGPointArrayData>();
+		UPCGPointArrayData* EmptyData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 		// Don't set any points
 
 		bool IsEmpty = EmptyData->IsEmpty();
@@ -150,7 +151,7 @@ bool FPCGExStagingConditionTest::RunTest(const FString& Parameters)
 
 	// Test 3: Data with points allocated but at 0
 	{
-		UPCGPointArrayData* ZeroPointData = NewObject<UPCGPointArrayData>();
+		UPCGPointArrayData* ZeroPointData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 		ZeroPointData->SetNumPoints(0);
 
 		bool IsEmpty = ZeroPointData->IsEmpty();
@@ -184,7 +185,7 @@ bool FPCGExCollapseModeSequenceTest::RunTest(const FString& Parameters)
 	AddInfo(FString::Printf(TEXT("Input: %d points"), InData->GetNumPoints()));
 
 	// Step 2: Create output (like InitializeOutput(New))
-	UPCGPointArrayData* OutData = NewObject<UPCGPointArrayData>();
+	UPCGPointArrayData* OutData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 	TestNotNull(TEXT("Step 2: Output created"), OutData);
 
 	// Step 3: Allocate 1 point (like SetNumPointsAllocated(OutData, 1))
@@ -246,7 +247,7 @@ bool FPCGExCompleteWorkEarlyReturnTest::RunTest(const FString& Parameters)
 	if (!InData) return false;
 
 	// Step 2: Create output
-	UPCGPointArrayData* OutData = NewObject<UPCGPointArrayData>();
+	UPCGPointArrayData* OutData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 
 	// Step 3: Allocate 1 point
 	OutData->SetNumPoints(1);
@@ -300,7 +301,7 @@ bool FPCGExOutputTimingTest::RunTest(const FString& Parameters)
 	// This test investigates whether there's a timing issue where
 	// IsEmpty() returns true at the wrong time
 
-	UPCGPointArrayData* Data = NewObject<UPCGPointArrayData>();
+	UPCGPointArrayData* Data = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 
 	// Check initial state
 	AddInfo(FString::Printf(TEXT("Initial: NumPoints=%d, IsEmpty=%s"),

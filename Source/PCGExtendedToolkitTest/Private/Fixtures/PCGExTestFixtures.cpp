@@ -9,6 +9,7 @@
 #include "PCGComponent.h"
 #include "PCGGraph.h"
 #include "Data/PCGExData.h"
+#include "UObject/Package.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -45,22 +46,24 @@ namespace PCGExTest
 			return;
 		}
 
-		// Create a test actor
+		// Create a test actor with transient flag to avoid save prompts
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Name = FName(TEXT("PCGExTestActor"));
+		SpawnParams.ObjectFlags = RF_Transient;  // Mark as transient
 		TestActor = World->SpawnActor<AActor>(SpawnParams);
 
 		if (TestActor)
 		{
 			// Create a root component with valid bounds (required for PCG component registration)
-			UBoxComponent* RootBox = NewObject<UBoxComponent>(TestActor, TEXT("RootComponent"));
+			// Use RF_Transient to avoid save prompts
+			UBoxComponent* RootBox = NewObject<UBoxComponent>(TestActor, TEXT("RootComponent"), RF_Transient);
 			RootBox->SetBoxExtent(FVector(1000.0f)); // 1000 unit box
 			RootBox->SetWorldLocation(FVector::ZeroVector);
 			TestActor->SetRootComponent(RootBox);
 			RootBox->RegisterComponent();
 
-			// Create PCG component on the actor
-			PCGComponent = NewObject<UPCGComponent>(TestActor, TEXT("PCGExTestComponent"));
+			// Create PCG component on the actor with transient flag
+			PCGComponent = NewObject<UPCGComponent>(TestActor, TEXT("PCGExTestComponent"), RF_Transient);
 			if (PCGComponent)
 			{
 				PCGComponent->RegisterComponent();
@@ -72,12 +75,14 @@ namespace PCGExTest
 	{
 		if (TestGraph)
 		{
+			TestGraph->MarkAsGarbage();
 			TestGraph = nullptr;
 		}
 
 		if (PCGComponent)
 		{
 			PCGComponent->UnregisterComponent();
+			PCGComponent->MarkAsGarbage();
 			PCGComponent = nullptr;
 		}
 
@@ -104,7 +109,8 @@ namespace PCGExTest
 	{
 		if (!TestGraph)
 		{
-			TestGraph = NewObject<UPCGGraph>();
+			// Create in transient package to avoid save prompts
+			TestGraph = NewObject<UPCGGraph>(GetTransientPackage(), NAME_None, RF_Transient);
 		}
 		return TestGraph;
 	}

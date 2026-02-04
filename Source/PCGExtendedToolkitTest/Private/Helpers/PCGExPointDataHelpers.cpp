@@ -5,6 +5,7 @@
 
 #include "Data/PCGPointArrayData.h"
 #include "Helpers/PCGExTestHelpers.h"
+#include "UObject/Package.h"
 
 #include "Data/PCGPointData.h"
 
@@ -73,7 +74,7 @@ namespace PCGExTest
 			return nullptr;
 		}
 
-		UPCGBasePointData* PointData = NewObject<UPCGPointArrayData>();
+		UPCGBasePointData* PointData = NewObject<UPCGPointArrayData>(GetTransientPackage(), NAME_None, RF_Transient);
 		if (!PointData)
 		{
 			return nullptr;
