@@ -43,7 +43,8 @@ public class PCGExtendedToolkitTest : ModuleRules
 				"PCGExFilters",
 				"PCGExFoundations",
 				"PCGExProperties",
-				"PCGExCollections"
+				"PCGExCollections",
+				"PCGExGraphs"
 			}
 		);
 
