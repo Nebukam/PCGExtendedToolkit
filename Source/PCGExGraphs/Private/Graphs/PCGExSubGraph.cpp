@@ -107,6 +107,15 @@ namespace PCGExGraphs
 		Edges.Shrink();
 	}
 
+	void FSubGraph::ComputeMinPointIndex(const TArray<FNode>& ParentNodes)
+	{
+		MinPointIndex = MAX_int32;
+		for (const int32 NodeIdx : Nodes)
+		{
+			MinPointIndex = FMath::Min(MinPointIndex, ParentNodes[NodeIdx].PointIndex);
+		}
+	}
+
 	void FSubGraph::BuildCluster(const TSharedRef<PCGExClusters::FCluster>& InCluster)
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing

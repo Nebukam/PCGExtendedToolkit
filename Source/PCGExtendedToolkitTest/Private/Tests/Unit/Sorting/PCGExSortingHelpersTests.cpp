@@ -319,3 +319,279 @@ bool FPCGExSortingRadixSortReverseSortedTest::RunTest(const FString& Parameters)
 }
 
 #pragma endregion
+
+//////////////////////////////////////////////////////////////////////////
+// Morton Hash Tests (PCGEx::MH64 - used in GraphBuilder for deterministic sorting)
+//////////////////////////////////////////////////////////////////////////
+
+#pragma region MortonHash
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExSortingMortonHashBasicTest,
+	"PCGEx.Unit.Sorting.MortonHash.Basic",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPCGExSortingMortonHashBasicTest::RunTest(const FString& Parameters)
+{
+	// Same position should always produce same hash
+	const FVector Pos1(100.0, 200.0, 300.0);
+	const uint64 Hash1A = PCGEx::MH64(Pos1);
+	const uint64 Hash1B = PCGEx::MH64(Pos1);
+
+	TestEqual(TEXT("Same position produces same hash"), Hash1A, Hash1B);
+
+	// Different positions should produce different hashes
+	const FVector Pos2(100.0, 200.0, 301.0);
+	const uint64 Hash2 = PCGEx::MH64(Pos2);
+
+	TestNotEqual(TEXT("Different positions produce different hashes"), Hash1A, Hash2);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExSortingMortonHashNegativeTest,
+	"PCGEx.Unit.Sorting.MortonHash.NegativeCoordinates",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPCGExSortingMortonHashNegativeTest::RunTest(const FString& Parameters)
+{
+	// Test with negative coordinates
+	const FVector PosNeg(-100.0, -200.0, -300.0);
+	const uint64 HashNegA = PCGEx::MH64(PosNeg);
+	const uint64 HashNegB = PCGEx::MH64(PosNeg);
+
+	TestEqual(TEXT("Negative coordinates produce consistent hash"), HashNegA, HashNegB);
+
+	// Mixed positive/negative
+	const FVector PosMixed(-100.0, 200.0, -300.0);
+	const uint64 HashMixedA = PCGEx::MH64(PosMixed);
+	const uint64 HashMixedB = PCGEx::MH64(PosMixed);
+
+	TestEqual(TEXT("Mixed coordinates produce consistent hash"), HashMixedA, HashMixedB);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExSortingMortonHashDeterminismTest,
+	"PCGEx.Unit.Sorting.MortonHash.Determinism",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPCGExSortingMortonHashDeterminismTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExSortingHelpers;
+	using PCGEx::FIndexKey;
+
+	// Create test positions
+	TArray<FVector> Positions;
+	Positions.Add(FVector(100.0, 200.0, 300.0));
+	Positions.Add(FVector(50.0, 150.0, 250.0));
+	Positions.Add(FVector(200.0, 100.0, 400.0));
+	Positions.Add(FVector(75.0, 175.0, 275.0));
+	Positions.Add(FVector(150.0, 50.0, 350.0));
+
+	// Sort in original order
+	TArray<FIndexKey> Keys1;
+	for (int32 i = 0; i < Positions.Num(); i++)
+	{
+		Keys1.Add({i, PCGEx::MH64(Positions[i])});
+	}
+	RadixSort(Keys1);
+
+	// Sort in reverse order
+	TArray<FIndexKey> Keys2;
+	for (int32 i = Positions.Num() - 1; i >= 0; i--)
+	{
+		Keys2.Add({i, PCGEx::MH64(Positions[i])});
+	}
+	RadixSort(Keys2);
+
+	// Sort in shuffled order
+	TArray<FIndexKey> Keys3;
+	TArray<int32> ShuffledIndices = {2, 0, 4, 1, 3};
+	for (int32 i : ShuffledIndices)
+	{
+		Keys3.Add({i, PCGEx::MH64(Positions[i])});
+	}
+	RadixSort(Keys3);
+
+	// All three should produce the same final order (same sequence of Index values)
+	TestEqual(TEXT("Same result regardless of input order - count"), Keys1.Num(), Keys2.Num());
+	TestEqual(TEXT("Same result regardless of input order - count"), Keys1.Num(), Keys3.Num());
+
+	for (int32 i = 0; i < Keys1.Num(); i++)
+	{
+		TestEqual(*FString::Printf(TEXT("Keys1 vs Keys2 at %d"), i), Keys1[i].Index, Keys2[i].Index);
+		TestEqual(*FString::Printf(TEXT("Keys1 vs Keys3 at %d"), i), Keys1[i].Index, Keys3[i].Index);
+	}
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExSortingMortonHashStabilityTest,
+	"PCGEx.Unit.Sorting.MortonHash.StabilityWithDuplicates",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPCGExSortingMortonHashStabilityTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExSortingHelpers;
+	using PCGEx::FIndexKey;
+
+	// Test with duplicate positions (same hash)
+	const FVector SamePos(100.0, 200.0, 300.0);
+	const FVector DiffPos(50.0, 100.0, 150.0);
+
+	// Multiple items with same position
+	TArray<FIndexKey> Keys;
+	Keys.Add({0, PCGEx::MH64(SamePos)});
+	Keys.Add({1, PCGEx::MH64(DiffPos)});
+	Keys.Add({2, PCGEx::MH64(SamePos)});
+	Keys.Add({3, PCGEx::MH64(SamePos)});
+	Keys.Add({4, PCGEx::MH64(DiffPos)});
+
+	RadixSort(Keys);
+
+	// Verify all keys with same position are grouped together
+	uint64 LastKey = 0;
+	bool bGroupedCorrectly = true;
+	for (int32 i = 0; i < Keys.Num(); i++)
+	{
+		if (i > 0 && Keys[i].Key < LastKey)
+		{
+			bGroupedCorrectly = false;
+			break;
+		}
+		LastKey = Keys[i].Key;
+	}
+	TestTrue(TEXT("Keys are sorted in ascending order"), bGroupedCorrectly);
+
+	// RadixSort is stable, so for duplicate keys the relative order should be preserved
+	// Items with DiffPos hash should maintain relative order (1 before 4)
+	// Items with SamePos hash should maintain relative order (0 before 2 before 3)
+
+	// Find indices of items with same hash
+	TArray<int32> SamePosIndices;
+	TArray<int32> DiffPosIndices;
+	const uint64 SamePosHash = PCGEx::MH64(SamePos);
+	const uint64 DiffPosHash = PCGEx::MH64(DiffPos);
+
+	for (const FIndexKey& Key : Keys)
+	{
+		if (Key.Key == SamePosHash)
+		{
+			SamePosIndices.Add(Key.Index);
+		}
+		else if (Key.Key == DiffPosHash)
+		{
+			DiffPosIndices.Add(Key.Index);
+		}
+	}
+
+	// Check stable order for SamePos items (0, 2, 3)
+	if (SamePosIndices.Num() >= 3)
+	{
+		TestTrue(TEXT("Stable order for duplicate keys - first"), SamePosIndices[0] < SamePosIndices[1]);
+		TestTrue(TEXT("Stable order for duplicate keys - second"), SamePosIndices[1] < SamePosIndices[2]);
+	}
+
+	// Check stable order for DiffPos items (1, 4)
+	if (DiffPosIndices.Num() >= 2)
+	{
+		TestTrue(TEXT("Stable order for duplicate keys - diff"), DiffPosIndices[0] < DiffPosIndices[1]);
+	}
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExSortingMortonHashRepeatedSortTest,
+	"PCGEx.Unit.Sorting.MortonHash.RepeatedSort",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPCGExSortingMortonHashRepeatedSortTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExSortingHelpers;
+	using PCGEx::FIndexKey;
+
+	// Create test positions
+	TArray<FVector> Positions;
+	Positions.Add(FVector(100.0, 200.0, 300.0));
+	Positions.Add(FVector(50.0, 150.0, 250.0));
+	Positions.Add(FVector(200.0, 100.0, 400.0));
+
+	// Sort multiple times and verify same result
+	TArray<TArray<int32>> Results;
+
+	for (int32 Run = 0; Run < 10; Run++)
+	{
+		TArray<FIndexKey> Keys;
+		for (int32 i = 0; i < Positions.Num(); i++)
+		{
+			Keys.Add({i, PCGEx::MH64(Positions[i])});
+		}
+		RadixSort(Keys);
+
+		TArray<int32> Indices;
+		for (const FIndexKey& Key : Keys)
+		{
+			Indices.Add(Key.Index);
+		}
+		Results.Add(Indices);
+	}
+
+	// All runs should produce identical results
+	for (int32 Run = 1; Run < Results.Num(); Run++)
+	{
+		for (int32 i = 0; i < Results[0].Num(); i++)
+		{
+			TestEqual(*FString::Printf(TEXT("Run %d matches Run 0 at index %d"), Run, i),
+				Results[Run][i], Results[0][i]);
+		}
+	}
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExSortingMortonHashCollisionTest,
+	"PCGEx.Unit.Sorting.MortonHash.HashCollisions",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FPCGExSortingMortonHashCollisionTest::RunTest(const FString& Parameters)
+{
+	// Test for potential hash collisions with close positions
+	// The Morton hash uses: (X*1000 << 42) ^ (Y*1000 << 21) ^ (Z*1000)
+
+	// Very close positions should have different hashes (within 0.001 unit)
+	const FVector Pos1(100.0, 200.0, 300.0);
+	const FVector Pos2(100.001, 200.0, 300.0);
+	const FVector Pos3(100.0, 200.001, 300.0);
+	const FVector Pos4(100.0, 200.0, 300.001);
+
+	const uint64 Hash1 = PCGEx::MH64(Pos1);
+	const uint64 Hash2 = PCGEx::MH64(Pos2);
+	const uint64 Hash3 = PCGEx::MH64(Pos3);
+	const uint64 Hash4 = PCGEx::MH64(Pos4);
+
+	// Due to the *1000 multiplier, 0.001 difference = 1 unit difference in hash input
+	TestNotEqual(TEXT("Small X difference produces different hash"), Hash1, Hash2);
+	TestNotEqual(TEXT("Small Y difference produces different hash"), Hash1, Hash3);
+	TestNotEqual(TEXT("Small Z difference produces different hash"), Hash1, Hash4);
+
+	// Test positions that are too close (within floating point tolerance of * 1000)
+	const FVector Pos5(100.0, 200.0, 300.0);
+	const FVector Pos6(100.0000001, 200.0, 300.0); // 0.0000001 * 1000 = 0.0001, truncates to same int
+
+	const uint64 Hash5 = PCGEx::MH64(Pos5);
+	const uint64 Hash6 = PCGEx::MH64(Pos6);
+
+	// These might collide due to int truncation - document this behavior
+	AddInfo(FString::Printf(TEXT("Hash5: %llu, Hash6: %llu, Same: %s"),
+		Hash5, Hash6, Hash5 == Hash6 ? TEXT("Yes") : TEXT("No")));
+
+	return true;
+}
+
+#pragma endregion

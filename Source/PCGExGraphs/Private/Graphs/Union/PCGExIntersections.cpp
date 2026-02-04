@@ -446,7 +446,8 @@ namespace PCGExGraphs
 	void FPointEdgeIntersections::Init(const TArray<PCGExMT::FScope>& Loops)
 	{
 		ScopedEdges = MakeShared<PCGExMT::TScopedArray<TSharedPtr<FPointEdgeProxy>>>(Loops);
-		ToleranceSquared = FMath::Square(Details->FuseDetails.Tolerance);
+		Tolerance = Details->FuseDetails.Tolerance;
+		ToleranceSquared = FMath::Square(Tolerance);
 		BuildCache();
 	}
 

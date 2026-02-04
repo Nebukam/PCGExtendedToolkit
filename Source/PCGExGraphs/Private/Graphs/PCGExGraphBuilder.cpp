@@ -196,8 +196,7 @@ namespace PCGExGraphs
 					PCGEX_PARALLEL_FOR(
 						N,
 						const int32 Idx = ValidNodes[i];
-						const FVector P = NodePointsTransforms[Idx].GetLocation() * 1000;
-						MortonHash[i] = PCGEx::FIndexKey(Idx, (static_cast<uint64>(P.X) << 42) ^ (static_cast<uint64>(P.Y) << 21) ^ static_cast<uint64>(P.Z));
+						MortonHash[i] = PCGEx::FIndexKey(Idx, PCGEx::MH64(NodePointsTransforms[Idx].GetLocation()));
 					)
 
 					PCGExSortingHelpers::RadixSort(MortonHash);
@@ -279,67 +278,88 @@ namespace PCGExGraphs
 		bCompiledSuccessfully = true;
 
 		// Subgraphs
-
+		if (Graph->SubGraphs.Num() > 1)
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(CreateEdgeData)
-
-			for (int i = 0; i < Graph->SubGraphs.Num(); i++)
+			// Sort subgraphs by minimum PointIndex for deterministic cluster IOIndex assignment
+			// Ensures consistent cluster ordering based on spatial position
 			{
-				const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
+				TRACE_CPUPROFILER_EVENT_SCOPE(SortSubGraphs);
 
-				check(!SubGraph->Edges.IsEmpty())
-
-				TSharedPtr<PCGExData::FPointIO> EdgeIO;
-
-				if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
+				for (const TSharedRef<FSubGraph>& SubGraph : Graph->SubGraphs)
 				{
-					// Don't grab original point IO if we have metadata.
-					EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EIOInit::New);
-				}
-				else
-				{
-					EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EIOInit::New);
+					SubGraph->ComputeMinPointIndex(Nodes);
 				}
 
-				if (!EdgeIO) { return; }
-
-				EdgeIO->IOIndex = i;
-
-				SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
-
-				// Legacy callback
-				SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
-
-				// Context-based callbacks
-				SubGraph->OnCreateContext = OnCreateContext;
-				SubGraph->OnPreCompile = OnPreCompile;
-				SubGraph->OnPostCompile = OnPostCompile;
-
-				SubGraph->VtxDataFacade = NodeDataFacade;
-				SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
-
-				PCGExClusters::Helpers::MarkClusterEdges(EdgeIO, PairId);
+				Graph->SubGraphs.Sort([](const TSharedRef<FSubGraph>& A, const TSharedRef<FSubGraph>& B)
+				{
+					return A->MinPointIndex < B->MinPointIndex;
+				});
 			}
+
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(CreateEdgeData)
+				for (int i = 0; i < Graph->SubGraphs.Num(); i++)
+				{
+					const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
+
+					check(!SubGraph->Edges.IsEmpty())
+
+					TSharedPtr<PCGExData::FPointIO> EdgeIO;
+
+					if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
+					{
+						// Don't grab original point IO if we have metadata.
+						EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EIOInit::New);
+					}
+					else
+					{
+						EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EIOInit::New);
+					}
+
+					if (!EdgeIO) { return; }
+
+					EdgeIO->IOIndex = i;
+
+					SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
+
+					// Legacy callback
+					SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
+
+					// Context-based callbacks
+					SubGraph->OnCreateContext = OnCreateContext;
+					SubGraph->OnPreCompile = OnPreCompile;
+					SubGraph->OnPostCompile = OnPostCompile;
+
+					SubGraph->VtxDataFacade = NodeDataFacade;
+					SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
+
+					PCGExClusters::Helpers::MarkClusterEdges(EdgeIO, PairId);
+				}
+			}
+
+			PCGExClusters::Helpers::MarkClusterVtx(NodeDataFacade->Source, PairId);
+
+			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BatchCompileSubGraphs)
+
+			BatchCompileSubGraphs->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnCompilationEnd();
+			};
+
+			BatchCompileSubGraphs->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = BatchCompileSubGraphs](const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
+				SubGraph->Compile(WeakGroup, This->TaskManager, This);
+			};
+
+			BatchCompileSubGraphs->StartIterations(Graph->SubGraphs.Num(), 1, false);
 		}
-
-		PCGExClusters::Helpers::MarkClusterVtx(NodeDataFacade->Source, PairId);
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BatchCompileSubGraphs)
-
-		BatchCompileSubGraphs->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		else
 		{
-			PCGEX_ASYNC_THIS
-			This->OnCompilationEnd();
-		};
-
-		BatchCompileSubGraphs->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = BatchCompileSubGraphs](const int32 Index, const PCGExMT::FScope& Scope)
-		{
-			PCGEX_ASYNC_THIS
-			const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
-			SubGraph->Compile(WeakGroup, This->TaskManager, This);
-		};
-
-		BatchCompileSubGraphs->StartIterations(Graph->SubGraphs.Num(), 1, false);
+			OnCompilationEnd();
+		}
 	}
 
 	void FGraphBuilder::OnCompilationEnd()
