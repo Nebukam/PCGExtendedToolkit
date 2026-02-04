@@ -202,6 +202,11 @@ void FPCGExContext::Done()
 
 bool FPCGExContext::DriveAdvanceWork(const UPCGExSettings* InSettings)
 {
+	// This pattern short-circuits the PCG scheduler to avoid frame delays.
+	// OnAsyncWorkEnd calls this directly so work continues immediately when async completes,
+	// rather than waiting for PCG's next-frame scheduling. The compare_exchange ensures
+	// only one caller drives at a time, with others setting bPendingAsyncWorkEnd for pickup.
+
 	// Try to become the driver - only one caller can drive at a time
 	bool bExpected = false;
 	if (!bAdvanceWorkInProgress.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
