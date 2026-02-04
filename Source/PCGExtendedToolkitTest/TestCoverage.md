@@ -43,19 +43,19 @@ Test files: `Tests/Unit/Math/`, `Tests/Unit/Containers/`
 | ├─ GetMinMax | [x] | PCGExMathUtilTests | |
 | ├─ ReverseRange | [x] | PCGExMathUtilTests | |
 | └─ (remaining functions) | [ ] | | FastRand, ConeBox, etc. |
-| **PCGExMathDistances.h** | [ ] | | |
+| **PCGExMathDistances.h** | [x] | PCGExMathDistancesTests | GetDistances factory, IDistances interface, Euclidean/Manhattan/Chebyshev metrics |
 | **PCGExMathAxis.h** | [x] | PCGExMathAxisTests | Axis order, direction, swizzle, angles |
 | **PCGExMathBounds.h** | [~] | PCGExMathBoundsTests | SanitizeBounds, EPCGExBoxCheckMode enum |
 | **PCGExMathMean.h** | [x] | PCGExMathMeanTests | Average, Median, QuickSelect |
 | **PCGExWinding.h** | [x] | PCGExWindingTests | IsWinded, FPolygonInfos, AngleCCW |
 | **PCGExBestFitPlane.h** | [x] | PCGExBestFitPlaneTests | Plane fitting, centroid, normal, extents |
 | **PCGExDelaunay.h** | [x] | PCGExDelaunayTests | FDelaunaySite2 (constructor, edge hash, ContainsEdge, GetSharedEdge, PushAdjacency), FDelaunaySite3 (constructor, ComputeFaces), TDelaunay2::Process, TDelaunay3::Process, RemoveLongestEdges, hull detection |
-| **PCGExVoronoi.h** | [ ] | | Depends on Delaunay |
+| **PCGExVoronoi.h** | [x] | PCGExVoronoiTests | TVoronoi2 (Process, bounds, metrics: Euclidean/Manhattan/Chebyshev, cell centers: Circumcenter/Centroid/Balanced), TVoronoi3 (Process, circumspheres, centroids), EPCGExVoronoiMetric, EPCGExCellCenter |
 | **PCGExGeo.h** | [x] | PCGExGeoTests | Det, Centroid, Circumcenter, Barycentric, PointInTriangle/Polygon, L-inf transforms, edge paths, sphere fitting |
 | **PCGExOBB.h** | [x] | PCGExOBBTests | Factory, PointInside, SphereOverlap, SATOverlap, SignedDistance, ClosestPoint, TestPoint modes, TestOverlap modes, FPolicy |
 | **PCGExOBBTests.h** | [x] | PCGExOBBTests | All test utilities (TestPoint, TestOverlap, FPolicy runtime class) |
-| **PCGExOBBCollection.h** | [ ] | | |
-| **PCGExOBBSampling.h** | [ ] | | |
+| **PCGExOBBCollection.h** | [x] | PCGExOBBCollectionTests | FCollection construction, Add, BuildOctree, IsPointInside, Overlaps, FindContaining, FindAllOverlaps, SegmentIntersectsAny, ClassifyPoints, FilterInside, Encompasses |
+| **PCGExOBBSampling.h** | [x] | PCGExOBBSamplingTests | FSample struct, Sample, SampleFast, SampleWithWeight, UVW computation, weight functions |
 | **PCGExOBBIntersections.h** | [x] | PCGExOBBIntersectionsTests | FCut, FIntersections (Sort, SortAndDedupe, GetBounds), SegmentBoxRaw, ProcessSegment, SegmentIntersects, EPCGExCutType |
 
 #### Containers (5 headers)
@@ -96,7 +96,7 @@ Test files: `Tests/Unit/Types/`
 | **PCGExTypeOpsString.h** | [x] | PCGExTypeOpsStringTests | FString, FName, FSoftObjectPath, FSoftClassPath ops; conversions, blends |
 | **PCGExTypeTraits.h** | [x] | PCGExTypeTraitsTests | TTraits<T> for all types; Type, TypeId, feature flags (bIsNumeric, bIsVector, bSupportsLerp, etc.) |
 | PCGExAttributeIdentity.h | [ ] | |
-| PCGExTypes.h | [ ] | |
+| **PCGExTypes.h** | [x] | PCGExTypesTests | FScopedTypedValue (construction, lifecycle, move, all types), convenience functions (Convert, ComputeHash, AreEqual, Lerp, Clamp, Abs, Factor) |
 | PCGExTypesCore.h | [ ] | |
 | PCGExEnums.h | [ ] | |
 
@@ -106,9 +106,12 @@ Test files: `Tests/Unit/Types/`
 | (All data structures) | [ ] | |
 
 #### Other Core
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Clusters (~9 headers) | [ ] | |
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **PCGExLink.h** | [x] | PCGExClusterStructsTests | FLink construction, H64, equality, GetTypeHash |
+| **PCGExEdge.h** | [x] | PCGExClusterStructsTests | FEdge construction, Other, Contains, equality, H64U, comparison; EPCGExEdgeDirectionMethod, EPCGExEdgeDirectionChoice enums |
+| **PCGExNode.h** | [~] | PCGExClusterStructsTests | FNode construction, Num, IsEmpty, IsLeaf/IsBinary/IsComplex, LinkEdge, Link, IsAdjacentTo, GetEdgeIndex, NodeGUID (cluster-dependent functions not tested) |
+| Clusters (remaining ~6 headers) | [ ] | | PCGExCluster, PCGExClusterCache, etc. |
 | Paths (~5 headers) | [ ] | |
 | Sorting (~4 headers) | [~] | PCGExSortingHelpersTests - FVectorKey, RadixSort |
 | Factories (~4 headers) | [ ] | |
@@ -292,6 +295,22 @@ Test files: `Tests/Unit/Collections/`
 - Unit tests (IMPLEMENT_SIMPLE_AUTOMATION_TEST)
 - BDD specs (BEGIN_DEFINE_SPEC)
 - Functional tests (full context)
+- Performance/Stress tests
+
+### Performance Tests
+Test files: `Tests/Performance/`
+
+| Component | Test File | Description |
+|-----------|-----------|-------------|
+| OBBCollection.LargeDataset | PCGExPerformanceTests | 10K boxes, point queries, overlap queries |
+| OBBCollection.BulkClassify | PCGExPerformanceTests | 50K points classified against 1K boxes |
+| Delaunay3D.LargePointSet | PCGExPerformanceTests | 2K point tetrahedralization |
+| Voronoi3D.LargePointSet | PCGExPerformanceTests | 1.5K point 3D Voronoi diagram |
+| ClusterStructs.LargeGraph | PCGExPerformanceTests | 10K nodes, random edge connectivity, adjacency queries |
+| ClusterStructs.EdgeHashing | PCGExPerformanceTests | 100K edge hash operations and lookups |
+| IndexLookup.LargeDataset | PCGExPerformanceTests | 1M random access operations |
+| Memory.OBBCollectionGrowth | PCGExPerformanceTests | Reserve vs grow, reset/reuse cycles |
+| MixedOperations.InterleavedQueries | PCGExPerformanceTests | Interleaved point/overlap/segment queries |
 
 ---
 
@@ -326,3 +345,10 @@ Test files: `Tests/Unit/Collections/`
 | 2026-02-04 | Added PCGExOBBIntersections tests (FCut, FIntersections container, SegmentBoxRaw, ProcessSegment, SegmentIntersects, EPCGExCutType) |
 | 2026-02-04 | Extended PCGExOBB tests with TestOverlap modes, FPolicy runtime class |
 | 2026-02-04 | Added PCGExDelaunay tests (FDelaunaySite2, FDelaunaySite3, TDelaunay2::Process, TDelaunay3::Process, hull detection, RemoveLongestEdges) |
+| 2026-02-04 | Added PCGExVoronoi tests (TVoronoi2, TVoronoi3, metrics, cell center methods, enums) |
+| 2026-02-04 | Added PCGExMathDistances tests (GetDistances factory, IDistances interface, Euclidean/Manhattan/Chebyshev metrics) |
+| 2026-02-04 | Added PCGExOBBSampling tests (FSample struct, Sample, SampleFast, SampleWithWeight, UVW computation, weight functions) |
+| 2026-02-04 | Added PCGExOBBCollection tests (FCollection construction, Add, BuildOctree, point queries, OBB queries, segment intersections, bulk ops) |
+| 2026-02-04 | Added PCGExTypes tests (FScopedTypedValue with all supported types, lifecycle management, convenience functions) |
+| 2026-02-04 | Added PCGExClusterStructs tests (FLink, FEdge, FNode basic functionality, NodeGUID, edge direction enums) |
+| 2026-02-04 | Added Performance/Stress tests (OBBCollection large datasets, Delaunay/Voronoi scaling, cluster graph stress, edge hashing, index lookup, memory patterns) |
