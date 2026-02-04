@@ -614,15 +614,9 @@ namespace PCGExMT
 		}
 
 		// Then the end callback (context notification)
-		// But only if context isn't already processing a previous completion
+		// DriveAdvanceWork handles coordination if called while already driving
 		if (OnEndCallback)
 		{
-			if (Context && Context->IsProcessingAsyncEnd())
-			{
-				// Context is busy - mark pending so it handles when done
-				Context->SetPendingAsyncEnd();
-				return;
-			}
 			OnEndCallback(bWasCancelled);
 		}
 	}

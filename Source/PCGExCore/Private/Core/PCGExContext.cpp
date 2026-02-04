@@ -200,6 +200,37 @@ void FPCGExContext::Done()
 	SetState(PCGExCommon::States::State_Done);
 }
 
+bool FPCGExContext::DriveAdvanceWork(const UPCGExSettings* InSettings)
+{
+	// Try to become the driver - only one caller can drive at a time
+	bool bExpected = false;
+	if (!bAdvanceWorkInProgress.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
+	{
+		// Someone else is driving - request they do another round when done
+		bPendingAsyncWorkEnd.store(true, std::memory_order_release);
+		return false;
+	}
+
+	// We're the driver - keep advancing until no more pending completions
+	bool bResult;
+	do
+	{
+		bPendingAsyncWorkEnd.store(false, std::memory_order_release);
+		bResult = ElementHandle->AdvanceWork(this, InSettings);
+	}
+	while (bPendingAsyncWorkEnd.load(std::memory_order_acquire));
+
+	bAdvanceWorkInProgress.store(false, std::memory_order_release);
+
+	// Final check: pending may have been set between the do-while check and clearing the flag
+	if (bPendingAsyncWorkEnd.exchange(false, std::memory_order_acq_rel))
+	{
+		return DriveAdvanceWork(InSettings);
+	}
+
+	return bResult;
+}
+
 bool FPCGExContext::TryComplete(const bool bForce)
 {
 	if (IsWorkCancelled() || IsWorkCompleted()) { return true; }
@@ -220,33 +251,18 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 
 	if (bWasCancelled || IsWorkCancelled()) { return; }
 
-	// If spin loop is driving progress, let it handle the state change
-	if (bSpinLoopDrivingProgress.load(std::memory_order_acquire)) { return; }
-
-	// Try to become the processor
-	bool bExpected = false;
-	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
-	{
-		// Someone else is processing - they will pick up our completion when done
-		return;
-	}
-
+	// Use DriveAdvanceWork which handles all coordination
+	// If someone else is driving, it will set bPendingAsyncWorkEnd for them to pick up
 	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
 	switch (CurrentPhase)
 	{
-	case EPCGExecutionPhase::PrepareData: ElementHandle->AdvancePreparation(this, Settings);
+	case EPCGExecutionPhase::PrepareData:
+		ElementHandle->AdvancePreparation(this, Settings);
 		break;
-	case EPCGExecutionPhase::Execute: ElementHandle->AdvanceWork(this, Settings);
+	case EPCGExecutionPhase::Execute:
+		DriveAdvanceWork(Settings);
 		break;
 	default: break;
-	}
-
-	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
-
-	// If a completion was pending while we were processing, handle it now
-	if (bPendingAsyncWorkEnd.exchange(false, std::memory_order_acq_rel))
-	{
-		OnAsyncWorkEnd(false);
 	}
 }
 

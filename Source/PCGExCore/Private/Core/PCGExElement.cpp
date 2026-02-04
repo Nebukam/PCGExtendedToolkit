@@ -173,19 +173,17 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 
 	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();
 	const EPCGExExecutionPolicy LocalPolicy = DesiredPolicy == EPCGExExecutionPolicy::Default ? PCGEX_CORE_SETTINGS.ExecutionPolicy : DesiredPolicy;
-	
+
 	if (IsInGameThread()
 		|| LocalPolicy == EPCGExExecutionPolicy::Ignored
 		|| LocalPolicy == EPCGExExecutionPolicy::Default
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButLoop && InContext->LoopIndex != INDEX_NONE)
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButTopLoop && InContext->IsExecutingInsideLoop()))
 	{
-		return AdvanceWork(InContext, InSettings);
+		return InContext->DriveAdvanceWork(InSettings);
 	}
 
-	// Spin loop with flag to prevent OnAsyncWorkEnd from also calling AdvanceWork
-	InContext->bSpinLoopDrivingProgress.store(true, std::memory_order_release);
-
+	// Spin loop until work completes
 	constexpr int SPIN_PHASE_ITERATIONS = 50;
 	constexpr int YIELD_PHASE_ITERATIONS = 200;
 	constexpr float SHORT_SLEEP_MS = 0.001f;
@@ -193,7 +191,7 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	constexpr int LONG_SLEEP_THRESHOLD = 1000;
 	int WaitCounter = 0;
 
-	while (!AdvanceWork(InContext, InSettings))
+	while (!InContext->DriveAdvanceWork(InSettings))
 	{
 		if (WaitCounter < SPIN_PHASE_ITERATIONS)
 		{
@@ -215,7 +213,6 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 		++WaitCounter;
 	}
 
-	InContext->bSpinLoopDrivingProgress.store(false, std::memory_order_release);
 	return true;
 }
 

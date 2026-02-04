@@ -26,6 +26,7 @@ namespace PCGExMT
 }
 
 class UPCGExInstancedFactory;
+class UPCGExSettings;
 class UPCGComponent;
 class IPCGExElement;
 class UPCGManagedComponent;
@@ -107,14 +108,17 @@ public:
 	bool IsDone() const { return IsState(PCGExCommon::States::State_Done); }
 	bool IsWorkCompleted() const { return bWorkCompleted.load(std::memory_order_acquire); }
 
+	// Executes AdvanceWork with re-entry protection and deferred completion handling
+	bool DriveAdvanceWork(const UPCGExSettings* InSettings);
+
 	bool IsWorkCancelled() const
 	{
 		return bWorkCancelled.load(std::memory_order_acquire) || (TaskManager && TaskManager->IsCancelled()) || !WorkHandle.IsValid();
 	}
 
-	bool IsProcessingAsyncEnd() const
+	bool IsAdvanceWorkInProgress() const
 	{
-		return bProcessingAsyncWorkEnd.load(std::memory_order_acquire);
+		return bAdvanceWorkInProgress.load(std::memory_order_acquire);
 	}
 
 	void SetPendingAsyncEnd()
@@ -139,15 +143,15 @@ protected:
 	//~ Completion: AdvanceWork -> Done() -> TryComplete() -> OnComplete() -> OutputData populated
 
 	std::atomic<uint32> CurrentState{0};              // State machine position (see PCGExCommon::States)
-	std::atomic<bool> bProcessingAsyncWorkEnd{false}; // Guards OnAsyncWorkEnd re-entry
-	std::atomic<bool> bPendingAsyncWorkEnd{false};    // Deferred completion when OnAsyncWorkEnd was busy
+	std::atomic<bool> bPendingAsyncWorkEnd{false};    // Async completed while DriveAdvanceWork was active
 	std::atomic<bool> bWorkCompleted{false};          // Set once in TryComplete; triggers OnComplete
 	std::atomic<bool> bWorkCancelled{false};          // Cancellation flag; checked throughout execution
-	std::atomic<bool> bSpinLoopDrivingProgress{false}; // ExecuteInternal spin loop active; OnAsyncWorkEnd yields
+	std::atomic<bool> bAdvanceWorkInProgress{false};  // DriveAdvanceWork is active; prevents concurrent driving
 
 	TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 
 	void OnAsyncWorkEnd(const bool bWasCancelled);
+	
 	virtual void OnComplete();
 
 #pragma endregion
