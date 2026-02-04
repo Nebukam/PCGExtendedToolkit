@@ -49,13 +49,14 @@ Test files: `Tests/Unit/Math/`, `Tests/Unit/Containers/`
 | **PCGExMathMean.h** | [x] | PCGExMathMeanTests | Average, Median, QuickSelect |
 | **PCGExWinding.h** | [x] | PCGExWindingTests | IsWinded, FPolygonInfos, AngleCCW |
 | **PCGExBestFitPlane.h** | [x] | PCGExBestFitPlaneTests | Plane fitting, centroid, normal, extents |
-| **PCGExDelaunay.h** | [ ] | | |
-| **PCGExVoronoi.h** | [ ] | | |
+| **PCGExDelaunay.h** | [x] | PCGExDelaunayTests | FDelaunaySite2 (constructor, edge hash, ContainsEdge, GetSharedEdge, PushAdjacency), FDelaunaySite3 (constructor, ComputeFaces), TDelaunay2::Process, TDelaunay3::Process, RemoveLongestEdges, hull detection |
+| **PCGExVoronoi.h** | [ ] | | Depends on Delaunay |
 | **PCGExGeo.h** | [x] | PCGExGeoTests | Det, Centroid, Circumcenter, Barycentric, PointInTriangle/Polygon, L-inf transforms, edge paths, sphere fitting |
-| **PCGExOBB.h** | [~] | PCGExOBBTests | |
+| **PCGExOBB.h** | [x] | PCGExOBBTests | Factory, PointInside, SphereOverlap, SATOverlap, SignedDistance, ClosestPoint, TestPoint modes, TestOverlap modes, FPolicy |
+| **PCGExOBBTests.h** | [x] | PCGExOBBTests | All test utilities (TestPoint, TestOverlap, FPolicy runtime class) |
 | **PCGExOBBCollection.h** | [ ] | | |
 | **PCGExOBBSampling.h** | [ ] | | |
-| **PCGExOBBIntersections.h** | [ ] | | |
+| **PCGExOBBIntersections.h** | [x] | PCGExOBBIntersectionsTests | FCut, FIntersections (Sort, SortAndDedupe, GetBounds), SegmentBoxRaw, ProcessSegment, SegmentIntersects, EPCGExCutType |
 
 #### Containers (5 headers)
 | Component | Status | Test File | Notes |
@@ -322,3 +323,6 @@ Test files: `Tests/Unit/Collections/`
 | 2026-02-03 | Added PCGExTypeTraits tests (TTraits<T> for all types; Type, TypeId, feature flags for bool, int32, int64, float, double, FVector2D, FVector, FVector4, FRotator, FQuat, FTransform, FString, FName, FSoftObjectPath, FSoftClassPath) |
 | 2026-02-03 | Added PCGExCollectionCache tests (FCategory, FMicroCache, FCache, FPCGExEntryAccessResult, FPCGExCollectionTypeSet, TypeIds, EPCGExIndexPickMode, EPCGExDistribution, EPCGExAssetTagInheritance) |
 | 2026-02-03 | Added PCGExCollectionEntry tests (FPCGExAssetStagingData FindSocket, FPCGExAssetCollectionEntry type/validation, staging details defaults) |
+| 2026-02-04 | Added PCGExOBBIntersections tests (FCut, FIntersections container, SegmentBoxRaw, ProcessSegment, SegmentIntersects, EPCGExCutType) |
+| 2026-02-04 | Extended PCGExOBB tests with TestOverlap modes, FPolicy runtime class |
+| 2026-02-04 | Added PCGExDelaunay tests (FDelaunaySite2, FDelaunaySite3, TDelaunay2::Process, TDelaunay3::Process, hull detection, RemoveLongestEdges) |

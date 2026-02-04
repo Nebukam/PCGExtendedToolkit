@@ -32,6 +32,7 @@ public class PCGExtendedToolkitTest : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"GeometryCore",
 				"PCG",
 				"PCGExCore"
 			}
