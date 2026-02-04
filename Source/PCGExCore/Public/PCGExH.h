@@ -9,8 +9,11 @@ namespace PCGEx
 {
 	struct FIndexKey
 	{
-		int32 Index;
-		uint64 Key;
+		int32 Index = 0;
+		uint64 Key = 0;
+
+		FIndexKey() = default;
+		FIndexKey(const int32 InIndex, const uint64 InKey) : Index(InIndex), Key(InKey) {}
 	};
 
 	template <typename, typename = void>
