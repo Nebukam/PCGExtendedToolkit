@@ -10,7 +10,7 @@
 #include "PCGExPointElements.h"
 #include "PCGExCommon.h"
 #include "PCGExDataCommon.h"
-#include "Compute/PCGDataDescription.h"
+#include "PCGCommon.h"
 #include "Core/PCGExMTCommon.h"
 #include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Metadata/PCGMetadataCommon.h"

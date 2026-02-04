@@ -14,4 +14,4 @@
 // PCG core - precompiled here so modules don't re-process them
 #include "Metadata/PCGMetadataCommon.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
-#include "Compute/PCGDataDescription.h"
+#include "PCGCommon.h"
