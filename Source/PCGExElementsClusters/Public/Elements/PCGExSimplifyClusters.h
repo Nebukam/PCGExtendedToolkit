@@ -15,7 +15,7 @@
 
 namespace PCGExClusters
 {
-	class FNodeChainBuilder;
+	class FNodeChain;
 }
 
 namespace PCGExData
@@ -134,7 +134,7 @@ namespace PCGExSimplifyClusters
 	protected:
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TSharedPtr<TArray<int8>> Breakpoints;
-		TSharedPtr<PCGExClusters::FNodeChainBuilder> ChainBuilder;
+		TArray<TSharedPtr<PCGExClusters::FNodeChain>> ProcessedChains;
 
 		double FuseDistance = -1;
 

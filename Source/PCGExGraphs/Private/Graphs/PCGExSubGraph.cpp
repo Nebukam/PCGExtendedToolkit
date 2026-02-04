@@ -14,6 +14,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClusterCache.h"
 #include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
+#include "Clusters/Artifacts/PCGExCachedChain.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExClusterData.h"
@@ -64,6 +65,21 @@ namespace PCGExGraphTask
 
 						if (PCGExClusters::IClusterCacheFactory* Factory = PCGExClusters::FClusterCacheRegistry::Get().GetFactory(
 							PCGExClusters::FFaceEnumeratorCacheFactory::CacheKey))
+						{
+							if (TSharedPtr<PCGExClusters::ICachedClusterData> CachedData = Factory->Build(Context))
+							{
+								NewCluster->SetCachedData(Factory->GetCacheKey(), CachedData);
+							}
+						}
+					}
+
+					// Native: Node Chains
+					if (Builder->OutputDetails->bPreBuildChains)
+					{
+						PCGExClusters::FClusterCacheBuildContext Context(NewCluster.ToSharedRef());
+
+						if (PCGExClusters::IClusterCacheFactory* Factory = PCGExClusters::FClusterCacheRegistry::Get().GetFactory(
+							PCGExClusters::FChainCacheFactory::CacheKey))
 						{
 							if (TSharedPtr<PCGExClusters::ICachedClusterData> CachedData = Factory->Build(Context))
 							{
