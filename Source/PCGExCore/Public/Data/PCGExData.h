@@ -4,13 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGCommon.h"
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
 
 #include "PCGExPointElements.h"
 #include "PCGExCommon.h"
 #include "PCGExDataCommon.h"
-#include "Compute/PCGDataDescription.h"
 #include "Core/PCGExMTCommon.h"
 #include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Metadata/PCGMetadataCommon.h"
