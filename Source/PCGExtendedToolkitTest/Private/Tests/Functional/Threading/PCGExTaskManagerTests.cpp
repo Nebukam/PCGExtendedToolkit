@@ -456,7 +456,10 @@ bool FPCGExTaskManagerResetTest::RunTest(const FString& Parameters)
 
 		bool IsComplete() const
 		{
-			return CompletedCount.load() >= ExpectedCount.load();
+			int32 Expected = ExpectedCount.load();
+			// Not complete if nothing is expected (not started)
+			if (Expected == 0) return false;
+			return CompletedCount.load() >= Expected;
 		}
 	};
 

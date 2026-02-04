@@ -5,6 +5,7 @@
 
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "Components/BoxComponent.h"
 #include "PCGComponent.h"
 #include "PCGGraph.h"
 #include "Data/PCGExData.h"
@@ -51,6 +52,13 @@ namespace PCGExTest
 
 		if (TestActor)
 		{
+			// Create a root component with valid bounds (required for PCG component registration)
+			UBoxComponent* RootBox = NewObject<UBoxComponent>(TestActor, TEXT("RootComponent"));
+			RootBox->SetBoxExtent(FVector(1000.0f)); // 1000 unit box
+			RootBox->SetWorldLocation(FVector::ZeroVector);
+			TestActor->SetRootComponent(RootBox);
+			RootBox->RegisterComponent();
+
 			// Create PCG component on the actor
 			PCGComponent = NewObject<UPCGComponent>(TestActor, TEXT("PCGExTestComponent"));
 			if (PCGComponent)
