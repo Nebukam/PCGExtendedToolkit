@@ -193,6 +193,7 @@ bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingVa
 	if (MainBatch->PrepareProcessing())
 	{
 		SetState(PCGExPointsMT::MTState_PointsProcessing);
+		PCGEX_SCHEDULING_SCOPE(GetTaskManager(), bBatchProcessingEnabled)
 		ScheduleBatch(GetTaskManager(), MainBatch);
 	}
 	else

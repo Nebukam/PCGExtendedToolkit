@@ -48,10 +48,11 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const PCGE
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
 
-	if (IsWorkCancelled() || IsWorkCompleted()) { return; }
-
 	{
 		FWriteScopeLock WriteScopeLock(StagingLock);
+
+		// Check inside lock to prevent race with OnComplete
+		if (IsWorkCancelled() || IsWorkCompleted()) { return; }
 
 		FPCGTaggedData& Output = StagedData.Emplace_GetRef();
 		Output.Data = InData;
@@ -219,6 +220,9 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 
 	if (bWasCancelled || IsWorkCancelled()) { return; }
 
+	// If spin loop is driving progress, let it handle the state change
+	if (bSpinLoopDrivingProgress.load(std::memory_order_acquire)) { return; }
+
 	// Try to become the processor
 	bool bExpected = false;
 	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
@@ -249,8 +253,6 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 void FPCGExContext::OnComplete()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
-
-	//UE_LOG(LogTemp, Warning, TEXT(">> OnComplete @%s"), *GetInputSettings<UPCGExSettings>()->GetName());
 
 	if (ElementHandle) { ElementHandle->CompleteWork(this); }
 

@@ -127,11 +127,23 @@ public:
 	bool TryComplete(const bool bForce = false);
 
 protected:
-	std::atomic<uint32> CurrentState{0};
-	std::atomic<bool> bProcessingAsyncWorkEnd{false};
-	std::atomic<bool> bPendingAsyncWorkEnd{false};
-	std::atomic<bool> bWorkCompleted{false};
-	std::atomic<bool> bWorkCancelled{false};
+	//~ Execution Flow Atomics
+	//~
+	//~ Two paths can drive AdvanceWork:
+	//~   1. ExecuteInternal (spin loop when using NoPause policy)
+	//~   2. OnAsyncWorkEnd (callback when async tasks complete)
+	//~
+	//~ Flow: AdvanceWork -> async tasks -> OnAsyncWorkEnd -> AdvanceWork (if not spin-looping)
+	//~       When spin-looping, OnAsyncWorkEnd skips AdvanceWork; spin loop picks up state changes.
+	//~
+	//~ Completion: AdvanceWork -> Done() -> TryComplete() -> OnComplete() -> OutputData populated
+
+	std::atomic<uint32> CurrentState{0};              // State machine position (see PCGExCommon::States)
+	std::atomic<bool> bProcessingAsyncWorkEnd{false}; // Guards OnAsyncWorkEnd re-entry
+	std::atomic<bool> bPendingAsyncWorkEnd{false};    // Deferred completion when OnAsyncWorkEnd was busy
+	std::atomic<bool> bWorkCompleted{false};          // Set once in TryComplete; triggers OnComplete
+	std::atomic<bool> bWorkCancelled{false};          // Cancellation flag; checked throughout execution
+	std::atomic<bool> bSpinLoopDrivingProgress{false}; // ExecuteInternal spin loop active; OnAsyncWorkEnd yields
 
 	TSharedPtr<PCGExMT::FTaskManager> TaskManager;
 
