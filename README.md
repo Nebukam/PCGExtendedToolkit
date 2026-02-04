@@ -1,4 +1,4 @@
-!![5.6](https://img.shields.io/badge/5.6-darkgreen) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Nebukam/PCGExtendedToolkit)
+![5.6](https://img.shields.io/badge/5.6-darkgreen) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Nebukam/PCGExtendedToolkit)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/refs/heads/docs/_sources/smol-logo.png" alt="PCGEx Logo">
