@@ -8,6 +8,7 @@
 #include "PCGPin.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Types/PCGExAttributeIdentity.h"
 
 

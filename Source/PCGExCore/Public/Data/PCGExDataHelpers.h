@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDataCommon.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
-#include "Helpers/PCGExMetaHelpers.h"
 
 enum class EPCGExInputValueType : uint8;
 struct FPCGExContext;

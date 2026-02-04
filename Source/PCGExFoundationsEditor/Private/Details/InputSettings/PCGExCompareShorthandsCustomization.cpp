@@ -3,6 +3,7 @@
 
 #include "Details/InputSettings/PCGExCompareShorthandsCustomization.h"
 
+#include "UObject/TextProperty.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "PropertyHandle.h"
@@ -14,6 +15,7 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "Widgets/Input/SVectorInputBox.h"
+#include "Widgets/Layout/SBox.h"
 
 TSharedRef<IPropertyTypeCustomization> FPCGExCompareShorthandCustomization::MakeInstance()
 {

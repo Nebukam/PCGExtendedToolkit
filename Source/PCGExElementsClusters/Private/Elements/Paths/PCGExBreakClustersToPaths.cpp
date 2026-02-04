@@ -5,6 +5,7 @@
 
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/Artifacts/PCGExChain.h"
+#include "Clusters/Artifacts/PCGExCachedChain.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGPointArrayData.h"
@@ -109,16 +110,11 @@ namespace PCGExBreakClustersToPaths
 
 	bool FProcessor::BuildChains()
 	{
-		ChainBuilder = MakeShared<PCGExClusters::FNodeChainBuilder>(Cluster.ToSharedRef());
-		ChainBuilder->Breakpoints = VtxFilterCache;
-		if (Settings->LeavesHandling == EPCGExBreakClusterLeavesHandling::Only)
-		{
-			bIsProcessorValid = ChainBuilder->CompileLeavesOnly(TaskManager);
-		}
-		else
-		{
-			bIsProcessorValid = ChainBuilder->Compile(TaskManager);
-		}
+		bIsProcessorValid = PCGExClusters::ChainHelpers::GetOrBuildChains(
+			Cluster.ToSharedRef(),
+			ProcessedChains,
+			VtxFilterCache,
+			Settings->LeavesHandling == EPCGExBreakClusterLeavesHandling::Only);
 
 		return bIsProcessorValid;
 	}
@@ -126,7 +122,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::CompleteWork()
 	{
-		const int32 NumChains = ChainBuilder->Chains.Num();
+		const int32 NumChains = ProcessedChains.Num();
 		if (!NumChains)
 		{
 			bIsProcessorValid = false;
@@ -140,14 +136,14 @@ namespace PCGExBreakClustersToPaths
 			ChainsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
-		StartParallelLoopForRange(ChainBuilder->Chains.Num());
+		StartParallelLoopForRange(NumChains);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const TSharedPtr<PCGExClusters::FNodeChain> Chain = ChainBuilder->Chains[Index];
+			const TSharedPtr<PCGExClusters::FNodeChain> Chain = ProcessedChains[Index];
 			const TSharedPtr<PCGExData::FPointIO> PathIO = ChainsIO[Index];
 
 			if (!Chain)
@@ -237,7 +233,7 @@ namespace PCGExBreakClustersToPaths
 	void FProcessor::Cleanup()
 	{
 		TProcessor<FPCGExBreakClustersToPathsContext, UPCGExBreakClustersToPathsSettings>::Cleanup();
-		ChainBuilder.Reset();
+		ProcessedChains.Empty();
 	}
 
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)

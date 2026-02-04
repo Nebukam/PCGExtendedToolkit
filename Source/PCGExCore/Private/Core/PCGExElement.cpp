@@ -180,10 +180,39 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButLoop && InContext->LoopIndex != INDEX_NONE)
 		|| (LocalPolicy == EPCGExExecutionPolicy::NoPauseButTopLoop && InContext->IsExecutingInsideLoop()))
 	{
-		return AdvanceWork(InContext, InSettings);
+		return InContext->DriveAdvanceWork(InSettings);
 	}
 
-	PCGEX_ASYNC_WAIT_CHKD_ADV(!AdvanceWork(InContext, InSettings))
+	// Spin loop until work completes
+	constexpr int SPIN_PHASE_ITERATIONS = 50;
+	constexpr int YIELD_PHASE_ITERATIONS = 200;
+	constexpr float SHORT_SLEEP_MS = 0.001f;
+	constexpr float LONG_SLEEP_MS = 0.005f;
+	constexpr int LONG_SLEEP_THRESHOLD = 1000;
+	int WaitCounter = 0;
+
+	while (!InContext->DriveAdvanceWork(InSettings))
+	{
+		if (WaitCounter < SPIN_PHASE_ITERATIONS)
+		{
+			FPlatformProcess::YieldThread();
+		}
+		else if (WaitCounter < YIELD_PHASE_ITERATIONS)
+		{
+			if ((WaitCounter & 0x7) == 0) { FPlatformProcess::SleepNoStats(SHORT_SLEEP_MS); }
+			else { FPlatformProcess::YieldThread(); }
+		}
+		else if (WaitCounter < LONG_SLEEP_THRESHOLD)
+		{
+			FPlatformProcess::SleepNoStats(SHORT_SLEEP_MS);
+		}
+		else
+		{
+			FPlatformProcess::SleepNoStats(LONG_SLEEP_MS);
+		}
+		++WaitCounter;
+	}
+
 	return true;
 }
 

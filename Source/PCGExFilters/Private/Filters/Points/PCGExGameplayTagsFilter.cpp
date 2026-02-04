@@ -8,6 +8,7 @@
 #include "PropertyPathHelpers.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition

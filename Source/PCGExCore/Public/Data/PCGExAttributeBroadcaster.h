@@ -6,9 +6,9 @@
 #include <type_traits>
 
 #include "CoreMinimal.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
 #include "PCGExSubSelection.h"
 #include "Metadata/PCGMetadataCommon.h"
-#include "Helpers/PCGExMetaHelpers.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Types/PCGExAttributeIdentity.h"
 #include "Types/PCGExTypeTraits.h"
@@ -169,6 +169,7 @@ namespace PCGExData
 extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch); \
 extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch); \
 extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch);
+	
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL

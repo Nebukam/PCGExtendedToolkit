@@ -6,6 +6,7 @@
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Pickers/PCGExPickerAttributeSetRanges.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"

@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Math/PCGExMathBounds.h"
+
+#include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Utils/PCGValueRange.h"
 

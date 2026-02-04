@@ -33,14 +33,13 @@ namespace PCGExClusters
 			FixUniqueHash();
 		};
 
-		TSet<int32> Visited;
+		// Note: No TSet needed for cycle detection. Binary nodes have exactly 2 neighbors,
+		// so walking through them can't revisit nodes - we came from one, go to the other.
+		// Closed loops are detected by checking if we return to Seed.Node.
 
 		FLink Last = Seed;
 		FNode* FromNode = Cluster->GetEdgeOtherNode(Seed);
 		Links.Add(FLink(FromNode->Index, Seed.Edge));
-
-		Visited.Add(Seed.Node);
-		Visited.Add(Links.Last().Node);
 
 		while (FromNode)
 		{
@@ -53,10 +52,7 @@ namespace PCGExClusters
 			FLink NextLink = FromNode->Links[0];                               // Get next node
 			if (NextLink.Node == Last.Node) { NextLink = FromNode->Links[1]; } // Get other next
 
-			bool bAlreadyVisited = false;
-			Visited.Add(NextLink.Node, &bAlreadyVisited);
-
-			if (bAlreadyVisited || NextLink.Node == Seed.Node)
+			if (NextLink.Node == Seed.Node)
 			{
 				Seed.Edge = NextLink.Edge; // !
 				bIsClosedLoop = true;

@@ -11,6 +11,7 @@
 #include "Data/PCGExData.h"
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTexParam"
 #define PCGEX_NAMESPACE PCGExCreateTexParam

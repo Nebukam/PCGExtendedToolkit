@@ -5,6 +5,7 @@
 #include "Styling/SlateStyle.h"
 #include "Editor.h"
 #include "PCGExLog.h"
+#include "ToolMenus.h"
 
 TArray<IPCGExEditorModuleInterface*> IPCGExEditorModuleInterface::RegisteredModules;
 

@@ -5,6 +5,7 @@
 
 #include "PCGContext.h"
 #include "PCGElement.h"
+#include "PCGModule.h"
 #include "Data/PCGExAttributeBroadcaster.h"
 #include "Data/PCGExData.h"
 

@@ -13,6 +13,7 @@
 #include "Core/PCGExBlendOpsManager.h"
 #include "Core/PCGExHeuristicsFactoryProvider.h"
 #include "Data/PCGExData.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #define LOCTEXT_NAMESPACE "WriteEdgeProperties"
 #define PCGEX_NAMESPACE WriteEdgeProperties

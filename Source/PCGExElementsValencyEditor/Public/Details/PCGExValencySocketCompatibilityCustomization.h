@@ -7,6 +7,8 @@
 #include "IPropertyTypeCustomization.h"
 #include "Widgets/SCompoundWidget.h"
 
+
+class SVerticalBox;
 class UPCGExValencySocketRules;
 
 /**

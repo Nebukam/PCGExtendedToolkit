@@ -6,6 +6,7 @@
 
 #include "Types/PCGExTypes.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Metadata/PCGMetadata.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBranchOnDataAttributeElement"

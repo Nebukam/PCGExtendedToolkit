@@ -8,8 +8,8 @@
 #if WITH_EDITOR
 void FPCGExPropertiesModule::RegisterToEditor(const TSharedPtr<FSlateStyleSet>& InStyle)
 {
-	IPCGExModuleInterface::RegisterToEditor(InStyle);
 	// No special editor registration needed for properties module
+	IPCGExModuleInterface::RegisterToEditor(InStyle);
 }
 #endif
 

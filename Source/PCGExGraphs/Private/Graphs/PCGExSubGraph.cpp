@@ -14,6 +14,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClusterCache.h"
 #include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
+#include "Clusters/Artifacts/PCGExCachedChain.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Core/PCGExOpStats.h"
 #include "Data/PCGExClusterData.h"
@@ -71,6 +72,21 @@ namespace PCGExGraphTask
 							}
 						}
 					}
+
+					// Native: Node Chains
+					if (Builder->OutputDetails->bPreBuildChains)
+					{
+						PCGExClusters::FClusterCacheBuildContext Context(NewCluster.ToSharedRef());
+
+						if (PCGExClusters::IClusterCacheFactory* Factory = PCGExClusters::FClusterCacheRegistry::Get().GetFactory(
+							PCGExClusters::FChainCacheFactory::CacheKey))
+						{
+							if (TSharedPtr<PCGExClusters::ICachedClusterData> CachedData = Factory->Build(Context))
+							{
+								NewCluster->SetCachedData(Factory->GetCacheKey(), CachedData);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -89,6 +105,15 @@ namespace PCGExGraphs
 	{
 		Nodes.Shrink();
 		Edges.Shrink();
+	}
+
+	void FSubGraph::ComputeMinPointIndex(const TArray<FNode>& ParentNodes)
+	{
+		MinPointIndex = MAX_int32;
+		for (const int32 NodeIdx : Nodes)
+		{
+			MinPointIndex = FMath::Min(MinPointIndex, ParentNodes[NodeIdx].PointIndex);
+		}
 	}
 
 	void FSubGraph::BuildCluster(const TSharedRef<PCGExClusters::FCluster>& InCluster)

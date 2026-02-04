@@ -1,14 +1,26 @@
 // Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
+using System.IO;
 using UnrealBuildTool;
 
 public class PCGExBlending : ModuleRules
 {
 	public PCGExBlending(ReadOnlyTargetRules Target) : base(Target)
 	{;
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
+		if (bNoPCH)                                                                    
+		{                                                                                                                     
+			PCHUsage = PCHUsageMode.NoPCHs;                                                                                   
+		}                                                                                                                     
+		else                                                                                                                  
+		{                                                                                                                     
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;                                                                  
+			PrivatePCHHeaderFile = "PCGExMinimalPCH.h";                                           
+		} 
+		
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;
 		
 		PublicIncludePaths.AddRange(

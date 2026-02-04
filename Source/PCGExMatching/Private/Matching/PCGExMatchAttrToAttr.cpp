@@ -8,6 +8,7 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExTaggedData.h"
 #include "Data/PCGExPointElements.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExMatchAttrToAttr"
 #define PCGEX_NAMESPACE MatchAttrToAttr

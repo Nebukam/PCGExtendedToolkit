@@ -5,6 +5,7 @@
 
 #include "EditorModeRegistry.h"
 #include "PCGExAssetTypesMacros.h"
+#include "PropertyEditorModule.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "Details/PCGExPropertyOutputConfigCustomization.h"
 #include "Details/PCGExValencySocketCompatibilityCustomization.h"

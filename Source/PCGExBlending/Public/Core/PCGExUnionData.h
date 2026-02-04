@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "Misc/ScopeRWLock.h"
 #include "UObject/Object.h"
 #include "Data/PCGExPointElements.h"
 

@@ -5,6 +5,8 @@
 
 #include "IPropertyTypeCustomization.h"
 
+
+class SWidget;
 class UPCGExAssetCollection;
 
 class FPCGExAssetEntryCustomization : public IPropertyTypeCustomization

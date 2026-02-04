@@ -6,6 +6,7 @@
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExTangentsScalingDetails, ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
 PCGEX_SETTING_VALUE_IMPL(FPCGExTangentsScalingDetails, LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))

@@ -5,6 +5,9 @@
 
 #include "IPropertyTypeCustomization.h"
 
+
+class SWidget;
+
 class FPCGExInputShorthandCustomization : public IPropertyTypeCustomization
 {
 public:

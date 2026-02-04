@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExLog.h"
+#include "PCGExMetaHelpers.h"
 #include "Data/PCGExData.h"
 #include "UObject/Object.h"
 

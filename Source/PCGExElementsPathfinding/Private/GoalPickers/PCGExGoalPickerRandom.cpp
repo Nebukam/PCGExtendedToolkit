@@ -4,6 +4,7 @@
 
 #include "GoalPickers/PCGExGoalPickerRandom.h"
 
+#include "Data/PCGBasePointData.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Data/PCGExPointElements.h"
 #include "Details/PCGExSettingsDetails.h"

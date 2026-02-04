@@ -122,10 +122,20 @@ namespace PCGExBoundsAxisToPoints
 			if (Settings->DirectionConstraint != EPCGExAxisDirectionConstraint::None)
 			{
 				for (int i = 0; i < 3; i++) { Dots[i] = FVector::DotProduct(Direction[i], Settings->Direction); }
-				Algo::Sort(DotsIndices, [&](const int32 A, const int32 B) { return Dots[A] < Dots[B]; });
+				// Sort with index tie-breaker for determinism when dot products are equal
+				Algo::Sort(DotsIndices, [&](const int32 A, const int32 B)
+				{
+					if (Dots[A] != Dots[B]) { return Dots[A] < Dots[B]; }
+					return A < B;
+				});
 			}
 
-			Algo::Sort(Indices, [&](const int32 A, const int32 B) { return Size[A] < Size[B]; });
+			// Sort with index tie-breaker for determinism when sizes are equal
+			Algo::Sort(Indices, [&](const int32 A, const int32 B)
+			{
+				if (Size[A] != Size[B]) { return Size[A] < Size[B]; }
+				return A < B;
+			});
 
 			switch (Settings->Priority)
 			{

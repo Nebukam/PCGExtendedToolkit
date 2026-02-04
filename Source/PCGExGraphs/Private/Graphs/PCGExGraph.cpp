@@ -5,6 +5,7 @@
 
 #include "PCGExH.h"
 #include "Clusters/PCGExEdge.h"
+#include "Core/PCGExMTCommon.h"
 #include "Graphs/PCGExSubGraph.h"
 
 namespace PCGExGraphs
@@ -272,7 +273,6 @@ namespace PCGExGraphs
 					const int32 OtherIndex = Edge.Other(NodeIndex);
 					if (!Nodes[OtherIndex].bValid) { continue; }
 
-					Node.NumExportedEdges++;
 					SubGraph->Add(Edge);
 
 					if (!VisitedNodes[OtherIndex])
@@ -296,6 +296,23 @@ namespace PCGExGraphs
 				SubGraphs.Add(SubGraph.ToSharedRef());
 			}
 		}
+
+		// Recompute NumExportedEdges deterministically based on actual edge connections.
+		// The BFS traversal order affects which node "claims" each shared edge, making
+		// NumExportedEdges non-deterministic when Node.Links order varies (parallel insertion).
+		// Count valid edges per node directly from Links - parallelizable and cache-friendly.
+		PCGEX_PARALLEL_FOR(
+			OutValidNodes.Num(), 
+			
+			const int32 NodeIdx = OutValidNodes[i];
+			FNode& Node = Nodes[NodeIdx];
+			Node.NumExportedEdges = 0;
+			for (const FLink& Lk : Node.Links)
+			{
+				const FEdge& Edge = Edges[Lk.Edge];
+				if (Edge.bValid && Nodes[Edge.Other(NodeIdx)].bValid) { Node.NumExportedEdges++; }
+			}
+		)
 	}
 
 	void FGraph::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const

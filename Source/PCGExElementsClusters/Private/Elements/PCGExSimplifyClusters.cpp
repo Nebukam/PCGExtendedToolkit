@@ -5,6 +5,7 @@
 
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/Artifacts/PCGExChain.h"
+#include "Clusters/Artifacts/PCGExCachedChain.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
@@ -135,25 +136,26 @@ namespace PCGExSimplifyClusters
 
 	void FProcessor::CompileChains()
 	{
-		ChainBuilder = MakeShared<PCGExClusters::FNodeChainBuilder>(Cluster.ToSharedRef());
-		ChainBuilder->Breakpoints = Breakpoints;
-		bIsProcessorValid = ChainBuilder->Compile(TaskManager);
-
 		EdgesUnion = GraphBuilder->Graph->EdgesUnion;
+
+		bIsProcessorValid = PCGExClusters::ChainHelpers::GetOrBuildChains(
+			Cluster.ToSharedRef(),
+			ProcessedChains,
+			Breakpoints,
+			false);
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::CompleteWork);
-
-		StartParallelLoopForRange(ChainBuilder->Chains.Num());
+		StartParallelLoopForRange(ProcessedChains.Num());
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const TSharedPtr<PCGExClusters::FNodeChain> Chain = ChainBuilder->Chains[Index];
+			const TSharedPtr<PCGExClusters::FNodeChain> Chain = ProcessedChains[Index];
 			if (!Chain) { continue; }
 
 			if (Settings->bPruneLeaves && Chain->bIsLeaf) { continue; } // Skip leaf
@@ -267,7 +269,7 @@ namespace PCGExSimplifyClusters
 	void FProcessor::Cleanup()
 	{
 		TProcessor<FPCGExSimplifyClustersContext, UPCGExSimplifyClustersSettings>::Cleanup();
-		ChainBuilder.Reset();
+		ProcessedChains.Empty();
 	}
 
 	const PCGExGraphs::FGraphMetadataDetails* FBatch::GetGraphMetadataDetails()
