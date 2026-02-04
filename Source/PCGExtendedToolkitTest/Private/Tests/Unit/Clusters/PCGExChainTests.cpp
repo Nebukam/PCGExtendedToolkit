@@ -545,3 +545,475 @@ bool FPCGExChainTwoNodesClosedLoopTest::RunTest(const FString& Parameters)
 
 	return true;
 }
+
+//
+// Breakpoint on Closed Loop Tests
+//
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainBreakpointClosedLoopTest,
+	"PCGEx.Unit.Clusters.Chain.Breakpoint.ClosedLoop",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainBreakpointClosedLoopTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Closed loop with 6 nodes, breakpoint at node 3
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithClosedLoop(6)
+		.Build();
+
+	TSharedPtr<TArray<int8>> Breakpoints = MakeShared<TArray<int8>>();
+	Breakpoints->Init(0, 6);
+	(*Breakpoints)[3] = 1; // Breakpoint at node 3
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	const bool bBuilt = TestChainHelpers::BuildChains(Cluster, Chains, Breakpoints);
+
+	TestTrue(TEXT("Chains built successfully"), bBuilt);
+
+	// Breaking a closed loop at one point should produce one open chain
+	// (or two chains depending on how you count the split)
+	TestTrue(TEXT("At least 1 chain after breaking loop"), Chains.Num() >= 1);
+
+	// After breaking, no chains should be closed loops
+	TestEqual(TEXT("0 closed loops after breakpoint"), TestChainHelpers::CountClosedLoops(Chains), 0);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainBreakpointClosedLoopMultipleTest,
+	"PCGEx.Unit.Clusters.Chain.Breakpoint.ClosedLoopMultiple",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainBreakpointClosedLoopMultipleTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Closed loop with 8 nodes, breakpoints at nodes 2 and 6
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithClosedLoop(8)
+		.Build();
+
+	TSharedPtr<TArray<int8>> Breakpoints = MakeShared<TArray<int8>>();
+	Breakpoints->Init(0, 8);
+	(*Breakpoints)[2] = 1;
+	(*Breakpoints)[6] = 1;
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	const bool bBuilt = TestChainHelpers::BuildChains(Cluster, Chains, Breakpoints);
+
+	TestTrue(TEXT("Chains built successfully"), bBuilt);
+
+	// Two breakpoints on a closed loop should create 2 separate chains
+	TestEqual(TEXT("2 chains after 2 breakpoints on loop"), Chains.Num(), 2);
+	TestEqual(TEXT("0 closed loops"), TestChainHelpers::CountClosedLoops(Chains), 0);
+
+	return true;
+}
+
+//
+// Breakpoint Ignored Cases
+//
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainBreakpointAtLeafIgnoredTest,
+	"PCGEx.Unit.Clusters.Chain.Breakpoint.AtLeafIgnored",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainBreakpointAtLeafIgnoredTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Linear chain: 0-1-2-3-4, breakpoint at leaf node 0
+	// Breakpoints at leaves should not affect chain building (leaves aren't walked through)
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithLinearChain(5)
+		.Build();
+
+	TSharedPtr<TArray<int8>> Breakpoints = MakeShared<TArray<int8>>();
+	Breakpoints->Init(0, 5);
+	(*Breakpoints)[0] = 1; // Breakpoint at leaf node 0
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains, Breakpoints);
+
+	// Breakpoint at leaf shouldn't split - chain still goes 0-1-2-3-4
+	// The chain will be split when it REACHES a breakpoint, not starts from one
+	TestEqual(TEXT("1 chain (leaf breakpoint doesn't split)"), Chains.Num(), 1);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainBreakpointAtComplexIgnoredTest,
+	"PCGEx.Unit.Clusters.Chain.Breakpoint.AtComplexIgnored",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainBreakpointAtComplexIgnoredTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Star with center node 0 (complex) and 4 leaves
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithStar(4)
+		.Build();
+
+	TSharedPtr<TArray<int8>> Breakpoints = MakeShared<TArray<int8>>();
+	Breakpoints->Init(0, 5);
+	(*Breakpoints)[0] = 1; // Breakpoint at complex center node
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains, Breakpoints);
+
+	// Complex nodes naturally terminate chains, so breakpoint has no effect
+	TestEqual(TEXT("4 chains (same as without breakpoint)"), Chains.Num(), 4);
+
+	return true;
+}
+
+//
+// Chain Node Order Tests
+//
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainNodeOrderTest,
+	"PCGEx.Unit.Clusters.Chain.NodeOrder",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainNodeOrderTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Linear chain: 0-1-2-3-4
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithLinearChain(5)
+		.Build();
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains);
+
+	TestEqual(TEXT("1 chain"), Chains.Num(), 1);
+
+	if (Chains.Num() > 0)
+	{
+		TArray<int32> NodeIndices;
+		Chains[0]->GetNodeIndices(NodeIndices);
+
+		TestEqual(TEXT("Chain has 5 nodes"), NodeIndices.Num(), 5);
+
+		// Verify nodes are sequential (either 0-1-2-3-4 or 4-3-2-1-0)
+		bool bForward = (NodeIndices[0] == 0);
+		for (int32 i = 0; i < NodeIndices.Num(); i++)
+		{
+			const int32 Expected = bForward ? i : (4 - i);
+			TestEqual(FString::Printf(TEXT("Node %d in order"), i), NodeIndices[i], Expected);
+		}
+	}
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainNodeOrderReverseTest,
+	"PCGEx.Unit.Clusters.Chain.NodeOrderReverse",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainNodeOrderReverseTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithLinearChain(5)
+		.Build();
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains);
+
+	if (Chains.Num() > 0)
+	{
+		TArray<int32> Forward, Reverse;
+		Chains[0]->GetNodeIndices(Forward, false);
+		Chains[0]->GetNodeIndices(Reverse, true);
+
+		TestEqual(TEXT("Same node count"), Forward.Num(), Reverse.Num());
+
+		// Reverse should be opposite order
+		for (int32 i = 0; i < Forward.Num(); i++)
+		{
+			TestEqual(
+				FString::Printf(TEXT("Reverse[%d] == Forward[%d]"), i, Forward.Num() - 1 - i),
+				Reverse[i],
+				Forward[Forward.Num() - 1 - i]);
+		}
+	}
+
+	return true;
+}
+
+//
+// UniqueHash Tests
+//
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainUniqueHashDeterministicTest,
+	"PCGEx.Unit.Clusters.Chain.UniqueHash.Deterministic",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainUniqueHashDeterministicTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Build same cluster twice
+	TSharedRef<FTestCluster> Cluster1 = FClusterBuilder().WithLinearChain(5).Build();
+	TSharedRef<FTestCluster> Cluster2 = FClusterBuilder().WithLinearChain(5).Build();
+
+	TArray<TSharedPtr<FTestChain>> Chains1, Chains2;
+	TestChainHelpers::BuildChains(Cluster1, Chains1);
+	TestChainHelpers::BuildChains(Cluster2, Chains2);
+
+	TestEqual(TEXT("Same chain count"), Chains1.Num(), Chains2.Num());
+
+	if (Chains1.Num() > 0 && Chains2.Num() > 0)
+	{
+		TestEqual(TEXT("Same UniqueHash"), Chains1[0]->UniqueHash, Chains2[0]->UniqueHash);
+	}
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainUniqueHashDifferentTest,
+	"PCGEx.Unit.Clusters.Chain.UniqueHash.Different",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainUniqueHashDifferentTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Build different topologies
+	TSharedRef<FTestCluster> Linear = FClusterBuilder().WithLinearChain(5).Build();
+	TSharedRef<FTestCluster> Star = FClusterBuilder().WithStar(4).Build();
+
+	TArray<TSharedPtr<FTestChain>> LinearChains, StarChains;
+	TestChainHelpers::BuildChains(Linear, LinearChains);
+	TestChainHelpers::BuildChains(Star, StarChains);
+
+	if (LinearChains.Num() > 0 && StarChains.Num() > 0)
+	{
+		TestNotEqual(TEXT("Different UniqueHash"), LinearChains[0]->UniqueHash, StarChains[0]->UniqueHash);
+	}
+
+	return true;
+}
+
+//
+// Complex Topology Tests
+//
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainLadderTopologyTest,
+	"PCGEx.Unit.Clusters.Chain.Topology.Ladder",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainLadderTopologyTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Ladder topology:
+	// 0-1-2-3
+	// | | | |
+	// 4-5-6-7
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.AddNode(0, FVector(0, 0, 0))
+		.AddNode(1, FVector(100, 0, 0))
+		.AddNode(2, FVector(200, 0, 0))
+		.AddNode(3, FVector(300, 0, 0))
+		.AddNode(4, FVector(0, 100, 0))
+		.AddNode(5, FVector(100, 100, 0))
+		.AddNode(6, FVector(200, 100, 0))
+		.AddNode(7, FVector(300, 100, 0))
+		// Top row
+		.AddEdge(0, 1).AddEdge(1, 2).AddEdge(2, 3)
+		// Bottom row
+		.AddEdge(4, 5).AddEdge(5, 6).AddEdge(6, 7)
+		// Rungs
+		.AddEdge(0, 4).AddEdge(1, 5).AddEdge(2, 6).AddEdge(3, 7)
+		.Build();
+
+	// Corner nodes (0, 3, 4, 7) have 2 neighbors (binary)
+	// Middle nodes (1, 2, 5, 6) have 3 neighbors (complex)
+	TestEqual(TEXT("4 binary nodes (corners)"), ClusterVerify::CountBinaryNodes(Cluster), 4);
+	TestEqual(TEXT("4 complex nodes (middle)"), ClusterVerify::CountComplexNodes(Cluster), 4);
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains);
+
+	// Each corner should generate a single-edge chain to its complex neighbor
+	// Deduplication should reduce this
+	TestTrue(TEXT("Chains built"), Chains.Num() > 0);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainTreeTopologyTest,
+	"PCGEx.Unit.Clusters.Chain.Topology.Tree",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainTreeTopologyTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Binary tree:
+	//       0
+	//      / \
+	//     1   2
+	//    / \
+	//   3   4
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.AddNode(0, FVector(100, 0, 0))
+		.AddNode(1, FVector(50, 100, 0))
+		.AddNode(2, FVector(150, 100, 0))
+		.AddNode(3, FVector(25, 200, 0))
+		.AddNode(4, FVector(75, 200, 0))
+		.AddEdge(0, 1).AddEdge(0, 2)
+		.AddEdge(1, 3).AddEdge(1, 4)
+		.Build();
+
+	// Node 0: 2 neighbors (binary)
+	// Node 1: 3 neighbors (complex)
+	// Node 2, 3, 4: 1 neighbor each (leaves)
+	TestEqual(TEXT("3 leaf nodes"), ClusterVerify::CountLeafNodes(Cluster), 3);
+	TestEqual(TEXT("1 binary node"), ClusterVerify::CountBinaryNodes(Cluster), 1);
+	TestEqual(TEXT("1 complex node"), ClusterVerify::CountComplexNodes(Cluster), 1);
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains);
+
+	// Expected chains: 2->0->1, 3->1, 4->1 (all leaf chains)
+	TestEqual(TEXT("3 leaf chains"), TestChainHelpers::CountLeafChains(Chains), 3);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainHubAndSpokeWithChainsTest,
+	"PCGEx.Unit.Clusters.Chain.Topology.HubWithChains",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainHubAndSpokeWithChainsTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Hub with chains extending from it:
+	// 1-2-3
+	//     |
+	// 4-5-0-6-7
+	//     |
+	// 8-9-10
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.AddNode(0, FVector(0, 0, 0))      // Hub (4 neighbors)
+		.AddNode(1, FVector(-200, -100, 0))
+		.AddNode(2, FVector(-100, -100, 0))
+		.AddNode(3, FVector(0, -100, 0))
+		.AddNode(4, FVector(-200, 0, 0))
+		.AddNode(5, FVector(-100, 0, 0))
+		.AddNode(6, FVector(100, 0, 0))
+		.AddNode(7, FVector(200, 0, 0))
+		.AddNode(8, FVector(-200, 100, 0))
+		.AddNode(9, FVector(-100, 100, 0))
+		.AddNode(10, FVector(0, 100, 0))
+		// Top chain
+		.AddEdge(1, 2).AddEdge(2, 3).AddEdge(3, 0)
+		// Left chain
+		.AddEdge(4, 5).AddEdge(5, 0)
+		// Right chain
+		.AddEdge(0, 6).AddEdge(6, 7)
+		// Bottom chain
+		.AddEdge(0, 10).AddEdge(10, 9).AddEdge(9, 8)
+		.Build();
+
+	TestTrue(TEXT("Hub is complex"), ClusterVerify::NodeIsComplex(Cluster, 0));
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains);
+
+	// 4 chains radiating from hub, all leaf chains
+	TestEqual(TEXT("4 chains from hub"), Chains.Num(), 4);
+	TestEqual(TEXT("4 leaf chains"), TestChainHelpers::CountLeafChains(Chains), 4);
+
+	return true;
+}
+
+//
+// Long Chain Performance Test
+//
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainLongChainTest,
+	"PCGEx.Unit.Clusters.Chain.Performance.LongChain",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainLongChainTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Build a very long chain (1000 nodes)
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithLinearChain(1000)
+		.Build();
+
+	TestEqual(TEXT("1000 nodes"), Cluster->Nodes->Num(), 1000);
+	TestEqual(TEXT("999 edges"), Cluster->Edges->Num(), 999);
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	const bool bBuilt = TestChainHelpers::BuildChains(Cluster, Chains);
+
+	TestTrue(TEXT("Long chain built"), bBuilt);
+	TestEqual(TEXT("1 chain"), Chains.Num(), 1);
+
+	if (Chains.Num() > 0)
+	{
+		TestEqual(TEXT("Chain has 999 links"), Chains[0]->Links.Num(), 999);
+		TestTrue(TEXT("Is leaf chain"), Chains[0]->bIsLeaf);
+	}
+
+	return true;
+}
+
+//
+// All Breakpoints Test
+//
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExChainAllBreakpointsTest,
+	"PCGEx.Unit.Clusters.Chain.Breakpoint.AllBinary",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExChainAllBreakpointsTest::RunTest(const FString& Parameters)
+{
+	using namespace PCGExTest;
+
+	// Linear chain: 0-1-2-3-4 with breakpoints at ALL binary nodes (1, 2, 3)
+	TSharedRef<FTestCluster> Cluster = FClusterBuilder()
+		.WithLinearChain(5)
+		.Build();
+
+	TSharedPtr<TArray<int8>> Breakpoints = MakeShared<TArray<int8>>();
+	Breakpoints->Init(0, 5);
+	(*Breakpoints)[1] = 1;
+	(*Breakpoints)[2] = 1;
+	(*Breakpoints)[3] = 1;
+
+	TArray<TSharedPtr<FTestChain>> Chains;
+	TestChainHelpers::BuildChains(Cluster, Chains, Breakpoints);
+
+	// Should split into: 0-1, 1-2, 2-3, 3-4 (4 single-edge chains)
+	TestEqual(TEXT("4 chains when all binary nodes are breakpoints"), Chains.Num(), 4);
+	TestEqual(TEXT("4 single-edge chains"), TestChainHelpers::CountSingleEdgeChains(Chains), 4);
+
+	return true;
+}
