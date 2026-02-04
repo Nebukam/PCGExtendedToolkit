@@ -112,6 +112,16 @@ public:
 		return bWorkCancelled.load(std::memory_order_acquire) || (TaskManager && TaskManager->IsCancelled()) || !WorkHandle.IsValid();
 	}
 
+	bool IsProcessingAsyncEnd() const
+	{
+		return bProcessingAsyncWorkEnd.load(std::memory_order_acquire);
+	}
+
+	void SetPendingAsyncEnd()
+	{
+		bPendingAsyncWorkEnd.store(true, std::memory_order_release);
+	}
+
 	void Done();
 
 	bool TryComplete(const bool bForce = false);
@@ -119,6 +129,7 @@ public:
 protected:
 	std::atomic<uint32> CurrentState{0};
 	std::atomic<bool> bProcessingAsyncWorkEnd{false};
+	std::atomic<bool> bPendingAsyncWorkEnd{false};
 	std::atomic<bool> bWorkCompleted{false};
 	std::atomic<bool> bWorkCancelled{false};
 

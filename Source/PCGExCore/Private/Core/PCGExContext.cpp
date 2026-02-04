@@ -223,8 +223,8 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	bool bExpected = false;
 	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
-		// Someone else is processing - they'll see our pending flag
-		//UE_LOG(LogTemp, Error, TEXT("Double Call : %s"), *GetNameSafe(GetInputSettings<UPCGExSettings>()))
+		// Someone else is processing - they will pick up our completion when done
+		return;
 	}
 
 	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
@@ -238,6 +238,12 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	}
 
 	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
+
+	// If a completion was pending while we were processing, handle it now
+	if (bPendingAsyncWorkEnd.exchange(false, std::memory_order_acq_rel))
+	{
+		OnAsyncWorkEnd(false);
+	}
 }
 
 void FPCGExContext::OnComplete()

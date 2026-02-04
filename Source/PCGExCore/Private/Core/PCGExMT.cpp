@@ -614,7 +614,17 @@ namespace PCGExMT
 		}
 
 		// Then the end callback (context notification)
-		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
+		// But only if context isn't already processing a previous completion
+		if (OnEndCallback)
+		{
+			if (Context && Context->IsProcessingAsyncEnd())
+			{
+				// Context is busy - mark pending so it handles when done
+				Context->SetPendingAsyncEnd();
+				return;
+			}
+			OnEndCallback(bWasCancelled);
+		}
 	}
 
 	void FTaskManager::ClearRegistry(const bool bCancel)

@@ -113,11 +113,13 @@ namespace PCGExMath
 				Variance[AxisIdx] = FVector::DotProduct(V, Temp);
 			}
 
-			// Sort axes by variance (largest to smallest)
+			// Sort axes by variance (largest to smallest) with index tie-breaker for determinism
 			OutSwizzle[0] = 0; OutSwizzle[1] = 1; OutSwizzle[2] = 2;
-			if (Variance[1] > Variance[0]) { Swap(OutSwizzle[0], OutSwizzle[1]); }
-			if (Variance[2] > Variance[OutSwizzle[0]]) { Swap(OutSwizzle[0], OutSwizzle[2]); }
-			if (Variance[OutSwizzle[2]] > Variance[OutSwizzle[1]]) { Swap(OutSwizzle[1], OutSwizzle[2]); }
+			Algo::Sort(TArrayView<int32>(OutSwizzle, 3), [&](const int32 A, const int32 B)
+			{
+				if (Variance[A] != Variance[B]) { return Variance[A] > Variance[B]; }
+				return A < B; // Tie-breaker by index for determinism
+			});
 
 			FVector TempAxes[3] = {V0, V1, V2};
 			FVector X = TempAxes[OutSwizzle[0]]; // Largest variance
@@ -402,7 +404,12 @@ namespace PCGExMath
 	{
 		Centroid = Box.Center();
 
-		Algo::Sort(Swizzle, [&](const int32 A, const int32 B) { return Box.Extents[A] > Box.Extents[B]; });
+		// Sort by extents with index tie-breaker for determinism
+		Algo::Sort(Swizzle, [&](const int32 A, const int32 B)
+		{
+			if (Box.Extents[A] != Box.Extents[B]) { return Box.Extents[A] > Box.Extents[B]; }
+			return A < B; // Tie-breaker by index for determinism
+		});
 
 		Extents[0] = Box.Extents[Swizzle[0]];
 		Extents[1] = Box.Extents[Swizzle[1]];

@@ -295,71 +295,67 @@ namespace PCGExGraphs
 					return A->MinPointIndex < B->MinPointIndex;
 				});
 			}
-
-			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(CreateEdgeData)
-				for (int i = 0; i < Graph->SubGraphs.Num(); i++)
-				{
-					const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
-
-					check(!SubGraph->Edges.IsEmpty())
-
-					TSharedPtr<PCGExData::FPointIO> EdgeIO;
-
-					if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
-					{
-						// Don't grab original point IO if we have metadata.
-						EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EIOInit::New);
-					}
-					else
-					{
-						EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EIOInit::New);
-					}
-
-					if (!EdgeIO) { return; }
-
-					EdgeIO->IOIndex = i;
-
-					SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
-
-					// Legacy callback
-					SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
-
-					// Context-based callbacks
-					SubGraph->OnCreateContext = OnCreateContext;
-					SubGraph->OnPreCompile = OnPreCompile;
-					SubGraph->OnPostCompile = OnPostCompile;
-
-					SubGraph->VtxDataFacade = NodeDataFacade;
-					SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
-
-					PCGExClusters::Helpers::MarkClusterEdges(EdgeIO, PairId);
-				}
-			}
-
-			PCGExClusters::Helpers::MarkClusterVtx(NodeDataFacade->Source, PairId);
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BatchCompileSubGraphs)
-
-			BatchCompileSubGraphs->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnCompilationEnd();
-			};
-
-			BatchCompileSubGraphs->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = BatchCompileSubGraphs](const int32 Index, const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
-				SubGraph->Compile(WeakGroup, This->TaskManager, This);
-			};
-
-			BatchCompileSubGraphs->StartIterations(Graph->SubGraphs.Num(), 1, false);
 		}
-		else
+
 		{
-			OnCompilationEnd();
+			TRACE_CPUPROFILER_EVENT_SCOPE(CreateEdgeData)
+			for (int i = 0; i < Graph->SubGraphs.Num(); i++)
+			{
+				const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
+
+				check(!SubGraph->Edges.IsEmpty())
+
+				TSharedPtr<PCGExData::FPointIO> EdgeIO;
+
+				if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SubGraph->EdgesInIOIndices.Num() == 1 && SourceEdgeFacades && SourceEdgeFacades->IsValidIndex(IOIndex))
+				{
+					// Don't grab original point IO if we have metadata.
+					EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>((*SourceEdgeFacades)[IOIndex]->Source, PCGExData::EIOInit::New);
+				}
+				else
+				{
+					EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EIOInit::New);
+				}
+
+				if (!EdgeIO) { return; }
+
+				EdgeIO->IOIndex = i;
+
+				SubGraph->UID = EdgeIO->GetOut()->GetUniqueID();
+
+				// Legacy callback
+				SubGraph->OnSubGraphPostProcess = OnSubGraphPostProcess;
+
+				// Context-based callbacks
+				SubGraph->OnCreateContext = OnCreateContext;
+				SubGraph->OnPreCompile = OnPreCompile;
+				SubGraph->OnPostCompile = OnPostCompile;
+
+				SubGraph->VtxDataFacade = NodeDataFacade;
+				SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
+
+				PCGExClusters::Helpers::MarkClusterEdges(EdgeIO, PairId);
+			}
 		}
+
+		PCGExClusters::Helpers::MarkClusterVtx(NodeDataFacade->Source, PairId);
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(TaskManager, BatchCompileSubGraphs)
+
+		BatchCompileSubGraphs->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnCompilationEnd();
+		};
+
+		BatchCompileSubGraphs->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = BatchCompileSubGraphs](const int32 Index, const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
+			SubGraph->Compile(WeakGroup, This->TaskManager, This);
+		};
+
+		BatchCompileSubGraphs->StartIterations(Graph->SubGraphs.Num(), 1, false);
 	}
 
 	void FGraphBuilder::OnCompilationEnd()
