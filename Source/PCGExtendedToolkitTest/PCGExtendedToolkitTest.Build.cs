@@ -32,6 +32,7 @@ public class PCGExtendedToolkitTest : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"GeometryCore",
 				"PCG",
 				"PCGExCore"
 			}
@@ -44,7 +45,8 @@ public class PCGExtendedToolkitTest : ModuleRules
 				"PCGExFoundations",
 				"PCGExProperties",
 				"PCGExCollections",
-				"PCGExGraphs"
+				"PCGExGraphs", 
+				"PCGExElementsClustersDiagrams"
 			}
 		);
 

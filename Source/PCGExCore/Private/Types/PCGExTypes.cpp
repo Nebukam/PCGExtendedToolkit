@@ -32,6 +32,7 @@ namespace PCGExTypes
 		{
 			// Zero-initialize POD types
 			FMemory::Memzero(Storage, BufferSize);
+			bConstructed = true;
 		}
 	}
 
@@ -117,6 +118,7 @@ namespace PCGExTypes
 		else
 		{
 			FMemory::Memzero(Storage, BufferSize);
+			bConstructed = true;
 		}
 	}
 
