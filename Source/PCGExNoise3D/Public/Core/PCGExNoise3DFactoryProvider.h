@@ -10,6 +10,7 @@
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 #include "Factories/PCGExFactoryData.h"
+#include "Math/PCGExMathContrast.h"
 #include "Utils/PCGExCurveLookup.h"
 
 #include "PCGExNoise3DFactoryProvider.generated.h"
