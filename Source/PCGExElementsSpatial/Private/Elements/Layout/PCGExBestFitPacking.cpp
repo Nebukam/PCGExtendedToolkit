@@ -402,9 +402,12 @@ namespace PCGExBestFitPacking
 
 	void FBestFitBin::UpdatePoint(PCGExData::FMutablePoint& InPoint, const FBestFitItem& InItem) const
 	{
+		const FQuat RotQuat = InItem.Rotation.Quaternion();
+		const FVector ScaledBoundsCenter = InPoint.GetLocalBounds().GetCenter() * InPoint.GetScale3D();
+
 		const FTransform ItemTransform = FTransform(
-			InItem.Rotation.Quaternion(),
-			InItem.Box.GetCenter() - InPoint.GetLocalBounds().GetCenter(),
+			RotQuat,
+			InItem.Box.GetCenter() - RotQuat.RotateVector(ScaledBoundsCenter),
 			InPoint.GetScale3D()
 		);
 		InPoint.SetTransform(ItemTransform * Transform);
