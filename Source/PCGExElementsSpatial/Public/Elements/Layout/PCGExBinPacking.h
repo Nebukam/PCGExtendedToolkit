@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExLayout.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Details/PCGExSettingsMacros.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Sorting/PCGExSortingCommon.h"
 #include "Math/PCGExUVW.h"
 
@@ -104,17 +104,9 @@ public:
 
 	// TODO : Testable Rotation
 
-	/** Occupation padding source */
+	/** Per-item occupation padding. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
-	EPCGExInputValueType OccupationPaddingInput = EPCGExInputValueType::Constant;
-
-	/** Occupation padding attribute -- Will be broadcast to FVector. Occupation padding is an amount by which the bounds of a placed point will be expanded by after placement. This yield to greater fragmentation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding (Attr)", EditCondition="OccupationPaddingInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector OccupationPaddingAttribute;
-
-	/** Occupation padding. Occupation padding is an amount by which the bounds of a placed point will be expanded by after placement. This yield to greater fragmentation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding", EditCondition="OccupationPaddingInput == EPCGExInputValueType::Constant", EditConditionHides))
-	FVector OccupationPadding = FVector::ZeroVector;
+	FPCGExInputShorthandSelectorVector OccupationPadding = FPCGExInputShorthandSelectorVector(FName("Padding"));
 
 	/** If enabled, the padding will not be relative (rotated) if the item is rotated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
@@ -130,7 +122,6 @@ public:
 
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
-	PCGEX_SETTING_VALUE_DECL(Padding, FVector)
 };
 
 struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext

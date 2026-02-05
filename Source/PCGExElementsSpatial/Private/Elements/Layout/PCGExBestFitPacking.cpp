@@ -16,8 +16,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBestFitPackingElement"
 #define PCGEX_NAMESPACE BestFitPacking
 
-PCGEX_SETTING_VALUE_IMPL(UPCGExBestFitPackingSettings, Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
-
 bool UPCGExBestFitPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	OutRules.Append(PCGExSorting::GetSortingRules(InContext, PCGExSorting::Labels::SourceSortingRules));
@@ -546,7 +544,7 @@ namespace PCGExBestFitPacking
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
 		PCGEX_INIT_IO(TargetBins, PCGExData::EIOInit::Duplicate)
 
-		PaddingBuffer = Settings->GetValueSettingPadding();
+		PaddingBuffer = Settings->OccupationPadding.GetValueSetting();
 		if (!PaddingBuffer->Init(PointDataFacade)) { return false; }
 
 		// Initialize rotations to test

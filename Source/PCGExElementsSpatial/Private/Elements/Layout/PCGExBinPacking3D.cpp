@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 // Adapted from https://www.nature.com/articles/s41598-023-39013-9
-// Sebastián V. Romero, Eneko Osaba, Esther Villar-Rodriguez, Izaskun Oregi & Yue Ban 
+// Sebastián V. Romero, Eneko Osaba, Esther Villar-Rodriguez, Izaskun Oregi & Yue Ban
 // Hybrid approach for solving real-world bin packing problem instances using quantum annealer
 
 #include "Elements/Layout/PCGExBinPacking3D.h"
@@ -19,9 +19,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExBinPacking3DElement"
 #define PCGEX_NAMESPACE BinPacking3D
-
-PCGEX_SETTING_VALUE_IMPL(UPCGExBinPacking3DSettings, Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
-PCGEX_SETTING_VALUE_IMPL(UPCGExBinPacking3DSettings, ItemWeight, double, ItemWeightInput, ItemWeightAttribute, ItemWeight)
 
 #pragma region UPCGExBinPacking3DSettings
 
@@ -238,13 +235,10 @@ namespace PCGExBinPacking3D
 			break;
 
 		case EPCGExBP3DRotationMode::Paper6:
-			// For Paper6 mode, we generate per-item (see FindBestPlacement).
-			// Fallback to identity here.
 			OutRotations.Add(FRotator::ZeroRotator);
 			break;
 
 		case EPCGExBP3DRotationMode::AllOrthogonal:
-			// All 24 unique orthogonal rotations
 			OutRotations.Add(FRotator(0, 0, 0));
 			OutRotations.Add(FRotator(0, 0, 90));
 			OutRotations.Add(FRotator(0, 0, 180));
@@ -302,28 +296,9 @@ namespace PCGExBinPacking3D
 
 #pragma region FBP3DBin
 
-	void FBP3DBin::AddSpace(const FBox& InBox)
-	{
-		FSpace& NewSpace = Spaces.Emplace_GetRef(InBox, Seed);
-		NewSpace.DistanceScore /= MaxDist;
-	}
-
-	void FBP3DBin::RemoveSmallSpaces(double MinSize)
-	{
-		for (int32 i = Spaces.Num() - 1; i >= 0; i--)
-		{
-			const FVector Size = Spaces[i].Box.GetSize();
-			if (Size.X < MinSize || Size.Y < MinSize || Size.Z < MinSize)
-			{
-				Spaces.RemoveAt(i);
-			}
-		}
-	}
-
-	FBP3DBin::FBP3DBin(int32 InBinIndex, const PCGExData::FConstPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter)
+	FBP3DBin::FBP3DBin(int32 InBinIndex, const PCGExData::FConstPoint& InBinPoint, const FVector& InSeed)
 	{
 		BinIndex = InBinIndex;
-		Splitter = InSplitter;
 		Seed = InSeed;
 		Bounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(InBinPoint);
 
@@ -334,74 +309,274 @@ namespace PCGExBinPacking3D
 		UsedVolume = 0;
 		CurrentWeight = 0;
 
-		FVector FurthestLocation = InSeed;
+		// Determine packing direction from seed position relative to bin center
+		const FVector BinCenter = Bounds.GetCenter();
 		for (int C = 0; C < 3; C++)
 		{
-			const double DistToMin = FMath::Abs(Seed[C] - Bounds.Min[C]);
-			const double DistToMax = FMath::Abs(Seed[C] - Bounds.Max[C]);
-			FurthestLocation[C] = (DistToMin > DistToMax) ? Bounds.Min[C] : Bounds.Max[C];
+			PackSign[C] = (Seed[C] <= BinCenter[C]) ? 1.0 : -1.0;
 		}
 
-		MaxDist = FVector::DistSquared(FurthestLocation, Seed);
-		if (MaxDist < KINDA_SMALL_NUMBER) { MaxDist = 1.0; }
+		// Initial extreme point at the packing origin corner
+		FVector PackOrigin;
+		for (int C = 0; C < 3; C++)
+		{
+			PackOrigin[C] = (PackSign[C] > 0) ? Bounds.Min[C] : Bounds.Max[C];
+		}
+		ExtremePoints.Add(PackOrigin);
+	}
 
-		AddSpace(Bounds);
+	void FBP3DBin::AddExtremePoint(const FVector& Point)
+	{
+		// Deduplicate
+		for (const FVector& EP : ExtremePoints)
+		{
+			if (FVector::DistSquared(EP, Point) < KINDA_SMALL_NUMBER * KINDA_SMALL_NUMBER)
+			{
+				return;
+			}
+		}
+		ExtremePoints.Add(Point);
+	}
+
+	FVector FBP3DBin::ProjectPoint(const FVector& RawPoint) const
+	{
+		// Project each axis independently toward the pack origin (the nearest resting surface)
+		FVector Result;
+
+		for (int C = 0; C < 3; C++)
+		{
+			const int32 A = (C + 1) % 3;
+			const int32 B = (C + 2) % 3;
+
+			if (PackSign[C] > 0)
+			{
+				// Packing from Min: slide toward Min, stop at nearest item Max face
+				double Best = Bounds.Min[C];
+				for (const FBP3DItem& Item : Items)
+				{
+					if (Item.PaddedBox.Max[C] <= RawPoint[C] + KINDA_SMALL_NUMBER && Item.PaddedBox.Max[C] > Best)
+					{
+						// Point must be within item's footprint on the other two axes
+						if (RawPoint[A] >= Item.PaddedBox.Min[A] - KINDA_SMALL_NUMBER &&
+							RawPoint[A] < Item.PaddedBox.Max[A] + KINDA_SMALL_NUMBER &&
+							RawPoint[B] >= Item.PaddedBox.Min[B] - KINDA_SMALL_NUMBER &&
+							RawPoint[B] < Item.PaddedBox.Max[B] + KINDA_SMALL_NUMBER)
+						{
+							Best = Item.PaddedBox.Max[C];
+						}
+					}
+				}
+				Result[C] = Best;
+			}
+			else
+			{
+				// Packing from Max: slide toward Max, stop at nearest item Min face
+				double Best = Bounds.Max[C];
+				for (const FBP3DItem& Item : Items)
+				{
+					if (Item.PaddedBox.Min[C] >= RawPoint[C] - KINDA_SMALL_NUMBER && Item.PaddedBox.Min[C] < Best)
+					{
+						if (RawPoint[A] >= Item.PaddedBox.Min[A] - KINDA_SMALL_NUMBER &&
+							RawPoint[A] < Item.PaddedBox.Max[A] + KINDA_SMALL_NUMBER &&
+							RawPoint[B] >= Item.PaddedBox.Min[B] - KINDA_SMALL_NUMBER &&
+							RawPoint[B] < Item.PaddedBox.Max[B] + KINDA_SMALL_NUMBER)
+						{
+							Best = Item.PaddedBox.Min[C];
+						}
+					}
+				}
+				Result[C] = Best;
+			}
+		}
+
+		return Result;
+	}
+
+	bool FBP3DBin::IsInsideAnyItem(const FVector& Point) const
+	{
+		for (const FBP3DItem& Item : Items)
+		{
+			if (Point.X > Item.PaddedBox.Min.X + KINDA_SMALL_NUMBER &&
+				Point.X < Item.PaddedBox.Max.X - KINDA_SMALL_NUMBER &&
+				Point.Y > Item.PaddedBox.Min.Y + KINDA_SMALL_NUMBER &&
+				Point.Y < Item.PaddedBox.Max.Y - KINDA_SMALL_NUMBER &&
+				Point.Z > Item.PaddedBox.Min.Z + KINDA_SMALL_NUMBER &&
+				Point.Z < Item.PaddedBox.Max.Z - KINDA_SMALL_NUMBER)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void FBP3DBin::GenerateExtremePoints(const FBox& PaddedItemBox)
+	{
+		// Generate 3 new EPs at the far edges of the placed item (direction of packing growth)
+		for (int C = 0; C < 3; C++)
+		{
+			FVector RawEP;
+			for (int A = 0; A < 3; A++)
+			{
+				if (A == C)
+				{
+					// On this axis: item's far edge (direction of packing)
+					RawEP[A] = (PackSign[A] > 0) ? PaddedItemBox.Max[A] : PaddedItemBox.Min[A];
+				}
+				else
+				{
+					// On other axes: item's near edge (toward pack origin)
+					RawEP[A] = (PackSign[A] > 0) ? PaddedItemBox.Min[A] : PaddedItemBox.Max[A];
+				}
+			}
+
+			// Project the EP to rest on the nearest surface
+			const FVector Projected = ProjectPoint(RawEP);
+
+			// Add projected EP if valid
+			if (Bounds.IsInsideOrOn(Projected) && !IsInsideAnyItem(Projected))
+			{
+				AddExtremePoint(Projected);
+			}
+
+			// Also add raw EP if different from projected and valid (more candidate positions)
+			if (!RawEP.Equals(Projected, KINDA_SMALL_NUMBER))
+			{
+				if (Bounds.IsInsideOrOn(RawEP) && !IsInsideAnyItem(RawEP))
+				{
+					AddExtremePoint(RawEP);
+				}
+			}
+		}
+	}
+
+	void FBP3DBin::RemoveInvalidExtremePoints(const FBox& PaddedItemBox)
+	{
+		for (int32 i = ExtremePoints.Num() - 1; i >= 0; i--)
+		{
+			const FVector& EP = ExtremePoints[i];
+			// Remove if EP is strictly inside the newly placed item's padded box
+			if (EP.X > PaddedItemBox.Min.X + KINDA_SMALL_NUMBER &&
+				EP.X < PaddedItemBox.Max.X - KINDA_SMALL_NUMBER &&
+				EP.Y > PaddedItemBox.Min.Y + KINDA_SMALL_NUMBER &&
+				EP.Y < PaddedItemBox.Max.Y - KINDA_SMALL_NUMBER &&
+				EP.Z > PaddedItemBox.Min.Z + KINDA_SMALL_NUMBER &&
+				EP.Z < PaddedItemBox.Max.Z - KINDA_SMALL_NUMBER)
+			{
+				ExtremePoints.RemoveAt(i);
+			}
+		}
+	}
+
+	bool FBP3DBin::HasOverlap(const FBox& TestBox) const
+	{
+		for (const FBP3DItem& Item : Items)
+		{
+			// Strict overlap check (touching faces is OK)
+			if (TestBox.Min.X < Item.PaddedBox.Max.X - KINDA_SMALL_NUMBER &&
+				TestBox.Max.X > Item.PaddedBox.Min.X + KINDA_SMALL_NUMBER &&
+				TestBox.Min.Y < Item.PaddedBox.Max.Y - KINDA_SMALL_NUMBER &&
+				TestBox.Max.Y > Item.PaddedBox.Min.Y + KINDA_SMALL_NUMBER &&
+				TestBox.Min.Z < Item.PaddedBox.Max.Z - KINDA_SMALL_NUMBER &&
+				TestBox.Max.Z > Item.PaddedBox.Min.Z + KINDA_SMALL_NUMBER)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	double FBP3DBin::ComputeContactScore(const FBox& TestBox) const
+	{
+		int32 Contacts = 0;
+
+		// Check bin walls
+		for (int C = 0; C < 3; C++)
+		{
+			if (FMath::IsNearlyEqual(TestBox.Min[C], Bounds.Min[C], KINDA_SMALL_NUMBER)) { Contacts++; }
+			if (FMath::IsNearlyEqual(TestBox.Max[C], Bounds.Max[C], KINDA_SMALL_NUMBER)) { Contacts++; }
+		}
+
+		// Check contact with placed items (face-to-face adjacency with padded boxes)
+		for (const FBP3DItem& Item : Items)
+		{
+			for (int C = 0; C < 3; C++)
+			{
+				const int32 A = (C + 1) % 3;
+				const int32 B = (C + 2) % 3;
+
+				// Check if ranges overlap on the other two axes (indicates face contact, not just edge)
+				const bool bRangeA = TestBox.Max[A] > Item.PaddedBox.Min[A] + KINDA_SMALL_NUMBER &&
+					TestBox.Min[A] < Item.PaddedBox.Max[A] - KINDA_SMALL_NUMBER;
+				const bool bRangeB = TestBox.Max[B] > Item.PaddedBox.Min[B] + KINDA_SMALL_NUMBER &&
+					TestBox.Min[B] < Item.PaddedBox.Max[B] - KINDA_SMALL_NUMBER;
+
+				if (bRangeA && bRangeB)
+				{
+					if (FMath::IsNearlyEqual(TestBox.Min[C], Item.PaddedBox.Max[C], KINDA_SMALL_NUMBER)) { Contacts++; }
+					if (FMath::IsNearlyEqual(TestBox.Max[C], Item.PaddedBox.Min[C], KINDA_SMALL_NUMBER)) { Contacts++; }
+				}
+			}
+		}
+
+		// Normalize to [0,1], lower is better (more contacts = better = lower score)
+		return 1.0 - (static_cast<double>(FMath::Min(Contacts, 6)) / 6.0);
 	}
 
 	bool FBP3DBin::EvaluatePlacement(
 		const FVector& ItemSize,
-		int32 SpaceIndex,
+		int32 EPIndex,
 		const FRotator& Rotation,
 		FBP3DPlacementCandidate& OutCandidate) const
 	{
-		if (SpaceIndex < 0 || SpaceIndex >= Spaces.Num()) { return false; }
+		if (EPIndex < 0 || EPIndex >= ExtremePoints.Num()) { return false; }
 
-		const FSpace& Space = Spaces[SpaceIndex];
+		const FVector& EP = ExtremePoints[EPIndex];
 		const FVector RotatedSize = FBP3DRotationHelper::RotateSize(ItemSize, Rotation);
 
-		if (!Space.CanFit(RotatedSize)) { return false; }
-
-		const double ItemVolume = RotatedSize.X * RotatedSize.Y * RotatedSize.Z;
-		const FVector SpaceSize = Space.Box.GetSize();
-
-		// Tightness score: how well does the item fill the space? (lower is better)
-		const FVector Gaps = SpaceSize - RotatedSize;
-		const double TotalGap = Gaps.X + Gaps.Y + Gaps.Z;
-		const double MaxPossibleGap = SpaceSize.X + SpaceSize.Y + SpaceSize.Z;
-		const double TightnessScore = MaxPossibleGap > 0 ? TotalGap / MaxPossibleGap : 0;
-
-		// Waste score
-		const double WasteScore = 1.0 - (ItemVolume / Space.Volume);
-
-		// Proximity score (distance to seed, normalized)
-		const double ProximityScore = Space.DistanceScore;
-
-		// Placement position (corner closest to seed)
-		FVector ItemMin = Space.Box.Min;
+		// Compute placement position based on packing direction
+		FVector ItemMin;
 		for (int C = 0; C < 3; C++)
 		{
-			if (Seed[C] < Space.Box.GetCenter()[C])
+			if (PackSign[C] > 0)
 			{
-				ItemMin[C] = Space.Box.Min[C];
+				ItemMin[C] = EP[C];
 			}
 			else
 			{
-				ItemMin[C] = Space.Box.Max[C] - RotatedSize[C];
+				ItemMin[C] = EP[C] - RotatedSize[C];
 			}
 		}
 
+		const FBox ItemBox(ItemMin, ItemMin + RotatedSize);
+
+		// Bounds check with tolerance
+		if (ItemBox.Min.X < Bounds.Min.X - KINDA_SMALL_NUMBER ||
+			ItemBox.Min.Y < Bounds.Min.Y - KINDA_SMALL_NUMBER ||
+			ItemBox.Min.Z < Bounds.Min.Z - KINDA_SMALL_NUMBER ||
+			ItemBox.Max.X > Bounds.Max.X + KINDA_SMALL_NUMBER ||
+			ItemBox.Max.Y > Bounds.Max.Y + KINDA_SMALL_NUMBER ||
+			ItemBox.Max.Z > Bounds.Max.Z + KINDA_SMALL_NUMBER)
+		{
+			return false;
+		}
+
+		// Overlap check against all placed items (uses padded boxes)
+		if (HasOverlap(ItemBox)) { return false; }
+
+		// Compute paper objective scores
+		const double ItemVolume = RotatedSize.X * RotatedSize.Y * RotatedSize.Z;
 		const FVector BinSize = Bounds.GetSize();
 
-		// Paper objective o2: Height score (normalized Z position, lower is better for floor-up)
-		const double NormalizedZ = BinSize.Z > KINDA_SMALL_NUMBER
-			                           ? (ItemMin.Z - Bounds.Min.Z) / BinSize.Z
-			                           : 0.0;
-
-		// Paper objective o1: Bin usage score (higher fill ratio is better, so invert for minimization)
+		// o1: Bin usage — prefer fuller bins (lower score = better)
 		const double CurrentFillRatio = MaxVolume > 0 ? (UsedVolume + ItemVolume) / MaxVolume : 0;
 		const double BinUsageScore = 1.0 - CurrentFillRatio;
 
-		// Paper objective o3: Load balance score (Manhattan distance to target CoM = bin center, normalized)
+		// o2: Height — prefer lower placement Z (Paper Eq. 2)
+		const double NormalizedZ = BinSize.Z > KINDA_SMALL_NUMBER
+			                           ? (ItemMin.Z + RotatedSize.Z - Bounds.Min.Z) / BinSize.Z
+			                           : 0.0;
+
+		// o3: Load balance — Manhattan distance to bin center (Paper Eq. 3)
 		const FVector ItemCenter = ItemMin + RotatedSize * 0.5;
 		const FVector BinCenter = Bounds.GetCenter();
 		const FVector Diff = (ItemCenter - BinCenter).GetAbs();
@@ -410,16 +585,18 @@ namespace PCGExBinPacking3D
 		const double ManhattanDist = Diff.X + Diff.Y + Diff.Z;
 		const double LoadBalanceScore = MaxManhattan > KINDA_SMALL_NUMBER ? ManhattanDist / MaxManhattan : 0.0;
 
+		// Contact score — more touching surfaces = better
+		const double ContactScoreVal = ComputeContactScore(ItemBox);
+
 		OutCandidate.BinIndex = BinIndex;
-		OutCandidate.SpaceIndex = SpaceIndex;
+		OutCandidate.EPIndex = EPIndex;
 		OutCandidate.Rotation = Rotation;
 		OutCandidate.RotatedSize = RotatedSize;
-		OutCandidate.TightnessScore = TightnessScore;
-		OutCandidate.WasteScore = WasteScore;
-		OutCandidate.ProximityScore = ProximityScore;
+		OutCandidate.PlacementMin = ItemMin;
 		OutCandidate.BinUsageScore = BinUsageScore;
 		OutCandidate.HeightScore = NormalizedZ;
 		OutCandidate.LoadBalanceScore = LoadBalanceScore;
+		OutCandidate.ContactScore = ContactScoreVal;
 
 		return true;
 	}
@@ -428,30 +605,11 @@ namespace PCGExBinPacking3D
 	{
 		if (Items.IsEmpty()) { return true; }
 
-		// Compute the placement box for the candidate
-		const FSpace& Space = Spaces[Candidate.SpaceIndex];
-		FVector ItemMin = Space.Box.Min;
-		const FVector& RotatedSize = Candidate.RotatedSize;
+		const FBox CandidateBox(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
 
-		for (int C = 0; C < 3; C++)
-		{
-			if (Seed[C] < Space.Box.GetCenter()[C])
-			{
-				ItemMin[C] = Space.Box.Min[C];
-			}
-			else
-			{
-				ItemMin[C] = Space.Box.Max[C] - RotatedSize[C];
-			}
-		}
-
-		const FBox CandidateBox(ItemMin, ItemMin + RotatedSize);
-
-		// Check: if this item is placed ABOVE an existing item, its weight must be <= threshold * supporting item weight
 		for (const FBP3DItem& Existing : Items)
 		{
-			// Check if candidate is above existing: candidate Z min >= existing Z max (or near it)
-			// and they overlap in XY
+			// Check if candidate is above existing (uses actual box, not padded, for physical support)
 			const bool bAbove = CandidateBox.Min.Z >= Existing.Box.Max.Z - KINDA_SMALL_NUMBER;
 
 			if (!bAbove) { continue; }
@@ -462,10 +620,9 @@ namespace PCGExBinPacking3D
 
 			if (bXOverlap && bYOverlap)
 			{
-				// This existing item supports the candidate
 				if (ItemWeight > Threshold * Existing.Weight)
 				{
-					return false; // Too heavy for the support
+					return false;
 				}
 			}
 		}
@@ -473,77 +630,78 @@ namespace PCGExBinPacking3D
 		return true;
 	}
 
+	double FBP3DBin::ComputeSupportRatio(const FBox& ItemBox) const
+	{
+		const double BaseArea = (ItemBox.Max.X - ItemBox.Min.X) * (ItemBox.Max.Y - ItemBox.Min.Y);
+		if (BaseArea <= KINDA_SMALL_NUMBER) { return 1.0; }
+
+		// On the bin floor = fully supported
+		if (FMath::IsNearlyEqual(ItemBox.Min.Z, Bounds.Min.Z, KINDA_SMALL_NUMBER))
+		{
+			return 1.0;
+		}
+
+		// Sum XY overlap area with items whose top (Box.Max.Z) touches our bottom (ItemBox.Min.Z)
+		double SupportArea = 0.0;
+		for (const FBP3DItem& Existing : Items)
+		{
+			if (!FMath::IsNearlyEqual(Existing.Box.Max.Z, ItemBox.Min.Z, KINDA_SMALL_NUMBER))
+			{
+				continue;
+			}
+
+			const double OverlapMinX = FMath::Max(ItemBox.Min.X, Existing.Box.Min.X);
+			const double OverlapMaxX = FMath::Min(ItemBox.Max.X, Existing.Box.Max.X);
+			const double OverlapMinY = FMath::Max(ItemBox.Min.Y, Existing.Box.Min.Y);
+			const double OverlapMaxY = FMath::Min(ItemBox.Max.Y, Existing.Box.Max.Y);
+
+			if (OverlapMaxX > OverlapMinX && OverlapMaxY > OverlapMinY)
+			{
+				SupportArea += (OverlapMaxX - OverlapMinX) * (OverlapMaxY - OverlapMinY);
+			}
+		}
+
+		return FMath::Min(SupportArea / BaseArea, 1.0);
+	}
+
 	void FBP3DBin::CommitPlacement(const FBP3DPlacementCandidate& Candidate, FBP3DItem& InItem)
 	{
 		if (!Candidate.IsValid()) { return; }
 
-		const FSpace& Space = Spaces[Candidate.SpaceIndex];
 		const FVector ItemSize = Candidate.RotatedSize;
+		const FVector ItemMin = Candidate.PlacementMin;
 
-		// Calculate placement position (corner closest to seed)
-		FVector ItemMin = Space.Box.Min;
-		for (int C = 0; C < 3; C++)
-		{
-			if (Seed[C] < Space.Box.GetCenter()[C])
-			{
-				ItemMin[C] = Space.Box.Min[C];
-			}
-			else
-			{
-				ItemMin[C] = Space.Box.Max[C] - ItemSize[C];
-			}
-		}
-
-		FBox ItemBox = FBox(ItemMin, ItemMin + ItemSize);
-		InItem.Box = ItemBox;
+		InItem.Box = FBox(ItemMin, ItemMin + ItemSize);
 		InItem.Rotation = Candidate.Rotation;
 
-		// Update weight and category tracking
+		// Compute padded box for collision
+		FVector EffectivePadding = InItem.Padding;
+		if (!bAbsolutePadding && !InItem.Rotation.IsNearlyZero())
+		{
+			EffectivePadding = FBP3DRotationHelper::RotateSize(InItem.Padding, InItem.Rotation);
+		}
+		InItem.PaddedBox = InItem.Box.ExpandBy(EffectivePadding);
+
+		// Update tracking
 		CurrentWeight += InItem.Weight;
 		if (InItem.Category >= 0)
 		{
 			PresentCategories.Add(InItem.Category);
 		}
+		UsedVolume += ItemSize.X * ItemSize.Y * ItemSize.Z;
 
 		Items.Add(InItem);
 
-		// Expand by padding
-		Space.Expand(ItemBox, InItem.Padding);
+		// Generate new extreme points from the placed item
+		GenerateExtremePoints(InItem.PaddedBox);
 
-		// Optionally inflate to avoid tiny fragments
-		if (Settings->bAvoidWastedSpace)
-		{
-			Space.Inflate(ItemBox, WastedSpaceThresholds);
-		}
-
-		UsedVolume += ItemSize.X * ItemSize.Y * ItemSize.Z;
-
-		// Split the space
-		TArray<FBox> NewPartitions;
-		Splitter->SplitSpace(Space, ItemBox, NewPartitions);
-
-		Spaces.RemoveAt(Candidate.SpaceIndex);
-
-		Spaces.Reserve(Spaces.Num() + NewPartitions.Num());
-		for (const FBox& Partition : NewPartitions)
-		{
-			AddSpace(Partition);
-		}
-
-		if (Settings->bAvoidWastedSpace && MinOccupation > 0)
-		{
-			RemoveSmallSpaces(MinOccupation * Settings->WastedSpaceThreshold);
-		}
+		// Remove extreme points that are now inside the placed item
+		RemoveInvalidExtremePoints(InItem.PaddedBox);
 	}
 
 	void FBP3DBin::UpdatePoint(PCGExData::FMutablePoint& InPoint, const FBP3DItem& InItem) const
 	{
 		const FQuat RotQuat = InItem.Rotation.Quaternion();
-
-		// The bounds center in scaled space (matching the coordinate space used for packing).
-		// After FTransform applies Scale then Rotation, the bounds center lands at:
-		//   RotQuat * (BoundsCenter * Scale)
-		// We need that to equal InItem.Box.GetCenter(), so solve for Translation.
 		const FVector ScaledBoundsCenter = InPoint.GetLocalBounds().GetCenter() * InPoint.GetScale3D();
 
 		const FTransform ItemTransform = FTransform(
@@ -565,14 +723,13 @@ namespace PCGExBinPacking3D
 
 		if (!Settings->bEnableAffinities || Settings->AffinityRules.IsEmpty()) { return; }
 
-		// Union-find parent map for positive affinities
 		TMap<int32, int32> Parent;
 
 		auto FindRoot = [&Parent](int32 X) -> int32
 		{
 			while (Parent.Contains(X) && Parent[X] != X)
 			{
-				Parent[X] = Parent[Parent[X]]; // Path compression
+				Parent[X] = Parent[Parent[X]];
 				X = Parent[X];
 			}
 			return X;
@@ -596,14 +753,12 @@ namespace PCGExBinPacking3D
 			}
 			else
 			{
-				// Positive affinity: union the two categories
 				if (!Parent.Contains(Rule.CategoryA)) { Parent.Add(Rule.CategoryA, Rule.CategoryA); }
 				if (!Parent.Contains(Rule.CategoryB)) { Parent.Add(Rule.CategoryB, Rule.CategoryB); }
 				Union(Rule.CategoryA, Rule.CategoryB);
 			}
 		}
 
-		// Flatten union-find into group map
 		for (auto& Pair : Parent)
 		{
 			PositiveAffinityGroup.Add(Pair.Key, FindRoot(Pair.Key));
@@ -612,7 +767,6 @@ namespace PCGExBinPacking3D
 
 	uint64 FProcessor::MakeAffinityKey(int32 A, int32 B)
 	{
-		// Canonical order so (A,B) == (B,A)
 		if (A > B) { Swap(A, B); }
 		return (static_cast<uint64>(static_cast<uint32>(A)) << 32) | static_cast<uint64>(static_cast<uint32>(B));
 	}
@@ -632,7 +786,6 @@ namespace PCGExBinPacking3D
 	{
 		if (ItemCategory < 0) { return true; }
 
-		// Check negative affinities: item category must not conflict with any present category
 		for (const int32 PresentCat : Bin.PresentCategories)
 		{
 			if (HasNegativeAffinity(ItemCategory, PresentCat))
@@ -651,7 +804,6 @@ namespace PCGExBinPacking3D
 		const int32 ItemGroup = FindPositiveGroup(ItemCategory);
 		if (ItemGroup < 0) { return -1; }
 
-		// Search bins for one that already contains an item from the same positive affinity group
 		for (int32 BinIdx = 0; BinIdx < Bins.Num(); BinIdx++)
 		{
 			const TSharedPtr<FBP3DBin>& Bin = Bins[BinIdx];
@@ -664,7 +816,7 @@ namespace PCGExBinPacking3D
 			}
 		}
 
-		return -1; // No bin has items from this group yet
+		return -1;
 	}
 
 	FBP3DPlacementCandidate FProcessor::FindBestPlacement(const FBP3DItem& InItem)
@@ -710,19 +862,35 @@ namespace PCGExBinPacking3D
 				}
 			}
 
-			for (int32 SpaceIdx = 0; SpaceIdx < Bin->GetSpaceCount(); SpaceIdx++)
+			for (int32 EPIdx = 0; EPIdx < Bin->GetEPCount(); EPIdx++)
 			{
 				for (int32 RotIdx = 0; RotIdx < RotationsToTest.Num(); RotIdx++)
 				{
 					FBP3DPlacementCandidate Candidate;
 					Candidate.RotationIndex = RotIdx;
 
-					if (Bin->EvaluatePlacement(OriginalSize, SpaceIdx, RotationsToTest[RotIdx], Candidate))
+					if (Bin->EvaluatePlacement(OriginalSize, EPIdx, RotationsToTest[RotIdx], Candidate))
 					{
+						// Support check — reject placements with no physical support beneath
+						if (Settings->bRequireSupport)
+						{
+							const FBox CandidateBox(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
+							const double Support = Bin->ComputeSupportRatio(CandidateBox);
+							if (Support < InItem.MinSupportRatio - KINDA_SMALL_NUMBER)
+							{
+								continue;
+							}
+							// With MinSupportRatio=0, still reject fully floating items (no support at all)
+							if (Support < KINDA_SMALL_NUMBER)
+							{
+								continue;
+							}
+						}
+
 						// Load bearing post-check
 						if (Settings->bEnableLoadBearing)
 						{
-							if (!Bin->CheckLoadBearing(Candidate, InItem.Weight, Settings->LoadBearingThreshold))
+							if (!Bin->CheckLoadBearing(Candidate, InItem.Weight, InItem.LoadBearingThreshold))
 							{
 								continue;
 							}
@@ -744,7 +912,6 @@ namespace PCGExBinPacking3D
 		{
 			if (RequiredBin >= 0)
 			{
-				// Positive affinity restricts to one bin
 				EvaluateBin(RequiredBin);
 			}
 			else
@@ -757,7 +924,6 @@ namespace PCGExBinPacking3D
 		}
 		else
 		{
-			// Sequential: try bins in order, use first that works
 			if (RequiredBin >= 0)
 			{
 				EvaluateBin(RequiredBin);
@@ -784,17 +950,10 @@ namespace PCGExBinPacking3D
 
 	double FProcessor::ComputeFinalScore(const FBP3DPlacementCandidate& Candidate) const
 	{
-		// Geometric quality score (same as BestFitPacking TightestFit + proximity)
-		const double GeometricScore = Candidate.TightnessScore + Candidate.ProximityScore * 0.1;
-
-		// Paper multi-objective score
-		const double PaperScore =
-			Settings->ObjectiveWeightBinUsage * Candidate.BinUsageScore +
+		return Settings->ObjectiveWeightBinUsage * Candidate.BinUsageScore +
 			Settings->ObjectiveWeightHeight * Candidate.HeightScore +
-			Settings->ObjectiveWeightLoadBalance * Candidate.LoadBalanceScore;
-
-		// Blend geometric and paper scores
-		return GeometricScore * 0.5 + PaperScore * 0.5;
+			Settings->ObjectiveWeightLoadBalance * Candidate.LoadBalanceScore +
+			Settings->ObjectiveWeightContact * Candidate.ContactScore;
 	}
 
 	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
@@ -823,43 +982,35 @@ namespace PCGExBinPacking3D
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
 		PCGEX_INIT_IO(TargetBins, PCGExData::EIOInit::Duplicate)
 
-		PaddingBuffer = Settings->GetValueSettingPadding();
+		// Init shorthand buffers
+		PaddingBuffer = Settings->OccupationPadding.GetValueSetting();
 		if (!PaddingBuffer->Init(PointDataFacade)) { return false; }
 
-		// Initialize item weight buffer
 		if (Settings->bEnableWeightConstraint)
 		{
-			ItemWeightBuffer = Settings->GetValueSettingItemWeight();
+			ItemWeightBuffer = Settings->ItemWeight.GetValueSetting();
 			if (!ItemWeightBuffer->Init(PointDataFacade)) { return false; }
 		}
 
-		// Build affinity lookups
 		if (Settings->bEnableAffinities)
 		{
+			CategoryBuffer = Settings->ItemCategory.GetValueSetting();
+			if (!CategoryBuffer->Init(PointDataFacade)) { return false; }
+
 			BuildAffinityLookups();
 		}
 
-		// Create the splitter
-#define PCGEX_SWITCH_ON_SPLIT_MODE(_DIRECTION)\
-		switch (Settings->SplitMode){\
-		case EPCGExSpaceSplitMode::Minimal: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::Minimal>>(); break;\
-		case EPCGExSpaceSplitMode::MinimalCross: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::MinimalCross>>(); break;\
-		case EPCGExSpaceSplitMode::EqualSplit: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::EqualSplit>>(); break;\
-		case EPCGExSpaceSplitMode::Cone: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::Cone>>(); break;\
-		case EPCGExSpaceSplitMode::ConeCross: Splitter = MakeShared<TBinSplit<_DIRECTION, EPCGExSpaceSplitMode::ConeCross>>(); break;\
+		if (Settings->bEnableLoadBearing)
+		{
+			LoadBearingThresholdBuffer = Settings->LoadBearingThreshold.GetValueSetting();
+			if (!LoadBearingThresholdBuffer->Init(PointDataFacade)) { return false; }
 		}
 
-#define PCGEX_SWITCH_ON_SPLIT_DIRECTION(_MACRO) \
-		switch (Settings->SplitAxis){ \
-		case EPCGExAxis::Forward: _MACRO(EPCGExAxis::Forward) break; \
-		case EPCGExAxis::Backward: _MACRO(EPCGExAxis::Backward) break; \
-		case EPCGExAxis::Right: _MACRO(EPCGExAxis::Right) break; \
-		case EPCGExAxis::Left: _MACRO(EPCGExAxis::Left) break; \
-		case EPCGExAxis::Up: _MACRO(EPCGExAxis::Up) break; \
-		case EPCGExAxis::Down: _MACRO(EPCGExAxis::Down) break; \
+		if (Settings->bRequireSupport)
+		{
+			MinSupportRatioBuffer = Settings->MinSupportRatio.GetValueSetting();
+			if (!MinSupportRatioBuffer->Init(PointDataFacade)) { return false; }
 		}
-
-		PCGEX_SWITCH_ON_SPLIT_DIRECTION(PCGEX_SWITCH_ON_SPLIT_MODE)
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
@@ -892,85 +1043,16 @@ namespace PCGExBinPacking3D
 			SeedGetter.Reset();
 		}
 
-		// Setup bin max weight getter
-		TSharedPtr<PCGExData::TAttributeBroadcaster<double>> BinMaxWeightGetter;
-		if (Settings->bEnableWeightConstraint && Settings->BinMaxWeightInput == EPCGExInputValueType::Attribute)
+		// Setup bin max weight buffer (reads from bin points)
+		TSharedPtr<PCGExDetails::TSettingValue<double>> BinMaxWeightBuffer;
+		if (Settings->bEnableWeightConstraint)
 		{
-			BinMaxWeightGetter = MakeShared<PCGExData::TAttributeBroadcaster<double>>();
-			if (!BinMaxWeightGetter->Prepare(Settings->BinMaxWeightAttribute, TargetBins.ToSharedRef()))
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(Context, Bin Max Weight, Settings->BinMaxWeightAttribute)
-				return false;
-			}
-		}
-
-		// Setup category getter
-		TSharedPtr<PCGExData::TAttributeBroadcaster<int32>> CategoryGetter;
-		if (Settings->bEnableAffinities)
-		{
-			CategoryGetter = MakeShared<PCGExData::TAttributeBroadcaster<int32>>();
-			if (!CategoryGetter->Prepare(Settings->CategoryAttribute, PointDataFacade->Source))
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(Context, Category, Settings->CategoryAttribute)
-				return false;
-			}
+			PCGEX_MAKE_SHARED(BinFacade, PCGExData::FFacade, TargetBins.ToSharedRef())
+			BinMaxWeightBuffer = Settings->BinMaxWeight.GetValueSetting();
+			if (!BinMaxWeightBuffer->Init(BinFacade)) { return false; }
 		}
 
 		PCGExArrayHelpers::ArrayOfIndices(ProcessingOrder, NumPoints);
-
-		// Compute min occupation for wasted space threshold
-		MinOccupation = 0;
-		if (Settings->bAvoidWastedSpace && NumPoints > 0)
-		{
-			MinOccupation = MAX_dbl;
-			const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
-			for (int i = 0; i < InPoints->GetNumPoints(); i++)
-			{
-				const FVector Size = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(PCGExData::FConstPoint(InPoints, i)).GetSize();
-				MinOccupation = FMath::Min(MinOccupation, FMath::Min3(Size.X, Size.Y, Size.Z));
-			}
-
-			if (MinOccupation == MAX_dbl) { MinOccupation = 0; }
-		}
-
-		// Pre-read per-item data
-		{
-			const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
-
-			// Item weights
-			ItemWeights.SetNum(NumPoints);
-			if (Settings->bEnableWeightConstraint && ItemWeightBuffer)
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemWeights[i] = ItemWeightBuffer->Read(i);
-				}
-			}
-			else
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemWeights[i] = 0.0;
-				}
-			}
-
-			// Item categories
-			ItemCategories.SetNum(NumPoints);
-			if (Settings->bEnableAffinities && CategoryGetter)
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemCategories[i] = CategoryGetter->FetchSingle(PCGExData::FConstPoint(InPoints, i), -1);
-				}
-			}
-			else
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemCategories[i] = -1;
-				}
-			}
-		}
 
 		// Sort by volume if enabled (Best-Fit Decreasing approach)
 		if (Settings->bSortByVolume)
@@ -1024,23 +1106,14 @@ namespace PCGExBinPacking3D
 				Seed = BinPoint.GetTransform().InverseTransformPositionNoScale(SeedGetter ? SeedGetter->FetchSingle(BinPoint, FVector::ZeroVector) : Settings->SeedPosition);
 			}
 
-			PCGEX_MAKE_SHARED(NewBin, FBP3DBin, i, BinPoint, Seed, Splitter)
+			PCGEX_MAKE_SHARED(NewBin, FBP3DBin, i, BinPoint, Seed)
 
-			NewBin->Settings = Settings;
-			NewBin->SetMinOccupation(MinOccupation);
-			NewBin->WastedSpaceThresholds = FVector(MinOccupation * Settings->WastedSpaceThreshold);
+			NewBin->bAbsolutePadding = Settings->bAbsolutePadding;
 
 			// Set bin max weight
-			if (Settings->bEnableWeightConstraint)
+			if (BinMaxWeightBuffer)
 			{
-				if (BinMaxWeightGetter)
-				{
-					NewBin->MaxWeight = BinMaxWeightGetter->FetchSingle(BinPoint, Settings->BinMaxWeight);
-				}
-				else
-				{
-					NewBin->MaxWeight = Settings->BinMaxWeight;
-				}
+				NewBin->MaxWeight = BinMaxWeightBuffer->Read(i);
 			}
 			else
 			{
@@ -1076,8 +1149,10 @@ namespace PCGExBinPacking3D
 			Item.Box = FBox(FVector::ZeroVector, PointSize);
 			Item.OriginalSize = PointSize;
 			Item.Padding = PaddingBuffer->Read(PointIndex);
-			Item.Weight = ItemWeights[PointIndex];
-			Item.Category = ItemCategories[PointIndex];
+			Item.Weight = ItemWeightBuffer ? ItemWeightBuffer->Read(PointIndex) : 0.0;
+			Item.Category = CategoryBuffer ? CategoryBuffer->Read(PointIndex) : -1;
+			Item.LoadBearingThreshold = LoadBearingThresholdBuffer ? LoadBearingThresholdBuffer->Read(PointIndex) : 1.0;
+			Item.MinSupportRatio = MinSupportRatioBuffer ? MinSupportRatioBuffer->Read(PointIndex) : 0.0;
 
 			FBP3DPlacementCandidate BestPlacement = FindBestPlacement(Item);
 
