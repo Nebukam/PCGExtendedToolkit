@@ -44,11 +44,13 @@ namespace PCGExAssetCollection
 	}
 
 
+	// Two-phase registration: before module startup, registrations are queued.
+	// ProcessPendingRegistrations() flushes the queue during module init.
+	// Late registrations (e.g. hot-reload or plugins loaded after init) execute immediately.
 	void FTypeRegistry::AddPendingRegistration(TFunction<void()>&& Func)
 	{
 		if (IsProcessed())
 		{
-			// Already initialized - execute immediately (for late-loading plugins)
 			Func();
 		}
 		else
@@ -144,6 +146,7 @@ namespace PCGExAssetCollection
 		return nullptr;
 	}
 
+	// Walks the ParentType chain from Type upward, checking for BaseType at each level.
 	bool FTypeRegistry::IsA(FTypeId Type, FTypeId BaseType) const
 	{
 		if (Type == BaseType)

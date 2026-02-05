@@ -77,7 +77,8 @@ struct PCGEXCOLLECTIONS_API FPCGExMaterialOverrideSingleEntry
 
 namespace PCGExMeshCollection
 {
-	// Mesh MicroCache - Handles material variant picking
+	/** MicroCache for mesh entries. Builds weighted pick arrays from material override entries.
+	 *  Tracks HighestMaterialIndex for pre-sizing material override arrays on descriptors. */
 	class PCGEXCOLLECTIONS_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
 		int32 HighestMaterialIndex = -1;
@@ -97,7 +98,19 @@ namespace PCGExMeshCollection
 	};
 }
 
-// Mesh Collection Entry
+/**
+ * Mesh collection entry. References a UStaticMesh (or a UPCGExMeshCollection subcollection).
+ * Adds mesh-specific features on top of the base entry:
+ * - Material variants: weighted material override sets (single-slot or multi-slot)
+ * - ISM/SM descriptors: per-entry component settings (collision, rendering, etc.)
+ * - DescriptorSource: local vs global descriptor inheritance
+ *
+ * Example of what custom collections can learn from this:
+ * - The typed SubCollection UPROPERTY is separate from InternalSubCollection
+ * - EDITOR_Sanitize() syncs them: InternalSubCollection = SubCollection
+ * - BuildMicroCache() creates a mesh-specific FMicroCache for material variant picking
+ * - UpdateStaging() loads the mesh to extract bounds and sockets
+ */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
 struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
 {
@@ -185,7 +198,13 @@ struct PCGEXCOLLECTIONS_API FPCGExMeshCollectionEntry : public FPCGExAssetCollec
 #pragma endregion
 };
 
-// Mesh Collection
+/**
+ * Concrete collection for static meshes. Demonstrates the full collection pattern:
+ * - PCGEX_ASSET_COLLECTION_BODY macro wires up all base class virtuals
+ * - GetTypeId() returns TypeIds::Mesh
+ * - Global descriptor settings (ISM/SM) can overrule per-entry descriptors
+ * - EDITOR_AddBrowserSelectionInternal handles drag-drop from content browser
+ */
 UCLASS(BlueprintType, DisplayName="[PCGEx] Collection | Mesh")
 class PCGEXCOLLECTIONS_API UPCGExMeshCollection : public UPCGExAssetCollection
 {

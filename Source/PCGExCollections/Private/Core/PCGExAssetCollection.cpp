@@ -112,6 +112,9 @@ namespace PCGExAssetCollection
 		return Order[FMath::Min(Pick, Order.Num() - 1)];
 	}
 
+	// Builds cumulative weight array for weighted random picking.
+	// Weights are sorted ascending, then converted to cumulative sums.
+	// GetPickRandomWeighted scans for the first cumulative weight > threshold.
 	void FMicroCache::BuildFromWeights(TConstArrayView<int32> InWeights)
 	{
 		const int32 NumEntries = InWeights.Num();
@@ -119,8 +122,7 @@ namespace PCGExAssetCollection
 		Weights.SetNumUninitialized(NumEntries);
 		for (int32 i = 0; i < NumEntries; i++)
 		{
-			Weights[i] = InWeights[i] + 1; // +1 to ensure non-zero
-		}
+			Weights[i] = InWeights[i] + 1; // +1 to ensure non-zero (Weight=0 entries are already excluded by Validate)
 
 		PCGExArrayHelpers::ArrayOfIndices(Order, NumEntries);
 
@@ -235,12 +237,11 @@ namespace PCGExAssetCollection
 		Main = MakeShared<FCategory>(NAME_None);
 	}
 
+	// Every valid entry goes into Main. Additionally, entries with a non-None Category
+	// are registered to a named sub-category (created on first encounter).
 	void FCache::RegisterEntry(int32 Index, const FPCGExAssetCollectionEntry* InEntry)
 	{
-		// Register to main category
 		Main->RegisterEntry(Index, InEntry);
-
-		// Register to sub categories
 		if (const TSharedPtr<FCategory>* CategoryPtr = Categories.Find(InEntry->Category); !CategoryPtr)
 		{
 			TSharedPtr<FCategory> Category = MakeShared<FCategory>(InEntry->Category);
@@ -375,6 +376,9 @@ void FPCGExAssetCollectionEntry::ClearManagedSockets()
 
 #pragma endregion
 
+// All API methods follow the same pattern: pick from cache → if subcollection, recurse
+// into it (using weighted random for the nested pick) → otherwise return entry + host.
+// Tag-inheriting variants accumulate tags from the hierarchy as they recurse.
 #pragma region API
 
 FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryAt(int32 Index) const
@@ -596,6 +600,8 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryWeightedRandom(int32 Seed
 
 #pragma region Cache
 
+// Thread-safe lazy cache initialization. First checks under read lock (fast path),
+// then builds under write lock (inside BuildCacheFromEntries) if needed.
 PCGExAssetCollection::FCache* UPCGExAssetCollection::LoadCache()
 {
 	{
