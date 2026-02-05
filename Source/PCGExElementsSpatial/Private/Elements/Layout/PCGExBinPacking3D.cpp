@@ -1,6 +1,10 @@
 ﻿// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
+// Adapted from https://www.nature.com/articles/s41598-023-39013-9
+// Sebastián V. Romero, Eneko Osaba, Esther Villar-Rodriguez, Izaskun Oregi & Yue Ban 
+// Hybrid approach for solving real-world bin packing problem instances using quantum annealer
+
 #include "Elements/Layout/PCGExBinPacking3D.h"
 
 #include "Data/PCGExAttributeBroadcaster.h"
