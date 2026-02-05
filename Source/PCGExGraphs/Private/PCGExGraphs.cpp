@@ -5,6 +5,7 @@
 
 #include "Clusters/PCGExClusterCache.h"
 #include "Clusters/Artifacts/PCGExCachedFaceEnumerator.h"
+#include "Clusters/Artifacts/PCGExCachedChain.h"
 
 #if WITH_EDITOR
 
@@ -24,6 +25,8 @@ void FPCGExGraphsModule::StartupModule()
 	// Register cluster cache factories
 	PCGExClusters::FClusterCacheRegistry::Get().Register(
 		MakeShared<PCGExClusters::FFaceEnumeratorCacheFactory>());
+	PCGExClusters::FClusterCacheRegistry::Get().Register(
+		MakeShared<PCGExClusters::FChainCacheFactory>());
 }
 
 void FPCGExGraphsModule::ShutdownModule()
@@ -31,6 +34,8 @@ void FPCGExGraphsModule::ShutdownModule()
 	// Unregister cluster cache factories
 	PCGExClusters::FClusterCacheRegistry::Get().Unregister(
 		PCGExClusters::FFaceEnumeratorCacheFactory::CacheKey);
+	PCGExClusters::FClusterCacheRegistry::Get().Unregister(
+		PCGExClusters::FChainCacheFactory::CacheKey);
 
 	IPCGExLegacyModuleInterface::ShutdownModule();
 }

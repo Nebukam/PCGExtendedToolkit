@@ -6,6 +6,7 @@
 #include "Core/PCGExContext.h"
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 bool FPCGExAdjacencySettings::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet)
 {

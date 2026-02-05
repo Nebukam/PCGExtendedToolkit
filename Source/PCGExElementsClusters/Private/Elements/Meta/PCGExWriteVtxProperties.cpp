@@ -8,6 +8,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Clusters/PCGExClustersHelpers.h"
 #include "Elements/Meta/VtxProperties/PCGExVtxPropertyFactoryProvider.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Math/PCGExBestFitPlane.h"
 
 #define LOCTEXT_NAMESPACE "WriteVtxProperties"

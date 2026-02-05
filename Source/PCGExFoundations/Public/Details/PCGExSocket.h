@@ -12,10 +12,12 @@ struct PCGEXFOUNDATIONS_API FPCGExSocket
 {
 	GENERATED_BODY()
 
-	FPCGExSocket() = default;
+	FPCGExSocket();
 	FPCGExSocket(const FName& InSocketName, const FVector& InRelativeLocation, const FRotator& InRelativeRotation, const FVector& InRelativeScale, FString InTag);
 	FPCGExSocket(const FName& InSocketName, const FTransform& InRelativeTransform, const FString& InTag);
-	~FPCGExSocket() = default;
+	~FPCGExSocket();
+	FPCGExSocket(const FPCGExSocket&);
+	FPCGExSocket& operator=(const FPCGExSocket&);
 
 	/** Whether this socket is managed by the system. */
 	UPROPERTY(meta=(PCG_NotOverridable, EditCondition="false", EditConditionHides))

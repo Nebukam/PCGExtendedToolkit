@@ -4,6 +4,7 @@
 #include "Containers/PCGExManagedObjects.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Paths/PCGExPath.h"
 #include "Paths/PCGExPathsHelpers.h"
 
@@ -117,6 +118,18 @@ void FPCGExShapePolygonBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 
 
 	Polygon->NumPoints = (Polygon->PointsPerEdge + Polygon->PointsPerSpoke + Polygon->PointsPerEdgeSpoke) * Polygon->NumVertices;
+
+	// Compute extents based on bounds source
+	if (BaseConfig.BoundsSource == EPCGExShapeBoundsSource::Fit)
+	{
+		// Use edge segment spacing as the primary metric
+		const double Spacing = Polygon->PointsPerEdge > 0 ? Polygon->EdgeLength / Polygon->PointsPerEdge : Polygon->EdgeLength;
+		Polygon->Extents = FVector(Spacing * 0.5);
+	}
+	else
+	{
+		Polygon->Extents = BaseConfig.DefaultExtents;
+	}
 
 	ValidateShape(Polygon);
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Polygon);

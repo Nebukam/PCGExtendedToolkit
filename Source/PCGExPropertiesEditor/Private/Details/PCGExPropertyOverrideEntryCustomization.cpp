@@ -8,6 +8,7 @@
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
 #include "PCGExPropertyCompiled.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
 
 TSharedRef<IPropertyTypeCustomization> FPCGExPropertyOverrideEntryCustomization::MakeInstance()

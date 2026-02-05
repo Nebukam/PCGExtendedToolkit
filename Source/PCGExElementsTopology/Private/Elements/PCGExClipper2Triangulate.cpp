@@ -1,4 +1,4 @@
-﻿// Copyright 2026 Timothé Lapetite and contributors
+// Copyright 2026 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Elements/PCGExClipper2Triangulate.h"
@@ -37,19 +37,40 @@ uint64 FPCGExClipper2TriangulateContext::HashPoint(int64 X, int64 Y)
 		static_cast<uint32>(Y & 0xFFFFFFFF));
 }
 
-int32 FPCGExClipper2TriangulateContext::FindVertexIndex(int64 X, int64 Y) const
+void FPCGExClipper2TriangulateContext::AddStagedOutput(UPCGDynamicMeshData* MeshData, const TSet<FString>& Tags, int32 OrderIndex)
 {
-	const uint64 Hash = HashPoint(X, Y);
-	const int32* Found = VertexMap.Find(Hash);
-	return Found ? *Found : -1;
+	FScopeLock Lock(&StagedOutputsLock);
+	StagedOutputs.Emplace(MeshData, Tags, OrderIndex);
 }
 
-void FPCGExClipper2TriangulateContext::BuildVertexPoolFromGroup(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
+void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
 {
 	const UPCGExClipper2TriangulateSettings* Settings = GetInputSettings<UPCGExClipper2TriangulateSettings>();
+
+	if (!Group->IsValid()) { return; }
+	if (Group->SubjectPaths.empty()) { return; }
+
+	// Local data for this group - no shared state
+	TArray<FPCGExTriangulationVertex> VertexPool;
+	TMap<uint64, int32> VertexMap;
+	TArray<FIntVector> Triangles;
+
 	const double InvScale = 1.0 / static_cast<double>(Settings->Precision);
 
-	// Process all subject paths
+	// Estimate and reserve
+	int32 EstimatedPoints = 0;
+	for (const int32 SubjectIdx : Group->SubjectIndices)
+	{
+		if (SubjectIdx < AllOpData->Paths.Num())
+		{
+			EstimatedPoints += AllOpData->Paths[SubjectIdx].size();
+		}
+	}
+	VertexPool.Reserve(EstimatedPoints);
+	VertexMap.Reserve(EstimatedPoints);
+	Triangles.Reserve(EstimatedPoints * 2);
+
+	// Build vertex pool from this group's paths
 	for (const int32 SubjectIdx : Group->SubjectIndices)
 	{
 		if (SubjectIdx >= AllOpData->Paths.Num()) { continue; }
@@ -101,21 +122,6 @@ void FPCGExClipper2TriangulateContext::BuildVertexPoolFromGroup(const TSharedPtr
 			VertexPool.Add(MoveTemp(Vertex));
 		}
 	}
-}
-
-void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group)
-{
-	const UPCGExClipper2TriangulateSettings* Settings = GetInputSettings<UPCGExClipper2TriangulateSettings>();
-
-	if (!Group->IsValid()) { return; }
-	if (Group->SubjectPaths.empty()) { return; }
-
-	// Build vertex pool from this group's paths
-	BuildVertexPoolFromGroup(Group);
-
-	// Accumulate tags
-	if (!OutputTags) { OutputTags = MakeShared<PCGExData::FTags>(); }
-	OutputTags->Append(Group->GroupTags.ToSharedRef());
 
 	// Combine subject paths for triangulation
 	PCGExClipper2Lib::Paths64 CombinedPaths;
@@ -131,8 +137,8 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 		PCGExClipper2Lib::TriangulateWithHoles(
 			CombinedPaths,
 			TrianglePaths,
-			PCGExClipper2::ConvertFillRule(Settings->FillRule), // or NonZero
-			Settings->bUseDelaunay                              // useDelaunay
+			PCGExClipper2::ConvertFillRule(Settings->FillRule),
+			Settings->bUseDelaunay
 		);
 
 	if (Result != PCGExClipper2Lib::TriangulateResult::success)
@@ -153,6 +159,14 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 		}
 		return;
 	}
+
+	// Helper lambda to find vertex index
+	auto FindVertexIndex = [&VertexMap](int64 X, int64 Y) -> int32
+	{
+		const uint64 Hash = HashPoint(X, Y);
+		const int32* Found = VertexMap.Find(Hash);
+		return Found ? *Found : -1;
+	};
 
 	// Convert triangle paths to indexed triangles
 	for (const auto& TriPath : TrianglePaths)
@@ -178,19 +192,14 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 
 		Triangles.Add(FIntVector(V0, V1, V2));
 	}
-}
-
-void FPCGExClipper2TriangulateContext::BuildMesh()
-{
-	const UPCGExClipper2TriangulateSettings* Settings = GetInputSettings<UPCGExClipper2TriangulateSettings>();
 
 	if (VertexPool.IsEmpty() || Triangles.IsEmpty()) { return; }
 
 	// Create mesh objects
-	MeshData = ManagedObjects->New<UPCGDynamicMeshData>();
+	TObjectPtr<UPCGDynamicMeshData> MeshData = ManagedObjects->New<UPCGDynamicMeshData>();
 	if (!MeshData) { return; }
 
-	Mesh = ManagedObjects->New<UDynamicMesh>();
+	TObjectPtr<UDynamicMesh> Mesh = ManagedObjects->New<UDynamicMesh>();
 	Mesh->InitializeMesh();
 
 	MeshData->Initialize(Mesh, true);
@@ -206,7 +215,6 @@ void FPCGExClipper2TriangulateContext::BuildMesh()
 
 	const int32 NumVertices = VertexPool.Num();
 	const int32 NumTriangles = Triangles.Num();
-	const int32 MaxSourceIndex = AllOpData->Facades.Num();
 
 	// Build source tracking arrays for UV writing
 	TArray<int32> SourceDataIndices;
@@ -292,44 +300,35 @@ void FPCGExClipper2TriangulateContext::BuildMesh()
 
 	// Post-process mesh
 	Settings->Topology.PostProcessMesh(Mesh);
-}
 
-bool FPCGExClipper2TriangulateElement::Boot(FPCGExContext* InContext) const
-{
-	if (!FPCGExClipper2ProcessorElement::Boot(InContext)) { return false; }
+	// Add to staged outputs for deterministic ordering
+	TSet<FString> Tags;
+	if (Group->GroupTags) { Tags = Group->GroupTags->Flatten(); }
 
-	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Triangulate)
-
-	// Reserve space for vertex pool
-	int32 TotalPoints = 0;
-	for (const auto& Facade : Context->AllOpData->Facades)
-	{
-		TotalPoints += Facade->Source->GetNum();
-	}
-	Context->VertexPool.Reserve(TotalPoints);
-	Context->VertexMap.Reserve(TotalPoints);
-	Context->Triangles.Reserve(TotalPoints * 2); // Rough estimate
-
-	return true;
+	AddStagedOutput(MeshData, Tags, Group->GroupIndex);
 }
 
 void FPCGExClipper2TriangulateElement::OutputWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(Clipper2Triangulate)
 
-	Context->BuildMesh();
-
-	// Output the mesh
-	if (Context->MeshData)
+	// Sort by OrderIndex for deterministic output
+	Context->StagedOutputs.Sort([](const FPCGExStagedMeshOutput& A, const FPCGExStagedMeshOutput& B)
 	{
-		TSet<FString> Tags;
-		if (Context->OutputTags) { Tags = Context->OutputTags->Flatten(); }
+		return A.OrderIndex < B.OrderIndex;
+	});
 
-		Context->StageOutput(
-			Context->MeshData,
-			PCGExTopology::MeshOutputLabel,
-			PCGExData::EStaging::Managed,
-			Tags);
+	// Stage outputs in order
+	for (const FPCGExStagedMeshOutput& Output : Context->StagedOutputs)
+	{
+		if (Output.MeshData)
+		{
+			Context->StageOutput(
+				Output.MeshData,
+				PCGExTopology::MeshOutputLabel,
+				PCGExData::EStaging::Managed,
+				Output.Tags);
+		}
 	}
 }
 

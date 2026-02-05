@@ -4,6 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/WeakObjectPtr.h"
+#include "GameFramework/Actor.h"
+
+#include "PCGExValencyDirtyState.generated.h"
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
@@ -48,6 +52,7 @@ enum class EValencyDirtyFlags : uint8
 	/** All flags */
 	All = 0xFF
 };
+
 ENUM_CLASS_FLAGS(EValencyDirtyFlags);
 
 /**
@@ -59,6 +64,7 @@ struct FValencyDirtyEntry
 	EValencyDirtyFlags Flags = EValencyDirtyFlags::None;
 
 	FValencyDirtyEntry() = default;
+
 	FValencyDirtyEntry(AActor* InActor, EValencyDirtyFlags InFlags)
 		: Actor(InActor), Flags(InFlags)
 	{

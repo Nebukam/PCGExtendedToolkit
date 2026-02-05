@@ -108,7 +108,7 @@ namespace PCGExAssetCollection
 
 		const int32 Threshold = FRandomStream(Seed).RandRange(0, static_cast<int32>(WeightSum) - 1);
 		int32 Pick = 0;
-		while (Pick < Weights.Num() && Weights[Pick] < Threshold) { Pick++; }
+		while (Pick < Weights.Num() && Weights[Pick] <= Threshold) { Pick++; }
 		return Order[FMath::Min(Pick, Order.Num() - 1)];
 	}
 
@@ -182,7 +182,7 @@ namespace PCGExAssetCollection
 		if (Order.IsEmpty()) { return -1; }
 		const int32 Threshold = FRandomStream(Seed).RandRange(0, static_cast<int32>(WeightSum) - 1);
 		int32 Pick = 0;
-		while (Pick < Weights.Num() && Weights[Pick] < Threshold) { Pick++; }
+		while (Pick < Weights.Num() && Weights[Pick] <= Threshold) { Pick++; }
 		return Indices[Order[FMath::Min(Pick, Order.Num() - 1)]];
 	}
 

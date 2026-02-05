@@ -7,6 +7,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Graphs/PCGExGraph.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeNeighborsCountFilter"
 #define PCGEX_NAMESPACE EdgeNeighborsCountFilter

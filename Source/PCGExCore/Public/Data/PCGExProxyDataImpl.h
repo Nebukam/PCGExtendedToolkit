@@ -12,7 +12,6 @@
 #include "Types/PCGExTypeOps.h"
 #include "UObject/Object.h"
 #include "Data/PCGExCachedSubSelection.h"
-#include "Helpers/PCGExMetaHelpers.h"
 
 struct FPCGExContext;
 class UPCGBasePointData;

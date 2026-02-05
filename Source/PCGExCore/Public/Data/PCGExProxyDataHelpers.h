@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Helpers/PCGExMetaHelpersMacros.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
-#include "Helpers/PCGExMetaHelpers.h"
 #include "UObject/SoftObjectPath.h"
 
 struct FPCGExContext;

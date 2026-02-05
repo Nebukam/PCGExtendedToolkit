@@ -290,6 +290,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
 	TArray<TSharedPtr<PCGExData::FPointIO>>& OutPaths,
 	const bool bClosedPaths,
+	const int32 CallSiteIndex,
 	PCGExClipper2::ETransformRestoration TransformMode)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExClipper2ProcessorContext::OutputPaths64)
@@ -306,6 +307,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 	// Process each output path
 	OutPaths.Reserve(InPaths.size());
 
+	int32 LocalPathIndex = 0;
 	for (PCGExClipper2Lib::Path64& Path : InPaths)
 	{
 		if (Path.size() < 2) { continue; }
@@ -395,7 +397,10 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		}
 
 		if (!NewPointIO) { return; }
-		
+
+		// Deterministic IOIndex for stable output ordering:
+		NewPointIO->IOIndex = Group->GroupIndex * 10000000 + CallSiteIndex * 100000 + LocalPathIndex;
+
 		const int32 NumPoints = static_cast<int32>(Path.size());
 		UPCGBasePointData* OutPoints = NewPointIO->GetOut();
 
@@ -671,6 +676,7 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 		CarryOverDetails.Prune(NewPointIO->Tags.Get());
 
 		OutPaths.Add(NewPointIO);
+		LocalPathIndex++;
 	}
 }
 
@@ -1060,7 +1066,11 @@ void FPCGExClipper2ProcessorElement::BuildProcessingGroups(
 		Group->Prepare(Context->AllOpData);
 		Context->CarryOverDetails.Prune(Group->GroupTags.Get());
 
-		if (Group->IsValid()) { Context->ProcessingGroups.Add(Group); }
+		if (Group->IsValid())
+		{
+			Group->GroupIndex = Context->ProcessingGroups.Num();
+			Context->ProcessingGroups.Add(Group);
+		}
 	}
 }
 

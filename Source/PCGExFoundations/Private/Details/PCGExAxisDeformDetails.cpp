@@ -4,10 +4,12 @@
 #include "Details/PCGExAxisDeformDetails.h"
 
 #include "Core/PCGExContext.h"
+#include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExTaggedData.h"
 #include "Details/PCGExSettingsDetails.h"
+#include "Elements/Debug/PCGExDrawAttributes.h"
 #include "Engine/EngineTypes.h"
 
 FPCGExAxisDeformDetails::FPCGExAxisDeformDetails(const FString InFirst, const FString InSecond, const double InFirstValue, const double InSecondValue)

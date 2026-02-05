@@ -3,6 +3,8 @@
 
 #include "PCGExPropertyTypes.h"
 
+#include "Metadata/PCGMetadata.h"
+
 // Macro to generate standard typed property implementations
 // NOTE: OutputBuffer validity is guaranteed by InitializeOutput returning true.
 // Callers must exclude properties that failed initialization from processing.

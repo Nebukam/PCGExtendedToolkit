@@ -3,7 +3,17 @@
 
 #include "PCGExPropertyWriter.h"
 #include "PCGExPropertyCompiled.h"
-#include "PCGExPropertyTypes.h"
+#include "Helpers/PCGExMetaHelpers.h"
+
+FName FPCGExPropertyOutputConfig::GetEffectiveOutputName() const
+{
+	FName Name = OutputAttributeName.IsNone() ? PropertyName : OutputAttributeName;
+	if (Name.IsNone() || !PCGExMetaHelpers::IsWritableAttributeName(Name))
+	{
+		return NAME_None;
+	}
+	return Name;
+}
 
 bool FPCGExPropertyWriter::Initialize(
 	const IPCGExPropertyProvider* InProvider,

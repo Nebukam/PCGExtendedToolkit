@@ -93,7 +93,6 @@ public:
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
-protected:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif

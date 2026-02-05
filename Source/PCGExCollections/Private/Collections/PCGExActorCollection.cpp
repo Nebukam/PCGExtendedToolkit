@@ -5,6 +5,7 @@
 
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"
+#include "Engine/World.h"
 #endif
 
 #include "PCGExLog.h"
@@ -85,7 +86,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 		// Destroy the temporary actor
 		TempActor->Destroy();
 
-		Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
+		Staging.Bounds = FBox(Origin - Extents, Origin + Extents);
 
 #else
 		Staging.Bounds = FBox(ForceInit);

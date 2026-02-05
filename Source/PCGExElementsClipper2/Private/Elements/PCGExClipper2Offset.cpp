@@ -125,7 +125,7 @@ void FPCGExClipper2OffsetContext::Process(const TSharedPtr<PCGExClipper2::FProce
 			{
 				TArray<TSharedPtr<PCGExData::FPointIO>> OutputPaths;
 				// Use Unproject mode since offset changes positions
-				OutputPaths64(ResultPaths, Group, OutputPaths, true, PCGExClipper2::ETransformRestoration::Unproject);
+				OutputPaths64(ResultPaths, Group, OutputPaths, true, Iteration, PCGExClipper2::ETransformRestoration::Unproject);
 
 				if (Settings->bTagIteration)
 				{

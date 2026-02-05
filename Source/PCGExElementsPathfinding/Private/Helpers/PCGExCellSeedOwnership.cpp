@@ -3,7 +3,9 @@
 
 #include "Helpers/PCGExCellSeedOwnership.h"
 
+#include "PCGModule.h"
 #include "Core/PCGExContext.h"
+#include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Sorting/PCGExPointSorter.h"
 #include "Sorting/PCGExSortingDetails.h"

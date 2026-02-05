@@ -196,8 +196,7 @@ namespace PCGExGraphs
 					PCGEX_PARALLEL_FOR(
 						N,
 						const int32 Idx = ValidNodes[i];
-						const FVector P = NodePointsTransforms[Idx].GetLocation() * 1000;
-						MortonHash[i] = PCGEx::FIndexKey(Idx, (static_cast<uint64>(P.X) << 42) ^ (static_cast<uint64>(P.Y) << 21) ^ static_cast<uint64>(P.Z));
+						MortonHash[i] = PCGEx::FIndexKey(Idx, PCGEx::MH64(NodePointsTransforms[Idx].GetLocation()));
 					)
 
 					PCGExSortingHelpers::RadixSort(MortonHash);
@@ -279,10 +278,27 @@ namespace PCGExGraphs
 		bCompiledSuccessfully = true;
 
 		// Subgraphs
+		if (Graph->SubGraphs.Num() > 1)
+		{
+			// Sort subgraphs by minimum PointIndex for deterministic cluster IOIndex assignment
+			// Ensures consistent cluster ordering based on spatial position
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(SortSubGraphs);
+
+				for (const TSharedRef<FSubGraph>& SubGraph : Graph->SubGraphs)
+				{
+					SubGraph->ComputeMinPointIndex(Nodes);
+				}
+
+				Graph->SubGraphs.Sort([](const TSharedRef<FSubGraph>& A, const TSharedRef<FSubGraph>& B)
+				{
+					return A->MinPointIndex < B->MinPointIndex;
+				});
+			}
+		}
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(CreateEdgeData)
-
 			for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 			{
 				const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];

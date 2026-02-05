@@ -6,6 +6,7 @@
 #include "PCGExLog.h"
 #include "Data/PCGExSubSelection.h"
 #include "Data/PCGExPointIO.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Types/PCGExTypes.h"
 
 namespace PCGExData::Helpers

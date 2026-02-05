@@ -4,9 +4,12 @@
 
 #include "Details/PCGExDetailsCustomization.h"
 
+#include "PropertyEditorModule.h"
+#include "Modules/ModuleManager.h"
 #include "PCGExCoreEditor/Public/PCGExAssetTypesMacros.h"
 #include "PCGExCoreEditor/Public/Details/Enums/PCGExGridEnumCustomization.h"
 #include "PCGExCoreEditor/Public/Details/Enums/PCGExInlineEnumCustomization.h"
+#include "Styling/SlateStyle.h"
 
 namespace PCGExDetailsCustomization
 {

@@ -66,6 +66,22 @@ void FPCGExShapeFiblatBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 
 	Fiblat->Epsilon = Config.Epsilon;
 
+	// Compute extents based on bounds source
+	if (BaseConfig.BoundsSource == EPCGExShapeBoundsSource::Fit)
+	{
+		// Approximate spacing from surface area distribution
+		const FVector FitExtents = Fiblat->Fit.GetExtent();
+		const double AvgRadius = (FitExtents.X + FitExtents.Y + FitExtents.Z) / 3.0;
+		const double SurfaceArea = 4.0 * PI * AvgRadius * AvgRadius;
+		const double AreaPerPoint = Fiblat->NumPoints > 0 ? SurfaceArea / Fiblat->NumPoints : SurfaceArea;
+		const double Spacing = FMath::Sqrt(AreaPerPoint);
+		Fiblat->Extents = FVector(Spacing * 0.5);
+	}
+	else
+	{
+		Fiblat->Extents = BaseConfig.DefaultExtents;
+	}
+
 	ValidateShape(Fiblat);
 
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Fiblat);

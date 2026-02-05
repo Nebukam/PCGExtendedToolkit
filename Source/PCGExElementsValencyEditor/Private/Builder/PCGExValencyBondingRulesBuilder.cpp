@@ -16,6 +16,7 @@
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencySocketRules.h"
 #include "Engine/StaticMeshSocket.h"
+#include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyBuilder"
 

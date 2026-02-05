@@ -4,6 +4,7 @@
 #include "Blenders/PCGExMetadataBlender.h"
 
 #include "Core/PCGExOpStats.h"
+#include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExProxyData.h"
 #include "Details/PCGExBlendingDetails.h"

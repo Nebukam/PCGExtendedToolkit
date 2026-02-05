@@ -7,6 +7,7 @@
 
 #include "Data/PCGExPointElements.h"
 #include "Blenders/PCGExMetadataBlender.h"
+#include "Data/PCGBasePointData.h"
 #include "Paths/PCGExPathsCommon.h"
 
 

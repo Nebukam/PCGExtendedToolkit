@@ -3,7 +3,9 @@
 
 #include "Sampling/PCGExSamplingUnionData.h"
 
+#include "Misc/ScopeRWLock.h"
 #include "Containers/PCGExIndexLookup.h"
+
 
 namespace PCGExSampling
 {

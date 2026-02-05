@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DeveloperSettings.h"
+#include "Layout/Visibility.h"
+
 
 #include "PCGExCollectionsEditorSettings.generated.h"
 

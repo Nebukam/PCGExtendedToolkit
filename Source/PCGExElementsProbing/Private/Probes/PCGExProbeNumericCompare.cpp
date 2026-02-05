@@ -8,6 +8,7 @@
 #include "Data/PCGExData.h"
 #include "Details/PCGExSettingsDetails.h"
 #include "Core/PCGExProbingCandidates.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigNumericCompare, MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
 PCGEX_CREATE_PROBE_FACTORY(NumericCompare, {}, {})

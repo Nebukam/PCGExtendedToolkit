@@ -328,6 +328,55 @@ namespace PCGExMatching
 		return TargetFacades[Point.IO]->GetInPoint(Point.Index);
 	}
 
+	int32 FTargetsHandler::GetTotalTargetPointCount(const TSet<const UPCGData*>* Exclude) const
+	{
+		int32 Total = 0;
+		for (int i = 0; i < TargetFacades.Num(); i++)
+		{
+			if (Exclude && Exclude->Contains(TargetFacades[i]->GetIn())) { continue; }
+			Total += TargetFacades[i]->GetNum();
+		}
+		return Total;
+	}
+
+	void FTargetsHandler::BuildFlatTargetMap(TArray<int32>& OutPrefixSums, const TSet<const UPCGData*>* Exclude) const
+	{
+		OutPrefixSums.SetNum(TargetFacades.Num() + 1);
+		OutPrefixSums[0] = 0;
+
+		for (int i = 0; i < TargetFacades.Num(); i++)
+		{
+			const int32 Count = (Exclude && Exclude->Contains(TargetFacades[i]->GetIn())) ? 0 : TargetFacades[i]->GetNum();
+			OutPrefixSums[i + 1] = OutPrefixSums[i] + Count;
+		}
+	}
+
+	PCGExData::FConstPoint FTargetsHandler::GetPointByFlatIndex(const int32 FlatIndex, const TArray<int32>& PrefixSums, const TSet<const UPCGData*>* Exclude) const
+	{
+		// Binary search to find the IO index
+		int32 IOIndex = 0;
+		for (int i = 1; i < PrefixSums.Num(); i++)
+		{
+			if (FlatIndex < PrefixSums[i])
+			{
+				IOIndex = i - 1;
+				break;
+			}
+		}
+
+		// Skip excluded facades
+		while (Exclude && Exclude->Contains(TargetFacades[IOIndex]->GetIn()))
+		{
+			IOIndex++;
+		}
+
+		const int32 PointIndex = FlatIndex - PrefixSums[IOIndex];
+
+		PCGExData::FConstPoint Point = TargetFacades[IOIndex]->GetInPoint(PointIndex);
+		Point.IO = IOIndex;
+		return Point;
+	}
+
 	double FTargetsHandler::GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const
 	{
 		if (Distances->bOverlapIsZero)

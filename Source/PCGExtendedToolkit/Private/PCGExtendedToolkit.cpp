@@ -14,6 +14,7 @@
 
 #include "PCGExGlobalSettings.h"
 #include "PCGExModuleInterface.h"
+#include "AssetRegistry/AssetData.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 
@@ -88,8 +89,8 @@ void FPCGExtendedToolkitModule::StartupModule()
 	PCGEX_EMPLACE_PIN_OUT(OUT_Filter, "PCGEx Filter");
 	PCGEX_MAP_PIN_OUT("Filter")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_FilterCollection, "PCGEx Collection Filter");
-	PCGEX_MAP_PIN_OUT("C-Filter")
+	PCGEX_EMPLACE_PIN_OUT(OUT_FilterCollection, "PCGEx Data Filter");
+	PCGEX_MAP_PIN_OUT("Data Filter")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_FilterEdge, "PCGEx Edge Filter");
 	PCGEX_MAP_PIN_OUT("Edge Filter")

@@ -2,8 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-
+ 
 #include "IPropertyTypeCustomization.h"
+
+class SWidget;
 
 class PCGEXCOREEDITOR_API FPCGExGridEnumCustomization : public IPropertyTypeCustomization
 {

@@ -8,6 +8,7 @@
 #include "Clusters/PCGExCluster.h"
 #include "Containers/PCGExManagedObjects.h"
 #include "Graphs/PCGExGraph.h"
+#include "Helpers/PCGExMetaHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeLengthFilter"
 #define PCGEX_NAMESPACE EdgeLengthFilter

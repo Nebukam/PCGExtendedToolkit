@@ -26,6 +26,8 @@ public:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
+	virtual void PostLoad() override;
+	
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
@@ -33,6 +35,13 @@ protected:
 	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override { return false; }
 	//~End UPCGSettings
 
+	UPROPERTY()
+	bool bCachedSupportsDataStealing = false;
+	
+	UPROPERTY()
+	bool bCachedSupportsInitPolicy = false;
+	
+	
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	/** If enabled, will pre-allocate all data on a single thread to avoid contention. Not all nodes support this. */
@@ -49,16 +58,15 @@ public:
 
 	/** This node will not make any copy of the data and instead modify the inputs directly.
 	 * When enabling this you must make absolutely sure the data plugged into this node is not plugged in any other node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="SupportsDataStealing()", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="bCachedSupportsDataStealing", EditConditionHides, HideEditConditionToggle))
 	EPCGExOptionState StealData = EPCGExOptionState::Disabled;
-	
-	UFUNCTION()
+
 	virtual EPCGExExecutionPolicy GetExecutionPolicy() const { return ExecutionPolicy; }
-	
+
 	/** Forces the execution over a single frame.
 	 * Not safe on all nodes, some nodes will override this internally.
 	 * ONLY CHANGE THIS IF YOU KNOW WHAT YOU'RE DOING */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="GetExecutionPolicy() != EPCGExExecutionPolicy::Ignored"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, EditCondition="bCachedSupportsInitPolicy", HideEditConditionToggle))
 	EPCGExExecutionPolicy ExecutionPolicy = EPCGExExecutionPolicy::Default;
 
 	/** Flatten the output of this node. Merges hierarchical data into a single flat collection. */
@@ -106,7 +114,6 @@ protected:
 	UPROPERTY()
 	int64 PCGExDataVersion = -1;
 
-	UFUNCTION()
 	virtual bool SupportsDataStealing() const;
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;

@@ -14,6 +14,7 @@ struct FPCGExContext;
 namespace PCGExData
 {
 	class FPointIO;
+	class FFacadePreloader;
 }
 
 /**
@@ -30,6 +31,8 @@ struct PCGEXCORE_API FPCGExInputShorthandBase
 	/** Whether to use the constant value or read from an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueType Input = EPCGExInputValueType::Constant;
+
+	void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const{}
 };
 
 #define PCGEX_ATTRIBUTE_TOGGLE_DECL const bool bDefaultToAttribute = false
@@ -43,7 +46,8 @@ explicit FPCGExInputShorthandName##_NAME(const FName DefaultName, PCGEX_ATTRIBUT
 FPCGExInputShorthandName##_NAME(const FName DefaultName, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){	Attribute = DefaultName; Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE } \
 bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet = false) const;\
 bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
-PCGEX_SETTING_VALUE_DECL(, _TYPE)
+PCGEX_SETTING_VALUE_DECL(, _TYPE)\
+void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;\
 
 /** Name-based shorthand where attribute is specified by FName. */
 USTRUCT(BlueprintType)
@@ -249,7 +253,8 @@ FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection, const _TYPE
 FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){ Attribute.Update(DefaultSelection.ToString()); Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE  } \
 bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet = false) const;\
 bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, _TYPE& OutValue, const bool bQuiet = false) const;\
-PCGEX_SETTING_VALUE_DECL(, _TYPE)
+PCGEX_SETTING_VALUE_DECL(, _TYPE)\
+void RegisterBufferDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
 /** Selector-based shorthand where attribute is specified by full PCG selector (supports properties). */
 USTRUCT(BlueprintType)

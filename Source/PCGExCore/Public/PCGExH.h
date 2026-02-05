@@ -9,8 +9,11 @@ namespace PCGEx
 {
 	struct FIndexKey
 	{
-		int32 Index;
-		uint64 Key;
+		int32 Index = 0;
+		uint64 Key = 0;
+
+		FIndexKey() = default;
+		FIndexKey(const int32 InIndex, const uint64 InKey) : Index(InIndex), Key(InKey) {}
 	};
 
 	template <typename, typename = void>
@@ -158,6 +161,22 @@ namespace PCGEx
 	}
 
 #undef PCGEX_FNV1A
+
+	/**
+	 * Computes a Morton-like hash for deterministic spatial sorting.
+	 * Uses bit interleaving to preserve spatial locality.
+	 * Multiplies by 1000 to capture sub-unit precision (down to ~0.001 units).
+	 *
+	 * Note: Positions within ~0.0000001 units may produce the same hash due to int64 truncation.
+	 * This is acceptable for most use cases as such positions would be considered coincident.
+	 */
+	FORCEINLINE static uint64 MH64(const FVector& Position)
+	{
+		const FVector P = Position * 1000.0;
+		return (static_cast<uint64>(static_cast<int64>(P.X)) << 42) ^
+		       (static_cast<uint64>(static_cast<int64>(P.Y)) << 21) ^
+		        static_cast<uint64>(static_cast<int64>(P.Z));
+	}
 
 	template <typename S, typename T>
 	FORCEINLINE static uint64 GH2(const S& Seed, const T& Tolerance)

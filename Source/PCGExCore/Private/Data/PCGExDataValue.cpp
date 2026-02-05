@@ -5,6 +5,7 @@
 
 #include "Data/PCGExSubSelection.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Helpers/PCGExMetaHelpers.h"
 #include "Types/PCGExTypes.h"
 #include "Types/PCGExTypeTraits.h"
 

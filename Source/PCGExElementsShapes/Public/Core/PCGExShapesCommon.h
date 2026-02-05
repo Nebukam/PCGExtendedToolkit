@@ -29,6 +29,13 @@ enum class EPCGExShapePointLookAt : uint8
 	Seed = 1 UMETA(DisplayName = "Seed", ToolTip="Look At Seed"),
 };
 
+UENUM()
+enum class EPCGExShapeBoundsSource : uint8
+{
+	Fit      = 0 UMETA(DisplayName = "Fit", ToolTip="Compute bounds from point spacing so adjacent points don't overlap"),
+	Constant = 1 UMETA(DisplayName = "Constant", ToolTip="Use a constant extent value"),
+};
+
 namespace PCGExShapes::Labels
 {
 	const FName OutputShapeBuilderLabel = TEXT("Shape Builder");

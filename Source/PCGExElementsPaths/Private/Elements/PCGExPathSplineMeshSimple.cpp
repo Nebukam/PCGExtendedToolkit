@@ -42,7 +42,7 @@ void UPCGExPathSplineMeshSimpleSettings::PostInitProperties()
 {
 	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
-		if (!Tangents.StartTangents) { Tangents.StartTangents = NewObject<UPCGExAutoTangents>(this, TEXT("StartTangents")); }
+		if (!Tangents.Tangents) { Tangents.Tangents = NewObject<UPCGExAutoTangents>(this, TEXT("Tangents")); }
 	}
 	Super::PostInitProperties();
 }

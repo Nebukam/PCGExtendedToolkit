@@ -6,6 +6,7 @@
 #include "EngineUtils.h"
 #include "Components/BrushComponent.h"
 #include "PCGComponent.h"
+#include "PCGExValencyEditorCommon.h"
 #include "PCGExValencyMacros.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
@@ -24,10 +25,6 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogValencyVolume, Log, All);
 
-namespace PCGExValencyFolders
-{
-	const FName VolumesFolder = FName(TEXT("Valency/Volumes"));
-}
 
 AValencyContextVolume::AValencyContextVolume()
 {

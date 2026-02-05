@@ -210,7 +210,12 @@ namespace PCGExMetaHelpers
 
 	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
 	{
-		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }
-		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
+		const FName Name = InSelector.GetName();
+		if (Name.IsNone()) { return TEXT("<none>"); }
+
+		const TArray<FString>& ExtraNames = InSelector.GetExtraNames();
+		if (ExtraNames.IsEmpty()) { return Name.ToString(); }
+
+		return Name.ToString() + TEXT(".") + FString::Join(ExtraNames, TEXT("."));
 	}
 }

@@ -614,7 +614,11 @@ namespace PCGExMT
 		}
 
 		// Then the end callback (context notification)
-		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
+		// DriveAdvanceWork handles coordination if called while already driving
+		if (OnEndCallback)
+		{
+			OnEndCallback(bWasCancelled);
+		}
 	}
 
 	void FTaskManager::ClearRegistry(const bool bCancel)

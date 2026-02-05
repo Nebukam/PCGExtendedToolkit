@@ -79,8 +79,12 @@ struct PCGEXELEMENTSSHAPES_API FPCGExShapeConfigBase
 	EPCGExAxisAlign LookAtAxis = EPCGExAxisAlign::Forward;
 
 
-	/** Default point extnets */
+	/** How point bounds/extents are determined */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta=(PCG_Overridable))
+	EPCGExShapeBoundsSource BoundsSource = EPCGExShapeBoundsSource::Fit;
+
+	/** Default point extents (used when BoundsSource is Constant) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta=(PCG_Overridable, EditCondition="BoundsSource == EPCGExShapeBoundsSource::Constant", EditConditionHides))
 	FVector DefaultExtents = FVector::OneVector * 50;
 
 	/** Shape ID used to identify this specific shape' points */

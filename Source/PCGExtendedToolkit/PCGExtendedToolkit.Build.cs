@@ -18,14 +18,16 @@ public class PCGExtendedToolkit : ModuleRules
 	private const string EditorSuffix = "Editor";
 
 	private static readonly string[] BaseDependencies = { "PCGExCore", "PCGExBlending" };
-	private static readonly string[] BaseEditorDependencies = { "PCGExCoreEditor" };
+	private static readonly string[] BaseEditorDependencies = { "PCGExCoreEditor" }; //, "PCGExtendedToolkitTest"
 
 	private readonly Dictionary<string, List<string>> _moduleDependencies = new();
 
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = (Target.Configuration == UnrealTargetConfiguration.Shipping);
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
+		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
+		bUseUnity = true;                                                                                                     
+		MinSourceFilesForUnityBuildOverride = 4;
 
 		ConfigureBaseDependencies();
 
