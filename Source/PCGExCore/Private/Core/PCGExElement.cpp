@@ -32,17 +32,22 @@ bool IPCGExElement::AdvancePreparation(FPCGExContext* Context, const UPCGExSetti
 
 	PCGEX_EXECUTION_CHECK_C(Context)
 
+	// Preparation is a multi-phase state machine:
+	// 1. Boot: validate inputs, configure context
+	// 2. Register & load asset dependencies (may pause for async loading)
+	// 3. PostLoadAssetsDependencies: finalize setup after assets are available
+	// 4. PostBoot: last chance setup before execution begins
+	// Each PCGEX_ON_ASYNC_STATE_READY gate re-enters when the async state completes,
+	// returning false to yield to the scheduler in the meantime.
 	if (Context->IsState(PCGExCommon::States::State_Preparation))
 	{
 		if (!Boot(Context)) { return Context->CancelExecution(FString()); }
 
-		// Have operations register their dependencies
 		for (UPCGExInstancedFactory* Op : Context->InternalOperations) { Op->RegisterAssetDependencies(Context); }
 
 		Context->RegisterAssetDependencies();
 		if (Context->HasAssetRequirements() && Context->LoadAssets()) { return false; }
 
-		// Call it so if there's initialization in there it'll run as a mandatory step
 		PostLoadAssetsDependencies(Context);
 	}
 
@@ -171,6 +176,9 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (InContext->IsInitialExecution()) { InitializeData(InContext, InSettings); }
 
+	// Execution policy controls whether we block the calling thread or return to the scheduler.
+	// On the game thread, or when the policy says don't block, we just drive one step and return.
+	// "NoPauseButLoop" only blocks when inside a PCG loop (avoids frame-delay per loop iteration).
 	const EPCGExExecutionPolicy DesiredPolicy = InSettings->GetExecutionPolicy();
 	const EPCGExExecutionPolicy LocalPolicy = DesiredPolicy == EPCGExExecutionPolicy::Default ? PCGEX_CORE_SETTINGS.ExecutionPolicy : DesiredPolicy;
 
@@ -183,7 +191,12 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 		return InContext->DriveAdvanceWork(InSettings);
 	}
 
-	// Spin loop until work completes
+	// Adaptive spin-wait: blocks the scheduler thread until all async work completes.
+	// Phases escalate from hot spinning (low latency) to sleeping (low CPU usage):
+	//   0-50:    Yield only (sub-microsecond wake, max throughput)
+	//   50-200:  Mostly yield, occasional 1us sleep (reduce power draw)
+	//   200-1k:  1us sleeps (work is taking a while)
+	//   1k+:     5us sleeps (long-running work, minimize CPU waste)
 	constexpr int SPIN_PHASE_ITERATIONS = 50;
 	constexpr int YIELD_PHASE_ITERATIONS = 200;
 	constexpr float SHORT_SLEEP_MS = 0.001f;
@@ -225,6 +238,10 @@ void IPCGExElement::InitializeData(FPCGExContext* InContext, const UPCGExSetting
 		return;
 	}
 
+	// Extract loop indices from the PCG execution stack to determine if this node
+	// is running inside a loop. LoopIndex is the immediate parent loop (second-to-last frame),
+	// TopLoopIndex is the outermost loop in the stack. These affect execution policy decisions
+	// (e.g. NoPauseButLoop only spin-waits when inside a loop to avoid per-iteration frame delays).
 	const TArray<FPCGStackFrame>& StackFrames = Stack->GetStackFrames();
 
 	if (StackFrames.Num() >= 2)

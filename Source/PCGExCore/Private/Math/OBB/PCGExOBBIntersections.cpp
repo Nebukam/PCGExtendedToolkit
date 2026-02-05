@@ -37,6 +37,12 @@ namespace PCGExMath::OBB
 		FVector& OutNormal1, FVector& OutNormal2,
 		bool& bOutHit2Valid, bool& bOutInverseDir)
 	{
+		// Segment-OBB intersection with entry/exit classification.
+		// Transforms the segment into the OBB's local space for AABB intersection,
+		// then transforms hits back to world space. Handles three cases:
+		// 1. End inside: finds entry point only
+		// 2. Start inside: traces in reverse to find exit point (bOutInverseDir=true)
+		// 3. Neither inside: finds both entry and exit (pass-through)
 		const FMatrix Matrix = Box.GetMatrix();
 		const FBox LocalBox = Box.GetLocalBox();
 

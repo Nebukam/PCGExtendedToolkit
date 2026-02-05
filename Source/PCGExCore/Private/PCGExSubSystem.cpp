@@ -97,6 +97,10 @@ void UPCGExSubSystem::PollEvent(UPCGComponent* InSource, const EPCGExSubsystemEv
 	PolledEvents.Add(PCGEx::FPolledEvent(InSource, InEventType, InEventId));
 }
 
+// Shared identity-mapped index buffer (IndexBuffer[i] == i) used across the system
+// to avoid redundant allocations. Double-checked locking: fast read-only check first,
+// then re-check under write lock before growing. Over-allocates by 1024 to reduce
+// contention from frequent small growth requests.
 void UPCGExSubSystem::EnsureIndexBufferSize(const int32 Count)
 {
 	{
@@ -139,6 +143,9 @@ double UPCGExSubSystem::GetTickBudgetInSeconds()
 	return FMath::Max(Val, 1.0) / 1000.0;
 }
 
+// Drain-and-execute: move all pending actions and events out of the locked
+// containers, then execute them outside the lock. This minimizes lock hold
+// time and allows actions to safely enqueue new work for the next tick.
 void UPCGExSubSystem::ExecuteBeginTickActions()
 {
 	EndTime = FPlatformTime::Seconds() + GetTickBudgetInSeconds();

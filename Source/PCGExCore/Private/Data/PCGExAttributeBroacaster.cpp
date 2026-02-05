@@ -76,6 +76,10 @@ namespace PCGExData
 	template <typename T>
 	bool TAttributeBroadcaster<T>::ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 	{
+		// Two distinct paths depending on attribute domain:
+		// @Data domain: Read a single value (DataValue) and cache its typed conversion (TypedDataValue).
+		//   All subsequent Fetch/FetchSingle calls return this constant for every point.
+		// Element domain: Create a PCG accessor (InternalAccessor) for batch per-point reads via GetRange.
 		static_assert(Traits::Type != EPCGMetadataTypes::Unknown, "T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values.");
 
 		ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);

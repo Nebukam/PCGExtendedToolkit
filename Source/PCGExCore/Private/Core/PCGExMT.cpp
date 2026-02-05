@@ -22,6 +22,11 @@ namespace PCGExMT
 {
 	int32 GetSanitizedBatchSize(const int32 NumIterations, const int32 DesiredBatchSize)
 	{
+		// Clamp chunk sizes to avoid over- or under-subscribing CPU cores.
+		// MaxChunkSize (Iterations / Cores*4) caps parallelism to ~4 tasks per core.
+		// MinChunkSize (Iterations / Cores*2) ensures at least ~2 tasks per core.
+		// Large requested sizes (>128) are promoted to at least MinChunkSize to prevent
+		// too few tasks from starving cores, while small sizes are kept as-is for fine-grained work.
 		const int32 NumCores = FPlatformMisc::NumberOfCores();
 		const int32 MaxChunkSize = FMath::DivideAndRoundUp(NumIterations, NumCores * 4);
 		const int32 MinChunkSize = FMath::DivideAndRoundUp(NumIterations, NumCores * 2);
@@ -68,6 +73,9 @@ namespace PCGExMT
 		Group = InGroup;
 		PCGEX_TASK_LOG(LogTemp, Warning, TEXT("IAsyncHandle[#%d|%s]::SetParent to [#%d|%s]"), HandleIdx, *DEBUG_HandleId(), InGroup->HandleIdx, *InGroup->DEBUG_HandleId());
 
+		// Only register with the parent group if not already counted as "expected".
+		// FRegistrationGuard suppresses completion checks during registration to prevent
+		// the group from completing before all siblings are registered.
 		if (!bExpected)
 		{
 			IAsyncHandleGroup::FRegistrationGuard Guard(InGroup);
@@ -253,18 +261,24 @@ namespace PCGExMT
 		EAsyncHandleState CurrentState = GetState();
 		if (CurrentState == EAsyncHandleState::Ended) { return; }
 
-		// Block completion checks during registration
+		// FRegistrationGuard increments PendingRegistrations to suppress premature completion.
+		// Without this, a fast task could complete and trigger group completion before
+		// all sibling tasks are registered by the batch launcher.
 		if (PendingRegistrations.load(std::memory_order_acquire) > 0) { return; }
 
-		// Memory fence ensures we see all completed registrations
+		// Full fence ensures visibility of all state set during registration/completion
+		// across all threads before we read the counters below.
 		std::atomic_thread_fence(std::memory_order_seq_cst);
 
 		const int32 Expected = ExpectedCount.load(std::memory_order_acquire);
 		const int32 Started = StartedCount.load(std::memory_order_acquire);
 		const int32 Completed = CompletedCount.load(std::memory_order_acquire);
 
+		// All three counters must agree: every expected task has both started AND completed.
+		// The Started == Completed check prevents completing while tasks are still running.
 		if (Completed >= Expected && Completed == Started && Expected > 0)
 		{
+			// CAS ensures exactly one thread transitions to Ended and fires OnEnd.
 			EAsyncHandleState RunningState = EAsyncHandleState::Running;
 			if (State.compare_exchange_strong(RunningState, EAsyncHandleState::Ended, std::memory_order_acq_rel))
 			{
@@ -372,7 +386,10 @@ namespace PCGExMT
 		}
 	}
 
-	// FAsyncToken
+	// FAsyncToken acts as a RAII-style reference count on a group.
+	// Creating a token registers +1 expected/started task on the parent group;
+	// releasing (or destroying) the token marks that slot as completed.
+	// This keeps the group alive while non-task work (e.g. scheduling, async lambdas) is in flight.
 	FAsyncToken::FAsyncToken(const TWeakPtr<IAsyncHandleGroup>& InHandle)
 		: Group(InHandle)
 	{
@@ -429,9 +446,12 @@ namespace PCGExMT
 	{
 		if (IsCancelled()) { return false; }
 
+		// Pause the PCG context so the PCG scheduler doesn't tick ExecuteInternal
+		// while async work is in flight. Context is unpaused when all work completes.
 		Context->PauseContext();
 
-		// Auto-reset from Ended state - this allows reuse without explicit Reset calls
+		// Auto-reset from Ended state allows the same manager to be reused across
+		// multiple rounds of async work within a single node execution.
 		EAsyncHandleState CurrentState = GetState();
 		if (CurrentState == EAsyncHandleState::Ended)
 		{
@@ -565,7 +585,7 @@ namespace PCGExMT
 		PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::LaunchTask : [%d|%s]"), InTask->HandleIdx, *InTask->DEBUG_HandleId());
 		PCGEX_SHARED_THIS_DECL
 
-		// If task doesn't have a parent, register with manager
+		// Orphan tasks (no explicit group) are parented directly to the manager.
 		if (!InTask->Group.IsValid())
 		{
 			InTask->HandleIdx = RegisterTask(InTask);
@@ -580,7 +600,9 @@ namespace PCGExMT
 			if (!Manager || !Manager->IsAvailable()) { PCGEX_CANCEL_TASK_INTERNAL }
 
 			{
-				// Retain context for the duration of the execution
+				// FSharedContext pins the PCG context via its handle, preventing it from
+				// being destroyed while this task runs. Without this, the context could be
+				// garbage-collected mid-execution if the PCG graph is torn down.
 				FPCGContext::FSharedContext<FPCGExContext> SharedContext(Manager->ContextHandle);
 				if (!SharedContext.Get()) { PCGEX_CANCEL_TASK_INTERNAL }
 
@@ -803,9 +825,12 @@ namespace PCGExMT
 
 		TaskGroup->ExecScopeIteration(Scope, bPrepareOnly);
 
+		// When NumIterations != -1, this task chains into the next scope sequentially.
+		// This is used for forced single-threaded execution: instead of launching all
+		// scopes in parallel, each scope task spawns the next one after completing,
+		// ensuring strictly sequential iteration order.
 		if (NumIterations != -1)
 		{
-			// Calculate next scope
 			FScope NextScope = FScope(Scope.End, FMath::Min(NumIterations - Scope.End, Scope.Count), Scope.LoopIndex + 1);
 			if (NextScope.IsValid())
 			{
@@ -818,7 +843,11 @@ namespace PCGExMT
 		}
 	}
 
-	// Main thread execution
+	// IExecuteOnMainThread provides time-sliced execution on the game thread.
+	// Work is broken into frames via the subsystem's begin-tick action queue.
+	// Each frame, Execute() runs until ShouldStop() (time budget exceeded) returns true,
+	// then re-schedules itself for the next frame. This prevents blocking the game thread
+	// while still making progress on work that requires game-thread access.
 	IExecuteOnMainThread::IExecuteOnMainThread()
 	{
 	}
@@ -838,6 +867,8 @@ namespace PCGExMT
 			return;
 		}
 
+		// Register a callback on the subsystem's next tick. The subsystem provides
+		// an EndTime deadline so we know how much time budget remains this frame.
 		PCGEX_SUBSYSTEM
 		PCGExSubsystem->RegisterBeginTickAction([PCGEX_ASYNC_THIS_CAPTURE]()
 		{
@@ -869,7 +900,6 @@ namespace PCGExMT
 		return FPlatformTime::Seconds() > EndTime;
 	}
 
-	// FScopeLoopOnMainThread
 	FTimeSlicedMainThreadLoop::FTimeSlicedMainThreadLoop(const int32 NumIterations)
 		: Scope(FScope(0, NumIterations, 0))
 	{
@@ -899,6 +929,9 @@ namespace PCGExMT
 
 		if (!InContext) { return true; }
 
+		// Process iterations until the frame's time budget is exhausted.
+		// On budget expiry, advance Scope.Start so the next frame resumes
+		// where we left off rather than re-processing completed iterations.
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			OnIterationCallback(Index, Scope);

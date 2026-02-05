@@ -120,6 +120,10 @@ namespace PCGExData
 
 	void FSubSelection::Init(const TArray<FString>& ExtraNames)
 	{
+		// Parse extra selector names (e.g. "$Position.X" → component=Position, field=X)
+		// to determine what part of a compound attribute type to read/write.
+		// Priority: axis (Forward/Right/Up) > component (Position/Rotation/Scale) > field (X/Y/Z/W).
+		// Multiple can be combined (e.g. "$Rotation.Forward" = axis from rotation component).
 		if (ExtraNames.IsEmpty())
 		{
 			bIsValid = false;

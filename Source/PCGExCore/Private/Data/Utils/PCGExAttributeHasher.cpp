@@ -123,6 +123,9 @@ namespace PCGEx
 		}
 	}
 
+	// Finalizes the parallel hash computation: collapses per-scope hash arrays into one,
+	// optionally deduplicates (Uniques mode), sorts for determinism, then computes
+	// a single CityHash32 over the entire hash sequence for use as a data fingerprint.
 	void FAttributeHasher::OnCompilationComplete()
 	{
 		ScopedHashes->Collapse(Hashes);

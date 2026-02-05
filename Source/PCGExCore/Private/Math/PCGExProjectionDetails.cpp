@@ -94,6 +94,10 @@ void FPCGExGeo2DProjectionDetails::Init(const PCGExMath::FBestFitPlane& InFitPla
 
 void FPCGExGeo2DProjectionDetails::InitInternal(const FVector& InNormal)
 {
+	// Build a quaternion whose Z axis aligns with the projection normal.
+	// Projecting a 3D point to 2D is then simply "unrotating" by this quaternion:
+	// the result's X,Y are the 2D coordinates on the projection plane, Z is the depth.
+	// The inverse quaternion is used for unprojection (2D → 3D).
 	Normal = InNormal.GetSafeNormal(1E-08, WorldUp);
 	ProjectionQuat = FRotationMatrix::MakeFromZX(Normal, WorldFwd).ToQuat();
 	ProjectionQuatInv = ProjectionQuat.Inverse();

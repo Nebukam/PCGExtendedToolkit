@@ -236,6 +236,10 @@ namespace PCGExPaths
 	{
 	}
 
+	// Tests two path edges for crossing using segment-to-segment closest approach.
+	// The crossing point is the midpoint of the closest approach segment (A,B).
+	// Alpha is the parametric position along the local edge for later insertion sorting.
+	// Hash encodes (OtherEdge.Start, OtherPath.IOIndex) for cross-referencing.
 	bool FPathEdgeCrossings::FindSplit(const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength, const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails)
 	{
 		if (!OtherPath->IsEdgeValid(OtherEdge)) { return false; }
@@ -306,6 +310,9 @@ namespace PCGExPaths
 		Crossings.Sort([&](const FCrossing& A, const FCrossing& B) { return PCGEx::H64A(A.Hash) < PCGEx::H64A(B.Hash); });
 	}
 
+	// Builds pairwise containment relationships between paths for hole detection.
+	// Depth tracks nesting level: even depth = solid region, odd depth = hole.
+	// Each new path is tested against all existing paths for mutual containment.
 	void FPathInclusionHelper::AddPath(const TSharedPtr<FPath>& InPath, const double Tolerance)
 	{
 		bool bAlreadyInSet = false;
