@@ -11,6 +11,21 @@
 
 #include "PCGExStagingFitting.generated.h"
 
+class UStaticMesh;
+
+namespace PCGEx
+{
+	template <typename T>
+	class TAssetLoader;
+}
+
+UENUM()
+enum class EPCGExFittingSource : uint8
+{
+	CollectionMap = 0 UMETA(DisplayName = "Collection Map", ToolTip="Use a collection map from a staging node to resolve entry bounds."),
+	MeshAttribute = 1 UMETA(DisplayName = "Mesh Attribute", ToolTip="Read a static mesh path attribute and compute bounds from the mesh bounding box."),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy fitting justify variations", PCGExNodeLibraryDoc="assets-management/staging-fitting"))
 class UPCGExStagingFittingSettings : public UPCGExPointsProcessorSettings
 {
@@ -36,13 +51,22 @@ protected:
 	//~End UPCGSettings
 
 public:
+	/** Where to read bounds from. Collection Map uses staged entry data; Mesh Attribute reads a static mesh path and uses its bounding box. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFittingSource Source = EPCGExFittingSource::CollectionMap;
+
+	/** The name of the attribute containing the static mesh path. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Source == EPCGExFittingSource::MeshAttribute", EditConditionHides))
+	FName AssetPathAttributeName = "AssetPath";
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExJustificationDetails Justification;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	/** Variations are only available in Collection Map mode (entries carry per-asset variation limits). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Source == EPCGExFittingSource::CollectionMap", EditConditionHides))
 	FPCGExFittingVariationsDetails Variations;
 
 	//** If enabled, filter output based on whether a staging has been applied or not (empty entry). */
@@ -50,13 +74,13 @@ public:
 	bool bPruneEmptyPoints = true;
 
 	/** Write the fitting translation offset to an attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteTranslation = false;
 
 	/** Name of the FVector attribute to write fitting offset to.
 	 * This is the translation added to the point transform according to fitting/justification rules.
 	 * Mostly useful for offsetting spline meshes.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteTranslation"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bWriteTranslation"))
 	FName TranslationAttributeName = FName("FittingOffset");
 };
 
@@ -65,6 +89,7 @@ struct FPCGExStagingFittingContext final : FPCGExPointsProcessorContext
 	friend class FPCGExStagingFittingElement;
 
 	TSharedPtr<PCGExCollections::FPickUnpacker> CollectionPickUnpacker;
+	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -84,9 +109,12 @@ namespace PCGExStagingFitting
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExStagingFittingContext, UPCGExStagingFittingSettings>
 	{
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashGetter;
+		TSharedPtr<TArray<PCGExValueHash>> MeshKeys;
 
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
+
+		TMap<PCGExValueHash, FBox> BoundsCache;
 
 		TArray<int8> Mask;
 		int32 NumInvalid = 0;
