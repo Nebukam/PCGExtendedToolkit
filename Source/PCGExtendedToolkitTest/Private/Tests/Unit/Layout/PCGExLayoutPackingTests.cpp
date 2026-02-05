@@ -162,21 +162,16 @@ bool FPCGExPaper6RotationUniqueAABBsTest::RunTest(const FString& Parameters)
 		TestTrue(FString::Printf(TEXT("Rotation (P=%.0f, Y=%.0f, R=%.0f) produces positive volume"), Rot.Pitch, Rot.Yaw, Rot.Roll),
 			RotatedSize.X > KINDA_SMALL_NUMBER && RotatedSize.Y > KINDA_SMALL_NUMBER && RotatedSize.Z > KINDA_SMALL_NUMBER);
 
-		// Sort components for order-independent comparison
-		FVector Sorted;
-		Sorted.X = FMath::Min3(RotatedSize.X, RotatedSize.Y, RotatedSize.Z);
-		Sorted.Z = FMath::Max3(RotatedSize.X, RotatedSize.Y, RotatedSize.Z);
-		Sorted.Y = RotatedSize.X + RotatedSize.Y + RotatedSize.Z - Sorted.X - Sorted.Z;
-
 		// Volume conservation for orthogonal rotations
 		const double OriginalVolume = Size.X * Size.Y * Size.Z;
 		const double RotatedVolume = RotatedSize.X * RotatedSize.Y * RotatedSize.Z;
 		PCGEX_TEST_NEARLY_EQUAL(RotatedVolume, OriginalVolume, 1.0, "Rotation preserves volume");
 
-		Sizes.Add(Sorted);
+		// Store raw (unsorted) rotated size — each orientation should produce a unique axis assignment
+		Sizes.Add(RotatedSize);
 	}
 
-	// All sizes must be unique
+	// All AABBs must be unique (different axis assignments)
 	for (int32 i = 0; i < Sizes.Num(); i++)
 	{
 		for (int32 j = i + 1; j < Sizes.Num(); j++)
