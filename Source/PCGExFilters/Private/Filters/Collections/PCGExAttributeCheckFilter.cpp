@@ -59,6 +59,9 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 	}
 	else
 	{
+		// NOTE: When not checking type, the Data domain filter below uses the opposite
+		// condition compared to the bDoCheckType branch (line 36 uses !InDataDomain()).
+		// This means the "no type check" branch skips Data-domain attributes when Domain==Data.
 		for (const PCGExData::FAttributeIdentity& Identity : Infos->Identities)
 		{
 			const FString Str = Identity.Identifier.Name.ToString();

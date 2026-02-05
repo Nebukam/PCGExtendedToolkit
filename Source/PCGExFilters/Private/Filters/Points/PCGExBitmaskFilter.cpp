@@ -66,6 +66,7 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 
 bool PCGExPointFilter::FBitmaskFilter::Test(const int32 PointIndex) const
 {
+	// Start with the base mask value, then apply each composition's bitwise mutation (AND/OR/XOR/NOT) in sequence.
 	int64 OutMask = MaskReader->Read(PointIndex);
 	for (const FPCGExSimpleBitmask& Comp : Compositions) { Comp.Mutate(OutMask); }
 	const bool Result = PCGExBitmask::Compare(TypedFilterFactory->Config.Comparison, FlagsReader->Read(PointIndex), OutMask);

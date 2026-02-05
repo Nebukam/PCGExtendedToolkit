@@ -30,6 +30,10 @@ UPCGExFactoryData* UPCGExFilterProviderSettings::CreateFactory(FPCGExContext* In
 	return Super::CreateFactory(InContext, NewFactory);
 }
 
+// Called when the provider's required input data is missing. Instead of canceling
+// the node entirely, substitutes a constant filter (always-pass or always-fail)
+// based on MissingDataPolicy. This allows downstream nodes to keep running with
+// a predictable fallback behavior rather than producing no output.
 bool UPCGExFilterProviderSettings::ShouldCancel(FPCGExFactoryProviderContext* InContext, PCGExFactories::EPreparationResult InResult) const
 {
 	if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { return Super::ShouldCancel(InContext, InResult); }

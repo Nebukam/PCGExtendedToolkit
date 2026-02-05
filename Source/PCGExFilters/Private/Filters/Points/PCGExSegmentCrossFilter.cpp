@@ -55,6 +55,8 @@ namespace PCGExPointFilter
 
 	bool FSegmentCrossFilter::Test(const int32 PointIndex) const
 	{
+		// Build segment from current point to neighbor. For open paths, endpoints have no valid
+		// neighbor segment, so return the default (no-intersection) result immediately.
 		int32 NextIndex = PointIndex;
 
 		if (TypedFilterFactory->Config.Direction == EPCGExSegmentCrossWinding::ToNext)

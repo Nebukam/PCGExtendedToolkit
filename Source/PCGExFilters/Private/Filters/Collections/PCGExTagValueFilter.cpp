@@ -19,6 +19,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 
 	if (TArray<TSharedPtr<PCGExData::IDataValue>> TagValues; PCGExCompare::GetMatchingValueTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TagValues))
 	{
+		// AND mode: assume true, break on first failure. OR mode: override below if any matched.
 		bool bAtLeastOneMatch = false;
 		bResult = true;
 
@@ -50,6 +51,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 			}
 		}
 
+		// In OR mode, override AND-failure: pass if at least one tag value matched.
 		if (TypedFilterFactory->Config.MultiMatch == EPCGExFilterGroupMode::OR && bAtLeastOneMatch)
 		{
 			bResult = true;

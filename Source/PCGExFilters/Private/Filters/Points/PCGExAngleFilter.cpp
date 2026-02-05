@@ -79,6 +79,10 @@ bool PCGExPointFilter::FAngleFilter::Test(const int32 PointIndex) const
 	const FVector Corner = InTransforms[PointIndex].GetLocation();
 	const FVector Next = InTransforms[NextIndex].GetLocation();
 
+	// Curvature: dot between consecutive segment directions (Prev->Corner, Corner->Next).
+	//   1.0 = straight path, -1.0 = 180-degree turn (hairpin).
+	// Spread: dot between vectors from Corner toward each neighbor.
+	//   1.0 = neighbors overlap (degenerate), -1.0 = straight path. Measures vertex opening angle.
 	if (TypedFilterFactory->Config.Mode == EPCGExAngleFilterMode::Curvature)
 	{
 		bResult = DotComparison.Test(FVector::DotProduct((Corner - Prev).GetSafeNormal(), (Next - Corner).GetSafeNormal()), PointIndex);

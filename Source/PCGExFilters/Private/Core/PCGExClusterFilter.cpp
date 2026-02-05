@@ -20,6 +20,8 @@ namespace PCGExClusterFilter
 {
 	PCGExFilters::EType IFilter::GetFilterType() const { return PCGExFilters::EType::Node; }
 
+	// Guard: cluster filters must be initialized through the cluster Init() path first.
+	// If called directly (e.g. from a non-cluster context), this fails with an error.
 	bool IFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!bInitForCluster)
@@ -39,6 +41,8 @@ namespace PCGExClusterFilter
 		return true;
 	}
 
+	// Sizes the Results cache based on the filter type: node filters cache per-node,
+	// edge filters cache per-edge.
 	void IFilter::PostInit()
 	{
 		if (!bCacheResults) { return; }
@@ -62,6 +66,10 @@ namespace PCGExClusterFilter
 	{
 	}
 
+	// Routes filter initialization based on factory type: cluster-aware filters go through
+	// the cluster Init() path with full topology access, while regular point filters use
+	// the standard Init(FFacade). When bUseEdgeAsPrimary is set, non-cluster filters
+	// receive edge data instead of vertex data.
 	bool FManager::InitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter)
 	{
 		if (PCGExFactories::SupportsClusterFilters.Contains(Filter->Factory->GetFactoryType()))
