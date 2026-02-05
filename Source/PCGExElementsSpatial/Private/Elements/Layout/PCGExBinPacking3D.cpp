@@ -633,6 +633,40 @@ namespace PCGExBinPacking3D
 		return true;
 	}
 
+	double FBP3DBin::ComputeSupportRatio(const FBox& ItemBox) const
+	{
+		const double BaseArea = (ItemBox.Max.X - ItemBox.Min.X) * (ItemBox.Max.Y - ItemBox.Min.Y);
+		if (BaseArea <= KINDA_SMALL_NUMBER) { return 1.0; }
+
+		// On the bin floor = fully supported
+		if (FMath::IsNearlyEqual(ItemBox.Min.Z, Bounds.Min.Z, KINDA_SMALL_NUMBER))
+		{
+			return 1.0;
+		}
+
+		// Sum XY overlap area with items whose top (Box.Max.Z) touches our bottom (ItemBox.Min.Z)
+		double SupportArea = 0.0;
+		for (const FBP3DItem& Existing : Items)
+		{
+			if (!FMath::IsNearlyEqual(Existing.Box.Max.Z, ItemBox.Min.Z, KINDA_SMALL_NUMBER))
+			{
+				continue;
+			}
+
+			const double OverlapMinX = FMath::Max(ItemBox.Min.X, Existing.Box.Min.X);
+			const double OverlapMaxX = FMath::Min(ItemBox.Max.X, Existing.Box.Max.X);
+			const double OverlapMinY = FMath::Max(ItemBox.Min.Y, Existing.Box.Min.Y);
+			const double OverlapMaxY = FMath::Min(ItemBox.Max.Y, Existing.Box.Max.Y);
+
+			if (OverlapMaxX > OverlapMinX && OverlapMaxY > OverlapMinY)
+			{
+				SupportArea += (OverlapMaxX - OverlapMinX) * (OverlapMaxY - OverlapMinY);
+			}
+		}
+
+		return FMath::Min(SupportArea / BaseArea, 1.0);
+	}
+
 	void FBP3DBin::CommitPlacement(const FBP3DPlacementCandidate& Candidate, FBP3DItem& InItem)
 	{
 		if (!Candidate.IsValid()) { return; }
@@ -840,6 +874,22 @@ namespace PCGExBinPacking3D
 
 					if (Bin->EvaluatePlacement(OriginalSize, EPIdx, RotationsToTest[RotIdx], Candidate))
 					{
+						// Support check — reject placements with no physical support beneath
+						if (Settings->bRequireSupport)
+						{
+							const FBox CandidateBox(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
+							const double Support = Bin->ComputeSupportRatio(CandidateBox);
+							if (Support < Settings->MinSupportRatio - KINDA_SMALL_NUMBER)
+							{
+								continue;
+							}
+							// With MinSupportRatio=0, still reject fully floating items (no support at all)
+							if (Support < KINDA_SMALL_NUMBER)
+							{
+								continue;
+							}
+						}
+
 						// Load bearing post-check
 						if (Settings->bEnableLoadBearing)
 						{

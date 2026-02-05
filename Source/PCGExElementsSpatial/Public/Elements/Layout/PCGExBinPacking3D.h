@@ -235,6 +235,18 @@ public:
 	double LoadBearingThreshold = 1.0;
 
 	//
+	// Settings|Support
+	//
+
+	/** Require items above the floor to have physical support beneath them. Prevents visually floating items. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Support", meta = (PCG_Overridable))
+	bool bRequireSupport = true;
+
+	/** Minimum fraction of the item's base area that must be supported (0 = any contact, 1 = full base). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Support", meta = (PCG_Overridable, EditCondition="bRequireSupport", EditConditionHides, ClampMin=0.0, ClampMax=1.0))
+	double MinSupportRatio = 0.2;
+
+	//
 	// Warnings and Errors
 	//
 
@@ -383,6 +395,7 @@ namespace PCGExBinPacking3D
 			FBP3DPlacementCandidate& OutCandidate) const;
 
 		bool CheckLoadBearing(const FBP3DPlacementCandidate& Candidate, double ItemWeight, double Threshold) const;
+		double ComputeSupportRatio(const FBox& ItemBox) const;
 
 		void CommitPlacement(const FBP3DPlacementCandidate& Candidate, FBP3DItem& InItem);
 		void UpdatePoint(PCGExData::FMutablePoint& InPoint, const FBP3DItem& InItem) const;
