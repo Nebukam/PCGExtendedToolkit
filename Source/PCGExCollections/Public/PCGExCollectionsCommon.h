@@ -9,6 +9,7 @@
 class UPCGParamData;
 class UPCGExAssetCollection;
 
+/** Where a node gets its collection from: direct asset ref, runtime attribute set, or path attribute. */
 UENUM()
 enum class EPCGExCollectionSource : uint8
 {
@@ -17,6 +18,7 @@ enum class EPCGExCollectionSource : uint8
 	Attribute    = 2 UMETA(DisplayName = "Path Attribute", Tooltip="Use an attribute that's a path reference to an asset collection"),
 };
 
+/** How indices map to the weight-sorted entry array in FCategory. */
 UENUM()
 enum class EPCGExIndexPickMode : uint8
 {
@@ -26,6 +28,7 @@ enum class EPCGExIndexPickMode : uint8
 	WeightDescending = 3 UMETA(DisplayName = "Weight (Ascending)", Tooltip="..."),
 };
 
+/** Top-level distribution strategy: deterministic index, uniform random, or weighted random. */
 UENUM()
 enum class EPCGExDistribution : uint8
 {
@@ -59,6 +62,7 @@ enum class EPCGExAssetTagInheritance : uint8
 ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)
 using EPCGExAssetTagInheritanceBitmask = TEnumAsByte<EPCGExAssetTagInheritance>;
 
+/** Whether an entry uses its own settings (Local) or the collection's global settings. */
 UENUM()
 enum class EPCGExEntryVariationMode : uint8
 {
@@ -66,6 +70,7 @@ enum class EPCGExEntryVariationMode : uint8
 	Global = 1 UMETA(DisplayName = "Global", ToolTip="Uses collections settings", ActionIcon="CollectionRule")
 };
 
+/** Collection-level override rule: let entries choose (PerEntry) or force global (Overrule). */
 UENUM()
 enum class EPCGExGlobalVariationRule : uint8
 {
