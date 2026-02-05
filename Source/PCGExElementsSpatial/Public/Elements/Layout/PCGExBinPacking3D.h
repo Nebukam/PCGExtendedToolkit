@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "PCGExLayout.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Details/PCGExSettingsMacros.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Sorting/PCGExSortingCommon.h"
 #include "Math/PCGExUVW.h"
 
@@ -111,19 +111,19 @@ public:
 	bool bSortByVolume = true;
 
 	/** Per-bin seed. Represent a bound-relative location to start packing from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Seeding", meta = (PCG_Overridable))
 	EPCGExBinSeedMode SeedMode = EPCGExBinSeedMode::UVWConstant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::UVWConstant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Seeding", meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::UVWConstant", EditConditionHides))
 	FVector SeedUVW = FVector(-1, -1, -1);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::UVWAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Seeding", meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::UVWAttribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SeedUVWAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::PositionConstant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Seeding", meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::PositionConstant", EditConditionHides))
 	FVector SeedPosition = FVector(0, 0, 0);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::PositionAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Seeding", meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::PositionAttribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SeedPositionAttribute;
 
 	//
@@ -131,29 +131,46 @@ public:
 	//
 
 	/** Rotation testing mode. More rotations = better fit but slower. Paper6 uses the paper's symmetry-reduced orientations. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	EPCGExBP3DRotationMode RotationMode = EPCGExBP3DRotationMode::Paper6;
 
 	/** If enabled, will evaluate all bins for each item to find the globally best placement. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	bool bGlobalBestFit = true;
 
-	/** Occupation padding source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
-	EPCGExInputValueType OccupationPaddingInput = EPCGExInputValueType::Constant;
-
-	/** Occupation padding attribute -- Will be broadcast to FVector. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding (Attr)", EditCondition="OccupationPaddingInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector OccupationPaddingAttribute;
-
-	/** Occupation padding constant value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding", EditCondition="OccupationPaddingInput == EPCGExInputValueType::Constant", EditConditionHides))
-	FVector OccupationPadding = FVector::ZeroVector;
+	/** Per-item occupation padding. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
+	FPCGExInputShorthandSelectorVector OccupationPadding = FPCGExInputShorthandSelectorVector(FName("Padding"));
 
 	/** If enabled, the padding will not be relative (rotated) if the item is rotated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	bool bAbsolutePadding = true;
 
+	
+	//
+	// Settings|Load Bearing
+	//
+
+	/** Enable load-bearing constraint (Paper Eq. 26). Items on top must be lighter than items below. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bEnableLoadBearing = false;
+
+	/** Per-item mass ratio threshold (eta). new_weight must be <= eta * supporting_weight. 1.0 = equal weight, 0.5 = top must be half the weight. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, EditCondition="bEnableLoadBearing"))
+	FPCGExInputShorthandSelectorDoubleAbs LoadBearingThreshold = FPCGExInputShorthandSelectorDoubleAbs(FName("LoadBearingThreshold"), 1.0);
+
+	//
+	// Settings|Support
+	//
+
+	/** Require items above the floor to have physical support beneath them. Prevents visually floating items. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRequireSupport = true;
+
+	/** Per-item minimum fraction of base area that must be supported (0 = any contact, 1 = full base). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, EditCondition="bRequireSupport"))
+	FPCGExInputShorthandSelectorDouble01 MinSupportRatio = FPCGExInputShorthandSelectorDouble01(FName("MinSupportRatio"), 0.2);
+	
 	//
 	// Settings|Objectives
 	//
@@ -182,29 +199,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weight Constraint", meta = (PCG_Overridable))
 	bool bEnableWeightConstraint = false;
 
-	/** Source for item weight values. */
+	/** Per-item weight value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weight Constraint", meta = (PCG_Overridable, EditCondition="bEnableWeightConstraint", EditConditionHides))
-	EPCGExInputValueType ItemWeightInput = EPCGExInputValueType::Constant;
+	FPCGExInputShorthandSelectorDoubleAbs ItemWeight = FPCGExInputShorthandSelectorDoubleAbs(FName("Weight"), 1.0);
 
-	/** Attribute to read per-item weight from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weight Constraint", meta = (PCG_Overridable, DisplayName="Item Weight (Attr)", EditCondition="bEnableWeightConstraint && ItemWeightInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector ItemWeightAttribute;
-
-	/** Constant item weight value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weight Constraint", meta = (PCG_Overridable, DisplayName="Item Weight", EditCondition="bEnableWeightConstraint && ItemWeightInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double ItemWeight = 1.0;
-
-	/** Source for bin max weight values. */
+	/** Per-bin maximum weight (read from bin points). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weight Constraint", meta = (PCG_Overridable, EditCondition="bEnableWeightConstraint", EditConditionHides))
-	EPCGExInputValueType BinMaxWeightInput = EPCGExInputValueType::Constant;
-
-	/** Attribute to read per-bin maximum weight from (on bin points). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weight Constraint", meta = (PCG_Overridable, DisplayName="Bin Max Weight (Attr)", EditCondition="bEnableWeightConstraint && BinMaxWeightInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector BinMaxWeightAttribute;
-
-	/** Constant maximum bin weight. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weight Constraint", meta = (PCG_Overridable, DisplayName="Bin Max Weight", EditCondition="bEnableWeightConstraint && BinMaxWeightInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double BinMaxWeight = 100.0;
+	FPCGExInputShorthandSelectorDoubleAbs BinMaxWeight = FPCGExInputShorthandSelectorDoubleAbs(FName("MaxWeight"), 100.0);
 
 	//
 	// Settings|Category Affinities
@@ -214,37 +215,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category Affinities", meta = (PCG_Overridable))
 	bool bEnableAffinities = false;
 
-	/** Attribute name for per-item integer category. */
+	/** Per-item integer category. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category Affinities", meta = (PCG_Overridable, EditCondition="bEnableAffinities", EditConditionHides))
-	FPCGAttributePropertyInputSelector CategoryAttribute;
+	FPCGExInputShorthandSelectorInteger32 ItemCategory = FPCGExInputShorthandSelectorInteger32(FName("Category"), -1);
 
 	/** List of affinity rules between category pairs. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category Affinities", meta = (PCG_Overridable, EditCondition="bEnableAffinities", EditConditionHides, TitleProperty="Type: {CategoryA} <-> {CategoryB}"))
 	TArray<FPCGExBP3DAffinityRule> AffinityRules;
-
-	//
-	// Settings|Load Bearing
-	//
-
-	/** Enable load-bearing constraint (Paper Eq. 26). Items on top must be lighter than items below. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Load Bearing", meta = (PCG_Overridable))
-	bool bEnableLoadBearing = false;
-
-	/** Mass ratio threshold (eta). new_weight must be <= eta * supporting_weight. 1.0 = equal weight, 0.5 = top must be half the weight. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Load Bearing", meta = (PCG_Overridable, EditCondition="bEnableLoadBearing", EditConditionHides, ClampMin=0.01, ClampMax=10.0))
-	double LoadBearingThreshold = 1.0;
-
-	//
-	// Settings|Support
-	//
-
-	/** Require items above the floor to have physical support beneath them. Prevents visually floating items. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Support", meta = (PCG_Overridable))
-	bool bRequireSupport = true;
-
-	/** Minimum fraction of the item's base area that must be supported (0 = any contact, 1 = full base). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Support", meta = (PCG_Overridable, EditCondition="bRequireSupport", EditConditionHides, ClampMin=0.0, ClampMax=1.0))
-	double MinSupportRatio = 0.2;
 
 	//
 	// Warnings and Errors
@@ -260,8 +237,6 @@ public:
 
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
-	PCGEX_SETTING_VALUE_DECL(Padding, FVector)
-	PCGEX_SETTING_VALUE_DECL(ItemWeight, double)
 };
 
 ///
@@ -313,6 +288,8 @@ namespace PCGExBinPacking3D
 		FVector OriginalSize = FVector::ZeroVector;
 		double Weight = 0.0;
 		int32 Category = -1;
+		double LoadBearingThreshold = 1.0;
+		double MinSupportRatio = 0.0;
 
 		FBP3DItem() = default;
 	};
@@ -410,6 +387,9 @@ namespace PCGExBinPacking3D
 		TBitArray<> Fitted;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> PaddingBuffer;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> ItemWeightBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> CategoryBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> LoadBearingThresholdBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> MinSupportRatioBuffer;
 		bool bHasUnfitted = false;
 
 		TArray<int32> ProcessingOrder;
@@ -417,10 +397,6 @@ namespace PCGExBinPacking3D
 		// Affinity lookup structures
 		TSet<uint64> NegativeAffinityPairs;
 		TMap<int32, int32> PositiveAffinityGroup;
-
-		// Per-item data
-		TArray<double> ItemWeights;
-		TArray<int32> ItemCategories;
 
 		// Per-bin max weight
 		TArray<double> BinMaxWeights;

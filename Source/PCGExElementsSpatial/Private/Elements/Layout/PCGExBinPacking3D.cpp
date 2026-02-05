@@ -20,9 +20,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBinPacking3DElement"
 #define PCGEX_NAMESPACE BinPacking3D
 
-PCGEX_SETTING_VALUE_IMPL(UPCGExBinPacking3DSettings, Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
-PCGEX_SETTING_VALUE_IMPL(UPCGExBinPacking3DSettings, ItemWeight, double, ItemWeightInput, ItemWeightAttribute, ItemWeight)
-
 #pragma region UPCGExBinPacking3DSettings
 
 bool UPCGExBinPacking3DSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
@@ -879,7 +876,7 @@ namespace PCGExBinPacking3D
 						{
 							const FBox CandidateBox(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
 							const double Support = Bin->ComputeSupportRatio(CandidateBox);
-							if (Support < Settings->MinSupportRatio - KINDA_SMALL_NUMBER)
+							if (Support < InItem.MinSupportRatio - KINDA_SMALL_NUMBER)
 							{
 								continue;
 							}
@@ -893,7 +890,7 @@ namespace PCGExBinPacking3D
 						// Load bearing post-check
 						if (Settings->bEnableLoadBearing)
 						{
-							if (!Bin->CheckLoadBearing(Candidate, InItem.Weight, Settings->LoadBearingThreshold))
+							if (!Bin->CheckLoadBearing(Candidate, InItem.Weight, InItem.LoadBearingThreshold))
 							{
 								continue;
 							}
@@ -985,20 +982,34 @@ namespace PCGExBinPacking3D
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
 		PCGEX_INIT_IO(TargetBins, PCGExData::EIOInit::Duplicate)
 
-		PaddingBuffer = Settings->GetValueSettingPadding();
+		// Init shorthand buffers
+		PaddingBuffer = Settings->OccupationPadding.GetValueSetting();
 		if (!PaddingBuffer->Init(PointDataFacade)) { return false; }
 
-		// Initialize item weight buffer
 		if (Settings->bEnableWeightConstraint)
 		{
-			ItemWeightBuffer = Settings->GetValueSettingItemWeight();
+			ItemWeightBuffer = Settings->ItemWeight.GetValueSetting();
 			if (!ItemWeightBuffer->Init(PointDataFacade)) { return false; }
 		}
 
-		// Build affinity lookups
 		if (Settings->bEnableAffinities)
 		{
+			CategoryBuffer = Settings->ItemCategory.GetValueSetting();
+			if (!CategoryBuffer->Init(PointDataFacade)) { return false; }
+
 			BuildAffinityLookups();
+		}
+
+		if (Settings->bEnableLoadBearing)
+		{
+			LoadBearingThresholdBuffer = Settings->LoadBearingThreshold.GetValueSetting();
+			if (!LoadBearingThresholdBuffer->Init(PointDataFacade)) { return false; }
+		}
+
+		if (Settings->bRequireSupport)
+		{
+			MinSupportRatioBuffer = Settings->MinSupportRatio.GetValueSetting();
+			if (!MinSupportRatioBuffer->Init(PointDataFacade)) { return false; }
 		}
 
 		const int32 NumPoints = PointDataFacade->GetNum();
@@ -1032,68 +1043,16 @@ namespace PCGExBinPacking3D
 			SeedGetter.Reset();
 		}
 
-		// Setup bin max weight getter
-		TSharedPtr<PCGExData::TAttributeBroadcaster<double>> BinMaxWeightGetter;
-		if (Settings->bEnableWeightConstraint && Settings->BinMaxWeightInput == EPCGExInputValueType::Attribute)
+		// Setup bin max weight buffer (reads from bin points)
+		TSharedPtr<PCGExDetails::TSettingValue<double>> BinMaxWeightBuffer;
+		if (Settings->bEnableWeightConstraint)
 		{
-			BinMaxWeightGetter = MakeShared<PCGExData::TAttributeBroadcaster<double>>();
-			if (!BinMaxWeightGetter->Prepare(Settings->BinMaxWeightAttribute, TargetBins.ToSharedRef()))
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(Context, Bin Max Weight, Settings->BinMaxWeightAttribute)
-				return false;
-			}
-		}
-
-		// Setup category getter
-		TSharedPtr<PCGExData::TAttributeBroadcaster<int32>> CategoryGetter;
-		if (Settings->bEnableAffinities)
-		{
-			CategoryGetter = MakeShared<PCGExData::TAttributeBroadcaster<int32>>();
-			if (!CategoryGetter->Prepare(Settings->CategoryAttribute, PointDataFacade->Source))
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(Context, Category, Settings->CategoryAttribute)
-				return false;
-			}
+			PCGEX_MAKE_SHARED(BinFacade, PCGExData::FFacade, TargetBins.ToSharedRef())
+			BinMaxWeightBuffer = Settings->BinMaxWeight.GetValueSetting();
+			if (!BinMaxWeightBuffer->Init(BinFacade)) { return false; }
 		}
 
 		PCGExArrayHelpers::ArrayOfIndices(ProcessingOrder, NumPoints);
-
-		// Pre-read per-item data
-		{
-			const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
-
-			ItemWeights.SetNum(NumPoints);
-			if (Settings->bEnableWeightConstraint && ItemWeightBuffer)
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemWeights[i] = ItemWeightBuffer->Read(i);
-				}
-			}
-			else
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemWeights[i] = 0.0;
-				}
-			}
-
-			ItemCategories.SetNum(NumPoints);
-			if (Settings->bEnableAffinities && CategoryGetter)
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemCategories[i] = CategoryGetter->FetchSingle(PCGExData::FConstPoint(InPoints, i), -1);
-				}
-			}
-			else
-			{
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					ItemCategories[i] = -1;
-				}
-			}
-		}
 
 		// Sort by volume if enabled (Best-Fit Decreasing approach)
 		if (Settings->bSortByVolume)
@@ -1152,16 +1111,9 @@ namespace PCGExBinPacking3D
 			NewBin->bAbsolutePadding = Settings->bAbsolutePadding;
 
 			// Set bin max weight
-			if (Settings->bEnableWeightConstraint)
+			if (BinMaxWeightBuffer)
 			{
-				if (BinMaxWeightGetter)
-				{
-					NewBin->MaxWeight = BinMaxWeightGetter->FetchSingle(BinPoint, Settings->BinMaxWeight);
-				}
-				else
-				{
-					NewBin->MaxWeight = Settings->BinMaxWeight;
-				}
+				NewBin->MaxWeight = BinMaxWeightBuffer->Read(i);
 			}
 			else
 			{
@@ -1197,8 +1149,10 @@ namespace PCGExBinPacking3D
 			Item.Box = FBox(FVector::ZeroVector, PointSize);
 			Item.OriginalSize = PointSize;
 			Item.Padding = PaddingBuffer->Read(PointIndex);
-			Item.Weight = ItemWeights[PointIndex];
-			Item.Category = ItemCategories[PointIndex];
+			Item.Weight = ItemWeightBuffer ? ItemWeightBuffer->Read(PointIndex) : 0.0;
+			Item.Category = CategoryBuffer ? CategoryBuffer->Read(PointIndex) : -1;
+			Item.LoadBearingThreshold = LoadBearingThresholdBuffer ? LoadBearingThresholdBuffer->Read(PointIndex) : 1.0;
+			Item.MinSupportRatio = MinSupportRatioBuffer ? MinSupportRatioBuffer->Read(PointIndex) : 0.0;
 
 			FBP3DPlacementCandidate BestPlacement = FindBestPlacement(Item);
 

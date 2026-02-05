@@ -96,55 +96,55 @@ public:
 	FPCGAttributePropertyInputSelector SeedPositionAttribute;
 
 	/** Scoring method for selecting the best placement. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	EPCGExBestFitScoreMode ScoreMode = EPCGExBestFitScoreMode::TightestFit;
 
 	/** Rotation testing mode. More rotations = better fit but slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	EPCGExBestFitRotationMode RotationMode = EPCGExBestFitRotationMode::CardinalOnly;
 
 	/** How to position items within their chosen space. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	EPCGExBestFitPlacementAnchor PlacementAnchor = EPCGExBestFitPlacementAnchor::Corner;
 
 	/** The main split axis for creating new free spaces after placement. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	EPCGExAxis SplitAxis = EPCGExAxis::Up;
 
 	/** Space splitting mode after item placement. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	EPCGExSpaceSplitMode SplitMode = EPCGExSpaceSplitMode::Minimal;
 
 	/** If enabled, fitting will try to avoid wasted space by not creating free spaces below a threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	bool bAvoidWastedSpace = true;
 
 	/** Minimum space threshold as a ratio of the smallest item dimension. Spaces smaller than this are discarded. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, EditCondition="bAvoidWastedSpace", ClampMin=0.1, ClampMax=1.0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, EditCondition="bAvoidWastedSpace", ClampMin=0.1, ClampMax=1.0))
 	double WastedSpaceThreshold = 0.5;
 
 	/** If enabled, will evaluate all bins for each item to find the globally best placement. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	bool bGlobalBestFit = true;
 
 	/** Weight for tightness in balanced scoring mode. Higher = prefer tighter fits. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, EditCondition="ScoreMode == EPCGExBestFitScoreMode::Balanced", ClampMin=0.0, ClampMax=1.0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, EditCondition="ScoreMode == EPCGExBestFitScoreMode::Balanced", ClampMin=0.0, ClampMax=1.0))
 	double TightnessWeight = 0.6;
 
 	/** Occupation padding source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	EPCGExInputValueType OccupationPaddingInput = EPCGExInputValueType::Constant;
 
 	/** Occupation padding attribute -- Will be broadcast to FVector. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding (Attr)", EditCondition="OccupationPaddingInput != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, DisplayName="Occupation Padding (Attr)", EditCondition="OccupationPaddingInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector OccupationPaddingAttribute;
 
 	/** Occupation padding constant value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding", EditCondition="OccupationPaddingInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, DisplayName="Occupation Padding", EditCondition="OccupationPaddingInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector OccupationPadding = FVector::ZeroVector;
 
 	/** If enabled, the padding will not be relative (rotated) if the item is rotated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
 	bool bAbsolutePadding = true;
 
 	/** If enabled, won't throw a warning if there are more bins than there are inputs. */
