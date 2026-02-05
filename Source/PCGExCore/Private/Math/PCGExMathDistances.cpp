@@ -38,7 +38,9 @@ namespace PCGExMath
 
 	FDistancesStatic::FDistancesStatic()
 	{
-		// Create all distances combinations so we're thread safe
+		// Pre-instantiate all (Source × Target × Type × Overlap) distance function combinations
+		// into a static lookup cache. This avoids runtime allocation and ensures thread safety
+		// since GetDistances() only reads from this cache during parallel processing.
 
 		TArray<bool> Overlap = {true, false};
 		TArray<EPCGExDistance> Dist = {EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds, EPCGExDistance::Center, EPCGExDistance::None};

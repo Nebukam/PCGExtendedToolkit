@@ -14,6 +14,11 @@ namespace PCGExData::Helpers
 	template <typename T>
 	T ReadDataValue(const FPCGMetadataAttribute<T>* Attribute)
 	{
+		// Read a single value from a @Data domain attribute (one value per dataset, not per-point).
+		// PCG metadata attributes form an inheritance chain (parent pointers).
+		// If the current attribute has no entries, walk up the parent chain to find
+		// the nearest ancestor with actual data. If none have entries, fall back to
+		// the attribute's default value.
 		const FPCGMetadataAttribute<T>* Attr = Attribute;
 		if (!Attr->GetNumberOfEntries())
 		{

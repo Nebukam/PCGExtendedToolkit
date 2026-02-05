@@ -73,6 +73,11 @@ namespace PCGExMath
 
 	void FindOrderMatch(const FQuat& Quat, const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis, int32& X, int32& Y, int32& Z, const bool bPermute)
 	{
+		// Find which reference axes (X/Y/ZAxis) best align with the quaternion's local axes.
+		// Builds a 3x3 alignment matrix M[i][j] = |dot(QuatAxis[i], RefAxis[j])|.
+		// Without permutation: each axis independently picks its best match (may duplicate).
+		// With permutation: exhaustively checks all 6 axis permutations to find the
+		// highest-scoring bijective mapping (no axis used twice).
 		const FVector QA[3] = {Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ()};
 
 		double M[3][3];

@@ -131,6 +131,10 @@ template class PCGEXCORE_API TDataValue<_TYPE>;
 
 #undef PCGEX_TPL
 
+	// Parses a "Key:Value" tag string into a typed IDataValue.
+	// Type inference cascade: numeric with decimal → double, integer → int64,
+	// then FVector/FVector2D/FVector4 via InitFromString, bool (true/false),
+	// and finally falls back to FString.
 	TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide)
 	{
 		int32 DividerPosition = INDEX_NONE;

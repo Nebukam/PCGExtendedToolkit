@@ -51,6 +51,10 @@ bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, PCGEx
 	return true;
 }
 
+// Double-checked locking: first attempt a read-only check for an existing cache,
+// then fall through to BuildCache() which acquires a write lock and re-checks
+// before actually constructing the cache. This avoids write-lock contention
+// on the common path where the cache is already built.
 PCGExBitmaskCollection::FCache* UPCGExBitmaskCollection::LoadCache()
 {
 	{

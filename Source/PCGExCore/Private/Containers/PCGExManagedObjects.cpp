@@ -43,6 +43,10 @@ namespace PCGEx
 		return WeakHandle.IsValid() && !IsFlushing();
 	}
 
+	// Atomic one-shot flush: compare_exchange ensures only one thread enters the flush path.
+	// Objects are removed from root (allowing GC) and have their Async internal flag cleared
+	// recursively, since PCGEx creates UObjects off the game thread and the Async flag must
+	// be cleared before the GC can safely collect them.
 	void FManagedObjects::Flush()
 	{
 		bool bExpected = false;

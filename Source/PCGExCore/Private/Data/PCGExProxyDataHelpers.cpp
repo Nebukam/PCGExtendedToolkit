@@ -58,6 +58,10 @@ namespace PCGExData
 		}
 	}
 
+	// Acquires or creates a typed buffer for a given descriptor.
+	// Reading from Output side has special fallback logic: if no readable output buffer exists,
+	// it creates a writable buffer initialized from input (Inherit) and marks it readable,
+	// enabling read-modify-write patterns on output attributes.
 	template <typename T_REAL>
 	TSharedPtr<TBuffer<T_REAL>> TryGetBuffer(
 		FPCGExContext* InContext,
@@ -280,6 +284,10 @@ template PCGEXCORE_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(co
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
+	// Central factory for creating buffer proxies from a descriptor.
+	// Dispatch order: Shared pool lookup → Raw → Constant → Attribute (Direct or Buffered) → Property → Extra.
+	// ON_SCOPE_EXIT ensures any successfully created proxy is auto-registered into the shared pool
+	// (if the Shared flag is set), regardless of which creation path was taken.
 	TSharedPtr<IBufferProxy> GetProxyBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor)
 	{
 		TSharedPtr<IBufferProxy> OutProxy = nullptr;

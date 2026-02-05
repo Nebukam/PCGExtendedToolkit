@@ -207,6 +207,8 @@ bool FPCGExVectorHashComparisonDetails::Test(const FVector& A, const FVector& B,
 
 void FPCGExStaticDotComparisonDetails::Init()
 {
+	// Remap from dot product range [-1,1] to normalized range [0,1] for comparisons.
+	// Degrees are converted via DegreesToDot (cos of complement) then remapped.
 	if (Domain == EPCGExAngularDomain::Degrees) { ComparisonTolerance = (1 + PCGExMath::DegreesToDot(180 - DegreesTolerance)) * 0.5; }
 	else { ComparisonTolerance = (1 + DotTolerance) * 0.5; }
 	if (bUnsignedComparison) { DotTolerance = FMath::Abs(DotTolerance); }

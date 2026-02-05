@@ -7,6 +7,11 @@ namespace PCGExMath::OBB
 {
 	bool SATOverlap(const FOBB& A, const FOBB& B)
 	{
+		// Separating Axis Theorem (SAT) test for two oriented bounding boxes.
+		// Tests 15 potential separating axes: 3 from each OBB's local axes + 9 cross products.
+		// If any axis separates the projections, the OBBs don't overlap.
+		// The KINDA_SMALL_NUMBER epsilon in AbsR prevents degenerate cross products
+		// from causing false negatives when edges are nearly parallel.
 		const FVector D = B.Bounds.Origin - A.Bounds.Origin;
 
 		const FVector AxesA[3] = {A.Orientation.GetAxisX(), A.Orientation.GetAxisY(), A.Orientation.GetAxisZ()};
