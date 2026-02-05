@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 // Adapted from https://www.nature.com/articles/s41598-023-39013-9
-// Sebastián V. Romero, Eneko Osaba, Esther Villar-Rodriguez, Izaskun Oregi & Yue Ban 
+// Sebastián V. Romero, Eneko Osaba, Esther Villar-Rodriguez, Izaskun Oregi & Yue Ban
 // Hybrid approach for solving real-world bin packing problem instances using quantum annealer
 
 #pragma once
@@ -134,22 +134,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
 	EPCGExBP3DRotationMode RotationMode = EPCGExBP3DRotationMode::Paper6;
 
-	/** The main split axis for creating new free spaces after placement. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
-	EPCGExAxis SplitAxis = EPCGExAxis::Up;
-
-	/** Space splitting mode after item placement. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
-	EPCGExSpaceSplitMode SplitMode = EPCGExSpaceSplitMode::Minimal;
-
-	/** If enabled, fitting will try to avoid wasted space by not creating free spaces below a threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
-	bool bAvoidWastedSpace = true;
-
-	/** Minimum space threshold as a ratio of the smallest item dimension. Spaces smaller than this are discarded. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, EditCondition="bAvoidWastedSpace", ClampMin=0.1, ClampMax=1.0))
-	double WastedSpaceThreshold = 0.5;
-
 	/** If enabled, will evaluate all bins for each item to find the globally best placement. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable))
 	bool bGlobalBestFit = true;
@@ -174,17 +158,21 @@ public:
 	// Settings|Objectives
 	//
 
-	/** Weight for bin-usage objective (o1). Higher fill-ratio bins are preferred. */
+	/** Weight for bin-usage objective (o1, Paper Eq. 1). Higher fill-ratio bins are preferred. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Objectives", meta = (PCG_Overridable, ClampMin=0.0, ClampMax=1.0))
-	double ObjectiveWeightBinUsage = 0.5;
+	double ObjectiveWeightBinUsage = 0.3;
 
-	/** Weight for height objective (o2). Lower placement Z is preferred (floor-up packing). */
+	/** Weight for height objective (o2, Paper Eq. 2). Lower placement Z is preferred (floor-up packing). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Objectives", meta = (PCG_Overridable, ClampMin=0.0, ClampMax=1.0))
 	double ObjectiveWeightHeight = 0.3;
 
-	/** Weight for load-balance objective (o3). Placement closer to bin center-of-mass is preferred. */
+	/** Weight for load-balance objective (o3, Paper Eq. 3). Placement closer to bin center-of-mass is preferred. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Objectives", meta = (PCG_Overridable, ClampMin=0.0, ClampMax=1.0))
 	double ObjectiveWeightLoadBalance = 0.2;
+
+	/** Weight for surface-contact objective. Items touching more surfaces (walls/other items) are preferred for visual stability. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Objectives", meta = (PCG_Overridable, ClampMin=0.0, ClampMax=1.0))
+	double ObjectiveWeightContact = 0.2;
 
 	//
 	// Settings|Weight Constraint
@@ -302,13 +290,12 @@ protected:
 
 namespace PCGExBinPacking3D
 {
-	using PCGExLayout::FSpace;
-
 	// Extended item with weight and category
 	struct FBP3DItem
 	{
 		int32 Index = -1;
 		FBox Box = FBox(ForceInit);
+		FBox PaddedBox = FBox(ForceInit);
 		FVector Padding = FVector::ZeroVector;
 		FRotator Rotation = FRotator::ZeroRotator;
 		FVector OriginalSize = FVector::ZeroVector;
@@ -318,86 +305,58 @@ namespace PCGExBinPacking3D
 		FBP3DItem() = default;
 	};
 
-	// Placement candidate with paper's 3 objective scores
+	// Placement candidate with paper objective scores
 	struct FBP3DPlacementCandidate
 	{
 		int32 BinIndex = -1;
-		int32 SpaceIndex = -1;
+		int32 EPIndex = -1;
 		int32 RotationIndex = 0;
 		FRotator Rotation = FRotator::ZeroRotator;
 		FVector RotatedSize = FVector::ZeroVector;
+		FVector PlacementMin = FVector::ZeroVector;
 		double Score = MAX_dbl;
 
-		// Geometric scores
-		double TightnessScore = 0.0;
-		double WasteScore = 0.0;
-		double ProximityScore = 0.0;
-
-		// Paper objective scores
+		// Paper objective scores (all [0,1], lower = better)
 		double BinUsageScore = 0.0;
 		double HeightScore = 0.0;
 		double LoadBalanceScore = 0.0;
+		double ContactScore = 0.0;
 
-		bool IsValid() const { return BinIndex >= 0 && SpaceIndex >= 0; }
+		bool IsValid() const { return BinIndex >= 0 && EPIndex >= 0; }
 	};
 
 	// Paper's 6 orientations with symmetry reduction
 	class FBP3DRotationHelper
 	{
 	public:
-		// Generate the 6 axis-permutation orientations from the paper (Table 2),
-		// reduced by symmetry based on the item's actual dimensions.
 		static void GetPaper6Rotations(const FVector& ItemSize, TArray<FRotator>& OutRotations);
-
-		// Standard rotation generation (None, Cardinal, AllOrthogonal)
 		static void GetRotationsToTest(EPCGExBP3DRotationMode Mode, TArray<FRotator>& OutRotations);
-
 		static FVector RotateSize(const FVector& Size, const FRotator& Rotation);
 	};
 
-	// Bin split (reuse same pattern)
-	class FBinSplit : public TSharedFromThis<FBinSplit>
-	{
-	public:
-		FBinSplit() = default;
-		virtual ~FBinSplit() = default;
-
-		virtual void SplitSpace(const FSpace& Space, FBox& ItemBox, TArray<FBox>& OutPartitions) const = 0;
-	};
-
-	template <EPCGExAxis SplitAxis = EPCGExAxis::Up, EPCGExSpaceSplitMode Mode = EPCGExSpaceSplitMode::Minimal>
-	class TBinSplit : public FBinSplit
-	{
-	public:
-		virtual void SplitSpace(const FSpace& Space, FBox& ItemBox, TArray<FBox>& OutPartitions) const override
-		{
-			PCGExLayout::SplitSpace<SplitAxis, Mode>(Space, ItemBox, OutPartitions);
-		}
-	};
-
-	// Bin with weight tracking, affinity, and load bearing
+	// Bin using Extreme Point placement (replaces guillotine-cut free-space approach)
 	class FBP3DBin : public TSharedFromThis<FBP3DBin>
 	{
 	protected:
 		double MaxVolume = 0;
-		double MaxDist = 0;
 		double UsedVolume = 0;
-		double MinOccupation = 0;
 		FVector Seed = FVector::ZeroVector;
-		TSharedPtr<FBinSplit> Splitter;
+		FVector PackSign = FVector::OneVector;
 
-		TArray<FSpace> Spaces;
-		void AddSpace(const FBox& InBox);
-		void RemoveSmallSpaces(double MinSize);
+		TArray<FVector> ExtremePoints;
+
+		void AddExtremePoint(const FVector& Point);
+		void GenerateExtremePoints(const FBox& PaddedItemBox);
+		void RemoveInvalidExtremePoints(const FBox& PaddedItemBox);
+		FVector ProjectPoint(const FVector& RawPoint) const;
+		bool IsInsideAnyItem(const FVector& Point) const;
 
 	public:
 		int32 BinIndex = -1;
-		int32 MaxItems = 0;
 		FBox Bounds;
 		FTransform Transform;
 
-		const UPCGExBinPacking3DSettings* Settings = nullptr;
-		FVector WastedSpaceThresholds = FVector::ZeroVector;
+		bool bAbsolutePadding = true;
 		TArray<FBP3DItem> Items;
 
 		// Weight constraint
@@ -407,34 +366,25 @@ namespace PCGExBinPacking3D
 		// Affinity: set of categories present in this bin
 		TSet<int32> PresentCategories;
 
-		FBP3DBin(int32 InBinIndex, const PCGExData::FConstPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter);
+		FBP3DBin(int32 InBinIndex, const PCGExData::FConstPoint& InBinPoint, const FVector& InSeed);
 		~FBP3DBin() = default;
 
-		void SetMinOccupation(double InMinOccupation) { MinOccupation = InMinOccupation; }
-
-		bool IsFull() const { return Items.Num() >= MaxItems; }
 		double GetFillRatio() const { return MaxVolume > 0 ? UsedVolume / MaxVolume : 0; }
-		double GetRemainingVolume() const { return MaxVolume - UsedVolume; }
-		int32 GetSpaceCount() const { return Spaces.Num(); }
-		const FSpace& GetSpace(int32 Index) const { return Spaces[Index]; }
-		const FVector& GetSeed() const { return Seed; }
-		double GetMaxVolume() const { return MaxVolume; }
-		double GetMaxDist() const { return MaxDist; }
+		int32 GetEPCount() const { return ExtremePoints.Num(); }
 		FVector GetBinCenter() const { return Bounds.GetCenter(); }
 
-		// Evaluate placement (geometric only)
+		bool HasOverlap(const FBox& TestBox) const;
+		double ComputeContactScore(const FBox& TestBox) const;
+
 		bool EvaluatePlacement(
 			const FVector& ItemSize,
-			int32 SpaceIndex,
+			int32 EPIndex,
 			const FRotator& Rotation,
 			FBP3DPlacementCandidate& OutCandidate) const;
 
-		// Check load-bearing constraint for a candidate placement
 		bool CheckLoadBearing(const FBP3DPlacementCandidate& Candidate, double ItemWeight, double Threshold) const;
 
-		// Commit a placement
 		void CommitPlacement(const FBP3DPlacementCandidate& Candidate, FBP3DItem& InItem);
-
 		void UpdatePoint(PCGExData::FMutablePoint& InPoint, const FBP3DItem& InItem) const;
 	};
 
@@ -442,8 +392,6 @@ namespace PCGExBinPacking3D
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBinPacking3DContext, UPCGExBinPacking3DSettings>
 	{
 	protected:
-		TSharedPtr<FBinSplit> Splitter;
-		double MinOccupation = 0;
 		TSharedPtr<PCGExSorting::FSorter> Sorter;
 		TArray<TSharedPtr<FBP3DBin>> Bins;
 		TBitArray<> Fitted;
@@ -455,7 +403,7 @@ namespace PCGExBinPacking3D
 
 		// Affinity lookup structures
 		TSet<uint64> NegativeAffinityPairs;
-		TMap<int32, int32> PositiveAffinityGroup; // category -> group ID (union-find)
+		TMap<int32, int32> PositiveAffinityGroup;
 
 		// Per-item data
 		TArray<double> ItemWeights;
@@ -464,10 +412,7 @@ namespace PCGExBinPacking3D
 		// Per-bin max weight
 		TArray<double> BinMaxWeights;
 
-		// Find the globally best placement across all bins
 		FBP3DPlacementCandidate FindBestPlacement(const FBP3DItem& InItem);
-
-		// Compute the final score (geometric + paper objectives)
 		double ComputeFinalScore(const FBP3DPlacementCandidate& Candidate) const;
 
 		// Affinity helpers
@@ -476,7 +421,6 @@ namespace PCGExBinPacking3D
 		bool HasNegativeAffinity(int32 CatA, int32 CatB) const;
 		int32 FindPositiveGroup(int32 Category) const;
 
-		// Check if item category is compatible with bin
 		bool IsCategoryCompatibleWithBin(int32 ItemCategory, const FBP3DBin& Bin) const;
 		int32 FindRequiredBinForPositiveAffinity(int32 ItemCategory) const;
 
