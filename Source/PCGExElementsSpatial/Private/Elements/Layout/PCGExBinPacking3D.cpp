@@ -162,13 +162,15 @@ namespace PCGExBinPacking3D
 		const bool bLH = FMath::IsNearlyEqual(L, H, KINDA_SMALL_NUMBER);
 		const bool bWH = FMath::IsNearlyEqual(W, H, KINDA_SMALL_NUMBER);
 
-		// The 6 axis permutations map dimensions (L,W,H) to axes (X,Y,Z):
-		// Orientation 1: (L,W,H) -> identity
-		// Orientation 2: (L,H,W) -> swap Y,Z
-		// Orientation 3: (W,L,H) -> swap X,Y
-		// Orientation 4: (W,H,L) -> cycle
-		// Orientation 5: (H,L,W) -> cycle
-		// Orientation 6: (H,W,L) -> swap X,Z
+		// The 6 axis permutations map dimensions (L,W,H) to output AABB axes (X,Y,Z).
+		// Verified against UE quaternion math: FRotator(P,Y,R) = Q_Z(Yaw) * Q_Y(Pitch) * Q_X(Roll)
+		//
+		// FRotator(0,0,0)   -> (L,W,H) identity
+		// FRotator(0,0,90)  -> (L,H,W) roll 90: swaps W<->H
+		// FRotator(0,90,0)  -> (W,L,H) yaw 90: swaps L<->W
+		// FRotator(90,0,0)  -> (H,W,L) pitch 90: swaps L<->H
+		// FRotator(0,90,90) -> (H,L,W) yaw 90 + roll 90
+		// FRotator(90,90,0) -> (W,H,L) pitch 90 + yaw 90
 
 		// Always include identity
 		OutRotations.Add(FRotator(0, 0, 0)); // (L,W,H)
@@ -182,42 +184,36 @@ namespace PCGExBinPacking3D
 		if (bLW)
 		{
 			// L==W, H different: square prism along Z
-			// (L,W,H) = (W,L,H) -> skip orientation 3
-			// (L,H,W) and (W,H,L) -> equivalent -> keep one
-			// (H,L,W) and (H,W,L) -> equivalent -> keep one
-			OutRotations.Add(FRotator(90, 0, 0));  // (L,H,W) - pitch 90
-			OutRotations.Add(FRotator(0, 0, 90));  // (H,L,W) - roll 90
+			// Unique: (L,L,H), (H,L,L), (L,H,L) -> 3 orientations
+			OutRotations.Add(FRotator(90, 0, 0));  // (H,W,L) = (H,L,L)
+			OutRotations.Add(FRotator(0, 0, 90));  // (L,H,W) = (L,H,L)
 			return;
 		}
 
 		if (bLH)
 		{
 			// L==H, W different: square prism along Y
-			// (L,W,H) = (H,W,L) -> skip orientation 6
-			// (L,H,W) and (H,L,W) -> equivalent -> keep one
-			// (W,L,H) and (W,H,L) -> equivalent -> keep one
-			OutRotations.Add(FRotator(90, 0, 0));  // (L,H,W)
-			OutRotations.Add(FRotator(0, 90, 0));  // (W,L,H) - yaw 90
+			// Unique: (L,W,L), (L,L,W), (W,L,L) -> 3 orientations
+			OutRotations.Add(FRotator(0, 0, 90));  // (L,H,W) = (L,L,W)
+			OutRotations.Add(FRotator(0, 90, 0));  // (W,L,H) = (W,L,L)
 			return;
 		}
 
 		if (bWH)
 		{
 			// W==H, L different: square prism along X
-			// (L,W,H) = (L,H,W) -> skip orientation 2
-			// (W,L,H) and (H,L,W) -> equivalent -> keep one
-			// (W,H,L) and (H,W,L) -> equivalent -> keep one
-			OutRotations.Add(FRotator(0, 90, 0));   // (W,L,H)
-			OutRotations.Add(FRotator(0, 90, 90));   // (W,H,L)
+			// Unique: (L,W,W), (W,L,W), (W,W,L) -> 3 orientations
+			OutRotations.Add(FRotator(0, 90, 0));   // (W,L,H) = (W,L,W)
+			OutRotations.Add(FRotator(90, 90, 0));   // (W,H,L) = (W,W,L)
 			return;
 		}
 
 		// All dimensions different: 6 unique orientations
-		OutRotations.Add(FRotator(90, 0, 0));    // (L,H,W)
+		OutRotations.Add(FRotator(0, 0, 90));    // (L,H,W)
 		OutRotations.Add(FRotator(0, 90, 0));    // (W,L,H)
-		OutRotations.Add(FRotator(0, 90, 90));   // (W,H,L)
-		OutRotations.Add(FRotator(90, 90, 0));   // (H,L,W)
-		OutRotations.Add(FRotator(0, 0, 90));    // (H,W,L)
+		OutRotations.Add(FRotator(90, 90, 0));   // (W,H,L)
+		OutRotations.Add(FRotator(0, 90, 90));   // (H,L,W)
+		OutRotations.Add(FRotator(90, 0, 0));    // (H,W,L)
 	}
 
 	void FBP3DRotationHelper::GetRotationsToTest(EPCGExBP3DRotationMode Mode, TArray<FRotator>& OutRotations)
@@ -538,9 +534,17 @@ namespace PCGExBinPacking3D
 
 	void FBP3DBin::UpdatePoint(PCGExData::FMutablePoint& InPoint, const FBP3DItem& InItem) const
 	{
+		const FQuat RotQuat = InItem.Rotation.Quaternion();
+
+		// The bounds center in scaled space (matching the coordinate space used for packing).
+		// After FTransform applies Scale then Rotation, the bounds center lands at:
+		//   RotQuat * (BoundsCenter * Scale)
+		// We need that to equal InItem.Box.GetCenter(), so solve for Translation.
+		const FVector ScaledBoundsCenter = InPoint.GetLocalBounds().GetCenter() * InPoint.GetScale3D();
+
 		const FTransform ItemTransform = FTransform(
-			InItem.Rotation.Quaternion(),
-			InItem.Box.GetCenter() - InPoint.GetLocalBounds().GetCenter(),
+			RotQuat,
+			InItem.Box.GetCenter() - RotQuat.RotateVector(ScaledBoundsCenter),
 			InPoint.GetScale3D()
 		);
 		InPoint.SetTransform(ItemTransform * Transform);
