@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Details/PCGExDetailsNoise.h"
+#include "Math/PCGExMathContrast.h"
 #include "Core/PCGExClustersProcessor.h"
 
 #include "PCGExClusterCentrality.generated.h"
@@ -91,6 +92,18 @@ public:
 	/** Whether to do a OneMinus on the normalized overlap count value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ OneMinus", EditCondition="bNormalize", EditConditionHides))
 	bool bOutputOneMinus = false;
+
+	/** Apply a contrast curve to reshape the value distribution. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Contrast"))
+	bool bApplyContrast = false;
+
+	/** Contrast curve type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Curve", EditCondition="bApplyContrast", EditConditionHides))
+	EPCGExContrastCurve ContrastCurve = EPCGExContrastCurve::SCurve;
+
+	/** Contrast amount. 1.0 = no change, >1 = more contrast, <1 = less contrast */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Amount", EditCondition="bApplyContrast", EditConditionHides, ClampMin=0.01))
+	double ContrastAmount = 1.5;
 
 	/** Maximum iterations for iterative centrality types (Eigenvector, Katz) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CentralityType == EPCGExCentralityType::Eigenvector || CentralityType == EPCGExCentralityType::Katz", EditConditionHides, ClampMin=1))

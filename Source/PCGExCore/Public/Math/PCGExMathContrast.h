@@ -24,8 +24,7 @@ namespace PCGExMath
 	namespace Contrast
 	{
 		//
-		// Contrast Functions
-		// All functions expect input in [-1, 1] range and return values in [-1, 1]
+		// Core contrast functions — input in [-1, 1], output in [-1, 1]
 		// Contrast parameter: 1.0 = no change, >1 = more contrast, <1 = less contrast
 		//
 
@@ -85,7 +84,7 @@ namespace PCGExMath
 		}
 
 		/**
-		 * Apply contrast with selectable curve type
+		 * Apply contrast with selectable curve type — input in [-1, 1]
 		 * @param Value Input value in [-1, 1]
 		 * @param Contrast Contrast amount (1.0 = no change)
 		 * @param CurveType 0 = Power, 1 = SCurve, 2 = Gain
@@ -104,7 +103,7 @@ namespace PCGExMath
 		}
 
 		//
-		// Vector overloads
+		// Vector overloads — [-1,1] per component
 		//
 
 		FORCEINLINE FVector2D ApplyContrast(const FVector2D& Value, const double Contrast, const int32 CurveType = 0)
@@ -138,7 +137,20 @@ namespace PCGExMath
 		}
 
 		//
-		// Batch operations (switch outside loop for branch prediction)
+		// Arbitrary range — remaps [Min,Max] → [-1,1] internally
+		//
+
+		FORCEINLINE double ApplyContrastInRange(const double Value, const double Contrast, const int32 CurveType, const double Min, const double Max)
+		{
+			if (FMath::IsNearlyEqual(Contrast, 1.0, SMALL_NUMBER)) { return Value; }
+			const double Range = Max - Min;
+			if (Range <= SMALL_NUMBER) { return Value; }
+			const double Normalized = (Value - Min) / Range * 2.0 - 1.0;
+			return (ApplyContrast(Normalized, Contrast, CurveType) + 1.0) * 0.5 * Range + Min;
+		}
+
+		//
+		// [-1,1] batch operations (switch outside loop for branch prediction)
 		//
 
 		inline void ApplyContrastBatch(double* RESTRICT Values, const int32 Count, const double Contrast, const int32 CurveType = 0)
@@ -216,6 +228,80 @@ namespace PCGExMath
 		}
 
 		//
+		// [Min,Max] batch — fused remap, switch outside loop
+		// Pass 1: find min/max if not provided. Pass 2: remap + contrast + unmap.
+		//
+
+		inline void ApplyContrastBatchInRange(double* RESTRICT Values, const int32 Count, const double Contrast, const int32 CurveType, const double Min, const double Max)
+		{
+			if (FMath::IsNearlyEqual(Contrast, 1.0, SMALL_NUMBER)) { return; }
+
+			const double Range = Max - Min;
+			if (Range <= SMALL_NUMBER) { return; }
+
+			const double InvRange = 1.0 / Range;
+
+			switch (CurveType)
+			{
+			case 0: // Power
+				{
+					const double Exp = 1.0 / Contrast;
+					for (int32 i = 0; i < Count; ++i)
+					{
+						const double V = (Values[i] - Min) * InvRange * 2.0 - 1.0;
+						const double C = FMath::Abs(V) > SMALL_NUMBER
+							                 ? FMath::Sign(V) * FMath::Pow(FMath::Abs(V), Exp)
+							                 : V;
+						Values[i] = (C + 1.0) * 0.5 * Range + Min;
+					}
+				}
+				break;
+
+			case 1: // SCurve
+				{
+					const double TanhC = FMath::Tanh(Contrast);
+					const double InvTanhC = 1.0 / TanhC;
+					for (int32 i = 0; i < Count; ++i)
+					{
+						const double V = (Values[i] - Min) * InvRange * 2.0 - 1.0;
+						Values[i] = (FMath::Tanh(V * Contrast) * InvTanhC + 1.0) * 0.5 * Range + Min;
+					}
+				}
+				break;
+
+			case 2: // Gain
+				for (int32 i = 0; i < Count; ++i)
+				{
+					const double V = (Values[i] - Min) * InvRange * 2.0 - 1.0;
+					Values[i] = (ContrastGain(V, Contrast) + 1.0) * 0.5 * Range + Min;
+				}
+				break;
+
+			default:
+				ApplyContrastBatchInRange(Values, Count, Contrast, 0, Min, Max);
+				break;
+			}
+		}
+
+		/**
+		 * Auto-range batch: scans for min/max, then applies contrast preserving the original range.
+		 */
+		inline void ApplyContrastBatchAutoRange(double* RESTRICT Values, const int32 Count, const double Contrast, const int32 CurveType = 0)
+		{
+			if (FMath::IsNearlyEqual(Contrast, 1.0, SMALL_NUMBER) || Count <= 0) { return; }
+
+			double Min = Values[0];
+			double Max = Values[0];
+			for (int32 i = 1; i < Count; ++i)
+			{
+				Min = FMath::Min(Min, Values[i]);
+				Max = FMath::Max(Max, Values[i]);
+			}
+
+			ApplyContrastBatchInRange(Values, Count, Contrast, CurveType, Min, Max);
+		}
+
+		//
 		// TArrayView convenience overloads
 		//
 
@@ -237,6 +323,16 @@ namespace PCGExMath
 		inline void ApplyContrastBatch(TArrayView<FVector4> Values, const double Contrast, const int32 CurveType = 0)
 		{
 			ApplyContrastBatch(Values.GetData(), Values.Num(), Contrast, CurveType);
+		}
+
+		inline void ApplyContrastBatchInRange(TArrayView<double> Values, const double Contrast, const int32 CurveType, const double Min, const double Max)
+		{
+			ApplyContrastBatchInRange(Values.GetData(), Values.Num(), Contrast, CurveType, Min, Max);
+		}
+
+		inline void ApplyContrastBatchAutoRange(TArrayView<double> Values, const double Contrast, const int32 CurveType = 0)
+		{
+			ApplyContrastBatchAutoRange(Values.GetData(), Values.Num(), Contrast, CurveType);
 		}
 	}
 }

@@ -630,34 +630,54 @@ namespace PCGExClusterCentrality
 
 	void FProcessor::WriteResults()
 	{
-		double Max = 0;
-		for (const double& C : CentralityScores) { Max = FMath::Max(Max, C); }
-
 		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
 		TSharedPtr<PCGExData::TBuffer<double>> Buffer = VtxDataFacade->GetWritable<double>(Settings->CentralityValueAttributeName, Settings->bOutputOneMinus ? 1 : 0, true, PCGExData::EBufferInit::New);
 
-		if (Settings->bNormalize)
+		// Compute output values into CentralityScores (reuse the array)
+		double Max = 0;
+		for (const double& C : CentralityScores) { Max = FMath::Max(Max, C); }
+
+		if (Settings->bNormalize && Max > 0)
 		{
-			if (Max > 0)
+			const double InvMax = 1.0 / Max;
+			if (Settings->bOutputOneMinus)
 			{
-				if (Settings->bOutputOneMinus)
-				{
-					for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, 1 - (CentralityScores[i] / Max)); }
-				}
-				else
-				{
-					for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, CentralityScores[i] / Max); }
-				}
+				for (int i = 0; i < NumNodes; i++) { CentralityScores[i] = 1.0 - (CentralityScores[i] * InvMax); }
 			}
 			else
 			{
-				for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, Settings->bOutputOneMinus ? 1.0 : 0.0); }
+				for (int i = 0; i < NumNodes; i++) { CentralityScores[i] *= InvMax; }
 			}
 		}
-		else
+		else if (Settings->bNormalize)
 		{
-			for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, CentralityScores[i]); }
+			const double V = Settings->bOutputOneMinus ? 1.0 : 0.0;
+			for (int i = 0; i < NumNodes; i++) { CentralityScores[i] = V; }
 		}
+
+		// Apply contrast per-cluster on computed values
+		if (Settings->bApplyContrast)
+		{
+			double RangeMin = CentralityScores[0];
+			double RangeMax = CentralityScores[0];
+			for (int i = 1; i < NumNodes; i++)
+			{
+				RangeMin = FMath::Min(RangeMin, CentralityScores[i]);
+				RangeMax = FMath::Max(RangeMax, CentralityScores[i]);
+			}
+
+			if (RangeMax > RangeMin + SMALL_NUMBER)
+			{
+				const int32 CurveType = static_cast<int32>(Settings->ContrastCurve);
+				for (int i = 0; i < NumNodes; i++)
+				{
+					CentralityScores[i] = PCGExMath::Contrast::ApplyContrastInRange(CentralityScores[i], Settings->ContrastAmount, CurveType, RangeMin, RangeMax);
+				}
+			}
+		}
+
+		// Write final values to buffer
+		for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, CentralityScores[i]); }
 	}
 
 #pragma endregion
