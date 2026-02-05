@@ -528,3 +528,209 @@ bool FPCGExOBBTransformTest::RunTest(const FString& Parameters)
 
 	return true;
 }
+
+// =============================================================================
+// TestOverlap (OBB-OBB) Tests
+// =============================================================================
+
+/**
+ * Test TestOverlap with Box mode
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExOBBTestOverlapBoxModeTest,
+	"PCGEx.Unit.OBB.TestOverlap.BoxMode",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExOBBTestOverlapBoxModeTest::RunTest(const FString& Parameters)
+{
+	FOBB BoxA = Factory::FromTransform(FTransform::Identity, FVector(50.0f), 0);
+
+	// Overlapping box
+	FTransform TransformB(FRotator::ZeroRotator, FVector(75, 0, 0));
+	FOBB BoxB = Factory::FromTransform(TransformB, FVector(50.0f), 1);
+
+	TestTrue(TEXT("Overlapping boxes detected in Box mode"),
+	         TestOverlap(BoxA, BoxB, EPCGExBoxCheckMode::Box));
+
+	// Non-overlapping box
+	FTransform TransformC(FRotator::ZeroRotator, FVector(150, 0, 0));
+	FOBB BoxC = Factory::FromTransform(TransformC, FVector(50.0f), 2);
+
+	TestFalse(TEXT("Separated boxes not detected in Box mode"),
+	          TestOverlap(BoxA, BoxC, EPCGExBoxCheckMode::Box));
+
+	return true;
+}
+
+/**
+ * Test TestOverlap with Sphere mode
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExOBBTestOverlapSphereModeTest,
+	"PCGEx.Unit.OBB.TestOverlap.SphereMode",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExOBBTestOverlapSphereModeTest::RunTest(const FString& Parameters)
+{
+	FOBB BoxA = Factory::FromTransform(FTransform::Identity, FVector(50.0f), 0);
+	// BoxA radius ≈ 86.6
+
+	// Box that doesn't overlap as box but sphere overlaps
+	// Place at distance ~150 (less than 2*86.6 = 173.2)
+	FTransform TransformB(FRotator::ZeroRotator, FVector(150, 0, 0));
+	FOBB BoxB = Factory::FromTransform(TransformB, FVector(50.0f), 1);
+
+	// Box mode should NOT detect overlap (gap exists)
+	TestFalse(TEXT("Boxes don't overlap in Box mode"),
+	          TestOverlap(BoxA, BoxB, EPCGExBoxCheckMode::Box));
+
+	// Sphere mode SHOULD detect overlap (spheres overlap)
+	TestTrue(TEXT("Spheres overlap in Sphere mode"),
+	         TestOverlap(BoxA, BoxB, EPCGExBoxCheckMode::Sphere));
+
+	return true;
+}
+
+/**
+ * Test TestOverlap with ExpandedBox mode
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExOBBTestOverlapExpandedBoxModeTest,
+	"PCGEx.Unit.OBB.TestOverlap.ExpandedBoxMode",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExOBBTestOverlapExpandedBoxModeTest::RunTest(const FString& Parameters)
+{
+	FOBB BoxA = Factory::FromTransform(FTransform::Identity, FVector(50.0f), 0);
+
+	// Box just outside normal overlap range
+	FTransform TransformB(FRotator::ZeroRotator, FVector(110, 0, 0));
+	FOBB BoxB = Factory::FromTransform(TransformB, FVector(50.0f), 1);
+
+	// Normal box mode - no overlap (gap of 10 units)
+	TestFalse(TEXT("Boxes don't overlap without expansion"),
+	          TestOverlap(BoxA, BoxB, EPCGExBoxCheckMode::Box));
+
+	// Expanded by 15 - should overlap
+	TestTrue(TEXT("Boxes overlap with 15 unit expansion"),
+	         TestOverlap(BoxA, BoxB, EPCGExBoxCheckMode::ExpandedBox, 15.0f));
+
+	return true;
+}
+
+/**
+ * Test TestOverlap with ExpandedSphere mode
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExOBBTestOverlapExpandedSphereModeTest,
+	"PCGEx.Unit.OBB.TestOverlap.ExpandedSphereMode",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExOBBTestOverlapExpandedSphereModeTest::RunTest(const FString& Parameters)
+{
+	FOBB BoxA = Factory::FromTransform(FTransform::Identity, FVector(50.0f), 0);
+	// BoxA radius ≈ 86.6
+
+	// Box far enough that even spheres don't overlap
+	// Distance = 200, combined radius = 2*86.6 ≈ 173.2, so no overlap
+	FTransform TransformB(FRotator::ZeroRotator, FVector(200, 0, 0));
+	FOBB BoxB = Factory::FromTransform(TransformB, FVector(50.0f), 1);
+
+	// Normal sphere mode - no overlap
+	TestFalse(TEXT("Spheres don't overlap at distance 200"),
+	          TestOverlap(BoxA, BoxB, EPCGExBoxCheckMode::Sphere));
+
+	// Expanded sphere by 30 - should overlap (173.2 + 30 = 203.2 > 200)
+	TestTrue(TEXT("Expanded spheres overlap with 30 unit expansion"),
+	         TestOverlap(BoxA, BoxB, EPCGExBoxCheckMode::ExpandedSphere, 30.0f));
+
+	return true;
+}
+
+// =============================================================================
+// Policy Class Tests
+// =============================================================================
+
+/**
+ * Test FPolicy runtime class with different modes
+ * Note: TPolicy<Mode> template aliases (FPolicyBox, etc.) are not tested directly
+ * because they require explicit DLL export instantiation. FPolicy provides the
+ * same functionality with runtime mode selection.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExOBBPolicyModesTest,
+	"PCGEx.Unit.OBB.Policy.Modes",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExOBBPolicyModesTest::RunTest(const FString& Parameters)
+{
+	FOBB BoxA = Factory::FromTransform(FTransform::Identity, FVector(50.0f), 0);
+	FTransform TransformB(FRotator::ZeroRotator, FVector(75, 0, 0));
+	FOBB BoxB = Factory::FromTransform(TransformB, FVector(50.0f), 1);
+
+	// Test Box mode (equivalent to FPolicyBox)
+	FPolicy PolicyBox(EPCGExBoxCheckMode::Box);
+	TestTrue(TEXT("Box mode detects overlapping boxes"),
+	         PolicyBox.TestOverlap(BoxA, BoxB));
+	TestTrue(TEXT("Box mode detects point inside box"),
+	         PolicyBox.TestPoint(BoxA, FVector::ZeroVector));
+	TestFalse(TEXT("Box mode detects point outside box"),
+	          PolicyBox.TestPoint(BoxA, FVector(100, 0, 0)));
+
+	// Test Sphere mode (equivalent to FPolicySphere)
+	FPolicy PolicySphere(EPCGExBoxCheckMode::Sphere);
+	TestTrue(TEXT("Sphere mode detects point inside sphere"),
+	         PolicySphere.TestPoint(BoxA, FVector(60, 0, 0)));
+
+	// Test ExpandedBox mode with expansion (equivalent to FPolicyExpandedBox)
+	FPolicy PolicyExpanded(EPCGExBoxCheckMode::ExpandedBox, 15.0f);
+	TestTrue(TEXT("ExpandedBox mode detects point in expanded box"),
+	         PolicyExpanded.TestPoint(BoxA, FVector(60, 0, 0)));
+
+	return true;
+}
+
+/**
+ * Test FPolicy runtime class
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FPCGExOBBFPolicyTest,
+	"PCGEx.Unit.OBB.Policy.FPolicy",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FPCGExOBBFPolicyTest::RunTest(const FString& Parameters)
+{
+	FOBB BoxA = Factory::FromTransform(FTransform::Identity, FVector(50.0f), 0);
+	FTransform TransformB(FRotator::ZeroRotator, FVector(75, 0, 0));
+	FOBB BoxB = Factory::FromTransform(TransformB, FVector(50.0f), 1);
+
+	// Default construction
+	FPolicy DefaultPolicy;
+	TestEqual(TEXT("Default mode is Box"),
+	          DefaultPolicy.Mode, EPCGExBoxCheckMode::Box);
+	TestTrue(TEXT("Default expansion is 0"),
+	         FMath::IsNearlyEqual(DefaultPolicy.Expansion, 0.0f, KINDA_SMALL_NUMBER));
+
+	// Parameterized construction
+	FPolicy ExpandedPolicy(EPCGExBoxCheckMode::ExpandedBox, 20.0f);
+	TestEqual(TEXT("Mode set correctly"),
+	          ExpandedPolicy.Mode, EPCGExBoxCheckMode::ExpandedBox);
+	TestTrue(TEXT("Expansion set correctly"),
+	         FMath::IsNearlyEqual(ExpandedPolicy.Expansion, 20.0f, KINDA_SMALL_NUMBER));
+
+	// Test functionality
+	FVector PointJustOutside(55, 0, 0);
+	FPolicy BoxPolicy(EPCGExBoxCheckMode::Box);
+	FPolicy SpherePolicy(EPCGExBoxCheckMode::Sphere);
+
+	TestFalse(TEXT("Box policy rejects point outside box"),
+	          BoxPolicy.TestPoint(BoxA, PointJustOutside));
+	TestTrue(TEXT("Sphere policy accepts point inside sphere"),
+	         SpherePolicy.TestPoint(BoxA, PointJustOutside));
+
+	// Test overlap
+	TestTrue(TEXT("FPolicy.TestOverlap works for overlapping boxes"),
+	         BoxPolicy.TestOverlap(BoxA, BoxB));
+
+	return true;
+}

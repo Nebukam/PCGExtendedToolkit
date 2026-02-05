@@ -23,7 +23,7 @@ class UPCGExSortCollectionsSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SortCollections, "Sort Collections", "Sort collection using @Data domain attributes.");
+	PCGEX_NODE_INFOS(SortCollections, "Sort Data", "Sort data using @Data domain attributes.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Generic; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_OPTIN_NAME(MiscWrite); }
 #endif

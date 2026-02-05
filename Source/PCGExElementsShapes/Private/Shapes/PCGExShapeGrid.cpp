@@ -39,33 +39,46 @@ void FPCGExShapeGridBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 
 	EPCGExTruncateMode Truncate[3] = {Config.TruncateX, Config.TruncateY, Config.TruncateZ};
 
+	// Compute grid counts based on resolution mode
 	if (Config.ResolutionMode == EPCGExResolutionMode::Fixed)
 	{
 		for (int i = 0; i < 3; i++) { Grid->Count[i] = FMath::Max(1, PCGExMath::TruncateDbl(Res[i], Truncate[i])); }
-
-		ApplyClamp();
-
-		for (int i = 0; i < 3; i++) { Grid->Extents[i] = (Size[i] / Grid->Count[i]) * 0.5; }
 	}
 	else
 	{
 		for (int i = 0; i < 3; i++) { Grid->Count[i] = FMath::Max(1, PCGExMath::TruncateDbl(Size[i] / Res[i], Truncate[i])); }
-
-		ApplyClamp();
-
-		for (int i = 0; i < 3; i++) { Grid->Extents[i] = Res[i] * 0.5; }
 	}
 
-	const EPCGExApplySampledComponentFlags FitFlags = static_cast<EPCGExApplySampledComponentFlags>(Config.AdjustFit);
+	ApplyClamp();
+
+	// Compute extents based on bounds source
+	if (BaseConfig.BoundsSource == EPCGExShapeBoundsSource::Fit)
+	{
+		if (Config.ResolutionMode == EPCGExResolutionMode::Fixed)
+		{
+			for (int i = 0; i < 3; i++) { Grid->Extents[i] = (Size[i] / Grid->Count[i]) * 0.5; }
+		}
+		else
+		{
+			for (int i = 0; i < 3; i++) { Grid->Extents[i] = Res[i] * 0.5; }
+		}
+
+		// Apply per-axis fit adjustments
+		const EPCGExApplySampledComponentFlags FitFlags = static_cast<EPCGExApplySampledComponentFlags>(Config.AdjustFit);
 
 #define PCGEX_ADJUST_FIT(_AXIS) \
-if (EnumHasAnyFlags(FitFlags, EPCGExApplySampledComponentFlags::_AXIS)) { Grid->Extents._AXIS = (Size._AXIS / Grid->Count._AXIS) * 0.5; }
+	if (EnumHasAnyFlags(FitFlags, EPCGExApplySampledComponentFlags::_AXIS)) { Grid->Extents._AXIS = (Size._AXIS / Grid->Count._AXIS) * 0.5; }
 
-	PCGEX_ADJUST_FIT(X)
-	PCGEX_ADJUST_FIT(Y)
-	PCGEX_ADJUST_FIT(Z)
+		PCGEX_ADJUST_FIT(X)
+		PCGEX_ADJUST_FIT(Y)
+		PCGEX_ADJUST_FIT(Z)
 
-#undef PCGEX_FIT
+#undef PCGEX_ADJUST_FIT
+	}
+	else
+	{
+		Grid->Extents = BaseConfig.DefaultExtents;
+	}
 
 	for (int i = 0; i < 3; i++) { Grid->Offset[i] = Grid->Extents[i] + (Size[i] - (Grid->Count[i] * (Grid->Extents[i] * 2))) * 0.5; }
 

@@ -48,6 +48,20 @@ void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	}
 	else { Circle->NumPoints = GetResolution(Seed); }
 
+	// Compute extents based on bounds source
+	if (BaseConfig.BoundsSource == EPCGExShapeBoundsSource::Fit)
+	{
+		// Arc length between adjacent points: (AverageRadius * AngleRange) / NumPoints
+		const FVector FitExtents = Circle->Fit.GetExtent();
+		const double AvgRadius = (FitExtents.X + FitExtents.Y) * 0.5;
+		const double Spacing = Circle->NumPoints > 0 ? (AvgRadius * Circle->AngleRange) / Circle->NumPoints : 0;
+		Circle->Extents = FVector(Spacing * 0.5);
+	}
+	else
+	{
+		Circle->Extents = BaseConfig.DefaultExtents;
+	}
+
 	ValidateShape(Circle);
 
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Circle);

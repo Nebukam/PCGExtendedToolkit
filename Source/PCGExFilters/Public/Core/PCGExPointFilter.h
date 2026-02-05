@@ -246,7 +246,7 @@ UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data"
 class PCGEXFILTERS_API UPCGExFilterCollectionFactoryData : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
-
+	
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterCollection)
 

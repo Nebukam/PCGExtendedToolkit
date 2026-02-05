@@ -46,6 +46,14 @@ bool UPCGExFilterProviderSettings::ShouldCancel(FPCGExFactoryProviderContext* In
 	return false;
 }
 
+#if WITH_EDITOR
+void UPCGExFilterCollectionProviderSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	InOutNode->RenameOutputPin(FName("C-Filter"), PCGExFilters::Labels::OutputColFilterLabel);
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
+
 FName UPCGExFilterCollectionProviderSettings::GetMainOutputPin() const { return PCGExFilters::Labels::OutputColFilterLabel; }
 
 #undef LOCTEXT_NAMESPACE

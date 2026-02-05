@@ -77,6 +77,11 @@ class UPCGExFilterCollectionProviderSettings : public UPCGExFilterProviderSettin
 	GENERATED_BODY()
 
 protected:
+	
+#if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+#endif
+	
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterCollection)
 
 	virtual FName GetMainOutputPin() const override;

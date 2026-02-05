@@ -43,19 +43,20 @@ Test files: `Tests/Unit/Math/`, `Tests/Unit/Containers/`
 | ├─ GetMinMax | [x] | PCGExMathUtilTests | |
 | ├─ ReverseRange | [x] | PCGExMathUtilTests | |
 | └─ (remaining functions) | [ ] | | FastRand, ConeBox, etc. |
-| **PCGExMathDistances.h** | [ ] | | |
+| **PCGExMathDistances.h** | [x] | PCGExMathDistancesTests | GetDistances factory, IDistances interface, Euclidean/Manhattan/Chebyshev metrics |
 | **PCGExMathAxis.h** | [x] | PCGExMathAxisTests | Axis order, direction, swizzle, angles |
 | **PCGExMathBounds.h** | [~] | PCGExMathBoundsTests | SanitizeBounds, EPCGExBoxCheckMode enum |
 | **PCGExMathMean.h** | [x] | PCGExMathMeanTests | Average, Median, QuickSelect |
 | **PCGExWinding.h** | [x] | PCGExWindingTests | IsWinded, FPolygonInfos, AngleCCW |
 | **PCGExBestFitPlane.h** | [x] | PCGExBestFitPlaneTests | Plane fitting, centroid, normal, extents |
-| **PCGExDelaunay.h** | [ ] | | |
-| **PCGExVoronoi.h** | [ ] | | |
+| **PCGExDelaunay.h** | [x] | PCGExDelaunayTests | FDelaunaySite2 (constructor, edge hash, ContainsEdge, GetSharedEdge, PushAdjacency), FDelaunaySite3 (constructor, ComputeFaces), TDelaunay2::Process, TDelaunay3::Process, RemoveLongestEdges, hull detection |
+| **PCGExVoronoi.h** | [x] | PCGExVoronoiTests | TVoronoi2 (Process, bounds, metrics: Euclidean/Manhattan/Chebyshev, cell centers: Circumcenter/Centroid/Balanced), TVoronoi3 (Process, circumspheres, centroids), EPCGExVoronoiMetric, EPCGExCellCenter |
 | **PCGExGeo.h** | [x] | PCGExGeoTests | Det, Centroid, Circumcenter, Barycentric, PointInTriangle/Polygon, L-inf transforms, edge paths, sphere fitting |
-| **PCGExOBB.h** | [~] | PCGExOBBTests | |
-| **PCGExOBBCollection.h** | [ ] | | |
-| **PCGExOBBSampling.h** | [ ] | | |
-| **PCGExOBBIntersections.h** | [ ] | | |
+| **PCGExOBB.h** | [x] | PCGExOBBTests | Factory, PointInside, SphereOverlap, SATOverlap, SignedDistance, ClosestPoint, TestPoint modes, TestOverlap modes, FPolicy |
+| **PCGExOBBTests.h** | [x] | PCGExOBBTests | All test utilities (TestPoint, TestOverlap, FPolicy runtime class) |
+| **PCGExOBBCollection.h** | [x] | PCGExOBBCollectionTests | FCollection construction, Add, BuildOctree, IsPointInside, Overlaps, FindContaining, FindAllOverlaps, SegmentIntersectsAny, ClassifyPoints, FilterInside, Encompasses |
+| **PCGExOBBSampling.h** | [x] | PCGExOBBSamplingTests | FSample struct, Sample, SampleFast, SampleWithWeight, UVW computation, weight functions |
+| **PCGExOBBIntersections.h** | [x] | PCGExOBBIntersectionsTests | FCut, FIntersections (Sort, SortAndDedupe, GetBounds), SegmentBoxRaw, ProcessSegment, SegmentIntersects, EPCGExCutType |
 
 #### Containers (5 headers)
 | Component | Status | Test File | Notes |
@@ -95,7 +96,7 @@ Test files: `Tests/Unit/Types/`
 | **PCGExTypeOpsString.h** | [x] | PCGExTypeOpsStringTests | FString, FName, FSoftObjectPath, FSoftClassPath ops; conversions, blends |
 | **PCGExTypeTraits.h** | [x] | PCGExTypeTraitsTests | TTraits<T> for all types; Type, TypeId, feature flags (bIsNumeric, bIsVector, bSupportsLerp, etc.) |
 | PCGExAttributeIdentity.h | [ ] | |
-| PCGExTypes.h | [ ] | |
+| **PCGExTypes.h** | [x] | PCGExTypesTests | FScopedTypedValue (construction, lifecycle, move, all types), convenience functions (Convert, ComputeHash, AreEqual, Lerp, Clamp, Abs, Factor) |
 | PCGExTypesCore.h | [ ] | |
 | PCGExEnums.h | [ ] | |
 
@@ -104,10 +105,22 @@ Test files: `Tests/Unit/Types/`
 |-----------|--------|-------|
 | (All data structures) | [ ] | |
 
+#### Bitmasks (3 headers)
+Test files: `Tests/Unit/Bitmasks/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **PCGExBitmaskCommon.h** | [x] | PCGExBitmaskTests | EPCGExBitOp (Set/AND/OR/NOT/XOR), EPCGExBitflagComparison (MatchPartial/Full/Strict/NoMatchPartial/NoMatchFull), GetBitOp conversion |
+| **PCGExBitmaskDetails.h** | [x] | PCGExBitmaskTests | FPCGExClampedBitOp::Mutate, FPCGExSimpleBitmask::Mutate, chained operations, common flag patterns |
+| PCGExBitmaskCollection.h | [ ] | | UObject collection |
+
 #### Other Core
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Clusters (~9 headers) | [ ] | |
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **PCGExLink.h** | [x] | PCGExClusterStructsTests | FLink construction, H64, equality, GetTypeHash |
+| **PCGExEdge.h** | [x] | PCGExClusterStructsTests | FEdge construction, Other, Contains, equality, H64U, comparison; EPCGExEdgeDirectionMethod, EPCGExEdgeDirectionChoice enums |
+| **PCGExNode.h** | [~] | PCGExClusterStructsTests | FNode construction, Num, IsEmpty, IsLeaf/IsBinary/IsComplex, LinkEdge, Link, IsAdjacentTo, GetEdgeIndex, NodeGUID (cluster-dependent functions not tested) |
+| Clusters (remaining ~6 headers) | [ ] | | PCGExCluster, PCGExClusterCache, etc. |
 | Paths (~5 headers) | [ ] | |
 | Sorting (~4 headers) | [~] | PCGExSortingHelpersTests - FVectorKey, RadixSort |
 | Factories (~4 headers) | [ ] | |
@@ -147,14 +160,14 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 |-----------|--------|-----------|-------|
 | **Framework** | [~] | PCGExFilterTests.spec | Enums, logic patterns |
 | **PCGExConstantFilter.h** | [x] | PCGExConstantFilterTests | Full coverage |
-| PCGExNumericCompareFilter.h | [ ] | | |
+| **PCGExNumericCompareFilter.h** | [~] | PCGExNumericCompareLogicTests | Logic simulation (all comparison ops, tolerance, edge cases) |
 | PCGExStringCompareFilter.h | [ ] | | |
 | **PCGExBooleanCompareFilter.h** | [~] | PCGExFilterLogicTests | Logic simulation (Equal/NotEqual) |
 | PCGExDistanceFilter.h | [ ] | | |
-| PCGExDotFilter.h | [ ] | | |
+| **PCGExDotFilter.h** | [~] | PCGExDotFilterLogicTests | Logic simulation (scalar/degrees domain, unsigned mode, all comparison ops, vector dot products) |
 | PCGExAngleFilter.h | [ ] | | |
 | PCGExAttributeCheckFilter.h | [ ] | | |
-| PCGExBitmaskFilter.h | [ ] | | |
+| PCGExBitmaskFilter.h | [ ] | | (bitmask ops tested in PCGExBitmaskTests) |
 | **PCGExWithinRangeFilter.h** | [~] | PCGExFilterLogicTests | Logic simulation (inclusive/exclusive, invert) |
 | PCGExRandomFilter.h | [ ] | | |
 | PCGExRandomRatioFilter.h | [ ] | | |
@@ -280,17 +293,57 @@ Test files: `Tests/Unit/Collections/`
 ## Test Infrastructure
 
 ### Fixtures & Helpers
-| Component | Status | Location |
-|-----------|--------|----------|
-| FTestFixture | [x] | Fixtures/ |
-| FPointDataBuilder | [x] | Helpers/ |
-| PCGExTestHelpers | [x] | Helpers/ |
-| PCGExPointDataHelpers | [x] | Helpers/ |
+| Component | Status | Location | Notes |
+|-----------|--------|----------|-------|
+| **FTestContext** | [x] | Fixtures/PCGExTestContext.h | Full PCG context infrastructure - creates FPCGExContext, world, actor, PCGComponent |
+| **FScopedTestContext** | [x] | Fixtures/PCGExTestContext.h | RAII wrapper for FTestContext |
+| FTestFixture | [x] | Fixtures/PCGExTestFixtures.h | Legacy fixture, now uses FTestContext internally |
+| FPointDataBuilder | [x] | Helpers/PCGExPointDataHelpers.h | Builder pattern for test point data |
+| PCGExTestHelpers | [x] | Helpers/PCGExTestHelpers.h | NearlyEqual, GetTestSeed, Generate*Positions |
+
+### Test Context Features
+| Feature | Method | Description |
+|---------|--------|-------------|
+| Create FPointIO | `CreatePointIO()` | Creates FPointIO for testing |
+| Create Facade | `CreateFacade(NumPoints)` | Sequential points along X |
+| Create Grid Facade | `CreateGridFacade(Origin, Spacing, X, Y, Z)` | 3D grid of points |
+| Create Random Facade | `CreateRandomFacade(Bounds, NumPoints, Seed)` | Reproducible random positions |
+| Access Context | `GetContext()` | Returns underlying FPCGExContext |
 
 ### Test Patterns Available
 - Unit tests (IMPLEMENT_SIMPLE_AUTOMATION_TEST)
 - BDD specs (BEGIN_DEFINE_SPEC)
+- **Integration tests (FScopedTestContext + real PCG data)** - NEW
 - Functional tests (full context)
+- Performance/Stress tests
+
+### Integration Tests
+Test files: `Tests/Integration/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **TestContext.BasicInitialization** | [x] | PCGExFilterIntegrationTests | World, actor, PCGComponent, context creation |
+| **TestContext.FacadeCreation** | [x] | PCGExFilterIntegrationTests | Point count, input/output validation |
+| **TestContext.GridFacade** | [x] | PCGExFilterIntegrationTests | 2D/3D grid positioning |
+| **TestContext.RandomFacade** | [x] | PCGExFilterIntegrationTests | Seed reproducibility |
+| **Facade.AttributeBuffers** | [x] | PCGExFilterIntegrationTests | Create/read/write buffers |
+| **Facade.PointProperties** | [x] | PCGExFilterIntegrationTests | Transform access |
+| **PointIO.Creation** | [x] | PCGExFilterIntegrationTests | Output initialization |
+
+### Performance Tests
+Test files: `Tests/Performance/`
+
+| Component | Test File | Description |
+|-----------|-----------|-------------|
+| OBBCollection.LargeDataset | PCGExPerformanceTests | 10K boxes, point queries, overlap queries |
+| OBBCollection.BulkClassify | PCGExPerformanceTests | 50K points classified against 1K boxes |
+| Delaunay3D.LargePointSet | PCGExPerformanceTests | 2K point tetrahedralization |
+| Voronoi3D.LargePointSet | PCGExPerformanceTests | 1.5K point 3D Voronoi diagram |
+| ClusterStructs.LargeGraph | PCGExPerformanceTests | 10K nodes, random edge connectivity, adjacency queries |
+| ClusterStructs.EdgeHashing | PCGExPerformanceTests | 100K edge hash operations and lookups |
+| IndexLookup.LargeDataset | PCGExPerformanceTests | 1M random access operations |
+| Memory.OBBCollectionGrowth | PCGExPerformanceTests | Reserve vs grow, reset/reuse cycles |
+| MixedOperations.InterleavedQueries | PCGExPerformanceTests | Interleaved point/overlap/segment queries |
 
 ---
 
@@ -322,3 +375,20 @@ Test files: `Tests/Unit/Collections/`
 | 2026-02-03 | Added PCGExTypeTraits tests (TTraits<T> for all types; Type, TypeId, feature flags for bool, int32, int64, float, double, FVector2D, FVector, FVector4, FRotator, FQuat, FTransform, FString, FName, FSoftObjectPath, FSoftClassPath) |
 | 2026-02-03 | Added PCGExCollectionCache tests (FCategory, FMicroCache, FCache, FPCGExEntryAccessResult, FPCGExCollectionTypeSet, TypeIds, EPCGExIndexPickMode, EPCGExDistribution, EPCGExAssetTagInheritance) |
 | 2026-02-03 | Added PCGExCollectionEntry tests (FPCGExAssetStagingData FindSocket, FPCGExAssetCollectionEntry type/validation, staging details defaults) |
+| 2026-02-04 | Added PCGExOBBIntersections tests (FCut, FIntersections container, SegmentBoxRaw, ProcessSegment, SegmentIntersects, EPCGExCutType) |
+| 2026-02-04 | Extended PCGExOBB tests with TestOverlap modes, FPolicy runtime class |
+| 2026-02-04 | Added PCGExDelaunay tests (FDelaunaySite2, FDelaunaySite3, TDelaunay2::Process, TDelaunay3::Process, hull detection, RemoveLongestEdges) |
+| 2026-02-04 | Added PCGExVoronoi tests (TVoronoi2, TVoronoi3, metrics, cell center methods, enums) |
+| 2026-02-04 | Added PCGExMathDistances tests (GetDistances factory, IDistances interface, Euclidean/Manhattan/Chebyshev metrics) |
+| 2026-02-04 | Added PCGExOBBSampling tests (FSample struct, Sample, SampleFast, SampleWithWeight, UVW computation, weight functions) |
+| 2026-02-04 | Added PCGExOBBCollection tests (FCollection construction, Add, BuildOctree, point queries, OBB queries, segment intersections, bulk ops) |
+| 2026-02-04 | Added PCGExTypes tests (FScopedTypedValue with all supported types, lifecycle management, convenience functions) |
+| 2026-02-04 | Added PCGExClusterStructs tests (FLink, FEdge, FNode basic functionality, NodeGUID, edge direction enums) |
+| 2026-02-04 | Added Performance/Stress tests (OBBCollection large datasets, Delaunay/Voronoi scaling, cluster graph stress, edge hashing, index lookup, memory patterns) |
+| 2026-02-04 | Added PCGExBitmask tests (EPCGExBitOp Set/AND/OR/NOT/XOR, EPCGExBitflagComparison all modes, GetBitOp conversion, FPCGExClampedBitOp::Mutate, FPCGExSimpleBitmask::Mutate, flag patterns) |
+| 2026-02-04 | Added PCGExDotFilterLogic tests (scalar/degrees domain, degree-to-dot conversion, unsigned comparison, vector dot products, practical scenarios) |
+| 2026-02-04 | Added PCGExNumericCompareLogic tests (all comparison ops, tolerance handling, edge cases, integer-like values, practical scenarios) |
+| 2026-02-04 | **Added FTestContext infrastructure** - Full PCG context for integration testing (FPCGExContext, FPointIO, FFacade creation, world/actor/PCGComponent setup) |
+| 2026-02-04 | Added FScopedTestContext RAII wrapper for automatic initialization/cleanup |
+| 2026-02-04 | Updated FTestFixture to use FTestContext internally, added CreateGridFacade/CreateRandomFacade |
+| 2026-02-04 | Added integration tests for TestContext, Facade, and PointIO (PCGExFilterIntegrationTests) |
