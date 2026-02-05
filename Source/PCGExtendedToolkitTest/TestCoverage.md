@@ -105,6 +105,15 @@ Test files: `Tests/Unit/Types/`
 |-----------|--------|-------|
 | (All data structures) | [ ] | |
 
+#### Bitmasks (3 headers)
+Test files: `Tests/Unit/Bitmasks/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **PCGExBitmaskCommon.h** | [x] | PCGExBitmaskTests | EPCGExBitOp (Set/AND/OR/NOT/XOR), EPCGExBitflagComparison (MatchPartial/Full/Strict/NoMatchPartial/NoMatchFull), GetBitOp conversion |
+| **PCGExBitmaskDetails.h** | [x] | PCGExBitmaskTests | FPCGExClampedBitOp::Mutate, FPCGExSimpleBitmask::Mutate, chained operations, common flag patterns |
+| PCGExBitmaskCollection.h | [ ] | | UObject collection |
+
 #### Other Core
 | Component | Status | Test File | Notes |
 |-----------|--------|-----------|-------|
@@ -151,14 +160,14 @@ Test files: `Tests/Unit/Filters/`, `Tests/Integration/Filters/`
 |-----------|--------|-----------|-------|
 | **Framework** | [~] | PCGExFilterTests.spec | Enums, logic patterns |
 | **PCGExConstantFilter.h** | [x] | PCGExConstantFilterTests | Full coverage |
-| PCGExNumericCompareFilter.h | [ ] | | |
+| **PCGExNumericCompareFilter.h** | [~] | PCGExNumericCompareLogicTests | Logic simulation (all comparison ops, tolerance, edge cases) |
 | PCGExStringCompareFilter.h | [ ] | | |
 | **PCGExBooleanCompareFilter.h** | [~] | PCGExFilterLogicTests | Logic simulation (Equal/NotEqual) |
 | PCGExDistanceFilter.h | [ ] | | |
-| PCGExDotFilter.h | [ ] | | |
+| **PCGExDotFilter.h** | [~] | PCGExDotFilterLogicTests | Logic simulation (scalar/degrees domain, unsigned mode, all comparison ops, vector dot products) |
 | PCGExAngleFilter.h | [ ] | | |
 | PCGExAttributeCheckFilter.h | [ ] | | |
-| PCGExBitmaskFilter.h | [ ] | | |
+| PCGExBitmaskFilter.h | [ ] | | (bitmask ops tested in PCGExBitmaskTests) |
 | **PCGExWithinRangeFilter.h** | [~] | PCGExFilterLogicTests | Logic simulation (inclusive/exclusive, invert) |
 | PCGExRandomFilter.h | [ ] | | |
 | PCGExRandomRatioFilter.h | [ ] | | |
@@ -284,18 +293,42 @@ Test files: `Tests/Unit/Collections/`
 ## Test Infrastructure
 
 ### Fixtures & Helpers
-| Component | Status | Location |
-|-----------|--------|----------|
-| FTestFixture | [x] | Fixtures/ |
-| FPointDataBuilder | [x] | Helpers/ |
-| PCGExTestHelpers | [x] | Helpers/ |
-| PCGExPointDataHelpers | [x] | Helpers/ |
+| Component | Status | Location | Notes |
+|-----------|--------|----------|-------|
+| **FTestContext** | [x] | Fixtures/PCGExTestContext.h | Full PCG context infrastructure - creates FPCGExContext, world, actor, PCGComponent |
+| **FScopedTestContext** | [x] | Fixtures/PCGExTestContext.h | RAII wrapper for FTestContext |
+| FTestFixture | [x] | Fixtures/PCGExTestFixtures.h | Legacy fixture, now uses FTestContext internally |
+| FPointDataBuilder | [x] | Helpers/PCGExPointDataHelpers.h | Builder pattern for test point data |
+| PCGExTestHelpers | [x] | Helpers/PCGExTestHelpers.h | NearlyEqual, GetTestSeed, Generate*Positions |
+
+### Test Context Features
+| Feature | Method | Description |
+|---------|--------|-------------|
+| Create FPointIO | `CreatePointIO()` | Creates FPointIO for testing |
+| Create Facade | `CreateFacade(NumPoints)` | Sequential points along X |
+| Create Grid Facade | `CreateGridFacade(Origin, Spacing, X, Y, Z)` | 3D grid of points |
+| Create Random Facade | `CreateRandomFacade(Bounds, NumPoints, Seed)` | Reproducible random positions |
+| Access Context | `GetContext()` | Returns underlying FPCGExContext |
 
 ### Test Patterns Available
 - Unit tests (IMPLEMENT_SIMPLE_AUTOMATION_TEST)
 - BDD specs (BEGIN_DEFINE_SPEC)
+- **Integration tests (FScopedTestContext + real PCG data)** - NEW
 - Functional tests (full context)
 - Performance/Stress tests
+
+### Integration Tests
+Test files: `Tests/Integration/`
+
+| Component | Status | Test File | Notes |
+|-----------|--------|-----------|-------|
+| **TestContext.BasicInitialization** | [x] | PCGExFilterIntegrationTests | World, actor, PCGComponent, context creation |
+| **TestContext.FacadeCreation** | [x] | PCGExFilterIntegrationTests | Point count, input/output validation |
+| **TestContext.GridFacade** | [x] | PCGExFilterIntegrationTests | 2D/3D grid positioning |
+| **TestContext.RandomFacade** | [x] | PCGExFilterIntegrationTests | Seed reproducibility |
+| **Facade.AttributeBuffers** | [x] | PCGExFilterIntegrationTests | Create/read/write buffers |
+| **Facade.PointProperties** | [x] | PCGExFilterIntegrationTests | Transform access |
+| **PointIO.Creation** | [x] | PCGExFilterIntegrationTests | Output initialization |
 
 ### Performance Tests
 Test files: `Tests/Performance/`
@@ -352,3 +385,10 @@ Test files: `Tests/Performance/`
 | 2026-02-04 | Added PCGExTypes tests (FScopedTypedValue with all supported types, lifecycle management, convenience functions) |
 | 2026-02-04 | Added PCGExClusterStructs tests (FLink, FEdge, FNode basic functionality, NodeGUID, edge direction enums) |
 | 2026-02-04 | Added Performance/Stress tests (OBBCollection large datasets, Delaunay/Voronoi scaling, cluster graph stress, edge hashing, index lookup, memory patterns) |
+| 2026-02-04 | Added PCGExBitmask tests (EPCGExBitOp Set/AND/OR/NOT/XOR, EPCGExBitflagComparison all modes, GetBitOp conversion, FPCGExClampedBitOp::Mutate, FPCGExSimpleBitmask::Mutate, flag patterns) |
+| 2026-02-04 | Added PCGExDotFilterLogic tests (scalar/degrees domain, degree-to-dot conversion, unsigned comparison, vector dot products, practical scenarios) |
+| 2026-02-04 | Added PCGExNumericCompareLogic tests (all comparison ops, tolerance handling, edge cases, integer-like values, practical scenarios) |
+| 2026-02-04 | **Added FTestContext infrastructure** - Full PCG context for integration testing (FPCGExContext, FPointIO, FFacade creation, world/actor/PCGComponent setup) |
+| 2026-02-04 | Added FScopedTestContext RAII wrapper for automatic initialization/cleanup |
+| 2026-02-04 | Updated FTestFixture to use FTestContext internally, added CreateGridFacade/CreateRandomFacade |
+| 2026-02-04 | Added integration tests for TestContext, Facade, and PointIO (PCGExFilterIntegrationTests) |

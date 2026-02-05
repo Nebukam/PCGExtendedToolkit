@@ -11,7 +11,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingFSampleDefaultState,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.FSample.DefaultState",
+	"PCGEx.Unit.Math.OBBSampling.FSample.DefaultState",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingFSampleDefaultState::RunTest(const FString& Parameters)
@@ -35,7 +35,7 @@ bool FPCGExOBBSamplingFSampleDefaultState::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSamplePointAtCenter,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.Sample.PointAtCenter",
+	"PCGEx.Unit.Math.OBBSampling.Sample.PointAtCenter",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSamplePointAtCenter::RunTest(const FString& Parameters)
@@ -59,7 +59,7 @@ bool FPCGExOBBSamplingSamplePointAtCenter::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSamplePointAtEdge,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.Sample.PointAtEdge",
+	"PCGEx.Unit.Math.OBBSampling.Sample.PointAtEdge",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSamplePointAtEdge::RunTest(const FString& Parameters)
@@ -87,7 +87,7 @@ bool FPCGExOBBSamplingSamplePointAtEdge::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSamplePointOutside,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.Sample.PointOutside",
+	"PCGEx.Unit.Math.OBBSampling.Sample.PointOutside",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSamplePointOutside::RunTest(const FString& Parameters)
@@ -113,7 +113,7 @@ bool FPCGExOBBSamplingSamplePointOutside::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSamplePointHalfway,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.Sample.PointHalfway",
+	"PCGEx.Unit.Math.OBBSampling.Sample.PointHalfway",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSamplePointHalfway::RunTest(const FString& Parameters)
@@ -138,7 +138,7 @@ bool FPCGExOBBSamplingSamplePointHalfway::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleRotatedBox,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.Sample.RotatedBox",
+	"PCGEx.Unit.Math.OBBSampling.Sample.RotatedBox",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleRotatedBox::RunTest(const FString& Parameters)
@@ -163,7 +163,7 @@ bool FPCGExOBBSamplingSampleRotatedBox::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleNonUniformExtents,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.Sample.NonUniformExtents",
+	"PCGEx.Unit.Math.OBBSampling.Sample.NonUniformExtents",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleNonUniformExtents::RunTest(const FString& Parameters)
@@ -190,7 +190,7 @@ bool FPCGExOBBSamplingSampleNonUniformExtents::RunTest(const FString& Parameters
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleNegativeUVW,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.Sample.NegativeUVW",
+	"PCGEx.Unit.Math.OBBSampling.Sample.NegativeUVW",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleNegativeUVW::RunTest(const FString& Parameters)
@@ -218,7 +218,7 @@ bool FPCGExOBBSamplingSampleNegativeUVW::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleFastInside,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.SampleFast.Inside",
+	"PCGEx.Unit.Math.OBBSampling.SampleFast.Inside",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleFastInside::RunTest(const FString& Parameters)
@@ -242,7 +242,7 @@ bool FPCGExOBBSamplingSampleFastInside::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleFastOutside,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.SampleFast.Outside",
+	"PCGEx.Unit.Math.OBBSampling.SampleFast.Outside",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleFastOutside::RunTest(const FString& Parameters)
@@ -263,7 +263,7 @@ bool FPCGExOBBSamplingSampleFastOutside::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleFastDistances,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.SampleFast.Distances",
+	"PCGEx.Unit.Math.OBBSampling.SampleFast.Distances",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleFastDistances::RunTest(const FString& Parameters)
@@ -292,7 +292,7 @@ bool FPCGExOBBSamplingSampleFastDistances::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleWithWeightCustomFunction,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.SampleWithWeight.CustomFunction",
+	"PCGEx.Unit.Math.OBBSampling.SampleWithWeight.CustomFunction",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleWithWeightCustomFunction::RunTest(const FString& Parameters)
@@ -323,7 +323,7 @@ bool FPCGExOBBSamplingSampleWithWeightCustomFunction::RunTest(const FString& Par
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleWithWeightOffCenter,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.SampleWithWeight.OffCenter",
+	"PCGEx.Unit.Math.OBBSampling.SampleWithWeight.OffCenter",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleWithWeightOffCenter::RunTest(const FString& Parameters)
@@ -353,7 +353,7 @@ bool FPCGExOBBSamplingSampleWithWeightOffCenter::RunTest(const FString& Paramete
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleWithWeightOutside,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.SampleWithWeight.Outside",
+	"PCGEx.Unit.Math.OBBSampling.SampleWithWeight.Outside",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleWithWeightOutside::RunTest(const FString& Parameters)
@@ -386,7 +386,7 @@ bool FPCGExOBBSamplingSampleWithWeightOutside::RunTest(const FString& Parameters
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleDegenerateExtent,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.EdgeCases.DegenerateExtent",
+	"PCGEx.Unit.Math.OBBSampling.EdgeCases.DegenerateExtent",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleDegenerateExtent::RunTest(const FString& Parameters)
@@ -408,7 +408,7 @@ bool FPCGExOBBSamplingSampleDegenerateExtent::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBSamplingSampleCorner,
-	"Plugins.PCGExtendedToolkit.Math.OBBSampling.EdgeCases.Corner",
+	"PCGEx.Unit.Math.OBBSampling.EdgeCases.Corner",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBSamplingSampleCorner::RunTest(const FString& Parameters)

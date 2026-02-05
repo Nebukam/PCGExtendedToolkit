@@ -11,7 +11,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionDefaultState,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Construction.DefaultState",
+	"PCGEx.Unit.Math.OBBCollection.Construction.DefaultState",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionDefaultState::RunTest(const FString& Parameters)
@@ -29,7 +29,7 @@ bool FPCGExOBBCollectionDefaultState::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionReserve,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Construction.Reserve",
+	"PCGEx.Unit.Math.OBBCollection.Construction.Reserve",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionReserve::RunTest(const FString& Parameters)
@@ -48,7 +48,7 @@ bool FPCGExOBBCollectionReserve::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionReset,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Construction.Reset",
+	"PCGEx.Unit.Math.OBBCollection.Construction.Reset",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionReset::RunTest(const FString& Parameters)
@@ -79,7 +79,7 @@ bool FPCGExOBBCollectionReset::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionAddOBB,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Add.OBB",
+	"PCGEx.Unit.Math.OBBCollection.Add.OBB",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionAddOBB::RunTest(const FString& Parameters)
@@ -101,7 +101,7 @@ bool FPCGExOBBCollectionAddOBB::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionAddTransform,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Add.Transform",
+	"PCGEx.Unit.Math.OBBCollection.Add.Transform",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionAddTransform::RunTest(const FString& Parameters)
@@ -126,7 +126,7 @@ bool FPCGExOBBCollectionAddTransform::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionAddMultiple,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Add.Multiple",
+	"PCGEx.Unit.Math.OBBCollection.Add.Multiple",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionAddMultiple::RunTest(const FString& Parameters)
@@ -160,7 +160,7 @@ bool FPCGExOBBCollectionAddMultiple::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionGetOBB,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Accessors.GetOBB",
+	"PCGEx.Unit.Math.OBBCollection.Accessors.GetOBB",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionGetOBB::RunTest(const FString& Parameters)
@@ -185,7 +185,7 @@ bool FPCGExOBBCollectionGetOBB::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionGetWorldBounds,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Accessors.GetWorldBounds",
+	"PCGEx.Unit.Math.OBBCollection.Accessors.GetWorldBounds",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionGetWorldBounds::RunTest(const FString& Parameters)
@@ -212,7 +212,7 @@ bool FPCGExOBBCollectionGetWorldBounds::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionGetArrays,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Accessors.GetArrays",
+	"PCGEx.Unit.Math.OBBCollection.Accessors.GetArrays",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionGetArrays::RunTest(const FString& Parameters)
@@ -241,7 +241,7 @@ bool FPCGExOBBCollectionGetArrays::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionIsPointInsideNoOctree,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.PointQueries.NoOctree",
+	"PCGEx.Unit.Math.OBBCollection.PointQueries.NoOctree",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionIsPointInsideNoOctree::RunTest(const FString& Parameters)
@@ -261,7 +261,7 @@ bool FPCGExOBBCollectionIsPointInsideNoOctree::RunTest(const FString& Parameters
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionIsPointInsideSingleBox,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.PointQueries.SingleBox",
+	"PCGEx.Unit.Math.OBBCollection.PointQueries.SingleBox",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionIsPointInsideSingleBox::RunTest(const FString& Parameters)
@@ -281,7 +281,7 @@ bool FPCGExOBBCollectionIsPointInsideSingleBox::RunTest(const FString& Parameter
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionIsPointInsideWithIndex,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.PointQueries.WithIndex",
+	"PCGEx.Unit.Math.OBBCollection.PointQueries.WithIndex",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionIsPointInsideWithIndex::RunTest(const FString& Parameters)
@@ -315,7 +315,7 @@ bool FPCGExOBBCollectionIsPointInsideWithIndex::RunTest(const FString& Parameter
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionFindContaining,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.PointQueries.FindContaining",
+	"PCGEx.Unit.Math.OBBCollection.PointQueries.FindContaining",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionFindContaining::RunTest(const FString& Parameters)
@@ -353,7 +353,7 @@ bool FPCGExOBBCollectionFindContaining::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionOverlapsNoOctree,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.OBBQueries.OverlapsNoOctree",
+	"PCGEx.Unit.Math.OBBCollection.OBBQueries.OverlapsNoOctree",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionOverlapsNoOctree::RunTest(const FString& Parameters)
@@ -372,7 +372,7 @@ bool FPCGExOBBCollectionOverlapsNoOctree::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionOverlaps,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.OBBQueries.Overlaps",
+	"PCGEx.Unit.Math.OBBCollection.OBBQueries.Overlaps",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionOverlaps::RunTest(const FString& Parameters)
@@ -396,7 +396,7 @@ bool FPCGExOBBCollectionOverlaps::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionFindFirstOverlap,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.OBBQueries.FindFirstOverlap",
+	"PCGEx.Unit.Math.OBBCollection.OBBQueries.FindFirstOverlap",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionFindFirstOverlap::RunTest(const FString& Parameters)
@@ -425,7 +425,7 @@ bool FPCGExOBBCollectionFindFirstOverlap::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionFindAllOverlaps,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.OBBQueries.FindAllOverlaps",
+	"PCGEx.Unit.Math.OBBCollection.OBBQueries.FindAllOverlaps",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionFindAllOverlaps::RunTest(const FString& Parameters)
@@ -461,7 +461,7 @@ bool FPCGExOBBCollectionFindAllOverlaps::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionSegmentIntersectsAny,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.SegmentQueries.IntersectsAny",
+	"PCGEx.Unit.Math.OBBCollection.SegmentQueries.IntersectsAny",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionSegmentIntersectsAny::RunTest(const FString& Parameters)
@@ -487,7 +487,7 @@ bool FPCGExOBBCollectionSegmentIntersectsAny::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionClassifyPoints,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.BulkOps.ClassifyPoints",
+	"PCGEx.Unit.Math.OBBCollection.BulkOps.ClassifyPoints",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionClassifyPoints::RunTest(const FString& Parameters)
@@ -519,7 +519,7 @@ bool FPCGExOBBCollectionClassifyPoints::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionFilterInside,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.BulkOps.FilterInside",
+	"PCGEx.Unit.Math.OBBCollection.BulkOps.FilterInside",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionFilterInside::RunTest(const FString& Parameters)
@@ -553,7 +553,7 @@ bool FPCGExOBBCollectionFilterInside::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionLooseOverlaps,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.BoundsQueries.LooseOverlaps",
+	"PCGEx.Unit.Math.OBBCollection.BoundsQueries.LooseOverlaps",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionLooseOverlaps::RunTest(const FString& Parameters)
@@ -577,7 +577,7 @@ bool FPCGExOBBCollectionLooseOverlaps::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionEncompasses,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.BoundsQueries.Encompasses",
+	"PCGEx.Unit.Math.OBBCollection.BoundsQueries.Encompasses",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionEncompasses::RunTest(const FString& Parameters)
@@ -609,7 +609,7 @@ bool FPCGExOBBCollectionEncompasses::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExOBBCollectionIsPointInsideWithExpansion,
-	"Plugins.PCGExtendedToolkit.Math.OBBCollection.Expansion.PointInside",
+	"PCGEx.Unit.Math.OBBCollection.Expansion.PointInside",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExOBBCollectionIsPointInsideWithExpansion::RunTest(const FString& Parameters)
@@ -627,7 +627,8 @@ bool FPCGExOBBCollectionIsPointInsideWithExpansion::RunTest(const FString& Param
 	TestFalse(TEXT("Point outside without expansion"), Collection.IsPointInside(JustOutside));
 
 	// With expansion of 10, point should be inside
-	TestTrue(TEXT("Point inside with expansion"), Collection.IsPointInside(JustOutside, EPCGExBoxCheckMode::Box, 10.0f));
+	// NOTE: Must use ExpandedBox mode - Box mode ignores expansion parameter
+	TestTrue(TEXT("Point inside with expansion"), Collection.IsPointInside(JustOutside, EPCGExBoxCheckMode::ExpandedBox, 10.0f));
 
 	return true;
 }

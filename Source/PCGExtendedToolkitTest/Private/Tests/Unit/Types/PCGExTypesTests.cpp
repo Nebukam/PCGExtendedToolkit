@@ -10,7 +10,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFScopedTypedValueNumericTypes,
-	"Plugins.PCGExtendedToolkit.Types.FScopedTypedValue.NumericTypes",
+	"PCGEx.Unit.Types.FScopedTypedValue.NumericTypes",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFScopedTypedValueNumericTypes::RunTest(const FString& Parameters)
@@ -56,7 +56,7 @@ bool FPCGExTypesFScopedTypedValueNumericTypes::RunTest(const FString& Parameters
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFScopedTypedValueVectorTypes,
-	"Plugins.PCGExtendedToolkit.Types.FScopedTypedValue.VectorTypes",
+	"PCGEx.Unit.Types.FScopedTypedValue.VectorTypes",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFScopedTypedValueVectorTypes::RunTest(const FString& Parameters)
@@ -94,7 +94,7 @@ bool FPCGExTypesFScopedTypedValueVectorTypes::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFScopedTypedValueRotationTypes,
-	"Plugins.PCGExtendedToolkit.Types.FScopedTypedValue.RotationTypes",
+	"PCGEx.Unit.Types.FScopedTypedValue.RotationTypes",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFScopedTypedValueRotationTypes::RunTest(const FString& Parameters)
@@ -131,7 +131,7 @@ bool FPCGExTypesFScopedTypedValueRotationTypes::RunTest(const FString& Parameter
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFScopedTypedValueStringTypes,
-	"Plugins.PCGExtendedToolkit.Types.FScopedTypedValue.StringTypes",
+	"PCGEx.Unit.Types.FScopedTypedValue.StringTypes",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFScopedTypedValueStringTypes::RunTest(const FString& Parameters)
@@ -159,7 +159,7 @@ bool FPCGExTypesFScopedTypedValueStringTypes::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFScopedTypedValueLifecycle,
-	"Plugins.PCGExtendedToolkit.Types.FScopedTypedValue.Lifecycle",
+	"PCGEx.Unit.Types.FScopedTypedValue.Lifecycle",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFScopedTypedValueLifecycle::RunTest(const FString& Parameters)
@@ -187,7 +187,7 @@ bool FPCGExTypesFScopedTypedValueLifecycle::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFScopedTypedValueMoveConstructor,
-	"Plugins.PCGExtendedToolkit.Types.FScopedTypedValue.MoveConstructor",
+	"PCGEx.Unit.Types.FScopedTypedValue.MoveConstructor",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFScopedTypedValueMoveConstructor::RunTest(const FString& Parameters)
@@ -208,7 +208,7 @@ bool FPCGExTypesFScopedTypedValueMoveConstructor::RunTest(const FString& Paramet
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFScopedTypedValueStaticHelpers,
-	"Plugins.PCGExtendedToolkit.Types.FScopedTypedValue.StaticHelpers",
+	"PCGEx.Unit.Types.FScopedTypedValue.StaticHelpers",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFScopedTypedValueStaticHelpers::RunTest(const FString& Parameters)
@@ -241,7 +241,7 @@ bool FPCGExTypesFScopedTypedValueStaticHelpers::RunTest(const FString& Parameter
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesConvertFunction,
-	"Plugins.PCGExtendedToolkit.Types.ConvenienceFunctions.Convert",
+	"PCGEx.Unit.Types.ConvenienceFunctions.Convert",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesConvertFunction::RunTest(const FString& Parameters)
@@ -265,7 +265,7 @@ bool FPCGExTypesConvertFunction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesComputeHashFunction,
-	"Plugins.PCGExtendedToolkit.Types.ConvenienceFunctions.ComputeHash",
+	"PCGEx.Unit.Types.ConvenienceFunctions.ComputeHash",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesComputeHashFunction::RunTest(const FString& Parameters)
@@ -291,7 +291,7 @@ bool FPCGExTypesComputeHashFunction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesLerpFunction,
-	"Plugins.PCGExtendedToolkit.Types.ConvenienceFunctions.Lerp",
+	"PCGEx.Unit.Types.ConvenienceFunctions.Lerp",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesLerpFunction::RunTest(const FString& Parameters)
@@ -319,7 +319,7 @@ bool FPCGExTypesLerpFunction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesClampFunction,
-	"Plugins.PCGExtendedToolkit.Types.ConvenienceFunctions.Clamp",
+	"PCGEx.Unit.Types.ConvenienceFunctions.Clamp",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesClampFunction::RunTest(const FString& Parameters)
@@ -344,7 +344,7 @@ bool FPCGExTypesClampFunction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesAbsFunction,
-	"Plugins.PCGExtendedToolkit.Types.ConvenienceFunctions.Abs",
+	"PCGEx.Unit.Types.ConvenienceFunctions.Abs",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesAbsFunction::RunTest(const FString& Parameters)
@@ -368,7 +368,7 @@ bool FPCGExTypesAbsFunction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesFactorFunction,
-	"Plugins.PCGExtendedToolkit.Types.ConvenienceFunctions.Factor",
+	"PCGEx.Unit.Types.ConvenienceFunctions.Factor",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesFactorFunction::RunTest(const FString& Parameters)
@@ -392,7 +392,7 @@ bool FPCGExTypesFactorFunction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExTypesAreEqualFunction,
-	"Plugins.PCGExtendedToolkit.Types.ConvenienceFunctions.AreEqual",
+	"PCGEx.Unit.Types.ConvenienceFunctions.AreEqual",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExTypesAreEqualFunction::RunTest(const FString& Parameters)

@@ -12,7 +12,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFLinkConstruction,
-	"Plugins.PCGExtendedToolkit.Clusters.FLink.Construction",
+	"PCGEx.Unit.Clusters.FLink.Construction",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFLinkConstruction::RunTest(const FString& Parameters)
@@ -45,7 +45,7 @@ bool FPCGExClusterFLinkConstruction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFLinkH64,
-	"Plugins.PCGExtendedToolkit.Clusters.FLink.H64",
+	"PCGEx.Unit.Clusters.FLink.H64",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFLinkH64::RunTest(const FString& Parameters)
@@ -65,7 +65,7 @@ bool FPCGExClusterFLinkH64::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFLinkEquality,
-	"Plugins.PCGExtendedToolkit.Clusters.FLink.Equality",
+	"PCGEx.Unit.Clusters.FLink.Equality",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFLinkEquality::RunTest(const FString& Parameters)
@@ -84,7 +84,7 @@ bool FPCGExClusterFLinkEquality::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFLinkGetTypeHash,
-	"Plugins.PCGExtendedToolkit.Clusters.FLink.GetTypeHash",
+	"PCGEx.Unit.Clusters.FLink.GetTypeHash",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFLinkGetTypeHash::RunTest(const FString& Parameters)
@@ -112,7 +112,7 @@ bool FPCGExClusterFLinkGetTypeHash::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFEdgeConstruction,
-	"Plugins.PCGExtendedToolkit.Clusters.FEdge.Construction",
+	"PCGEx.Unit.Clusters.FEdge.Construction",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFEdgeConstruction::RunTest(const FString& Parameters)
@@ -152,7 +152,7 @@ bool FPCGExClusterFEdgeConstruction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFEdgeOther,
-	"Plugins.PCGExtendedToolkit.Clusters.FEdge.Other",
+	"PCGEx.Unit.Clusters.FEdge.Other",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFEdgeOther::RunTest(const FString& Parameters)
@@ -168,7 +168,7 @@ bool FPCGExClusterFEdgeOther::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFEdgeContains,
-	"Plugins.PCGExtendedToolkit.Clusters.FEdge.Contains",
+	"PCGEx.Unit.Clusters.FEdge.Contains",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFEdgeContains::RunTest(const FString& Parameters)
@@ -185,7 +185,7 @@ bool FPCGExClusterFEdgeContains::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFEdgeEquality,
-	"Plugins.PCGExtendedToolkit.Clusters.FEdge.Equality",
+	"PCGEx.Unit.Clusters.FEdge.Equality",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFEdgeEquality::RunTest(const FString& Parameters)
@@ -205,7 +205,7 @@ bool FPCGExClusterFEdgeEquality::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFEdgeH64U,
-	"Plugins.PCGExtendedToolkit.Clusters.FEdge.H64U",
+	"PCGEx.Unit.Clusters.FEdge.H64U",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFEdgeH64U::RunTest(const FString& Parameters)
@@ -225,7 +225,7 @@ bool FPCGExClusterFEdgeH64U::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFEdgeLessThan,
-	"Plugins.PCGExtendedToolkit.Clusters.FEdge.LessThan",
+	"PCGEx.Unit.Clusters.FEdge.LessThan",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFEdgeLessThan::RunTest(const FString& Parameters)
@@ -246,7 +246,7 @@ bool FPCGExClusterFEdgeLessThan::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFNodeConstruction,
-	"Plugins.PCGExtendedToolkit.Clusters.FNode.Construction",
+	"PCGEx.Unit.Clusters.FNode.Construction",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFNodeConstruction::RunTest(const FString& Parameters)
@@ -273,7 +273,7 @@ bool FPCGExClusterFNodeConstruction::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFNodeNumAndIsEmpty,
-	"Plugins.PCGExtendedToolkit.Clusters.FNode.NumAndIsEmpty",
+	"PCGEx.Unit.Clusters.FNode.NumAndIsEmpty",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFNodeNumAndIsEmpty::RunTest(const FString& Parameters)
@@ -292,7 +292,7 @@ bool FPCGExClusterFNodeNumAndIsEmpty::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFNodeLeafBinaryComplex,
-	"Plugins.PCGExtendedToolkit.Clusters.FNode.LeafBinaryComplex",
+	"PCGEx.Unit.Clusters.FNode.LeafBinaryComplex",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFNodeLeafBinaryComplex::RunTest(const FString& Parameters)
@@ -332,7 +332,7 @@ bool FPCGExClusterFNodeLeafBinaryComplex::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFNodeLinkEdge,
-	"Plugins.PCGExtendedToolkit.Clusters.FNode.LinkEdge",
+	"PCGEx.Unit.Clusters.FNode.LinkEdge",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFNodeLinkEdge::RunTest(const FString& Parameters)
@@ -356,7 +356,7 @@ bool FPCGExClusterFNodeLinkEdge::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFNodeLink,
-	"Plugins.PCGExtendedToolkit.Clusters.FNode.Link",
+	"PCGEx.Unit.Clusters.FNode.Link",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFNodeLink::RunTest(const FString& Parameters)
@@ -380,7 +380,7 @@ bool FPCGExClusterFNodeLink::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFNodeIsAdjacentTo,
-	"Plugins.PCGExtendedToolkit.Clusters.FNode.IsAdjacentTo",
+	"PCGEx.Unit.Clusters.FNode.IsAdjacentTo",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFNodeIsAdjacentTo::RunTest(const FString& Parameters)
@@ -401,7 +401,7 @@ bool FPCGExClusterFNodeIsAdjacentTo::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterFNodeGetEdgeIndex,
-	"Plugins.PCGExtendedToolkit.Clusters.FNode.GetEdgeIndex",
+	"PCGEx.Unit.Clusters.FNode.GetEdgeIndex",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterFNodeGetEdgeIndex::RunTest(const FString& Parameters)
@@ -425,7 +425,7 @@ bool FPCGExClusterFNodeGetEdgeIndex::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterNodeGUID,
-	"Plugins.PCGExtendedToolkit.Clusters.NodeGUID",
+	"PCGEx.Unit.Clusters.NodeGUID",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterNodeGUID::RunTest(const FString& Parameters)
@@ -452,7 +452,7 @@ bool FPCGExClusterNodeGUID::RunTest(const FString& Parameters)
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPCGExClusterEdgeDirectionEnums,
-	"Plugins.PCGExtendedToolkit.Clusters.EdgeDirectionEnums",
+	"PCGEx.Unit.Clusters.EdgeDirectionEnums",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FPCGExClusterEdgeDirectionEnums::RunTest(const FString& Parameters)
