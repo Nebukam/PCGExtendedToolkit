@@ -524,6 +524,7 @@ namespace PCGExBinPacking3D
 
 	bool FBP3DBin::EvaluatePlacement(
 		const FVector& ItemSize,
+		const FVector& ItemPadding,
 		int32 EPIndex,
 		const FRotator& Rotation,
 		FBP3DPlacementCandidate& OutCandidate) const
@@ -533,66 +534,80 @@ namespace PCGExBinPacking3D
 		const FVector& EP = ExtremePoints[EPIndex];
 		const FVector RotatedSize = FBP3DRotationHelper::RotateSize(ItemSize, Rotation);
 
-		// Compute placement position based on packing direction
-		FVector ItemMin;
+		// Compute effective padding (rotate if not absolute)
+		FVector EffectivePadding = ItemPadding;
+		if (!bAbsolutePadding && !Rotation.IsNearlyZero())
+		{
+			EffectivePadding = FBP3DRotationHelper::RotateSize(ItemPadding, Rotation);
+		}
+
+		// Padded size is what the algorithm uses for placement/collision
+		const FVector PaddedSize = RotatedSize + EffectivePadding * 2.0;
+
+		// Compute placement position for the padded box based on packing direction
+		FVector PaddedMin;
 		for (int C = 0; C < 3; C++)
 		{
 			if (PackSign[C] > 0)
 			{
-				ItemMin[C] = EP[C];
+				PaddedMin[C] = EP[C];
 			}
 			else
 			{
-				ItemMin[C] = EP[C] - RotatedSize[C];
+				PaddedMin[C] = EP[C] - PaddedSize[C];
 			}
 		}
 
-		const FBox ItemBox(ItemMin, ItemMin + RotatedSize);
+		const FBox PaddedBox(PaddedMin, PaddedMin + PaddedSize);
 
-		// Bounds check with tolerance
-		if (ItemBox.Min.X < Bounds.Min.X - KINDA_SMALL_NUMBER ||
-			ItemBox.Min.Y < Bounds.Min.Y - KINDA_SMALL_NUMBER ||
-			ItemBox.Min.Z < Bounds.Min.Z - KINDA_SMALL_NUMBER ||
-			ItemBox.Max.X > Bounds.Max.X + KINDA_SMALL_NUMBER ||
-			ItemBox.Max.Y > Bounds.Max.Y + KINDA_SMALL_NUMBER ||
-			ItemBox.Max.Z > Bounds.Max.Z + KINDA_SMALL_NUMBER)
+		// Bounds check with padded box
+		if (PaddedBox.Min.X < Bounds.Min.X - KINDA_SMALL_NUMBER ||
+			PaddedBox.Min.Y < Bounds.Min.Y - KINDA_SMALL_NUMBER ||
+			PaddedBox.Min.Z < Bounds.Min.Z - KINDA_SMALL_NUMBER ||
+			PaddedBox.Max.X > Bounds.Max.X + KINDA_SMALL_NUMBER ||
+			PaddedBox.Max.Y > Bounds.Max.Y + KINDA_SMALL_NUMBER ||
+			PaddedBox.Max.Z > Bounds.Max.Z + KINDA_SMALL_NUMBER)
 		{
 			return false;
 		}
 
-		// Overlap check against all placed items (uses padded boxes)
-		if (HasOverlap(ItemBox)) { return false; }
+		// Overlap check against all placed items (padded vs padded)
+		if (HasOverlap(PaddedBox)) { return false; }
+
+		// Actual item position (inset from padded box)
+		const FVector ActualMin = PaddedMin + EffectivePadding;
 
 		// Compute paper objective scores
-		const double ItemVolume = RotatedSize.X * RotatedSize.Y * RotatedSize.Z;
+		const double PaddedVolume = PaddedSize.X * PaddedSize.Y * PaddedSize.Z;
 		const FVector BinSize = Bounds.GetSize();
 
-		// o1: Bin usage — prefer fuller bins (lower score = better)
-		const double CurrentFillRatio = MaxVolume > 0 ? (UsedVolume + ItemVolume) / MaxVolume : 0;
+		// o1: Bin usage — prefer fuller bins (lower score = better), uses padded volume
+		const double CurrentFillRatio = MaxVolume > 0 ? (UsedVolume + PaddedVolume) / MaxVolume : 0;
 		const double BinUsageScore = 1.0 - CurrentFillRatio;
 
-		// o2: Height — prefer lower placement Z (Paper Eq. 2)
+		// o2: Height — prefer lower actual placement Z (Paper Eq. 2)
 		const double NormalizedZ = BinSize.Z > KINDA_SMALL_NUMBER
-			                           ? (ItemMin.Z + RotatedSize.Z - Bounds.Min.Z) / BinSize.Z
+			                           ? (ActualMin.Z + RotatedSize.Z - Bounds.Min.Z) / BinSize.Z
 			                           : 0.0;
 
-		// o3: Load balance — Manhattan distance to bin center (Paper Eq. 3)
-		const FVector ItemCenter = ItemMin + RotatedSize * 0.5;
+		// o3: Load balance — Manhattan distance of actual center to bin center (Paper Eq. 3)
+		const FVector ActualCenter = ActualMin + RotatedSize * 0.5;
 		const FVector BinCenter = Bounds.GetCenter();
-		const FVector Diff = (ItemCenter - BinCenter).GetAbs();
+		const FVector Diff = (ActualCenter - BinCenter).GetAbs();
 		const FVector BinExtent = Bounds.GetExtent();
 		const double MaxManhattan = BinExtent.X + BinExtent.Y + BinExtent.Z;
 		const double ManhattanDist = Diff.X + Diff.Y + Diff.Z;
 		const double LoadBalanceScore = MaxManhattan > KINDA_SMALL_NUMBER ? ManhattanDist / MaxManhattan : 0.0;
 
-		// Contact score — more touching surfaces = better
-		const double ContactScoreVal = ComputeContactScore(ItemBox);
+		// Contact score — uses padded box for algorithm adjacency
+		const double ContactScoreVal = ComputeContactScore(PaddedBox);
 
 		OutCandidate.BinIndex = BinIndex;
 		OutCandidate.EPIndex = EPIndex;
 		OutCandidate.Rotation = Rotation;
 		OutCandidate.RotatedSize = RotatedSize;
-		OutCandidate.PlacementMin = ItemMin;
+		OutCandidate.PlacementMin = ActualMin;
+		OutCandidate.EffectivePadding = EffectivePadding;
 		OutCandidate.BinUsageScore = BinUsageScore;
 		OutCandidate.HeightScore = NormalizedZ;
 		OutCandidate.LoadBalanceScore = LoadBalanceScore;
@@ -605,18 +620,20 @@ namespace PCGExBinPacking3D
 	{
 		if (Items.IsEmpty()) { return true; }
 
-		const FBox CandidateBox(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
+		// Use padded geometry since the algorithm places items in padded-box space
+		const FBox CandidateActual(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
+		const FBox CandidatePadded = CandidateActual.ExpandBy(Candidate.EffectivePadding);
 
 		for (const FBP3DItem& Existing : Items)
 		{
-			// Check if candidate is above existing (uses actual box, not padded, for physical support)
-			const bool bAbove = CandidateBox.Min.Z >= Existing.Box.Max.Z - KINDA_SMALL_NUMBER;
+			// Check if candidate is above existing using padded geometry
+			const bool bAbove = CandidatePadded.Min.Z >= Existing.PaddedBox.Max.Z - KINDA_SMALL_NUMBER;
 
 			if (!bAbove) { continue; }
 
-			// Check XY overlap
-			const bool bXOverlap = CandidateBox.Min.X < Existing.Box.Max.X && CandidateBox.Max.X > Existing.Box.Min.X;
-			const bool bYOverlap = CandidateBox.Min.Y < Existing.Box.Max.Y && CandidateBox.Max.Y > Existing.Box.Min.Y;
+			// Check XY overlap using padded geometry
+			const bool bXOverlap = CandidatePadded.Min.X < Existing.PaddedBox.Max.X && CandidatePadded.Max.X > Existing.PaddedBox.Min.X;
+			const bool bYOverlap = CandidatePadded.Min.Y < Existing.PaddedBox.Max.Y && CandidatePadded.Max.Y > Existing.PaddedBox.Min.Y;
 
 			if (bXOverlap && bYOverlap)
 			{
@@ -641,19 +658,20 @@ namespace PCGExBinPacking3D
 			return 1.0;
 		}
 
-		// Sum XY overlap area with items whose top (Box.Max.Z) touches our bottom (ItemBox.Min.Z)
+		// Sum XY overlap area with items whose padded top touches our bottom
+		// Uses PaddedBox since the algorithm places items in padded-box space
 		double SupportArea = 0.0;
 		for (const FBP3DItem& Existing : Items)
 		{
-			if (!FMath::IsNearlyEqual(Existing.Box.Max.Z, ItemBox.Min.Z, KINDA_SMALL_NUMBER))
+			if (!FMath::IsNearlyEqual(Existing.PaddedBox.Max.Z, ItemBox.Min.Z, KINDA_SMALL_NUMBER))
 			{
 				continue;
 			}
 
-			const double OverlapMinX = FMath::Max(ItemBox.Min.X, Existing.Box.Min.X);
-			const double OverlapMaxX = FMath::Min(ItemBox.Max.X, Existing.Box.Max.X);
-			const double OverlapMinY = FMath::Max(ItemBox.Min.Y, Existing.Box.Min.Y);
-			const double OverlapMaxY = FMath::Min(ItemBox.Max.Y, Existing.Box.Max.Y);
+			const double OverlapMinX = FMath::Max(ItemBox.Min.X, Existing.PaddedBox.Min.X);
+			const double OverlapMaxX = FMath::Min(ItemBox.Max.X, Existing.PaddedBox.Max.X);
+			const double OverlapMinY = FMath::Max(ItemBox.Min.Y, Existing.PaddedBox.Min.Y);
+			const double OverlapMaxY = FMath::Min(ItemBox.Max.Y, Existing.PaddedBox.Max.Y);
 
 			if (OverlapMaxX > OverlapMinX && OverlapMaxY > OverlapMinY)
 			{
@@ -674,13 +692,8 @@ namespace PCGExBinPacking3D
 		InItem.Box = FBox(ItemMin, ItemMin + ItemSize);
 		InItem.Rotation = Candidate.Rotation;
 
-		// Compute padded box for collision
-		FVector EffectivePadding = InItem.Padding;
-		if (!bAbsolutePadding && !InItem.Rotation.IsNearlyZero())
-		{
-			EffectivePadding = FBP3DRotationHelper::RotateSize(InItem.Padding, InItem.Rotation);
-		}
-		InItem.PaddedBox = InItem.Box.ExpandBy(EffectivePadding);
+		// Reconstruct padded box using the effective padding from evaluation
+		InItem.PaddedBox = InItem.Box.ExpandBy(Candidate.EffectivePadding);
 
 		// Update tracking
 		CurrentWeight += InItem.Weight;
@@ -688,11 +701,14 @@ namespace PCGExBinPacking3D
 		{
 			PresentCategories.Add(InItem.Category);
 		}
-		UsedVolume += ItemSize.X * ItemSize.Y * ItemSize.Z;
+
+		// Track padded volume (the space consumed from the algorithm's perspective)
+		const FVector PaddedSize = InItem.PaddedBox.GetSize();
+		UsedVolume += PaddedSize.X * PaddedSize.Y * PaddedSize.Z;
 
 		Items.Add(InItem);
 
-		// Generate new extreme points from the placed item
+		// Generate new extreme points from the placed item's padded box
 		GenerateExtremePoints(InItem.PaddedBox);
 
 		// Remove extreme points that are now inside the placed item
@@ -869,13 +885,14 @@ namespace PCGExBinPacking3D
 					FBP3DPlacementCandidate Candidate;
 					Candidate.RotationIndex = RotIdx;
 
-					if (Bin->EvaluatePlacement(OriginalSize, EPIdx, RotationsToTest[RotIdx], Candidate))
+					if (Bin->EvaluatePlacement(OriginalSize, InItem.Padding, EPIdx, RotationsToTest[RotIdx], Candidate))
 					{
 						// Support check — reject placements with no physical support beneath
 						if (Settings->bRequireSupport)
 						{
-							const FBox CandidateBox(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
-							const double Support = Bin->ComputeSupportRatio(CandidateBox);
+							const FBox CandidateActualBox(Candidate.PlacementMin, Candidate.PlacementMin + Candidate.RotatedSize);
+							const FBox CandidatePaddedBox = CandidateActualBox.ExpandBy(Candidate.EffectivePadding);
+							const double Support = Bin->ComputeSupportRatio(CandidatePaddedBox);
 							if (Support < InItem.MinSupportRatio - KINDA_SMALL_NUMBER)
 							{
 								continue;

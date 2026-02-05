@@ -226,7 +226,7 @@ namespace PCGExBestFitPacking
 		}
 	};
 
-	class FBestFitBin : public TSharedFromThis<FBestFitBin>
+	class PCGEXELEMENTSSPATIAL_API FBestFitBin : public TSharedFromThis<FBestFitBin>
 	{
 	protected:
 		double MaxVolume = 0;
@@ -278,7 +278,7 @@ namespace PCGExBestFitPacking
 	};
 
 	// Rotation utilities
-	class FRotationHelper
+	class PCGEXELEMENTSSPATIAL_API FRotationHelper
 	{
 	public:
 		static void GetRotationsToTest(EPCGExBestFitRotationMode Mode, TArray<FRotator>& OutRotations);

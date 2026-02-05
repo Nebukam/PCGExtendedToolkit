@@ -303,6 +303,7 @@ namespace PCGExBinPacking3D
 		FRotator Rotation = FRotator::ZeroRotator;
 		FVector RotatedSize = FVector::ZeroVector;
 		FVector PlacementMin = FVector::ZeroVector;
+		FVector EffectivePadding = FVector::ZeroVector;
 		double Score = MAX_dbl;
 
 		// Paper objective scores (all [0,1], lower = better)
@@ -315,7 +316,7 @@ namespace PCGExBinPacking3D
 	};
 
 	// Paper's 6 orientations with symmetry reduction
-	class FBP3DRotationHelper
+	class PCGEXELEMENTSSPATIAL_API FBP3DRotationHelper
 	{
 	public:
 		static void GetPaper6Rotations(const FVector& ItemSize, TArray<FRotator>& OutRotations);
@@ -324,7 +325,7 @@ namespace PCGExBinPacking3D
 	};
 
 	// Bin using Extreme Point placement (replaces guillotine-cut free-space approach)
-	class FBP3DBin : public TSharedFromThis<FBP3DBin>
+	class PCGEXELEMENTSSPATIAL_API FBP3DBin : public TSharedFromThis<FBP3DBin>
 	{
 	protected:
 		double MaxVolume = 0;
@@ -367,6 +368,7 @@ namespace PCGExBinPacking3D
 
 		bool EvaluatePlacement(
 			const FVector& ItemSize,
+			const FVector& ItemPadding,
 			int32 EPIndex,
 			const FRotator& Rotation,
 			FBP3DPlacementCandidate& OutCandidate) const;

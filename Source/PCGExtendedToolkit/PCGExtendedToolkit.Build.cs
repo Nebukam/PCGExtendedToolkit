@@ -18,7 +18,7 @@ public class PCGExtendedToolkit : ModuleRules
 	private const string EditorSuffix = "Editor";
 
 	private static readonly string[] BaseDependencies = { "PCGExCore", "PCGExBlending" };
-	private static readonly string[] BaseEditorDependencies = { "PCGExCoreEditor" }; //, "PCGExtendedToolkitTest"
+	private static readonly string[] BaseEditorDependencies = { "PCGExCoreEditor" };
 
 	private readonly Dictionary<string, List<string>> _moduleDependencies = new();
 
