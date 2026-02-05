@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExLayout.h"
 #include "Core/PCGExPointsProcessor.h"
-#include "Details/PCGExSettingsMacros.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Sorting/PCGExSortingCommon.h"
 #include "Math/PCGExUVW.h"
 
@@ -131,17 +131,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, EditCondition="ScoreMode == EPCGExBestFitScoreMode::Balanced", ClampMin=0.0, ClampMax=1.0))
 	double TightnessWeight = 0.6;
 
-	/** Occupation padding source */
+	/** Per-item occupation padding. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
-	EPCGExInputValueType OccupationPaddingInput = EPCGExInputValueType::Constant;
-
-	/** Occupation padding attribute -- Will be broadcast to FVector. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, DisplayName="Occupation Padding (Attr)", EditCondition="OccupationPaddingInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector OccupationPaddingAttribute;
-
-	/** Occupation padding constant value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable, DisplayName="Occupation Padding", EditCondition="OccupationPaddingInput == EPCGExInputValueType::Constant", EditConditionHides))
-	FVector OccupationPadding = FVector::ZeroVector;
+	FPCGExInputShorthandSelectorVector OccupationPadding = FPCGExInputShorthandSelectorVector(FName("Padding"));
 
 	/** If enabled, the padding will not be relative (rotated) if the item is rotated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Packing", meta = (PCG_Overridable))
@@ -157,7 +149,6 @@ public:
 
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
-	PCGEX_SETTING_VALUE_DECL(Padding, FVector)
 };
 
 struct FPCGExBestFitPackingContext final : FPCGExPointsProcessorContext

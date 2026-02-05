@@ -16,8 +16,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBinPackingElement"
 #define PCGEX_NAMESPACE BinPacking
 
-PCGEX_SETTING_VALUE_IMPL(UPCGExBinPackingSettings, Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
-
 bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	OutRules.Append(PCGExSorting::GetSortingRules(InContext, PCGExSorting::Labels::SourceSortingRules));
@@ -277,7 +275,7 @@ namespace PCGExBinPacking
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
 		PCGEX_INIT_IO(TargetBins, PCGExData::EIOInit::Duplicate)
 
-		PaddingBuffer = Settings->GetValueSettingPadding();
+		PaddingBuffer = Settings->OccupationPadding.GetValueSetting();
 		if (!PaddingBuffer->Init(PointDataFacade)) { return false; }
 
 #define PCGEX_SWITCH_ON_SPLIT_MODE(_DIRECTION)\
