@@ -98,6 +98,7 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 
 	const double B = DistanceThresholdGetter->Read(PointIndex);
 
+	// FindClosestTarget returns squared distance; sqrt converts to world units for threshold comparison.
 	double BestDist = MAX_dbl;
 	TargetsHandler->FindClosestTarget(SourcePt, TargetPt, BestDist, &IgnoreList);
 

@@ -63,6 +63,8 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 	double SumValue = 0;
 	for (int i = 0; i < NumPoints; i++) { SumValue += Values[i]; }
 
+	// Normalize values to [0..1] range by dividing by DataMax, mutating Values in-place.
+	// DataMin/DataMax are recomputed from normalized values for subsequent mean calculation.
 	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{
 		double RelativeMinEdgeLength = MAX_dbl;
@@ -95,13 +97,16 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 		break;
 	}
 
+	// Build the acceptable range around the reference mean. Disabled sides default to +/-infinity.
 	const double RMin = TypedFilterFactory->Config.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Config.ExcludeBelow : MIN_dbl_neg;
 	const double RMax = TypedFilterFactory->Config.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Config.ExcludeAbove : MAX_dbl;
 
+	// Min/Max swap ensures ReferenceMin <= ReferenceMax regardless of which sides are enabled.
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);
 }
 
+// Pass if value falls within the acceptable band around the mean; outliers fail.
 bool PCGExPointFilter::FMeanFilter::Test(const int32 PointIndex) const
 {
 	return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax) ? !bInvert : bInvert;

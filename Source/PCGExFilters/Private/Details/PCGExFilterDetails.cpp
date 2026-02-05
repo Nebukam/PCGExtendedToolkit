@@ -9,6 +9,9 @@
 
 namespace PCGEx
 {
+	// Converts key:value tag strings into typed metadata attributes.
+	// ToData writes to the @Data domain, ToElements writes to per-element metadata.
+	// Uses ExecuteWithRightType to dispatch the correct attribute type at runtime.
 	void TagsToData(UPCGData* Data, const TSharedPtr<PCGExData::FTags>& Tags, const EPCGExTagsToDataAction Action)
 	{
 		if (Action == EPCGExTagsToDataAction::Ignore) { return; }

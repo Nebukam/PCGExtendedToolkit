@@ -69,6 +69,8 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 
 	Threshold = TypedFilterFactory->Config.Threshold;
 
+	// When remapping internally, track min/max to normalize weight values to [0..WeightRange].
+	// If min is negative, WeightOffset shifts values so the effective range starts at zero.
 	WeightBuffer = TypedFilterFactory->Config.GetValueSettingWeight(PCGEX_QUIET_HANDLING);
 	if (!WeightBuffer->IsConstant())
 	{
@@ -116,6 +118,8 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 	return true;
 }
 
+// Normalize weight and threshold from their raw attribute ranges to [0..1],
+// generate a seeded random fraction, scale by weight curve, then compare against threshold.
 bool PCGExPointFilter::FRandomFilter::Test(const int32 PointIndex) const
 {
 	const double LocalWeightRange = WeightOffset + WeightBuffer->Read(PointIndex);

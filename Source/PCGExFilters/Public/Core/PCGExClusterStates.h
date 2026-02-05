@@ -29,7 +29,9 @@ struct FPCGExDataTypeInfoClusterState : public FPCGExDataTypeInfoPointState
 };
 
 /**
- * 
+ * Cluster-aware variant of the state factory. Creates FState instances that
+ * use a cluster filter manager internally, giving the state's filters access
+ * to full cluster topology (nodes, edges, adjacency).
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXFILTERS_API UPCGExClusterStateFactoryData : public UPCGExPointStateFactoryData

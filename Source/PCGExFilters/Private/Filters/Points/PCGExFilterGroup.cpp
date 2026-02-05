@@ -101,6 +101,10 @@ namespace PCGExFilterGroup
 		return PostInitManaged(InContext);
 	}
 
+	// Routes child filter initialization based on its type:
+	// - Groups: recurse through the group Init path (supporting nested AND/OR)
+	// - Cluster-only filters: require cluster context, fail gracefully if unavailable
+	// - Point filters: standard Init, using edge data when bUseEdgeAsPrimary is set
 	bool FFilterGroup::InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter, const bool bQuiet) const
 	{
 		if (Filter->GetFilterType() == PCGExFilters::EType::Group)

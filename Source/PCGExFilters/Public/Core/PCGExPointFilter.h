@@ -50,7 +50,20 @@ struct FPCGExDataTypeInfoFilterPoint : public FPCGExDataTypeInfoFilter
 };
 
 /**
- * 
+ * Base factory for all PCGEx filters. Factories are UObject-based configuration holders
+ * that create lightweight filter instances (IFilter) for runtime evaluation.
+ *
+ * To create a new filter type:
+ * 1. Subclass UPCGExPointFilterFactoryData (or UPCGExClusterFilterFactoryData for cluster filters)
+ * 2. Add a Config UPROPERTY struct with your filter settings
+ * 3. Override CreateFilter() to return a new instance of your filter class
+ * 4. Override Init() if you need to validate settings (e.g. check selectors against data)
+ * 5. Create a matching UPCGExFilterProviderSettings subclass as the PCG node
+ *
+ * Key policies:
+ * - InitializationFailurePolicy: What happens when Init fails (error, pass-all, or fail-all)
+ * - MissingDataPolicy: What happens when required input data is missing
+ * - Priority: Controls evaluation order in the filter stack (lower = evaluated first)
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXFILTERS_API UPCGExFilterFactoryData : public UPCGExFactoryData
@@ -83,7 +96,9 @@ protected:
 };
 
 /**
- * 
+ * Base factory for point-level filters. Most custom filters should subclass this.
+ * The factory type is automatically set to FilterPoint, which the filter system uses
+ * to distinguish point filters from cluster or collection filters.
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXFILTERS_API UPCGExPointFilterFactoryData : public UPCGExFilterFactoryData
@@ -100,6 +115,20 @@ public:
 
 namespace PCGExPointFilter
 {
+	/**
+	 * Base runtime filter instance. Created by a factory and evaluated by the FManager.
+	 * Lightweight (TSharedFromThis, not UObject) for efficient per-point evaluation.
+	 *
+	 * Subclass guide:
+	 * - Override Init() to fetch attribute readers/broadcasters from the PointDataFacade
+	 * - Override Test(int32 Index) for per-point evaluation (the primary entry point)
+	 * - Override Test(FProxyPoint) only for context-free evaluation (no attribute access)
+	 * - Node/Edge Test() overloads default to routing through Test(PointIndex)
+	 * - Test(FPointIO, FPointIOCollection) is for collection-level evaluation only
+	 *
+	 * The FManager calls Test() in an AND-stack: all filters must pass for a point to pass.
+	 * Results can be cached in the Results array when bCacheResults is true.
+	 */
 	class PCGEXFILTERS_API IFilter : public TSharedFromThis<IFilter>
 	{
 	public:
@@ -141,6 +170,12 @@ namespace PCGExPointFilter
 		virtual ~IFilter() = default;
 	};
 
+	/**
+	 * Convenience base for filters that only care about per-point data.
+	 * Node and Edge Test() overloads are marked final and delegate to Test(PointIndex),
+	 * so subclasses only need to override Test(int32 Index).
+	 * This is the recommended base class for most custom point filters.
+	 */
 	class PCGEXFILTERS_API ISimpleFilter : public IFilter
 	{
 	public:
@@ -156,6 +191,15 @@ namespace PCGExPointFilter
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
+	/**
+	 * Base for filters that evaluate a data collection as a whole rather than individual points.
+	 * The result is computed once during Init() via Test(FPointIO, FPointIOCollection) and cached
+	 * in bCollectionTestResult. All per-point Test() overloads simply return this cached value.
+	 *
+	 * Subclass guide:
+	 * - Override Test(FPointIO, FPointIOCollection) with your collection-level logic
+	 * - Per-point Test() calls are all final and return the cached boolean
+	 */
 	class PCGEXFILTERS_API ICollectionFilter : public IFilter
 	{
 	public:
@@ -175,6 +219,22 @@ namespace PCGExPointFilter
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
+	/**
+	 * Aggregates multiple IFilter instances into an AND-stack and provides batch evaluation.
+	 *
+	 * Lifecycle:
+	 * 1. Init() creates filter instances from factories, handles InitializationFailurePolicy fallback
+	 * 2. PostInit() sorts filters by priority, builds the raw-pointer Stack for fast iteration
+	 * 3. Test() evaluates the stack — all filters must pass (short-circuit on first failure)
+	 *
+	 * Batch Test() overloads accept a scope/range and optionally run in parallel via ParallelFor.
+	 * They return the number of passing items. Parallel paths use InterlockedIncrement for the count.
+	 *
+	 * Extension points:
+	 * - Override InitFilter() to customize how filters are initialized (see PCGExClusterFilter::FManager)
+	 * - Override PostInit() to inject additional setup after all filters are ready
+	 * - Override InitCache() to change how the manager-level Results array is allocated
+	 */
 	class PCGEXFILTERS_API FManager : public TSharedFromThis<FManager>
 	{
 	public:
@@ -215,8 +275,8 @@ namespace PCGExPointFilter
 
 	protected:
 		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
-		TArray<TSharedPtr<IFilter>> ManagedFilters;
-		TArray<const IFilter*> Stack;
+		TArray<TSharedPtr<IFilter>> ManagedFilters;       // Owns the filter instances
+		TArray<const IFilter*> Stack;                      // Raw pointers for cache-friendly iteration in Test()
 
 		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& Filter);
 		virtual bool PostInit(FPCGExContext* InContext);
@@ -240,7 +300,8 @@ struct FPCGExDataTypeInfoFilterCollection : public FPCGExDataTypeInfoFilter
 };
 
 /**
- * 
+ * Factory for collection-level filters. These evaluate entire data collections
+ * rather than individual points
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXFILTERS_API UPCGExFilterCollectionFactoryData : public UPCGExPointFilterFactoryData

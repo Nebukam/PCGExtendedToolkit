@@ -72,6 +72,8 @@ namespace PCGExPointFilter
 
 	bool ISimpleFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const { return bCollectionTestResult; }
 
+	// Eagerly evaluates the collection-level test during Init and caches the result.
+	// All subsequent per-point Test() calls return this cached boolean.
 	bool ICollectionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
@@ -92,6 +94,11 @@ namespace PCGExPointFilter
 	{
 	}
 
+	// Initializes all filters from the provided factories. If a filter fails to init,
+	// the InitializationFailurePolicy decides the outcome:
+	// - Error: log warning and skip the filter
+	// - Pass: inject a constant-true filter (ensures pass-through)
+	// - Fail: inject a constant-false filter and discard all others (guaranteed fail)
 	bool FManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories)
 	{
 		bool bWantsTrueConstant = false;
@@ -351,6 +358,9 @@ namespace PCGExPointFilter
 		return Filter->Init(InContext, PointDataFacade);
 	}
 
+	// Sorts filters by priority (lower first), assigns indices, and builds the raw-pointer
+	// Stack array used for cache-friendly iteration during Test(). Per-filter PostInit()
+	// is called here to let filters allocate their Results cache after sorting.
 	bool FManager::PostInit(FPCGExContext* InContext)
 	{
 		bValid = !ManagedFilters.IsEmpty();
@@ -395,6 +405,8 @@ namespace PCGExPointFilter
 		}
 	}
 
+	// Removes filters that don't support proxy evaluation (context-free Test(FProxyPoint)).
+	// Uses an in-place compaction pattern (WriteIndex) to avoid allocations.
 	void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories)
 	{
 		if (InFactories.IsEmpty()) { return; }
