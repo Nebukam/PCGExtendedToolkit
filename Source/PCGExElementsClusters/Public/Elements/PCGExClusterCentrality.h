@@ -23,6 +23,17 @@ namespace PCGExMT
 }
 
 UENUM()
+enum class EPCGExCentralityType : uint8
+{
+	Betweenness       = 0 UMETA(DisplayName = "Betweenness", ToolTip="Brandes' algorithm. Measures how often a node lies on shortest paths between other nodes."),
+	Closeness         = 1 UMETA(DisplayName = "Closeness", ToolTip="1 / sum(distances). Measures how close a node is to all other nodes."),
+	HarmonicCloseness = 2 UMETA(DisplayName = "Harmonic Closeness", ToolTip="sum(1/distance). Like closeness but handles disconnected graphs gracefully."),
+	Degree            = 3 UMETA(DisplayName = "Degree", ToolTip="Link count. Trivial O(N) measure of local connectivity."),
+	Eigenvector       = 4 UMETA(DisplayName = "Eigenvector", ToolTip="Power iteration on adjacency matrix. High score = connected to other high-score nodes."),
+	Katz              = 5 UMETA(DisplayName = "Katz", ToolTip="Attenuated walk count. Considers all paths with exponential decay."),
+};
+
+UENUM()
 enum class EPCGExCentralityDownsampling : uint8
 {
 	None    = 0 UMETA(DisplayName = "None", ToolTip="All connected filters must pass."),
@@ -44,7 +55,7 @@ public:
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 
-	PCGEX_NODE_INFOS(ClusterCentrality, "Cluster : Centrality", "Compute betweenness centrality. Processing time increases exponentially with the number of vtx.");
+	PCGEX_NODE_INFOS(ClusterCentrality, "Cluster : Centrality", "Compute centrality (betweenness, closeness, degree, eigenvector, katz).");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(NeighborSampler); }
 #endif
 
@@ -61,10 +72,14 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
+	/** Centrality measure to compute */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExCentralityType CentralityType = EPCGExCentralityType::Betweenness;
+
 	/** Scoring mode for combining multiple heuristics */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)                                                                    
-	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage; 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(EditCondition="CentralityType == EPCGExCentralityType::Betweenness || CentralityType == EPCGExCentralityType::Closeness || CentralityType == EPCGExCentralityType::HarmonicCloseness", EditConditionHides))
+	EPCGExHeuristicScoreMode HeuristicScoreMode = EPCGExHeuristicScoreMode::WeightedAverage;
+
 	/** Name of the attribute */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName CentralityValueAttributeName = FName("Centrality");
@@ -77,13 +92,32 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ OneMinus", EditCondition="bNormalize", EditConditionHides))
 	bool bOutputOneMinus = false;
 
-	/** Downsampling strategy to reduce processing time on large clusters. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	/** Maximum iterations for iterative centrality types (Eigenvector, Katz) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CentralityType == EPCGExCentralityType::Eigenvector || CentralityType == EPCGExCentralityType::Katz", EditConditionHides, ClampMin=1))
+	int32 MaxIterations = 100;
+
+	/** Convergence tolerance for iterative centrality types (Eigenvector, Katz) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CentralityType == EPCGExCentralityType::Eigenvector || CentralityType == EPCGExCentralityType::Katz", EditConditionHides, ClampMin=0.0))
+	double Tolerance = 1e-6;
+
+	/** Attenuation factor for Katz centrality. Must be less than 1/lambda_max (largest eigenvalue). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CentralityType == EPCGExCentralityType::Katz", EditConditionHides, ClampMin=0.001, ClampMax=0.999))
+	double KatzAlpha = 0.1;
+
+	/** Downsampling strategy to reduce processing time on large clusters. Only applies to path-based centrality types. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="CentralityType == EPCGExCentralityType::Betweenness || CentralityType == EPCGExCentralityType::Closeness || CentralityType == EPCGExCentralityType::HarmonicCloseness", EditConditionHides))
 	EPCGExCentralityDownsampling DownsamplingMode = EPCGExCentralityDownsampling::None;
 
 	/** If enabled, only compute centrality on a subset of the nodes to get a rough approximation. This is useful for large clusters, or if you want to tradeoff precision for speed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Ratio", EditCondition="DownsamplingMode == EPCGExCentralityDownsampling::Ratio", EditConditionHides))
 	FPCGExRandomRatioDetails RandomDownsampling;
+
+	bool IsPathBased() const
+	{
+		return CentralityType == EPCGExCentralityType::Betweenness ||
+			CentralityType == EPCGExCentralityType::Closeness ||
+			CentralityType == EPCGExCentralityType::HarmonicCloseness;
+	}
 };
 
 struct FPCGExClusterCentralityContext final : FPCGExClustersProcessorContext
@@ -107,7 +141,7 @@ protected:
 
 namespace PCGExClusterCentrality
 {
-	using NodePred = TArray<int32, TInlineAllocator<8>>;
+	using NodePred = TArray<int32, TInlineAllocator<4>>;
 
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExClusterCentralityContext, UPCGExClusterCentralitySettings>
 	{
@@ -122,8 +156,8 @@ namespace PCGExClusterCentrality
 
 		TArray<int32> RandomSamples;
 		TArray<double> DirectedEdgeScores;
-		TArray<double> Betweenness;
-		TSharedPtr<PCGExMT::TScopedArray<double>> ScopedBetweenness;
+		TArray<double> CentralityScores;
+		TSharedPtr<PCGExMT::TScopedArray<double>> ScopedCentralityScores;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
@@ -147,7 +181,14 @@ namespace PCGExClusterCentrality
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		void ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue);
+		void WriteResults();
+
+		void ProcessSingleNode_Betweenness(const int32 Index, TArray<double>& LocalScores, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue);
+		void ProcessSingleNode_Closeness(const int32 Index, TArray<double>& LocalScores, TArray<double>& Score, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue);
+		void ProcessSingleNode_HarmonicCloseness(const int32 Index, TArray<double>& LocalScores, TArray<double>& Score, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue);
+
+		void ComputeEigenvector();
+		void ComputeKatz();
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

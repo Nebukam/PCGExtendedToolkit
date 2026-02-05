@@ -33,16 +33,25 @@ void UPCGExClusterCentralitySettings::ApplyDeprecation(UPCGNode* InOutNode)
 
 bool UPCGExClusterCentralitySettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExClusters::Labels::SourceVtxFiltersLabel) { return DownsamplingMode == EPCGExCentralityDownsampling::Filters; }
+	if (InPin->Properties.Label == PCGExClusters::Labels::SourceVtxFiltersLabel) { return IsPathBased() && DownsamplingMode == EPCGExCentralityDownsampling::Filters; }
+	if (InPin->Properties.Label == PCGExHeuristics::Labels::SourceHeuristicsLabel) { return IsPathBased(); }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 TArray<FPCGPinProperties> UPCGExClusterCentralitySettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 
-	if (DownsamplingMode == EPCGExCentralityDownsampling::Filters) { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Required) }
+	if (IsPathBased())
+	{
+		PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExHeuristics::Labels::SourceHeuristicsLabel, "Heuristics.", Advanced, FPCGExDataTypeInfoHeuristics::AsId())
+	}
+
+	if (IsPathBased() && DownsamplingMode == EPCGExCentralityDownsampling::Filters) { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Required) }
 	else { PCGEX_PIN_FILTERS(PCGExClusters::Labels::SourceVtxFiltersLabel, "Vtx filters.", Advanced) }
 
 	return PinProperties;
@@ -59,7 +68,7 @@ bool FPCGExClusterCentralityElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->CentralityValueAttributeName)
 
-	if (Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
+	if (Settings->IsPathBased() && Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
 	{
 		if (!GetInputFactories(Context, PCGExClusters::Labels::SourceVtxFiltersLabel, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters))
 		{
@@ -80,10 +89,13 @@ bool FPCGExClusterCentralityElement::AdvanceWork(FPCGExContext* InContext, const
 	{
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
-			NewBatch->SetWantsHeuristics(true, Settings->HeuristicScoreMode);
+			if (Settings->IsPathBased())
+			{
+				NewBatch->SetWantsHeuristics(true, Settings->HeuristicScoreMode);
+			}
 			NewBatch->bSkipCompletion = true;
 			NewBatch->bRequiresWriteStep = true;
-			if (Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
+			if (Settings->IsPathBased() && Settings->DownsamplingMode == EPCGExCentralityDownsampling::Filters)
 			{
 				NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
 			}
@@ -112,8 +124,36 @@ namespace PCGExClusterCentrality
 
 		if (!IProcessor::Process(InTaskManager)) { return false; }
 
-		Betweenness.Init(0.0, NumNodes);
+		CentralityScores.Init(0.0, NumNodes);
 
+		// Degree centrality: compute directly, no Dijkstra needed
+		if (Settings->CentralityType == EPCGExCentralityType::Degree)
+		{
+			const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
+			for (int32 i = 0; i < NumNodes; i++)
+			{
+				CentralityScores[i] = static_cast<double>(Nodes[i].Links.Num());
+			}
+			WriteResults();
+			return true;
+		}
+
+		// Eigenvector/Katz: compute directly from adjacency, no edge scores needed
+		if (Settings->CentralityType == EPCGExCentralityType::Eigenvector)
+		{
+			ComputeEigenvector();
+			WriteResults();
+			return true;
+		}
+
+		if (Settings->CentralityType == EPCGExCentralityType::Katz)
+		{
+			ComputeKatz();
+			WriteResults();
+			return true;
+		}
+
+		// Path-based types: need edge scores + optional downsampling
 		bDownsample = Settings->DownsamplingMode != EPCGExCentralityDownsampling::None;
 		if (bDownsample)
 		{
@@ -141,11 +181,11 @@ namespace PCGExClusterCentrality
 		{
 			const PCGExClusters::FEdge& Edge = *Cluster->GetEdge(Index);
 			const PCGExClusters::FNode& Start = *Cluster->GetEdgeStart(Edge);
-			const PCGExClusters::FNode& End = *Cluster->GetEdgeStart(Edge);
+			const PCGExClusters::FNode& End = *Cluster->GetEdgeEnd(Edge);
 
-			DirectedEdgeScores[Index] = HeuristicsHandler->GetEdgeScore(Start, End, Edge, *Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
+			DirectedEdgeScores[Index] = HeuristicsHandler->GetEdgeScore(Start, End, Edge, Start, End, nullptr, nullptr);
 
-			DirectedEdgeScores[NumEdges + Index] = HeuristicsHandler->GetEdgeScore(End, Start, Edge, *Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
+			DirectedEdgeScores[NumEdges + Index] = HeuristicsHandler->GetEdgeScore(End, Start, Edge, End, Start, nullptr, nullptr);
 		}
 	}
 
@@ -203,61 +243,99 @@ namespace PCGExClusterCentrality
 
 	void FProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
 	{
-		ScopedBetweenness = MakeShared<PCGExMT::TScopedArray<double>>(Loops);
+		ScopedCentralityScores = MakeShared<PCGExMT::TScopedArray<double>>(Loops);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExClusterCentrality::ProcessNodes);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExClusterCentrality::ProcessRange);
 
-		TArray<double>& LocalBetweenness = ScopedBetweenness->Get_Ref(Scope);
-		LocalBetweenness.Init(0.0, NumNodes);
+		TArray<double>& LocalScores = ScopedCentralityScores->Get_Ref(Scope);
+		LocalScores.Init(0.0, NumNodes);
 
 		TArray<double> Score;
 		Score.Init(DBL_MAX, NumNodes);
-
-		TArray<double> Sigma;
-		Sigma.Init(0.0, NumNodes);
-
-		TArray<double> Delta;
-		Delta.Init(0.0, NumNodes);
-
-		TArray<NodePred> Pred;
-		Pred.SetNum(NumNodes);
 
 		TArray<int32> Stack;
 		Stack.Reserve(NumNodes);
 
 		TSharedPtr<PCGEx::FScoredQueue> Queue = MakeShared<PCGEx::FScoredQueue>(NumNodes);
 
-		if (bDownsample)
+		if (Settings->CentralityType == EPCGExCentralityType::Betweenness)
 		{
-			const double Ratio = static_cast<double>(NumNodes) / static_cast<double>(RandomSamples.Num());
+			TArray<double> Sigma;
+			Sigma.Init(0.0, NumNodes);
 
-			PCGEX_SCOPE_LOOP(Index)
+			TArray<double> Delta;
+			Delta.Init(0.0, NumNodes);
+
+			TArray<NodePred> Pred;
+			Pred.SetNum(NumNodes);
+
+			if (bDownsample)
 			{
-				ProcessSingleNode(RandomSamples[Index], LocalBetweenness, Score, Sigma, Delta, Pred, Stack, Queue);
-				for (double& B : LocalBetweenness) { B *= Ratio; }
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					ProcessSingleNode_Betweenness(RandomSamples[Index], LocalScores, Score, Sigma, Delta, Pred, Stack, Queue);
+				}
+
+				const double Ratio = static_cast<double>(NumNodes) / static_cast<double>(RandomSamples.Num());
+				for (double& B : LocalScores) { B *= Ratio; }
+			}
+			else
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					ProcessSingleNode_Betweenness(Index, LocalScores, Score, Sigma, Delta, Pred, Stack, Queue);
+				}
 			}
 		}
-		else
+		else if (Settings->CentralityType == EPCGExCentralityType::Closeness)
 		{
-			PCGEX_SCOPE_LOOP(Index)
+			if (bDownsample)
 			{
-				ProcessSingleNode(Index, LocalBetweenness, Score, Sigma, Delta, Pred, Stack, Queue);
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					ProcessSingleNode_Closeness(RandomSamples[Index], LocalScores, Score, Stack, Queue);
+				}
+
+				const double Ratio = static_cast<double>(NumNodes) / static_cast<double>(RandomSamples.Num());
+				for (double& B : LocalScores) { B *= Ratio; }
+			}
+			else
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					ProcessSingleNode_Closeness(Index, LocalScores, Score, Stack, Queue);
+				}
+			}
+		}
+		else if (Settings->CentralityType == EPCGExCentralityType::HarmonicCloseness)
+		{
+			if (bDownsample)
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					ProcessSingleNode_HarmonicCloseness(RandomSamples[Index], LocalScores, Score, Stack, Queue);
+				}
+
+				const double Ratio = static_cast<double>(NumNodes) / static_cast<double>(RandomSamples.Num());
+				for (double& B : LocalScores) { B *= Ratio; }
+			}
+			else
+			{
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					ProcessSingleNode_HarmonicCloseness(Index, LocalScores, Score, Stack, Queue);
+				}
 			}
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue)
-	{
-		for (int i = 0; i < NumNodes; i++)
-		{
-			Score[i] = DBL_MAX;
-			Sigma[i] = 0;
-			Delta[i] = 0;
-		}
+#pragma region ProcessSingleNode_Betweenness
 
+	void FProcessor::ProcessSingleNode_Betweenness(const int32 Index, TArray<double>& LocalScores, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue)
+	{
 		Stack.Reset();
 
 		Score[Index] = 0.0;
@@ -280,7 +358,7 @@ namespace PCGExClusterCentrality
 				const int32 EdgeIndex = Lk.Edge;
 				const PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
-				const double EdgeCost = Edge.Start == Current.PointIndex ? DirectedEdgeScores[Edge.PointIndex] : DirectedEdgeScores[NumEdges + Edge.PointIndex];
+				const double EdgeCost = Edge.Start == Current.PointIndex ? DirectedEdgeScores[EdgeIndex] : DirectedEdgeScores[NumEdges + EdgeIndex];
 				const double NewDist = Score[CurrentNode] + EdgeCost;
 
 				if (NewDist < Score[Neighbor])
@@ -304,49 +382,287 @@ namespace PCGExClusterCentrality
 		{
 			const int32 W = Stack[i];
 			for (const int32 V : Pred[W]) { Delta[V] += (Sigma[V] / Sigma[W]) * (1.0 + Delta[W]); }
-			if (W != Index) { LocalBetweenness[W] += Delta[W]; }
+			if (W != Index) { LocalScores[W] += Delta[W]; }
+		}
+
+		// Reset only visited nodes (optimization: O(visited) instead of O(N))
+		for (const int32 N : Stack)
+		{
+			Score[N] = DBL_MAX;
+			Sigma[N] = 0;
+			Delta[N] = 0;
+			Pred[N].Reset();
 		}
 	}
 
+#pragma endregion
+
+#pragma region ProcessSingleNode_Closeness
+
+	void FProcessor::ProcessSingleNode_Closeness(const int32 Index, TArray<double>& LocalScores, TArray<double>& Score, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue)
+	{
+		Stack.Reset();
+
+		Score[Index] = 0.0;
+
+		Queue->Reset();
+		Queue->Enqueue(Index, 0.0);
+
+		int32 CurrentNode;
+		double CurrentScore;
+
+		while (Queue->Dequeue(CurrentNode, CurrentScore))
+		{
+			Stack.Add(CurrentNode);
+			const PCGExClusters::FNode& Current = *Cluster->GetNode(CurrentNode);
+
+			for (const PCGExGraphs::FLink Lk : Current.Links)
+			{
+				const int32 Neighbor = Lk.Node;
+				const int32 EdgeIndex = Lk.Edge;
+				const PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
+
+				const double EdgeCost = Edge.Start == Current.PointIndex ? DirectedEdgeScores[EdgeIndex] : DirectedEdgeScores[NumEdges + EdgeIndex];
+				const double NewDist = Score[CurrentNode] + EdgeCost;
+
+				if (NewDist < Score[Neighbor])
+				{
+					Score[Neighbor] = NewDist;
+					Queue->Enqueue(Neighbor, NewDist);
+				}
+			}
+		}
+
+		// Accumulate closeness: reachable / sum_dist
+		double SumDist = 0;
+		int32 Reachable = 0;
+		for (const int32 N : Stack)
+		{
+			if (N != Index)
+			{
+				SumDist += Score[N];
+				Reachable++;
+			}
+		}
+
+		if (SumDist > 0) { LocalScores[Index] += static_cast<double>(Reachable) / SumDist; }
+
+		// Reset only visited nodes
+		for (const int32 N : Stack)
+		{
+			Score[N] = DBL_MAX;
+		}
+	}
+
+#pragma endregion
+
+#pragma region ProcessSingleNode_HarmonicCloseness
+
+	void FProcessor::ProcessSingleNode_HarmonicCloseness(const int32 Index, TArray<double>& LocalScores, TArray<double>& Score, TArray<int32>& Stack, const TSharedPtr<PCGEx::FScoredQueue>& Queue)
+	{
+		Stack.Reset();
+
+		Score[Index] = 0.0;
+
+		Queue->Reset();
+		Queue->Enqueue(Index, 0.0);
+
+		int32 CurrentNode;
+		double CurrentScore;
+
+		while (Queue->Dequeue(CurrentNode, CurrentScore))
+		{
+			Stack.Add(CurrentNode);
+			const PCGExClusters::FNode& Current = *Cluster->GetNode(CurrentNode);
+
+			for (const PCGExGraphs::FLink Lk : Current.Links)
+			{
+				const int32 Neighbor = Lk.Node;
+				const int32 EdgeIndex = Lk.Edge;
+				const PCGExGraphs::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
+
+				const double EdgeCost = Edge.Start == Current.PointIndex ? DirectedEdgeScores[EdgeIndex] : DirectedEdgeScores[NumEdges + EdgeIndex];
+				const double NewDist = Score[CurrentNode] + EdgeCost;
+
+				if (NewDist < Score[Neighbor])
+				{
+					Score[Neighbor] = NewDist;
+					Queue->Enqueue(Neighbor, NewDist);
+				}
+			}
+		}
+
+		// Accumulate harmonic closeness: sum(1/distance)
+		double HarmonicSum = 0;
+		for (const int32 N : Stack)
+		{
+			if (N != Index && Score[N] > 0) { HarmonicSum += 1.0 / Score[N]; }
+		}
+
+		LocalScores[Index] += HarmonicSum;
+
+		// Reset only visited nodes
+		for (const int32 N : Stack)
+		{
+			Score[N] = DBL_MAX;
+		}
+	}
+
+#pragma endregion
+
+#pragma region ComputeEigenvector
+
+	void FProcessor::ComputeEigenvector()
+	{
+		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
+		const double InitVal = 1.0 / FMath::Sqrt(static_cast<double>(NumNodes));
+
+		TArray<double> X;
+		X.Init(InitVal, NumNodes);
+
+		TArray<double> XNew;
+		XNew.SetNum(NumNodes);
+
+		for (int32 Iter = 0; Iter < Settings->MaxIterations; Iter++)
+		{
+			// x_new[i] = sum of x[neighbor] for each neighbor of i
+			for (int32 i = 0; i < NumNodes; i++)
+			{
+				double Sum = 0;
+				for (const PCGExGraphs::FLink Lk : Nodes[i].Links)
+				{
+					Sum += X[Lk.Node];
+				}
+				XNew[i] = Sum;
+			}
+
+			// Normalize: norm = ||x_new||_2
+			double Norm = 0;
+			for (int32 i = 0; i < NumNodes; i++) { Norm += XNew[i] * XNew[i]; }
+			Norm = FMath::Sqrt(Norm);
+
+			if (Norm > 0)
+			{
+				for (int32 i = 0; i < NumNodes; i++) { XNew[i] /= Norm; }
+			}
+
+			// Check convergence: ||x_new - x||_2
+			double Diff = 0;
+			for (int32 i = 0; i < NumNodes; i++)
+			{
+				const double D = XNew[i] - X[i];
+				Diff += D * D;
+			}
+
+			Swap(X, XNew);
+
+			if (FMath::Sqrt(Diff) < Settings->Tolerance) { break; }
+		}
+
+		for (int32 i = 0; i < NumNodes; i++) { CentralityScores[i] = X[i]; }
+	}
+
+#pragma endregion
+
+#pragma region ComputeKatz
+
+	void FProcessor::ComputeKatz()
+	{
+		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
+		const double Alpha = Settings->KatzAlpha;
+
+		TArray<double> X;
+		X.Init(1.0, NumNodes);
+
+		TArray<double> XNew;
+		XNew.SetNum(NumNodes);
+
+		for (int32 Iter = 0; Iter < Settings->MaxIterations; Iter++)
+		{
+			// x_new[i] = alpha * sum(x[neighbor]) + 1.0
+			for (int32 i = 0; i < NumNodes; i++)
+			{
+				double Sum = 0;
+				for (const PCGExGraphs::FLink Lk : Nodes[i].Links)
+				{
+					Sum += X[Lk.Node];
+				}
+				XNew[i] = Alpha * Sum + 1.0;
+			}
+
+			// Check convergence: ||x_new - x||_inf
+			double MaxDiff = 0;
+			for (int32 i = 0; i < NumNodes; i++)
+			{
+				MaxDiff = FMath::Max(MaxDiff, FMath::Abs(XNew[i] - X[i]));
+			}
+
+			Swap(X, XNew);
+
+			if (MaxDiff < Settings->Tolerance) { break; }
+		}
+
+		for (int32 i = 0; i < NumNodes; i++) { CentralityScores[i] = X[i]; }
+	}
+
+#pragma endregion
+
+#pragma region FProcessor
+
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		ScopedBetweenness->ForEach([&](TArray<double>& ScopedArray)
+		ScopedCentralityScores->ForEach([&](TArray<double>& ScopedArray)
 		{
-			for (int i = 0; i < NumNodes; i++) { Betweenness[i] += ScopedArray[i]; }
+			for (int i = 0; i < NumNodes; i++) { CentralityScores[i] += ScopedArray[i]; }
 			ScopedArray.Empty();
 		});
 
-		ScopedBetweenness.Reset();
+		ScopedCentralityScores.Reset();
 
-		double Max = 0;
-		for (double& C : Betweenness)
+		// Normalize for undirected graphs (betweenness only)
+		if (Settings->CentralityType == EPCGExCentralityType::Betweenness)
 		{
-			// Normalize for undirected graphs
-			C *= 0.5;
-			Max = FMath::Max(Max, C);
+			for (double& C : CentralityScores) { C *= 0.5; }
 		}
+
+		WriteResults();
+	}
+
+	void FProcessor::WriteResults()
+	{
+		double Max = 0;
+		for (const double& C : CentralityScores) { Max = FMath::Max(Max, C); }
 
 		const TArray<PCGExClusters::FNode>& Nodes = *Cluster->Nodes.Get();
 		TSharedPtr<PCGExData::TBuffer<double>> Buffer = VtxDataFacade->GetWritable<double>(Settings->CentralityValueAttributeName, Settings->bOutputOneMinus ? 1 : 0, true, PCGExData::EBufferInit::New);
 
-		for (int i = 0; i < NumNodes; i++) { Max = FMath::Max(Max, Betweenness[i]); }
-
 		if (Settings->bNormalize)
 		{
-			if (Settings->bOutputOneMinus)
+			if (Max > 0)
 			{
-				for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, 1 - (Betweenness[i] / Max)); }
+				if (Settings->bOutputOneMinus)
+				{
+					for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, 1 - (CentralityScores[i] / Max)); }
+				}
+				else
+				{
+					for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, CentralityScores[i] / Max); }
+				}
 			}
 			else
 			{
-				for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, Betweenness[i] / Max); }
+				for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, Settings->bOutputOneMinus ? 1.0 : 0.0); }
 			}
 		}
 		else
 		{
-			for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, Betweenness[i]); }
+			for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, CentralityScores[i]); }
 		}
 	}
+
+#pragma endregion
+
+#pragma region FBatch
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: TBatch(InContext, InVtx, InEdges)
@@ -357,6 +673,8 @@ namespace PCGExClusterCentrality
 	{
 		VtxDataFacade->WriteFastest(TaskManager);
 	}
+
+#pragma endregion
 }
 
 

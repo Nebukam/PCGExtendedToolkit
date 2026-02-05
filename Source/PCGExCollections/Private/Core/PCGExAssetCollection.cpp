@@ -123,7 +123,8 @@ namespace PCGExAssetCollection
 		for (int32 i = 0; i < NumEntries; i++)
 		{
 			Weights[i] = InWeights[i] + 1; // +1 to ensure non-zero (Weight=0 entries are already excluded by Validate)
-
+		}
+		
 		PCGExArrayHelpers::ArrayOfIndices(Order, NumEntries);
 
 		Order.Sort([this](int32 A, int32 B) { return Weights[A] < Weights[B]; });
