@@ -22,8 +22,8 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 	{
 	}
 
-	/** Adjust extents so they fill the selected axis.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExBlending.EPCGExApplySampledComponentFlags"))
+	/** Adjust extents so they fill the selected axis. Only applies when BoundsSource is Fit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_NotOverridable, EditCondition="BoundsSource == EPCGExShapeBoundsSource::Fit", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExBlending.EPCGExApplySampledComponentFlags"))
 	uint8 AdjustFit = 7;
 
 	/** How */
