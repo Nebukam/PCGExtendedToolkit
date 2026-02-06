@@ -311,7 +311,7 @@ namespace PCGExValencyStaging
 					{
 						Collection = Context->MeshCollection;
 						EntryIndex = Context->BondingRules->GetMeshEntryIndex(State.ResolvedModule);
-						Result = Collection->GetEntryAt(EntryIndex);
+						Result = Collection->GetEntryRaw(EntryIndex);
 
 						if (Result.IsValid())
 						{
@@ -325,7 +325,7 @@ namespace PCGExValencyStaging
 					{
 						Collection = Context->ActorCollection;
 						EntryIndex = Context->BondingRules->GetActorEntryIndex(State.ResolvedModule);
-						Result = Collection->GetEntryAt(EntryIndex);
+						Result = Collection->GetEntryRaw(EntryIndex);
 					}
 
 					if (Collection && Result.IsValid())

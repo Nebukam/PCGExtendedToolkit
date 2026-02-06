@@ -429,8 +429,11 @@ public:
 
 #pragma region API
 
-	/** Get entry at cache-adjusted index */
+	/** Get entry at cache-adjusted index (0 = first valid entry, 1 = second, etc.) */
 	FPCGExEntryAccessResult GetEntryAt(int32 Index) const;
+
+	/** Get entry by raw Entries array index (bypasses cache). Use for indices from FCategory, packed hashes, etc. */
+	FPCGExEntryAccessResult GetEntryRaw(int32 RawIndex) const;
 
 	/** Get entry by index with pick mode */
 	FPCGExEntryAccessResult GetEntry(int32 Index, int32 Seed, EPCGExIndexPickMode PickMode) const;
@@ -443,6 +446,7 @@ public:
 
 	// With tag inheritance
 	FPCGExEntryAccessResult GetEntryAt(int32 Index, uint8 TagInheritance, TSet<FName>& OutTags) const;
+	FPCGExEntryAccessResult GetEntryRaw(int32 RawIndex, uint8 TagInheritance, TSet<FName>& OutTags) const;
 	FPCGExEntryAccessResult GetEntry(int32 Index, int32 Seed, EPCGExIndexPickMode PickMode, uint8 TagInheritance, TSet<FName>& OutTags) const;
 	FPCGExEntryAccessResult GetEntryRandom(int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const;
 	FPCGExEntryAccessResult GetEntryWeightedRandom(int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags) const;

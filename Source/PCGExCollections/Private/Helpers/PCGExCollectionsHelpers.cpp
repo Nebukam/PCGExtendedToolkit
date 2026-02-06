@@ -77,7 +77,7 @@ namespace PCGExCollections
 				                        ? Category->Indices[0]
 				                        : Category->GetPickRandomWeighted(Seed);
 
-			auto Result = Collection->GetEntryAt(PickIndex);
+			auto Result = Collection->GetEntryRaw(PickIndex);
 			if (Result && Result.Entry->HasValidSubCollection())
 			{
 				WorkingCollection = Result.Entry->GetSubCollectionPtr();
@@ -141,7 +141,7 @@ namespace PCGExCollections
 				                        ? Category->Indices[0]
 				                        : Category->GetPickRandomWeighted(Seed);
 
-			auto Result = Collection->GetEntryAt(PickIndex, TagInheritance, OutTags);
+			auto Result = Collection->GetEntryRaw(PickIndex, TagInheritance, OutTags);
 			if (Result && Result.Entry->HasValidSubCollection())
 			{
 				WorkingCollection = Result.Entry->GetSubCollectionPtr();
@@ -222,6 +222,8 @@ namespace PCGExCollections
 
 	// --- Pick Packer ---
 	// Encodes collection identity + entry index + secondary index into a single uint64.
+	// IMPORTANT: InIndex is a RAW Entries array index, not a cache-adjusted index.
+	// The unpacker resolves via GetEntryRaw() to bypass cache indirection.
 	// BaseHash incorporates the node's UID to avoid collisions across different staging nodes.
 	// The collection is assigned a unique uint32 ID on first encounter (thread-safe double-check).
 	// SecondaryIndex is stored +1 so that 0 can represent "no secondary" (unpacker subtracts 1).
@@ -452,13 +454,17 @@ namespace PCGExCollections
 		return *Collection;
 	}
 
+	// Resolves a packed hash back to a concrete entry.
+	// Uses GetEntryRaw() because packed hashes store RAW Entries array indices,
+	// not cache-adjusted indices. Using GetEntryAt() here would apply cache indirection
+	// and return the wrong entry when Weight=0 entries create gaps in the cache.
 	FPCGExEntryAccessResult FPickUnpacker::ResolveEntry(uint64 EntryHash, int16& OutSecondaryIndex)
 	{
 		int16 EntryIndex = 0;
 		UPCGExAssetCollection* Collection = UnpackHash(EntryHash, EntryIndex, OutSecondaryIndex);
 		if (!Collection) { return FPCGExEntryAccessResult{}; }
 
-		return Collection->GetEntryAt(EntryIndex);
+		return Collection->GetEntryRaw(EntryIndex);
 	}
 
 	// Collection Source Implementation
