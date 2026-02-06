@@ -25,5 +25,6 @@
 
 // Heavy hitter (289 includes across codebase)
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 #endif // PCGEX_FAT_PCH

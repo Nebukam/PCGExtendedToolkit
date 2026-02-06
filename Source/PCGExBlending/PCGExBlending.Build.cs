@@ -9,15 +9,7 @@ public class PCGExBlending : ModuleRules
 	public PCGExBlending(ReadOnlyTargetRules Target) : base(Target)
 	{;
 		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
-		if (bNoPCH)                                                                    
-		{                                                                                                                     
-			PCHUsage = PCHUsageMode.NoPCHs;                                                                                   
-		}                                                                                                                     
-		else                                                                                                                  
-		{                                                                                                                     
-			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;                                                                  
-			PrivatePCHHeaderFile = "PCGExMinimalPCH.h";                                           
-		} 
+		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
 		
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
