@@ -131,14 +131,15 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 		CombinedPaths.push_back(Path);
 	}
 
-	// Perform triangulation
+	// Perform triangulation with ZCallback to preserve origin data through the internal Union
 	PCGExClipper2Lib::Paths64 TrianglePaths;
 	PCGExClipper2Lib::TriangulateResult Result =
 		PCGExClipper2Lib::TriangulateWithHoles(
 			CombinedPaths,
 			TrianglePaths,
 			PCGExClipper2::ConvertFillRule(Settings->FillRule),
-			Settings->bUseDelaunay
+			Settings->bUseDelaunay,
+			Group->CreateZCallback()
 		);
 
 	if (Result != PCGExClipper2Lib::TriangulateResult::success)
@@ -160,12 +161,124 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 		return;
 	}
 
-	// Helper lambda to find vertex index
-	auto FindVertexIndex = [&VertexMap](int64 X, int64 Y) -> int32
+	// Helper lambda to find or create vertex index
+	auto FindOrCreateVertexIndex = [&](const PCGExClipper2Lib::Point64& Pt) -> int32
 	{
-		const uint64 Hash = HashPoint(X, Y);
-		const int32* Found = VertexMap.Find(Hash);
-		return Found ? *Found : -1;
+		const uint64 Hash = HashPoint(Pt.x, Pt.y);
+		if (const int32* Found = VertexMap.Find(Hash)) { return *Found; }
+
+		// Not found - check if this is an intersection point with blend info
+		uint32 PointIdx, SourceIdx;
+		PCGEx::H64(static_cast<uint64>(Pt.z), PointIdx, SourceIdx);
+
+		FPCGExTriangulationVertex Vertex;
+		Vertex.ClipperX = Pt.x;
+		Vertex.ClipperY = Pt.y;
+
+		if (PointIdx == PCGExClipper2::INTERSECTION_MARKER)
+		{
+			// Intersection point - interpolate from blend info
+			if (const PCGExClipper2::FIntersectionBlendInfo* BlendInfo = Group->GetIntersectionBlendInfo(Pt.x, Pt.y))
+			{
+				// Interpolate position from the 4 contributing source points
+				auto GetSourcePos = [&](uint32 SrcIdx, uint32 PtIdx, FVector& OutPos, FVector4& OutColor) -> bool
+				{
+					const int32 ArrayIdx = static_cast<int32>(SrcIdx);
+					if (ArrayIdx < 0 || ArrayIdx >= AllOpData->Facades.Num()) { return false; }
+
+					const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[ArrayIdx];
+					TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
+					TConstPCGValueRange<FVector4> SrcColors = SrcFacade->Source->GetIn()->GetConstColorValueRange();
+
+					if (static_cast<int32>(PtIdx) >= SrcTransforms.Num()) { return false; }
+					OutPos = SrcTransforms[PtIdx].GetLocation();
+					OutColor = SrcColors[PtIdx];
+					return true;
+				};
+
+				FVector E1BotPos, E1TopPos, E2BotPos, E2TopPos;
+				FVector4 E1BotCol, E1TopCol, E2BotCol, E2TopCol;
+
+				bool bHas1B = GetSourcePos(BlendInfo->E1BotSourceIdx, BlendInfo->E1BotPointIdx, E1BotPos, E1BotCol);
+				bool bHas1T = GetSourcePos(BlendInfo->E1TopSourceIdx, BlendInfo->E1TopPointIdx, E1TopPos, E1TopCol);
+				bool bHas2B = GetSourcePos(BlendInfo->E2BotSourceIdx, BlendInfo->E2BotPointIdx, E2BotPos, E2BotCol);
+				bool bHas2T = GetSourcePos(BlendInfo->E2TopSourceIdx, BlendInfo->E2TopPointIdx, E2TopPos, E2TopCol);
+
+				FVector E1Pos = bHas1B ? (bHas1T ? FMath::Lerp(E1BotPos, E1TopPos, BlendInfo->E1Alpha) : E1BotPos) : E1TopPos;
+				FVector E2Pos = bHas2B ? (bHas2T ? FMath::Lerp(E2BotPos, E2TopPos, BlendInfo->E2Alpha) : E2BotPos) : E2TopPos;
+
+				FVector4 E1Col = bHas1B ? (bHas1T ? FMath::Lerp(E1BotCol, E1TopCol, BlendInfo->E1Alpha) : E1BotCol) : E1TopCol;
+				FVector4 E2Col = bHas2B ? (bHas2T ? FMath::Lerp(E2BotCol, E2TopCol, BlendInfo->E2Alpha) : E2BotCol) : E2TopCol;
+
+				Vertex.Position = (E1Pos + E2Pos) * 0.5;
+				Vertex.Color = (E1Col + E2Col) * 0.5;
+
+				// Use first available source index
+				Vertex.SourceDataIndex = static_cast<int32>(BlendInfo->E1BotSourceIdx);
+				Vertex.SourcePointIndex = static_cast<int32>(BlendInfo->E1BotPointIdx);
+			}
+			else
+			{
+				// No blend info - fall back to unprojection
+				const FPCGExGeo2DProjectionDetails& Projection = AllOpData->Projections.Num() > 0
+					? AllOpData->Projections[0]
+					: FPCGExGeo2DProjectionDetails();
+
+				Vertex.Position = Projection.Unproject(
+					FVector(
+						static_cast<double>(Pt.x) * InvScale,
+						static_cast<double>(Pt.y) * InvScale,
+						0.0));
+				Vertex.Color = FVector4(1, 1, 1, 1);
+			}
+		}
+		else
+		{
+			// Regular point not found in map - try to restore from source
+			Vertex.SourceDataIndex = static_cast<int32>(SourceIdx);
+			Vertex.SourcePointIndex = static_cast<int32>(PointIdx);
+
+			if (static_cast<int32>(SourceIdx) < AllOpData->Facades.Num())
+			{
+				const TSharedPtr<PCGExData::FFacade>& SrcFacade = AllOpData->Facades[SourceIdx];
+				TConstPCGValueRange<FTransform> SrcTransforms = SrcFacade->Source->GetIn()->GetConstTransformValueRange();
+				TConstPCGValueRange<FVector4> SrcColors = SrcFacade->Source->GetIn()->GetConstColorValueRange();
+
+				if (static_cast<int32>(PointIdx) < SrcTransforms.Num())
+				{
+					Vertex.Position = SrcTransforms[PointIdx].GetLocation();
+					Vertex.Color = SrcColors[PointIdx];
+				}
+				else
+				{
+					const FPCGExGeo2DProjectionDetails& Projection = AllOpData->Projections[SourceIdx];
+					Vertex.Position = Projection.Unproject(
+						FVector(
+							static_cast<double>(Pt.x) * InvScale,
+							static_cast<double>(Pt.y) * InvScale,
+							0.0));
+					Vertex.Color = FVector4(1, 1, 1, 1);
+				}
+			}
+			else
+			{
+				const FPCGExGeo2DProjectionDetails& Projection = AllOpData->Projections.Num() > 0
+					? AllOpData->Projections[0]
+					: FPCGExGeo2DProjectionDetails();
+
+				Vertex.Position = Projection.Unproject(
+					FVector(
+						static_cast<double>(Pt.x) * InvScale,
+						static_cast<double>(Pt.y) * InvScale,
+						0.0));
+				Vertex.Color = FVector4(1, 1, 1, 1);
+			}
+		}
+
+		const int32 PoolIndex = VertexPool.Num();
+		VertexMap.Add(Hash, PoolIndex);
+		VertexPool.Add(MoveTemp(Vertex));
+		return PoolIndex;
 	};
 
 	// Convert triangle paths to indexed triangles
@@ -173,19 +286,9 @@ void FPCGExClipper2TriangulateContext::Process(const TSharedPtr<PCGExClipper2::F
 	{
 		if (TriPath.size() != 3) { continue; }
 
-		const int32 V0 = FindVertexIndex(TriPath[0].x, TriPath[0].y);
-		const int32 V1 = FindVertexIndex(TriPath[1].x, TriPath[1].y);
-		const int32 V2 = FindVertexIndex(TriPath[2].x, TriPath[2].y);
-
-		// Skip triangles with unknown vertices
-		if (V0 < 0 || V1 < 0 || V2 < 0)
-		{
-			if (!Settings->bQuietBadVerticesWarning)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Triangle references unknown vertex - skipping."));
-			}
-			continue;
-		}
+		const int32 V0 = FindOrCreateVertexIndex(TriPath[0]);
+		const int32 V1 = FindOrCreateVertexIndex(TriPath[1]);
+		const int32 V2 = FindOrCreateVertexIndex(TriPath[2]);
 
 		// Skip degenerate triangles
 		if (V0 == V1 || V1 == V2 || V2 == V0) { continue; }

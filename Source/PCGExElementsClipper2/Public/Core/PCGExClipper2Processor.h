@@ -154,7 +154,7 @@ namespace PCGExClipper2
 	 * Unified processing group that encapsulates subjects, operands, and cached data.
 	 * This provides a clean interface for Clipper2 operations.
 	 */
-	struct FProcessingGroup : TSharedFromThis<FProcessingGroup>
+	struct PCGEXELEMENTSCLIPPER2_API FProcessingGroup : TSharedFromThis<FProcessingGroup>
 	{
 		// Group index for deterministic output ordering
 		int32 GroupIndex = 0;

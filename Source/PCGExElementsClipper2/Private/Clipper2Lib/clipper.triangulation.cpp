@@ -1681,7 +1681,8 @@ namespace PCGExClipper2Lib
 		const Paths64& pp,
 		Paths64& solution,
 		FillRule fillRule,
-		bool useDelaunay)
+		bool useDelaunay,
+		ZCallback64 zCallback)
 	{
 		solution.clear();
 
@@ -1694,6 +1695,7 @@ namespace PCGExClipper2Lib
 		// This resolves which paths are holes inside which outer polygons
 		PolyTree64 polytree;
 		Clipper64 clipper;
+		if (zCallback) { clipper.SetZCallback(zCallback); }
 		clipper.AddSubject(pp);
 
 		Paths64 openPaths; // We don't use open paths for triangulation

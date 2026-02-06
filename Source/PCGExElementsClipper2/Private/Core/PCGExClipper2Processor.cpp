@@ -579,6 +579,101 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 						AddToUnion(BlendInfo->E2BotPointIdx, BlendInfo->E2BotSourceIdx);
 						AddToUnion(BlendInfo->E2TopPointIdx, BlendInfo->E2TopSourceIdx);
 					}
+					else
+					{
+						// No BlendInfo found for this intersection point.
+						// Walk prev/next in the path to find non-intersection neighbors and interpolate.
+						auto GetNeighborTransform = [&](int32 Dir) -> TPair<FTransform, int32>
+						{
+							for (int32 Step = 1; Step < NumPoints; Step++)
+							{
+								const int32 Ni = (i + Dir * Step + NumPoints) % NumPoints;
+								const PCGExClipper2Lib::Point64& NPt = Path[Ni];
+								uint32 NPtIdx, NSrcIdx;
+								PCGEx::H64(static_cast<uint64>(NPt.z), NPtIdx, NSrcIdx);
+
+								if (NPtIdx != PCGExClipper2::INTERSECTION_MARKER)
+								{
+									const int32 NArrayIdx = static_cast<int32>(NSrcIdx);
+									if (NArrayIdx >= 0 && NArrayIdx < AllOpData->Facades.Num())
+									{
+										const TSharedPtr<PCGExData::FFacade>& NSrcFacade = AllOpData->Facades[NArrayIdx];
+										const int32 NNumPts = NSrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+										if (static_cast<int32>(NPtIdx) < NNumPts)
+										{
+											TConstPCGValueRange<FTransform> NSrcTransforms = NSrcFacade->Source->GetIn()->GetConstTransformValueRange();
+											return TPair<FTransform, int32>(NSrcTransforms[NPtIdx], NArrayIdx);
+										}
+									}
+									break;
+								}
+							}
+							return TPair<FTransform, int32>(FTransform::Identity, INDEX_NONE);
+						};
+
+						auto [PrevT, PrevSrc] = GetNeighborTransform(-1);
+						auto [NextT, NextSrc] = GetNeighborTransform(+1);
+
+						if (PrevSrc != INDEX_NONE && NextSrc != INDEX_NONE)
+						{
+							OutTransform.Blend(PrevT, NextT, 0.5);
+						}
+						else if (PrevSrc != INDEX_NONE)
+						{
+							OutTransform = PrevT;
+						}
+						else if (NextSrc != INDEX_NONE)
+						{
+							OutTransform = NextT;
+						}
+
+						if (TransformMode == PCGExClipper2::ETransformRestoration::Unproject)
+						{
+							const FPCGExGeo2DProjectionDetails* Projection = GetProjection(
+								PrevSrc != INDEX_NONE ? static_cast<uint32>(PrevSrc) :
+								NextSrc != INDEX_NONE ? static_cast<uint32>(NextSrc) : 0);
+
+							FVector UnprojectedPos(
+								static_cast<double>(Pt.x) * InvScale,
+								static_cast<double>(Pt.y) * InvScale,
+								0.0);
+
+							if (Projection) { Projection->UnprojectInPlace(UnprojectedPos); }
+							OutTransform.SetLocation(UnprojectedPos);
+						}
+
+						// Add both neighbors to union for metadata blending
+						TSharedPtr<PCGExData::IUnionData> Union = UnionMetadata->NewEntryAt_Unsafe(i);
+
+						auto AddNeighborToUnion = [&](int32 Dir)
+						{
+							for (int32 Step = 1; Step < NumPoints; Step++)
+							{
+								const int32 Ni = (i + Dir * Step + NumPoints) % NumPoints;
+								const PCGExClipper2Lib::Point64& NPt = Path[Ni];
+								uint32 NPtIdx, NSrcIdx;
+								PCGEx::H64(static_cast<uint64>(NPt.z), NPtIdx, NSrcIdx);
+
+								if (NPtIdx != PCGExClipper2::INTERSECTION_MARKER)
+								{
+									const int32 NArrayIdx = static_cast<int32>(NSrcIdx);
+									if (NArrayIdx >= 0 && NArrayIdx < AllOpData->Facades.Num())
+									{
+										const TSharedPtr<PCGExData::FFacade>& NSrcFacade = AllOpData->Facades[NArrayIdx];
+										const int32 NNumPts = NSrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+										if (static_cast<int32>(NPtIdx) < NNumPts)
+										{
+											Union->Add_Unsafe(static_cast<int32>(NPtIdx), NSrcFacade->Idx);
+										}
+									}
+									break;
+								}
+							}
+						};
+
+						AddNeighborToUnion(-1);
+						AddNeighborToUnion(+1);
+					}
 				}
 				else
 				{

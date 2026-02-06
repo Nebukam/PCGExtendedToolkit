@@ -53,7 +53,8 @@ namespace PCGExClipper2Lib
 		const Paths64& pp,
 		Paths64& solution,
 		FillRule fillRule = FillRule::EvenOdd,
-		bool useDelaunay = true);
+		bool useDelaunay = true,
+		ZCallback64 zCallback = nullptr);
 
 	PCGEXELEMENTSCLIPPER2_API
 	TriangulateResult TriangulateWithHoles(

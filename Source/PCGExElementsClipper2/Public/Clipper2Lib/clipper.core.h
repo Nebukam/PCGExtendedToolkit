@@ -1024,7 +1024,23 @@ namespace PCGExClipper2Lib
 			ip.y = originy + static_cast<T>(hity);
 		}
 
-		ip.z = 0;
+		// Interpolate Z from ln1 endpoints based on proximity
+		{
+			double seg_dx = static_cast<double>(ln1b.x - ln1a.x);
+			double seg_dy = static_cast<double>(ln1b.y - ln1a.y);
+			double seg_len_sq = seg_dx * seg_dx + seg_dy * seg_dy;
+			if (seg_len_sq > 0.0)
+			{
+				double pt_dx = static_cast<double>(ip.x - ln1a.x);
+				double pt_dy = static_cast<double>(ip.y - ln1a.y);
+				double t_z = (pt_dx * seg_dx + pt_dy * seg_dy) / seg_len_sq;
+				ip.z = (t_z <= 0.5) ? ln1a.z : ln1b.z;
+			}
+			else
+			{
+				ip.z = ln1a.z;
+			}
+		}
 
 		return true;
 	}
@@ -1057,7 +1073,7 @@ namespace PCGExClipper2Lib
 		{
 			ip.x = static_cast<T>(ln1a.x + t * dx1);
 			ip.y = static_cast<T>(ln1a.y + t * dy1);
-			ip.z = 0;
+			ip.z = (t <= 0.5) ? ln1a.z : ln1b.z;
 		}
 		return true;
 	}
