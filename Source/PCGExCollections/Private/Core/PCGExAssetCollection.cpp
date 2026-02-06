@@ -395,6 +395,18 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryAt(int32 Index) const
 	return Result;
 }
 
+FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryRaw(int32 RawIndex) const
+{
+	FPCGExEntryAccessResult Result;
+
+	if (const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(RawIndex))
+	{
+		Result.Entry = Entry;
+		Result.Host = this;
+	}
+	return Result;
+}
+
 FPCGExEntryAccessResult UPCGExAssetCollection::GetEntry(int32 Index, int32 Seed, EPCGExIndexPickMode PickMode) const
 {
 	FPCGExEntryAccessResult Result;
@@ -469,6 +481,34 @@ FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryAt(int32 Index, uint8 Tag
 
 	const int32 PickedIndex = const_cast<UPCGExAssetCollection*>(this)->LoadCache()->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(PickedIndex);
+
+	if (!Entry)
+	{
+		return Result;
+	}
+
+	if (Entry->HasValidSubCollection())
+	{
+		if (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Collection))
+		{
+			OutTags.Append(Entry->GetSubCollectionPtr()->CollectionTags);
+		}
+	}
+	if (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::Asset))
+	{
+		OutTags.Append(Entry->Tags);
+	}
+
+	Result.Entry = Entry;
+	Result.Host = this;
+	return Result;
+}
+
+FPCGExEntryAccessResult UPCGExAssetCollection::GetEntryRaw(int32 RawIndex, uint8 TagInheritance, TSet<FName>& OutTags) const
+{
+	FPCGExEntryAccessResult Result;
+
+	const FPCGExAssetCollectionEntry* Entry = GetEntryAtRawIndex(RawIndex);
 
 	if (!Entry)
 	{

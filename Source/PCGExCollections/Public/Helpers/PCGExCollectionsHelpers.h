@@ -158,6 +158,9 @@ namespace PCGExCollections
 	 * attribute set (the "Collection Map"). This is the bridge between generation nodes
 	 * (AssetStaging) and consumption nodes (LoadPCGData, LoadSockets, Fitting, etc.).
 	 *
+	 * IMPORTANT: InIndex is a RAW Entries array index (Staging.InternalIndex), NOT a
+	 * cache-adjusted index. The unpacker resolves these via GetEntryRaw(), not GetEntryAt().
+	 *
 	 * Thread-safe: GetPickIdx() can be called from parallel ProcessPoints loops.
 	 * The attribute set contains two attributes per collection:
 	 *   - Tag_CollectionIdx (int32): packed collection identifier
@@ -186,9 +189,11 @@ namespace PCGExCollections
 		explicit FPickPacker(FPCGContext* InContext);
 
 		/**
-		 * Get a packed index for a collection entry pick
+		 * Get a packed index for a collection entry pick.
+		 * IMPORTANT: InIndex must be a RAW Entries array index (e.g. Staging.InternalIndex),
+		 * not a cache-adjusted index. The unpacker uses GetEntryRaw() to resolve it.
 		 * @param InCollection The collection
-		 * @param InIndex Primary entry index
+		 * @param InIndex Raw Entries array index (Staging.InternalIndex)
 		 * @param InSecondaryIndex Secondary index (e.g., material variant)
 		 * @return Packed 64-bit identifier
 		 */
@@ -202,6 +207,11 @@ namespace PCGExCollections
 	 * Deserializes a Collection Map (produced by FPickPacker) back into usable collection
 	 * references. Loads the referenced collections, then resolves per-point hashes into
 	 * concrete entries + secondary indices.
+	 *
+	 * IMPORTANT: Packed hashes contain RAW Entries array indices (not cache-adjusted).
+	 * Resolution uses GetEntryRaw(), not GetEntryAt(). This distinction matters when
+	 * entries with Weight=0 are excluded from the cache — raw indices remain stable
+	 * while cache indices shift.
 	 *
 	 * Used by all consumption nodes: LoadPCGData, LoadProperties, LoadSockets,
 	 * Fitting, TypeFilter.
