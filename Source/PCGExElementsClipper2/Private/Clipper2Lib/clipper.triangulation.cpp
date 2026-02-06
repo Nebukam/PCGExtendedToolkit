@@ -360,6 +360,9 @@ namespace PCGExClipper2Lib
 	static IntersectKind SegsIntersect(const Point64 s1a, const Point64 s1b,
 	                                   const Point64 s2a, const Point64 s2b)
 	{
+		//ignore segments sharing an end-point
+		if (s1a == s2a || s1b == s2a || s1b == s2b) return IntersectKind::none;
+
 		double dy1 = static_cast<double>(s1b.y - s1a.y);
 		double dx1 = static_cast<double>(s1b.x - s1a.x);
 		double dy2 = static_cast<double>(s2b.y - s2a.y);
@@ -372,12 +375,9 @@ namespace PCGExClipper2Lib
 
 		double t = (static_cast<double>(s1a.x - s2a.x) * dy2 -
 			static_cast<double>(s1a.y - s2a.y) * dx2);
-		//ignore segments that 'intersect' at an end-point
-		if (t == 0)
-		{
-			return IntersectKind::none;
-		}
-		if (t > 0)
+
+		// nb: testing for t == 0 is unreliable due to float imprecision
+		if (t >= 0)
 		{
 			if (cp < 0 || t >= cp)
 			{
@@ -395,11 +395,7 @@ namespace PCGExClipper2Lib
 		// so far, the *segment* 's1' intersects the *line* through 's2',
 		// but now make sure it also intersects the *segment* 's2'
 		t = ((s1a.x - s2a.x) * dy1 - (s1a.y - s2a.y) * dx1);
-		if (t == 0)
-		{
-			return IntersectKind::none;
-		}
-		if (t > 0)
+		if (t >= 0)
 		{
 			if (cp > 0 && t < cp)
 			{
@@ -1539,7 +1535,7 @@ namespace PCGExClipper2Lib
 
 	TriangulateResult Triangulate(const PathsD& pp, int decPlaces, PathsD& solution, bool useDelaunay)
 	{
-		int ec;
+		int ec = 0;
 		double scale;
 		TriangulateResult result;
 		if (decPlaces <= 0)
@@ -1722,7 +1718,7 @@ namespace PCGExClipper2Lib
 			return TriangulateResult::no_polygons;
 		}
 
-		int ec;
+		int ec = 0;
 		double scale;
 		if (decPlaces <= 0)
 		{
@@ -1778,7 +1774,7 @@ namespace PCGExClipper2Lib
 		}
 
 		// Convert to int64 for triangulation
-		int ec;
+		int ec = 0;
 		Paths64 pathsToTriangulate;
 		pathsToTriangulate.reserve(1 + node->Count());
 
