@@ -24,7 +24,13 @@
 #include "Data/PCGExDataTags.h"
 
 // Heavy hitter (289 includes across codebase)
+#include "Math/PCGExMath.h"
+#include "Utils/PCGExCompare.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Utils/PCGExDataPreloader.h"
+#include "Helpers/PCGExMetaHelpers.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Details/PCGExSettingsDetails.h"
 
 #endif // PCGEX_FAT_PCH
