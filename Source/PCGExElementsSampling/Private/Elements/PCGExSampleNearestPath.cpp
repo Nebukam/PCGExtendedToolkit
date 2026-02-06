@@ -382,8 +382,8 @@ namespace PCGExSampleNearestPath
 
 			bool bSampledClosedLoop = false;
 
-			double RangeMin = FMath::Square(RangeMinGetter->Read(Index));
-			double RangeMax = FMath::Square(RangeMaxGetter->Read(Index));
+			double RangeMin = RangeMinGetter->Read(Index);
+			double RangeMax = RangeMaxGetter->Read(Index);
 
 			if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
@@ -394,12 +394,23 @@ namespace PCGExSampleNearestPath
 			FVector Origin = Transform.GetLocation();
 
 			PCGExData::FElement SinglePick(-1, -1);
-			double WeightedDistance = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
+			double BestDist = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
 			double WeightedTime = 0;
 			double WeightedSegmentTime = 0;
 
-			auto SampleSingle = [&](const PCGExData::FElement& EdgeElement, const double DistSquared, const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp, const int32 NumInsideIncrement, const bool bClosedLoop)
+			// Accumulate interpolated sample transforms for geometric outputs
+			struct FSampleEntry
+			{
+				FTransform SampleTransform;
+				double Dist;
+				double Time;
+				double SegmentTime;
+			};
+
+			TArray<FSampleEntry, TInlineAllocator<8>> SampleEntries;
+
+			auto SampleSingle = [&](const PCGExData::FElement& EdgeElement, const double Dist, const PCGExData::FElement& A, const PCGExData::FElement& B, const double InLerp, const double Time, const double SegmentLerp, const int32 NumInsideIncrement, const bool bClosedLoop, const FTransform& SampleTransform)
 			{
 				bool bReplaceWithCurrent = Union->IsEmpty();
 
@@ -407,7 +418,7 @@ namespace PCGExSampleNearestPath
 				{
 					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(EdgeElement, SinglePick); }
 				}
-				else if ((bSampleClosest && WeightedDistance > DistSquared) || (bSampleFarthest && WeightedDistance < DistSquared))
+				else if ((bSampleClosest && BestDist > Dist) || (bSampleFarthest && BestDist < Dist))
 				{
 					bReplaceWithCurrent = true;
 				}
@@ -415,27 +426,26 @@ namespace PCGExSampleNearestPath
 				if (bReplaceWithCurrent)
 				{
 					SinglePick = EdgeElement;
-					WeightedDistance = FMath::Square(DistSquared);
+					BestDist = Dist;
 
-					// TODO : Adjust dist based on edge lerp
 					Union->Reset();
-					Union->AddWeighted_Unsafe(A, DistSquared);
-					Union->AddWeighted_Unsafe(B, DistSquared);
+					Union->AddWeighted_Unsafe(A, Dist * (1.0 - InLerp));
+					Union->AddWeighted_Unsafe(B, Dist * InLerp);
+
+					SampleEntries.Reset();
+					SampleEntries.Add({SampleTransform, Dist, Time, SegmentLerp});
 
 					NumInside = NumInsideIncrement;
 					NumInClosed = bSampledClosedLoop = bClosedLoop;
-
-					WeightedTime = Time;
-					WeightedSegmentTime = Lerp;
 				}
 			};
 
-			auto SampleMulti = [&](const PCGExData::FElement& EdgeElement, const double DistSquared, const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp, const int32 NumInsideIncrement, const bool bClosedLoop)
+			auto SampleMulti = [&](const PCGExData::FElement& EdgeElement, const double Dist, const PCGExData::FElement& A, const PCGExData::FElement& B, const double InLerp, const double Time, const double SegmentLerp, const int32 NumInsideIncrement, const bool bClosedLoop, const FTransform& SampleTransform)
 			{
-				// TODO : Adjust dist based on edge lerp
-				WeightedDistance += FMath::Square(DistSquared);
-				Union->AddWeighted_Unsafe(A, DistSquared);
-				Union->AddWeighted_Unsafe(B, DistSquared);
+				Union->AddWeighted_Unsafe(A, Dist * (1.0 - InLerp));
+				Union->AddWeighted_Unsafe(B, Dist * InLerp);
+
+				SampleEntries.Add({SampleTransform, Dist, Time, SegmentLerp});
 
 				if (bClosedLoop)
 				{
@@ -443,13 +453,10 @@ namespace PCGExSampleNearestPath
 					NumInClosed += NumInsideIncrement;
 				}
 
-				WeightedTime += Time;
-				WeightedSegmentTime += Lerp;
-
 				NumInside += NumInsideIncrement;
 			};
 
-			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::FPolyPath>& InPath)
+			auto SampleTarget = [&](const int32 EdgeIndex, const float Lerp, const TSharedPtr<PCGExPaths::FPolyPath>& InPath, const FTransform& SampleTransform)
 			{
 				PCGExData::FElement EdgeElement;
 				PCGExData::FElement A;
@@ -462,12 +469,12 @@ namespace PCGExSampleNearestPath
 				if (Settings->bOnlySampleWhenInside && !bIsInside) { return; }
 
 				const int32 NumInsideIncrement = bIsInside && (!bOnlyIncrementInsideNumIfClosed || bClosedLoop);
-				const FVector SampleLocation = FMath::Lerp(InPath->GetPos(A.Index), InPath->GetPos(B.Index), Lerp);
+				const FVector SampleLocation = SampleTransform.GetLocation();
 				const FVector ModifiedOrigin = Distances->GetSourceCenter(Point, Origin, SampleLocation);
-				const double DistSquared = Distances->GetDistSquared(ModifiedOrigin, SampleLocation);
+				const double Dist = Distances->GetDist(ModifiedOrigin, SampleLocation);
 
 				if (RangeMax > 0
-					&& (DistSquared < RangeMin || DistSquared > RangeMax)
+					&& (Dist < RangeMin || Dist > RangeMax)
 					&& (!Settings->bAlwaysSampleWhenInside || !bIsInside))
 				{
 					return;
@@ -475,8 +482,8 @@ namespace PCGExSampleNearestPath
 
 				const double Time = (static_cast<double>(EdgeIndex) + Lerp) / static_cast<double>(InPath->NumEdges);
 
-				if (bSingleSample) { SampleSingle(EdgeElement, DistSquared, A, B, Time, Lerp, NumInsideIncrement, bClosedLoop); }
-				else { SampleMulti(EdgeElement, DistSquared, A, B, Time, Lerp, NumInsideIncrement, bClosedLoop); }
+				if (bSingleSample) { SampleSingle(EdgeElement, Dist, A, B, Lerp, Time, Lerp, NumInsideIncrement, bClosedLoop, SampleTransform); }
+				else { SampleMulti(EdgeElement, Dist, A, B, Lerp, Time, Lerp, NumInsideIncrement, bClosedLoop, SampleTransform); }
 			};
 
 
@@ -492,8 +499,9 @@ namespace PCGExSampleNearestPath
 
 					const TSharedPtr<PCGExPaths::FPolyPath> Path = Context->Paths[Target.Index];
 					float Lerp = 0;
-					const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
-					SampleTarget(EdgeIndex, Lerp, Path);
+					int32 EdgeIndex = 0;
+					const FTransform SampleTransform = Path->GetClosestTransform(Origin, EdgeIndex, Lerp);
+					SampleTarget(EdgeIndex, Lerp, Path, SampleTransform);
 				}, &IgnoreList);
 			}
 			else
@@ -521,12 +529,13 @@ namespace PCGExSampleNearestPath
 
 					float Lerp = 0;
 					const int32 EdgeIndex = Path->GetClosestEdge(Time, Lerp);
+					const FTransform SampleTransform = Path->GetTransformAtInputKey(static_cast<float>(EdgeIndex + Lerp));
 
-					SampleTarget(EdgeIndex, Lerp, Path);
+					SampleTarget(EdgeIndex, Lerp, Path, SampleTransform);
 				});
 			}
 
-			if (Union->IsEmpty())
+			if (Union->IsEmpty() || SampleEntries.IsEmpty())
 			{
 				SamplingFailed(Index);
 				continue;
@@ -535,59 +544,69 @@ namespace PCGExSampleNearestPath
 			if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0) { Union->WeightRange = RangeMax; }
 			DataBlender->ComputeWeights(Index, Union, OutWeightedPoints);
 
+			// Blend attributes using union weighted points (endpoint blending for attribute data)
+			DataBlender->Blend(Index, OutWeightedPoints, Trackers);
+
+			// Compute geometric outputs from interpolated sample transforms (mirroring spline version)
 			FVector WeightedUp = LookAtUpGetter ? LookAtUpGetter->Read(Index).GetSafeNormal() : SafeUpVector;
-			FTransform WeightedTransform = InTransforms[Index];
+			FTransform WeightedTransform = FTransform::Identity;
+			WeightedTransform.SetScale3D(FVector::ZeroVector);
+
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 
-			if (!Settings->bWeightFromOriginalTransform)
+			double WeightedDistance = 0;
+			double TotalWeight = 0;
+			const int32 NumSampled = SampleEntries.Num();
+
+			// Compute per-sample range stats for weight curve
+			double SampledRangeMin = MAX_dbl;
+			double SampledRangeMax = 0;
+			for (const FSampleEntry& Entry : SampleEntries)
 			{
-				WeightedTransform = FTransform::Identity;
-				WeightedTransform.SetScale3D(FVector::ZeroVector);
+				SampledRangeMin = FMath::Min(SampledRangeMin, Entry.Dist);
+				SampledRangeMax = FMath::Max(SampledRangeMax, Entry.Dist);
 			}
-			else
+
+			if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
 			{
-				WeightedTransform = InTransforms[Index];
+				SampledRangeMin = RangeMin;
+				SampledRangeMax = RangeMax;
 			}
 
-			const double NumSampled = Union->Num() * 0.5;
-			WeightedDistance /= NumSampled; // We have two points per samples
-			WeightedTime /= NumSampled;
-			WeightedSegmentTime /= NumSampled;
+			const double SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 
-			// Post-process weighted points and compute local data
-			PCGEx::FOpStats SampleTracker{};
-			for (PCGExData::FWeightedPoint& P : OutWeightedPoints)
+			for (const FSampleEntry& Entry : SampleEntries)
 			{
-				const double W = Context->WeightCurve->Eval(P.Weight);
+				const double Ratio = SampledRangeWidth > 0 ? FMath::Clamp(Entry.Dist - SampledRangeMin, 0, SampledRangeWidth) / SampledRangeWidth : 0;
+				const double Weight = Context->WeightCurve->Eval(Ratio);
 
-				// Don't remap blending if we use external blend ops; they have their own curve
-				//if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
+				const FQuat SampleQuat = Entry.SampleTransform.GetRotation();
 
-				SampleTracker.Count++;
-				SampleTracker.TotalWeight += W;
-
-				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
-				const FQuat TargetRotation = TargetTransform.GetRotation();
-
-				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::WeightedAdd(WeightedTransform, TargetTransform, W);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::WeightedAdd(WeightedTransform, Entry.SampleTransform, Weight);
 
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 				{
-					WeightedUp = PCGExTypeOps::FTypeOps<FVector>::WeightedAdd(WeightedUp, Context->TargetLookAtUpGetters[P.IO]->Read(P.Index), W);
+					WeightedUp = PCGExTypeOps::FTypeOps<FVector>::WeightedAdd(WeightedUp, PCGExMath::GetDirection(SampleQuat, Settings->LookAtUpAxis), Weight);
 				}
 
-				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
-				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * W;
+				WeightedSignAxis += PCGExMath::GetDirection(SampleQuat, Settings->SignAxis) * Weight;
+				WeightedAngleAxis += PCGExMath::GetDirection(SampleQuat, Settings->AngleAxis) * Weight;
+
+				WeightedTime += Entry.Time * Weight;
+				WeightedSegmentTime += Entry.SegmentTime * Weight;
+				TotalWeight += Weight;
+				WeightedDistance += Entry.Dist;
 			}
 
-			// Blend using updated weighted points
-			DataBlender->Blend(Index, OutWeightedPoints, Trackers);
+			WeightedDistance /= NumSampled;
 
-			if (SampleTracker.TotalWeight != 0) // Dodge NaN
+			if (TotalWeight != 0) // Dodge NaN
 			{
-				WeightedUp = PCGExTypeOps::FTypeOps<FVector>::NormalizeWeight(WeightedUp, SampleTracker.TotalWeight);
-				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, SampleTracker.TotalWeight);
+				WeightedUp = PCGExTypeOps::FTypeOps<FVector>::NormalizeWeight(WeightedUp, TotalWeight);
+				WeightedTransform = PCGExTypeOps::FTypeOps<FTransform>::NormalizeWeight(WeightedTransform, TotalWeight);
+				WeightedTime /= TotalWeight;
+				WeightedSegmentTime /= TotalWeight;
 			}
 			else
 			{
@@ -606,8 +625,8 @@ namespace PCGExSampleNearestPath
 				Context->ApplySampling.Apply(MutablePoint, WeightedTransform, LookAtTransform);
 			}
 
-			SamplingMask[Index] = !Union->IsEmpty();
-			PCGEX_OUTPUT_VALUE(Success, Index, !Union->IsEmpty())
+			SamplingMask[Index] = true;
+			PCGEX_OUTPUT_VALUE(Success, Index, true)
 			PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, LookAtTransform)
 			PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? WeightedDistance : WeightedDistance * Settings->DistanceScale)
