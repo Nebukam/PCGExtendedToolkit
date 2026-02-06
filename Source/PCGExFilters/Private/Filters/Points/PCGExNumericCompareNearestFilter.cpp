@@ -107,6 +107,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex
 
 	if (!TargetPt.IsValid()) { return false; }
 
+	// Read OperandA from the closest target's pre-cached buffer: index into per-target-dataset array via TargetPt.IO, then read the point value at TargetPt.Index.
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, (OperandA->GetData() + TargetPt.IO)->Get()->Read(TargetPt.Index), B, TypedFilterFactory->Config.Tolerance);
 }
 

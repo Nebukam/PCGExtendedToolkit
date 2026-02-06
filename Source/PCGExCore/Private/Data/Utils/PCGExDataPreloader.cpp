@@ -40,6 +40,10 @@ namespace PCGExData
 
 	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope)
 	{
+		// Lazy-initialized buffer reader with three-state Status:
+		// -1 = failed (permanently skip), 0 = uninitialized, 1 = ready.
+		// The weak pointer allows the facade to own the buffer lifetime while
+		// we cache a reference for repeated scoped fetches across parallel chunks.
 		if (Status == -1) { return; }
 
 		TSharedPtr<IBuffer> Reader = nullptr;

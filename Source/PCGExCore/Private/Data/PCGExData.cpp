@@ -25,6 +25,8 @@ namespace PCGExData
 
 	uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type)
 	{
+		// Combine attribute name, domain, and value type into a single 64-bit key for buffer deduplication.
+		// "Default" domain is treated as "Elements" so they share the same buffer.
 		EPCGMetadataDomainFlag SaneFlagForUID = Identifier.MetadataDomain.Flag;
 		if (SaneFlagForUID == EPCGMetadataDomainFlag::Default) { SaneFlagForUID = EPCGMetadataDomainFlag::Elements; }
 		return PCGEx::H64(HashCombine(GetTypeHash(Identifier.Name), GetTypeHash(SaneFlagForUID)), static_cast<int32>(Type));
@@ -244,9 +246,10 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 
 		if (InValues)
 		{
+			// "Scoped" buffers defer reading until Fetch() is called with a specific range.
+			// If a non-scoped read is requested on an existing sparse buffer, backfill all values now.
 			if (bSparseBuffer && !bScoped)
 			{
-				// Un-scoping reader.
 				Fetch(PCGExMT::FScope(0, InValues->Num()));
 				bReadComplete = true;
 				bSparseBuffer = false;
@@ -266,7 +269,8 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 
 		if (InSide == EIOSide::Out)
 		{
-			// Reading from output
+			// Reading from the output side aliases the output array as the read source,
+			// so reads reflect in-progress writes (used for read-modify-write patterns).
 			check(OutValues)
 			InValues = OutValues;
 			return true;
@@ -275,7 +279,6 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 		TypedInAttribute = PCGExMetaHelpers::TryGetConstAttribute<T>(Source->GetIn(), Identifier);
 		if (!TypedInAttribute)
 		{
-			// Wrong type
 			return false;
 		}
 
@@ -293,6 +296,8 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 
 		InitForReadInternal(bScoped, TypedInAttribute);
 
+		// Non-scoped buffers bulk-read all values upfront. Scoped buffers leave
+		// the array allocated but empty; values are fetched on-demand per scope.
 		if (!bSparseBuffer && !bReadComplete)
 		{
 			TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
@@ -433,6 +438,8 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 
 		if (!TypedOutAttribute) { return; }
 
+		// bResetWithFirstValue: collapse the entire attribute to a single default value.
+		// Used for @Data-domain attributes that should carry one value for the whole dataset.
 		if (this->bResetWithFirstValue)
 		{
 			TypedOutAttribute->Reset();
@@ -443,10 +450,10 @@ template PCGEXCORE_API bool IBuffer::IsA<_TYPE>() const;
 		TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
 		if (!OutAccessor.IsValid()) { return; }
 
-		// Assume that if we write data, it's not to delete it.
+		// Mark this attribute as protected so the consumable-attributes cleanup
+		// in StageOutput won't delete data we just wrote.
 		SharedContext.Get()->AddProtectedAttributeName(TypedOutAttribute->Name);
 
-		// Output value			
 		TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
 		OutAccessor->SetRange<T>(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
 	}
@@ -1301,10 +1308,12 @@ template PCGEXCORE_API bool TryReadMark<_TYPE>(const TSharedRef<FPointIO>& Point
 
 	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys)
 	{
+		// @Data domain buffers (single-value) and reset-with-first-value buffers
+		// are written synchronously since they're trivially cheap.
+		// Element-domain buffers (per-point arrays) are dispatched as async tasks
+		// to parallelize the PCG accessor SetRange calls.
 		if (InBuffer->GetUnderlyingDomain() == EDomainType::Data || InBuffer->bResetWithFirstValue)
 		{
-			// Immediately write data values
-			// Note : let's hope this won't put async in limbo 
 			InBuffer->Write(InEnsureValidKeys);
 		}
 		else

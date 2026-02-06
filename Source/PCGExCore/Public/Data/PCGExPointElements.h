@@ -219,9 +219,9 @@ virtual int32 GetSeed() const override;
 
 #undef PCGEX_POINT_PROXY_OVERRIDES
 
-	static const FPoint NONE_Point = FPoint(1, -1);
-	static const FMutablePoint NONE_MutablePoint = FMutablePoint(nullptr, -1, -1);
-	static const FConstPoint NONE_ConstPoint = FConstPoint(nullptr, -1, -1);
+	PCGEXCORE_API extern const FPoint NONE_Point;
+	PCGEXCORE_API extern const FMutablePoint NONE_MutablePoint;
+	PCGEXCORE_API extern const FConstPoint NONE_ConstPoint;
 
 #pragma endregion
 

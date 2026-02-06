@@ -85,6 +85,11 @@ namespace PCGEx
 
 	bool IAssetLoader::Start(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager)
 	{
+		// Two-phase asset loading:
+		// Phase 1 (discovery): For each PointIO × attribute name, broadcast the SoftObjectPath
+		// attribute to collect all unique asset paths and compute per-point hash keys.
+		// Phase 2 (loading): On discovery completion, trigger async streaming of all unique paths.
+		// This separation avoids loading duplicate assets and parallelizes the discovery step.
 		TArray<TSharedPtr<FDiscoverAssetsTask>> Tasks;
 
 		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOCollection->Pairs)

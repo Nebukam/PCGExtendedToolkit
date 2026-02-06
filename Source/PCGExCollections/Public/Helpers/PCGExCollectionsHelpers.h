@@ -25,12 +25,48 @@ struct FPCGMeshInstanceList;
 class UPCGBasePointData;
 class UPCGParamData;
 
+/**
+ * Runtime helpers for consuming collections in PCG nodes.
+ *
+ * Two-phase pipeline:
+ *   Phase 1 - Generation (AssetStaging, CollectionToModuleInfos):
+ *     FCollectionSource → wraps FDistributionHelper + FMicroDistributionHelper
+ *     FPickPacker       → serializes picks to attribute set ("Collection Map")
+ *
+ *   Phase 2 - Consumption (LoadPCGData, LoadProperties, LoadSockets, Fitting, TypeFilter):
+ *     FPickUnpacker     → deserializes Collection Map, resolves picks back to entries
+ *
+ * Typical generation flow (see PCGExAssetStaging.cpp):
+ *   1. Create FCollectionSource with your data facade
+ *   2. Set DistributionSettings + EntryDistributionSettings, call Init(Collection)
+ *   3. In ProcessPoints: TryGetHelpers() → Helper->GetEntry() → MicroHelper->GetPick()
+ *   4. Write entry hash via FPickPacker::GetPickIdx() to an int64 attribute
+ *   5. After processing: FPickPacker::PackToDataset() serializes the mapping
+ *
+ * Typical consumption flow (see PCGExStagingLoadPCGData.cpp):
+ *   1. Create FPickUnpacker, call UnpackPin() to load the Collection Map
+ *   2. In ProcessPoints: read int64 hash → UnpackHash() or ResolveEntry() → get entry + secondary index
+ *   3. Use entry data (staging path, bounds, sockets, etc.)
+ *
+ * Hash encoding (FPickPacker/FPickUnpacker):
+ *   uint64 = H64( H32(BaseHash, CollectionArrayIndex), H32(EntryIndex, SecondaryIndex+1) )
+ *   This packs collection identity + entry + variant into a single attribute value.
+ */
 namespace PCGExCollections
 {
 	/**
-	 * Non-templated distribution helper.
-	 * Works with any collection type through the polymorphic API.
-	 * Use FPCGExEntryAccessResult::As<T>() when you need type-specific entry data.
+	 * Per-point entry picker. Reads distribution settings (index/random/weighted) and
+	 * optional category filtering, then picks entries from a collection's cache.
+	 *
+	 * Usage:
+	 *   auto Helper = MakeShared<FDistributionHelper>(Collection, DistributionDetails);
+	 *   Helper->Init(DataFacade);
+	 *   // In parallel loop:
+	 *   FPCGExEntryAccessResult Result = Helper->GetEntry(PointIndex, Seed);
+	 *
+	 * Category support: when bUseCategories is enabled, picks are restricted to the named
+	 * sub-category within the cache. If the picked entry is a subcollection, recursion
+	 * continues into it via GetEntryWeightedRandom.
 	 */
 	class PCGEXCOLLECTIONS_API FDistributionHelper : public TSharedFromThis<FDistributionHelper>
 	{
@@ -82,8 +118,17 @@ namespace PCGExCollections
 	};
 
 	/**
-	 * Helper for distributing within an entry's MicroCache
-	 * (e.g., selecting material variants)
+	 * Per-point sub-entry picker operating on an entry's FMicroCache.
+	 * Selects a variant index (e.g. material override) using the same distribution
+	 * modes as the main helper (index/random/weighted). The picked index is then
+	 * used as a "secondary index" in the packing scheme.
+	 *
+	 * Usage:
+	 *   auto MicroHelper = MakeShared<FMicroDistributionHelper>(MicroDistDetails);
+	 *   MicroHelper->Init(DataFacade);
+	 *   // In parallel loop:
+	 *   int32 Pick = MicroHelper->GetPick(Entry->MicroCache.Get(), PointIndex, Seed);
+	 *   // Pick is then passed to ApplyMaterials() or packed as SecondaryIndex
 	 */
 	class PCGEXCOLLECTIONS_API FMicroDistributionHelper : public TSharedFromThis<FMicroDistributionHelper>
 	{
@@ -109,8 +154,25 @@ namespace PCGExCollections
 	};
 
 	/**
-	 * Packs collection references and entry picks into an attribute set
-	 * for downstream consumption (e.g., by mesh spawner)
+	 * Serializes collection references and per-point entry picks into a UPCGParamData
+	 * attribute set (the "Collection Map"). This is the bridge between generation nodes
+	 * (AssetStaging) and consumption nodes (LoadPCGData, LoadSockets, Fitting, etc.).
+	 *
+	 * Thread-safe: GetPickIdx() can be called from parallel ProcessPoints loops.
+	 * The attribute set contains two attributes per collection:
+	 *   - Tag_CollectionIdx (int32): packed collection identifier
+	 *   - Tag_CollectionPath (FSoftObjectPath): collection asset path for loading
+	 *
+	 * Usage:
+	 *   // In Boot:
+	 *   Packer = MakeShared<FPickPacker>(Context);
+	 *   // In ProcessPoints (parallel):
+	 *   uint64 Hash = Packer->GetPickIdx(EntryHost, Staging.InternalIndex, SecondaryIndex);
+	 *   HashWriter->SetValue(Index, Hash);
+	 *   // After processing:
+	 *   UPCGParamData* OutputSet = Context->ManagedObjects->New<UPCGParamData>();
+	 *   Packer->PackToDataset(OutputSet);
+	 *   // Output to "Map" pin
 	 */
 	class PCGEXCOLLECTIONS_API FPickPacker : public TSharedFromThis<FPickPacker>
 	{
@@ -137,7 +199,23 @@ namespace PCGExCollections
 	};
 
 	/**
-	 * Unpacks collection references and entry picks from an attribute set
+	 * Deserializes a Collection Map (produced by FPickPacker) back into usable collection
+	 * references. Loads the referenced collections, then resolves per-point hashes into
+	 * concrete entries + secondary indices.
+	 *
+	 * Used by all consumption nodes: LoadPCGData, LoadProperties, LoadSockets,
+	 * Fitting, TypeFilter.
+	 *
+	 * Usage:
+	 *   // In Boot:
+	 *   Unpacker = MakeShared<FPickUnpacker>();
+	 *   Unpacker->UnpackPin(Context);  // reads from "Map" input pin
+	 *   if (!Unpacker->HasValidMapping()) { return false; }
+	 *   // In ProcessPoints:
+	 *   int64 Hash = HashGetter->Read(Index);
+	 *   int16 SecondaryIndex;
+	 *   FPCGExEntryAccessResult Result = Unpacker->ResolveEntry(Hash, SecondaryIndex);
+	 *   // Use Result.Entry->Staging, Result.Host, SecondaryIndex
 	 */
 	class PCGEXCOLLECTIONS_API FPickUnpacker : public TSharedFromThis<FPickUnpacker>
 	{
@@ -189,8 +267,25 @@ namespace PCGExCollections
 	};
 
 	/**
-	 * Manages collection source(s) for staging operations.
-	 * Supports both single collection and per-point collection mapping.
+	 * Unified facade for single or per-point collection sources. Wraps one or many
+	 * FDistributionHelper + FMicroDistributionHelper pairs and routes TryGetHelpers()
+	 * to the correct one based on point index.
+	 *
+	 * Two modes:
+	 * - Single source: Init(Collection) — all points share one collection
+	 * - Mapped source: Init(Map, Keys) — each point has a hash key that maps to
+	 *   a different collection (loaded via TAssetLoader from per-point path attributes)
+	 *
+	 * MicroHelper is automatically created for mesh collections (material variant picking).
+	 *
+	 * Usage (see PCGExAssetStaging::FProcessor::Process):
+	 *   Source = MakeShared<FCollectionSource>(PointDataFacade);
+	 *   Source->DistributionSettings = Settings->DistributionSettings;
+	 *   Source->EntryDistributionSettings = Settings->EntryDistributionSettings;
+	 *   Source->Init(Collection);
+	 *   // In ProcessPoints:
+	 *   FDistributionHelper* Helper; FMicroDistributionHelper* MicroHelper;
+	 *   if (Source->TryGetHelpers(Index, Helper, MicroHelper)) { ... }
 	 */
 	class PCGEXCOLLECTIONS_API FCollectionSource : public TSharedFromThis<FCollectionSource>
 	{
@@ -234,6 +329,12 @@ namespace PCGExCollections
 		UPCGExAssetCollection* GetSingleSource() const { return SingleSource; }
 	};
 
+	/**
+	 * Collection-aware socket helper. Extracts socket transforms from collection entries'
+	 * staging data and builds per-entry socket point sets. Thread-safe Add() deduplicates
+	 * by entry hash and accumulates socket info with atomic reference counting.
+	 * Call Compile() after processing to output socket points to a FPointIOCollection.
+	 */
 	class PCGEXCOLLECTIONS_API FSocketHelper : public PCGExStaging::FSocketHelper
 	{
 	public:

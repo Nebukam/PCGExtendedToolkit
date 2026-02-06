@@ -7,6 +7,10 @@
 
 namespace PCGExData
 {
+	const FPoint NONE_Point(1, -1);
+	const FMutablePoint NONE_MutablePoint(nullptr, -1, -1);
+	const FConstPoint NONE_ConstPoint(nullptr, -1, -1);
+
 #pragma region FScope
 
 	FScope::FScope(UPCGBasePointData* InData, const int32 InStart, const int32 InCount)

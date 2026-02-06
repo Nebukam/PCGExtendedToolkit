@@ -12,6 +12,11 @@
 class UPCGExBitmaskCollection;
 class UPCGParamData;
 
+/**
+ * Controls how a numeric index maps to collection entries. Used when Distribution
+ * is set to Index mode. Supports pick mode (ascending/descending/weight-sorted),
+ * index safety (clamping/tiling for out-of-range), and optional remap to collection size.
+ */
 USTRUCT(BlueprintType)
 struct PCGEXCOLLECTIONS_API FPCGExAssetDistributionIndexDetails
 {
@@ -74,6 +79,13 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetTaggingDetails : public FPCGExComponentTa
 	bool IsEnabled() const { return GrabTags != 0; }
 };
 
+/**
+ * Main distribution configuration. Determines how points select collection entries:
+ * - Index: map a per-point attribute to an entry index
+ * - Random: uniform random based on seed
+ * - WeightedRandom: probability proportional to entry Weight
+ * Also supports optional category-based filtering (restrict picks to a named category).
+ */
 USTRUCT(BlueprintType)
 struct PCGEXCOLLECTIONS_API FPCGExAssetDistributionDetails
 {
@@ -138,6 +150,11 @@ struct PCGEXCOLLECTIONS_API FPCGExMicroCacheDistributionDetails
 	int32 LocalSeed = 0;
 };
 
+/**
+ * Configures how to build a dynamic collection from a PCG Attribute Set.
+ * Maps attribute names to entry properties (asset path, weight, category),
+ * allowing collections to be authored as data rather than UDataAssets.
+ */
 USTRUCT(BlueprintType)
 struct PCGEXCOLLECTIONS_API FPCGExAssetAttributeSetDetails
 {

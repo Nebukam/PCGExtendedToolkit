@@ -10,8 +10,15 @@
 
 #include "PCGExFilterFactoryProvider.generated.h"
 
-///
-
+/**
+ * Macro to generate the CreateFactory() implementation for a filter provider.
+ * Expects the provider class to be named UPCGEx##_FILTERID##FilterProviderSettings
+ * and the factory class to be named UPCGEx##_FILTERID##FilterFactory.
+ * The provider must have a Config member that gets copied to the factory.
+ *
+ * Flow: create factory UObject → copy policies → copy Config → Super::CreateFactory
+ * → Init (validate settings against data) → on failure, destroy and return nullptr.
+ */
 #define PCGEX_CREATE_FILTER_FACTORY(_FILTERID)\
 UPCGExFactoryData* UPCGEx##_FILTERID##FilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{\
 	UPCGEx##_FILTERID##FilterFactory* NewFactory = InContext->ManagedObjects->New<UPCGEx##_FILTERID##FilterFactory>();\

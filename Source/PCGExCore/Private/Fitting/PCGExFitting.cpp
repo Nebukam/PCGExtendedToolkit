@@ -21,6 +21,9 @@ void FPCGExScaleToFitDetails::Process(const PCGExData::FPoint& InPoint, const FB
 	const double YFactor = TargetSizeScaled.Y / CandidateSize.Y;
 	const double ZFactor = TargetSizeScaled.Z / CandidateSize.Z;
 
+	// Pack all three uniform scale options into a single FVector:
+	// X = smallest axis ratio (Min), Y = largest (Max), Z = average (Avg).
+	// ScaleToFitAxis indexes into this vector to pick the desired uniform mode.
 	const FVector FitMinMax = FVector(FMath::Min3(XFactor, YFactor, ZFactor), FMath::Max3(XFactor, YFactor, ZFactor), (XFactor + YFactor + ZFactor) / 3);
 
 	OutBounds.Min = InBounds.Min;
@@ -287,6 +290,10 @@ void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTra
 
 void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex, const FTransform& InLocalXForm, FTransform& OutTransform, FBox& InOutBounds, FVector& OutTranslation) const
 {
+	// Computes a final world transform for placing a candidate asset at a target point,
+	// incorporating: (1) the candidate's local pre-rotation/scale, (2) scale-to-fit against
+	// the target point's bounds, (3) justification alignment, and (4) the target's world transform.
+	// The pipeline is: local scale → fit → rotate AABB for justification → compose world transform.
 	check(TargetDataFacade);
 	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
 	const FTransform& TargetTransform = TargetPoint.GetTransform();

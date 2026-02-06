@@ -8,8 +8,17 @@ public class PCGExGraphs : ModuleRules
 {
 	public PCGExGraphs(ReadOnlyTargetRules Target) : base(Target)
 	{
-		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
-		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH"));
+		if (bNoPCH)
+		{
+			PCHUsage = PCHUsageMode.NoPCHs;
+		}
+		else
+		{
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+			PrivatePCHHeaderFile = "Public/PCGExGraphsPCH.h";
+			SharedPCHHeaderFile = "Public/PCGExGraphsPCH.h";
+		}
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
 

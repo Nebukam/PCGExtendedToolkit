@@ -40,7 +40,9 @@ namespace PCGExAssetCollection
 struct FPCGExAssetCollectionEntry;
 
 /**
- * Entry Access Result - Clean return type for polymorphic access
+ * Result of a collection entry lookup. Bundles the entry pointer with the host collection
+ * that owns it (important when subcollections are involved, since the entry may come from
+ * a nested collection). Use As<T>() to downcast to a concrete entry type.
  */
 struct PCGEXCOLLECTIONS_API FPCGExEntryAccessResult
 {
@@ -58,7 +60,10 @@ struct PCGEXCOLLECTIONS_API FPCGExEntryAccessResult
 };
 
 /**
- * Staging Data - Shared across all entry types
+ * Pre-computed data shared across all entry types. Populated during UpdateStaging()
+ * (editor-time or on demand). Stores the soft path for async loading, cached bounds
+ * for spatial queries, and sockets extracted from the underlying asset (e.g. mesh sockets).
+ * Use LoadSync<T>() for thread-safe loading or TryGet<T>() for already-loaded assets.
  */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staging Data")
 struct PCGEXCOLLECTIONS_API FPCGExAssetStagingData
@@ -95,7 +100,26 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetStagingData
 };
 
 /**
- * Base Collection Entry
+ * Base entry in an asset collection. Each entry is either a direct asset reference
+ * or a subcollection pointer (controlled by bIsSubCollection).
+ *
+ * Creating a custom collection type:
+ * 1. Subclass this struct — add your asset-specific UPROPERTY (e.g. TSoftObjectPtr<UMyAsset>)
+ * 2. Override GetTypeId() to return your registered FTypeId
+ * 3. Override GetSubCollectionPtr() / ClearSubCollection() if you have a typed SubCollection
+ * 4. Override Validate() to reject invalid entries (call Super)
+ * 5. Override UpdateStaging() to populate Staging.Bounds and Staging.Path from your asset
+ * 6. Override SetAssetPath() to update your TSoftObjectPtr from a path
+ * 7. Override EDITOR_Sanitize() to sync InternalSubCollection from your typed SubCollection
+ * 8. Optionally override BuildMicroCache() for per-entry sub-selections (e.g. material variants)
+ *
+ * Key properties inherited:
+ * - Weight: pick probability (0 = excluded from cache)
+ * - Category: named group for category-based picking
+ * - Tags: arbitrary FName set, inheritable through subcollection hierarchy
+ * - Variations: per-entry fitting transforms (scale/rotation randomization)
+ * - PropertyOverrides: per-entry override of collection-level custom properties
+ * - Staging: pre-computed bounds, path, and sockets
  */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
 struct PCGEXCOLLECTIONS_API FPCGExAssetCollectionEntry
@@ -238,8 +262,16 @@ protected:
 namespace PCGExAssetCollection
 {
 	/**
-	 * Unified MicroCache base class
-	 * Handles weighted random picking for per-entry sub-selections (e.g., material variants)
+	 * Per-entry cache for weighted sub-selections within a single entry.
+	 * Used when an entry has multiple variants (e.g. material overrides on a mesh,
+	 * point weights on a data asset). Provides the same pick modes as FCategory
+	 * (ascending, descending, random, weighted random).
+	 *
+	 * To create a custom MicroCache:
+	 * 1. Subclass FMicroCache, override GetTypeId()
+	 * 2. Add a Process*() method that calls BuildFromWeights() with your weight array
+	 * 3. Override BuildMicroCache() in your entry struct to create and populate it
+	 * 4. Add a typed accessor (e.g. GetMyMicroCache()) on your entry struct
 	 */
 	class PCGEXCOLLECTIONS_API FMicroCache : public TSharedFromThis<FMicroCache>
 	{
@@ -271,7 +303,10 @@ namespace PCGExAssetCollection
 	};
 
 	/**
-	 * Category - groups entries by name for category-based picking
+	 * Groups entries sharing the same Category FName. Maintains its own weight-sorted
+	 * index array for efficient pick operations. The "Main" category in FCache contains
+	 * all valid entries regardless of name. Named categories enable filtered picking
+	 * (e.g. "Rocks", "Trees") without building separate collections.
 	 */
 	class PCGEXCOLLECTIONS_API FCategory : public TSharedFromThis<FCategory>
 	{
@@ -310,7 +345,9 @@ namespace PCGExAssetCollection
 	};
 
 	/**
-	 * Main cache - holds the main category and named sub-categories
+	 * Top-level cache built from the collection's Entries array. Contains one "Main"
+	 * category (all valid entries) plus named sub-categories. Built lazily on first
+	 * access via LoadCache(). Thread-safe (guarded by FRWLock on the collection).
 	 */
 	class PCGEXCOLLECTIONS_API FCache : public TSharedFromThis<FCache>
 	{
@@ -330,7 +367,34 @@ namespace PCGExAssetCollection
 }
 
 /**
- * Base Asset Collection
+ * Abstract base for all PCGEx asset collections. A collection is a UDataAsset containing
+ * a typed array of entries, each pointing to an asset (mesh, actor, data asset, etc.)
+ * or recursively to another subcollection of the same type.
+ *
+ * Architecture overview:
+ *   UPCGExAssetCollection (UDataAsset)
+ *     └─ TArray<FMyEntry> Entries          — the authored list
+ *     └─ FCache (built lazily)
+ *         ├─ FCategory "Main"              — all valid entries, weight-sorted
+ *         └─ FCategory per unique name     — entries grouped by Category FName
+ *             └─ per entry: FMicroCache    — optional sub-selections (material variants, etc.)
+ *
+ * Creating a custom collection type:
+ * 1. Create your entry struct (see FPCGExAssetCollectionEntry doc)
+ * 2. Subclass UPCGExAssetCollection
+ * 3. Add PCGEX_ASSET_COLLECTION_BODY(FMyEntry) in the class body — this implements
+ *    all required virtual functions (IsValidIndex, NumEntries, BuildCache, ForEachEntry, etc.)
+ * 4. Override GetTypeId() to return your registered FTypeId
+ * 5. Add your TArray<FMyEntry> Entries UPROPERTY
+ * 6. Register your type with PCGEX_REGISTER_COLLECTION_TYPE in your .cpp file
+ * 7. Optionally override EDITOR_AddBrowserSelectionInternal for drag-drop support
+ *
+ * Picking API (all methods handle subcollection recursion automatically):
+ * - GetEntryAt(Index)           — direct index access
+ * - GetEntry(Index, Seed, Mode) — pick by mode (ascending/descending/weight-sorted)
+ * - GetEntryRandom(Seed)        — uniform random
+ * - GetEntryWeightedRandom(Seed)— weighted random
+ * All return FPCGExEntryAccessResult with entry + host collection.
  */
 UCLASS(Abstract, BlueprintType, DisplayName="[PCGEx] Asset Collection")
 class PCGEXCOLLECTIONS_API UPCGExAssetCollection : public UDataAsset
@@ -560,7 +624,8 @@ protected:
 	TSharedPtr<PCGExAssetCollection::FCache> Cache;
 };
 
-// Template Implementation
+// Validates each entry, registers valid ones to the cache (Main + named categories),
+// triggers MicroCache builds, and compiles weight-sorted indices.
 template <typename T>
 bool UPCGExAssetCollection::BuildCacheFromEntries(TArray<T>& InEntries)
 {

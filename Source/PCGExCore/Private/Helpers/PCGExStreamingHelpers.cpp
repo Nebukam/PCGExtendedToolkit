@@ -15,10 +15,12 @@ namespace PCGExHelpers
 {
 	TSharedPtr<FStreamableHandle> LoadBlocking_AnyThread(const FSoftObjectPath& Path, FPCGExContext* InContext)
 	{
+		// Thread-safe synchronous asset loading. UAssetManager requires game-thread access,
+		// so when called from a worker thread, dispatch to game thread and block until complete.
+		// The context tracks the handle to prevent premature GC of loaded assets.
 		TSharedPtr<FStreamableHandle> Handle;
 		if (IsInGameThread())
 		{
-			// We're in the game thread, request synchronous load
 			Handle = UAssetManager::GetStreamableManager().RequestSyncLoad(Path);
 			if (InContext) { InContext->TrackAssetsHandle(Handle); }
 		}
@@ -49,6 +51,12 @@ namespace PCGExHelpers
 	{
 		check(TaskManager);
 
+		// Async asset loading integrated with the PCGEx task system.
+		// Dispatches to game thread (required by UAssetManager), creates a LoadToken
+		// to keep the task manager alive during the async load, and fires OnLoadEnd
+		// when the streamable manager completes. The token is released in both the
+		// success callback and the early-completion/failure path to ensure the task
+		// group's completion count stays correct.
 		PCGExMT::ExecuteOnMainThread(TaskManager, [GetPathsFunc, OnLoadEnd, TaskManager]()
 		{
 			TArray<FSoftObjectPath> Paths = GetPathsFunc();
@@ -68,6 +76,7 @@ namespace PCGExHelpers
 					PCGEX_ASYNC_RELEASE_CAPTURED_TOKEN(LoadToken)
 				});
 
+			// Handle already-completed or failed loads (assets were cached or paths invalid).
 			if (!LoadHandle || !LoadHandle->IsActive())
 			{
 				if (!LoadHandle || !LoadHandle->HasLoadCompleted()) { OnLoadEnd(false, LoadHandle); }

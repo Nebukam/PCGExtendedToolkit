@@ -58,22 +58,25 @@ namespace PCGExData
 
 		if (LastInit == InitOut) { return true; }
 
+		// Fast path: if we already have forwarded output, just update the mode.
 		if (InitOut == EIOInit::Forward && IsValid(Out) && Out == In)
 		{
-			// Already forwarding
 			LastInit = EIOInit::Forward;
 			return true;
 		}
 
+		// If we already duplicated and now want "New", just clear the points
+		// instead of destroying and recreating the UObject (cheaper).
 		if (LastInit == EIOInit::Duplicate && InitOut == EIOInit::New && Out && Out != In)
 		{
 			LastInit = EIOInit::New;
-			Out->SetNumPoints(0); // lol
+			Out->SetNumPoints(0);
 			return true;
 		}
 
 		LastInit = InitOut;
 
+		// Destroy previous output if it's our own (not the forwarded input).
 		if (IsValid(Out) && Out != In)
 		{
 			SharedContext.Get()->ManagedObjects->Destroy(Out);
@@ -81,15 +84,16 @@ namespace PCGExData
 		}
 
 		OutKeys.Reset();
-
 		bMutable = false;
 
+		// NoInit: read-only, no output will be produced.
 		if (InitOut == EIOInit::NoInit)
 		{
 			Out = nullptr;
 			return true;
 		}
 
+		// Forward: output IS the input (pass-through). Data is not owned/mutable.
 		if (InitOut == EIOInit::Forward)
 		{
 			check(In);
@@ -99,6 +103,8 @@ namespace PCGExData
 
 		bMutable = true;
 
+		// New: create a fresh point data of the same class as input (preserves metadata
+		// schema via InitializeFromDataWithParams, but starts with zero points).
 		if (InitOut == EIOInit::New)
 		{
 			if (In)
@@ -107,8 +113,6 @@ namespace PCGExData
 				if (!GenericInstance) { return false; }
 
 				Out = Cast<UPCGBasePointData>(GenericInstance);
-
-				// Input type was not a PointData child, should not happen.
 				check(Out)
 
 				PCGExPointArrayDataHelpers::InitEmptyNativeProperties(In, Out);
@@ -126,6 +130,7 @@ namespace PCGExData
 			return true;
 		}
 
+		// Duplicate: deep copy of input data including points and metadata.
 		if (InitOut == EIOInit::Duplicate)
 		{
 			check(In)
@@ -201,6 +206,10 @@ namespace PCGExData
 
 		if (bConservative)
 		{
+			// Conservative: only allocate new metadata entries for points that don't
+			// already have valid keys (invalid or stale parent references). This preserves
+			// existing metadata entries, which is important when the output was duplicated
+			// from input and some points already carry valid attribute data.
 			TArray<int64*> KeysNeedingInit;
 			KeysNeedingInit.Reserve(MetadataEntries.Num());
 			const int64 ItemKeyOffset = Metadata->GetItemKeyCountForParent();
@@ -214,6 +223,9 @@ namespace PCGExData
 		}
 		else
 		{
+			// Non-conservative: replace ALL metadata entries with fresh ones.
+			// Old keys are preserved as parent references in DelayedEntries so attribute
+			// values can still be inherited/interpolated from the original data.
 			const int32 NumEntries = MetadataEntries.Num();
 			TArray<TTuple<int64, int64>> DelayedEntries;
 			DelayedEntries.SetNum(NumEntries);
@@ -476,17 +488,21 @@ namespace PCGExData
 
 	bool FPointIO::StageOutput(FPCGExContext* TargetContext) const
 	{
-		// If this hits, it needs to be reported. It means a node is trying to output data that is meant to be transactional only
 		check(!bTransactional)
 
 		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
+		// Forward mode: output the original input data (before any PCGEx type conversion).
+		// This ensures downstream nodes see the exact same UPCGData pointer, preserving
+		// any non-point-data type information that ToPointData might have changed.
 		if (LastInit == EIOInit::Forward && Out == In && OriginalIn)
 		{
 			TargetContext->StageOutput(const_cast<UPCGData*>(OriginalIn), OutputPin, bPinless ? EStaging::Pinless : EStaging::None, Tags->Flatten());
 		}
 		else
 		{
+			// Managed: we created this data, context must prevent GC until output is consumed.
+			// Mutable: we own this data and can clean up consumable attributes on it.
 			const EStaging Staging =
 				(Out != In ? EStaging::Managed : EStaging::None) |
 				(bMutable ? EStaging::Mutable : EStaging::None) |
@@ -542,8 +558,11 @@ namespace PCGExData
 
 		const int32 ReducedNum = InIndices.Num();
 
+		// No-op if all points are kept.
 		if (ReducedNum == Out->GetNumPoints()) { return ReducedNum; }
 
+		// In-place compaction: shuffle selected points to the front of the output arrays,
+		// then truncate. This avoids allocating a temporary copy of the point data.
 		EPCGPointNativeProperties Allocated = In->GetAllocatedProperties() | Out->GetAllocatedProperties();
 		Out->AllocateProperties(Allocated);
 
@@ -1002,23 +1021,25 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
 	const UPCGBasePointData* PCGExPointIO::ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source)
 	{
-		// NOTE : This has a high probability of creating new data on the fly
-		// so it should absolutely not be used to be inherited or duplicated
-		// since it would mean point data that inherit potentially destroyed parents
+		// Converts non-point PCG data into point data for uniform processing.
+		// WARNING: newly created data is transient and managed internally.
+		// Do NOT duplicate or inherit from the result, as the parent data may be
+		// destroyed when the context is torn down.
 		if (const UPCGBasePointData* RealPointData = Cast<const UPCGBasePointData>(Source.Data))
 		{
 			return RealPointData;
 		}
+
+		// Spatial data (volumes, landscapes, etc.) → sample into points.
 		if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
 		{
-			// Currently we support collapsing to point data only, but at some point in the future that might be different
 			const UPCGBasePointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData(Context);
-
-			//Keep track of newly created data internally
 			if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGBasePointData*>(PointData)); }
 			return PointData;
 		}
 
+		// Param data (key-value metadata without spatial info) → create identity-transform
+		// points with one point per metadata entry, preserving all attributes.
 		if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
 		{
 			const UPCGMetadata* ParamMetadata = ParamData->Metadata;

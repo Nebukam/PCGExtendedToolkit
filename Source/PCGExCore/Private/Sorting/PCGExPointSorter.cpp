@@ -338,6 +338,10 @@ namespace PCGExSorting
 
 	TSharedPtr<FSortCache> FSortCache::Build(const FSorter& Sorter, int32 InNumElements)
 	{
+		// Pre-computes all sort values into flat arrays for cache-friendly comparison.
+		// Collects raw pointers to buffers and value arrays before the parallel loop
+		// to avoid shared_ptr overhead and virtual dispatch per-element in the hot path.
+		// The resulting cache enables O(1) value lookup during subsequent sort comparisons.
 		TRACE_CPUPROFILER_EVENT_SCOPE(FSortCache::Build);
 
 		if (InNumElements <= 0 || Sorter.RuleHandlers.IsEmpty())

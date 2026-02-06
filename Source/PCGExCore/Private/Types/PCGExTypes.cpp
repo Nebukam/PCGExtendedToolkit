@@ -7,7 +7,10 @@
 
 namespace PCGExTypes
 {
-	// FScopedTypedValue implementation
+	// FScopedTypedValue: a type-erased value stored inline in a fixed-size stack buffer.
+	// Acts as a manual discriminated union (like std::variant) for PCG metadata types.
+	// Complex types (FString, FName, FSoftObjectPath, FSoftClassPath) need placement-new
+	// construction and explicit destructor calls; POD types are simply zero-initialized.
 
 	FScopedTypedValue::FScopedTypedValue(EPCGMetadataTypes InType)
 		: Type(InType), bConstructed(false)

@@ -22,6 +22,9 @@ namespace PCGExCollections
 	{
 	}
 
+	// Loads the collection cache, initializes category getter (if category filtering is enabled),
+	// and index getter (if distribution mode is Index). The index getter optionally tracks
+	// min/max for remapping to collection size.
 	bool FDistributionHelper::Init(const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		Cache = Collection->LoadCache();
@@ -51,11 +54,14 @@ namespace PCGExCollections
 		return true;
 	}
 
+	// Entry picking: category filter → distribution strategy → subcollection recursion.
+	// When a category is active, picks are first filtered to entries within that category.
+	// If the category yields a subcollection entry, WorkingCollection switches to it and
+	// the main distribution strategy is applied to the subcollection instead.
 	FPCGExEntryAccessResult FDistributionHelper::GetEntry(int32 PointIndex, int32 Seed) const
 	{
 		const UPCGExAssetCollection* WorkingCollection = Collection;
 
-		// Handle category-based selection
 		if (CategoryGetter)
 		{
 			const FName CategoryKey = CategoryGetter->Read(PointIndex);
@@ -214,7 +220,11 @@ namespace PCGExCollections
 		return -1;
 	}
 
-	// Pick Packer Implementation
+	// --- Pick Packer ---
+	// Encodes collection identity + entry index + secondary index into a single uint64.
+	// BaseHash incorporates the node's UID to avoid collisions across different staging nodes.
+	// The collection is assigned a unique uint32 ID on first encounter (thread-safe double-check).
+	// SecondaryIndex is stored +1 so that 0 can represent "no secondary" (unpacker subtracts 1).
 
 	FPickPacker::FPickPacker(FPCGContext* InContext)
 	{
@@ -246,6 +256,9 @@ namespace PCGExCollections
 		}
 	}
 
+	// Writes the collection→ID mapping as rows in an attribute set.
+	// Each row has a CollectionIdx (the uint32 ID used in hashes) and a CollectionPath
+	// (the soft path needed to reload the collection on the consumption side).
 	void FPickPacker::PackToDataset(const UPCGParamData* InAttributeSet)
 	{
 		FPCGMetadataAttribute<int32>* CollectionIdx = InAttributeSet->Metadata->FindOrCreateAttribute<int32>(
@@ -263,7 +276,10 @@ namespace PCGExCollections
 		}
 	}
 
-	// Pick Unpacker Implementation
+	// --- Pick Unpacker ---
+	// Reverses the packing: reads CollectionIdx→CollectionPath pairs from the attribute set,
+	// loads all referenced collections, then provides UnpackHash/ResolveEntry to decode
+	// per-point uint64 hashes back into (Collection, EntryIndex, SecondaryIndex).
 
 	FPickUnpacker::~FPickUnpacker()
 	{
@@ -348,6 +364,9 @@ namespace PCGExCollections
 		}
 	}
 
+	// Groups points by their entry hash into FPCGMeshInstanceList partitions.
+	// Each unique hash gets one instance list; points sharing the same hash share the list.
+	// Used by the PCG mesh spawner pipeline to batch-instantiate identical meshes.
 	bool FPickUnpacker::BuildPartitions(const UPCGBasePointData* InPointData, TArray<FPCGMeshInstanceList>& InstanceLists)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPickUnpacker::BuildPartitions);

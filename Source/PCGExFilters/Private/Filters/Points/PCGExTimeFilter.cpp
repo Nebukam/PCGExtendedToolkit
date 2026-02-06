@@ -128,11 +128,14 @@ namespace PCGExPointFilter
 		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, Alpha, TypedFilterFactory->Config.OperandBConstant, TypedFilterFactory->Config.Tolerance);
 	}
 
+	// Compare the spline parametric time (alpha) at the closest projection of each point.
+	// When multiple splines exist, TimeConsolidation controls how alphas are combined (min/max/avg).
 	bool FTimeFilter::Test(const int32 PointIndex) const
 	{
 		const FVector WorldPosition = InTransforms[PointIndex].GetLocation();
 		float Alpha = 0;
 
+		// Pre-seed with MAX_flt so first Min() comparison works correctly.
 		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Alpha = MAX_flt; }
 
 		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)

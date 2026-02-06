@@ -46,6 +46,11 @@ enum class EPCGExCollectionGrammarSize : uint8
 	Average = 3 UMETA(DisplayName = "Average", Tooltip="Uses an average of the sizes of all the collection entries.", ActionIcon="AverageSize"),
 };
 
+/**
+ * Per-entry grammar configuration. Defines how a single entry participates in
+ * PCG subdivision: its symbol name, whether it's fixed or flexible (scalable),
+ * and which axis of its bounds determines its size.
+ */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Grammar Details")
 struct PCGEXCOLLECTIONS_API FPCGExAssetGrammarDetails
 {
@@ -78,6 +83,12 @@ struct PCGEXCOLLECTIONS_API FPCGExAssetGrammarDetails
 	void Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
 };
 
+/**
+ * Collection-level grammar configuration. Defines how an entire collection
+ * is treated as a single grammar module during subdivision. SizeMode determines
+ * whether the collection's representative size is the min/max/average of its entries
+ * or a fixed user-specified value.
+ */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Grammar Details")
 struct PCGEXCOLLECTIONS_API FPCGExCollectionGrammarDetails
 {

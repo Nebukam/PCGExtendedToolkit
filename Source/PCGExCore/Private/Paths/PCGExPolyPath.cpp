@@ -101,6 +101,9 @@ namespace PCGExPaths
 
 		BuildProjection();
 
+		// Enforce winding order by checking the signed area of the 2D projected polygon.
+		// Negative signed area = clockwise winding; if it doesn't match the desired winding,
+		// reverse both the projected points and the source transforms.
 		if (WindingMutation != EPCGExWindingMutation::Unchanged)
 		{
 			const EPCGExWinding Wants = WindingMutation == EPCGExWindingMutation::Clockwise ? EPCGExWinding::Clockwise : EPCGExWinding::CounterClockwise;

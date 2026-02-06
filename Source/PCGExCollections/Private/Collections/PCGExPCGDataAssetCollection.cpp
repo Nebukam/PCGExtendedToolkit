@@ -11,7 +11,7 @@
 #include "Data/PCGSpatialData.h"
 
 
-// Register the PCGDataAsset collection type at startup
+// Static-init type registration: TypeId=PCGDataAsset, parent=Base
 PCGEX_REGISTER_COLLECTION_TYPE(PCGDataAsset, UPCGExPCGDataAssetCollection, FPCGExPCGDataAssetCollectionEntry, "PCG Data Asset Collection", Base)
 
 // PCGDataAsset MicroCache - Point weight picking
@@ -47,6 +47,7 @@ bool FPCGExPCGDataAssetCollectionEntry::Validate(const UPCGExAssetCollection* Pa
 	return FPCGExAssetCollectionEntry::Validate(ParentCollection);
 }
 
+// Loads the PCG data asset and computes combined bounds from all spatial data inputs.
 void FPCGExPCGDataAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive)
 {
 	ClearManagedSockets();
@@ -58,8 +59,6 @@ void FPCGExPCGDataAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollectio
 	}
 
 	Staging.Path = DataAsset.ToSoftObjectPath();
-
-	// Load the data asset to compute bounds
 	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThreadTpl(DataAsset);
 
 	if (const UPCGDataAsset* Asset = DataAsset.Get())

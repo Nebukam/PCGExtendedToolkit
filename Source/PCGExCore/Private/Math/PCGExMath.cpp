@@ -63,6 +63,9 @@ namespace PCGExMath
 
 	bool FSegment::FindIntersection(const FVector& A2, const FVector& B2, const double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const uint8 Strictness) const
 	{
+		// Find the closest point pair between two line segments.
+		// Strictness flags exclude intersections at specific endpoints (bitmask),
+		// e.g. to prevent detecting shared vertices as intersections in a mesh.
 		FMath::SegmentDistToSegment(A, B, A2, B2, OutSelf, OutOther);
 
 		if ((Strictness & static_cast<uint8>(EPCGExIntersectionStrictness::MainA)) && A == OutSelf) { return false; }
@@ -119,6 +122,10 @@ namespace PCGExMath
 
 	void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector)
 	{
+		// Incremental convexity test for a polygon. Call for each consecutive triple (A,B,C).
+		// Computes the cross product of edges AB and AC, projected onto UpVector.
+		// If the sign ever flips from a previously observed sign, the polygon is concave.
+		// OutSign tracks the first non-zero sign seen; subsequent sign changes set bIsConvex=false.
 		if (!bIsConvex) { return; }
 
 		if (A == C)

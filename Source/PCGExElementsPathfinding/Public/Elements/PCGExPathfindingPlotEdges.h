@@ -59,6 +59,10 @@ public:
 #endif
 
 protected:
+	
+	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
+	
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
