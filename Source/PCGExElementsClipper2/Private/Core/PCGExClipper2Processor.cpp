@@ -181,6 +181,11 @@ namespace PCGExClipper2
 UPCGExClipper2ProcessorSettings::UPCGExClipper2ProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	if (const UEnum* EnumClass = StaticEnum<EPCGExClipper2EndpointType>())
+	{
+		const int32 NumEnums = EnumClass->NumEnums() - 1; // Skip _MAX
+		for (int32 i = 0; i < NumEnums; ++i) { EndpointTypeValueMapping.Add(static_cast<EPCGExClipper2EndpointType>(EnumClass->GetValueByIndex(i)), i); }
+	}
 }
 
 bool UPCGExClipper2ProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
@@ -753,6 +758,40 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 			{
 				WeightedPoints.Reset();
 				Blender->MergeSingle(i, WeightedPoints, Trackers);
+			}
+
+			// -- Flag writing (after blending, before WriteFastest) --
+			TSharedPtr<PCGExData::TBuffer<bool>> IntersectionWriter;
+			TSharedPtr<PCGExData::TBuffer<int32>> EndpointWriter;
+
+			if (Settings->bFlagIntersections)
+			{
+				IntersectionWriter = OutputFacade->GetWritable<bool>(Settings->IntersectionFlagName, false, true, PCGExData::EBufferInit::New);
+			}
+			if (Settings->bFlagEndpoints)
+			{
+				EndpointWriter = OutputFacade->GetWritable<int32>(Settings->EndpointFlagName, Settings->EndpointTypeValueMapping[EPCGExClipper2EndpointType::None], true, PCGExData::EBufferInit::New);
+			}
+
+			if (IntersectionWriter || EndpointWriter)
+			{
+				for (int32 i = 0; i < NumPoints; i++)
+				{
+					if (IntersectionWriter)
+					{
+						const PCGExClipper2Lib::Point64& FlagPt = Path[i];
+						uint32 FlagPtIdx, FlagSrcIdx;
+						PCGEx::H64(static_cast<uint64>(FlagPt.z), FlagPtIdx, FlagSrcIdx);
+						IntersectionWriter->SetValue(i, FlagPtIdx == PCGExClipper2::INTERSECTION_MARKER);
+					}
+					if (EndpointWriter)
+					{
+						EPCGExClipper2EndpointType Type = EPCGExClipper2EndpointType::None;
+						if (i == 0) { Type = EPCGExClipper2EndpointType::Start; }
+						else if (i == NumPoints - 1) { Type = EPCGExClipper2EndpointType::End; }
+						EndpointWriter->SetValue(i, Settings->EndpointTypeValueMapping[Type]);
+					}
+				}
 			}
 
 			OutputFacade->WriteFastest(GetTaskManager());

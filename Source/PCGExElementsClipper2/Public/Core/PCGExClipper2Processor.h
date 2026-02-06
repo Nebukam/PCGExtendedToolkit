@@ -19,6 +19,14 @@ struct FPCGExCarryOverDetails;
 
 
 UENUM(BlueprintType)
+enum class EPCGExClipper2EndpointType : uint8
+{
+	None  = 0 UMETA(DisplayName = "None"),
+	Start = 1 UMETA(DisplayName = "Start"),
+	End   = 2 UMETA(DisplayName = "End"),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExClipper2JoinType : uint8
 {
 	Square = 0 UMETA(DisplayName = "Square", ToolTip="Square joins"),
@@ -276,6 +284,26 @@ public:
 	/** Write this tag on paths that are holes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(EditCondition="bTagHoles"))
 	FString HoleTag = TEXT("Hole");
+
+	/** Write a flag marking intersection points (points created by Clipper2 at path crossings). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bFlagIntersections = false;
+
+	/** Name of the boolean attribute for intersection points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, EditCondition="bFlagIntersections"))
+	FName IntersectionFlagName = "IsIntersection";
+
+	/** Write a flag marking path endpoint (start/end) points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bFlagEndpoints = false;
+
+	/** Name of the int32 attribute for path endpoint type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, EditCondition="bFlagEndpoints"))
+	FName EndpointFlagName = "EndpointType";
+
+	/** Pick which value will be written for each endpoint type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", EditFixedSize, meta = (ReadOnlyKeys, DisplayName=" └─ Mapping", EditCondition="bFlagEndpoints", HideEditConditionToggle))
+	TMap<EPCGExClipper2EndpointType, int32> EndpointTypeValueMapping;
 
 	/** (DEBUG) If enabled, performs a union of all paths in the group before proceeding to the operation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
