@@ -181,6 +181,15 @@ namespace PCGExClipper2
 UPCGExClipper2ProcessorSettings::UPCGExClipper2ProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	if (const UEnum* EnumClass = StaticEnum<EPCGExClipper2EndpointType>())
+	{
+		const int32 NumEnums = EnumClass->NumEnums() - 1; // Skip _MAX
+		for (int32 i = 0; i < NumEnums; ++i)
+		{
+			const EPCGExClipper2EndpointType Value = static_cast<EPCGExClipper2EndpointType>(EnumClass->GetValueByIndex(i));
+			JointTypeValueMapping.Add(Value, i);
+		}
+	}
 }
 
 bool UPCGExClipper2ProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
@@ -579,6 +588,101 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 						AddToUnion(BlendInfo->E2BotPointIdx, BlendInfo->E2BotSourceIdx);
 						AddToUnion(BlendInfo->E2TopPointIdx, BlendInfo->E2TopSourceIdx);
 					}
+					else
+					{
+						// No BlendInfo found for this intersection point.
+						// Walk prev/next in the path to find non-intersection neighbors and interpolate.
+						auto GetNeighborTransform = [&](int32 Dir) -> TPair<FTransform, int32>
+						{
+							for (int32 Step = 1; Step < NumPoints; Step++)
+							{
+								const int32 Ni = (i + Dir * Step + NumPoints) % NumPoints;
+								const PCGExClipper2Lib::Point64& NPt = Path[Ni];
+								uint32 NPtIdx, NSrcIdx;
+								PCGEx::H64(static_cast<uint64>(NPt.z), NPtIdx, NSrcIdx);
+
+								if (NPtIdx != PCGExClipper2::INTERSECTION_MARKER)
+								{
+									const int32 NArrayIdx = static_cast<int32>(NSrcIdx);
+									if (NArrayIdx >= 0 && NArrayIdx < AllOpData->Facades.Num())
+									{
+										const TSharedPtr<PCGExData::FFacade>& NSrcFacade = AllOpData->Facades[NArrayIdx];
+										const int32 NNumPts = NSrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+										if (static_cast<int32>(NPtIdx) < NNumPts)
+										{
+											TConstPCGValueRange<FTransform> NSrcTransforms = NSrcFacade->Source->GetIn()->GetConstTransformValueRange();
+											return TPair<FTransform, int32>(NSrcTransforms[NPtIdx], NArrayIdx);
+										}
+									}
+									break;
+								}
+							}
+							return TPair<FTransform, int32>(FTransform::Identity, INDEX_NONE);
+						};
+
+						auto [PrevT, PrevSrc] = GetNeighborTransform(-1);
+						auto [NextT, NextSrc] = GetNeighborTransform(+1);
+
+						if (PrevSrc != INDEX_NONE && NextSrc != INDEX_NONE)
+						{
+							OutTransform.Blend(PrevT, NextT, 0.5);
+						}
+						else if (PrevSrc != INDEX_NONE)
+						{
+							OutTransform = PrevT;
+						}
+						else if (NextSrc != INDEX_NONE)
+						{
+							OutTransform = NextT;
+						}
+
+						if (TransformMode == PCGExClipper2::ETransformRestoration::Unproject)
+						{
+							const FPCGExGeo2DProjectionDetails* Projection = GetProjection(
+								PrevSrc != INDEX_NONE ? static_cast<uint32>(PrevSrc) :
+								NextSrc != INDEX_NONE ? static_cast<uint32>(NextSrc) : 0);
+
+							FVector UnprojectedPos(
+								static_cast<double>(Pt.x) * InvScale,
+								static_cast<double>(Pt.y) * InvScale,
+								0.0);
+
+							if (Projection) { Projection->UnprojectInPlace(UnprojectedPos); }
+							OutTransform.SetLocation(UnprojectedPos);
+						}
+
+						// Add both neighbors to union for metadata blending
+						TSharedPtr<PCGExData::IUnionData> Union = UnionMetadata->NewEntryAt_Unsafe(i);
+
+						auto AddNeighborToUnion = [&](int32 Dir)
+						{
+							for (int32 Step = 1; Step < NumPoints; Step++)
+							{
+								const int32 Ni = (i + Dir * Step + NumPoints) % NumPoints;
+								const PCGExClipper2Lib::Point64& NPt = Path[Ni];
+								uint32 NPtIdx, NSrcIdx;
+								PCGEx::H64(static_cast<uint64>(NPt.z), NPtIdx, NSrcIdx);
+
+								if (NPtIdx != PCGExClipper2::INTERSECTION_MARKER)
+								{
+									const int32 NArrayIdx = static_cast<int32>(NSrcIdx);
+									if (NArrayIdx >= 0 && NArrayIdx < AllOpData->Facades.Num())
+									{
+										const TSharedPtr<PCGExData::FFacade>& NSrcFacade = AllOpData->Facades[NArrayIdx];
+										const int32 NNumPts = NSrcFacade->Source->GetNum(PCGExData::EIOSide::In);
+										if (static_cast<int32>(NPtIdx) < NNumPts)
+										{
+											Union->Add_Unsafe(static_cast<int32>(NPtIdx), NSrcFacade->Idx);
+										}
+									}
+									break;
+								}
+							}
+						};
+
+						AddNeighborToUnion(-1);
+						AddNeighborToUnion(+1);
+					}
 				}
 				else
 				{
@@ -658,6 +762,77 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 			{
 				WeightedPoints.Reset();
 				Blender->MergeSingle(i, WeightedPoints, Trackers);
+			}
+
+			// -- Flag writing (after blending, before WriteFastest) --
+			TSharedPtr<PCGExData::TBuffer<bool>> IntersectionWriter;
+			TSharedPtr<PCGExData::TBuffer<int32>> JointWriter;
+
+			if (Settings->bFlagIntersections)
+			{
+				IntersectionWriter = OutputFacade->GetWritable<bool>(Settings->IntersectionFlagName, false, false, PCGExData::EBufferInit::New);
+			}
+			if (Settings->bFlagJoints)
+			{
+				JointWriter = OutputFacade->GetWritable<int32>(Settings->JointFlagName, Settings->JointTypeValueMapping[EPCGExClipper2EndpointType::None], false, PCGExData::EBufferInit::New);
+			}
+
+			// Per-point source endpoint classification for joint arc boundary detection
+			// 0 = not from a source endpoint, 1 = from source start (idx 0), 2 = from source end (idx N-1)
+			TArray<int8> SourceEndpointClass;
+			if (JointWriter) { SourceEndpointClass.SetNumZeroed(NumPoints); }
+
+			if (IntersectionWriter || JointWriter)
+			{
+				// Pass 1: write intersection flags, build joint classification
+				for (int32 i = 0; i < NumPoints; i++)
+				{
+					const PCGExClipper2Lib::Point64& FlagPt = Path[i];
+					uint32 FlagPtIdx, FlagSrcIdx;
+					PCGEx::H64(static_cast<uint64>(FlagPt.z), FlagPtIdx, FlagSrcIdx);
+
+					const bool bIsIntersectionPt = (FlagPtIdx == PCGExClipper2::INTERSECTION_MARKER);
+
+					if (IntersectionWriter)
+					{
+						IntersectionWriter->SetValue(i, bIsIntersectionPt);
+					}
+					if (JointWriter && !bIsIntersectionPt)
+					{
+						const int32 SrcArrayIdx = static_cast<int32>(FlagSrcIdx);
+						if (SrcArrayIdx >= 0 && SrcArrayIdx < AllOpData->Facades.Num() && !AllOpData->IsClosedLoop[SrcArrayIdx])
+						{
+							const int32 SrcNumPts = AllOpData->Facades[SrcArrayIdx]->Source->GetNum(PCGExData::EIOSide::In);
+							if (static_cast<int32>(FlagPtIdx) == 0) { SourceEndpointClass[i] = 1; }
+							else if (static_cast<int32>(FlagPtIdx) == SrcNumPts - 1) { SourceEndpointClass[i] = 2; }
+						}
+					}
+				}
+
+				// Pass 2: detect joint arc boundaries — only flag the first/last point of each arc run
+				if (JointWriter)
+				{
+					for (int32 i = 0; i < NumPoints; i++)
+					{
+						const int8 Current = SourceEndpointClass[i];
+						if (Current == 0) { continue; }
+
+						const int8 Prev = (i > 0) ? SourceEndpointClass[i - 1] : (bClosedPaths ? SourceEndpointClass[NumPoints - 1] : static_cast<int8>(0));
+						const int8 Next = (i < NumPoints - 1) ? SourceEndpointClass[i + 1] : (bClosedPaths ? SourceEndpointClass[0] : static_cast<int8>(0));
+
+						const bool bIsArcStart = (Prev != Current);
+						const bool bIsArcEnd = (Next != Current);
+
+						if (bIsArcStart)
+						{
+							JointWriter->SetValue(i, Settings->JointTypeValueMapping[EPCGExClipper2EndpointType::Start]);
+						}
+						else if (bIsArcEnd)
+						{
+							JointWriter->SetValue(i, Settings->JointTypeValueMapping[EPCGExClipper2EndpointType::End]);
+						}
+					}
+				}
 			}
 
 			OutputFacade->WriteFastest(GetTaskManager());
