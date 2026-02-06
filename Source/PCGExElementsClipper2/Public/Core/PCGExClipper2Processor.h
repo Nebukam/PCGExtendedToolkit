@@ -293,17 +293,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, EditCondition="bFlagIntersections"))
 	FName IntersectionFlagName = "IsIntersection";
 
-	/** Write a flag marking path endpoint (start/end) points. */
+	/** Write a flag identifying the start/end of joint arcs at the original path's endpoints (e.g. round caps on offset/inflate). Only applies to open source paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bFlagEndpoints = false;
+	bool bFlagJoints = false;
 
-	/** Name of the int32 attribute for path endpoint type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, EditCondition="bFlagEndpoints"))
-	FName EndpointFlagName = "EndpointType";
+	/** Name of the int32 attribute for joint type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, EditCondition="bFlagJoints"))
+	FName JointFlagName = "JointType";
 
-	/** Pick which value will be written for each endpoint type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", EditFixedSize, meta = (ReadOnlyKeys, DisplayName=" └─ Mapping", EditCondition="bFlagEndpoints", HideEditConditionToggle))
-	TMap<EPCGExClipper2EndpointType, int32> EndpointTypeValueMapping;
+	/** Pick which value will be written for each joint type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", EditFixedSize, meta = (ReadOnlyKeys, DisplayName=" └─ Mapping", EditCondition="bFlagJoints", HideEditConditionToggle))
+	TMap<EPCGExClipper2EndpointType, int32> JointTypeValueMapping;
 
 	/** (DEBUG) If enabled, performs a union of all paths in the group before proceeding to the operation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)

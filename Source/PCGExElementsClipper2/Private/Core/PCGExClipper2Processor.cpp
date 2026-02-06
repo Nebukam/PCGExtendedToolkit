@@ -184,7 +184,11 @@ UPCGExClipper2ProcessorSettings::UPCGExClipper2ProcessorSettings(const FObjectIn
 	if (const UEnum* EnumClass = StaticEnum<EPCGExClipper2EndpointType>())
 	{
 		const int32 NumEnums = EnumClass->NumEnums() - 1; // Skip _MAX
-		for (int32 i = 0; i < NumEnums; ++i) { EndpointTypeValueMapping.Add(static_cast<EPCGExClipper2EndpointType>(EnumClass->GetValueByIndex(i)), i); }
+		for (int32 i = 0; i < NumEnums; ++i)
+		{
+			const EPCGExClipper2EndpointType Value = static_cast<EPCGExClipper2EndpointType>(EnumClass->GetValueByIndex(i));
+			JointTypeValueMapping.Add(Value, i);
+		}
 	}
 }
 
@@ -762,34 +766,71 @@ void FPCGExClipper2ProcessorContext::OutputPaths64(
 
 			// -- Flag writing (after blending, before WriteFastest) --
 			TSharedPtr<PCGExData::TBuffer<bool>> IntersectionWriter;
-			TSharedPtr<PCGExData::TBuffer<int32>> EndpointWriter;
+			TSharedPtr<PCGExData::TBuffer<int32>> JointWriter;
 
 			if (Settings->bFlagIntersections)
 			{
-				IntersectionWriter = OutputFacade->GetWritable<bool>(Settings->IntersectionFlagName, false, true, PCGExData::EBufferInit::New);
+				IntersectionWriter = OutputFacade->GetWritable<bool>(Settings->IntersectionFlagName, false, false, PCGExData::EBufferInit::New);
 			}
-			if (Settings->bFlagEndpoints)
+			if (Settings->bFlagJoints)
 			{
-				EndpointWriter = OutputFacade->GetWritable<int32>(Settings->EndpointFlagName, Settings->EndpointTypeValueMapping[EPCGExClipper2EndpointType::None], true, PCGExData::EBufferInit::New);
+				JointWriter = OutputFacade->GetWritable<int32>(Settings->JointFlagName, Settings->JointTypeValueMapping[EPCGExClipper2EndpointType::None], false, PCGExData::EBufferInit::New);
 			}
 
-			if (IntersectionWriter || EndpointWriter)
+			// Per-point source endpoint classification for joint arc boundary detection
+			// 0 = not from a source endpoint, 1 = from source start (idx 0), 2 = from source end (idx N-1)
+			TArray<int8> SourceEndpointClass;
+			if (JointWriter) { SourceEndpointClass.SetNumZeroed(NumPoints); }
+
+			if (IntersectionWriter || JointWriter)
 			{
+				// Pass 1: write intersection flags, build joint classification
 				for (int32 i = 0; i < NumPoints; i++)
 				{
+					const PCGExClipper2Lib::Point64& FlagPt = Path[i];
+					uint32 FlagPtIdx, FlagSrcIdx;
+					PCGEx::H64(static_cast<uint64>(FlagPt.z), FlagPtIdx, FlagSrcIdx);
+
+					const bool bIsIntersectionPt = (FlagPtIdx == PCGExClipper2::INTERSECTION_MARKER);
+
 					if (IntersectionWriter)
 					{
-						const PCGExClipper2Lib::Point64& FlagPt = Path[i];
-						uint32 FlagPtIdx, FlagSrcIdx;
-						PCGEx::H64(static_cast<uint64>(FlagPt.z), FlagPtIdx, FlagSrcIdx);
-						IntersectionWriter->SetValue(i, FlagPtIdx == PCGExClipper2::INTERSECTION_MARKER);
+						IntersectionWriter->SetValue(i, bIsIntersectionPt);
 					}
-					if (EndpointWriter)
+					if (JointWriter && !bIsIntersectionPt)
 					{
-						EPCGExClipper2EndpointType Type = EPCGExClipper2EndpointType::None;
-						if (i == 0) { Type = EPCGExClipper2EndpointType::Start; }
-						else if (i == NumPoints - 1) { Type = EPCGExClipper2EndpointType::End; }
-						EndpointWriter->SetValue(i, Settings->EndpointTypeValueMapping[Type]);
+						const int32 SrcArrayIdx = static_cast<int32>(FlagSrcIdx);
+						if (SrcArrayIdx >= 0 && SrcArrayIdx < AllOpData->Facades.Num() && !AllOpData->IsClosedLoop[SrcArrayIdx])
+						{
+							const int32 SrcNumPts = AllOpData->Facades[SrcArrayIdx]->Source->GetNum(PCGExData::EIOSide::In);
+							if (static_cast<int32>(FlagPtIdx) == 0) { SourceEndpointClass[i] = 1; }
+							else if (static_cast<int32>(FlagPtIdx) == SrcNumPts - 1) { SourceEndpointClass[i] = 2; }
+						}
+					}
+				}
+
+				// Pass 2: detect joint arc boundaries — only flag the first/last point of each arc run
+				if (JointWriter)
+				{
+					for (int32 i = 0; i < NumPoints; i++)
+					{
+						const int8 Current = SourceEndpointClass[i];
+						if (Current == 0) { continue; }
+
+						const int8 Prev = (i > 0) ? SourceEndpointClass[i - 1] : (bClosedPaths ? SourceEndpointClass[NumPoints - 1] : static_cast<int8>(0));
+						const int8 Next = (i < NumPoints - 1) ? SourceEndpointClass[i + 1] : (bClosedPaths ? SourceEndpointClass[0] : static_cast<int8>(0));
+
+						const bool bIsArcStart = (Prev != Current);
+						const bool bIsArcEnd = (Next != Current);
+
+						if (bIsArcStart)
+						{
+							JointWriter->SetValue(i, Settings->JointTypeValueMapping[EPCGExClipper2EndpointType::Start]);
+						}
+						else if (bIsArcEnd)
+						{
+							JointWriter->SetValue(i, Settings->JointTypeValueMapping[EPCGExClipper2EndpointType::End]);
+						}
 					}
 				}
 			}
