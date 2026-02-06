@@ -8,9 +8,18 @@ public class PCGExFoundations : ModuleRules
 {
 	public PCGExFoundations(ReadOnlyTargetRules Target) : base(Target)
 	{
-		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH")); 
-		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs; 
-		
+		bool bNoPCH = File.Exists(Path.Combine(ModuleDirectory, "..", "..", "Config", ".noPCH"));
+		if (bNoPCH)
+		{
+			PCHUsage = PCHUsageMode.NoPCHs;
+		}
+		else
+		{
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+			PrivatePCHHeaderFile = "Public/PCGExFoundationsPCH.h";
+			SharedPCHHeaderFile = "Public/PCGExFoundationsPCH.h";
+		}
+
 		bUseUnity = true;
 		MinSourceFilesForUnityBuildOverride = 4;
 		//IWYUSupport = IWYUSupport.Full;
