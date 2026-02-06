@@ -7,7 +7,6 @@
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGExData.h"
 #include "Elements/Layout/PCGExBinPacking3D.h"
-#include "Elements/Layout/PCGExBestFitPacking.h"
 #include "Elements/Layout/PCGExBinPacking.h"
 #include "Helpers/PCGExPointArrayDataHelpers.h"
 
@@ -286,33 +285,6 @@ bool FPCGExRotateSizeVolumeConservationTest::RunTest(const FString& Parameters)
 		TestTrue(TEXT("Rotated X > 0"), Rotated.X > 0);
 		TestTrue(TEXT("Rotated Y > 0"), Rotated.Y > 0);
 		TestTrue(TEXT("Rotated Z > 0"), Rotated.Z > 0);
-	}
-
-	return true;
-}
-
-// Cross-check: BestFitPacking's RotateSize should produce the same results
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FPCGExRotateSizeBestFitCrossCheckTest,
-	"PCGEx.Unit.Layout.Packing.RotateSize.BestFitCrossCheck",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FPCGExRotateSizeBestFitCrossCheckTest::RunTest(const FString& Parameters)
-{
-	const FVector Size(10, 20, 30);
-
-	const TArray<FRotator> TestRotations = {
-		FRotator::ZeroRotator,
-		FRotator(0, 90, 0),
-		FRotator(90, 0, 0),
-		FRotator(0, 0, 90),
-	};
-
-	for (const FRotator& Rot : TestRotations)
-	{
-		const FVector BP3D = FBP3DRotationHelper::RotateSize(Size, Rot);
-		const FVector BestFit = PCGExBestFitPacking::FRotationHelper::RotateSize(Size, Rot);
-		PCGEX_TEST_VECTOR_NEARLY_EQUAL(BP3D, BestFit, 0.1, "BP3D and BestFit RotateSize agree");
 	}
 
 	return true;
@@ -745,53 +717,6 @@ bool FPCGExBinEvaluatePlacementTest::RunTest(const FString& Parameters)
 	const bool bLargeFits = Bin->EvaluatePlacement(FVector(200, 200, 200), FVector::ZeroVector, 0, FRotator::ZeroRotator, LargeCandidate);
 	TestFalse(TEXT("200x200x200 item doesn't fit"), bLargeFits);
 
-	return true;
-}
-
-#pragma endregion
-
-//////////////////////////////////////////////////////////////////////////
-// BestFitPacking Rotation Cross-Verification
-//////////////////////////////////////////////////////////////////////////
-
-#pragma region BestFitRotations
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FPCGExBestFitRotationsNoneTest,
-	"PCGEx.Unit.Layout.Packing.BestFitRotations.None",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FPCGExBestFitRotationsNoneTest::RunTest(const FString& Parameters)
-{
-	TArray<FRotator> Rotations;
-	PCGExBestFitPacking::FRotationHelper::GetRotationsToTest(EPCGExBestFitRotationMode::None, Rotations);
-	TestEqual(TEXT("None mode produces 1 rotation"), Rotations.Num(), 1);
-	return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FPCGExBestFitRotationsCardinalTest,
-	"PCGEx.Unit.Layout.Packing.BestFitRotations.Cardinal",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FPCGExBestFitRotationsCardinalTest::RunTest(const FString& Parameters)
-{
-	TArray<FRotator> Rotations;
-	PCGExBestFitPacking::FRotationHelper::GetRotationsToTest(EPCGExBestFitRotationMode::CardinalOnly, Rotations);
-	TestEqual(TEXT("Cardinal mode produces 4 rotations"), Rotations.Num(), 4);
-	return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FPCGExBestFitRotationsAllOrthogonalTest,
-	"PCGEx.Unit.Layout.Packing.BestFitRotations.AllOrthogonal",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FPCGExBestFitRotationsAllOrthogonalTest::RunTest(const FString& Parameters)
-{
-	TArray<FRotator> Rotations;
-	PCGExBestFitPacking::FRotationHelper::GetRotationsToTest(EPCGExBestFitRotationMode::AllOrthogonal, Rotations);
-	TestEqual(TEXT("AllOrthogonal mode produces 24 rotations"), Rotations.Num(), 24);
 	return true;
 }
 

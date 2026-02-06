@@ -109,44 +109,69 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	TArray<PCGExNavmesh::FNavmeshQuery> PlotQueries;
 	PlotQueries.Reserve(NumPlots);
 
-	auto PlotQuery = [&](const int32 SeedIndex, const int32 GoalIndex)-> PCGExNavmesh::FNavmeshQuery&
+	// Build all queries
+	for (int32 i = 0; i < NumPlots - 1; i++)
 	{
-		PCGExNavmesh::FNavmeshQuery& Query = PlotQueries.Emplace_GetRef(PCGExPathfinding::FSeedGoalPair(PointIO->GetInPoint(SeedIndex), PointIO->GetInPoint(GoalIndex)));
+		PCGExNavmesh::FNavmeshQuery& Query = PlotQueries.Emplace_GetRef(PCGExPathfinding::FSeedGoalPair(PointIO->GetInPoint(i), PointIO->GetInPoint(i + 1)));
 		Query.FindPath(Context);
-		return Query;
-	};
-
-
-	PCGExPointArrayDataHelpers::FReadWriteScope PlotScope(NumPlots + 2, false);
-
-	// First, compute the final number of points
-	int32 NumPoints = 0;
-
-	for (int i = 0; i < NumPlots - 1; i++)
-	{
-		PCGExNavmesh::FNavmeshQuery& Query = PlotQuery(i, i + 1);
-
-		if (i == 0 && Settings->bAddSeedToPath)
-		{
-			// First query and we want seed in the mix
-			PlotScope.Add(Query.SeedGoalPair.Seed, NumPoints++);
-		}
-
-		NumPoints += Query.Positions.Num();
-
-		if (Settings->bAddPlotPointsToPath || (i == NumPlots - 2 && !Settings->bClosedLoop && Settings->bAddGoalToPath))
-		{
-			// Either last query & we want goals,
-			// or we want plot points, in which case we insert goals (since any non-last goal is the next query' seed)
-			PlotScope.Add(Query.SeedGoalPair.Goal, NumPoints++);
-		}
 	}
 
 	if (Settings->bClosedLoop)
 	{
-		PCGExNavmesh::FNavmeshQuery& Query = PlotQuery(NumPlots - 1, 0);
-		NumPoints += Query.Positions.Num();
-		// No extras, it's a wrapping path
+		PCGExNavmesh::FNavmeshQuery& Query = PlotQueries.Emplace_GetRef(PCGExPathfinding::FSeedGoalPair(PointIO->GetInPoint(NumPlots - 1), PointIO->GetInPoint(0)));
+		Query.FindPath(Context);
+	}
+
+	const int32 NumQueries = PlotQueries.Num();
+	if (NumQueries == 0) { return; }
+
+	// Trim boundary duplicates from positions.
+	// Navmesh paths include start/end points that overlap with explicit seed/goal/plot points
+	// and with neighboring query endpoints.
+	for (int32 qi = 0; qi < NumQueries; qi++)
+	{
+		TArray<FVector>& Positions = PlotQueries[qi].Positions;
+		if (Positions.IsEmpty()) { continue; }
+
+		const bool bIsLast = (qi == NumQueries - 1);
+		const bool bIsClosingQuery = Settings->bClosedLoop && bIsLast;
+
+		// Skip first position: it duplicates the previous query's last point OR explicit seed
+		const bool bSkipFirst = (qi > 0) || Settings->bAddSeedToPath;
+
+		// Skip last position: it duplicates the explicit point that follows
+		bool bSkipLast = false;
+		if (bIsClosingQuery) { bSkipLast = true; }
+		else if (bIsLast && !Settings->bClosedLoop && Settings->bAddGoalToPath) { bSkipLast = true; }
+		else if (!bIsLast && Settings->bAddPlotPointsToPath) { bSkipLast = true; }
+
+		if (bSkipFirst && !Positions.IsEmpty()) { Positions.RemoveAt(0); }
+		if (bSkipLast && !Positions.IsEmpty()) { Positions.Pop(); }
+	}
+
+	// Count total points
+	PCGExPointArrayDataHelpers::FReadWriteScope PlotScope(NumPlots + 2, false);
+	int32 NumPoints = 0;
+
+	if (Settings->bAddSeedToPath)
+	{
+		PlotScope.Add(PlotQueries[0].SeedGoalPair.Seed, NumPoints++);
+	}
+
+	for (int32 qi = 0; qi < NumQueries; qi++)
+	{
+		NumPoints += PlotQueries[qi].Positions.Num();
+
+		const bool bIsLast = (qi == NumQueries - 1);
+		const bool bIsClosingQuery = Settings->bClosedLoop && bIsLast;
+
+		if (!bIsClosingQuery)
+		{
+			if (Settings->bAddPlotPointsToPath || (bIsLast && !Settings->bClosedLoop && Settings->bAddGoalToPath))
+			{
+				PlotScope.Add(PlotQueries[qi].SeedGoalPair.Goal, NumPoints++);
+			}
+		}
 	}
 
 	if (NumPoints <= 2) { return; }
@@ -166,23 +191,32 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	TPCGValueRange<FTransform> OutTransforms = OutPathData->GetTransformValueRange(false);
 
-	const int32 LastPlotIndex = PlotQueries.Num() - 1;
-	int32 WriteIndex = Settings->bAddSeedToPath; // Start at 1 if we added the seed
-	for (int i = 0; i < PlotQueries.Num(); i++)
+	int32 WriteIndex = Settings->bAddSeedToPath ? 1 : 0;
+	for (int32 qi = 0; qi < NumQueries; qi++)
 	{
-		PCGExNavmesh::FNavmeshQuery& Query = PlotQueries[i];
+		PCGExNavmesh::FNavmeshQuery& Query = PlotQueries[qi];
 
+		const int32 PositionCount = Query.Positions.Num();
 		const int32 StartIndex = WriteIndex;
 		Query.CopyPositions(OutTransforms, WriteIndex, false, false);
 
-		PCGExData::FScope SubScope(PathIO->GetOut(), StartIndex, Query.Positions.Num());
+		PCGExData::FScope SubScope(PathIO->GetOut(), StartIndex, PositionCount);
 		if (SubScope.IsValid())
 		{
 			SubBlending->BlendSubPoints(PointIO->GetInPoint(Query.SeedGoalPair.Seed), PointIO->GetInPoint(Query.SeedGoalPair.Goal), SubScope, Query.SeedGoalMetrics);
 		}
 
-		// Pad index if we inserted plot points
-		if (i != LastPlotIndex && Settings->bAddPlotPointsToPath) { WriteIndex++; }
+		const bool bIsLast = (qi == NumQueries - 1);
+		const bool bIsClosingQuery = Settings->bClosedLoop && bIsLast;
+
+		// Skip over explicit point slot if one was counted
+		if (!bIsClosingQuery)
+		{
+			if (Settings->bAddPlotPointsToPath || (bIsLast && !Settings->bClosedLoop && Settings->bAddGoalToPath))
+			{
+				WriteIndex++;
+			}
+		}
 	}
 
 	PathDataFacade->WriteFastest(TaskManager);
