@@ -108,7 +108,10 @@ bool FPCGExFuseClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 			Context->VtxFacades.Add(Batch->VtxDataFacade);
 		}
 
-		if (!Context->UnionProcessor->StartExecution(Context->VtxFacades, Settings->GraphBuilderDetails)) { return true; }
+		if (!Context->UnionProcessor->StartExecution(Context->VtxFacades, Settings->GraphBuilderDetails))
+		{
+			return Context->CancelExecution(TEXT("Could not start union."));
+		}
 	}
 
 	if (!Context->UnionProcessor->Execute()) { return false; }

@@ -307,10 +307,11 @@ namespace PCGExBlending
 	{
 		if (TypeMismatches.IsEmpty()) { return true; }
 
-		if (bQuiet) { return false; }
+		if (!bQuiet)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("The following attributes have the same name but different types, and will not blend as expected: {0}"), FText::FromString(FString::Join(TypeMismatches.Array(), TEXT(", ")))));
+		}
 
-		PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("The following attributes have the same name but different types, and will not blend as expected: {0}"), FText::FromString(FString::Join(TypeMismatches.Array(), TEXT(", ")))));
-
-		return false;
+		return true;
 	}
 }

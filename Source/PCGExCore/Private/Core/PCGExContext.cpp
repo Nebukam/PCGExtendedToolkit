@@ -239,6 +239,18 @@ bool FPCGExContext::DriveAdvanceWork(const UPCGExSettings* InSettings)
 		return DriveAdvanceWork(InSettings);
 	}
 
+	// Safety net: if AdvanceWork signaled "done" (true) but the context was never properly
+	// finalized, cancel to prevent a hang. This catches bugs where AdvanceWork returns true
+	// without calling TryComplete() or CancelExecution() — the context would remain paused
+	// and PCG would wait forever. We cancel rather than complete because outputs are likely
+	// incomplete in this state.
+	if (bResult && !IsWorkCompleted() && !IsWorkCancelled())
+	{
+		const FString NodeName = InSettings ? InSettings->GetName() : TEXT("Unknown");
+		UE_LOG(LogTemp, Error, TEXT("[%s] AdvanceWork returned true without completing or cancelling. Forcing cancellation to prevent hang. Please report this at https://github.com/Nebukam/PCGExtendedToolkit/issues"), *NodeName);
+		CancelExecution(FString::Printf(TEXT("[%s] AdvanceWork returned true without proper finalization. Please report this issue."), *NodeName));
+	}
+
 	return bResult;
 }
 

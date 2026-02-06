@@ -152,7 +152,10 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 			Context->MainBatch.Reset();
 
-			if (!Context->UnionProcessor->StartExecution(Context->PathsFacades, Settings->GraphBuilderDetails)) { return true; }
+			if (!Context->UnionProcessor->StartExecution(Context->PathsFacades, Settings->GraphBuilderDetails))
+			{
+				return Context->CancelExecution(TEXT("Could not start union."));
+			}
 		}
 
 		if (!Context->UnionProcessor->Execute()) { return false; }
