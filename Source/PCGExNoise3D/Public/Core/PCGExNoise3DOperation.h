@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 #include "Factories/PCGExOperation.h"
 #include "Helpers/PCGExNoise3DMath.h"
+#include "Math/PCGExMathContrast.h"
 #include "Utils/PCGExCurveLookup.h"
 
 /**
@@ -128,7 +129,7 @@ protected:
 		if (RemapLUT) { Value = RemapLUT->Eval(Value * 0.5 + 0.5) * 2.0 - 1.0; }
 		if (!FMath::IsNearlyEqual(Contrast, 1.0, SMALL_NUMBER))
 		{
-			Value = PCGExNoise3D::Math::ApplyContrast(Value, Contrast, static_cast<int32>(ContrastCurve));
+			Value = PCGExMath::Contrast::ApplyContrast(Value, Contrast, static_cast<int32>(ContrastCurve));
 		}
 		return Value;
 	}

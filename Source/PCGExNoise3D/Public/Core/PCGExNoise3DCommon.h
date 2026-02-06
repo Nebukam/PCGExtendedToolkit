@@ -39,18 +39,6 @@ enum class EPCGExNoiseInPlaceMode : uint8
 	Multiplicative UMETA(DisplayName = "Multiplicative", ToolTip="Multiply initial by noise (0-1 range)"),
 };
 
-/**
- * Contrast curve types for noise adjustment
- */
-UENUM(BlueprintType)
-enum class EPCGExContrastCurve : uint8
-{
-	Power UMETA(DisplayName = "Power", ToolTip = "Power curve - simple and predictable"),
-	SCurve UMETA(DisplayName = "S-Curve (Sigmoid)", ToolTip = "Smooth S-curve using tanh - never clips"),
-	Gain UMETA(DisplayName = "Gain", ToolTip = "Attempt function S-curve - symmetrical, subtle"),
-};
-
-
 namespace PCGExNoise3D
 {
 	namespace Labels

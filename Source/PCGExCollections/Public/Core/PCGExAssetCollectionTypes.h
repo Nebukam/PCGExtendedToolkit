@@ -12,24 +12,25 @@ class UPCGExAssetCollection;
 struct FPCGExAssetCollectionEntry;
 
 /**
- * Collection Type Registry
- * 
- * Usage:
- *   // In your module startup or collection class static init:
- *   PCGExAssetCollection::FTypeRegistry::Register({
- *       TEXT("Mesh"),
- *       UPCGExMeshCollection::StaticClass(),
- *       FPCGExMeshCollectionEntry::StaticStruct(),
- *       TEXT("Mesh Collection"),
- *       true // can be subcollection
- *   });
- *   
- *   // Check type:
- *   FTypeId YourTypeId...
- *   if (Entry->IsType(YourTypeId)) { ... }
- *   
- *   // Get type info:
- *   auto* Info = FTypeRegistry::Get().Find(TEXT("Mesh"));
+ * Runtime type registry for collection types. Allows the system to discover, query,
+ * and check inheritance between collection types without compile-time coupling.
+ *
+ * Built-in types (registered via PCGEX_REGISTER_COLLECTION_TYPE):
+ *   Base → Mesh, Actor, PCGDataAsset
+ *
+ * Registering a custom type:
+ *   1. Define a FTypeId constant (just an FName):
+ *        inline const FTypeId MyType = FName(TEXT("MyType"));
+ *   2. In your collection .cpp, use the macro:
+ *        PCGEX_REGISTER_COLLECTION_TYPE(MyType, UMyCollection, FMyEntry, "My Collection", Base)
+ *      This registers at static init via pending registration (safe before module load).
+ *   3. Your collection's GetTypeId() should return your FTypeId.
+ *
+ * Querying:
+ *   FTypeRegistry::Get().Find(TypeIds::Mesh)       — get FTypeInfo by ID
+ *   FTypeRegistry::Get().FindByClass(UClass*)       — reverse lookup from UClass
+ *   FTypeRegistry::Get().IsA(Mesh, Base)            — inheritance check
+ *   Entry->IsType(TypeIds::Mesh)                    — check entry type
  */
 
 namespace PCGExAssetCollection

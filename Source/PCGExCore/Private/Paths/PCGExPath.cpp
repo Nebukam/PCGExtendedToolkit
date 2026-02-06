@@ -297,6 +297,11 @@ namespace PCGExPaths
 
 	void FPath::OffsetProjection(const double Offset)
 	{
+		// Inset (negative offset) or outset (positive offset) the projected polygon.
+		// At each vertex, average the inward normals of the two adjacent edges to get
+		// a smooth offset direction, then shift the vertex along that direction.
+		// This is a simple normal-averaging approach (not Minkowski-based), so it can
+		// produce self-intersections on sharp concave corners with large offsets.
 		if (FMath::IsNearlyZero(Offset)) { return; }
 
 		if (Offset > 0) { ProjectedBounds = ProjectedBounds.ExpandBy(Offset); }
@@ -409,6 +414,10 @@ namespace PCGExPaths
 		const FVector N = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
 		Normals[Edge.Start] = N;
 
+		// Compute the angular bisector between the incoming and outgoing edge directions.
+		// Construct a quaternion that rotates by half the angle between the two directions,
+		// around their shared perpendicular axis. This gives a smooth "binormal" at the vertex.
+		// If the result points away from the edge normal, flip it to maintain consistent orientation.
 		const FVector A = Path->DirToPrevPoint(Edge.Start);
 		FVector D = FQuat(FVector::CrossProduct(A, Edge.Dir).GetSafeNormal(), FMath::Acos(FVector::DotProduct(A, Edge.Dir)) * 0.5f).RotateVector(A);
 

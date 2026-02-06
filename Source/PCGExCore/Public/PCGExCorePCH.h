@@ -8,14 +8,15 @@
 
 #pragma once
 
-#include "PCGExSharedPCH.h"
+// Core UE
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "UObject/UObjectGlobals.h"
 
-// Fat PCH: enabled by default, disable on systems with memory constraints
-#ifndef PCGEX_FAT_PCH
-#define PCGEX_FAT_PCH 1
-#endif
-
-#if PCGEX_FAT_PCH
+// PCG core - precompiled here so modules don't re-process them
+#include "Metadata/PCGMetadataCommon.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
+#include "PCGCommon.h"
 
 // Foundational
 #include "PCGExCommon.h"
@@ -24,6 +25,11 @@
 #include "Data/PCGExDataTags.h"
 
 // Heavy hitter (289 includes across codebase)
+#include "Math/PCGExMath.h"
+#include "Utils/PCGExCompare.h"
 #include "Data/PCGExData.h"
-
-#endif // PCGEX_FAT_PCH
+#include "Data/PCGExPointIO.h"
+#include "Data/Utils/PCGExDataPreloader.h"
+#include "Helpers/PCGExMetaHelpers.h"
+#include "Helpers/PCGExArrayHelpers.h"
+#include "Details/PCGExSettingsDetails.h"

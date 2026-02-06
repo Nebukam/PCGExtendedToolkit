@@ -204,6 +204,10 @@ namespace PCGExMath::Geo
 
 	FExCenterArc::FExCenterArc(const FVector& A, const FVector& B, const FVector& C)
 	{
+		// Construct an arc from A through B to C by finding the arc center.
+		// The center lies at the intersection of: (1) the perpendicular bisector plane of AB,
+		// and (2) the line through C perpendicular to the BC plane.
+		// Once the center is found, Hand/OtherHand define the arc's angular span.
 		const FVector Up = GetNormal(A, B, C);
 		bool bIntersect = true;
 
@@ -225,6 +229,9 @@ namespace PCGExMath::Geo
 
 	FExCenterArc::FExCenterArc(const FVector& A1, const FVector& B1, const FVector& A2, const FVector& B2, const double MaxLength)
 	{
+		// Construct an arc connecting two directed edges (A1→B1 and A2→B2).
+		// The center is found at the closest point between the two edge-perpendicular rays,
+		// clamped to MaxLength to handle near-parallel edges gracefully.
 		const FVector& N1 = GetNormal(B1, A1, A1 + GetNormal(B1, A1, A2));
 		const FVector& N2 = GetNormal(B2, A2, A2 + GetNormal(B2, A2, A1));
 
@@ -252,6 +259,8 @@ namespace PCGExMath::Geo
 
 	FVector FExCenterArc::GetLocationOnArc(const double Alpha) const
 	{
+		// Spherical linear interpolation (slerp) between Hand and OtherHand directions,
+		// then project outward from Center by Radius to get the point on the arc.
 		const double W1 = FMath::Sin((1.0 - Alpha) * Theta) / SinTheta;
 		const double W2 = FMath::Sin(Alpha * Theta) / SinTheta;
 
@@ -279,6 +288,11 @@ namespace PCGExMath::Geo
 
 	void ComputeLInfEdgePath(const FVector2D& Start, const FVector2D& End, TArray<FVector2D>& OutPath)
 	{
+		// Compute an L∞ (Chebyshev) metric edge path between two Voronoi cell centers.
+		// In L∞ geometry, Voronoi edges consist of axis-aligned and 45° diagonal segments.
+		// If |dx| ≈ |dy|, the path is a pure diagonal. Otherwise, we insert one bend point:
+		// an axis-aligned segment followed by a diagonal to reach the endpoint.
+		// This produces the characteristic "staircase" edges of Chebyshev Voronoi diagrams.
 		OutPath.Reset();
 		OutPath.Add(Start);
 
@@ -320,8 +334,10 @@ namespace PCGExMath::Geo
 
 	void ComputeL1EdgePath(const FVector2D& Start, const FVector2D& End, TArray<FVector2D>& OutPath)
 	{
-		// L1 Voronoi edges are rotated 45° from L∞
-		// Transform to L∞ space, compute path, transform back
+		// L1 (Manhattan) and L∞ (Chebyshev) metrics are related by a 45° rotation.
+		// Rather than implementing Manhattan edge paths from scratch, we transform
+		// the endpoints into L∞ space, compute the path there, and transform back.
+		// This exploits the mathematical duality between the two distance metrics.
 		const FVector2D StartTransformed = TransformToLInf(Start);
 		const FVector2D EndTransformed = TransformToLInf(End);
 

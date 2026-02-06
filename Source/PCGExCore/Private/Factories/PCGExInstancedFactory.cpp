@@ -27,6 +27,9 @@ void UPCGExInstancedFactory::InitializeInContext(FPCGExContext* InContext, FName
 
 void UPCGExInstancedFactory::FindSettingsOverrides(FPCGExContext* InContext, FName InPinLabel)
 {
+	// Reflection-based property override system: reads attributes from PCGParamData inputs
+	// on the specified pin, then applies matching attribute values to UPROPERTY fields on this
+	// factory by name. This enables data-driven configuration of factory behavior without subclassing.
 	TArray<FPCGTaggedData> OverrideParams = InContext->InputData.GetParamsByPin(InPinLabel);
 	for (FPCGTaggedData& InTaggedData : OverrideParams)
 	{

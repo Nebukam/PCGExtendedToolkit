@@ -115,6 +115,12 @@ namespace PCGExMesh
 
 			virtual uint32 Add_GetIdx(const FVector& Position, const int32 RawIndex) override
 			{
+				// Spatial hash-based vertex deduplication.
+				// Quantizes positions into grid cells of size HashTolerance and looks up by cell key.
+				// The "precise" variant also checks a half-offset cell to catch vertices that
+				// land near cell boundaries — without this, two vertices 0.01 apart could hash
+				// to different cells despite being within tolerance. Registering under both keys
+				// ensures consistent deduplication regardless of which cell a future vertex hashes to.
 				if constexpr (bCollapse)
 				{
 					const uint64 Key = PCGEx::SH3(Position, HashTolerance);
@@ -197,6 +203,10 @@ namespace PCGExMesh
 	void FGeoMesh::MakeDual()
 	// Need triangulate first
 	{
+		// Convert mesh to its dual graph: each triangle becomes a vertex (at its centroid),
+		// and edges connect adjacent triangles. The original vertex indices are stored in
+		// the Triangle entries for later reference. RawIndices are replaced with negative
+		// values (-(triIndex+1)) to distinguish dual vertices from original mesh vertices.
 		if (Triangles.IsEmpty()) { return; }
 
 		TArray<FVector> DualPositions;

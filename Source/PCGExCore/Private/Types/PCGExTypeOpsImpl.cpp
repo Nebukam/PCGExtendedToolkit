@@ -48,6 +48,10 @@ namespace PCGExTypeOps
 		}
 	}
 
+	// Populates the N×N type conversion dispatch table (From × To).
+	// Each row is filled by PopulateConversionRow<TFrom> which instantiates
+	// a ConvertFunction<TFrom, TTo> for every supported target type.
+	// Called once at module load via the static FTypeOpsModuleInit below.
 	void FConversionTable::Initialize()
 	{
 		if (bInitialized) { return; }

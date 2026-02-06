@@ -41,6 +41,9 @@ void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChanged
 }
 #endif
 
+PCGExData::EIOInit UPCGExPathfindingPlotEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExPathfindingPlotEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+
 bool UPCGExPathfindingPlotEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->IsOutputPin() && (InPin->Properties.Label == PCGExMatching::Labels::OutputUnmatchedVtxLabel || InPin->Properties.Label == PCGExMatching::Labels::OutputUnmatchedEdgesLabel))

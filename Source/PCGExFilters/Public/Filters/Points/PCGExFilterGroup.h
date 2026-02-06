@@ -10,7 +10,10 @@
 #include "PCGExFilterGroup.generated.h"
 
 /**
- * 
+ * Factory for composite filter groups (AND/OR). Aggregates child filter factories
+ * and creates a FFilterGroup instance that evaluates them with the selected logic.
+ * Inherits from ClusterFilterFactory to support both point and cluster child filters.
+ * All registration methods (consumable attributes, assets, buffers) recurse into children.
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXFILTERS_API UPCGExFilterGroupFactoryData : public UPCGExClusterFilterFactoryData
@@ -38,9 +41,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
-/**
- * 
- */
+/** AND group: all child filters must pass for the group to pass. */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExFilterGroupFactoryDataAND : public UPCGExFilterGroupFactoryData
 {
@@ -51,9 +52,7 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
-/**
- * 
- */
+/** OR group: any child filter passing causes the group to pass. */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExFilterGroupFactoryDataOR : public UPCGExFilterGroupFactoryData
 {
@@ -66,6 +65,15 @@ public:
 
 namespace PCGExFilterGroup
 {
+	/**
+	 * Base class for composite filter groups. Manages its own internal filter stack
+	 * (separate from FManager) and supports nested groups, cluster filters, and
+	 * regular point filters. Handles both point and cluster initialization paths.
+	 *
+	 * Subclasses (FFilterGroupAND / FFilterGroupOR) implement the Test() logic:
+	 * - AND: short-circuits on first failure, returns !bInvert
+	 * - OR:  short-circuits on first success, returns !bInvert
+	 */
 	class PCGEXFILTERS_API FFilterGroup : public PCGExClusterFilter::IFilter
 	{
 	public:

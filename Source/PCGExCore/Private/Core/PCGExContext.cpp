@@ -48,10 +48,12 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const PCGE
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
 
+	// Staging accumulates outputs during async processing. They're moved to
+	// OutputData.TaggedData in OnComplete. The lock guards against concurrent
+	// staging from parallel tasks and the race with OnComplete flushing.
 	{
 		FWriteScopeLock WriteScopeLock(StagingLock);
 
-		// Check inside lock to prevent race with OnComplete
 		if (IsWorkCancelled() || IsWorkCompleted()) { return; }
 
 		FPCGTaggedData& Output = StagedData.Emplace_GetRef();
@@ -61,7 +63,11 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const PCGE
 		Output.bPinlessData = EnumHasAnyFlags(Staging, PCGExData::EStaging::Pinless);
 	}
 
+	// Managed: register with ManagedObjects so it survives GC until context teardown.
 	if (EnumHasAnyFlags(Staging, PCGExData::EStaging::Managed)) { ManagedObjects->Add(InData); }
+
+	// Mutable: this is data we own and can modify. Clean up consumable attributes
+	// (internal PCGEx attributes not meant for downstream nodes) unless they're protected.
 	if (EnumHasAnyFlags(Staging, PCGExData::EStaging::Mutable))
 	{
 		if (bCleanupConsumableAttributes)
@@ -280,12 +286,15 @@ void FPCGExContext::OnComplete()
 	PCGEX_TERMINATE_ASYNC
 
 	{
+		// Flush staged outputs into the PCG output data. Also remove them from
+		// ManagedObjects since PCG now owns the data lifecycle.
 		FWriteScopeLock WriteScopeLock(StagingLock);
 		OutputData.TaggedData.Append(StagedData);
 		ManagedObjects->Remove(StagedData);
 		StagedData.Empty();
 	}
 
+	// Unpause allows the PCG scheduler to collect our outputs and mark the node complete.
 	UnpauseContext();
 }
 
@@ -346,13 +355,17 @@ void FPCGExContext::TrackAssetsHandle(const TSharedPtr<FStreamableHandle>& InHan
 
 UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
 {
+	// Transfers a component from PCGEx internal management to PCG's managed resource system.
+	// This ensures PCG can clean up the component on re-generate/destroy, while the component
+	// remains tagged for PCG ownership (source component name + DefaultPCGTag).
 	UPCGComponent* SrcComp = GetMutableComponent();
 
 	const bool bIsPreviewMode = SrcComp->IsInPreviewMode();
 
+	// Remove from internal management first. If it wasn't internally managed
+	// (e.g. created externally), clear root/async flags that would prevent GC.
 	if (!ManagedObjects->Remove(InComponent))
 	{
-		// If the component is not managed internally, make sure it's cleared
 		InComponent->RemoveFromRoot();
 		InComponent->ClearInternalFlags(EInternalObjectFlags::Async);
 	}

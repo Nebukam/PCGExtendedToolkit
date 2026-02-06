@@ -74,6 +74,8 @@ namespace PCGExClusterStates
 		return Manager->Test(Edge);
 	}
 
+	// Applies the configured bitmask operation to the shared flags based on pass/fail.
+	// Each state can independently set, clear, or toggle specific flag bits.
 	void FState::ProcessFlags(const bool bSuccess, int64& InFlags, const int32 Index) const
 	{
 		if (Config.bOnTestPass && bSuccess) { Config.PassStateFlags.Mutate(InFlags); }
@@ -98,6 +100,8 @@ namespace PCGExClusterStates
 		FlagsCache = InFlags;
 	}
 
+	// Evaluates all states and accumulates flag mutations. Always returns true —
+	// the purpose is the side-effect on the FlagsCache, not point filtering.
 	bool FStateManager::Test(const int32 Index)
 	{
 		int64& Flags = *(FlagsCache->GetData() + Index);

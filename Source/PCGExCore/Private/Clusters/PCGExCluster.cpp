@@ -22,6 +22,10 @@ namespace PCGExClusters
 		VtxPoints = InVtxIO->GetIn();
 	}
 
+	// "Mirror" constructor: creates a cluster that shares or copies structure from another.
+	// Used when multiple operations need independent cluster state (e.g. different edge validity)
+	// but share the same underlying point/edge data. When bCopyNodes/bCopyEdges are false,
+	// the arrays are shared (not duplicated), so structural reads are zero-cost.
 	FCluster::FCluster(const TSharedRef<FCluster>& OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO, const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup, const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup)
 		: NodeIndexLookup(InNodeIndexLookup), VtxIO(InVtxIO), EdgesIO(InEdgesIO)
 	{
@@ -150,6 +154,8 @@ namespace PCGExClusters
 		Nodes->Empty();
 		Edges->Empty();
 
+		// Each edge stores its two endpoint vertex indices packed into a single int64.
+		// The EndpointsLookup maps vertex hash → point index to resolve edges.
 		const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), Labels::Attr_PCGExEdgeIdx);
 		if (!EndpointsBuffer->InitForRead()) { return false; }
 
@@ -172,6 +178,7 @@ namespace PCGExClusters
 
 		for (int i = 0; i < NumEdges; i++)
 		{
+			// Unpack the two vertex hashes from the int64 edge descriptor.
 			uint32 A;
 			uint32 B;
 			PCGEx::H64(Endpoints[i], A, B);
@@ -179,8 +186,11 @@ namespace PCGExClusters
 			const int32* StartPointIndexPtr = InEndpointsLookup.Find(A);
 			const int32* EndPointIndexPtr = InEndpointsLookup.Find(B);
 
+			// Reject edges with missing endpoints or self-loops.
 			if ((!StartPointIndexPtr || !EndPointIndexPtr || *StartPointIndexPtr == *EndPointIndexPtr)) { return OnFail(); }
 
+			// Lazily create cluster nodes for each vertex. Nodes are a subset of all
+			// vtx points - only those referenced by at least one edge get a node.
 			const int32 StartNode = GetOrCreateNode_Unsafe(*StartPointIndexPtr);
 			const int32 EndNode = GetOrCreateNode_Unsafe(*EndPointIndexPtr);
 
@@ -190,11 +200,12 @@ namespace PCGExClusters
 			*(Edges->GetData() + i) = FEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIOIndex);
 		}
 
+		// Validate against expected adjacency counts (from a previous cluster build).
+		// Only checks for missing connections, not extra ones, to detect broken edges.
 		if (InExpectedAdjacency)
 		{
 			for (const FNode& Node : (*Nodes))
 			{
-				// We care about removed connections, not new ones 
 				if ((*InExpectedAdjacency)[Node.PointIndex] > Node.Num()) { return OnFail(); }
 			}
 		}
@@ -265,12 +276,18 @@ namespace PCGExClusters
 
 	FNode* FCluster::GetGuidedHalfEdge(const int32 Edge, const FVector& Guide, const FVector& Up) const
 	{
+		// Returns the endpoint of an edge that is on the "Guide" side.
+		// Used to determine directional traversal: which end of an edge
+		// faces toward a guide point. Leaf nodes (degree 1) are preferred
+		// as starting points since they're path endpoints.
 		FNode* StartNode = GetEdgeStart(Edge);
 		FNode* EndNode = GetEdgeEnd(Edge);
 
 		if (StartNode->IsLeaf() && !EndNode->IsLeaf()) { return StartNode; }
 		if (EndNode->IsLeaf() && !StartNode->IsLeaf()) { return EndNode; }
 
+		// Project Guide onto the edge, then check which side of the edge's
+		// normal plane the guide point falls on.
 		const FVector& A = GetPos(StartNode);
 		const FVector& B = GetPos(EndNode);
 		const FVector& C = FMath::ClosestPointOnSegment(Guide, A, B);
@@ -543,6 +560,9 @@ namespace PCGExClusters
 
 	int32 FCluster::FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition, const int32 MinNeighbors) const
 	{
+		// Find the edge incident to InNodeIndex whose segment is closest to InPosition.
+		// On distance ties, prefer the edge whose direction most closely aligns with
+		// the vector FROM InPosition TO the node (smallest dot product = most facing).
 		if (!Nodes->IsValidIndex(InNodeIndex) || (NodesDataPtr + InNodeIndex)->IsEmpty()) { return -1; }
 		const FNode& Node = *(NodesDataPtr + InNodeIndex);
 

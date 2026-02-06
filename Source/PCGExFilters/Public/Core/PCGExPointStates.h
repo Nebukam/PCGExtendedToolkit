@@ -59,7 +59,13 @@ struct FPCGExDataTypeInfoPointState : public FPCGExFactoryDataTypeInfo
 };
 
 /**
- * 
+ * Factory for point-level state definitions. A state is a named, filter-driven condition
+ * that applies bitmask flag operations (pass/fail) to each point. Multiple states are
+ * evaluated through a FStateManager, which accumulates their flag mutations into a shared
+ * int64 flags array.
+ *
+ * Inherits from ClusterFilterFactory (the widest type) so states can accept both
+ * point and cluster filters in their internal filter stack.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXFILTERS_API UPCGExPointStateFactoryData : public UPCGExClusterFilterFactoryData
@@ -96,6 +102,11 @@ namespace PCGExPointStates
 		const FName SourceStatesLabel = TEXT("States");
 	}
 
+	/**
+	 * A single named state. Wraps an internal FManager with its own filter stack.
+	 * Test() delegates to the internal manager. ProcessFlags() applies bitmask ops
+	 * to the shared flags based on pass/fail.
+	 */
 	class PCGEXFILTERS_API FState final : public PCGExPointFilter::IFilter
 	{
 	public:
@@ -119,6 +130,11 @@ namespace PCGExPointStates
 		TSharedPtr<PCGExPointFilter::FManager> Manager;
 	};
 
+	/**
+	 * Specialized manager that evaluates all states for each point and accumulates
+	 * their bitmask flag mutations into the shared FlagsCache array.
+	 * Test() always returns true — the purpose is the side-effect on flags, not filtering.
+	 */
 	class PCGEXFILTERS_API FStateManager final : public PCGExPointFilter::FManager
 	{
 		TArray<TSharedPtr<FState>> States;

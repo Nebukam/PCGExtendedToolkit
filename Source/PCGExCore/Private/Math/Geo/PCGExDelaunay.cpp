@@ -83,6 +83,10 @@ namespace PCGExMath::Geo
 			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunator::Triangulate);
 
 			IsValid = true;
+			// Build adjacency by matching shared edges between triangles.
+			// First occurrence of an edge records the owning site in EdgeMap.
+			// Second occurrence means two triangles share that edge, so they become neighbors.
+			// Unmatched edges (still in EdgeMap after all sites) are convex hull edges.
 			auto PushEdge = [&](FDelaunaySite2& Site, const uint64 Edge)
 			{
 				bool bIsAlreadySet = false;
@@ -217,6 +221,9 @@ namespace PCGExMath::Geo
 	void TDelaunay2::GetMergedSites(const int32 SiteIndex, const TSet<uint64>& EdgeConnectors, TSet<int32>& OutMerged, TSet<uint64>& OutUEdges, TBitArray<>& VisitedSites)
 
 	{
+		// Flood-fill from SiteIndex through adjacent sites connected by edges in EdgeConnectors.
+		// This groups Delaunay triangles into merged "super-cells" (e.g. for Urquhart graph construction),
+		// collecting the set of connector edges traversed (OutUEdges) and the merged site indices.
 		TArray<int32> Stack;
 
 		VisitedSites[SiteIndex] = false;

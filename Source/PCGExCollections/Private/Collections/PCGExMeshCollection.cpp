@@ -14,7 +14,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInterface.h"
 
-// Register the Mesh collection type at startup
+// Static-init type registration: TypeId=Mesh, parent=Base
 PCGEX_REGISTER_COLLECTION_TYPE(Mesh, UPCGExMeshCollection, FPCGExMeshCollectionEntry, "Mesh Collection", Base)
 
 // Material Override Collection
@@ -221,6 +221,8 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 	return FPCGExAssetCollectionEntry::Validate(ParentCollection);
 }
 
+// Loads the static mesh to extract bounds and sockets into Staging.
+// First-time entries (InternalIndex == -1) get collision disabled if configured.
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive)
 {
 	ClearManagedSockets();
@@ -267,6 +269,8 @@ void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 	ISMDescriptor.StaticMesh = StaticMesh;
 }
 
+// Resolves descriptor inheritance: Global/Overrule → use collection-level descriptor,
+// Local → use entry-level ISMDescriptor. Always appends entry tags to component tags.
 void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(const UPCGExMeshCollection* ParentCollection, FPCGSoftISMComponentDescriptor& TargetDescriptor) const
 {
 	if (ParentCollection && (DescriptorSource == EPCGExEntryVariationMode::Global || ParentCollection->GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule))

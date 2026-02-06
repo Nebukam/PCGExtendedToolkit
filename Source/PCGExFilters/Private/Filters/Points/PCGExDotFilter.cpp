@@ -80,6 +80,8 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 	return true;
 }
 
+// Optionally rotate each operand from local to world space using the point's transform,
+// then compute their dot product. Multipliers of -1 flip the operand direction (inversion).
 bool PCGExPointFilter::FDotFilter::Test(const int32 PointIndex) const
 {
 	const FVector B = OperandB->Read(PointIndex).GetSafeNormal() * OperandBMultiplier;

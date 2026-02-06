@@ -15,7 +15,8 @@ class UPCGExPCGDataAssetCollection;
 
 namespace PCGExPCGDataAssetCollection
 {
-	// PCGDataAsset MicroCache - Handles point-level picking within data assets
+	/** MicroCache for PCG data asset entries. When bOverrideWeights is true on the entry,
+	 *  builds weighted pick arrays from user-specified per-point weights. */
 	class PCGEXCOLLECTIONS_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
 	public:
@@ -30,8 +31,12 @@ namespace PCGExPCGDataAssetCollection
 	};
 }
 
-// PCGDataAsset Collection Entry
-
+/**
+ * PCG data asset collection entry. References a UPCGDataAsset or a subcollection.
+ * Supports optional per-point weight overrides via a MicroCache, allowing weighted
+ * point-level picking within the data asset's point sets.
+ * UpdateStaging() computes combined bounds from all spatial data in the asset.
+ */
 USTRUCT(BlueprintType, DisplayName="[PCGEx] PCGDataAsset Collection Entry")
 struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAssetCollectionEntry
 {
@@ -97,8 +102,8 @@ struct PCGEXCOLLECTIONS_API FPCGExPCGDataAssetCollectionEntry : public FPCGExAss
 #pragma endregion
 };
 
-// PCGDataAsset Collection
-
+/** Concrete collection for UPCGDataAsset references. Minimal extension like the
+ *  actor collection — no extra global settings beyond the base class. */
 UCLASS(BlueprintType, DisplayName="[PCGEx] Collection | PCGDataAsset")
 class PCGEXCOLLECTIONS_API UPCGExPCGDataAssetCollection : public UPCGExAssetCollection
 {

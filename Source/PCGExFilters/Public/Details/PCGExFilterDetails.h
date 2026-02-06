@@ -49,6 +49,15 @@ enum class EPCGExResultWriteAction : uint8
 	Bitmask = 2 UMETA(DisplayName = "Bitmask", Tooltip="Mutates a bitmask flag with the operations associated with pass/fail."),
 };
 
+/**
+ * Configures how filter results are written back to point attributes.
+ * Supports three output modes:
+ * - Bool: writes true/false to a boolean attribute
+ * - Counter: increments/decrements a double attribute based on pass/fail
+ * - Bitmask: applies bitmask operations (set/clear/toggle) to an int64 attribute
+ *
+ * Call Init() to create the output buffer, then Write() per-point or in batch via FScope.
+ */
 USTRUCT(BlueprintType)
 struct PCGEXFILTERS_API FPCGExFilterResultDetails
 {

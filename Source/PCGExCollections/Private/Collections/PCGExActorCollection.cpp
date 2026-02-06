@@ -11,7 +11,7 @@
 #include "PCGExLog.h"
 #include "Engine/Blueprint.h"
 
-// Register the Actor collection type at startup
+// Static-init type registration: TypeId=Actor, parent=Base
 PCGEX_REGISTER_COLLECTION_TYPE(Actor, UPCGExActorCollection, FPCGExActorCollectionEntry, "Actor Collection", Base)
 
 #pragma region FPCGExActorCollectionEntry
@@ -37,6 +37,8 @@ bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 	return FPCGExAssetCollectionEntry::Validate(ParentCollection);
 }
 
+// Spawns a temporary actor in-editor to compute bounds via GetActorBounds(),
+// then immediately destroys it. Only works in editor context (non-editor falls back to empty bounds).
 void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, bool bRecursive)
 {
 	ClearManagedSockets();
@@ -48,8 +50,6 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	}
 
 	Staging.Path = Actor.ToSoftObjectPath();
-
-	// Load the actor class to compute bounds
 	TSharedPtr<FStreamableHandle> Handle = PCGExHelpers::LoadBlocking_AnyThread(Actor.ToSoftObjectPath());
 
 	if (UClass* ActorClass = Actor.Get())
