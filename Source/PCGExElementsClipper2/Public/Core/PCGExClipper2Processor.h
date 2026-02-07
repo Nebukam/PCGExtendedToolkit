@@ -19,6 +19,14 @@ struct FPCGExCarryOverDetails;
 
 
 UENUM(BlueprintType)
+enum class EPCGExClipper2EndpointType : uint8
+{
+	None  = 0 UMETA(DisplayName = "None"),
+	Start = 1 UMETA(DisplayName = "Start"),
+	End   = 2 UMETA(DisplayName = "End"),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExClipper2JoinType : uint8
 {
 	Square = 0 UMETA(DisplayName = "Square", ToolTip="Square joins"),
@@ -154,7 +162,7 @@ namespace PCGExClipper2
 	 * Unified processing group that encapsulates subjects, operands, and cached data.
 	 * This provides a clean interface for Clipper2 operations.
 	 */
-	struct FProcessingGroup : TSharedFromThis<FProcessingGroup>
+	struct PCGEXELEMENTSCLIPPER2_API FProcessingGroup : TSharedFromThis<FProcessingGroup>
 	{
 		// Group index for deterministic output ordering
 		int32 GroupIndex = 0;
@@ -276,6 +284,26 @@ public:
 	/** Write this tag on paths that are holes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Tagging", meta=(EditCondition="bTagHoles"))
 	FString HoleTag = TEXT("Hole");
+
+	/** Write a flag marking intersection points (points created by Clipper2 at path crossings). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bFlagIntersections = false;
+
+	/** Name of the boolean attribute for intersection points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, EditCondition="bFlagIntersections"))
+	FName IntersectionFlagName = "IsIntersection";
+
+	/** Write a flag identifying the start/end of joint arcs at the original path's endpoints (e.g. round caps on offset/inflate). Only applies to open source paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bFlagJoints = false;
+
+	/** Name of the int32 attribute for joint type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", meta = (PCG_Overridable, EditCondition="bFlagJoints"))
+	FName JointFlagName = "JointType";
+
+	/** Pick which value will be written for each joint type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output|Flags", EditFixedSize, meta = (ReadOnlyKeys, DisplayName=" └─ Mapping", EditCondition="bFlagJoints", HideEditConditionToggle))
+	TMap<EPCGExClipper2EndpointType, int32> JointTypeValueMapping;
 
 	/** (DEBUG) If enabled, performs a union of all paths in the group before proceeding to the operation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)

@@ -17,8 +17,8 @@ PCGExData::EIOInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { retu
 #if WITH_EDITOR
 void UPCGExFlagNodesSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
 {
-	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 	InOutNode->RenameInputPin(FName("Node Flags"), PCGExPointStates::Labels::SourceStatesLabel);
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 }
 #endif
 

@@ -28,7 +28,9 @@ namespace PCGExPaths
 	void FPathEdge::Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion)
 	{
 		PCGEX_SET_BOX_TOLERANCE(Bounds, Positions[Start].GetLocation(), Positions[End].GetLocation(), Expansion);
-		Dir = (Positions[End].GetLocation() - Positions[Start].GetLocation()).GetSafeNormal();
+		const FVector Delta = Positions[End].GetLocation() - Positions[Start].GetLocation();
+		Length = Delta.Size();
+		Dir = Length > SMALL_NUMBER ? Delta / Length : FVector::ZeroVector;
 	}
 
 	bool FPathEdge::ShareIndices(const FPathEdge& Other) const
@@ -44,11 +46,6 @@ namespace PCGExPaths
 	bool FPathEdge::ShareIndices(const FPathEdge* Other) const
 	{
 		return Start == Other->Start || Start == Other->End || End == Other->Start || End == Other->End;
-	}
-
-	double FPathEdge::GetLength(const TConstPCGValueRange<FTransform>& Positions) const
-	{
-		return FVector::Dist(Positions[Start].GetLocation(), Positions[End].GetLocation());
 	}
 
 	void IPathEdgeExtra::ProcessingDone(const FPath* Path)
@@ -260,7 +257,7 @@ namespace PCGExPaths
 	bool FPath::Contains(const TConstPCGValueRange<FTransform>& InPositions, const double Tolerance) const
 	{
 		const int32 OtherNumPoints = InPositions.Num();
-		const int32 Threshold = FMath::Min(1, FMath::RoundToInt(static_cast<double>(OtherNumPoints) * (1 - FMath::Clamp(Tolerance, 0, 1))));
+		const int32 Threshold = FMath::Max(1, FMath::RoundToInt(static_cast<double>(OtherNumPoints) * (1 - FMath::Clamp(Tolerance, 0, 1))));
 
 		int32 InsideCount = 0;
 
@@ -304,10 +301,12 @@ namespace PCGExPaths
 		// produce self-intersections on sharp concave corners with large offsets.
 		if (FMath::IsNearlyZero(Offset)) { return; }
 
-		if (Offset > 0) { ProjectedBounds = ProjectedBounds.ExpandBy(Offset); }
-
 		const int32 N = ProjectedPoints.Num();
-		if (N < 3) { return; }
+		if (N < 3)
+		{
+			ProjectedBounds = ProjectedBounds.ExpandBy(Offset);
+			return;
+		}
 
 		TArray<FVector2D> InsetPositions;
 		InsetPositions.SetNum(N);
@@ -332,8 +331,9 @@ namespace PCGExPaths
 			InsetPositions[i] = Pos;
 			ProjectedBounds += Pos;
 		}
+		
+		if (Offset > 0) { ProjectedBounds = ProjectedBounds.ExpandBy(Offset); }   
 
-		ProjectedPoints.Empty();
 		ProjectedPoints = MoveTemp(InsetPositions);
 	}
 
@@ -349,7 +349,7 @@ namespace PCGExPaths
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
-			TotalLength += E.GetLength(Positions);
+			TotalLength += E.Length;
 			Bounds += E.Bounds.GetBox();
 		}
 	}
@@ -360,9 +360,8 @@ namespace PCGExPaths
 
 	void FPathEdgeLength::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
 	{
-		const double Dist = FVector::Dist(Path->GetPos_Unsafe(Edge.Start), Path->GetPos_Unsafe(Edge.End));
-		GetMutable(Edge.Start) = Dist;
-		TotalLength += Dist;
+		GetMutable(Edge.Start) = Edge.Length;
+		TotalLength += Edge.Length;
 	}
 
 	void FPathEdgeLength::ProcessingDone(const FPath* Path)
@@ -379,8 +378,7 @@ namespace PCGExPaths
 
 	void FPathEdgeLengthSquared::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
 	{
-		const double Dist = FVector::DistSquared(Path->GetPos_Unsafe(Edge.Start), Path->GetPos_Unsafe(Edge.End));
-		GetMutable(Edge.Start) = Dist;
+		GetMutable(Edge.Start) = Edge.Length * Edge.Length;
 	}
 
 #pragma endregion

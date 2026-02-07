@@ -51,6 +51,8 @@ class UPCGExSampleNearestSurfaceSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+	
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample : Nearest Surface", "Find the closest point on the nearest collidable surface.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling); }
 #endif
@@ -75,18 +77,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="SurfaceSource == EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FName ActorReference = FName("ActorReference");
 
-	/** Search max distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, CLampMin=0.001))
-	double MaxDistance = 1000;
+#pragma region DEPRECATED
+	
+	UPROPERTY()
+	double MaxDistance_DEPRECATED = 1000;
 
-	/** Use a per-point maximum distance*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, InlineEditConditionToggle))
-	bool bUseLocalMaxDistance = false;
+	UPROPERTY()
+	bool bUseLocalMaxDistance_DEPRECATED = false;
 
-	/** Attribute or property to read the local max distance from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalMaxDistance"))
-	FPCGAttributePropertyInputSelector LocalMaxDistance;
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector LocalMaxDistance_DEPRECATED;
 
+#pragma endregion
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	FPCGExInputShorthandSelectorDoubleAbs Distance = FPCGExInputShorthandSelectorDoubleAbs(FName("Distance"), 1000, false);
+	
+		
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
@@ -246,7 +253,7 @@ namespace PCGExSampleNearestSurface
 
 		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
-		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceGetter;
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxSampledDistance = 0;
 
