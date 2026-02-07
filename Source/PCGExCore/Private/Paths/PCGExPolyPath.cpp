@@ -177,6 +177,11 @@ namespace PCGExPaths
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
 
+	FTransform FPolyPath::GetTransformAtInputKey(const float InKey, const bool bUseScale) const
+	{
+		return Spline->GetTransformAtSplineInputKey(InKey, ESplineCoordinateSpace::World, bUseScale);
+	}
+
 	void FPolyPath::GetEdgeElements(const int32 EdgeIndex, PCGExData::FElement& OutEdge, PCGExData::FElement& OutEdgeStart, PCGExData::FElement& OutEdgeEnd) const
 	{
 		OutEdge = PCGExData::FElement(EdgeIndex, Idx);

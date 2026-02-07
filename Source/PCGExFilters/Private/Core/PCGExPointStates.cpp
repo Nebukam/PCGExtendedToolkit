@@ -30,8 +30,8 @@ void UPCGExPointStateFactoryData::BeginDestroy()
 #if WITH_EDITOR
 void UPCGExStateFactoryProviderSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
 {
-	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 	InOutNode->RenameOutputPin(FName("Flag"), PCGExPointStates::Labels::OutputStateLabel);
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 }
 #endif
 

@@ -16,6 +16,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Details/PCGExBlendingDetails.h"
 #include "Details/PCGExDistancesDetails.h"
+#include "Details/PCGExInputShorthandsDetails.h"
 #include "Details/PCGExMatchingDetails.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Math/PCGExMathAxis.h"
@@ -71,6 +72,8 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+	
 	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Sample nearest target points.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling); }
 #endif
@@ -105,37 +108,34 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, DisplayName=" └─ Sort direction", EditCondition="SampleMethod == EPCGExSampleMethod::BestCandidate", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
-#pragma region Sampling Range
+#pragma region DEPRECATED
 
-	/** Type of Range Min */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExInputValueType RangeMinInput = EPCGExInputValueType::Constant;
+	UPROPERTY()
+	EPCGExInputValueType RangeMinInput_DEPRECATED = EPCGExInputValueType::Constant;
 
-	/** Minimum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName="Range Min (Attr)", EditCondition="RangeMinInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector RangeMinAttribute;
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector RangeMinAttribute_DEPRECATED;
 
-	/** Minimum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMinInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
-	double RangeMin = 0;
+	UPROPERTY()
+	double RangeMin_DEPRECATED = 0;
 
-	PCGEX_SETTING_VALUE_DECL(RangeMin, double)
+	UPROPERTY()
+	EPCGExInputValueType RangeMaxInput_DEPRECATED = EPCGExInputValueType::Constant;
 
-	/** Type of Range Min */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExInputValueType RangeMaxInput = EPCGExInputValueType::Constant;
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector RangeMaxAttribute_DEPRECATED;
 
-	/** Maximum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName="Range Max (Attr)", EditCondition="RangeMaxInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector RangeMaxAttribute;
-
-	/** Maximum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMaxInput == EPCGExInputValueType::Constant", ClampMin=0))
-	double RangeMax = 300;
-
-	PCGEX_SETTING_VALUE_DECL(RangeMax, double)
+	UPROPERTY()
+	double RangeMax_DEPRECATED = 300;
 
 #pragma endregion
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	FPCGExInputShorthandSelectorDouble MinRange = FPCGExInputShorthandSelectorDouble(FName("RangeMin"), 0, false);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	FPCGExInputShorthandSelectorDouble MaxRange = FPCGExInputShorthandSelectorDouble(FName("RangeMin"), 0, false);
+
 
 	/** Distance method to be used for source & target points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute", EditConditionHides))

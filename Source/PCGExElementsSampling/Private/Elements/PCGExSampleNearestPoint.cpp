@@ -26,8 +26,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 #define PCGEX_NAMESPACE SampleNearestPoint
 
-PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
-PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
 PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPointSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer)
@@ -36,6 +34,24 @@ UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(const FObject
 	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
 	if (!WeightOverDistance) { WeightOverDistance = PCGExCurves::WeightDistributionLinear; }
 }
+
+#if WITH_EDITOR
+void UPCGExSampleNearestPointSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 74, 3)
+	{
+		// Rewire Range Min
+		PCGEX_SHORTHAND_RENAME_PIN(RangeMinAttribute, RangeMin, MinRange)
+		MinRange.Update(RangeMinInput_DEPRECATED, RangeMinAttribute_DEPRECATED, RangeMin_DEPRECATED);
+
+		// Rewire Range Max
+		PCGEX_SHORTHAND_RENAME_PIN(RangeMaxAttribute, RangeMax, MaxRange)
+		MaxRange.Update(RangeMaxInput_DEPRECATED, RangeMaxAttribute_DEPRECATED, RangeMax_DEPRECATED);
+	}
+
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
 
 TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties() const
 {
@@ -295,10 +311,10 @@ namespace PCGExSampleNearestPoint
 			LookAtUpGetter = PCGExDetails::MakeSettingValue(Settings->LookAtUpConstant);
 		}
 
-		RangeMinGetter = Settings->GetValueSettingRangeMin();
+		RangeMinGetter = Settings->MinRange.GetValueSetting();
 		if (!RangeMinGetter->Init(PointDataFacade)) { return false; }
 
-		RangeMaxGetter = Settings->GetValueSettingRangeMax();
+		RangeMaxGetter = Settings->MaxRange.GetValueSetting();
 		if (!RangeMaxGetter->Init(PointDataFacade)) { return false; }
 
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
