@@ -92,19 +92,22 @@ namespace PCGExClipper2RectClip
 
 	/**
 	 * Restore Z values for paths output by RectClip64.
-	 * 
+	 *
 	 * RectClip64 sets Z=0 for all intersection points (see GetLineIntersectPt in clipper_core.h).
 	 * This function restores proper Z values by:
 	 * 1. Matching output points to original source points by X/Y coordinates (exact match)
-	 * 2. For intersection points, finding which SOURCE EDGE they lie on and interpolating Z
-	 * 
+	 * 2. For intersection points, finding which SOURCE EDGE they lie on, creating proper
+	 *    FIntersectionBlendInfo with both endpoints + alpha, and marking Z as INTERSECTION_MARKER
+	 *
 	 * @param OutPaths - The paths output by RectClip64 (modified in place)
 	 * @param SourcePaths - The original source paths with valid Z encodings
+	 * @param Group - The processing group to store intersection blend info into
 	 * @param Tolerance - Distance tolerance for matching points (in Clipper2 integer units)
 	 */
 	void RestoreZValuesForRectClipResults(
 		PCGExClipper2Lib::Paths64& OutPaths,
 		const PCGExClipper2Lib::Paths64& SourcePaths,
+		const TSharedPtr<PCGExClipper2::FProcessingGroup>& Group,
 		int64_t Tolerance = 2)
 	{
 		// Build a map from (X,Y) to Z for all source points (for exact matches)
@@ -178,25 +181,46 @@ namespace PCGExClipper2RectClip
 
 						if (Alpha >= 0.0)
 						{
-							// Point lies on this edge! Interpolate Z
-							// Since Z encodes (PointIndex, SourceIndex), we pick the closer endpoint's Z
-							// This ensures we reference a valid source point for transform lookup
-							if (Alpha <= 0.5)
-							{
-								Pt.z = A.z;
-							}
-							else
-							{
-								Pt.z = B.z;
-							}
+							// Point lies on this edge - create proper blend info
+							uint32 APtIdx, ASrcIdx, BPtIdx, BSrcIdx;
+							PCGEx::H64(static_cast<uint64>(A.z), APtIdx, ASrcIdx);
+							PCGEx::H64(static_cast<uint64>(B.z), BPtIdx, BSrcIdx);
+
+							PCGExClipper2::FIntersectionBlendInfo Info;
+							Info.E1BotPointIdx = APtIdx;
+							Info.E1BotSourceIdx = ASrcIdx;
+							Info.E1TopPointIdx = BPtIdx;
+							Info.E1TopSourceIdx = BSrcIdx;
+							// For RectClip, we only have one edge (no second intersecting edge)
+							// Duplicate the same edge so the averaging in OutputPaths64 still works
+							Info.E2BotPointIdx = APtIdx;
+							Info.E2BotSourceIdx = ASrcIdx;
+							Info.E2TopPointIdx = BPtIdx;
+							Info.E2TopSourceIdx = BSrcIdx;
+							Info.E1Alpha = Alpha;
+							Info.E2Alpha = Alpha;
+
+							Group->AddIntersectionBlendInfo(Pt.x, Pt.y, Info);
+
+							// Mark as intersection point
+							Pt.z = static_cast<int64_t>(PCGEx::H64(
+								PCGExClipper2::INTERSECTION_MARKER,
+								PCGExClipper2::INTERSECTION_MARKER));
+
 							bFoundEdge = true;
 							break;
 						}
 					}
 				}
 
-				// If still not found (shouldn't happen normally), leave Z as 0
-				// The output code will need to handle this gracefully
+				if (!bFoundEdge)
+				{
+					// No edge match found - still mark as intersection so the
+					// Layer 2 fallback (neighbor interpolation) handles it
+					Pt.z = static_cast<int64_t>(PCGEx::H64(
+						PCGExClipper2::INTERSECTION_MARKER,
+						PCGExClipper2::INTERSECTION_MARKER));
+				}
 			}
 		}
 	}
@@ -393,7 +417,7 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 						PCGExClipper2Lib::Paths64 ClippedResults = LineClipper.Execute(SinglePath);
 
 						// Restore Z values using original source paths
-						PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClippedResults, Group->SubjectPaths);
+						PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClippedResults, Group->SubjectPaths, Group);
 
 						// Now that the path is explicitly closed, segments that should connect at V0 will exist
 						// Find and merge them
@@ -455,7 +479,7 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 				PCGExClipper2Lib::RectClip64 Clipper(ClipRect);
 				ClosedResults = Clipper.Execute(Group->SubjectPaths);
 
-				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClosedResults, Group->SubjectPaths);
+				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(ClosedResults, Group->SubjectPaths, Group);
 			}
 		}
 
@@ -468,7 +492,7 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 				PCGExClipper2Lib::RectClipLines64 LineClipper(ClipRect);
 				PCGExClipper2Lib::Paths64 OpenLinesResults = LineClipper.Execute(Group->OpenSubjectPaths);
 
-				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenLinesResults, Group->OpenSubjectPaths);
+				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenLinesResults, Group->OpenSubjectPaths, Group);
 
 				for (auto& Path : OpenLinesResults)
 				{
@@ -481,7 +505,7 @@ void FPCGExClipper2RectClipContext::Process(const TSharedPtr<PCGExClipper2::FPro
 				PCGExClipper2Lib::RectClip64 Clipper(ClipRect);
 				PCGExClipper2Lib::Paths64 OpenAsClosedResults = Clipper.Execute(Group->OpenSubjectPaths);
 
-				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenAsClosedResults, Group->OpenSubjectPaths);
+				PCGExClipper2RectClip::RestoreZValuesForRectClipResults(OpenAsClosedResults, Group->OpenSubjectPaths, Group);
 
 				for (auto& Path : OpenAsClosedResults)
 				{
