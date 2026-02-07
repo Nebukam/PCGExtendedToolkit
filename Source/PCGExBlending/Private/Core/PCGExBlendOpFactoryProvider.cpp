@@ -12,9 +12,9 @@
 #if WITH_EDITOR
 void UPCGExBlendOpFactoryProviderSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
 {
-	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 	InOutNode->RenameInputPin(FName("Constant A"), PCGExBlending::Labels::SourceConstantA);
 	InOutNode->RenameInputPin(FName("Constant B"), PCGExBlending::Labels::SourceConstantB);
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
 }
 
 void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

@@ -13,10 +13,26 @@
 #include "Data/PCGExDataTags.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Utils/PCGExDataForward.h"
+#include "Details/PCGExSettingsDetails.h"
 #include "Sampling/PCGExSamplingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface
+
+#if WITH_EDITOR
+void UPCGExSampleNearestSurfaceSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 74, 3)
+	{
+		// Rewire Distance
+		PCGEX_SHORTHAND_RENAME_PIN(LocalMaxDistance, MaxDistance, Distance)
+		Distance.Update(bUseLocalMaxDistance_DEPRECATED ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, LocalMaxDistance_DEPRECATED, MaxDistance_DEPRECATED);
+	}
+
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
+
 
 TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties() const
 {
@@ -143,15 +159,8 @@ namespace PCGExSampleNearestSurface
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
 		}
 
-		if (Settings->bUseLocalMaxDistance)
-		{
-			MaxDistanceGetter = PointDataFacade->GetBroadcaster<double>(Settings->LocalMaxDistance, true);
-			if (!MaxDistanceGetter)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("LocalMaxDistance missing"));
-				return false;
-			}
-		}
+		DistanceGetter = Settings->Distance.GetValueSetting();
+		if (!DistanceGetter->Init(PointDataFacade)) { return false; }
 
 		StartParallelLoopForPoints();
 
@@ -193,7 +202,7 @@ namespace PCGExSampleNearestSurface
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->MaxDistance;
+			const double MaxDistance = DistanceGetter->Read(Index);
 
 			if (!PointFilterCache[Index])
 			{

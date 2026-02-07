@@ -25,9 +25,6 @@
 #include "Sorting/PCGExSortingDetails.h"
 #include "Types/PCGExTypes.h"
 
-PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
-PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
-
 #define LOCTEXT_NAMESPACE "PCGExSampleInsidePathElement"
 #define PCGEX_NAMESPACE SampleInsidePath
 
@@ -36,6 +33,24 @@ UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(const FObjectInit
 {
 	if (!WeightOverDistance) { WeightOverDistance = PCGExCurves::WeightDistributionLinear; }
 }
+
+#if WITH_EDITOR
+void UPCGExSampleInsidePathSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 74, 3)
+	{
+		// Rewire Range Min
+		PCGEX_SHORTHAND_RENAME_PIN(RangeMinAttribute, RangeMin, MinRange)
+		MinRange.Update(RangeMinInput_DEPRECATED, RangeMinAttribute_DEPRECATED, RangeMin_DEPRECATED);
+
+		// Rewire Range Max
+		PCGEX_SHORTHAND_RENAME_PIN(RangeMaxAttribute, RangeMax, MaxRange)
+		MaxRange.Update(RangeMaxInput_DEPRECATED, RangeMaxAttribute_DEPRECATED, RangeMax_DEPRECATED);
+	}
+
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
 
 FName UPCGExSampleInsidePathSettings::GetMainInputPin() const { return PCGExPaths::Labels::SourcePathsLabel; }
 
@@ -81,22 +96,16 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	if (Settings->RangeMinInput != EPCGExInputValueType::Constant)
+	if (!Settings->MinRange.CanSupportDataOnly())
 	{
-		if (!PCGExMetaHelpers::IsDataDomainAttribute(Settings->RangeMinAttribute))
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Min Range attribute must be on the @Data domain"));
-			return false;
-		}
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Min Range attribute must be on the @Data domain"));
+		return false;
 	}
 
-	if (Settings->RangeMaxInput != EPCGExInputValueType::Constant)
+	if (!Settings->MaxRange.CanSupportDataOnly())
 	{
-		if (!PCGExMetaHelpers::IsDataDomainAttribute(Settings->RangeMaxAttribute))
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Max Range attribute must be on the @Data domain"));
-			return false;
-		}
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Max Range attribute must be on the @Data domain"));
+		return false;
 	}
 
 	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExBlending::Labels::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
@@ -254,8 +263,8 @@ namespace PCGExSampleInsidePath
 			PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_INIT)
 		}
 
-		if (!PCGExData::Helpers::TryGetSettingDataValue(Context, PointDataFacade->GetIn(), Settings->RangeMinInput, Settings->RangeMinAttribute, Settings->RangeMin, RangeMin)) { return false; }
-		if (!PCGExData::Helpers::TryGetSettingDataValue(Context, PointDataFacade->GetIn(), Settings->RangeMaxInput, Settings->RangeMaxAttribute, Settings->RangeMax, RangeMax)) { return false; }
+		if (!Settings->MinRange.TryReadDataValue(Context, PointDataFacade->GetIn(), RangeMin)) { return false; }
+		if (!Settings->MaxRange.TryReadDataValue(Context, PointDataFacade->GetIn(), RangeMax)) { return false; }
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
