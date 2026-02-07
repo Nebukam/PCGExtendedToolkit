@@ -78,6 +78,8 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+	
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Line Trace", "Find the collision point on the nearest collidable surface in a given direction.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling); }
 #endif
@@ -114,18 +116,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Invert"))
 	bool bInvertDirection = false;
 
-	/** This UV Channel will be selected when retrieving UV Coordinates from a raycast query. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable))
-	EPCGExTraceSampleDistanceInput DistanceInput = EPCGExTraceSampleDistanceInput::Constant;
+#pragma region DEPRECATED
+	
+	UPROPERTY()
+	EPCGExTraceSampleDistanceInput DistanceInput_DEPRECATED = EPCGExTraceSampleDistanceInput::Constant;
 
-	/** Trace max distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="DistanceInput == EPCGExTraceSampleDistanceInput::Constant", EditConditionHides, CLampMin=0.001))
-	double MaxDistance = 1000;
+	UPROPERTY()
+	double MaxDistance_DEPRECATED = 1000;
 
-	/** Attribute or property to read the local size from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="DistanceInput == EPCGExTraceSampleDistanceInput::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector LocalMaxDistance;
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector LocalMaxDistance_DEPRECATED;
 
+#pragma endregion
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	FPCGExInputShorthandSelectorDoubleAbs Distance = FPCGExInputShorthandSelectorDoubleAbs(FName("Distance"), 1000, false);
+	
+	
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
@@ -341,7 +348,7 @@ namespace PCGExSampleSurfaceGuided
 
 		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
-		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> OriginGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> CrossAxis;

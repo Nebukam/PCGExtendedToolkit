@@ -40,6 +40,7 @@ namespace PCGExPaths
 		int32 Start = -1;
 		int32 End = -1;
 		FVector Dir = FVector::ZeroVector;
+		double Length = 0;
 		FBoxSphereBounds Bounds = FBoxSphereBounds{};
 
 		int32 AltStart = -1;
@@ -51,7 +52,7 @@ namespace PCGExPaths
 		bool ShareIndices(const FPathEdge& Other) const;
 		bool Connects(const FPathEdge& Other) const;
 		bool ShareIndices(const FPathEdge* Other) const;
-		double GetLength(const TConstPCGValueRange<FTransform>& Positions) const;
+		FORCEINLINE double GetLength() const { return Length; }
 	};
 
 	class FPath;

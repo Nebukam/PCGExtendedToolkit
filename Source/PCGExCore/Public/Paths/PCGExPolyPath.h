@@ -80,6 +80,8 @@ namespace PCGExPaths
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const override;
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override;
 
+		FTransform GetTransformAtInputKey(const float InKey, const bool bUseScale = false) const;
+
 		void GetEdgeElements(const int32 EdgeIndex, PCGExData::FElement& OutEdge, PCGExData::FElement& OutEdgeStart, PCGExData::FElement& OutEdgeEnd) const;
 	};
 }

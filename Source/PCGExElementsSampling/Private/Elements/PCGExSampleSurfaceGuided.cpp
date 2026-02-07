@@ -27,6 +27,21 @@ UPCGExSampleSurfaceGuidedSettings::UPCGExSampleSurfaceGuidedSettings(const FObje
 	Origin.Update(TEXT("$Position"));
 }
 
+#if WITH_EDITOR
+void UPCGExSampleSurfaceGuidedSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 74, 3)
+	{
+		// Rewire Distance
+		PCGEX_SHORTHAND_RENAME_PIN(LocalMaxDistance, MaxDistance, Distance)
+		Distance.Update(DistanceInput_DEPRECATED == EPCGExTraceSampleDistanceInput::Constant ? EPCGExInputValueType::Constant : EPCGExInputValueType::Attribute,
+		                LocalMaxDistance_DEPRECATED, MaxDistance_DEPRECATED);
+	}
+
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -176,15 +191,8 @@ namespace PCGExSampleSurfaceGuided
 		if (!TexParamLookup->BuildFrom(Context->TexParamsFactories)) { TexParamLookup.Reset(); }
 		else { TexParamLookup->PrepareForWrite(Context, PointDataFacade); }
 
-		if (Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Attribute)
-		{
-			MaxDistanceGetter = PointDataFacade->GetBroadcaster<double>(Settings->LocalMaxDistance, true);
-			if (!MaxDistanceGetter)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("LocalMaxDistance missing"));
-				return false;
-			}
-		}
+		DistanceGetter = Settings->Distance.GetValueSetting();
+		if (!DistanceGetter->Init(PointDataFacade)) { return false; }
 
 		if (Context->CollisionSettings.TraceMode == EPCGExTraceMode::Sphere)
 		{
@@ -315,7 +323,7 @@ namespace PCGExSampleSurfaceGuided
 		{
 			const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal() * DirMult;
 			const FVector Origin = OriginGetter->Read(Index);
-			const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Constant ? Settings->MaxDistance : Direction.Length();
+			const double MaxDistance = DistanceGetter->Read(Index);
 
 			PCGExData::FMutablePoint MutablePoint = PointDataFacade->GetOutPoint(Index);
 
