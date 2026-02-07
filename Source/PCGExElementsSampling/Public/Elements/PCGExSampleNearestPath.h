@@ -8,7 +8,6 @@
 #include "Factories/PCGExFactories.h"
 
 #include "Curves/CurveFloat.h"
-#include "Curves/RichCurve.h"
 #include "Utils/PCGExCurveLookup.h"
 
 #include "Core/PCGExPointsProcessor.h"
@@ -93,6 +92,8 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+
 	PCGEX_NODE_INFOS(SampleNearestPath, "Sample : Nearest Path", "Sample the nearest(s) paths.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling); }
 #endif
@@ -145,49 +146,43 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	double InclusionOffset = 0;
 
-#pragma region Sampling Range
+#pragma region DEPRECATED
 
-	/** Type of Range Min */
+	UPROPERTY()
+	EPCGExInputValueType RangeMinInput_DEPRECATED = EPCGExInputValueType::Constant;
+
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector RangeMinAttribute_DEPRECATED;
+
+	UPROPERTY()
+	double RangeMin_DEPRECATED = 0;
+
+	UPROPERTY()
+	EPCGExInputValueType RangeMaxInput_DEPRECATED = EPCGExInputValueType::Constant;
+
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector RangeMaxAttribute_DEPRECATED;
+
+	UPROPERTY()
+	double RangeMax_DEPRECATED = 300;
+
+#pragma endregion
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExInputValueType RangeMinInput = EPCGExInputValueType::Constant;
+	FPCGExInputShorthandSelectorDouble MinRange = FPCGExInputShorthandSelectorDouble(FName("RangeMin"), 0, false);
 
-	/** Minimum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName="Range Min (Attr)", EditCondition="RangeMinInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector RangeMinAttribute;
-
-	/** Minimum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMinInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
-	double RangeMin = 0;
-
-	PCGEX_SETTING_VALUE_DECL(RangeMin, double)
-
-	/** Type of Range Min */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExInputValueType RangeMaxInput = EPCGExInputValueType::Constant;
+	FPCGExInputShorthandSelectorDouble MaxRange = FPCGExInputShorthandSelectorDouble(FName("RangeMin"), 0, false);
 
-	/** Maximum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName="Range Max (Attr)", EditCondition="RangeMaxInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector RangeMaxAttribute;
-
-	/** Maximum target range to sample targets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMaxInput == EPCGExInputValueType::Constant", ClampMin=0))
-	double RangeMax = 300;
-
-	PCGEX_SETTING_VALUE_DECL(RangeMax, double)
 
 	/** If the value is greater than 0, will do a rough vertical check as part of the projected inclusion. 0 is infinite. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, ClampMin=0))
 	double HeightInclusion = 0;
 
-#pragma endregion
 
 	/** Whether spline should be sampled at a specific alpha */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	bool bSampleSpecificAlpha = false;
-
-	/** Where to read the sampling alpha from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bSampleSpecificAlpha", EditConditionHides))
-	EPCGExInputValueType SampleAlphaInput = EPCGExInputValueType::Constant;
 
 	/** How to interpret the sample alpha value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" ├─ Mode", EditCondition="bSampleSpecificAlpha", EditConditionHides))
@@ -197,20 +192,26 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" ├─ Wrap Closed Loops", EditCondition="bSampleSpecificAlpha", EditConditionHides))
 	bool bWrapClosedLoopAlpha = true;
 
-	/** Per-point sample alpha -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Sample Alpha (Attr)", EditCondition="bSampleSpecificAlpha && SampleAlphaInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector SampleAlphaAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Sample Alpha", EditCondition="bSampleSpecificAlpha", EditConditionHides))
+	FPCGExInputShorthandSelectorDouble SampleAlpha = FPCGExInputShorthandSelectorDouble(FName("SampleAlpha"), 0.5, false);
 
-	/** Constant sample alpha. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Sample Alpha", EditCondition="bSampleSpecificAlpha && SampleAlphaInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double SampleAlphaConstant = 0.5;
+
+#pragma region DEPRECATED
+
+	UPROPERTY()
+	EPCGExInputValueType SampleAlphaInput_DEPRECATED = EPCGExInputValueType::Constant;
+
+	UPROPERTY()
+	FPCGAttributePropertyInputSelector SampleAlphaAttribute_DEPRECATED;
+
+	UPROPERTY()
+	double SampleAlphaConstant_DEPRECATED = 0.5;
+
+#pragma endregion
 
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
-
-
-	PCGEX_SETTING_VALUE_DECL(SampleAlpha, double)
 
 	/** Distance method to be used for source points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))

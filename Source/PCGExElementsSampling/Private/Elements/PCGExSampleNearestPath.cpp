@@ -30,9 +30,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPathElement"
 #define PCGEX_NAMESPACE SampleNearestPath
 
-PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
-PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
-PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPathSettings, SampleAlpha, double, bSampleSpecificAlpha, SampleAlphaAttribute, SampleAlphaConstant)
 PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPathSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(const FObjectInitializer& ObjectInitializer)
@@ -41,6 +38,28 @@ UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(const FObjectIn
 	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
 	if (!WeightOverDistance) { WeightOverDistance = PCGExCurves::WeightDistributionLinear; }
 }
+
+#if WITH_EDITOR
+void UPCGExSampleNearestPathSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 74, 3)
+	{
+		// Rewire alpha
+		PCGEX_SHORTHAND_RENAME_PIN(SampleAlphaAttribute, SampleAlphaConstant, SampleAlpha)
+		SampleAlpha.Update(SampleAlphaInput_DEPRECATED, SampleAlphaAttribute_DEPRECATED, SampleAlphaConstant_DEPRECATED);
+
+		// Rewire Range Min
+		PCGEX_SHORTHAND_RENAME_PIN(RangeMinAttribute, RangeMin, MinRange)
+		MinRange.Update(RangeMinInput_DEPRECATED, RangeMinAttribute_DEPRECATED, RangeMin_DEPRECATED);
+
+		// Rewire Range Max
+		PCGEX_SHORTHAND_RENAME_PIN(RangeMaxAttribute, RangeMax, MaxRange)
+		MaxRange.Update(RangeMaxInput_DEPRECATED, RangeMaxAttribute_DEPRECATED, RangeMax_DEPRECATED);
+	}
+
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
 
 TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() const
 {
@@ -290,15 +309,15 @@ namespace PCGExSampleNearestPath
 			PCGEX_FOREACH_FIELD_NEARESTPATH(PCGEX_OUTPUT_INIT)
 		}
 
-		RangeMinGetter = Settings->GetValueSettingRangeMin();
+		RangeMinGetter = Settings->MinRange.GetValueSetting();
 		if (!RangeMinGetter->Init(PointDataFacade)) { return false; }
 
-		RangeMaxGetter = Settings->GetValueSettingRangeMax();
+		RangeMaxGetter = Settings->MaxRange.GetValueSetting();
 		if (!RangeMaxGetter->Init(PointDataFacade)) { return false; }
 
 		if (Settings->bSampleSpecificAlpha)
 		{
-			SampleAlphaGetter = Settings->GetValueSettingSampleAlpha();
+			SampleAlphaGetter = Settings->SampleAlpha.GetValueSetting();
 			if (!SampleAlphaGetter->Init(PointDataFacade)) { return false; }
 		}
 

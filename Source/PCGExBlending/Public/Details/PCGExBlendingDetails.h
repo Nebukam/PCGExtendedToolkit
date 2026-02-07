@@ -113,31 +113,31 @@ struct PCGEXBLENDING_API FPCGExPropertiesBlendingDetails
 
 #pragma region Property overrides
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Density"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Density", PCG_NotOverridable))
 	EPCGExBlendingType DensityBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMin"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMin", PCG_NotOverridable))
 	EPCGExBlendingType BoundsMinBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMax"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMax", PCG_NotOverridable))
 	EPCGExBlendingType BoundsMaxBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Color"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Color", PCG_NotOverridable))
 	EPCGExBlendingType ColorBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Position"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Position", PCG_NotOverridable))
 	EPCGExBlendingType PositionBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Rotation"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Rotation", PCG_NotOverridable))
 	EPCGExBlendingType RotationBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Scale"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Scale", PCG_NotOverridable))
 	EPCGExBlendingType ScaleBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Steepness"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Steepness", PCG_NotOverridable))
 	EPCGExBlendingType SteepnessBlending = EPCGExBlendingType::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Seed"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Seed", PCG_NotOverridable))
 	EPCGExBlendingType SeedBlending = EPCGExBlendingType::None;
 
 #pragma endregion
