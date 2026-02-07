@@ -24,8 +24,6 @@ namespace PCGExPaths
 	FPolyPath::FPolyPath(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FPCGExGeo2DProjectionDetails& InProjection, const double Expansion, const double ExpansionZ, const EPCGExWindingMutation WindingMutation)
 		: FPath(InPointIO->GetIn()->GetConstTransformValueRange(), Helpers::GetClosedLoop(InPointIO), Expansion)
 	{
-		Positions = InPointIO->GetIn()->GetConstTransformValueRange();
-
 		Projection = InProjection;
 		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); }
 		else { if (!Projection.Init(InPointIO)) { Projection.Init(PCGExMath::FBestFitPlane(Positions)); } }
@@ -116,8 +114,7 @@ namespace PCGExPaths
 
 		if (!Spline)
 		{
-			if (bClosedLoop) { LocalSpline = Helpers::MakeSplineFromPoints(Positions, EPCGExSplinePointTypeRedux::Linear, true, false); }
-			else { LocalSpline = Helpers::MakeSplineFromPoints(Positions, EPCGExSplinePointTypeRedux::Linear, false, false); }
+			LocalSpline = Helpers::MakeSplineFromPoints(Positions, EPCGExSplinePointTypeRedux::Linear, bClosedLoop, false);
 			Spline = LocalSpline.Get();
 		}
 	}
@@ -172,8 +169,9 @@ namespace PCGExPaths
 
 	int32 FPolyPath::GetClosestEdge(const double InTime, float& OutLerp) const
 	{
-		const int32 OutEdgeIndex = FMath::FloorToInt32(InTime * this->NumEdges);
-		OutLerp = InTime - OutEdgeIndex;
+		const double ScaledTime = InTime * this->NumEdges;
+		const int32 OutEdgeIndex = FMath::FloorToInt32(ScaledTime);
+		OutLerp = static_cast<float>(ScaledTime - OutEdgeIndex);
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
 
