@@ -29,7 +29,7 @@ enum class EPCGExPathBlendMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/transform/path-blend"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-blend"))
 class UPCGExBlendPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

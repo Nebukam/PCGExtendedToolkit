@@ -74,7 +74,7 @@ enum class EPCGExAttributeSetPackingMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/transform/path-properties"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/analyze/path-properties"))
 class UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
