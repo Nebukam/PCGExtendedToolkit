@@ -27,7 +27,7 @@ UPCGExClusterDiffusionSettings::UPCGExClusterDiffusionSettings(const FObjectInit
 	SeedForwarding.bPreservePCGExData = true;
 }
 
-PCGExData::EIOInit UPCGExClusterDiffusionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExClusterDiffusionSettings::GetMainOutputInitMode() const { return StealData == EPCGExOptionState::Enabled ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate; }
 PCGExData::EIOInit UPCGExClusterDiffusionSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::InputPinProperties() const
