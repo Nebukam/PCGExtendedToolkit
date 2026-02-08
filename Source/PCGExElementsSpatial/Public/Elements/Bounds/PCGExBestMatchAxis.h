@@ -30,7 +30,7 @@ enum class EPCGExBestMatchAxisTargetMode : uint8
 	ClosestTarget          = 3 UMETA(DisplayName = "Look at Closest Target", ToolTip="Best match against the look at vector toward the closest target point.")
 };
 
-UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/move-pivot"))
+UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/modify/best-match-axis"))
 class UPCGExBestMatchAxisSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

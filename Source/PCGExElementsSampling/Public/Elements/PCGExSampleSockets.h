@@ -25,7 +25,7 @@ namespace PCGEx
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/sockets"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="staging/utilities/sample-sockets"))
 class UPCGExSampleSocketsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

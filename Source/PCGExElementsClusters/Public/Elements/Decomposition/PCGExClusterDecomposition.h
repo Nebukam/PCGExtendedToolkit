@@ -24,7 +24,7 @@ namespace PCGExConvexDecomposition
 	class FBatch;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="metadata/vtx-properties"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/refine/cluster-decomposition"))
 class UPCGExClusterDecompositionSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

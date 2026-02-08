@@ -137,7 +137,7 @@ public:
 	virtual TSharedPtr<FPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample", meta=(PCGExNodeLibraryDoc="sampling/sample-neighbors/sampler-test-neighbors"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample", meta=(PCGExNodeLibraryDoc="sampling/cluster-sample-neighbors/sampler-test-neighbors"))
 class UPCGExNeighborSampleFiltersSettings : public UPCGExNeighborSampleProviderSettings
 {
 	GENERATED_BODY()

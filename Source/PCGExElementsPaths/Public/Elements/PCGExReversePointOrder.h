@@ -63,7 +63,7 @@ struct PCGEXELEMENTSPATHS_API FPCGExSwapAttributePairDetails
 	bool Validate(const FPCGContext* InContext) const;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/reverse-point-order"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="utilities/sorting/reverse-order"))
 class UPCGExReversePointOrderSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

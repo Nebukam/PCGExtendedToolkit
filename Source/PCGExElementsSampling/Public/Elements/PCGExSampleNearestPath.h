@@ -82,7 +82,7 @@ enum class EPCGExPathSampleAlphaMode : uint8
 	Distance = 2 UMETA(DisplayName = "Distance", ToolTip="Distance on the path to sample value at"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline-1"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest/sample-nearest-path"))
 class UPCGExSampleNearestPathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

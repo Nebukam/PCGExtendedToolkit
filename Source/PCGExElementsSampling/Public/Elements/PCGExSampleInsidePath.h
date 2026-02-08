@@ -35,7 +35,7 @@ enum class EPCGExSampleInsidePathOutput : uint8
 
 class UPCGExPointFilterFactoryData;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline-2"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest/sample-inside-path"))
 class UPCGExSampleInsidePathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

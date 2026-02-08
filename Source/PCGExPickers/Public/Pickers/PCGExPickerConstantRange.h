@@ -40,7 +40,7 @@ struct PCGEXPICKERS_API FPCGExPickerConstantRangeConfig : public FPCGExPickerCon
 	bool IsWithinInclusive(double Value) const;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-range"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="utilities/pickers/picker-range"))
 class UPCGExPickerConstantRangeFactory : public UPCGExPickerFactoryData
 {
 	GENERATED_BODY()

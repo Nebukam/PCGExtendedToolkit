@@ -48,7 +48,7 @@ namespace PCGExFindContoursBounded
 	const FName OutputBoundsOutsideLabel = FName("Bounds : Outside");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-contours-bounded"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/cells/find-cells-bounded"))
 class UPCGExFindContoursBoundedSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

@@ -71,7 +71,7 @@ protected:
  * Can be significantly faster than unidirectional search for large graphs.
  * Time complexity is roughly O(b^(d/2)) instead of O(b^d) where b=branching factor, d=depth.
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Bidirectional", ToolTip ="Bidirectional Search. Searches from both ends simultaneously. Very fast for large graphs.", PCGExNodeLibraryDoc="pathfinding/search-algorithms/bidirectional"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Bidirectional", ToolTip ="Bidirectional Search. Searches from both ends simultaneously. Very fast for large graphs.", PCGExNodeLibraryDoc="pathfinding/algorithms/search-bidirectional"))
 class UPCGExSearchBidirectional : public UPCGExSearchInstancedFactory
 {
 	GENERATED_BODY()

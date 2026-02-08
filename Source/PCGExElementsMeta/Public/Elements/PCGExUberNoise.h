@@ -43,7 +43,7 @@ enum class EPCGExUberNoiseMode : uint8
 	Mutate = 1 UMETA(DisplayName = "Mutate Attribute", ToolTip="Blend noise with an existing attribute")
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/uber-noise"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="utilities/noise/uber-noise"))
 class UPCGExUberNoiseSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

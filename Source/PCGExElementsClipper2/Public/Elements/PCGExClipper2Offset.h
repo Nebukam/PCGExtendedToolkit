@@ -28,7 +28,7 @@ enum class EPCGExClipper2OffsetIterationCount : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-offset"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/generate/clipper2-offset"))
 class UPCGExClipper2OffsetSettings : public UPCGExClipper2ProcessorSettings
 {
 	GENERATED_BODY()

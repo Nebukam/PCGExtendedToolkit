@@ -31,7 +31,7 @@ namespace PCGExData
 	class TBuffer;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/overlap-stats"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/sample-overlap-stats"))
 class UPCGExSampleOverlapStatsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

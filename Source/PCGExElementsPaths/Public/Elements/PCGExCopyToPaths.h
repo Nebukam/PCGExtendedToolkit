@@ -28,7 +28,7 @@ enum class EPCGExCopyToPathsUnit : uint8
 	Distance = 1 UMETA(DisplayName = "Distance", Tooltip="..."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/copy-to-path"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/generate/copy-to-path"))
 class UPCGExCopyToPathsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

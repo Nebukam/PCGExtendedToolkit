@@ -30,7 +30,7 @@ namespace PCGExMath::OBB
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/path-bounds-intersection"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/intersect/path-bounds-intersection"))
 class UPCGExBoundsPathIntersectionSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

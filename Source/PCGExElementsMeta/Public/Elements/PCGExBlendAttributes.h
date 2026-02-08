@@ -16,7 +16,7 @@ namespace PCGExBlending
 	class FBlendOpsManager;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/uber-blend"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/attributes/uber-blend"))
 class UPCGExBlendAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

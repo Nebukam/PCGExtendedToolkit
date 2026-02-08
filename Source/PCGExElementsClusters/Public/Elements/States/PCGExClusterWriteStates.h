@@ -15,7 +15,7 @@ namespace PCGExClusterStates
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/analyze/cluster-write-states"))
 class UPCGExFlagNodesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

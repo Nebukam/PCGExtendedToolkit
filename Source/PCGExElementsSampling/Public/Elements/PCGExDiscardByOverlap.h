@@ -107,7 +107,7 @@ namespace PCGExDiscardByOverlap
 	class FProcessor;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="filters/discard-by-overlap"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="sampling/discard-by-overlap"))
 class UPCGExDiscardByOverlapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

@@ -8,7 +8,7 @@
 
 #include "PCGExMakeClustersUnique.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/make-unique"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/utilities/cluster-make-unique"))
 class UPCGExMakeClustersUniqueSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

@@ -21,7 +21,7 @@ enum class EPCGExSubCollectionToSet : uint8
 	PickLastItem       = 5 UMETA(DisplayName = "Last item", Tooltip="Pick the last item"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="assets-management/asset-collection-to-set"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="staging/utilities/asset-collection-to-set"))
 class UPCGExAssetCollectionToSetSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
