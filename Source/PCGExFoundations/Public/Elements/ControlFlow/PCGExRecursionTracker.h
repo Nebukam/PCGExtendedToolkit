@@ -39,7 +39,7 @@ namespace PCGExRecursionTracker
 	const FName OutputRemainderLabel = FName("Remainder");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/recursion-tracker"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="utilities/control-flow/break"))
 class UPCGExRecursionTrackerSettings : public UPCGExSettings
 {
 	GENERATED_BODY()

@@ -44,7 +44,7 @@ enum class EPCGExContourShapeTypeOutput : uint8
 	ConcaveOnly = 2 UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-contours"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/cells/find-cells"))
 class UPCGExFindContoursSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

@@ -78,7 +78,7 @@ protected:
 	TSharedPtr<PCGExData::TBuffer<double>> Operand;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="flood-fill/fc-running-average"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="pathfinding/cluster-flood-fill/fc-running-average"))
 class UPCGExFillControlsFactoryRunningAverage : public UPCGExFillControlsFactoryData
 {
 	GENERATED_BODY()

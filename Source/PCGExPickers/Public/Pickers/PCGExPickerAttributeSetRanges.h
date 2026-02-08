@@ -24,7 +24,7 @@ struct FPCGExPickerAttributeSetRangesConfig : public FPCGExPickerConfigBase
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-constant-set-1"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="utilities/pickers/picker-ranges-from-set"))
 class UPCGExPickerAttributeSetRangesFactory : public UPCGExPickerFactoryData
 {
 	GENERATED_BODY()

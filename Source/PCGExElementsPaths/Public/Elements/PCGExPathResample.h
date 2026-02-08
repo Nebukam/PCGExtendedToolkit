@@ -28,7 +28,7 @@ enum class EPCGExResampleMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/resample"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-resample"))
 class UPCGExResamplePathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

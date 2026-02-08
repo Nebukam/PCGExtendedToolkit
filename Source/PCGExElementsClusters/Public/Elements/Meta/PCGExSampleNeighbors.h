@@ -18,7 +18,7 @@ namespace PCGExNeighborSample
 class UPCGExNeighborSamplerFactoryData;
 class FPCGExNeighborSampleOperation;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="sampling/sample-neighbors"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="sampling/cluster-sample-neighbors"))
 class UPCGExSampleNeighborsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

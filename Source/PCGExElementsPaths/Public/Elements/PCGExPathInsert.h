@@ -57,7 +57,7 @@ enum class EPCGExInsertLimitMode : uint8
 /**
  *
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/insert"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-insert"))
 class UPCGExPathInsertSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

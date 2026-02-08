@@ -25,7 +25,7 @@ enum class EPCGExGoalPickAttributeAmount : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Index Attribute", PCGExNodeLibraryDoc="pathfinding/pathfinding-edges/goal-picker-attribute"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Index Attribute", PCGExNodeLibraryDoc="pathfinding/pathfinding-edges/goal-picker-index-attribute"))
 class UPCGExGoalPickerAttribute : public UPCGExGoalPicker
 {
 	GENERATED_BODY()

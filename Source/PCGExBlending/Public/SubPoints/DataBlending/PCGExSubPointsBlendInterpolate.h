@@ -22,7 +22,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Interpolate", PCGExNodeLibraryDoc="paths/sub-point-blending/interpolate"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Interpolate", PCGExNodeLibraryDoc="paths/common-settings/sub-points-blending/interpolate"))
 class UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()

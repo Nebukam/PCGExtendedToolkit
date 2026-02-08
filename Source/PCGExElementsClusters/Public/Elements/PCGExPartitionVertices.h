@@ -9,7 +9,7 @@
 #include "PCGExPartitionVertices.generated.h"
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/partition-vtx"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/analyze/cluster-partition-vtx"))
 class UPCGExPartitionVerticesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

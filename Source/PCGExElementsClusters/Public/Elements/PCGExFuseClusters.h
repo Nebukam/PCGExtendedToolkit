@@ -22,7 +22,7 @@ namespace PCGExFuseClusters
 	class FProcessor;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/fuse-clusters"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/refine/cluster-fuse"))
 class UPCGExFuseClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

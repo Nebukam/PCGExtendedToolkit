@@ -123,7 +123,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/compare-nearest-numeric"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/point-filters/attribute/filter-compare-nearest-numeric"))
 class UPCGExNumericCompareNearestFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

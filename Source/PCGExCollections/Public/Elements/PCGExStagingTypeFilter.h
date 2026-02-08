@@ -22,7 +22,7 @@ enum class EPCGExStagedTypeFilterMode : uint8
  * Filters staged points by their collection entry type.
  * Useful when mixing different collection types through Asset Staging with per-point collections.
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "filter type staged collection", PCGExNodeLibraryDoc="assets-management/staged-type-filter"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "filter type staged collection", PCGExNodeLibraryDoc="staging/staging-type-filter"))
 class UPCGExStagedTypeFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

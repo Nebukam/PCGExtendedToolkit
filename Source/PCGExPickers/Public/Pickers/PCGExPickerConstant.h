@@ -39,7 +39,7 @@ public:
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-constant"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params", meta=(PCGExNodeLibraryDoc="utilities/pickers/picker-constant"))
 class UPCGExPickerConstantSettings : public UPCGExPickerFactoryProviderSettings
 {
 	GENERATED_BODY()

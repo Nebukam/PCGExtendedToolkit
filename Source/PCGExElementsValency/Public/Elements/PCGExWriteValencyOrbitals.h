@@ -32,7 +32,7 @@ namespace PCGExData
  * - Vertex: Orbital mask (int64) at PCGEx/V/Mask/{LayerName}
  * - Edge: Packed orbital indices (int64) at PCGEx/V/Orbital/{LayerName}
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency orbitals write state", PCGExNodeLibraryDoc="valency/write-valency-orbitals"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency orbitals write state", PCGExNodeLibraryDoc="valency/valency-write-orbitals"))
 class PCGEXELEMENTSVALENCY_API UPCGExWriteValencyOrbitalsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

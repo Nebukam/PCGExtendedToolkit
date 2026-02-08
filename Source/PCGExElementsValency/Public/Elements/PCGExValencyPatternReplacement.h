@@ -15,7 +15,7 @@
  * Reads solved module indices and matches against compiled patterns from BondingRules.
  * Uses pluggable matchers to define matching behavior.
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "wfc wave function collapse valency pattern replacement", PCGExNodeLibraryDoc="valency/valency-pattern-replacement"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "wfc wave function collapse valency pattern replacement", PCGExNodeLibraryDoc="valency/valency-patterns"))
 class PCGEXELEMENTSVALENCY_API UPCGExValencyPatternReplacementSettings : public UPCGExValencyProcessorSettings
 {
 	GENERATED_BODY()

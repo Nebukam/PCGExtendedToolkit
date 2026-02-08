@@ -146,7 +146,7 @@ namespace PCGExFilterGroup
 
 #pragma region UPCGExFilterGroupProvider
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|FilterGroup", meta=(PCGExNodeLibraryDoc="filters/and-or"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|FilterGroup", meta=(PCGExNodeLibraryDoc="filters/filter-group-and-or"))
 class PCGEXFILTERS_API UPCGExFilterGroupProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

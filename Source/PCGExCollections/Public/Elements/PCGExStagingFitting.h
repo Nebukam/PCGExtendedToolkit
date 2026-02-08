@@ -26,7 +26,7 @@ enum class EPCGExFittingSource : uint8
 	MeshAttribute = 1 UMETA(DisplayName = "Mesh Attribute", ToolTip="Read a static mesh path attribute and compute bounds from the mesh bounding box."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy fitting justify variations", PCGExNodeLibraryDoc="assets-management/staging-fitting"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy fitting justify variations", PCGExNodeLibraryDoc="staging/staging-fitting"))
 class UPCGExStagingFittingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

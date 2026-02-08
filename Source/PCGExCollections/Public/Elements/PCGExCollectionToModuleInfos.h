@@ -22,7 +22,7 @@ namespace PCGExCollectionToGrammar
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="assets-management/collection-to-module-infos"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="staging/utilities/collection-to-module-infos"))
 class UPCGExCollectionToModuleInfosSettings : public UPCGExSettings
 {
 	GENERATED_BODY()

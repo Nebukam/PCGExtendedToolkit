@@ -20,7 +20,7 @@ namespace PCGExData
 class FPCGExComputeIOBounds;
 
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/normalize"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/analyze/normalize"))
 class UPCGExNormalizeSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

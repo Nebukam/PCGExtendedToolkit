@@ -19,7 +19,7 @@
 #include "PCGExConstants.generated.h"
 
 
-UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/constants"))
+UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(PCGExNodeLibraryDoc="metadata/keys/constant"))
 class UPCGExConstantsSettings : public UPCGExSettings
 {
 public:

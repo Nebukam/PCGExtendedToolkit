@@ -120,7 +120,7 @@ protected:
 /**
  * Factory for priority-based WFC solver.
  */
-UCLASS(DisplayName = "Priority Solver", meta=(ToolTip = "Priority-based WFC solver. Collapses states in order of an attribute value (highest first).", PCGExNodeLibraryDoc="valency/solvers/priority"))
+UCLASS(DisplayName = "Priority Solver", meta=(ToolTip = "Priority-based WFC solver. Collapses states in order of an attribute value (highest first).", PCGExNodeLibraryDoc="valency/valency-staging/priority-solver"))
 class PCGEXELEMENTSVALENCY_API UPCGExValencyPrioritySolver : public UPCGExValencySolverInstancedFactory
 {
 	GENERATED_BODY()

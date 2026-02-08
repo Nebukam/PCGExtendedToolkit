@@ -17,7 +17,7 @@ namespace PCGExMT
 	class TScopedNumericValue;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy", PCGExNodeLibraryDoc="assets-management/asset-staging"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy", PCGExNodeLibraryDoc="staging/staging-load-sockets"))
 class UPCGExSocketStagingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

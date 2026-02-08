@@ -26,7 +26,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Average", PCGExNodeLibraryDoc="paths/orient/orient-average"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Average", PCGExNodeLibraryDoc="paths/transform/path-orient/orient-average"))
 class UPCGExOrientAverage : public UPCGExOrientInstancedFactory
 {
 	GENERATED_BODY()

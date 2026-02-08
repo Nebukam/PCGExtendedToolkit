@@ -16,7 +16,7 @@ namespace PCGExData
 	class TBuffer;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/collocation-count"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/analyze/collocation-count"))
 class UPCGExCollocationCountSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

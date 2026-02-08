@@ -18,7 +18,7 @@ namespace PCGExPointStates
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="clusters/metadata/write-states"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/bitmasks/write-states"))
 class UPCGExWriteStatesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

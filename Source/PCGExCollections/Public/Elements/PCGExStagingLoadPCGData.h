@@ -57,7 +57,7 @@ namespace PCGExPCGDataAssetLoader
  * Spawns PCGDataAsset contents onto staged points.
  * Works with data staged by the Asset Staging node using Collection Map output.
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "spawn pcgdata asset staged", PCGExNodeLibraryDoc="assets-management/pcgdataasset-loader"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "spawn pcgdata asset staged", PCGExNodeLibraryDoc="staging/staging-load-pcgdata"))
 class UPCGExPCGDataAssetLoaderSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

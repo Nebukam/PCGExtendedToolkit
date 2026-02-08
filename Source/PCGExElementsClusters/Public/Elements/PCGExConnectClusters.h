@@ -22,7 +22,7 @@ enum class EPCGExBridgeClusterMethod : uint8
 	Filters    = 4 UMETA(DisplayName = "Node Filters", ToolTip="Isolate nodes in each cluster as generators & connectable and connect by proximity.", Hidden),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/connect-clusters"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/refine/cluster-connect"))
 class UPCGExConnectClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

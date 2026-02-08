@@ -76,7 +76,7 @@ protected:
 
 ////
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="valency/probe-valency"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="clusters/generate/cluster-connect-points/probe-orbital-valency"))
 class PCGEXELEMENTSVALENCY_API UPCGExProbeFactoryValency : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()

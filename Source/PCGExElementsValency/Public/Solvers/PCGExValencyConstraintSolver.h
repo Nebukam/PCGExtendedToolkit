@@ -110,7 +110,7 @@ protected:
 /**
  * Factory for constraint-aware WFC solver.
  */
-UCLASS(DisplayName = "Constraint Solver", meta=(ToolTip = "Constraint-aware WFC solver with guaranteed min spawn satisfaction when possible.", PCGExNodeLibraryDoc="valency/solvers/constraint"))
+UCLASS(DisplayName = "Constraint Solver", meta=(ToolTip = "Constraint-aware WFC solver with guaranteed min spawn satisfaction when possible.", PCGExNodeLibraryDoc="valency/valency-staging/constraint-solver"))
 class PCGEXELEMENTSVALENCY_API UPCGExValencyConstraintSolverFactory : public UPCGExValencySolverInstancedFactory
 {
 	GENERATED_BODY()
