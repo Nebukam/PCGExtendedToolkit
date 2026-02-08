@@ -32,7 +32,7 @@ namespace PCGExCutEdges
 	const FName SourceEdgeFilters = FName("EdgeFilters");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/cut-clusters"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/interop/cluster-cut"))
 class UPCGExCutEdgesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

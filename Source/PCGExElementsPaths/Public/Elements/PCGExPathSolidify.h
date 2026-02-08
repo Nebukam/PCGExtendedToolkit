@@ -83,7 +83,7 @@ struct FPCGExPathSolidificationRadiusDetails : public FPCGExPathSolidificationAx
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/solidify"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-solidify"))
 class UPCGExPathSolidifySettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

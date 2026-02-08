@@ -40,7 +40,7 @@ enum class EPCGExPlacementFavor : uint8
 	Space         = 1 UMETA(DisplayName = "Space Conservation", ToolTip="Favor space conservation over seed proximity"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/layout/bin-packing"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/modify/bin-packing"))
 class UPCGExBinPackingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

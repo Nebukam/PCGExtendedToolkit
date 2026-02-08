@@ -39,7 +39,7 @@ enum class EPCGExStitchFuseOperation : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/stitch"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-stitch"))
 class UPCGExPathStitchSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

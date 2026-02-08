@@ -13,7 +13,7 @@ namespace PCGExMT
 	class FAsyncToken;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="misc/destroy-actor"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="utilities/discarding/destroy-actor"))
 class UPCGExDestroyActorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

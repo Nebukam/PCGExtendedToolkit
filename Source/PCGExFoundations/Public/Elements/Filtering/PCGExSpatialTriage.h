@@ -17,7 +17,7 @@ namespace PCGExSpatialTriage
 	static const FName OutputLabelOutside = FName("Outside");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="quality-of-life/spatial-triage"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="utilities/discarding/spatial-triage"))
 class UPCGExSpatialTriageSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

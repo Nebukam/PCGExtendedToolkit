@@ -111,7 +111,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/self-comparisons/numeric"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/point-filters/attribute/filter-self-compare-numeric"))
 class UPCGExNumericSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

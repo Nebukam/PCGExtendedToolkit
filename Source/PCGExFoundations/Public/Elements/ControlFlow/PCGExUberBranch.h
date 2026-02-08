@@ -16,7 +16,7 @@ enum class EPCGExUberBranchMode : uint8
 	Partial = 2 UMETA(DisplayName = "Partial", ToolTip="A given amount of points must pass the filter."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="quality-of-life/uber-branch"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="utilities/control-flow/uber-branch"))
 class UPCGExUberBranchSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

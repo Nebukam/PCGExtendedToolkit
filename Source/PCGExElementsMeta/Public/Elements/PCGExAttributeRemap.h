@@ -53,7 +53,7 @@ struct PCGEXELEMENTSMETA_API FPCGExComponentRemapRule
 	TSharedPtr<PCGExDetails::TSettingValue<double>> SnapCache;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/attribute-remap"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/modify/attribute-remap"))
 class UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

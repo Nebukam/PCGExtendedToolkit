@@ -101,7 +101,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/gameplay-tags"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/point-filters/attribute/filter-gameplaytags"))
 class UPCGExGameplayTagsFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

@@ -11,7 +11,7 @@
 
 class FPCGExPointIOMerger;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/merge-vtx"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/utilities/cluster-merge-vtx"))
 class UPCGExMergeVerticesSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

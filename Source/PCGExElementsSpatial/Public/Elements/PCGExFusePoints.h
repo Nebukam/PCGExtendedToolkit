@@ -45,7 +45,7 @@ namespace PCGExFuse
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/fuse-points"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/modify/fuse-points"))
 class UPCGExFusePointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

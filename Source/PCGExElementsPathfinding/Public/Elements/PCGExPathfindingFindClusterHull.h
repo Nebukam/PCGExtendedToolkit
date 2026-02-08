@@ -20,7 +20,7 @@ namespace PCGExFindClusterHull
 }
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-all-cells-1"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/cells/find-cluster-hull"))
 class UPCGExFindClusterHullSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

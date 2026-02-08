@@ -92,7 +92,7 @@ public:
 	PCGEX_NOISE3D_FACTORY_BOILERPLATE
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Noise", meta=(PCGExNodeLibraryDoc="/misc/noises/noise-open-simplex-2"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Noise", meta=(PCGExNodeLibraryDoc="utilities/noise/noise-opensimplex2"))
 class UPCGExNoise3DOpenSimplex2ProviderSettings : public UPCGExNoise3DFactoryProviderSettings
 {
 	GENERATED_BODY()

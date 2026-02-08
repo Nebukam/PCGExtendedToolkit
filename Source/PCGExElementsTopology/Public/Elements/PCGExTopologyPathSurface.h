@@ -17,7 +17,7 @@ namespace PCGExClusters
 }
 
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="topology/path-surface"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="topology/topology-path-surface"))
 class PCGEXELEMENTSTOPOLOGY_API UPCGExTopologyPathSurfaceSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

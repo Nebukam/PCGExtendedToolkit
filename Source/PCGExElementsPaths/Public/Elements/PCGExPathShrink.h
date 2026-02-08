@@ -88,7 +88,7 @@ struct FPCGExShrinkPathEndpointCountDetails
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(Keywords = "reduce extend", PCGExNodeLibraryDoc="paths/shrink"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(Keywords = "reduce extend", PCGExNodeLibraryDoc="paths/modify/path-shrink"))
 class UPCGExShrinkPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

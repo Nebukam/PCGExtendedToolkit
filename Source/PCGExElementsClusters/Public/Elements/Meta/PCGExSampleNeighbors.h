@@ -18,7 +18,7 @@ namespace PCGExNeighborSample
 class UPCGExNeighborSamplerFactoryData;
 class FPCGExNeighborSampleOperation;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="sampling/sample-neighbors"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="sampling/cluster-sample-neighbors"))
 class UPCGExSampleNeighborsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()
@@ -29,6 +29,7 @@ public:
 	PCGEX_NODE_INFOS(SampleNeighbors, "Cluster : Sample Neighbors", "Sample cluster vtx' neighbors values.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(Sampling); }
 #endif
+	PCGEX_NODE_POINT_FILTER(PCGExClusters::Labels::SourceVtxFiltersLabel, "Optional per-node filters. Only nodes that pass the filter will be sampled; filtered-out nodes can still be read by other nodes.", PCGExFactories::ClusterNodeFilters, false)
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

@@ -58,7 +58,7 @@ public:
 	PCGEX_NOISE3D_FACTORY_BOILERPLATE
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Noise", meta=(PCGExNodeLibraryDoc="/misc/noises/noise-value"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Noise", meta=(PCGExNodeLibraryDoc="utilities/noise/noise-value"))
 class UPCGExNoise3DValueProviderSettings : public UPCGExNoise3DFactoryProviderSettings
 {
 	GENERATED_BODY()

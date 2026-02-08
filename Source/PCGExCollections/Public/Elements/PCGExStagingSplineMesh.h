@@ -44,7 +44,7 @@ namespace PCGEx
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="assets-management/spline-mesh"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/output/staging-spline-mesh"))
 class UPCGExPathSplineMeshSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

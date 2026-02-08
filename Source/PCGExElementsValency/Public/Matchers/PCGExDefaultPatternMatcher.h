@@ -61,7 +61,7 @@ protected:
  * Default pattern matcher factory.
  * Creates subgraph isomorphism matchers that use compiled patterns from BondingRules.
  */
-UCLASS(DisplayName = "Default Pattern Matcher", meta=(ToolTip = "Default subgraph isomorphism pattern matcher using DFS with backtracking.", PCGExNodeLibraryDoc="valency/matchers/default"))
+UCLASS(DisplayName = "Default Pattern Matcher", meta=(ToolTip = "Default subgraph isomorphism pattern matcher using DFS with backtracking.", PCGExNodeLibraryDoc="valency/valency-patterns/default-pattern-matcher"))
 class PCGEXELEMENTSVALENCY_API UPCGExDefaultPatternMatcher : public UPCGExPatternMatcherFactory
 {
 	GENERATED_BODY()

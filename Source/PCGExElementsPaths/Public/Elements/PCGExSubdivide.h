@@ -18,7 +18,7 @@ class FPCGExSubPointsBlendOperation;
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/subdivide"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-subdivide"))
 class UPCGExSubdivideSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

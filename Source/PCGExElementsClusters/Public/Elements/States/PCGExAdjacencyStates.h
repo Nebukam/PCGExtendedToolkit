@@ -116,7 +116,7 @@ namespace PCGExAdjacencyStates
 	};
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes/state-bitmask-adjacency"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/analyze/cluster-write-states/state-bitmask-adjacency"))
 class PCGEXELEMENTSCLUSTERS_API UPCGExAdjacencyStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
 {
 	GENERATED_BODY()

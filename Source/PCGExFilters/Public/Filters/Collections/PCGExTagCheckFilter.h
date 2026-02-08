@@ -75,7 +75,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/tag-check"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/data-filters/data-filter-tag-check"))
 class UPCGExTagCheckFilterProviderSettings : public UPCGExFilterCollectionProviderSettings
 {
 	GENERATED_BODY()

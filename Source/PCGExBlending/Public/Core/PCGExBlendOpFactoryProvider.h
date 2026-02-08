@@ -27,7 +27,7 @@ namespace PCGExBlending
 	class FProxyDataBlender;
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="metadata/uber-blend/blend-op"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="metadata/modify/blendop"))
 class PCGEXBLENDING_API UPCGExBlendOpFactoryProviderSettings : public UPCGExFactoryProviderSettings, public IPCGSettingsDefaultValueProvider
 {
 	GENERATED_BODY()
