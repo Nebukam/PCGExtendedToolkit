@@ -27,7 +27,7 @@ enum class EPCGExPathReduceFilterMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/reduce"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-reduce"))
 class UPCGExPathReduceSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

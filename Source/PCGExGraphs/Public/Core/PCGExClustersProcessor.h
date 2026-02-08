@@ -29,7 +29,7 @@ namespace PCGExData
 	class FPointIOTaggedEntries;
 }
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="clusters/common-settings/cluster-processor-settings"))
 class PCGEXGRAPHS_API UPCGExClustersProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

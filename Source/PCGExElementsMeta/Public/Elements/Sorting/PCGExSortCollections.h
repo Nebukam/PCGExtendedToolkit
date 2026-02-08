@@ -15,7 +15,7 @@ namespace PCGExSorting
 	class FSorter;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/reduce-data"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="utilities/sorting/sort-data"))
 class UPCGExSortCollectionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

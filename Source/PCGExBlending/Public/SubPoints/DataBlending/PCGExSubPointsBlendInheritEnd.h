@@ -18,7 +18,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Inherit Last", PCGExNodeLibraryDoc="paths/sub-point-blending/inherit-end"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Inherit Last", PCGExNodeLibraryDoc="paths/common-settings/sub-points-blending/inherit-last"))
 class UPCGExSubPointsBlendInheritEnd : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()

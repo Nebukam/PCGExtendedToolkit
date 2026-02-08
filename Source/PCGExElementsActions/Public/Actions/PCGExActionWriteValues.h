@@ -59,7 +59,7 @@ protected:
 	FPCGExAttributeGatherDetails FailAttributesFilter;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ActionWriteValues", meta=(PCGExNodeLibraryDoc="quality-of-life/batch-actions/write-attributes"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ActionWriteValues", meta=(PCGExNodeLibraryDoc="utilities/batch-actions/action-write-attributes"))
 class UPCGExActionWriteValuesProviderSettings : public UPCGExActionProviderSettings
 {
 	GENERATED_BODY()

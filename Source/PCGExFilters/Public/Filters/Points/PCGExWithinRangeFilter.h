@@ -115,7 +115,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/simple-comparisons/within-range"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/point-filters/attribute/filter-within-range"))
 class UPCGExWithinRangeFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

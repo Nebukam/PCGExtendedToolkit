@@ -38,7 +38,7 @@ enum class EPCGExOffsetMethod : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/offset"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-offset"))
 class UPCGExOffsetPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

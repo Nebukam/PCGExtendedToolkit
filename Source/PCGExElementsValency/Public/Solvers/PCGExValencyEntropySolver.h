@@ -119,7 +119,7 @@ protected:
 /**
  * Factory for entropy-based WFC solver.
  */
-UCLASS(DisplayName = "Entropy Solver", meta=(ToolTip = "Entropy-based WFC solver. Collapses states with fewest candidates first.", PCGExNodeLibraryDoc="valency/solvers/entropy"))
+UCLASS(DisplayName = "Entropy Solver", meta=(ToolTip = "Entropy-based WFC solver. Collapses states with fewest candidates first.", PCGExNodeLibraryDoc="valency/valency-staging/entropy-solver"))
 class PCGEXELEMENTSVALENCY_API UPCGExValencyEntropySolver : public UPCGExValencySolverInstancedFactory
 {
 	GENERATED_BODY()

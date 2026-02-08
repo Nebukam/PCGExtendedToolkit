@@ -23,7 +23,7 @@ class FPCGMetadataAttributeBase;
 
 #pragma region Tuple Header and Body
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/tuple"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="metadata/keys/tuple"))
 class UPCGExTupleSettings : public UPCGExSettings
 {
 	GENERATED_BODY()

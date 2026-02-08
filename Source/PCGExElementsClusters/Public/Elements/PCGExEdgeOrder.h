@@ -9,7 +9,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "PCGExEdgeOrder.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/metadata/edge-order"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/analyze/cluster-edge-order"))
 class UPCGExEdgeOrderSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

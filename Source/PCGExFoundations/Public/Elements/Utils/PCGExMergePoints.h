@@ -31,7 +31,7 @@ struct PCGEXFOUNDATIONS_API FPCGExMergeList
 	void Write(const TSharedPtr<PCGExMT::FTaskManager>& TaskManager) const;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/merge-points"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="utilities/merge-points"))
 class UPCGExMergePointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

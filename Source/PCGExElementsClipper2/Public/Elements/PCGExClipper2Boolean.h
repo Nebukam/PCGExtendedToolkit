@@ -26,7 +26,7 @@ enum class EPCGExClipper2BooleanOp : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/clipper2/clipper2-boolean"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/intersect/clipper2-boolean"))
 class UPCGExClipper2BooleanSettings : public UPCGExClipper2ProcessorSettings
 {
 	GENERATED_BODY()

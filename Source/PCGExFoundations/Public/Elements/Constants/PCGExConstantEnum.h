@@ -48,7 +48,7 @@ namespace PCGExConstantEnumConstants
 	static const FName DescriptionAttribute = "Description";
 }
 
-UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(AutoExpandCategories="Settings|Output Attributes", PCGExNodeLibraryDoc="quality-of-life/enum"))
+UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(AutoExpandCategories="Settings|Output Attributes", PCGExNodeLibraryDoc="metadata/keys/enum-constant"))
 class UPCGExConstantEnumSettings : public UPCGExSettings
 {
 	GENERATED_BODY()

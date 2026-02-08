@@ -28,7 +28,7 @@ namespace PCGExMT
 }
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-all-cells"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/cells/find-all-cells"))
 class UPCGExFindAllCellsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

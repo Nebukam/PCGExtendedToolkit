@@ -88,7 +88,7 @@ namespace PCGExExtrudeTensors
 // Settings and Context
 //
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="tensors/extrude-tensors"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/generate/path-extrude-tensors"))
 class UPCGExExtrudeTensorsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

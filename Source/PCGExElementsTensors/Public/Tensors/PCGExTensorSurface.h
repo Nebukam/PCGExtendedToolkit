@@ -174,7 +174,7 @@ protected:
 	bool InitPCGSurfaces(FPCGExContext* InContext);
 };
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Tensors|Params", meta = (PCGExNodeLibraryDoc = "tensors/effectors/tensor-surface"))
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Tensors|Params", meta = (PCGExNodeLibraryDoc = "tensors/tensors/tensor-surface"))
 class UPCGExCreateTensorSurfaceSettings : public UPCGExTensorFactoryProviderSettings
 {
 	GENERATED_BODY()

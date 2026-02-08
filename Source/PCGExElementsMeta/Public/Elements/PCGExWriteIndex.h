@@ -17,7 +17,7 @@ namespace PCGExData
 	class TBuffer;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/write-index"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/keys/write-index"))
 class UPCGExWriteIndexSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

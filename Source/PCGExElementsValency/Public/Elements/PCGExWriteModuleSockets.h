@@ -20,7 +20,7 @@
  *   - Packed socket reference (int64) for downstream socket mode processing
  *   - Source point index for tracing back to original vertex
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency sockets write output chaining", PCGExNodeLibraryDoc="valency/write-module-sockets"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency sockets write output chaining", PCGExNodeLibraryDoc="valency/valency-write-module-sockets"))
 class PCGEXELEMENTSVALENCY_API UPCGExWriteModuleSocketsSettings : public UPCGExValencyProcessorSettings
 {
 	GENERATED_BODY()

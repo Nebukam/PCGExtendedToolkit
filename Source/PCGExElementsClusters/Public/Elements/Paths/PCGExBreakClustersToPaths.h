@@ -31,7 +31,7 @@ enum class EPCGExBreakClusterLeavesHandling : uint8
 	Only    = 2 UMETA(DisplayName = "Only Leaves", ToolTip="Only process leaves."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/break-cluster-to-paths"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/interop/cluster-break-to-paths"))
 class UPCGExBreakClustersToPathsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

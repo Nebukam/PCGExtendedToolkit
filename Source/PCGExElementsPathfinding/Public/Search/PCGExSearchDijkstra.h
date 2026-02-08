@@ -24,7 +24,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Dijkstra", ToolTip ="Dijkstra search. Slower than A* but more respectful of modifiers and weights.", PCGExNodeLibraryDoc="pathfinding/search-algorithms/dijkstra"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Dijkstra", ToolTip ="Dijkstra search. Slower than A* but more respectful of modifiers and weights.", PCGExNodeLibraryDoc="pathfinding/algorithms/search-dijkstra"))
 class UPCGExSearchDijkstra : public UPCGExSearchInstancedFactory
 {
 	GENERATED_BODY()

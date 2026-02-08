@@ -15,7 +15,7 @@
 class FPCGExComputeIOBounds;
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/find-point-on-bounds"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/analyze/find-point-on-bounds"))
 class UPCGExFindPointOnBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

@@ -20,7 +20,7 @@ enum class EPCGExClusterDataSearchMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/find-clusters-data"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/utilities/find-clusters"))
 class UPCGExFindClustersDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

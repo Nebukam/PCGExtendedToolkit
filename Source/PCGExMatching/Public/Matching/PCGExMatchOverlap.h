@@ -111,7 +111,7 @@ public:
 	virtual TSharedPtr<FPCGExMatchRuleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="DataMatch", meta=(PCGExNodeLibraryDoc="misc/data-matching/overlap"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="DataMatch", meta=(PCGExNodeLibraryDoc="utilities/data-matching/match-overlap"))
 class UPCGExCreateMatchOverlapSettings : public UPCGExMatchRuleFactoryProviderSettings
 {
 	GENERATED_BODY()

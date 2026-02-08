@@ -10,7 +10,7 @@
 
 #include "PCGExAttributeHash.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/attribute-hash"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/attributes/attribute-hash"))
 class UPCGExAttributeHashSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

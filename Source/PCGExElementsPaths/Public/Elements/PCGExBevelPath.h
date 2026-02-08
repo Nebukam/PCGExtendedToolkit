@@ -61,7 +61,7 @@ enum class EPCGExBevelCustomProfileScaling : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/bevel"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/modify/path-bevel"))
 class UPCGExBevelPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

@@ -45,7 +45,7 @@ public:
 	virtual TSharedPtr<FPCGExMatchRuleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|DataMatch", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-circle"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|DataMatch", meta=(PCGExNodeLibraryDoc="utilities/data-matching/match-copy-tags"))
 class UPCGExCreateMatchCopyTagsSettings : public UPCGExMatchRuleFactoryProviderSettings
 {
 	GENERATED_BODY()

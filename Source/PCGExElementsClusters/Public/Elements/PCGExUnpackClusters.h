@@ -8,7 +8,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "PCGExUnpackClusters.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/unpack-cluster"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/utilities/pack-and-unpack/cluster-unpack"))
 class UPCGExUnpackClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

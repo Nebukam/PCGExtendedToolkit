@@ -76,7 +76,7 @@ struct FPCGExBP3DAffinityRule
 /// Settings
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/layout/bin-packing-3d"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/modify/bin-packing-3d-q4realbpp"))
 class UPCGExBinPacking3DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

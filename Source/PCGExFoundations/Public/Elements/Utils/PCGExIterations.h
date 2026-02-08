@@ -20,7 +20,7 @@ enum class EPCGExIterationDataType : uint8
 	Texture = 4 UMETA(DisplayName = "Texture", Tooltip="Output dummy iteration data of type Texture."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/iterations"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="utilities/control-flow/iterations"))
 class UPCGExIterationsSettings : public UPCGExSettings
 {
 	GENERATED_BODY()

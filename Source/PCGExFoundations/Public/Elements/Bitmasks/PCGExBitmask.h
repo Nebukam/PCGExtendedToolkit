@@ -14,7 +14,7 @@
 
 #include "PCGExBitmask.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="metadata/bitmasks/bitmask"))
 class UPCGExBitmaskSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
