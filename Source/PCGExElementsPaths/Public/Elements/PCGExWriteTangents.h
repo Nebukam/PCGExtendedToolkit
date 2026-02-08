@@ -13,7 +13,7 @@ class FPCGExTangentsOperation;
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/transform/path-write-tangents"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/analyze/path-write-tangents"))
 class UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

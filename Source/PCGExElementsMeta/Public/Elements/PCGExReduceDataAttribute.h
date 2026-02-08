@@ -28,7 +28,7 @@ enum class EPCGExReduceDataDomainMethod : uint8
 	UnsignedHash = 6 UMETA(DisplayName = "Hash (Sorted)", ToolTip="Sorted, then hashed in sorted order"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/attributes/reduce-data"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/analyze/reduce-data"))
 class UPCGExReduceDataAttributeSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
