@@ -25,7 +25,7 @@ if (PCGExDataVersion < PCGEX_VERSION_NAME(_MAJOR, _MINOR, _PATCH))
 
 namespace PCGExVersion
 {
-	PCGEX_VERSION_DECL_LATEST(1, 74, 0)
+	PCGEX_VERSION_DECL_LATEST(1, 74, 3)
 }
 
 #endif
