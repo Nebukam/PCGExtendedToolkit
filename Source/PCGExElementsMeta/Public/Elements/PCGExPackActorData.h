@@ -546,7 +546,7 @@ public:
 #pragma endregion
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="quality-of-life/pack-actor-data"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="metadata/keys/pack-actor-data/creating-a-custom-actor-data-packer"))
 class UPCGExPackActorDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

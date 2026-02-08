@@ -41,7 +41,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Radius", PCGExNodeLibraryDoc="paths/smooth/smooth-radius"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Radius", PCGExNodeLibraryDoc="paths/transform/path-smooth/radius-smoothing"))
 class UPCGExRadiusSmoothing : public UPCGExSmoothingInstancedFactory
 {
 	GENERATED_BODY()

@@ -74,7 +74,7 @@ public:
 	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="pathfinding/cluster-flood-fill/fill-control"))
 class PCGEXELEMENTSFLOODFILL_API UPCGExFillControlsFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

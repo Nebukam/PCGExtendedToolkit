@@ -19,7 +19,7 @@ namespace PCGExMatching
 	class FDataMatcher;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/copy-clusters-to-points"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/transform/cluster-copy-to-points"))
 class UPCGExCopyClustersToPointsSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

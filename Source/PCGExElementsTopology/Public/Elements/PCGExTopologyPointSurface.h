@@ -16,7 +16,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "triangulation", PCGExNodeLibraryDoc="clusters/diagrams/delaunay-2d"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "triangulation", PCGExNodeLibraryDoc="topology/topology-point-surface"))
 class UPCGExTopologyPointSurfaceSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

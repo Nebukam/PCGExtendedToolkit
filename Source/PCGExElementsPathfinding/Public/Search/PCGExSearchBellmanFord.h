@@ -38,7 +38,7 @@ public:
  * Slower than A* (O(V*E) vs O(E log V)) but more robust.
  * Useful when heuristics may produce negative scores.
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Bellman-Ford", ToolTip ="Bellman-Ford Search. Handles negative edge weights and detects negative cycles. Slower but more robust.", PCGExNodeLibraryDoc="pathfinding/search-algorithms/bellman-ford"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Bellman-Ford", ToolTip ="Bellman-Ford Search. Handles negative edge weights and detects negative cycles. Slower but more robust.", PCGExNodeLibraryDoc="pathfinding/algorithms/search-bellman-ford"))
 class UPCGExSearchBellmanFord : public UPCGExSearchInstancedFactory
 {
 	GENERATED_BODY()

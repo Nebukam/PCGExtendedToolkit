@@ -83,7 +83,7 @@ protected:
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Look At", PCGExNodeLibraryDoc="paths/orient/orient-look-at"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Look At", PCGExNodeLibraryDoc="paths/transform/path-orient/orient-look-at"))
 class UPCGExOrientLookAt : public UPCGExOrientInstancedFactory
 {
 	GENERATED_BODY()

@@ -14,7 +14,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/refresh-seed"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/modify/refresh-seed"))
 class UPCGExRefreshSeedSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

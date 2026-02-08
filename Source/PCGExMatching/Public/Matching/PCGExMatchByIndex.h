@@ -78,7 +78,7 @@ public:
 	virtual TSharedPtr<FPCGExMatchRuleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="DataMatch", meta=(PCGExNodeLibraryDoc="misc/data-matching/index"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="DataMatch", meta=(PCGExNodeLibraryDoc="utilities/data-matching/match-by-index"))
 class UPCGExCreateMatchByIndexSettings : public UPCGExMatchRuleFactoryProviderSettings
 {
 	GENERATED_BODY()

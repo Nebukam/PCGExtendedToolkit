@@ -88,7 +88,7 @@ public:
 	PCGEX_NOISE3D_FACTORY_BOILERPLATE
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Noise", meta=(PCGExNodeLibraryDoc="/misc/noises/noise-marble"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category = "PCGEx|Noise", meta=(PCGExNodeLibraryDoc="utilities/noise/noise-marble"))
 class UPCGExNoise3DMarbleProviderSettings : public UPCGExNoise3DFactoryProviderSettings
 {
 	GENERATED_BODY()

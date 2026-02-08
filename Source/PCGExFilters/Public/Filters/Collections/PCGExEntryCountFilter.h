@@ -82,7 +82,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/entry-count"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/data-filters/data-filter-entry-count"))
 class UPCGExEntryCountFilterProviderSettings : public UPCGExFilterCollectionProviderSettings
 {
 	GENERATED_BODY()

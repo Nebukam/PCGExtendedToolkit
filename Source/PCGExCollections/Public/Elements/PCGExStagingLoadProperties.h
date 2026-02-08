@@ -16,7 +16,7 @@
  * Settings for the Staging Properties node.
  * Outputs property values from staged asset collection entries as point attributes.
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage property attribute output", PCGExNodeLibraryDoc="assets-management/asset-staging"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage property attribute output", PCGExNodeLibraryDoc="staging/staging-load-properties"))
 class UPCGExStagingLoadPropertiesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

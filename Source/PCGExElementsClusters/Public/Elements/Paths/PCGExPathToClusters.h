@@ -19,7 +19,7 @@ namespace PCGExPathToClusters
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/path-to-clusters"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="clusters/interop/path-to-clusters"))
 class UPCGExPathToClustersSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

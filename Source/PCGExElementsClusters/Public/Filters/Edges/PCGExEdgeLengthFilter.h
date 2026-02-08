@@ -87,7 +87,7 @@ namespace PCGExEdgeLength
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/direction-1"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/edge-filters/edge-filter-length"))
 class UPCGExEdgeLengthFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()

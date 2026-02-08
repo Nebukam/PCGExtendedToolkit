@@ -11,7 +11,7 @@
 
 #include "PCGExSpawnDynamicMesh.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="topology/cluster-surface/toggle-topology"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="topology/spawn-dynamic-mesh"))
 class UPCGExSpawnDynamicMeshSettings : public UPCGExSettings
 {
 	GENERATED_BODY()

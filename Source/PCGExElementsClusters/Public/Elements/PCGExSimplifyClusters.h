@@ -30,7 +30,7 @@ enum class EPCGExSimplifyClusterEdgeFilterRole : uint8
 	Collapse = 1 UMETA(DisplayName = "Collapse", ToolTip="Collapse endpoints of edges that pass the filters"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/simplify"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/refine/cluster-simplify"))
 class UPCGExSimplifyClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

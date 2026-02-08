@@ -39,7 +39,7 @@ namespace PCGExMT
 
 // Triage enums and tags are now in PCGExCellDetails.h
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-all-cells-bounded"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/cells/find-all-cells-bounded"))
 class UPCGExFindAllCellsBoundedSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

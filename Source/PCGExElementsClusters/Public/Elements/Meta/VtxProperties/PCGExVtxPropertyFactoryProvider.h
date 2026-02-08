@@ -172,7 +172,7 @@ public:
 	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty", meta=(PCGExNodeLibraryDoc="clusters/analyze/cluster-vtx-properties/vtx-property-provider"))
 class UPCGExVtxPropertyProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

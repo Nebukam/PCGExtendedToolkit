@@ -108,7 +108,7 @@ public:
 	virtual ~FIsoEdgeDirectionFilter() override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/direction"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/edge-filters/edge-filter-edge-direction"))
 class UPCGExIsoEdgeDirectionFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()

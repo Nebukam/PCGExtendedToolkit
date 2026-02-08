@@ -28,7 +28,7 @@ class FPCGExProbeOperation;
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/connect-points"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/generate/cluster-connect-points"))
 class UPCGExConnectPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

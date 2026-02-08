@@ -23,7 +23,7 @@ enum class EPCGExOrientUsage : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/orient"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/transform/path-orient"))
 class UPCGExOrientSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

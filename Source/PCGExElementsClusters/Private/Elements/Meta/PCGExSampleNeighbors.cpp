@@ -6,6 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Clusters/PCGExCluster.h"
+#include "Core/PCGExClusterFilter.h"
 #include "Elements/Meta/NeighborSamplers/PCGExNeighborSampleFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNeighbors"
@@ -51,6 +52,7 @@ bool FPCGExSampleNeighborsElement::AdvanceWork(FPCGExContext* InContext, const U
 	{
 		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 		{
+			if (!Context->FilterFactories.IsEmpty()) { NewBatch->VtxFilterFactories = &Context->FilterFactories; }
 		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -123,6 +125,7 @@ namespace PCGExSampleNeighbors
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
+			if (VtxFiltersManager && !VtxFiltersManager->Test(*Cluster->GetNode(Index))) { continue; }
 			for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->ProcessNode(Index, Scope); }
 		}
 	}

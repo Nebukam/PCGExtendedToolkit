@@ -14,7 +14,7 @@
 
 #include "PCGExCreateSpline.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/create-spline"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/output/create-spline"))
 class UPCGExCreateSplineSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

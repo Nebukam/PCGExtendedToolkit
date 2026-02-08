@@ -9,7 +9,7 @@
 #include "Core/PCGExClustersProcessor.h"
 #include "PCGExPackClusters.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/pack-cluster"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/utilities/pack-and-unpack/cluster-pack"))
 class UPCGExPackClustersSettings : public UPCGExClustersProcessorSettings
 {
 	GENERATED_BODY()

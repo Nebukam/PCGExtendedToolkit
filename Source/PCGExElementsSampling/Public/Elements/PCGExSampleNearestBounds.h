@@ -79,7 +79,7 @@ enum class EPCGExBoundsSampleMethod : uint8
 	BestCandidate  = 5 UMETA(DisplayName = "Best Candidate", ToolTip="Picks the best candidate based on sorting rules."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-bounds"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest/sample-nearest-bounds"))
 class UPCGExSampleNearestBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

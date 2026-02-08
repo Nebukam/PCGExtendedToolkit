@@ -64,7 +64,7 @@ protected:
 	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext) override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-noise"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/tensors/tensor-noise"))
 class UPCGExCreateTensorNoiseSettings : public UPCGExTensorFactoryProviderSettings
 {
 	GENERATED_BODY()
