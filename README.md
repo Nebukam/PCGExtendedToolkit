@@ -39,8 +39,7 @@ _It doesn't solve specific problems for you. _It gives you the tools to solve th
 
 PCGEx is available through multiple channels:
 
-- **[FAB](https://www.fab.com/)** — Epic's official marketplace
-- **[Gumroad](https://nebukam.gumroad.com/)** — Precompiled Binaries _(until FAB is back)_
+- **[FAB]([https://www.fab.com/](https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624))** — Epic's official marketplace
 - **[Source](https://github.com/Nebukam/PCGExtendedToolkit)** — Build from GitHub
 
 See the [Installation Guide](https://pcgex.gitbook.io/pcgex/general/quickstart/installation) for detailed instructions.
