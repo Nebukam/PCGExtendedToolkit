@@ -351,6 +351,52 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 	return NewOperation;
 }
 
+bool UPCGExBlendOpFactory::CreateOperations(
+	FPCGExContext* InContext,
+	const TSharedPtr<PCGExData::FFacade>& InSourceAFacade,
+	const TSharedPtr<PCGExData::FFacade>& InTargetFacade,
+	TArray<TSharedPtr<FPCGExBlendOperation>>& OutOperations,
+	const TSet<FName>* InSupersedeNames) const
+{
+	TSharedPtr<FPCGExBlendOperation> Op = CreateOperation(InContext);
+	if (!Op) { return false; }
+	OutOperations.Add(Op);
+	return true;
+}
+
+FName UPCGExBlendOpFactory::GetOutputTargetName(const FPCGExAttributeBlendConfig& InConfig)
+{
+	const FPCGAttributePropertyInputSelector* RelevantSelector = nullptr;
+
+	switch (InConfig.OutputMode)
+	{
+	case EPCGExBlendOpOutputMode::SameAsA:
+		RelevantSelector = &InConfig.OperandA;
+		break;
+	case EPCGExBlendOpOutputMode::SameAsB:
+		RelevantSelector = InConfig.bUseOperandB ? &InConfig.OperandB : &InConfig.OperandA;
+		break;
+	case EPCGExBlendOpOutputMode::New:
+	case EPCGExBlendOpOutputMode::Transient:
+		RelevantSelector = &InConfig.OutputTo;
+		break;
+	}
+
+	if (!RelevantSelector) { return NAME_None; }
+
+	if (RelevantSelector->GetSelection() == EPCGAttributePropertySelection::PointProperty)
+	{
+		const UEnum* EnumPtr = StaticEnum<EPCGPointProperties>();
+		if (EnumPtr)
+		{
+			FString PropName = EnumPtr->GetNameStringByValue(static_cast<int64>(RelevantSelector->GetPointProperty()));
+			return FName(TEXT("$") + PropName);
+		}
+	}
+
+	return RelevantSelector->GetAttributeName();
+}
+
 bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
 {
 	return InContext->InputData.GetInputCountByPin(PCGExBlending::Labels::SourceConstantA)

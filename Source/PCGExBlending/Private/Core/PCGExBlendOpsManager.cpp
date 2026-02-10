@@ -100,40 +100,54 @@ namespace PCGExBlending
 		if (!WeightFacade) { WeightFacade = SourceAFacade; }
 		check(WeightFacade)
 
+		// Phase 1: Build supersede set from non-monolithic (individual) factory output names
+		TSet<FName> SupersedeNames;
+		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : InFactories)
+		{
+			if (Factory->IsMonolithic()) { continue; }
+			const FName OutputName = UPCGExBlendOpFactory::GetOutputTargetName(Factory->Config);
+			if (!OutputName.IsNone()) { SupersedeNames.Add(OutputName); }
+		}
+
 		Operations->Reserve(InFactories.Num());
 		CachedOperations.Reserve(InFactories.Num());
 
+		// Phase 2: Create operations from all factories, passing supersede set
 		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : InFactories)
 		{
-			TSharedPtr<FPCGExBlendOperation> Op = Factory->CreateOperation(InContext);
-			if (!Op)
+			TArray<TSharedPtr<FPCGExBlendOperation>> NewOps;
+
+			if (!Factory->CreateOperations(InContext, SourceAFacade, TargetFacade, NewOps, &SupersedeNames))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An operation could not be created."));
 				return false; // FAIL
 			}
 
-			Op->bUsedForMultiBlendOnly = bUsedForMultiBlendOnly;
-
-			// Assign blender facades
-			Op->WeightFacade = WeightFacade;
-
-			Op->Source_A_Facade = SourceAFacade;
-			Op->SideA = SideA;
-
-			Op->Source_B_Facade = SourceBFacade;
-			Op->SideB = SideB;
-
-			Op->TargetFacade = TargetFacade;
-
-			Op->OpIdx = Operations->Add(Op);
-			Op->SiblingOperations = Operations;
-
-			if (!Op->PrepareForData(InContext))
+			for (const TSharedPtr<FPCGExBlendOperation>& Op : NewOps)
 			{
-				return false; // FAIL
-			}
+				Op->bUsedForMultiBlendOnly = bUsedForMultiBlendOnly;
 
-			CachedOperations.Add(Op.Get());
+				// Assign blender facades
+				Op->WeightFacade = WeightFacade;
+
+				Op->Source_A_Facade = SourceAFacade;
+				Op->SideA = SideA;
+
+				Op->Source_B_Facade = SourceBFacade;
+				Op->SideB = SideB;
+
+				Op->TargetFacade = TargetFacade;
+
+				Op->OpIdx = Operations->Add(Op);
+				Op->SiblingOperations = Operations;
+
+				if (!Op->PrepareForData(InContext))
+				{
+					return false; // FAIL
+				}
+
+				CachedOperations.Add(Op.Get());
+			}
 		}
 
 		return true;
