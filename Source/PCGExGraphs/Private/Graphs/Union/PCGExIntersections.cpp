@@ -87,16 +87,16 @@ namespace PCGExGraphs
 
 		if (EdgeReserve < 0)
 		{
-			if (FuseDetails.DoInlineInsertion()) { EdgesMapShards.Reserve(NodeReserve); }
-			else { EdgesMap.Reserve(NodeReserve); }
+			if (FuseDetails.DoInlineInsertion()) { EdgesMap.Reserve(NodeReserve); }
+			else { EdgesMapShards.Reserve(NodeReserve); }
 
 			Edges.Reserve(NodeReserve);
 			EdgesUnion->Entries.Reserve(NodeReserve);
 		}
 		else
 		{
-			if (FuseDetails.DoInlineInsertion()) { EdgesMapShards.Reserve(EdgeReserve); }
-			else { EdgesMap.Reserve(EdgeReserve); }
+			if (FuseDetails.DoInlineInsertion()) { EdgesMap.Reserve(EdgeReserve); }
+			else { EdgesMapShards.Reserve(EdgeReserve); }
 
 			Edges.Reserve(EdgeReserve);
 			EdgesUnion->Entries.Reserve(EdgeReserve);
