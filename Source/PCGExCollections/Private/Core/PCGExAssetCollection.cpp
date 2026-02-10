@@ -3,7 +3,7 @@
 
 #include "Core/PCGExAssetCollection.h"
 
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"

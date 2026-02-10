@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExProperties.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "PCGExPropertyTypes.h"
 
 #if WITH_EDITOR
@@ -17,11 +17,14 @@ PCGEX_IMPLEMENT_MODULE(FPCGExPropertiesModule, PCGExProperties)
 
 #pragma region FPCGExPropertySchema
 
+// Default constructor initializes with Float type and a unique HeaderId.
+// HeaderId is generated once and preserved through the lifetime of this schema entry,
+// even if the user changes the property type or renames it.
 FPCGExPropertySchema::FPCGExPropertySchema()
 {
 	#if WITH_EDITOR
 	HeaderId = GetTypeHash(FGuid::NewGuid());
-	Property.InitializeAs<FPCGExPropertyCompiled_Float>();
+	Property.InitializeAs<FPCGExProperty_Float>();
 	#endif
 }
 
@@ -105,6 +108,26 @@ void FPCGExPropertySchemaCollection::SyncOverridesArray(TArray<FPCGExPropertyOve
 
 #pragma region FPCGExPropertyOverrides
 
+// ============================================================================
+// SyncToSchema - The heart of the override system
+// ============================================================================
+//
+// This method rebuilds the Overrides array to match a new schema while preserving
+// user state (enabled flags, values) through schema changes. It uses HeaderId
+// (editor-only) as the stable key for matching.
+//
+// The algorithm:
+// 1. Save old overrides and index them by HeaderId
+// 2. For each schema property:
+//    a. Try to find an existing override with matching HeaderId
+//    b. If found AND same type: keep value + bEnabled, update PropertyName
+//    c. If found but type changed: use schema default value, keep bEnabled
+//    d. If not found (new property): use schema default, set bEnabled=false
+// 3. Result: Overrides array is parallel with Schema array
+//
+// At runtime (no WITH_EDITOR), the HeaderId path is skipped and all overrides
+// are rebuilt from schema defaults.
+
 void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schema)
 {
 	// Save existing overrides
@@ -115,7 +138,7 @@ void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 	#if WITH_EDITOR
 	for (FPCGExPropertyOverrideEntry& Entry : OldOverrides)
 	{
-		if (const FPCGExPropertyCompiled* Prop = Entry.Value.GetPtr<FPCGExPropertyCompiled>())
+		if (const FPCGExProperty* Prop = Entry.Value.GetPtr<FPCGExProperty>())
 		{
 			if (Prop->HeaderId != 0)
 			{
@@ -130,7 +153,7 @@ void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 
 	for (const FInstancedStruct& SchemaProp : Schema)
 	{
-		const FPCGExPropertyCompiled* SchemaData = SchemaProp.GetPtr<FPCGExPropertyCompiled>();
+		const FPCGExProperty* SchemaData = SchemaProp.GetPtr<FPCGExProperty>();
 		if (!SchemaData) { continue; }
 
 		FPCGExPropertyOverrideEntry& NewEntry = Overrides.AddDefaulted_GetRef();
@@ -154,7 +177,7 @@ void FPCGExPropertyOverrides::SyncToSchema(const TArray<FInstancedStruct>& Schem
 				// Same type - preserve value, update PropertyName from schema
 				NewEntry.Value = MoveTemp(Existing->Value);
 
-				if (FPCGExPropertyCompiled* Prop = NewEntry.GetPropertyMutable())
+				if (FPCGExProperty* Prop = NewEntry.GetPropertyMutable())
 				{
 					Prop->PropertyName = SchemaData->PropertyName;
 				}

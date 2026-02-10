@@ -111,7 +111,11 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 	Attributes.Reserve(Settings->Composition.Num());
 	Keys.Reserve(Settings->Composition.Num());
 
-	// Create attributes from schema
+	// Create one metadata attribute per schema column.
+	// Each property type knows how to create its own attribute type
+	// (e.g., FPCGExProperty_Float creates FPCGMetadataAttribute<float>).
+	// Custom property types participate here automatically via their
+	// CreateMetadataAttribute() override.
 	for (const FPCGExPropertySchema& SchemaEntry : Settings->Composition.Schemas)
 	{
 		// Check for existing attribute
@@ -123,7 +127,7 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 			continue;
 		}
 
-		const FPCGExPropertyCompiled* Property = SchemaEntry.GetProperty();
+		const FPCGExProperty* Property = SchemaEntry.GetProperty();
 		if (!Property)
 		{
 			Attributes.Add(nullptr);
@@ -136,7 +140,10 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 	// Create all keys
 	for (int i = 0; i < Settings->Values.Num(); ++i) { Keys.Add(TupleData->Metadata->AddEntry()); }
 
-	// Write values to attributes (only enabled overrides)
+	// Write values to attributes (only enabled overrides).
+	// Iterates column-first (outer = schema column, inner = row).
+	// Only writes a value if that column is enabled in that row (IsOverrideEnabled).
+	// This is the METADATA output path. For POINT ATTRIBUTE output, see FPCGExPropertyWriter.
 	for (int i = 0; i < Settings->Composition.Num(); ++i)
 	{
 		FPCGMetadataAttributeBase* Attribute = Attributes[i];
@@ -149,7 +156,7 @@ bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSetti
 			// Only write if this column is enabled in this row
 			if (!Row.IsOverrideEnabled(i)) { continue; }
 
-			if (const FPCGExPropertyCompiled* Property = Row.Overrides[i].GetProperty())
+			if (const FPCGExProperty* Property = Row.Overrides[i].GetProperty())
 			{
 				Property->WriteMetadataValue(Attribute, Keys[k]);
 			}

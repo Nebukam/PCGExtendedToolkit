@@ -81,10 +81,10 @@ namespace PCGExStagingLoadProperties
 		FInstancedStruct Writer;
 
 		/** Cached source property pointer per unique entry hash */
-		TMap<uint64, const FPCGExPropertyCompiled*> SourceByHash;
+		TMap<uint64, const FPCGExProperty*> SourceByHash;
 
-		/** Quick access to the writer's compiled property */
-		const FPCGExPropertyCompiled* WriterPtr = nullptr;
+		/** Quick access to the writer's property */
+		const FPCGExProperty* WriterPtr = nullptr;
 	};
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExStagingLoadPropertiesContext, UPCGExStagingLoadPropertiesSettings>

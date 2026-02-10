@@ -26,6 +26,12 @@ public class PCGExProperties : ModuleRules
 			}
 		);
 
+		// NOTE FOR CUSTOM PROPERTY TYPES IN OTHER MODULES:
+		// If you define a custom FPCGExProperty derivative in another module,
+		// that module must depend on PCGExProperties (for FPCGExProperty base class)
+		// and PCGExCore (for PCGExData::TBuffer, FFacade, etc.).
+		// The property will automatically appear in FInstancedStruct pickers
+		// that are constrained to BaseStruct=FPCGExProperty.
 		PublicDependencyModuleNames.AddRange(
 			new[]
 			{

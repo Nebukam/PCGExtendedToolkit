@@ -8,7 +8,7 @@
 
 #include "PCGExAssetCollectionTypes.h"
 #include "PCGExAssetGrammar.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "Core/PCGExContext.h"
 #include "Details/PCGExSocket.h"
 #include "Details/PCGExStagingDetails.h"

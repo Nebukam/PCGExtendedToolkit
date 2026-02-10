@@ -8,7 +8,7 @@
 #include "Core/PCGExPointsProcessor.h"
 #include "Helpers/PCGExRandomHelpers.h"
 #include "Math/PCGExMath.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 
 #include "PCGExDistributeTuple.generated.h"
 
@@ -102,11 +102,11 @@ namespace PCGExDistributeTuple
 		/** Deep copy of the schema property that owns the output buffer */
 		FInstancedStruct OwnedProperty;
 
-		/** Cached raw pointer to the compiled property (resolved once during init) */
-		const FPCGExPropertyCompiled* WriterPtr = nullptr;
+		/** Cached raw pointer to the property (resolved once during init) */
+		const FPCGExProperty* WriterPtr = nullptr;
 
 		/** Per-row source properties (nullptr if that column is disabled in a given row) */
-		TArray<const FPCGExPropertyCompiled*> RowSources;
+		TArray<const FPCGExProperty*> RowSources;
 	};
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExDistributeTupleContext, UPCGExDistributeTupleSettings>

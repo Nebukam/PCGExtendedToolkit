@@ -191,7 +191,7 @@ namespace PCGExDistributeTuple
 		for (int32 ColIdx = 0; ColIdx < NumColumns; ++ColIdx)
 		{
 			const FPCGExPropertySchema& Schema = Settings->Composition.Schemas[ColIdx];
-			const FPCGExPropertyCompiled* SchemaProperty = Schema.GetProperty();
+			const FPCGExProperty* SchemaProperty = Schema.GetProperty();
 
 			if (!SchemaProperty || !SchemaProperty->SupportsOutput())
 			{
@@ -203,7 +203,7 @@ namespace PCGExDistributeTuple
 			// Deep-copy the schema property so we own the output buffer
 			Col.OwnedProperty = Schema.Property;
 
-			FPCGExPropertyCompiled* OutputProperty = Col.OwnedProperty.GetMutablePtr<FPCGExPropertyCompiled>();
+			FPCGExProperty* OutputProperty = Col.OwnedProperty.GetMutablePtr<FPCGExProperty>();
 			if (!OutputProperty || !OutputProperty->InitializeOutput(PointDataFacade, Schema.Name))
 			{
 				Col.OwnedProperty.Reset();
@@ -306,7 +306,7 @@ namespace PCGExDistributeTuple
 			{
 				if (!Col.WriterPtr) { continue; }
 
-				const FPCGExPropertyCompiled* RowSource = Col.RowSources[PickedRow];
+				const FPCGExProperty* RowSource = Col.RowSources[PickedRow];
 				if (!RowSource) { continue; }
 
 				Col.WriterPtr->WriteOutputFrom(Index, RowSource);
