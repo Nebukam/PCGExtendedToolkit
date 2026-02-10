@@ -379,6 +379,11 @@ namespace PCGExSplitPath
 				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 				PCGExPaths::Helpers::SetClosedLoop(PointDataFacade->GetOut(), false);
 			}
+			else
+			{
+				// Filtered points didn't produce an effective split, forward as-is
+				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
+			}
 
 			return;
 		}
@@ -387,6 +392,10 @@ namespace PCGExSplitPath
 		{
 			if (SubPaths.Num() > 1)
 			{
+				if (Settings->SplitAction == EPCGExPathSplitAction::Partition || Settings->SplitAction == EPCGExPathSplitAction::Switch)
+				bWrapLastPath = SubPaths[0].Start == 0 && SubPaths.Last().End == -1
+					&& PointFilterCache[0] == PointFilterCache[PointDataFacade->GetNum() - 1];
+			else
 				bWrapLastPath = SubPaths[0].Start == 0 && SubPaths.Last().End == -1 && !PointFilterCache[0];
 			}
 
