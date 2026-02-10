@@ -42,11 +42,12 @@ public class PCGExtendedToolkitTest : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"PCGExBlending",
 				"PCGExFilters",
 				"PCGExFoundations",
 				"PCGExProperties",
 				"PCGExCollections",
-				"PCGExGraphs", 
+				"PCGExGraphs",
 				"PCGExElementsClustersDiagrams",
 				"PCGExElementsSpatial"
 			}
