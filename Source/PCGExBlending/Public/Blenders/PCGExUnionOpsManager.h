@@ -10,6 +10,7 @@
 #include "Core/PCGExUnionData.h"
 
 class UPCGExBlendOpFactory;
+class FPCGExBlendOperation;
 
 namespace PCGExBlending
 {
@@ -47,5 +48,7 @@ namespace PCGExBlending
 
 		TSharedPtr<PCGExData::FUnionMetadata> CurrentUnionMetadata;
 		TSharedPtr<PCGExData::FFacade> CurrentTargetData;
+
+		TArray<FPCGExBlendOperation*> UniqueOps; // One per unique attribute, for Begin/End
 	};
 }

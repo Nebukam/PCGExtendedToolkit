@@ -5,6 +5,7 @@
 
 #include "Containers/PCGExIndexLookup.h"
 #include "Core/PCGExBlendOpsManager.h"
+#include "Core/PCGExBlendOpFactory.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Core/PCGExUnionData.h"
@@ -39,11 +40,44 @@ namespace PCGExBlending
 			TSharedPtr<FBlendOpsManager> BlendOpsManager = MakeShared<FBlendOpsManager>(TargetData, true);
 			BlendOpsManager->SetSourceA(Src, PCGExData::EIOSide::In);
 
-			// TODO : Allow to be more permissive with some ops if they can't be processed, just ignore them
-
 			if (!BlendOpsManager->Init(InContext, *BlendingFactories)) { return false; }
 
 			Blenders.Add(BlendOpsManager);
+		}
+
+		// Build a shared OpIdx space across all blenders so the same attribute
+		// always maps to the same tracker slot, regardless of which source it came from.
+		TMap<FName, int32> SharedIndexMap;
+		int32 NextIdx = 0;
+
+		for (const TSharedPtr<FBlendOpsManager>& Blender : Blenders)
+		{
+			for (const FPCGExBlendOperation* Op : Blender->GetCachedOperations())
+			{
+				const FName Name = UPCGExBlendOpFactory::GetOutputTargetName(Op->Config);
+				if (!Name.IsNone() && !SharedIndexMap.Contains(Name))
+				{
+					SharedIndexMap.Add(Name, NextIdx++);
+				}
+			}
+		}
+
+		// Remap all blenders and build a flat unique ops list (one per attribute) for Begin/End
+		TSet<int32> SeenIndices;
+		UniqueOps.Reserve(NextIdx);
+
+		for (const TSharedPtr<FBlendOpsManager>& Blender : Blenders)
+		{
+			Blender->RemapOperationIndices(SharedIndexMap, NextIdx);
+
+			for (FPCGExBlendOperation* Op : Blender->GetCachedOperations())
+			{
+				if (!SeenIndices.Contains(Op->OpIdx))
+				{
+					SeenIndices.Add(Op->OpIdx);
+					UniqueOps.Add(Op);
+				}
+			}
 		}
 
 		return true;
@@ -58,11 +92,6 @@ namespace PCGExBlending
 	void FUnionOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		check(!Blenders.IsEmpty())
-
-		const int32 NumBlenders = Blenders.Num();
-		Trackers.Reserve(NumBlenders);
-		Trackers.Reset(NumBlenders);
-
 		Blenders[0]->InitTrackers(Trackers);
 	}
 
@@ -80,9 +109,11 @@ namespace PCGExBlending
 
 		if (InWeightedPoints.IsEmpty()) { return; }
 
-		Blenders[0]->BeginMultiBlend(WriteIndex, Trackers);
+		// Begin/End use UniqueOps: one prepared op per attribute, ensures
+		// every tracker slot is initialized/finalized exactly once.
+		for (const auto Op : UniqueOps) { Trackers[Op->OpIdx] = Op->BeginMultiBlend(WriteIndex); }
 		for (const PCGExData::FWeightedPoint& P : InWeightedPoints) { Blenders[P.IO]->MultiBlend(P.Index, WriteIndex, P.Weight, Trackers); }
-		Blenders[0]->EndMultiBlend(WriteIndex, Trackers);
+		for (const auto Op : UniqueOps) { Op->EndMultiBlend(WriteIndex, Trackers[Op->OpIdx]); }
 	}
 
 	void FUnionOpsManager::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
