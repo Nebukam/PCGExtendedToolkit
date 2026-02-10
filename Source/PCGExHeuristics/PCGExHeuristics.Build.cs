@@ -12,6 +12,7 @@ public class PCGExHeuristics : ModuleRules
 		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
+		PrecompileForTargets = PrecompileTargetsType.Any;
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(
