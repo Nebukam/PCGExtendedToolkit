@@ -12,7 +12,7 @@
 
 #include "PCGExDistributeTuple.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "tuple distribute weighted random", PCGExNodeLibraryDoc="metadata/keys/distribute-tuple"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "tuple distribute weighted random", PCGExNodeLibraryDoc="metadata/keys/tuple-distribute"))
 class UPCGExDistributeTupleSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
