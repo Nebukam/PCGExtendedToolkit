@@ -154,6 +154,8 @@ namespace PCGExPathfindingGrowPaths
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxIO->GetIn(), PCGExData::EIOInit::New);
 		if (!VtxIO || !PathIO) { return; }
 
+		PathIO->IOIndex = VtxIO->IOIndex * 100000 + SeedPointIndex;
+
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 		PCGExClusters::Helpers::CleanupVtxData(PathIO);
