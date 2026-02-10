@@ -379,6 +379,11 @@ namespace PCGExSplitPath
 				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 				PCGExPaths::Helpers::SetClosedLoop(PointDataFacade->GetOut(), false);
 			}
+			else
+			{
+				// Filtered points didn't produce an effective split, forward as-is
+				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
+			}
 
 			return;
 		}
