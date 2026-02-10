@@ -377,6 +377,7 @@ namespace PCGExPathfindingPlotEdges
 				{
 					PCGEX_ASYNC_THIS
 					This->Context->BuildPath(Plot, This->QueriesIO[Plot->QueryIndex]);
+					This->QueriesIO[Plot->QueryIndex]->IOIndex = This->EdgeDataFacade->Source->IOIndex * 100000 + Plot->QueryIndex;
 					Plot->Cleanup();
 
 					// Start next query if there is one
@@ -408,6 +409,7 @@ namespace PCGExPathfindingPlotEdges
 			{
 				PCGEX_ASYNC_THIS
 				This->Context->BuildPath(Plot, This->QueriesIO[Plot->QueryIndex]);
+				This->QueriesIO[Plot->QueryIndex]->IOIndex = This->EdgeDataFacade->Source->IOIndex * 100000 + Plot->QueryIndex;
 				Plot->Cleanup();
 			};
 			Query->FindPaths(TaskManager, SearchOperation, SearchAllocations, HeuristicsHandler);
