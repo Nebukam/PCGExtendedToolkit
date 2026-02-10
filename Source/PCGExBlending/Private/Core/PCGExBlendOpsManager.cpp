@@ -143,7 +143,8 @@ namespace PCGExBlending
 
 				if (!Op->PrepareForData(InContext))
 				{
-					return false; // FAIL
+					if (!Factory->IsMonolithic()) { return false; }
+					continue; // Monolithic ops may fail when a source lacks the attribute
 				}
 
 				CachedOperations.Add(Op.Get());
@@ -189,9 +190,23 @@ namespace PCGExBlending
 		return ScopedTrackers->Get_Ref(Scope);
 	}
 
+	void FBlendOpsManager::RemapOperationIndices(const TMap<FName, int32>& SharedIndexMap, const int32 TotalCount)
+	{
+		for (const TSharedPtr<FPCGExBlendOperation>& Op : *Operations)
+		{
+			if (!Op) { continue; }
+			const FName Name = UPCGExBlendOpFactory::GetOutputTargetName(Op->Config);
+			if (const int32* Idx = SharedIndexMap.Find(Name))
+			{
+				Op->OpIdx = *Idx;
+			}
+		}
+		SharedOperationCount = TotalCount;
+	}
+
 	void FBlendOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		Trackers.SetNumUninitialized(Operations->Num());
+		Trackers.SetNumZeroed(GetNumOperations());
 	}
 
 	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const

@@ -384,13 +384,17 @@ FName UPCGExBlendOpFactory::GetOutputTargetName(const FPCGExAttributeBlendConfig
 
 	if (!RelevantSelector) { return NAME_None; }
 
-	if (RelevantSelector->GetSelection() == EPCGAttributePropertySelection::PointProperty)
+	const EPCGAttributePropertySelection Selection = RelevantSelector->GetSelection();
+
+	// Point property: map to $PropertyName using the same macro as GetPointPropertyBlendingParams
+	if (Selection != EPCGAttributePropertySelection::Attribute && Selection != EPCGAttributePropertySelection::ExtraProperty)
 	{
-		const UEnum* EnumPtr = StaticEnum<EPCGPointProperties>();
-		if (EnumPtr)
+		switch (RelevantSelector->GetPointProperty())
 		{
-			FString PropName = EnumPtr->GetNameStringByValue(static_cast<int64>(RelevantSelector->GetPointProperty()));
-			return FName(TEXT("$") + PropName);
+#define PCGEX_MAP_PP(_NAME, ...) case EPCGPointProperties::_NAME: return FName(TEXT("$" #_NAME));
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_MAP_PP)
+#undef PCGEX_MAP_PP
+		default: return NAME_None;
 		}
 	}
 

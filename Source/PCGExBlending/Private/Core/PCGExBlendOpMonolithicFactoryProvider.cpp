@@ -25,17 +25,14 @@ bool UPCGExBlendOpMonolithicFactory::CreateOperations(
 	// Gather point property params
 	BlendingDetails.GetPointPropertyBlendingParams(Params);
 
-	// Gather attribute params from source/target metadata
-	if (InSourceAFacade && InTargetFacade)
+	// Gather attribute params from source metadata
+	if (InSourceAFacade)
 	{
-		const UPCGMetadata* SourceMetadata = InSourceAFacade->Source->GetIn()->Metadata;
-		UPCGMetadata* TargetMetadata = InTargetFacade->GetOut()->Metadata;
-
 		BlendingDetails.GetBlendingParams(
-			SourceMetadata, TargetMetadata,
+			InSourceAFacade->GetIn()->Metadata, InSourceAFacade->GetIn()->Metadata,
 			Params, AttributeIdentifiers,
 			true, // bSkipProperties - already handled above
-			nullptr);
+			InSupersedeNames);
 	}
 
 	for (const PCGExBlending::FBlendingParam& Param : Params)
@@ -95,7 +92,7 @@ bool UPCGExBlendOpMonolithicFactory::RegisterConsumableAttributesWithData(FPCGEx
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExBlendOpMonolithicProviderSettings::GetPreconfiguredInfo() const
 {
 	const TSet ValuesToSkip = {EPCGExBlendingType::None, EPCGExBlendingType::Unset};
-	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExBlendingType>(ValuesToSkip, FTEXT("Monolithic : {0}"));
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExBlendingType>(ValuesToSkip, FTEXT("Blend All : {0}"));
 }
 #endif
 
@@ -124,10 +121,10 @@ FString UPCGExBlendOpMonolithicProviderSettings::GetDisplayName() const
 {
 	if (const UEnum* EnumPtr = StaticEnum<EPCGExBlendingType>())
 	{
-		return FString::Printf(TEXT("Monolithic (%s)"), *EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(BlendingDetails.DefaultBlending)).ToString());
+		return FString::Printf(TEXT("Blend All (%s)"), *EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(BlendingDetails.DefaultBlending)).ToString());
 	}
 
-	return TEXT("PCGEx | BlendOp : Monolithic");
+	return TEXT("PCGEx | BlendOp : Blend All");
 }
 #endif
 

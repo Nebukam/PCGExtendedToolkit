@@ -43,7 +43,7 @@ class PCGEXBLENDING_API UPCGExBlendOpMonolithicProviderSettings : public UPCGExF
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BlendOpMonolithic, "BlendOp : Monolithic", "Creates bulk blend operations from monolithic blending settings.", PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BlendOpMonolithic, "BlendOp : Blend All", "Creates bulk blend operations from monolithic blending settings.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEX_NODE_COLOR_NAME(BlendOp); }
 
 	virtual bool CanUserEditTitle() const override { return false; }
