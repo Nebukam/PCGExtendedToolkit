@@ -28,6 +28,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
+		PrecompileForTargets = PrecompileTargetsType.Any;
 
 		ConfigureBaseDependencies();
 

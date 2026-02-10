@@ -6,6 +6,7 @@
 #include "PropertyEditorModule.h"
 #include "Details/PCGExPropertyOverridesCustomization.h"
 #include "Details/PCGExPropertyOverrideEntryCustomization.h"
+#include "Details/PCGExWeightedPropertyOverridesCustomization.h"
 #include "Details/PCGExPropertyCompiledCustomization.h"
 #include "Details/PCGExPropertySchemaCollectionCustomization.h"
 #include "Details/PCGExPropertySchemaCustomization.h"
@@ -44,6 +45,13 @@ void FPCGExPropertiesEditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FPCGExPropertyOverrideEntry::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyOverrideEntryCustomization::MakeInstance)
+	);
+
+	// Register FPCGExWeightedPropertyOverrides customization - weight in header + flattened overrides
+	// Used by DistributeTuple (Values array)
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FPCGExWeightedPropertyOverrides::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExWeightedPropertyOverridesCustomization::MakeInstance)
 	);
 
 	// Register FPCGExPropertyCompiled customization for all 17 concrete types
