@@ -442,6 +442,20 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 };
 
 /**
+ * Property overrides with per-row weight for distribution.
+ * Used by Tuple : Distribute to assign weighted probability to each row.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXPROPERTIES_API FPCGExWeightedPropertyOverrides : public FPCGExPropertyOverrides
+{
+	GENERATED_BODY()
+
+	/** Weight for this row in distribution (higher = more likely to be picked) */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=0, UIMin=0))
+	int32 Weight = 1;
+};
+
+/**
  * Query helpers for accessing properties from FInstancedStruct arrays.
  * All functions accept TConstArrayView to work with both TArray and TArrayView.
  */

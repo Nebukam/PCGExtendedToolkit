@@ -13,6 +13,7 @@ public class PCGExElementsTensors : ModuleRules
 		
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
+		PrecompileForTargets = PrecompileTargetsType.Any;
 		//IWYUSupport = IWYUSupport.Full;
 
 		PublicIncludePaths.AddRange(

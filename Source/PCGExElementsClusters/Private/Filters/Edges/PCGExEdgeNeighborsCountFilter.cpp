@@ -81,7 +81,7 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeNeighborsCount)
 #if WITH_EDITOR
 FString UPCGExEdgeNeighborsCountFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = "Num Neighbors (";
+	FString DisplayName = "Num Vtx (";
 
 	switch (Config.Mode)
 	{
