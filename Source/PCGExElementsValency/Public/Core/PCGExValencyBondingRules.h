@@ -9,7 +9,7 @@
 #include "PCGExValencyCommon.h"
 #include "PCGExValencyOrbitalSet.h"
 #include "PCGExValencyPattern.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 
 #include "PCGExValencyBondingRules.generated.h"
 
@@ -162,7 +162,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	UPROPERTY()
 	TArray<FIntPoint> ModulePropertyHeaders;
 
-	/** Flattened array of all compiled properties for all modules */
+	/** Flattened array of all properties for all modules */
 	UPROPERTY()
 	TArray<FInstancedStruct> AllModuleProperties;
 

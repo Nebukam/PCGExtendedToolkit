@@ -167,7 +167,7 @@ namespace PCGExStagingLoadProperties
 			Cache.SourceByHash.Reserve(UniqueEntryHashes.Num());
 
 			// Initialize the output buffer
-			if (FPCGExPropertyCompiled* Prop = Cache.Writer.GetMutablePtr<FPCGExPropertyCompiled>())
+			if (FPCGExProperty* Prop = Cache.Writer.GetMutablePtr<FPCGExProperty>())
 			{
 				if (!Prop->InitializeOutput(PointDataFacade, OutputName))
 				{
@@ -192,19 +192,19 @@ namespace PCGExStagingLoadProperties
 				if (FPCGExEntryAccessResult Result = Context->CollectionPickUnpacker->ResolveEntry(Hash, MaterialPick);
 					Result.IsValid())
 				{
-					const FPCGExPropertyCompiled* Source = nullptr;
+					const FPCGExProperty* Source = nullptr;
 
 					// Check entry overrides first
 					if (const FInstancedStruct* SourceProp = Result.Entry->PropertyOverrides.GetOverride(PropName))
 					{
-						Source = SourceProp->GetPtr<FPCGExPropertyCompiled>();
+						Source = SourceProp->GetPtr<FPCGExProperty>();
 					}
 					else if (Result.Host)
 					{
 						// Fallback to collection defaults
 						if (const FInstancedStruct* CollectionProp = Result.Host->CollectionProperties.GetPropertyByName(PropName))
 						{
-							Source = CollectionProp->GetPtr<FPCGExPropertyCompiled>();
+							Source = CollectionProp->GetPtr<FPCGExProperty>();
 						}
 					}
 
@@ -249,7 +249,7 @@ namespace PCGExStagingLoadProperties
 			{
 				const FPropertyCache& Cache = CachePair.Value;
 
-				if (const FPCGExPropertyCompiled* const* SourcePtr = Cache.SourceByHash.Find(Hash))
+				if (const FPCGExProperty* const* SourcePtr = Cache.SourceByHash.Find(Hash))
 				{
 					Cache.WriterPtr->WriteOutputFrom(i, *SourcePtr);
 				}

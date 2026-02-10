@@ -3,7 +3,7 @@
 
 #include "Elements/PCGExValencyStaging.h"
 
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "PCGParamData.h"
 #include "Clusters/PCGExCluster.h"
 #include "Data/PCGBasePointData.h"

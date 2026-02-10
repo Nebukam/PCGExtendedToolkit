@@ -7,7 +7,7 @@
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -32,7 +32,7 @@ FText FPCGExPropertyOverrideEntryCustomization::GetEntryLabelText() const
 		const FPCGExPropertyOverrideEntry* Entry = static_cast<FPCGExPropertyOverrideEntry*>(RawData[0]);
 		if (Entry && Entry->Value.IsValid())
 		{
-			if (const FPCGExPropertyCompiled* Prop = Entry->Value.GetPtr<FPCGExPropertyCompiled>())
+			if (const FPCGExProperty* Prop = Entry->Value.GetPtr<FPCGExProperty>())
 			{
 				PropertyName = Prop->PropertyName;
 				TypeName = Prop->GetTypeName().ToString();

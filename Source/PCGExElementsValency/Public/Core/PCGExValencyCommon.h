@@ -471,7 +471,7 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	TMap<FName, FPCGExValencyModuleLayerConfig> Layers;
 
 	/**
-	 * Compiled properties from cage property components.
+	 * Properties from cage property components.
 	 * Accessible at solver, matcher, and replacement stages.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")

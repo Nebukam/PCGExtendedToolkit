@@ -7,7 +7,7 @@
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBox.h"
 
@@ -31,7 +31,7 @@ void FPCGExPropertyCompiledCustomization::CustomizeHeader(
 	PropertyHandle->AccessRawData(RawData);
 	if (!RawData.IsEmpty() && RawData[0])
 	{
-		if (const FPCGExPropertyCompiled* Prop = static_cast<const FPCGExPropertyCompiled*>(RawData[0]))
+		if (const FPCGExProperty* Prop = static_cast<const FPCGExProperty*>(RawData[0]))
 		{
 			TypeName = Prop->GetTypeName().ToString();
 		}
