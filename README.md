@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="https://pcgex.gitbook.io/pcgex">Documentation</a> •
-  <a href="https://pcgex.gitbook.io/pcgex/general/quickstart/installation">Installation</a> •
+  <a href="https://pcgex.gitbook.io/pcgex/working-with-pcgex/getting-started/installation">Installation</a> •
   <a href="https://pcgex.gitbook.io/pcgex/changelogs">Changelogs</a> •
   <a href="https://discord.gg/mde2vC5gbE">Discord</a> •
   <a href="https://www.patreon.com/c/pcgex">Support on Patreon</a>
@@ -42,11 +42,11 @@ PCGEx is available through multiple channels:
 - **[FAB](https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624)** — Epic's official marketplace
 - **[Source](https://github.com/Nebukam/PCGExtendedToolkit)** — Build from GitHub
 
-See the [Installation Guide](https://pcgex.gitbook.io/pcgex/general/quickstart/installation) for detailed instructions.
+See the [Installation Guide](https://pcgex.gitbook.io/pcgex/working-with-pcgex/getting-started/installation) for detailed instructions.
 
 ### Example Project
 
-The best way to learn PCGEx is through the **[Example Project](https://pcgex.gitbook.io/pcgex/basics/quickstart/example-project)**, which contains hundred of annotated graphs and complex examples demonstrating PCGEx capabilities.
+The best way to learn PCGEx is through the **[Example Project](https://pcgex.gitbook.io/pcgex/working-with-pcgex/getting-started/example-project)**, which contains hundred of annotated graphs and complex examples demonstrating PCGEx capabilities.
 
 <img width="1256" height="902" alt="image" src="https://github.com/user-attachments/assets/017164af-ac4c-4ff2-b0ae-a76a32d40ed2" />
 
