@@ -100,40 +100,55 @@ namespace PCGExBlending
 		if (!WeightFacade) { WeightFacade = SourceAFacade; }
 		check(WeightFacade)
 
+		// Phase 1: Build supersede set from non-monolithic (individual) factory output names
+		TSet<FName> SupersedeNames;
+		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : InFactories)
+		{
+			if (Factory->IsMonolithic()) { continue; }
+			const FName OutputName = UPCGExBlendOpFactory::GetOutputTargetName(Factory->Config);
+			if (!OutputName.IsNone()) { SupersedeNames.Add(OutputName); }
+		}
+
 		Operations->Reserve(InFactories.Num());
 		CachedOperations.Reserve(InFactories.Num());
 
+		// Phase 2: Create operations from all factories, passing supersede set
 		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : InFactories)
 		{
-			TSharedPtr<FPCGExBlendOperation> Op = Factory->CreateOperation(InContext);
-			if (!Op)
+			TArray<TSharedPtr<FPCGExBlendOperation>> NewOps;
+
+			if (!Factory->CreateOperations(InContext, SourceAFacade, TargetFacade, NewOps, &SupersedeNames))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An operation could not be created."));
 				return false; // FAIL
 			}
 
-			Op->bUsedForMultiBlendOnly = bUsedForMultiBlendOnly;
-
-			// Assign blender facades
-			Op->WeightFacade = WeightFacade;
-
-			Op->Source_A_Facade = SourceAFacade;
-			Op->SideA = SideA;
-
-			Op->Source_B_Facade = SourceBFacade;
-			Op->SideB = SideB;
-
-			Op->TargetFacade = TargetFacade;
-
-			Op->OpIdx = Operations->Add(Op);
-			Op->SiblingOperations = Operations;
-
-			if (!Op->PrepareForData(InContext))
+			for (const TSharedPtr<FPCGExBlendOperation>& Op : NewOps)
 			{
-				return false; // FAIL
-			}
+				Op->bUsedForMultiBlendOnly = bUsedForMultiBlendOnly;
 
-			CachedOperations.Add(Op.Get());
+				// Assign blender facades
+				Op->WeightFacade = WeightFacade;
+
+				Op->Source_A_Facade = SourceAFacade;
+				Op->SideA = SideA;
+
+				Op->Source_B_Facade = SourceBFacade;
+				Op->SideB = SideB;
+
+				Op->TargetFacade = TargetFacade;
+
+				Op->OpIdx = Operations->Add(Op);
+				Op->SiblingOperations = Operations;
+
+				if (!Op->PrepareForData(InContext))
+				{
+					if (!Factory->IsMonolithic()) { return false; }
+					continue; // Monolithic ops may fail when a source lacks the attribute
+				}
+
+				CachedOperations.Add(Op.Get());
+			}
 		}
 
 		return true;
@@ -175,9 +190,23 @@ namespace PCGExBlending
 		return ScopedTrackers->Get_Ref(Scope);
 	}
 
+	void FBlendOpsManager::RemapOperationIndices(const TMap<FName, int32>& SharedIndexMap, const int32 TotalCount)
+	{
+		for (const TSharedPtr<FPCGExBlendOperation>& Op : *Operations)
+		{
+			if (!Op) { continue; }
+			const FName Name = UPCGExBlendOpFactory::GetOutputTargetName(Op->Config);
+			if (const int32* Idx = SharedIndexMap.Find(Name))
+			{
+				Op->OpIdx = *Idx;
+			}
+		}
+		SharedOperationCount = TotalCount;
+	}
+
 	void FBlendOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		Trackers.SetNumUninitialized(Operations->Num());
+		Trackers.SetNumZeroed(GetNumOperations());
 	}
 
 	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const
