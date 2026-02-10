@@ -43,7 +43,7 @@ namespace PCGExData
 	public:
 		//int32 Index = 0;
 		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> IOSet;
-		TArray<FElement, TInlineAllocator<8>> Elements;
+		TSet<FElement, DefaultKeyFuncs<FElement>, InlineSparseAllocator> Elements;
 
 		IUnionData() = default;
 		virtual ~IUnionData() = default;
@@ -53,7 +53,7 @@ namespace PCGExData
 		FORCEINLINE void Add_Unsafe(const FElement& Point)
 		{
 			IOSet.Add(Point.IO);
-			Elements.Emplace(Point.Index == -1 ? 0 : Point.Index, Point.IO);
+			Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
 		}
 
 		void Add(const FElement& Point);
@@ -61,7 +61,7 @@ namespace PCGExData
 		FORCEINLINE void Add_Unsafe(const int32 Index, const int32 IO)
 		{
 			IOSet.Add(IO);
-			Elements.Emplace(Index == -1 ? 0 : Index, IO);
+			Elements.Add(FElement(Index == -1 ? 0 : Index, IO));
 		}
 
 		void Add(const int32 Index, const int32 IO);

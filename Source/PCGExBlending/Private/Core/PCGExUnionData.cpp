@@ -86,7 +86,7 @@ namespace PCGExData
 
 	void IUnionData::Reserve(const int32 InSetReserve, const int32 InElementReserve = 8)
 	{
-		if (InElementReserve > 8 && Elements.Max() < InElementReserve) { Elements.Reserve(InElementReserve); }
+		if (InElementReserve > 8) { Elements.Reserve(InElementReserve); }
 		if (InSetReserve > 8) { IOSet.Reserve(InSetReserve); }
 	}
 
