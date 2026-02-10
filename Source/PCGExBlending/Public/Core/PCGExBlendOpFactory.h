@@ -217,7 +217,20 @@ public:
 	TSharedPtr<PCGExData::FFacade> ConstantB;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
+	virtual bool IsMonolithic() const { return false; }
+
 	virtual TSharedPtr<FPCGExBlendOperation> CreateOperation(FPCGExContext* InContext) const;
+
+	/** Creates one or more operations from this factory. Default wraps CreateOperation(). Monolithic overrides enumerate all attributes. */
+	virtual bool CreateOperations(
+		FPCGExContext* InContext,
+		const TSharedPtr<PCGExData::FFacade>& InSourceAFacade,
+		const TSharedPtr<PCGExData::FFacade>& InTargetFacade,
+		TArray<TSharedPtr<FPCGExBlendOperation>>& OutOperations,
+		const TSet<FName>* InSupersedeNames = nullptr) const;
+
+	/** Extracts the output target name from a blend config, using $PropertyName convention for point properties. */
+	static FName GetOutputTargetName(const FPCGExAttributeBlendConfig& InConfig);
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 
