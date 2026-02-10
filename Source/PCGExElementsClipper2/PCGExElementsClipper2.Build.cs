@@ -13,6 +13,7 @@ public class PCGExElementsClipper2 : ModuleRules
 		PCHUsage = bNoPCH ? PCHUsageMode.NoPCHs : PCHUsageMode.UseExplicitOrSharedPCHs;
 		bUseUnity = true;                                                                                                     
 		MinSourceFilesForUnityBuildOverride = 4;
+		PrecompileForTargets = PrecompileTargetsType.Any;
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
