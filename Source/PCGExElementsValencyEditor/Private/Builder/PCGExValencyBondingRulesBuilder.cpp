@@ -672,8 +672,8 @@ void UPCGExValencyBondingRulesBuilder::ValidateModulePropertyTypes(
 
 		for (const FInstancedStruct& Prop : Module.Properties)
 		{
-			// Get property name from the compiled property base
-			const FPCGExPropertyCompiled* Base = Prop.GetPtr<FPCGExPropertyCompiled>();
+			// Get property name from the property base
+			const FPCGExProperty* Base = Prop.GetPtr<FPCGExProperty>();
 			if (!Base)
 			{
 				continue;

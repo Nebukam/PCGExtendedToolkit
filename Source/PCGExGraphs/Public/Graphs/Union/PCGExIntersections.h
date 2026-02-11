@@ -54,23 +54,20 @@ namespace PCGExGraphs
 
 	class PCGEXGRAPHS_API FUnionNode : public TSharedFromThis<FUnionNode>
 	{
-	protected:
-		mutable FRWLock AdjacencyLock;
-
 	public:
 		const PCGExData::FConstPoint Point;
 		FVector Center;
 		FBoxSphereBounds Bounds;
 		int32 Index;
 
-		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> Adjacency;
+		FVector CenterAccum;
+		int32 FuseCount = 1;
 
 		FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex);
 		~FUnionNode() = default;
 
-		FVector UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
-
-		void Add(const int32 InAdjacency);
+		FORCEINLINE FVector GetCenter() const { return CenterAccum / static_cast<double>(FuseCount); }
+		FORCEINLINE void Accumulate(const FVector& Position) { CenterAccum += Position; FuseCount++; }
 	};
 
 	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->Bounds;}, { return A->Index == B->Index; })
@@ -81,7 +78,6 @@ namespace PCGExGraphs
 
 	public:
 		PCGExMT::TH64MapShards<int32> NodeBinsShards;
-		TMap<uint64, int32> NodeBins;
 
 		TWeakPtr<PCGExData::FPointIOCollection> SourceCollection = nullptr;
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
@@ -89,12 +85,13 @@ namespace PCGExGraphs
 		TArray<TSharedPtr<FUnionNode>> Nodes;
 
 		PCGExMT::TH64MapShards<int32> EdgesMapShards;
-		TMap<uint64, int32> EdgesMap;
 		TArray<FEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
 
 		FBox Bounds;
+
+		bool bNodesSorted = false;
 
 		TUniquePtr<FUnionNodeOctree> Octree;
 
@@ -111,19 +108,36 @@ namespace PCGExGraphs
 		void Reserve(const int32 NodeReserve, const int32 EdgeReserve);
 
 		FORCEINLINE int32 GetNumCollapsedEdges() const { return NumCollapsedEdges; }
+		FORCEINLINE bool RequiresSequentialInsertion() const { return Octree != nullptr; }
 
 		int32 InsertPoint(const PCGExData::FConstPoint& Point);
-		int32 InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);
 
 		void InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
-		void InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
-
-		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 
 		void Collapse();
+
+		/** RAII batch inserter for sequential use. Holds both locks for the lifetime,
+		 *  avoiding per-element lock overhead when inserting from a single thread. */
+		class PCGEXGRAPHS_API FBatchInserter
+		{
+			FUnionGraph& Graph;
+			FWriteScopeLock UnionLk;
+			FWriteScopeLock EdgesLk;
+
+		public:
+			explicit FBatchInserter(FUnionGraph& InGraph)
+				: Graph(InGraph), UnionLk(InGraph.UnionLock), EdgesLk(InGraph.EdgesLock)
+			{
+			}
+
+			int32 InsertPoint(const PCGExData::FConstPoint& Point);
+			void InsertEdge(const PCGExData::FConstPoint& From,
+			                const PCGExData::FConstPoint& To,
+			                const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+		};
 	};
 
 #pragma endregion
@@ -152,10 +166,14 @@ namespace PCGExGraphs
 		void BuildCache();
 	};
 
-	class PCGEXGRAPHS_API FEdgeProxy : public TSharedFromThis<FEdgeProxy>
+	/** Base proxy for edge intersection detection.
+	 *  Not polymorphic — derived types (FPointEdgeProxy, FEdgeEdgeProxy) are always used
+	 *  through concrete TSharedPtr, never through base pointers. InitProxy accepts
+	 *  TSharedPtr<FEdgeProxy> for convenience but only calls the non-virtual Init(). */
+	class PCGEXGRAPHS_API FEdgeProxy
 	{
 	public:
-		virtual ~FEdgeProxy() = default;
+		~FEdgeProxy() = default;
 		int32 Index = -1;
 		int32 Start = 0;
 		int32 End = 0;
@@ -163,8 +181,7 @@ namespace PCGExGraphs
 
 		FEdgeProxy() = default;
 
-		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance);
-		virtual bool IsEmpty() const { return true; }
+		void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance);
 	};
 
 #pragma region Point Edge intersections
@@ -183,11 +200,10 @@ namespace PCGExGraphs
 	public:
 		TArray<FPESplit, TInlineAllocator<8>> CollinearPoints;
 
-		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, double Tolerance) override;
 		bool FindSplit(const int32 PointIndex, const TSharedPtr<FIntersectionCache>& Cache, FPESplit& OutSplit) const;
 		void Add(const FPESplit& Split);
 
-		virtual bool IsEmpty() const override { return CollinearPoints.IsEmpty(); }
+		bool IsEmpty() const { return CollinearPoints.IsEmpty(); }
 	};
 
 	class PCGEXGRAPHS_API FPointEdgeIntersections : public FIntersectionCache
@@ -206,9 +222,10 @@ namespace PCGExGraphs
 		~FPointEdgeIntersections() = default;
 	};
 
-	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
-
-	void FindCollinearNodes_NoSelfIntersections(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
+	/** Find graph nodes that are collinear with (lie on) the given edge within tolerance.
+	 *  When bEnableSelfIntersection is false, nodes that share an IO source with the
+	 *  edge's root are skipped — preventing edges from being split by their own cluster's nodes. */
+	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy, bool bEnableSelfIntersection);
 
 #pragma endregion
 
@@ -248,7 +265,7 @@ namespace PCGExGraphs
 		TArray<FEECrossing> Crossings;
 
 		bool FindSplit(const FEdge& OtherEdge, const TSharedPtr<FIntersectionCache>& Cache);
-		virtual bool IsEmpty() const override { return Crossings.IsEmpty(); }
+		bool IsEmpty() const { return Crossings.IsEmpty(); }
 	};
 
 	class PCGEXGRAPHS_API FEdgeEdgeIntersections : public FIntersectionCache
@@ -273,9 +290,10 @@ namespace PCGExGraphs
 		~FEdgeEdgeIntersections() = default;
 	};
 
-	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
-
-	void FindOverlappingEdges_NoSelfIntersections(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
+	/** Find edges that cross the given edge within tolerance, recording crossings in the proxy.
+	 *  When bEnableSelfIntersection is false, edges whose root metadata shares an IO source
+	 *  with this edge's root are skipped — preventing intra-cluster edge crossings. */
+	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy, bool bEnableSelfIntersection);
 
 #pragma endregion
 }

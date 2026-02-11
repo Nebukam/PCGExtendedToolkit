@@ -296,6 +296,9 @@ namespace PCGExSimplifyClusters
 		GraphBuilder->Graph->EdgesUnion->SetNum(PCGExData::PCGExPointIO::GetTotalPointsNum(Edges));
 		GraphBuilder->Graph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
+		// Pre-size edge metadata so the locked GetOrCreateEdgeMetadata never needs to auto-grow
+		GraphBuilder->Graph->ReserveForEdges(PCGExData::PCGExPointIO::GetTotalPointsNum(Edges));
+
 		const int32 NumPoints = VtxDataFacade->GetNum();
 		Breakpoints = MakeShared<TArray<int8>>();
 

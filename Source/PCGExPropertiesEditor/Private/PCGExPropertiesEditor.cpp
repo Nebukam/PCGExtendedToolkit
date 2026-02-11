@@ -10,7 +10,7 @@
 #include "Details/PCGExPropertyCompiledCustomization.h"
 #include "Details/PCGExPropertySchemaCollectionCustomization.h"
 #include "Details/PCGExPropertySchemaCustomization.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "PCGExPropertyTypes.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExPropertiesEditorModule"
@@ -58,7 +58,7 @@ void FPCGExPropertiesEditorModule::StartupModule()
 	// This hides PropertyName field (shown in entry header) and only shows value fields
 	#define REGISTER_PROPERTY_COMPILED_CUSTOMIZATION(TypeName) \
 		PropertyModule.RegisterCustomPropertyTypeLayout( \
-			FPCGExPropertyCompiled_##TypeName::StaticStruct()->GetFName(), \
+			FPCGExProperty_##TypeName::StaticStruct()->GetFName(), \
 			FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExPropertyCompiledCustomization::MakeInstance) \
 		);
 

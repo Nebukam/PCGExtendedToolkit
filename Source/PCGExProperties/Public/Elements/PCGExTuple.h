@@ -12,14 +12,28 @@
 #include "Core/PCGExContext.h"
 #include "Core/PCGExElement.h"
 #include "Core/PCGExSettings.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 
 #include "PCGExTuple.generated.h"
 
 class FPCGMetadataAttributeBase;
 
-// Tuple now uses the unified property system (FPCGExPropertySchema)
-// All value types (Boolean, Float, String, etc.) use FPCGExPropertyCompiled_* from PCGExPropertyCompiled.h
+// ============================================================================
+// TUPLE NODE - Reference implementation for the property system
+// ============================================================================
+//
+// The Tuple node is the simplest consumer of the property system.
+// It demonstrates how to:
+// - Use FPCGExPropertySchemaCollection to define columns (Composition)
+// - Use TArray<FPCGExPropertyOverrides> for row values (Values)
+// - Sync overrides to schema in PostEditChangeProperty
+// - Create metadata attributes from properties (CreateMetadataAttribute)
+// - Write property values to metadata entries (WriteMetadataValue)
+//
+// If you're building a node that needs user-definable typed properties,
+// this is the best starting point to study.
+//
+// All value types (Boolean, Float, String, etc.) use FPCGExProperty_* from PCGExProperty.h
 
 #pragma region Tuple Header and Body
 
