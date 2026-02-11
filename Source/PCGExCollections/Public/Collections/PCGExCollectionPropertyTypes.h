@@ -4,19 +4,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 
 #include "PCGExCollectionPropertyTypes.generated.h"
 
 class UPCGExAssetCollection;
 
 /**
- * Compiled property referencing a PCGExAssetCollection.
+ * Property referencing a PCGExAssetCollection.
  * Used for mesh/actor swapping based on pattern matches.
  * Does not support direct attribute output.
  */
 USTRUCT(BlueprintType)
-struct PCGEXCOLLECTIONS_API FPCGExPropertyCompiled_AssetCollection : public FPCGExPropertyCompiled
+struct PCGEXCOLLECTIONS_API FPCGExProperty_AssetCollection : public FPCGExProperty
 {
 	GENERATED_BODY()
 

@@ -111,13 +111,7 @@ struct PCGEXBLENDING_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 
 	const PCGExMath::IDistances* Distances;
 
-	/** Slow but deterministic. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Stabilize Insertion Order"))
-	bool bInlineInsertion = true;
-
 	virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade) override;
-
-	bool DoInlineInsertion() const { return bInlineInsertion; }
 
 	uint64 GetGridKey(const FVector& Location, const int32 PointIndex) const;
 	FBox GetOctreeBox(const FVector& Location, const int32 PointIndex) const;

@@ -24,7 +24,7 @@ public:
 /**
  *
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Leaves (Recursive)", PCGExNodeLibraryDoc="clusters/refine-cluster/remove-leaves-recursive"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Leaves (Recursive)", PCGExNodeLibraryDoc="clusters/refine/cluster-refine/remove-leaves-recursive"))
 class UPCGExEdgeRemoveLeavesRecursive : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()

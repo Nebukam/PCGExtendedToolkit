@@ -27,7 +27,7 @@ public:
 /**
  *
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : β Skeleton", PCGExNodeLibraryDoc="clusters/refine-cluster/v-skeleton"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : β Skeleton", PCGExNodeLibraryDoc="clusters/refine/cluster-refine/refine-v-skeleton"))
 class UPCGExEdgeRefineSkeleton : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()

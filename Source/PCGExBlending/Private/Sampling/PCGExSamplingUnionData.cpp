@@ -68,8 +68,6 @@ namespace PCGExSampling
 			}
 		}
 
-		//OutWeightedPoints.Sort([](const PCGExData::FWeightedPoint& A, const PCGExData::FWeightedPoint& B) { return A.Weight < B.Weight; });
-
 		if (Index == 0) { return 0; }
 		if (TotalWeight == 0)
 		{
@@ -78,8 +76,6 @@ namespace PCGExSampling
 			return Index;
 		}
 
-		// Normalize weights
-		//for (PCGExData::FWeightedPoint& P : OutWeightedPoints) { P.Weight /= TotalWeight; }
 		return Index;
 	}
 
