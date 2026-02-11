@@ -85,6 +85,10 @@ namespace PCGExGraphs
 		// Required for union graphs where node indices are non-deterministic due to parallel insertion.
 		bool bRequiresEdgeResort = false;
 
+		// When true, nodes have been pre-sorted spatially at Collapse() time.
+		// Skip the Morton sort in Compile() since spatial ordering is already established.
+		bool bNodesPreSorted = false;
+
 		FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails);
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }

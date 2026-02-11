@@ -83,8 +83,6 @@ namespace PCGExGraphs
 		{
 			PCGEX_ASYNC_THIS
 
-			const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = This->UnionGraph->NodesUnion;
-			const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->UnionGraph->SourceCollection.Pin();
 			const TSharedPtr<PCGExBlending::IUnionBlender> Blender = This->UnionBlender;
 
 			TArray<PCGExData::FWeightedPoint> WeightedPoints;
@@ -104,7 +102,7 @@ namespace PCGExGraphs
 				//FPCGPoint& Point = OutPoints[Index];
 				//Point.MetadataEntry = Key; // Restore key
 
-				OutTransforms[Index].SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
+				OutTransforms[Index].SetLocation(UnionNode->GetCenter());
 				Blender->MergeSingle(Index, WeightedPoints, Trackers);
 			}
 		};
@@ -132,14 +130,13 @@ namespace PCGExGraphs
 
 		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails);
 		GraphBuilder->bInheritNodeData = false;
-		GraphBuilder->bRequiresEdgeResort = !PointPointIntersectionDetails.FuseDetails.DoInlineInsertion(); // Union graph node indices are non-deterministic
+		GraphBuilder->bRequiresEdgeResort = false; // All insertion is sequential → deterministic node ordering
+		GraphBuilder->bNodesPreSorted = UnionGraph->bNodesSorted;
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;
 
-		TArray<FEdge> UniqueEdges;
-		UnionGraph->GetUniqueEdges(UniqueEdges);
-		GraphBuilder->Graph->InsertEdges(UniqueEdges);
+		GraphBuilder->Graph->AdoptEdges(UnionGraph->Edges);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), WriteMetadataTask);
 		WriteMetadataTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
@@ -247,23 +244,14 @@ namespace PCGExGraphs
 				EdgeProxy->CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; }); \
 				EdgeProxy = MakeShared<FPointEdgeProxy>();
 
-			if (PEI->Details->bEnableSelfIntersection)
+			// Self-intersection bool is hoisted out of the loop — FindCollinearNodes handles
+			// the branching internally (computing RootIOIndices only when needed).
+			const bool bSelfIntersect = PEI->Details->bEnableSelfIntersection;
+			PCGEX_SCOPE_LOOP(Index)
 			{
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
-					FindCollinearNodes(PEI, EdgeProxy);
-					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
-				}
-			}
-			else
-			{
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
-					FindCollinearNodes_NoSelfIntersections(PEI, EdgeProxy);
-					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
-				}
+				if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
+				FindCollinearNodes(PEI, EdgeProxy, bSelfIntersect);
+				if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
 			}
 #undef PCGEX_FOUND_PE
 		};
@@ -274,9 +262,18 @@ namespace PCGExGraphs
 
 	void FUnionProcessor::OnPointEdgeIntersectionsFound()
 	{
-		if (PointEdgeIntersections) { PointEdgeIntersections->InsertEdges(); }
+		if (!PointEdgeIntersections)
+		{
+			OnPointEdgeIntersectionsComplete();
+			return;
+		}
 
-		if (!PointEdgeIntersections || PointEdgeIntersections->Edges.IsEmpty())
+		// InsertEdges collapses ScopedEdges into Edges, then creates sub-edges in the graph.
+		// Must only be called once — a second call would find duplicates via InsertEdge_Unsafe
+		// and incorrectly increment UnionSize on existing metadata.
+		PointEdgeIntersections->InsertEdges();
+
+		if (PointEdgeIntersections->Edges.IsEmpty())
 		{
 			OnPointEdgeIntersectionsComplete();
 			return;
@@ -284,7 +281,6 @@ namespace PCGExGraphs
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), BlendPointEdgeGroup)
 
-		PointEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
 
 		MetadataBlender = MakeShared<PCGExBlending::FMetadataBlender>();
@@ -371,23 +367,13 @@ namespace PCGExGraphs
 
 			TSharedPtr<FEdgeEdgeProxy> EdgeProxy = MakeShared<FEdgeEdgeProxy>();
 
-			if (EEI->Details->bEnableSelfIntersection)
+			// Same pattern as PE: self-intersection bool hoisted, FindOverlappingEdges handles internally.
+			const bool bSelfIntersect = EEI->Details->bEnableSelfIntersection;
+			PCGEX_SCOPE_LOOP(Index)
 			{
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
-					FindOverlappingEdges(EEI, EdgeProxy);
-					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
-				}
-			}
-			else
-			{
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
-					FindOverlappingEdges_NoSelfIntersections(EEI, EdgeProxy);
-					if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
-				}
+				if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
+				FindOverlappingEdges(EEI, EdgeProxy, bSelfIntersect);
+				if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
 			}
 
 #undef PCGEX_FOUND_EE

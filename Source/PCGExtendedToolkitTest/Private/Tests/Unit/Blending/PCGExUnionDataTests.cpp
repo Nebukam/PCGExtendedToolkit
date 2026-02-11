@@ -85,7 +85,7 @@ bool FPCGExUnionDataAddSingleTest::RunTest(const FString& Parameters)
 
 	TestFalse(TEXT("Union is not empty after add"), Union.IsEmpty());
 	TestEqual(TEXT("Num() is 1 after single add"), Union.Num(), 1);
-	TestTrue(TEXT("IOSet contains the IO index"), Union.IOSet.Contains(0));
+	TestTrue(TEXT("ContainsIO returns true for the IO index"), Union.ContainsIO(0));
 	return true;
 }
 
@@ -146,7 +146,7 @@ bool FPCGExUnionDataUniqueElementsTest::RunTest(const FString& Parameters)
 	Union.Add_Unsafe(1, 0);
 	Union.Add_Unsafe(2, 0);
 	TestEqual(TEXT("3 unique points from same IO -> Num()==3"), Union.Num(), 3);
-	TestEqual(TEXT("IOSet has 1 unique IO"), Union.IOSet.Num(), 1);
+	TestEqual(TEXT("GetIOSet has 1 unique IO"), Union.GetIOSet().Num(), 1);
 
 	// Same point index from different IOs (genuine multi-source union)
 	{
@@ -155,7 +155,7 @@ bool FPCGExUnionDataUniqueElementsTest::RunTest(const FString& Parameters)
 		Union2.Add_Unsafe(0, 1);
 		Union2.Add_Unsafe(0, 2);
 		TestEqual(TEXT("Same point index from 3 different IOs -> Num()==3"), Union2.Num(), 3);
-		TestEqual(TEXT("IOSet has 3 unique IOs"), Union2.IOSet.Num(), 3);
+		TestEqual(TEXT("GetIOSet has 3 unique IOs"), Union2.GetIOSet().Num(), 3);
 	}
 
 	return true;
@@ -199,7 +199,7 @@ bool FPCGExUnionDataBatchAddTest::RunTest(const FString& Parameters)
 		TArray<int32> Indices = {0, 1, 2, 3, 4};
 		Union.Add_Unsafe(0, Indices);
 		TestEqual(TEXT("Batch add of 5 unique indices -> Num()==5"), Union.Num(), 5);
-		TestTrue(TEXT("IOSet contains IO 0"), Union.IOSet.Contains(0));
+		TestTrue(TEXT("ContainsIO returns true for IO 0"), Union.ContainsIO(0));
 	}
 
 	// Batch add with duplicates
@@ -233,7 +233,7 @@ bool FPCGExUnionDataResetTest::RunTest(const FString& Parameters)
 	Union.Reset();
 	TestTrue(TEXT("After reset, IsEmpty"), Union.IsEmpty());
 	TestEqual(TEXT("After reset, Num()==0"), Union.Num(), 0);
-	TestEqual(TEXT("After reset, IOSet is empty"), Union.IOSet.Num(), 0);
+	TestEqual(TEXT("After reset, GetIOSet is empty"), Union.GetIOSet().Num(), 0);
 
 	// Can add again after reset
 	Union.Add_Unsafe(10, 5);
