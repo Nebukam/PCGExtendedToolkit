@@ -266,7 +266,7 @@ namespace PCGExGraphs
 			TRACE_CPUPROFILER_EVENT_SCOPE(PrepareMetadata)
 
 			MetadataDetails = InBuilder->GetMetadataDetails();
-			const bool bHasUnionMetadata = (MetadataDetails && InBuilder && !ParentGraph->EdgeMetadata.IsEmpty());
+			const bool bHasUnionMetadata = (MetadataDetails && InBuilder && ParentGraph->HasAnyEdgeMetadata());
 
 #define PCGEX_FOREACH_EDGE_METADATA(MACRO)\
 MACRO(IsEdgeUnion, bool, false, IsUnion()) \
@@ -394,7 +394,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TPCGValueRange<int32> EdgeSeeds = OutEdgeData->GetSeedValueRange(false);
 
-		const bool bHasUnionMetadata = (MetadataDetails && !ParentGraph->EdgeMetadata.IsEmpty());
+		const bool bHasUnionMetadata = (MetadataDetails && ParentGraph->HasAnyEdgeMetadata());
 		const FVector SeedOffset = FVector(EdgesDataFacade->Source->IOIndex);
 
 		TArray<PCGExData::FWeightedPoint> WeightedPoints;

@@ -186,6 +186,18 @@ namespace PCGExGraphs
 				// We save a bit of memory by re-using it
 				PCGExArrayHelpers::ArrayOfIndices(ReadIndices, OutNodeData->GetNumPoints());
 
+				if (bNodesPreSorted)
+				{
+					// Nodes already sorted at Collapse() time - just remap without re-sorting
+					PCGEX_PARALLEL_FOR(
+						NumValidNodes,
+						const int32 Idx = ValidNodes[i];
+						FNode& Node = Nodes[Idx];
+						ReadIndices[i] = Node.PointIndex;
+						Node.PointIndex = i;
+					)
+				}
+				else
 				{
 					TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::Sort);
 
@@ -248,7 +260,7 @@ namespace PCGExGraphs
 			)
 		}
 
-		if (MetadataDetails && !Graph->NodeMetadata.IsEmpty())
+		if (MetadataDetails && Graph->HasAnyNodeMetadata())
 		{
 #define PCGEX_FOREACH_NODE_METADATA(MACRO)\
 			MACRO(IsPointUnion, bool, false, IsUnion()) \

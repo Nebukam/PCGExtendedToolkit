@@ -35,10 +35,14 @@ namespace PCGExGraphs
 		TArray<FEdge> Edges;
 
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
-		TMap<int32, FGraphNodeMetadata> NodeMetadata;
+		TArray<FGraphNodeMetadata> NodeMetadata;
+		TBitArray<> HasNodeMetadata;
+		bool bHasAnyNodeMetadata = false;
 
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
-		TMap<int32, FGraphEdgeMetadata> EdgeMetadata;
+		TArray<FGraphEdgeMetadata> EdgeMetadata;
+		TBitArray<> HasEdgeMetadata;
+		bool bHasAnyEdgeMetadata = false;
 
 		TMap<uint64, int32> UniqueEdges;
 
@@ -65,6 +69,9 @@ namespace PCGExGraphs
 		void InsertEdges(const TArray<uint64>& InEdges, int32 InIOIndex);
 		int32 InsertEdges(const TArray<FEdge>& InEdges);
 
+		/** Bulk-adopt pre-deduplicated edges without hash checking. Edges are guaranteed unique from FUnionGraph. */
+		void AdoptEdges(TArray<FEdge>& InEdges);
+
 		FEdge* FindEdge_Unsafe(const uint64 Hash);
 		FEdge* FindEdge_Unsafe(const int32 A, const int32 B);
 		FEdge* FindEdge(const uint64 Hash);
@@ -72,48 +79,90 @@ namespace PCGExGraphs
 
 #pragma region metadata
 
+		FORCEINLINE bool HasAnyNodeMetadata() const { return bHasAnyNodeMetadata; }
+		FORCEINLINE bool HasAnyEdgeMetadata() const { return bHasAnyEdgeMetadata; }
+
 		FORCEINLINE FGraphEdgeMetadata& GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const int32 RootIndex = -1)
 		{
-			return EdgeMetadata.FindOrAdd(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, RootIndex));
+			if (!HasEdgeMetadata[EdgeIndex])
+			{
+				HasEdgeMetadata[EdgeIndex] = true;
+				EdgeMetadata[EdgeIndex] = FGraphEdgeMetadata(EdgeIndex, RootIndex);
+				bHasAnyEdgeMetadata = true;
+			}
+			return EdgeMetadata[EdgeIndex];
 		}
 
 		FGraphEdgeMetadata& GetOrCreateEdgeMetadata(const int32 EdgeIndex, const int32 RootIndex = -1);
 
 		FORCEINLINE FGraphNodeMetadata& GetOrCreateNodeMetadata_Unsafe(const int32 NodeIndex)
 		{
-			return NodeMetadata.FindOrAdd(NodeIndex, FGraphNodeMetadata(NodeIndex));
+			if (!HasNodeMetadata[NodeIndex])
+			{
+				HasNodeMetadata[NodeIndex] = true;
+				NodeMetadata[NodeIndex] = FGraphNodeMetadata(NodeIndex);
+				bHasAnyNodeMetadata = true;
+			}
+			return NodeMetadata[NodeIndex];
 		}
 
 		FORCEINLINE FGraphEdgeMetadata& AddNodeAndEdgeMetadata_Unsafe(const int32 InNodeIndex, const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
 		{
-			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
-			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
+			if (!HasNodeMetadata[InNodeIndex])
+			{
+				HasNodeMetadata[InNodeIndex] = true;
+				NodeMetadata[InNodeIndex] = FGraphNodeMetadata(InNodeIndex);
+				bHasAnyNodeMetadata = true;
+			}
+			NodeMetadata[InNodeIndex].Type = InType;
+
+			if (!HasEdgeMetadata[InEdgeIndex])
+			{
+				HasEdgeMetadata[InEdgeIndex] = true;
+				EdgeMetadata[InEdgeIndex] = FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType);
+				bHasAnyEdgeMetadata = true;
+			}
+			return EdgeMetadata[InEdgeIndex];
 		}
 
 		FORCEINLINE void AddNodeMetadata_Unsafe(const int32 InNodeIndex, const EPCGExIntersectionType InType)
 		{
-			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
+			if (!HasNodeMetadata[InNodeIndex])
+			{
+				HasNodeMetadata[InNodeIndex] = true;
+				NodeMetadata[InNodeIndex] = FGraphNodeMetadata(InNodeIndex);
+				bHasAnyNodeMetadata = true;
+			}
+			NodeMetadata[InNodeIndex].Type = InType;
 		}
 
 		FORCEINLINE FGraphEdgeMetadata& AddEdgeMetadata_Unsafe(const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
 		{
-			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
+			if (!HasEdgeMetadata[InEdgeIndex])
+			{
+				HasEdgeMetadata[InEdgeIndex] = true;
+				EdgeMetadata[InEdgeIndex] = FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType);
+				bHasAnyEdgeMetadata = true;
+			}
+			return EdgeMetadata[InEdgeIndex];
 		}
 
-		FORCEINLINE const FGraphNodeMetadata* FindNodeMetadata_Unsafe(const int32 NodeIndex)
+		FORCEINLINE FGraphNodeMetadata* FindNodeMetadata_Unsafe(const int32 NodeIndex)
 		{
-			return NodeMetadata.Find(NodeIndex);
+			if (NodeIndex < 0 || NodeIndex >= NodeMetadata.Num() || !HasNodeMetadata[NodeIndex]) { return nullptr; }
+			return &NodeMetadata[NodeIndex];
 		}
 
-		FORCEINLINE const FGraphEdgeMetadata* FindEdgeMetadata_Unsafe(const int32 EdgeIndex)
+		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadata_Unsafe(const int32 EdgeIndex)
 		{
-			return EdgeMetadata.Find(EdgeIndex);
+			if (EdgeIndex < 0 || EdgeIndex >= EdgeMetadata.Num() || !HasEdgeMetadata[EdgeIndex]) { return nullptr; }
+			return &EdgeMetadata[EdgeIndex];
 		}
 
 		FORCEINLINE int32 FindEdgeMetadataRootIndex_Unsafe(const int32 EdgeIndex)
 		{
-			if (const FGraphEdgeMetadata* E = EdgeMetadata.Find(EdgeIndex)) { return E->RootIndex; }
-			return -1;
+			if (EdgeIndex < 0 || EdgeIndex >= EdgeMetadata.Num() || !HasEdgeMetadata[EdgeIndex]) { return -1; }
+			return EdgeMetadata[EdgeIndex].RootIndex;
 		}
 
 #pragma endregion
