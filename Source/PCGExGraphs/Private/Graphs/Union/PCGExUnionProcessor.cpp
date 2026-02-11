@@ -83,8 +83,6 @@ namespace PCGExGraphs
 		{
 			PCGEX_ASYNC_THIS
 
-			const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = This->UnionGraph->NodesUnion;
-			const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->UnionGraph->SourceCollection.Pin();
 			const TSharedPtr<PCGExBlending::IUnionBlender> Blender = This->UnionBlender;
 
 			TArray<PCGExData::FWeightedPoint> WeightedPoints;
@@ -104,7 +102,7 @@ namespace PCGExGraphs
 				//FPCGPoint& Point = OutPoints[Index];
 				//Point.MetadataEntry = Key; // Restore key
 
-				OutTransforms[Index].SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
+				OutTransforms[Index].SetLocation(UnionNode->GetCenter());
 				Blender->MergeSingle(Index, WeightedPoints, Trackers);
 			}
 		};
@@ -133,13 +131,12 @@ namespace PCGExGraphs
 		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails);
 		GraphBuilder->bInheritNodeData = false;
 		GraphBuilder->bRequiresEdgeResort = false; // All insertion is sequential → deterministic node ordering
+		GraphBuilder->bNodesPreSorted = UnionGraph->bNodesSorted;
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;
 
-		TArray<FEdge> UniqueEdges;
-		UnionGraph->GetUniqueEdges(UniqueEdges);
-		GraphBuilder->Graph->InsertEdges(UniqueEdges);
+		GraphBuilder->Graph->AdoptEdges(UnionGraph->Edges);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetTaskManager(), WriteMetadataTask);
 		WriteMetadataTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()

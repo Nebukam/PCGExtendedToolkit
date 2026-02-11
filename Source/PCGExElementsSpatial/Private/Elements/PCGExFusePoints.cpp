@@ -147,7 +147,7 @@ namespace PCGExFusePoints
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
+			const FVector Center = UnionGraph->Nodes[Index]->GetCenter();
 
 			if (bUpdateCenter) { Transforms[Index].SetLocation(Center); }
 
@@ -171,7 +171,7 @@ namespace PCGExFusePoints
 			const TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 			ParallelFor(NumUnionNodes, [&](int32 Index)
 			{
-				const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
+				const FVector Center = UnionGraph->Nodes[Index]->GetCenter();
 				double BestDist = MAX_dbl;
 				int32 BestIndex = -1;
 

@@ -2,6 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graphs/Union/PCGExIntersections.h"
+#include "Sorting/PCGExSortingHelpers.h"
+
+#include "PCGExH.h"
 
 #include "Async/ParallelFor.h"
 #include "Details/PCGExIntersectionDetails.h"
@@ -19,32 +22,9 @@
 namespace PCGExGraphs
 {
 	FUnionNode::FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex)
-		: Point(InPoint), Center(InCenter), Index(InIndex)
+		: Point(InPoint), Center(InCenter), Index(InIndex), CenterAccum(InCenter)
 	{
-		Adjacency.Empty();
 		Bounds = FBoxSphereBounds(InPoint.Data->GetLocalBounds(InPoint.Index).TransformBy(InPoint.Data->GetTransform(InPoint.Index)));
-	}
-
-	FVector FUnionNode::UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup)
-	{
-		Center = FVector::ZeroVector;
-		const TSharedPtr<PCGExData::IUnionData> UnionData = InUnionMetadata->Get(Index);
-
-		const double Divider = UnionData->Elements.Num();
-
-		for (const PCGExData::FElement& H : UnionData->Elements)
-		{
-			Center += IOGroup->Pairs[H.IO]->GetIn()->GetTransform(H.Index).GetLocation();
-		}
-
-		Center /= Divider;
-		return Center;
-	}
-
-	void FUnionNode::Add(const int32 InAdjacency)
-	{
-		FWriteScopeLock WriteScopeLock(AdjacencyLock);
-		Adjacency.Add(InAdjacency);
 	}
 
 	FUnionGraph::FUnionGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceCollection)
@@ -99,6 +79,7 @@ namespace PCGExGraphs
 				{
 					const int32 NodeIndex = *NodePtr;
 					NodesUnion->Append(NodeIndex, Point);
+					Nodes[NodeIndex]->Accumulate(Origin);
 					return NodeIndex;
 				}
 			}
@@ -111,6 +92,7 @@ namespace PCGExGraphs
 				{
 					const int32 NodeIndex = *NodePtr;
 					NodesUnion->Append(NodeIndex, Point);
+					Nodes[NodeIndex]->Accumulate(Origin);
 					return NodeIndex;
 				}
 
@@ -138,6 +120,7 @@ namespace PCGExGraphs
 			if (ClosestNode.bValid)
 			{
 				NodesUnion->Append(ClosestNode.Index, Point);
+				Nodes[ClosestNode.Index]->Accumulate(Origin);
 				return ClosestNode.Index;
 			}
 
@@ -157,12 +140,6 @@ namespace PCGExGraphs
 		const int32 End = InsertPoint(To);
 
 		if (Start == End) { return; } // Edge got fused entirely
-
-		const TSharedPtr<FUnionNode> StartVtx = Nodes[Start];
-		const TSharedPtr<FUnionNode> EndVtx = Nodes[End];
-
-		StartVtx->Add(End);
-		EndVtx->Add(Start);
 
 		TSharedPtr<PCGExData::IUnionData> EdgeUnion;
 
@@ -195,18 +172,9 @@ namespace PCGExGraphs
 		}
 	}
 
-	void FUnionGraph::GetUniqueEdges(TArray<FEdge>& OutEdges)
-	{
-		OutEdges.Reserve(Edges.Num());
-		OutEdges.Append(Edges);
-		Edges.Empty();
-	}
-
 	void FUnionGraph::WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionGraph::WriteNodeMetadata)
-
-		InGraph->NodeMetadata.Reserve(Nodes.Num());
 
 		for (const TSharedPtr<FUnionNode>& Node : Nodes)
 		{
@@ -221,8 +189,6 @@ namespace PCGExGraphs
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionGraph::WriteEdgeMetadata)
 
 		const int32 NumEdges = GetNumCollapsedEdges();
-		InGraph->EdgeMetadata.Reserve(NumEdges);
-
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const TSharedPtr<PCGExData::IUnionData>& UnionData = EdgesUnion->Entries[i];
@@ -235,6 +201,59 @@ namespace PCGExGraphs
 	{
 		NumCollapsedEdges = Edges.Num();
 		EdgesMapShards.Empty();
+		NodeBinsShards.Empty();
+		Octree.Reset();
+
+		// Spatial sort nodes by Morton hash for deterministic ordering
+		const int32 N = Nodes.Num();
+		if (N <= 1) { bNodesSorted = true; return; }
+
+		// 1. Compute Morton hash for each node center
+		TArray<PCGEx::FIndexKey> MortonHash;
+		MortonHash.SetNumUninitialized(N);
+		for (int32 i = 0; i < N; i++)
+		{
+			MortonHash[i] = PCGEx::FIndexKey(i, PCGEx::MH64(Nodes[i]->GetCenter()));
+		}
+
+		// 2. Sort
+		PCGExSortingHelpers::RadixSort(MortonHash);
+
+		// 3. Build old->new remap
+		TArray<int32> OldToNew;
+		OldToNew.SetNumUninitialized(N);
+		for (int32 i = 0; i < N; i++)
+		{
+			OldToNew[MortonHash[i].Index] = i;
+		}
+
+		// 4. Reorder Nodes
+		TArray<TSharedPtr<FUnionNode>> SortedNodes;
+		SortedNodes.SetNum(N);
+		for (int32 i = 0; i < N; i++)
+		{
+			SortedNodes[i] = Nodes[MortonHash[i].Index];
+			SortedNodes[i]->Index = i;
+		}
+		Nodes = MoveTemp(SortedNodes);
+
+		// 5. Remap edges
+		for (FEdge& Edge : Edges)
+		{
+			Edge.Start = OldToNew[Edge.Start];
+			Edge.End = OldToNew[Edge.End];
+		}
+
+		// 6. Remap NodesUnion entries to match new node order
+		TArray<TSharedPtr<PCGExData::IUnionData>> SortedEntries;
+		SortedEntries.SetNum(N);
+		for (int32 i = 0; i < N; i++)
+		{
+			SortedEntries[i] = NodesUnion->Entries[MortonHash[i].Index];
+		}
+		NodesUnion->Entries = MoveTemp(SortedEntries);
+
+		bNodesSorted = true;
 	}
 
 #pragma region FBatchInserter
@@ -251,6 +270,7 @@ namespace PCGExGraphs
 			{
 				const int32 NodeIndex = *NodePtr;
 				Graph.NodesUnion->Append_Unsafe(NodeIndex, Point);
+				Graph.Nodes[NodeIndex]->Accumulate(Origin);
 				return NodeIndex;
 			}
 
@@ -275,6 +295,7 @@ namespace PCGExGraphs
 		if (ClosestNode.bValid)
 		{
 			Graph.NodesUnion->Append_Unsafe(ClosestNode.Index, Point);
+			Graph.Nodes[ClosestNode.Index]->Accumulate(Origin);
 			return ClosestNode.Index;
 		}
 
@@ -290,9 +311,6 @@ namespace PCGExGraphs
 		const int32 End = InsertPoint(To);
 
 		if (Start == End) { return; }
-
-		Graph.Nodes[Start]->Adjacency.Add(End);
-		Graph.Nodes[End]->Adjacency.Add(Start);
 
 		TSharedPtr<PCGExData::IUnionData> EdgeUnion;
 		const uint64 H = PCGEx::H64U(Start, End);
@@ -436,7 +454,7 @@ namespace PCGExGraphs
 					NewEdgeMeta.bIsSubEdge = true;
 					if (Details->bSnapOnEdge) { Transforms[Graph->Nodes[Split.Index].PointIndex].SetLocation(Split.ClosestPoint); }
 				}
-				else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->EdgeMetadata.Find(NewEdge.Index))
+				else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->FindEdgeMetadata_Unsafe(NewEdge.Index))
 				{
 					ExistingEdgeMeta->UnionSize++;
 					ExistingEdgeMeta->bIsSubEdge = true;
@@ -451,7 +469,7 @@ namespace PCGExGraphs
 				FGraphEdgeMetadata& NewEdgeMeta = Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, RootIndex, EPCGExIntersectionType::PointEdge);
 				NewEdgeMeta.bIsSubEdge = true;
 			}
-			else if (FGraphEdgeMetadata* ExistingMetadataPtr = Graph->EdgeMetadata.Find(NewEdge.Index))
+			else if (FGraphEdgeMetadata* ExistingMetadataPtr = Graph->FindEdgeMetadata_Unsafe(NewEdge.Index))
 			{
 				ExistingMetadataPtr->UnionSize++;
 				ExistingMetadataPtr->bIsSubEdge = true;
@@ -697,7 +715,7 @@ namespace PCGExGraphs
 					FGraphEdgeMetadata& NewEdgeMeta = Graph->AddNodeAndEdgeMetadata_Unsafe(B, NewEdge.Index, EdgeRootIndex, EPCGExIntersectionType::EdgeEdge);
 					NewEdgeMeta.bIsSubEdge = true;
 				}
-				else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->EdgeMetadata.Find(NewEdge.Index))
+				else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->FindEdgeMetadata_Unsafe(NewEdge.Index))
 				{
 					ExistingEdgeMeta->UnionSize++;
 					ExistingEdgeMeta->bIsSubEdge = true;
@@ -712,7 +730,7 @@ namespace PCGExGraphs
 				FGraphEdgeMetadata& NewEdgeMeta = Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, EdgeRootIndex, EPCGExIntersectionType::EdgeEdge);
 				NewEdgeMeta.bIsSubEdge = true;
 			}
-			else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->EdgeMetadata.Find(NewEdge.Index))
+			else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->FindEdgeMetadata_Unsafe(NewEdge.Index))
 			{
 				ExistingEdgeMeta->UnionSize++;
 				ExistingEdgeMeta->bIsSubEdge = true;

@@ -54,23 +54,20 @@ namespace PCGExGraphs
 
 	class PCGEXGRAPHS_API FUnionNode : public TSharedFromThis<FUnionNode>
 	{
-	protected:
-		mutable FRWLock AdjacencyLock;
-
 	public:
 		const PCGExData::FConstPoint Point;
 		FVector Center;
 		FBoxSphereBounds Bounds;
 		int32 Index;
 
-		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> Adjacency;
+		FVector CenterAccum;
+		int32 FuseCount = 1;
 
 		FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex);
 		~FUnionNode() = default;
 
-		FVector UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
-
-		void Add(const int32 InAdjacency);
+		FORCEINLINE FVector GetCenter() const { return CenterAccum / static_cast<double>(FuseCount); }
+		FORCEINLINE void Accumulate(const FVector& Position) { CenterAccum += Position; FuseCount++; }
 	};
 
 	PCGEX_OCTREE_SEMANTICS(FUnionNode, { return Element->Bounds;}, { return A->Index == B->Index; })
@@ -94,6 +91,8 @@ namespace PCGExGraphs
 
 		FBox Bounds;
 
+		bool bNodesSorted = false;
+
 		TUniquePtr<FUnionNodeOctree> Octree;
 
 		mutable FRWLock UnionLock;
@@ -114,8 +113,6 @@ namespace PCGExGraphs
 		int32 InsertPoint(const PCGExData::FConstPoint& Point);
 
 		void InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
-
-		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
