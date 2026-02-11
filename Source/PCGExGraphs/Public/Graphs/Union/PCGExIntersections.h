@@ -166,10 +166,10 @@ namespace PCGExGraphs
 		void BuildCache();
 	};
 
-	class PCGEXGRAPHS_API FEdgeProxy : public TSharedFromThis<FEdgeProxy>
+	class PCGEXGRAPHS_API FEdgeProxy
 	{
 	public:
-		virtual ~FEdgeProxy() = default;
+		~FEdgeProxy() = default;
 		int32 Index = -1;
 		int32 Start = 0;
 		int32 End = 0;
@@ -177,8 +177,7 @@ namespace PCGExGraphs
 
 		FEdgeProxy() = default;
 
-		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance);
-		virtual bool IsEmpty() const { return true; }
+		void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance);
 	};
 
 #pragma region Point Edge intersections
@@ -197,11 +196,10 @@ namespace PCGExGraphs
 	public:
 		TArray<FPESplit, TInlineAllocator<8>> CollinearPoints;
 
-		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, double Tolerance) override;
 		bool FindSplit(const int32 PointIndex, const TSharedPtr<FIntersectionCache>& Cache, FPESplit& OutSplit) const;
 		void Add(const FPESplit& Split);
 
-		virtual bool IsEmpty() const override { return CollinearPoints.IsEmpty(); }
+		bool IsEmpty() const { return CollinearPoints.IsEmpty(); }
 	};
 
 	class PCGEXGRAPHS_API FPointEdgeIntersections : public FIntersectionCache
@@ -220,9 +218,7 @@ namespace PCGExGraphs
 		~FPointEdgeIntersections() = default;
 	};
 
-	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
-
-	void FindCollinearNodes_NoSelfIntersections(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
+	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy, bool bEnableSelfIntersection);
 
 #pragma endregion
 
@@ -262,7 +258,7 @@ namespace PCGExGraphs
 		TArray<FEECrossing> Crossings;
 
 		bool FindSplit(const FEdge& OtherEdge, const TSharedPtr<FIntersectionCache>& Cache);
-		virtual bool IsEmpty() const override { return Crossings.IsEmpty(); }
+		bool IsEmpty() const { return Crossings.IsEmpty(); }
 	};
 
 	class PCGEXGRAPHS_API FEdgeEdgeIntersections : public FIntersectionCache
@@ -287,9 +283,7 @@ namespace PCGExGraphs
 		~FEdgeEdgeIntersections() = default;
 	};
 
-	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
-
-	void FindOverlappingEdges_NoSelfIntersections(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy);
+	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy, bool bEnableSelfIntersection);
 
 #pragma endregion
 }

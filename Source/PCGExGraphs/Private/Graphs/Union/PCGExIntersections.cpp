@@ -382,12 +382,6 @@ namespace PCGExGraphs
 		Box = PCGEX_BOX_TOLERANCE_INLINE(InStart, InEnd, Tolerance);
 	}
 
-	void FPointEdgeProxy::Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance)
-	{
-		FEdgeProxy::Init(InEdge, InStart, InEnd, Tolerance);
-		CollinearPoints.Empty();
-	}
-
 	bool FPointEdgeProxy::FindSplit(const int32 PointIndex, const TSharedPtr<FIntersectionCache>& Cache, FPESplit& OutSplit) const
 	{
 		const FVector& A = Cache->Positions[Start];
@@ -504,7 +498,7 @@ namespace PCGExGraphs
 		}
 	}
 
-	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy)
+	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy, const bool bEnableSelfIntersection)
 	{
 		const TConstPCGValueRange<FTransform> Transforms = InIntersections->NodeTransforms;
 		const TSharedPtr<FGraph> Graph = InIntersections->Graph;
@@ -512,37 +506,12 @@ namespace PCGExGraphs
 		const FEdge& IEdge = Graph->Edges[EdgeProxy->Index];
 		FPESplit Split = FPESplit{};
 
-		InIntersections->PointIO->GetOutIn()->GetPointOctree().FindElementsWithBoundsTest(EdgeProxy->Box, [&](const PCGPointOctree::FPointRef& PointRef)
+		TSet<int32> RootIOIndices;
+		if (!bEnableSelfIntersection)
 		{
-			const int32 PointIndex = PointRef.Index;
-
-			if (!Transforms.IsValidIndex(PointIndex)) { return; }
-			const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
-
-			if (!Node.bValid) { return; }
-
-			const FVector Position = Transforms[Node.PointIndex].GetLocation();
-
-			if (!EdgeProxy->Box.IsInside(Position)) { return; }
-			if (IEdge.Contains(Node.PointIndex)) { return; }
-			if (EdgeProxy->FindSplit(Node.PointIndex, InIntersections, Split))
-			{
-				Split.Index = Node.Index;
-				EdgeProxy->Add(Split);
-			}
-		});
-	}
-
-	void FindCollinearNodes_NoSelfIntersections(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy)
-	{
-		const TConstPCGValueRange<FTransform> Transforms = InIntersections->NodeTransforms;
-		const TSharedPtr<FGraph> Graph = InIntersections->Graph;
-
-		const FEdge& IEdge = Graph->Edges[EdgeProxy->Index];
-		FPESplit Split = FPESplit{};
-
-		const int32 EdgeRootIndex = InIntersections->Graph->FindEdgeMetadataRootIndex_Unsafe(EdgeProxy->Index);
-		const TSet<int32> RootIOIndices = Graph->EdgesUnion->Entries[EdgeRootIndex]->GetIOSet();
+			const int32 EdgeRootIndex = InIntersections->Graph->FindEdgeMetadataRootIndex_Unsafe(EdgeProxy->Index);
+			RootIOIndices = Graph->EdgesUnion->Entries[EdgeRootIndex]->GetIOSet();
+		}
 
 		InIntersections->PointIO->GetOutIn()->GetPointOctree().FindElementsWithBoundsTest(EdgeProxy->Box, [&](const PCGPointOctree::FPointRef& PointRef)
 		{
@@ -559,7 +528,7 @@ namespace PCGExGraphs
 			if (IEdge.Contains(Node.PointIndex)) { return; }
 			if (!EdgeProxy->FindSplit(Node.PointIndex, InIntersections, Split)) { return; }
 
-			if (Graph->NodesUnion->IOIndexOverlap(Node.Index, RootIOIndices)) { return; }
+			if (!bEnableSelfIntersection && Graph->NodesUnion->IOIndexOverlap(Node.Index, RootIOIndices)) { return; }
 
 			Split.Index = Node.Index;
 			EdgeProxy->Add(Split);
@@ -766,7 +735,7 @@ namespace PCGExGraphs
 		PointIO->GetOutPoint(Target).SetLocation(Crossing.Split.Center);
 	}
 
-	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy)
+	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy, const bool bEnableSelfIntersection)
 	{
 		// Find all split points then register crossings that don't exist already
 		const int32 GraphIndex = EdgeProxy->Index;
@@ -774,32 +743,15 @@ namespace PCGExGraphs
 		const int32 End = EdgeProxy->End;
 
 		const TArray<FVector>& Directions = InIntersections->Directions;
-		InIntersections->Octree->FindElementsWithBoundsTest(EdgeProxy->Box, [&](const PCGExOctree::FItem& Item)
+
+		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
+		TSet<int32> RootIOIndices;
+		if (!bEnableSelfIntersection)
 		{
-			const FEdge& OtherEdge = InIntersections->Graph->Edges[Item.Index];
-			if (!InIntersections->ValidEdges[Item.Index] || Item.Index == GraphIndex || Start == OtherEdge.Start || Start == OtherEdge.End || End == OtherEdge.End || End == OtherEdge.Start) { return; }
-
-			if (InIntersections->Details->bUseMinAngle || InIntersections->Details->bUseMaxAngle)
-			{
-				if (!InIntersections->Details->CheckDot(FMath::Abs(FVector::DotProduct(Directions[GraphIndex], Directions[OtherEdge.Index])))) { return; }
-			}
-
-			EdgeProxy->FindSplit(OtherEdge, InIntersections);
-		});
-	}
-
-	void FindOverlappingEdges_NoSelfIntersections(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy)
-	{
-		// Find all split points then register crossings that don't exist already
-		const int32 GraphIndex = EdgeProxy->Index;
-		const int32 Start = EdgeProxy->Start;
-		const int32 End = EdgeProxy->End;
-
-		const TArray<FVector>& Directions = InIntersections->Directions;
-
-		const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata_Unsafe(GraphIndex)->RootIndex;
-		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion = InIntersections->Graph->EdgesUnion;
-		const TSet<int32> RootIOIndices = EdgesUnion->Entries[RootIndex]->GetIOSet();
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata_Unsafe(GraphIndex)->RootIndex;
+			EdgesUnion = InIntersections->Graph->EdgesUnion;
+			RootIOIndices = EdgesUnion->Entries[RootIndex]->GetIOSet();
+		}
 
 		InIntersections->Octree->FindElementsWithBoundsTest(EdgeProxy->Box, [&](const PCGExOctree::FItem& Item)
 		{
@@ -812,7 +764,7 @@ namespace PCGExGraphs
 			}
 
 			// Check overlap last as it's the most expensive op
-			if (EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata_Unsafe(OtherEdge.Index)->RootIndex, RootIOIndices)) { return; }
+			if (!bEnableSelfIntersection && EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata_Unsafe(OtherEdge.Index)->RootIndex, RootIOIndices)) { return; }
 
 			EdgeProxy->FindSplit(OtherEdge, InIntersections);
 		});
