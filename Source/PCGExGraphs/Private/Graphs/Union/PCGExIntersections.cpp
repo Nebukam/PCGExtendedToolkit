@@ -506,6 +506,8 @@ namespace PCGExGraphs
 		const FEdge& IEdge = Graph->Edges[EdgeProxy->Index];
 		FPESplit Split = FPESplit{};
 
+		// Pre-compute the set of IO indices this edge's root belongs to.
+		// Used to reject nodes from the same source cluster (self-intersection filter).
 		TSet<int32> RootIOIndices;
 		if (!bEnableSelfIntersection)
 		{
@@ -524,10 +526,11 @@ namespace PCGExGraphs
 
 			const FVector Position = Transforms[Node.PointIndex].GetLocation();
 
-			if (!EdgeProxy->Box.IsInside(Position)) { return; }
-			if (IEdge.Contains(Node.PointIndex)) { return; }
-			if (!EdgeProxy->FindSplit(Node.PointIndex, InIntersections, Split)) { return; }
+			if (!EdgeProxy->Box.IsInside(Position)) { return; } // Refine octree broad-phase
+			if (IEdge.Contains(Node.PointIndex)) { return; }    // Skip own endpoints
+			if (!EdgeProxy->FindSplit(Node.PointIndex, InIntersections, Split)) { return; } // Not within tolerance
 
+			// Reject nodes that belong to the same source IO as this edge (self-intersection filter)
 			if (!bEnableSelfIntersection && Graph->NodesUnion->IOIndexOverlap(Node.Index, RootIOIndices)) { return; }
 
 			Split.Index = Node.Index;
@@ -737,13 +740,14 @@ namespace PCGExGraphs
 
 	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy, const bool bEnableSelfIntersection)
 	{
-		// Find all split points then register crossings that don't exist already
 		const int32 GraphIndex = EdgeProxy->Index;
 		const int32 Start = EdgeProxy->Start;
 		const int32 End = EdgeProxy->End;
 
 		const TArray<FVector>& Directions = InIntersections->Directions;
 
+		// Pre-compute the set of IO indices this edge's root belongs to.
+		// Used to reject edges from the same source cluster (self-intersection filter).
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TSet<int32> RootIOIndices;
 		if (!bEnableSelfIntersection)
@@ -756,14 +760,17 @@ namespace PCGExGraphs
 		InIntersections->Octree->FindElementsWithBoundsTest(EdgeProxy->Box, [&](const PCGExOctree::FItem& Item)
 		{
 			const FEdge& OtherEdge = InIntersections->Graph->Edges[Item.Index];
+
+			// Skip invalid edges, self, and edges that share endpoints
 			if (!InIntersections->ValidEdges[Item.Index] || Item.Index == GraphIndex || Start == OtherEdge.Start || Start == OtherEdge.End || End == OtherEdge.End || End == OtherEdge.Start) { return; }
 
+			// Optional angle filter
 			if (InIntersections->Details->bUseMinAngle || InIntersections->Details->bUseMaxAngle)
 			{
 				if (!InIntersections->Details->CheckDot(FMath::Abs(FVector::DotProduct(Directions[GraphIndex], Directions[OtherEdge.Index])))) { return; }
 			}
 
-			// Check overlap last as it's the most expensive op
+			// Self-intersection filter: reject edges from the same source IO (most expensive check, done last)
 			if (!bEnableSelfIntersection && EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata_Unsafe(OtherEdge.Index)->RootIndex, RootIOIndices)) { return; }
 
 			EdgeProxy->FindSplit(OtherEdge, InIntersections);

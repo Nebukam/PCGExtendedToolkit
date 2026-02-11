@@ -166,6 +166,10 @@ namespace PCGExGraphs
 		void BuildCache();
 	};
 
+	/** Base proxy for edge intersection detection.
+	 *  Not polymorphic — derived types (FPointEdgeProxy, FEdgeEdgeProxy) are always used
+	 *  through concrete TSharedPtr, never through base pointers. InitProxy accepts
+	 *  TSharedPtr<FEdgeProxy> for convenience but only calls the non-virtual Init(). */
 	class PCGEXGRAPHS_API FEdgeProxy
 	{
 	public:
@@ -218,6 +222,9 @@ namespace PCGExGraphs
 		~FPointEdgeIntersections() = default;
 	};
 
+	/** Find graph nodes that are collinear with (lie on) the given edge within tolerance.
+	 *  When bEnableSelfIntersection is false, nodes that share an IO source with the
+	 *  edge's root are skipped — preventing edges from being split by their own cluster's nodes. */
 	void FindCollinearNodes(const TSharedPtr<FPointEdgeIntersections>& InIntersections, const TSharedPtr<FPointEdgeProxy>& EdgeProxy, bool bEnableSelfIntersection);
 
 #pragma endregion
@@ -283,6 +290,9 @@ namespace PCGExGraphs
 		~FEdgeEdgeIntersections() = default;
 	};
 
+	/** Find edges that cross the given edge within tolerance, recording crossings in the proxy.
+	 *  When bEnableSelfIntersection is false, edges whose root metadata shares an IO source
+	 *  with this edge's root are skipped — preventing intra-cluster edge crossings. */
 	void FindOverlappingEdges(const TSharedPtr<FEdgeEdgeIntersections>& InIntersections, const TSharedPtr<FEdgeEdgeProxy>& EdgeProxy, bool bEnableSelfIntersection);
 
 #pragma endregion

@@ -244,6 +244,8 @@ namespace PCGExGraphs
 				EdgeProxy->CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; }); \
 				EdgeProxy = MakeShared<FPointEdgeProxy>();
 
+			// Self-intersection bool is hoisted out of the loop — FindCollinearNodes handles
+			// the branching internally (computing RootIOIndices only when needed).
 			const bool bSelfIntersect = PEI->Details->bEnableSelfIntersection;
 			PCGEX_SCOPE_LOOP(Index)
 			{
@@ -266,6 +268,9 @@ namespace PCGExGraphs
 			return;
 		}
 
+		// InsertEdges collapses ScopedEdges into Edges, then creates sub-edges in the graph.
+		// Must only be called once — a second call would find duplicates via InsertEdge_Unsafe
+		// and incorrectly increment UnionSize on existing metadata.
 		PointEdgeIntersections->InsertEdges();
 
 		if (PointEdgeIntersections->Edges.IsEmpty())
@@ -362,6 +367,7 @@ namespace PCGExGraphs
 
 			TSharedPtr<FEdgeEdgeProxy> EdgeProxy = MakeShared<FEdgeEdgeProxy>();
 
+			// Same pattern as PE: self-intersection bool hoisted, FindOverlappingEdges handles internally.
 			const bool bSelfIntersect = EEI->Details->bEnableSelfIntersection;
 			PCGEX_SCOPE_LOOP(Index)
 			{
