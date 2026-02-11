@@ -217,7 +217,7 @@ namespace PCGExSampleVtxByID
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		Union->IOSet.Reserve(Context->TargetFacades.Num());
+		Union->Reserve(0, Context->TargetFacades.Num());
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

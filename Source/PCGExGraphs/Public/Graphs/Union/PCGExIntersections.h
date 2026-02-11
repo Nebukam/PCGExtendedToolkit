@@ -81,7 +81,6 @@ namespace PCGExGraphs
 
 	public:
 		PCGExMT::TH64MapShards<int32> NodeBinsShards;
-		TMap<uint64, int32> NodeBins;
 
 		TWeakPtr<PCGExData::FPointIOCollection> SourceCollection = nullptr;
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
@@ -89,7 +88,6 @@ namespace PCGExGraphs
 		TArray<TSharedPtr<FUnionNode>> Nodes;
 
 		PCGExMT::TH64MapShards<int32> EdgesMapShards;
-		TMap<uint64, int32> EdgesMap;
 		TArray<FEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
@@ -111,12 +109,11 @@ namespace PCGExGraphs
 		void Reserve(const int32 NodeReserve, const int32 EdgeReserve);
 
 		FORCEINLINE int32 GetNumCollapsedEdges() const { return NumCollapsedEdges; }
+		FORCEINLINE bool RequiresSequentialInsertion() const { return Octree != nullptr; }
 
 		int32 InsertPoint(const PCGExData::FConstPoint& Point);
-		int32 InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);
 
 		void InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
-		void InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
 
 		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 
@@ -124,6 +121,26 @@ namespace PCGExGraphs
 		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 
 		void Collapse();
+
+		/** RAII batch inserter for sequential use. Holds both locks for the lifetime,
+		 *  avoiding per-element lock overhead when inserting from a single thread. */
+		class PCGEXGRAPHS_API FBatchInserter
+		{
+			FUnionGraph& Graph;
+			FWriteScopeLock UnionLk;
+			FWriteScopeLock EdgesLk;
+
+		public:
+			explicit FBatchInserter(FUnionGraph& InGraph)
+				: Graph(InGraph), UnionLk(InGraph.UnionLock), EdgesLk(InGraph.EdgesLock)
+			{
+			}
+
+			int32 InsertPoint(const PCGExData::FConstPoint& Point);
+			void InsertEdge(const PCGExData::FConstPoint& From,
+			                const PCGExData::FConstPoint& To,
+			                const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+		};
 	};
 
 #pragma endregion

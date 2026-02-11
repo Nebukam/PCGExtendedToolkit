@@ -41,8 +41,6 @@ namespace PCGExData
 		mutable FRWLock UnionLock;
 
 	public:
-		//int32 Index = 0;
-		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> IOSet;
 		TSet<FElement, DefaultKeyFuncs<FElement>, InlineSparseAllocator> Elements;
 
 		IUnionData() = default;
@@ -52,7 +50,6 @@ namespace PCGExData
 
 		FORCEINLINE void Add_Unsafe(const FElement& Point)
 		{
-			IOSet.Add(Point.IO);
 			Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
 		}
 
@@ -60,11 +57,23 @@ namespace PCGExData
 
 		FORCEINLINE void Add_Unsafe(const int32 Index, const int32 IO)
 		{
-			IOSet.Add(IO);
 			Elements.Add(FElement(Index == -1 ? 0 : Index, IO));
 		}
 
 		void Add(const int32 Index, const int32 IO);
+
+		FORCEINLINE TSet<int32> GetIOSet() const
+		{
+			TSet<int32> Result;
+			for (const FElement& E : Elements) { Result.Add(E.IO); }
+			return Result;
+		}
+
+		FORCEINLINE bool ContainsIO(const int32 IO) const
+		{
+			for (const FElement& E : Elements) { if (E.IO == IO) return true; }
+			return false;
+		}
 
 		void Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices);
 		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);

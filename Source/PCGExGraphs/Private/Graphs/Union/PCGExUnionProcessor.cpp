@@ -132,7 +132,7 @@ namespace PCGExGraphs
 
 		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails);
 		GraphBuilder->bInheritNodeData = false;
-		GraphBuilder->bRequiresEdgeResort = !PointPointIntersectionDetails.FuseDetails.DoInlineInsertion(); // Union graph node indices are non-deterministic
+		GraphBuilder->bRequiresEdgeResort = false; // All insertion is sequential → deterministic node ordering
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;

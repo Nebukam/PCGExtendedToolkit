@@ -103,7 +103,7 @@ bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UP
 				}, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bSkipCompletion = true;
-					NewBatch->bForceSingleThreadedProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+					NewBatch->bForceSingleThreadedProcessing = true; // Sequential insertion for deterministic node ordering
 				}))
 			{
 				return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -249,70 +249,26 @@ namespace PCGExPathToClusters
 
 		UnionGraph = Context->UnionGraph;
 		bClosedLoop = PCGExPaths::Helpers::GetClosedLoop(PointDataFacade->GetIn());
-		bForceSingleThreadedProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		if (bForceSingleThreadedProcessPoints)
-		{
-			// Blunt insert since processor don't have a "wait"
-			InsertEdges(PCGExMT::FScope(0, NumPoints), true);
-			//OnInsertionComplete();
-		}
-		else
-		{
-			PCGEX_ASYNC_GROUP_CHKD(TaskManager, InsertEdges)
-
-			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->InsertEdges(Scope, false);
-			};
-
-			InsertEdges->StartSubLoops(NumPoints, 256);
-		}
+		InsertEdges(PCGExMT::FScope(0, NumPoints));
 
 		return true;
 	}
 
-	void FFusingProcessor::InsertEdges(const PCGExMT::FScope& Scope, const bool bUnsafe)
+	void FFusingProcessor::InsertEdges(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathToClusters::FFusingProcessor::InsertEdges);
 
-		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
-
-		if (bUnsafe)
+		PCGExGraphs::FUnionGraph::FBatchInserter Batch(*UnionGraph);
+		PCGEX_SCOPE_LOOP(i)
 		{
-			PCGEX_SCOPE_LOOP(i)
+			const int32 NextIndex = i + 1;
+			if (NextIndex > LastIndex)
 			{
-				const int32 NextIndex = i + 1;
-				if (NextIndex > LastIndex)
-				{
-					if (bClosedLoop)
-					{
-						UnionGraph->InsertEdge_Unsafe(PointDataFacade->GetInPoint(LastIndex), PointDataFacade->GetInPoint(0));
-					}
-					return;
-				}
-
-				UnionGraph->InsertEdge_Unsafe(PointDataFacade->GetInPoint(i), PointDataFacade->GetInPoint(NextIndex));
+				if (bClosedLoop) { Batch.InsertEdge(PointDataFacade->GetInPoint(LastIndex), PointDataFacade->GetInPoint(0)); }
+				return;
 			}
-		}
-		else
-		{
-			PCGEX_SCOPE_LOOP(i)
-			{
-				const int32 NextIndex = i + 1;
-
-				if (NextIndex > LastIndex)
-				{
-					if (bClosedLoop)
-					{
-						UnionGraph->InsertEdge(PointDataFacade->GetInPoint(LastIndex), PointDataFacade->GetInPoint(0));
-					}
-					return;
-				}
-
-				UnionGraph->InsertEdge(PointDataFacade->GetInPoint(i), PointDataFacade->GetInPoint(NextIndex));
-			}
+			Batch.InsertEdge(PointDataFacade->GetInPoint(i), PointDataFacade->GetInPoint(NextIndex));
 		}
 	}
 

@@ -102,7 +102,7 @@ namespace PCGExFusePoints
 
 		PointDataFacade->CreateReadables(SourceAttributes);
 
-		bForceSingleThreadedProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bForceSingleThreadedProcessPoints = true; // Sequential insertion for deterministic node ordering
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
@@ -114,14 +114,8 @@ namespace PCGExFusePoints
 
 		PointDataFacade->Fetch(Scope);
 
-		if (bForceSingleThreadedProcessPoints)
-		{
-			PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint_Unsafe(PointDataFacade->GetInPoint(Index)); }
-		}
-		else
-		{
-			PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint(PointDataFacade->GetInPoint(Index)); }
-		}
+		PCGExGraphs::FUnionGraph::FBatchInserter Batch(*UnionGraph);
+		PCGEX_SCOPE_LOOP(Index) { Batch.InsertPoint(PointDataFacade->GetInPoint(Index)); }
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)

@@ -300,7 +300,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 						{
 							if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(RootEdgeMeta->RootIndex); UnionBlender && UnionData)
 							{
-								UniqueSourceIOIndices.Append(UnionData->IOSet);
+								for (const PCGExData::FElement& Elem : UnionData->Elements) { UniqueSourceIOIndices.Add(Elem.IO); }
 							}
 						}
 					}
