@@ -435,7 +435,7 @@ namespace PCGExGraphs
 		int32 EdgeReserve = 0;
 		for (const TSharedPtr<FPointEdgeProxy>& PointEdgeProxy : Edges) { EdgeReserve += PointEdgeProxy->CollinearPoints.Num() + 1; }
 
-		Graph->ReserveForEdges(EdgeReserve, true);
+		Graph->ReserveForEdges(EdgeReserve);
 
 		for (const TSharedPtr<FPointEdgeProxy>& EdgeProxy : Edges)
 		{
@@ -450,7 +450,9 @@ namespace PCGExGraphs
 				//TODO: IOIndex required
 				if (Graph->InsertEdge_Unsafe(A, B, NewEdge, IOIndex))
 				{
-					FGraphEdgeMetadata& NewEdgeMeta = Graph->AddNodeAndEdgeMetadata_Unsafe(B, NewEdge.Index, RootIndex, EPCGExIntersectionType::PointEdge);
+					Graph->GetOrCreateNodeMetadata_Unsafe(B).Type = EPCGExIntersectionType::PointEdge;
+					FGraphEdgeMetadata& NewEdgeMeta = Graph->GetOrCreateEdgeMetadata_Unsafe(NewEdge.Index, RootIndex);
+					NewEdgeMeta.Type = EPCGExIntersectionType::PointEdge;
 					NewEdgeMeta.bIsSubEdge = true;
 					if (Details->bSnapOnEdge) { Transforms[Graph->Nodes[Split.Index].PointIndex].SetLocation(Split.ClosestPoint); }
 				}
@@ -466,7 +468,8 @@ namespace PCGExGraphs
 			// Insert last edge
 			if (Graph->InsertEdge_Unsafe(A, EdgeProxy->End, NewEdge, IOIndex))
 			{
-				FGraphEdgeMetadata& NewEdgeMeta = Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, RootIndex, EPCGExIntersectionType::PointEdge);
+				FGraphEdgeMetadata& NewEdgeMeta = Graph->GetOrCreateEdgeMetadata_Unsafe(NewEdge.Index, RootIndex);
+				NewEdgeMeta.Type = EPCGExIntersectionType::PointEdge;
 				NewEdgeMeta.bIsSubEdge = true;
 			}
 			else if (FGraphEdgeMetadata* ExistingMetadataPtr = Graph->FindEdgeMetadata_Unsafe(NewEdge.Index))
@@ -694,7 +697,7 @@ namespace PCGExGraphs
 		int32 EdgeReserve = 0;
 		for (TSharedPtr<FEdgeEdgeProxy>& EdgeProxy : Edges) { EdgeReserve += EdgeProxy->Crossings.Num() + 1; }
 
-		Graph->ReserveForEdges(EdgeReserve, true);
+		Graph->ReserveForEdges(EdgeReserve);
 
 		for (TSharedPtr<FEdgeEdgeProxy>& EdgeProxy : Edges)
 		{
@@ -712,7 +715,9 @@ namespace PCGExGraphs
 
 				if (Graph->InsertEdge_Unsafe(A, B, NewEdge, IOIndex))
 				{
-					FGraphEdgeMetadata& NewEdgeMeta = Graph->AddNodeAndEdgeMetadata_Unsafe(B, NewEdge.Index, EdgeRootIndex, EPCGExIntersectionType::EdgeEdge);
+					Graph->GetOrCreateNodeMetadata_Unsafe(B).Type = EPCGExIntersectionType::EdgeEdge;
+					FGraphEdgeMetadata& NewEdgeMeta = Graph->GetOrCreateEdgeMetadata_Unsafe(NewEdge.Index, EdgeRootIndex);
+					NewEdgeMeta.Type = EPCGExIntersectionType::EdgeEdge;
 					NewEdgeMeta.bIsSubEdge = true;
 				}
 				else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->FindEdgeMetadata_Unsafe(NewEdge.Index))
@@ -727,7 +732,8 @@ namespace PCGExGraphs
 			// Insert last edge
 			if (Graph->InsertEdge_Unsafe(A, EdgeProxy->End, NewEdge, IOIndex))
 			{
-				FGraphEdgeMetadata& NewEdgeMeta = Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, EdgeRootIndex, EPCGExIntersectionType::EdgeEdge);
+				FGraphEdgeMetadata& NewEdgeMeta = Graph->GetOrCreateEdgeMetadata_Unsafe(NewEdge.Index, EdgeRootIndex);
+				NewEdgeMeta.Type = EPCGExIntersectionType::EdgeEdge;
 				NewEdgeMeta.bIsSubEdge = true;
 			}
 			else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->FindEdgeMetadata_Unsafe(NewEdge.Index))

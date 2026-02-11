@@ -109,7 +109,7 @@ struct PCGEXGRAPHS_API FPCGExGraphBuilderDetails
 	bool bPreBuildFaceEnumerator = false;
 
 	/** Projection settings for the pre-built face enumerator. Downstream nodes with matching projection will reuse the cache. */
-	UPROPERTY(BlueprintReadWrite, Category = "Settings|Pre-Built Cache", EditAnywhere, meta = (PCG_Overridable, EditCondition="bPreBuildFaceEnumerator"))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Pre-Built Cache", EditAnywhere, meta = (PCG_Overridable, DisplayName="Pre Build Face Enumerator", EditCondition="bPreBuildFaceEnumerator"))
 	FPCGExGeo2DProjectionDetails FaceEnumeratorProjection;
 
 	/** Pre-build node chains for path extraction and cluster simplification operations. */
