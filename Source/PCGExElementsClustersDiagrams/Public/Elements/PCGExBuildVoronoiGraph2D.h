@@ -81,7 +81,7 @@ protected:
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/diagrams/voronoi-2d"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/generate/cluster-voronoi-2d"))
 class UPCGExBuildVoronoiGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

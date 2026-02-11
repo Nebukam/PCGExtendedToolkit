@@ -35,7 +35,7 @@ public:
 /**
  *
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Line Trace", PCGExNodeLibraryDoc="clusters/refine-cluster/line-trace"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Line Trace", PCGExNodeLibraryDoc="clusters/refine/cluster-refine/refine-line-trace"))
 class UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()

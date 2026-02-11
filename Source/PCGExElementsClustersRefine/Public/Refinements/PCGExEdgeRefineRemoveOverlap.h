@@ -43,7 +43,7 @@ public:
 /**
  *
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Overlap", PCGExNodeLibraryDoc="clusters/refine-cluster/overlap"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Overlap", PCGExNodeLibraryDoc="clusters/refine/cluster-refine/refine-overlap"))
 class UPCGExEdgeRemoveOverlap : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()

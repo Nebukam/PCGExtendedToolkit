@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 
 #include "PCGExPropertyCollectionComponent.generated.h"
 
@@ -15,6 +15,13 @@
  *
  * Valency scans for these on cages/patterns during compilation.
  * Other systems can scan for them on spawned actors at runtime.
+ *
+ * This is the bridge between the property system and the actor world:
+ * place this component on any actor, define properties in the Details panel,
+ * and any PCGEx system that scans for properties will find them.
+ *
+ * Custom property types defined in any module will appear in the schema
+ * collection's FInstancedStruct picker automatically.
  */
 UCLASS(ClassGroup = "PCGEx", meta = (BlueprintSpawnableComponent, DisplayName = "PCGEx Property Collection"))
 class PCGEXPROPERTIES_API UPCGExPropertyCollectionComponent : public UActorComponent

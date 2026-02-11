@@ -20,7 +20,7 @@ public:
 /**
  *
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Leaves", PCGExNodeLibraryDoc="clusters/refine-cluster/remove-leaves"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Leaves", PCGExNodeLibraryDoc="clusters/refine/cluster-refine/remove-leaves"))
 class UPCGExEdgeRemoveLeaves : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()

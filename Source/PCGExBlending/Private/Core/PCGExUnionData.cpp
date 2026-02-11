@@ -23,7 +23,6 @@ namespace PCGExData
 
 	void IUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
 	{
-		IOSet.Add(IOIndex);
 		Elements.Reserve(Elements.Num() + PointIndices.Num());
 		for (const int32 A : PointIndices) { Elements.Add(FElement(A, IOIndex)); }
 	}
@@ -79,20 +78,16 @@ namespace PCGExData
 			return Index;
 		}
 
-		// Normalize weights
-		//for (FWeightedPoint& P : OutWeightedPoints) { P.Weight /= TotalWeight; }
 		return Index;
 	}
 
 	void IUnionData::Reserve(const int32 InSetReserve, const int32 InElementReserve = 8)
 	{
-		if (InElementReserve > 8 && Elements.Max() < InElementReserve) { Elements.Reserve(InElementReserve); }
-		if (InSetReserve > 8) { IOSet.Reserve(InSetReserve); }
+		if (InElementReserve > 8) { Elements.Reserve(InElementReserve); }
 	}
 
 	void IUnionData::Reset()
 	{
-		IOSet.Reset();
 		Elements.Reset();
 	}
 
@@ -117,7 +112,10 @@ namespace PCGExData
 
 	bool FUnionMetadata::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
 	{
-		const TSet<int32> Overlap = Entries[InIdx]->IOSet.Intersect(InIndices);
-		return Overlap.Num() > 0;
+		for (const FElement& E : Entries[InIdx]->Elements)
+		{
+			if (InIndices.Contains(E.IO)) { return true; }
+		}
+		return false;
 	}
 }

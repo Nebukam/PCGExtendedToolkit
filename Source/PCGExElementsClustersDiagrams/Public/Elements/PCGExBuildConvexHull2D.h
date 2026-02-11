@@ -19,7 +19,7 @@ namespace PCGExGraphs
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/diagrams/convex-hull-2d"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/generate/cluster-convex-hull-2d"))
 class UPCGExBuildConvexHull2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

@@ -20,7 +20,7 @@ public:
 /**
  *
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Highest Score", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-score"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Highest Score", PCGExNodeLibraryDoc="clusters/refine/cluster-refine/score-based-refinements"))
 class UPCGExEdgeKeepHighestScore : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()

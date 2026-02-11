@@ -276,7 +276,7 @@ bool UPCGExValencyBondingRules::Compile()
 		#if WITH_EDITOR
 		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
 		{
-			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
+			if (const FPCGExProperty* Prop = PropStruct.GetPtr<FPCGExProperty>())
 			{
 				if (!Prop->PropertyName.IsNone() && Prop->HeaderId != 0)
 				{
@@ -325,7 +325,7 @@ bool UPCGExValencyBondingRules::Compile()
 				if (ExistingSchema->Property.GetScriptStruct() == CageSchema.Property.GetScriptStruct())
 				{
 					// Same type - preserve value, update PropertyName
-					if (FPCGExPropertyCompiled* Prop = ExistingSchema->GetPropertyMutable())
+					if (FPCGExProperty* Prop = ExistingSchema->GetPropertyMutable())
 					{
 						Prop->PropertyName = CageSchema.Name;
 					}
@@ -368,7 +368,7 @@ bool UPCGExValencyBondingRules::Compile()
 		// Add defaults from schema
 		for (const FPCGExPropertySchema& Schema : DefaultProperties.Schemas)
 		{
-			if (const FPCGExPropertyCompiled* Prop = Schema.GetProperty())
+			if (const FPCGExProperty* Prop = Schema.GetProperty())
 			{
 				if (!Schema.Name.IsNone())
 				{
@@ -380,7 +380,7 @@ bool UPCGExValencyBondingRules::Compile()
 		// Scan all module properties
 		for (const FInstancedStruct& PropStruct : CompiledData.AllModuleProperties)
 		{
-			if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
+			if (const FPCGExProperty* Prop = PropStruct.GetPtr<FPCGExProperty>())
 			{
 				if (!Prop->PropertyName.IsNone() && !ModulePropertiesMap.Contains(Prop->PropertyName))
 				{
@@ -420,7 +420,7 @@ bool UPCGExValencyBondingRules::Compile()
 			{
 				for (const FInstancedStruct& PropStruct : Entry.Properties)
 				{
-					if (const FPCGExPropertyCompiled* Prop = PropStruct.GetPtr<FPCGExPropertyCompiled>())
+					if (const FPCGExProperty* Prop = PropStruct.GetPtr<FPCGExProperty>())
 					{
 						if (!Prop->PropertyName.IsNone() && !PatternPropertiesMap.Contains(Prop->PropertyName))
 						{

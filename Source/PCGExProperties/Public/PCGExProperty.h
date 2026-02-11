@@ -7,11 +7,18 @@
 #include "StructUtils/InstancedStruct.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExPropertyCompiled.generated.h"
+#include "PCGExProperty.generated.h"
 
 /**
  * Entry in the property registry.
  * Built at compile time to provide a read-only view of available properties.
+ *
+ * The registry is used by:
+ * - FPCGExPropertyOutputSettings::AutoPopulateFromRegistry() to auto-create output configs
+ * - UI systems to display available property types and their capabilities
+ *
+ * Custom property types are automatically included when BuildRegistry() is called
+ * on an FInstancedStruct array containing your type.
  */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExPropertyRegistryEntry
@@ -46,45 +53,108 @@ struct PCGEXPROPERTIES_API FPCGExPropertyRegistryEntry
 };
 
 /**
- * Base struct for compiled properties.
- * All property types derive from this and must include PropertyName.
+ * Base struct for all PCGEx property types.
  *
- * Properties support an output interface for writing values to point attributes:
- * - InitializeOutput(): Creates buffer(s) on a facade
- * - WriteOutput(): Writes value(s) to initialized buffer(s)
- * - CopyValueFrom(): Copies value from another property of same type
+ * ============================================================================
+ * CREATING A CUSTOM PROPERTY TYPE
+ * ============================================================================
  *
- * IMPORTANT: This system is runtime-friendly. Registry building and property resolution
- * work outside the editor (e.g., for Tuple and Collections created at runtime).
+ * To add a new property type that integrates with the entire plugin:
  *
- * To add a new property type:
- * 1. Create derived struct in PCGExPropertyTypes.h (this module)
- * 2. Optionally create editor component in PCGExPropertiesEditor module
- * 3. See .claude/Unified_Property_System_Architecture.md for full documentation
+ * 1. DEFINE your struct deriving from FPCGExProperty in PCGExPropertyTypes.h
+ *    (or in your own module if it has special dependencies):
+ *
+ *    USTRUCT(BlueprintType, meta=(PCGExInlineValue))
+ *    struct FPCGExProperty_MyType : public FPCGExProperty
+ *    {
+ *        GENERATED_BODY()
+ *
+ *        UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+ *        FMyValueType Value;  // <-- your authored value
+ *
+ *    protected:
+ *        TSharedPtr<PCGExData::TBuffer<FMyOutputType>> OutputBuffer;
+ *        // Note: OutputType can differ from Value type (see Color: FLinearColor -> FVector4)
+ *
+ *    public:
+ *        // Override ALL virtual methods listed below.
+ *    };
+ *
+ * 2. IMPLEMENT the methods. For simple 1:1 type mappings, use PCGEX_PROPERTY_IMPL
+ *    macro in the .cpp (see PCGExPropertyTypes.cpp). For type conversions, implement
+ *    each method manually (see Color and Enum for examples).
+ *
+ * 3. The USTRUCT meta=(PCGExInlineValue) tag is optional - it controls how the
+ *    property appears in the FInstancedStruct picker UI.
+ *
+ * 4. No registration step is needed. UHT discovers the USTRUCT automatically.
+ *    Your type will appear in any FInstancedStruct picker that uses
+ *    meta=(BaseStruct="/Script/PCGExProperties.PCGExProperty").
+ *
+ * ============================================================================
+ * TWO OUTPUT PATHS
+ * ============================================================================
+ *
+ * Properties support two independent output mechanisms:
+ *
+ * A) POINT ATTRIBUTE OUTPUT (via FPCGExPropertyWriter):
+ *    InitializeOutput() -> creates a TBuffer on a facade
+ *    WriteOutput()      -> writes Value to buffer at a point index
+ *    WriteOutputFrom()  -> writes from source property directly (thread-safe)
+ *    Used by: Collections, Distribute Tuple, any node outputting properties to points
+ *
+ * B) METADATA ATTRIBUTE OUTPUT (via Tuple node):
+ *    CreateMetadataAttribute() -> creates attribute on UPCGParamData
+ *    WriteMetadataValue()      -> writes Value to a metadata entry key
+ *    Used by: Tuple node for creating param data tables
+ *
+ * Both paths are optional. Return false/nullptr from SupportsOutput()/
+ * CreateMetadataAttribute() if your type doesn't support a path.
+ *
+ * ============================================================================
+ * THREAD SAFETY
+ * ============================================================================
+ *
+ * - WriteOutputFrom() is the ONLY method safe for parallel processing loops.
+ *   It reads from Source and writes directly to the buffer without mutating 'this'.
+ * - CopyValueFrom() + WriteOutput() is NOT thread-safe (mutates Value field).
+ *   Only use this pattern in single-threaded contexts.
+ * - InitializeOutput() must be called during boot phase (single-threaded).
  */
 USTRUCT(BlueprintType)
-struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
+struct PCGEXPROPERTIES_API FPCGExProperty
 {
 	GENERATED_BODY()
 
-	/** User-defined name for disambiguation when multiple properties exist */
+	/**
+	 * User-defined name for disambiguation when multiple properties exist.
+	 * This name is used to match properties across schemas, overrides, and output configs.
+	 * Must be unique within a schema collection.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Settings, meta=(DisplayPriority = -1))
 	FName PropertyName;
 
 	#if WITH_EDITORONLY_DATA
-	/** Stable identity for override matching. Auto-generated, preserved by owners through type changes. */
+	/**
+	 * Stable identity for override matching across schema changes.
+	 * Auto-generated on construction, preserved by FPCGExPropertySchema through:
+	 * - Property renames (HeaderId stays same, overrides follow)
+	 * - Property reordering (HeaderId stays same, values stay correct)
+	 * - Type changes (HeaderId preserved, bEnabled state preserved, value reset to default)
+	 * Custom properties inherit this automatically - no action needed.
+	 */
 	UPROPERTY(meta=(IgnoreForMemberInitializationTest))
 	int32 HeaderId = 0;
 	#endif
 
-	FPCGExPropertyCompiled()
+	FPCGExProperty()
 	{
 		#if WITH_EDITOR
 		HeaderId = GetTypeHash(FGuid::NewGuid());
 		#endif
 	}
 
-	virtual ~FPCGExPropertyCompiled() = default;
+	virtual ~FPCGExProperty() = default;
 
 	// --- Output Interface ---
 
@@ -111,7 +181,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	 * @param PointIndex The point index to write to
 	 * @param Source The source property to read value from (must be same concrete type)
 	 */
-	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExPropertyCompiled* Source) const {}
+	virtual void WriteOutputFrom(int32 PointIndex, const FPCGExProperty* Source) const {}
 
 	/**
 	 * Copy value from another property of the same type.
@@ -119,7 +189,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	 * For parallel processing, use WriteOutputFrom() instead.
 	 * @param Source The source property to copy from (must be same concrete type)
 	 */
-	virtual void CopyValueFrom(const FPCGExPropertyCompiled* Source) {}
+	virtual void CopyValueFrom(const FPCGExProperty* Source) {}
 
 	/**
 	 * Check if this property type supports attribute output.
@@ -161,7 +231,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 	 * Similar to CopyValueFrom but called during header initialization.
 	 * @param Source The source property to copy from
 	 */
-	virtual void InitializeFrom(const FPCGExPropertyCompiled* Source) { CopyValueFrom(Source); }
+	virtual void InitializeFrom(const FPCGExProperty* Source) { CopyValueFrom(Source); }
 
 	// --- Registry ---
 
@@ -177,7 +247,14 @@ struct PCGEXPROPERTIES_API FPCGExPropertyCompiled
 /**
  * Single property override entry.
  * Stores enabled state + typed value. PropertyName comes from the inner struct.
- * Array is kept parallel with schema - same size, same order.
+ *
+ * Override entries are kept in parallel arrays with the schema:
+ * - Schema[0] <-> Override[0], Schema[1] <-> Override[1], etc.
+ * - This enables efficient per-column iteration and index-based access.
+ * - SyncToSchema() maintains this parallel structure automatically.
+ *
+ * Custom properties work transparently here - the FInstancedStruct Value
+ * holds any FPCGExProperty derivative polymorphically.
  */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
@@ -189,7 +266,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 	bool bEnabled = false;
 
 	/** The typed property value (contains PropertyName internally) */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct, EditCondition="bEnabled"))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExProperty", ExcludeBaseStruct, EditCondition="bEnabled"))
 	FInstancedStruct Value;
 
 	FPCGExPropertyOverrideEntry() = default;
@@ -203,22 +280,22 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 	/** Get the property name from the inner struct */
 	FName GetPropertyName() const
 	{
-		if (const FPCGExPropertyCompiled* Prop = Value.GetPtr<FPCGExPropertyCompiled>())
+		if (const FPCGExProperty* Prop = Value.GetPtr<FPCGExProperty>())
 		{
 			return Prop->PropertyName;
 		}
 		return NAME_None;
 	}
 
-	/** Get the compiled property from Value (may be nullptr) */
-	const FPCGExPropertyCompiled* GetProperty() const
+	/** Get the property from Value (may be nullptr) */
+	const FPCGExProperty* GetProperty() const
 	{
-		return Value.GetPtr<FPCGExPropertyCompiled>();
+		return Value.GetPtr<FPCGExProperty>();
 	}
 
-	FPCGExPropertyCompiled* GetPropertyMutable()
+	FPCGExProperty* GetPropertyMutable()
 	{
-		return Value.GetMutablePtr<FPCGExPropertyCompiled>();
+		return Value.GetMutablePtr<FPCGExProperty>();
 	}
 
 	bool IsValid() const
@@ -229,15 +306,32 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrideEntry
 
 /**
  * Wrapper struct for property overrides array.
- * Used by Collections (entry-level overrides) and Tuple (value overrides).
+ * Used by Collections (entry-level overrides) and Tuple (row values).
  *
  * The Overrides array is kept parallel with the schema array:
- * - Same size, same order
- * - Each entry has bEnabled flag to toggle override
- * - Disabled entries use collection defaults
+ * - Same size, same order as the schema that created it
+ * - Each entry has bEnabled flag to toggle that column for this row
+ * - Disabled entries use collection/schema defaults
  *
- * Schema Source: The customization looks for a "CollectionProperties" or "Properties"
- * property on the outer object to determine available property types.
+ * USAGE PATTERN (for nodes that use properties):
+ *
+ *   // In your settings class:
+ *   FPCGExPropertySchemaCollection MySchema;           // Define columns
+ *   TArray<FPCGExPropertyOverrides> MyRows;            // Row values
+ *
+ *   // In PostEditChangeProperty:
+ *   MySchema.SyncOverridesArray(MyRows);               // Keep rows in sync
+ *
+ *   // At runtime, read values:
+ *   for (int Col = 0; Col < MySchema.Num(); ++Col) {
+ *       if (MyRows[RowIdx].IsOverrideEnabled(Col)) {
+ *           const FPCGExProperty* Prop = MyRows[RowIdx].Overrides[Col].GetProperty();
+ *           // Use Prop->Value...
+ *       }
+ *   }
+ *
+ * Schema Source: The editor customization looks for a "CollectionProperties" or "Properties"
+ * property on the outer object to determine available property types for the picker.
  */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
@@ -248,7 +342,20 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TArray<FPCGExPropertyOverrideEntry> Overrides;
 
-	/** Sync overrides to match schema - ensures parallel array structure */
+	/**
+	 * Sync overrides to match schema - ensures parallel array structure.
+	 *
+	 * This is the core mechanism that keeps overrides aligned with their schema.
+	 * In the editor, it uses HeaderId for stable matching:
+	 * - Existing overrides matched by HeaderId preserve their bEnabled state
+	 * - Same-type matches also preserve the override value
+	 * - Type changes preserve bEnabled but reset the value to schema default
+	 * - New properties (no HeaderId match) are added as disabled
+	 *
+	 * At runtime (no editor data), overrides are rebuilt from schema defaults.
+	 *
+	 * @param Schema The schema to sync to (use FPCGExPropertySchemaCollection::BuildSchema())
+	 */
 	void SyncToSchema(const TArray<FInstancedStruct>& Schema);
 
 	/** Check if override at index is enabled */
@@ -294,8 +401,8 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
 	template <typename T>
 	const T* GetProperty(FName PropertyName) const
 	{
-		static_assert(TIsDerivedFrom<T, FPCGExPropertyCompiled>::Value,
-			"T must derive from FPCGExPropertyCompiled");
+		static_assert(TIsDerivedFrom<T, FPCGExProperty>::Value,
+			"T must derive from FPCGExProperty");
 
 		for (const FPCGExPropertyOverrideEntry& Entry : Overrides)
 		{
@@ -315,10 +422,19 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOverrides
  * Schema entry for property definitions.
  * Used by Collections, Valency, and Tuple to define available properties with stable identity.
  *
- * HeaderId is preserved through type changes (outside FInstancedStruct), enabling:
- * - Rename property → HeaderId stays same → override state preserved
- * - Reorder properties → HeaderId stays same → values stay correct
- * - Change type → HeaderId preserved → bEnabled state preserved
+ * A schema entry binds together:
+ * - A Name (shown in UI, used as attribute name for output)
+ * - A Property (FInstancedStruct holding any FPCGExProperty derivative)
+ * - A HeaderId (editor-only, for stable override matching)
+ *
+ * HeaderId is preserved through type changes (stored outside FInstancedStruct), enabling:
+ * - Rename property -> HeaderId stays same -> override state preserved
+ * - Reorder properties -> HeaderId stays same -> values stay correct
+ * - Change type -> HeaderId preserved -> bEnabled state preserved, value reset
+ *
+ * The FInstancedStruct picker is constrained via meta=(BaseStruct=".../PCGExProperty",
+ * ExcludeBaseStruct) so only concrete property types appear in the dropdown.
+ * Custom property types automatically appear here once their USTRUCT is compiled.
  */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExPropertySchema
@@ -336,7 +452,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchema
 	FName Name = NAME_None;
 
 	/** The typed property definition */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExPropertyCompiled", ExcludeBaseStruct, ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(BaseStruct="/Script/PCGExProperties.PCGExProperty", ExcludeBaseStruct, ShowOnlyInnerProperties))
 	FInstancedStruct Property;
 
 	FPCGExPropertySchema();  // Implemented in .cpp (needs full type definitions)
@@ -344,7 +460,7 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchema
 	/** Sync Name to Property.PropertyName and HeaderId */
 	void SyncPropertyName()
 	{
-		if (FPCGExPropertyCompiled* Prop = GetPropertyMutable())
+		if (FPCGExProperty* Prop = GetPropertyMutable())
 		{
 			Prop->PropertyName = Name;
 			#if WITH_EDITOR
@@ -353,15 +469,15 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchema
 		}
 	}
 
-	/** Get the compiled property from Property (may be nullptr) */
-	const FPCGExPropertyCompiled* GetProperty() const
+	/** Get the property from Property (may be nullptr) */
+	const FPCGExProperty* GetProperty() const
 	{
-		return Property.GetPtr<FPCGExPropertyCompiled>();
+		return Property.GetPtr<FPCGExProperty>();
 	}
 
-	FPCGExPropertyCompiled* GetPropertyMutable()
+	FPCGExProperty* GetPropertyMutable()
 	{
-		return Property.GetMutablePtr<FPCGExPropertyCompiled>();
+		return Property.GetMutablePtr<FPCGExProperty>();
 	}
 
 	bool IsValid() const
@@ -372,12 +488,29 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchema
 
 /**
  * Collection of property schemas with embedded utilities.
- * Used by Tuple (Composition), Collections (CollectionProperties), and Valency (schema component).
+ * This is the primary container for defining a set of typed properties.
  *
- * Provides:
- * - Encapsulated utilities (find, validate, build schema)
- * - Single UI customization point
- * - Consistent pattern across all modules
+ * Used by:
+ * - Tuple node (Composition field) - defines columns of a param data table
+ * - Collections (CollectionProperties) - defines per-entry properties on asset collections
+ * - Valency (via UPCGExPropertyCollectionComponent) - defines cage/pattern properties
+ * - Any custom node that needs user-definable typed properties
+ *
+ * INTEGRATING INTO YOUR OWN NODE:
+ *
+ *   // In your UPCGExSettings subclass:
+ *   UPROPERTY(EditAnywhere, Category = Settings)
+ *   FPCGExPropertySchemaCollection MyProperties;
+ *
+ *   // If you have override rows (like Tuple):
+ *   UPROPERTY(EditAnywhere, Category = Settings)
+ *   TArray<FPCGExPropertyOverrides> MyValues;
+ *
+ *   // In PostEditChangeProperty, sync on any schema change:
+ *   MyProperties.SyncOverridesArray(MyValues);
+ *
+ *   // At runtime, access properties:
+ *   const auto* FloatProp = MyProperties.GetProperty<FPCGExProperty_Float>(FName("MyFloat"));
  */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
@@ -411,8 +544,8 @@ struct PCGEXPROPERTIES_API FPCGExPropertySchemaCollection
 	template <typename T>
 	const T* GetProperty(FName PropertyName) const
 	{
-		static_assert(TIsDerivedFrom<T, FPCGExPropertyCompiled>::Value,
-			"T must derive from FPCGExPropertyCompiled");
+		static_assert(TIsDerivedFrom<T, FPCGExProperty>::Value,
+			"T must derive from FPCGExProperty");
 
 		const FPCGExPropertySchema* Schema = FindByName(PropertyName);
 		return Schema ? Schema->Property.GetPtr<T>() : nullptr;
@@ -458,20 +591,26 @@ struct PCGEXPROPERTIES_API FPCGExWeightedPropertyOverrides : public FPCGExProper
 /**
  * Query helpers for accessing properties from FInstancedStruct arrays.
  * All functions accept TConstArrayView to work with both TArray and TArrayView.
+ *
+ * These are the primary runtime lookup functions. Use them when you have
+ * a flat array of FInstancedStruct (e.g., from BuildSchema() or a provider).
+ *
+ * For lookups on FPCGExPropertySchemaCollection, prefer its member methods
+ * (FindByName, GetProperty<T>) which operate on the schema directly.
  */
 namespace PCGExProperties
 {
 	/**
 	 * Get first property of specified type, optionally filtered by name.
-	 * @param Properties - Array view of FInstancedStruct containing compiled properties
+	 * @param Properties - Array view of FInstancedStruct containing properties
 	 * @param PropertyName - Optional name filter (NAME_None matches any)
 	 * @return Pointer to property if found, nullptr otherwise
 	 */
 	template <typename T>
 	const T* GetProperty(TConstArrayView<FInstancedStruct> Properties, FName PropertyName = NAME_None)
 	{
-		static_assert(TIsDerivedFrom<T, FPCGExPropertyCompiled>::Value,
-			"T must derive from FPCGExPropertyCompiled");
+		static_assert(TIsDerivedFrom<T, FPCGExProperty>::Value,
+			"T must derive from FPCGExProperty");
 
 		for (const FInstancedStruct& Prop : Properties)
 		{
@@ -488,14 +627,14 @@ namespace PCGExProperties
 
 	/**
 	 * Get all properties of specified type.
-	 * @param Properties - Array view of FInstancedStruct containing compiled properties
+	 * @param Properties - Array view of FInstancedStruct containing properties
 	 * @return Array of pointers to matching properties
 	 */
 	template <typename T>
 	TArray<const T*> GetAllProperties(TConstArrayView<FInstancedStruct> Properties)
 	{
-		static_assert(TIsDerivedFrom<T, FPCGExPropertyCompiled>::Value,
-			"T must derive from FPCGExPropertyCompiled");
+		static_assert(TIsDerivedFrom<T, FPCGExProperty>::Value,
+			"T must derive from FPCGExProperty");
 
 		TArray<const T*> Result;
 		for (const FInstancedStruct& Prop : Properties)
@@ -510,7 +649,7 @@ namespace PCGExProperties
 
 	/**
 	 * Get property by name regardless of type.
-	 * @param Properties - Array view of FInstancedStruct containing compiled properties
+	 * @param Properties - Array view of FInstancedStruct containing properties
 	 * @param PropertyName - Name to search for
 	 * @return Pointer to FInstancedStruct if found, nullptr otherwise
 	 */
@@ -523,7 +662,7 @@ namespace PCGExProperties
 
 		for (const FInstancedStruct& Prop : Properties)
 		{
-			if (const FPCGExPropertyCompiled* Base = Prop.GetPtr<FPCGExPropertyCompiled>())
+			if (const FPCGExProperty* Base = Prop.GetPtr<FPCGExProperty>())
 			{
 				if (Base->PropertyName == PropertyName)
 				{
@@ -553,7 +692,7 @@ namespace PCGExProperties
 
 	/**
 	 * Build a registry from an array of property instanced structs.
-	 * @param Properties - Array of FInstancedStruct containing FPCGExPropertyCompiled derivatives
+	 * @param Properties - Array of FInstancedStruct containing FPCGExProperty derivatives
 	 * @param OutRegistry - Output array to populate with registry entries
 	 */
 	inline void BuildRegistry(TConstArrayView<FInstancedStruct> Properties, TArray<FPCGExPropertyRegistryEntry>& OutRegistry)
@@ -561,7 +700,7 @@ namespace PCGExProperties
 		OutRegistry.Empty(Properties.Num());
 		for (const FInstancedStruct& Prop : Properties)
 		{
-			if (const FPCGExPropertyCompiled* Base = Prop.GetPtr<FPCGExPropertyCompiled>())
+			if (const FPCGExProperty* Base = Prop.GetPtr<FPCGExProperty>())
 			{
 				OutRegistry.Add(Base->ToRegistryEntry());
 			}
