@@ -12,7 +12,7 @@
 #include "ToolMenus.h"
 #include "Core/PCGExAssetCollection.h"
 #include "Details/Collections/PCGExCollectionEditorUtils.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -55,7 +55,7 @@ bool FPCGExAssetCollectionEditor::IsPropertyUnderEntries(const FPropertyAndParen
 	// may have incomplete parent chains. Check if ANY parent property's OWNER STRUCT derives from FPCGExPropertyCompiled.
 	// This supports full extensibility - custom property types automatically work.
 
-	static UScriptStruct* PropertyCompiledStruct = FPCGExPropertyCompiled::StaticStruct();
+	static UScriptStruct* PropertyCompiledStruct = FPCGExProperty::StaticStruct();
 
 	// Check the property itself's owner struct
 	if (UStruct* OwnerStruct = PropertyAndParent.Property.GetOwnerStruct())

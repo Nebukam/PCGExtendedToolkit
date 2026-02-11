@@ -72,7 +72,7 @@ struct FPCGExValencyCageData
 	/** Whether this cage preserves local transforms */
 	bool bPreserveLocalTransforms = false;
 
-	/** Compiled properties from cage property components */
+	/** Properties from cage property components */
 	TArray<FInstancedStruct> Properties;
 
 	/** Actor tags from cage and mirrored sources (palettes, other cages) */

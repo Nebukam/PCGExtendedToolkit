@@ -86,6 +86,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneLeaves = false;
 
+	/**  Edge Union Data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
+	
 	/** Defines how fused point properties and attributes are merged together for Edges (When an edge is the result of a simplification). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
 	FPCGExBlendingDetails EdgeBlendingDetails;
@@ -93,10 +97,6 @@ public:
 	/** Meta filter settings for edge data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails EdgeCarryOverDetails;
-
-	/**  Edge Union Data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
-	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))

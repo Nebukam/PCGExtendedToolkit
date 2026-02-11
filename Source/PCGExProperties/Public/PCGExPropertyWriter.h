@@ -5,13 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExData.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 
 #include "PCGExPropertyWriter.generated.h"
 
 /**
  * Configuration for a single property output.
  * Associates a property (by name) with an output attribute name.
+ *
+ * This is the user-facing config for "which properties should become point attributes".
+ * PropertyName must match a property defined in the source schema/provider.
+ * OutputAttributeName lets the user rename the output attribute (defaults to PropertyName).
  */
 USTRUCT(BlueprintType)
 struct PCGEXPROPERTIES_API FPCGExPropertyOutputConfig
@@ -108,6 +112,27 @@ struct PCGEXPROPERTIES_API FPCGExPropertyOutputSettings
 /**
  * Interface for providing properties to the property writer.
  * Implement this to customize how properties are looked up per-point.
+ *
+ * IMPLEMENTING A CUSTOM PROVIDER:
+ *
+ * This is needed when you want to use FPCGExPropertyWriter in your own node.
+ * The provider abstracts how properties are stored so the writer can work generically.
+ *
+ *   class FMyProvider : public IPCGExPropertyProvider
+ *   {
+ *       // Return properties for a given source index (e.g., collection entry, row)
+ *       TConstArrayView<FInstancedStruct> GetProperties(int32 Index) const override;
+ *
+ *       // Return the registry (built once during init via PCGExProperties::BuildRegistry)
+ *       TConstArrayView<FPCGExPropertyRegistryEntry> GetPropertyRegistry() const override;
+ *
+ *       // Find a prototype property by name (used to clone writer instances)
+ *       const FInstancedStruct* FindPrototypeProperty(FName PropertyName) const override;
+ *   };
+ *
+ * The "prototype" property is cloned by the writer during Initialize() to create
+ * writer instances that own their output buffers. The actual per-point values
+ * come from GetProperties(SourceIndex) during WriteProperties().
  */
 class PCGEXPROPERTIES_API IPCGExPropertyProvider
 {
@@ -144,10 +169,24 @@ public:
  * For Valency-specific needs, use FPCGExValencyPropertyWriter which adds
  * module tags support.
  *
- * Usage:
- * 1. Create instance
- * 2. Call Initialize() with a property provider during boot phase
- * 3. Call WriteProperties() during processing for each point
+ * LIFECYCLE:
+ *
+ *   // 1. Boot phase (single-threaded):
+ *   FPCGExPropertyWriter Writer;
+ *   Writer.Initialize(MyProvider, OutputFacade, OutputSettings);
+ *   // Initialize() clones prototype properties, creates output buffers.
+ *   // Returns false if no outputs were successfully initialized.
+ *
+ *   // 2. Processing phase (per-point, potentially parallel):
+ *   Writer.WriteProperties(PointIndex, SourceIndex);
+ *   // Looks up properties from provider at SourceIndex,
+ *   // copies values into writer instances, writes to buffers.
+ *
+ * NOTE: WriteProperties() uses CopyValueFrom + WriteOutput internally,
+ * which is NOT thread-safe. If you need parallel writes, access the
+ * property's WriteOutputFrom() directly instead.
+ *
+ * Custom property types work transparently with this writer - no changes needed here.
  */
 class PCGEXPROPERTIES_API FPCGExPropertyWriter
 {
@@ -191,7 +230,11 @@ protected:
 
 	/**
 	 * Per-property writer instances.
-	 * Key = PropertyName, Value = cloned property used as writer.
+	 * Key = PropertyName, Value = cloned property (owns its OutputBuffer).
+	 *
+	 * Each writer instance is a deep copy of the prototype property from the provider.
+	 * The clone's InitializeOutput() is called during Initialize() to create the buffer.
+	 * During WriteProperties(), values are copied from source into the clone, then written.
 	 */
 	TMap<FName, FInstancedStruct> WriterInstances;
 };

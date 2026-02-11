@@ -7,7 +7,7 @@
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "PropertyHandle.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "Widgets/Text/STextBlock.h"
 
 TSharedRef<IPropertyTypeCustomization> FPCGExPropertySchemaCustomization::MakeInstance()
@@ -32,7 +32,7 @@ FText FPCGExPropertySchemaCustomization::GetHeaderText() const
 		if (Schema)
 		{
 			PropertyName = Schema->Name;
-			if (const FPCGExPropertyCompiled* Prop = Schema->GetProperty())
+			if (const FPCGExProperty* Prop = Schema->GetProperty())
 			{
 				TypeName = Prop->GetTypeName().ToString();
 			}

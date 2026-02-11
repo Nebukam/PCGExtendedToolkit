@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Core/PCGExValencyPropertyWriter.h"
-#include "PCGExPropertyCompiled.h"
+#include "PCGExProperty.h"
 #include "Core/PCGExValencyLog.h"
 
 int32 FPCGExValencyPropertyOutputSettings::AutoPopulateFromRules(const FPCGExValencyBondingRulesCompiled* CompiledRules)
@@ -80,7 +80,7 @@ bool FPCGExValencyPropertyWriter::Initialize(
 		}
 
 		// Check if property supports output
-		const FPCGExPropertyCompiled* ProtoBase = Prototype->GetPtr<FPCGExPropertyCompiled>();
+		const FPCGExProperty* ProtoBase = Prototype->GetPtr<FPCGExProperty>();
 		if (!ProtoBase || !ProtoBase->SupportsOutput())
 		{
 			PCGEX_VALENCY_VERBOSE(Staging, "Property '%s' does not support output", *OutputConfig.PropertyName.ToString());
@@ -91,7 +91,7 @@ bool FPCGExValencyPropertyWriter::Initialize(
 		FInstancedStruct WriterInstance = *Prototype;
 
 		// Initialize output buffers
-		FPCGExPropertyCompiled* Writer = WriterInstance.GetMutablePtr<FPCGExPropertyCompiled>();
+		FPCGExProperty* Writer = WriterInstance.GetMutablePtr<FPCGExProperty>();
 		if (!Writer || !Writer->InitializeOutput(OutputFacade, OutputName))
 		{
 			PCGEX_VALENCY_VERBOSE(Staging, "Failed to initialize output for property '%s'", *OutputConfig.PropertyName.ToString());
@@ -131,7 +131,7 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 		for (auto& KV : WriterInstances)
 		{
 			const FName& PropName = KV.Key;
-			FPCGExPropertyCompiled* Writer = KV.Value.GetMutablePtr<FPCGExPropertyCompiled>();
+			FPCGExProperty* Writer = KV.Value.GetMutablePtr<FPCGExProperty>();
 			if (!Writer) { continue; }
 
 			// Find actual property value: try module first, fall back to defaults
@@ -145,7 +145,7 @@ void FPCGExValencyPropertyWriter::WriteModuleProperties(int32 PointIndex, int32 
 
 			if (SourceProp)
 			{
-				if (const FPCGExPropertyCompiled* Source = SourceProp->GetPtr<FPCGExPropertyCompiled>())
+				if (const FPCGExProperty* Source = SourceProp->GetPtr<FPCGExProperty>())
 				{
 					Writer->CopyValueFrom(Source);
 				}

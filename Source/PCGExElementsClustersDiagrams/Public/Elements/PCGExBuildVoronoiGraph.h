@@ -35,7 +35,7 @@ namespace PCGExData
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/diagrams/voronoi-3d"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/generate/cluster-voronoi-3d"))
 class UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

@@ -16,15 +16,20 @@ namespace PCGExGraphs
 		AddNodes(InNumNodes, StartNodeIndex);
 	}
 
-	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount, bool bReserveMeta)
+	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
 	{
-		UniqueEdges.Reserve(UniqueEdges.Num() + UpcomingAdditionCount);
-		Edges.Reserve(Edges.Num() + UpcomingAdditionCount);
+		const int32 ExpectedEdgeTotal = Edges.Num() + UpcomingAdditionCount;
+		UniqueEdges.Reserve(ExpectedEdgeTotal);
+		Edges.Reserve(ExpectedEdgeTotal);
 
-		if (bReserveMeta)
+		if (ExpectedEdgeTotal > EdgeMetadata.Num())
 		{
-			EdgeMetadata.Reserve(EdgeMetadata.Num() + UpcomingAdditionCount);
-			NodeMetadata.Reserve(NodeMetadata.Num() + UpcomingAdditionCount);
+			EdgeMetadata.SetNum(ExpectedEdgeTotal);
+		}
+		const int32 NumNodes = Nodes.Num();
+		if (NumNodes > NodeMetadata.Num())
+		{
+			NodeMetadata.SetNum(NumNodes);
 		}
 	}
 
@@ -127,6 +132,29 @@ namespace PCGExGraphs
 		return StartIndex;
 	}
 
+	void FGraph::AdoptEdges(TArray<FEdge>& InEdges)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::AdoptEdges);
+
+		FWriteScopeLock WriteLock(GraphLock);
+
+		Edges = MoveTemp(InEdges);
+		const int32 NumEdges = Edges.Num();
+
+		UniqueEdges.Reserve(NumEdges);
+
+		for (int32 i = 0; i < NumEdges; i++)
+		{
+			FEdge& Edge = Edges[i];
+			UniqueEdges.Add(Edge.H64U(), i);
+			Nodes[Edge.Start].LinkEdge(i);
+			Nodes[Edge.End].LinkEdge(i);
+		}
+
+		// Initialize edge metadata arrays
+		EdgeMetadata.SetNum(NumEdges);
+	}
+
 	FEdge* FGraph::FindEdge_Unsafe(const uint64 Hash)
 	{
 		const int32* Index = UniqueEdges.Find(Hash);
@@ -156,11 +184,18 @@ namespace PCGExGraphs
 	{
 		{
 			FReadScopeLock ReadScopeLock(MetadataLock);
-			if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
+			if (EdgeIndex < EdgeMetadata.Num() && EdgeMetadata[EdgeIndex].EdgeIndex != -1) { return EdgeMetadata[EdgeIndex]; }
 		}
 		{
 			FWriteScopeLock WriteScopeLock(MetadataLock);
-			return EdgeMetadata.FindOrAdd(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, RootIndex));
+			check(EdgeIndex < EdgeMetadata.Num()) // All callers must pre-size via ReserveForEdges/AdoptEdges
+
+			if (EdgeMetadata[EdgeIndex].EdgeIndex == -1)
+			{
+				EdgeMetadata[EdgeIndex] = FGraphEdgeMetadata(EdgeIndex, RootIndex);
+				bHasAnyEdgeMetadata = true;
+			}
+			return EdgeMetadata[EdgeIndex];
 		}
 	}
 
@@ -205,6 +240,12 @@ namespace PCGExGraphs
 		const int32 TotalNum = OutStartIndex + NumNewNodes;
 		Nodes.Reserve(TotalNum);
 		for (int i = OutStartIndex; i < TotalNum; i++) { Nodes.Emplace(i, i); }
+
+		// Grow node metadata arrays to match
+		if (TotalNum > NodeMetadata.Num())
+		{
+			NodeMetadata.SetNum(TotalNum);
+		}
 
 		return MakeArrayView(Nodes.GetData() + OutStartIndex, NumNewNodes);
 	}
