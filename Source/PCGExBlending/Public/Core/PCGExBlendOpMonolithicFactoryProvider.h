@@ -35,7 +35,7 @@ public:
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="metadata/modify/blendop-monolithic"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="metadata/blending/blendop-all"))
 class PCGEXBLENDING_API UPCGExBlendOpMonolithicProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
