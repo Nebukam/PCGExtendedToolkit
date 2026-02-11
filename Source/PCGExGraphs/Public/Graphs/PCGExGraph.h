@@ -36,12 +36,10 @@ namespace PCGExGraphs
 
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TArray<FGraphNodeMetadata> NodeMetadata;
-		TBitArray<> HasNodeMetadata;
 		bool bHasAnyNodeMetadata = false;
 
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<FGraphEdgeMetadata> EdgeMetadata;
-		TBitArray<> HasEdgeMetadata;
 		bool bHasAnyEdgeMetadata = false;
 
 		TMap<uint64, int32> UniqueEdges;
@@ -53,7 +51,7 @@ namespace PCGExGraphs
 
 		explicit FGraph(const int32 InNumNodes);
 
-		void ReserveForEdges(const int32 UpcomingAdditionCount, bool bReserveMeta = false);
+		void ReserveForEdges(const int32 UpcomingAdditionCount);
 
 		bool InsertEdge_Unsafe(int32 A, int32 B, FEdge& OutEdge, int32 IOIndex);
 		bool InsertEdge(const int32 A, const int32 B, FEdge& OutEdge, const int32 IOIndex = -1);
@@ -84,9 +82,8 @@ namespace PCGExGraphs
 
 		FORCEINLINE FGraphEdgeMetadata& GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const int32 RootIndex = -1)
 		{
-			if (!HasEdgeMetadata[EdgeIndex])
+			if (EdgeMetadata[EdgeIndex].EdgeIndex == -1)
 			{
-				HasEdgeMetadata[EdgeIndex] = true;
 				EdgeMetadata[EdgeIndex] = FGraphEdgeMetadata(EdgeIndex, RootIndex);
 				bHasAnyEdgeMetadata = true;
 			}
@@ -97,71 +94,29 @@ namespace PCGExGraphs
 
 		FORCEINLINE FGraphNodeMetadata& GetOrCreateNodeMetadata_Unsafe(const int32 NodeIndex)
 		{
-			if (!HasNodeMetadata[NodeIndex])
+			if (NodeMetadata[NodeIndex].NodeIndex == -1)
 			{
-				HasNodeMetadata[NodeIndex] = true;
 				NodeMetadata[NodeIndex] = FGraphNodeMetadata(NodeIndex);
 				bHasAnyNodeMetadata = true;
 			}
 			return NodeMetadata[NodeIndex];
 		}
 
-		FORCEINLINE FGraphEdgeMetadata& AddNodeAndEdgeMetadata_Unsafe(const int32 InNodeIndex, const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
-		{
-			if (!HasNodeMetadata[InNodeIndex])
-			{
-				HasNodeMetadata[InNodeIndex] = true;
-				NodeMetadata[InNodeIndex] = FGraphNodeMetadata(InNodeIndex);
-				bHasAnyNodeMetadata = true;
-			}
-			NodeMetadata[InNodeIndex].Type = InType;
-
-			if (!HasEdgeMetadata[InEdgeIndex])
-			{
-				HasEdgeMetadata[InEdgeIndex] = true;
-				EdgeMetadata[InEdgeIndex] = FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType);
-				bHasAnyEdgeMetadata = true;
-			}
-			return EdgeMetadata[InEdgeIndex];
-		}
-
-		FORCEINLINE void AddNodeMetadata_Unsafe(const int32 InNodeIndex, const EPCGExIntersectionType InType)
-		{
-			if (!HasNodeMetadata[InNodeIndex])
-			{
-				HasNodeMetadata[InNodeIndex] = true;
-				NodeMetadata[InNodeIndex] = FGraphNodeMetadata(InNodeIndex);
-				bHasAnyNodeMetadata = true;
-			}
-			NodeMetadata[InNodeIndex].Type = InType;
-		}
-
-		FORCEINLINE FGraphEdgeMetadata& AddEdgeMetadata_Unsafe(const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
-		{
-			if (!HasEdgeMetadata[InEdgeIndex])
-			{
-				HasEdgeMetadata[InEdgeIndex] = true;
-				EdgeMetadata[InEdgeIndex] = FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType);
-				bHasAnyEdgeMetadata = true;
-			}
-			return EdgeMetadata[InEdgeIndex];
-		}
-
 		FORCEINLINE FGraphNodeMetadata* FindNodeMetadata_Unsafe(const int32 NodeIndex)
 		{
-			if (NodeIndex < 0 || NodeIndex >= NodeMetadata.Num() || !HasNodeMetadata[NodeIndex]) { return nullptr; }
+			if (NodeIndex < 0 || NodeIndex >= NodeMetadata.Num() || NodeMetadata[NodeIndex].NodeIndex == -1) { return nullptr; }
 			return &NodeMetadata[NodeIndex];
 		}
 
 		FORCEINLINE FGraphEdgeMetadata* FindEdgeMetadata_Unsafe(const int32 EdgeIndex)
 		{
-			if (EdgeIndex < 0 || EdgeIndex >= EdgeMetadata.Num() || !HasEdgeMetadata[EdgeIndex]) { return nullptr; }
+			if (EdgeIndex < 0 || EdgeIndex >= EdgeMetadata.Num() || EdgeMetadata[EdgeIndex].EdgeIndex == -1) { return nullptr; }
 			return &EdgeMetadata[EdgeIndex];
 		}
 
 		FORCEINLINE int32 FindEdgeMetadataRootIndex_Unsafe(const int32 EdgeIndex)
 		{
-			if (EdgeIndex < 0 || EdgeIndex >= EdgeMetadata.Num() || !HasEdgeMetadata[EdgeIndex]) { return -1; }
+			if (EdgeIndex < 0 || EdgeIndex >= EdgeMetadata.Num() || EdgeMetadata[EdgeIndex].EdgeIndex == -1) { return -1; }
 			return EdgeMetadata[EdgeIndex].RootIndex;
 		}
 
