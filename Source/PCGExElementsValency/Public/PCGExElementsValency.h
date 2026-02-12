@@ -4,10 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExModuleInterface.h"
-#include "Modules/ModuleManager.h"
+#include "PCGExAddonModuleInterface.h"
 
-class FPCGExElementsValencyModule : public IPCGExModuleInterface
+class FPCGExElementsValencyModule final : public IPCGExAddonModuleInterface
 {
 	PCGEX_MODULE_BODY
 

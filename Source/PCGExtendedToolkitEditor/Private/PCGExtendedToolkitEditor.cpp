@@ -102,6 +102,9 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 		Module->RegisterMenuExtensions();
 	}
 
+	// Store for late-loading addon modules that self-register
+	IPCGExModuleInterface::EditorStyle = Style;
+
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 	PCGExDetailsCustomization::RegisterDetailsCustomization(Style);
 

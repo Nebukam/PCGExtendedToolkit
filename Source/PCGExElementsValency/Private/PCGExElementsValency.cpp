@@ -13,7 +13,8 @@
 
 void FPCGExElementsValencyModule::StartupModule()
 {
-	IPCGExModuleInterface::StartupModule();
+	//OldBaseModules.Add(TEXT("PCGExtendedToolkit"));
+	IPCGExAddonModuleInterface::StartupModule();
 
 	// Register cluster cache factories
 	PCGExClusters::FClusterCacheRegistry::Get().Register(
@@ -26,7 +27,7 @@ void FPCGExElementsValencyModule::ShutdownModule()
 	PCGExClusters::FClusterCacheRegistry::Get().Unregister(
 		PCGExValency::FOrbitalCacheFactory::CacheKey);
 
-	IPCGExModuleInterface::ShutdownModule();
+	IPCGExAddonModuleInterface::ShutdownModule();
 }
 
 PCGEX_IMPLEMENT_MODULE(FPCGExElementsValencyModule, PCGExElementsValency)

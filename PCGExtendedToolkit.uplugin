@@ -1,8 +1,8 @@
 {
   "FileVersion": 3,
   "Version": 1,
-  "VersionName": "0.74.4",
-  "FriendlyName": "PCGExtendedToolkit",
+  "VersionName": "0.74.5",
+  "FriendlyName": "PCGEx",
   "Description": "A rather large toolset that expand on existing PCG capabilities in unique ways.",
   "Category": "PCG",
   "CreatedBy": "Timothé Lapetite",

@@ -7,13 +7,14 @@
 #include "PCGExModuleInterface.h"
 #include "Modules/ModuleManager.h"
 
-class PCGEXCORE_API IPCGExLegacyModuleInterface : public IPCGExModuleInterface
+class PCGEXCORE_API IPCGExAddonModuleInterface : public IPCGExModuleInterface
 {
 public:
-	IPCGExLegacyModuleInterface()
-	{
-#if PCGEX_SUBMODULE_CORE_REDIRECT_ENABLED
-		OldBaseModules.Add(TEXT("PCGExtendedToolkit"));
+	virtual void StartupModule() override;
+	virtual void ShutdownModule() override;
+
+#if WITH_EDITOR
+protected:
+	virtual void SelfRegisterToEditor();
 #endif
-	}
 };
