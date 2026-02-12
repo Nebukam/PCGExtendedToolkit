@@ -4,7 +4,6 @@
 #include "Elements/PCGExValencyGenerative.h"
 
 #include "PCGParamData.h"
-#include "Data/PCGBasePointData.h"
 #include "Data/PCGExData.h"
 #include "Helpers/PCGExCollectionsHelpers.h"
 #include "Helpers/PCGExPointArrayDataHelpers.h"
@@ -13,10 +12,14 @@
 #include "Collections/PCGExActorCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Containers/PCGExManagedObjects.h"
+#include "Data/PCGExPointIO.h"
 #include "Growth/PCGExValencyGrowthBFS.h"
 
 #define LOCTEXT_NAMESPACE "PCGExValencyGenerative"
 #define PCGEX_NAMESPACE ValencyGenerative
+
+PCGEX_INITIALIZE_ELEMENT(ValencyGenerative)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(ValencyGenerative)
 
 #pragma region UPCGExValencyGenerativeSettings
 
@@ -29,24 +32,11 @@ void UPCGExValencyGenerativeSettings::PostInitProperties()
 	Super::PostInitProperties();
 }
 
-TArray<FPCGPinProperties> UPCGExValencyGenerativeSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGPinConstants::DefaultInputLabel, "Seed points with transforms", Required)
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExValencyGenerativeSettings::OutputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGPinConstants::DefaultOutputLabel, "Generated points with module assignments and transforms", Required)
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_PARAMS(PCGExCollections::Labels::OutputCollectionMapLabel, "Collection map for resolving entry hashes", Required)
 	return PinProperties;
-}
-
-FPCGElementPtr UPCGExValencyGenerativeSettings::CreateElement() const
-{
-	return MakeShared<FPCGExValencyGenerativeElement>();
 }
 
 #pragma endregion
@@ -55,7 +45,7 @@ FPCGElementPtr UPCGExValencyGenerativeSettings::CreateElement() const
 
 void FPCGExValencyGenerativeContext::RegisterAssetDependencies()
 {
-	FPCGExContext::RegisterAssetDependencies();
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
 
 	const UPCGExValencyGenerativeSettings* Settings = GetInputSettings<UPCGExValencyGenerativeSettings>();
 	if (!Settings) { return; }
@@ -77,7 +67,7 @@ void FPCGExValencyGenerativeContext::RegisterAssetDependencies()
 
 bool FPCGExValencyGenerativeElement::Boot(FPCGExContext* InContext) const
 {
-	if (!IPCGExElement::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyGenerative)
 
@@ -105,7 +95,7 @@ bool FPCGExValencyGenerativeElement::Boot(FPCGExContext* InContext) const
 
 void FPCGExValencyGenerativeElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
 {
-	IPCGExElement::PostLoadAssetsDependencies(InContext);
+	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyGenerative)
 
@@ -115,7 +105,7 @@ void FPCGExValencyGenerativeElement::PostLoadAssetsDependencies(FPCGExContext* I
 
 bool FPCGExValencyGenerativeElement::PostBoot(FPCGExContext* InContext) const
 {
-	if (!IPCGExElement::PostBoot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::PostBoot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyGenerative)
 
@@ -155,232 +145,279 @@ bool FPCGExValencyGenerativeElement::PostBoot(FPCGExContext* InContext) const
 	Context->ActorCollection = Context->BondingRules->GetActorCollection();
 	if (Context->ActorCollection) { Context->ActorCollection->BuildCache(); }
 
+	// Cache compiled rules
+	Context->CompiledRules = Context->BondingRules->GetCompiledData();
+	if (!Context->CompiledRules || Context->CompiledRules->ModuleCount == 0)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No compiled modules in bonding rules."));
+		return false;
+	}
+
+	// Compile socket rules
+	Context->SocketRules->Compile();
+
+	// Build module local bounds cache from collection staging data
+	const int32 ModuleCount = Context->CompiledRules->ModuleCount;
+	Context->ModuleLocalBounds.SetNum(ModuleCount);
+	for (int32 i = 0; i < ModuleCount; ++i)
+	{
+		Context->ModuleLocalBounds[i] = FBox(ForceInit);
+	}
+
+	// Populate bounds from mesh collection entries
+	if (Context->MeshCollection)
+	{
+		for (int32 ModuleIdx = 0; ModuleIdx < ModuleCount; ++ModuleIdx)
+		{
+			const int32 EntryIndex = Context->BondingRules->GetMeshEntryIndex(ModuleIdx);
+			if (EntryIndex >= 0)
+			{
+				const FPCGExEntryAccessResult Result = Context->MeshCollection->GetEntryRaw(EntryIndex);
+				if (Result.IsValid())
+				{
+					Context->ModuleLocalBounds[ModuleIdx] = Result.Entry->Staging.Bounds;
+
+					if (!FMath::IsNearlyZero(Settings->BoundsInflation))
+					{
+						Context->ModuleLocalBounds[ModuleIdx] = Context->ModuleLocalBounds[ModuleIdx].ExpandBy(Settings->BoundsInflation);
+					}
+				}
+			}
+		}
+	}
+
+	// Populate bounds from actor collection entries
+	if (Context->ActorCollection)
+	{
+		for (int32 ModuleIdx = 0; ModuleIdx < ModuleCount; ++ModuleIdx)
+		{
+			const int32 EntryIndex = Context->BondingRules->GetActorEntryIndex(ModuleIdx);
+			if (EntryIndex >= 0)
+			{
+				const FPCGExEntryAccessResult Result = Context->ActorCollection->GetEntryRaw(EntryIndex);
+				if (Result.IsValid())
+				{
+					Context->ModuleLocalBounds[ModuleIdx] = Result.Entry->Staging.Bounds;
+
+					if (!FMath::IsNearlyZero(Settings->BoundsInflation))
+					{
+						Context->ModuleLocalBounds[ModuleIdx] = Context->ModuleLocalBounds[ModuleIdx].ExpandBy(Settings->BoundsInflation);
+					}
+				}
+			}
+		}
+	}
+
+	// Build name-to-module lookup for seed filtering
+	for (int32 ModuleIdx = 0; ModuleIdx < ModuleCount; ++ModuleIdx)
+	{
+		const FName& ModuleName = Context->CompiledRules->ModuleNames[ModuleIdx];
+		if (!ModuleName.IsNone())
+		{
+			Context->NameToModules.FindOrAdd(ModuleName).Add(ModuleIdx);
+		}
+	}
+
 	return true;
 }
 
 bool FPCGExValencyGenerativeElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(ValencyGenerative)
+	PCGEX_EXECUTION_CHECK
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		const FPCGExValencyBondingRulesCompiled* CompiledRules = Context->BondingRules->GetCompiledData();
-		if (!CompiledRules || CompiledRules->ModuleCount == 0)
-		{
-			return Context->CancelExecution(TEXT("No compiled modules in bonding rules."));
-		}
-
-		// Get input seed points
-		TArray<FPCGTaggedData> SeedInputs = Context->InputData.GetInputsByPin(PCGPinConstants::DefaultInputLabel);
-		if (SeedInputs.IsEmpty())
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 		{
 			return Context->CancelExecution(TEXT("No seed points provided."));
 		}
+	}
 
-		// Compile socket rules
-		Context->SocketRules->Compile();
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::States::State_Done)
 
-		// Build module local bounds cache from collection staging data
-		TArray<FBox> ModuleLocalBounds;
-		ModuleLocalBounds.SetNum(CompiledRules->ModuleCount);
-		for (int32 i = 0; i < CompiledRules->ModuleCount; ++i)
+	// Output all processor-created IOs
+	Context->MainBatch->Output();
+
+	// Output collection map
+	UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
+	Context->PickPacker->PackToDataset(ParamData);
+
+	FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
+	OutData.Pin = PCGExCollections::Labels::OutputCollectionMapLabel;
+	OutData.Data = ParamData;
+
+	return Context->TryComplete();
+}
+
+#pragma endregion
+
+#pragma region PCGExValencyGenerative::FProcessor
+
+namespace PCGExValencyGenerative
+{
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExValencyGenerative::Process);
+
+		if (!IProcessor::Process(InTaskManager)) { return false; }
+
+		const int32 NumSeeds = PointDataFacade->GetNum();
+		if (NumSeeds == 0) { return false; }
+
+		// Allocate resolved module array
+		ResolvedModules.SetNumUninitialized(NumSeeds);
+		for (int32 i = 0; i < NumSeeds; ++i) { ResolvedModules[i] = -1; }
+
+		// Prepare name attribute reader for seed filtering
+		if (!Settings->SeedModuleNameAttribute.IsNone())
 		{
-			ModuleLocalBounds[i] = FBox(ForceInit);
-		}
-
-		// Populate bounds from mesh collection entries
-		if (Context->MeshCollection)
-		{
-			for (int32 ModuleIdx = 0; ModuleIdx < CompiledRules->ModuleCount; ++ModuleIdx)
-			{
-				const int32 EntryIndex = Context->BondingRules->GetMeshEntryIndex(ModuleIdx);
-				if (EntryIndex >= 0)
-				{
-					const FPCGExEntryAccessResult Result = Context->MeshCollection->GetEntryRaw(EntryIndex);
-					if (Result.IsValid())
-					{
-						ModuleLocalBounds[ModuleIdx] = Result.Entry->Staging.Bounds;
-
-						// Apply inflation
-						if (!FMath::IsNearlyZero(Settings->BoundsInflation))
-						{
-							ModuleLocalBounds[ModuleIdx] = ModuleLocalBounds[ModuleIdx].ExpandBy(Settings->BoundsInflation);
-						}
-					}
-				}
-			}
-		}
-
-		// Populate bounds from actor collection entries
-		if (Context->ActorCollection)
-		{
-			for (int32 ModuleIdx = 0; ModuleIdx < CompiledRules->ModuleCount; ++ModuleIdx)
-			{
-				const int32 EntryIndex = Context->BondingRules->GetActorEntryIndex(ModuleIdx);
-				if (EntryIndex >= 0)
-				{
-					const FPCGExEntryAccessResult Result = Context->ActorCollection->GetEntryRaw(EntryIndex);
-					if (Result.IsValid())
-					{
-						ModuleLocalBounds[ModuleIdx] = Result.Entry->Staging.Bounds;
-
-						if (!FMath::IsNearlyZero(Settings->BoundsInflation))
-						{
-							ModuleLocalBounds[ModuleIdx] = ModuleLocalBounds[ModuleIdx].ExpandBy(Settings->BoundsInflation);
-						}
-					}
-				}
-			}
+			NameReader = PointDataFacade->GetReadable<FName>(Settings->SeedModuleNameAttribute);
 		}
 
 		// Create growth operation
-		TSharedPtr<FPCGExValencyGrowthOperation> GrowthOp = Context->GrowthFactory->CreateOperation();
-		if (!GrowthOp)
-		{
-			return Context->CancelExecution(TEXT("Failed to create growth operation."));
-		}
+		GrowthOp = Context->GrowthFactory->CreateOperation();
+		if (!GrowthOp) { return false; }
 
-		// Setup budget
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
+
+		return true;
+	}
+
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExValencyGenerative::ProcessPoints);
+
+		PointDataFacade->Fetch(Scope);
+
+		const FPCGExValencyBondingRulesCompiled* CompiledRules = Context->CompiledRules;
+		const TMap<FName, TArray<int32>>& NameToModules = Context->NameToModules;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			// Determine candidate modules for this seed
+			TArray<int32> CandidateModules;
+
+			if (NameReader)
+			{
+				const FName RequestedName = NameReader->Read(Index);
+				if (!RequestedName.IsNone())
+				{
+					if (const TArray<int32>* Matching = NameToModules.Find(RequestedName))
+					{
+						CandidateModules = *Matching;
+					}
+				}
+			}
+
+			// If no filtering or no match, use all modules that have sockets
+			if (CandidateModules.IsEmpty())
+			{
+				for (int32 ModuleIdx = 0; ModuleIdx < CompiledRules->ModuleCount; ++ModuleIdx)
+				{
+					if (CompiledRules->GetModuleSocketCount(ModuleIdx) > 0)
+					{
+						CandidateModules.Add(ModuleIdx);
+					}
+				}
+			}
+
+			if (CandidateModules.IsEmpty())
+			{
+				ResolvedModules[Index] = -1;
+				continue;
+			}
+
+			// Weighted random selection using per-point deterministic seed
+			float TotalWeight = 0.0f;
+			for (const int32 ModuleIdx : CandidateModules)
+			{
+				TotalWeight += CompiledRules->ModuleWeights[ModuleIdx];
+			}
+
+			int32 SelectedModule = CandidateModules[0];
+			if (TotalWeight > 0.0f)
+			{
+				FRandomStream PointRandom(HashCombine(Settings->Seed, Index));
+				float Pick = PointRandom.FRand() * TotalWeight;
+				for (const int32 ModuleIdx : CandidateModules)
+				{
+					Pick -= CompiledRules->ModuleWeights[ModuleIdx];
+					if (Pick <= 0.0f)
+					{
+						SelectedModule = ModuleIdx;
+						break;
+					}
+				}
+			}
+
+			ResolvedModules[Index] = SelectedModule;
+		}
+	}
+
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		const FPCGExValencyBondingRulesCompiled* CompiledRules = Context->CompiledRules;
+
+		// Setup budget and bounds tracker for this dataset
 		FPCGExGrowthBudget Budget = Settings->Budget;
 		Budget.Reset();
 
-		// Setup bounds tracker
 		FPCGExBoundsTracker BoundsTracker;
 
-		// Initialize growth operation
+		// Initialize growth operation with per-dataset state
 		GrowthOp->Initialize(CompiledRules, Context->SocketRules, BoundsTracker, Budget, Settings->Seed);
+		GrowthOp->ModuleLocalBounds = Context->ModuleLocalBounds;
 
-		// Copy local bounds to the growth operation
-		GrowthOp->ModuleLocalBounds = ModuleLocalBounds;
+		// Build placed module entries from resolved seeds
+		const int32 NumSeeds = PointDataFacade->GetNum();
+		TConstPCGValueRange<FTransform> SeedTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		// Collect all seed points and resolve to modules
-		TArray<FPCGExPlacedModule> PlacedModules;
-		FRandomStream SeedRandom(Settings->Seed);
 		int32 SeedIdx = 0;
-
-		// Build name-to-module lookup for seed filtering
-		TMap<FName, TArray<int32>> NameToModules;
-		for (int32 ModuleIdx = 0; ModuleIdx < CompiledRules->ModuleCount; ++ModuleIdx)
+		for (int32 Index = 0; Index < NumSeeds; ++Index)
 		{
-			const FName& ModuleName = CompiledRules->ModuleNames[ModuleIdx];
-			if (!ModuleName.IsNone())
+			const int32 SelectedModule = ResolvedModules[Index];
+			if (SelectedModule < 0) { continue; }
+
+			FPCGExPlacedModule SeedModule;
+			SeedModule.ModuleIndex = SelectedModule;
+			SeedModule.WorldTransform = SeedTransforms[Index];
+			SeedModule.WorldBounds = GrowthOp->ComputeWorldBounds(SelectedModule, SeedModule.WorldTransform);
+			SeedModule.ParentIndex = -1;
+			SeedModule.ParentSocketIndex = -1;
+			SeedModule.ChildSocketIndex = -1;
+			SeedModule.Depth = 0;
+			SeedModule.SeedIndex = SeedIdx;
+			SeedModule.CumulativeWeight = CompiledRules->ModuleWeights[SelectedModule];
+
+			PlacedModules.Add(SeedModule);
+			Budget.CurrentTotal++;
+
+			if (SeedModule.WorldBounds.IsValid)
 			{
-				NameToModules.FindOrAdd(ModuleName).Add(ModuleIdx);
-			}
-		}
-
-		for (const FPCGTaggedData& TaggedData : SeedInputs)
-		{
-			const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(TaggedData.Data);
-			if (!PointData) { continue; }
-
-			const int32 NumPoints = PointData->GetNum();
-			if (NumPoints == 0) { continue; }
-
-			TConstPCGValueRange<FTransform> SeedTransforms = PointData->GetConstTransformValueRange();
-
-			// Optional seed module name attribute
-			const FPCGMetadataAttribute<FName>* NameAttr = nullptr;
-			if (!Settings->SeedModuleNameAttribute.IsNone())
-			{
-				NameAttr = PointData->ConstMetadata()->GetConstTypedAttribute<FName>(Settings->SeedModuleNameAttribute);
+				BoundsTracker.Add(SeedModule.WorldBounds);
 			}
 
-			for (int32 PointIdx = 0; PointIdx < NumPoints; ++PointIdx)
-			{
-				// Determine candidate modules for this seed
-				TArray<int32> CandidateModules;
-
-				if (NameAttr)
-				{
-					// Filter by module name attribute
-					const FName RequestedName = NameAttr->GetValueFromItemKey(static_cast<int64>(PointIdx));
-					if (!RequestedName.IsNone())
-					{
-						if (const TArray<int32>* Matching = NameToModules.Find(RequestedName))
-						{
-							CandidateModules = *Matching;
-						}
-					}
-				}
-
-				// If no filtering or no match, use all modules that have sockets
-				if (CandidateModules.IsEmpty())
-				{
-					for (int32 ModuleIdx = 0; ModuleIdx < CompiledRules->ModuleCount; ++ModuleIdx)
-					{
-						if (CompiledRules->GetModuleSocketCount(ModuleIdx) > 0)
-						{
-							CandidateModules.Add(ModuleIdx);
-						}
-					}
-				}
-
-				if (CandidateModules.IsEmpty()) { continue; }
-
-				// Weighted random selection
-				float TotalWeight = 0.0f;
-				for (int32 ModuleIdx : CandidateModules)
-				{
-					TotalWeight += CompiledRules->ModuleWeights[ModuleIdx];
-				}
-
-				int32 SelectedModule = CandidateModules[0];
-				if (TotalWeight > 0.0f)
-				{
-					float Pick = SeedRandom.FRand() * TotalWeight;
-					for (int32 ModuleIdx : CandidateModules)
-					{
-						Pick -= CompiledRules->ModuleWeights[ModuleIdx];
-						if (Pick <= 0.0f)
-						{
-							SelectedModule = ModuleIdx;
-							break;
-						}
-					}
-				}
-
-				// Create seed placement
-				FPCGExPlacedModule SeedModule;
-				SeedModule.ModuleIndex = SelectedModule;
-				SeedModule.WorldTransform = SeedTransforms[PointIdx];
-				SeedModule.WorldBounds = GrowthOp->ComputeWorldBounds(SelectedModule, SeedModule.WorldTransform);
-				SeedModule.ParentIndex = -1;
-				SeedModule.ParentSocketIndex = -1;
-				SeedModule.ChildSocketIndex = -1;
-				SeedModule.Depth = 0;
-				SeedModule.SeedIndex = SeedIdx;
-				SeedModule.CumulativeWeight = CompiledRules->ModuleWeights[SelectedModule];
-
-				PlacedModules.Add(SeedModule);
-				Budget.CurrentTotal++;
-
-				// Track bounds
-				if (SeedModule.WorldBounds.IsValid)
-				{
-					BoundsTracker.Add(SeedModule.WorldBounds);
-				}
-
-				SeedIdx++;
-			}
+			SeedIdx++;
 		}
 
-		if (PlacedModules.IsEmpty())
-		{
-			return Context->CancelExecution(TEXT("No seed modules could be resolved."));
-		}
+		if (PlacedModules.IsEmpty()) { return; }
 
-		// Run the growth
+		// Run the growth (sequential)
 		GrowthOp->Grow(PlacedModules);
 
 		// Create output point data
-		const TSharedPtr<PCGExData::FPointIO> OutputIO = PCGExData::NewPointIO(Context, PCGPinConstants::DefaultOutputLabel);
+		OutputIO = PCGExData::NewPointIO(Context, PCGPinConstants::DefaultOutputLabel);
 		UPCGBasePointData* OutPointData = OutputIO->GetOut();
 
 		const int32 TotalPlaced = PlacedModules.Num();
 
 		// Allocate points with transform + bounds
-		EPCGPointNativeProperties AllocatedProperties = EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax | EPCGPointNativeProperties::Seed;
+		const EPCGPointNativeProperties AllocatedProperties = EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax | EPCGPointNativeProperties::Seed;
 		PCGExPointArrayDataHelpers::SetNumPointsAllocated(OutPointData, TotalPlaced, AllocatedProperties);
 
 		// Get write ranges
@@ -390,7 +427,7 @@ bool FPCGExValencyGenerativeElement::AdvanceWork(FPCGExContext* InContext, const
 		TPCGValueRange<int32> OutSeeds = OutPointData->GetSeedValueRange(false);
 
 		// Create output facade for attribute writing
-		const TSharedRef<PCGExData::FFacade> OutputFacade = MakeShared<PCGExData::FFacade>(OutputIO.ToSharedRef());
+		OutputFacade = MakeShared<PCGExData::FFacade>(OutputIO.ToSharedRef());
 
 		// Create attribute writers
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashWriter = OutputFacade->GetWritable<int64>(PCGExCollections::Labels::Tag_EntryIdx, 0, true, PCGExData::EBufferInit::Inherit);
@@ -421,7 +458,7 @@ bool FPCGExValencyGenerativeElement::AdvanceWork(FPCGExContext* InContext, const
 			PropertyWriter->Initialize(
 				Context->BondingRules,
 				CompiledRules,
-				OutputFacade,
+				OutputFacade.ToSharedRef(),
 				Settings->PropertiesOutput);
 		}
 
@@ -429,7 +466,7 @@ bool FPCGExValencyGenerativeElement::AdvanceWork(FPCGExContext* InContext, const
 		FPCGExFittingDetailsHandler FittingHandler;
 		FittingHandler.ScaleToFit = Settings->ScaleToFit;
 		FittingHandler.Justification = Settings->Justification;
-		FittingHandler.Init(Context, OutputFacade);
+		FittingHandler.Init(Context, OutputFacade.ToSharedRef());
 
 		// Write output points
 		for (int32 PlacedIdx = 0; PlacedIdx < TotalPlaced; ++PlacedIdx)
@@ -524,20 +561,23 @@ bool FPCGExValencyGenerativeElement::AdvanceWork(FPCGExContext* InContext, const
 				PropertyWriter->WriteModuleProperties(PlacedIdx, ModuleIdx);
 			}
 		}
-
-		// Flush attribute writes
-		OutputFacade->Flush();
-
-		// Stage output points
-		OutputIO->StageOutput(Context);
-
-		// Output collection map
-		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();
-		Context->PickPacker->PackToDataset(ParamData);
-		Context->StageOutput(ParamData, PCGExCollections::Labels::OutputCollectionMapLabel, PCGExData::EStaging::None);
 	}
 
-	return Context->TryComplete();
+	void FProcessor::CompleteWork()
+	{
+		if (OutputFacade)
+		{
+			OutputFacade->WriteFastest(TaskManager);
+		}
+	}
+
+	void FProcessor::Output()
+	{
+		if (OutputIO)
+		{
+			OutputIO->StageOutput(Context);
+		}
+	}
 }
 
 #pragma endregion

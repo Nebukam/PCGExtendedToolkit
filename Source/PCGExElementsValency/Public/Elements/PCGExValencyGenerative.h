@@ -4,9 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/PCGExSettings.h"
-#include "Core/PCGExElement.h"
-#include "Core/PCGExContext.h"
+#include "Core/PCGExPointsProcessor.h"
 #include "Core/PCGExValencyCommon.h"
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencySocketRules.h"
@@ -29,7 +27,7 @@ namespace PCGExCollections
  * Seeds resolve to modules, modules expose sockets, sockets spawn new modules.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Valency", meta=(Keywords = "valency generative growth grow seed socket", PCGExNodeLibraryDoc="valency/valency-generative"))
-class PCGEXELEMENTSVALENCY_API UPCGExValencyGenerativeSettings : public UPCGExSettings
+class PCGEXELEMENTSVALENCY_API UPCGExValencyGenerativeSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -46,7 +44,6 @@ public:
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -123,7 +120,7 @@ public:
 	FPCGExJustificationDetails Justification = FPCGExJustificationDetails(false);
 };
 
-struct PCGEXELEMENTSVALENCY_API FPCGExValencyGenerativeContext final : FPCGExContext
+struct PCGEXELEMENTSVALENCY_API FPCGExValencyGenerativeContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExValencyGenerativeElement;
 
@@ -143,9 +140,21 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyGenerativeContext final : FPCGExCon
 
 	UPCGExMeshCollection* MeshCollection = nullptr;
 	UPCGExActorCollection* ActorCollection = nullptr;
+
+	/** Compiled bonding rules (cached after PostBoot) */
+	const FPCGExValencyBondingRulesCompiled* CompiledRules = nullptr;
+
+	/** Module local bounds (inflated) */
+	TArray<FBox> ModuleLocalBounds;
+
+	/** Name-to-module lookup for seed filtering */
+	TMap<FName, TArray<int32>> NameToModules;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
-class PCGEXELEMENTSVALENCY_API FPCGExValencyGenerativeElement final : public IPCGExElement
+class PCGEXELEMENTSVALENCY_API FPCGExValencyGenerativeElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ValencyGenerative)
@@ -155,3 +164,35 @@ protected:
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
+
+namespace PCGExValencyGenerative
+{
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExValencyGenerativeContext, UPCGExValencyGenerativeSettings>
+	{
+		/** Per-seed resolved module index (written in parallel during ProcessPoints) */
+		TArray<int32> ResolvedModules;
+
+		/** Name attribute reader for seed filtering */
+		TSharedPtr<PCGExData::TBuffer<FName>> NameReader;
+
+		/** Growth state (per input dataset) */
+		TSharedPtr<FPCGExValencyGrowthOperation> GrowthOp;
+		TArray<FPCGExPlacedModule> PlacedModules;
+
+		/** Output facade and IO for the generated points */
+		TSharedPtr<PCGExData::FFacade> OutputFacade;
+		TSharedPtr<PCGExData::FPointIO> OutputIO;
+
+	public:
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
+		{
+		}
+
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InTaskManager) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
+		virtual void CompleteWork() override;
+		virtual void Output() override;
+	};
+}
