@@ -268,6 +268,14 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 		return ModuleSocketHeaders.IsValidIndex(ModuleIndex) ? ModuleSocketHeaders[ModuleIndex].Y : 0;
 	}
 
+	/** Per-module dead-end flag (parallel array). Dead-end modules terminate growth. */
+	UPROPERTY()
+	TArray<bool> ModuleIsDeadEnd;
+
+	/** Per-module bounds modifiers for generative solving (parallel array) */
+	UPROPERTY()
+	TArray<FPCGExBoundsModifier> ModuleBoundsModifiers;
+
 	/** Compiled layer data */
 	UPROPERTY()
 	TArray<FPCGExValencyLayerCompiled> Layers;

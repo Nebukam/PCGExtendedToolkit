@@ -89,6 +89,8 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData.ModuleTags.SetNum(Modules.Num());
 	CompiledData.ModuleSocketHeaders.SetNum(Modules.Num());
 	CompiledData.AllModuleSockets.Empty();
+	CompiledData.ModuleIsDeadEnd.SetNum(Modules.Num());
+	CompiledData.ModuleBoundsModifiers.SetNum(Modules.Num());
 
 	// Populate module data
 	VALENCY_LOG_SUBSECTION(Compilation, "Compiling Module Data");
@@ -103,6 +105,8 @@ bool UPCGExValencyBondingRules::Compile()
 		CompiledData.ModuleAssetTypes[ModuleIndex] = Module.AssetType;
 		CompiledData.ModuleNames[ModuleIndex] = Module.ModuleName;
 		CompiledData.ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
+		CompiledData.ModuleIsDeadEnd[ModuleIndex] = Module.Settings.bIsDeadEnd;
+		CompiledData.ModuleBoundsModifiers[ModuleIndex] = Module.Settings.BoundsModifier;
 
 		// Populate transform header and flattened transforms
 		const int32 TransformStartIndex = CompiledData.AllLocalTransforms.Num();
