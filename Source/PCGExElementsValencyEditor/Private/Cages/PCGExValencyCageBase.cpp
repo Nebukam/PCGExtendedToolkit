@@ -16,6 +16,7 @@
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
+#include "PCGExValencyEditorSettings.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -118,6 +119,59 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
+
+	// ========== Consolidated Meta Tag Handling ==========
+	// Check PCGEX_ValencyGhostRefresh meta on any property in the change chain
+	{
+		bool bGhostRefresh = false;
+		if (const FProperty* Property = PropertyChangedEvent.Property)
+		{
+			bGhostRefresh = Property->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
+		}
+		if (!bGhostRefresh && PropertyChangedEvent.MemberProperty)
+		{
+			bGhostRefresh = PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
+		}
+
+		if (bGhostRefresh)
+		{
+			ClearGhostMeshes();
+			RefreshGhostMeshes();
+		}
+	}
+
+	// Check PCGEX_ValencyRebuild meta on any property in the change chain
+	{
+		bool bShouldRebuild = false;
+		if (const FProperty* Property = PropertyChangedEvent.Property)
+		{
+			if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
+			{
+				bShouldRebuild = true;
+			}
+		}
+		if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
+		{
+			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
+			{
+				bShouldRebuild = true;
+			}
+		}
+
+		// Debounce interactive changes (dragging sliders) to prevent spam
+		if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
+		{
+			bShouldRebuild = false;
+		}
+
+		if (bShouldRebuild)
+		{
+			RequestRebuild(EValencyRebuildReason::PropertyChange);
+		}
+	}
+
+	// Subclass hook for class-specific property handling
+	OnPostEditChangeProperty(PropertyChangedEvent);
 }
 
 void APCGExValencyCageBase::PostDuplicate(EDuplicateMode::Type DuplicateMode)

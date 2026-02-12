@@ -90,7 +90,6 @@ public:
 	APCGExValencyCagePattern();
 
 	//~ Begin AActor Interface
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
 	//~ End AActor Interface
 
@@ -98,12 +97,7 @@ public:
 	virtual FString GetCageDisplayName() const override;
 	virtual void SetDebugComponentsVisible(bool bVisible) override;
 	virtual void RefreshGhostMeshes() override;
-	//~ End APCGExValencyCageBase Interface
-
-	/** Check if this is a pattern cage (for type checking) */
-	virtual bool IsPatternCage() const { return true; }
-
-	//~ Begin APCGExValencyCageBase Interface
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual bool DetectNearbyConnections() override;
 	//~ End APCGExValencyCageBase Interface
 

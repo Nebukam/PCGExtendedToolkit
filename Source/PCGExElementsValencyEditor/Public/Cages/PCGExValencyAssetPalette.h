@@ -145,21 +145,21 @@ public:
 	FVector DetectionExtent = FVector(100.0f);
 
 	/** Whether to automatically scan for and register contained assets */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta=(PCGEX_ValencyRebuild))
 	bool bAutoRegisterContainedAssets = true;
 
 	/**
 	 * When enabled, preserves the spatial relationship between assets and the palette center.
 	 * Each unique Asset + LocalTransform combination becomes a separate module variant.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta=(InlineEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta=(PCGEX_ValencyRebuild, InlineEditConditionToggle))
 	bool bPreserveLocalTransforms = false;
 
 	/**
 	 * Which components of the local transform to preserve.
 	 * Only used when bPreserveLocalTransforms is enabled.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta = (Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta = (PCGEX_ValencyRebuild, Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms"))
 	uint8 LocalTransformFlags = static_cast<uint8>(EPCGExLocalTransformFlags::All);
 
 	// ========== Module Settings ==========

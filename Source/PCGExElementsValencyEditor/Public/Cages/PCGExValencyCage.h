@@ -53,7 +53,6 @@ public:
 
 	//~ Begin APCGExValencyCageBase Interface
 	virtual FString GetCageDisplayName() const override;
-	virtual bool IsNullCage() const override { return false; }
 	//~ End APCGExValencyCageBase Interface
 
 	//~ Begin Containment Interface
@@ -138,7 +137,7 @@ public:
 	 * When enabled, mirror sources are resolved recursively.
 	 * If source A mirrors source B, assets from B are also included.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta=(PCGEX_ValencyRebuild))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta=(PCGEX_ValencyRebuild, PCGEX_ValencyGhostRefresh))
 	bool bRecursiveMirror = true;
 
 	/**
@@ -247,11 +246,9 @@ public:
 	 */
 	bool TriggerAutoRebuildForMirroringCages();
 
-#if WITH_EDITOR
-	//~ Begin UObject Interface
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	//~ End UObject Interface
-#endif
+	//~ Begin APCGExValencyCageBase Interface
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End APCGExValencyCageBase Interface
 
 protected:
 	/** Called when asset registration changes */

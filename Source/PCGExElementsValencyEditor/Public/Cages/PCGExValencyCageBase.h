@@ -17,6 +17,21 @@ class AValencyContextVolume;
 class FValencyDirtyStateManager;
 
 /**
+ * Type identifier for cage subclasses.
+ * Replaces virtual bool type checks with branchless inline comparisons.
+ */
+UENUM()
+enum class EPCGExValencyCageType : uint8
+{
+	/** Standard cage with asset registration and containment */
+	Regular,
+	/** Placeholder cage (boundary/wildcard/any constraint) */
+	Null,
+	/** Pattern position cage (proxies regular cages) */
+	Pattern
+};
+
+/**
  * Reason for requesting a rebuild - used for logging and debugging.
  */
 UENUM()
@@ -63,16 +78,29 @@ public:
 	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
+	/**
+	 * Subclass hook called after base PostEditChangeProperty handles meta tags.
+	 * Override this instead of PostEditChangeProperty for subclass-specific property handling.
+	 * Base meta tag handling (PCGEX_ValencyGhostRefresh, PCGEX_ValencyRebuild) runs before this.
+	 */
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) {}
+
 	//~ Begin Cage Interface
 
 	/** Get the display name for this cage (used in editor UI) */
 	virtual FString GetCageDisplayName() const;
 
+	/** Get the cage type enum */
+	FORCEINLINE EPCGExValencyCageType GetCageType() const { return CageType; }
+
+	/** Check against a specific cage type */
+	FORCEINLINE bool IsCageType(EPCGExValencyCageType Type) const { return CageType == Type; }
+
 	/** Whether this is a null cage (placeholder - boundary/wildcard/any based on mode) */
-	virtual bool IsNullCage() const { return false; }
+	FORCEINLINE bool IsNullCage() const { return CageType == EPCGExValencyCageType::Null; }
 
 	/** Whether this is a pattern cage (for filtering connections) */
-	virtual bool IsPatternCage() const { return false; }
+	FORCEINLINE bool IsPatternCage() const { return CageType == EPCGExValencyCageType::Pattern; }
 
 	/** Get the effective orbital set (from volume or override) */
 	UPCGExValencyOrbitalSet* GetEffectiveOrbitalSet() const;
@@ -312,6 +340,9 @@ public:
 	static FValencyDirtyStateManager* GetActiveDirtyStateManager();
 
 protected:
+	/** Cage type identifier, set in subclass constructors */
+	EPCGExValencyCageType CageType = EPCGExValencyCageType::Regular;
+
 	/** Volumes that contain this cage (transient, not saved) */
 	UPROPERTY(Transient, VisibleAnywhere, Category = "Cage|Debug")
 	TArray<TWeakObjectPtr<AValencyContextVolume>> ContainingVolumes;

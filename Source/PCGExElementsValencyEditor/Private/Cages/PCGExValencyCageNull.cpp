@@ -9,6 +9,8 @@
 
 APCGExValencyCageNull::APCGExValencyCageNull()
 {
+	CageType = EPCGExValencyCageType::Null;
+
 	// Create a small sphere for visualization and selection
 	DebugSphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("DebugSphere"));
 	DebugSphereComponent->SetupAttachment(RootComponent);
@@ -19,32 +21,18 @@ APCGExValencyCageNull::APCGExValencyCageNull()
 	DebugSphereComponent->bHiddenInGame = true;
 }
 
-void APCGExValencyCageNull::PostEditMove(bool bFinished)
+void APCGExValencyCageNull::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	// Let base class handle volume membership, connection updates, and rebuild triggering
-	// Base class already calls RequestRebuild(Movement) when drag finishes
-	Super::PostEditMove(bFinished);
-}
-
-#if WITH_EDITOR
-void APCGExValencyCageNull::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageNull, PlaceholderMode))
 	{
-		// Mode changed - update visualization and trigger rebuild
+		// Mode changed - update visualization and re-detect connections
+		// Rebuild is handled by base class via PCGEX_ValencyRebuild meta tag on PlaceholderMode
 		UpdateVisualization();
-
-		// Re-detect connections since our participation state may have changed
 		DetectNearbyConnections();
-
-		RequestRebuild(EValencyRebuildReason::PropertyChange);
 	}
 }
-#endif
 
 FString APCGExValencyCageNull::GetCageDisplayName() const
 {

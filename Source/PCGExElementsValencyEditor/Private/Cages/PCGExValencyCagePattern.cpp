@@ -5,6 +5,7 @@
 
 #include "PCGExValencyEditorCommon.h"
 #include "EngineUtils.h"
+#include "PCGExValencyEditorSettings.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -12,11 +13,12 @@
 #include "Cages/PCGExValencyCageNull.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
-#include "PCGExValencyEditorSettings.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 
 APCGExValencyCagePattern::APCGExValencyCagePattern()
 {
+	CageType = EPCGExValencyCageType::Pattern;
+
 	// Create sphere for visualization and selection
 	DebugSphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("DebugSphere"));
 	DebugSphereComponent->SetupAttachment(RootComponent);
@@ -36,10 +38,8 @@ APCGExValencyCagePattern::APCGExValencyCagePattern()
 	PatternBoundsComponent->SetVisibility(false); // Hidden by default, shown only on root
 }
 
-void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void APCGExValencyCagePattern::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
 	const FName PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 
 	// Update bounds visualization when root status changes
@@ -52,6 +52,7 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bShowProxyGhostMesh))
 	{
+		ClearGhostMeshes();
 		RefreshGhostMeshes();
 
 		// Notify reference tracker when ProxiedCages changes (incrementally updates dependency graph)
@@ -84,36 +85,6 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 		{
 			DebugSphereComponent->ShapeColor = FColor(100, 200, 255); // Blue for active
 		}
-	}
-
-	// Check if any property in the chain has PCGEX_ValencyRebuild metadata
-	bool bShouldRebuild = false;
-
-	if (const FProperty* Property = PropertyChangedEvent.Property)
-	{
-		if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-		{
-			bShouldRebuild = true;
-		}
-	}
-
-	if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
-	{
-		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-		{
-			bShouldRebuild = true;
-		}
-	}
-
-	// Debounce interactive changes (dragging sliders)
-	if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
-	{
-		bShouldRebuild = false;
-	}
-
-	if (bShouldRebuild)
-	{
-		RequestRebuild(EValencyRebuildReason::PropertyChange);
 	}
 }
 
