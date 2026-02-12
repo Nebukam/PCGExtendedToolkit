@@ -37,9 +37,11 @@ namespace PCGExValency
 		ModulesNeedingMinimum.Empty();
 		ModulesAtMaximum.Empty();
 
-		// Identify modules with minimum spawn requirements
+		// Identify modules with minimum spawn requirements (skip Excluded modules)
 		for (int32 i = 0; i < CompiledBondingRules->ModuleCount; ++i)
 		{
+			if (CompiledBondingRules->IsModuleExcluded(i)) { continue; }
+
 			if (CompiledBondingRules->ModuleMinSpawns[i] > 0)
 			{
 				ModulesNeedingMinimum.Add(i);
@@ -117,9 +119,11 @@ namespace PCGExValency
 				continue;
 			}
 
-			// Find all modules that fit this node
+			// Find all modules that fit this node (skip Excluded modules)
 			for (int32 ModuleIndex = 0; ModuleIndex < Rules->ModuleCount; ++ModuleIndex)
 			{
+				if (Rules->IsModuleExcluded(ModuleIndex)) { continue; }
+
 				if (FitChecker(ModuleIndex, NodeIndex))
 				{
 					FittingModules.Add(ModuleIndex);

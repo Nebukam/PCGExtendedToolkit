@@ -79,6 +79,7 @@ void FPCGExValencyEntropySolver::InitializeAllCandidates()
 		}
 
 		Data.Candidates.Empty();
+		TArray<int32> FillerCandidates;
 
 		// Get node orbital mask for logging (using cache)
 		const int64 NodeMask = GetOrbitalMask(StateIndex);
@@ -86,10 +87,26 @@ void FPCGExValencyEntropySolver::InitializeAllCandidates()
 		// For each module, check if it fits this node
 		for (int32 ModuleIndex = 0; ModuleIndex < CompiledBondingRules->ModuleCount; ++ModuleIndex)
 		{
+			if (CompiledBondingRules->IsModuleExcluded(ModuleIndex)) { continue; }
+
 			if (DoesModuleFitNode(ModuleIndex, StateIndex))
 			{
-				Data.Candidates.Add(ModuleIndex);
+				if (CompiledBondingRules->IsModuleFiller(ModuleIndex))
+				{
+					FillerCandidates.Add(ModuleIndex);
+				}
+				else
+				{
+					Data.Candidates.Add(ModuleIndex);
+				}
 			}
+		}
+
+		// Fall back to filler modules if no normal candidates found
+		if (Data.Candidates.Num() == 0 && FillerCandidates.Num() > 0)
+		{
+			Data.Candidates = MoveTemp(FillerCandidates);
+			PCGEX_VALENCY_VERBOSE(Solver, "  State[%d]: using %d filler candidates (no normal candidates)", StateIndex, Data.Candidates.Num());
 		}
 
 		TotalCandidates += Data.Candidates.Num();
@@ -344,6 +361,13 @@ bool FPCGExValencyEntropySolver::CollapseState(int32 StateIndex)
 void FPCGExValencyEntropySolver::PropagateConstraints(int32 ResolvedStateIndex)
 {
 	if (!ValencyStates->IsValidIndex(ResolvedStateIndex) || !OrbitalCache)
+	{
+		return;
+	}
+
+	// Filler modules have no neighbor data - skip propagation to avoid corrupting neighbor candidates
+	const int32 ResolvedModule = (*ValencyStates)[ResolvedStateIndex].ResolvedModule;
+	if (ResolvedModule >= 0 && CompiledBondingRules->IsModuleFiller(ResolvedModule))
 	{
 		return;
 	}

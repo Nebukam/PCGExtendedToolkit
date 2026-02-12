@@ -57,6 +57,17 @@ enum class EPCGExMissingConnectionBehavior : uint8
 	Wildcard UMETA(ToolTip = "Treat as wildcard - must have ANY neighbor")
 };
 
+/**
+ * Controls how the solver treats modules derived from this cage.
+ */
+UENUM(BlueprintType)
+enum class EPCGExModulePlacementPolicy : uint8
+{
+	Normal UMETA(ToolTip = "Standard solver participation"),
+	Filler UMETA(ToolTip = "Last-resort placement, no constraint propagation"),
+	Excluded UMETA(ToolTip = "Not placed - sockets and metadata only")
+};
+
 namespace PCGExValency
 {
 	/** Algorithm state constants */
@@ -496,6 +507,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	/** Module settings (weight, spawn constraints) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	FPCGExValencyModuleSettings Settings;
+
+	/** How the solver treats this module during placement */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
+	EPCGExModulePlacementPolicy PlacementPolicy = EPCGExModulePlacementPolicy::Normal;
 
 	/**
 	 * Optional name for this module (from source cage).

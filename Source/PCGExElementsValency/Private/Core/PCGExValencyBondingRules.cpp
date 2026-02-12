@@ -18,6 +18,8 @@ void FPCGExValencyBondingRulesCompiled::BuildCandidateLookup()
 	{
 		for (int32 ModuleIndex = 0; ModuleIndex < ModuleCount; ++ModuleIndex)
 		{
+			if (IsModuleExcluded(ModuleIndex)) { continue; }
+
 			const int64 Mask = ModuleOrbitalMasks[ModuleIndex];
 			TArray<int32>& Candidates = MaskToCandidates.FindOrAdd(Mask);
 			Candidates.Add(ModuleIndex);
@@ -89,6 +91,7 @@ bool UPCGExValencyBondingRules::Compile()
 	CompiledData.ModuleTags.SetNum(Modules.Num());
 	CompiledData.ModuleSocketHeaders.SetNum(Modules.Num());
 	CompiledData.AllModuleSockets.Empty();
+	CompiledData.ModulePlacementPolicies.SetNum(Modules.Num());
 	CompiledData.ModuleIsDeadEnd.SetNum(Modules.Num());
 	CompiledData.ModuleBoundsModifiers.SetNum(Modules.Num());
 
@@ -105,6 +108,7 @@ bool UPCGExValencyBondingRules::Compile()
 		CompiledData.ModuleAssetTypes[ModuleIndex] = Module.AssetType;
 		CompiledData.ModuleNames[ModuleIndex] = Module.ModuleName;
 		CompiledData.ModuleHasLocalTransform[ModuleIndex] = Module.bHasLocalTransform;
+		CompiledData.ModulePlacementPolicies[ModuleIndex] = Module.PlacementPolicy;
 		CompiledData.ModuleIsDeadEnd[ModuleIndex] = Module.Settings.bIsDeadEnd;
 		CompiledData.ModuleBoundsModifiers[ModuleIndex] = Module.Settings.BoundsModifier;
 

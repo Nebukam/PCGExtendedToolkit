@@ -296,6 +296,7 @@ void UPCGExValencyBondingRulesBuilder::CollectCageData(
 		Data.Cage = Cage;
 		Data.AssetEntries = MoveTemp(AssetEntries);
 		Data.Settings = Cage->ModuleSettings;
+		Data.PlacementPolicy = Cage->PlacementPolicy;
 		Data.ModuleName = Cage->ModuleName;
 		Data.bPreserveLocalTransforms = Cage->bPreserveLocalTransforms;
 
@@ -606,6 +607,9 @@ void UPCGExValencyBondingRulesBuilder::BuildModuleMap(
 
 			// Copy module name from cage (for fixed picks)
 			NewModule.ModuleName = Data.ModuleName;
+
+			// Copy placement policy from cage
+			NewModule.PlacementPolicy = Data.PlacementPolicy;
 
 			// Store local transform if cage or entry preserves them
 			// Entry flag is set when mirrored from a source (palette/cage) with bPreserveLocalTransforms enabled

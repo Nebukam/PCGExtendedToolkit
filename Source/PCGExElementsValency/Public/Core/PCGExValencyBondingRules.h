@@ -268,6 +268,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 		return ModuleSocketHeaders.IsValidIndex(ModuleIndex) ? ModuleSocketHeaders[ModuleIndex].Y : 0;
 	}
 
+	/** Per-module placement policy (parallel array). Controls solver participation. */
+	UPROPERTY()
+	TArray<EPCGExModulePlacementPolicy> ModulePlacementPolicies;
+
 	/** Per-module dead-end flag (parallel array). Dead-end modules terminate growth. */
 	UPROPERTY()
 	TArray<bool> ModuleIsDeadEnd;
@@ -328,6 +332,24 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyBondingRulesCompiled
 	{
 		const int32 Index = ModuleIndex * Layers.Num() + LayerIndex;
 		return ModuleWildcardMasks.IsValidIndex(Index) ? ModuleWildcardMasks[Index] : 0;
+	}
+
+	/** Check if a module is excluded from solver placement */
+	FORCEINLINE bool IsModuleExcluded(int32 ModuleIndex) const
+	{
+		return ModulePlacementPolicies.IsValidIndex(ModuleIndex) && ModulePlacementPolicies[ModuleIndex] == EPCGExModulePlacementPolicy::Excluded;
+	}
+
+	/** Check if a module is a filler (last-resort placement) */
+	FORCEINLINE bool IsModuleFiller(int32 ModuleIndex) const
+	{
+		return ModulePlacementPolicies.IsValidIndex(ModuleIndex) && ModulePlacementPolicies[ModuleIndex] == EPCGExModulePlacementPolicy::Filler;
+	}
+
+	/** Check if a module participates normally in solving */
+	FORCEINLINE bool IsModuleNormal(int32 ModuleIndex) const
+	{
+		return !ModulePlacementPolicies.IsValidIndex(ModuleIndex) || ModulePlacementPolicies[ModuleIndex] == EPCGExModulePlacementPolicy::Normal;
 	}
 
 	/** Build the MaskToCandidates lookup table */

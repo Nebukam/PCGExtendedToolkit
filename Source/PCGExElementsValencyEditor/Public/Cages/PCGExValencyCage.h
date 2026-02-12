@@ -178,6 +178,15 @@ public:
 	FPCGExValencyModuleSettings ModuleSettings;
 
 	/**
+	 * Controls how the solver treats modules derived from this cage.
+	 * - Normal: Standard participation with full constraints.
+	 * - Filler: Only placed when no constrained module fits. Does not propagate constraints.
+	 * - Excluded: Never placed by solver. Module exists for sockets/metadata only.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module", meta=(PCGEX_ValencyRebuild))
+	EPCGExModulePlacementPolicy PlacementPolicy = EPCGExModulePlacementPolicy::Normal;
+
+	/**
 	 * Optional name for modules created from this cage.
 	 * Used for fixed picks - vertices with a matching FixedPick attribute value
 	 * will be forced to use a module from this cage.
