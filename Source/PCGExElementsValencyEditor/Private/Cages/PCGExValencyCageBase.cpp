@@ -120,8 +120,20 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 }
 
+void APCGExValencyCageBase::PostDuplicate(EDuplicateMode::Type DuplicateMode)
+{
+	Super::PostDuplicate(DuplicateMode);
+
+	// Clear orphaned ghost mesh components from duplication and refresh from current state
+	ClearGhostMeshes();
+	RefreshGhostMeshes();
+}
+
 void APCGExValencyCageBase::BeginDestroy()
 {
+	// Clean up ghost mesh components before destruction
+	ClearGhostMeshes();
+
 	// Unregister from spatial registry and trigger auto-rebuild if this is a user deletion
 	if (UWorld* World = GetWorld())
 	{
@@ -660,6 +672,26 @@ void APCGExValencyCageBase::NotifyAllCagesOfMovement()
 void APCGExValencyCageBase::SetDebugComponentsVisible(bool bVisible)
 {
 	// Base implementation does nothing - subclasses override to hide their specific components
+}
+
+void APCGExValencyCageBase::RefreshGhostMeshes()
+{
+	// Base implementation does nothing - subclasses override to create ghost previews
+}
+
+void APCGExValencyCageBase::ClearGhostMeshes()
+{
+	// Tag-based cleanup: finds all ghost components including orphaned ones from duplication
+	TArray<UActorComponent*> AllComponents;
+	GetComponents(AllComponents);
+
+	for (UActorComponent* Component : AllComponents)
+	{
+		if (Component && Component->ComponentHasTag(PCGExValencyTags::GhostMeshTag))
+		{
+			Component->DestroyComponent();
+		}
+	}
 }
 
 void APCGExValencyCageBase::CaptureConnectionState(TArray<TWeakObjectPtr<APCGExValencyCageBase>>& OutConnections) const

@@ -393,13 +393,9 @@ void FPCGExValencyCageEditorMode::RefreshAllCages()
 	// Done after all cages have their scanned content available
 	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 	{
-		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
+		if (APCGExValencyCageBase* CageBase = CagePtr.Get())
 		{
-			Cage->RefreshMirrorGhostMeshes();
-		}
-		else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(CagePtr.Get()))
-		{
-			PatternCage->RefreshProxyGhostMesh();
+			CageBase->RefreshGhostMeshes();
 		}
 	}
 }
@@ -418,19 +414,17 @@ void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 	// Detect connections (uses virtual filter - pattern cages only connect to pattern cages)
 	Cage->DetectNearbyConnections();
 
-	// Scan and refresh ghost meshes
+	// Scan contained assets for regular cages
 	if (APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
 	{
 		if (RegularCage->bAutoRegisterContainedAssets)
 		{
 			RegularCage->ScanAndRegisterContainedAssets();
 		}
-		RegularCage->RefreshMirrorGhostMeshes();
 	}
-	else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Cage))
-	{
-		PatternCage->RefreshProxyGhostMesh();
-	}
+
+	// Refresh ghost meshes (virtual - dispatches to correct subclass)
+	Cage->RefreshGhostMeshes();
 }
 
 void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
@@ -509,6 +503,11 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 			}
 		}
 
+		// Capture dependents BEFORE rebuilding the dependency graph
+		// Cages that mirrored/proxied the deleted cage need their ghost meshes refreshed
+		TArray<AActor*> Dependents;
+		ReferenceTracker.CollectAffectedActors(Actor, Dependents);
+
 		// Remove from cache
 		CachedCages.RemoveAll([Cage](const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr)
 		{
@@ -517,6 +516,12 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 
 		// Rebuild dependency graph - removed cage may have been a dependency
 		ReferenceTracker.RebuildDependencyGraph();
+
+		// Refresh ghost meshes on cages that depended on the deleted actor
+		for (AActor* Dependent : Dependents)
+		{
+			ReferenceTracker.RefreshDependentVisuals(Dependent);
+		}
 
 		// Refresh connections on remaining cages
 		// (ShouldConsiderCageForConnection filter ensures pattern cages only connect to pattern cages)
@@ -547,12 +552,23 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 	// Check if it's an asset palette
 	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
 	{
+		// Capture dependents BEFORE rebuilding the dependency graph
+		TArray<AActor*> Dependents;
+		ReferenceTracker.CollectAffectedActors(Actor, Dependents);
+
 		CachedPalettes.RemoveAll([Palette](const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr)
 		{
 			return PalettePtr.Get() == Palette || !PalettePtr.IsValid();
 		});
+
 		// Rebuild dependency graph - removed palette may have been a dependency
 		ReferenceTracker.RebuildDependencyGraph();
+
+		// Refresh ghost meshes on cages that depended on the deleted palette
+		for (AActor* Dependent : Dependents)
+		{
+			ReferenceTracker.RefreshDependentVisuals(Dependent);
+		}
 	}
 	// Check if it's a tracked asset actor being deleted
 	else

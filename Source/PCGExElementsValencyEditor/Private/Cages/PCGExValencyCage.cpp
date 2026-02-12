@@ -4,6 +4,7 @@
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 
+#include "PCGExValencyEditorCommon.h"
 #include "EngineUtils.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/Blueprint.h"
@@ -44,14 +45,6 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 			RequestRebuild(EValencyRebuildReason::AssetChange);
 		}
 	}
-}
-
-void APCGExValencyCage::BeginDestroy()
-{
-	// Clean up ghost mesh components before destruction
-	ClearMirrorGhostMeshes();
-
-	Super::BeginDestroy();
 }
 
 FString APCGExValencyCage::GetCageDisplayName() const
@@ -584,7 +577,28 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	const FName MemberName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
-	// Handle MirrorSources changes
+	// Check for PCGEX_ValencyGhostRefresh meta tag on any property in the change chain.
+	// This fires early and reliably for all array operations (add, remove, modify, clear)
+	// regardless of how UE reports the property path.
+	{
+		bool bGhostRefresh = false;
+		if (const FProperty* Property = PropertyChangedEvent.Property)
+		{
+			bGhostRefresh = Property->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
+		}
+		if (!bGhostRefresh && PropertyChangedEvent.MemberProperty)
+		{
+			bGhostRefresh = PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
+		}
+
+		if (bGhostRefresh)
+		{
+			RefreshGhostMeshes();
+			OnAssetRegistrationChanged();
+		}
+	}
+
+	// Handle MirrorSources changes (validation and tracker notification)
 	if (MemberName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, MirrorSources))
 	{
 		PCGEX_VALENCY_INFO(Mirror, "Cage '%s': MirrorSources changed, validating %d entries", *GetCageDisplayName(), MirrorSources.Num());
@@ -635,8 +649,7 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 			Tracker->OnMirrorSourcesChanged(this);
 		}
 
-		// Refresh ghost meshes
-		RefreshMirrorGhostMeshes();
+		// Ghost meshes already refreshed by PCGEX_ValencyGhostRefresh meta tag handler above
 
 		// Request rebuild through unified dirty state system (with debouncing for interactive changes)
 		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
@@ -651,11 +664,11 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	{
 		PCGEX_VALENCY_VERBOSE(Mirror, "Cage '%s': bShowMirrorGhostMeshes changed to %s",
 			*GetCageDisplayName(), bShowMirrorGhostMeshes ? TEXT("true") : TEXT("false"));
-		RefreshMirrorGhostMeshes();
+		RefreshGhostMeshes();
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bRecursiveMirror))
 	{
-		RefreshMirrorGhostMeshes();
+		RefreshGhostMeshes();
 		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
 		{
 			RequestRebuild(EValencyRebuildReason::PropertyChange);
@@ -698,10 +711,10 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 }
 #endif
 
-void APCGExValencyCage::RefreshMirrorGhostMeshes()
+void APCGExValencyCage::RefreshGhostMeshes()
 {
 	// Clear existing ghost meshes first
-	ClearMirrorGhostMeshes();
+	ClearGhostMeshes();
 
 	// Get settings
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
@@ -797,6 +810,7 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 
 		// Create ghost mesh component
 		UStaticMeshComponent* GhostComp = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
+		GhostComp->ComponentTags.Add(PCGExValencyTags::GhostMeshTag);
 		GhostComp->SetStaticMesh(Mesh);
 		GhostComp->SetMobility(EComponentMobility::Movable);
 		GhostComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -838,21 +852,8 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 		GhostComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 		GhostComp->RegisterComponent();
 
-		GhostMeshComponents.Add(GhostComp);
-		GhostCount++;
+			GhostCount++;
 	}
-}
-
-void APCGExValencyCage::ClearMirrorGhostMeshes()
-{
-	for (TObjectPtr<UStaticMeshComponent>& GhostComp : GhostMeshComponents)
-	{
-		if (GhostComp)
-		{
-			GhostComp->DestroyComponent();
-		}
-	}
-	GhostMeshComponents.Empty();
 }
 
 void APCGExValencyCage::FindMirroringCages(TArray<APCGExValencyCage*>& OutCages) const

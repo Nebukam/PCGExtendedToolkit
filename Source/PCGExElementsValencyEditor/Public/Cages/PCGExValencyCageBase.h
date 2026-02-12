@@ -59,6 +59,7 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
+	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
@@ -165,6 +166,24 @@ public:
 	 * @param bVisible True to show components, false to hide
 	 */
 	virtual void SetDebugComponentsVisible(bool bVisible);
+
+	//~ Begin Ghost Mesh Interface
+
+	/**
+	 * Rebuild ghost mesh components for this cage.
+	 * Override in subclasses to create ghost previews (mirror ghosts, proxy ghosts, etc.).
+	 * Base implementation does nothing.
+	 */
+	virtual void RefreshGhostMeshes();
+
+	/**
+	 * Clear all ghost mesh components (tag-based cleanup).
+	 * Finds and destroys all components tagged with the ghost mesh tag,
+	 * including orphaned components from actor duplication.
+	 */
+	void ClearGhostMeshes();
+
+	//~ End Ghost Mesh Interface
 
 public:
 	/** Optional display name for this cage */

@@ -3,6 +3,7 @@
 
 #include "Cages/PCGExValencyCagePattern.h"
 
+#include "PCGExValencyEditorCommon.h"
 #include "EngineUtils.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
@@ -13,11 +14,6 @@
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "PCGExValencyEditorSettings.h"
 #include "Cages/PCGExValencyAssetPalette.h"
-
-namespace PCGExValencyTags
-{
-	const FName GhostMeshTag = FName(TEXT("PCGEx_Valency_Ghost"));
-}
 
 APCGExValencyCagePattern::APCGExValencyCagePattern()
 {
@@ -56,7 +52,7 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bShowProxyGhostMesh))
 	{
-		RefreshProxyGhostMesh();
+		RefreshGhostMeshes();
 
 		// Notify reference tracker when ProxiedCages changes (incrementally updates dependency graph)
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages))
@@ -137,21 +133,6 @@ void APCGExValencyCagePattern::PostEditMove(bool bFinished)
 			Root->UpdatePatternBoundsVisualization();
 		}
 	}
-}
-
-void APCGExValencyCagePattern::PostDuplicate(EDuplicateMode::Type DuplicateMode)
-{
-	Super::PostDuplicate(DuplicateMode);
-
-	// Clear any orphaned ghost meshes and refresh
-	ClearProxyGhostMesh();
-	RefreshProxyGhostMesh();
-}
-
-void APCGExValencyCagePattern::BeginDestroy()
-{
-	ClearProxyGhostMesh();
-	Super::BeginDestroy();
 }
 
 FString APCGExValencyCagePattern::GetCageDisplayName() const
@@ -401,10 +382,10 @@ void APCGExValencyCagePattern::UpdatePatternBoundsVisualization()
 	}
 }
 
-void APCGExValencyCagePattern::RefreshProxyGhostMesh()
+void APCGExValencyCagePattern::RefreshGhostMeshes()
 {
 	// Clear existing ghost meshes first
-	ClearProxyGhostMesh();
+	ClearGhostMeshes();
 
 	// Get settings
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
@@ -518,17 +499,3 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 	}
 }
 
-void APCGExValencyCagePattern::ClearProxyGhostMesh()
-{
-	// Find and destroy all components with the ghost mesh tag
-	TArray<UActorComponent*> TaggedComponents;
-	GetComponents(TaggedComponents);
-
-	for (UActorComponent* Component : TaggedComponents)
-	{
-		if (Component && Component->ComponentHasTag(PCGExValencyTags::GhostMeshTag))
-		{
-			Component->DestroyComponent();
-		}
-	}
-}

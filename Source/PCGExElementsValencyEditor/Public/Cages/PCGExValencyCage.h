@@ -49,7 +49,6 @@ public:
 
 	//~ Begin AActor Interface
 	virtual void PostEditMove(bool bFinished) override;
-	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
 	//~ Begin APCGExValencyCageBase Interface
@@ -117,7 +116,7 @@ public:
 	 * Manually registered asset entries (user-defined via details panel).
 	 * These are persisted and not affected by auto-scanning.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets", meta = (TitleProperty = "Asset"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets", meta = (TitleProperty = "Asset", PCGEX_ValencyGhostRefresh))
 	TArray<FPCGExValencyAssetEntry> ManualAssetEntries;
 
 	/**
@@ -132,7 +131,7 @@ public:
 	 * Assets from all sources are combined with this cage's orbital configuration.
 	 * Supports both APCGExValencyCage and APCGExValencyAssetPalette actors.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta = (AllowedClasses = "/Script/PCGExElementsValencyEditor.PCGExValencyCage, /Script/PCGExElementsValencyEditor.PCGExValencyAssetPalette"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta = (AllowedClasses = "/Script/PCGExElementsValencyEditor.PCGExValencyCage, /Script/PCGExElementsValencyEditor.PCGExValencyAssetPalette", PCGEX_ValencyGhostRefresh))
 	TArray<TObjectPtr<AActor>> MirrorSources;
 
 	/**
@@ -231,14 +230,9 @@ public:
 	/** Compute the local transform to preserve based on flags */
 	FTransform ComputePreservedLocalTransform(const FTransform& AssetWorldTransform) const;
 
-	/**
-	 * Rebuild ghost mesh components based on the mirror source's content.
-	 * Called automatically when MirrorSource changes or when entering Valency mode.
-	 */
-	void RefreshMirrorGhostMeshes();
-
-	/** Clear all ghost mesh components */
-	void ClearMirrorGhostMeshes();
+	//~ Begin APCGExValencyCageBase Interface
+	virtual void RefreshGhostMeshes() override;
+	//~ End APCGExValencyCageBase Interface
 
 	/**
 	 * Find all cages that have this cage in their MirrorSources array.
@@ -277,8 +271,4 @@ protected:
 	/** Record a material variant for a mesh asset */
 	void RecordMaterialVariant(const FSoftObjectPath& MeshPath, const TArray<FPCGExValencyMaterialOverride>& Overrides);
 
-private:
-	/** Transient ghost mesh components for mirror preview */
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UStaticMeshComponent>> GhostMeshComponents;
 };

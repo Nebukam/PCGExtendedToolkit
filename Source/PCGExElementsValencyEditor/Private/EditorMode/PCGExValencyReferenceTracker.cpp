@@ -9,6 +9,9 @@
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 
+// Note: PCGExValencyCage.h and PCGExValencyCagePattern.h still needed for
+// OnMirrorSourcesChanged/OnProxiedCagesChanged parameter types and property access
+
 void FValencyReferenceTracker::Initialize(
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>* InCachedCages,
 	const TArray<TWeakObjectPtr<AValencyContextVolume>>* InCachedVolumes,
@@ -312,19 +315,9 @@ void FValencyReferenceTracker::CollectAffectedActors(AActor* StartActor, TArray<
 
 void FValencyReferenceTracker::RefreshDependentVisuals(AActor* Dependent)
 {
-	if (!Dependent)
+	if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(Dependent))
 	{
-		return;
-	}
-
-	// Refresh ghost meshes for cages
-	if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(Dependent))
-	{
-		Cage->RefreshMirrorGhostMeshes();
-	}
-	else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Dependent))
-	{
-		PatternCage->RefreshProxyGhostMesh();
+		Cage->RefreshGhostMeshes();
 	}
 }
 
