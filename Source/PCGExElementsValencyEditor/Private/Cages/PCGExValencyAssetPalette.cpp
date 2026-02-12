@@ -87,10 +87,13 @@ void APCGExValencyAssetPalette::PostInitializeComponents()
 	// This is called automatically when a cage accesses the palette's content
 }
 
-void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void APCGExValencyAssetPalette::OnRebuildMetaTagTriggered()
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	RequestRebuildForMirroringCages();
+}
 
+void APCGExValencyAssetPalette::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	const FName MemberName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
@@ -135,46 +138,13 @@ void APCGExValencyAssetPalette::PostEditChangeProperty(FPropertyChangedEvent& Pr
 	}
 
 	// Re-scan when transform preservation settings change
-	// Rebuild is handled by PCGEX_ValencyRebuild meta tag on these properties (see generic check below)
+	// Rebuild is handled by OnRebuildMetaTagTriggered via PCGEX_ValencyRebuild meta tag
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, bPreserveLocalTransforms) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyAssetPalette, LocalTransformFlags))
 	{
 		if (bAutoRegisterContainedAssets)
 		{
 			ScanAndRegisterContainedAssets();
-		}
-	}
-
-	// Generic PCGEX_ValencyRebuild meta tag check
-	// Covers bAutoRegisterContainedAssets, bPreserveLocalTransforms, LocalTransformFlags, etc.
-	{
-		bool bShouldRebuild = false;
-
-		if (const FProperty* Property = PropertyChangedEvent.Property)
-		{
-			if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-			{
-				bShouldRebuild = true;
-			}
-		}
-
-		if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
-		{
-			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-			{
-				bShouldRebuild = true;
-			}
-		}
-
-		// Debounce interactive changes (dragging sliders) to prevent spam
-		if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
-		{
-			bShouldRebuild = false;
-		}
-
-		if (bShouldRebuild)
-		{
-			RequestRebuildForMirroringCages();
 		}
 	}
 }

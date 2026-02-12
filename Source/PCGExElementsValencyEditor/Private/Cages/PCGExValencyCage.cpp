@@ -426,6 +426,8 @@ FTransform APCGExValencyCage::ComputePreservedLocalTransform(const FTransform& A
 
 void APCGExValencyCage::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	Super::OnPostEditChangeProperty(PropertyChangedEvent);
+
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	const FName MemberName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 

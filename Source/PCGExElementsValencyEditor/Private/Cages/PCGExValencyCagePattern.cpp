@@ -40,6 +40,8 @@ APCGExValencyCagePattern::APCGExValencyCagePattern()
 
 void APCGExValencyCagePattern::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	Super::OnPostEditChangeProperty(PropertyChangedEvent);
+
 	const FName PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 
 	// Update bounds visualization when root status changes

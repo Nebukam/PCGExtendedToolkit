@@ -3,6 +3,7 @@
 
 #include "Cages/PCGExValencyCageBase.h"
 
+#include "Editor.h"
 #include "Components/SceneComponent.h"
 #include "Components/PCGExValencyCageSocketComponent.h"
 #include "Engine/StaticMesh.h"
@@ -15,13 +16,6 @@
 #include "Volumes/ValencyContextVolume.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
-#include "EditorMode/PCGExValencyCageEditorMode.h"
-#include "PCGExValencyEditorSettings.h"
-
-#if WITH_EDITOR
-#include "Editor.h"
-#include "EditorModeManager.h"
-#endif
 
 APCGExValencyCageBase::APCGExValencyCageBase()
 {
@@ -75,10 +69,19 @@ void APCGExValencyCageBase::PostInitializeComponents()
 	}
 }
 
-void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void APCGExValencyCageBase::OnGhostRefreshRequested()
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	ClearGhostMeshes();
+	RefreshGhostMeshes();
+}
 
+void APCGExValencyCageBase::OnRebuildMetaTagTriggered()
+{
+	RequestRebuild(EValencyRebuildReason::PropertyChange);
+}
+
+void APCGExValencyCageBase::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, OrbitalSetOverride) ||
@@ -119,59 +122,6 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
-
-	// ========== Consolidated Meta Tag Handling ==========
-	// Check PCGEX_ValencyGhostRefresh meta on any property in the change chain
-	{
-		bool bGhostRefresh = false;
-		if (const FProperty* Property = PropertyChangedEvent.Property)
-		{
-			bGhostRefresh = Property->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
-		}
-		if (!bGhostRefresh && PropertyChangedEvent.MemberProperty)
-		{
-			bGhostRefresh = PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
-		}
-
-		if (bGhostRefresh)
-		{
-			ClearGhostMeshes();
-			RefreshGhostMeshes();
-		}
-	}
-
-	// Check PCGEX_ValencyRebuild meta on any property in the change chain
-	{
-		bool bShouldRebuild = false;
-		if (const FProperty* Property = PropertyChangedEvent.Property)
-		{
-			if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-			{
-				bShouldRebuild = true;
-			}
-		}
-		if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
-		{
-			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-			{
-				bShouldRebuild = true;
-			}
-		}
-
-		// Debounce interactive changes (dragging sliders) to prevent spam
-		if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
-		{
-			bShouldRebuild = false;
-		}
-
-		if (bShouldRebuild)
-		{
-			RequestRebuild(EValencyRebuildReason::PropertyChange);
-		}
-	}
-
-	// Subclass hook for class-specific property handling
-	OnPostEditChangeProperty(PropertyChangedEvent);
 }
 
 void APCGExValencyCageBase::PostDuplicate(EDuplicateMode::Type DuplicateMode)
@@ -997,23 +947,6 @@ void APCGExValencyCageBase::RequestRebuild(EValencyRebuildReason Reason)
 		? ReasonNames[ReasonIndex]
 		: TEXT("Unknown");
 	PCGEX_VALENCY_VERBOSE(Rebuild, "RequestRebuild from '%s' (reason: %s)", *GetCageDisplayName(), ReasonName);
-}
-
-FValencyDirtyStateManager* APCGExValencyCageBase::GetActiveDirtyStateManager()
-{
-	// Get the editor mode and return its dirty state manager
-	if (GEditor)
-	{
-		if (GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
-		{
-			if (FPCGExValencyCageEditorMode* Mode = static_cast<FPCGExValencyCageEditorMode*>(
-				GLevelEditorModeTools().GetActiveMode(FPCGExValencyCageEditorMode::ModeID)))
-			{
-				return &Mode->GetDirtyStateManager();
-			}
-		}
-	}
-	return nullptr;
 }
 
 // ========== Socket Methods (Component-based) ==========

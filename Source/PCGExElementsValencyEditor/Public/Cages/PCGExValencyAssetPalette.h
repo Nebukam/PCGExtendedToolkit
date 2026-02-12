@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExValencyEditorActorBase.h"
 #include "PCGExValencyCage.h"
-#include "GameFramework/Actor.h"
 #include "Core/PCGExValencyCommon.h"
 
 #include "PCGExValencyAssetPalette.generated.h"
@@ -26,7 +26,7 @@ class APCGExValencyCage;
  * - Organize assets outside the main authoring volume
  */
 UCLASS(HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
-class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyAssetPalette : public AActor
+class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyAssetPalette : public APCGExValencyEditorActorBase
 {
 	GENERATED_BODY()
 
@@ -40,10 +40,14 @@ public:
 	//~ Begin AActor Interface
 	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
 	virtual void BeginDestroy() override;
 	//~ End AActor Interface
+
+	//~ Begin APCGExValencyEditorActorBase Interface
+	virtual void OnRebuildMetaTagTriggered() override;
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End APCGExValencyEditorActorBase Interface
 
 	/** Get the display name for this palette */
 	FString GetPaletteDisplayName() const;

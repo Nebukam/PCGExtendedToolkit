@@ -23,6 +23,8 @@ APCGExValencyCageNull::APCGExValencyCageNull()
 
 void APCGExValencyCageNull::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	Super::OnPostEditChangeProperty(PropertyChangedEvent);
+
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageNull, PlaceholderMode))

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "PCGExValencyEditorActorBase.h"
 #include "PCGExValencyCageOrbital.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencyBondingRules.h"
@@ -14,7 +14,6 @@
 class UPCGExValencySocketRules;
 
 class AValencyContextVolume;
-class FValencyDirtyStateManager;
 
 /**
  * Type identifier for cage subclasses.
@@ -62,7 +61,7 @@ enum class EValencyRebuildReason : uint8
  * unless an explicit override is provided.
  */
 UCLASS(Abstract, HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
-class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public AActor
+class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public APCGExValencyEditorActorBase
 {
 	GENERATED_BODY()
 
@@ -72,18 +71,16 @@ public:
 	//~ Begin AActor Interface
 	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
 	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
-	/**
-	 * Subclass hook called after base PostEditChangeProperty handles meta tags.
-	 * Override this instead of PostEditChangeProperty for subclass-specific property handling.
-	 * Base meta tag handling (PCGEX_ValencyGhostRefresh, PCGEX_ValencyRebuild) runs before this.
-	 */
-	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) {}
+	//~ Begin APCGExValencyEditorActorBase Interface
+	virtual void OnGhostRefreshRequested() override;
+	virtual void OnRebuildMetaTagTriggered() override;
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End APCGExValencyEditorActorBase Interface
 
 	//~ Begin Cage Interface
 
@@ -332,12 +329,6 @@ public:
 	 * @return True if a rebuild was triggered
 	 */
 	static bool TriggerAutoRebuildForVolumes(const TArray<AValencyContextVolume*>& Volumes);
-
-	/**
-	 * Get the dirty state manager from the active Valency editor mode.
-	 * @return Pointer to manager if mode is active, nullptr otherwise
-	 */
-	static FValencyDirtyStateManager* GetActiveDirtyStateManager();
 
 protected:
 	/** Cage type identifier, set in subclass constructors */
