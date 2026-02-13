@@ -92,6 +92,17 @@ public:
 	 */
 	bool DependsOn(AActor* ActorA, AActor* ActorB) const;
 
+	/**
+	 * Collect all affected actors recursively (non-recursive iterative version).
+	 * More efficient than recursive calls for deep chains.
+	 */
+	void CollectAffectedActors(AActor* StartActor, TArray<AActor*>& OutAffected);
+
+	/**
+	 * Refresh visual state for a dependent actor (ghost meshes, etc.).
+	 */
+	void RefreshDependentVisuals(AActor* Dependent);
+
 private:
 	/**
 	 * Remove all dependency edges where Dependent is the dependent actor.
@@ -103,17 +114,6 @@ private:
 	 * Add a single dependency edge: Dependent depends on DependsOn.
 	 */
 	void AddDependency(AActor* Dependent, AActor* DependsOn);
-
-	/**
-	 * Collect all affected actors recursively (non-recursive iterative version).
-	 * More efficient than recursive calls for deep chains.
-	 */
-	void CollectAffectedActors(AActor* StartActor, TArray<AActor*>& OutAffected);
-
-	/**
-	 * Refresh visual state for a dependent actor (ghost meshes, etc.).
-	 */
-	void RefreshDependentVisuals(AActor* Dependent);
 
 	/**
 	 * Trigger rebuild for a dependent actor through its volumes.

@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExValencyEditorActorBase.h"
 #include "PCGExValencyCage.h"
-#include "GameFramework/Actor.h"
 #include "Core/PCGExValencyCommon.h"
 
 #include "PCGExValencyAssetPalette.generated.h"
@@ -26,7 +26,7 @@ class APCGExValencyCage;
  * - Organize assets outside the main authoring volume
  */
 UCLASS(HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
-class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyAssetPalette : public AActor
+class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyAssetPalette : public APCGExValencyEditorActorBase
 {
 	GENERATED_BODY()
 
@@ -40,10 +40,14 @@ public:
 	//~ Begin AActor Interface
 	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
 	virtual void BeginDestroy() override;
 	//~ End AActor Interface
+
+	//~ Begin APCGExValencyEditorActorBase Interface
+	virtual void OnRebuildMetaTagTriggered() override;
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End APCGExValencyEditorActorBase Interface
 
 	/** Get the display name for this palette */
 	FString GetPaletteDisplayName() const;
@@ -145,21 +149,21 @@ public:
 	FVector DetectionExtent = FVector(100.0f);
 
 	/** Whether to automatically scan for and register contained assets */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta=(PCGEX_ValencyRebuild))
 	bool bAutoRegisterContainedAssets = true;
 
 	/**
 	 * When enabled, preserves the spatial relationship between assets and the palette center.
 	 * Each unique Asset + LocalTransform combination becomes a separate module variant.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta=(InlineEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta=(PCGEX_ValencyRebuild, InlineEditConditionToggle))
 	bool bPreserveLocalTransforms = false;
 
 	/**
 	 * Which components of the local transform to preserve.
 	 * Only used when bPreserveLocalTransforms is enabled.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta = (Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Palette|Detection", meta = (PCGEX_ValencyRebuild, Bitmask, BitmaskEnum = "/Script/PCGExElementsValencyEditor.EPCGExLocalTransformFlags", EditCondition = "bPreserveLocalTransforms"))
 	uint8 LocalTransformFlags = static_cast<uint8>(EPCGExLocalTransformFlags::All);
 
 	// ========== Module Settings ==========

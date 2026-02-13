@@ -394,7 +394,7 @@ void FValencyDirtyStateManager::RefreshCageIfNeeded(APCGExValencyCage* Cage, EVa
 	// (Not on Assets flag - that would cause constant refresh during asset dragging)
 	if (EnumHasAnyFlags(Flags, EValencyDirtyFlags::MirrorSources))
 	{
-		Cage->RefreshMirrorGhostMeshes();
+		Cage->RefreshGhostMeshes();
 	}
 }
 

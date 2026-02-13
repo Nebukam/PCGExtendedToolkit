@@ -57,6 +57,17 @@ enum class EPCGExMissingConnectionBehavior : uint8
 	Wildcard UMETA(ToolTip = "Treat as wildcard - must have ANY neighbor")
 };
 
+/**
+ * Controls how the solver treats modules derived from this cage.
+ */
+UENUM(BlueprintType)
+enum class EPCGExModulePlacementPolicy : uint8
+{
+	Normal UMETA(ToolTip = "Standard solver participation"),
+	Filler UMETA(ToolTip = "Last-resort placement, no constraint propagation"),
+	Excluded UMETA(ToolTip = "Not placed - sockets and metadata only")
+};
+
 namespace PCGExValency
 {
 	/** Algorithm state constants */
@@ -163,6 +174,37 @@ namespace PCGExValency
 
 
 /**
+ * Scale/offset modifier applied to a module's staging bounds for overlap checking.
+ * Used by the generative solver to tune collision volumes independently of visual bounds.
+ */
+USTRUCT(BlueprintType)
+struct PCGEXELEMENTSVALENCY_API FPCGExBoundsModifier
+{
+	GENERATED_BODY()
+
+	/** Scale applied to the asset's staging bounds for overlap checking */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bounds")
+	FVector Scale = FVector::OneVector;
+
+	/** Offset added to bounds center */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bounds")
+	FVector Offset = FVector::ZeroVector;
+
+	/** Apply this modifier to a source FBox */
+	FBox Apply(const FBox& InBounds) const
+	{
+		const FVector Center = InBounds.GetCenter() + Offset;
+		const FVector Extent = InBounds.GetExtent() * Scale;
+		return FBox(Center - Extent, Center + Extent);
+	}
+
+	bool IsDefault() const
+	{
+		return Scale.Equals(FVector::OneVector) && Offset.IsNearlyZero();
+	}
+};
+
+/**
  * Shared module settings - used on cages and in module definitions.
  * Cages are the source of truth; BondingRules are compiled from cages.
  */
@@ -182,6 +224,14 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleSettings
 	/** Maximum number of times this module can be placed (-1 = unlimited) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings", meta = (ClampMin = "-1", PCGEX_ValencyRebuild))
 	int32 MaxSpawns = -1;
+
+	/** Bounds modifier for overlap checking in generative solving */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Generative", meta = (PCGEX_ValencyRebuild))
+	FPCGExBoundsModifier BoundsModifier;
+
+	/** If true, this module terminates growth - its sockets are not expanded */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Generative", meta = (PCGEX_ValencyRebuild))
+	bool bIsDeadEnd = false;
 };
 
 /**
@@ -457,6 +507,10 @@ struct PCGEXELEMENTSVALENCY_API FPCGExValencyModuleDefinition
 	/** Module settings (weight, spawn constraints) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
 	FPCGExValencyModuleSettings Settings;
+
+	/** How the solver treats this module during placement */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Module")
+	EPCGExModulePlacementPolicy PlacementPolicy = EPCGExModulePlacementPolicy::Normal;
 
 	/**
 	 * Optional name for this module (from source cage).

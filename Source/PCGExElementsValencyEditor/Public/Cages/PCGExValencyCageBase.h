@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "PCGExValencyEditorActorBase.h"
 #include "PCGExValencyCageOrbital.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencyBondingRules.h"
@@ -14,7 +14,21 @@
 class UPCGExValencySocketRules;
 
 class AValencyContextVolume;
-class FValencyDirtyStateManager;
+
+/**
+ * Type identifier for cage subclasses.
+ * Replaces virtual bool type checks with branchless inline comparisons.
+ */
+UENUM()
+enum class EPCGExValencyCageType : uint8
+{
+	/** Standard cage with asset registration and containment */
+	Regular,
+	/** Placeholder cage (boundary/wildcard/any constraint) */
+	Null,
+	/** Pattern position cage (proxies regular cages) */
+	Pattern
+};
 
 /**
  * Reason for requesting a rebuild - used for logging and debugging.
@@ -47,7 +61,7 @@ enum class EValencyRebuildReason : uint8
  * unless an explicit override is provided.
  */
 UCLASS(Abstract, HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
-class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public AActor
+class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public APCGExValencyEditorActorBase
 {
 	GENERATED_BODY()
 
@@ -57,21 +71,33 @@ public:
 	//~ Begin AActor Interface
 	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
+	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	virtual void BeginDestroy() override;
 	//~ End AActor Interface
+
+	//~ Begin APCGExValencyEditorActorBase Interface
+	virtual void OnGhostRefreshRequested() override;
+	virtual void OnRebuildMetaTagTriggered() override;
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End APCGExValencyEditorActorBase Interface
 
 	//~ Begin Cage Interface
 
 	/** Get the display name for this cage (used in editor UI) */
 	virtual FString GetCageDisplayName() const;
 
+	/** Get the cage type enum */
+	FORCEINLINE EPCGExValencyCageType GetCageType() const { return CageType; }
+
+	/** Check against a specific cage type */
+	FORCEINLINE bool IsCageType(EPCGExValencyCageType Type) const { return CageType == Type; }
+
 	/** Whether this is a null cage (placeholder - boundary/wildcard/any based on mode) */
-	virtual bool IsNullCage() const { return false; }
+	FORCEINLINE bool IsNullCage() const { return CageType == EPCGExValencyCageType::Null; }
 
 	/** Whether this is a pattern cage (for filtering connections) */
-	virtual bool IsPatternCage() const { return false; }
+	FORCEINLINE bool IsPatternCage() const { return CageType == EPCGExValencyCageType::Pattern; }
 
 	/** Get the effective orbital set (from volume or override) */
 	UPCGExValencyOrbitalSet* GetEffectiveOrbitalSet() const;
@@ -165,6 +191,24 @@ public:
 	 * @param bVisible True to show components, false to hide
 	 */
 	virtual void SetDebugComponentsVisible(bool bVisible);
+
+	//~ Begin Ghost Mesh Interface
+
+	/**
+	 * Rebuild ghost mesh components for this cage.
+	 * Override in subclasses to create ghost previews (mirror ghosts, proxy ghosts, etc.).
+	 * Base implementation does nothing.
+	 */
+	virtual void RefreshGhostMeshes();
+
+	/**
+	 * Clear all ghost mesh components (tag-based cleanup).
+	 * Finds and destroys all components tagged with the ghost mesh tag,
+	 * including orphaned components from actor duplication.
+	 */
+	void ClearGhostMeshes();
+
+	//~ End Ghost Mesh Interface
 
 public:
 	/** Optional display name for this cage */
@@ -286,13 +330,10 @@ public:
 	 */
 	static bool TriggerAutoRebuildForVolumes(const TArray<AValencyContextVolume*>& Volumes);
 
-	/**
-	 * Get the dirty state manager from the active Valency editor mode.
-	 * @return Pointer to manager if mode is active, nullptr otherwise
-	 */
-	static FValencyDirtyStateManager* GetActiveDirtyStateManager();
-
 protected:
+	/** Cage type identifier, set in subclass constructors */
+	EPCGExValencyCageType CageType = EPCGExValencyCageType::Regular;
+
 	/** Volumes that contain this cage (transient, not saved) */
 	UPROPERTY(Transient, VisibleAnywhere, Category = "Cage|Debug")
 	TArray<TWeakObjectPtr<AValencyContextVolume>> ContainingVolumes;

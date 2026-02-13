@@ -66,6 +66,9 @@ struct FPCGExValencyCageData
 	/** Module settings from the cage */
 	FPCGExValencyModuleSettings Settings;
 
+	/** Placement policy from the cage */
+	EPCGExModulePlacementPolicy PlacementPolicy = EPCGExModulePlacementPolicy::Normal;
+
 	/** Module name from the cage (for fixed picks) */
 	FName ModuleName;
 

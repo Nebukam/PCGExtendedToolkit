@@ -9,29 +9,36 @@
 #include "Selection.h"
 #include "LevelEditorViewport.h"
 #include "UnrealEdGlobals.h"
+#include "Tools/EdModeInteractiveToolsContext.h"
+#include "ToolContextInterfaces.h"
 
 #include "EditorMode/PCGExValencyDrawHelper.h"
+#include "EditorMode/PCGExValencyEditorModeToolkit.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Volumes/ValencyContextVolume.h"
 
-const FEditorModeID FPCGExValencyCageEditorMode::ModeID = TEXT("PCGExValencyCageEditorMode");
+#include UE_INLINE_GENERATED_CPP_BY_NAME(PCGExValencyCageEditorMode)
 
-FPCGExValencyCageEditorMode::FPCGExValencyCageEditorMode()
+const FEditorModeID UPCGExValencyCageEditorMode::ModeID = TEXT("PCGExValencyCageEditorMode");
+
+UPCGExValencyCageEditorMode::UPCGExValencyCageEditorMode()
 {
+	Info = FEditorModeInfo(
+		ModeID,
+		NSLOCTEXT("PCGExValency", "ValencyCageModeName", "PCGEx | Valency"),
+		FSlateIcon(),
+		true,
+		MAX_int32);
 }
 
-FPCGExValencyCageEditorMode::~FPCGExValencyCageEditorMode()
-{
-}
-
-FValencyReferenceTracker* FPCGExValencyCageEditorMode::GetActiveReferenceTracker()
+FValencyReferenceTracker* UPCGExValencyCageEditorMode::GetActiveReferenceTracker()
 {
 	if (GLevelEditorModeTools().IsModeActive(ModeID))
 	{
-		if (FPCGExValencyCageEditorMode* Mode = static_cast<FPCGExValencyCageEditorMode*>(GLevelEditorModeTools().GetActiveMode(ModeID)))
+		if (UPCGExValencyCageEditorMode* Mode = Cast<UPCGExValencyCageEditorMode>(GLevelEditorModeTools().GetActiveScriptableMode(ModeID)))
 		{
 			return &Mode->ReferenceTracker;
 		}
@@ -39,15 +46,39 @@ FValencyReferenceTracker* FPCGExValencyCageEditorMode::GetActiveReferenceTracker
 	return nullptr;
 }
 
-void FPCGExValencyCageEditorMode::Enter()
+void UPCGExValencyCageEditorMode::CreateToolkit()
 {
-	FEdMode::Enter();
+	Toolkit = MakeShareable(new FPCGExValencyEditorModeToolkit());
+}
+
+void UPCGExValencyCageEditorMode::Enter()
+{
+	UEdMode::Enter();
+
+	// Bind to ITF rendering delegates (available after UEdMode::Enter creates the ToolsContext)
+	if (UEditorInteractiveToolsContext* ToolsContext = GetInteractiveToolsContext())
+	{
+		OnRenderHandle = ToolsContext->OnRender.AddUObject(this, &UPCGExValencyCageEditorMode::OnRenderCallback);
+		OnDrawHUDHandle = ToolsContext->OnDrawHUD.AddUObject(this, &UPCGExValencyCageEditorMode::OnDrawHUDCallback);
+	}
+
+	// Register keyboard command bindings on the toolkit
+	if (Toolkit.IsValid())
+	{
+		TSharedPtr<FUICommandList> CommandList = Toolkit->GetToolkitCommands();
+		if (CommandList.IsValid())
+		{
+			CommandList->MapAction(
+				FValencyEditorCommands::Get().CleanupConnections,
+				FExecuteAction::CreateUObject(this, &UPCGExValencyCageEditorMode::ExecuteCleanupCommand));
+		}
+	}
 
 	// Bind to actor add/delete events to keep cache up to date
 	if (GEditor)
 	{
-		OnActorAddedHandle = GEditor->OnLevelActorAdded().AddRaw(this, &FPCGExValencyCageEditorMode::OnLevelActorAdded);
-		OnActorDeletedHandle = GEditor->OnLevelActorDeleted().AddRaw(this, &FPCGExValencyCageEditorMode::OnLevelActorDeleted);
+		OnActorAddedHandle = GEditor->OnLevelActorAdded().AddUObject(this, &UPCGExValencyCageEditorMode::OnLevelActorAdded);
+		OnActorDeletedHandle = GEditor->OnLevelActorDeleted().AddUObject(this, &UPCGExValencyCageEditorMode::OnLevelActorDeleted);
 
 		// Bind to selection changes for asset tracking
 		OnSelectionChangedHandle = GEditor->GetSelectedActors()->SelectionChangedEvent.AddLambda([this](UObject*)
@@ -56,7 +87,7 @@ void FPCGExValencyCageEditorMode::Enter()
 		});
 
 		// Bind to Undo/Redo for handling state restoration
-		OnPostUndoRedoHandle = FEditorDelegates::PostUndoRedo.AddRaw(this, &FPCGExValencyCageEditorMode::OnPostUndoRedo);
+		OnPostUndoRedoHandle = FEditorDelegates::PostUndoRedo.AddUObject(this, &UPCGExValencyCageEditorMode::OnPostUndoRedo);
 	}
 
 	// Collect and fully initialize all cages
@@ -84,8 +115,17 @@ void FPCGExValencyCageEditorMode::Enter()
 	bSkipNextDirtyProcess = true;
 }
 
-void FPCGExValencyCageEditorMode::Exit()
+void UPCGExValencyCageEditorMode::Exit()
 {
+	// Unbind ITF rendering delegates
+	if (UEditorInteractiveToolsContext* ToolsContext = GetInteractiveToolsContext())
+	{
+		ToolsContext->OnRender.Remove(OnRenderHandle);
+		ToolsContext->OnDrawHUD.Remove(OnDrawHUDHandle);
+	}
+	OnRenderHandle.Reset();
+	OnDrawHUDHandle.Reset();
+
 	// Unbind actor add/delete events
 	if (GEditor)
 	{
@@ -109,13 +149,12 @@ void FPCGExValencyCageEditorMode::Exit()
 	CachedVolumes.Empty();
 	CachedPalettes.Empty();
 
-	FEdMode::Exit();
+	UEdMode::Exit();
 }
 
-void FPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
+void UPCGExValencyCageEditorMode::OnRenderCallback(IToolsContextRenderAPI* RenderAPI)
 {
-	FEdMode::Render(View, Viewport, PDI);
-
+	FPrimitiveDrawInterface* PDI = RenderAPI->GetPrimitiveDrawInterface();
 	if (!PDI)
 	{
 		return;
@@ -132,38 +171,51 @@ void FPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* View
 	}
 
 	// Draw volumes first (background)
-	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+	if (VisibilityFlags.bShowVolumes)
 	{
-		if (AValencyContextVolume* Volume = VolumePtr.Get())
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
 		{
-			FPCGExValencyDrawHelper::DrawVolume(PDI, Volume);
+			if (AValencyContextVolume* Volume = VolumePtr.Get())
+			{
+				FPCGExValencyDrawHelper::DrawVolume(PDI, Volume);
+			}
 		}
 	}
 
 	// Draw asset palettes
-	for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : CachedPalettes)
+	if (VisibilityFlags.bShowVolumes) // Palettes are volume-like containers
 	{
-		if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+		for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : CachedPalettes)
 		{
-			FPCGExValencyDrawHelper::DrawPalette(PDI, Palette);
+			if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+			{
+				FPCGExValencyDrawHelper::DrawPalette(PDI, Palette);
+			}
 		}
 	}
 
-	// Draw cages
-	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	// Draw cages (connections and patterns)
+	if (VisibilityFlags.bShowConnections)
 	{
-		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 		{
-			FPCGExValencyDrawHelper::DrawCage(PDI, Cage);
+			if (APCGExValencyCageBase* Cage = CagePtr.Get())
+			{
+				FPCGExValencyDrawHelper::DrawCage(PDI, Cage);
+			}
 		}
 	}
 }
 
-void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas)
+void UPCGExValencyCageEditorMode::OnDrawHUDCallback(FCanvas* Canvas, IToolsContextRenderAPI* RenderAPI)
 {
-	FEdMode::DrawHUD(ViewportClient, Viewport, View, Canvas);
-
+	const FSceneView* View = RenderAPI->GetSceneView();
 	if (!Canvas || !View)
+	{
+		return;
+	}
+
+	if (!VisibilityFlags.bShowLabels)
 	{
 		return;
 	}
@@ -216,37 +268,20 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 	}
 }
 
-bool FPCGExValencyCageEditorMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
-{
-	// Don't consume clicks - let the standard selection system handle them
-	// This ensures volumes, palettes, and other actors remain selectable
-	return false;
-}
-
-bool FPCGExValencyCageEditorMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
-{
-	if (Event == IE_Pressed)
-	{
-		// Ctrl+Shift+C: Cleanup stale manual connections
-		if (Key == EKeys::C && ViewportClient->IsCtrlPressed() && ViewportClient->IsShiftPressed())
-		{
-			CleanupAllManualConnections();
-			return true;
-		}
-	}
-
-	return FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
-}
-
-bool FPCGExValencyCageEditorMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
+bool UPCGExValencyCageEditorMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
 {
 	// Allow selection of all actors
 	return true;
 }
 
-void FPCGExValencyCageEditorMode::Tick(FEditorViewportClient* ViewportClient, float DeltaTime)
+void UPCGExValencyCageEditorMode::ExecuteCleanupCommand()
 {
-	FEdMode::Tick(ViewportClient, DeltaTime);
+	CleanupAllManualConnections();
+}
+
+void UPCGExValencyCageEditorMode::ModeTick(float DeltaTime)
+{
+	UEdMode::ModeTick(DeltaTime);
 
 	// Update asset tracking if enabled - this marks cages/palettes dirty
 	if (AssetTracker.IsEnabled())
@@ -288,7 +323,7 @@ void FPCGExValencyCageEditorMode::Tick(FEditorViewportClient* ViewportClient, fl
 	}
 }
 
-void FPCGExValencyCageEditorMode::CollectCagesFromLevel()
+void UPCGExValencyCageEditorMode::CollectCagesFromLevel()
 {
 	CachedCages.Empty();
 
@@ -301,7 +336,7 @@ void FPCGExValencyCageEditorMode::CollectCagesFromLevel()
 	}
 }
 
-void FPCGExValencyCageEditorMode::CollectVolumesFromLevel()
+void UPCGExValencyCageEditorMode::CollectVolumesFromLevel()
 {
 	CachedVolumes.Empty();
 
@@ -314,7 +349,7 @@ void FPCGExValencyCageEditorMode::CollectVolumesFromLevel()
 	}
 }
 
-void FPCGExValencyCageEditorMode::CollectPalettesFromLevel()
+void UPCGExValencyCageEditorMode::CollectPalettesFromLevel()
 {
 	CachedPalettes.Empty();
 
@@ -327,7 +362,7 @@ void FPCGExValencyCageEditorMode::CollectPalettesFromLevel()
 	}
 }
 
-void FPCGExValencyCageEditorMode::RefreshAllCages()
+void UPCGExValencyCageEditorMode::RefreshAllCages()
 {
 	// Phase 1: Initialize all cages (orbitals setup, volume assignment)
 	// This must happen before connection detection since connections depend on orbitals
@@ -393,18 +428,14 @@ void FPCGExValencyCageEditorMode::RefreshAllCages()
 	// Done after all cages have their scanned content available
 	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 	{
-		if (APCGExValencyCage* Cage = Cast<APCGExValencyCage>(CagePtr.Get()))
+		if (APCGExValencyCageBase* CageBase = CagePtr.Get())
 		{
-			Cage->RefreshMirrorGhostMeshes();
-		}
-		else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(CagePtr.Get()))
-		{
-			PatternCage->RefreshProxyGhostMesh();
+			CageBase->RefreshGhostMeshes();
 		}
 	}
 }
 
-void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
+void UPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 {
 	if (!Cage || Cage->IsNullCage())
 	{
@@ -418,22 +449,20 @@ void FPCGExValencyCageEditorMode::InitializeCage(APCGExValencyCageBase* Cage)
 	// Detect connections (uses virtual filter - pattern cages only connect to pattern cages)
 	Cage->DetectNearbyConnections();
 
-	// Scan and refresh ghost meshes
+	// Scan contained assets for regular cages
 	if (APCGExValencyCage* RegularCage = Cast<APCGExValencyCage>(Cage))
 	{
 		if (RegularCage->bAutoRegisterContainedAssets)
 		{
 			RegularCage->ScanAndRegisterContainedAssets();
 		}
-		RegularCage->RefreshMirrorGhostMeshes();
 	}
-	else if (APCGExValencyCagePattern* PatternCage = Cast<APCGExValencyCagePattern>(Cage))
-	{
-		PatternCage->RefreshProxyGhostMesh();
-	}
+
+	// Refresh ghost meshes (virtual - dispatches to correct subclass)
+	Cage->RefreshGhostMeshes();
 }
 
-void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
+void UPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 {
 	if (!Actor)
 	{
@@ -463,6 +492,9 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 		// Rebuild dependency graph - new cage may have MirrorSources
 		ReferenceTracker.RebuildDependencyGraph();
 
+		// Notify scene changed
+		OnSceneChanged.Broadcast();
+
 		// CRITICAL: Mark the new cage's containing volumes dirty to trigger rebuild
 		// This ensures the build includes the newly added cage
 		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : Cage->GetContainingVolumes())
@@ -478,6 +510,7 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 	{
 		CachedVolumes.Add(Volume);
 		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's an asset palette
 	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
@@ -485,10 +518,11 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 		CachedPalettes.Add(Palette);
 		// Palettes can be MirrorSources - rebuild dependency graph
 		ReferenceTracker.RebuildDependencyGraph();
+		OnSceneChanged.Broadcast();
 	}
 }
 
-void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
+void UPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 {
 	if (!Actor)
 	{
@@ -509,6 +543,11 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 			}
 		}
 
+		// Capture dependents BEFORE rebuilding the dependency graph
+		// Cages that mirrored/proxied the deleted cage need their ghost meshes refreshed
+		TArray<AActor*> Dependents;
+		ReferenceTracker.CollectAffectedActors(Actor, Dependents);
+
 		// Remove from cache
 		CachedCages.RemoveAll([Cage](const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr)
 		{
@@ -517,6 +556,12 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 
 		// Rebuild dependency graph - removed cage may have been a dependency
 		ReferenceTracker.RebuildDependencyGraph();
+
+		// Refresh ghost meshes on cages that depended on the deleted actor
+		for (AActor* Dependent : Dependents)
+		{
+			ReferenceTracker.RefreshDependentVisuals(Dependent);
+		}
 
 		// Refresh connections on remaining cages
 		// (ShouldConsiderCageForConnection filter ensures pattern cages only connect to pattern cages)
@@ -534,6 +579,8 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		{
 			DirtyStateManager.MarkVolumeDirty(Volume, EValencyDirtyFlags::Structure);
 		}
+
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's a volume
 	else if (AValencyContextVolume* Volume = Cast<AValencyContextVolume>(Actor))
@@ -543,16 +590,30 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 			return VolumePtr.Get() == Volume || !VolumePtr.IsValid();
 		});
 		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's an asset palette
 	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
 	{
+		// Capture dependents BEFORE rebuilding the dependency graph
+		TArray<AActor*> Dependents;
+		ReferenceTracker.CollectAffectedActors(Actor, Dependents);
+
 		CachedPalettes.RemoveAll([Palette](const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr)
 		{
 			return PalettePtr.Get() == Palette || !PalettePtr.IsValid();
 		});
+
 		// Rebuild dependency graph - removed palette may have been a dependency
 		ReferenceTracker.RebuildDependencyGraph();
+
+		// Refresh ghost meshes on cages that depended on the deleted palette
+		for (AActor* Dependent : Dependents)
+		{
+			ReferenceTracker.RefreshDependentVisuals(Dependent);
+		}
+
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's a tracked asset actor being deleted
 	else
@@ -568,7 +629,7 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 	}
 }
 
-void FPCGExValencyCageEditorMode::OnSelectionChanged()
+void UPCGExValencyCageEditorMode::OnSelectionChanged()
 {
 	AssetTracker.OnSelectionChanged();
 
@@ -599,7 +660,7 @@ void FPCGExValencyCageEditorMode::OnSelectionChanged()
 	}
 }
 
-void FPCGExValencyCageEditorMode::OnPostUndoRedo()
+void UPCGExValencyCageEditorMode::OnPostUndoRedo()
 {
 	// After Undo/Redo, the level state may have changed in ways that bypass OnLevelActorAdded/Deleted.
 	// We need to:
@@ -637,10 +698,11 @@ void FPCGExValencyCageEditorMode::OnPostUndoRedo()
 		}
 	}
 
+	OnSceneChanged.Broadcast();
 	RedrawViewports();
 }
 
-void FPCGExValencyCageEditorMode::SetAllCageDebugComponentsVisible(bool bVisible)
+void UPCGExValencyCageEditorMode::SetAllCageDebugComponentsVisible(bool bVisible)
 {
 	if (CachedCages.Num() == 0)
 	{
@@ -656,7 +718,7 @@ void FPCGExValencyCageEditorMode::SetAllCageDebugComponentsVisible(bool bVisible
 	}
 }
 
-int32 FPCGExValencyCageEditorMode::CleanupAllManualConnections()
+int32 UPCGExValencyCageEditorMode::CleanupAllManualConnections()
 {
 	int32 TotalRemoved = 0;
 
@@ -676,7 +738,7 @@ int32 FPCGExValencyCageEditorMode::CleanupAllManualConnections()
 	return TotalRemoved;
 }
 
-void FPCGExValencyCageEditorMode::RedrawViewports()
+void UPCGExValencyCageEditorMode::RedrawViewports()
 {
 	if (GEditor)
 	{

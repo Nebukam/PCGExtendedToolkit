@@ -2,8 +2,12 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Cages/PCGExValencyCage.h"
-#include "Cages/PCGExValencyAssetPalette.h"
 
+#include "Editor.h"
+#include "Cages/PCGExValencyAssetPalette.h"
+#include "Cages/PCGExValencyAssetUtils.h"
+
+#include "PCGExValencyEditorCommon.h"
 #include "EngineUtils.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/Blueprint.h"
@@ -44,14 +48,6 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 			RequestRebuild(EValencyRebuildReason::AssetChange);
 		}
 	}
-}
-
-void APCGExValencyCage::BeginDestroy()
-{
-	// Clean up ghost mesh components before destruction
-	ClearMirrorGhostMeshes();
-
-	Super::BeginDestroy();
 }
 
 FString APCGExValencyCage::GetCageDisplayName() const
@@ -147,42 +143,7 @@ TArray<TSoftObjectPtr<UObject>> APCGExValencyCage::GetRegisteredAssets() const
 	return Assets;
 }
 
-namespace
-{
-	EPCGExValencyAssetType DetectAssetType(const TSoftObjectPtr<UObject>& Asset)
-	{
-		if (Asset.IsNull())
-		{
-			return EPCGExValencyAssetType::Unknown;
-		}
-
-		// Try to load to check type
-		if (UObject* LoadedAsset = Asset.LoadSynchronous())
-		{
-			if (LoadedAsset->IsA<UStaticMesh>())
-			{
-				return EPCGExValencyAssetType::Mesh;
-			}
-			if (LoadedAsset->IsA<UBlueprint>())
-			{
-				return EPCGExValencyAssetType::Actor;
-			}
-			if (LoadedAsset->IsA<UPCGDataAsset>())
-			{
-				return EPCGExValencyAssetType::DataAsset;
-			}
-		}
-
-		// Fallback: check path for common patterns
-		const FString Path = Asset.ToSoftObjectPath().ToString();
-		if (Path.Contains(TEXT("/StaticMesh")) || Path.EndsWith(TEXT("_SM")))
-		{
-			return EPCGExValencyAssetType::Mesh;
-		}
-
-		return EPCGExValencyAssetType::Unknown;
-	}
-}
+// Asset type detection now in PCGExValencyAssetUtils::DetectAssetType
 
 void APCGExValencyCage::RegisterManualAsset(const TSoftObjectPtr<UObject>& Asset, AActor* SourceActor)
 {
@@ -194,7 +155,7 @@ void APCGExValencyCage::RegisterManualAsset(const TSoftObjectPtr<UObject>& Asset
 	FPCGExValencyAssetEntry NewEntry;
 	NewEntry.Asset = Asset;
 	NewEntry.SourceActor = SourceActor;
-	NewEntry.AssetType = DetectAssetType(Asset);
+	NewEntry.AssetType = PCGExValencyAssetUtils::DetectAssetType(Asset);
 
 	// Compute local transform if we have a source actor and preservation is enabled
 	if (bPreserveLocalTransforms && SourceActor)
@@ -326,7 +287,7 @@ void APCGExValencyCage::ScanAndRegisterContainedAssets()
 		FPCGExValencyAssetEntry NewEntry;
 		NewEntry.Asset = Asset;
 		NewEntry.SourceActor = SourceActor;
-		NewEntry.AssetType = DetectAssetType(Asset);
+		NewEntry.AssetType = PCGExValencyAssetUtils::DetectAssetType(Asset);
 
 		// Store material variant on the entry if provided
 		if (InMaterialVariant && InMaterialVariant->Overrides.Num() > 0)
@@ -432,7 +393,7 @@ void APCGExValencyCage::OnAssetRegistrationChanged()
 	RequestRebuild(EValencyRebuildReason::AssetChange);
 
 	// Propagate to dependent cages/patterns (refreshes ghosts and triggers rebuild cascade)
-	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+	if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 	{
 		Tracker->PropagateContentChange(this, /*bRefreshGhosts=*/true, /*bTriggerRebuild=*/true);
 	}
@@ -442,149 +403,56 @@ void APCGExValencyCage::OnAssetRegistrationChanged()
 
 bool APCGExValencyCage::HaveScannedAssetsChanged(const TArray<FPCGExValencyAssetEntry>& OldScannedAssets) const
 {
-	// Quick count check
-	if (OldScannedAssets.Num() != ScannedAssetEntries.Num())
-	{
-		return true;
-	}
-
-	// Compare individual entries
-	for (const FPCGExValencyAssetEntry& NewEntry : ScannedAssetEntries)
-	{
-		bool bFound = false;
-		for (const FPCGExValencyAssetEntry& OldEntry : OldScannedAssets)
-		{
-			if (OldEntry.Asset == NewEntry.Asset)
-			{
-				// If preserving transforms, also check transform equality
-				if (bPreserveLocalTransforms)
-				{
-					if (OldEntry.LocalTransform.Equals(NewEntry.LocalTransform, 0.1f))
-					{
-						bFound = true;
-						break;
-					}
-				}
-				else
-				{
-					bFound = true;
-					break;
-				}
-			}
-		}
-		if (!bFound)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return PCGExValencyAssetUtils::HaveScannedAssetsChanged(OldScannedAssets, ScannedAssetEntries, bPreserveLocalTransforms);
 }
 
 void APCGExValencyCage::ExtractMaterialOverrides(
 	const UStaticMeshComponent* MeshComponent,
 	TArray<FPCGExValencyMaterialOverride>& OutOverrides)
 {
-	OutOverrides.Empty();
-
-	if (!MeshComponent)
-	{
-		return;
-	}
-
-	const UStaticMesh* StaticMesh = MeshComponent->GetStaticMesh();
-	if (!StaticMesh)
-	{
-		return;
-	}
-
-	const int32 NumMaterials = MeshComponent->GetNumMaterials();
-	for (int32 SlotIndex = 0; SlotIndex < NumMaterials; ++SlotIndex)
-	{
-		UMaterialInterface* CurrentMaterial = MeshComponent->GetMaterial(SlotIndex);
-		UMaterialInterface* DefaultMaterial = StaticMesh->GetMaterial(SlotIndex);
-
-		// Only track if material differs from mesh's default
-		if (CurrentMaterial && CurrentMaterial != DefaultMaterial)
-		{
-			FPCGExValencyMaterialOverride& Override = OutOverrides.AddDefaulted_GetRef();
-			Override.SlotIndex = SlotIndex;
-			Override.Material = CurrentMaterial;
-		}
-	}
+	PCGExValencyAssetUtils::ExtractMaterialOverrides(MeshComponent, OutOverrides);
 }
 
 void APCGExValencyCage::RecordMaterialVariant(
 	const FSoftObjectPath& MeshPath,
 	const TArray<FPCGExValencyMaterialOverride>& Overrides)
 {
-	if (Overrides.Num() == 0)
-	{
-		return;
-	}
-
-	// Find or create variants array for this mesh
-	TArray<FPCGExValencyMaterialVariant>& Variants = DiscoveredMaterialVariants.FindOrAdd(MeshPath);
-
-	// Check if this exact configuration already exists
-	FPCGExValencyMaterialVariant NewVariant;
-	NewVariant.Overrides = Overrides;
-	NewVariant.DiscoveryCount = 1;
-
-	for (FPCGExValencyMaterialVariant& ExistingVariant : Variants)
-	{
-		if (ExistingVariant == NewVariant)
-		{
-			// Increment discovery count (becomes weight)
-			ExistingVariant.DiscoveryCount++;
-			return;
-		}
-	}
-
-	// New unique variant
-	Variants.Add(MoveTemp(NewVariant));
+	PCGExValencyAssetUtils::RecordMaterialVariant(MeshPath, Overrides, DiscoveredMaterialVariants);
 }
 
 FTransform APCGExValencyCage::ComputePreservedLocalTransform(const FTransform& AssetWorldTransform) const
 {
-	if (!bPreserveLocalTransforms)
-	{
-		return FTransform::Identity;
-	}
-
-	const FTransform CageTransform = GetActorTransform();
-	const FTransform LocalTransform = AssetWorldTransform.GetRelativeTransform(CageTransform);
-
-	// Build result transform based on which flags are set
-	FTransform Result = FTransform::Identity;
-
-	if (ShouldPreserveTranslation())
-	{
-		Result.SetTranslation(LocalTransform.GetTranslation());
-	}
-
-	if (ShouldPreserveRotation())
-	{
-		Result.SetRotation(LocalTransform.GetRotation());
-	}
-
-	if (ShouldPreserveScale())
-	{
-		Result.SetScale3D(LocalTransform.GetScale3D());
-	}
-
-	return Result;
+	return PCGExValencyAssetUtils::ComputePreservedLocalTransform(
+		AssetWorldTransform, GetActorTransform(), bPreserveLocalTransforms, LocalTransformFlags);
 }
 
-#if WITH_EDITOR
-void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void APCGExValencyCage::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	Super::OnPostEditChangeProperty(PropertyChangedEvent);
 
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	const FName MemberName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
-	// Handle MirrorSources changes
+	// Properties with PCGEX_ValencyGhostRefresh that need asset registration propagation
+	// (base class already handled ClearGhostMeshes + RefreshGhostMeshes)
+	{
+		bool bGhostRefresh = false;
+		if (const FProperty* Property = PropertyChangedEvent.Property)
+		{
+			bGhostRefresh = Property->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
+		}
+		if (!bGhostRefresh && PropertyChangedEvent.MemberProperty)
+		{
+			bGhostRefresh = PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyGhostRefresh"));
+		}
+
+		if (bGhostRefresh)
+		{
+			OnAssetRegistrationChanged();
+		}
+	}
+
+	// Handle MirrorSources changes (validation and tracker notification)
 	if (MemberName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, MirrorSources))
 	{
 		PCGEX_VALENCY_INFO(Mirror, "Cage '%s': MirrorSources changed, validating %d entries", *GetCageDisplayName(), MirrorSources.Num());
@@ -630,78 +498,26 @@ void APCGExValencyCage::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 		}
 
 		// Notify tracker that our MirrorSources changed (incrementally updates dependency graph)
-		if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+		if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 		{
 			Tracker->OnMirrorSourcesChanged(this);
 		}
 
-		// Refresh ghost meshes
-		RefreshMirrorGhostMeshes();
-
-		// Request rebuild through unified dirty state system (with debouncing for interactive changes)
-		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
-		{
-			RequestRebuild(EValencyRebuildReason::PropertyChange);
-		}
-
 		PCGEX_VALENCY_REDRAW_ALL_VIEWPORT
 	}
-	// Handle other mirror-related property changes
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bShowMirrorGhostMeshes))
 	{
 		PCGEX_VALENCY_VERBOSE(Mirror, "Cage '%s': bShowMirrorGhostMeshes changed to %s",
 			*GetCageDisplayName(), bShowMirrorGhostMeshes ? TEXT("true") : TEXT("false"));
-		RefreshMirrorGhostMeshes();
-	}
-	else if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCage, bRecursiveMirror))
-	{
-		RefreshMirrorGhostMeshes();
-		if (UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
-		{
-			RequestRebuild(EValencyRebuildReason::PropertyChange);
-		}
-	}
-	else
-	{
-		// Check if any property in the chain has PCGEX_ValencyRebuild metadata
-		bool bShouldRebuild = false;
-
-		if (const FProperty* Property = PropertyChangedEvent.Property)
-		{
-			if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-			{
-				bShouldRebuild = true;
-			}
-		}
-
-		if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
-		{
-			if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-			{
-				bShouldRebuild = true;
-			}
-		}
-
-		// Debounce interactive changes (dragging sliders) to prevent spam
-		if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
-		{
-			bShouldRebuild = false;
-		}
-
-		if (bShouldRebuild)
-		{
-			PCGEX_VALENCY_INFO(Building, "Cage '%s': Property '%s' with ValencyRebuild metadata changed - triggering rebuild",
-				*GetCageDisplayName(), *PropertyName.ToString());
-			RequestRebuild(EValencyRebuildReason::PropertyChange);
-		}
+		ClearGhostMeshes();
+		RefreshGhostMeshes();
 	}
 }
-#endif
 
-void APCGExValencyCage::RefreshMirrorGhostMeshes()
+void APCGExValencyCage::RefreshGhostMeshes()
 {
 	// Clear existing ghost meshes first
-	ClearMirrorGhostMeshes();
+	ClearGhostMeshes();
 
 	// Get settings
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
@@ -797,6 +613,7 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 
 		// Create ghost mesh component
 		UStaticMeshComponent* GhostComp = NewObject<UStaticMeshComponent>(this, NAME_None, RF_Transient);
+		GhostComp->ComponentTags.Add(PCGExValencyTags::GhostMeshTag);
 		GhostComp->SetStaticMesh(Mesh);
 		GhostComp->SetMobility(EComponentMobility::Movable);
 		GhostComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -838,57 +655,19 @@ void APCGExValencyCage::RefreshMirrorGhostMeshes()
 		GhostComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 		GhostComp->RegisterComponent();
 
-		GhostMeshComponents.Add(GhostComp);
-		GhostCount++;
+			GhostCount++;
 	}
-}
-
-void APCGExValencyCage::ClearMirrorGhostMeshes()
-{
-	for (TObjectPtr<UStaticMeshComponent>& GhostComp : GhostMeshComponents)
-	{
-		if (GhostComp)
-		{
-			GhostComp->DestroyComponent();
-		}
-	}
-	GhostMeshComponents.Empty();
 }
 
 void APCGExValencyCage::FindMirroringCages(TArray<APCGExValencyCage*>& OutCages) const
 {
-	OutCages.Empty();
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	// Find all cages that have this cage in their MirrorSources
-	for (TActorIterator<APCGExValencyCage> It(World); It; ++It)
-	{
-		APCGExValencyCage* Cage = *It;
-		if (!Cage || Cage == this)
-		{
-			continue;
-		}
-
-		for (const TObjectPtr<AActor>& Source : Cage->MirrorSources)
-		{
-			if (Source == this)
-			{
-				OutCages.Add(Cage);
-				break;
-			}
-		}
-	}
+	PCGExValencyAssetUtils::FindMirroringCages(this, GetWorld(), OutCages);
 }
 
 bool APCGExValencyCage::TriggerAutoRebuildForMirroringCages()
 {
 	// Use centralized reference tracker for recursive propagation
-	if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+	if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 	{
 		return Tracker->PropagateContentChange(this);
 	}

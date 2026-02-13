@@ -3,10 +3,13 @@
 
 #include "PCGExElementsValencyEditor.h"
 
-#include "EditorModeRegistry.h"
 #include "PCGExAssetTypesMacros.h"
 #include "PropertyEditorModule.h"
-#include "EditorMode/PCGExValencyCageEditorMode.h"
+#include "UnrealEdGlobals.h"
+#include "Editor/UnrealEdEngine.h"
+#include "EditorMode/PCGExValencyEditorModeToolkit.h"
+#include "EditorMode/PCGExValencyCageSocketVisualizer.h"
+#include "Components/PCGExValencyCageSocketComponent.h"
 #include "Details/PCGExPropertyOutputConfigCustomization.h"
 #include "Details/PCGExValencySocketCompatibilityCustomization.h"
 
@@ -14,13 +17,16 @@ void FPCGExElementsValencyEditorModule::StartupModule()
 {
 	IPCGExEditorModuleInterface::StartupModule();
 
-	// Register Valency Cage editor mode
-	FEditorModeRegistry::Get().RegisterMode<FPCGExValencyCageEditorMode>(
-		FPCGExValencyCageEditorMode::ModeID,
-		NSLOCTEXT("PCGExValency", "ValencyCageModeName", "PCGEx | Valency"),
-		FSlateIcon(),
-		true // Visible in mode toolbar
-	);
+	// Register editor mode command bindings
+	FValencyEditorCommands::Register();
+
+	// Register socket component visualizer
+	if (GUnrealEd)
+	{
+		GUnrealEd->RegisterComponentVisualizer(
+			UPCGExValencyCageSocketComponent::StaticClass()->GetFName(),
+			MakeShareable(new FPCGExValencyCageSocketVisualizer()));
+	}
 
 	// Property customizations
 	PCGEX_REGISTER_CUSTO_START
@@ -30,8 +36,15 @@ void FPCGExElementsValencyEditorModule::StartupModule()
 
 void FPCGExElementsValencyEditorModule::ShutdownModule()
 {
-	// Unregister editor mode
-	FEditorModeRegistry::Get().UnregisterMode(FPCGExValencyCageEditorMode::ModeID);
+	// Unregister socket component visualizer
+	if (GUnrealEd)
+	{
+		GUnrealEd->UnregisterComponentVisualizer(
+			UPCGExValencyCageSocketComponent::StaticClass()->GetFName());
+	}
+
+	// Unregister editor mode command bindings
+	FValencyEditorCommands::Unregister();
 
 	IPCGExEditorModuleInterface::ShutdownModule();
 }

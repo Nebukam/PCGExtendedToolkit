@@ -214,6 +214,24 @@ public:
 	/** Get the ghost material to use (resolves soft pointer, falls back to M_ValencyAssetGhost) */
 	UMaterialInterface* GetGhostMaterial() const;
 
+	// ========== Socket Visualizer ==========
+
+	/** Show socket component visualizers in the viewport */
+	UPROPERTY(Config, EditAnywhere, Category = "Socket Visualizer")
+	bool bShowSocketVisualizers = true;
+
+	/** Size of the diamond shape drawn at socket positions (world units) */
+	UPROPERTY(Config, EditAnywhere, Category = "Socket Visualizer", meta = (EditCondition = "bShowSocketVisualizers", ClampMin = "2.0", ClampMax = "50.0"))
+	float SocketVisualizerSize = 10.0f;
+
+	/** Length of the direction arrow drawn from socket positions (world units) */
+	UPROPERTY(Config, EditAnywhere, Category = "Socket Visualizer", meta = (EditCondition = "bShowSocketVisualizers", ClampMin = "5.0", ClampMax = "100.0"))
+	float SocketArrowLength = 20.0f;
+
+	/** Alpha multiplier for disabled socket visualizers */
+	UPROPERTY(Config, EditAnywhere, Category = "Socket Visualizer", meta = (EditCondition = "bShowSocketVisualizers", ClampMin = "0.0", ClampMax = "1.0"))
+	float SocketDisabledAlpha = 0.3f;
+
 	// ========== Thin Line Lengths ==========
 
 	/** Length of thin orbital lines when connected (as percentage of probe radius) */

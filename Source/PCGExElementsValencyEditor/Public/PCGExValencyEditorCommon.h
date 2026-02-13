@@ -10,3 +10,8 @@ namespace PCGExValencyFolders
 	const FName CagesFolder = FName(TEXT("Valency/Cages"));
 	const FName VolumesFolder = FName(TEXT("Valency/Volumes"));
 }
+
+namespace PCGExValencyTags
+{
+	const FName GhostMeshTag = FName(TEXT("PCGEx_Valency_Ghost"));
+}

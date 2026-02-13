@@ -4,15 +4,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EdMode.h"
+#include "Tools/UEdMode.h"
 #include "EditorMode/PCGExValencyAssetTracker.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
 #include "EditorMode/PCGExValencyReferenceTracker.h"
+
+#include "PCGExValencyCageEditorMode.generated.h"
 
 class APCGExValencyCageBase;
 class APCGExValencyCage;
 class APCGExValencyAssetPalette;
 class AValencyContextVolume;
+class FPCGExValencyEditorModeToolkit;
+class IToolsContextRenderAPI;
+
+/** Delegate fired when the scene cache (cages/volumes/palettes) changes */
+DECLARE_MULTICAST_DELEGATE(FOnValencySceneChanged);
+
+/**
+ * Visibility flags for controlling which visualization layers are rendered.
+ * Persists for the duration of the editor mode session.
+ */
+struct FValencyVisibilityFlags
+{
+	bool bShowConnections = true;
+	bool bShowLabels = true;
+	bool bShowSockets = true;
+	bool bShowVolumes = true;
+	bool bShowGhostMeshes = true;
+	bool bShowPatterns = true;
+};
 
 /**
  * Editor mode for Valency Cage authoring.
@@ -20,32 +41,34 @@ class AValencyContextVolume;
  *
  * This class orchestrates:
  * - Cache management for cages and volumes
- * - Visualization via FPCGExValencyDrawHelper
+ * - Visualization via FPCGExValencyDrawHelper (ITF render delegates)
  * - Asset tracking via FPCGExValencyAssetTracker
- * - Input handling and actor lifecycle events
+ * - Input handling via toolkit command bindings
  *
  * Configuration is stored in UPCGExValencyEditorSettings (Project Settings > Plugins > PCGEx Valency Editor).
  */
-class PCGEXELEMENTSVALENCYEDITOR_API FPCGExValencyCageEditorMode : public FEdMode
+UCLASS()
+class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageEditorMode : public UEdMode
 {
+	GENERATED_BODY()
+
 public:
 	/** Mode identifier */
 	static const FEditorModeID ModeID;
 
-	FPCGExValencyCageEditorMode();
-	virtual ~FPCGExValencyCageEditorMode() override;
+	UPCGExValencyCageEditorMode();
 
-	//~ Begin FEdMode Interface
+	//~ Begin UEdMode Interface
 	virtual void Enter() override;
 	virtual void Exit() override;
-	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
-	virtual void DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas) override;
-	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
-	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event) override;
+	virtual void ModeTick(float DeltaTime) override;
 	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const override;
-	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime) override;
-	//~ End FEdMode Interface
+	//~ End UEdMode Interface
 
+protected:
+	virtual void CreateToolkit() override;
+
+public:
 	/** Get the cached cages array */
 	const TArray<TWeakObjectPtr<APCGExValencyCageBase>>& GetCachedCages() const { return CachedCages; }
 
@@ -61,6 +84,15 @@ public:
 	/** Get the reference tracker for change propagation */
 	FValencyReferenceTracker& GetReferenceTracker() { return ReferenceTracker; }
 
+	/** Get the visualization visibility flags */
+	const FValencyVisibilityFlags& GetVisibilityFlags() const { return VisibilityFlags; }
+
+	/** Get mutable visibility flags (for toggle widgets) */
+	FValencyVisibilityFlags& GetMutableVisibilityFlags() { return VisibilityFlags; }
+
+	/** Delegate fired when the scene cache changes (cages/volumes/palettes added/removed) */
+	FOnValencySceneChanged OnSceneChanged;
+
 	/**
 	 * Get the reference tracker from the active Valency editor mode.
 	 * @return Pointer to tracker if mode is active, nullptr otherwise
@@ -68,6 +100,14 @@ public:
 	static FValencyReferenceTracker* GetActiveReferenceTracker();
 
 protected:
+	// ========== Rendering Callbacks (ITF delegates) ==========
+
+	/** 3D viewport rendering via Interactive Tools Framework */
+	void OnRenderCallback(IToolsContextRenderAPI* RenderAPI);
+
+	/** 2D HUD rendering via Interactive Tools Framework */
+	void OnDrawHUDCallback(FCanvas* Canvas, IToolsContextRenderAPI* RenderAPI);
+
 	// ========== Cache Management ==========
 
 	/** Collect all cages in the current level */
@@ -107,6 +147,9 @@ protected:
 	/** Cleanup stale manual connections from all cages */
 	int32 CleanupAllManualConnections();
 
+	/** Execute cleanup command (bound to toolkit command list) */
+	void ExecuteCleanupCommand();
+
 	/** Redraw all viewports and invalidate viewport clients */
 	void RedrawViewports();
 
@@ -125,12 +168,19 @@ private:
 	/** Whether cache needs refresh */
 	bool bCacheDirty = true;
 
+	// ========== Visualization ==========
+
+	/** Visibility toggle state for visualization layers */
+	FValencyVisibilityFlags VisibilityFlags;
+
 	// ========== Delegate Handles ==========
 
 	FDelegateHandle OnActorAddedHandle;
 	FDelegateHandle OnActorDeletedHandle;
 	FDelegateHandle OnSelectionChangedHandle;
 	FDelegateHandle OnPostUndoRedoHandle;
+	FDelegateHandle OnRenderHandle;
+	FDelegateHandle OnDrawHUDHandle;
 
 	// ========== Asset Tracking ==========
 

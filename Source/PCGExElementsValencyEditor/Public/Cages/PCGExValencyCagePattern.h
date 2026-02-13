@@ -90,21 +90,14 @@ public:
 	APCGExValencyCagePattern();
 
 	//~ Begin AActor Interface
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostEditMove(bool bFinished) override;
-	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
-	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
 	//~ Begin APCGExValencyCageBase Interface
 	virtual FString GetCageDisplayName() const override;
 	virtual void SetDebugComponentsVisible(bool bVisible) override;
-	//~ End APCGExValencyCageBase Interface
-
-	/** Check if this is a pattern cage (for type checking) */
-	virtual bool IsPatternCage() const { return true; }
-
-	//~ Begin APCGExValencyCageBase Interface
+	virtual void RefreshGhostMeshes() override;
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual bool DetectNearbyConnections() override;
 	//~ End APCGExValencyCageBase Interface
 
@@ -144,15 +137,6 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pattern|Proxy")
 	bool bShowProxyGhostMesh = true;
-
-	/**
-	 * Rebuild ghost mesh component based on the first proxied cage's content.
-	 * Called when ProxiedCages changes or when entering Valency mode.
-	 */
-	void RefreshProxyGhostMesh();
-
-	/** Clear the ghost mesh component */
-	void ClearProxyGhostMesh();
 
 	// ==================== Pattern Role ====================
 

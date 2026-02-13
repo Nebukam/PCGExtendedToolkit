@@ -3,7 +3,9 @@
 
 #include "Cages/PCGExValencyCagePattern.h"
 
+#include "PCGExValencyEditorCommon.h"
 #include "EngineUtils.h"
+#include "PCGExValencyEditorSettings.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -11,16 +13,13 @@
 #include "Cages/PCGExValencyCageNull.h"
 #include "Volumes/ValencyContextVolume.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
-#include "PCGExValencyEditorSettings.h"
 #include "Cages/PCGExValencyAssetPalette.h"
-
-namespace PCGExValencyTags
-{
-	const FName GhostMeshTag = FName(TEXT("PCGEx_Valency_Ghost"));
-}
+#include "Engine/StaticMesh.h"
 
 APCGExValencyCagePattern::APCGExValencyCagePattern()
 {
+	CageType = EPCGExValencyCageType::Pattern;
+
 	// Create sphere for visualization and selection
 	DebugSphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("DebugSphere"));
 	DebugSphereComponent->SetupAttachment(RootComponent);
@@ -40,9 +39,9 @@ APCGExValencyCagePattern::APCGExValencyCagePattern()
 	PatternBoundsComponent->SetVisibility(false); // Hidden by default, shown only on root
 }
 
-void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void APCGExValencyCagePattern::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	Super::OnPostEditChangeProperty(PropertyChangedEvent);
 
 	const FName PropertyName = PropertyChangedEvent.GetMemberPropertyName();
 
@@ -56,12 +55,13 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, bShowProxyGhostMesh))
 	{
-		RefreshProxyGhostMesh();
+		ClearGhostMeshes();
+		RefreshGhostMeshes();
 
 		// Notify reference tracker when ProxiedCages changes (incrementally updates dependency graph)
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCagePattern, ProxiedCages))
 		{
-			if (FValencyReferenceTracker* Tracker = FPCGExValencyCageEditorMode::GetActiveReferenceTracker())
+			if (FValencyReferenceTracker* Tracker = UPCGExValencyCageEditorMode::GetActiveReferenceTracker())
 			{
 				Tracker->OnProxiedCagesChanged(this);
 			}
@@ -89,36 +89,6 @@ void APCGExValencyCagePattern::PostEditChangeProperty(FPropertyChangedEvent& Pro
 			DebugSphereComponent->ShapeColor = FColor(100, 200, 255); // Blue for active
 		}
 	}
-
-	// Check if any property in the chain has PCGEX_ValencyRebuild metadata
-	bool bShouldRebuild = false;
-
-	if (const FProperty* Property = PropertyChangedEvent.Property)
-	{
-		if (Property->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-		{
-			bShouldRebuild = true;
-		}
-	}
-
-	if (!bShouldRebuild && PropertyChangedEvent.MemberProperty)
-	{
-		if (PropertyChangedEvent.MemberProperty->HasMetaData(TEXT("PCGEX_ValencyRebuild")))
-		{
-			bShouldRebuild = true;
-		}
-	}
-
-	// Debounce interactive changes (dragging sliders)
-	if (bShouldRebuild && !UPCGExValencyEditorSettings::ShouldAllowRebuild(PropertyChangedEvent.ChangeType))
-	{
-		bShouldRebuild = false;
-	}
-
-	if (bShouldRebuild)
-	{
-		RequestRebuild(EValencyRebuildReason::PropertyChange);
-	}
 }
 
 void APCGExValencyCagePattern::PostEditMove(bool bFinished)
@@ -137,21 +107,6 @@ void APCGExValencyCagePattern::PostEditMove(bool bFinished)
 			Root->UpdatePatternBoundsVisualization();
 		}
 	}
-}
-
-void APCGExValencyCagePattern::PostDuplicate(EDuplicateMode::Type DuplicateMode)
-{
-	Super::PostDuplicate(DuplicateMode);
-
-	// Clear any orphaned ghost meshes and refresh
-	ClearProxyGhostMesh();
-	RefreshProxyGhostMesh();
-}
-
-void APCGExValencyCagePattern::BeginDestroy()
-{
-	ClearProxyGhostMesh();
-	Super::BeginDestroy();
 }
 
 FString APCGExValencyCagePattern::GetCageDisplayName() const
@@ -401,10 +356,10 @@ void APCGExValencyCagePattern::UpdatePatternBoundsVisualization()
 	}
 }
 
-void APCGExValencyCagePattern::RefreshProxyGhostMesh()
+void APCGExValencyCagePattern::RefreshGhostMeshes()
 {
 	// Clear existing ghost meshes first
-	ClearProxyGhostMesh();
+	ClearGhostMeshes();
 
 	// Get settings
 	const UPCGExValencyEditorSettings* Settings = UPCGExValencyEditorSettings::Get();
@@ -518,17 +473,3 @@ void APCGExValencyCagePattern::RefreshProxyGhostMesh()
 	}
 }
 
-void APCGExValencyCagePattern::ClearProxyGhostMesh()
-{
-	// Find and destroy all components with the ghost mesh tag
-	TArray<UActorComponent*> TaggedComponents;
-	GetComponents(TaggedComponents);
-
-	for (UActorComponent* Component : TaggedComponents)
-	{
-		if (Component && Component->ComponentHasTag(PCGExValencyTags::GhostMeshTag))
-		{
-			Component->DestroyComponent();
-		}
-	}
-}

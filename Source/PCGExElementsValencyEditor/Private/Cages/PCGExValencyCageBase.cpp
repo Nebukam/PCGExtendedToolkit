@@ -3,6 +3,7 @@
 
 #include "Cages/PCGExValencyCageBase.h"
 
+#include "Editor.h"
 #include "Components/SceneComponent.h"
 #include "Components/PCGExValencyCageSocketComponent.h"
 #include "Engine/StaticMesh.h"
@@ -15,12 +16,6 @@
 #include "Volumes/ValencyContextVolume.h"
 #include "Cages/PCGExValencyCageSpatialRegistry.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
-#include "EditorMode/PCGExValencyCageEditorMode.h"
-
-#if WITH_EDITOR
-#include "Editor.h"
-#include "EditorModeManager.h"
-#endif
 
 APCGExValencyCageBase::APCGExValencyCageBase()
 {
@@ -74,10 +69,19 @@ void APCGExValencyCageBase::PostInitializeComponents()
 	}
 }
 
-void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void APCGExValencyCageBase::OnGhostRefreshRequested()
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	ClearGhostMeshes();
+	RefreshGhostMeshes();
+}
 
+void APCGExValencyCageBase::OnRebuildMetaTagTriggered()
+{
+	RequestRebuild(EValencyRebuildReason::PropertyChange);
+}
+
+void APCGExValencyCageBase::OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(APCGExValencyCageBase, OrbitalSetOverride) ||
@@ -120,8 +124,20 @@ void APCGExValencyCageBase::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	}
 }
 
+void APCGExValencyCageBase::PostDuplicate(EDuplicateMode::Type DuplicateMode)
+{
+	Super::PostDuplicate(DuplicateMode);
+
+	// Clear orphaned ghost mesh components from duplication and refresh from current state
+	ClearGhostMeshes();
+	RefreshGhostMeshes();
+}
+
 void APCGExValencyCageBase::BeginDestroy()
 {
+	// Clean up ghost mesh components before destruction
+	ClearGhostMeshes();
+
 	// Unregister from spatial registry and trigger auto-rebuild if this is a user deletion
 	if (UWorld* World = GetWorld())
 	{
@@ -662,6 +678,26 @@ void APCGExValencyCageBase::SetDebugComponentsVisible(bool bVisible)
 	// Base implementation does nothing - subclasses override to hide their specific components
 }
 
+void APCGExValencyCageBase::RefreshGhostMeshes()
+{
+	// Base implementation does nothing - subclasses override to create ghost previews
+}
+
+void APCGExValencyCageBase::ClearGhostMeshes()
+{
+	// Tag-based cleanup: finds all ghost components including orphaned ones from duplication
+	TArray<UActorComponent*> AllComponents;
+	GetComponents(AllComponents);
+
+	for (UActorComponent* Component : AllComponents)
+	{
+		if (Component && Component->ComponentHasTag(PCGExValencyTags::GhostMeshTag))
+		{
+			Component->DestroyComponent();
+		}
+	}
+}
+
 void APCGExValencyCageBase::CaptureConnectionState(TArray<TWeakObjectPtr<APCGExValencyCageBase>>& OutConnections) const
 {
 	OutConnections.Empty(Orbitals.Num());
@@ -911,23 +947,6 @@ void APCGExValencyCageBase::RequestRebuild(EValencyRebuildReason Reason)
 		? ReasonNames[ReasonIndex]
 		: TEXT("Unknown");
 	PCGEX_VALENCY_VERBOSE(Rebuild, "RequestRebuild from '%s' (reason: %s)", *GetCageDisplayName(), ReasonName);
-}
-
-FValencyDirtyStateManager* APCGExValencyCageBase::GetActiveDirtyStateManager()
-{
-	// Get the editor mode and return its dirty state manager
-	if (GEditor)
-	{
-		if (GLevelEditorModeTools().IsModeActive(FPCGExValencyCageEditorMode::ModeID))
-		{
-			if (FPCGExValencyCageEditorMode* Mode = static_cast<FPCGExValencyCageEditorMode*>(
-				GLevelEditorModeTools().GetActiveMode(FPCGExValencyCageEditorMode::ModeID)))
-			{
-				return &Mode->GetDirtyStateManager();
-			}
-		}
-	}
-	return nullptr;
 }
 
 // ========== Socket Methods (Component-based) ==========

@@ -35,13 +35,8 @@ class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageNull : public APCGExValenc
 public:
 	APCGExValencyCageNull();
 
-	//~ Begin AActor Interface
-	virtual void PostEditMove(bool bFinished) override;
-	//~ End AActor Interface
-
 	//~ Begin APCGExValencyCageBase Interface
 	virtual FString GetCageDisplayName() const override;
-	virtual bool IsNullCage() const override { return true; }
 	virtual void SetDebugComponentsVisible(bool bVisible) override;
 	virtual bool DetectNearbyConnections() override;
 	//~ End APCGExValencyCageBase Interface
@@ -89,11 +84,8 @@ protected:
 
 	//~ Begin APCGExValencyCageBase Interface
 	virtual bool ShouldConsiderCageForConnection(const APCGExValencyCageBase* CandidateCage) const override;
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	//~ End APCGExValencyCageBase Interface
-
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 
 	/** Update sphere color based on current mode */
 	void UpdateVisualization();

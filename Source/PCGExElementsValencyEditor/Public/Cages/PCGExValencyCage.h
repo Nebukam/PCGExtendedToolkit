@@ -49,12 +49,10 @@ public:
 
 	//~ Begin AActor Interface
 	virtual void PostEditMove(bool bFinished) override;
-	virtual void BeginDestroy() override;
 	//~ End AActor Interface
 
 	//~ Begin APCGExValencyCageBase Interface
 	virtual FString GetCageDisplayName() const override;
-	virtual bool IsNullCage() const override { return false; }
 	//~ End APCGExValencyCageBase Interface
 
 	//~ Begin Containment Interface
@@ -117,7 +115,7 @@ public:
 	 * Manually registered asset entries (user-defined via details panel).
 	 * These are persisted and not affected by auto-scanning.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets", meta = (TitleProperty = "Asset"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Assets", meta = (TitleProperty = "Asset", PCGEX_ValencyGhostRefresh))
 	TArray<FPCGExValencyAssetEntry> ManualAssetEntries;
 
 	/**
@@ -132,14 +130,14 @@ public:
 	 * Assets from all sources are combined with this cage's orbital configuration.
 	 * Supports both APCGExValencyCage and APCGExValencyAssetPalette actors.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta = (AllowedClasses = "/Script/PCGExElementsValencyEditor.PCGExValencyCage, /Script/PCGExElementsValencyEditor.PCGExValencyAssetPalette"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta = (AllowedClasses = "/Script/PCGExElementsValencyEditor.PCGExValencyCage, /Script/PCGExElementsValencyEditor.PCGExValencyAssetPalette", PCGEX_ValencyGhostRefresh))
 	TArray<TObjectPtr<AActor>> MirrorSources;
 
 	/**
 	 * When enabled, mirror sources are resolved recursively.
 	 * If source A mirrors source B, assets from B are also included.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta=(PCGEX_ValencyRebuild))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Mirror", meta=(PCGEX_ValencyRebuild, PCGEX_ValencyGhostRefresh))
 	bool bRecursiveMirror = true;
 
 	/**
@@ -178,6 +176,15 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module")
 	FPCGExValencyModuleSettings ModuleSettings;
+
+	/**
+	 * Controls how the solver treats modules derived from this cage.
+	 * - Normal: Standard participation with full constraints.
+	 * - Filler: Only placed when no constrained module fits. Does not propagate constraints.
+	 * - Excluded: Never placed by solver. Module exists for sockets/metadata only.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cage|Module", meta=(PCGEX_ValencyRebuild))
+	EPCGExModulePlacementPolicy PlacementPolicy = EPCGExModulePlacementPolicy::Normal;
 
 	/**
 	 * Optional name for modules created from this cage.
@@ -231,14 +238,9 @@ public:
 	/** Compute the local transform to preserve based on flags */
 	FTransform ComputePreservedLocalTransform(const FTransform& AssetWorldTransform) const;
 
-	/**
-	 * Rebuild ghost mesh components based on the mirror source's content.
-	 * Called automatically when MirrorSource changes or when entering Valency mode.
-	 */
-	void RefreshMirrorGhostMeshes();
-
-	/** Clear all ghost mesh components */
-	void ClearMirrorGhostMeshes();
+	//~ Begin APCGExValencyCageBase Interface
+	virtual void RefreshGhostMeshes() override;
+	//~ End APCGExValencyCageBase Interface
 
 	/**
 	 * Find all cages that have this cage in their MirrorSources array.
@@ -253,11 +255,9 @@ public:
 	 */
 	bool TriggerAutoRebuildForMirroringCages();
 
-#if WITH_EDITOR
-	//~ Begin UObject Interface
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	//~ End UObject Interface
-#endif
+	//~ Begin APCGExValencyCageBase Interface
+	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End APCGExValencyCageBase Interface
 
 protected:
 	/** Called when asset registration changes */
@@ -277,8 +277,4 @@ protected:
 	/** Record a material variant for a mesh asset */
 	void RecordMaterialVariant(const FSoftObjectPath& MeshPath, const TArray<FPCGExValencyMaterialOverride>& Overrides);
 
-private:
-	/** Transient ghost mesh components for mirror preview */
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UStaticMeshComponent>> GhostMeshComponents;
 };
