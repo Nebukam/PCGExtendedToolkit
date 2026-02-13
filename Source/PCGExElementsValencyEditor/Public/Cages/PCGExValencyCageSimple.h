@@ -38,10 +38,10 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	//~ End AActor Interface
 
-	//~ Begin APCGExValencyCage Interface
+	//~ Begin APCGExValencyAssetContainerBase Interface
 	virtual bool IsActorInside_Implementation(AActor* Actor) const override;
 	virtual bool ContainsPoint_Implementation(const FVector& WorldLocation) const override;
-	//~ End APCGExValencyCage Interface
+	//~ End APCGExValencyAssetContainerBase Interface
 
 	//~ Begin APCGExValencyCageBase Interface
 	virtual void SetDebugComponentsVisible(bool bVisible) override;

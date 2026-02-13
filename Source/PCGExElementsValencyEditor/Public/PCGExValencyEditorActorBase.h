@@ -30,9 +30,10 @@ public:
 	APCGExValencyEditorActorBase();
 
 	//~ Begin AActor Interface
-	virtual void PostInitializeComponents() override;
 	virtual void PostEditMove(bool bFinished) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void EditorApplyTranslation(const FVector& DeltaTranslation, bool bAltDown, bool bShiftDown, bool bCtrlDown) override;
+	virtual void EditorApplyRotation(const FRotator& DeltaRotation, bool bAltDown, bool bShiftDown, bool bCtrlDown) override;
 	//~ End AActor Interface
 
 	/**
@@ -73,31 +74,17 @@ protected:
 	 */
 	virtual void CollectDraggableActors(TArray<AActor*>& OutActors) const {}
 
-	/** Tracked actor and its transform relative to this actor at drag start */
-	struct FDraggedActorInfo
-	{
-		TWeakObjectPtr<AActor> Actor;
-		FTransform RelativeTransform;
-	};
-
 private:
-	/** This actor's transform before the current drag started */
-	FTransform LastKnownTransform = FTransform::Identity;
-
-	/** Whether we're tracking a drag for the CTRL+assets feature */
-	bool bIsDraggingTracking = false;
-
-	/** Whether contained assets are being dragged along */
+	/** Whether contained assets are currently being dragged */
 	bool bIsDraggingAssets = false;
 
-	/** Actors being dragged along with their relative transforms */
-	TArray<FDraggedActorInfo> DraggedActors;
+	/** Actors being dragged along with the cage */
+	TArray<TWeakObjectPtr<AActor>> DraggedActors;
 
 	/** Transaction scope for the entire drag operation (commits on reset) */
 	TUniquePtr<FScopedTransaction> DragAssetTransaction;
 
 	void BeginDragContainedAssets();
-	void UpdateDraggedActorPositions();
 	void EndDragContainedAssets();
 
 	//~ End CTRL+Drag Asset Dragging

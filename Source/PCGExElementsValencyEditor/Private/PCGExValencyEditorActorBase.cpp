@@ -4,7 +4,6 @@
 #include "PCGExValencyEditorActorBase.h"
 
 #include "PCGExValencyEditorSettings.h"
-#include "Framework/Application/SlateApplication.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
 
@@ -17,44 +16,74 @@ APCGExValencyEditorActorBase::APCGExValencyEditorActorBase()
 {
 }
 
-void APCGExValencyEditorActorBase::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-	LastKnownTransform = GetActorTransform();
-}
-
 void APCGExValencyEditorActorBase::PostEditMove(bool bFinished)
 {
 	Super::PostEditMove(bFinished);
 
-	if (!bFinished)
+	// Clean up drag state when the editor drag operation ends
+	if (bFinished && bIsDraggingAssets)
 	{
-		if (!bIsDraggingTracking)
-		{
-			// First frame of drag - check if CTRL is held
-			bIsDraggingTracking = true;
+		EndDragContainedAssets();
+	}
+}
 
-			if (FSlateApplication::IsInitialized() && FSlateApplication::Get().GetModifierKeys().IsControlDown())
+void APCGExValencyEditorActorBase::EditorApplyTranslation(const FVector& DeltaTranslation, bool bAltDown, bool bShiftDown, bool bCtrlDown)
+{
+	Super::EditorApplyTranslation(DeltaTranslation, bAltDown, bShiftDown, bCtrlDown);
+
+	if (bCtrlDown)
+	{
+		if (!bIsDraggingAssets)
+		{
+			BeginDragContainedAssets();
+		}
+
+		// Apply the exact same translation delta — zero lag
+		for (const TWeakObjectPtr<AActor>& WeakActor : DraggedActors)
+		{
+			if (AActor* Actor = WeakActor.Get())
 			{
-				BeginDragContainedAssets();
+				Actor->AddActorWorldOffset(DeltaTranslation);
 			}
 		}
+	}
+	else if (bIsDraggingAssets)
+	{
+		EndDragContainedAssets();
+	}
+}
 
-		if (bIsDraggingAssets)
+void APCGExValencyEditorActorBase::EditorApplyRotation(const FRotator& DeltaRotation, bool bAltDown, bool bShiftDown, bool bCtrlDown)
+{
+	Super::EditorApplyRotation(DeltaRotation, bAltDown, bShiftDown, bCtrlDown);
+
+	if (bCtrlDown)
+	{
+		if (!bIsDraggingAssets)
 		{
-			UpdateDraggedActorPositions();
+			BeginDragContainedAssets();
+		}
+
+		// Rotate contained actors around the cage's pivot
+		const FVector CageLocation = GetActorLocation();
+		const FQuat DeltaQuat = DeltaRotation.Quaternion();
+
+		for (const TWeakObjectPtr<AActor>& WeakActor : DraggedActors)
+		{
+			if (AActor* Actor = WeakActor.Get())
+			{
+				// Orbit position around the cage
+				const FVector Offset = Actor->GetActorLocation() - CageLocation;
+				Actor->SetActorLocation(CageLocation + DeltaQuat.RotateVector(Offset));
+
+				// Rotate orientation
+				Actor->SetActorRotation((DeltaQuat * Actor->GetActorQuat()).Rotator());
+			}
 		}
 	}
-	else
+	else if (bIsDraggingAssets)
 	{
-		if (bIsDraggingAssets)
-		{
-			UpdateDraggedActorPositions();
-			EndDragContainedAssets();
-		}
-
-		bIsDraggingTracking = false;
-		LastKnownTransform = GetActorTransform();
+		EndDragContainedAssets();
 	}
 }
 
@@ -69,11 +98,6 @@ void APCGExValencyEditorActorBase::BeginDragContainedAssets()
 	{
 		return;
 	}
-
-	// Use LastKnownTransform (from before the drag) to compute correct relative offsets.
-	// By the time PostEditMove is called, this actor has already been moved by the editor,
-	// but the contained actors are still at their original positions.
-	const FTransform PreDragTransform = LastKnownTransform;
 
 	TSet<AActor*> SeenActors;
 	for (AActor* Actor : Actors)
@@ -90,10 +114,7 @@ void APCGExValencyEditorActorBase::BeginDragContainedAssets()
 			continue;
 		}
 
-		FDraggedActorInfo Info;
-		Info.Actor = Actor;
-		Info.RelativeTransform = Actor->GetActorTransform().GetRelativeTransform(PreDragTransform);
-		DraggedActors.Add(Info);
+		DraggedActors.Add(Actor);
 	}
 
 	if (DraggedActors.IsEmpty())
@@ -101,35 +122,19 @@ void APCGExValencyEditorActorBase::BeginDragContainedAssets()
 		return;
 	}
 
-	DragAssetTransaction = MakeUnique<FScopedTransaction>(NSLOCTEXT("PCGExValency", "MoveCageWithAssets", "Move Cage With Contained Assets"));
+	DragAssetTransaction = MakeUnique<FScopedTransaction>(
+		NSLOCTEXT("PCGExValency", "MoveCageWithAssets", "Move Cage With Contained Assets"));
 
 	Modify();
-	for (const FDraggedActorInfo& Info : DraggedActors)
+	for (const TWeakObjectPtr<AActor>& WeakActor : DraggedActors)
 	{
-		if (AActor* Actor = Info.Actor.Get())
+		if (AActor* Actor = WeakActor.Get())
 		{
 			Actor->Modify();
 		}
 	}
 
 	bIsDraggingAssets = true;
-}
-
-void APCGExValencyEditorActorBase::UpdateDraggedActorPositions()
-{
-	const FTransform CurrentTransform = GetActorTransform();
-
-	for (const FDraggedActorInfo& Info : DraggedActors)
-	{
-		AActor* Actor = Info.Actor.Get();
-		if (!Actor)
-		{
-			continue;
-		}
-
-		const FTransform NewTransform = Info.RelativeTransform * CurrentTransform;
-		Actor->SetActorTransform(NewTransform);
-	}
 }
 
 void APCGExValencyEditorActorBase::EndDragContainedAssets()

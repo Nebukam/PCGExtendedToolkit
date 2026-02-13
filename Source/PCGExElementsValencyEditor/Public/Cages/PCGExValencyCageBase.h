@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExValencyEditorActorBase.h"
+#include "PCGExValencyAssetContainerBase.h"
 #include "PCGExValencyCageOrbital.h"
 #include "Core/PCGExValencyOrbitalSet.h"
 #include "Core/PCGExValencyBondingRules.h"
@@ -61,7 +61,7 @@ enum class EValencyRebuildReason : uint8
  * unless an explicit override is provided.
  */
 UCLASS(Abstract, HideCategories = (Rendering, Replication, Collision, HLOD, Physics, Networking, Input, LOD, Cooking))
-class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public APCGExValencyEditorActorBase
+class PCGEXELEMENTSVALENCYEDITOR_API APCGExValencyCageBase : public APCGExValencyAssetContainerBase
 {
 	GENERATED_BODY()
 
