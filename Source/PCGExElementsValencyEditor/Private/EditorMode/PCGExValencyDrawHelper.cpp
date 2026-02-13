@@ -9,6 +9,9 @@
 
 #include "PCGExValencyEditorSettings.h"
 #include "SceneView.h"
+#include "Components/PCGExValencyCageSocketComponent.h"
+#include "Core/PCGExValencySocketRules.h"
+#include "EditorMode/PCGExValencyCageSocketVisualizer.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
@@ -231,6 +234,122 @@ void FPCGExValencyDrawHelper::DrawCage(FPrimitiveDrawInterface* PDI, const APCGE
 			const FLinearColor NoConnColor = SelfAsNullCage ? NullCageModeColor : Settings->NoConnectionColor;
 			DrawConnection(PDI, CageLocation, WorldDir, ProbeRadius, NoConnColor, true, true);
 		}
+	}
+}
+
+void FPCGExValencyDrawHelper::DrawCageSockets(FPrimitiveDrawInterface* PDI, const APCGExValencyCageBase* Cage)
+{
+	if (!PDI || !Cage)
+	{
+		return;
+	}
+
+	const UPCGExValencyEditorSettings* Settings = GetSettings();
+	if (!Settings || !Settings->bShowSocketVisualizers)
+	{
+		return;
+	}
+
+	TArray<UPCGExValencyCageSocketComponent*> SocketComponents;
+	Cage->GetSocketComponents(SocketComponents);
+
+	if (SocketComponents.IsEmpty())
+	{
+		return;
+	}
+
+	const UPCGExValencySocketRules* SocketRules = Cage->GetEffectiveSocketRules();
+	const float DiamondSize = Settings->SocketVisualizerSize;
+	const float ArrowLength = Settings->SocketArrowLength;
+
+	for (UPCGExValencyCageSocketComponent* SocketComp : SocketComponents)
+	{
+		if (!SocketComp)
+		{
+			continue;
+		}
+
+		// Get socket world transform
+		const FTransform SocketTransform = SocketComp->GetComponentTransform();
+		const FVector SocketLocation = SocketTransform.GetLocation();
+
+		// Get effective debug color
+		FLinearColor Color = SocketComp->GetEffectiveDebugColor(SocketRules);
+
+		// Disabled sockets: dimmed alpha
+		if (!SocketComp->bEnabled)
+		{
+			Color.A *= Settings->SocketDisabledAlpha;
+		}
+
+		// Enqueue hit proxy for click detection
+		PDI->SetHitProxy(new HPCGExSocketHitProxy(SocketComp));
+
+		// Draw diamond at socket position (3D octahedron: 6 vertices, 12 edges)
+		{
+			const FVector Top = SocketLocation + FVector(0, 0, DiamondSize);
+			const FVector Bottom = SocketLocation - FVector(0, 0, DiamondSize);
+			const FVector Front = SocketLocation + FVector(DiamondSize, 0, 0);
+			const FVector Back = SocketLocation - FVector(DiamondSize, 0, 0);
+			const FVector Right = SocketLocation + FVector(0, DiamondSize, 0);
+			const FVector Left = SocketLocation - FVector(0, DiamondSize, 0);
+
+			// Top pyramid edges
+			PDI->DrawLine(Top, Front, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Top, Back, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Top, Right, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Top, Left, Color, SDPG_Foreground, 2.0f);
+
+			// Bottom pyramid edges
+			PDI->DrawLine(Bottom, Front, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Bottom, Back, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Bottom, Right, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Bottom, Left, Color, SDPG_Foreground, 2.0f);
+
+			// Equator edges
+			PDI->DrawLine(Front, Right, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Right, Back, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Back, Left, Color, SDPG_Foreground, 2.0f);
+			PDI->DrawLine(Left, Front, Color, SDPG_Foreground, 2.0f);
+		}
+
+		// Draw direction arrow along socket's forward axis
+		const FVector Forward = SocketTransform.GetRotation().GetForwardVector();
+
+		if (SocketComp->bIsOutputSocket)
+		{
+			// Output: arrow points outward (along forward)
+			const FVector ArrowEnd = SocketLocation + Forward * ArrowLength;
+			PDI->DrawLine(SocketLocation, ArrowEnd, Color, SDPG_Foreground, 1.5f);
+
+			// Arrowhead with 4 prongs
+			const FVector ArrowRight = FVector::CrossProduct(Forward, FVector::UpVector).GetSafeNormal();
+			const FVector ArrowUp = FVector::CrossProduct(ArrowRight, Forward).GetSafeNormal();
+			const float HeadSize = DiamondSize * 0.5f;
+			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize + ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize - ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize + ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+			PDI->DrawLine(ArrowEnd, ArrowEnd - Forward * HeadSize - ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+		}
+		else
+		{
+			// Input: arrow points inward (toward cage origin)
+			const FVector ArrowStart = SocketLocation + Forward * ArrowLength;
+			PDI->DrawLine(ArrowStart, SocketLocation, Color, SDPG_Foreground, 1.5f);
+
+			// Arrowhead at socket location pointing inward
+			const FVector InwardDir = -Forward;
+			const FVector ArrowRight = FVector::CrossProduct(InwardDir, FVector::UpVector).GetSafeNormal();
+			const FVector ArrowUp = FVector::CrossProduct(ArrowRight, InwardDir).GetSafeNormal();
+			const float HeadSize = DiamondSize * 0.5f;
+			PDI->DrawLine(SocketLocation, SocketLocation - InwardDir * HeadSize + ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+			PDI->DrawLine(SocketLocation, SocketLocation - InwardDir * HeadSize - ArrowRight * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+			PDI->DrawLine(SocketLocation, SocketLocation - InwardDir * HeadSize + ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+			PDI->DrawLine(SocketLocation, SocketLocation - InwardDir * HeadSize - ArrowUp * HeadSize * 0.4f, Color, SDPG_Foreground, 1.5f);
+		}
+
+		// Clear hit proxy
+		PDI->SetHitProxy(nullptr);
 	}
 }
 

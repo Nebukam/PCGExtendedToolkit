@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Tools/UEdMode.h"
+#include "Tools/LegacyEdModeWidgetHelpers.h"
 #include "EditorMode/PCGExValencyAssetTracker.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
 #include "EditorMode/PCGExValencyReferenceTracker.h"
@@ -17,6 +17,7 @@ class APCGExValencyAssetPalette;
 class AValencyContextVolume;
 class FPCGExValencyEditorModeToolkit;
 class IToolsContextRenderAPI;
+class UPCGExValencyCageSocketComponent;
 
 /** Delegate fired when the scene cache (cages/volumes/palettes) changes */
 DECLARE_MULTICAST_DELEGATE(FOnValencySceneChanged);
@@ -48,7 +49,7 @@ struct FValencyVisibilityFlags
  * Configuration is stored in UPCGExValencyEditorSettings (Project Settings > Plugins > PCGEx Valency Editor).
  */
 UCLASS()
-class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageEditorMode : public UEdMode
+class PCGEXELEMENTSVALENCYEDITOR_API UPCGExValencyCageEditorMode : public UBaseLegacyWidgetEdMode
 {
 	GENERATED_BODY()
 
@@ -65,8 +66,42 @@ public:
 	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const override;
 	//~ End UEdMode Interface
 
+	//~ Begin UBaseLegacyWidgetEdMode Widget Interface
+	virtual bool UsesTransformWidget() const override;
+	virtual bool UsesTransformWidget(UE::Widget::EWidgetMode CheckMode) const override;
+	virtual bool ShouldDrawWidget() const override;
+	//~ End UBaseLegacyWidgetEdMode Widget Interface
+
+	// ========== Socket Management ==========
+
+	/** Add a new socket to the given cage at its origin. Returns the new component. */
+	UPCGExValencyCageSocketComponent* AddSocketToCage(APCGExValencyCageBase* Cage);
+
+	/** Remove a socket component from its owning cage. */
+	void RemoveSocket(UPCGExValencyCageSocketComponent* Socket);
+
+	/** Duplicate a socket component with a small spatial offset. Returns the new component. */
+	UPCGExValencyCageSocketComponent* DuplicateSocket(UPCGExValencyCageSocketComponent* Socket);
+
+	/** Get the currently selected socket component (from editor selection), or nullptr. */
+	static UPCGExValencyCageSocketComponent* GetSelectedSocket();
+
+	/** Get the currently selected cage (from editor selection), or nullptr. */
+	static APCGExValencyCageBase* GetSelectedCage();
+
 protected:
 	virtual void CreateToolkit() override;
+
+	// ========== Socket Command Execute/CanExecute ==========
+
+	void ExecuteAddSocket();
+	bool CanExecuteAddSocket() const;
+	void ExecuteRemoveSocket();
+	bool CanExecuteRemoveSocket() const;
+	void ExecuteDuplicateSocket();
+	bool CanExecuteDuplicateSocket() const;
+	void ExecuteToggleSocketDirection();
+	bool CanExecuteToggleSocketDirection() const;
 
 public:
 	/** Get the cached cages array */
@@ -150,6 +185,7 @@ protected:
 	/** Execute cleanup command (bound to toolkit command list) */
 	void ExecuteCleanupCommand();
 
+public:
 	/** Redraw all viewports and invalidate viewport clients */
 	void RedrawViewports();
 

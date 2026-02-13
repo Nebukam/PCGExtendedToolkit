@@ -7,6 +7,8 @@
 #include "Widgets/SCompoundWidget.h"
 
 class UPCGExValencyCageEditorMode;
+class APCGExValencyCageBase;
+class UPCGExValencyCageSocketComponent;
 
 /**
  * Context-sensitive inspector panel.
@@ -35,6 +37,9 @@ private:
 	/** Selection change delegate handle */
 	FDelegateHandle OnSelectionChangedHandle;
 
+	/** Component selection change delegate handle */
+	FDelegateHandle OnComponentSelectionChangedHandle;
+
 	/** Rebuild content based on current selection */
 	void RefreshContent();
 
@@ -47,6 +52,12 @@ private:
 	TSharedRef<SWidget> BuildSocketContent(class UPCGExValencyCageSocketComponent* Socket);
 	TSharedRef<SWidget> BuildVolumeContent(class AValencyContextVolume* Volume);
 	TSharedRef<SWidget> BuildPaletteContent(class APCGExValencyAssetPalette* Palette);
+
+	/** Build an interactive socket row with inline controls */
+	TSharedRef<SWidget> MakeSocketRow(UPCGExValencyCageSocketComponent* Socket);
+
+	/** Build the Add Socket button */
+	TSharedRef<SWidget> MakeAddSocketButton(APCGExValencyCageBase* Cage);
 
 	/** Helper to create a labeled row */
 	static TSharedRef<SWidget> MakeLabeledRow(const FText& Label, const FText& Value);

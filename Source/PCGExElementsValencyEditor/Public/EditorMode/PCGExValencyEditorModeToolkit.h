@@ -30,6 +30,11 @@ public:
 	virtual void RegisterCommands() override;
 
 	TSharedPtr<FUICommandInfo> CleanupConnections;
+
+	TSharedPtr<FUICommandInfo> AddSocket;
+	TSharedPtr<FUICommandInfo> RemoveSocket;
+	TSharedPtr<FUICommandInfo> DuplicateSocket;
+	TSharedPtr<FUICommandInfo> ToggleSocketDirection;
 };
 
 /**
