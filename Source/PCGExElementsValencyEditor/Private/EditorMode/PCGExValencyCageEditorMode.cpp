@@ -11,6 +11,7 @@
 #include "UnrealEdGlobals.h"
 
 #include "EditorMode/PCGExValencyDrawHelper.h"
+#include "EditorMode/PCGExValencyEditorModeToolkit.h"
 #include "Cages/PCGExValencyCageBase.h"
 #include "Cages/PCGExValencyCage.h"
 #include "Cages/PCGExValencyCagePattern.h"
@@ -42,6 +43,14 @@ FValencyReferenceTracker* FPCGExValencyCageEditorMode::GetActiveReferenceTracker
 void FPCGExValencyCageEditorMode::Enter()
 {
 	FEdMode::Enter();
+
+	// Create and set up the toolkit for the side panel
+	if (!Toolkit.IsValid())
+	{
+		TSharedPtr<FPCGExValencyEditorModeToolkit> NewToolkit = MakeShareable(new FPCGExValencyEditorModeToolkit());
+		NewToolkit->SetEditorMode(this);
+		Toolkit = NewToolkit;
+	}
 
 	// Bind to actor add/delete events to keep cache up to date
 	if (GEditor)
@@ -132,29 +141,38 @@ void FPCGExValencyCageEditorMode::Render(const FSceneView* View, FViewport* View
 	}
 
 	// Draw volumes first (background)
-	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
+	if (VisibilityFlags.bShowVolumes)
 	{
-		if (AValencyContextVolume* Volume = VolumePtr.Get())
+		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : CachedVolumes)
 		{
-			FPCGExValencyDrawHelper::DrawVolume(PDI, Volume);
+			if (AValencyContextVolume* Volume = VolumePtr.Get())
+			{
+				FPCGExValencyDrawHelper::DrawVolume(PDI, Volume);
+			}
 		}
 	}
 
 	// Draw asset palettes
-	for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : CachedPalettes)
+	if (VisibilityFlags.bShowVolumes) // Palettes are volume-like containers
 	{
-		if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+		for (const TWeakObjectPtr<APCGExValencyAssetPalette>& PalettePtr : CachedPalettes)
 		{
-			FPCGExValencyDrawHelper::DrawPalette(PDI, Palette);
+			if (APCGExValencyAssetPalette* Palette = PalettePtr.Get())
+			{
+				FPCGExValencyDrawHelper::DrawPalette(PDI, Palette);
+			}
 		}
 	}
 
-	// Draw cages
-	for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
+	// Draw cages (connections and patterns)
+	if (VisibilityFlags.bShowConnections)
 	{
-		if (APCGExValencyCageBase* Cage = CagePtr.Get())
+		for (const TWeakObjectPtr<APCGExValencyCageBase>& CagePtr : CachedCages)
 		{
-			FPCGExValencyDrawHelper::DrawCage(PDI, Cage);
+			if (APCGExValencyCageBase* Cage = CagePtr.Get())
+			{
+				FPCGExValencyDrawHelper::DrawCage(PDI, Cage);
+			}
 		}
 	}
 }
@@ -164,6 +182,11 @@ void FPCGExValencyCageEditorMode::DrawHUD(FEditorViewportClient* ViewportClient,
 	FEdMode::DrawHUD(ViewportClient, Viewport, View, Canvas);
 
 	if (!Canvas || !View)
+	{
+		return;
+	}
+
+	if (!VisibilityFlags.bShowLabels)
 	{
 		return;
 	}
@@ -457,6 +480,9 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 		// Rebuild dependency graph - new cage may have MirrorSources
 		ReferenceTracker.RebuildDependencyGraph();
 
+		// Notify scene changed
+		OnSceneChanged.Broadcast();
+
 		// CRITICAL: Mark the new cage's containing volumes dirty to trigger rebuild
 		// This ensures the build includes the newly added cage
 		for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : Cage->GetContainingVolumes())
@@ -472,6 +498,7 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 	{
 		CachedVolumes.Add(Volume);
 		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's an asset palette
 	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
@@ -479,6 +506,7 @@ void FPCGExValencyCageEditorMode::OnLevelActorAdded(AActor* Actor)
 		CachedPalettes.Add(Palette);
 		// Palettes can be MirrorSources - rebuild dependency graph
 		ReferenceTracker.RebuildDependencyGraph();
+		OnSceneChanged.Broadcast();
 	}
 }
 
@@ -539,6 +567,8 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		{
 			DirtyStateManager.MarkVolumeDirty(Volume, EValencyDirtyFlags::Structure);
 		}
+
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's a volume
 	else if (AValencyContextVolume* Volume = Cast<AValencyContextVolume>(Actor))
@@ -548,6 +578,7 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 			return VolumePtr.Get() == Volume || !VolumePtr.IsValid();
 		});
 		bCacheDirty = true; // Volumes affect cage orbital sets - full refresh needed
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's an asset palette
 	else if (APCGExValencyAssetPalette* Palette = Cast<APCGExValencyAssetPalette>(Actor))
@@ -569,6 +600,8 @@ void FPCGExValencyCageEditorMode::OnLevelActorDeleted(AActor* Actor)
 		{
 			ReferenceTracker.RefreshDependentVisuals(Dependent);
 		}
+
+		OnSceneChanged.Broadcast();
 	}
 	// Check if it's a tracked asset actor being deleted
 	else
@@ -653,6 +686,7 @@ void FPCGExValencyCageEditorMode::OnPostUndoRedo()
 		}
 	}
 
+	OnSceneChanged.Broadcast();
 	RedrawViewports();
 }
 

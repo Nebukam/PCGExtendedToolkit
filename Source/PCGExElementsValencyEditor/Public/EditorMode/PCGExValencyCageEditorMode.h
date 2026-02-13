@@ -13,6 +13,24 @@ class APCGExValencyCageBase;
 class APCGExValencyCage;
 class APCGExValencyAssetPalette;
 class AValencyContextVolume;
+class FPCGExValencyEditorModeToolkit;
+
+/** Delegate fired when the scene cache (cages/volumes/palettes) changes */
+DECLARE_MULTICAST_DELEGATE(FOnValencySceneChanged);
+
+/**
+ * Visibility flags for controlling which visualization layers are rendered.
+ * Persists for the duration of the editor mode session.
+ */
+struct FValencyVisibilityFlags
+{
+	bool bShowConnections = true;
+	bool bShowLabels = true;
+	bool bShowSockets = true;
+	bool bShowVolumes = true;
+	bool bShowGhostMeshes = true;
+	bool bShowPatterns = true;
+};
 
 /**
  * Editor mode for Valency Cage authoring.
@@ -38,6 +56,7 @@ public:
 	//~ Begin FEdMode Interface
 	virtual void Enter() override;
 	virtual void Exit() override;
+	virtual bool UsesToolkits() const override { return true; }
 	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
 	virtual void DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas) override;
 	virtual bool HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click) override;
@@ -60,6 +79,15 @@ public:
 
 	/** Get the reference tracker for change propagation */
 	FValencyReferenceTracker& GetReferenceTracker() { return ReferenceTracker; }
+
+	/** Get the visualization visibility flags */
+	const FValencyVisibilityFlags& GetVisibilityFlags() const { return VisibilityFlags; }
+
+	/** Get mutable visibility flags (for toggle widgets) */
+	FValencyVisibilityFlags& GetMutableVisibilityFlags() { return VisibilityFlags; }
+
+	/** Delegate fired when the scene cache changes (cages/volumes/palettes added/removed) */
+	FOnValencySceneChanged OnSceneChanged;
 
 	/**
 	 * Get the reference tracker from the active Valency editor mode.
@@ -124,6 +152,11 @@ private:
 
 	/** Whether cache needs refresh */
 	bool bCacheDirty = true;
+
+	// ========== Visualization ==========
+
+	/** Visibility toggle state for visualization layers */
+	FValencyVisibilityFlags VisibilityFlags;
 
 	// ========== Delegate Handles ==========
 
