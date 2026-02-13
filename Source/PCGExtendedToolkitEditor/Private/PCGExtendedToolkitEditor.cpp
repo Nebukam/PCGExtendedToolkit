@@ -86,7 +86,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 		PCGEX_ADD_CLASS_ICON(PCGExBitmaskCollection)
 		
 		PCGEX_ADD_CLASS_ICON(PCGExValencyBondingRules)
-		PCGEX_ADD_CLASS_ICON(PCGExValencySocketRules)
+		PCGEX_ADD_CLASS_ICON(PCGExValencyConnectorRules)
 		PCGEX_ADD_CLASS_ICON(PCGExValencyOrbitalSet)
 
 		PCGEX_REGISTER_PIN_ICON(OUT_Special)
