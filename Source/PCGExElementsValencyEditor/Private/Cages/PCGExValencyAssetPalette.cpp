@@ -190,6 +190,17 @@ void APCGExValencyAssetPalette::PostEditMove(bool bFinished)
 	}
 }
 
+void APCGExValencyAssetPalette::CollectDraggableActors(TArray<AActor*>& OutActors) const
+{
+	for (const FPCGExValencyAssetEntry& Entry : ScannedAssetEntries)
+	{
+		if (AActor* Actor = Entry.SourceActor.Get())
+		{
+			OutActors.Add(Actor);
+		}
+	}
+}
+
 FString APCGExValencyAssetPalette::GetPaletteDisplayName() const
 {
 	if (!PaletteName.IsEmpty())

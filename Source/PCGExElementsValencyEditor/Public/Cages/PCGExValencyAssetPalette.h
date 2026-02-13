@@ -47,6 +47,7 @@ public:
 	//~ Begin APCGExValencyEditorActorBase Interface
 	virtual void OnRebuildMetaTagTriggered() override;
 	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void CollectDraggableActors(TArray<AActor*>& OutActors) const override;
 	//~ End APCGExValencyEditorActorBase Interface
 
 	/** Get the display name for this palette */

@@ -4,6 +4,7 @@
 #include "PCGExValencyEditorActorBase.h"
 
 #include "PCGExValencyEditorSettings.h"
+#include "Framework/Application/SlateApplication.h"
 #include "EditorMode/PCGExValencyCageEditorMode.h"
 #include "EditorMode/PCGExValencyDirtyState.h"
 
@@ -14,6 +15,128 @@
 
 APCGExValencyEditorActorBase::APCGExValencyEditorActorBase()
 {
+}
+
+void APCGExValencyEditorActorBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	LastKnownTransform = GetActorTransform();
+}
+
+void APCGExValencyEditorActorBase::PostEditMove(bool bFinished)
+{
+	Super::PostEditMove(bFinished);
+
+	if (!bFinished)
+	{
+		if (!bIsDraggingTracking)
+		{
+			// First frame of drag - check if CTRL is held
+			bIsDraggingTracking = true;
+
+			if (FSlateApplication::IsInitialized() && FSlateApplication::Get().GetModifierKeys().IsControlDown())
+			{
+				BeginDragContainedAssets();
+			}
+		}
+
+		if (bIsDraggingAssets)
+		{
+			UpdateDraggedActorPositions();
+		}
+	}
+	else
+	{
+		if (bIsDraggingAssets)
+		{
+			UpdateDraggedActorPositions();
+			EndDragContainedAssets();
+		}
+
+		bIsDraggingTracking = false;
+		LastKnownTransform = GetActorTransform();
+	}
+}
+
+void APCGExValencyEditorActorBase::BeginDragContainedAssets()
+{
+	DraggedActors.Reset();
+
+	TArray<AActor*> Actors;
+	CollectDraggableActors(Actors);
+
+	if (Actors.IsEmpty())
+	{
+		return;
+	}
+
+	// Use LastKnownTransform (from before the drag) to compute correct relative offsets.
+	// By the time PostEditMove is called, this actor has already been moved by the editor,
+	// but the contained actors are still at their original positions.
+	const FTransform PreDragTransform = LastKnownTransform;
+
+	TSet<AActor*> SeenActors;
+	for (AActor* Actor : Actors)
+	{
+		if (!Actor || Actor == this || Actor->IsActorBeingDestroyed())
+		{
+			continue;
+		}
+
+		bool bAlreadyInSet = false;
+		SeenActors.Add(Actor, &bAlreadyInSet);
+		if (bAlreadyInSet)
+		{
+			continue;
+		}
+
+		FDraggedActorInfo Info;
+		Info.Actor = Actor;
+		Info.RelativeTransform = Actor->GetActorTransform().GetRelativeTransform(PreDragTransform);
+		DraggedActors.Add(Info);
+	}
+
+	if (DraggedActors.IsEmpty())
+	{
+		return;
+	}
+
+	DragAssetTransaction = MakeUnique<FScopedTransaction>(NSLOCTEXT("PCGExValency", "MoveCageWithAssets", "Move Cage With Contained Assets"));
+
+	Modify();
+	for (const FDraggedActorInfo& Info : DraggedActors)
+	{
+		if (AActor* Actor = Info.Actor.Get())
+		{
+			Actor->Modify();
+		}
+	}
+
+	bIsDraggingAssets = true;
+}
+
+void APCGExValencyEditorActorBase::UpdateDraggedActorPositions()
+{
+	const FTransform CurrentTransform = GetActorTransform();
+
+	for (const FDraggedActorInfo& Info : DraggedActors)
+	{
+		AActor* Actor = Info.Actor.Get();
+		if (!Actor)
+		{
+			continue;
+		}
+
+		const FTransform NewTransform = Info.RelativeTransform * CurrentTransform;
+		Actor->SetActorTransform(NewTransform);
+	}
+}
+
+void APCGExValencyEditorActorBase::EndDragContainedAssets()
+{
+	bIsDraggingAssets = false;
+	DraggedActors.Reset();
+	DragAssetTransaction.Reset();
 }
 
 void APCGExValencyEditorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

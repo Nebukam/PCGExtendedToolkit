@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ScopedTransaction.h"
 #include "GameFramework/Actor.h"
 
 #include "PCGExValencyEditorActorBase.generated.h"
@@ -29,6 +30,8 @@ public:
 	APCGExValencyEditorActorBase();
 
 	//~ Begin AActor Interface
+	virtual void PostInitializeComponents() override;
+	virtual void PostEditMove(bool bFinished) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	//~ End AActor Interface
 
@@ -59,4 +62,43 @@ protected:
 	 * Cage subclasses: call Super::OnPostEditChangeProperty() to get cage-base property handling.
 	 */
 	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) {}
+
+	//~ Begin CTRL+Drag Asset Dragging
+
+	/**
+	 * Collect actors that should move with this actor during CTRL+drag.
+	 * Override in subclasses to provide the relevant contained actors.
+	 * Default: returns nothing (no actors follow).
+	 * @param OutActors Array to populate with actors to drag along
+	 */
+	virtual void CollectDraggableActors(TArray<AActor*>& OutActors) const {}
+
+	/** Tracked actor and its transform relative to this actor at drag start */
+	struct FDraggedActorInfo
+	{
+		TWeakObjectPtr<AActor> Actor;
+		FTransform RelativeTransform;
+	};
+
+private:
+	/** This actor's transform before the current drag started */
+	FTransform LastKnownTransform = FTransform::Identity;
+
+	/** Whether we're tracking a drag for the CTRL+assets feature */
+	bool bIsDraggingTracking = false;
+
+	/** Whether contained assets are being dragged along */
+	bool bIsDraggingAssets = false;
+
+	/** Actors being dragged along with their relative transforms */
+	TArray<FDraggedActorInfo> DraggedActors;
+
+	/** Transaction scope for the entire drag operation (commits on reset) */
+	TUniquePtr<FScopedTransaction> DragAssetTransaction;
+
+	void BeginDragContainedAssets();
+	void UpdateDraggedActorPositions();
+	void EndDragContainedAssets();
+
+	//~ End CTRL+Drag Asset Dragging
 };

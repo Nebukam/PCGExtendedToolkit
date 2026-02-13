@@ -24,6 +24,7 @@ APCGExValencyCage::APCGExValencyCage()
 	// Standard cage setup
 }
 
+
 void APCGExValencyCage::PostEditMove(bool bFinished)
 {
 	// Capture current scanned assets before Super (which may trigger volume membership changes)
@@ -33,7 +34,7 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 		OldScannedAssets = ScannedAssetEntries;
 	}
 
-	// Let base class handle volume membership changes, connections, etc.
+	// Let base class handle volume membership changes, connections, CTRL+drag assets, etc.
 	Super::PostEditMove(bFinished);
 
 	// After drag finishes, re-scan for assets if auto-registration is enabled
@@ -46,6 +47,17 @@ void APCGExValencyCage::PostEditMove(bool bFinished)
 		if (HaveScannedAssetsChanged(OldScannedAssets))
 		{
 			RequestRebuild(EValencyRebuildReason::AssetChange);
+		}
+	}
+}
+
+void APCGExValencyCage::CollectDraggableActors(TArray<AActor*>& OutActors) const
+{
+	for (const FPCGExValencyAssetEntry& Entry : ScannedAssetEntries)
+	{
+		if (AActor* Actor = Entry.SourceActor.Get())
+		{
+			OutActors.Add(Actor);
 		}
 	}
 }
@@ -673,3 +685,4 @@ bool APCGExValencyCage::TriggerAutoRebuildForMirroringCages()
 	}
 	return false;
 }
+

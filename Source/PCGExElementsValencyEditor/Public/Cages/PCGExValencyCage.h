@@ -259,6 +259,10 @@ public:
 	virtual void OnPostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	//~ End APCGExValencyCageBase Interface
 
+	//~ Begin APCGExValencyEditorActorBase Interface
+	virtual void CollectDraggableActors(TArray<AActor*>& OutActors) const override;
+	//~ End APCGExValencyEditorActorBase Interface
+
 protected:
 	/** Called when asset registration changes */
 	virtual void OnAssetRegistrationChanged();
