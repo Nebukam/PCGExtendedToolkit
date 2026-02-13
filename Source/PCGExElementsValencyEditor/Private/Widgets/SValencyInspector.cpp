@@ -22,7 +22,11 @@
 #include "Cages/PCGExValencyCageOrbital.h"
 #include "Cages/PCGExValencyAssetPalette.h"
 #include "Components/PCGExValencyCageConnectorComponent.h"
+#include "Core/PCGExValencyConnectorSet.h"
 #include "Volumes/ValencyContextVolume.h"
+#include "Widgets/Input/SComboBox.h"
+#include "Widgets/Input/SComboButton.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 
 void SValencyInspector::Construct(const FArguments& InArgs)
 {
@@ -224,6 +228,17 @@ TSharedRef<SWidget> SValencyInspector::BuildCageContent(APCGExValencyCageBase* C
 				FText::AsNumber(static_cast<int32>(Cage->GetEffectiveProbeRadius()))))
 	];
 
+	// Connector Set status
+	if (UPCGExValencyConnectorSet* EffectiveSet = Cage->GetEffectiveConnectorSet())
+	{
+		Content->AddSlot().AutoHeight()
+		[
+			MakeLabeledRow(
+				NSLOCTEXT("PCGExValency", "CageConnectorSet", "Connector Set"),
+				FText::FromString(EffectiveSet->GetName()))
+		];
+	}
+
 	// Connector components - interactive section
 	TArray<UPCGExValencyCageConnectorComponent*> ConnectorComponents;
 	Cage->GetConnectorComponents(ConnectorComponents);
@@ -395,50 +410,180 @@ TSharedRef<SWidget> SValencyInspector::BuildConnectorContent(UPCGExValencyCageCo
 		]
 	];
 
-	// Editable Type
-	Content->AddSlot().AutoHeight().Padding(0, 2)
-	[
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0, 1)
-		[
-			SNew(SBox)
-			.WidthOverride(100)
-			[
-				SNew(STextBlock)
-				.Text(NSLOCTEXT("PCGExValency", "ConnectorType", "Type"))
-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-				.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
-			]
-		]
-		+ SHorizontalBox::Slot()
-		.FillWidth(1.0f)
-		.Padding(4, 0)
-		[
-			SNew(SEditableTextBox)
-			.Text(FText::FromName(Connector->ConnectorType))
-			.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorTypeTip", "Connector type name \u2014 determines compatibility during solving. Must match a type defined in the cage's Connector Rules."))
-			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-			.OnTextCommitted_Lambda([WeakConnector, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
+	// Editable Type - dropdown when ConnectorSet available, freeform text fallback
+	{
+		// Get available types from effective ConnectorSet
+		UPCGExValencyConnectorSet* EffectiveSet = nullptr;
+		if (const APCGExValencyCageBase* OwnerCage = Cast<APCGExValencyCageBase>(Connector->GetOwner()))
+		{
+			EffectiveSet = OwnerCage->GetEffectiveConnectorSet();
+		}
+
+		TSharedRef<SWidget> TypeWidget = SNullWidget::NullWidget;
+
+		if (EffectiveSet && EffectiveSet->ConnectorTypes.Num() > 0)
+		{
+			// Build options list
+			TSharedPtr<TArray<TSharedPtr<FName>>> TypeOptionsPtr = MakeShared<TArray<TSharedPtr<FName>>>();
+			TSharedPtr<TArray<FLinearColor>> TypeColorsPtr = MakeShared<TArray<FLinearColor>>();
+			TSharedPtr<FName> CurrentSelection;
+
+			for (const FPCGExValencyConnectorEntry& Entry : EffectiveSet->ConnectorTypes)
 			{
-				if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+				TSharedPtr<FName> Option = MakeShared<FName>(Entry.ConnectorType);
+				TypeOptionsPtr->Add(Option);
+				TypeColorsPtr->Add(Entry.DebugColor);
+				if (Entry.ConnectorType == Connector->ConnectorType)
 				{
-					FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ChangeConnectorType", "Change Connector Type"));
-					S->Modify();
-					S->ConnectorType = FName(*NewText.ToString());
-					if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
-					{
-						Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
-					}
-					if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
-					{
-						Mode->OnSceneChanged.Broadcast();
-					}
+					CurrentSelection = Option;
 				}
-			})
-		]
-	];
+			}
+
+			TypeWidget = SNew(SHorizontalBox)
+				// Color swatch for current type
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(0, 0, 4, 0)
+				[
+					SNew(SColorBlock)
+					.Color_Lambda([WeakConnector, EffectiveSet]() -> FLinearColor
+					{
+						if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							if (EffectiveSet)
+							{
+								const int32 Idx = EffectiveSet->FindConnectorTypeIndex(S->ConnectorType);
+								if (EffectiveSet->ConnectorTypes.IsValidIndex(Idx))
+								{
+									return EffectiveSet->ConnectorTypes[Idx].DebugColor;
+								}
+							}
+						}
+						return FLinearColor(0.3f, 0.3f, 0.3f);
+					})
+					.Size(FVector2D(12, 12))
+				]
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.0f)
+				[
+					SNew(SComboBox<TSharedPtr<FName>>)
+					.OptionsSource(TypeOptionsPtr.Get())
+					.InitiallySelectedItem(CurrentSelection)
+					.OnGenerateWidget_Lambda([TypeOptionsPtr, TypeColorsPtr](TSharedPtr<FName> InItem) -> TSharedRef<SWidget>
+					{
+						// Find color for this item
+						FLinearColor ItemColor(0.3f, 0.3f, 0.3f);
+						for (int32 i = 0; i < TypeOptionsPtr->Num(); ++i)
+						{
+							if ((*TypeOptionsPtr)[i] == InItem)
+							{
+								ItemColor = (*TypeColorsPtr)[i];
+								break;
+							}
+						}
+
+						return SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							.VAlign(VAlign_Center)
+							.Padding(0, 0, 4, 0)
+							[
+								SNew(SColorBlock)
+								.Color(ItemColor)
+								.Size(FVector2D(10, 10))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(STextBlock)
+								.Text(FText::FromName(*InItem))
+								.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+							];
+					})
+					.OnSelectionChanged_Lambda([WeakConnector, WeakMode](TSharedPtr<FName> NewValue, ESelectInfo::Type)
+					{
+						if (!NewValue.IsValid()) return;
+						if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+						{
+							if (S->ConnectorType == *NewValue) return;
+							FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ChangeConnectorType", "Change Connector Type"));
+							S->Modify();
+							S->ConnectorType = *NewValue;
+							if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
+							{
+								Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+							}
+							if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+							{
+								Mode->OnSceneChanged.Broadcast();
+							}
+						}
+					})
+					[
+						SNew(STextBlock)
+						.Text_Lambda([WeakConnector]() -> FText
+						{
+							if (const UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+							{
+								return FText::FromName(S->ConnectorType);
+							}
+							return FText::GetEmpty();
+						})
+						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+					]
+				];
+		}
+		else
+		{
+			// Fallback: freeform text when no ConnectorSet available
+			TypeWidget = SNew(SEditableTextBox)
+				.Text(FText::FromName(Connector->ConnectorType))
+				.ToolTipText(NSLOCTEXT("PCGExValency", "ConnectorTypeTip", "Connector type name \u2014 determines compatibility during solving. Assign a ConnectorSet for type dropdown."))
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+				.OnTextCommitted_Lambda([WeakConnector, WeakMode](const FText& NewText, ETextCommit::Type CommitType)
+				{
+					if (UPCGExValencyCageConnectorComponent* S = WeakConnector.Get())
+					{
+						FScopedTransaction Transaction(NSLOCTEXT("PCGExValency", "ChangeConnectorType", "Change Connector Type"));
+						S->Modify();
+						S->ConnectorType = FName(*NewText.ToString());
+						if (APCGExValencyCageBase* Cage = Cast<APCGExValencyCageBase>(S->GetOwner()))
+						{
+							Cage->RequestRebuild(EValencyRebuildReason::AssetChange);
+						}
+						if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+						{
+							Mode->OnSceneChanged.Broadcast();
+						}
+					}
+				});
+		}
+
+		Content->AddSlot().AutoHeight().Padding(0, 2)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0, 1)
+			[
+				SNew(SBox)
+				.WidthOverride(100)
+				[
+					SNew(STextBlock)
+					.Text(NSLOCTEXT("PCGExValency", "ConnectorType", "Type"))
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+					.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.Padding(4, 0)
+			[
+				TypeWidget
+			]
+		];
+	}
 
 	// Polarity cycling
 	auto GetPolarityLabel = [](EPCGExConnectorPolarity P) -> FText
@@ -639,6 +784,19 @@ TSharedRef<SWidget> SValencyInspector::BuildVolumeContent(AValencyContextVolume*
 				: NSLOCTEXT("PCGExValency", "None", "(none)"))
 	];
 
+	// Connector Set
+	{
+		UPCGExValencyConnectorSet* EffectiveSet = Volume->GetEffectiveConnectorSet();
+		Content->AddSlot().AutoHeight()
+		[
+			MakeLabeledRow(
+				NSLOCTEXT("PCGExValency", "VolumeConnectorSet", "Connector Set"),
+				EffectiveSet
+					? FText::FromString(EffectiveSet->GetName())
+					: NSLOCTEXT("PCGExValency", "VolumeConnectorSetNone", "(none)"))
+		];
+	}
+
 	// Count contained cages
 	TArray<APCGExValencyCageBase*> ContainedCages;
 	Volume->CollectContainedCages(ContainedCages);
@@ -733,6 +891,20 @@ TSharedRef<SWidget> SValencyInspector::MakeConnectorRow(UPCGExValencyCageConnect
 		? FLinearColor::White
 		: FLinearColor(0.5f, 0.5f, 0.5f);
 
+	// Resolve type color from ConnectorSet
+	FLinearColor TypeColor(0.4f, 0.4f, 0.4f);
+	if (const APCGExValencyCageBase* OwnerCage = Cast<APCGExValencyCageBase>(ConnectorComp->GetOwner()))
+	{
+		if (const UPCGExValencyConnectorSet* EffectiveSet = OwnerCage->GetEffectiveConnectorSet())
+		{
+			const int32 TypeIdx = EffectiveSet->FindConnectorTypeIndex(ConnectorComp->ConnectorType);
+			if (EffectiveSet->ConnectorTypes.IsValidIndex(TypeIdx))
+			{
+				TypeColor = EffectiveSet->ConnectorTypes[TypeIdx].DebugColor;
+			}
+		}
+	}
+
 	auto GetCompactPolarityLabel = [](EPCGExConnectorPolarity P) -> FText
 	{
 		switch (P)
@@ -745,6 +917,16 @@ TSharedRef<SWidget> SValencyInspector::MakeConnectorRow(UPCGExValencyCageConnect
 	};
 
 	return SNew(SHorizontalBox)
+		// Type color dot
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.Padding(2, 0, 0, 0)
+		[
+			SNew(SColorBlock)
+			.Color(TypeColor)
+			.Size(FVector2D(8, 8))
+		]
 		// Clickable connector name - selects the connector in viewport
 		+ SHorizontalBox::Slot()
 		.FillWidth(1.0f)
@@ -871,6 +1053,58 @@ TSharedRef<SWidget> SValencyInspector::MakeAddConnectorButton(APCGExValencyCageB
 	TWeakObjectPtr<APCGExValencyCageBase> WeakCage(Cage);
 	TWeakObjectPtr<UPCGExValencyCageEditorMode> WeakMode(EditorMode);
 
+	// Check if ConnectorSet is available for type picker
+	UPCGExValencyConnectorSet* EffectiveSet = Cage->GetEffectiveConnectorSet();
+
+	if (EffectiveSet && EffectiveSet->ConnectorTypes.Num() > 0)
+	{
+		// Dropdown button with type menu
+		return SNew(SComboButton)
+			.ContentPadding(FMargin(4, 1))
+			.ButtonContent()
+			[
+				SNew(STextBlock)
+				.Text(NSLOCTEXT("PCGExValency", "AddConnector", "+ Add"))
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+			]
+			.OnGetMenuContent_Lambda([WeakCage, WeakMode, EffectiveSet]() -> TSharedRef<SWidget>
+			{
+				FMenuBuilder MenuBuilder(true, nullptr);
+
+				if (EffectiveSet)
+				{
+					for (const FPCGExValencyConnectorEntry& Entry : EffectiveSet->ConnectorTypes)
+					{
+						const FName TypeName = Entry.ConnectorType;
+						const FLinearColor TypeColor = Entry.DebugColor;
+
+						MenuBuilder.AddMenuEntry(
+							FText::FromName(TypeName),
+							FText::Format(NSLOCTEXT("PCGExValency", "AddTypedConnectorTip", "Add connector of type '{0}'"), FText::FromName(TypeName)),
+							FSlateIcon(),
+							FUIAction(FExecuteAction::CreateLambda([WeakCage, WeakMode, TypeName]()
+							{
+								if (APCGExValencyCageBase* C = WeakCage.Get())
+								{
+									if (UPCGExValencyCageEditorMode* Mode = WeakMode.Get())
+									{
+										if (UPCGExValencyCageConnectorComponent* NewConn = Mode->AddConnectorToCage(C))
+										{
+											NewConn->ConnectorType = TypeName;
+										}
+									}
+								}
+							}))
+						);
+					}
+				}
+
+				return MenuBuilder.MakeWidget();
+			})
+			.ToolTipText(NSLOCTEXT("PCGExValency", "AddConnectorTypedTip", "Add a connector with a specific type"));
+	}
+
+	// Fallback: plain button when no ConnectorSet available
 	return SNew(SButton)
 		.Text(NSLOCTEXT("PCGExValency", "AddConnector", "+ Add"))
 		.ToolTipText(NSLOCTEXT("PCGExValency", "AddConnectorTip", "Add a new connector to this cage (Ctrl+Shift+A)"))

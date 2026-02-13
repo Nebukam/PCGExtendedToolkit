@@ -953,13 +953,25 @@ void APCGExValencyCageBase::RequestRebuild(EValencyRebuildReason Reason)
 
 UPCGExValencyConnectorSet* APCGExValencyCageBase::GetEffectiveConnectorSet() const
 {
-	// Check explicit override first
+	// 1. Per-cage override
 	if (ConnectorSetOverride)
 	{
 		return ConnectorSetOverride;
 	}
 
-	// Resolve through effective BondingRules
+	// 2. Containing volume override
+	for (const TWeakObjectPtr<AValencyContextVolume>& VolumePtr : ContainingVolumes)
+	{
+		if (const AValencyContextVolume* Volume = VolumePtr.Get())
+		{
+			if (UPCGExValencyConnectorSet* VolumeSet = Volume->GetEffectiveConnectorSet())
+			{
+				return VolumeSet;
+			}
+		}
+	}
+
+	// 3. Fallback: BondingRules.ConnectorSet
 	if (const UPCGExValencyBondingRules* Rules = GetEffectiveBondingRules())
 	{
 		if (Rules->ConnectorSet)

@@ -90,6 +90,7 @@ void AValencyContextVolume::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	// Notify cages if relevant properties changed
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, BondingRules) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, OrbitalSetOverride) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, ConnectorSetOverride) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(AValencyContextVolume, DefaultProbeRadius))
 	{
 		NotifyContainedCages();
@@ -161,6 +162,21 @@ UPCGExValencyOrbitalSet* AValencyContextVolume::GetEffectiveOrbitalSet() const
 	if (BondingRules && BondingRules->OrbitalSets.Num() > 0)
 	{
 		return BondingRules->OrbitalSets[0];
+	}
+
+	return nullptr;
+}
+
+UPCGExValencyConnectorSet* AValencyContextVolume::GetEffectiveConnectorSet() const
+{
+	if (ConnectorSetOverride)
+	{
+		return ConnectorSetOverride;
+	}
+
+	if (BondingRules && BondingRules->ConnectorSet)
+	{
+		return BondingRules->ConnectorSet;
 	}
 
 	return nullptr;

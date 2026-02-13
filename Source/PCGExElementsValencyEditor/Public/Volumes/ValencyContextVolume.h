@@ -7,6 +7,7 @@
 #include "GameFramework/Volume.h"
 #include "Core/PCGExValencyBondingRules.h"
 #include "Core/PCGExValencyOrbitalSet.h"
+#include "Core/PCGExValencyConnectorSet.h"
 
 #include "ValencyContextVolume.generated.h"
 
@@ -36,6 +37,9 @@ public:
 
 	/** Get the orbital set (either override or from BondingRules) */
 	UPCGExValencyOrbitalSet* GetEffectiveOrbitalSet() const;
+
+	/** Get the effective connector set (override or from BondingRules) */
+	UPCGExValencyConnectorSet* GetEffectiveConnectorSet() const;
 
 	/** Get default probe radius for cages in this volume */
 	float GetDefaultProbeRadius() const { return DefaultProbeRadius; }
@@ -74,6 +78,13 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency", AdvancedDisplay)
 	TObjectPtr<UPCGExValencyOrbitalSet> OrbitalSetOverride;
+
+	/**
+	 * Optional connector set override.
+	 * If not set, uses ConnectorSet from BondingRules.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valency")
+	TObjectPtr<UPCGExValencyConnectorSet> ConnectorSetOverride;
 
 	/**
 	 * Default probe radius for cages in this volume.
